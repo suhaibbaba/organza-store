@@ -35,4 +35,4 @@ jobs:
             npm run build
             npx medusa migrations run
 
-            systemctl restart medusa
+            pm2 restart medusa
