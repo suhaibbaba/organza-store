@@ -1,0 +1,39 @@
+name: Deploy to VPS
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to VPS via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT }}
+          script: |
+            export NVM_DIR="$HOME/.nvm"
+            source "$NVM_DIR/nvm.sh"
+
+            # Clone on first deploy, pull on subsequent deploys
+            if [ ! -d "/root/my-medusa-store" ]; then
+              git clone git@github.com:your-username/your-repo.git /root/my-medusa-store
+            fi
+
+            cd /root/organza-store/backend
+            git pull origin main
+
+            npm install
+            npm run build
+            npx medusa migrations run
+
+            systemctl restart medusa
