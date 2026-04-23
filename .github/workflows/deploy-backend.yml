@@ -5,7 +5,8 @@ on:
     branches:
       - main
     paths:
-      - "backend/**"
+      - 'backend/**'
+  workflow_dispatch:
 
 jobs:
   deploy:
@@ -23,7 +24,7 @@ jobs:
             export NVM_DIR="$HOME/.nvm"
             source "$NVM_DIR/nvm.sh"
 
-            if [ ! -d "/root/organza-store" ]; then
+            if [ ! -d "/root/organza-store/.git" ]; then
               git clone git@github.com:suhaibbaba/organza-store.git /root/organza-store
             fi
 
