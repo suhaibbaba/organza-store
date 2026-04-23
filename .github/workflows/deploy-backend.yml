@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - 'backend/**'
+      - "backend/**"
 
 jobs:
   deploy:
@@ -35,4 +35,8 @@ jobs:
             npm run build
             npx medusa migrations run
 
-            pm2 restart medusa
+            pm2 describe medusa > /dev/null 2>&1 \
+              && pm2 restart medusa \
+              || pm2 start npm --name "medusa" -- run start
+
+            pm2 save
