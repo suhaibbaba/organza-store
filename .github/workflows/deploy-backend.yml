@@ -20,6 +20,8 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           port: ${{ secrets.VPS_PORT }}
+          timeout: 60s
+          command_timeout: 20m
           script: |
             export NVM_DIR="$HOME/.nvm"
             source "$NVM_DIR/nvm.sh"
@@ -32,12 +34,24 @@ jobs:
             git pull origin main
 
             cd backend
-            npm install
-            npm run build
-            npx medusa migrations run
+
+            if [ package.json -nt node_modules ]; then
+              npm install
+            fi
+
+            npx medusa build
+
+            cd .medusa/server
+
+            if [ /root/organza-store/backend/package.json -nt node_modules ]; then
+              npm install
+            fi
+
+            cp /root/organza-store/backend/.env .env.production
+            NODE_ENV=production npx medusa migrations run
 
             pm2 describe medusa > /dev/null 2>&1 \
-              && pm2 restart medusa \
-              || pm2 start npm --name "medusa" -- run start
+              && pm2 reload /root/ecosystem.config.js --only organza-store-backend \
+              || pm2 start /root/ecosystem.config.js --only organza-store-backend
 
             pm2 save
