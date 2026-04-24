@@ -13,7 +13,36 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Deploy Backend to VPS
+      - name: Pull latest code
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT }}
+          script: |
+            if [ ! -d "/root/organza-store/.git" ]; then
+              git clone git@github.com:suhaibbaba/organza-store.git /root/organza-store
+            fi
+            cd /root/organza-store
+            git pull origin main
+
+      - name: Install dependencies
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT }}
+          script: |
+            export NVM_DIR="$HOME/.nvm"
+            source "$NVM_DIR/nvm.sh"
+            cd /root/organza-store/backend
+            if [ package.json -nt node_modules ]; then
+              npm install
+            fi
+
+      - name: Build Medusa
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.VPS_HOST }}
@@ -25,33 +54,38 @@ jobs:
           script: |
             export NVM_DIR="$HOME/.nvm"
             source "$NVM_DIR/nvm.sh"
-
-            if [ ! -d "/root/organza-store/.git" ]; then
-              git clone git@github.com:suhaibbaba/organza-store.git /root/organza-store
-            fi
-
-            cd /root/organza-store
-            git pull origin main
-
-            cd backend
-
-            if [ package.json -nt node_modules ]; then
-              npm install
-            fi
-
+            cd /root/organza-store/backend
             npx medusa build
-
             cd .medusa/server
-
             if [ /root/organza-store/backend/package.json -nt node_modules ]; then
               npm install
             fi
-
             cp /root/organza-store/backend/.env .env.production
+
+      - name: Run migrations
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT }}
+          script: |
+            export NVM_DIR="$HOME/.nvm"
+            source "$NVM_DIR/nvm.sh"
+            cd /root/organza-store/backend/.medusa/server
             NODE_ENV=production npx medusa migrations run
 
-            pm2 describe medusa > /dev/null 2>&1 \
+      - name: Restart Medusa
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT }}
+          script: |
+            export NVM_DIR="$HOME/.nvm"
+            source "$NVM_DIR/nvm.sh"
+            pm2 describe organza-store-backend > /dev/null 2>&1 \
               && pm2 reload /root/ecosystem.config.js --only organza-store-backend \
               || pm2 start /root/ecosystem.config.js --only organza-store-backend
-
             pm2 save
