@@ -1,0 +1,35 @@
+name: Deploy Follow Us
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'follow-us/**'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Pull latest code
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT }}
+          script: |
+            if [ ! -d "/root/organza-store/.git" ]; then
+              rm -rf /root/organza-store
+              git clone git@github.com:suhaibbaba/organza-store.git /root/organza-store
+            fi
+            cd /root/organza-store
+            git fetch origin main
+            git reset --hard origin/main
+            # Restore env symlinks
+            ln -sf /root/.env.backend /root/organza-store/backend/.env 2>/dev/null || true
+            ln -sf /root/.env.frontend /root/organza-store/frontend/.env 2>/dev/null || true
+            # Confirm follow-us folder exists
+            ls -la /root/organza-store/follow-us
