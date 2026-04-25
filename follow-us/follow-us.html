@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Digital Business Card</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #235c63 0%, #235c63 100%);
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+      }
+
+      .card-container {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 30px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        max-width: 450px;
+        width: 100%;
+        overflow: hidden;
+        animation: slideUp 0.6s ease-out;
+      }
+
+      @keyframes slideUp {
+        from {
+          opacity: 0;
+          transform: translateY(30px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .header {
+        background: linear-gradient(135deg, #235c63 0%, #235c63 100%);
+        padding: 40px 30px;
+        text-align: center;
+        color: white;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .header::before {
+        content: "";
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(
+          circle,
+          rgba(255, 255, 255, 0.1) 0%,
+          transparent 70%
+        );
+        animation: pulse 4s ease-in-out infinite;
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.1);
+        }
+      }
+
+      .profile-img {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        border: 5px solid #235c63;
+        margin: 0 auto 20px;
+        background: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 48px;
+        position: relative;
+        z-index: 1;
+        transform-style: preserve-3d;
+        animation: float3d 3s ease-in-out infinite;
+        box-shadow: 
+          0 10px 30px rgba(0, 0, 0, 0.3),
+          0 20px 60px rgba(0, 0, 0, 0.2),
+          inset 0 -5px 10px rgba(0, 0, 0, 0.1);
+      }
+
+      @keyframes float3d {
+        0%, 100% {
+          transform: translateY(0px) rotateX(0deg) rotateY(0deg);
+        }
+        25% {
+          transform: translateY(-10px) rotateX(5deg) rotateY(-5deg);
+        }
+        50% {
+          transform: translateY(0px) rotateX(0deg) rotateY(5deg);
+        }
+        75% {
+          transform: translateY(-10px) rotateX(-5deg) rotateY(0deg);
+        }
+      }
+      
+      .name {
+        font-size: 28px;
+        font-weight: bold;
+        margin-bottom: 8px;
+        position: relative;
+        z-index: 1;
+      }
+
+      .title {
+        font-size: 16px;
+        opacity: 0.9;
+        position: relative;
+        z-index: 1;
+      }
+
+      .content {
+        padding: 30px;
+      }
+
+      .links-section {
+        margin-bottom: 30px;
+      }
+
+      .link-item {
+        display: flex;
+        align-items: center;
+        padding: 15px 20px;
+        margin-bottom: 12px;
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        border-radius: 15px;
+        text-decoration: none;
+        color: #333;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      }
+
+      .link-item:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+      }
+
+      .link-icon {
+        width: 24px;
+        height: 24px;
+        margin-right: 15px;
+        font-size: 24px;
+      }
+
+      .link-text {
+        font-size: 16px;
+        font-weight: 500;
+      }
+
+      .map-section {
+        margin-top: 30px;
+      }
+
+      .section-title {
+        font-size: 20px;
+        font-weight: bold;
+        margin-bottom: 15px;
+        color: #333;
+        display: flex;
+        align-items: center;
+      }
+
+      .map-container {
+        width: 100%;
+        height: 250px;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      }
+
+      .map-container iframe {
+        width: 100%;
+        height: 100%;
+        border: none;
+      }
+
+      @media (max-width: 480px) {
+        .card-container {
+          border-radius: 20px;
+        }
+
+        .header {
+          padding: 30px 20px;
+        }
+
+        .content {
+          padding: 20px;
+        }
+
+        .name {
+          font-size: 24px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card-container">
+      <div class="header">
+        <div class="profile-img">
+          <img
+            src="./public/logo.svg"
+            alt="Profile Picture"
+            style="
+              width: 100%;
+              height: 100%;
+              border-radius: 50%;
+              object-fit: cover;
+              outline: 1px solid;
+              padding: 2px;
+              background-color: #235c63;
+            "
+          />
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="links-section">
+          <a href="tel:+972592701910" class="link-item">
+            <div class="link-icon">
+              <img
+                src="./public/phone.svg"
+                alt="Phone"
+                style="width: 24px; height: 24px"
+              />
+            </div>
+            <div class="link-text">Call Me</div>
+          </a>
+
+          <a
+            href="https://wa.me/972592701910"
+            target="_blank"
+            class="link-item"
+          >
+            <div class="link-icon">
+              <img
+                src="./public/whatsApp.svg"
+                alt="WhatsApp"
+                style="width: 24px; height: 24px"
+              />
+            </div>
+            <div class="link-text">WhatsApp</div>
+          </a>
+
+          <a href="https://www.tiktok.com/@organza.tulkarm" target="_blank" class="link-item">
+            <div class="link-icon">
+              <img
+                src="./public/tiktok.svg"
+                alt="TikTok"
+                style="width: 24px; height: 24px"
+              />
+            </div>
+            <div class="link-text">TikTok</div>
+          </a>
+
+          <a
+            href="https://www.instagram.com/organza.tulkarm"
+            target="_blank"
+            class="link-item"
+          >
+            <div class="link-icon">
+              <img
+                src="./public/instagram.svg"
+                alt="Instagram"
+                style="width: 24px; height: 24px"
+              />
+            </div>
+            <div class="link-text">Instagram</div>
+          </a>
+
+        <a
+            href="https://www.facebook.com/organzmoda"
+            target="_blank"
+            class="link-item"
+          >
+            <div class="link-icon">
+              <img
+                src="./public/facebook.svg"
+                alt="Facebook"
+                style="width: 24px; height: 24px"
+              />
+            </div>
+            <div class="link-text">Facebook</div>
+          </a>
+        </div>
+
+        <div class="map-section">
+          <div class="section-title">📍 Find Us Here</div>
+          <div class="map-container">
+            <iframe
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3371.7806418439204!2d35.02585007578085!3d32.317746473858854!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x151d177146975d2f%3A0x5ffa2cfd98d5efe8!2sOrganza!5e0!3m2!1sen!2s!4v1765490957961!5m2!1sen!2s"
+              width="600"
+              height="450"
+              style="border: 0"
+              allowfullscreen=""
+              loading="lazy"
+              referrerpolicy="no-referrer-when-downgrade"
+            ></iframe>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

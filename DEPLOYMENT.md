@@ -20,9 +20,10 @@
 11. [DNS Records (do this BEFORE Nginx SSL)](#11-dns-records)
 12. [Configure Nginx (HTTP only first)](#12-configure-nginx)
 13. [SSL with Certbot](#13-ssl-with-certbot)
-14. [GitHub Actions CI/CD](#14-github-actions-cicd)
-15. [Useful Commands](#15-useful-commands)
-16. [Troubleshooting](#16-troubleshooting)
+14. [Add Proxy Headers for Auth](#14-add-proxy-headers-for-auth)
+15. [GitHub Actions CI/CD](#15-github-actions-cicd)
+16. [Useful Commands](#16-useful-commands)
+17. [Troubleshooting](#17-troubleshooting)
 
 ---
 
@@ -257,6 +258,13 @@ Go to repo → **Settings → Secrets and variables → Actions → New reposito
 
 > **Important:** Store `.env` files **outside** the cloned repo so they survive any `git clone` / `rm -rf` operation. We'll symlink them into the repo.
 
+### Generate strong secrets first
+
+```bash
+openssl rand -base64 32   # Use for JWT_SECRET
+openssl rand -base64 32   # Use for COOKIE_SECRET
+```
+
 ### Backend `.env`
 
 ```bash
@@ -264,16 +272,25 @@ nano /root/.env.backend
 ```
 
 ```env
+# Database & Redis (both on the same VPS = localhost)
 DATABASE_URL=postgres://medusa_user:yourpassword@localhost:5432/medusa_db
 REDIS_URL=redis://localhost:6379
-JWT_SECRET=your_jwt_secret_here
-COOKIE_SECRET=your_cookie_secret_here
+
+# Strong random secrets — DO NOT use "supersecret" in production
+JWT_SECRET=<paste-output-of-openssl-rand-1>
+COOKIE_SECRET=<paste-output-of-openssl-rand-2>
+
+# Runtime
 NODE_ENV=production
 PORT=4100
+
+# CORS — must match the actual domains used in browser
 STORE_CORS=https://organza-moda.com,https://www.organza-moda.com
 ADMIN_CORS=https://api.organza-moda.com
-AUTH_CORS=https://organza-moda.com,https://www.organza-moda.com,https://api.organza-moda.com
+AUTH_CORS=https://api.organza-moda.com,https://organza-moda.com,https://www.organza-moda.com
 ```
+
+> ⚠️ **CORS rule:** every URL the browser opens must appear in the matching `*_CORS` variable. `ADMIN_CORS` must include the domain that serves the admin UI (in our case `https://api.organza-moda.com`).
 
 ### Frontend `.env`
 
@@ -379,7 +396,7 @@ systemctl enable nginx
 systemctl start nginx
 ```
 
-> **Important:** Start with HTTP-only configs. Certbot will add the SSL parts automatically in the next step. If you start with SSL config but no certificate, `nginx -t` will fail.
+> **Important:** Start with HTTP-only configs that already include the full proxy headers. Certbot will add the SSL parts on top in the next step. The proxy headers are critical — Medusa Admin login will not work without them (see [Section 14](#14-add-proxy-headers-for-auth)).
 
 ### Backend — `api.organza-moda.com` (HTTP-only initial config)
 
@@ -396,11 +413,18 @@ server {
     location / {
         proxy_pass http://localhost:4100;
         proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
+
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Host $host;
+
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
         proxy_cache_bypass $http_upgrade;
+
+        proxy_read_timeout 300s;
     }
 }
 ```
@@ -420,11 +444,18 @@ server {
     location / {
         proxy_pass http://localhost:4101;
         proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
+
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Host $host;
+
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
         proxy_cache_bypass $http_upgrade;
+
+        proxy_read_timeout 300s;
     }
 }
 ```
@@ -464,35 +495,6 @@ Certbot will automatically:
 - Add HTTP → HTTPS redirects
 - Reload Nginx
 
-### Enable HTTP/2 (optional but recommended)
-
-After Certbot finishes, edit each site and add `http2` to the `listen 443` lines:
-
-```bash
-nano /etc/nginx/sites-available/api.organza-moda.com
-```
-
-Change:
-```nginx
-listen 443 ssl;
-listen [::]:443 ssl;
-```
-
-To:
-```nginx
-listen 443 ssl http2;
-listen [::]:443 ssl http2;
-```
-
-> ⚠️ **Do NOT use `http2 on;` directive** — that syntax requires Nginx ≥ 1.25.1. On Nginx 1.24 (default Ubuntu 22.04), use the `http2` parameter on the `listen` line as shown above.
-
-Repeat for `organza-moda.com`, then:
-
-```bash
-nginx -t
-systemctl reload nginx
-```
-
 ### Auto-renewal
 
 Certbot installs a systemd timer that auto-renews certificates. Verify it's active:
@@ -503,7 +505,111 @@ systemctl status certbot.timer
 
 ---
 
-## 14. GitHub Actions CI/CD
+## 14. Add Proxy Headers for Auth
+
+> 🚨 **Critical step — skipping this breaks Medusa Admin login.** Certbot can rewrite parts of the Nginx config and may drop the `proxy_set_header` lines. After running Certbot, you must verify the proxy headers are still in place and that `X-Forwarded-Proto` is set to `https` (not `$scheme`).
+
+### Why this matters
+
+Behind Nginx, Medusa receives requests on plain HTTP at `localhost:4100`. Without telling Medusa that the original request came over HTTPS, Medusa generates cookies with wrong flags and the auth chain breaks. The symptom is: login appears to succeed (`200 OK`) but every following admin request returns `401 Unauthorized`, and you get bounced back to the login page.
+
+The `X-Forwarded-Proto https` header is what fixes this.
+
+### Verify the headers exist
+
+```bash
+grep "X-Forwarded-Proto" /etc/nginx/sites-available/api.organza-moda.com
+```
+
+Expected output:
+```
+proxy_set_header X-Forwarded-Proto https;
+```
+
+If nothing is returned, or it shows `$scheme` instead of `https`, fix it.
+
+### Final config after Certbot
+
+Your `api.organza-moda.com` should look like this:
+
+```nginx
+server {
+    server_name api.organza-moda.com;
+
+    location / {
+        proxy_pass http://localhost:4100;
+        proxy_http_version 1.1;
+
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto https;
+        proxy_set_header X-Forwarded-Host $host;
+        proxy_set_header X-Forwarded-Port 443;
+
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_cache_bypass $http_upgrade;
+
+        proxy_read_timeout 300s;
+    }
+
+    listen [::]:443 ssl; # managed by Certbot
+    listen 443 ssl; # managed by Certbot
+    ssl_certificate /etc/letsencrypt/live/organza-moda.com/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/organza-moda.com/privkey.pem; # managed by Certbot
+    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+}
+
+server {
+    if ($host = api.organza-moda.com) {
+        return 301 https://$host$request_uri;
+    } # managed by Certbot
+
+    listen 80;
+    listen [::]:80;
+    server_name api.organza-moda.com;
+    return 404; # managed by Certbot
+}
+```
+
+Apply the same `location /` block to `/etc/nginx/sites-available/organza-moda.com` (with `proxy_pass http://localhost:4101;` instead).
+
+### Apply changes
+
+```bash
+nginx -t
+systemctl reload nginx
+pm2 restart medusa
+```
+
+### (Optional) Enable HTTP/2
+
+Once everything works, enable HTTP/2 for better performance:
+
+```nginx
+listen 443 ssl http2;
+listen [::]:443 ssl http2;
+```
+
+> ⚠️ **Do NOT use `http2 on;` directive** — that syntax requires Nginx ≥ 1.25.1. On Nginx 1.24 (default Ubuntu 22.04), use the `http2` parameter on the `listen` line as shown above.
+
+```bash
+nginx -t
+systemctl reload nginx
+```
+
+### Test login
+
+1. Open browser → `F12` → **Application** → **Storage** → **Clear site data**
+2. Go to `https://api.organza-moda.com/app/login`
+3. Login with admin credentials
+4. You should land on the admin dashboard and stay there
+
+---
+
+## 15. GitHub Actions CI/CD
 
 Create these files in your local project and push them to trigger deployments.
 
@@ -693,7 +799,7 @@ Go to repo → **Actions** → select workflow → **Run workflow** → choose `
 
 ---
 
-## 15. Useful Commands
+## 16. Useful Commands
 
 ### PM2
 
@@ -718,6 +824,7 @@ Go to repo → **Actions** → select workflow → **Run workflow** → choose `
 | Restart | `systemctl restart nginx` |
 | View error log | `tail -f /var/log/nginx/error.log` |
 | View access log | `tail -f /var/log/nginx/access.log` |
+| Check proxy headers | `grep "X-Forwarded-Proto" /etc/nginx/sites-available/api.organza-moda.com` |
 
 ### PostgreSQL
 
@@ -754,7 +861,68 @@ curl https://organza-moda.com              # Next.js page
 
 ---
 
-## 16. Troubleshooting
+## 17. Troubleshooting
+
+### Admin login redirects back to login page (200 → 401 loop)
+
+**Symptom:** `POST /auth/session` returns `200` but every following request like `GET /admin/users/me` returns `401`. Login appears to succeed but you're bounced back to the login page.
+
+**Cause:** Nginx isn't forwarding the original `https` scheme to Medusa, so cookies are set with the wrong flags and the browser/server can't agree on auth state.
+
+**Fix:** Ensure `X-Forwarded-Proto https` is set in the Nginx config. See [Section 14](#14-add-proxy-headers-for-auth).
+
+```bash
+# Verify header is present and set to https
+grep "X-Forwarded-Proto" /etc/nginx/sites-available/api.organza-moda.com
+
+# If missing or wrong, edit the config to add the proxy headers, then:
+nginx -t
+systemctl reload nginx
+pm2 restart medusa
+
+# Clear browser cookies before testing again
+# F12 → Application → Storage → Clear site data
+```
+
+### Medusa Admin login fails locally with `NODE_ENV=production`
+
+When running locally with `NODE_ENV=production`, Medusa enforces strict cookies that don't work over plain HTTP on `localhost`. Two options:
+
+**Option A — use development mode locally (recommended):**
+```bash
+cd backend
+npm run dev
+```
+
+**Option B — relax cookie settings for local production testing only:**
+
+Add to `medusa-config.ts`:
+```typescript
+projectConfig: {
+  // ...
+  cookieOptions: {
+    sameSite: "lax",
+    secure: false,
+  },
+}
+```
+
+> ⚠️ **Remove this before deploying to the VPS** — it weakens production security.
+
+### CORS error in browser console
+
+The browser blocks requests to a domain that isn't in the allowed CORS list.
+
+**Fix:** add the domain to the appropriate `*_CORS` variable in `/root/.env.backend`:
+- `ADMIN_CORS` — domain serving the admin UI
+- `STORE_CORS` — domain(s) of the storefront
+- `AUTH_CORS` — every domain that performs login/auth (admin + store)
+
+Then:
+```bash
+cp /root/.env.backend /root/organza-store/backend/.medusa/server/.env.production
+pm2 restart medusa
+```
 
 ### Nginx: `unknown directive "http2"`
 
@@ -806,6 +974,7 @@ cat /root/organza-store/backend/.medusa/server/.env.production | grep -E "DATABA
 
 # If missing, copy it
 cp /root/.env.backend /root/organza-store/backend/.medusa/server/.env.production
+pm2 restart medusa
 ```
 
 Also verify the database is reachable:
@@ -823,6 +992,15 @@ pm2 logs medusa --lines 100
 ```
 
 Common causes: missing `.env.production`, database not reachable, Redis not running, port already in use.
+
+### Lost all PM2 processes after `pm2 delete all`
+
+Restart them from the ecosystem config:
+
+```bash
+pm2 start /root/ecosystem.config.js
+pm2 save
+```
 
 ---
 
@@ -876,8 +1054,10 @@ For a fresh VPS, follow this exact order:
 - [ ] 9. Create env files outside the repo (`/root/.env.backend`, `/root/.env.frontend`)
 - [ ] 10. Create PM2 ecosystem config
 - [ ] 11. **Add DNS records and wait for propagation**
-- [ ] 12. Configure Nginx with HTTP-only configs
+- [ ] 12. Configure Nginx with HTTP-only configs (already includes proxy headers)
 - [ ] 13. Run Certbot to add SSL automatically
-- [ ] 14. (Optional) Add `http2` to listen lines
-- [ ] 15. Push GitHub Actions workflow files
-- [ ] 16. Trigger first deployment manually from Actions tab
+- [ ] 14. **Verify proxy headers survived Certbot** — `grep "X-Forwarded-Proto" /etc/nginx/sites-available/api.organza-moda.com` should return `https`
+- [ ] 15. (Optional) Add `http2` to listen lines
+- [ ] 16. Push GitHub Actions workflow files
+- [ ] 17. Trigger first deployment manually from Actions tab
+- [ ] 18. Test admin login at `https://api.organza-moda.com/app/login` — login should stick

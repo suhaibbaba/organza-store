@@ -17,3 +17,4 @@ public/.nuxt/
 public/.cache/
 public/.parcel-cache/
 public/.vercel/     
+.DS_Store
