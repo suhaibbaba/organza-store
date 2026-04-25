@@ -73,7 +73,8 @@ jobs:
             export NVM_DIR="$HOME/.nvm"
             source "$NVM_DIR/nvm.sh"
             cd /root/organza-store/backend/.medusa/server
-            NODE_ENV=production npx medusa migrations run
+            NODE_ENV=production npx medusa db:migrate
+            NODE_ENV=production npx medusa db:sync-links
 
       - name: Restart Medusa
         uses: appleboy/ssh-action@v1.0.3
