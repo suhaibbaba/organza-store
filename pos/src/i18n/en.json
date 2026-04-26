@@ -1,0 +1,80 @@
+{
+  "app": {
+    "title": "Medusa POS",
+    "login": "Sign In",
+    "logout": "Logout",
+    "settings": "Settings",
+    "language": "Language",
+    "english": "English",
+    "arabic": "العربية"
+  },
+  "login": {
+    "subtitle": "Sign in with your admin account",
+    "email": "Email",
+    "password": "Password",
+    "submit": "Sign In",
+    "signingIn": "Signing in…",
+    "error": "Invalid email or password"
+  },
+  "pos": {
+    "scan": "Scan barcode",
+    "scanPlaceholder": "📷 Scan barcode here…",
+    "scanWithCamera": "Scan with Camera",
+    "manualSearch": "Search",
+    "emptyCart": "Cart is empty",
+    "emptyCartHint": "Scan a barcode or use Search",
+    "region": "Region",
+    "quantity": "Qty",
+    "unitPrice": "each",
+    "discount": "Discount",
+    "remove": "Remove",
+    "percent": "%",
+    "fixed": "Amount"
+  },
+  "summary": {
+    "title": "Sale Summary",
+    "subtotal": "Subtotal",
+    "cartDiscount": "Cart Discount",
+    "discountApplied": "Discount",
+    "total": "TOTAL",
+    "paymentMethod": "Payment Method",
+    "cash": "Cash",
+    "card": "Card",
+    "other": "Other",
+    "complete": "Complete Sale",
+    "processing": "Processing…",
+    "clear": "Clear Cart"
+  },
+  "search": {
+    "title": "Search Products",
+    "placeholder": "Type product name or SKU…",
+    "noResults": "No matches",
+    "close": "Close"
+  },
+  "scanner": {
+    "title": "Camera Scanner",
+    "hint": "Point your camera at a barcode",
+    "permissionDenied": "Camera permission denied. Please enable it in your browser settings.",
+    "notFound": "No camera found",
+    "cancel": "Cancel"
+  },
+  "settings": {
+    "title": "Settings",
+    "backendUrl": "Backend URL",
+    "backendUrlHint": "Leave as /medusa for local dev; use your domain for production",
+    "publishableKey": "Publishable API Key",
+    "publishableKeyHint": "Create one in Medusa Admin → Settings → Publishable API Keys. Required for product lookup.",
+    "save": "Save Settings"
+  },
+  "toast": {
+    "added": "Added {{name}}",
+    "notFound": "No product found for \"{{code}}\"",
+    "saleComplete": "Sale complete! Order #{{id}}",
+    "saleFailed": "Order failed: {{msg}}",
+    "emptyCart": "Cart is empty",
+    "noRegion": "No region selected",
+    "missingKey": "Please set your Publishable API Key in Settings first",
+    "sessionExpired": "Session expired — please log in again",
+    "settingsSaved": "Settings saved"
+  }
+}

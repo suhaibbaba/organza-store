@@ -1,0 +1,80 @@
+{
+  "app": {
+    "title": "نقطة البيع",
+    "login": "تسجيل الدخول",
+    "logout": "تسجيل الخروج",
+    "settings": "الإعدادات",
+    "language": "اللغة",
+    "english": "English",
+    "arabic": "العربية"
+  },
+  "login": {
+    "subtitle": "سجّل الدخول بحساب المدير",
+    "email": "البريد الإلكتروني",
+    "password": "كلمة المرور",
+    "submit": "دخول",
+    "signingIn": "جارٍ الدخول…",
+    "error": "البريد الإلكتروني أو كلمة المرور غير صحيحة"
+  },
+  "pos": {
+    "scan": "مسح الباركود",
+    "scanPlaceholder": "📷 امسح الباركود هنا…",
+    "scanWithCamera": "المسح بالكاميرا",
+    "manualSearch": "بحث",
+    "emptyCart": "السلة فارغة",
+    "emptyCartHint": "امسح باركود أو ابحث يدويًا",
+    "region": "المنطقة",
+    "quantity": "الكمية",
+    "unitPrice": "للوحدة",
+    "discount": "خصم",
+    "remove": "إزالة",
+    "percent": "٪",
+    "fixed": "مبلغ"
+  },
+  "summary": {
+    "title": "ملخص البيع",
+    "subtotal": "المجموع الفرعي",
+    "cartDiscount": "خصم السلة",
+    "discountApplied": "الخصم",
+    "total": "الإجمالي",
+    "paymentMethod": "طريقة الدفع",
+    "cash": "نقدًا",
+    "card": "بطاقة",
+    "other": "أخرى",
+    "complete": "إتمام البيع",
+    "processing": "جارٍ المعالجة…",
+    "clear": "إفراغ السلة"
+  },
+  "search": {
+    "title": "بحث عن منتج",
+    "placeholder": "اكتب اسم المنتج أو الكود…",
+    "noResults": "لا توجد نتائج",
+    "close": "إغلاق"
+  },
+  "scanner": {
+    "title": "ماسح الكاميرا",
+    "hint": "وجّه الكاميرا نحو الباركود",
+    "permissionDenied": "تم رفض الإذن للكاميرا. يُرجى تفعيلها من إعدادات المتصفح.",
+    "notFound": "لم يتم العثور على كاميرا",
+    "cancel": "إلغاء"
+  },
+  "settings": {
+    "title": "الإعدادات",
+    "backendUrl": "رابط الخادم",
+    "backendUrlHint": "اتركه /medusa للتطوير المحلي، أو استخدم نطاقك للإنتاج",
+    "publishableKey": "مفتاح الـ API العام",
+    "publishableKeyHint": "أنشئ مفتاحًا من: الإعدادات ← مفاتيح API العامة. مطلوب لجلب المنتجات.",
+    "save": "حفظ الإعدادات"
+  },
+  "toast": {
+    "added": "تمت إضافة {{name}}",
+    "notFound": "لم يتم العثور على منتج بالرمز \"{{code}}\"",
+    "saleComplete": "تم البيع! طلب رقم #{{id}}",
+    "saleFailed": "فشل الطلب: {{msg}}",
+    "emptyCart": "السلة فارغة",
+    "noRegion": "لم يتم اختيار منطقة",
+    "missingKey": "الرجاء ضبط مفتاح الـ API العام من الإعدادات أولًا",
+    "sessionExpired": "انتهت الجلسة — يُرجى تسجيل الدخول مجددًا",
+    "settingsSaved": "تم حفظ الإعدادات"
+  }
+}
