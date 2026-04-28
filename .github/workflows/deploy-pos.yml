@@ -1,0 +1,83 @@
+name: Deploy Frontend
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'pos/**'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Pull latest code
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT }}
+          script: |
+            if [ ! -d "/root/organza-store/.git" ]; then
+              rm -rf /root/organza-store
+              git clone git@github.com:suhaibbaba/organza-store.git /root/organza-store
+            fi
+            cd /root/organza-store
+            git fetch origin main
+            git reset --hard origin/main
+
+      - name: Sync ENV
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT }}
+          script: |
+            bash .github/scripts/sync-env.sh
+
+      - name: Install dependencies
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT }}
+          script: |
+            export NVM_DIR="$HOME/.nvm"
+            source "$NVM_DIR/nvm.sh"
+            cd /root/organza-store/frontend
+            npm install
+
+      - name: Build Next.js
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT }}
+          timeout: 60s
+          command_timeout: 20m
+          script: |
+            export NVM_DIR="$HOME/.nvm"
+            source "$NVM_DIR/nvm.sh"
+            cd /root/organza-store/pos
+            npm run build
+
+      - name: Restart Next.js
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT }}
+          script: |
+            export NVM_DIR="$HOME/.nvm"
+            source "$NVM_DIR/nvm.sh"
+            pm2 describe organza-store-pos > /dev/null 2>&1 \
+              && pm2 reload /root/ecosystem.config.js --only organza-store-pos \
+              || pm2 start /root/ecosystem.config.js --only organza-store-pos
+            pm2 save

@@ -28,9 +28,6 @@ jobs:
             cd /root/organza-store
             git fetch origin main
             git reset --hard origin/main
-            # Restore env symlinks (in case the repo was re-cloned)
-            ln -sf /root/.env.backend /root/organza-store/backend/.env
-            ln -sf /root/.env.frontend /root/organza-store/frontend/.env
 
       - name: Write .env file
         uses: appleboy/ssh-action@v1.0.3
@@ -79,10 +76,12 @@ jobs:
       - name: Sync ENV
         uses: appleboy/ssh-action@v1.0.3
         with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT }}
           script: |
-            ln -sf /root/organza-store-env/.env-backend /root/organza-store/backend/.env
-            ln -sf /root/organza-store-env/.env-frontend  /root/organza-store/frontend/.env
-            ln -sf /root/organza-store-env/.env-pos /root/organza-store/pos/.env
+            bash .github/scripts/sync-env.sh
 
       - name: Install dependencies
         uses: appleboy/ssh-action@v1.0.3
