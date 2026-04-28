@@ -27,6 +27,40 @@ jobs:
             cd /root/organza-store
             git pull origin main
 
+      - name: Write .env file
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT }}
+          envs: DATABASE_URL,JWT_SECRET,COOKIE_SECRET,REDIS_URL,BACKEND_URL,STORE_CORS,ADMIN_CORS,AUTH_CORS
+          script: |
+            cat > /root/organza-store/backend/.env << EOF
+            MEDUSA_ADMIN_ONBOARDING_TYPE=nextjs
+            STORE_CORS=$STORE_CORS
+            ADMIN_CORS=$ADMIN_CORS
+            AUTH_CORS=$AUTH_CORS
+            REDIS_URL=$REDIS_URL
+            JWT_SECRET=$JWT_SECRET
+            COOKIE_SECRET=$COOKIE_SECRET
+            DATABASE_URL=$COOKIE_SECRET
+            MEDUSA_ADMIN_ONBOARDING_NEXTJS_DIRECTORY=frontend
+            NODE_ENV=production
+            PORT=4100
+            MEDUSA_WORKER_MODE=server
+            DISABLE_MEDUSA_ADMIN=false  
+            EOF
+        env:
+          DATABASE_URL: ${{ secrets.BACKEND_DATABASE_URL }}
+          JWT_SECRET: ${{ secrets.BACKEND_JWT_SECRET }}
+          COOKIE_SECRET: ${{ secrets.BACKEND_COOKIE_SECRET }}
+          REDIS_URL: ${{ secrets.BACKEND_REDIS_URL }}
+          BACKEND_URL: ${{ secrets.BACKEND_URL }}
+          STORE_CORS: ${{ secrets.BACKEND_STORE_CORS }}
+          ADMIN_CORS: ${{ secrets.BACKEND_ADMIN_CORS }}
+          AUTH_CORS: ${{ secrets.BACKEND_AUTH_CORS }}
+
       - name: Install dependencies
         uses: appleboy/ssh-action@v1.0.3
         with:
