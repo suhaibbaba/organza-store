@@ -36,7 +36,7 @@ jobs:
           port: ${{ secrets.VPS_PORT }}
           envs: DATABASE_URL,JWT_SECRET,COOKIE_SECRET,REDIS_URL,STORE_CORS,ADMIN_CORS,AUTH_CORS
           script: |
-            cat > /root/organza-store/backend/.env << EOF
+            cat > /root/organza-store-env/.env-backend << EOF
             MEDUSA_ADMIN_ONBOARDING_TYPE=nextjs
             STORE_CORS=$STORE_CORS
             ADMIN_CORS=$ADMIN_CORS
@@ -59,6 +59,15 @@ jobs:
           STORE_CORS: ${{ secrets.BACKEND_STORE_CORS }}
           ADMIN_CORS: ${{ secrets.BACKEND_ADMIN_CORS }}
           AUTH_CORS: ${{ secrets.BACKEND_AUTH_CORS }}
+
+
+      - name: Sync ENV
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          script: |
+            ln -sf /root/organza-store-env/.env-backend /root/organza-store/backend/.env
+            ln -sf /root/organza-store-env/.env-frontend  /root/organza-store/frontend/.env
+            ln -sf /root/organza-store-env/.env-pos /root/organza-store/pos/.env
 
       - name: Install dependencies
         uses: appleboy/ssh-action@v1.0.3

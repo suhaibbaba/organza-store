@@ -41,7 +41,7 @@ jobs:
           port: ${{ secrets.VPS_PORT }}
           envs: BACKEND_URL,PUBLISHABLE_KEY,PUBLIC_BASE_URL,PUBLIC_DEFAULT_REGION,PUBLIC_STRIPE_KEY,PAYMENTS_PUBLISHABLE_KEY,REVALIDATE_SECRET,CLOUD_S3_HOSTNAME
           script: |
-            cat > /root/organza-store/frontend/.env << EOF
+            cat > /root/organza-store-env/.env-frontend << EOF
             # Your Medusa backend, should be updated to where you are hosting your server. Remember to update CORS settings for your server. See – https://docs.medusajs.com/learn/configurations/medusa-config#httpstorecors
             MEDUSA_BACKEND_URL=$BACKEND_URL
             # Your publishable key that can be attached to sales channels. See - https://docs.medusajs.com/resources/storefront-development/publishable-api-keys
@@ -63,6 +63,7 @@ jobs:
             MEDUSA_CLOUD_S3_PATHNAME=$CLOUD_S3_PATHNAME
             PORT=4101
             EOF
+            ln -sf /root/organza-store-env/.env-frontend /root/organza-store/frontend/.env
         env:
           BACKEND_URL: ${{ secrets.FRONTEND_MEDUSA_BACKEND_URL }}
           PUBLISHABLE_KEY: ${{ secrets.FRONTEND_NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY }}
@@ -74,6 +75,14 @@ jobs:
           REVALIDATE_SECRET: ${{ secrets.FRONTEND_REVALIDATE_SECRET }}
           CLOUD_S3_HOSTNAME: ${{ secrets.FRONTEND_MEDUSA_CLOUD_S3_HOSTNAME }}
           CLOUD_S3_PATHNAME: ${{ secrets.FRONTEND_MEDUSA_CLOUD_S3_PATHNAME }}
+
+      - name: Sync ENV
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          script: |
+            ln -sf /root/organza-store-env/.env-backend /root/organza-store/backend/.env
+            ln -sf /root/organza-store-env/.env-frontend  /root/organza-store/frontend/.env
+            ln -sf /root/organza-store-env/.env-pos /root/organza-store/pos/.env
 
       - name: Install dependencies
         uses: appleboy/ssh-action@v1.0.3
