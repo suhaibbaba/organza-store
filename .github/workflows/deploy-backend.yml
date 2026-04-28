@@ -68,7 +68,7 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           port: ${{ secrets.VPS_PORT }}
           script: |
-            bash .github/scripts/sync-env.sh
+            bash /root/organza-store/.github/scripts/sync-env.sh
 
       - name: Install dependencies
         uses: appleboy/ssh-action@v1.0.3
