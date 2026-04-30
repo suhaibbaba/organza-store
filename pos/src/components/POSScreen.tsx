@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import {
   AppShell, Group, Title, ActionIcon, Select, Button, TextInput,
-  Stack, Text, Center, Menu, Drawer, Box, Tooltip,
+  Stack, Text, Center, Menu, Drawer, Box, Tooltip, Badge,
 } from '@mantine/core'
 import {
-  IconSettings, IconLanguage, IconLogout, IconCamera, IconSearch, IconReceipt,
+  IconSettings, IconLanguage, IconLogout, IconCamera, IconSearch, IconBarcode,
+  IconShoppingCartOff, IconLayoutGrid,
 } from '@tabler/icons-react'
 import { useTranslation } from 'react-i18next'
 import { notifications } from '@mantine/notifications'
@@ -27,7 +28,6 @@ export function POSScreen({ onLogout, onLanguageToggle }: Props) {
   const { t } = useTranslation()
   const isMobile = useMediaQuery('(max-width: 900px)')
 
-  // ── State ────────────────────────────────────
   const [cart, setCart] = useState<CartLine[]>([])
   const [scanInput, setScanInput] = useState('')
   const [cartDiscountValue, setCartDiscountValue] = useState(0)
@@ -47,7 +47,6 @@ export function POSScreen({ onLogout, onLanguageToggle }: Props) {
 
   const scanRef = useRef<HTMLInputElement>(null)
 
-  // ── Effects ──────────────────────────────────
   const currentRegion = useMemo(
     () => regions.find((r) => r.id === regionId),
     [regions, regionId],
@@ -80,7 +79,6 @@ export function POSScreen({ onLogout, onLanguageToggle }: Props) {
 
   useEffect(() => { loadBootstrap() }, [loadBootstrap])
 
-  // Keep scanner input focused (desktop only)
   useEffect(() => {
     if (isMobile) return
     const timer = setInterval(() => {
@@ -95,7 +93,6 @@ export function POSScreen({ onLogout, onLanguageToggle }: Props) {
     return () => clearInterval(timer)
   }, [isMobile, searchOpen, scannerOpen, settingsOpen])
 
-  // ── Handlers ─────────────────────────────────
   const handleRegionChange = (newId: string | null) => {
     if (!newId) return
     setRegionId(newId)
@@ -186,7 +183,6 @@ export function POSScreen({ onLogout, onLanguageToggle }: Props) {
     )
   }
 
-  // ── Totals ───────────────────────────────────
   const calcLineTotal = (item: CartLine): number => {
     const gross = item.unitPrice * item.quantity
     const disc =
@@ -203,7 +199,6 @@ export function POSScreen({ onLogout, onLanguageToggle }: Props) {
       : Math.min(cartDiscountValue, subtotal)
   const total = Math.max(0, subtotal - cartDiscountAmount)
 
-  // ── Checkout ─────────────────────────────────
   const completeSale = async () => {
     if (cart.length === 0) {
       notifications.show({ message: t('toast.emptyCart'), color: 'red' })
@@ -216,7 +211,6 @@ export function POSScreen({ onLogout, onLanguageToggle }: Props) {
 
     setProcessing(true)
     try {
-      // Convert each line's effective unit price (after line discount) to cents
       const items = cart.map((l) => {
         const gross = l.unitPrice * l.quantity
         const lineDisc =
@@ -255,14 +249,41 @@ export function POSScreen({ onLogout, onLanguageToggle }: Props) {
     }
   }
 
-  // ── Render ───────────────────────────────────
   return (
-    <AppShell header={{ height: 60 }} padding={0}>
+    <AppShell
+      header={{ height: 64 }}
+      padding={0}
+      styles={{
+        header: {
+          background: 'linear-gradient(90deg, #1a1b2e 0%, #16213e 100%)',
+          borderBottom: 'none',
+          boxShadow: '0 2px 16px rgba(0,0,0,0.25)',
+        },
+      }}
+    >
       <AppShell.Header>
         <Group h="100%" px="md" justify="space-between" wrap="nowrap">
-          <Title order={4} style={{ whiteSpace: 'nowrap' }}>🛒 {t('app.title')}</Title>
-
+          {/* Brand */}
           <Group gap="xs" wrap="nowrap">
+            <Box
+              style={{
+                width: 34, height: 34, borderRadius: 10,
+                background: 'linear-gradient(135deg, #228be6, #7c3aed)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                flexShrink: 0,
+              }}
+            >
+              <IconLayoutGrid size={18} color="white" />
+            </Box>
+            {!isMobile && (
+              <Title order={4} c="white" style={{ whiteSpace: 'nowrap', letterSpacing: '-0.3px' }}>
+                {t('app.title')}
+              </Title>
+            )}
+          </Group>
+
+          {/* Center: Region + Channel selects */}
+          <Group gap="xs" wrap="nowrap" style={{ flex: 1, justifyContent: 'center', maxWidth: 480 }}>
             <Select
               value={regionId}
               onChange={handleRegionChange}
@@ -274,8 +295,10 @@ export function POSScreen({ onLogout, onLanguageToggle }: Props) {
               w={isMobile ? 120 : 180}
               placeholder={t('pos.region')}
               allowDeselect={false}
+              styles={{
+                input: { background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: 'white' },
+              }}
             />
-
             {!isMobile && salesChannels.length > 1 && (
               <Select
                 value={salesChannelId}
@@ -284,14 +307,23 @@ export function POSScreen({ onLogout, onLanguageToggle }: Props) {
                 size="xs"
                 w={180}
                 allowDeselect={false}
+                styles={{
+                  input: { background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: 'white' },
+                }}
               />
             )}
+          </Group>
 
-            <Menu shadow="md" position="bottom-end">
+          {/* Right: actions */}
+          <Group gap="xs" wrap="nowrap">
+            <Menu shadow="xl" position="bottom-end" radius="md">
               <Menu.Target>
-                <ActionIcon variant="default" size="lg"><IconSettings size={18} /></ActionIcon>
+                <ActionIcon variant="subtle" size="lg" c="white" style={{ opacity: 0.9 }}>
+                  <IconSettings size={20} />
+                </ActionIcon>
               </Menu.Target>
-              <Menu.Dropdown>
+              <Menu.Dropdown style={{ minWidth: 180 }}>
+                <Menu.Label>Options</Menu.Label>
                 <Menu.Item leftSection={<IconLanguage size={14} />} onClick={onLanguageToggle}>
                   {t('app.language')}
                 </Menu.Item>
@@ -311,13 +343,21 @@ export function POSScreen({ onLogout, onLanguageToggle }: Props) {
       <AppShell.Main>
         <Box style={{
           display: 'grid',
-          gridTemplateColumns: isMobile ? '1fr' : '1fr 380px',
-          height: 'calc(100dvh - var(--app-shell-header-height, 60px))',
+          gridTemplateColumns: isMobile ? '1fr' : '1fr 360px',
+          height: 'calc(100dvh - 64px)',
           overflow: 'hidden',
+          background: 'var(--mantine-color-gray-0)',
         }}>
+          {/* LEFT: Scan + Cart */}
           <Box style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
             {/* Scanner bar */}
-            <Box p="md" style={{ borderBottom: '1px solid var(--mantine-color-gray-3)' }}>
+            <Box
+              p="md"
+              style={{
+                borderBottom: '1px solid var(--mantine-color-gray-2)',
+                background: 'var(--mantine-color-white)',
+              }}
+            >
               <Group gap="xs" wrap="nowrap">
                 <TextInput
                   ref={scanRef}
@@ -325,35 +365,66 @@ export function POSScreen({ onLogout, onLanguageToggle }: Props) {
                   onChange={(e) => setScanInput(e.currentTarget.value)}
                   onKeyDown={handleScan}
                   placeholder={t('pos.scanPlaceholder')}
-                  size="lg"
+                  size="md"
                   style={{ flex: 1 }}
                   autoFocus
-                  leftSection={<IconReceipt size={20} />}
+                  radius="md"
+                  leftSection={<IconBarcode size={18} />}
+                  styles={{ input: { fontFamily: 'monospace', letterSpacing: '0.05em' } }}
                 />
                 <Tooltip label={t('pos.scanWithCamera')}>
-                  <ActionIcon size="xl" variant="filled" color="blue" onClick={openScanner}>
-                    <IconCamera size={22} />
+                  <ActionIcon size="xl" variant="filled" color="blue" radius="md" onClick={openScanner}>
+                    <IconCamera size={20} />
                   </ActionIcon>
                 </Tooltip>
                 <Tooltip label={t('pos.manualSearch')}>
-                  <ActionIcon size="xl" variant="default" onClick={openSearch}>
-                    <IconSearch size={22} />
+                  <ActionIcon size="xl" variant="light" color="blue" radius="md" onClick={openSearch}>
+                    <IconSearch size={20} />
                   </ActionIcon>
                 </Tooltip>
               </Group>
             </Box>
 
-            {/* Cart */}
-            <Box style={{ flex: 1, overflow: 'auto', padding: 16 }}>
+            {/* Cart header */}
+            {cart.length > 0 && (
+              <Box px="md" pt="sm" pb={4} style={{ background: 'var(--mantine-color-white)', borderBottom: '1px solid var(--mantine-color-gray-2)' }}>
+                <Group gap="xs">
+                  <Text size="xs" c="dimmed" fw={600} tt="uppercase" style={{ letterSpacing: '0.05em' }}>
+                    Cart
+                  </Text>
+                  <Badge size="xs" variant="filled" color="blue" circle>{cart.length}</Badge>
+                </Group>
+              </Box>
+            )}
+
+            {/* Cart items */}
+            <Box style={{ flex: 1, overflow: 'auto', padding: 12 }}>
               {cart.length === 0 ? (
                 <Center h="100%">
-                  <Stack align="center" gap={4}>
-                    <Text size="lg" c="dimmed">{t('pos.emptyCart')}</Text>
-                    <Text size="sm" c="dimmed">{t('pos.emptyCartHint')}</Text>
+                  <Stack align="center" gap="sm">
+                    <Box
+                      style={{
+                        width: 80, height: 80, borderRadius: '50%',
+                        background: 'var(--mantine-color-gray-1)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      }}
+                    >
+                      <IconShoppingCartOff size={36} color="var(--mantine-color-gray-4)" />
+                    </Box>
+                    <Text size="lg" fw={600} c="dimmed">{t('pos.emptyCart')}</Text>
+                    <Text size="sm" c="dimmed" ta="center" maw={240}>{t('pos.emptyCartHint')}</Text>
+                    <Button
+                      variant="light"
+                      leftSection={<IconSearch size={16} />}
+                      onClick={openSearch}
+                      mt="xs"
+                    >
+                      {t('pos.manualSearch')}
+                    </Button>
                   </Stack>
                 </Center>
               ) : (
-                <Stack gap="sm">
+                <Stack gap={8}>
                   {cart.map((item) => (
                     <CartLineRow
                       key={item.variant.id}
@@ -369,19 +440,31 @@ export function POSScreen({ onLogout, onLanguageToggle }: Props) {
               )}
             </Box>
 
-            {/* Mobile: floating summary button */}
+            {/* Mobile: checkout button */}
             {isMobile && cart.length > 0 && (
-              <Box p="md" style={{ borderTop: '1px solid var(--mantine-color-gray-3)' }}>
-                <Button size="lg" fullWidth onClick={openSummary}>
-                  {t('summary.complete')} · {(total).toFixed(2)}
+              <Box
+                p="md"
+                style={{
+                  borderTop: '1px solid var(--mantine-color-gray-2)',
+                  background: 'var(--mantine-color-white)',
+                }}
+              >
+                <Button size="lg" fullWidth radius="md" onClick={openSummary} style={{ fontWeight: 700 }}>
+                  {t('summary.complete')} · {total.toFixed(2)}
                 </Button>
               </Box>
             )}
           </Box>
 
-          {/* RIGHT: summary (desktop) */}
+          {/* RIGHT: Summary panel (desktop) */}
           {!isMobile && (
-            <Box style={{ borderLeft: '1px solid var(--mantine-color-gray-3)', background: 'var(--mantine-color-gray-0)' }}>
+            <Box style={{
+              borderLeft: '1px solid var(--mantine-color-gray-2)',
+              background: 'var(--mantine-color-white)',
+              overflow: 'hidden',
+              display: 'flex',
+              flexDirection: 'column',
+            }}>
               <SummaryPanel
                 currencyCode={currencyCode}
                 subtotal={subtotal}
@@ -408,8 +491,9 @@ export function POSScreen({ onLogout, onLanguageToggle }: Props) {
             opened={summaryOpen}
             onClose={closeSummary}
             position="bottom"
-            size="85%"
+            size="90%"
             title={t('summary.title')}
+            radius="xl"
           >
             <SummaryPanel
               currencyCode={currencyCode}
