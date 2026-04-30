@@ -8,14 +8,12 @@ export default defineConfig({
     alias: { '@': path.resolve(__dirname, './src') },
   },
   server: {
-    host: true,       // listen on 0.0.0.0 so phone on same Wi-Fi can connect
-    port: 3000,
-    proxy: {
-      '/medusa': {
-        target: 'http://localhost:9000',
-        changeOrigin: true,
-        rewrite: (p) => p.replace(/^\/medusa/, ''),
-      },
-    },
+    host: true,
+    port: Number(process.env.PORT) || 3000,
+  },
+  preview: {
+    host: true,
+    port: Number(process.env.PORT) || 4102,
   },
 })
+

@@ -7,7 +7,7 @@ const SETTINGS_KEY = 'medusa_pos_settings'
 const TOKEN_KEY = 'medusa_pos_token'
 
 export const defaultSettings: Settings = {
-  backendUrl: import.meta.env.VITE_BACKEND_URL || '/medusa',
+  backendUrl: import.meta.env.VITE_BACKEND_URL || '',
   publishableKey: import.meta.env.VITE_PUBLISHABLE_KEY || '',
   regionId: null,
   salesChannelId: null,
