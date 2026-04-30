@@ -29,6 +29,24 @@ jobs:
             git fetch origin main
             git reset --hard origin/main
 
+      - name: Write .env file
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT }}
+          envs: PUBLISHABLE_KEY,BACKEND_URL
+          script: |
+            cat > /root/organza-store-env/.env-pos << EOF
+            VITE_PUBLISHABLE_KEY=$PUBLISHABLE_KEY
+            VITE_BACKEND_URL=$BACKEND_URL
+            PORT=4102
+            EOF
+        env:
+          PUBLISHABLE_KEY: ${{ secrets.FRONTEND_NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY }}
+          BACKEND_URL: ${{ secrets.FRONTEND_MEDUSA_BACKEND_URL }}
+
       - name: Sync ENV
         uses: appleboy/ssh-action@v1.0.3
         with:
