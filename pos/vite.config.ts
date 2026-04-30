@@ -13,6 +13,7 @@ export default defineConfig({
   },
   preview: {
     host: true,
+    allowedHosts: ['pos.organza-moda.com'],
     port: Number(process.env.PORT) || 4102,
   },
 })
