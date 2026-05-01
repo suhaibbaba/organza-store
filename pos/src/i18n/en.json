@@ -1,6 +1,6 @@
 {
   "app": {
-    "title": "Medusa POS",
+    "title": "Organza Store POS",
     "login": "Sign In",
     "logout": "Logout",
     "settings": "Settings",
@@ -18,7 +18,7 @@
   },
   "pos": {
     "scan": "Scan barcode",
-    "scanPlaceholder": "📷 Scan barcode here…",
+    "scanPlaceholder": "Scan barcode here…",
     "scanWithCamera": "Scan with Camera",
     "manualSearch": "Search",
     "emptyCart": "Cart is empty",
