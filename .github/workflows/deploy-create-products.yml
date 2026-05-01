@@ -43,7 +43,7 @@ jobs:
             EOF
             ln -sf /root/organza-store-env/.env-create-products /root/organza-store/create-products/.env.local
         env:
-          BACKEND_URL: ${{ secrets.FRONTEND_MEDUSA_BACKEND_URL }}
+          BACKEND_URL: ${{ vars.FRONTEND_MEDUSA_BACKEND_URL }}
           PUBLISHABLE_KEY: ${{ secrets.FRONTEND_NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY }}
 
       - name: Sync ENV

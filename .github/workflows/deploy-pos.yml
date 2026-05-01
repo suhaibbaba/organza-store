@@ -45,7 +45,7 @@ jobs:
             EOF
         env:
           PUBLISHABLE_KEY: ${{ secrets.FRONTEND_NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY }}
-          BACKEND_URL: ${{ secrets.FRONTEND_MEDUSA_BACKEND_URL }}
+          BACKEND_URL: ${{ vars.FRONTEND_MEDUSA_BACKEND_URL }}
 
       - name: Sync ENV
         uses: appleboy/ssh-action@v1.0.3

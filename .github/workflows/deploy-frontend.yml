@@ -62,9 +62,9 @@ jobs:
             EOF
             ln -sf /root/organza-store-env/.env-frontend /root/organza-store/frontend/.env
         env:
-          BACKEND_URL: ${{ secrets.FRONTEND_MEDUSA_BACKEND_URL }}
+          BACKEND_URL: ${{ vars.FRONTEND_MEDUSA_BACKEND_URL }}
           PUBLISHABLE_KEY: ${{ secrets.FRONTEND_NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY }}
-          PUBLIC_BASE_URL: ${{ secrets.FRONTEND_NEXT_PUBLIC_BASE_URL }}
+          PUBLIC_BASE_URL: ${{ vars.FRONTEND_NEXT_PUBLIC_BASE_URL }}
           PUBLIC_DEFAULT_REGION: ${{ secrets.FRONTEND_NEXT_PUBLIC_DEFAULT_REGION }}
           PUBLIC_STRIPE_KEY: ${{ secrets.FRONTEND_PUBLIC_STRIPE_KEY }}
           PAYMENTS_PUBLISHABLE_KEY: ${{ secrets.FRONTEND_NEXT_PUBLIC_MEDUSA_PAYMENTS_PUBLISHABLE_KEY }}

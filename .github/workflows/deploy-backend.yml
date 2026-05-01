@@ -56,9 +56,9 @@ jobs:
           JWT_SECRET: ${{ secrets.BACKEND_JWT_SECRET }}
           COOKIE_SECRET: ${{ secrets.BACKEND_COOKIE_SECRET }}
           REDIS_URL: ${{ secrets.BACKEND_REDIS_URL }}
-          STORE_CORS: ${{ secrets.BACKEND_STORE_CORS }}
-          ADMIN_CORS: ${{ secrets.BACKEND_ADMIN_CORS }}
-          AUTH_CORS: ${{ secrets.BACKEND_AUTH_CORS }}
+          STORE_CORS: ${{ vars.BACKEND_STORE_CORS }}
+          ADMIN_CORS: ${{ vars.BACKEND_ADMIN_CORS }}
+          AUTH_CORS: ${{ vars.BACKEND_AUTH_CORS }}
 
       - name: Sync ENV
         uses: appleboy/ssh-action@v1.0.3
