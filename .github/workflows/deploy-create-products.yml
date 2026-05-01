@@ -1,0 +1,100 @@
+name: Deploy Create Products
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'create-products/**'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Pull latest code
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT }}
+          script: |
+            if [ ! -d "/root/organza-store/.git" ]; then
+              rm -rf /root/organza-store
+              git clone git@github.com:suhaibbaba/organza-store.git /root/organza-store
+            fi
+            cd /root/organza-store
+            git fetch origin main
+            git reset --hard origin/main
+
+      - name: Write .env file
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT }}
+          envs: BACKEND_URL,PUBLISHABLE_KEY
+          script: |
+            cat > /root/organza-store-env/.env-create-products << EOF
+            PORT=4103
+            NEXT_PUBLIC_BACKEND_URL=$BACKEND_URL
+            NEXT_PUBLIC_PUBLISHABLE_KEY=$PUBLISHABLE_KEY
+            EOF
+            ln -sf /root/organza-store-env/.env-create-products /root/organza-store/create-products/.env.local
+        env:
+          BACKEND_URL: ${{ secrets.FRONTEND_MEDUSA_BACKEND_URL }}
+          PUBLISHABLE_KEY: ${{ secrets.FRONTEND_NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY }}
+
+      - name: Sync ENV
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT }}
+          script: |
+            bash /root/organza-store/.github/scripts/sync-env.sh
+
+      - name: Install dependencies
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT }}
+          script: |
+            export NVM_DIR="$HOME/.nvm"
+            source "$NVM_DIR/nvm.sh"
+            cd /root/organza-store/create-products
+            npm install
+
+      - name: Build Next.js
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT }}
+          timeout: 60s
+          command_timeout: 20m
+          script: |
+            export NVM_DIR="$HOME/.nvm"
+            source "$NVM_DIR/nvm.sh"
+            cd /root/organza-store/create-products
+            npm run build
+
+      - name: Restart Next.js
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT }}
+          script: |
+            export NVM_DIR="$HOME/.nvm"
+            source "$NVM_DIR/nvm.sh"
+            pm2 describe organza-store-create-products > /dev/null 2>&1 \
+              && pm2 reload /root/ecosystem.config.js --only organza-store-create-products \
+              || pm2 start /root/ecosystem.config.js --only organza-store-create-products
+            pm2 save

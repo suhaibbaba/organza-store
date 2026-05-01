@@ -1,7 +1,3 @@
-// ─────────────────────────────────────────────
-//  Shared types
-// ─────────────────────────────────────────────
-
 export interface Region {
   id: string
   name: string
@@ -41,15 +37,15 @@ export interface Product {
 export interface CartLine {
   product: Product
   variant: Variant
-  unitPrice: number       // in whole currency units (e.g. dollars, not cents)
+  unitPrice: number
   quantity: number
   lineDiscount: number
   lineDiscountType: 'fixed' | 'percent'
 }
 
 export interface Settings {
-  backendUrl: string           // '/medusa' in dev, 'https://api.your-domain.com' in prod
-  publishableKey: string       // pk_... from admin
+  backendUrl: string
+  publishableKey: string
   regionId: string | null
   salesChannelId: string | null
   language: 'en' | 'ar'
