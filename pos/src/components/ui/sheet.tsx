@@ -27,7 +27,7 @@ const SheetOverlay = React.forwardRef<
 ));
 SheetOverlay.displayName = "SheetOverlay";
 
-// Content variants — each side has enter + exit
+// Content variants — each side has entered + exit
 const sheetVariants = cva(
   "fixed z-50 bg-card shadow-2xl focus:outline-none border-border",
   {
@@ -84,7 +84,7 @@ const SheetContent = React.forwardRef<
       {children}
       {!hideClose && (
         <DialogPrimitive.Close
-          className="absolute right-4 top-4 rounded-lg p-1.5 opacity-60 ring-offset-background transition-all
+          className="absolute right-4 top-[12px] rtl:left-4 rtl:right-auto rounded-lg p-1.5 opacity-60 ring-offset-background transition-all
             hover:opacity-100 hover:bg-accent
             focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
         >
@@ -103,7 +103,7 @@ const SheetHeader = ({
 }: React.HTMLAttributes<HTMLDivElement>) => (
   <div
     className={cn(
-      "flex flex-col space-y-1.5 px-5 pt-5 pb-4 border-b border-border flex-shrink-0",
+      "flex flex-col space-y-1.5 px-5 pt-5 pb-4 border-b border-border flex-shrink-0 mb-3",
       className,
     )}
     {...props}
