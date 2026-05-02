@@ -208,7 +208,7 @@ export function ProductCard({
           </Tooltip>
         </TooltipProvider>
       )}
-      <div className="aspect-square bg-muted overflow-hidden">
+      <div className="aspect-square h-[180px] bg-muted overflow-hidden">
         {thumbnail ? (
           <img
             src={thumbnail}
