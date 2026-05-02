@@ -237,19 +237,19 @@ export function POSScreen({ onLogout, onLanguageToggle }: Props) {
                 />
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button variant="brand" size="icon-lg" onClick={openScanner}><IconCamera size={20} /></Button>
+                    <Button variant="brand" size="icon-lg" onClick={openScanner} className="aspect-square"><IconCamera size={20} /></Button>
                   </TooltipTrigger>
                   <TooltipContent>{t('pos.scanWithCamera')}</TooltipContent>
                 </Tooltip>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button variant="secondary" size="icon-lg" onClick={openSearch}><IconSearch size={20} /></Button>
+                    <Button variant="secondary" size="icon-lg" onClick={openSearch} className="aspect-square"><IconSearch size={20} /></Button>
                   </TooltipTrigger>
                   <TooltipContent>{t('pos.manualSearch')}</TooltipContent>
                 </Tooltip>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button variant="outline" size="icon-lg" onClick={openCategory} className="border-primary/30 text-primary hover:bg-primary/10"><IconCategory size={20} /></Button>
+                    <Button variant="outline" size="icon-lg" onClick={openCategory} className="aspect-square border-primary/30 text-primary hover:bg-primary/10"><IconCategory size={20} /></Button>
                   </TooltipTrigger>
                   <TooltipContent>{t('pos.browseCategories')}</TooltipContent>
                 </Tooltip>
