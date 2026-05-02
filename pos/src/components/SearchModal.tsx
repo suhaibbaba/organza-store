@@ -93,10 +93,7 @@ export function SearchModal({ opened, onClose, onPick, currencyCode }: Props) {
             />
           </div>
 
-          <ScrollArea
-            className="flex-1"
-            style={{ maxHeight: "calc(90vh - 180px)" }}
-          >
+          <div className="flex-1 min-h-0 overflow-y-auto">
             {loading && (
               <div className="flex flex-col items-center justify-center py-16 gap-3">
                 <span
@@ -164,7 +161,7 @@ export function SearchModal({ opened, onClose, onPick, currencyCode }: Props) {
                 })}
               </div>
             )}
-          </ScrollArea>
+          </div>
         </DialogContent>
       </Dialog>
     </TooltipProvider>
@@ -208,7 +205,7 @@ export function ProductCard({
           </Tooltip>
         </TooltipProvider>
       )}
-      <div className="aspect-square h-[180px] bg-muted overflow-hidden">
+      <div className="aspect-square bg-muted overflow-hidden">
         {thumbnail ? (
           <img
             src={thumbnail}

@@ -72,7 +72,8 @@
     "allLoaded": "تم تحميل جميع {{count}} منتجات",
     "noProducts": "لا توجد منتجات في هذا التصنيف",
     "noMatch": "لا توجد منتجات تطابق \"{{query}}\"",
-    "openOnStore": "فتح على organza-moda.com"
+    "openOnStore": "فتح على organza-moda.com",
+    "filter": "البحث في قسم"
   },
   "scanner": {
     "title": "ماسح الكاميرا",

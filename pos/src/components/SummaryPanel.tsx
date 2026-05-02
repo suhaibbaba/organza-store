@@ -11,7 +11,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface Props {
   currencyCode?: string;
@@ -70,14 +69,16 @@ export function SummaryPanel({
         )}
       </div>
 
-      <ScrollArea className="flex-1">
+      <div className="flex-1 min-h-0 overflow-y-auto">
         <div className="p-5 space-y-5">
           {/* Subtotal */}
           <div className="flex items-center justify-between">
             <span className="text-sm text-muted-foreground">
               {t("summary.subtotal")}
             </span>
-            <span className="font-semibold">{format(subtotal)}</span>
+            <span className="font-semibold" dir="ltr">
+              {format(subtotal)}
+            </span>
           </div>
 
           {/* Cart discount */}
@@ -98,6 +99,7 @@ export function SummaryPanel({
                 min={0}
                 placeholder="0"
                 className="flex-1"
+                dir="ltr"
               />
               <div className="flex rounded-lg border border-border overflow-hidden text-sm flex-shrink-0">
                 {(["fixed", "percent"] as const).map((v) => (
@@ -116,7 +118,7 @@ export function SummaryPanel({
                 <span className="text-xs text-muted-foreground">
                   {t("summary.discountAppliedLabel")}
                 </span>
-                <span className="text-sm font-bold text-destructive">
+                <span className="text-sm font-bold text-destructive" dir="ltr">
                   −{format(cartDiscountAmount)}
                 </span>
               </div>
@@ -144,7 +146,7 @@ export function SummaryPanel({
               {t("summary.paymentMethod")}
             </p>
             <div className="grid grid-cols-3 gap-2">
-              {(["cash", "card", "other"] as const).map((method) => (
+              {(["cash"] as const).map((method) => (
                 <button
                   key={method}
                   onClick={() => onPaymentChange(method)}
@@ -161,7 +163,7 @@ export function SummaryPanel({
             </div>
           </div>
         </div>
-      </ScrollArea>
+      </div>
 
       {/* Actions */}
       <div className="px-5 py-4 border-t border-border bg-card space-y-2 flex-shrink-0">

@@ -16,7 +16,6 @@ import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Select,
   SelectContent,
@@ -156,7 +155,7 @@ export function CategoryPanel({
         <div className="px-4 py-3 border-b border-border flex-shrink-0">
           <Input
             leftSection={<IconSearch size={14} />}
-            placeholder={`Filter in "${selectedCat.name}"…`}
+            placeholder={`${t("category.filter")} "${selectedCat.name}"…`}
             value={filterQuery}
             onChange={(e) => setFilterQuery(e.currentTarget.value)}
             className="h-9 text-sm"
@@ -164,7 +163,7 @@ export function CategoryPanel({
         </div>
       )}
 
-      <ScrollArea className="flex-1">
+      <div className="flex-1 min-h-0 overflow-y-auto">
         <div className="p-4">
           {!selectedCat && (
             <div className="flex flex-col items-center justify-center gap-3 h-52">
@@ -202,7 +201,7 @@ export function CategoryPanel({
                         <button
                           key={variant.id}
                           onClick={() => onPick(product, variant)}
-                          className="w-full text-left"
+                          className="w-full text-start"
                         >
                           <CatProductCard
                             thumbnail={product.thumbnail}
@@ -254,7 +253,7 @@ export function CategoryPanel({
             </>
           )}
         </div>
-      </ScrollArea>
+      </div>
     </div>
   );
 
@@ -309,6 +308,7 @@ export function CategoryPanel({
     );
   }
 
+  // ── DESKTOP ────────────────────────────────────────────────────────────────
   return (
     <TooltipProvider>
       <DialogPrimitive.Root open={opened} onOpenChange={(o) => !o && onClose()}>
@@ -322,23 +322,13 @@ export function CategoryPanel({
             )}
           />
 
-          {/* Floating panel */}
           <DialogPrimitive.Content
             className={cn(
               "fixed z-[201] flex flex-col overflow-hidden",
               "bg-card border border-border shadow-2xl",
-              // enter
-              "data-[state=open]:animate-in",
-              "data-[state=open]:fade-in-0",
-              "data-[state=open]:zoom-in-[0.97]",
-              "data-[state=open]:slide-in-from-bottom-2",
-              // exit
-              "data-[state=closed]:animate-out",
-              "data-[state=closed]:fade-out-0",
-              "data-[state=closed]:zoom-out-[0.97]",
-              "data-[state=closed]:slide-out-to-bottom-2",
-              "duration-250 ease-[cubic-bezier(0.16,1,0.3,1)]",
-              "focus:outline-none",
+              "data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-[0.97] data-[state=open]:slide-in-from-bottom-2",
+              "data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-[0.97] data-[state=closed]:slide-out-to-bottom-2",
+              "duration-250 ease-[cubic-bezier(0.16,1,0.3,1)] focus:outline-none",
             )}
             style={{
               top: "5vh",
@@ -390,8 +380,8 @@ export function CategoryPanel({
 
             {/* Body */}
             <div className="flex flex-1 overflow-hidden">
-              {/* Category sidebar */}
-              <div className="w-[200px] border-r border-border bg-muted/40 flex flex-col flex-shrink-0">
+              {/* Sidebar — border-e flips to the correct side in RTL */}
+              <div className="w-[200px] border-e border-border bg-muted/40 flex flex-col flex-shrink-0">
                 <p className="text-[10px] font-bold uppercase text-muted-foreground tracking-widest px-4 py-3 border-b border-border">
                   {t("category.sidebarLabel")}
                 </p>
@@ -411,7 +401,8 @@ export function CategoryPanel({
                   </p>
                 )}
 
-                <ScrollArea className="flex-1">
+                {/* plain div instead of ScrollArea */}
+                <div className="flex-1 min-h-0 overflow-y-auto">
                   <div className="p-2 space-y-0.5">
                     {categories.map((cat) => {
                       const isActive = selectedCat?.id === cat.id;
@@ -420,7 +411,7 @@ export function CategoryPanel({
                           key={cat.id}
                           onClick={() => selectCategory(cat)}
                           className={cn(
-                            "w-full text-left px-3 py-2 rounded-lg text-[13px] font-medium transition-all border-l-[3px]",
+                            "w-full text-start px-3 py-2 rounded-lg text-[13px] font-medium transition-all border-s-[3px]",
                             isActive
                               ? "bg-primary/10 text-primary font-bold border-primary"
                               : "text-foreground border-transparent hover:bg-accent hover:border-primary/30",
@@ -431,7 +422,7 @@ export function CategoryPanel({
                       );
                     })}
                   </div>
-                </ScrollArea>
+                </div>
               </div>
 
               {ProductGrid}
@@ -470,7 +461,7 @@ function CatProductCard({
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={(e) => e.stopPropagation()}
-                className="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 w-6 h-6 bg-primary rounded-full flex items-center justify-center shadow-md transition-opacity hover:bg-primary/80"
+                className="absolute top-2 end-2 z-10 opacity-0 group-hover:opacity-100 w-6 h-6 bg-primary rounded-full flex items-center justify-center shadow-md transition-opacity hover:bg-primary/80"
               >
                 <IconExternalLink size={11} color="white" />
               </a>
@@ -480,7 +471,7 @@ function CatProductCard({
         </TooltipProvider>
       )}
 
-      <div className="aspect-square h-[180px] bg-muted overflow-hidden">
+      <div className="aspect-square bg-muted overflow-hidden">
         {thumbnail ? (
           <img
             src={thumbnail}
@@ -506,7 +497,9 @@ function CatProductCard({
             {variantLabel}
           </Badge>
         )}
-        <p className="font-extrabold text-sm text-primary">{price}</p>
+        <p className="font-extrabold text-sm text-primary" dir="ltr">
+          {price}
+        </p>
       </div>
     </div>
   );

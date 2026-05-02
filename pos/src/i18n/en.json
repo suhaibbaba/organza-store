@@ -72,7 +72,8 @@
     "allLoaded": "All {{count}} products loaded",
     "noProducts": "No products in this category",
     "noMatch": "No products match \"{{query}}\"",
-    "openOnStore": "Open on organza-moda.com"
+    "openOnStore": "Open on organza-moda.com",
+    "filter": "Filter In"
   },
   "scanner": {
     "title": "Camera Scanner",
