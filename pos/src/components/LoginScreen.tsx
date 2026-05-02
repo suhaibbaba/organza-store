@@ -1,9 +1,11 @@
 import { useState } from 'react'
-import { Paper, Title, Text, TextInput, PasswordInput, Button, Stack, Center, Group, ActionIcon, Box, Divider } from '@mantine/core'
-import { IconSettings, IconLanguage, IconShoppingCart, IconAt, IconLock } from '@tabler/icons-react'
+import { IconShoppingCart, IconAt, IconLock, IconEye, IconEyeOff, IconLanguage } from '@tabler/icons-react'
 import { useTranslation } from 'react-i18next'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Card, CardContent } from '@/components/ui/card'
 import * as api from '@/api/client'
-import { SettingsModal } from './SettingsModal'
 
 interface Props {
   onLogin: () => void
@@ -14,9 +16,9 @@ export function LoginScreen({ onLogin, onLanguageToggle }: Props) {
   const { t } = useTranslation()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPw, setShowPw] = useState(false)
   const [err, setErr] = useState('')
   const [loading, setLoading] = useState(false)
-  const [settingsOpen, setSettingsOpen] = useState(false)
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -33,144 +35,95 @@ export function LoginScreen({ onLogin, onLanguageToggle }: Props) {
   }
 
   return (
-    <Box
-      style={{
-        minHeight: '100vh',
-        background: 'linear-gradient(135deg, #1a1b2e 0%, #16213e 50%, #0f3460 100%)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: 16,
-        position: 'relative',
-        overflow: 'hidden',
-      }}
+    <div
+      className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden"
+      style={{ background: 'linear-gradient(150deg, #0f2b2e 0%, #1a4448 40%, #235C63 100%)' }}
     >
-      {/* Decorative blobs */}
-      <Box style={{
-        position: 'absolute', top: '-10%', right: '-5%',
-        width: 400, height: 400, borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(99,102,241,0.3) 0%, transparent 70%)',
-        pointerEvents: 'none',
-      }} />
-      <Box style={{
-        position: 'absolute', bottom: '-5%', left: '-5%',
-        width: 500, height: 500, borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(34,139,230,0.2) 0%, transparent 70%)',
-        pointerEvents: 'none',
-      }} />
+      {/* Decorative rings */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-32 -right-32 w-[500px] h-[500px] rounded-full border border-white/5" />
+        <div className="absolute -top-16 -right-16 w-[380px] h-[380px] rounded-full border border-white/5" />
+        <div className="absolute -bottom-40 -left-40 w-[600px] h-[600px] rounded-full border border-white/5" />
+        <div className="absolute bottom-1/4 right-1/4 w-2 h-2 rounded-full bg-white/20" />
+        <div className="absolute top-1/3 left-1/4 w-1.5 h-1.5 rounded-full bg-teal-300/30" />
+        <div className="absolute top-2/3 right-1/3 w-1 h-1 rounded-full bg-white/30" />
+      </div>
 
-      <Box style={{ width: '100%', maxWidth: 420, position: 'relative', zIndex: 1 }}>
-        {/* Brand mark */}
-        <Center mb="xl">
-          <Stack align="center" gap="xs">
-            <Box
-              style={{
-                width: 64, height: 64, borderRadius: 18,
-                background: 'linear-gradient(135deg, #228be6, #7c3aed)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                boxShadow: '0 8px 32px rgba(99,102,241,0.4)',
-              }}
-            >
-              <IconShoppingCart size={32} color="white" />
-            </Box>
-            <Title order={2} c="white" style={{ letterSpacing: '-0.5px' }}>
-              {t('app.title')}
-            </Title>
-            <Text c="rgba(255,255,255,0.5)" size="sm">{t('login.subtitle')}</Text>
-          </Stack>
-        </Center>
+      <div className="w-full max-w-[400px] relative z-10 animate-fade-in">
+        {/* Language toggle */}
+        <div className="flex justify-end mb-6">
+          <Button variant="ghost" size="sm" onClick={onLanguageToggle} className="text-white/60 hover:text-white hover:bg-white/10">
+            <IconLanguage size={16} />
+            {t('app.language')}
+          </Button>
+        </div>
 
-        <Paper
-          shadow="2xl"
-          radius="xl"
-          p="xl"
-          style={{
-            background: 'rgba(255,255,255,0.97)',
-            backdropFilter: 'blur(20px)',
-            border: '1px solid rgba(255,255,255,0.2)',
-          }}
-        >
-          {/* Toolbar */}
-          <Group justify="flex-end" mb="lg">
-            <ActionIcon
-              variant="subtle"
-              onClick={onLanguageToggle}
-              title={t('app.language')}
-              radius="md"
-            >
-              <IconLanguage size={18} />
-            </ActionIcon>
-            {/*<ActionIcon*/}
-            {/*  variant="subtle"*/}
-            {/*  onClick={() => setSettingsOpen(true)}*/}
-            {/*  title={t('app.settings')}*/}
-            {/*  radius="md"*/}
-            {/*>*/}
-            {/*  <IconSettings size={18} />*/}
-            {/*</ActionIcon>*/}
-          </Group>
+        {/* Brand */}
+        <div className="text-center mb-8">
+          <div
+            className="w-16 h-16 rounded-2xl mx-auto mb-4 flex items-center justify-center shadow-2xl"
+            style={{ background: 'linear-gradient(135deg, rgba(255,255,255,0.25), rgba(255,255,255,0.08))', border: '1px solid rgba(255,255,255,0.2)' }}
+          >
+            <IconShoppingCart size={30} color="white" />
+          </div>
+          <h1 className="text-2xl font-bold text-white tracking-tight">{t('app.title')}</h1>
+          <p className="text-white/50 text-sm mt-1">{t('login.subtitle')}</p>
+        </div>
 
-          <Title order={3} mb={4}>Welcome back</Title>
-          <Text c="dimmed" size="sm" mb="xl">Sign in to your POS account</Text>
+        <Card className="shadow-2xl border-0" style={{ background: 'rgba(255,255,255,0.97)' }}>
+          <CardContent className="p-6">
+            <h2 className="text-xl font-bold text-foreground mb-1">Welcome back</h2>
+            <p className="text-sm text-muted-foreground mb-6">Sign in to your POS account</p>
 
-          <form onSubmit={submit}>
-            <Stack gap="md">
-              <TextInput
-                type="email"
-                label={t('login.email')}
-                placeholder="you@example.com"
-                leftSection={<IconAt size={16} />}
-                value={email}
-                onChange={(e) => setEmail(e.currentTarget.value)}
-                required
-                autoComplete="email"
-                radius="md"
-                size="md"
-              />
-              <PasswordInput
-                label={t('login.password')}
-                placeholder="••••••••"
-                leftSection={<IconLock size={16} />}
-                value={password}
-                onChange={(e) => setPassword(e.currentTarget.value)}
-                required
-                autoComplete="current-password"
-                radius="md"
-                size="md"
-              />
+            <form onSubmit={submit} className="space-y-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="email">{t('login.email')}</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="you@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.currentTarget.value)}
+                  required
+                  autoComplete="email"
+                  leftSection={<IconAt size={15} />}
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="password">{t('login.password')}</Label>
+                <Input
+                  id="password"
+                  type={showPw ? 'text' : 'password'}
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.currentTarget.value)}
+                  required
+                  autoComplete="current-password"
+                  leftSection={<IconLock size={15} />}
+                  rightSection={
+                    <button type="button" onClick={() => setShowPw(v => !v)} className="hover:text-foreground transition-colors">
+                      {showPw ? <IconEyeOff size={15} /> : <IconEye size={15} />}
+                    </button>
+                  }
+                />
+              </div>
+
               {err && (
-                <Box
-                  p="sm"
-                  style={{
-                    background: 'var(--mantine-color-red-0)',
-                    border: '1px solid var(--mantine-color-red-3)',
-                    borderRadius: 8,
-                  }}
-                >
-                  <Text c="red" size="sm" fw={500}>{err}</Text>
-                </Box>
+                <div className="rounded-lg bg-destructive/10 border border-destructive/20 px-3 py-2.5">
+                  <p className="text-sm text-destructive font-medium">{err}</p>
+                </div>
               )}
-              <Button
-                type="submit"
-                loading={loading}
-                size="md"
-                radius="md"
-                fullWidth
-                mt={4}
-                style={{ fontWeight: 700 }}
-              >
+
+              <Button type="submit" className="w-full" size="lg" loading={loading} variant="brand">
                 {loading ? t('login.signingIn') : t('login.submit')}
               </Button>
-            </Stack>
-          </form>
-        </Paper>
+            </form>
+          </CardContent>
+        </Card>
 
-        <Text c="rgba(255,255,255,0.3)" size="xs" ta="center" mt="lg">
-          Powered by Medusa Commerce
-        </Text>
-      </Box>
-
-      {/* <SettingsModal opened={settingsOpen} onClose={() => setSettingsOpen(false)} onSaved={() => {}} /> */}
-    </Box>
+        <p className="text-center text-xs mt-6 text-white/25">Powered by Medusa Commerce</p>
+      </div>
+    </div>
   )
 }

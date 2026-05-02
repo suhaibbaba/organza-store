@@ -1,8 +1,13 @@
-import { Modal, Stack, TextInput, Button, Text, PasswordInput } from '@mantine/core'
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
-import { notifications } from '@mantine/notifications'
+import { notifications } from '@/lib/toast'
 import { loadSettings, saveSettings } from '@/lib/storage'
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogBody, DialogFooter
+} from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Button } from '@/components/ui/button'
 
 interface Props {
   opened: boolean
@@ -32,26 +37,37 @@ export function SettingsModal({ opened, onClose, onSaved }: Props) {
   }
 
   return (
-    <Modal opened={opened} onClose={onClose} title={t('settings.title')} size="md" centered>
-      <Stack>
-        <TextInput
-          label={t('settings.backendUrl')}
-          value={backendUrl}
-          onChange={(e) => setBackendUrl(e.currentTarget.value)}
-          placeholder="/medusa"
-        />
-        <Text size="xs" c="dimmed">{t('settings.backendUrlHint')}</Text>
-
-        <PasswordInput
-          label={t('settings.publishableKey')}
-          value={publishableKey}
-          onChange={(e) => setPublishableKey(e.currentTarget.value)}
-          placeholder="pk_..."
-        />
-        <Text size="xs" c="dimmed">{t('settings.publishableKeyHint')}</Text>
-
-        <Button onClick={handleSave} fullWidth>{t('settings.save')}</Button>
-      </Stack>
-    </Modal>
+    <Dialog open={opened} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent size="md">
+        <DialogHeader>
+          <DialogTitle>{t('settings.title')}</DialogTitle>
+        </DialogHeader>
+        <DialogBody className="space-y-4">
+          <div className="space-y-1.5">
+            <Label>{t('settings.backendUrl')}</Label>
+            <Input
+              value={backendUrl}
+              onChange={(e) => setBackendUrl(e.currentTarget.value)}
+              placeholder="/medusa"
+            />
+            <p className="text-xs text-muted-foreground">{t('settings.backendUrlHint')}</p>
+          </div>
+          <div className="space-y-1.5">
+            <Label>{t('settings.publishableKey')}</Label>
+            <Input
+              type="password"
+              value={publishableKey}
+              onChange={(e) => setPublishableKey(e.currentTarget.value)}
+              placeholder="pk_..."
+            />
+            <p className="text-xs text-muted-foreground">{t('settings.publishableKeyHint')}</p>
+          </div>
+        </DialogBody>
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>{t('scanner.cancel')}</Button>
+          <Button variant="brand" onClick={handleSave}>{t('settings.save')}</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   )
 }

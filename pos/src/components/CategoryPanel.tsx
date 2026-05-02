@@ -1,20 +1,4 @@
 import {
-  Box,
-  Text,
-  Group,
-  Loader,
-  Center,
-  Stack,
-  UnstyledButton,
-  ActionIcon,
-  ScrollArea,
-  Badge,
-  Tooltip,
-  TextInput,
-  Select,
-  Drawer,
-} from "@mantine/core";
-import {
   IconX,
   IconPhoto,
   IconLayoutGrid,
@@ -23,10 +7,35 @@ import {
   IconChevronRight,
 } from "@tabler/icons-react";
 import { useState, useEffect, useRef, useCallback } from "react";
-import { useMediaQuery } from "@mantine/hooks";
+import { useMediaQuery } from "@/hooks/useMediaQuery";
 import * as api from "@/api/client";
 import type { Category, Product, Variant } from "@/types";
 import { useCurrency } from "@/hooks/useCurrency";
+import { cn } from "@/lib/utils";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+  TooltipProvider,
+} from "@/components/ui/tooltip";
+import * as DialogPrimitive from "@radix-ui/react-dialog";
 
 const STORE_DOMAIN = "https://organza-moda.com";
 const PAGE_SIZE = 20;
@@ -65,7 +74,7 @@ export function CategoryPanel({
     setCatLoading(true);
     api
       .getCategories()
-      .then((cats) => setCategories(cats))
+      .then(setCategories)
       .catch(() => setCategories([]))
       .finally(() => setCatLoading(false));
   }, [opened]);
@@ -93,11 +102,11 @@ export function CategoryPanel({
       setProducts((prev) =>
         currentOffset === 0 ? newProds : [...prev, ...newProds],
       );
-      const nextOffset = currentOffset + newProds.length;
-      setOffset(nextOffset);
-      setHasMore(nextOffset < count);
+      const next = currentOffset + newProds.length;
+      setOffset(next);
+      setHasMore(next < count);
     } catch {
-      // silent
+      /* silent */
     } finally {
       setProdLoading(false);
       loadingRef.current = false;
@@ -105,403 +114,331 @@ export function CategoryPanel({
   }, []);
 
   useEffect(() => {
-    if (!selectedCat) return;
-    loadPage(selectedCat, 0);
+    if (selectedCat) {
+      loadPage(selectedCat, 0);
+    }
   }, [selectedCat, loadPage]);
 
   useEffect(() => {
     const sentinel = sentinelRef.current;
-    if (!sentinel) return;
+    if (!sentinel) {
+      return;
+    }
+
     const observer = new IntersectionObserver(
-      (entries) => {
+      ([entry]) => {
         if (
-          entries[0].isIntersecting &&
+          entry.isIntersecting &&
           hasMore &&
           !loadingRef.current &&
           selectedCat
-        ) {
+        )
           loadPage(selectedCat, offset);
-        }
       },
       { threshold: 0.1 },
     );
+
     observer.observe(sentinel);
     return () => observer.disconnect();
   }, [hasMore, offset, selectedCat, loadPage]);
 
-  const filtered =
-    filterQuery.trim().length >= 1
-      ? products.filter((p) =>
-          p.title.toLowerCase().includes(filterQuery.toLowerCase()),
-        )
-      : products;
+  const filtered = filterQuery.trim()
+    ? products.filter((p) =>
+        p.title.toLowerCase().includes(filterQuery.toLowerCase()),
+      )
+    : products;
 
-  const productGrid = (
-    <Box style={{ flex: 1, overflowY: "auto", padding: 12 }}>
-      {/* Filter bar */}
+  const ProductGrid = (
+    <div className="flex flex-col flex-1 overflow-hidden">
       {selectedCat && (
-        <Box mb={12}>
-          <TextInput
+        <div className="px-4 py-3 border-b border-border flex-shrink-0">
+          <Input
             leftSection={<IconSearch size={14} />}
             placeholder={`Filter in "${selectedCat.name}"…`}
             value={filterQuery}
             onChange={(e) => setFilterQuery(e.currentTarget.value)}
-            size="sm"
-            radius="md"
+            className="h-9 text-sm"
           />
-        </Box>
+        </div>
       )}
 
-      {!selectedCat && (
-        <Center h={isMobile ? 180 : 300}>
-          <Stack align="center" gap="sm">
-            <IconLayoutGrid size={40} color="var(--mantine-color-gray-4)" />
-            <Text fw={600} c="dimmed">
-              {isMobile
-                ? "Pick a category above"
-                : "Select a category from the left"}
-            </Text>
-          </Stack>
-        </Center>
-      )}
+      <ScrollArea className="flex-1">
+        <div className="p-4">
+          {!selectedCat && (
+            <div className="flex flex-col items-center justify-center gap-3 h-52">
+              <IconLayoutGrid size={42} className="text-muted-foreground/20" />
+              <p className="font-semibold text-muted-foreground/50 text-sm">
+                {isMobile
+                  ? "Pick a category above"
+                  : "Select a category from the left"}
+              </p>
+            </div>
+          )}
 
-      {selectedCat && (
-        <>
-          {filtered.length > 0 && (
-            <Box
-              style={{
-                display: "grid",
-                gridTemplateColumns: isMobile
-                  ? "repeat(auto-fill, minmax(120px, 1fr))"
-                  : "repeat(auto-fill, minmax(150px, 1fr))",
-                gap: 10,
-              }}
-            >
-              {filtered.map((product) =>
-                product.variants.map((variant) => {
-                  const price = api.getVariantPrice(variant);
-                  const variantLabel =
-                    variant.title && variant.title !== "Default Title"
-                      ? variant.title
-                      : variant.sku || "";
-                  const productUrl = product.handle
-                    ? `${STORE_DOMAIN}/products/${product.handle}`
-                    : null;
-                  return (
-                    <UnstyledButton
-                      key={variant.id}
-                      onClick={() => onPick(product, variant)}
-                      style={{ width: "100%" }}
-                    >
-                      <CatProductCard
-                        thumbnail={product.thumbnail}
-                        title={product.title}
-                        variantLabel={variantLabel}
-                        price={format(price)}
-                        productUrl={productUrl}
-                      />
-                    </UnstyledButton>
-                  );
-                }),
+          {selectedCat && (
+            <>
+              {filtered.length > 0 && (
+                <div
+                  className="grid gap-3"
+                  style={{
+                    gridTemplateColumns: isMobile
+                      ? "repeat(auto-fill, minmax(115px, 1fr))"
+                      : "repeat(auto-fill, minmax(145px, 1fr))",
+                  }}
+                >
+                  {filtered.flatMap((product) =>
+                    product.variants.map((variant) => {
+                      const price = api.getVariantPrice(variant);
+                      const variantLabel =
+                        variant.title && variant.title !== "Default Title"
+                          ? variant.title
+                          : variant.sku || "";
+                      const productUrl = product.handle
+                        ? `${STORE_DOMAIN}/products/${product.handle}`
+                        : null;
+                      return (
+                        <button
+                          key={variant.id}
+                          onClick={() => onPick(product, variant)}
+                          className="w-full text-left"
+                        >
+                          <CatProductCard
+                            thumbnail={product.thumbnail}
+                            title={product.title}
+                            variantLabel={variantLabel}
+                            price={format(price)}
+                            productUrl={productUrl}
+                          />
+                        </button>
+                      );
+                    }),
+                  )}
+                </div>
               )}
-            </Box>
-          )}
 
-          <div ref={sentinelRef} style={{ height: 1, marginTop: 8 }} />
+              <div ref={sentinelRef} style={{ height: 1, marginTop: 8 }} />
 
-          {prodLoading && (
-            <Center py="lg">
-              <Loader size="sm" />
-            </Center>
-          )}
+              {prodLoading && (
+                <div className="flex justify-center py-4">
+                  <span
+                    className="spinner text-primary"
+                    style={{ width: 20, height: 20 }}
+                  />
+                </div>
+              )}
 
-          {!prodLoading && !hasMore && filtered.length > 0 && (
-            <Center py="md">
-              <Text size="xs" c="dimmed">
-                All {totalCount} products loaded
-              </Text>
-            </Center>
-          )}
+              {!prodLoading && !hasMore && filtered.length > 0 && (
+                <p className="text-center text-xs text-muted-foreground py-4">
+                  All {totalCount} products loaded
+                </p>
+              )}
 
-          {!prodLoading && products.length === 0 && (
-            <Center h={160}>
-              <Stack align="center" gap="xs">
-                <IconPhoto size={36} color="var(--mantine-color-gray-4)" />
-                <Text size="sm" c="dimmed" fw={500}>
-                  No products in this category
-                </Text>
-              </Stack>
-            </Center>
-          )}
+              {!prodLoading && products.length === 0 && (
+                <div className="flex flex-col items-center justify-center gap-2 h-40">
+                  <IconPhoto size={34} className="text-muted-foreground/25" />
+                  <p className="text-sm text-muted-foreground">
+                    No products in this category
+                  </p>
+                </div>
+              )}
 
-          {!prodLoading && products.length > 0 && filtered.length === 0 && (
-            <Center h={160}>
-              <Text size="sm" c="dimmed" fw={500}>
-                No products match "{filterQuery}"
-              </Text>
-            </Center>
+              {!prodLoading && products.length > 0 && filtered.length === 0 && (
+                <div className="flex items-center justify-center h-40">
+                  <p className="text-sm text-muted-foreground">
+                    No products match "{filterQuery}"
+                  </p>
+                </div>
+              )}
+            </>
           )}
-        </>
-      )}
-    </Box>
+        </div>
+      </ScrollArea>
+    </div>
   );
 
-  // ── MOBILE: Bottom drawer with Select ──────────────────────────────────────
+  // ── MOBILE: Sheet (bottom drawer via Radix Dialog) ─────────────────────────
   if (isMobile) {
     return (
-      <Drawer
-        opened={opened}
-        onClose={onClose}
-        position="bottom"
-        size="90%"
-        radius="xl"
-        title={
-          <Group gap="xs">
-            <IconLayoutGrid size={18} />
-            <Text fw={700}>Browse Categories</Text>
-          </Group>
-        }
-        styles={{
-          body: {
-            display: "flex",
-            flexDirection: "column",
-            padding: 0,
-            height: "100%",
-            overflow: "hidden",
-          },
-          header: {
-            padding: "12px 16px",
-            borderBottom: "1px solid var(--mantine-color-gray-2)",
-          },
-        }}
-      >
-        {/* Category Select */}
-        <Box
-          px={12}
-          py={10}
-          style={{
-            borderBottom: "1px solid var(--mantine-color-gray-2)",
-            flexShrink: 0,
-          }}
+      <Sheet open={opened} onOpenChange={(o) => !o && onClose()}>
+        <SheetContent
+          side="bottom"
+          className="flex flex-col p-0"
+          style={{ height: "90dvh" }}
         >
-          {catLoading ? (
-            <Center py="xs">
-              <Loader size="sm" />
-            </Center>
-          ) : (
-            <Select
-              placeholder="Select a category…"
-              data={categories.map((c) => ({ value: c.id, label: c.name }))}
-              value={selectedCat?.id ?? null}
-              onChange={(val) => {
-                const cat = categories.find((c) => c.id === val) ?? null;
-                selectCategory(cat);
-              }}
-              searchable
-              clearable
-              size="md"
-              radius="md"
-              leftSection={<IconLayoutGrid size={16} />}
-              rightSection={
-                selectedCat && totalCount > 0 ? (
-                  <Badge size="xs" variant="filled" color="blue" mr={4}>
-                    {totalCount}
-                  </Badge>
-                ) : undefined
-              }
-            />
-          )}
-        </Box>
+          <SheetHeader>
+            <SheetTitle className="flex items-center gap-2">
+              <IconLayoutGrid size={18} className="text-primary" />
+              Browse Categories
+            </SheetTitle>
+          </SheetHeader>
 
-        {/* Product grid */}
-        {productGrid}
-      </Drawer>
+          <div className="px-4 pb-3 border-b border-border flex-shrink-0">
+            {catLoading ? (
+              <div className="flex justify-center py-2">
+                <span
+                  className="spinner text-primary"
+                  style={{ width: 18, height: 18 }}
+                />
+              </div>
+            ) : (
+              <Select
+                value={selectedCat?.id ?? ""}
+                onValueChange={(val) =>
+                  selectCategory(categories.find((c) => c.id === val) ?? null)
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a category…" />
+                </SelectTrigger>
+                <SelectContent>
+                  {categories.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>
+                      {c.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          </div>
+
+          {ProductGrid}
+        </SheetContent>
+      </Sheet>
     );
   }
 
-  // ── DESKTOP: Floating panel ────────────────────────────────────────────────
-  if (!opened) return null;
-
   return (
-    <>
-      {/* Backdrop */}
-      <Box
-        onClick={onClose}
-        style={{
-          position: "fixed",
-          inset: 0,
-          background: "rgba(0,0,0,0.45)",
-          zIndex: 200,
-          backdropFilter: "blur(2px)",
-          animation: "catFadeIn 0.2s ease",
-        }}
-      />
+    <TooltipProvider>
+      <DialogPrimitive.Root open={opened} onOpenChange={(o) => !o && onClose()}>
+        <DialogPrimitive.Portal>
+          <DialogPrimitive.Overlay
+            className={cn(
+              "fixed inset-0 z-[200] bg-black/50 backdrop-blur-[3px]",
+              "data-[state=open]:animate-in   data-[state=open]:fade-in-0",
+              "data-[state=closed]:animate-out data-[state=closed]:fade-out-0",
+              "duration-200",
+            )}
+          />
 
-      {/* Floating panel */}
-      <Box
-        style={{
-          position: "fixed",
-          top: "5vh",
-          left: "50%",
-          transform: "translateX(-50%)",
-          width: "min(96vw, 1000px)",
-          height: "88vh",
-          background: "var(--mantine-color-white)",
-          borderRadius: 20,
-          zIndex: 201,
-          display: "flex",
-          flexDirection: "column",
-          overflow: "hidden",
-          boxShadow: "0 24px 80px rgba(0,0,0,0.25)",
-          animation: "catSlideUp 0.25s ease",
-        }}
-      >
-        {/* Header */}
-        <Box
-          style={{
-            padding: "16px 20px",
-            borderBottom: "1px solid var(--mantine-color-gray-2)",
-            background: "linear-gradient(90deg, #1a1b2e 0%, #16213e 100%)",
-            flexShrink: 0,
-            borderRadius: "20px 20px 0 0",
-          }}
-        >
-          <Group justify="space-between" align="center">
-            <Group gap="sm">
-              <Box
-                style={{
-                  width: 30,
-                  height: 30,
-                  borderRadius: 8,
-                  background: "linear-gradient(135deg, #228be6, #7c3aed)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <IconLayoutGrid size={16} color="white" />
-              </Box>
-              <Text fw={700} size="md" c="white">
-                Browse Categories
-              </Text>
-              {selectedCat && (
-                <>
-                  <IconChevronRight size={14} color="rgba(255,255,255,0.5)" />
-                  <Text fw={600} size="sm" c="rgba(255,255,255,0.85)">
-                    {selectedCat.name}
-                  </Text>
-                  {totalCount > 0 && (
-                    <Badge size="xs" variant="filled" color="blue">
-                      {totalCount}
-                    </Badge>
-                  )}
-                </>
-              )}
-            </Group>
-            <ActionIcon onClick={onClose} variant="subtle" c="white" size="lg">
-              <IconX size={20} />
-            </ActionIcon>
-          </Group>
-        </Box>
-
-        {/* Body: sidebar + grid */}
-        <Box style={{ flex: 1, display: "flex", overflow: "hidden" }}>
-          {/* Categories sidebar */}
-          <Box
+          {/* Floating panel */}
+          <DialogPrimitive.Content
+            className={cn(
+              "fixed z-[201] flex flex-col overflow-hidden",
+              "bg-card border border-border shadow-2xl",
+              // enter
+              "data-[state=open]:animate-in",
+              "data-[state=open]:fade-in-0",
+              "data-[state=open]:zoom-in-[0.97]",
+              "data-[state=open]:slide-in-from-bottom-2",
+              // exit
+              "data-[state=closed]:animate-out",
+              "data-[state=closed]:fade-out-0",
+              "data-[state=closed]:zoom-out-[0.97]",
+              "data-[state=closed]:slide-out-to-bottom-2",
+              "duration-250 ease-[cubic-bezier(0.16,1,0.3,1)]",
+              "focus:outline-none",
+            )}
             style={{
-              width: 200,
-              borderRight: "1px solid var(--mantine-color-gray-2)",
-              background: "var(--mantine-color-gray-0)",
-              display: "flex",
-              flexDirection: "column",
-              flexShrink: 0,
+              top: "5vh",
+              left: "50%",
+              transform: "translateX(-50%)",
+              width: "min(96vw, 1000px)",
+              height: "88vh",
+              borderRadius: 20,
             }}
           >
-            <Text
-              size="xs"
-              fw={700}
-              tt="uppercase"
-              c="dimmed"
-              px="md"
-              py="sm"
+            {/* Header */}
+            <div
+              className="flex items-center justify-between px-5 py-4 flex-shrink-0 rounded-t-[20px]"
               style={{
-                letterSpacing: "0.07em",
-                borderBottom: "1px solid var(--mantine-color-gray-2)",
+                background: "linear-gradient(90deg, #1a3a3e 0%, #235C63 100%)",
               }}
             >
-              Categories
-            </Text>
-            {catLoading && (
-              <Center py="xl">
-                <Loader size="sm" />
-              </Center>
-            )}
-            {!catLoading && categories.length === 0 && (
-              <Center py="xl" px="md">
-                <Text size="xs" c="dimmed" ta="center">
-                  No categories found
-                </Text>
-              </Center>
-            )}
-            <ScrollArea style={{ flex: 1 }}>
-              <Stack gap={2} p="xs">
-                {categories.map((cat) => {
-                  const isActive = selectedCat?.id === cat.id;
-                  return (
-                    <UnstyledButton
-                      key={cat.id}
-                      onClick={() => selectCategory(cat)}
-                      style={{
-                        padding: "8px 12px",
-                        borderRadius: 8,
-                        background: isActive
-                          ? "var(--mantine-color-blue-1)"
-                          : "transparent",
-                        color: isActive
-                          ? "var(--mantine-color-blue-7)"
-                          : "var(--mantine-color-dark-6)",
-                        fontWeight: isActive ? 700 : 500,
-                        fontSize: 13,
-                        transition: "all 0.1s",
-                        borderLeft: isActive
-                          ? "3px solid var(--mantine-color-blue-5)"
-                          : "3px solid transparent",
-                      }}
-                    >
-                      {cat.name}
-                    </UnstyledButton>
-                  );
-                })}
-              </Stack>
-            </ScrollArea>
-          </Box>
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-lg bg-white/15 flex items-center justify-center">
+                  <IconLayoutGrid size={15} color="white" />
+                </div>
+                <span className="font-bold text-white">Browse Categories</span>
+                {selectedCat && (
+                  <>
+                    <IconChevronRight size={14} className="text-white/40" />
+                    <span className="font-semibold text-sm text-white/80">
+                      {selectedCat.name}
+                    </span>
+                    {totalCount > 0 && (
+                      <Badge variant="default" size="sm">
+                        {totalCount}
+                      </Badge>
+                    )}
+                  </>
+                )}
+              </div>
+              <DialogPrimitive.Close asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-white hover:bg-white/15 hover:text-white"
+                >
+                  <IconX size={18} />
+                </Button>
+              </DialogPrimitive.Close>
+            </div>
 
-          {/* Product grid */}
-          <Box
-            style={{
-              flex: 1,
-              display: "flex",
-              flexDirection: "column",
-              overflow: "hidden",
-            }}
-          >
-            {productGrid}
-          </Box>
-        </Box>
-      </Box>
+            {/* Body */}
+            <div className="flex flex-1 overflow-hidden">
+              {/* Category sidebar */}
+              <div className="w-[200px] border-r border-border bg-muted/40 flex flex-col flex-shrink-0">
+                <p className="text-[10px] font-bold uppercase text-muted-foreground tracking-widest px-4 py-3 border-b border-border">
+                  Categories
+                </p>
 
-      <style>{`
-        @keyframes catFadeIn { from { opacity: 0 } to { opacity: 1 } }
-        @keyframes catSlideUp {
-          from { opacity: 0; transform: translateX(-50%) translateY(24px) }
-          to   { opacity: 1; transform: translateX(-50%) translateY(0) }
-        }
-      `}</style>
-    </>
+                {catLoading && (
+                  <div className="flex justify-center py-8">
+                    <span
+                      className="spinner text-primary"
+                      style={{ width: 18, height: 18 }}
+                    />
+                  </div>
+                )}
+
+                {!catLoading && categories.length === 0 && (
+                  <p className="text-xs text-muted-foreground text-center p-4">
+                    No categories found
+                  </p>
+                )}
+
+                <ScrollArea className="flex-1">
+                  <div className="p-2 space-y-0.5">
+                    {categories.map((cat) => {
+                      const isActive = selectedCat?.id === cat.id;
+                      return (
+                        <button
+                          key={cat.id}
+                          onClick={() => selectCategory(cat)}
+                          className={cn(
+                            "w-full text-left px-3 py-2 rounded-lg text-[13px] font-medium transition-all border-l-[3px]",
+                            isActive
+                              ? "bg-primary/10 text-primary font-bold border-primary"
+                              : "text-foreground border-transparent hover:bg-accent hover:border-primary/30",
+                          )}
+                        >
+                          {cat.name}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </ScrollArea>
+              </div>
+
+              {ProductGrid}
+            </div>
+          </DialogPrimitive.Content>
+        </DialogPrimitive.Portal>
+      </DialogPrimitive.Root>
+    </TooltipProvider>
   );
 }
 
-// ── Product card ──────────────────────────────────────────────────────────────
 interface CatProductCardProps {
   thumbnail: string | null;
   title: string;
@@ -518,104 +455,54 @@ function CatProductCard({
   productUrl,
 }: CatProductCardProps) {
   return (
-    <Box
-      style={{
-        border: "1.5px solid var(--mantine-color-gray-2)",
-        borderRadius: 12,
-        overflow: "hidden",
-        background: "var(--mantine-color-white)",
-        transition: "all 0.15s ease",
-        cursor: "pointer",
-        position: "relative",
-      }}
-      onMouseEnter={(e) => {
-        const el = e.currentTarget as HTMLElement;
-        el.style.borderColor = "var(--mantine-color-blue-4)";
-        el.style.boxShadow = "0 4px 16px rgba(34,139,230,0.15)";
-        el.style.transform = "translateY(-2px)";
-        const badge = el.querySelector<HTMLElement>("[data-link-badge]");
-        if (badge) badge.style.opacity = "1";
-      }}
-      onMouseLeave={(e) => {
-        const el = e.currentTarget as HTMLElement;
-        el.style.borderColor = "var(--mantine-color-gray-2)";
-        el.style.boxShadow = "none";
-        el.style.transform = "translateY(0)";
-        const badge = el.querySelector<HTMLElement>("[data-link-badge]");
-        if (badge) badge.style.opacity = "0";
-      }}
-    >
+    <div className="group relative border border-border rounded-xl overflow-hidden bg-card hover:border-primary/50 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-150 cursor-pointer">
       {productUrl && (
-        <Box
-          data-link-badge
-          style={{
-            position: "absolute",
-            top: 6,
-            right: 6,
-            zIndex: 10,
-            opacity: 0,
-            transition: "opacity 0.15s",
-          }}
-          onClick={(e) => e.stopPropagation()}
-        >
-          <Tooltip label="Open on organza-moda.com" position="left" withArrow>
-            <ActionIcon
-              component="a"
-              href={productUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              size="sm"
-              variant="filled"
-              color="blue"
-              radius="xl"
-              style={{ boxShadow: "0 2px 8px rgba(0,0,0,0.2)" }}
-            >
-              <IconExternalLink size={11} />
-            </ActionIcon>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <a
+                href={productUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 w-6 h-6 bg-primary rounded-full flex items-center justify-center shadow-md transition-opacity hover:bg-primary/80"
+              >
+                <IconExternalLink size={11} color="white" />
+              </a>
+            </TooltipTrigger>
+            <TooltipContent>Open on organza-moda.com</TooltipContent>
           </Tooltip>
-        </Box>
+        </TooltipProvider>
       )}
-      <Box
-        style={{
-          position: "relative",
-          aspectRatio: "1",
-          background: "var(--mantine-color-gray-0)",
-          overflow: "hidden",
-        }}
-      >
+
+      <div className="aspect-square h-[180px] bg-muted overflow-hidden">
         {thumbnail ? (
           <img
             src={thumbnail}
             alt={title}
-            style={{
-              width: "100%",
-              height: "100%",
-              objectFit: "cover",
-              display: "block",
-            }}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 max-h-full"
             onError={(e) => {
               e.currentTarget.style.display = "none";
             }}
           />
         ) : (
-          <Center h="100%">
-            <IconPhoto size={32} color="var(--mantine-color-gray-4)" />
-          </Center>
+          <div className="w-full h-full flex items-center justify-center">
+            <IconPhoto size={30} className="text-muted-foreground/30" />
+          </div>
         )}
-      </Box>
-      <Box p="xs">
-        <Text fw={600} size="sm" lineClamp={2} lh={1.3} mb={4}>
+      </div>
+
+      <div className="p-2.5">
+        <p className="font-semibold text-sm line-clamp-2 leading-tight mb-1">
           {title}
-        </Text>
+        </p>
         {variantLabel && (
-          <Badge variant="light" size="xs" color="gray" mb={4}>
+          <Badge variant="muted" size="sm" className="mb-1">
             {variantLabel}
           </Badge>
         )}
-        <Text fw={800} size="sm" c="blue.7">
-          {price}
-        </Text>
-      </Box>
-    </Box>
+        <p className="font-extrabold text-sm text-primary">{price}</p>
+      </div>
+    </div>
   );
 }

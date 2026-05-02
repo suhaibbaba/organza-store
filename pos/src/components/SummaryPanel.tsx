@@ -1,7 +1,11 @@
-import { Stack, Title, Group, Text, NumberInput, SegmentedControl, Button, Divider, Box, Badge } from '@mantine/core'
 import { IconShoppingBag, IconCreditCard, IconCash, IconReceipt2, IconTrash } from '@tabler/icons-react'
 import { useTranslation } from 'react-i18next'
 import { useCurrency } from '@/hooks/useCurrency'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Separator } from '@/components/ui/separator'
+import { Badge } from '@/components/ui/badge'
+import { ScrollArea } from '@/components/ui/scroll-area'
 
 interface Props {
   currencyCode?: string
@@ -20,184 +24,125 @@ interface Props {
   cartLength: number
 }
 
+const paymentIcons: Record<string, React.ReactNode> = {
+  cash: <IconCash size={18} />,
+  card: <IconCreditCard size={18} />,
+  other: <IconReceipt2 size={18} />,
+}
+
 export function SummaryPanel({
-  currencyCode,
-  subtotal,
-  cartDiscountValue,
-  cartDiscountType,
-  cartDiscountAmount,
-  total,
-  paymentMethod,
-  canCheckout,
-  processing,
-  onCartDiscountChange,
-  onPaymentChange,
-  onCheckout,
-  onClear,
-  cartLength,
+  currencyCode, subtotal, cartDiscountValue, cartDiscountType,
+  cartDiscountAmount, total, paymentMethod, canCheckout, processing,
+  onCartDiscountChange, onPaymentChange, onCheckout, onClear, cartLength,
 }: Props) {
   const { t } = useTranslation()
   const { format } = useCurrency(currencyCode)
 
-  const paymentIcons: Record<string, React.ReactNode> = {
-    cash: <IconCash size={16} />,
-    card: <IconCreditCard size={16} />,
-    other: <IconReceipt2 size={16} />,
-  }
-
   return (
-    <Stack gap={0} style={{ height: '100%', overflow: 'auto' }}>
+    <div className="flex flex-col h-full">
       {/* Header */}
-      <Box
-        p="md"
-        style={{
-          borderBottom: '1px solid var(--mantine-color-gray-2)',
-          background: 'var(--mantine-color-white)',
-          position: 'sticky',
-          top: 0,
-          zIndex: 1,
-        }}
-      >
-        <Group justify="space-between" align="center">
-          <Group gap="xs">
-            <IconShoppingBag size={20} />
-            <Title order={4}>{t('summary.title')}</Title>
-          </Group>
-          {cartLength > 0 && (
-            <Badge variant="filled" size="lg" color="blue" circle>{cartLength}</Badge>
-          )}
-        </Group>
-      </Box>
+      <div className="px-5 py-4 border-b border-border flex items-center justify-between bg-card flex-shrink-0">
+        <div className="flex items-center gap-2">
+          <IconShoppingBag size={18} className="text-primary" />
+          <span className="font-bold text-base">{t('summary.title')}</span>
+        </div>
+        {cartLength > 0 && (
+          <Badge variant="default" size="dot">{cartLength}</Badge>
+        )}
+      </div>
 
-      <Stack gap="md" p="md" style={{ flex: 1 }}>
-        {/* Subtotal */}
-        <Group justify="space-between" py={4}>
-          <Text c="dimmed" size="sm">{t('summary.subtotal')}</Text>
-          <Text fw={500}>{format(subtotal)}</Text>
-        </Group>
+      <ScrollArea className="flex-1">
+        <div className="p-5 space-y-5">
+          {/* Subtotal */}
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-muted-foreground">{t('summary.subtotal')}</span>
+            <span className="font-semibold">{format(subtotal)}</span>
+          </div>
 
-        {/* Cart discount */}
-        <Box>
-          <Text size="xs" c="dimmed" fw={600} tt="uppercase" mb={8} style={{ letterSpacing: '0.05em' }}>
-            {t('summary.cartDiscount')}
-          </Text>
-          <Group gap="xs" wrap="nowrap">
-            <NumberInput
-              value={cartDiscountValue || ''}
-              onChange={(v) => onCartDiscountChange(Number(v) || 0, cartDiscountType)}
-              min={0}
-              placeholder="0"
-              style={{ flex: 1 }}
-              hideControls
-              radius="md"
-              size="sm"
-            />
-            <SegmentedControl
-              value={cartDiscountType}
-              onChange={(v) => onCartDiscountChange(cartDiscountValue, v as 'fixed' | 'percent')}
-              data={[
-                { label: t('pos.fixed'), value: 'fixed' },
-                { label: t('pos.percent'), value: 'percent' },
-              ]}
-              size="sm"
-            />
-          </Group>
-          {cartDiscountAmount > 0 && (
-            <Group justify="space-between" mt={8}>
-              <Text size="xs" c="dimmed">Discount applied</Text>
-              <Text size="sm" fw={600} c="red">−{format(cartDiscountAmount)}</Text>
-            </Group>
-          )}
-        </Box>
+          {/* Cart discount */}
+          <div className="space-y-2">
+            <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">{t('summary.cartDiscount')}</p>
+            <div className="flex gap-2">
+              <Input
+                type="number"
+                value={cartDiscountValue || ''}
+                onChange={(e) => onCartDiscountChange(Number(e.currentTarget.value) || 0, cartDiscountType)}
+                min={0}
+                placeholder="0"
+                className="flex-1"
+              />
+              <div className="flex rounded-lg border border-border overflow-hidden text-sm flex-shrink-0">
+                {(['fixed', 'percent'] as const).map((v) => (
+                  <button
+                    key={v}
+                    onClick={() => onCartDiscountChange(cartDiscountValue, v)}
+                    className={`px-3 py-2 font-semibold transition-colors ${cartDiscountType === v ? 'bg-primary text-primary-foreground' : 'bg-card hover:bg-accent'}`}
+                  >
+                    {v === 'fixed' ? t('pos.fixed') : '%'}
+                  </button>
+                ))}
+              </div>
+            </div>
+            {cartDiscountAmount > 0 && (
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-muted-foreground">Discount applied</span>
+                <span className="text-sm font-bold text-destructive">−{format(cartDiscountAmount)}</span>
+              </div>
+            )}
+          </div>
 
-        <Divider />
+          <Separator />
 
-        {/* Total */}
-        <Box
-          p="md"
-          style={{
-            background: 'var(--mantine-color-blue-0)',
-            borderRadius: 12,
-            border: '1px solid var(--mantine-color-blue-2)',
-          }}
-        >
-          <Group justify="space-between" align="center">
-            <Text fw={600} c="blue.8">{t('summary.total')}</Text>
-            <Title order={2} c="blue.8">{format(total)}</Title>
-          </Group>
-        </Box>
-
-        {/* Payment method */}
-        <Box>
-          <Text size="xs" c="dimmed" fw={600} tt="uppercase" mb={8} style={{ letterSpacing: '0.05em' }}>
-            {t('summary.paymentMethod')}
-          </Text>
-          <Box
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(3, 1fr)',
-              gap: 8,
-            }}
+          {/* Total box */}
+          <div
+            className="rounded-xl p-4 flex items-center justify-between"
+            style={{ background: 'linear-gradient(135deg, #235C63, #2d7a83)' }}
           >
-            {['cash', 'card', 'other'].map((method) => (
-              <Box
-                key={method}
-                onClick={() => onPaymentChange(method)}
-                style={{
-                  padding: '10px 8px',
-                  borderRadius: 10,
-                  border: `2px solid ${paymentMethod === method ? 'var(--mantine-color-blue-5)' : 'var(--mantine-color-gray-3)'}`,
-                  background: paymentMethod === method ? 'var(--mantine-color-blue-0)' : 'transparent',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  gap: 6,
-                  transition: 'all 0.15s',
-                  color: paymentMethod === method ? 'var(--mantine-color-blue-7)' : 'var(--mantine-color-gray-6)',
-                }}
-              >
-                {paymentIcons[method]}
-                <Text size="xs" fw={600} style={{ textTransform: 'capitalize', color: 'inherit' }}>
+            <span className="font-semibold text-white/80 text-sm">{t('summary.total')}</span>
+            <span className="text-2xl font-bold text-white">{format(total)}</span>
+          </div>
+
+          {/* Payment method */}
+          <div className="space-y-2">
+            <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">{t('summary.paymentMethod')}</p>
+            <div className="grid grid-cols-3 gap-2">
+              {(['cash', 'card', 'other'] as const).map((method) => (
+                <button
+                  key={method}
+                  onClick={() => onPaymentChange(method)}
+                  className={`flex flex-col items-center gap-1.5 py-3 rounded-xl border-2 transition-all text-xs font-semibold capitalize ${
+                    paymentMethod === method
+                      ? 'border-primary bg-primary/8 text-primary'
+                      : 'border-border bg-card text-muted-foreground hover:border-primary/40 hover:text-foreground'
+                  }`}
+                >
+                  {paymentIcons[method]}
                   {t(`summary.${method}`)}
-                </Text>
-              </Box>
-            ))}
-          </Box>
-        </Box>
-      </Stack>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </ScrollArea>
 
       {/* Actions */}
-      <Box p="md" style={{ borderTop: '1px solid var(--mantine-color-gray-2)', background: 'var(--mantine-color-white)' }}>
-        <Stack gap="xs">
-          <Button
-            size="lg"
-            radius="md"
-            onClick={onCheckout}
-            disabled={!canCheckout || processing}
-            loading={processing}
-            fullWidth
-            styles={{
-              root: { height: 52, fontSize: 16, fontWeight: 700 },
-            }}
-          >
-            {processing ? t('summary.processing') : `${t('summary.complete')} · ${format(total)}`}
+      <div className="px-5 py-4 border-t border-border bg-card space-y-2 flex-shrink-0">
+        <Button
+          variant="brand"
+          size="lg"
+          className="w-full"
+          onClick={onCheckout}
+          disabled={!canCheckout || processing}
+          loading={processing}
+        >
+          {processing ? t('summary.processing') : `${t('summary.complete')} · ${format(total)}`}
+        </Button>
+        {cartLength > 0 && (
+          <Button variant="ghost" size="sm" onClick={onClear} className="w-full text-destructive hover:text-destructive hover:bg-destructive/10">
+            <IconTrash size={14} />{t('summary.clear')}
           </Button>
-
-          {cartLength > 0 && (
-            <Button
-              variant="subtle"
-              color="red"
-              size="sm"
-              leftSection={<IconTrash size={14} />}
-              onClick={onClear}
-              fullWidth
-            >
-              {t('summary.clear')}
-            </Button>
-          )}
-        </Stack>
-      </Box>
-    </Stack>
+        )}
+      </div>
+    </div>
   )
 }

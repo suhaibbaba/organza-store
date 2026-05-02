@@ -1,312 +1,147 @@
-import {
-  Modal,
-  TextInput,
-  Text,
-  Group,
-  UnstyledButton,
-  Loader,
-  Center,
-  Badge,
-  Box,
-  Stack,
-  Tooltip,
-  ActionIcon,
-} from "@mantine/core";
-import {
-  IconSearch,
-  IconPhoto,
-  IconPackage,
-  IconExternalLink,
-} from "@tabler/icons-react";
-import { useState } from "react";
-import { useTranslation } from "react-i18next";
-import * as api from "@/api/client";
-import type { Product, Variant } from "@/types";
-import { useCurrency } from "@/hooks/useCurrency";
+import { IconSearch, IconPhoto, IconPackage, IconExternalLink } from '@tabler/icons-react'
+import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import * as api from '@/api/client'
+import type { Product, Variant } from '@/types'
+import { useCurrency } from '@/hooks/useCurrency'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { Badge } from '@/components/ui/badge'
+import { ScrollArea } from '@/components/ui/scroll-area'
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip'
 
-const STORE_DOMAIN = "https://organza-moda.com";
+const STORE_DOMAIN = 'https://organza-moda.com'
 
 interface Props {
-  opened: boolean;
-  onClose: () => void;
-  onPick: (product: Product, variant: Variant) => void;
-  currencyCode?: string;
+  opened: boolean
+  onClose: () => void
+  onPick: (product: Product, variant: Variant) => void
+  currencyCode?: string
 }
 
 export function SearchModal({ opened, onClose, onPick, currencyCode }: Props) {
-  const { t } = useTranslation();
-  const { format } = useCurrency(currencyCode);
-  const [query, setQuery] = useState("");
-  const [results, setResults] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(false);
+  const { t } = useTranslation()
+  const { format } = useCurrency(currencyCode)
+  const [query, setQuery] = useState('')
+  const [results, setResults] = useState<Product[]>([])
+  const [loading, setLoading] = useState(false)
 
   const handleSearch = async (q: string) => {
-    setQuery(q);
-    if (q.length < 2) {
-      setResults([]);
-      return;
-    }
-    setLoading(true);
-    try {
-      const r = await api.searchProducts(q);
-      setResults(r);
-    } catch {
-      setResults([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+    setQuery(q)
+    if (q.length < 2) { setResults([]); return }
+    setLoading(true)
+    try { setResults(await api.searchProducts(q)) }
+    catch { setResults([]) }
+    finally { setLoading(false) }
+  }
 
-  const handleClose = () => {
-    setQuery("");
-    setResults([]);
-    onClose();
-  };
+  const handleClose = () => { setQuery(''); setResults([]); onClose() }
 
-  const items = results.flatMap((p) =>
-    p.variants.map((v) => ({ product: p, variant: v })),
-  );
+  const items = results.flatMap((p) => p.variants.map((v) => ({ product: p, variant: v })))
 
   return (
-    <Modal
-      opened={opened}
-      onClose={handleClose}
-      title={
-        <Group gap="xs">
-          <IconSearch size={18} />
-          <Text fw={700} size="md">
-            {t("search.title")}
-          </Text>
-        </Group>
-      }
-      size="xl"
-      centered
-      styles={{
-        header: {
-          borderBottom: "1px solid var(--mantine-color-gray-2)",
-          paddingBottom: 12,
-        },
-        body: { padding: 0 },
-      }}
-    >
-      <Box
-        p="md"
-        style={{ borderBottom: "1px solid var(--mantine-color-gray-2)" }}
-      >
-        <TextInput
-          leftSection={<IconSearch size={18} />}
-          placeholder={t("search.placeholder")}
-          value={query}
-          onChange={(e) => handleSearch(e.currentTarget.value)}
-          size="lg"
-          radius="md"
-          data-autofocus
-          styles={{ input: { fontWeight: 500 } }}
-        />
-      </Box>
+    <TooltipProvider>
+      <Dialog open={opened} onOpenChange={(o) => !o && handleClose()}>
+        <DialogContent size="xl" className="p-0 gap-0 overflow-hidden flex flex-col" style={{ maxHeight: '90vh' }}>
+          <DialogHeader className="px-5 py-4">
+            <DialogTitle className="flex items-center gap-2">
+              <IconSearch size={18} className="text-primary" />{t('search.title')}
+            </DialogTitle>
+          </DialogHeader>
 
-      <Box style={{ maxHeight: "60vh", overflowY: "auto" }}>
-        {loading && (
-          <Center py="xl">
-            <Stack align="center" gap="xs">
-              <Loader size="md" />
-              <Text size="sm" c="dimmed">
-                Searching…
-              </Text>
-            </Stack>
-          </Center>
-        )}
+          <div className="px-5 pb-4 border-b border-border">
+            <Input
+              leftSection={<IconSearch size={16} />}
+              placeholder={t('search.placeholder')}
+              value={query}
+              onChange={(e) => handleSearch(e.currentTarget.value)}
+              autoFocus
+              className="h-11 text-base"
+            />
+          </div>
 
-        {!loading && query.length >= 2 && items.length === 0 && (
-          <Center py="xl">
-            <Stack align="center" gap="xs">
-              <IconPackage size={40} color="var(--mantine-color-gray-4)" />
-              <Text c="dimmed" fw={500}>
-                {t("search.noResults")}
-              </Text>
-              <Text size="xs" c="dimmed">
-                Try a different keyword or SKU
-              </Text>
-            </Stack>
-          </Center>
-        )}
-
-        {!loading && query.length < 2 && (
-          <Center py="xl">
-            <Stack align="center" gap="xs">
-              <IconSearch size={40} color="var(--mantine-color-gray-3)" />
-              <Text c="dimmed" size="sm">
-                Type at least 2 characters to search
-              </Text>
-            </Stack>
-          </Center>
-        )}
-
-        {!loading && items.length > 0 && (
-          <Box
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))",
-              gap: 12,
-              padding: 16,
-            }}
-          >
-            {items.map(({ product, variant }) => {
-              const price = api.getVariantPrice(variant);
-              const variantLabel =
-                variant.title && variant.title !== "Default Title"
-                  ? variant.title
-                  : variant.sku || "";
-              const productUrl = product.handle
-                ? `${STORE_DOMAIN}/products/${product.handle}`
-                : null;
-
-              return (
-                <UnstyledButton
-                  key={variant.id}
-                  onClick={() => {
-                    onPick(product, variant);
-                    handleClose();
-                  }}
-                  style={{ width: "100%" }}
-                >
-                  <ProductCard
-                    thumbnail={product.thumbnail}
-                    title={product.title}
-                    variantLabel={variantLabel}
-                    price={format(price)}
-                    productUrl={productUrl}
-                  />
-                </UnstyledButton>
-              );
-            })}
-          </Box>
-        )}
-      </Box>
-    </Modal>
-  );
+          <ScrollArea className="flex-1" style={{ maxHeight: 'calc(90vh - 180px)' }}>
+            {loading && (
+              <div className="flex flex-col items-center justify-center py-16 gap-3">
+                <span className="spinner text-primary" style={{ width: 28, height: 28 }} />
+                <span className="text-sm text-muted-foreground">Searching…</span>
+              </div>
+            )}
+            {!loading && query.length >= 2 && items.length === 0 && (
+              <div className="flex flex-col items-center justify-center py-16 gap-2">
+                <IconPackage size={42} className="text-muted-foreground/30" />
+                <p className="font-semibold text-muted-foreground">{t('search.noResults')}</p>
+                <p className="text-xs text-muted-foreground/70">Try a different keyword or SKU</p>
+              </div>
+            )}
+            {!loading && query.length < 2 && (
+              <div className="flex flex-col items-center justify-center py-16 gap-2">
+                <IconSearch size={42} className="text-muted-foreground/20" />
+                <p className="text-sm text-muted-foreground">Type at least 2 characters to search</p>
+              </div>
+            )}
+            {!loading && items.length > 0 && (
+              <div className="grid gap-3 p-4" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(155px, 1fr))' }}>
+                {items.map(({ product, variant }) => {
+                  const price = api.getVariantPrice(variant)
+                  const variantLabel = variant.title && variant.title !== 'Default Title' ? variant.title : variant.sku || ''
+                  const productUrl = product.handle ? `${STORE_DOMAIN}/products/${product.handle}` : null
+                  return (
+                    <button key={variant.id} onClick={() => { onPick(product, variant); handleClose() }} className="w-full text-left">
+                      <ProductCard thumbnail={product.thumbnail} title={product.title} variantLabel={variantLabel} price={format(price)} productUrl={productUrl} />
+                    </button>
+                  )
+                })}
+              </div>
+            )}
+          </ScrollArea>
+        </DialogContent>
+      </Dialog>
+    </TooltipProvider>
+  )
 }
 
-// ── Reusable product card (also used in CategoryPanel) ────────────────────────
 interface ProductCardProps {
-  thumbnail: string | null;
-  title: string;
-  variantLabel?: string;
-  price: string;
-  productUrl: string | null;
+  thumbnail: string | null
+  title: string
+  variantLabel?: string
+  price: string
+  productUrl: string | null
 }
 
-export function ProductCard({
-  thumbnail,
-  title,
-  variantLabel,
-  price,
-  productUrl,
-}: ProductCardProps) {
+export function ProductCard({ thumbnail, title, variantLabel, price, productUrl }: ProductCardProps) {
   return (
-    <Box
-      style={{
-        border: "1.5px solid var(--mantine-color-gray-2)",
-        borderRadius: 12,
-        overflow: "hidden",
-        background: "var(--mantine-color-white)",
-        transition: "all 0.15s ease",
-        cursor: "pointer",
-        position: "relative",
-      }}
-      onMouseEnter={(e) => {
-        const el = e.currentTarget as HTMLElement;
-        el.style.borderColor = "var(--mantine-color-blue-4)";
-        el.style.boxShadow = "0 4px 16px rgba(34,139,230,0.15)";
-        el.style.transform = "translateY(-2px)";
-        const badge = el.querySelector<HTMLElement>("[data-link-badge]");
-        if (badge) badge.style.opacity = "1";
-      }}
-      onMouseLeave={(e) => {
-        const el = e.currentTarget as HTMLElement;
-        el.style.borderColor = "var(--mantine-color-gray-2)";
-        el.style.boxShadow = "none";
-        el.style.transform = "translateY(0)";
-        const badge = el.querySelector<HTMLElement>("[data-link-badge]");
-        if (badge) badge.style.opacity = "0";
-      }}
-    >
-      {/* External link badge — appears on hover, top-right */}
+    <div className="group relative border border-border rounded-xl overflow-hidden bg-card hover:border-primary/50 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-150 cursor-pointer">
       {productUrl && (
-        <Box
-          data-link-badge
-          style={{
-            position: "absolute",
-            top: 6,
-            right: 6,
-            zIndex: 10,
-            opacity: 0,
-            transition: "opacity 0.15s",
-          }}
-          onClick={(e) => e.stopPropagation()}
-        >
-          <Tooltip label="Open on organza-moda.com" position="left" withArrow>
-            <ActionIcon
-              component="a"
-              href={productUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              size="sm"
-              variant="filled"
-              color="blue"
-              radius="xl"
-              style={{ boxShadow: "0 2px 8px rgba(0,0,0,0.2)" }}
-            >
-              <IconExternalLink size={11} />
-            </ActionIcon>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <a
+                href={productUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 w-6 h-6 bg-primary rounded-full flex items-center justify-center shadow-md transition-opacity hover:bg-primary/80"
+              >
+                <IconExternalLink size={11} color="white" />
+              </a>
+            </TooltipTrigger>
+            <TooltipContent>Open on organza-moda.com</TooltipContent>
           </Tooltip>
-        </Box>
+        </TooltipProvider>
       )}
-
-      {/* Image */}
-      <Box
-        style={{
-          position: "relative",
-          aspectRatio: "1",
-          background: "var(--mantine-color-gray-0)",
-          overflow: "hidden",
-        }}
-      >
+      <div className="aspect-square bg-muted overflow-hidden">
         {thumbnail ? (
-          <img
-            src={thumbnail}
-            alt={title}
-            style={{
-              width: "100%",
-              height: "100%",
-              objectFit: "cover",
-              display: "block",
-            }}
-            onError={(e) => {
-              e.currentTarget.style.display = "none";
-            }}
-          />
+          <img src={thumbnail} alt={title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" onError={(e) => { e.currentTarget.style.display = 'none' }} />
         ) : (
-          <Center h="100%">
-            <IconPhoto size={36} color="var(--mantine-color-gray-4)" />
-          </Center>
+          <div className="w-full h-full flex items-center justify-center"><IconPhoto size={34} className="text-muted-foreground/30" /></div>
         )}
-      </Box>
-
-      {/* Info */}
-      <Box p="xs">
-        <Text fw={600} size="sm" lineClamp={2} lh={1.3} mb={4}>
-          {title}
-        </Text>
-        {variantLabel && (
-          <Badge variant="light" size="xs" color="gray" mb={6}>
-            {variantLabel}
-          </Badge>
-        )}
-        <Text fw={800} size="sm" c="blue.7">
-          {price}
-        </Text>
-      </Box>
-    </Box>
-  );
+      </div>
+      <div className="p-2.5">
+        <p className="font-semibold text-sm line-clamp-2 leading-tight mb-1">{title}</p>
+        {variantLabel && <Badge variant="muted" size="sm" className="mb-1.5">{variantLabel}</Badge>}
+        <p className="font-extrabold text-sm text-primary">{price}</p>
+      </div>
+    </div>
+  )
 }
