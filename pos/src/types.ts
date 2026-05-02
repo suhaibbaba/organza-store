@@ -30,8 +30,16 @@ export interface Variant {
 export interface Product {
   id: string
   title: string
+  handle: string | null
   thumbnail: string | null
   variants: Variant[]
+}
+
+export interface Category {
+  id: string
+  name: string
+  handle: string
+  rank?: number
 }
 
 export interface CartLine {

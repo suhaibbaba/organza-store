@@ -1,6 +1,6 @@
 {
   "app": {
-    "title": "Organza Store POS",
+    "title": "Organza POS",
     "login": "Sign In",
     "logout": "Logout",
     "settings": "Settings",
@@ -21,6 +21,7 @@
     "scanPlaceholder": "Scan barcode here…",
     "scanWithCamera": "Scan with Camera",
     "manualSearch": "Search",
+    "browseCategories": "Browse Categories",
     "emptyCart": "Cart is empty",
     "emptyCartHint": "Scan a barcode or use Search",
     "region": "Region",

@@ -1,6 +1,3 @@
-// ─────────────────────────────────────────────
-//  Local storage for settings + auth token
-// ─────────────────────────────────────────────
 import type { Settings } from '@/types'
 
 const SETTINGS_KEY = 'medusa_pos_settings'
