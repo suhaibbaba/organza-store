@@ -7,6 +7,7 @@ import {
   IconChevronRight,
 } from "@tabler/icons-react";
 import { useState, useEffect, useRef, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import * as api from "@/api/client";
 import type { Category, Product, Variant } from "@/types";
@@ -53,6 +54,7 @@ export function CategoryPanel({
   onPick,
   currencyCode,
 }: Props) {
+  const { t } = useTranslation();
   const { format } = useCurrency(currencyCode);
   const isMobile = useMediaQuery("(max-width: 768px)");
 
@@ -169,8 +171,8 @@ export function CategoryPanel({
               <IconLayoutGrid size={42} className="text-muted-foreground/20" />
               <p className="font-semibold text-muted-foreground/50 text-sm">
                 {isMobile
-                  ? "Pick a category above"
-                  : "Select a category from the left"}
+                  ? t("category.pickAbove")
+                  : t("category.selectFromLeft")}
               </p>
             </div>
           )}
@@ -229,7 +231,7 @@ export function CategoryPanel({
 
               {!prodLoading && !hasMore && filtered.length > 0 && (
                 <p className="text-center text-xs text-muted-foreground py-4">
-                  All {totalCount} products loaded
+                  {t("category.allLoaded", { count: totalCount })}
                 </p>
               )}
 
@@ -237,7 +239,7 @@ export function CategoryPanel({
                 <div className="flex flex-col items-center justify-center gap-2 h-40">
                   <IconPhoto size={34} className="text-muted-foreground/25" />
                   <p className="text-sm text-muted-foreground">
-                    No products in this category
+                    {t("category.noProducts")}
                   </p>
                 </div>
               )}
@@ -245,7 +247,7 @@ export function CategoryPanel({
               {!prodLoading && products.length > 0 && filtered.length === 0 && (
                 <div className="flex items-center justify-center h-40">
                   <p className="text-sm text-muted-foreground">
-                    No products match "{filterQuery}"
+                    {t("category.noMatch", { query: filterQuery })}
                   </p>
                 </div>
               )}
@@ -268,7 +270,7 @@ export function CategoryPanel({
           <SheetHeader>
             <SheetTitle className="flex items-center gap-2">
               <IconLayoutGrid size={18} className="text-primary" />
-              Browse Categories
+              {t("category.browseCategories")}
             </SheetTitle>
           </SheetHeader>
 
@@ -288,7 +290,7 @@ export function CategoryPanel({
                 }
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select a category…" />
+                  <SelectValue placeholder={t("category.selectPlaceholder")} />
                 </SelectTrigger>
                 <SelectContent>
                   {categories.map((c) => (
@@ -358,7 +360,9 @@ export function CategoryPanel({
                 <div className="w-7 h-7 rounded-lg bg-white/15 flex items-center justify-center">
                   <IconLayoutGrid size={15} color="white" />
                 </div>
-                <span className="font-bold text-white">Browse Categories</span>
+                <span className="font-bold text-white">
+                  {t("category.browseCategories")}
+                </span>
                 {selectedCat && (
                   <>
                     <IconChevronRight size={14} className="text-white/40" />
@@ -389,7 +393,7 @@ export function CategoryPanel({
               {/* Category sidebar */}
               <div className="w-[200px] border-r border-border bg-muted/40 flex flex-col flex-shrink-0">
                 <p className="text-[10px] font-bold uppercase text-muted-foreground tracking-widest px-4 py-3 border-b border-border">
-                  Categories
+                  {t("category.sidebarLabel")}
                 </p>
 
                 {catLoading && (
@@ -403,7 +407,7 @@ export function CategoryPanel({
 
                 {!catLoading && categories.length === 0 && (
                   <p className="text-xs text-muted-foreground text-center p-4">
-                    No categories found
+                    {t("category.noCategories")}
                   </p>
                 )}
 
@@ -454,6 +458,7 @@ function CatProductCard({
   price,
   productUrl,
 }: CatProductCardProps) {
+  const { t } = useTranslation();
   return (
     <div className="group relative border border-border rounded-xl overflow-hidden bg-card hover:border-primary/50 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-150 cursor-pointer">
       {productUrl && (
@@ -470,7 +475,7 @@ function CatProductCard({
                 <IconExternalLink size={11} color="white" />
               </a>
             </TooltipTrigger>
-            <TooltipContent>Open on organza-moda.com</TooltipContent>
+            <TooltipContent>{t("category.openOnStore")}</TooltipContent>
           </Tooltip>
         </TooltipProvider>
       )}

@@ -6,7 +6,9 @@
     "settings": "Settings",
     "language": "Language",
     "english": "English",
-    "arabic": "العربية"
+    "arabic": "العربية",
+    "options": "Options",
+    "poweredBy": "Powered by Medusa Commerce"
   },
   "login": {
     "subtitle": "Sign in with your admin account",
@@ -14,7 +16,9 @@
     "password": "Password",
     "submit": "Sign In",
     "signingIn": "Signing in…",
-    "error": "Invalid email or password"
+    "error": "Invalid email or password",
+    "welcomeBack": "Welcome back",
+    "signInToPOS": "Sign in to your POS account"
   },
   "pos": {
     "scan": "Scan barcode",
@@ -30,13 +34,15 @@
     "discount": "Discount",
     "remove": "Remove",
     "percent": "%",
-    "fixed": "Amount"
+    "fixed": "Amount",
+    "cart": "Cart"
   },
   "summary": {
     "title": "Sale Summary",
     "subtotal": "Subtotal",
     "cartDiscount": "Cart Discount",
     "discountApplied": "Discount",
+    "discountAppliedLabel": "Discount applied",
     "total": "TOTAL",
     "paymentMethod": "Payment Method",
     "cash": "Cash",
@@ -50,7 +56,23 @@
     "title": "Search Products",
     "placeholder": "Type product name or SKU…",
     "noResults": "No matches",
-    "close": "Close"
+    "close": "Close",
+    "searching": "Searching…",
+    "tryDifferent": "Try a different keyword or SKU",
+    "typeToSearch": "Type at least 2 characters to search",
+    "openOnStore": "Open on organza-moda.com"
+  },
+  "category": {
+    "browseCategories": "Browse Categories",
+    "pickAbove": "Pick a category above",
+    "selectFromLeft": "Select a category from the left",
+    "selectPlaceholder": "Select a category…",
+    "sidebarLabel": "Categories",
+    "noCategories": "No categories found",
+    "allLoaded": "All {{count}} products loaded",
+    "noProducts": "No products in this category",
+    "noMatch": "No products match \"{{query}}\"",
+    "openOnStore": "Open on organza-moda.com"
   },
   "scanner": {
     "title": "Camera Scanner",

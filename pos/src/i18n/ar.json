@@ -6,7 +6,9 @@
     "settings": "الإعدادات",
     "language": "اللغة",
     "english": "English",
-    "arabic": "العربية"
+    "arabic": "العربية",
+    "options": "خيارات",
+    "poweredBy": "مدعوم بواسطة Medusa Commerce"
   },
   "login": {
     "subtitle": "سجّل الدخول بحساب المدير",
@@ -14,7 +16,9 @@
     "password": "كلمة المرور",
     "submit": "دخول",
     "signingIn": "جارٍ الدخول…",
-    "error": "البريد الإلكتروني أو كلمة المرور غير صحيحة"
+    "error": "البريد الإلكتروني أو كلمة المرور غير صحيحة",
+    "welcomeBack": "أهلاً بعودتك",
+    "signInToPOS": "تسجيل الدخول إلى نقطة البيع"
   },
   "pos": {
     "scan": "مسح الباركود",
@@ -30,13 +34,15 @@
     "discount": "خصم",
     "remove": "إزالة",
     "percent": "٪",
-    "fixed": "مبلغ"
+    "fixed": "مبلغ",
+    "cart": "السلة"
   },
   "summary": {
     "title": "ملخص البيع",
     "subtotal": "المجموع الفرعي",
     "cartDiscount": "خصم السلة",
     "discountApplied": "الخصم",
+    "discountAppliedLabel": "الخصم المطبّق",
     "total": "الإجمالي",
     "paymentMethod": "طريقة الدفع",
     "cash": "نقدًا",
@@ -50,7 +56,23 @@
     "title": "بحث عن منتج",
     "placeholder": "اكتب اسم المنتج أو الكود…",
     "noResults": "لا توجد نتائج",
-    "close": "إغلاق"
+    "close": "إغلاق",
+    "searching": "جارٍ البحث…",
+    "tryDifferent": "جرّب كلمة أو كود مختلف",
+    "typeToSearch": "اكتب حرفين على الأقل للبحث",
+    "openOnStore": "فتح على organza-moda.com"
+  },
+  "category": {
+    "browseCategories": "تصفح التصنيفات",
+    "pickAbove": "اختر تصنيفاً من الأعلى",
+    "selectFromLeft": "اختر تصنيفاً من اليسار",
+    "selectPlaceholder": "اختر تصنيفاً…",
+    "sidebarLabel": "التصنيفات",
+    "noCategories": "لا توجد تصنيفات",
+    "allLoaded": "تم تحميل جميع {{count}} منتجات",
+    "noProducts": "لا توجد منتجات في هذا التصنيف",
+    "noMatch": "لا توجد منتجات تطابق \"{{query}}\"",
+    "openOnStore": "فتح على organza-moda.com"
   },
   "scanner": {
     "title": "ماسح الكاميرا",
