@@ -121,7 +121,7 @@ export function CartLineRow({ item, currencyCode, onQty, onRemove, onDiscount, l
                   value={item.lineDiscount || ''}
                   onChange={(v) => onDiscount(item.variant.id, Number(v) || 0, item.lineDiscountType)}
                   min={0}
-                  w={64}
+                  w={80}
                   size="xs"
                   hideControls
                   placeholder={t('pos.discount')}
