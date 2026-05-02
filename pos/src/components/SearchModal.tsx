@@ -186,6 +186,8 @@ export function ProductCard({
   price,
   productUrl,
 }: ProductCardProps) {
+  const { t } = useTranslation();
+
   return (
     <div className="group relative border border-border rounded-xl overflow-hidden bg-card hover:border-primary/50 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-150 cursor-pointer">
       {productUrl && (
