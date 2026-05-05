@@ -21,3 +21,4 @@ public/.vercel/
 .next
 .vite
 .next-env.d.ts
+workspace.xml

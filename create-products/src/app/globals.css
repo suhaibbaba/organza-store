@@ -1,0 +1,64 @@
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&display=swap");
+@import "tailwindcss";
+
+@theme {
+  --color-brand-50: #ecf5f6;
+  --color-brand-100: #c5e0e2;
+  --color-brand-500: #2d7d84;
+  --color-brand-600: #235C63;
+  --color-brand-700: #1a444a;
+  --color-brand-900: #091618;
+  --font-sans: "DM Sans", system-ui, sans-serif;
+}
+
+:root {
+  --font: "DM Sans", system-ui, sans-serif;
+  --brand: 185 48% 26%;
+  --brand-dark: 185 48% 18%;
+}
+
+body {
+  font-family: var(--font);
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+  background-color: #f0f6f6;
+}
+
+.sidebar-gradient {
+  background: linear-gradient(180deg, #1a444a 0%, #235C63 100%);
+}
+
+.btn-brand {
+  background: linear-gradient(135deg, #1a444a 0%, #235C63 100%);
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
+
+@media print {
+  body > *:not(#print-root) {
+    display: none !important;
+  }
+  #print-root {
+    display: block;
+  }
+  .barcode-grid {
+    display: grid;
+    grid-template-columns: repeat(var(--cols, 3), 1fr);
+    gap: 2mm;
+    padding: 5mm;
+  }
+  .barcode-cell {
+    width: var(--label-w, 60mm);
+    height: var(--label-h, 30mm);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border: 0.5px solid #ddd;
+    padding: 2mm;
+    page-break-inside: avoid;
+  }
+}

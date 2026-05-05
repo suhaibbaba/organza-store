@@ -9,9 +9,19 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@medusajs/js-sdk": "^2.14.2",
+    "@tanstack/react-query": "^5.100.9",
+    "clsx": "^2.1.1",
+    "html5-qrcode": "^2.3.8",
+    "jsbarcode": "^3.12.3",
+    "lucide-react": "^1.14.0",
     "next": "16.2.4",
+    "next-intl": "^4.11.0",
+    "prettier": "^3.8.3",
     "react": "19.2.4",
-    "react-dom": "19.2.4"
+    "react-dom": "19.2.4",
+    "sonner": "^2.0.7",
+    "tailwind-merge": "^3.5.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
