@@ -20,3 +20,4 @@ public/.parcel-cache/
 public/.vercel/     
 .next
 .vite
+.next-env.d.ts
