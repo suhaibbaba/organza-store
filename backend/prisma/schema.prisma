@@ -1,0 +1,348 @@
+// ============================================================
+//  Organza Store — Prisma Schema (Phase 1: Products & Users)
+//  Stack: PostgreSQL + Prisma + Node/Express + TypeScript
+//  Orders are intentionally NOT in this phase.
+//
+//  i18n: translatable fields are stored as JSON with the shape
+//        { "ar": "...", "en": "...", "he": "..." }
+//        Arabic (ar) is the default language (configurable in settings).
+//        A missing translation falls back to the default language.
+// ============================================================
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]   // needed for pg_trgm fuzzy search
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [pg_trgm]                        // fuzzy / typo-tolerant search (free, built into Postgres)
+}
+
+// ============================================================
+//  USERS & ROLES
+// ============================================================
+
+enum Role {
+  ADMIN      // full access to everything
+  MANAGER    // products, stock, orders — no users/settings
+  EMPLOYEE   // POS, add products, edit images, create+deliver orders only
+}
+
+// Auth is handled by Better Auth (separate central backend, serves admin/pos/
+// and later the storefront). The auth tables below (User/Session/Account/
+// Verification) follow Better Auth's schema — verify/regenerate them with the
+// Better Auth CLI (`npx @better-auth/cli generate`) and keep our custom fields.
+// Password is NOT stored on User; Better Auth keeps it in Account.
+
+model User {
+  id            String   @id @default(cuid())
+  name          String
+  email         String   @unique
+  emailVerified Boolean  @default(false)
+  image         String?
+
+  // --- custom fields ---
+  role          Role     @default(EMPLOYEE)
+  phone         String   @unique            // E.164 as entered (+970/+972 NOT rewritten); required; contact-only, not login
+  whatsapp      String?  @unique             // E.164 as entered; optional
+  idNumber      String?                      // SENSITIVE: Admin-only; never returned by API to others
+  isActive      Boolean  @default(true)
+
+  accounts  Account[]
+  sessions  Session[]
+
+  createdProducts Product[]  @relation("ProductCreatedBy")
+  auditLogs       AuditLog[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([role])
+}
+
+// --- Better Auth companion tables (generated/verified via its CLI) ---
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String   @unique
+  expiresAt DateTime
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model Account {
+  id                    String    @id @default(cuid())
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accountId             String
+  providerId            String              // "credential" for email/phone + password
+  password              String?             // hashed by Better Auth (not bcrypt in seed)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model Verification {
+  id         String   @id @default(cuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+}
+
+// ============================================================
+//  CATEGORIES (self-nested: parent > child)
+// ============================================================
+
+model Category {
+  id        String   @id @default(cuid())
+  name      Json                          // translatable { ar, en, he }
+  slug      String   @unique              // from default-language name
+
+  parentId  String?
+  parent    Category?  @relation("CategoryTree", fields: [parentId], references: [id])
+  children  Category[] @relation("CategoryTree")
+
+  products  Product[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([parentId])
+}
+
+// ============================================================
+//  PRODUCTS (parent)
+// ============================================================
+
+model Product {
+  id            String   @id @default(cuid())
+
+  // stable sequential number used to build the SKU (ORG-00042)
+  productNumber Int      @unique @default(autoincrement())
+
+  name          Json                        // translatable { ar, en, he }
+  slug          String   @unique            // auto-generated from default-language name
+  description   Json?                        // translatable, optional
+
+  // Normalized concatenation of ALL language names+descriptions, used for
+  // cross-language + typo-tolerant search. Rebuilt whenever name/description change.
+  searchText    String   @default("")
+
+  categoryId    String
+  category      Category @relation(fields: [categoryId], references: [id])
+
+  // --- pricing (parent-level, variants may override) ---
+  basePrice      Decimal  @db.Decimal(10, 2)
+  compareAtPrice Decimal? @db.Decimal(10, 2)   // "was" price for discounts
+  cost           Decimal? @db.Decimal(10, 2)   // purchase cost (for profit calc)
+
+  // --- fields used ONLY when the product has NO variants (simple product) ---
+  sku      String? @unique       // frozen at creation; editable; ORG-00042
+  barcode  String? @unique
+  stock    Int     @default(1)
+
+  // --- status & soft delete ---
+  isActive  Boolean   @default(true)   // published / hidden  (role-gated)
+  deletedAt DateTime?                  // soft delete         (role-gated)
+
+  // --- relations ---
+  images       ProductImage[]
+  variants     Variant[]
+  variantTypes ProductVariantType[]
+
+  createdById String?
+  createdBy   User?    @relation("ProductCreatedBy", fields: [createdById], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([categoryId])
+  @@index([isActive])
+  @@index([deletedAt])
+  // GIN trigram index powering fuzzy / typo-tolerant search on searchText
+  @@index([searchText(ops: raw("gin_trgm_ops"))], type: Gin)
+}
+
+// ============================================================
+//  VARIANTS (children of a product)
+// ============================================================
+
+model Variant {
+  id            String  @id @default(cuid())
+
+  productId     String
+  product       Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  // sequential number within the product, used for SKU suffix (ORG-00042-1)
+  variantNumber Int
+
+  name          Json                         // translatable; auto-suggested, editable
+  sku           String  @unique              // frozen at creation; editable
+  barcode       String? @unique
+
+  priceOverride Decimal? @db.Decimal(10, 2)  // null => falls back to product.basePrice
+  cost          Decimal? @db.Decimal(10, 2)  // null => falls back to product.cost
+  stock         Int      @default(1)
+
+  isActive      Boolean  @default(true)
+
+  images ProductImage[]                       // optional; empty => falls back to product images
+  values VariantValue[]                       // references to global option values
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([productId, variantNumber])
+  @@index([productId])
+}
+
+// ============================================================
+//  VARIANT TYPES & VALUES (GLOBAL, shared across all products)
+//  e.g. Color -> [أحمر, أزرق, أصفر] ; Size -> [S, M, L]
+//  Added centrally OR inline from the product screen.
+//  Display names are translatable; a stable slug/key handles identity & uniqueness.
+// ============================================================
+
+model VariantType {
+  id        String   @id @default(cuid())
+  name      Json                            // translatable display { ar, en, he }
+  slug      String   @unique                // stable identifier: "color", "size", "number"
+
+  values    VariantOptionValue[]
+  products  ProductVariantType[]
+
+  createdAt DateTime @default(now())
+}
+
+model VariantOptionValue {
+  id            String      @id @default(cuid())
+
+  variantTypeId String
+  variantType   VariantType @relation(fields: [variantTypeId], references: [id], onDelete: Cascade)
+
+  value         Json                         // translatable display { ar, en, he }
+  key           String                       // stable normalized identifier (default-lang, normalized)
+  sortOrder     Int         @default(0)
+
+  variantValues VariantValue[]
+
+  createdAt     DateTime @default(now())
+
+  @@unique([variantTypeId, key])   // no duplicate value within a type (by stable key)
+  @@index([variantTypeId])
+}
+
+// --- join: which variant types a product uses ---
+model ProductVariantType {
+  productId     String
+  variantTypeId String
+
+  product       Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
+  variantType   VariantType @relation(fields: [variantTypeId], references: [id])
+
+  @@id([productId, variantTypeId])
+}
+
+// --- join: variant <-> option value (reference by ID, not copied text) ---
+model VariantValue {
+  variantId     String
+  optionValueId String
+
+  variant       Variant            @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  optionValue   VariantOptionValue @relation(fields: [optionValueId], references: [id])
+
+  @@id([variantId, optionValueId])
+  @@index([optionValueId])
+}
+
+// ============================================================
+//  IMAGES (belong to a product OR a variant; ordered)
+// ============================================================
+
+model ProductImage {
+  id        String   @id @default(cuid())
+  url       String
+  sortOrder Int      @default(0)     // drag-to-reorder; lowest = primary
+  isPrimary Boolean  @default(false)
+
+  productId String?
+  product   Product? @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  variantId String?
+  variant   Variant? @relation(fields: [variantId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([productId])
+  @@index([variantId])
+}
+
+// ============================================================
+//  AUDIT LOG (who changed what, when — full history)
+// ============================================================
+
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+  PUBLISH
+  HIDE
+  STOCK_CHANGE
+  PRICE_CHANGE
+}
+
+model AuditLog {
+  id         String      @id @default(cuid())
+
+  userId     String
+  user       User        @relation(fields: [userId], references: [id])
+
+  action     AuditAction
+  entityType String                       // "Product", "Variant", "Stock", ...
+  entityId   String
+  oldValue   Json?
+  newValue   Json?
+
+  createdAt  DateTime    @default(now())
+
+  @@index([userId])
+  @@index([entityType, entityId])
+  @@index([createdAt])
+}
+
+// ============================================================
+//  SETTINGS (single row; store-wide configuration)
+//  Currency is a single value now (ILS) but modeled as a field
+//  so multi-currency can be added later without restructuring.
+// ============================================================
+
+model Setting {
+  id                 String   @id @default("default")   // singleton row
+  storeName          Json                                // translatable { ar, en, he }
+  defaultLanguage    String   @default("ar")             // configurable
+  supportedLanguages String[] @default(["ar", "en", "he"])
+  currency           String   @default("ILS")            // room for multi-currency later
+  defaultCountryCode String   @default("+970")           // default phone prefix (المقدمة)
+  lowStockThreshold  Int      @default(3)
+
+  updatedAt          DateTime @updatedAt
+}
