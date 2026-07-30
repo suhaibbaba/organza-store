@@ -83,8 +83,9 @@ async function main() {
     const existing = await prisma.user.findUnique({ where: { email: s.email } });
     if (!existing) {
       // create credentials via Better Auth so the password hash is compatible
+      // (phone is a required additional field on User, so it must be passed here)
       await auth.api.signUpEmail({
-        body: { email: s.email, password: "password123", name: s.name },
+        body: { email: s.email, password: "password123", name: s.name, phone: s.phone },
       });
     }
     // set/refresh our custom fields (role, phone) — unique phone in E.164
