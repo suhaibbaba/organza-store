@@ -31,9 +31,10 @@ router.use(requireAuth);
 const productInclude = {
   category: true,
   variantTypes: { include: { variantType: true } },
+  images: { orderBy: { sortOrder: "asc" as const } },
   variants: {
     orderBy: { variantNumber: "asc" as const },
-    include: { values: { include: { optionValue: true } } },
+    include: { values: { include: { optionValue: true } }, images: { orderBy: { sortOrder: "asc" as const } } },
   },
 } satisfies Prisma.ProductInclude;
 
@@ -429,7 +430,10 @@ router.patch(
     });
     if (!variant) throw new AppError(404, "error.variant.not_found");
 
-    const product = await prisma.product.findUnique({ where: { id: req.params.id } });
+    const product = await prisma.product.findUnique({
+      where: { id: req.params.id },
+      include: { images: { orderBy: { sortOrder: "asc" } } },
+    });
     if (!product) throw new AppError(404, "error.product.not_found");
 
     const body = req.body as UpdateVariantInput;
@@ -449,7 +453,7 @@ router.patch(
         stock: body.stock,
         isActive: body.isActive,
       },
-      include: { values: { include: { optionValue: true } } },
+      include: { values: { include: { optionValue: true } }, images: { orderBy: { sortOrder: "asc" } } },
     });
 
     await writeAudit({

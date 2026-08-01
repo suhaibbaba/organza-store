@@ -10,8 +10,10 @@ import categoriesRouter from "./routes/categories";
 import inventoryRouter from "./routes/inventory";
 import usersRouter from "./routes/users";
 import settingsRouter from "./routes/settings";
+import imagesRouter from "./routes/images";
 import { errorHandler } from "./middleware/errorHandler";
 import { AppError, sendError } from "./lib/response";
+import { UPLOAD_DIR } from "./lib/image";
 
 const app = express();
 
@@ -31,6 +33,10 @@ app.all("/api/auth/*", toNodeHandler(auth));
 
 app.use(express.json());
 
+// Processed product/variant images (thumbnail/medium/full WebP), served
+// directly off disk — CLAUDE.md: images stored locally on the VPS.
+app.use("/uploads", express.static(UPLOAD_DIR));
+
 app.get("/health", (_req, res) => {
   res.json({ success: true, data: { status: "ok" }, meta: null });
 });
@@ -41,6 +47,7 @@ app.use("/api/categories", categoriesRouter);
 app.use("/api/inventory", inventoryRouter);
 app.use("/api/users", usersRouter);
 app.use("/api/settings", settingsRouter);
+app.use("/api/images", imagesRouter);
 
 app.use((_req, res) => {
   sendError(res, new AppError(404, "error.not_found"));

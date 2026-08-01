@@ -288,8 +288,15 @@ model VariantValue {
 // ============================================================
 
 model ProductImage {
-  id        String  @id @default(cuid())
-  url       String
+  id String @id @default(cuid())
+
+  // shared base name on disk for all size variants (<filename>-thumbnail/-medium/-full.webp);
+  // kept so the files can be removed together on delete
+  filename     String
+  url          String // full size — product page
+  mediumUrl    String // medium — POS
+  thumbnailUrl String // thumbnail — list views
+
   sortOrder Int     @default(0) // drag-to-reorder; lowest = primary
   isPrimary Boolean @default(false)
 
