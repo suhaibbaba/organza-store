@@ -13,42 +13,17 @@
 
 import { PrismaClient, Role } from "@prisma/client";
 import { auth } from "../src/lib/auth"; // Better Auth instance (adjust path if different)
+// Reuse the real search normalizer + SKU generator so the seed can never
+// silently drift from the production logic (CLAUDE.md rule 11).
+import { buildSearchText } from "../src/lib/search";
+import { productSku, variantSku } from "../src/lib/sku";
+import { generateUniqueBarcode } from "../src/lib/barcode";
 
 const prisma = new PrismaClient();
 
 // ---- helpers ------------------------------------------------
 
-// Normalize Arabic for the searchText field (matches the search rule:
-// strip tashkeel, unify similar letters). Keep this in sync with the
-// real search layer's normalizer.
-function normalize(input: string): string {
-  return input
-    .replace(/[\u064B-\u0652\u0670]/g, "") // tashkeel/diacritics
-    .replace(/[إأآا]/g, "ا")
-    .replace(/ى/g, "ي")
-    .replace(/ة/g, "ه")
-    .replace(/ؤ/g, "و")
-    .replace(/ئ/g, "ي")
-    .toLowerCase()
-    .trim();
-}
-
 type I18n = { ar: string; en?: string; he?: string };
-
-// Build searchText = normalized concatenation of ALL translations.
-function buildSearchText(...fields: (I18n | undefined)[]): string {
-  return fields
-    .filter(Boolean)
-    .flatMap((f) => Object.values(f as I18n))
-    .filter(Boolean)
-    .map((v) => normalize(v as string))
-    .join(" ");
-}
-
-const SKU_PREFIX = "ORG-";
-const pad = (n: number) => String(n).padStart(5, "0");
-const productSku = (n: number) => `${SKU_PREFIX}${pad(n)}`;
-const variantSku = (n: number, v: number) => `${productSku(n)}-${v}`;
 
 // ---- seed ---------------------------------------------------
 
@@ -194,6 +169,10 @@ async function main() {
     }[];
   }) {
     const searchText = buildSearchText(opts.name, opts.description);
+    // Barcode is generated once and frozen thereafter, same spirit as SKU —
+    // reuse it across reseed runs instead of rotating on every `upsert`.
+    const existing = await prisma.product.findUnique({ where: { slug: opts.slug }, select: { barcode: true } });
+    const barcode = existing?.barcode ?? (await generateUniqueBarcode());
     const base = {
       name: opts.name,
       description: opts.description ?? undefined,
@@ -205,6 +184,7 @@ async function main() {
       cost: opts.cost ?? null,
       isActive: opts.isActive ?? true,
       deletedAt: opts.deleted ? new Date() : null,
+      barcode,
       // simple-product fields
       sku: opts.simple ? productSku(opts.productNumber) : null,
       stock: opts.simple ? opts.simple.stock : 1,
@@ -242,6 +222,7 @@ async function main() {
             variantNumber: n,
             name: v.name,
             sku: variantSku(opts.productNumber, n),
+            barcode: await generateUniqueBarcode(),
             stock: v.stock ?? 1,
             priceOverride: v.priceOverride ?? null, // null => inherits basePrice
             cost: v.cost ?? null, // null => inherits product.cost
@@ -323,6 +304,14 @@ async function main() {
     deleted: true,
     simple: { stock: 1 },
   });
+
+  // The seed inserts explicit `productNumber` values (for deterministic SKUs),
+  // which bypasses Postgres's autoincrement sequence — left alone, the very
+  // first API-created product would collide with productNumber=1. Re-sync the
+  // sequence to the current max so real inserts continue from there.
+  await prisma.$executeRawUnsafe(
+    `SELECT setval(pg_get_serial_sequence('"Product"', 'productNumber'), COALESCE((SELECT MAX("productNumber") FROM "Product"), 1))`
+  );
 
   console.log("✅ Seed complete.");
   console.log("   Users: admin@ / manager@ / employee@organza.test  (password: password123)");
