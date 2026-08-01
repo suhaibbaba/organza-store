@@ -1,0 +1,8 @@
+# root .gitignore — protect secrets + build junk
+.env
+.env.*
+!.env.example
+node_modules/
+dist/
+uploads/
+*.log

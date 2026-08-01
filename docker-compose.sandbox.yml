@@ -1,0 +1,65 @@
+# Organza — Sandbox stack (backend + Postgres for now)
+# Run:  docker compose -f docker-compose.sandbox.yml --env-file .env.sandbox up -d --build
+name: organza-sandbox
+
+services:
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    volumes:
+      - sandbox_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 15
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file: .env.sandbox
+    environment:
+      # assembled here so backend always points at the compose DB
+      DATABASE_URL: postgresql://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}?schema=public
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - sandbox_uploads:/app/uploads     # keep uploaded images across rebuilds
+    ports:
+      - "127.0.0.1:14000:4000"           # sandbox range (leaves 4000 free for prod later)
+
+  # ── admin / pos: add these once those apps actually exist ──
+  # admin:
+  #   build:
+  #     context: ./admin
+  #     dockerfile: Dockerfile
+  #     args:
+  #       NEXT_PUBLIC_API_URL: https://api.sandbox.organza-moda.com
+  #       NEXT_PUBLIC_DEFAULT_LOCALE: ar
+  #       NEXT_PUBLIC_SUPPORTED_LOCALES: ar,en,he
+  #   restart: unless-stopped
+  #   depends_on: [backend]
+  #   ports: ["127.0.0.1:13001:3000"]
+  #
+  # pos:
+  #   build:
+  #     context: ./pos
+  #     dockerfile: Dockerfile
+  #     args:
+  #       NEXT_PUBLIC_API_URL: https://api.sandbox.organza-moda.com
+  #       NEXT_PUBLIC_DEFAULT_LOCALE: ar
+  #       NEXT_PUBLIC_SUPPORTED_LOCALES: ar,en,he
+  #   restart: unless-stopped
+  #   depends_on: [backend]
+  #   ports: ["127.0.0.1:13002:3000"]
+
+volumes:
+  sandbox_db_data:
+  sandbox_uploads:
