@@ -106,6 +106,29 @@ and require auth. Errors are translation **keys** (`error.*`), not literal sente
 `cost` (and `resolvedCost`) are only present in responses for Admin/Manager — stripped entirely
 for Employee, not just hidden client-side.
 
+## Images API (Phase 2)
+
+Uploads are processed with `sharp` into three WebP sizes (thumbnail/medium/full), stored under
+`UPLOAD_DIR` and served statically at `/uploads/*`. Max size and allowed MIME types come from
+`UPLOAD_MAX_SIZE_MB` / `ALLOWED_IMAGE_TYPES` in `.env`.
+
+| Method | Path                     | Role gate               | Notes |
+|--------|--------------------------|--------------------------|-------|
+| POST   | `/api/images`             | Admin/Manager/Employee   | `multipart/form-data`: `file` + exactly one of `productId` / `variantId`. First image for an owner becomes primary automatically. |
+| PATCH  | `/api/images/reorder`     | Admin/Manager/Employee   | body `{ productId or variantId, imageIds: string[] }` — sets `sortOrder` from array order; must cover the owner's full image set |
+| PATCH  | `/api/images/:id`         | Admin/Manager/Employee   | body `{ isPrimary: boolean }` — setting `true` clears `isPrimary` on the owner's other images |
+| DELETE | `/api/images/:id`         | Admin/Manager            | deletion follows product-edit permissions, not the looser "edit images" rule; removes the DB row and all size variants on disk |
+
+```bash
+curl -X POST http://localhost:4000/api/images \
+  -H "Authorization: Bearer <token>" \
+  -F "productId=<id>" \
+  -F "file=@dress.jpg;type=image/jpeg"
+```
+
+A variant with no images of its own falls back to its parent product's gallery at read time
+(`GET /api/products/:id` and audit snapshots resolve this automatically — nothing is copied).
+
 ## Auth notes
 
 - The Better Auth instance lives at `src/lib/auth.ts`. It's configured with

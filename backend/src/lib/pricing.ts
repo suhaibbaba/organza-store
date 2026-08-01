@@ -10,9 +10,23 @@ function canSeeCost(role: Role): boolean {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnyRecord = any;
 
+function serializeImage(image: AnyRecord) {
+  return {
+    id: image.id,
+    url: image.url,
+    mediumUrl: image.mediumUrl,
+    thumbnailUrl: image.thumbnailUrl,
+    sortOrder: image.sortOrder,
+    isPrimary: image.isPrimary,
+  };
+}
+
 export function serializeVariant(variant: AnyRecord, product: AnyRecord, role: Role) {
   const resolvedPrice = variant.priceOverride ?? product.basePrice;
   const resolvedCost = variant.cost ?? product.cost ?? null;
+  // Fallback rule: a variant with no images of its own uses the parent
+  // product's gallery, resolved at read time (never copied).
+  const images: AnyRecord[] = variant.images?.length ? variant.images : product.images ?? [];
 
   const dto: AnyRecord = {
     id: variant.id,
@@ -24,6 +38,7 @@ export function serializeVariant(variant: AnyRecord, product: AnyRecord, role: R
     resolvedPrice,
     stock: variant.stock,
     isActive: variant.isActive,
+    images: images.map(serializeImage),
     values: (variant.values ?? []).map((vv: AnyRecord) => ({
       id: vv.optionValue.id,
       variantTypeId: vv.optionValue.variantTypeId,
@@ -63,6 +78,7 @@ export function serializeProduct(product: AnyRecord, role: Role) {
     isActive: product.isActive,
     deletedAt: product.deletedAt,
     hasVariants: variants.length > 0,
+    images: (product.images ?? []).map(serializeImage),
     variantTypes: (product.variantTypes ?? []).map((pvt: AnyRecord) => ({
       id: pvt.variantType.id,
       name: pvt.variantType.name,
