@@ -116,9 +116,10 @@ Check `spec.md` first. If the answer isn't there, ask the user. Never silently g
 behavior — guessing is what broke the previous attempt.
 
 ## Code organization (apply everywhere, backend + frontends)
-- **Use path aliases, not relative paths.** Import as `@/lib/auth`, never `../../lib/auth`.
-  Configure the alias in `tsconfig.json` (and the bundler/runtime resolver) so it works at build
-  and runtime.
+- **Use path aliases, not relative paths.** Within a project, import local modules with `@/`
+  (e.g. `@/lib/auth`, `@/routes/products`) — never `../../lib/auth`. Import the cross-app shared
+  package with `@shared/` (e.g. `@shared/types`). Configure both aliases in each project's
+  `tsconfig.json` (and the bundler/runtime resolver) so they work at build and runtime.
 - **No inline/ad-hoc types scattered across files.** Centralize types in a dedicated `types/`
   directory, split into focused files by domain (e.g. `types/product.ts`, `types/user.ts`,
   `types/common.ts`) and re-export from a barrel (`types/index.ts`). Shared cross-app types live in
