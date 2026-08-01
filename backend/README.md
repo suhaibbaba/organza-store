@@ -164,10 +164,16 @@ backend/
 │   ├── migrations/
 │   └── seed.ts         # idempotent dev seed
 ├── src/
-│   ├── index.ts         # Express app entry
-│   └── lib/
-│       ├── auth.ts       # Better Auth instance
-│       └── prisma.ts     # shared PrismaClient
+│   ├── index.ts          # Express app entry
+│   ├── constants/        # magic strings/numbers (SKU prefix, image sizes, error keys, ...)
+│   ├── types/            # centralized types, split by domain, re-exported from types/index.ts
+│   ├── lib/               # auth.ts (Better Auth instance), prisma.ts (shared PrismaClient), and other core logic
+│   ├── middleware/        # asyncHandler, auth, error handling, request validation
+│   ├── routes/            # one router per resource
+│   └── validation/        # Zod schemas (+ their inferred input types)
 ├── .env.example
 └── package.json
 ```
+
+Local modules are imported via the `@/` path alias (e.g. `@/lib/auth`), never relative paths;
+the shared cross-app package (once it exists) is imported via `@shared/`.

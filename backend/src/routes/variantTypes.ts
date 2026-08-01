@@ -1,13 +1,19 @@
 import { Router } from "express";
 import { AuditAction, Role } from "@prisma/client";
-import { prisma } from "../lib/prisma";
-import { asyncHandler } from "../middleware/asyncHandler";
-import { requireAuth, requireRole } from "../middleware/auth";
-import { validateBody } from "../middleware/validate";
-import { AppError, sendOk } from "../lib/response";
-import { addOptionValueSchema, createVariantTypeSchema, type AddOptionValueInput, type CreateVariantTypeInput } from "../validation/variantType";
-import { generateUniqueSlug, toSlug } from "../lib/slug";
-import { writeAudit } from "../lib/audit";
+import { prisma } from "@/lib/prisma";
+import { asyncHandler } from "@/middleware/asyncHandler";
+import { requireAuth, requireRole } from "@/middleware/auth";
+import { validateBody } from "@/middleware/validate";
+import { AppError, sendOk } from "@/lib/response";
+import {
+  addOptionValueSchema,
+  createVariantTypeSchema,
+  type AddOptionValueInput,
+  type CreateVariantTypeInput,
+} from "@/validation/variantType";
+import { generateUniqueSlug, toSlug } from "@/lib/slug";
+import { writeAudit } from "@/lib/audit";
+import { AUDIT_ENTITY, ERROR_CODES } from "@/constants";
 
 // Global variant types/values (Color, Size, Number, ...), shared across all
 // products. Creation here is what powers the "inline add" flow from the
@@ -44,7 +50,7 @@ router.post(
     await writeAudit({
       userId: req.user!.id,
       action: AuditAction.CREATE,
-      entityType: "VariantType",
+      entityType: AUDIT_ENTITY.VARIANT_TYPE,
       entityId: type.id,
       newValue: type,
     });
@@ -59,7 +65,7 @@ router.post(
   validateBody(addOptionValueSchema),
   asyncHandler(async (req, res) => {
     const type = await prisma.variantType.findUnique({ where: { id: req.params.id } });
-    if (!type) throw new AppError(404, "error.variantType.not_found");
+    if (!type) throw new AppError(404, ERROR_CODES.VARIANT_TYPE_NOT_FOUND);
 
     const body = req.body as AddOptionValueInput;
     const key = toSlug(body.value.ar);
@@ -67,7 +73,7 @@ router.post(
     const existing = await prisma.variantOptionValue.findUnique({
       where: { variantTypeId_key: { variantTypeId: type.id, key } },
     });
-    if (existing) throw new AppError(409, "error.variantType.value_duplicate");
+    if (existing) throw new AppError(409, ERROR_CODES.VARIANT_TYPE_VALUE_DUPLICATE);
 
     const sortOrder = await prisma.variantOptionValue.count({ where: { variantTypeId: type.id } });
     const value = await prisma.variantOptionValue.create({
@@ -77,7 +83,7 @@ router.post(
     await writeAudit({
       userId: req.user!.id,
       action: AuditAction.CREATE,
-      entityType: "VariantOptionValue",
+      entityType: AUDIT_ENTITY.VARIANT_OPTION_VALUE,
       entityId: value.id,
       newValue: value,
     });

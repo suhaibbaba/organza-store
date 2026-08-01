@@ -1,5 +1,6 @@
 import { parsePhoneNumberFromString } from "libphonenumber-js";
-import { prisma } from "./prisma";
+import { prisma } from "@/lib/prisma";
+import { PALESTINE_PHONE_PREFIXES } from "@/constants";
 
 // Numbers are stored exactly as entered in E.164 (CLAUDE.md rule 18) — never
 // reformatted/rewritten, so WhatsApp keeps reaching the number on its real
@@ -10,15 +11,11 @@ export function isValidE164(value: string): boolean {
   return Boolean(parsed?.isValid() && parsed.number === value);
 }
 
-// A Palestine line can be written under either +970 or +972. Uniqueness is
-// enforced by checking BOTH prefixes, never by rewriting the number.
-const PS_PREFIXES = ["+970", "+972"];
-
 export function dualPrefixCandidates(value: string): string[] {
-  const prefix = PS_PREFIXES.find((p) => value.startsWith(p));
+  const prefix = PALESTINE_PHONE_PREFIXES.find((p) => value.startsWith(p));
   if (!prefix) return [value];
   const national = value.slice(prefix.length);
-  return PS_PREFIXES.map((p) => `${p}${national}`);
+  return PALESTINE_PHONE_PREFIXES.map((p) => `${p}${national}`);
 }
 
 export async function findUserByPhoneField(

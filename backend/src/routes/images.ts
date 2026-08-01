@@ -2,12 +2,12 @@ import { Router } from "express";
 import type { NextFunction, Request, Response } from "express";
 import multer, { MulterError } from "multer";
 import { AuditAction, Role, type ProductImage } from "@prisma/client";
-import { prisma } from "../lib/prisma";
-import { asyncHandler } from "../middleware/asyncHandler";
-import { requireAuth, requireRole } from "../middleware/auth";
-import { validateBody } from "../middleware/validate";
-import { AppError, sendOk } from "../lib/response";
-import { ALLOWED_IMAGE_TYPES, UPLOAD_MAX_SIZE_MB, deleteProductImageFiles, storeProductImage } from "../lib/image";
+import { prisma } from "@/lib/prisma";
+import { asyncHandler } from "@/middleware/asyncHandler";
+import { requireAuth, requireRole } from "@/middleware/auth";
+import { validateBody } from "@/middleware/validate";
+import { AppError, sendOk } from "@/lib/response";
+import { ALLOWED_IMAGE_TYPES, UPLOAD_MAX_SIZE_MB, deleteProductImageFiles, storeProductImage } from "@/lib/image";
 import {
   reorderImagesSchema,
   setPrimaryImageSchema,
@@ -15,8 +15,9 @@ import {
   type ReorderImagesInput,
   type SetPrimaryImageInput,
   type UploadImageInput,
-} from "../validation/image";
-import { writeAudit } from "../lib/audit";
+} from "@/validation/image";
+import { writeAudit } from "@/lib/audit";
+import { AUDIT_ENTITY, ERROR_CODES } from "@/constants";
 
 const router = Router();
 router.use(requireAuth);
@@ -46,7 +47,7 @@ const upload = multer({
   limits: { fileSize: UPLOAD_MAX_SIZE_MB * 1024 * 1024 },
   fileFilter: (_req, file, cb) => {
     if (!ALLOWED_IMAGE_TYPES.includes(file.mimetype)) {
-      cb(new AppError(400, "error.image.invalid_type"));
+      cb(new AppError(400, ERROR_CODES.IMAGE_INVALID_TYPE));
       return;
     }
     cb(null, true);
@@ -60,10 +61,10 @@ function handleUpload(req: Request, res: Response, next: NextFunction): void {
   upload.single("file")(req, res, (err: unknown) => {
     if (err) {
       if (err instanceof MulterError && err.code === "LIMIT_FILE_SIZE") {
-        next(new AppError(400, "error.image.too_large"));
+        next(new AppError(400, ERROR_CODES.IMAGE_TOO_LARGE));
         return;
       }
-      next(err instanceof AppError ? err : new AppError(400, "error.image.upload_failed"));
+      next(err instanceof AppError ? err : new AppError(400, ERROR_CODES.IMAGE_UPLOAD_FAILED));
       return;
     }
     next();
@@ -80,17 +81,17 @@ router.post(
   handleUpload,
   validateBody(uploadImageSchema),
   asyncHandler(async (req, res) => {
-    if (!req.file) throw new AppError(400, "error.image.file_required");
+    if (!req.file) throw new AppError(400, ERROR_CODES.IMAGE_FILE_REQUIRED);
     const body = req.body as UploadImageInput;
 
     if (body.productId) {
       const product = await prisma.product.findFirst({ where: { id: body.productId, deletedAt: null } });
-      if (!product) throw new AppError(404, "error.product.not_found");
+      if (!product) throw new AppError(404, ERROR_CODES.PRODUCT_NOT_FOUND);
     } else {
       const variant = await prisma.variant.findFirst({
         where: { id: body.variantId, product: { deletedAt: null } },
       });
-      if (!variant) throw new AppError(404, "error.variant.not_found");
+      if (!variant) throw new AppError(404, ERROR_CODES.VARIANT_NOT_FOUND);
     }
 
     const where = ownerWhere(body);
@@ -113,7 +114,7 @@ router.post(
     await writeAudit({
       userId: req.user!.id,
       action: AuditAction.CREATE,
-      entityType: "ProductImage",
+      entityType: AUDIT_ENTITY.PRODUCT_IMAGE,
       entityId: created.id,
       newValue: created,
     });
@@ -138,7 +139,7 @@ router.patch(
     const existingIds = new Set(existing.map((i) => i.id));
     const requestedIds = new Set(body.imageIds);
     const sameSet = existingIds.size === requestedIds.size && [...existingIds].every((id) => requestedIds.has(id));
-    if (!sameSet) throw new AppError(400, "error.image.reorder_mismatch");
+    if (!sameSet) throw new AppError(400, ERROR_CODES.IMAGE_REORDER_MISMATCH);
 
     await prisma.$transaction(
       body.imageIds.map((id, index) => prisma.productImage.update({ where: { id }, data: { sortOrder: index } }))
@@ -149,7 +150,7 @@ router.patch(
     await writeAudit({
       userId: req.user!.id,
       action: AuditAction.UPDATE,
-      entityType: "ProductImage",
+      entityType: AUDIT_ENTITY.PRODUCT_IMAGE,
       entityId: body.productId ?? body.variantId!,
       oldValue: { order: existing.sort((a, b) => a.sortOrder - b.sortOrder).map((i) => i.id) },
       newValue: { order: body.imageIds },
@@ -170,7 +171,7 @@ router.patch(
   validateBody(setPrimaryImageSchema),
   asyncHandler(async (req, res) => {
     const image = await prisma.productImage.findUnique({ where: { id: req.params.id } });
-    if (!image) throw new AppError(404, "error.image.not_found");
+    if (!image) throw new AppError(404, ERROR_CODES.IMAGE_NOT_FOUND);
 
     const body = req.body as SetPrimaryImageInput;
 
@@ -189,7 +190,7 @@ router.patch(
     await writeAudit({
       userId: req.user!.id,
       action: AuditAction.UPDATE,
-      entityType: "ProductImage",
+      entityType: AUDIT_ENTITY.PRODUCT_IMAGE,
       entityId: image.id,
       oldValue: { isPrimary: image.isPrimary },
       newValue: { isPrimary: updated.isPrimary },
@@ -208,7 +209,7 @@ router.delete(
   requireRole(Role.ADMIN, Role.MANAGER),
   asyncHandler(async (req, res) => {
     const image = await prisma.productImage.findUnique({ where: { id: req.params.id } });
-    if (!image) throw new AppError(404, "error.image.not_found");
+    if (!image) throw new AppError(404, ERROR_CODES.IMAGE_NOT_FOUND);
 
     await prisma.productImage.delete({ where: { id: image.id } });
     await deleteProductImageFiles(image.filename);
@@ -216,7 +217,7 @@ router.delete(
     await writeAudit({
       userId: req.user!.id,
       action: AuditAction.DELETE,
-      entityType: "ProductImage",
+      entityType: AUDIT_ENTITY.PRODUCT_IMAGE,
       entityId: image.id,
       oldValue: image,
     });

@@ -2,7 +2,8 @@ import "dotenv/config";
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { bearer } from "better-auth/plugins";
-import { prisma } from "./prisma";
+import { prisma } from "@/lib/prisma";
+import { DEFAULT_SESSION_EXPIRES_IN_DAYS } from "@/constants";
 
 // Central Better Auth instance — serves admin, pos, and (later) the storefront.
 // Login is email + password only (phone is a contact field, not a login method).
@@ -17,7 +18,7 @@ export const auth = betterAuth({
     enabled: true,
   },
   session: {
-    expiresIn: 60 * 60 * 24 * Number(process.env.SESSION_EXPIRES_IN_DAYS ?? 7),
+    expiresIn: 60 * 60 * 24 * Number(process.env.SESSION_EXPIRES_IN_DAYS ?? DEFAULT_SESSION_EXPIRES_IN_DAYS),
   },
   user: {
     additionalFields: {
