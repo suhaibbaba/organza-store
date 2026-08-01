@@ -16,4 +16,20 @@ jobs:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
-          script: /opt/organza/sandbox/deploy.sh
+          command_timeout: 15m
+          script: |
+            set -euo pipefail
+            cd /opt/organza/sandbox
+            echo "==> Pulling latest 'sandbox' branch"
+            git fetch origin sandbox
+            git reset --hard origin/sandbox
+            echo "==> Building + starting containers"
+            docker compose -f docker-compose.sandbox.yml --env-file .env.sandbox up -d --build
+            echo "==> Applying database migrations"
+            sleep 5
+            docker compose -f docker-compose.sandbox.yml --env-file .env.sandbox exec -T backend npx prisma migrate deploy
+            echo "==> Seeding database (idempotent)"
+            docker compose -f docker-compose.sandbox.yml --env-file .env.sandbox exec -T backend npm run seed
+            echo "==> Pruning old images"
+            docker image prune -f
+            echo "==> Done."
