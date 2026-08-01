@@ -1,4 +1,5 @@
 import { Role } from "@prisma/client";
+import type { AnyRecord } from "@/types";
 
 // `cost` is sensitive (CLAUDE.md rule 19): Admin + Manager only, never
 // returned to Employees. Enforced here, at the response boundary, not just
@@ -6,9 +7,6 @@ import { Role } from "@prisma/client";
 function canSeeCost(role: Role): boolean {
   return role === Role.ADMIN || role === Role.MANAGER;
 }
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type AnyRecord = any;
 
 function serializeImage(image: AnyRecord) {
   return {

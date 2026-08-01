@@ -1,14 +1,15 @@
 import { z } from "zod";
 import { Role } from "@prisma/client";
-import { isValidE164 } from "../lib/phone";
-import { paginationSchema } from "./common";
+import { isValidE164 } from "@/lib/phone";
+import { paginationSchema } from "@/validation/common";
+import { ERROR_CODES, PASSWORD_MIN_LENGTH } from "@/constants";
 
-const phoneSchema = z.string().refine(isValidE164, "error.validation.invalid_phone");
+const phoneSchema = z.string().refine(isValidE164, ERROR_CODES.VALIDATION_INVALID_PHONE);
 
 export const createUserSchema = z.object({
-  name: z.string().min(1, "error.validation.required"),
-  email: z.string().email("error.validation.invalid_email"),
-  password: z.string().min(8, "error.validation.password_too_short"),
+  name: z.string().min(1, ERROR_CODES.VALIDATION_REQUIRED),
+  email: z.string().email(ERROR_CODES.VALIDATION_INVALID_EMAIL),
+  password: z.string().min(PASSWORD_MIN_LENGTH, ERROR_CODES.VALIDATION_PASSWORD_TOO_SHORT),
   role: z.nativeEnum(Role),
   phone: phoneSchema,
   whatsapp: phoneSchema.optional(),
@@ -24,7 +25,7 @@ export const updateUserSchema = z.object({
   idNumber: z.string().min(1).optional().nullable(),
   isActive: z.boolean().optional(),
   // Admin-driven reset (CLAUDE.md rule 17) — no email self-reset flow exists.
-  password: z.string().min(8, "error.validation.password_too_short").optional(),
+  password: z.string().min(PASSWORD_MIN_LENGTH, ERROR_CODES.VALIDATION_PASSWORD_TOO_SHORT).optional(),
 });
 export type UpdateUserInput = z.infer<typeof updateUserSchema>;
 

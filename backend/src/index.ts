@@ -3,17 +3,18 @@ import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 import { toNodeHandler } from "better-auth/node";
-import { auth } from "./lib/auth";
-import productsRouter from "./routes/products";
-import variantTypesRouter from "./routes/variantTypes";
-import categoriesRouter from "./routes/categories";
-import inventoryRouter from "./routes/inventory";
-import usersRouter from "./routes/users";
-import settingsRouter from "./routes/settings";
-import imagesRouter from "./routes/images";
-import { errorHandler } from "./middleware/errorHandler";
-import { AppError, sendError } from "./lib/response";
-import { UPLOAD_DIR } from "./lib/image";
+import { auth } from "@/lib/auth";
+import productsRouter from "@/routes/products";
+import variantTypesRouter from "@/routes/variantTypes";
+import categoriesRouter from "@/routes/categories";
+import inventoryRouter from "@/routes/inventory";
+import usersRouter from "@/routes/users";
+import settingsRouter from "@/routes/settings";
+import imagesRouter from "@/routes/images";
+import { errorHandler } from "@/middleware/errorHandler";
+import { AppError, sendError } from "@/lib/response";
+import { UPLOAD_DIR } from "@/lib/image";
+import { ERROR_CODES } from "@/constants";
 
 const app = express();
 
@@ -50,7 +51,7 @@ app.use("/api/settings", settingsRouter);
 app.use("/api/images", imagesRouter);
 
 app.use((_req, res) => {
-  sendError(res, new AppError(404, "error.not_found"));
+  sendError(res, new AppError(404, ERROR_CODES.NOT_FOUND));
 });
 
 app.use(errorHandler);

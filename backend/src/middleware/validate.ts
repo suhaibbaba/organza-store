@@ -1,16 +1,6 @@
 import type { NextFunction, Request, Response } from "express";
 import type { ZodTypeAny } from "zod";
 
-declare global {
-  // eslint-disable-next-line @typescript-eslint/no-namespace
-  namespace Express {
-    interface Request {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      validatedQuery?: any;
-    }
-  }
-}
-
 // Validates + coerces req.body in place. Parse failures are forwarded to the
 // central error handler as a ZodError -> error.validation envelope.
 export function validateBody(schema: ZodTypeAny) {

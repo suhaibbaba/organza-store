@@ -1,36 +1,25 @@
 import { Router } from "express";
 import { AuditAction, Role } from "@prisma/client";
-import { prisma } from "../lib/prisma";
-import { asyncHandler } from "../middleware/asyncHandler";
-import { requireAuth, requireRole } from "../middleware/auth";
-import { validateBody, validateQuery } from "../middleware/validate";
-import { AppError, sendOk } from "../lib/response";
+import { prisma } from "@/lib/prisma";
+import { asyncHandler } from "@/middleware/asyncHandler";
+import { requireAuth, requireRole } from "@/middleware/auth";
+import { validateBody, validateQuery } from "@/middleware/validate";
+import { AppError, sendOk } from "@/lib/response";
 import {
   adjustStockSchema,
   listInventoryQuerySchema,
   type AdjustStockInput,
   type ListInventoryQuery,
-} from "../validation/inventory";
-import { writeAudit } from "../lib/audit";
+} from "@/validation/inventory";
+import { writeAudit } from "@/lib/audit";
+import { AUDIT_ENTITY, DEFAULT_LOW_STOCK_THRESHOLD, ERROR_CODES, SETTINGS_SINGLETON_ID } from "@/constants";
+import type { StockItem } from "@/types";
 
 // Inventory is a read/adjust layer over Product (simple products) and
 // Variant (variant-bearing products) stock — it doesn't own its own table.
 // Admin/Manager only (CLAUDE.md rule 5: Employee has no stock-management access).
 const router = Router();
 router.use(requireAuth, requireRole(Role.ADMIN, Role.MANAGER));
-
-type StockItem = {
-  type: "product" | "variant";
-  id: string;
-  productId: string;
-  productName: unknown;
-  variantName?: unknown;
-  sku: string | null;
-  barcode: string | null;
-  categoryId: string;
-  stock: number;
-  createdAt: Date;
-};
 
 // ---------------------------------------------------------------------------
 // GET /api/inventory — flattened stock list (simple products + variants),
@@ -42,8 +31,8 @@ router.get(
   validateQuery(listInventoryQuerySchema),
   asyncHandler(async (req, res) => {
     const query = req.validatedQuery as ListInventoryQuery;
-    const setting = await prisma.setting.findUnique({ where: { id: "default" } });
-    const threshold = setting?.lowStockThreshold ?? 3;
+    const setting = await prisma.setting.findUnique({ where: { id: SETTINGS_SINGLETON_ID } });
+    const threshold = setting?.lowStockThreshold ?? DEFAULT_LOW_STOCK_THRESHOLD;
 
     const products = await prisma.product.findMany({
       where: {
@@ -127,8 +116,8 @@ router.patch(
       where: { id: req.params.id, deletedAt: null },
       include: { variants: { select: { id: true } } },
     });
-    if (!product) throw new AppError(404, "error.product.not_found");
-    if (product.variants.length > 0) throw new AppError(400, "error.inventory.parent_has_variants");
+    if (!product) throw new AppError(404, ERROR_CODES.PRODUCT_NOT_FOUND);
+    if (product.variants.length > 0) throw new AppError(400, ERROR_CODES.INVENTORY_PARENT_HAS_VARIANTS);
 
     const body = req.body as AdjustStockInput;
     const updated = await prisma.product.update({ where: { id: product.id }, data: { stock: body.stock } });
@@ -136,7 +125,7 @@ router.patch(
     await writeAudit({
       userId: req.user!.id,
       action: AuditAction.STOCK_CHANGE,
-      entityType: "Product",
+      entityType: AUDIT_ENTITY.PRODUCT,
       entityId: product.id,
       oldValue: { stock: product.stock },
       newValue: { stock: updated.stock },
@@ -154,7 +143,7 @@ router.patch(
   validateBody(adjustStockSchema),
   asyncHandler(async (req, res) => {
     const variant = await prisma.variant.findUnique({ where: { id: req.params.id } });
-    if (!variant) throw new AppError(404, "error.variant.not_found");
+    if (!variant) throw new AppError(404, ERROR_CODES.VARIANT_NOT_FOUND);
 
     const body = req.body as AdjustStockInput;
     const updated = await prisma.variant.update({ where: { id: variant.id }, data: { stock: body.stock } });
@@ -162,7 +151,7 @@ router.patch(
     await writeAudit({
       userId: req.user!.id,
       action: AuditAction.STOCK_CHANGE,
-      entityType: "Variant",
+      entityType: AUDIT_ENTITY.VARIANT,
       entityId: variant.id,
       oldValue: { stock: variant.stock },
       newValue: { stock: updated.stock },

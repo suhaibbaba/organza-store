@@ -2,12 +2,12 @@ import { Router } from "express";
 import { AuditAction, Role } from "@prisma/client";
 import { APIError } from "better-auth";
 import { hashPassword } from "better-auth/crypto";
-import { auth } from "../lib/auth";
-import { prisma } from "../lib/prisma";
-import { asyncHandler } from "../middleware/asyncHandler";
-import { requireAuth, requireRole } from "../middleware/auth";
-import { validateBody, validateQuery } from "../middleware/validate";
-import { AppError, sendOk } from "../lib/response";
+import { auth } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import { asyncHandler } from "@/middleware/asyncHandler";
+import { requireAuth, requireRole } from "@/middleware/auth";
+import { validateBody, validateQuery } from "@/middleware/validate";
+import { AppError, sendOk } from "@/lib/response";
 import {
   createUserSchema,
   listUsersQuerySchema,
@@ -15,9 +15,11 @@ import {
   type CreateUserInput,
   type ListUsersQuery,
   type UpdateUserInput,
-} from "../validation/user";
-import { findUserByPhoneField } from "../lib/phone";
-import { writeAudit } from "../lib/audit";
+} from "@/validation/user";
+import { findUserByPhoneField } from "@/lib/phone";
+import { writeAudit } from "@/lib/audit";
+import { AUDIT_ENTITY, AUTH_PROVIDER_CREDENTIAL, ERROR_CODES } from "@/constants";
+import type { SerializableUser } from "@/types";
 
 // Staff management — Admin only (CLAUDE.md rule 5). `idNumber` is Admin-only
 // data (rule 19); since this whole router is Admin-gated that's automatically
@@ -26,18 +28,7 @@ import { writeAudit } from "../lib/audit";
 const router = Router();
 router.use(requireAuth, requireRole(Role.ADMIN));
 
-function serializeUser(user: {
-  id: string;
-  name: string;
-  email: string;
-  role: Role;
-  phone: string;
-  whatsapp: string | null;
-  idNumber: string | null;
-  isActive: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-}) {
+function serializeUser(user: SerializableUser) {
   return {
     id: user.id,
     name: user.name,
@@ -55,11 +46,11 @@ function serializeUser(user: {
 async function assertPhonesAvailable(input: { phone?: string; whatsapp?: string | null }, excludeUserId?: string) {
   if (input.phone) {
     const dupe = await findUserByPhoneField("phone", input.phone, excludeUserId);
-    if (dupe) throw new AppError(409, "error.phone.duplicate");
+    if (dupe) throw new AppError(409, ERROR_CODES.PHONE_DUPLICATE);
   }
   if (input.whatsapp) {
     const dupe = await findUserByPhoneField("whatsapp", input.whatsapp, excludeUserId);
-    if (dupe) throw new AppError(409, "error.whatsapp.duplicate");
+    if (dupe) throw new AppError(409, ERROR_CODES.WHATSAPP_DUPLICATE);
   }
 }
 
@@ -111,7 +102,7 @@ router.get(
   "/:id",
   asyncHandler(async (req, res) => {
     const user = await prisma.user.findUnique({ where: { id: req.params.id } });
-    if (!user) throw new AppError(404, "error.user.not_found");
+    if (!user) throw new AppError(404, ERROR_CODES.USER_NOT_FOUND);
     sendOk(res, serializeUser(user));
   })
 );
@@ -126,7 +117,7 @@ router.post(
     const body = req.body as CreateUserInput;
 
     const emailTaken = await prisma.user.findUnique({ where: { email: body.email } });
-    if (emailTaken) throw new AppError(409, "error.email.duplicate");
+    if (emailTaken) throw new AppError(409, ERROR_CODES.EMAIL_DUPLICATE);
     await assertPhonesAvailable(body);
 
     let userId: string;
@@ -136,7 +127,7 @@ router.post(
       });
       userId = result.user.id;
     } catch (err) {
-      if (err instanceof APIError) throw new AppError(400, "error.auth.signup_failed");
+      if (err instanceof APIError) throw new AppError(400, ERROR_CODES.AUTH_SIGNUP_FAILED);
       throw err;
     }
 
@@ -152,7 +143,7 @@ router.post(
     await writeAudit({
       userId: req.user!.id,
       action: AuditAction.CREATE,
-      entityType: "User",
+      entityType: AUDIT_ENTITY.USER,
       entityId: created.id,
       newValue: serializeUser(created),
     });
@@ -169,7 +160,7 @@ router.patch(
   validateBody(updateUserSchema),
   asyncHandler(async (req, res) => {
     const existing = await prisma.user.findUnique({ where: { id: req.params.id } });
-    if (!existing) throw new AppError(404, "error.user.not_found");
+    if (!existing) throw new AppError(404, ERROR_CODES.USER_NOT_FOUND);
 
     const body = req.body as UpdateUserInput;
     await assertPhonesAvailable(body, existing.id);
@@ -192,13 +183,18 @@ router.patch(
     if (body.password) {
       const passwordHash = await hashPassword(body.password);
       const account = await prisma.account.findFirst({
-        where: { userId: existing.id, providerId: "credential" },
+        where: { userId: existing.id, providerId: AUTH_PROVIDER_CREDENTIAL },
       });
       if (account) {
         await prisma.account.update({ where: { id: account.id }, data: { password: passwordHash } });
       } else {
         await prisma.account.create({
-          data: { userId: existing.id, providerId: "credential", accountId: existing.id, password: passwordHash },
+          data: {
+            userId: existing.id,
+            providerId: AUTH_PROVIDER_CREDENTIAL,
+            accountId: existing.id,
+            password: passwordHash,
+          },
         });
       }
     }
@@ -206,7 +202,7 @@ router.patch(
     await writeAudit({
       userId: req.user!.id,
       action: AuditAction.UPDATE,
-      entityType: "User",
+      entityType: AUDIT_ENTITY.USER,
       entityId: updated.id,
       oldValue: serializeUser(existing),
       newValue: serializeUser(updated),

@@ -1,9 +1,8 @@
 // Isolated search layer (CLAUDE.md rule 10 & spec.md "Search"). Swappable for
 // a future engine (e.g. Meilisearch) without touching callers — everything
 // outside this file talks to `searchProductIds`, never to pg_trgm directly.
-import { prisma } from "./prisma";
-
-export type I18n = Record<string, string | null | undefined>;
+import { prisma } from "@/lib/prisma";
+import type { I18n } from "@/types";
 
 // Normalizes Arabic text for cross-language, typo-tolerant matching: strips
 // tashkeel/diacritics and unifies visually/phonetically similar letters.

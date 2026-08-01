@@ -1,11 +1,5 @@
-import { prisma } from "./prisma";
-
-// GS1 "restricted circulation" prefix range (200-299), safe for in-store use
-// without registering with GS1 — appropriate since these barcodes are
-// system-generated, not real GS1-issued product codes.
-const BARCODE_PREFIX = "200";
-const RANDOM_DIGITS = 9; // 3 (prefix) + 9 (random) + 1 (check digit) = 13
-const MAX_ATTEMPTS = 20;
+import { prisma } from "@/lib/prisma";
+import { BARCODE_MAX_ATTEMPTS, BARCODE_PREFIX, BARCODE_RANDOM_DIGITS } from "@/constants";
 
 function checkDigit(twelveDigits: string): number {
   let sum = 0;
@@ -18,7 +12,7 @@ function checkDigit(twelveDigits: string): number {
 
 function randomCandidate(): string {
   let body = "";
-  for (let i = 0; i < RANDOM_DIGITS; i++) {
+  for (let i = 0; i < BARCODE_RANDOM_DIGITS; i++) {
     body += Math.floor(Math.random() * 10);
   }
   const twelve = BARCODE_PREFIX + body;
@@ -28,7 +22,7 @@ function randomCandidate(): string {
 // Barcodes are unique across BOTH products and variants (one shared
 // namespace), per CLAUDE.md rule 13.
 export async function generateUniqueBarcode(): Promise<string> {
-  for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+  for (let attempt = 0; attempt < BARCODE_MAX_ATTEMPTS; attempt++) {
     const candidate = randomCandidate();
     const [existingProduct, existingVariant] = await Promise.all([
       prisma.product.findUnique({ where: { barcode: candidate }, select: { id: true } }),

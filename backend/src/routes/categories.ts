@@ -1,23 +1,23 @@
 import { Router } from "express";
 import { AuditAction, Role, type Category } from "@prisma/client";
-import { prisma } from "../lib/prisma";
-import { asyncHandler } from "../middleware/asyncHandler";
-import { requireAuth, requireRole } from "../middleware/auth";
-import { validateBody } from "../middleware/validate";
-import { AppError, sendOk } from "../lib/response";
+import { prisma } from "@/lib/prisma";
+import { asyncHandler } from "@/middleware/asyncHandler";
+import { requireAuth, requireRole } from "@/middleware/auth";
+import { validateBody } from "@/middleware/validate";
+import { AppError, sendOk } from "@/lib/response";
 import {
   createCategorySchema,
   updateCategorySchema,
   type CreateCategoryInput,
   type UpdateCategoryInput,
-} from "../validation/category";
-import { generateUniqueSlug } from "../lib/slug";
-import { writeAudit } from "../lib/audit";
+} from "@/validation/category";
+import { generateUniqueSlug } from "@/lib/slug";
+import { writeAudit } from "@/lib/audit";
+import { AUDIT_ENTITY, ERROR_CODES } from "@/constants";
+import type { CategoryNode } from "@/types";
 
 const router = Router();
 router.use(requireAuth);
-
-type CategoryNode = Category & { children: CategoryNode[] };
 
 // Builds the parent/child tree from a flat list — categories are few enough
 // (a boutique's catalog) that loading them all and nesting in memory is
@@ -76,7 +76,7 @@ router.post(
 
     if (body.parentId) {
       const parent = await prisma.category.findUnique({ where: { id: body.parentId } });
-      if (!parent) throw new AppError(400, "error.category.not_found");
+      if (!parent) throw new AppError(400, ERROR_CODES.CATEGORY_NOT_FOUND);
     }
 
     const slug = await generateUniqueSlug(body.name.ar, async (candidate) => {
@@ -91,7 +91,7 @@ router.post(
     await writeAudit({
       userId: req.user!.id,
       action: AuditAction.CREATE,
-      entityType: "Category",
+      entityType: AUDIT_ENTITY.CATEGORY,
       entityId: created.id,
       newValue: created,
     });
@@ -109,7 +109,7 @@ router.patch(
   validateBody(updateCategorySchema),
   asyncHandler(async (req, res) => {
     const existing = await prisma.category.findUnique({ where: { id: req.params.id } });
-    if (!existing) throw new AppError(404, "error.category.not_found");
+    if (!existing) throw new AppError(404, ERROR_CODES.CATEGORY_NOT_FOUND);
 
     const body = req.body as UpdateCategoryInput;
 
@@ -124,11 +124,11 @@ router.patch(
 
     if (body.parentId !== undefined && body.parentId !== null) {
       const parent = await prisma.category.findUnique({ where: { id: body.parentId } });
-      if (!parent) throw new AppError(400, "error.category.not_found");
+      if (!parent) throw new AppError(400, ERROR_CODES.CATEGORY_NOT_FOUND);
 
       const all = await prisma.category.findMany();
       if (wouldCreateCycle(all, existing.id, body.parentId)) {
-        throw new AppError(400, "error.category.circular_parent");
+        throw new AppError(400, ERROR_CODES.CATEGORY_CIRCULAR_PARENT);
       }
     }
 
@@ -144,7 +144,7 @@ router.patch(
     await writeAudit({
       userId: req.user!.id,
       action: AuditAction.UPDATE,
-      entityType: "Category",
+      entityType: AUDIT_ENTITY.CATEGORY,
       entityId: updated.id,
       oldValue: existing,
       newValue: updated,
@@ -165,21 +165,21 @@ router.delete(
   requireRole(Role.ADMIN, Role.MANAGER),
   asyncHandler(async (req, res) => {
     const existing = await prisma.category.findUnique({ where: { id: req.params.id } });
-    if (!existing) throw new AppError(404, "error.category.not_found");
+    if (!existing) throw new AppError(404, ERROR_CODES.CATEGORY_NOT_FOUND);
 
     const [childCount, productCount] = await Promise.all([
       prisma.category.count({ where: { parentId: existing.id } }),
       prisma.product.count({ where: { categoryId: existing.id, deletedAt: null } }),
     ]);
-    if (childCount > 0) throw new AppError(409, "error.category.has_children");
-    if (productCount > 0) throw new AppError(409, "error.category.has_products");
+    if (childCount > 0) throw new AppError(409, ERROR_CODES.CATEGORY_HAS_CHILDREN);
+    if (productCount > 0) throw new AppError(409, ERROR_CODES.CATEGORY_HAS_PRODUCTS);
 
     await prisma.category.delete({ where: { id: existing.id } });
 
     await writeAudit({
       userId: req.user!.id,
       action: AuditAction.DELETE,
-      entityType: "Category",
+      entityType: AUDIT_ENTITY.CATEGORY,
       entityId: existing.id,
       oldValue: existing,
     });

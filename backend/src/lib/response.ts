@@ -1,11 +1,5 @@
 import type { Response } from "express";
-
-export interface Pagination {
-  page: number;
-  pageSize: number;
-  total: number;
-  totalPages: number;
-}
+import type { Pagination } from "@/types";
 
 export function sendOk<T>(res: Response, data: T, meta: Pagination | null = null, status = 200): void {
   res.status(status).json({ success: true, data, meta });

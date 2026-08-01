@@ -1,10 +1,10 @@
 import { Router } from "express";
 import { AuditAction, Prisma, Role } from "@prisma/client";
-import { prisma } from "../lib/prisma";
-import { asyncHandler } from "../middleware/asyncHandler";
-import { requireAuth, requireRole } from "../middleware/auth";
-import { validateBody, validateQuery } from "../middleware/validate";
-import { AppError, sendOk } from "../lib/response";
+import { prisma } from "@/lib/prisma";
+import { asyncHandler } from "@/middleware/asyncHandler";
+import { requireAuth, requireRole } from "@/middleware/auth";
+import { validateBody, validateQuery } from "@/middleware/validate";
+import { AppError, sendOk } from "@/lib/response";
 import {
   createProductSchema,
   generateVariantsSchema,
@@ -16,14 +16,16 @@ import {
   type ListProductsQuery,
   type UpdateProductInput,
   type UpdateVariantInput,
-} from "../validation/product";
-import { generateUniqueSlug } from "../lib/slug";
-import { productSku, variantSku } from "../lib/sku";
-import { generateUniqueBarcode } from "../lib/barcode";
-import { buildSearchText, searchProductIds, type I18n } from "../lib/search";
-import { cartesianProduct, buildComboName } from "../lib/variantCombo";
-import { serializeProduct, serializeProductSummary, serializeVariant } from "../lib/pricing";
-import { writeAudit } from "../lib/audit";
+} from "@/validation/product";
+import { generateUniqueSlug } from "@/lib/slug";
+import { productSku, variantSku } from "@/lib/sku";
+import { generateUniqueBarcode } from "@/lib/barcode";
+import { buildSearchText, searchProductIds } from "@/lib/search";
+import { cartesianProduct, buildComboName } from "@/lib/variantCombo";
+import { serializeProduct, serializeProductSummary, serializeVariant } from "@/lib/pricing";
+import { writeAudit } from "@/lib/audit";
+import { AUDIT_ENTITY, DEFAULT_STOCK, ERROR_CODES } from "@/constants";
+import type { I18n, OptionValueLookup } from "@/types";
 
 const router = Router();
 router.use(requireAuth);
@@ -45,13 +47,13 @@ async function fetchFullProduct(id: string) {
 // Validates that every selected option value actually belongs to its
 // claimed variant type, returning a lookup of id -> option value row.
 async function validateOptionSelections(selections: { variantTypeId: string; valueIds: string[] }[]) {
-  const valueMap = new Map<string, { id: string; value: I18n }>();
+  const valueMap = new Map<string, OptionValueLookup>();
   for (const sel of selections) {
     const vt = await prisma.variantType.findUnique({ where: { id: sel.variantTypeId }, include: { values: true } });
-    if (!vt) throw new AppError(400, "error.variantType.not_found");
+    if (!vt) throw new AppError(400, ERROR_CODES.VARIANT_TYPE_NOT_FOUND);
     const validIds = new Set(vt.values.map((v) => v.id));
     for (const valueId of sel.valueIds) {
-      if (!validIds.has(valueId)) throw new AppError(400, "error.variantType.value_not_found");
+      if (!validIds.has(valueId)) throw new AppError(400, ERROR_CODES.VARIANT_TYPE_VALUE_NOT_FOUND);
     }
     for (const v of vt.values) {
       if (sel.valueIds.includes(v.id)) valueMap.set(v.id, { id: v.id, value: v.value as I18n });
@@ -128,7 +130,7 @@ router.get(
       where: { id: req.params.id, deletedAt: null },
       include: productInclude,
     });
-    if (!product) throw new AppError(404, "error.product.not_found");
+    if (!product) throw new AppError(404, ERROR_CODES.PRODUCT_NOT_FOUND);
     sendOk(res, serializeProduct(product, req.user!.role));
   })
 );
@@ -144,17 +146,17 @@ router.post(
     const body = req.body as CreateProductInput;
 
     const category = await prisma.category.findUnique({ where: { id: body.categoryId } });
-    if (!category) throw new AppError(400, "error.category.not_found");
+    if (!category) throw new AppError(400, ERROR_CODES.CATEGORY_NOT_FOUND);
 
     const hasVariants = Boolean(body.optionSelections?.length);
-    let valueMap: Map<string, { id: string; value: I18n }> | undefined;
+    let valueMap: Map<string, OptionValueLookup> | undefined;
     if (hasVariants) {
       valueMap = await validateOptionSelections(body.optionSelections!);
     }
 
     if (body.sku) {
       const dupe = await prisma.product.findUnique({ where: { sku: body.sku } });
-      if (dupe) throw new AppError(409, "error.sku.duplicate");
+      if (dupe) throw new AppError(409, ERROR_CODES.SKU_DUPLICATE);
     }
 
     // `cost` is Admin/Manager-only (CLAUDE.md rule 19) — silently dropped
@@ -181,7 +183,7 @@ router.post(
         cost: cost ?? null,
         isActive: body.isActive ?? true,
         barcode,
-        stock: hasVariants ? 1 : body.stock ?? 1,
+        stock: hasVariants ? DEFAULT_STOCK : body.stock ?? DEFAULT_STOCK,
         createdById: req.user!.id,
       },
     });
@@ -211,7 +213,7 @@ router.post(
             name: buildComboName(values),
             sku: variantSku(created.productNumber, variantNumber),
             barcode: await generateUniqueBarcode(),
-            stock: 1,
+            stock: DEFAULT_STOCK,
             values: { create: combo.map((optionValueId) => ({ optionValueId })) },
           },
         });
@@ -223,7 +225,7 @@ router.post(
     await writeAudit({
       userId: req.user!.id,
       action: AuditAction.CREATE,
-      entityType: "Product",
+      entityType: AUDIT_ENTITY.PRODUCT,
       entityId: created.id,
       newValue: serializeProduct(full, Role.ADMIN),
     });
@@ -244,18 +246,18 @@ router.patch(
       where: { id: req.params.id, deletedAt: null },
       include: productInclude,
     });
-    if (!existing) throw new AppError(404, "error.product.not_found");
+    if (!existing) throw new AppError(404, ERROR_CODES.PRODUCT_NOT_FOUND);
 
     const body = req.body as UpdateProductInput;
 
     if (body.categoryId) {
       const category = await prisma.category.findUnique({ where: { id: body.categoryId } });
-      if (!category) throw new AppError(400, "error.category.not_found");
+      if (!category) throw new AppError(400, ERROR_CODES.CATEGORY_NOT_FOUND);
     }
 
     if (body.sku && body.sku !== existing.sku) {
       const dupe = await prisma.product.findUnique({ where: { sku: body.sku } });
-      if (dupe) throw new AppError(409, "error.sku.duplicate");
+      if (dupe) throw new AppError(409, ERROR_CODES.SKU_DUPLICATE);
     }
 
     const nameChanged = body.name !== undefined && JSON.stringify(body.name) !== JSON.stringify(existing.name);
@@ -305,7 +307,7 @@ router.patch(
     await writeAudit({
       userId: req.user!.id,
       action,
-      entityType: "Product",
+      entityType: AUDIT_ENTITY.PRODUCT,
       entityId: updated.id,
       oldValue: serializeProduct(existing, Role.ADMIN),
       newValue: serializeProduct(updated, Role.ADMIN),
@@ -323,7 +325,7 @@ router.delete(
   requireRole(Role.ADMIN, Role.MANAGER),
   asyncHandler(async (req, res) => {
     const existing = await prisma.product.findFirst({ where: { id: req.params.id, deletedAt: null } });
-    if (!existing) throw new AppError(404, "error.product.not_found");
+    if (!existing) throw new AppError(404, ERROR_CODES.PRODUCT_NOT_FOUND);
 
     const deleted = await prisma.product.update({
       where: { id: existing.id },
@@ -333,7 +335,7 @@ router.delete(
     await writeAudit({
       userId: req.user!.id,
       action: AuditAction.DELETE,
-      entityType: "Product",
+      entityType: AUDIT_ENTITY.PRODUCT,
       entityId: deleted.id,
       oldValue: { deletedAt: null, isActive: existing.isActive },
       newValue: { deletedAt: deleted.deletedAt, isActive: deleted.isActive },
@@ -356,7 +358,7 @@ router.post(
       where: { id: req.params.id, deletedAt: null },
       include: { variants: { include: { values: true } } },
     });
-    if (!product) throw new AppError(404, "error.product.not_found");
+    if (!product) throw new AppError(404, ERROR_CODES.PRODUCT_NOT_FOUND);
 
     const body = req.body as GenerateVariantsInput;
     const valueMap = await validateOptionSelections(body.optionSelections);
@@ -389,7 +391,7 @@ router.post(
           name: buildComboName(values),
           sku,
           barcode: await generateUniqueBarcode(),
-          stock: 1,
+          stock: DEFAULT_STOCK,
           values: { create: combo.map((optionValueId) => ({ optionValueId })) },
         },
       });
@@ -405,7 +407,7 @@ router.post(
     await writeAudit({
       userId: req.user!.id,
       action: AuditAction.CREATE,
-      entityType: "Variant",
+      entityType: AUDIT_ENTITY.VARIANT,
       entityId: product.id,
       newValue: { generatedSkus: createdSkus },
     });
@@ -428,19 +430,19 @@ router.patch(
       where: { id: req.params.variantId, productId: req.params.id },
       include: { values: { include: { optionValue: true } } },
     });
-    if (!variant) throw new AppError(404, "error.variant.not_found");
+    if (!variant) throw new AppError(404, ERROR_CODES.VARIANT_NOT_FOUND);
 
     const product = await prisma.product.findUnique({
       where: { id: req.params.id },
       include: { images: { orderBy: { sortOrder: "asc" } } },
     });
-    if (!product) throw new AppError(404, "error.product.not_found");
+    if (!product) throw new AppError(404, ERROR_CODES.PRODUCT_NOT_FOUND);
 
     const body = req.body as UpdateVariantInput;
 
     if (body.sku && body.sku !== variant.sku) {
       const dupe = await prisma.variant.findUnique({ where: { sku: body.sku } });
-      if (dupe) throw new AppError(409, "error.sku.duplicate");
+      if (dupe) throw new AppError(409, ERROR_CODES.SKU_DUPLICATE);
     }
 
     const updated = await prisma.variant.update({
@@ -459,7 +461,7 @@ router.patch(
     await writeAudit({
       userId: req.user!.id,
       action: AuditAction.UPDATE,
-      entityType: "Variant",
+      entityType: AUDIT_ENTITY.VARIANT,
       entityId: updated.id,
       oldValue: variant,
       newValue: updated,
@@ -480,14 +482,14 @@ router.delete(
     const variant = await prisma.variant.findFirst({
       where: { id: req.params.variantId, productId: req.params.id },
     });
-    if (!variant) throw new AppError(404, "error.variant.not_found");
+    if (!variant) throw new AppError(404, ERROR_CODES.VARIANT_NOT_FOUND);
 
     await prisma.variant.delete({ where: { id: variant.id } });
 
     await writeAudit({
       userId: req.user!.id,
       action: AuditAction.DELETE,
-      entityType: "Variant",
+      entityType: AUDIT_ENTITY.VARIANT,
       entityId: variant.id,
       oldValue: variant,
     });

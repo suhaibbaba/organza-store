@@ -1,5 +1,6 @@
 import { z } from "zod";
-import { decimalInput, i18nOptionalSchema, i18nSchema, paginationSchema } from "./common";
+import { decimalInput, i18nOptionalSchema, i18nSchema, paginationSchema } from "@/validation/common";
+import { ERROR_CODES, PRODUCT_SORT_FIELDS } from "@/constants";
 
 export const optionSelectionSchema = z.object({
   variantTypeId: z.string().min(1),
@@ -9,7 +10,7 @@ export const optionSelectionSchema = z.object({
 export const createProductSchema = z.object({
   name: i18nSchema,
   description: i18nOptionalSchema.optional(),
-  categoryId: z.string().min(1, "error.validation.required"),
+  categoryId: z.string().min(1, ERROR_CODES.VALIDATION_REQUIRED),
   basePrice: decimalInput,
   compareAtPrice: decimalInput.optional(),
   cost: decimalInput.optional(),
@@ -50,8 +51,6 @@ export const updateVariantSchema = z.object({
 });
 export type UpdateVariantInput = z.infer<typeof updateVariantSchema>;
 
-const sortFields = ["createdAt", "basePrice", "stock", "slug"] as const;
-
 export const listProductsQuerySchema = paginationSchema.extend({
   categoryId: z.string().min(1).optional(),
   status: z.enum(["active", "hidden"]).optional(),
@@ -59,7 +58,7 @@ export const listProductsQuerySchema = paginationSchema.extend({
   priceMin: z.coerce.number().min(0).optional(),
   priceMax: z.coerce.number().min(0).optional(),
   q: z.string().min(1).optional(),
-  sortBy: z.enum(sortFields).default("createdAt"),
+  sortBy: z.enum(PRODUCT_SORT_FIELDS).default("createdAt"),
   sortDir: z.enum(["asc", "desc"]).default("desc"),
 });
 export type ListProductsQuery = z.infer<typeof listProductsQuerySchema>;

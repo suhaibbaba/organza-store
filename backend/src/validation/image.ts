@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { ERROR_CODES } from "@/constants";
 
 // An image belongs to exactly one owner — a product OR a variant, never both.
 const ownerFields = {
@@ -9,7 +10,7 @@ const ownerFields = {
 export const uploadImageSchema = z
   .object(ownerFields)
   .refine((v) => Boolean(v.productId) !== Boolean(v.variantId), {
-    message: "error.image.owner_required",
+    message: ERROR_CODES.IMAGE_OWNER_REQUIRED,
   });
 export type UploadImageInput = z.infer<typeof uploadImageSchema>;
 
@@ -19,10 +20,10 @@ export const reorderImagesSchema = z
     imageIds: z.array(z.string().min(1)).min(1),
   })
   .refine((v) => Boolean(v.productId) !== Boolean(v.variantId), {
-    message: "error.image.owner_required",
+    message: ERROR_CODES.IMAGE_OWNER_REQUIRED,
   })
   .refine((v) => new Set(v.imageIds).size === v.imageIds.length, {
-    message: "error.image.reorder_duplicate",
+    message: ERROR_CODES.IMAGE_REORDER_DUPLICATE,
   });
 export type ReorderImagesInput = z.infer<typeof reorderImagesSchema>;
 
