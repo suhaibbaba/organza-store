@@ -114,3 +114,18 @@ the VPS and never committed. When updating CI, remember there are now **four** p
 ## When unsure
 Check `spec.md` first. If the answer isn't there, ask the user. Never silently guess product
 behavior — guessing is what broke the previous attempt.
+
+## Code organization (apply everywhere, backend + frontends)
+- **Use path aliases, not relative paths.** Import as `@/lib/auth`, never `../../lib/auth`.
+  Configure the alias in `tsconfig.json` (and the bundler/runtime resolver) so it works at build
+  and runtime.
+- **No inline/ad-hoc types scattered across files.** Centralize types in a dedicated `types/`
+  directory, split into focused files by domain (e.g. `types/product.ts`, `types/user.ts`,
+  `types/common.ts`) and re-export from a barrel (`types/index.ts`). Shared cross-app types live in
+  the `shared/` package.
+- **All constants live in one place.** No magic strings/numbers inline. Put them under a
+  `constants/` directory (e.g. `constants/sku.ts`, `constants/images.ts`, `constants/errors.ts`)
+  and import from there. This includes the `ORG-` prefix, image sizes, size/type limits, error
+  keys, default page sizes, the +970/+972 prefixes, etc.
+- These are **structural rules**: when refactoring to satisfy them, move/rename only — never change
+  behavior — and keep `tsc` type-check and the build passing.
