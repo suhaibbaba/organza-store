@@ -4,8 +4,8 @@ API for the Organza Store system. Node + Express + TypeScript + Prisma + Postgre
 Auth is [Better Auth](https://www.better-auth.com/), email + password only, admin-driven
 (no public sign-up, no self-service password reset).
 
-> **Phase 1 scope:** this project currently only scaffolds the server, the database schema,
-> auth, and the dev seed. Products/Variants/Categories CRUD endpoints are not built yet
+> **Phase 2 scope:** Products & Variants CRUD is now built on top of the Phase 1 scaffold
+> (server, schema, auth, dev seed). Orders and the customer storefront are still later phases
 > (see `spec.md` build order at the repo root).
 
 ## Prerequisites
@@ -74,6 +74,37 @@ curl -X POST http://localhost:4000/api/auth/sign-in/email \
   -H "Content-Type: application/json" \
   -d '{"email":"admin@organza.test","password":"password123"}'
 ```
+
+The response includes a session `token`. Every route below requires it, either as the
+`better-auth.session_token` cookie (the default for browser clients) or as
+`Authorization: Bearer <token>` (enabled via the `bearer` plugin, handy for curl/Postman):
+
+```bash
+curl http://localhost:4000/api/products -H "Authorization: Bearer <token>"
+```
+
+## Products & Variants API (Phase 2)
+
+All endpoints return the unified envelope (`{ success, data, meta }` / `{ success: false, error: { code } }`)
+and require auth. Errors are translation **keys** (`error.*`), not literal sentences.
+
+| Method | Path                                         | Role gate               | Notes |
+|--------|----------------------------------------------|--------------------------|-------|
+| GET    | `/api/products`                              | any                      | pagination (`page`,`pageSize`), filters (`categoryId`,`status`,`stock`,`priceMin`,`priceMax`,`q`), sort (`sortBy`,`sortDir`) |
+| GET    | `/api/products/:id`                          | any                      | full detail incl. resolved variant price/cost |
+| POST   | `/api/products`                              | Admin/Manager/Employee   | `optionSelections` generates cartesian variants |
+| PATCH  | `/api/products/:id`                          | Admin/Manager            | isActive change logs PUBLISH/HIDE instead of UPDATE |
+| DELETE | `/api/products/:id`                          | Admin/Manager            | soft delete (`deletedAt`) |
+| POST   | `/api/products/:id/variants/generate`        | Admin/Manager            | additive — existing combinations are left alone |
+| PATCH  | `/api/products/:id/variants/:variantId`      | Admin/Manager            | name/sku/priceOverride/cost/stock/isActive |
+| DELETE | `/api/products/:id/variants/:variantId`      | Admin/Manager            | removes one combination |
+| GET    | `/api/variant-types`                         | any                      | global types + values, for building option pickers |
+| POST   | `/api/variant-types`                         | Admin/Manager/Employee   | inline "add a whole new type" |
+| POST   | `/api/variant-types/:id/values`               | Admin/Manager/Employee   | inline "add a value to an existing type" |
+| GET    | `/api/categories`                            | any                      | flat list; read-only for now (full nested CRUD is a later stage) |
+
+`cost` (and `resolvedCost`) are only present in responses for Admin/Manager — stripped entirely
+for Employee, not just hidden client-side.
 
 ## Auth notes
 

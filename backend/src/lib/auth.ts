@@ -1,6 +1,7 @@
 import "dotenv/config";
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
+import { bearer } from "better-auth/plugins";
 import { prisma } from "./prisma";
 
 // Central Better Auth instance — serves admin, pos, and (later) the storefront.
@@ -50,4 +51,8 @@ export const auth = betterAuth({
     },
   },
   trustedOrigins: (process.env.CORS_ORIGINS ?? "").split(",").filter(Boolean),
+  // Lets non-browser callers (curl/Postman, and any client that can't rely on
+  // cookies) authenticate with `Authorization: Bearer <token>` from the
+  // sign-in response, in addition to the normal cookie session.
+  plugins: [bearer()],
 });
