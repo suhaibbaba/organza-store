@@ -1,19 +1,15 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { apiRequest } from "../support/client";
-import { getSession } from "../support/auth";
+import type { Setting } from "@prisma/client";
+import { apiRequest } from "@tests/support/client";
+import { getSession } from "@tests/support/auth";
 import { ERROR_CODES } from "@/constants";
-
-interface SettingDto {
-  currency: string;
-  lowStockThreshold: number;
-}
 
 describe("Settings", () => {
   let originalLowStockThreshold: number;
 
   beforeAll(async () => {
     const admin = await getSession("ADMIN");
-    const res = await apiRequest<SettingDto>("/api/settings", { token: admin.token });
+    const res = await apiRequest<Setting>("/api/settings", { token: admin.token });
     expect(res.status).toBe(200);
     originalLowStockThreshold = res.data!.lowStockThreshold;
   });
@@ -29,7 +25,7 @@ describe("Settings", () => {
 
   it("is readable by any authenticated role", async () => {
     const employee = await getSession("EMPLOYEE");
-    const res = await apiRequest<SettingDto>("/api/settings", { token: employee.token });
+    const res = await apiRequest<Setting>("/api/settings", { token: employee.token });
     expect(res.status).toBe(200);
     expect(res.data).toHaveProperty("currency");
   });
@@ -38,7 +34,7 @@ describe("Settings", () => {
     const admin = await getSession("ADMIN");
     const nextValue = originalLowStockThreshold === 5 ? 6 : 5;
 
-    const patched = await apiRequest<SettingDto>("/api/settings", {
+    const patched = await apiRequest<Setting>("/api/settings", {
       method: "PATCH",
       token: admin.token,
       body: { lowStockThreshold: nextValue },
@@ -46,7 +42,7 @@ describe("Settings", () => {
     expect(patched.status).toBe(200);
     expect(patched.data!.lowStockThreshold).toBe(nextValue);
 
-    const restored = await apiRequest<SettingDto>("/api/settings", {
+    const restored = await apiRequest<Setting>("/api/settings", {
       method: "PATCH",
       token: admin.token,
       body: { lowStockThreshold: originalLowStockThreshold },

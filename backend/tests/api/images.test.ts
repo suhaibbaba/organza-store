@@ -1,12 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { API_BASE_URL, API_ORIGIN, apiRequest } from "../support/client";
-import { getSession } from "../support/auth";
-import { anyCategoryId } from "../support/fixtures";
+import { API_BASE_URL, API_ORIGIN, apiRequest } from "@tests/support/client";
+import { getSession } from "@tests/support/auth";
+import { anyCategoryId } from "@tests/support/fixtures";
+import type { ErrorBody, ProductDto } from "@tests/types";
 import { ERROR_CODES } from "@/constants";
-
-interface ErrorBody {
-  error?: { code: string };
-}
 
 // Per the task scope, multipart upload is NOT exercised deeply here — just
 // that the endpoint exists and rejects bad input (missing auth, missing file).
@@ -21,7 +18,7 @@ describe("Images", () => {
   it("rejects an upload request that is missing the file", async () => {
     const admin = await getSession("ADMIN");
     const categoryId = await anyCategoryId(admin.token);
-    const product = await apiRequest<{ id: string }>("/api/products", {
+    const product = await apiRequest<ProductDto>("/api/products", {
       method: "POST",
       token: admin.token,
       body: { name: { ar: "اختبار صورة", en: "Vitest Image Product" }, categoryId, basePrice: "10" },

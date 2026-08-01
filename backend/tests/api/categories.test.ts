@@ -1,13 +1,9 @@
 import { afterAll, describe, expect, it } from "vitest";
-import { apiRequest, uniqueId } from "../support/client";
-import { getSession } from "../support/auth";
+import type { Category } from "@prisma/client";
+import { apiRequest, uniqueId } from "@tests/support/client";
+import { getSession } from "@tests/support/auth";
 import { ERROR_CODES } from "@/constants";
-
-interface CategoryNode {
-  id: string;
-  parentId: string | null;
-  children: CategoryNode[];
-}
+import type { CategoryNode } from "@/types";
 
 function findNode(nodes: CategoryNode[], id: string): CategoryNode | undefined {
   for (const node of nodes) {
@@ -31,7 +27,7 @@ describe("Categories", () => {
 
   it("creates a parent category (Admin/Manager)", async () => {
     const admin = await getSession("ADMIN");
-    const res = await apiRequest<{ id: string }>("/api/categories", {
+    const res = await apiRequest<Category>("/api/categories", {
       method: "POST",
       token: admin.token,
       body: { name: { ar: `تصنيف ${nonce}`, en: `Vitest Parent ${nonce}` } },
@@ -42,7 +38,7 @@ describe("Categories", () => {
 
   it("nests a child category under the parent", async () => {
     const admin = await getSession("ADMIN");
-    const res = await apiRequest<{ id: string; parentId: string | null }>("/api/categories", {
+    const res = await apiRequest<Category>("/api/categories", {
       method: "POST",
       token: admin.token,
       body: { name: { ar: `تصنيف فرعي ${nonce}`, en: `Vitest Child ${nonce}` }, parentId },

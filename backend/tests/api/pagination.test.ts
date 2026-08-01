@@ -1,11 +1,8 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { apiRequest, uniqueId } from "../support/client";
-import { getSession } from "../support/auth";
-
-interface ProductSummary {
-  id: string;
-  basePrice: number | string;
-}
+import type { Category } from "@prisma/client";
+import { apiRequest, uniqueId } from "@tests/support/client";
+import { getSession } from "@tests/support/auth";
+import type { ProductDto, ProductSummaryDto } from "@tests/types";
 
 // A dedicated, freshly-created category scopes every assertion to exactly
 // the 3 products this suite creates, independent of whatever else exists in
@@ -18,7 +15,7 @@ describe("Products pagination + filtering + sorting", () => {
 
   beforeAll(async () => {
     const admin = await getSession("ADMIN");
-    const category = await apiRequest<{ id: string }>("/api/categories", {
+    const category = await apiRequest<Category>("/api/categories", {
       method: "POST",
       token: admin.token,
       body: { name: { ar: `تصنيف اختبار ${nonce}`, en: `Vitest Category ${nonce}` } },
@@ -27,7 +24,7 @@ describe("Products pagination + filtering + sorting", () => {
     categoryId = category.data!.id;
 
     for (const price of prices) {
-      const res = await apiRequest<{ id: string }>("/api/products", {
+      const res = await apiRequest<ProductDto>("/api/products", {
         method: "POST",
         token: admin.token,
         body: {
@@ -51,7 +48,7 @@ describe("Products pagination + filtering + sorting", () => {
 
   it("filters by categoryId and paginates with pageSize=2", async () => {
     const admin = await getSession("ADMIN");
-    const page1 = await apiRequest<ProductSummary[]>(
+    const page1 = await apiRequest<ProductSummaryDto[]>(
       `/api/products?categoryId=${categoryId}&pageSize=2&page=1&sortBy=basePrice&sortDir=asc`,
       { token: admin.token }
     );
@@ -59,7 +56,7 @@ describe("Products pagination + filtering + sorting", () => {
     expect(page1.meta).toMatchObject({ page: 1, pageSize: 2, total: 3, totalPages: 2 });
     expect(page1.data!.map((p) => Number(p.basePrice))).toEqual([10, 20]);
 
-    const page2 = await apiRequest<ProductSummary[]>(
+    const page2 = await apiRequest<ProductSummaryDto[]>(
       `/api/products?categoryId=${categoryId}&pageSize=2&page=2&sortBy=basePrice&sortDir=asc`,
       { token: admin.token }
     );
@@ -70,7 +67,7 @@ describe("Products pagination + filtering + sorting", () => {
 
   it("sorts by basePrice descending", async () => {
     const admin = await getSession("ADMIN");
-    const res = await apiRequest<ProductSummary[]>(`/api/products?categoryId=${categoryId}&sortBy=basePrice&sortDir=desc`, {
+    const res = await apiRequest<ProductSummaryDto[]>(`/api/products?categoryId=${categoryId}&sortBy=basePrice&sortDir=desc`, {
       token: admin.token,
     });
     expect(res.data!.map((p) => Number(p.basePrice))).toEqual([30, 20, 10]);
@@ -78,7 +75,7 @@ describe("Products pagination + filtering + sorting", () => {
 
   it("filters by price range", async () => {
     const admin = await getSession("ADMIN");
-    const res = await apiRequest<ProductSummary[]>(`/api/products?categoryId=${categoryId}&priceMin=15&priceMax=25`, {
+    const res = await apiRequest<ProductSummaryDto[]>(`/api/products?categoryId=${categoryId}&priceMin=15&priceMax=25`, {
       token: admin.token,
     });
     expect(res.data!.map((p) => Number(p.basePrice))).toEqual([20]);

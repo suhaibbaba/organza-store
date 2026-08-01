@@ -5,7 +5,8 @@
     "noEmit": true,
     "paths": {
       "@/*": ["src/*"],
-      "@shared/*": ["../shared/src/*"]
+      "@shared/*": ["../shared/src/*"],
+      "@tests/*": ["tests/*"]
     }
   },
   "include": ["src", "tests"]

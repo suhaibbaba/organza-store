@@ -1,14 +1,17 @@
 import { PALESTINE_PHONE_PREFIXES } from "@/constants";
+import { TEST_LOCAL_NUMBER_DIGITS, TEST_MOBILE_PREFIX } from "@tests/constants";
 
-// A 6-digit local number after the "599" mobile prefix mirrors the shape the
-// seed uses (e.g. "+970599000001"), which libphonenumber-js validates as a
-// real Palestinian mobile range.
-function sixDigits(): string {
-  return String(Math.floor(100_000 + Math.random() * 900_000));
+// A random N-digit local number after the mobile prefix mirrors the shape
+// the seed uses (e.g. "+970599000001"), which libphonenumber-js validates
+// as a real Palestinian mobile range.
+function randomLocalNumber(): string {
+  const min = 10 ** (TEST_LOCAL_NUMBER_DIGITS - 1);
+  const max = 10 ** TEST_LOCAL_NUMBER_DIGITS;
+  return String(Math.floor(min + Math.random() * (max - min)));
 }
 
 export function randomPalestinePhone(prefix: (typeof PALESTINE_PHONE_PREFIXES)[number] = PALESTINE_PHONE_PREFIXES[0]): string {
-  return `${prefix}599${sixDigits()}`;
+  return `${prefix}${TEST_MOBILE_PREFIX}${randomLocalNumber()}`;
 }
 
 export function samePhoneUnderOtherPrefix(phone: string): string {

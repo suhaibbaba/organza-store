@@ -1,6 +1,7 @@
 // Fixture lookups against data the seed guarantees exists (backend/prisma/seed.ts):
 // nested categories, and the global "color"/"size" variant types with >=2 values each.
-import { apiRequest } from "./client";
+import { apiRequest } from "@tests/support/client";
+import type { OptionSelection, VariantTypeDto } from "@tests/types";
 
 export async function anyCategoryId(token: string): Promise<string> {
   const res = await apiRequest<{ id: string }[]>("/api/categories?flat=true", { token });
@@ -10,26 +11,11 @@ export async function anyCategoryId(token: string): Promise<string> {
   return res.data[0].id;
 }
 
-interface VariantOptionValue {
-  id: string;
-}
-
-interface VariantType {
-  id: string;
-  slug: string;
-  values: VariantOptionValue[];
-}
-
-export interface OptionSelection {
-  variantTypeId: string;
-  valueIds: string[];
-}
-
 // Two option types x two values each = a 2x2 cartesian product (4 variants),
 // reusing the seeded "color" and "size" types instead of creating new global
 // variant types on every run.
 export async function twoByTwoOptionSelections(token: string): Promise<OptionSelection[]> {
-  const res = await apiRequest<VariantType[]>("/api/variant-types", { token });
+  const res = await apiRequest<VariantTypeDto[]>("/api/variant-types", { token });
   if (!res.success || !res.data) {
     throw new Error("Could not load variant types — ensure the target API has been seeded via `npm run seed`.");
   }

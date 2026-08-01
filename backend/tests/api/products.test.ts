@@ -1,7 +1,8 @@
 import { afterAll, describe, expect, it } from "vitest";
-import { apiRequest, uniqueId } from "../support/client";
-import { getSession } from "../support/auth";
-import { anyCategoryId } from "../support/fixtures";
+import { apiRequest, uniqueId } from "@tests/support/client";
+import { getSession } from "@tests/support/auth";
+import { anyCategoryId } from "@tests/support/fixtures";
+import type { ProductDto } from "@tests/types";
 import { SKU_PAD_LENGTH, SKU_PREFIX } from "@/constants";
 
 const skuPattern = new RegExp(`^${SKU_PREFIX}\\d{${SKU_PAD_LENGTH}}$`);
@@ -30,7 +31,7 @@ describe("Products", () => {
     const categoryId = await anyCategoryId(admin.token);
     const name = `Vitest Simple ${uniqueId()}`;
 
-    const res = await apiRequest<{ id: string; sku: string; barcode: string; hasVariants: boolean }>("/api/products", {
+    const res = await apiRequest<ProductDto>("/api/products", {
       method: "POST",
       token: admin.token,
       body: { name: { ar: name, en: name }, categoryId, basePrice: "99.99" },
@@ -41,7 +42,7 @@ describe("Products", () => {
     createdProductIds.push(res.data!.id);
 
     expect(res.data!.sku).toMatch(skuPattern);
-    expect(isValidEan13(res.data!.barcode)).toBe(true);
+    expect(isValidEan13(res.data!.barcode!)).toBe(true);
     expect(res.data!.hasVariants).toBe(false);
   });
 
@@ -51,7 +52,7 @@ describe("Products", () => {
     const categoryId = await anyCategoryId(employee.token);
     const name = `Vitest Cost ${uniqueId()}`;
 
-    const created = await apiRequest<{ id: string; cost?: unknown }>("/api/products", {
+    const created = await apiRequest<ProductDto>("/api/products", {
       method: "POST",
       token: employee.token,
       // Employees cannot set cost (CLAUDE.md rule 19) — the backend must
@@ -67,7 +68,7 @@ describe("Products", () => {
     const asEmployee = await apiRequest(`/api/products/${id}`, { token: employee.token });
     expect(asEmployee.data).not.toHaveProperty("cost");
 
-    const asManager = await apiRequest<{ cost: unknown }>(`/api/products/${id}`, { token: manager.token });
+    const asManager = await apiRequest<ProductDto>(`/api/products/${id}`, { token: manager.token });
     expect(asManager.data).toHaveProperty("cost");
     expect(asManager.data!.cost).toBeNull();
   });

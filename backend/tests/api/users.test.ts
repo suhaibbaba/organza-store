@@ -1,15 +1,11 @@
 import { afterAll, describe, expect, it } from "vitest";
 import { Role } from "@prisma/client";
-import { apiRequest, uniqueId } from "../support/client";
-import { getSession } from "../support/auth";
-import { randomPalestinePhone, samePhoneUnderOtherPrefix } from "../support/phone";
+import { apiRequest, uniqueId } from "@tests/support/client";
+import { getSession } from "@tests/support/auth";
+import { randomPalestinePhone, samePhoneUnderOtherPrefix } from "@tests/support/phone";
+import { SEEDED_PASSWORD } from "@tests/constants";
 import { ERROR_CODES } from "@/constants";
-
-interface UserDto {
-  id: string;
-  phone: string;
-  idNumber?: string | null;
-}
+import type { SerializableUser } from "@/types";
 
 describe("Users", () => {
   const nonce = uniqueId();
@@ -28,13 +24,13 @@ describe("Users", () => {
     const admin = await getSession("ADMIN");
     const phone = randomPalestinePhone();
 
-    const res = await apiRequest<UserDto>("/api/users", {
+    const res = await apiRequest<SerializableUser>("/api/users", {
       method: "POST",
       token: admin.token,
       body: {
         name: `Vitest User ${nonce}`,
         email: `vitest.${nonce}@organza.test`,
-        password: "password123",
+        password: SEEDED_PASSWORD,
         role: Role.EMPLOYEE,
         phone,
       },
@@ -48,13 +44,13 @@ describe("Users", () => {
     const admin = await getSession("ADMIN");
     const phone = randomPalestinePhone();
 
-    const first = await apiRequest<UserDto>("/api/users", {
+    const first = await apiRequest<SerializableUser>("/api/users", {
       method: "POST",
       token: admin.token,
       body: {
         name: `Vitest Dual A ${nonce}`,
         email: `vitest.dual-a.${nonce}@organza.test`,
-        password: "password123",
+        password: SEEDED_PASSWORD,
         role: Role.EMPLOYEE,
         phone,
       },
@@ -68,7 +64,7 @@ describe("Users", () => {
       body: {
         name: `Vitest Dual B ${nonce}`,
         email: `vitest.dual-b.${nonce}@organza.test`,
-        password: "password123",
+        password: SEEDED_PASSWORD,
         role: Role.EMPLOYEE,
         phone: samePhoneUnderOtherPrefix(phone),
       },
@@ -85,7 +81,7 @@ describe("Users", () => {
       body: {
         name: `Vitest Invalid ${nonce}`,
         email: `vitest.invalid.${nonce}@organza.test`,
-        password: "password123",
+        password: SEEDED_PASSWORD,
         role: Role.EMPLOYEE,
         phone: "0599123456", // missing the required leading '+'
       },

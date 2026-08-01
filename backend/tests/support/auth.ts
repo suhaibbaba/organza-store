@@ -1,26 +1,11 @@
 // Login helper for the three seeded staff accounts (backend/prisma/seed.ts).
 // Sessions are cached per role per test file so each suite logs in once.
-import { rawRequest } from "./client";
+import { rawRequest } from "@tests/support/client";
+import { SEEDED_ACCOUNTS } from "@tests/constants";
+import type { Session, SeededRole, SignInAttempt } from "@tests/types";
 
-export const SEEDED_ACCOUNTS = {
-  ADMIN: { email: "admin@organza.test", password: "password123" },
-  MANAGER: { email: "manager@organza.test", password: "password123" },
-  EMPLOYEE: { email: "employee@organza.test", password: "password123" },
-} as const;
-
-export type SeededRole = keyof typeof SEEDED_ACCOUNTS;
-
-export interface Session {
-  token: string;
-  userId: string;
-  role: string;
-  email: string;
-}
-
-interface SignInAttempt {
-  status: number;
-  session?: Session;
-}
+export { SEEDED_ACCOUNTS };
+export type { SeededRole, Session };
 
 // Better Auth's /api/auth/* routes are handled directly by its own toNodeHandler
 // (see src/index.ts) and are NOT wrapped in the app's { success, data } envelope,

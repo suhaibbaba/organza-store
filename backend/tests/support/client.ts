@@ -1,3 +1,5 @@
+import type { ApiResult, RequestOptions } from "@tests/types";
+
 // Thin fetch wrapper around a LIVE API — these tests never start an
 // in-process server, they hit whatever API_URL points at (sandbox or prod).
 const rawApiUrl = process.env.API_URL;
@@ -9,23 +11,6 @@ if (!rawApiUrl) {
 }
 
 export const API_BASE_URL = rawApiUrl.replace(/\/+$/, "");
-
-export interface RequestOptions {
-  method?: "GET" | "POST" | "PATCH" | "DELETE";
-  token?: string;
-  body?: unknown;
-}
-
-// Every backend route (CLAUDE.md rule 15) responds with the unified
-// envelope; Better Auth's own routes (/api/auth/*) do not, so those callers
-// use `rawRequest` instead (see tests/support/auth.ts).
-export interface ApiResult<T = unknown> {
-  status: number;
-  success: boolean;
-  data?: T;
-  meta?: { page: number; pageSize: number; total: number; totalPages: number } | null;
-  error?: { code: string; details?: unknown };
-}
 
 // Better Auth's CSRF guard (src/lib/auth.ts -> trustedOrigins) rejects any
 // state-changing request that carries an Origin header it doesn't

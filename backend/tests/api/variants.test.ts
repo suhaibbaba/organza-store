@@ -1,28 +1,11 @@
 import { afterAll, describe, expect, it } from "vitest";
-import { apiRequest, uniqueId } from "../support/client";
-import { getSession } from "../support/auth";
-import { anyCategoryId, twoByTwoOptionSelections } from "../support/fixtures";
+import { apiRequest, uniqueId } from "@tests/support/client";
+import { getSession } from "@tests/support/auth";
+import { anyCategoryId, twoByTwoOptionSelections } from "@tests/support/fixtures";
+import type { ProductDto, ProductVariantDto } from "@tests/types";
 import { SKU_PAD_LENGTH, SKU_PREFIX } from "@/constants";
 
 const variantSkuPattern = new RegExp(`^${SKU_PREFIX}\\d{${SKU_PAD_LENGTH}}-\\d+$`);
-
-interface VariantDto {
-  id: string;
-  sku: string;
-  priceOverride: number | string | null;
-  resolvedPrice: number | string;
-  cost?: number | string | null;
-  resolvedCost?: number | string | null;
-}
-
-interface ProductDto {
-  id: string;
-  sku: string | null;
-  hasVariants: boolean;
-  basePrice: number | string;
-  cost?: number | string | null;
-  variants: VariantDto[];
-}
 
 describe("Variants", () => {
   const createdProductIds: string[] = [];
@@ -67,7 +50,7 @@ describe("Variants", () => {
 
     // Overriding one variant must not affect the others' fallback resolution.
     const target = product.variants[0];
-    const patched = await apiRequest<VariantDto>(`/api/products/${product.id}/variants/${target.id}`, {
+    const patched = await apiRequest<ProductVariantDto>(`/api/products/${product.id}/variants/${target.id}`, {
       method: "PATCH",
       token: admin.token,
       body: { priceOverride: "175.50", cost: "80" },

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { apiRequest } from "../support/client";
-import { SEEDED_ACCOUNTS, getSession, signIn, type SeededRole } from "../support/auth";
+import { apiRequest } from "@tests/support/client";
+import { SEEDED_ACCOUNTS, getSession, signIn } from "@tests/support/auth";
+import type { SeededRole } from "@tests/types";
 import { ERROR_CODES } from "@/constants";
 
 describe("Auth", () => {

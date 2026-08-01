@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { apiRequest } from "../support/client";
-import { getSession } from "../support/auth";
+import { apiRequest } from "@tests/support/client";
+import { getSession } from "@tests/support/auth";
 import { ERROR_CODES } from "@/constants";
 
 describe("Unified API envelope", () => {
