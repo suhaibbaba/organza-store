@@ -1,0 +1,70 @@
+import { Router } from "express";
+import { AuditAction, Role } from "@prisma/client";
+import { prisma } from "../lib/prisma";
+import { asyncHandler } from "../middleware/asyncHandler";
+import { requireAuth, requireRole } from "../middleware/auth";
+import { validateBody } from "../middleware/validate";
+import { AppError, sendOk } from "../lib/response";
+import { updateSettingSchema, type UpdateSettingInput } from "../validation/setting";
+import { writeAudit } from "../lib/audit";
+
+// Singleton Setting row (CLAUDE.md rule 14) — readable by any authed user
+// (currency/language/threshold are needed broadly), writable by Admin only.
+const router = Router();
+router.use(requireAuth);
+
+async function getOrCreateSettings() {
+  return prisma.setting.upsert({
+    where: { id: "default" },
+    update: {},
+    create: { id: "default", storeName: { ar: "المتجر", en: "Store", he: "חנות" } },
+  });
+}
+
+router.get(
+  "/",
+  asyncHandler(async (_req, res) => {
+    sendOk(res, await getOrCreateSettings());
+  })
+);
+
+router.patch(
+  "/",
+  requireRole(Role.ADMIN),
+  validateBody(updateSettingSchema),
+  asyncHandler(async (req, res) => {
+    const existing = await getOrCreateSettings();
+    const body = req.body as UpdateSettingInput;
+
+    const effectiveSupported = body.supportedLanguages ?? existing.supportedLanguages;
+    const effectiveDefault = body.defaultLanguage ?? existing.defaultLanguage;
+    if (!effectiveSupported.includes(effectiveDefault)) {
+      throw new AppError(400, "error.setting.default_language_not_supported");
+    }
+
+    const updated = await prisma.setting.update({
+      where: { id: "default" },
+      data: {
+        storeName: body.storeName,
+        defaultLanguage: body.defaultLanguage,
+        supportedLanguages: body.supportedLanguages,
+        currency: body.currency,
+        defaultCountryCode: body.defaultCountryCode,
+        lowStockThreshold: body.lowStockThreshold,
+      },
+    });
+
+    await writeAudit({
+      userId: req.user!.id,
+      action: AuditAction.UPDATE,
+      entityType: "Setting",
+      entityId: updated.id,
+      oldValue: existing,
+      newValue: updated,
+    });
+
+    sendOk(res, updated);
+  })
+);
+
+export default router;

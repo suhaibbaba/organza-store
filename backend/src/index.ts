@@ -7,6 +7,9 @@ import { auth } from "./lib/auth";
 import productsRouter from "./routes/products";
 import variantTypesRouter from "./routes/variantTypes";
 import categoriesRouter from "./routes/categories";
+import inventoryRouter from "./routes/inventory";
+import usersRouter from "./routes/users";
+import settingsRouter from "./routes/settings";
 import { errorHandler } from "./middleware/errorHandler";
 import { AppError, sendError } from "./lib/response";
 
@@ -35,6 +38,9 @@ app.get("/health", (_req, res) => {
 app.use("/api/products", productsRouter);
 app.use("/api/variant-types", variantTypesRouter);
 app.use("/api/categories", categoriesRouter);
+app.use("/api/inventory", inventoryRouter);
+app.use("/api/users", usersRouter);
+app.use("/api/settings", settingsRouter);
 
 app.use((_req, res) => {
   sendError(res, new AppError(404, "error.not_found"));

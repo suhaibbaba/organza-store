@@ -1,20 +1,190 @@
 import { Router } from "express";
+import { AuditAction, Role, type Category } from "@prisma/client";
 import { prisma } from "../lib/prisma";
 import { asyncHandler } from "../middleware/asyncHandler";
-import { requireAuth } from "../middleware/auth";
-import { sendOk } from "../lib/response";
+import { requireAuth, requireRole } from "../middleware/auth";
+import { validateBody } from "../middleware/validate";
+import { AppError, sendOk } from "../lib/response";
+import {
+  createCategorySchema,
+  updateCategorySchema,
+  type CreateCategoryInput,
+  type UpdateCategoryInput,
+} from "../validation/category";
+import { generateUniqueSlug } from "../lib/slug";
+import { writeAudit } from "../lib/audit";
 
-// Read-only for Phase 2 — full nested category CRUD is a later build-order
-// stage (spec.md stage 4). This just lets the product flow list/validate
-// categoryId.
 const router = Router();
 router.use(requireAuth);
 
+type CategoryNode = Category & { children: CategoryNode[] };
+
+// Builds the parent/child tree from a flat list — categories are few enough
+// (a boutique's catalog) that loading them all and nesting in memory is
+// simpler than a recursive CTE, and keeps pagination out of a hierarchy that
+// doesn't really have "pages".
+function buildTree(categories: Category[]): CategoryNode[] {
+  const nodes = new Map<string, CategoryNode>(categories.map((c) => [c.id, { ...c, children: [] }]));
+  const roots: CategoryNode[] = [];
+  for (const node of nodes.values()) {
+    if (node.parentId && nodes.has(node.parentId)) {
+      nodes.get(node.parentId)!.children.push(node);
+    } else {
+      roots.push(node);
+    }
+  }
+  return roots;
+}
+
+// True if `candidateParentId` is `categoryId` itself or one of its
+// descendants — reparenting onto either would create a cycle.
+function wouldCreateCycle(categories: Category[], categoryId: string, candidateParentId: string): boolean {
+  if (candidateParentId === categoryId) return true;
+  const byId = new Map(categories.map((c) => [c.id, c]));
+  let current = byId.get(candidateParentId);
+  while (current?.parentId) {
+    if (current.parentId === categoryId) return true;
+    current = byId.get(current.parentId);
+  }
+  return false;
+}
+
+// ---------------------------------------------------------------------------
+// GET /api/categories — list as a nested tree (default) or ?flat=true
+// ---------------------------------------------------------------------------
 router.get(
   "/",
-  asyncHandler(async (_req, res) => {
+  asyncHandler(async (req, res) => {
     const categories = await prisma.category.findMany({ orderBy: { createdAt: "asc" } });
-    sendOk(res, categories);
+    if (req.query.flat === "true") {
+      sendOk(res, categories);
+      return;
+    }
+    sendOk(res, buildTree(categories));
+  })
+);
+
+// ---------------------------------------------------------------------------
+// POST /api/categories — create (Admin/Manager only)
+// ---------------------------------------------------------------------------
+router.post(
+  "/",
+  requireRole(Role.ADMIN, Role.MANAGER),
+  validateBody(createCategorySchema),
+  asyncHandler(async (req, res) => {
+    const body = req.body as CreateCategoryInput;
+
+    if (body.parentId) {
+      const parent = await prisma.category.findUnique({ where: { id: body.parentId } });
+      if (!parent) throw new AppError(400, "error.category.not_found");
+    }
+
+    const slug = await generateUniqueSlug(body.name.ar, async (candidate) => {
+      const existing = await prisma.category.findUnique({ where: { slug: candidate } });
+      return Boolean(existing);
+    });
+
+    const created = await prisma.category.create({
+      data: { name: body.name, slug, parentId: body.parentId ?? null },
+    });
+
+    await writeAudit({
+      userId: req.user!.id,
+      action: AuditAction.CREATE,
+      entityType: "Category",
+      entityId: created.id,
+      newValue: created,
+    });
+
+    sendOk(res, created, null, 201);
+  })
+);
+
+// ---------------------------------------------------------------------------
+// PATCH /api/categories/:id — rename / reparent (Admin/Manager only)
+// ---------------------------------------------------------------------------
+router.patch(
+  "/:id",
+  requireRole(Role.ADMIN, Role.MANAGER),
+  validateBody(updateCategorySchema),
+  asyncHandler(async (req, res) => {
+    const existing = await prisma.category.findUnique({ where: { id: req.params.id } });
+    if (!existing) throw new AppError(404, "error.category.not_found");
+
+    const body = req.body as UpdateCategoryInput;
+
+    let slug: string | undefined;
+    if (body.name) {
+      slug = await generateUniqueSlug(body.name.ar, async (candidate) => {
+        if (candidate === existing.slug) return false;
+        const found = await prisma.category.findUnique({ where: { slug: candidate } });
+        return Boolean(found);
+      });
+    }
+
+    if (body.parentId !== undefined && body.parentId !== null) {
+      const parent = await prisma.category.findUnique({ where: { id: body.parentId } });
+      if (!parent) throw new AppError(400, "error.category.not_found");
+
+      const all = await prisma.category.findMany();
+      if (wouldCreateCycle(all, existing.id, body.parentId)) {
+        throw new AppError(400, "error.category.circular_parent");
+      }
+    }
+
+    const updated = await prisma.category.update({
+      where: { id: existing.id },
+      data: {
+        name: body.name,
+        slug,
+        parentId: body.parentId === undefined ? undefined : body.parentId,
+      },
+    });
+
+    await writeAudit({
+      userId: req.user!.id,
+      action: AuditAction.UPDATE,
+      entityType: "Category",
+      entityId: updated.id,
+      oldValue: existing,
+      newValue: updated,
+    });
+
+    sendOk(res, updated);
+  })
+);
+
+// ---------------------------------------------------------------------------
+// DELETE /api/categories/:id — blocked while it has children or products
+// (Admin/Manager only). Categories have no soft-delete column, so deletion
+// is only ever allowed once the category is empty — reassign children/
+// products elsewhere first, then delete.
+// ---------------------------------------------------------------------------
+router.delete(
+  "/:id",
+  requireRole(Role.ADMIN, Role.MANAGER),
+  asyncHandler(async (req, res) => {
+    const existing = await prisma.category.findUnique({ where: { id: req.params.id } });
+    if (!existing) throw new AppError(404, "error.category.not_found");
+
+    const [childCount, productCount] = await Promise.all([
+      prisma.category.count({ where: { parentId: existing.id } }),
+      prisma.product.count({ where: { categoryId: existing.id, deletedAt: null } }),
+    ]);
+    if (childCount > 0) throw new AppError(409, "error.category.has_children");
+    if (productCount > 0) throw new AppError(409, "error.category.has_products");
+
+    await prisma.category.delete({ where: { id: existing.id } });
+
+    await writeAudit({
+      userId: req.user!.id,
+      action: AuditAction.DELETE,
+      entityType: "Category",
+      entityId: existing.id,
+      oldValue: existing,
+    });
+
+    sendOk(res, { id: existing.id });
   })
 );
 
