@@ -1,4 +1,4 @@
-import type { I18n } from "./common";
+import type { I18n } from "@/types/common";
 
 export interface ProductImageRef {
   id: string;

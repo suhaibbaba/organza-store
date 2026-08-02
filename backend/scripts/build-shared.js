@@ -25,12 +25,19 @@ function run(command, args, cwd) {
   }
 }
 
+function bin(name) {
+  return path.join(sharedDir, "node_modules", ".bin", process.platform === "win32" ? `${name}.cmd` : name);
+}
+
 if (!fs.existsSync(path.join(sharedDir, "node_modules"))) {
   run("npm", ["install"], sharedDir);
 }
 
-const tscBin = path.join(sharedDir, "node_modules", ".bin", process.platform === "win32" ? "tsc.cmd" : "tsc");
-run(tscBin, ["-p", "tsconfig.json"], sharedDir);
+// tsc alone leaves the "@/*" aliases used inside shared/src as literal,
+// unresolvable requires in the emitted JS — tsc-alias rewrites them to
+// relative paths afterward, same as shared's own `npm run build` does.
+run(bin("tsc"), ["-p", "tsconfig.json"], sharedDir);
+run(bin("tsc-alias"), ["-p", "tsconfig.json"], sharedDir);
 
 fs.mkdirSync(nodeModulesDir, { recursive: true });
 fs.rmSync(linkPath, { recursive: true, force: true });

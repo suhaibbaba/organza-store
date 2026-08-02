@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { i18nSchema } from "./common";
+import { i18nSchema } from "@/schemas/common";
 
 export const createCategorySchema = z.object({
   name: i18nSchema,

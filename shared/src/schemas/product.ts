@@ -1,7 +1,7 @@
 import { z } from "zod";
-import { decimalInput, i18nOptionalSchema, i18nSchema, paginationSchema } from "./common";
-import { ERROR_CODES } from "../constants/errors";
-import { PRODUCT_SORT_FIELDS } from "../constants/product";
+import { decimalInput, i18nOptionalSchema, i18nSchema, paginationSchema } from "@/schemas/common";
+import { ERROR_CODES } from "@/constants/errors";
+import { PRODUCT_SORT_FIELDS } from "@/constants/product";
 
 export const optionSelectionSchema = z.object({
   variantTypeId: z.string().min(1),

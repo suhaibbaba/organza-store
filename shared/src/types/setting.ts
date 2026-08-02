@@ -1,4 +1,4 @@
-import type { I18n } from "./common";
+import type { I18n } from "@/types/common";
 
 // The Setting singleton row (CLAUDE.md rule 14).
 export interface Setting {
