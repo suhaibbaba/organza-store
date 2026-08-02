@@ -20,8 +20,11 @@ services:
 
   backend:
     build:
-      context: ./backend
-      dockerfile: Dockerfile
+      # context is the repo root, not ./backend: postinstall builds the
+      # sibling ../shared package into backend/node_modules/@shared, so
+      # shared/ must be inside the build context too.
+      context: .
+      dockerfile: backend/Dockerfile
     restart: unless-stopped
     env_file: .env.sandbox
     environment:
