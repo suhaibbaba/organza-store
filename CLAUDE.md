@@ -130,3 +130,24 @@ behavior — guessing is what broke the previous attempt.
   keys, default page sizes, the +970/+972 prefixes, etc.
 - These are **structural rules**: when refactoring to satisfy them, move/rename only — never change
   behavior — and keep `tsc` type-check and the build passing.
+
+## Frontend UX — mobile-first, simple, RTL (admin + pos)
+The people using the admin and POS are **not tech-savvy**, and ~**95% of use is on mobile phones**.
+Design for that reality:
+
+- **Mobile-first, not merely responsive.** Design and build for a phone screen FIRST, then scale
+  up to desktop. Single-column layouts by default; never a desktop layout crammed onto a phone.
+- **Big, easy touch targets.** Large tappable buttons (min ~44px), generous spacing, no tiny links
+  or dense toolbars. Primary action on each screen should be obvious and reachable by thumb.
+- **Few, clear steps.** Minimize taps to complete any task. Avoid multi-step wizards where one
+  screen would do. Plain, simple wording — no technical jargon in the UI.
+- **Tables become cards on mobile.** Wide data tables must reflow into stacked cards/list items on
+  small screens (TanStack Table can drive both). Never force horizontal scrolling of a table on a
+  phone.
+- **Clear feedback always.** Every action shows loading, success, and error states in plain
+  language (mapped from `error.*` keys via `t()`), so an untrained user is never left guessing.
+- **RTL must be 100% correct**, not just `dir="rtl"`: the whole layout mirrors (nav, icons, arrows,
+  padding/margins, alignment), Arabic uses a clear legible Arabic font, and numbers/dates render
+  correctly. **Verify Arabic visually** — do not assume it works. Arabic is the default locale.
+- **Accessibility basics:** readable font sizes on mobile, sufficient contrast, labels on inputs.
+- Keep the visual language consistent between admin and pos (shared components where sensible).
