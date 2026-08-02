@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "postinstall": "npm install --prefix ../shared && npm run build:shared",
-    "build:shared": "npm run build --prefix ../shared && mkdir -p node_modules && ln -sfn ../../shared/dist node_modules/@shared",
+    "postinstall": "npm run build:shared",
+    "build:shared": "node scripts/build-shared.mjs",
     "predev": "npm run build:shared",
     "dev": "next dev",
     "prebuild": "npm run build:shared",

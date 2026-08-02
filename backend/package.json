@@ -9,8 +9,8 @@
     "seed": "tsx prisma/seed.ts"
   },
   "scripts": {
-    "postinstall": "npm install --prefix ../shared && npm run build:shared && prisma generate",
-    "build:shared": "npm run build --prefix ../shared && mkdir -p node_modules && ln -sfn ../../shared/dist node_modules/@shared",
+    "postinstall": "npm run build:shared && prisma generate",
+    "build:shared": "node scripts/build-shared.mjs",
     "predev": "npm run build:shared",
     "dev": "tsx watch src/index.ts",
     "prebuild": "npm run build:shared",
