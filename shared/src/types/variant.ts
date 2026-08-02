@@ -1,5 +1,26 @@
 import type { I18n } from "@/types/common";
 
+// Global option value (e.g. Color -> "أحمر"), GET /api/variant-types.
+export interface VariantOptionValue {
+  id: string;
+  variantTypeId: string;
+  value: I18n;
+  key: string;
+  sortOrder: number;
+  createdAt: string;
+}
+
+// Global variant type (e.g. Color, Size, Number) with its values, shared
+// across all products (CLAUDE.md: "Number/الأرقام" is not special — it's a
+// normal variant type). GET /api/variant-types.
+export interface VariantType {
+  id: string;
+  name: I18n;
+  slug: string;
+  values: VariantOptionValue[];
+  createdAt: string;
+}
+
 export interface ProductImageRef {
   id: string;
   url: string;

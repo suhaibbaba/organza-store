@@ -1,5 +1,12 @@
 import type { Product, ProductSummary } from "@shared/types/product";
+import type { Variant } from "@shared/types/variant";
 import type { Pagination } from "@shared/types/common";
+import type {
+  CreateProductInput,
+  UpdateProductInput,
+  GenerateVariantsInput,
+  UpdateVariantInput,
+} from "@shared/schemas/product";
 import { apiFetch } from "@/lib/api/client";
 import type { ProductListFilters } from "@/types/product";
 
@@ -29,5 +36,33 @@ export async function fetchProducts(
 
 export async function fetchProduct(id: string): Promise<Product> {
   const { data } = await apiFetch<Product>(`/api/products/${id}`);
+  return data;
+}
+
+export async function createProduct(input: CreateProductInput): Promise<Product> {
+  const { data } = await apiFetch<Product>("/api/products", { method: "POST", body: input });
+  return data;
+}
+
+export async function updateProduct(id: string, input: UpdateProductInput): Promise<Product> {
+  const { data } = await apiFetch<Product>(`/api/products/${id}`, { method: "PATCH", body: input });
+  return data;
+}
+
+export async function generateVariants(id: string, input: GenerateVariantsInput): Promise<Product> {
+  const { data } = await apiFetch<Product>(`/api/products/${id}/variants/generate`, { method: "POST", body: input });
+  return data;
+}
+
+export async function updateVariant(id: string, variantId: string, input: UpdateVariantInput): Promise<Variant> {
+  const { data } = await apiFetch<Variant>(`/api/products/${id}/variants/${variantId}`, {
+    method: "PATCH",
+    body: input,
+  });
+  return data;
+}
+
+export async function deleteVariant(id: string, variantId: string): Promise<{ id: string }> {
+  const { data } = await apiFetch<{ id: string }>(`/api/products/${id}/variants/${variantId}`, { method: "DELETE" });
   return data;
 }
