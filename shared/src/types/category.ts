@@ -1,4 +1,4 @@
-import type { I18n } from "./common";
+import type { I18n } from "@/types/common";
 
 // Minimal shape embedded in Product/ProductSummary responses.
 export interface CategoryRef {

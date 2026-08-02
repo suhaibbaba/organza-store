@@ -1,6 +1,6 @@
-import type { I18n } from "./common";
-import type { CategoryRef } from "./category";
-import type { ProductImageRef, Variant } from "./variant";
+import type { I18n } from "@/types/common";
+import type { CategoryRef } from "@/types/category";
+import type { ProductImageRef, Variant } from "@/types/variant";
 
 export interface ProductVariantTypeRef {
   id: string;
