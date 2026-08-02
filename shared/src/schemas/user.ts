@@ -1,9 +1,9 @@
 import { z } from "zod";
-import { phoneSchema } from "./phone";
-import { paginationSchema } from "./common";
-import { ERROR_CODES } from "../constants/errors";
-import { PASSWORD_MIN_LENGTH } from "../constants/validation";
-import { ROLES } from "../constants/roles";
+import { phoneSchema } from "@/schemas/phone";
+import { paginationSchema } from "@/schemas/common";
+import { ERROR_CODES } from "@/constants/errors";
+import { PASSWORD_MIN_LENGTH } from "@/constants/validation";
+import { ROLES } from "@/constants/roles";
 
 export const createUserSchema = z.object({
   name: z.string().min(1, ERROR_CODES.VALIDATION_REQUIRED),

@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { i18nSchema } from "./common";
-import { SUPPORTED_LANGUAGES } from "../constants/languages";
+import { i18nSchema } from "@/schemas/common";
+import { SUPPORTED_LANGUAGES } from "@/constants/languages";
 
 export const updateSettingSchema = z.object({
   storeName: i18nSchema.optional(),

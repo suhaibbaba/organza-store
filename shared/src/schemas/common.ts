@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { DEFAULT_PAGE, DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE } from "../constants/pagination";
-import { ERROR_CODES } from "../constants/errors";
+import { DEFAULT_PAGE, DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE } from "@/constants/pagination";
+import { ERROR_CODES } from "@/constants/errors";
 
 // Translatable content { ar, en, he } — ar (default language) is required,
 // en/he fall back to it when missing (CLAUDE.md rule 9).

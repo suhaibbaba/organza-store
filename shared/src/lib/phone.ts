@@ -1,5 +1,5 @@
 import { parsePhoneNumberFromString } from "libphonenumber-js";
-import { PALESTINE_PHONE_PREFIXES } from "../constants/phone";
+import { PALESTINE_PHONE_PREFIXES } from "@/constants/phone";
 
 // Numbers are stored exactly as entered in E.164 (CLAUDE.md rule 18) — never
 // reformatted/rewritten, so WhatsApp keeps reaching the number on its real
