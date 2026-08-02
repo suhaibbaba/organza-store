@@ -51,6 +51,7 @@ export interface ProductSummary {
   isActive: boolean;
   hasVariants: boolean;
   variantCount: number;
+  image: ProductImageRef | null;
   createdAt: string;
   updatedAt: string;
   cost?: string | null;
