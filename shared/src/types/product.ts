@@ -1,0 +1,57 @@
+import type { I18n } from "./common";
+import type { CategoryRef } from "./category";
+import type { ProductImageRef, Variant } from "./variant";
+
+export interface ProductVariantTypeRef {
+  id: string;
+  name: I18n;
+  slug: string;
+}
+
+// Full detail DTO (GET /api/products/:id), including all variants resolved.
+export interface Product {
+  id: string;
+  productNumber: number;
+  name: I18n;
+  slug: string;
+  description: I18n | null;
+  category: CategoryRef | null;
+  basePrice: string;
+  compareAtPrice: string | null;
+  // Simple-product-only fields (CLAUDE.md: disabled once the product has variants).
+  sku: string | null;
+  barcode: string | null;
+  stock?: number;
+  isActive: boolean;
+  deletedAt: string | null;
+  hasVariants: boolean;
+  images: ProductImageRef[];
+  variantTypes: ProductVariantTypeRef[];
+  variants: Variant[];
+  createdAt: string;
+  updatedAt: string;
+  // SENSITIVE (CLAUDE.md rule 19): Admin + Manager only — absent entirely
+  // from Employee responses.
+  cost?: string | null;
+}
+
+// Lighter list-view DTO (GET /api/products) — aggregate stock, variant count,
+// no per-variant breakdown.
+export interface ProductSummary {
+  id: string;
+  productNumber: number;
+  name: I18n;
+  slug: string;
+  category: CategoryRef | null;
+  basePrice: string;
+  compareAtPrice: string | null;
+  sku: string | null;
+  barcode: string | null;
+  stock: number;
+  isActive: boolean;
+  hasVariants: boolean;
+  variantCount: number;
+  createdAt: string;
+  updatedAt: string;
+  cost?: string | null;
+}

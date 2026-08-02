@@ -9,18 +9,25 @@
     "seed": "tsx prisma/seed.ts"
   },
   "scripts": {
-    "postinstall": "prisma generate",
+    "postinstall": "npm install --prefix ../shared && npm run build:shared && prisma generate",
+    "build:shared": "npm run build --prefix ../shared && mkdir -p node_modules && ln -sfn ../../shared/dist node_modules/@shared",
+    "predev": "npm run build:shared",
     "dev": "tsx watch src/index.ts",
+    "prebuild": "npm run build:shared",
     "build": "tsc -p tsconfig.json && tsc-alias -p tsconfig.json",
     "start": "node dist/index.js",
+    "pretypecheck": "npm run build:shared",
     "typecheck": "tsc --noEmit",
+    "pretypecheck:tests": "npm run build:shared",
     "typecheck:tests": "tsc -p tsconfig.tests.json",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",
     "seed": "prisma db seed",
     "auth:generate": "npx @better-auth/cli generate --config src/lib/auth.ts --output prisma/schema.prisma -y",
+    "preapi-test": "npm run build:shared",
     "api-test": "cross-env API_URL=https://api.sandbox.organza-moda.com vitest run",
+    "preapi-test:prod": "npm run build:shared",
     "api-test:prod": "cross-env API_URL=https://api.organza-moda.com vitest run"
   },
   "dependencies": {
