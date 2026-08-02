@@ -1,0 +1,100 @@
+{
+  "app": {
+    "name": "Organza Store"
+  },
+  "common": {
+    "loading": "Loading…",
+    "retry": "Try again",
+    "logout": "Log out",
+    "language": "Language",
+    "menu": "Menu",
+    "comingSoon": "This screen isn't built yet — check back soon.",
+    "close": "Close",
+    "mainNavigation": "Main navigation"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "products": "Products",
+    "inventory": "Inventory",
+    "categories": "Categories",
+    "users": "Users",
+    "settings": "Settings",
+    "more": "More"
+  },
+  "auth": {
+    "login": {
+      "title": "Sign in",
+      "subtitle": "Enter your email and password to continue.",
+      "emailLabel": "Email",
+      "emailPlaceholder": "you@organza.test",
+      "passwordLabel": "Password",
+      "passwordPlaceholder": "Enter your password",
+      "submit": "Sign in",
+      "submitting": "Signing in…",
+      "error": "Incorrect email or password."
+    }
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Welcome, {name}",
+    "subtitle": "Here's a quick look at your store.",
+    "placeholder": "Sales summary, top products, and low-stock alerts will appear here."
+  },
+  "placeholders": {
+    "products": { "title": "Products", "description": "Manage products, variants, and images." },
+    "inventory": { "title": "Inventory", "description": "Track stock levels and low-stock alerts." },
+    "categories": { "title": "Categories", "description": "Organize products into nested categories." },
+    "users": { "title": "Users", "description": "Manage staff accounts and roles." },
+    "settings": { "title": "Settings", "description": "Store name, currency, and stock thresholds." }
+  },
+  "errors": {
+    "notFound": "Not found.",
+    "validation": "Please check the highlighted fields.",
+    "internal": "Something went wrong. Please try again.",
+    "unauthorized": "Please sign in to continue.",
+    "forbidden": "You don't have permission to do that.",
+    "accountInactive": "Your account has been deactivated. Contact an admin.",
+
+    "duplicate": "This already exists.",
+    "skuDuplicate": "This SKU is already in use.",
+    "barcodeDuplicate": "This barcode is already in use.",
+    "slugDuplicate": "This name is already in use.",
+    "emailDuplicate": "This email is already in use.",
+    "phoneDuplicate": "This phone number is already in use.",
+    "whatsappDuplicate": "This WhatsApp number is already in use.",
+
+    "validationRequired": "This field is required.",
+    "validationInvalidNumber": "Enter a valid number.",
+    "validationInvalidPhone": "Enter a valid phone number.",
+    "validationInvalidEmail": "Enter a valid email address.",
+    "validationPasswordTooShort": "Password must be at least {min} characters.",
+
+    "categoryNotFound": "Category not found.",
+    "categoryCircularParent": "A category can't be its own ancestor.",
+    "categoryHasChildren": "This category still has subcategories.",
+    "categoryHasProducts": "This category still has products.",
+
+    "productNotFound": "Product not found.",
+    "variantNotFound": "Variant not found.",
+
+    "variantTypeNotFound": "Variant type not found.",
+    "variantTypeValueNotFound": "Variant value not found.",
+    "variantTypeValueDuplicate": "This value already exists for this type.",
+
+    "imageInvalidType": "This image type isn't supported.",
+    "imageTooLarge": "This image is too large.",
+    "imageUploadFailed": "The image upload failed.",
+    "imageFileRequired": "Please choose an image.",
+    "imageNotFound": "Image not found.",
+    "imageOwnerRequired": "Choose a product or variant for this image.",
+    "imageReorderDuplicate": "Each image can only appear once in the order.",
+    "imageReorderMismatch": "The image order doesn't match the current images.",
+
+    "inventoryParentHasVariants": "This product's stock is managed per variant.",
+
+    "settingDefaultLanguageNotSupported": "That language isn't supported yet.",
+
+    "userNotFound": "User not found.",
+    "authSignupFailed": "Couldn't create the account."
+  }
+}
