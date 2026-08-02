@@ -13,11 +13,14 @@
     "build": "tsc -p tsconfig.json && tsc-alias -p tsconfig.json",
     "start": "node dist/index.js",
     "typecheck": "tsc --noEmit",
+    "typecheck:tests": "tsc -p tsconfig.tests.json",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",
     "seed": "prisma db seed",
-    "auth:generate": "npx @better-auth/cli generate --config src/lib/auth.ts --output prisma/schema.prisma -y"
+    "auth:generate": "npx @better-auth/cli generate --config src/lib/auth.ts --output prisma/schema.prisma -y",
+    "api-test": "cross-env API_URL=https://api.sandbox.organza-moda.com vitest run",
+    "api-test:prod": "cross-env API_URL=https://api.organza-moda.com vitest run"
   },
   "dependencies": {
     "@prisma/client": "^6.1.0",
@@ -38,9 +41,11 @@
     "@types/express": "^4.17.21",
     "@types/multer": "^1.4.12",
     "@types/node": "^22.10.2",
+    "cross-env": "^7.0.3",
     "prisma": "^6.1.0",
     "tsc-alias": "^1.9.1",
     "tsx": "^4.19.2",
-    "typescript": "^5.7.2"
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
   }
 }
