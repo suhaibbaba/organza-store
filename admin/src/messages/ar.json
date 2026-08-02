@@ -120,13 +120,15 @@
       "variantStock": "المخزون",
       "variantPrice": "السعر",
       "variantStatus": "الحالة",
-      "edit": "تعديل"
+      "edit": "تعديل",
+      "manageImages": "الصور"
     },
     "form": {
       "back": "رجوع",
       "createTitle": "إضافة منتج",
       "editTitle": "تعديل المنتج",
       "notFoundTitle": "المنتج غير موجود",
+      "employeeReadOnlyHint": "يمكنك إضافة الصور وإعادة ترتيبها أدناه. لتغيير السعر أو التفاصيل، تواصل مع مسؤول أو مدير.",
       "basicInfo": "المعلومات الأساسية",
       "name": "الاسم",
       "description": "الوصف",
@@ -170,6 +172,20 @@
         "addMoreTitle": "إضافة مزيد من التركيبات",
         "addMoreSuccess": "تمت إضافة المتغيرات.",
         "generate": "إنشاء المتغيرات"
+      },
+      "images": {
+        "productTitle": "صور المنتج",
+        "manageTitle": "إدارة الصور",
+        "variantSectionTitle": "الصور",
+        "variantFallbackHint": "لا توجد صور بعد — تُعرض صور المنتج بدلاً منها.",
+        "addImages": "إضافة صور",
+        "dragHandle": "اسحب لإعادة الترتيب",
+        "setPrimary": "تعيين كصورة رئيسية",
+        "clearPrimary": "إلغاء الصورة الرئيسية",
+        "primaryBadge": "رئيسية",
+        "delete": "حذف الصورة",
+        "confirmDelete": "حذف",
+        "cancelDelete": "إلغاء"
       }
     }
   },

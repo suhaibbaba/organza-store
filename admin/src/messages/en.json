@@ -120,13 +120,15 @@
       "variantStock": "Stock",
       "variantPrice": "Price",
       "variantStatus": "Status",
-      "edit": "Edit"
+      "edit": "Edit",
+      "manageImages": "Images"
     },
     "form": {
       "back": "Back",
       "createTitle": "Add product",
       "editTitle": "Edit product",
       "notFoundTitle": "Product not found",
+      "employeeReadOnlyHint": "You can add and reorder images below. To change the price or details, ask an admin or manager.",
       "basicInfo": "Basic info",
       "name": "Name",
       "description": "Description",
@@ -170,6 +172,20 @@
         "addMoreTitle": "Add more combinations",
         "addMoreSuccess": "Variants added.",
         "generate": "Generate variants"
+      },
+      "images": {
+        "productTitle": "Product images",
+        "manageTitle": "Manage images",
+        "variantSectionTitle": "Images",
+        "variantFallbackHint": "No images yet — the product's images are shown instead.",
+        "addImages": "Add photos",
+        "dragHandle": "Drag to reorder",
+        "setPrimary": "Set as main photo",
+        "clearPrimary": "Unset as main photo",
+        "primaryBadge": "Main",
+        "delete": "Delete photo",
+        "confirmDelete": "Delete",
+        "cancelDelete": "Cancel"
       }
     }
   },
