@@ -38,19 +38,21 @@ services:
     ports:
       - "127.0.0.1:14000:4000"           # sandbox range (leaves 4000 free for prod later)
 
-  # ── admin / pos: add these once those apps actually exist ──
-  # admin:
-  #   build:
-  #     context: ./admin
-  #     dockerfile: Dockerfile
-  #     args:
-  #       NEXT_PUBLIC_API_URL: https://api.sandbox.organza-moda.com
-  #       NEXT_PUBLIC_DEFAULT_LOCALE: ar
-  #       NEXT_PUBLIC_SUPPORTED_LOCALES: ar,en,he
-  #   restart: unless-stopped
-  #   depends_on: [backend]
-  #   ports: ["127.0.0.1:13001:3000"]
-  #
+  admin:
+    build:
+      context: .
+      dockerfile: admin/Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: https://api.sandbox.organza-moda.com
+        NEXT_PUBLIC_DEFAULT_LOCALE: ar
+        NEXT_PUBLIC_SUPPORTED_LOCALES: ar,en,he
+        NEXT_PUBLIC_PROJECT_NAME: organza-sandbox-admin
+    restart: unless-stopped
+    depends_on: [backend]
+    ports:
+      - "127.0.0.1:13001:3000"
+
+  # ── pos: add this once that app actually exists ──
   # pos:
   #   build:
   #     context: ./pos
