@@ -2,7 +2,7 @@
 
 import { useParams } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
-import { ChevronLeft, PackageX, Pencil } from "lucide-react";
+import { ChevronLeft, ImageIcon, PackageX, Pencil } from "lucide-react";
 import type { Product } from "@shared/types/product";
 import { Link } from "@/i18n/navigation";
 import { useProductQuery } from "@/hooks/use-products";
@@ -56,7 +56,10 @@ export default function ProductDetailPage() {
 function ProductDetail({ product, currency, locale }: { product: Product; currency: string; locale: string }) {
   const t = useTranslations("products.detail");
   const { user } = useSession();
-  const canEdit = user?.role === "ADMIN" || user?.role === "MANAGER";
+  // Every role can reach the edit screen — editing details is Admin/Manager
+  // only, but "edit images" (CLAUDE.md rule 5) is available to Employees
+  // too, and the edit screen itself decides what each role can touch.
+  const canEditDetails = user?.role === "ADMIN" || user?.role === "MANAGER";
   const name = localize(product.name, locale);
   const description = localize(product.description, locale);
   const showCost = product.cost !== undefined;
@@ -70,14 +73,21 @@ function ProductDetail({ product, currency, locale }: { product: Product; curren
           <h1 className="text-lg font-semibold text-foreground">{name}</h1>
           <div className="flex shrink-0 items-center gap-2">
             <StatusBadge isActive={product.isActive} />
-            {canEdit && (
-              <Button asChild variant="outline" size="sm">
-                <Link href={`/products/${product.id}/edit`}>
-                  <Pencil className="size-4" aria-hidden="true" />
-                  {t("edit")}
-                </Link>
-              </Button>
-            )}
+            <Button asChild variant="outline" size="sm">
+              <Link href={`/products/${product.id}/edit`}>
+                {canEditDetails ? (
+                  <>
+                    <Pencil className="size-4" aria-hidden="true" />
+                    {t("edit")}
+                  </>
+                ) : (
+                  <>
+                    <ImageIcon className="size-4" aria-hidden="true" />
+                    {t("manageImages")}
+                  </>
+                )}
+              </Link>
+            </Button>
           </div>
         </div>
         {product.category && (

@@ -20,16 +20,19 @@ interface ApiResult<T> {
 // `/api/auth/*` routes, which don't follow this envelope — see lib/auth/client.ts.
 export async function apiFetch<T>(path: string, options: ApiFetchOptions = {}): Promise<ApiResult<T>> {
   const token = getStoredToken();
+  const isFormData = options.body instanceof FormData;
   const headers = new Headers(options.headers);
   headers.set("Accept", "application/json");
-  if (options.body !== undefined) headers.set("Content-Type", "application/json");
+  // A FormData body (image upload) must NOT get an explicit Content-Type —
+  // the browser sets multipart/form-data with the right boundary itself.
+  if (options.body !== undefined && !isFormData) headers.set("Content-Type", "application/json");
   if (token) headers.set("Authorization", `Bearer ${token}`);
 
   const res = await fetch(`${API_BASE_URL}${path}`, {
     ...options,
     headers,
     credentials: "include",
-    body: options.body !== undefined ? JSON.stringify(options.body) : undefined,
+    body: options.body === undefined ? undefined : isFormData ? (options.body as FormData) : JSON.stringify(options.body),
   });
 
   const json = (await res.json().catch(() => null)) as ApiEnvelope<T> | null;

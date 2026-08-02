@@ -1,7 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { Trash2 } from "lucide-react";
+import { ChevronDown, Trash2 } from "lucide-react";
 import type { Variant } from "@shared/types/variant";
 import { localize } from "@/lib/i18n-content";
 import { formatMoney } from "@/lib/format";
@@ -9,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
+import { ImageManager } from "@/components/products/image-manager";
 import { cn } from "@/lib/utils";
 import type { VariantEditValues } from "@/types/productForm";
 
@@ -16,6 +18,8 @@ interface VariantEditListProps {
   variants: Variant[];
   currency: string;
   canSeeCost: boolean;
+  canEditDetails: boolean;
+  canDeleteImages: boolean;
   edits: Record<string, VariantEditValues>;
   onEditChange: (variantId: string, values: VariantEditValues) => void;
   removedIds: Set<string>;
@@ -26,11 +30,16 @@ interface VariantEditListProps {
 // Edit-mode only: existing variant rows, each editable in place. Name comes
 // from the referenced option values (CLAUDE.md rule 2) and stays read-only
 // here — rename the global value instead. Removing a row is staged locally
-// (undo-able) and only sent as DELETE on final submit.
+// (undo-able) and only sent as DELETE on final submit. Images are the
+// exception: they're always shown and always live (immediate API calls),
+// even for Employees who can't edit stock/price/cost (spec.md: "edit
+// images" is its own, broader capability).
 export function VariantEditList({
   variants,
   currency,
   canSeeCost,
+  canEditDetails,
+  canDeleteImages,
   edits,
   onEditChange,
   removedIds,
@@ -38,7 +47,9 @@ export function VariantEditList({
   onRestore,
 }: VariantEditListProps) {
   const t = useTranslations("products.form.variants");
+  const tImages = useTranslations("products.form.images");
   const locale = useLocale();
+  const [expandedImagesId, setExpandedImagesId] = useState<string | null>(null);
 
   return (
     <div className="flex flex-col gap-2">
@@ -46,6 +57,7 @@ export function VariantEditList({
         const name = localize(variant.name, locale);
         const values = edits[variant.id];
         const isRemoved = removedIds.has(variant.id);
+        const imagesOpen = expandedImagesId === variant.id;
 
         if (!values) return null;
 
@@ -73,68 +85,95 @@ export function VariantEditList({
                 <p className="truncate text-sm font-medium text-foreground">{name}</p>
                 <p className="truncate text-xs text-muted-foreground">{variant.sku}</p>
               </div>
-              <button
-                type="button"
-                onClick={() => onRemove(variant.id)}
-                className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-                aria-label={t("removeCombo")}
-              >
-                <Trash2 className="size-4" aria-hidden="true" />
-              </button>
+              {canEditDetails && (
+                <button
+                  type="button"
+                  onClick={() => onRemove(variant.id)}
+                  className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                  aria-label={t("removeCombo")}
+                >
+                  <Trash2 className="size-4" aria-hidden="true" />
+                </button>
+              )}
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor={`stock-${variant.id}`}>{t("stock")}</Label>
-                <Input
-                  id={`stock-${variant.id}`}
-                  type="number"
-                  inputMode="numeric"
-                  min={0}
-                  value={values.stock}
-                  onChange={(e) => onEditChange(variant.id, { ...values, stock: e.target.value })}
-                />
-              </div>
-
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor={`price-${variant.id}`}>{t("priceOverride")}</Label>
-                <Input
-                  id={`price-${variant.id}`}
-                  type="number"
-                  inputMode="decimal"
-                  min={0}
-                  placeholder={t("inherits", { value: formatMoney(variant.resolvedPrice, currency, locale) })}
-                  value={values.priceOverride}
-                  onChange={(e) => onEditChange(variant.id, { ...values, priceOverride: e.target.value })}
-                />
-              </div>
-
-              {canSeeCost && (
+            {canEditDetails && (
+              <div className="grid grid-cols-2 gap-3">
                 <div className="flex flex-col gap-1.5">
-                  <Label htmlFor={`cost-${variant.id}`}>{t("cost")}</Label>
+                  <Label htmlFor={`stock-${variant.id}`}>{t("stock")}</Label>
                   <Input
-                    id={`cost-${variant.id}`}
+                    id={`stock-${variant.id}`}
+                    type="number"
+                    inputMode="numeric"
+                    min={0}
+                    value={values.stock}
+                    onChange={(e) => onEditChange(variant.id, { ...values, stock: e.target.value })}
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <Label htmlFor={`price-${variant.id}`}>{t("priceOverride")}</Label>
+                  <Input
+                    id={`price-${variant.id}`}
                     type="number"
                     inputMode="decimal"
                     min={0}
-                    placeholder={
-                      variant.resolvedCost ? t("inherits", { value: formatMoney(variant.resolvedCost, currency, locale) }) : undefined
-                    }
-                    value={values.cost}
-                    onChange={(e) => onEditChange(variant.id, { ...values, cost: e.target.value })}
+                    placeholder={t("inherits", { value: formatMoney(variant.resolvedPrice, currency, locale) })}
+                    value={values.priceOverride}
+                    onChange={(e) => onEditChange(variant.id, { ...values, priceOverride: e.target.value })}
                   />
                 </div>
-              )}
 
-              <div className={cn("flex items-center justify-between gap-2 rounded-lg", !canSeeCost && "col-span-1")}>
-                <Label htmlFor={`active-${variant.id}`}>{t("active")}</Label>
-                <Switch
-                  id={`active-${variant.id}`}
-                  checked={values.isActive}
-                  onCheckedChange={(checked) => onEditChange(variant.id, { ...values, isActive: checked })}
-                />
+                {canSeeCost && (
+                  <div className="flex flex-col gap-1.5">
+                    <Label htmlFor={`cost-${variant.id}`}>{t("cost")}</Label>
+                    <Input
+                      id={`cost-${variant.id}`}
+                      type="number"
+                      inputMode="decimal"
+                      min={0}
+                      placeholder={
+                        variant.resolvedCost
+                          ? t("inherits", { value: formatMoney(variant.resolvedCost, currency, locale) })
+                          : undefined
+                      }
+                      value={values.cost}
+                      onChange={(e) => onEditChange(variant.id, { ...values, cost: e.target.value })}
+                    />
+                  </div>
+                )}
+
+                <div className={cn("flex items-center justify-between gap-2 rounded-lg", !canSeeCost && "col-span-1")}>
+                  <Label htmlFor={`active-${variant.id}`}>{t("active")}</Label>
+                  <Switch
+                    id={`active-${variant.id}`}
+                    checked={values.isActive}
+                    onCheckedChange={(checked) => onEditChange(variant.id, { ...values, isActive: checked })}
+                  />
+                </div>
               </div>
-            </div>
+            )}
+
+            <button
+              type="button"
+              onClick={() => setExpandedImagesId(imagesOpen ? null : variant.id)}
+              className="flex min-h-9 items-center justify-between gap-2 text-sm font-medium text-foreground"
+              aria-expanded={imagesOpen}
+            >
+              <span>
+                {tImages("variantSectionTitle")} · {variant.images.length}
+              </span>
+              <ChevronDown className={cn("size-4 text-muted-foreground transition-transform", imagesOpen && "rotate-180")} aria-hidden="true" />
+            </button>
+
+            {imagesOpen && (
+              <ImageManager
+                owner={{ variantId: variant.id }}
+                initialImages={variant.images}
+                canDelete={canDeleteImages}
+                emptyHint={tImages("variantFallbackHint")}
+              />
+            )}
           </div>
         );
       })}

@@ -120,13 +120,15 @@
       "variantStock": "מלאי",
       "variantPrice": "מחיר",
       "variantStatus": "סטטוס",
-      "edit": "עריכה"
+      "edit": "עריכה",
+      "manageImages": "תמונות"
     },
     "form": {
       "back": "חזרה",
       "createTitle": "הוספת מוצר",
       "editTitle": "עריכת מוצר",
       "notFoundTitle": "המוצר לא נמצא",
+      "employeeReadOnlyHint": "ניתן להוסיף תמונות ולסדר אותן מחדש למטה. לשינוי המחיר או הפרטים, פנה/י למנהל.",
       "basicInfo": "פרטים בסיסיים",
       "name": "שם",
       "description": "תיאור",
@@ -170,6 +172,20 @@
         "addMoreTitle": "הוספת שילובים נוספים",
         "addMoreSuccess": "הוריאציות נוספו.",
         "generate": "יצירת וריאציות"
+      },
+      "images": {
+        "productTitle": "תמונות המוצר",
+        "manageTitle": "ניהול תמונות",
+        "variantSectionTitle": "תמונות",
+        "variantFallbackHint": "אין עדיין תמונות — מוצגות תמונות המוצר במקום.",
+        "addImages": "הוספת תמונות",
+        "dragHandle": "גרור/י לסידור מחדש",
+        "setPrimary": "הגדרה כתמונה ראשית",
+        "clearPrimary": "ביטול תמונה ראשית",
+        "primaryBadge": "ראשית",
+        "delete": "מחיקת תמונה",
+        "confirmDelete": "מחיקה",
+        "cancelDelete": "ביטול"
       }
     }
   },
