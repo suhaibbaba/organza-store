@@ -29,7 +29,12 @@ function bin(name) {
   return path.join(sharedDir, "node_modules", ".bin", process.platform === "win32" ? `${name}.cmd` : name);
 }
 
-if (!fs.existsSync(path.join(sharedDir, "node_modules"))) {
+// Re-install whenever a needed binary is missing, not just when
+// node_modules is entirely absent — an existing install from before a
+// dependency (e.g. tsc-alias) was added to shared/package.json still has
+// a node_modules folder, just not that binary, and would otherwise be
+// skipped here and fail confusingly a few lines down.
+if (!fs.existsSync(bin("tsc")) || !fs.existsSync(bin("tsc-alias"))) {
   run("npm", ["install"], sharedDir);
 }
 
