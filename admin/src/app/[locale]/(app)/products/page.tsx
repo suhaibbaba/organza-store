@@ -2,7 +2,10 @@
 
 import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
+import { Plus } from "lucide-react";
 import { DEFAULT_PAGE } from "@shared/constants/pagination";
+import { Link } from "@/i18n/navigation";
+import { Button } from "@/components/ui/button";
 import { DEFAULT_PRODUCT_FILTERS, PRODUCT_SEARCH_DEBOUNCE_MS } from "@/constants/products";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { useProductsQuery } from "@/hooks/use-products";
@@ -73,9 +76,17 @@ export default function ProductsPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div>
-        <h1 className="text-xl font-semibold">{t("title")}</h1>
-        <p className="text-sm text-muted-foreground">{t("subtitle")}</p>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h1 className="text-xl font-semibold">{t("title")}</h1>
+          <p className="text-sm text-muted-foreground">{t("subtitle")}</p>
+        </div>
+        <Button asChild size="sm" className="shrink-0">
+          <Link href="/products/new">
+            <Plus className="size-4" aria-hidden="true" />
+            {t("addProduct")}
+          </Link>
+        </Button>
       </div>
 
       <div className="flex flex-col gap-3">
