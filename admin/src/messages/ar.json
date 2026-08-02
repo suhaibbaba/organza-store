@@ -1,0 +1,100 @@
+{
+  "app": {
+    "name": "أورجانزا"
+  },
+  "common": {
+    "loading": "جارٍ التحميل…",
+    "retry": "إعادة المحاولة",
+    "logout": "تسجيل الخروج",
+    "language": "اللغة",
+    "menu": "القائمة",
+    "comingSoon": "هذه الشاشة قيد الإنشاء — يرجى المراجعة لاحقًا.",
+    "close": "إغلاق",
+    "mainNavigation": "التنقل الرئيسي"
+  },
+  "nav": {
+    "dashboard": "الرئيسية",
+    "products": "المنتجات",
+    "inventory": "المخزون",
+    "categories": "الأقسام",
+    "users": "المستخدمون",
+    "settings": "الإعدادات",
+    "more": "المزيد"
+  },
+  "auth": {
+    "login": {
+      "title": "تسجيل الدخول",
+      "subtitle": "أدخل بريدك الإلكتروني وكلمة المرور للمتابعة.",
+      "emailLabel": "البريد الإلكتروني",
+      "emailPlaceholder": "you@organza.test",
+      "passwordLabel": "كلمة المرور",
+      "passwordPlaceholder": "أدخل كلمة المرور",
+      "submit": "تسجيل الدخول",
+      "submitting": "جارٍ تسجيل الدخول…",
+      "error": "البريد الإلكتروني أو كلمة المرور غير صحيحة."
+    }
+  },
+  "dashboard": {
+    "title": "الرئيسية",
+    "welcome": "مرحبًا، {name}",
+    "subtitle": "نظرة سريعة على متجرك.",
+    "placeholder": "ستظهر هنا ملخصات المبيعات، والمنتجات الأكثر مبيعًا، وتنبيهات نفاد المخزون."
+  },
+  "placeholders": {
+    "products": { "title": "المنتجات", "description": "إدارة المنتجات والمتغيرات والصور." },
+    "inventory": { "title": "المخزون", "description": "تتبع كميات المخزون وتنبيهات النفاد." },
+    "categories": { "title": "الأقسام", "description": "تنظيم المنتجات ضمن أقسام متداخلة." },
+    "users": { "title": "المستخدمون", "description": "إدارة حسابات الموظفين وصلاحياتهم." },
+    "settings": { "title": "الإعدادات", "description": "اسم المتجر والعملة وحدود المخزون." }
+  },
+  "errors": {
+    "notFound": "غير موجود.",
+    "validation": "يرجى مراجعة الحقول المحددة.",
+    "internal": "حدث خطأ ما. يرجى المحاولة مرة أخرى.",
+    "unauthorized": "يرجى تسجيل الدخول للمتابعة.",
+    "forbidden": "لا تملك صلاحية القيام بذلك.",
+    "accountInactive": "تم إيقاف حسابك. يرجى التواصل مع المسؤول.",
+
+    "duplicate": "هذا العنصر موجود مسبقًا.",
+    "skuDuplicate": "رمز SKU هذا مستخدم مسبقًا.",
+    "barcodeDuplicate": "هذا الباركود مستخدم مسبقًا.",
+    "slugDuplicate": "هذا الاسم مستخدم مسبقًا.",
+    "emailDuplicate": "هذا البريد الإلكتروني مستخدم مسبقًا.",
+    "phoneDuplicate": "رقم الهاتف هذا مستخدم مسبقًا.",
+    "whatsappDuplicate": "رقم الواتساب هذا مستخدم مسبقًا.",
+
+    "validationRequired": "هذا الحقل مطلوب.",
+    "validationInvalidNumber": "أدخل رقمًا صحيحًا.",
+    "validationInvalidPhone": "أدخل رقم هاتف صحيحًا.",
+    "validationInvalidEmail": "أدخل بريدًا إلكترونيًا صحيحًا.",
+    "validationPasswordTooShort": "يجب ألا تقل كلمة المرور عن {min} أحرف.",
+
+    "categoryNotFound": "القسم غير موجود.",
+    "categoryCircularParent": "لا يمكن أن يكون القسم تابعًا لنفسه.",
+    "categoryHasChildren": "هذا القسم يحتوي على أقسام فرعية.",
+    "categoryHasProducts": "هذا القسم يحتوي على منتجات.",
+
+    "productNotFound": "المنتج غير موجود.",
+    "variantNotFound": "المتغير غير موجود.",
+
+    "variantTypeNotFound": "نوع الخيار غير موجود.",
+    "variantTypeValueNotFound": "قيمة الخيار غير موجودة.",
+    "variantTypeValueDuplicate": "هذه القيمة موجودة مسبقًا لهذا النوع.",
+
+    "imageInvalidType": "نوع هذه الصورة غير مدعوم.",
+    "imageTooLarge": "حجم هذه الصورة كبير جدًا.",
+    "imageUploadFailed": "فشل رفع الصورة.",
+    "imageFileRequired": "يرجى اختيار صورة.",
+    "imageNotFound": "الصورة غير موجودة.",
+    "imageOwnerRequired": "اختر منتجًا أو متغيرًا لهذه الصورة.",
+    "imageReorderDuplicate": "لا يمكن تكرار الصورة نفسها في الترتيب.",
+    "imageReorderMismatch": "ترتيب الصور لا يطابق الصور الحالية.",
+
+    "inventoryParentHasVariants": "مخزون هذا المنتج يُدار عبر المتغيرات.",
+
+    "settingDefaultLanguageNotSupported": "هذه اللغة غير مدعومة بعد.",
+
+    "userNotFound": "المستخدم غير موجود.",
+    "authSignupFailed": "تعذر إنشاء الحساب."
+  }
+}
