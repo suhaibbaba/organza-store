@@ -1,0 +1,20 @@
+{
+  "name": "@organza-store/shared",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Organza Store — shared TypeScript types + Zod schemas, imported by backend/admin/pos/frontend as @shared/*",
+  "type": "commonjs",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "libphonenumber-js": "^1.11.14",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2"
+  }
+}

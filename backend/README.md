@@ -176,4 +176,6 @@ backend/
 ```
 
 Local modules are imported via the `@/` path alias (e.g. `@/lib/auth`), never relative paths;
-the shared cross-app package (once it exists) is imported via `@shared/`.
+the shared cross-app package lives in `../shared` and is imported via `@shared/` (e.g.
+`@shared/schemas/product`). `npm install` here also installs and builds `shared/` automatically
+(see its `postinstall` script) — no separate setup step needed.
