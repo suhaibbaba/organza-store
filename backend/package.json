@@ -10,7 +10,7 @@
   },
   "scripts": {
     "postinstall": "npm run build:shared && prisma generate",
-    "build:shared": "node scripts/build-shared.mjs",
+    "build:shared": "node scripts/build-shared.js",
     "predev": "npm run build:shared",
     "dev": "tsx watch src/index.ts",
     "prebuild": "npm run build:shared",
