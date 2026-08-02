@@ -118,6 +118,9 @@ export function serializeProductSummary(product: AnyRecord, role: Role) {
     isActive: product.isActive,
     hasVariants: variants.length > 0,
     variantCount: variants.length,
+    // Lowest sortOrder = primary (spec.md); already loaded by the list
+    // query's include, so this costs nothing extra.
+    image: product.images?.length ? serializeImage(product.images[0]) : null,
     createdAt: product.createdAt,
     updatedAt: product.updatedAt,
   };

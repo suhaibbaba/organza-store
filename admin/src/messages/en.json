@@ -40,8 +40,88 @@
     "subtitle": "Here's a quick look at your store.",
     "placeholder": "Sales summary, top products, and low-stock alerts will appear here."
   },
+  "products": {
+    "title": "Products",
+    "subtitle": "Browse your catalog.",
+    "search": {
+      "placeholder": "Search products…",
+      "label": "Search products",
+      "clear": "Clear search"
+    },
+    "sort": {
+      "label": "Sort by",
+      "newest": "Newest",
+      "priceLowToHigh": "Price: low to high",
+      "priceHighToLow": "Price: high to low",
+      "nameAToZ": "Name: A to Z",
+      "nameZToA": "Name: Z to A"
+    },
+    "filters": {
+      "trigger": "Filters",
+      "title": "Filter products",
+      "category": "Category",
+      "allCategories": "All categories",
+      "status": "Status",
+      "statusAll": "All",
+      "statusActive": "Active",
+      "statusHidden": "Hidden",
+      "stock": "Stock",
+      "stockAll": "All",
+      "stockInStock": "In stock",
+      "stockOutOfStock": "Out of stock",
+      "priceRange": "Price range",
+      "priceMin": "Min",
+      "priceMax": "Max",
+      "reset": "Reset",
+      "apply": "Apply"
+    },
+    "status": {
+      "active": "Active",
+      "hidden": "Hidden"
+    },
+    "card": {
+      "multipleSkus": "Multiple variants",
+      "stock": "{count} in stock",
+      "outOfStock": "Out of stock"
+    },
+    "table": {
+      "product": "Product",
+      "sku": "SKU",
+      "price": "Price",
+      "stock": "Stock",
+      "status": "Status"
+    },
+    "empty": {
+      "noProductsTitle": "No products yet",
+      "noProductsDescription": "Products you add will show up here.",
+      "noMatchesTitle": "No matching products",
+      "noMatchesDescription": "Try a different search or clear your filters."
+    },
+    "pagination": {
+      "previous": "Previous",
+      "next": "Next",
+      "pageOf": "Page {page} of {totalPages}"
+    },
+    "detail": {
+      "back": "Back to products",
+      "notFoundTitle": "Product not found",
+      "notFoundDescription": "This product may have been removed.",
+      "sku": "SKU",
+      "barcode": "Barcode",
+      "stock": "Stock",
+      "cost": "Cost",
+      "wasPrice": "Was {price}",
+      "descriptionTitle": "Description",
+      "imagesTitle": "Images",
+      "variantsTitle": "Variants",
+      "variantsCount": "{count} variants",
+      "variantSku": "SKU",
+      "variantStock": "Stock",
+      "variantPrice": "Price",
+      "variantStatus": "Status"
+    }
+  },
   "placeholders": {
-    "products": { "title": "Products", "description": "Manage products, variants, and images." },
     "inventory": { "title": "Inventory", "description": "Track stock levels and low-stock alerts." },
     "categories": { "title": "Categories", "description": "Organize products into nested categories." },
     "users": { "title": "Users", "description": "Manage staff accounts and roles." },

@@ -40,8 +40,88 @@
     "subtitle": "نظرة سريعة على متجرك.",
     "placeholder": "ستظهر هنا ملخصات المبيعات، والمنتجات الأكثر مبيعًا، وتنبيهات نفاد المخزون."
   },
+  "products": {
+    "title": "المنتجات",
+    "subtitle": "تصفّح كتالوج منتجاتك.",
+    "search": {
+      "placeholder": "ابحث عن منتج…",
+      "label": "البحث عن منتجات",
+      "clear": "مسح البحث"
+    },
+    "sort": {
+      "label": "الترتيب حسب",
+      "newest": "الأحدث",
+      "priceLowToHigh": "السعر: الأقل أولًا",
+      "priceHighToLow": "السعر: الأعلى أولًا",
+      "nameAToZ": "الاسم: أ إلى ي",
+      "nameZToA": "الاسم: ي إلى أ"
+    },
+    "filters": {
+      "trigger": "عوامل التصفية",
+      "title": "تصفية المنتجات",
+      "category": "القسم",
+      "allCategories": "جميع الأقسام",
+      "status": "الحالة",
+      "statusAll": "الكل",
+      "statusActive": "ظاهر",
+      "statusHidden": "مخفي",
+      "stock": "المخزون",
+      "stockAll": "الكل",
+      "stockInStock": "متوفر",
+      "stockOutOfStock": "غير متوفر",
+      "priceRange": "نطاق السعر",
+      "priceMin": "الحد الأدنى",
+      "priceMax": "الحد الأقصى",
+      "reset": "إعادة تعيين",
+      "apply": "تطبيق"
+    },
+    "status": {
+      "active": "ظاهر",
+      "hidden": "مخفي"
+    },
+    "card": {
+      "multipleSkus": "عدة متغيرات",
+      "stock": "{count} متوفر بالمخزون",
+      "outOfStock": "غير متوفر"
+    },
+    "table": {
+      "product": "المنتج",
+      "sku": "رمز SKU",
+      "price": "السعر",
+      "stock": "المخزون",
+      "status": "الحالة"
+    },
+    "empty": {
+      "noProductsTitle": "لا توجد منتجات بعد",
+      "noProductsDescription": "ستظهر هنا المنتجات التي تضيفها.",
+      "noMatchesTitle": "لا توجد نتائج مطابقة",
+      "noMatchesDescription": "جرّب بحثًا مختلفًا أو امسح عوامل التصفية."
+    },
+    "pagination": {
+      "previous": "السابق",
+      "next": "التالي",
+      "pageOf": "صفحة {page} من {totalPages}"
+    },
+    "detail": {
+      "back": "العودة إلى المنتجات",
+      "notFoundTitle": "المنتج غير موجود",
+      "notFoundDescription": "ربما تمت إزالة هذا المنتج.",
+      "sku": "رمز SKU",
+      "barcode": "الباركود",
+      "stock": "المخزون",
+      "cost": "التكلفة",
+      "wasPrice": "كان {price}",
+      "descriptionTitle": "الوصف",
+      "imagesTitle": "الصور",
+      "variantsTitle": "المتغيرات",
+      "variantsCount": "{count} متغيرات",
+      "variantSku": "رمز SKU",
+      "variantStock": "المخزون",
+      "variantPrice": "السعر",
+      "variantStatus": "الحالة"
+    }
+  },
   "placeholders": {
-    "products": { "title": "المنتجات", "description": "إدارة المنتجات والمتغيرات والصور." },
     "inventory": { "title": "المخزون", "description": "تتبع كميات المخزون وتنبيهات النفاد." },
     "categories": { "title": "الأقسام", "description": "تنظيم المنتجات ضمن أقسام متداخلة." },
     "users": { "title": "المستخدمون", "description": "إدارة حسابات الموظفين وصلاحياتهم." },

@@ -116,4 +116,11 @@
   html[lang="he"] body {
     font-family: var(--font-hebrew);
   }
+
+  /* Native search-input decorations (magnifier/clear) don't respect our
+     RTL layout and collide with the custom icons we render instead. */
+  input[type="search"]::-webkit-search-cancel-button,
+  input[type="search"]::-webkit-search-decoration {
+    appearance: none;
+  }
 }

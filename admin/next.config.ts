@@ -4,7 +4,22 @@ import createNextIntlPlugin from "next-intl/plugin";
 
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
+// Product images are served by the backend (stored-relative "/uploads/.."
+// URLs resolved against NEXT_PUBLIC_API_URL — see components/products/
+// product-image.tsx), so next/image needs that origin allow-listed here.
+const apiUrl = new URL(process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000");
+
 const nextConfig: NextConfig = {
+  images: {
+    remotePatterns: [
+      {
+        protocol: apiUrl.protocol.replace(":", "") as "http" | "https",
+        hostname: apiUrl.hostname,
+        port: apiUrl.port,
+        pathname: "/uploads/**",
+      },
+    ],
+  },
   // @shared/* resolves to ../shared/dist (see scripts/build-shared.js),
   // usually via a symlink/junction — Turbopack won't follow a symlink
   // outside the project root otherwise. Falls back to a plain copy on

@@ -40,8 +40,88 @@
     "subtitle": "מבט מהיר על החנות שלך.",
     "placeholder": "כאן יופיעו סיכום מכירות, המוצרים המובילים והתראות מלאי נמוך."
   },
+  "products": {
+    "title": "מוצרים",
+    "subtitle": "עיין בקטלוג המוצרים שלך.",
+    "search": {
+      "placeholder": "חיפוש מוצרים…",
+      "label": "חיפוש מוצרים",
+      "clear": "ניקוי חיפוש"
+    },
+    "sort": {
+      "label": "מיון לפי",
+      "newest": "החדשים ביותר",
+      "priceLowToHigh": "מחיר: הזול קודם",
+      "priceHighToLow": "מחיר: היקר קודם",
+      "nameAToZ": "שם: א עד ת",
+      "nameZToA": "שם: ת עד א"
+    },
+    "filters": {
+      "trigger": "סינון",
+      "title": "סינון מוצרים",
+      "category": "קטגוריה",
+      "allCategories": "כל הקטגוריות",
+      "status": "סטטוס",
+      "statusAll": "הכול",
+      "statusActive": "פעיל",
+      "statusHidden": "מוסתר",
+      "stock": "מלאי",
+      "stockAll": "הכול",
+      "stockInStock": "במלאי",
+      "stockOutOfStock": "אזל מהמלאי",
+      "priceRange": "טווח מחירים",
+      "priceMin": "מינימום",
+      "priceMax": "מקסימום",
+      "reset": "איפוס",
+      "apply": "החל"
+    },
+    "status": {
+      "active": "פעיל",
+      "hidden": "מוסתר"
+    },
+    "card": {
+      "multipleSkus": "מספר וריאציות",
+      "stock": "{count} במלאי",
+      "outOfStock": "אזל מהמלאי"
+    },
+    "table": {
+      "product": "מוצר",
+      "sku": "מק\"ט",
+      "price": "מחיר",
+      "stock": "מלאי",
+      "status": "סטטוס"
+    },
+    "empty": {
+      "noProductsTitle": "אין עדיין מוצרים",
+      "noProductsDescription": "מוצרים שתוסיף/י יופיעו כאן.",
+      "noMatchesTitle": "לא נמצאו מוצרים תואמים",
+      "noMatchesDescription": "נסה/י חיפוש אחר או נקה/י את הסינון."
+    },
+    "pagination": {
+      "previous": "הקודם",
+      "next": "הבא",
+      "pageOf": "עמוד {page} מתוך {totalPages}"
+    },
+    "detail": {
+      "back": "חזרה למוצרים",
+      "notFoundTitle": "המוצר לא נמצא",
+      "notFoundDescription": "ייתכן שהמוצר הוסר.",
+      "sku": "מק\"ט",
+      "barcode": "ברקוד",
+      "stock": "מלאי",
+      "cost": "עלות",
+      "wasPrice": "היה {price}",
+      "descriptionTitle": "תיאור",
+      "imagesTitle": "תמונות",
+      "variantsTitle": "וריאציות",
+      "variantsCount": "{count} וריאציות",
+      "variantSku": "מק\"ט",
+      "variantStock": "מלאי",
+      "variantPrice": "מחיר",
+      "variantStatus": "סטטוס"
+    }
+  },
   "placeholders": {
-    "products": { "title": "מוצרים", "description": "ניהול מוצרים, וריאציות ותמונות." },
     "inventory": { "title": "מלאי", "description": "מעקב אחר כמויות המלאי והתראות מלאי נמוך." },
     "categories": { "title": "קטגוריות", "description": "ארגון מוצרים בקטגוריות מקוננות." },
     "users": { "title": "משתמשים", "description": "ניהול חשבונות צוות ותפקידים." },

@@ -1,0 +1,43 @@
+import { useLocale, useTranslations } from "next-intl";
+import type { ProductSummary } from "@shared/types/product";
+import { Link } from "@/i18n/navigation";
+import { localize } from "@/lib/i18n-content";
+import { formatMoney } from "@/lib/format";
+import { ProductImage } from "@/components/products/product-image";
+import { StatusBadge } from "@/components/products/status-badge";
+import { cn } from "@/lib/utils";
+
+interface ProductCardProps {
+  product: ProductSummary;
+  currency: string;
+}
+
+export function ProductCard({ product, currency }: ProductCardProps) {
+  const locale = useLocale();
+  const t = useTranslations("products");
+  const name = localize(product.name, locale);
+  const outOfStock = product.stock <= 0;
+
+  return (
+    <Link
+      href={`/products/${product.id}`}
+      className="flex items-center gap-3 rounded-xl border border-border bg-card p-3 text-start transition-colors active:bg-accent"
+    >
+      <ProductImage src={product.image?.thumbnailUrl} alt={name} className="size-16 shrink-0 rounded-lg" sizes="64px" />
+
+      <div className="min-w-0 flex-1">
+        <div className="flex items-start justify-between gap-2">
+          <p className="truncate text-sm font-medium text-foreground">{name}</p>
+          <StatusBadge isActive={product.isActive} />
+        </div>
+        <p className="mt-0.5 truncate text-xs text-muted-foreground">{product.sku ?? t("card.multipleSkus")}</p>
+        <div className="mt-1.5 flex items-center justify-between gap-2">
+          <span className="text-sm font-semibold text-foreground">{formatMoney(product.basePrice, currency, locale)}</span>
+          <span className={cn("text-xs font-medium", outOfStock ? "text-destructive" : "text-muted-foreground")}>
+            {outOfStock ? t("card.outOfStock") : t("card.stock", { count: product.stock })}
+          </span>
+        </div>
+      </div>
+    </Link>
+  );
+}

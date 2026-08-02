@@ -7,3 +7,5 @@ export const AUTH_ENDPOINTS = {
 } as const;
 
 export const SESSION_QUERY_KEY = ["session"] as const;
+export const SETTINGS_QUERY_KEY = ["settings"] as const;
+export const CATEGORIES_QUERY_KEY = ["categories"] as const;

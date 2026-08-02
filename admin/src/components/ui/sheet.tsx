@@ -40,9 +40,9 @@ function SheetContent({ className, children, side = "start", closeLabel, ...prop
           "fixed inset-y-0 z-50 flex h-full w-5/6 max-w-sm flex-col gap-4 border-border bg-background shadow-lg",
           "transition ease-in-out data-[state=closed]:duration-200 data-[state=open]:duration-300",
           side === "start" &&
-            "inset-inline-start-0 border-e data-[state=closed]:slide-out-to-left data-[state=open]:slide-in-from-left",
+            "start-0 border-e data-[state=closed]:slide-out-to-left data-[state=open]:slide-in-from-left",
           side === "end" &&
-            "inset-inline-end-0 border-s data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right",
+            "end-0 border-s data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right",
           className
         )}
         {...props}
