@@ -15,12 +15,12 @@ export function ProductGallery({ images, alt }: ProductGalleryProps) {
   const active = images[activeIndex] ?? null;
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex w-full max-w-sm flex-col gap-2">
       <ProductImage
         src={active?.url}
         alt={alt}
         className="aspect-square w-full rounded-xl"
-        sizes="(min-width: 768px) 400px, 100vw"
+        sizes="(min-width: 768px) 384px, 100vw"
       />
       {images.length > 1 && (
         <div className="flex gap-2 overflow-x-auto">
@@ -31,10 +31,15 @@ export function ProductGallery({ images, alt }: ProductGalleryProps) {
               onClick={() => setActiveIndex(index)}
               className={cn(
                 "shrink-0 overflow-hidden rounded-lg ring-2 ring-offset-2 ring-offset-background",
-                index === activeIndex ? "ring-primary" : "ring-transparent"
+                index === activeIndex ? "ring-primary" : "ring-transparent",
               )}
             >
-              <ProductImage src={image.thumbnailUrl} alt={alt} className="size-14" sizes="56px" />
+              <ProductImage
+                src={image.thumbnailUrl}
+                alt={alt}
+                className="size-14"
+                sizes="56px"
+              />
             </button>
           ))}
         </div>
