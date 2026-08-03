@@ -220,6 +220,29 @@
       "save": "שמירת שינויים"
     }
   },
+  "settings": {
+    "title": "הגדרות",
+    "subtitle": "שם החנות, מטבע וסף מלאי נמוך.",
+    "form": {
+      "readOnlyHint": "ניתן לצפות בהגדרות בלבד. לביצוע שינויים, פנה/י למנהל.",
+      "storeInfoTitle": "פרטי החנות",
+      "storeName": "שם החנות",
+      "required": "חובה",
+      "optional": "אופציונלי",
+      "regionalTitle": "הגדרות אזוריות",
+      "defaultLanguage": "שפת ברירת מחדל",
+      "currency": "מטבע",
+      "currencyHint": "המטבע קבוע כרגע ולא ניתן לשנותו כאן עדיין.",
+      "defaultCountryCode": "קידומת טלפון ברירת מחדל",
+      "defaultCountryCodeHint": "משמש למילוי אוטומטי של מספרי טלפון חדשים.",
+      "inventoryTitle": "מלאי",
+      "lowStockThreshold": "סף התראת מלאי נמוך",
+      "lowStockThresholdHint": "מוצרים בכמות זו או פחות מסומנים כמלאי נמוך.",
+      "saving": "שומר…",
+      "save": "שמירת שינויים",
+      "saved": "ההגדרות נשמרו."
+    }
+  },
   "placeholders": {
     "inventory": {
       "title": "מלאי",
@@ -228,10 +251,6 @@
     "users": {
       "title": "משתמשים",
       "description": "ניהול חשבונות צוות ותפקידים."
-    },
-    "settings": {
-      "title": "הגדרות",
-      "description": "שם החנות, מטבע וסף מלאי נמוך."
     }
   },
   "errors": {
