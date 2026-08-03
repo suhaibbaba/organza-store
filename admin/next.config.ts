@@ -8,6 +8,11 @@ const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 // URLs resolved against NEXT_PUBLIC_API_URL — see components/products/
 // product-image.tsx), so next/image needs that origin allow-listed here.
 const apiUrl = new URL(process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000");
+// The documented local-dev setup (.env.example) points at a loopback
+// backend, which the image optimizer otherwise refuses to fetch from as an
+// SSRF guard. Every real deployment (docker-compose.sandbox.yml, prod) uses
+// a public hostname, so this only ever relaxes the check in local dev.
+const isLocalApi = apiUrl.hostname === "localhost" || apiUrl.hostname === "127.0.0.1";
 
 const nextConfig: NextConfig = {
   images: {
@@ -17,8 +22,10 @@ const nextConfig: NextConfig = {
         hostname: apiUrl.hostname,
         port: apiUrl.port,
         pathname: "/uploads/**",
+        search: "",
       },
     ],
+    dangerouslyAllowLocalIP: isLocalApi,
   },
   // @shared/* resolves to ../shared/dist (see scripts/build-shared.js),
   // usually via a symlink/junction — Turbopack won't follow a symlink

@@ -207,6 +207,25 @@
         "delete": "حذف الصورة",
         "confirmDelete": "حذف",
         "cancelDelete": "إلغاء"
+      },
+      "numberedShawl": {
+        "title": "نقاط الأرقام",
+        "needsImage": "أضف صورة للمنتج أولاً من الأعلى، ثم عد إلى هنا لوضع الأرقام.",
+        "stepPlace": "وضع النقاط",
+        "stepDetails": "الكميات",
+        "placeHint": "اضغط على الصورة لإضافة نقطة مرقّمة. اسحب النقطة لتحريكها، أو اضغط عليها لتحديدها وحذفها.",
+        "imageAlt": "صورة المنتج مع النقاط المرقّمة",
+        "pointLabel": "النقطة رقم {number}",
+        "deletePoint": "حذف هذه النقطة",
+        "confirmDelete": "حذف",
+        "cancelDelete": "إلغاء",
+        "noPointsYet": "لم توضع أي نقاط بعد — اذهب إلى \"وضع النقاط\" واضغط على الصورة.",
+        "stock": "الكمية",
+        "priceOverride": "سعر مختلف",
+        "inherits": "يرث {value}",
+        "saving": "جارٍ الحفظ…",
+        "save": "حفظ النقاط",
+        "saveSuccess": "تم حفظ النقاط."
       }
     }
   },
@@ -424,6 +443,7 @@
     "inventoryParentHasVariants": "مخزون هذا المنتج يُدار عبر المتغيرات.",
     "settingDefaultLanguageNotSupported": "هذه اللغة غير مدعومة بعد.",
     "userNotFound": "المستخدم غير موجود.",
-    "authSignupFailed": "تعذر إنشاء الحساب."
+    "authSignupFailed": "تعذر إنشاء الحساب.",
+    "validationImagePointOutOfRange": "يجب أن تكون النقطة داخل حدود الصورة."
   }
 }

@@ -207,6 +207,25 @@
         "delete": "Delete photo",
         "confirmDelete": "Delete",
         "cancelDelete": "Cancel"
+      },
+      "numberedShawl": {
+        "title": "Numbered points",
+        "needsImage": "Add a product photo above first, then come back here to place the numbers.",
+        "stepPlace": "Place points",
+        "stepDetails": "Quantities",
+        "placeHint": "Tap the photo to add a numbered point. Drag a point to move it, or tap it to select and delete it.",
+        "imageAlt": "Product photo with numbered points",
+        "pointLabel": "Point #{number}",
+        "deletePoint": "Delete this point",
+        "confirmDelete": "Delete",
+        "cancelDelete": "Cancel",
+        "noPointsYet": "No points placed yet — go to \"Place points\" and tap the photo.",
+        "stock": "Quantity",
+        "priceOverride": "Price override",
+        "inherits": "Inherits {value}",
+        "saving": "Saving…",
+        "save": "Save points",
+        "saveSuccess": "Points saved."
       }
     }
   },
@@ -424,6 +443,7 @@
     "inventoryParentHasVariants": "This product's stock is managed per variant.",
     "settingDefaultLanguageNotSupported": "That language isn't supported yet.",
     "userNotFound": "User not found.",
-    "authSignupFailed": "Couldn't create the account."
+    "authSignupFailed": "Couldn't create the account.",
+    "validationImagePointOutOfRange": "The point must be within the image."
   }
 }

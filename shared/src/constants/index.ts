@@ -7,3 +7,4 @@ export * from "./phone";
 export * from "./product";
 export * from "./roles";
 export * from "./validation";
+export * from "./variantType";

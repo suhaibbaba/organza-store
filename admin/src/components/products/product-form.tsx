@@ -25,6 +25,7 @@ import {
   type ProductBasicFormValues,
 } from "@/lib/validation/product-form";
 import { initVariantEdits, diffVariantEdit } from "@/lib/validation/variant-edit";
+import { isNumberedShawlEligible } from "@/lib/validation/numbered-shawl";
 import { buildVariantPreview, toOptionSelections, comboKey } from "@/lib/variant-combo";
 import { localize } from "@/lib/i18n-content";
 import { formatMoney } from "@/lib/format";
@@ -44,6 +45,7 @@ import { VariantTypePicker } from "@/components/products/variant-type-picker";
 import { VariantPreviewList } from "@/components/products/variant-preview-list";
 import { VariantEditList } from "@/components/products/variant-edit-list";
 import { AddVariantsSection } from "@/components/products/add-variants-section";
+import { NumberedShawlEditor } from "@/components/products/numbered-shawl/numbered-shawl-editor";
 import { ImageManager } from "@/components/products/image-manager";
 import { ApiError } from "@/lib/api/errors";
 import type { VariantSelectionMap, VariantEditValues } from "@/types/productForm";
@@ -375,7 +377,9 @@ export function ProductForm({ mode, product }: ProductFormProps) {
           <CardContent className="flex flex-col gap-4">
             {mode === "edit" && product?.hasVariants && (
               <VariantEditList
-                variants={product.variants}
+                // Already-placed numbered-shawl points (imageX/imageY set)
+                // are edited in the dedicated tool below, not here.
+                variants={product.variants.filter((v) => v.imageX == null || v.imageY == null)}
                 currency={currency}
                 canSeeCost={canSeeCost}
                 canEditDetails={canEditDetails}
@@ -404,6 +408,20 @@ export function ProductForm({ mode, product }: ProductFormProps) {
             {mode === "edit" && product && variantTypes && canEditDetails && (
               <AddVariantsSection productId={product.id} variantTypes={variantTypes} />
             )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Numbered shawls (spec.md): a dedicated placement tool, separate
+          from the generic variant editor above — reachable once the
+          product uses only the Number variant type (or none yet). */}
+      {mode === "edit" && canEditDetails && product && variantTypes && isNumberedShawlEligible(product) && (
+        <Card>
+          <CardHeader>
+            <CardTitle>{t("numberedShawl.title")}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <NumberedShawlEditor product={product} variantTypes={variantTypes} currency={currency} />
           </CardContent>
         </Card>
       )}
