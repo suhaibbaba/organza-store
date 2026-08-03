@@ -19,7 +19,7 @@ export function TopBar() {
 
       {/* On mobile, language + logout live in the bottom nav's "More" sheet instead. */}
       <div className="hidden items-center gap-4 md:flex">
-        <LanguageSwitcher />
+        <LanguageSwitcher variant="dropdown" />
         <div className="flex items-center gap-2">
           <Avatar>
             <AvatarFallback>{initials}</AvatarFallback>
