@@ -151,3 +151,15 @@ Design for that reality:
   correctly. **Verify Arabic visually** — do not assume it works. Arabic is the default locale.
 - **Accessibility basics:** readable font sizes on mobile, sufficient contrast, labels on inputs.
 - Keep the visual language consistent between admin and pos (shared components where sensible).
+
+## Mobile input & device specifics (admin + pos)
+- **Numeric fields (stock, quantities, prices) must be easy to type on a phone.** Do NOT use
+  `<input type="number">` (it's hard to clear the last digit and accepts junk like `e`/`+`/`-`).
+  Use `type="text"` with `inputMode="numeric"` (and `pattern="[0-9]*"` for integers) so the phone
+  shows a numeric keypad, plus regex/Zod validation. Stock/quantities are **integers only** (no
+  decimals, no negatives). Prices allow decimals but still validate.
+- **iOS safe areas:** the app must respect the iPhone home-indicator area. Any fixed **bottom
+  navigation/bar** must add `padding-bottom: env(safe-area-inset-bottom)` (e.g. Tailwind
+  `pb-[env(safe-area-inset-bottom)]`) so its last part isn't hidden under the indicator on devices
+  like iPhone Pro Max. Ensure the viewport meta includes `viewport-fit=cover` (required for safe
+  areas to work). Apply the same to any fixed top bar with `safe-area-inset-top` where relevant.
