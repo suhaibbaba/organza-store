@@ -38,7 +38,28 @@
     "title": "الرئيسية",
     "welcome": "مرحبًا، {name}",
     "subtitle": "نظرة سريعة على متجرك.",
-    "placeholder": "ستظهر هنا ملخصات المبيعات، والمنتجات الأكثر مبيعًا، وتنبيهات نفاد المخزون."
+    "cards": {
+      "products": {
+        "label": "المنتجات",
+        "subtitle": "{active} نشط · {hidden} مخفي"
+      },
+      "lowStock": {
+        "label": "مخزون منخفض",
+        "subtitle": "عند {threshold} قطعة أو أقل"
+      },
+      "categories": {
+        "label": "الأقسام"
+      },
+      "inventoryValue": {
+        "label": "قيمة المخزون",
+        "basisCost": "بسعر التكلفة",
+        "basisPrice": "بسعر البيع"
+      }
+    },
+    "salesPlaceholder": {
+      "title": "المبيعات والأرباح",
+      "description": "ستتوفر هذه البيانات بعد تفعيل نظام الطلبات."
+    }
   },
   "products": {
     "title": "المنتجات",

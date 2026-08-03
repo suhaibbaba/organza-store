@@ -4,6 +4,7 @@ import cors from "cors";
 import helmet from "helmet";
 import { toNodeHandler } from "better-auth/node";
 import { auth } from "@/lib/auth";
+import dashboardRouter from "@/routes/dashboard";
 import productsRouter from "@/routes/products";
 import variantTypesRouter from "@/routes/variantTypes";
 import categoriesRouter from "@/routes/categories";
@@ -42,6 +43,7 @@ app.get("/health", (_req, res) => {
   res.json({ success: true, data: { status: "ok" }, meta: null });
 });
 
+app.use("/api/dashboard", dashboardRouter);
 app.use("/api/products", productsRouter);
 app.use("/api/variant-types", variantTypesRouter);
 app.use("/api/categories", categoriesRouter);

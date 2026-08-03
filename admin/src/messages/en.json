@@ -38,7 +38,28 @@
     "title": "Dashboard",
     "welcome": "Welcome, {name}",
     "subtitle": "Here's a quick look at your store.",
-    "placeholder": "Sales summary, top products, and low-stock alerts will appear here."
+    "cards": {
+      "products": {
+        "label": "Products",
+        "subtitle": "{active} active · {hidden} hidden"
+      },
+      "lowStock": {
+        "label": "Low stock",
+        "subtitle": "At {threshold} pieces or fewer"
+      },
+      "categories": {
+        "label": "Categories"
+      },
+      "inventoryValue": {
+        "label": "Inventory value",
+        "basisCost": "At cost price",
+        "basisPrice": "At selling price"
+      }
+    },
+    "salesPlaceholder": {
+      "title": "Sales & Profit",
+      "description": "This will be available once the orders system is live."
+    }
   },
   "products": {
     "title": "Products",

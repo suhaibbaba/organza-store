@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { can } from "@shared/lib/permissions";
 import { DEFAULT_PAGE } from "@shared/constants/pagination";
@@ -28,8 +29,14 @@ export default function InventoryPage() {
   const { user } = useSession();
   const canAdjust = can(user, "inventory.adjust");
 
+  // Supports deep-linking from the dashboard's low-stock card
+  // (/inventory?lowStock=true) — read once on mount, not kept in sync after.
+  const searchParams = useSearchParams();
   const [searchInput, setSearchInput] = useState("");
-  const [filters, setFilters] = useState<InventoryListFilters>(DEFAULT_INVENTORY_FILTERS);
+  const [filters, setFilters] = useState<InventoryListFilters>(() => ({
+    ...DEFAULT_INVENTORY_FILTERS,
+    lowStock: searchParams.get("lowStock") === "true",
+  }));
   const debouncedSearch = useDebouncedValue(searchInput, INVENTORY_SEARCH_DEBOUNCE_MS);
 
   const effectiveFilters = useMemo<InventoryListFilters>(

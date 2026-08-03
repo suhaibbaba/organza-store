@@ -38,7 +38,28 @@
     "title": "לוח בקרה",
     "welcome": "שלום, {name}",
     "subtitle": "מבט מהיר על החנות שלך.",
-    "placeholder": "כאן יופיעו סיכום מכירות, המוצרים המובילים והתראות מלאי נמוך."
+    "cards": {
+      "products": {
+        "label": "מוצרים",
+        "subtitle": "{active} פעילים · {hidden} מוסתרים"
+      },
+      "lowStock": {
+        "label": "מלאי נמוך",
+        "subtitle": "{threshold} יחידות או פחות"
+      },
+      "categories": {
+        "label": "קטגוריות"
+      },
+      "inventoryValue": {
+        "label": "שווי המלאי",
+        "basisCost": "לפי מחיר עלות",
+        "basisPrice": "לפי מחיר מכירה"
+      }
+    },
+    "salesPlaceholder": {
+      "title": "מכירות ורווחים",
+      "description": "המידע הזה יהיה זמין לאחר הפעלת מערכת ההזמנות."
+    }
   },
   "products": {
     "title": "מוצרים",

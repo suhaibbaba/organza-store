@@ -10,3 +10,4 @@ export const SESSION_QUERY_KEY = ["session"] as const;
 export const SETTINGS_QUERY_KEY = ["settings"] as const;
 export const CATEGORIES_QUERY_KEY = ["categories"] as const;
 export const VARIANT_TYPES_QUERY_KEY = ["variantTypes"] as const;
+export const DASHBOARD_SUMMARY_QUERY_KEY = ["dashboard", "summary"] as const;
