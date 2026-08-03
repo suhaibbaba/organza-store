@@ -343,41 +343,38 @@ It must be **idempotent** (upsert-based, safe to re-run) and **dev-only**. It co
 
 ---
 
-## Planned feature: Numbered shawls (image-based, deferred)
-A special **product type** for selling shawls over WhatsApp, to be built AFTER the core admin
-pages. Not started yet — documented here so the design is fixed.
+---
 
-**Goal:** instead of one product per shawl, one product per *collection* with a **single image**
-showing all colors, and **numbers drawn on the image**. Each number is one shawl with its own
-quantity/stock. For WhatsApp: send one numbered image; the customer replies with the number.
+## Planned feature: Numbered shawls (variant-based, deferred)
+A way to sell shawls over WhatsApp: one product per collection with a **single image** showing all
+colors, and **numbers drawn on the image**. Each number is one purchasable item with its own
+stock/price. Send one numbered image on WhatsApp; the customer replies with a number.
 
-**Model:**
-- A distinct product type (e.g. `type: NUMBERED`) — do NOT overload the normal variant system.
-- The shawl product = one image + a list of **points**. Each point stores:
-  - coordinates `(x, y)` as **percentages, not pixels** (so they stay correct at any screen size),
-  - the displayed number (1, 2, 3…),
-  - a reference to that number's stock.
-- Numbers are unique **within a product** only (not store-wide).
-- Price can be a single product-level price (with optional per-number override).
-- Reuses the existing stock mechanism (audit log, low-stock).
-- SKU/barcode per number: only if it will also be sold via POS — decide at build time.
+**Design — reuses the EXISTING variant system (no new product type):**
+- The "الأرقام / Number" variant type already exists (global, like Color/Size). A numbered shawl is
+  just a normal product using the **Number** variant type: choosing numbers 1–6 generates variants
+  1–6 exactly like any other variant. Stock, price (+ override), SKU, barcode, audit — all reused
+  as-is, already built and tested.
+- **New fields on Variant (optional):** `imageX` and `imageY` (percentages, nullable). When set,
+  the variant is a point on the product image; when null, it's an ordinary variant. Percentages
+  (not pixels) so points stay correct at any screen size.
+- Numbers are unique within a product (the variant set already guarantees this).
 
-**Display:** image as background, numbers drawn on a separate transparent overlay layer (small
-circles). The full image is visible with numbers on top.
+**Display:** product image as background; numbers drawn on a separate transparent overlay (small
+circles) using each variant's `imageX/imageY`. Full image visible with numbers on top.
 
 **Admin input (two-step, to avoid mis-linking):**
-1. Place empty points on the image first — auto-numbered 1, 2, 3…
-2. Review/drag/delete misplaced points BEFORE anything is linked.
-3. When happy with positions, set the quantity per number.
-4. Linking happens only on an explicit **Save** (no autosave). Deleting a number asks for
-   confirmation. Numbering is auto-sequential (no accidental duplicates).
+1. Place points on the image first — auto-numbered 1, 2, 3… (creates the Number values/variants).
+2. Review/drag/delete misplaced points BEFORE committing.
+3. Then set quantity (and optional price) per number.
+4. Persist only on an explicit **Save** (no autosave). Deleting a number asks for confirmation.
 
-**WhatsApp export (automatic):** the system renders the image + numbers "burned in" into one
-shareable copy (via `sharp`), regenerated when points change — so one workflow yields both a
-WhatsApp-ready numbered image and an interactive stock-linked version inside the system.
+**WhatsApp export (automatic):** render the image + numbers "burned in" into one shareable copy via
+`sharp`, regenerated when points change — one workflow yields both a WhatsApp-ready numbered image
+and the interactive stock-linked variants inside the system.
 
 **Critical technical note:** on click, coordinates must be computed relative to the **displayed
-image's** dimensions, not the screen/viewport — otherwise the numbers drift.
+image's** dimensions, not the screen/viewport — otherwise numbers drift.
 
-**Deliberately omitted (simplicity):** no sizes, no color names, no complex variants — just image +
-numbers + quantity per number.
+**Deliberately omitted (simplicity):** for these products, no sizes/colors — just the Number variant
+type + quantity (+ optional price) per number.
