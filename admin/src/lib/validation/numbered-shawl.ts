@@ -15,6 +15,23 @@ export function isNumberedShawlEligible(product: Pick<Product, "variantTypes">):
   return product.variantTypes.every((vt) => vt.slug === NUMBER_VARIANT_TYPE_SLUG);
 }
 
+// True once the product actually references the Number variant type, even
+// alongside others (e.g. it was a Colour product and the Number type was just
+// added). Recomputed from product.variantTypes, so it flips reactively in
+// edit mode the moment a Number variant is generated and the product query
+// refetches — not only on a fresh, Number-only product.
+export function productUsesNumberType(product: Pick<Product, "variantTypes">): boolean {
+  return product.variantTypes.some((vt) => vt.slug === NUMBER_VARIANT_TYPE_SLUG);
+}
+
+// Whether to surface the numbered-point placement tool at all: either the
+// product is numbered-shawl shaped (only Number types, or none yet so it's
+// reachable on a brand-new product) OR it now uses the Number type among
+// others (an existing product being converted to numbered).
+export function showNumberedShawlEditor(product: Pick<Product, "variantTypes">): boolean {
+  return isNumberedShawlEligible(product) || productUsesNumberType(product);
+}
+
 export function clampPercent(value: number): number {
   return Math.min(100, Math.max(0, value));
 }

@@ -157,6 +157,9 @@ async function main() {
     cost?: number;
     isActive?: boolean;
     deleted?: boolean;
+    // Opt-in low-stock alerts (off by default) — most products sit at
+    // stock = 1, so only the ones actually restocked ask to be tracked.
+    trackLowStock?: boolean;
     // simple product fields (only when no variants)
     simple?: { stock: number };
     // variants: each is a list of `${typeSlug}:${valueKey}` plus optional overrides
@@ -183,6 +186,7 @@ async function main() {
       compareAtPrice: opts.compareAtPrice ?? null,
       cost: opts.cost ?? null,
       isActive: opts.isActive ?? true,
+      trackLowStock: opts.trackLowStock ?? false,
       deletedAt: opts.deleted ? new Date() : null,
       barcode,
       // simple-product fields
@@ -256,6 +260,9 @@ async function main() {
     categoryId: abayas.id,
     basePrice: 120,
     cost: 60,
+    // Restocked line, so it opts into low-stock alerts — its XL sits at 2,
+    // under the seeded threshold of 3, giving the low-stock view real data.
+    trackLowStock: true,
     variants: [
       { combo: ["size:m"], name: { ar: "M", en: "M", he: "M" }, stock: 5 },
       { combo: ["size:l"], name: { ar: "L", en: "L", he: "L" }, stock: 3 },

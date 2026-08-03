@@ -25,7 +25,7 @@ import {
   type ProductBasicFormValues,
 } from "@/lib/validation/product-form";
 import { initVariantEdits, diffVariantEdit } from "@/lib/validation/variant-edit";
-import { isNumberedShawlEligible } from "@/lib/validation/numbered-shawl";
+import { showNumberedShawlEditor } from "@/lib/validation/numbered-shawl";
 import { buildVariantPreview, toOptionSelections, comboKey } from "@/lib/variant-combo";
 import { localize } from "@/lib/i18n-content";
 import { formatMoney } from "@/lib/format";
@@ -69,6 +69,10 @@ export function ProductForm({ mode, product }: ProductFormProps) {
   // separate, broader capability — Employees keep full image access below.
   const canEditDetails = mode === "create" || can(user, "product.edit");
   const canDeleteImages = can(user, "images.delete");
+  // Opting a product into low-stock alerts is a stock-management decision —
+  // same Admin/Manager gate the backend enforces on the field itself, so an
+  // Employee who can add a product simply doesn't see the toggle.
+  const canTrackLowStock = can(user, "product.edit");
 
   const { data: categoryTree } = useCategoriesQuery();
   const categoryOptions = categoryTree ? flattenCategoryTree(categoryTree) : [];
@@ -341,6 +345,28 @@ export function ProductForm({ mode, product }: ProductFormProps) {
             </Card>
           )}
 
+          {/* Low-stock alerts are opt-in per product (off by default): most
+              products are one-off pieces sitting at stock = 1, so a global
+              alert would be pure noise. Applies to variant products too, so
+              it lives outside the simple-product-only inventory card. */}
+          {canTrackLowStock && (
+            <Card>
+              <CardContent className="flex items-center justify-between gap-3 py-5">
+                <div>
+                  <Label htmlFor="trackLowStock">{t("trackLowStock")}</Label>
+                  <p className="text-sm text-muted-foreground">{t("trackLowStockHint")}</p>
+                </div>
+                <Controller
+                  control={control}
+                  name="trackLowStock"
+                  render={({ field }) => (
+                    <Switch id="trackLowStock" checked={field.value} onCheckedChange={field.onChange} />
+                  )}
+                />
+              </CardContent>
+            </Card>
+          )}
+
           {!willHaveVariants && (
             <Card>
               <CardHeader>
@@ -380,6 +406,7 @@ export function ProductForm({ mode, product }: ProductFormProps) {
                 // Already-placed numbered-shawl points (imageX/imageY set)
                 // are edited in the dedicated tool below, not here.
                 variants={product.variants.filter((v) => v.imageX == null || v.imageY == null)}
+                variantTypes={variantTypes ?? []}
                 currency={currency}
                 canSeeCost={canSeeCost}
                 canEditDetails={canEditDetails}
@@ -415,7 +442,7 @@ export function ProductForm({ mode, product }: ProductFormProps) {
       {/* Numbered shawls (spec.md): a dedicated placement tool, separate
           from the generic variant editor above — reachable once the
           product uses only the Number variant type (or none yet). */}
-      {mode === "edit" && canEditDetails && product && variantTypes && isNumberedShawlEligible(product) && (
+      {mode === "edit" && canEditDetails && product && variantTypes && showNumberedShawlEditor(product) && (
         <Card>
           <CardHeader>
             <CardTitle>{t("numberedShawl.title")}</CardTitle>

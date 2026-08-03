@@ -170,6 +170,12 @@ model Product {
   isActive  Boolean   @default(true) // published / hidden  (role-gated)
   deletedAt DateTime? // soft delete         (role-gated)
 
+  // Opt-in low-stock alerts. Most products are one-off pieces with stock = 1,
+  // so alerting on all of them is pure noise — only products flagged here are
+  // measured against Setting.lowStockThreshold (inventory low-stock filter +
+  // dashboard count). Off by default.
+  trackLowStock Boolean @default(false)
+
   // --- relations ---
   images       ProductImage[]
   variants     Variant[]

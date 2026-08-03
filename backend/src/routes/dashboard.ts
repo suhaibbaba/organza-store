@@ -31,6 +31,7 @@ router.get(
           stock: true,
           basePrice: true,
           cost: true,
+          trackLowStock: true,
           variants: { select: { stock: true, priceOverride: true, cost: true } },
         },
       }),
@@ -41,15 +42,18 @@ router.get(
     let lowStockCount = 0;
     let inventoryValue = new Prisma.Decimal(0);
 
+    // Inventory value covers every product; the low-stock count only counts
+    // products that opted into tracking (Product.trackLowStock), so the alert
+    // isn't drowned out by the many one-off pieces that sit at stock = 1.
     for (const product of products) {
       if (product.variants.length === 0) {
-        if (product.stock <= threshold) lowStockCount += 1;
+        if (product.trackLowStock && product.stock <= threshold) lowStockCount += 1;
         const unitPrice = canViewCost ? (product.cost ?? product.basePrice) : product.basePrice;
         inventoryValue = inventoryValue.add(unitPrice.mul(product.stock));
         continue;
       }
       for (const variant of product.variants) {
-        if (variant.stock <= threshold) lowStockCount += 1;
+        if (product.trackLowStock && variant.stock <= threshold) lowStockCount += 1;
         const unitPrice = canViewCost
           ? (variant.cost ?? product.cost ?? variant.priceOverride ?? product.basePrice)
           : (variant.priceOverride ?? product.basePrice);

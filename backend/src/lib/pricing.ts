@@ -77,6 +77,7 @@ export function serializeProduct(product: AnyRecord, role: Role) {
     barcode: product.barcode,
     stock: variants.length ? undefined : product.stock,
     isActive: product.isActive,
+    trackLowStock: product.trackLowStock,
     deletedAt: product.deletedAt,
     hasVariants: variants.length > 0,
     images: (product.images ?? []).map(serializeImage),
@@ -119,6 +120,7 @@ export function serializeProductSummary(product: AnyRecord, role: Role) {
     barcode: product.barcode,
     stock: aggregateStock,
     isActive: product.isActive,
+    trackLowStock: product.trackLowStock,
     hasVariants: variants.length > 0,
     variantCount: variants.length,
     // Lowest sortOrder = primary (spec.md); already loaded by the list

@@ -27,7 +27,10 @@ router.use(requireAuth);
 // ---------------------------------------------------------------------------
 // GET /api/inventory — flattened stock list (simple products + variants),
 // pagination + filtering + sorting. lowStock=true filters against
-// Setting.lowStockThreshold (CLAUDE.md rule 14 — never hard-code it).
+// Setting.lowStockThreshold (CLAUDE.md rule 14 — never hard-code it), and
+// only over products that opted into tracking (Product.trackLowStock): most
+// products are one-off pieces with stock = 1, so alerting on all of them
+// would bury the ones that actually need restocking.
 // ---------------------------------------------------------------------------
 router.get(
   "/",
@@ -51,6 +54,9 @@ router.get(
     const products = await prisma.product.findMany({
       where: {
         deletedAt: null,
+        // Opt-in only: a product that hasn't asked to be tracked can never
+        // surface as low stock, whatever its quantity.
+        ...(query.lowStock ? { trackLowStock: true } : {}),
         ...(query.categoryId ? { categoryId: query.categoryId } : {}),
         ...(query.q
           ? {
