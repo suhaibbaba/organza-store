@@ -291,10 +291,77 @@
       "saved": "تم حفظ الإعدادات."
     }
   },
-  "placeholders": {
-    "users": {
-      "title": "المستخدمون",
-      "description": "إدارة حسابات الموظفين وصلاحياتهم."
+  "users": {
+    "title": "المستخدمون",
+    "subtitle": "إدارة حسابات الموظفين وأدوارهم وصلاحياتهم.",
+    "addUser": "إضافة موظف",
+    "search": {
+      "placeholder": "ابحث بالاسم أو البريد الإلكتروني أو الهاتف…",
+      "label": "البحث عن الموظفين",
+      "clear": "مسح البحث"
+    },
+    "filters": {
+      "role": "الدور",
+      "allRoles": "جميع الأدوار",
+      "status": "الحالة",
+      "statusAll": "الكل",
+      "statusActive": "نشط",
+      "statusInactive": "غير نشط"
+    },
+    "role": {
+      "ADMIN": "مسؤول",
+      "MANAGER": "مدير",
+      "EMPLOYEE": "موظف"
+    },
+    "status": {
+      "active": "نشط",
+      "inactive": "غير نشط"
+    },
+    "card": {
+      "edit": "تعديل الموظف",
+      "activate": "تفعيل",
+      "deactivate": "إيقاف",
+      "confirmActivate": "تفعيل",
+      "confirmDeactivate": "إيقاف",
+      "cancelToggle": "إلغاء"
+    },
+    "table": {
+      "name": "الاسم",
+      "role": "الدور",
+      "phone": "الهاتف",
+      "status": "الحالة"
+    },
+    "empty": {
+      "noUsersTitle": "لا يوجد موظفون بعد",
+      "noUsersDescription": "ستظهر هنا حسابات الموظفين التي تضيفها.",
+      "noMatchesTitle": "لا توجد نتائج مطابقة",
+      "noMatchesDescription": "جرّب بحثًا مختلفًا أو امسح عوامل التصفية."
+    },
+    "pagination": {
+      "previous": "السابق",
+      "next": "التالي",
+      "pageOf": "صفحة {page} من {totalPages}"
+    },
+    "form": {
+      "createTitle": "إضافة موظف",
+      "editTitle": "تعديل الموظف",
+      "name": "الاسم",
+      "email": "البريد الإلكتروني",
+      "emailHint": "لا يمكن تغيير البريد الإلكتروني بعد إنشاء الحساب.",
+      "password": "كلمة المرور",
+      "passwordPlaceholderCreate": "عيّن كلمة مرور",
+      "passwordPlaceholderEdit": "اتركها فارغة للإبقاء على كلمة المرور الحالية",
+      "passwordHintEdit": "اتركها فارغة للإبقاء على كلمة المرور الحالية.",
+      "role": "الدور",
+      "phone": "رقم الهاتف",
+      "phonePrefixLabel": "مفتاح الدولة",
+      "whatsapp": "واتساب",
+      "whatsappHint": "اختياري — يُستخدم للتواصل مع هذا الموظف عبر واتساب.",
+      "idNumber": "رقم الهوية",
+      "creating": "جارٍ الإنشاء…",
+      "saving": "جارٍ الحفظ…",
+      "create": "إضافة موظف",
+      "save": "حفظ التغييرات"
     }
   },
   "errors": {

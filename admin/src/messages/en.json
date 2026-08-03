@@ -291,10 +291,77 @@
       "saved": "Settings saved."
     }
   },
-  "placeholders": {
-    "users": {
-      "title": "Users",
-      "description": "Manage staff accounts and roles."
+  "users": {
+    "title": "Users",
+    "subtitle": "Manage staff accounts, roles, and access.",
+    "addUser": "Add staff",
+    "search": {
+      "placeholder": "Search by name, email, or phone…",
+      "label": "Search staff",
+      "clear": "Clear search"
+    },
+    "filters": {
+      "role": "Role",
+      "allRoles": "All roles",
+      "status": "Status",
+      "statusAll": "All",
+      "statusActive": "Active",
+      "statusInactive": "Inactive"
+    },
+    "role": {
+      "ADMIN": "Admin",
+      "MANAGER": "Manager",
+      "EMPLOYEE": "Employee"
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "card": {
+      "edit": "Edit staff member",
+      "activate": "Activate",
+      "deactivate": "Deactivate",
+      "confirmActivate": "Activate",
+      "confirmDeactivate": "Deactivate",
+      "cancelToggle": "Cancel"
+    },
+    "table": {
+      "name": "Name",
+      "role": "Role",
+      "phone": "Phone",
+      "status": "Status"
+    },
+    "empty": {
+      "noUsersTitle": "No staff yet",
+      "noUsersDescription": "Staff accounts you add will show up here.",
+      "noMatchesTitle": "No matching staff",
+      "noMatchesDescription": "Try a different search or clear your filters."
+    },
+    "pagination": {
+      "previous": "Previous",
+      "next": "Next",
+      "pageOf": "Page {page} of {totalPages}"
+    },
+    "form": {
+      "createTitle": "Add staff",
+      "editTitle": "Edit staff",
+      "name": "Name",
+      "email": "Email",
+      "emailHint": "Email can't be changed after the account is created.",
+      "password": "Password",
+      "passwordPlaceholderCreate": "Set a password",
+      "passwordPlaceholderEdit": "Leave blank to keep current password",
+      "passwordHintEdit": "Leave blank to keep the current password.",
+      "role": "Role",
+      "phone": "Phone",
+      "phonePrefixLabel": "Country code",
+      "whatsapp": "WhatsApp",
+      "whatsappHint": "Optional — used to reach this staff member on WhatsApp.",
+      "idNumber": "ID number",
+      "creating": "Creating…",
+      "saving": "Saving…",
+      "create": "Add staff",
+      "save": "Save changes"
     }
   },
   "errors": {
