@@ -164,6 +164,12 @@ router.post(
     // for Employees rather than erroring, since they simply can't set it.
     const cost = can(req.user!, "product.viewCost") ? body.cost : undefined;
 
+    // Opt-in low-stock tracking is a stock-management decision, so it follows
+    // the same Admin/Manager gate as editing a product — dropped (left at the
+    // schema default of false) for an Employee who can add products but
+    // doesn't manage stock (CLAUDE.md rule 5).
+    const trackLowStock = can(req.user!, "product.edit") ? body.trackLowStock : undefined;
+
     const slug = await generateUniqueSlug(body.name.ar, async (candidate) => {
       const existing = await prisma.product.findUnique({ where: { slug: candidate } });
       return Boolean(existing);
@@ -183,6 +189,7 @@ router.post(
         compareAtPrice: body.compareAtPrice ?? null,
         cost: cost ?? null,
         isActive: body.isActive ?? true,
+        trackLowStock: trackLowStock ?? false,
         barcode,
         stock: hasVariants ? DEFAULT_STOCK : body.stock ?? DEFAULT_STOCK,
         createdById: req.user!.id,
@@ -303,6 +310,7 @@ router.patch(
         compareAtPrice: body.compareAtPrice === undefined ? undefined : body.compareAtPrice,
         cost: body.cost === undefined ? undefined : body.cost,
         isActive: body.isActive,
+        trackLowStock: body.trackLowStock,
         sku: body.sku,
         stock: existing.variants.length ? undefined : body.stock,
       },

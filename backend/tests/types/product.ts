@@ -26,6 +26,9 @@ export interface ProductDto {
   hasVariants: boolean;
   basePrice: number | string;
   stock?: number;
+  // Opt-in low-stock alerts; false unless the caller both asked for it and
+  // has the permission to set it.
+  trackLowStock: boolean;
   variants: ProductVariantDto[];
   // Role-gated (CLAUDE.md rule 19): absent entirely for Employee responses.
   cost?: number | string | null;

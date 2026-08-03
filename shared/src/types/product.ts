@@ -23,6 +23,10 @@ export interface Product {
   barcode: string | null;
   stock?: number;
   isActive: boolean;
+  // Opt-in low-stock alerts: only flagged products are measured against
+  // Setting.lowStockThreshold (inventory low-stock view + dashboard count).
+  // Off by default, since most products are one-off pieces with stock = 1.
+  trackLowStock: boolean;
   deletedAt: string | null;
   hasVariants: boolean;
   images: ProductImageRef[];
@@ -49,6 +53,7 @@ export interface ProductSummary {
   barcode: string | null;
   stock: number;
   isActive: boolean;
+  trackLowStock: boolean;
   hasVariants: boolean;
   variantCount: number;
   image: ProductImageRef | null;

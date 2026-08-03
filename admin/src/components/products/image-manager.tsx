@@ -18,14 +18,20 @@ import { useTranslateError } from "@/hooks/use-translate-error";
 import { validateImageFile } from "@/lib/validation/image";
 import { uploadImage, reorderImages, setPrimaryImage, deleteImage, type ImageOwner } from "@/lib/api/images";
 import { SortableImageThumb } from "@/components/products/sortable-image-thumb";
+import { Button } from "@/components/ui/button";
+import { Alert } from "@/components/ui/alert";
 import { Spinner } from "@/components/ui/spinner";
 import { ApiError } from "@/lib/api/errors";
 import { PRODUCT_LIST_QUERY_KEY } from "@/constants/products";
+import { cn } from "@/lib/utils";
 
-interface PendingUpload {
-  id: string;
-  previewUrl: string;
-}
+// A slot in the working gallery: either an already-saved server image, or a
+// brand-new file the user just picked that hasn't been uploaded yet. Both
+// carry a stable `id` (the server id, or a temp id) so dnd-kit can track them
+// and so the primary flag can point at one regardless of kind.
+type GallerySlot =
+  | { kind: "existing"; id: string; image: ProductImageRef; isPrimary: boolean }
+  | { kind: "new"; id: string; file: File; previewUrl: string; isPrimary: boolean };
 
 interface ImageManagerProps {
   owner: ImageOwner;
@@ -34,125 +40,208 @@ interface ImageManagerProps {
   emptyHint?: string;
 }
 
-// Self-contained: every action (upload/reorder/set-primary/delete) is its
-// own immediate API call, not batched into the surrounding form's submit —
-// so this works the same whether it's rendered inside the main edit form or
-// a read-only-for-details Employee view (spec.md: "edit images" is an
-// Employee capability independent of editing product/variant details).
+function toSlots(images: ProductImageRef[]): GallerySlot[] {
+  return [...images]
+    .sort((a, b) => a.sortOrder - b.sortOrder)
+    .map((image) => ({ kind: "existing" as const, id: image.id, image, isPrimary: image.isPrimary }));
+}
+
+// Order + membership + primary signature — the last-saved state we compare
+// the working gallery against to know whether there's anything to save, and
+// to detect when a fresh `initialImages` should reset the working copy.
+function savedSignature(images: ProductImageRef[]): string {
+  return [...images]
+    .sort((a, b) => a.sortOrder - b.sortOrder)
+    .map((i) => `${i.id}:${i.isPrimary ? 1 : 0}`)
+    .join("|");
+}
+
+function workingSignature(slots: GallerySlot[]): string {
+  return slots.map((s) => `${s.kind === "existing" ? s.id : "new"}:${s.isPrimary ? 1 : 0}`).join("|");
+}
+
+// Self-contained image editor. Unlike an autosaving gallery, every action
+// (add / delete / reorder / set-primary) is staged locally and only written
+// to the server on an explicit **Save** (spec.md "Persist only on an explicit
+// Save — no autosave"). Leaving or hitting **Discard** without saving throws
+// the staged changes away and restores the last saved state, because nothing
+// touched the server yet. "Edit images" is still its own capability (works
+// for Employees who can't edit product/variant details), so the Save/Discard
+// controls live here rather than on the surrounding product form.
 export function ImageManager({ owner, initialImages, canDelete, emptyHint }: ImageManagerProps) {
   const t = useTranslations("products.form.images");
   const translateError = useTranslateError();
   const queryClient = useQueryClient();
-  const [images, setImages] = useState<ProductImageRef[]>(initialImages);
-  const [pending, setPending] = useState<PendingUpload[]>([]);
+
+  const [slots, setSlots] = useState<GallerySlot[]>(() => toSlots(initialImages));
+  const [savedImages, setSavedImages] = useState<ProductImageRef[]>(initialImages);
   const [error, setError] = useState<string | null>(null);
-  const [busyId, setBusyId] = useState<string | null>(null);
-  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { delay: 150, tolerance: 6 } })
-  );
-
-  // This component keeps its own local `images` state (so it works the same
-  // whether it's live inside the main form or read-only-for-details for
-  // Employees) instead of routing through the product query — so anything
-  // else reading `product.images`/`variant.images` (e.g. the numbered-shawl
-  // placement tool) needs an explicit nudge to refetch after a change.
-  function invalidateProducts() {
-    void queryClient.invalidateQueries({ queryKey: [PRODUCT_LIST_QUERY_KEY] });
+  // Reset the working copy when the last-saved state changes underneath us
+  // (parent refetched / remounted with a new gallery). Done during render —
+  // React's documented "reset state when a prop changes" pattern — so we
+  // never render a stale gallery for a frame. Any unsaved staged edits are
+  // intentionally dropped: server truth wins, matching "restore the last
+  // saved state" on leave.
+  const [syncedSig, setSyncedSig] = useState(() => savedSignature(initialImages));
+  const incomingSig = savedSignature(initialImages);
+  if (incomingSig !== syncedSig) {
+    setSyncedSig(incomingSig);
+    setSavedImages(initialImages);
+    setSlots(toSlots(initialImages));
+    setError(null);
+    setSaved(false);
   }
 
-  // Uploaded one at a time on purpose: the backend assigns each new image's
-  // sortOrder from the current count for its owner, so concurrent uploads
-  // for the same product/variant could race and collide.
-  async function handleFiles(fileList: FileList | null) {
-    if (!fileList || fileList.length === 0) return;
-    setError(null);
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { delay: 150, tolerance: 6 } }));
 
+  const isDirty = workingSignature(slots) !== savedSignature(savedImages);
+
+  function markChanged() {
+    setSaved(false);
+    setError(null);
+  }
+
+  function handleFiles(fileList: FileList | null) {
+    if (!fileList || fileList.length === 0) return;
+    markChanged();
+    const added: GallerySlot[] = [];
     for (const file of Array.from(fileList)) {
       const invalidCode = validateImageFile(file);
       if (invalidCode) {
         setError(translateError(invalidCode));
         continue;
       }
-
-      const tempId = `pending-${crypto.randomUUID()}`;
-      const previewUrl = URL.createObjectURL(file);
-      setPending((prev) => [...prev, { id: tempId, previewUrl }]);
-      try {
-        const created = await uploadImage(owner, file);
-        setImages((prev) => [...prev, created]);
-        invalidateProducts();
-      } catch (err) {
-        setError(translateError(err instanceof ApiError ? err.code : "error.internal"));
-      } finally {
-        setPending((prev) => prev.filter((p) => p.id !== tempId));
-        URL.revokeObjectURL(previewUrl);
-      }
+      added.push({
+        kind: "new",
+        id: `new-${crypto.randomUUID()}`,
+        file,
+        previewUrl: URL.createObjectURL(file),
+        isPrimary: false,
+      });
     }
-
+    setSlots((prev) => {
+      const next = [...prev, ...added];
+      // Keep exactly one primary: if nothing is primary yet (first images),
+      // promote the first slot.
+      if (next.length > 0 && !next.some((s) => s.isPrimary)) next[0] = { ...next[0], isPrimary: true };
+      return next;
+    });
     if (inputRef.current) inputRef.current.value = "";
   }
 
-  async function persistReorder(reordered: ProductImageRef[]) {
-    const previous = images;
-    setImages(reordered);
-    try {
-      const updated = await reorderImages(owner, reordered.map((i) => i.id));
-      setImages(updated);
-      invalidateProducts();
-    } catch (err) {
-      setImages(previous);
-      setError(translateError(err instanceof ApiError ? err.code : "error.internal"));
-    }
+  function handleRemove(id: string) {
+    markChanged();
+    setSlots((prev) => {
+      const removed = prev.find((s) => s.id === id);
+      if (removed?.kind === "new") URL.revokeObjectURL(removed.previewUrl);
+      const next = prev.filter((s) => s.id !== id);
+      // If we removed the primary, promote whatever is now first so there's
+      // always exactly one primary while the gallery is non-empty.
+      if (removed?.isPrimary && next.length > 0 && !next.some((s) => s.isPrimary)) {
+        next[0] = { ...next[0], isPrimary: true };
+      }
+      return next;
+    });
+  }
+
+  function handleTogglePrimary(id: string) {
+    markChanged();
+    // A single tap always *sets* this slot primary (there must be exactly one
+    // primary); tapping the current primary is a no-op rather than clearing it.
+    setSlots((prev) => prev.map((s) => ({ ...s, isPrimary: s.id === id })));
   }
 
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
-    const oldIndex = images.findIndex((i) => i.id === active.id);
-    const newIndex = images.findIndex((i) => i.id === over.id);
+    const oldIndex = slots.findIndex((s) => s.id === active.id);
+    const newIndex = slots.findIndex((s) => s.id === over.id);
     if (oldIndex === -1 || newIndex === -1) return;
-    void persistReorder(arrayMove(images, oldIndex, newIndex));
+    markChanged();
+    setSlots((prev) => arrayMove(prev, oldIndex, newIndex));
   }
 
-  async function handleTogglePrimary(imageId: string, next: boolean) {
+  function handleDiscard() {
+    for (const slot of slots) if (slot.kind === "new") URL.revokeObjectURL(slot.previewUrl);
+    setSlots(toSlots(savedImages));
     setError(null);
-    setBusyId(imageId);
+    setSaved(false);
+  }
+
+  function invalidateProducts() {
+    void queryClient.invalidateQueries({ queryKey: [PRODUCT_LIST_QUERY_KEY] });
+  }
+
+  // Commit staged changes in an order the backend accepts: upload the new
+  // files first (one at a time — the server derives each new image's
+  // sortOrder from the current count, so concurrent uploads could collide),
+  // delete the removed ones, then reorder the remaining set to the staged
+  // order and finally fix the primary. Reorder validates that the id set
+  // matches exactly, which is why deletes/uploads happen before it.
+  async function handleSave() {
+    setError(null);
+    setSaved(false);
+    setIsSaving(true);
     try {
-      const updated = await setPrimaryImage(imageId, next);
-      setImages((prev) => prev.map((img) => (img.id === imageId ? updated : next ? { ...img, isPrimary: false } : img)));
+      const savedById = new Set(savedImages.map((i) => i.id));
+      const keptExistingIds = new Set(slots.filter((s) => s.kind === "existing").map((s) => s.id));
+      const deletedIds = savedImages.filter((i) => !keptExistingIds.has(i.id)).map((i) => i.id);
+
+      // Upload new files in their staged position, resolving each to a real id.
+      const resolved: { id: string; isPrimary: boolean }[] = [];
+      for (const slot of slots) {
+        if (slot.kind === "existing") {
+          resolved.push({ id: slot.id, isPrimary: slot.isPrimary });
+          continue;
+        }
+        const created = await uploadImage(owner, slot.file);
+        URL.revokeObjectURL(slot.previewUrl);
+        resolved.push({ id: created.id, isPrimary: slot.isPrimary });
+      }
+
+      for (const id of deletedIds) {
+        if (savedById.has(id)) await deleteImage(id);
+      }
+
+      let finalImages: ProductImageRef[] = [];
+      if (resolved.length > 0) {
+        finalImages = await reorderImages(owner, resolved.map((r) => r.id));
+
+        const primaryId = (resolved.find((r) => r.isPrimary) ?? resolved[0]).id;
+        if (!finalImages.find((i) => i.id === primaryId)?.isPrimary) {
+          const updatedPrimary = await setPrimaryImage(primaryId, true);
+          finalImages = finalImages.map((i) =>
+            i.id === primaryId ? updatedPrimary : { ...i, isPrimary: false }
+          );
+        }
+      }
+
+      setSavedImages(finalImages);
+      setSyncedSig(savedSignature(finalImages));
+      setSlots(toSlots(finalImages));
+      setSaved(true);
       invalidateProducts();
     } catch (err) {
       setError(translateError(err instanceof ApiError ? err.code : "error.internal"));
     } finally {
-      setBusyId(null);
+      setIsSaving(false);
     }
   }
 
-  async function handleDelete(imageId: string) {
-    setConfirmDeleteId(null);
-    setError(null);
-    const previous = images;
-    setImages((prev) => prev.filter((img) => img.id !== imageId));
-    setBusyId(imageId);
-    try {
-      await deleteImage(imageId);
-      invalidateProducts();
-    } catch (err) {
-      setImages(previous);
-      setError(translateError(err instanceof ApiError ? err.code : "error.internal"));
-    } finally {
-      setBusyId(null);
-    }
-  }
-
-  const isEmpty = images.length === 0 && pending.length === 0;
+  const isEmpty = slots.length === 0;
 
   return (
     <div className="flex flex-col gap-3">
-      <label className="flex min-h-14 cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-dashed border-primary/40 bg-primary/5 px-4 text-sm font-medium text-primary transition-colors active:bg-primary/10">
+      <label
+        className={cn(
+          "flex min-h-14 cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-dashed border-primary/40 bg-primary/5 px-4 text-sm font-medium text-primary transition-colors active:bg-primary/10",
+          isSaving && "pointer-events-none opacity-50"
+        )}
+      >
         <ImagePlus className="size-5" aria-hidden="true" />
         {t("addImages")}
         <input
@@ -160,8 +249,9 @@ export function ImageManager({ owner, initialImages, canDelete, emptyHint }: Ima
           type="file"
           accept="image/*"
           multiple
+          disabled={isSaving}
           className="sr-only"
-          onChange={(e) => void handleFiles(e.target.files)}
+          onChange={(e) => handleFiles(e.target.files)}
         />
       </label>
 
@@ -169,38 +259,63 @@ export function ImageManager({ owner, initialImages, canDelete, emptyHint }: Ima
 
       {!isEmpty && (
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-          <SortableContext items={images.map((i) => i.id)} strategy={rectSortingStrategy}>
+          <SortableContext items={slots.map((s) => s.id)} strategy={rectSortingStrategy}>
             <div className="grid grid-cols-3 gap-2">
-              {images.map((image) => (
-                <SortableImageThumb
-                  key={image.id}
-                  image={image}
-                  isBusy={busyId === image.id}
-                  canDelete={canDelete}
-                  isConfirmingDelete={confirmDeleteId === image.id}
-                  onTogglePrimary={handleTogglePrimary}
-                  onRequestDelete={setConfirmDeleteId}
-                  onCancelDelete={() => setConfirmDeleteId(null)}
-                  onConfirmDelete={handleDelete}
-                />
-              ))}
-              {pending.map((p) => (
-                <div key={p.id} className="relative aspect-square overflow-hidden rounded-xl border border-border bg-muted">
-                  <div
-                    className="size-full bg-cover bg-center opacity-60"
-                    style={{ backgroundImage: `url(${p.previewUrl})` }}
+              {slots.map((slot) =>
+                slot.kind === "existing" ? (
+                  <SortableImageThumb
+                    key={slot.id}
+                    id={slot.id}
+                    thumbnailUrl={slot.image.thumbnailUrl}
+                    isPrimary={slot.isPrimary}
+                    isBusy={isSaving}
+                    canDelete={canDelete}
+                    onTogglePrimary={handleTogglePrimary}
+                    onRemove={handleRemove}
                   />
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <Spinner />
-                  </div>
-                </div>
-              ))}
+                ) : (
+                  <SortableImageThumb
+                    key={slot.id}
+                    id={slot.id}
+                    thumbnailUrl={slot.previewUrl}
+                    isPrimary={slot.isPrimary}
+                    isBusy={isSaving}
+                    canDelete
+                    isNew
+                    onTogglePrimary={handleTogglePrimary}
+                    onRemove={handleRemove}
+                  />
+                )
+              )}
             </div>
           </SortableContext>
         </DndContext>
       )}
 
       {isEmpty && emptyHint && <p className="text-sm text-muted-foreground">{emptyHint}</p>}
+
+      {saved && !isDirty && <Alert variant="success">{t("saveSuccess")}</Alert>}
+
+      {isDirty && (
+        <div className="flex flex-col gap-2">
+          <p className="text-sm text-muted-foreground">{t("unsavedHint")}</p>
+          <div className="flex gap-2">
+            <Button type="button" onClick={() => void handleSave()} disabled={isSaving} className="flex-1">
+              {isSaving ? (
+                <>
+                  <Spinner />
+                  {t("saving")}
+                </>
+              ) : (
+                t("save")
+              )}
+            </Button>
+            <Button type="button" variant="outline" onClick={handleDiscard} disabled={isSaving}>
+              {t("discard")}
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

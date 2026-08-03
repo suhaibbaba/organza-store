@@ -10,7 +10,8 @@
     "menu": "Menu",
     "comingSoon": "This screen isn't built yet — check back soon.",
     "close": "Close",
-    "mainNavigation": "Main navigation"
+    "mainNavigation": "Main navigation",
+    "account": "Account"
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -205,8 +206,11 @@
         "clearPrimary": "Unset as main photo",
         "primaryBadge": "Main",
         "delete": "Delete photo",
-        "confirmDelete": "Delete",
-        "cancelDelete": "Cancel"
+        "save": "Save photos",
+        "saving": "Saving…",
+        "discard": "Discard",
+        "saveSuccess": "Photos saved.",
+        "unsavedHint": "You have unsaved photo changes — tap \"Save photos\" to apply them."
       },
       "numberedShawl": {
         "title": "Numbered points",
@@ -226,7 +230,9 @@
         "saving": "Saving…",
         "save": "Save points",
         "saveSuccess": "Points saved."
-      }
+      },
+      "trackLowStock": "Low-stock alert",
+      "trackLowStockHint": "Off by default. Turn it on only for products you restock, so alerts aren't buried by one-off pieces."
     }
   },
   "inventory": {

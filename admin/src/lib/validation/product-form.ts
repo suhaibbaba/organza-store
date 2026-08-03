@@ -25,6 +25,7 @@ export const productBasicFormSchema = z.object({
   compareAtPrice: optionalDecimalField,
   cost: optionalDecimalField,
   isActive: z.boolean(),
+  trackLowStock: z.boolean(),
   stock: optionalIntegerField,
 });
 export type ProductBasicFormValues = z.infer<typeof productBasicFormSchema>;
@@ -37,6 +38,7 @@ export const DEFAULT_PRODUCT_FORM_VALUES: ProductBasicFormValues = {
   compareAtPrice: "",
   cost: "",
   isActive: true,
+  trackLowStock: false,
   stock: "1",
 };
 
@@ -74,6 +76,7 @@ export function productToFormValues(product: Product): ProductBasicFormValues {
     compareAtPrice: product.compareAtPrice ?? "",
     cost: product.cost ?? "",
     isActive: product.isActive,
+    trackLowStock: product.trackLowStock,
     stock: product.hasVariants ? "" : String(product.stock ?? 1),
   };
 }
@@ -91,6 +94,7 @@ export function toCreatePayload(
     compareAtPrice: emptyToUndefined(values.compareAtPrice),
     cost: emptyToUndefined(values.cost),
     isActive: values.isActive,
+    trackLowStock: values.trackLowStock,
     stock: hasVariants ? undefined : Number(emptyToUndefined(values.stock) ?? "1"),
     optionSelections: hasVariants ? optionSelections : undefined,
   };
@@ -105,6 +109,7 @@ export function toUpdatePayload(values: ProductBasicFormValues, hasVariants: boo
     compareAtPrice: emptyToNull(values.compareAtPrice),
     cost: emptyToNull(values.cost),
     isActive: values.isActive,
+    trackLowStock: values.trackLowStock,
     stock: hasVariants ? undefined : Number(emptyToUndefined(values.stock) ?? "1"),
   };
 }

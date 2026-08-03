@@ -26,6 +26,10 @@ export const createProductSchema = z.object({
   compareAtPrice: decimalInput.optional(),
   cost: decimalInput.optional(),
   isActive: z.boolean().optional(),
+  // Opt-in low-stock alerts (CLAUDE.md rule 14: the threshold itself still
+  // comes from Setting). Off by default — most products are one-off pieces
+  // with stock = 1, so alerting on all of them is noise.
+  trackLowStock: z.boolean().optional(),
   sku: z.string().min(1).optional(),
   stock: z.coerce.number().int().min(0).optional(),
   // Selected global option values to generate variants from (cartesian
@@ -42,6 +46,7 @@ export const updateProductSchema = z.object({
   compareAtPrice: decimalInput.optional().nullable(),
   cost: decimalInput.optional().nullable(),
   isActive: z.boolean().optional(),
+  trackLowStock: z.boolean().optional(),
   sku: z.string().min(1).optional(),
   stock: z.coerce.number().int().min(0).optional(),
 });
