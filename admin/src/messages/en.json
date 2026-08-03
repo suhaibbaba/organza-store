@@ -189,11 +189,50 @@
       }
     }
   },
+  "categories": {
+    "title": "Categories",
+    "subtitle": "Organize your products into nested categories.",
+    "addCategory": "Add category",
+    "readOnlyHint": "You can view categories only. To make changes, contact an admin or manager.",
+    "empty": {
+      "title": "No categories yet",
+      "description": "Categories you add will show up here."
+    },
+    "tree": {
+      "expand": "Expand",
+      "collapse": "Collapse",
+      "edit": "Edit category",
+      "delete": "Delete category",
+      "confirmDelete": "Delete",
+      "cancelDelete": "Cancel"
+    },
+    "form": {
+      "createTitle": "Add category",
+      "editTitle": "Edit category",
+      "name": "Name",
+      "required": "Required",
+      "optional": "Optional",
+      "parent": "Parent category",
+      "noParent": "No parent (top level)",
+      "creating": "Creating…",
+      "saving": "Saving…",
+      "create": "Create category",
+      "save": "Save changes"
+    }
+  },
   "placeholders": {
-    "inventory": { "title": "Inventory", "description": "Track stock levels and low-stock alerts." },
-    "categories": { "title": "Categories", "description": "Organize products into nested categories." },
-    "users": { "title": "Users", "description": "Manage staff accounts and roles." },
-    "settings": { "title": "Settings", "description": "Store name, currency, and stock thresholds." }
+    "inventory": {
+      "title": "Inventory",
+      "description": "Track stock levels and low-stock alerts."
+    },
+    "users": {
+      "title": "Users",
+      "description": "Manage staff accounts and roles."
+    },
+    "settings": {
+      "title": "Settings",
+      "description": "Store name, currency, and stock thresholds."
+    }
   },
   "errors": {
     "notFound": "Not found.",
@@ -202,7 +241,6 @@
     "unauthorized": "Please sign in to continue.",
     "forbidden": "You don't have permission to do that.",
     "accountInactive": "Your account has been deactivated. Contact an admin.",
-
     "duplicate": "This already exists.",
     "skuDuplicate": "This SKU is already in use.",
     "barcodeDuplicate": "This barcode is already in use.",
@@ -210,25 +248,20 @@
     "emailDuplicate": "This email is already in use.",
     "phoneDuplicate": "This phone number is already in use.",
     "whatsappDuplicate": "This WhatsApp number is already in use.",
-
     "validationRequired": "This field is required.",
     "validationInvalidNumber": "Enter a valid number.",
     "validationInvalidPhone": "Enter a valid phone number.",
     "validationInvalidEmail": "Enter a valid email address.",
     "validationPasswordTooShort": "Password must be at least {min} characters.",
-
     "categoryNotFound": "Category not found.",
     "categoryCircularParent": "A category can't be its own ancestor.",
     "categoryHasChildren": "This category still has subcategories.",
     "categoryHasProducts": "This category still has products.",
-
     "productNotFound": "Product not found.",
     "variantNotFound": "Variant not found.",
-
     "variantTypeNotFound": "Variant type not found.",
     "variantTypeValueNotFound": "Variant value not found.",
     "variantTypeValueDuplicate": "This value already exists for this type.",
-
     "imageInvalidType": "This image type isn't supported.",
     "imageTooLarge": "This image is too large.",
     "imageUploadFailed": "The image upload failed.",
@@ -237,11 +270,8 @@
     "imageOwnerRequired": "Choose a product or variant for this image.",
     "imageReorderDuplicate": "Each image can only appear once in the order.",
     "imageReorderMismatch": "The image order doesn't match the current images.",
-
     "inventoryParentHasVariants": "This product's stock is managed per variant.",
-
     "settingDefaultLanguageNotSupported": "That language isn't supported yet.",
-
     "userNotFound": "User not found.",
     "authSignupFailed": "Couldn't create the account."
   }
