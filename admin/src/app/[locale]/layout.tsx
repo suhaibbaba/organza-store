@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist } from "next/font/google";
 import { Cairo } from "next/font/google";
 import { Noto_Sans_Hebrew } from "next/font/google";
@@ -17,6 +17,15 @@ const notoSansHebrew = Noto_Sans_Hebrew({ variable: "--font-noto-hebrew", subset
 export const metadata: Metadata = {
   title: "Organza Store — Admin",
   description: "Organza Store admin dashboard",
+};
+
+// viewport-fit=cover is required for env(safe-area-inset-*) to resolve to
+// anything other than 0 — without it, fixed bars stay padded for nothing
+// and get covered by the iOS home indicator on notched iPhones.
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
 };
 
 export function generateStaticParams() {

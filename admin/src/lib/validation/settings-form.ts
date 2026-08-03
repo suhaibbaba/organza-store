@@ -2,22 +2,16 @@ import { z } from "zod";
 import { ERROR_CODES } from "@shared/constants/errors";
 import type { Setting } from "@shared/types/setting";
 import type { UpdateSettingInput } from "@shared/schemas/setting";
+import { requiredIntegerField } from "@/lib/validation/numeric";
 
 const i18nFormSchema = z.object({ ar: z.string(), en: z.string(), he: z.string() });
-
-function isValidNonNegativeInteger(value: string): boolean {
-  return /^\d+$/.test(value.trim());
-}
 
 // Field messages are backend error codes (CLAUDE.md rule 12), same as every other form.
 export const settingsFormSchema = z.object({
   storeName: i18nFormSchema.extend({ ar: z.string().min(1, ERROR_CODES.VALIDATION_REQUIRED) }),
   defaultLanguage: z.string().min(1, ERROR_CODES.VALIDATION_REQUIRED),
   defaultCountryCode: z.string().min(1, ERROR_CODES.VALIDATION_REQUIRED),
-  lowStockThreshold: z
-    .string()
-    .min(1, ERROR_CODES.VALIDATION_REQUIRED)
-    .refine(isValidNonNegativeInteger, { message: ERROR_CODES.VALIDATION_INVALID_NUMBER }),
+  lowStockThreshold: requiredIntegerField,
 });
 export type SettingsFormValues = z.infer<typeof settingsFormSchema>;
 
