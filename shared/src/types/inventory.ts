@@ -12,6 +12,10 @@ export interface InventoryItem {
   barcode: string | null;
   categoryId: string;
   stock: number;
+  // The parent product's opt-in flag (Product.trackLowStock). Variant rows
+  // inherit it from their product. A row with this false must never be shown
+  // as low stock, however small its quantity.
+  trackLowStock: boolean;
   createdAt: string;
 }
 

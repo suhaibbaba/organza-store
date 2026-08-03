@@ -3,8 +3,9 @@
 import { useMemo } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { flexRender, getCoreRowModel, useReactTable, type ColumnDef } from "@tanstack/react-table";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, ChevronRight } from "lucide-react";
 import type { InventoryItem } from "@shared/types/inventory";
+import { Link } from "@/i18n/navigation";
 import { localize } from "@/lib/i18n-content";
 import { StockStepper } from "@/components/inventory/stock-stepper";
 import { cn } from "@/lib/utils";
@@ -30,10 +31,19 @@ export function InventoryTable({ items, threshold, canAdjust }: InventoryTablePr
           const name = localize(item.productName, locale);
           const variantName = item.variantName ? localize(item.variantName, locale) : null;
           return (
-            <div className="min-w-0">
-              <p className="truncate font-medium text-foreground">{name}</p>
-              {variantName && <p className="truncate text-xs text-muted-foreground">{variantName}</p>}
-            </div>
+            // ::after stretches the link over its whole cell, so the item
+            // column is clickable end to end. A variant row opens its parent
+            // product — variants have no page of their own.
+            <Link
+              href={`/products/${item.productId}`}
+              className="flex min-w-0 items-center gap-2 rounded-md after:absolute after:inset-0 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <span className="min-w-0">
+                <span className="block truncate font-medium text-foreground">{name}</span>
+                {variantName && <span className="block truncate text-xs text-muted-foreground">{variantName}</span>}
+              </span>
+              <ChevronRight className="size-4 shrink-0 text-muted-foreground rtl:-scale-x-100" aria-hidden="true" />
+            </Link>
           );
         },
       },
@@ -46,9 +56,10 @@ export function InventoryTable({ items, threshold, canAdjust }: InventoryTablePr
         id: "status",
         header: tTable("status"),
         cell: ({ row }) => {
-          const stock = row.original.stock;
+          const { stock, trackLowStock } = row.original;
           const isOut = stock <= 0;
-          const isLow = stock > 0 && stock <= threshold;
+          // Opt-in only (Product.trackLowStock) — see InventoryCard.
+          const isLow = trackLowStock && stock > 0 && stock <= threshold;
           if (!isOut && !isLow) return null;
           return (
             <span
@@ -96,8 +107,10 @@ export function InventoryTable({ items, threshold, canAdjust }: InventoryTablePr
         <tbody>
           {table.getRowModel().rows.map((row) => (
             <tr key={row.id} className="border-t border-border">
+              {/* `relative` scopes the item link's stretched ::after to its own
+                  cell, so it never covers the stock stepper. */}
               {row.getVisibleCells().map((cell) => (
-                <td key={cell.id} className="px-4 py-3 align-middle">
+                <td key={cell.id} className="relative px-4 py-3 align-middle">
                   {flexRender(cell.column.columnDef.cell, cell.getContext())}
                 </td>
               ))}
