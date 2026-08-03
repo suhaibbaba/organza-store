@@ -291,10 +291,77 @@
       "saved": "ההגדרות נשמרו."
     }
   },
-  "placeholders": {
-    "users": {
-      "title": "משתמשים",
-      "description": "ניהול חשבונות צוות ותפקידים."
+  "users": {
+    "title": "משתמשים",
+    "subtitle": "ניהול חשבונות צוות, תפקידים והרשאות.",
+    "addUser": "הוספת איש צוות",
+    "search": {
+      "placeholder": "חיפוש לפי שם, אימייל או טלפון…",
+      "label": "חיפוש אנשי צוות",
+      "clear": "ניקוי חיפוש"
+    },
+    "filters": {
+      "role": "תפקיד",
+      "allRoles": "כל התפקידים",
+      "status": "סטטוס",
+      "statusAll": "הכול",
+      "statusActive": "פעיל",
+      "statusInactive": "לא פעיל"
+    },
+    "role": {
+      "ADMIN": "מנהל מערכת",
+      "MANAGER": "מנהל",
+      "EMPLOYEE": "עובד"
+    },
+    "status": {
+      "active": "פעיל",
+      "inactive": "לא פעיל"
+    },
+    "card": {
+      "edit": "עריכת איש צוות",
+      "activate": "הפעלה",
+      "deactivate": "השבתה",
+      "confirmActivate": "הפעלה",
+      "confirmDeactivate": "השבתה",
+      "cancelToggle": "ביטול"
+    },
+    "table": {
+      "name": "שם",
+      "role": "תפקיד",
+      "phone": "טלפון",
+      "status": "סטטוס"
+    },
+    "empty": {
+      "noUsersTitle": "אין עדיין אנשי צוות",
+      "noUsersDescription": "חשבונות צוות שתוסיף/י יופיעו כאן.",
+      "noMatchesTitle": "לא נמצאו אנשי צוות תואמים",
+      "noMatchesDescription": "נסה/י חיפוש אחר או נקה/י את הסינון."
+    },
+    "pagination": {
+      "previous": "הקודם",
+      "next": "הבא",
+      "pageOf": "עמוד {page} מתוך {totalPages}"
+    },
+    "form": {
+      "createTitle": "הוספת איש צוות",
+      "editTitle": "עריכת איש צוות",
+      "name": "שם",
+      "email": "אימייל",
+      "emailHint": "לא ניתן לשנות את האימייל לאחר יצירת החשבון.",
+      "password": "סיסמה",
+      "passwordPlaceholderCreate": "הגדר/י סיסמה",
+      "passwordPlaceholderEdit": "השאר/י ריק כדי לשמור על הסיסמה הנוכחית",
+      "passwordHintEdit": "השאר/י ריק כדי לשמור על הסיסמה הנוכחית.",
+      "role": "תפקיד",
+      "phone": "טלפון",
+      "phonePrefixLabel": "קידומת מדינה",
+      "whatsapp": "וואטסאפ",
+      "whatsappHint": "אופציונלי — משמש ליצירת קשר עם איש הצוות בוואטסאפ.",
+      "idNumber": "מספר זהות",
+      "creating": "יוצר…",
+      "saving": "שומר…",
+      "create": "הוספת איש צוות",
+      "save": "שמירת שינויים"
     }
   },
   "errors": {
