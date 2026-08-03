@@ -340,3 +340,44 @@ It must be **idempotent** (upsert-based, safe to re-run) and **dev-only**. It co
 7. `admin/` UI on top of the API.
 8. `pos/` screen + scanner.
 **Test each stage before moving to the next.**
+
+---
+
+## Planned feature: Numbered shawls (image-based, deferred)
+A special **product type** for selling shawls over WhatsApp, to be built AFTER the core admin
+pages. Not started yet — documented here so the design is fixed.
+
+**Goal:** instead of one product per shawl, one product per *collection* with a **single image**
+showing all colors, and **numbers drawn on the image**. Each number is one shawl with its own
+quantity/stock. For WhatsApp: send one numbered image; the customer replies with the number.
+
+**Model:**
+- A distinct product type (e.g. `type: NUMBERED`) — do NOT overload the normal variant system.
+- The shawl product = one image + a list of **points**. Each point stores:
+  - coordinates `(x, y)` as **percentages, not pixels** (so they stay correct at any screen size),
+  - the displayed number (1, 2, 3…),
+  - a reference to that number's stock.
+- Numbers are unique **within a product** only (not store-wide).
+- Price can be a single product-level price (with optional per-number override).
+- Reuses the existing stock mechanism (audit log, low-stock).
+- SKU/barcode per number: only if it will also be sold via POS — decide at build time.
+
+**Display:** image as background, numbers drawn on a separate transparent overlay layer (small
+circles). The full image is visible with numbers on top.
+
+**Admin input (two-step, to avoid mis-linking):**
+1. Place empty points on the image first — auto-numbered 1, 2, 3…
+2. Review/drag/delete misplaced points BEFORE anything is linked.
+3. When happy with positions, set the quantity per number.
+4. Linking happens only on an explicit **Save** (no autosave). Deleting a number asks for
+   confirmation. Numbering is auto-sequential (no accidental duplicates).
+
+**WhatsApp export (automatic):** the system renders the image + numbers "burned in" into one
+shareable copy (via `sharp`), regenerated when points change — so one workflow yields both a
+WhatsApp-ready numbered image and an interactive stock-linked version inside the system.
+
+**Critical technical note:** on click, coordinates must be computed relative to the **displayed
+image's** dimensions, not the screen/viewport — otherwise the numbers drift.
+
+**Deliberately omitted (simplicity):** no sizes, no color names, no complex variants — just image +
+numbers + quantity per number.
