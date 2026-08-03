@@ -22,7 +22,7 @@ import { generateUniqueSlug } from "@/lib/slug";
 import { productSku, variantSku } from "@/lib/sku";
 import { generateUniqueBarcode } from "@/lib/barcode";
 import { buildSearchText, searchProductIds } from "@/lib/search";
-import { cartesianProduct, buildComboName } from "@/lib/variantCombo";
+import { cartesianProduct, buildComboName, buildImagePointMap, resolveComboImagePoint } from "@/lib/variantCombo";
 import { serializeProduct, serializeProductSummary, serializeVariant } from "@/lib/pricing";
 import { writeAudit } from "@/lib/audit";
 import { AUDIT_ENTITY, DEFAULT_STOCK, ERROR_CODES } from "@/constants";
@@ -203,10 +203,12 @@ router.post(
       });
 
       const combos = cartesianProduct(body.optionSelections!.map((s) => s.valueIds));
+      const imagePointMap = buildImagePointMap(body.optionSelections!);
       let variantNumber = 0;
       for (const combo of combos) {
         variantNumber += 1;
         const values = combo.map((valueId) => valueMap!.get(valueId)!);
+        const point = resolveComboImagePoint(combo, imagePointMap);
         await prisma.variant.create({
           data: {
             productId: created.id,
@@ -215,6 +217,8 @@ router.post(
             sku: variantSku(created.productNumber, variantNumber),
             barcode: await generateUniqueBarcode(),
             stock: DEFAULT_STOCK,
+            imageX: point?.imageX ?? null,
+            imageY: point?.imageY ?? null,
             values: { create: combo.map((optionValueId) => ({ optionValueId })) },
           },
         });
@@ -375,6 +379,7 @@ router.post(
     );
 
     const combos = cartesianProduct(body.optionSelections.map((s) => s.valueIds));
+    const imagePointMap = buildImagePointMap(body.optionSelections);
     let nextNumber = product.variants.reduce((max, v) => Math.max(max, v.variantNumber), 0);
     const createdSkus: string[] = [];
 
@@ -384,6 +389,7 @@ router.post(
 
       nextNumber += 1;
       const values = combo.map((valueId) => valueMap.get(valueId)!);
+      const point = resolveComboImagePoint(combo, imagePointMap);
       const sku = variantSku(product.productNumber, nextNumber);
       await prisma.variant.create({
         data: {
@@ -393,6 +399,8 @@ router.post(
           sku,
           barcode: await generateUniqueBarcode(),
           stock: DEFAULT_STOCK,
+          imageX: point?.imageX ?? null,
+          imageY: point?.imageY ?? null,
           values: { create: combo.map((optionValueId) => ({ optionValueId })) },
         },
       });
@@ -455,6 +463,8 @@ router.patch(
         cost: body.cost === undefined ? undefined : body.cost,
         stock: body.stock,
         isActive: body.isActive,
+        imageX: body.imageX === undefined ? undefined : body.imageX,
+        imageY: body.imageY === undefined ? undefined : body.imageY,
       },
       include: { values: { include: { optionValue: true } }, images: { orderBy: { sortOrder: "asc" } } },
     });

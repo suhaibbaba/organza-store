@@ -51,6 +51,10 @@ export interface Variant {
   resolvedPrice: string;
   stock: number;
   isActive: boolean;
+  // Numbered shawls (spec.md): point on the product image, percentage 0-100.
+  // Null for ordinary (non-numbered) variants.
+  imageX?: number | null;
+  imageY?: number | null;
   images: ProductImageRef[];
   values: VariantOptionValueRef[];
   createdAt: string;

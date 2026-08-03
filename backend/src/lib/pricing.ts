@@ -37,6 +37,8 @@ export function serializeVariant(variant: AnyRecord, product: AnyRecord, role: R
     resolvedPrice,
     stock: variant.stock,
     isActive: variant.isActive,
+    imageX: variant.imageX,
+    imageY: variant.imageY,
     images: images.map(serializeImage),
     values: (variant.values ?? []).map((vv: AnyRecord) => ({
       id: vv.optionValue.id,

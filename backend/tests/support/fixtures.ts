@@ -1,5 +1,6 @@
 // Fixture lookups against data the seed guarantees exists (backend/prisma/seed.ts):
-// nested categories, and the global "color"/"size" variant types with >=2 values each.
+// nested categories, and the global "color"/"size"/"number" variant types
+// with >=2 values each.
 import { apiRequest } from "@tests/support/client";
 import type { OptionSelection, VariantTypeDto } from "@tests/types";
 
@@ -29,4 +30,18 @@ export async function twoByTwoOptionSelections(token: string): Promise<OptionSel
     { variantTypeId: color.id, valueIds: [color.values[0].id, color.values[1].id] },
     { variantTypeId: size.id, valueIds: [size.values[0].id, size.values[1].id] },
   ];
+}
+
+// The seeded global "number" variant type (spec.md: numbered shawls reuse it
+// as-is), with its first two option value ids.
+export async function firstTwoNumberValueIds(token: string): Promise<{ variantTypeId: string; valueIds: [string, string] }> {
+  const res = await apiRequest<VariantTypeDto[]>("/api/variant-types", { token });
+  if (!res.success || !res.data) {
+    throw new Error("Could not load variant types — ensure the target API has been seeded via `npm run seed`.");
+  }
+  const number = res.data.find((t) => t.slug === "number");
+  if (!number || number.values.length < 2) {
+    throw new Error("Seeded 'number' variant type with >=2 values is required for this test.");
+  }
+  return { variantTypeId: number.id, valueIds: [number.values[0].id, number.values[1].id] };
 }

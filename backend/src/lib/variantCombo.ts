@@ -7,6 +7,33 @@ export function cartesianProduct<T>(arrays: T[][]): T[][] {
   return arrays.reduce<T[][]>((acc, curr) => acc.flatMap((combo) => curr.map((item) => [...combo, item])), [[]]);
 }
 
+export interface ImagePoint {
+  imageX: number;
+  imageY: number;
+}
+
+// Numbered shawls (spec.md): flattens every selection's optional per-value
+// image points into a single optionValueId -> point lookup.
+export function buildImagePointMap(selections: { imagePoints?: Record<string, ImagePoint> }[]): Map<string, ImagePoint> {
+  const map = new Map<string, ImagePoint>();
+  for (const selection of selections) {
+    if (!selection.imagePoints) continue;
+    for (const [valueId, point] of Object.entries(selection.imagePoints)) map.set(valueId, point);
+  }
+  return map;
+}
+
+// A combo is one generated variant's option value ids across every selected
+// type; numbered shawls only ever select a single type (Number), so at most
+// one id in the combo carries a point.
+export function resolveComboImagePoint(combo: string[], pointMap: Map<string, ImagePoint>): ImagePoint | undefined {
+  for (const valueId of combo) {
+    const point = pointMap.get(valueId);
+    if (point) return point;
+  }
+  return undefined;
+}
+
 // Auto-suggested variant name from its option combination, e.g. "أحمر / M".
 // Falls back to the default-language (ar) label for any language missing on
 // a given option value, so every language key still gets a usable string.

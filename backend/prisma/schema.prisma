@@ -209,6 +209,11 @@ model Variant {
   cost          Decimal? @db.Decimal(10, 2) // null => falls back to product.cost
   stock         Int      @default(1)
 
+  // Numbered shawls (spec.md): point on the product image, percentage 0-100.
+  // Null for ordinary (non-numbered) variants.
+  imageX Float?
+  imageY Float?
+
   isActive Boolean @default(true)
 
   images ProductImage[] // optional; empty => falls back to product images
