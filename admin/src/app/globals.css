@@ -35,6 +35,11 @@
 :root {
   --radius: 0.75rem;
 
+  /* Organza logo hues. Every brand tint below is derived from these two, so the
+     whole theme can be re-hued from here instead of per-token. */
+  --brand-hue: 206.4; /* dark teal  #235C63 */
+  --brand-accent-hue: 177.6; /* light mint #B5D3CB */
+
   --background: oklch(0.99 0 0);
   --foreground: oklch(0.18 0 0);
   --card: oklch(1 0 0);
@@ -42,25 +47,27 @@
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.18 0 0);
 
-  /* Organza plum — brand primary */
-  --primary: oklch(0.36 0.11 328);
+  /* Organza teal — brand primary (#235C63) */
+  --primary: oklch(0.44 0.06 var(--brand-hue));
   --primary-foreground: oklch(0.98 0 0);
 
-  --secondary: oklch(0.96 0.01 328);
-  --secondary-foreground: oklch(0.25 0.02 328);
+  --secondary: oklch(0.96 0.012 var(--brand-hue));
+  --secondary-foreground: oklch(0.28 0.03 var(--brand-hue));
 
   --muted: oklch(0.96 0 0);
   --muted-foreground: oklch(0.48 0 0);
 
-  --accent: oklch(0.94 0.03 328);
-  --accent-foreground: oklch(0.25 0.02 328);
+  /* Organza mint — brand light accent (#B5D3CB) */
+  --accent: oklch(0.843 0.034 var(--brand-accent-hue));
+  --accent-foreground: oklch(0.28 0.03 var(--brand-hue));
 
   --destructive: oklch(0.55 0.22 27);
   --destructive-foreground: oklch(0.98 0 0);
 
   --border: oklch(0.9 0 0);
   --input: oklch(0.9 0 0);
-  --ring: oklch(0.36 0.11 328 / 0.5);
+  /* 0.65 alpha keeps the focus ring at >=3:1 against the page background. */
+  --ring: oklch(0.44 0.06 var(--brand-hue) / 0.65);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -72,24 +79,25 @@
     --popover: oklch(0.2 0 0);
     --popover-foreground: oklch(0.96 0 0);
 
-    --primary: oklch(0.72 0.1 328);
+    /* Same brand hue, lightened so it reads on a dark surface. */
+    --primary: oklch(0.74 0.07 var(--brand-hue));
     --primary-foreground: oklch(0.16 0 0);
 
-    --secondary: oklch(0.27 0.02 328);
-    --secondary-foreground: oklch(0.96 0 0);
+    --secondary: oklch(0.28 0.03 var(--brand-hue));
+    --secondary-foreground: oklch(0.94 0.015 var(--brand-accent-hue));
 
     --muted: oklch(0.27 0 0);
     --muted-foreground: oklch(0.68 0 0);
 
-    --accent: oklch(0.3 0.03 328);
-    --accent-foreground: oklch(0.96 0 0);
+    --accent: oklch(0.32 0.04 var(--brand-hue));
+    --accent-foreground: oklch(0.94 0.015 var(--brand-accent-hue));
 
     --destructive: oklch(0.62 0.2 27);
     --destructive-foreground: oklch(0.16 0 0);
 
     --border: oklch(1 0 0 / 12%);
     --input: oklch(1 0 0 / 18%);
-    --ring: oklch(0.72 0.1 328 / 0.5);
+    --ring: oklch(0.74 0.07 var(--brand-hue) / 0.6);
   }
 }
 
