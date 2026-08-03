@@ -3,6 +3,7 @@ import { ERROR_CODES } from "@shared/constants/errors";
 import type { I18n } from "@shared/types/common";
 import type { Product } from "@shared/types/product";
 import type { CreateProductInput, UpdateProductInput } from "@shared/schemas/product";
+import { optionalDecimalField, optionalIntegerField, requiredDecimalField } from "@/lib/validation/numeric";
 import type { I18nFormValue } from "@/types/productForm";
 
 // The exact { ar: string; en?: string; he?: string } shape the shared
@@ -11,30 +12,20 @@ import type { I18nFormValue } from "@/types/productForm";
 type RequiredI18nInput = CreateProductInput["name"];
 type OptionalI18nInput = NonNullable<CreateProductInput["description"]>;
 
-function isValidNonNegativeNumber(value: string): boolean {
-  const trimmed = value.trim();
-  return trimmed !== "" && !Number.isNaN(Number(trimmed)) && Number(trimmed) >= 0;
-}
-
-const optionalNumberField = z
-  .string()
-  .refine((v) => v.trim() === "" || isValidNonNegativeNumber(v), ERROR_CODES.VALIDATION_INVALID_NUMBER);
-
 const i18nFormSchema = z.object({ ar: z.string(), en: z.string(), he: z.string() });
 
 // Field messages are backend error codes (CLAUDE.md rule 12), same as every
-// other form — see useTranslateError.
+// other form — see useTranslateError. Stock is an integer (no decimals);
+// prices may keep a decimal point (CLAUDE.md "Mobile input" rules).
 export const productBasicFormSchema = z.object({
   name: i18nFormSchema.extend({ ar: z.string().min(1, ERROR_CODES.VALIDATION_REQUIRED) }),
   description: i18nFormSchema,
   categoryId: z.string().min(1, ERROR_CODES.VALIDATION_REQUIRED),
-  basePrice: z.string().min(1, ERROR_CODES.VALIDATION_REQUIRED).refine(isValidNonNegativeNumber, {
-    message: ERROR_CODES.VALIDATION_INVALID_NUMBER,
-  }),
-  compareAtPrice: optionalNumberField,
-  cost: optionalNumberField,
+  basePrice: requiredDecimalField,
+  compareAtPrice: optionalDecimalField,
+  cost: optionalDecimalField,
   isActive: z.boolean(),
-  stock: optionalNumberField,
+  stock: optionalIntegerField,
 });
 export type ProductBasicFormValues = z.infer<typeof productBasicFormSchema>;
 

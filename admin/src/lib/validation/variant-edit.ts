@@ -1,5 +1,6 @@
 import type { Variant } from "@shared/types/variant";
 import type { UpdateVariantInput } from "@shared/schemas/product";
+import { isNonNegativeIntegerString } from "@/lib/validation/numeric";
 import type { VariantEditValues } from "@/types/productForm";
 
 export function initVariantEdits(variants: Variant[]): Record<string, VariantEditValues> {
@@ -23,8 +24,9 @@ export function diffVariantEdit(original: Variant, edits: VariantEditValues): Up
   const patch: UpdateVariantInput = {};
   let changed = false;
 
+  // Stock is an integer, never a decimal (CLAUDE.md "Mobile input" rules).
   const stock = Number(edits.stock);
-  if (edits.stock.trim() !== "" && !Number.isNaN(stock) && stock !== original.stock) {
+  if (isNonNegativeIntegerString(edits.stock) && stock !== original.stock) {
     patch.stock = stock;
     changed = true;
   }

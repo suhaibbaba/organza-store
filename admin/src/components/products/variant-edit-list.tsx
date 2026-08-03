@@ -6,7 +6,7 @@ import { ChevronDown, Trash2 } from "lucide-react";
 import type { Variant } from "@shared/types/variant";
 import { localize } from "@/lib/i18n-content";
 import { formatMoney } from "@/lib/format";
-import { Input } from "@/components/ui/input";
+import { NumericInput } from "@/components/ui/numeric-input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
@@ -101,11 +101,8 @@ export function VariantEditList({
               <div className="grid grid-cols-2 gap-3">
                 <div className="flex flex-col gap-1.5">
                   <Label htmlFor={`stock-${variant.id}`}>{t("stock")}</Label>
-                  <Input
+                  <NumericInput
                     id={`stock-${variant.id}`}
-                    type="number"
-                    inputMode="numeric"
-                    min={0}
                     value={values.stock}
                     onChange={(e) => onEditChange(variant.id, { ...values, stock: e.target.value })}
                   />
@@ -113,11 +110,9 @@ export function VariantEditList({
 
                 <div className="flex flex-col gap-1.5">
                   <Label htmlFor={`price-${variant.id}`}>{t("priceOverride")}</Label>
-                  <Input
+                  <NumericInput
                     id={`price-${variant.id}`}
-                    type="number"
-                    inputMode="decimal"
-                    min={0}
+                    allowDecimal
                     placeholder={t("inherits", { value: formatMoney(variant.resolvedPrice, currency, locale) })}
                     value={values.priceOverride}
                     onChange={(e) => onEditChange(variant.id, { ...values, priceOverride: e.target.value })}
@@ -127,11 +122,9 @@ export function VariantEditList({
                 {canSeeCost && (
                   <div className="flex flex-col gap-1.5">
                     <Label htmlFor={`cost-${variant.id}`}>{t("cost")}</Label>
-                    <Input
+                    <NumericInput
                       id={`cost-${variant.id}`}
-                      type="number"
-                      inputMode="decimal"
-                      min={0}
+                      allowDecimal
                       placeholder={
                         variant.resolvedCost
                           ? t("inherits", { value: formatMoney(variant.resolvedCost, currency, locale) })
