@@ -4,6 +4,20 @@ import { ZodError } from "zod";
 import { AppError, sendError } from "@/lib/response";
 import { ERROR_CODES, type ErrorCode } from "@/constants";
 
+// Schemas built from `@shared/schemas/*` are compiled against shared/'s own
+// zod install — a separate copy of the package from backend's own
+// node_modules/zod (each project here has its own package.json, CLAUDE.md's
+// "Repo structure"; nothing hoists them together). A ZodError thrown while
+// validating a shared schema is therefore a different realm's class, so
+// `instanceof ZodError` fails even though it's the same error by name/shape
+// — duck-type on that shape instead of trusting the prototype chain.
+function isZodError(err: unknown): err is ZodError {
+  return (
+    err instanceof ZodError ||
+    (err instanceof Error && err.name === "ZodError" && Array.isArray((err as { issues?: unknown }).issues))
+  );
+}
+
 function codeForUniqueViolation(target: unknown): ErrorCode {
   const fields = Array.isArray(target) ? target.join(",") : String(target ?? "");
   if (fields.includes("sku")) return ERROR_CODES.SKU_DUPLICATE;
@@ -24,7 +38,7 @@ export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
     return;
   }
 
-  if (err instanceof ZodError) {
+  if (isZodError(err)) {
     sendError(res, new AppError(400, ERROR_CODES.VALIDATION, err.issues));
     return;
   }
