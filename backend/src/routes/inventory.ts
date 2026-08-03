@@ -93,6 +93,7 @@ router.get(
           barcode: product.barcode,
           categoryId: product.categoryId,
           stock: product.stock,
+          trackLowStock: product.trackLowStock,
           createdAt: product.createdAt,
         });
       } else {
@@ -106,6 +107,9 @@ router.get(
             sku: variant.sku,
             barcode: variant.barcode,
             categoryId: product.categoryId,
+            // Tracking is a product-level opt-in; every variant of a tracked
+            // product is tracked with it.
+            trackLowStock: product.trackLowStock,
             stock: variant.stock,
             createdAt: variant.createdAt,
           });

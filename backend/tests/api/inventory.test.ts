@@ -1,4 +1,5 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import type { Setting } from "@prisma/client";
 import { apiRequest, uniqueId } from "@tests/support/client";
 import { getSession } from "@tests/support/auth";
 import { anyCategoryId, twoByTwoOptionSelections } from "@tests/support/fixtures";
@@ -13,10 +14,16 @@ describe("Inventory", () => {
   // Same low stock, but left at the default trackLowStock=false — used to
   // prove the low-stock filter is opt-in, not threshold-only.
   let untrackedProductId: string;
+  // Read from Setting rather than hard-coded (CLAUDE.md rule 14), so these
+  // assertions still mean something if the sandbox threshold changes.
+  let threshold: number;
 
   beforeAll(async () => {
     const admin = await getSession("ADMIN");
     categoryId = await anyCategoryId(admin.token);
+    const setting = await apiRequest<Setting>("/api/settings", { token: admin.token });
+    expect(setting.status).toBe(200);
+    threshold = setting.data!.lowStockThreshold;
     const res = await apiRequest<ProductDto>("/api/products", {
       method: "POST",
       token: admin.token,
@@ -63,7 +70,11 @@ describe("Inventory", () => {
       token: admin.token,
     });
     expect(res.status).toBe(200);
-    expect(res.data!.some((i) => i.id === productId)).toBe(true);
+    const row = res.data!.find((i) => i.id === productId);
+    expect(row).toBeDefined();
+    // The admin badges low stock off this flag, not off the threshold alone,
+    // so the list has to carry it per row.
+    expect(row!.trackLowStock).toBe(true);
   });
 
   it("allows Employee to view inventory read-only", async () => {
@@ -104,7 +115,12 @@ describe("Inventory", () => {
       { token: admin.token }
     );
     expect(res.status).toBe(200);
-    expect(res.data!.some((i) => i.id === productId)).toBe(true);
+    const row = res.data!.find((i) => i.id === productId);
+    expect(row).toBeDefined();
+    // Both halves of what the admin badge now checks: opted in, and at or
+    // under the threshold.
+    expect(row!.trackLowStock).toBe(true);
+    expect(row!.stock).toBeLessThanOrEqual(threshold);
   });
 
   // Low-stock alerts are opt-in per product: this one sits at stock = 1,
@@ -126,7 +142,12 @@ describe("Inventory", () => {
       { token: admin.token }
     );
     expect(res.status).toBe(200);
-    expect(res.data!.some((i) => i.id === untrackedProductId)).toBe(true);
+    const row = res.data!.find((i) => i.id === untrackedProductId);
+    expect(row).toBeDefined();
+    // stock = 1, comfortably under the threshold — but untracked, so the row
+    // reports trackLowStock=false and the admin must not badge it as low.
+    expect(row!.stock).toBeLessThanOrEqual(threshold);
+    expect(row!.trackLowStock).toBe(false);
   });
 
   it("lets an Admin toggle trackLowStock on an existing product", async () => {
@@ -172,6 +193,50 @@ describe("Inventory", () => {
     expect(res.status).toBe(201);
     expect(res.data!.trackLowStock).toBe(false);
     await apiRequest(`/api/products/${res.data!.id}`, { method: "DELETE", token: admin.token });
+  });
+
+  // Tracking is a product-level opt-in, and variants have no flag of their
+  // own — every variant row has to report its parent's, or a tracked
+  // variant-bearing product would never badge in the admin.
+  it("reports the parent product's trackLowStock on every variant row", async () => {
+    const admin = await getSession("ADMIN");
+    const optionSelections = await twoByTwoOptionSelections(admin.token);
+    const created = await apiRequest<ProductDto>("/api/products", {
+      method: "POST",
+      token: admin.token,
+      body: {
+        name: { ar: `تتبع متغير ${nonce}`, en: `Vitest Variant Track ${nonce}` },
+        categoryId,
+        basePrice: "60",
+        trackLowStock: true,
+        optionSelections,
+      },
+    });
+    expect(created.status).toBe(201);
+    const trackedVariantProductId = created.data!.id;
+
+    try {
+      const listed = await apiRequest<StockItem[]>(
+        `/api/inventory?q=${encodeURIComponent(`Vitest Variant Track ${nonce}`)}`,
+        { token: admin.token }
+      );
+      expect(listed.status).toBe(200);
+      const rows = listed.data!.filter((i) => i.productId === trackedVariantProductId);
+      expect(rows.length).toBeGreaterThan(0);
+      expect(rows.every((i) => i.type === "variant")).toBe(true);
+      expect(rows.every((i) => i.trackLowStock === true)).toBe(true);
+
+      // And the mirror case: the untracked simple product's rows stay false.
+      const untracked = await apiRequest<StockItem[]>(
+        `/api/inventory?q=${encodeURIComponent(`Vitest Untracked Inventory ${nonce}`)}`,
+        { token: admin.token }
+      );
+      const untrackedRows = untracked.data!.filter((i) => i.productId === untrackedProductId);
+      expect(untrackedRows.length).toBeGreaterThan(0);
+      expect(untrackedRows.every((i) => i.trackLowStock === false)).toBe(true);
+    } finally {
+      await apiRequest(`/api/products/${trackedVariantProductId}`, { method: "DELETE", token: admin.token });
+    }
   });
 
   it("adjusts a variant's stock via the inventory route", async () => {
