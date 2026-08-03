@@ -3,6 +3,7 @@
 import { useParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { ChevronLeft, PackageX } from "lucide-react";
+import { can } from "@shared/lib/permissions";
 import { Link } from "@/i18n/navigation";
 import { useSession } from "@/components/providers/session-provider";
 import { useProductQuery } from "@/hooks/use-products";
@@ -21,7 +22,7 @@ export default function EditProductPage() {
   const { data: product, isLoading, isError, error, refetch } = useProductQuery(params.id);
 
   const notFound = error instanceof ApiError && error.status === 404;
-  const canEditDetails = user?.role === "ADMIN" || user?.role === "MANAGER";
+  const canEditDetails = can(user, "product.edit");
 
   return (
     <div className="flex flex-col gap-4">

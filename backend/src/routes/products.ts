@@ -1,8 +1,9 @@
 import { Router } from "express";
 import { AuditAction, Prisma, Role } from "@prisma/client";
+import { can } from "@shared/lib/permissions";
 import { prisma } from "@/lib/prisma";
 import { asyncHandler } from "@/middleware/asyncHandler";
-import { requireAuth, requireRole } from "@/middleware/auth";
+import { requireAuth, requirePermission } from "@/middleware/auth";
 import { validateBody, validateQuery } from "@/middleware/validate";
 import { AppError, sendOk } from "@/lib/response";
 import {
@@ -140,7 +141,7 @@ router.get(
 // ---------------------------------------------------------------------------
 router.post(
   "/",
-  requireRole(Role.ADMIN, Role.MANAGER, Role.EMPLOYEE),
+  requirePermission("product.create"),
   validateBody(createProductSchema),
   asyncHandler(async (req, res) => {
     const body = req.body as CreateProductInput;
@@ -161,7 +162,7 @@ router.post(
 
     // `cost` is Admin/Manager-only (CLAUDE.md rule 19) — silently dropped
     // for Employees rather than erroring, since they simply can't set it.
-    const cost = req.user!.role === Role.EMPLOYEE ? undefined : body.cost;
+    const cost = can(req.user!, "product.viewCost") ? body.cost : undefined;
 
     const slug = await generateUniqueSlug(body.name.ar, async (candidate) => {
       const existing = await prisma.product.findUnique({ where: { slug: candidate } });
@@ -239,7 +240,7 @@ router.post(
 // ---------------------------------------------------------------------------
 router.patch(
   "/:id",
-  requireRole(Role.ADMIN, Role.MANAGER),
+  requirePermission("product.edit"),
   validateBody(updateProductSchema),
   asyncHandler(async (req, res) => {
     const existing = await prisma.product.findFirst({
@@ -322,7 +323,7 @@ router.patch(
 // ---------------------------------------------------------------------------
 router.delete(
   "/:id",
-  requireRole(Role.ADMIN, Role.MANAGER),
+  requirePermission("product.delete"),
   asyncHandler(async (req, res) => {
     const existing = await prisma.product.findFirst({ where: { id: req.params.id, deletedAt: null } });
     if (!existing) throw new AppError(404, ERROR_CODES.PRODUCT_NOT_FOUND);
@@ -351,7 +352,7 @@ router.delete(
 // ---------------------------------------------------------------------------
 router.post(
   "/:id/variants/generate",
-  requireRole(Role.ADMIN, Role.MANAGER),
+  requirePermission("product.edit"),
   validateBody(generateVariantsSchema),
   asyncHandler(async (req, res) => {
     const product = await prisma.product.findFirst({
@@ -423,7 +424,7 @@ router.post(
 // ---------------------------------------------------------------------------
 router.patch(
   "/:id/variants/:variantId",
-  requireRole(Role.ADMIN, Role.MANAGER),
+  requirePermission("product.edit"),
   validateBody(updateVariantSchema),
   asyncHandler(async (req, res) => {
     const variant = await prisma.variant.findFirst({
@@ -477,7 +478,7 @@ router.patch(
 // ---------------------------------------------------------------------------
 router.delete(
   "/:id/variants/:variantId",
-  requireRole(Role.ADMIN, Role.MANAGER),
+  requirePermission("product.delete"),
   asyncHandler(async (req, res) => {
     const variant = await prisma.variant.findFirst({
       where: { id: req.params.variantId, productId: req.params.id },

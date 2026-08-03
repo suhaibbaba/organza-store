@@ -1,11 +1,11 @@
 import { Router } from "express";
-import { AuditAction, Role } from "@prisma/client";
+import { AuditAction } from "@prisma/client";
 import { APIError } from "better-auth";
 import { hashPassword } from "better-auth/crypto";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { asyncHandler } from "@/middleware/asyncHandler";
-import { requireAuth, requireRole } from "@/middleware/auth";
+import { requireAuth, requirePermission } from "@/middleware/auth";
 import { validateBody, validateQuery } from "@/middleware/validate";
 import { AppError, sendOk } from "@/lib/response";
 import {
@@ -26,7 +26,7 @@ import type { SerializableUser } from "@/types";
 // satisfied, but the serializer still exists to keep the shape explicit and
 // to strip Better Auth internals (no password/hash ever leaves this file).
 const router = Router();
-router.use(requireAuth, requireRole(Role.ADMIN));
+router.use(requireAuth, requirePermission("user.manage"));
 
 function serializeUser(user: SerializableUser) {
   return {

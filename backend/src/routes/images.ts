@@ -1,10 +1,10 @@
 import { Router } from "express";
 import type { NextFunction, Request, Response } from "express";
 import multer, { MulterError } from "multer";
-import { AuditAction, Role, type ProductImage } from "@prisma/client";
+import { AuditAction, type ProductImage } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { asyncHandler } from "@/middleware/asyncHandler";
-import { requireAuth, requireRole } from "@/middleware/auth";
+import { requireAuth, requirePermission } from "@/middleware/auth";
 import { validateBody } from "@/middleware/validate";
 import { AppError, sendOk } from "@/lib/response";
 import { ALLOWED_IMAGE_TYPES, UPLOAD_MAX_SIZE_MB, deleteProductImageFiles, storeProductImage } from "@/lib/image";
@@ -77,7 +77,7 @@ function handleUpload(req: Request, res: Response, next: NextFunction): void {
 // ---------------------------------------------------------------------------
 router.post(
   "/",
-  requireRole(Role.ADMIN, Role.MANAGER, Role.EMPLOYEE),
+  requirePermission("images.edit"),
   handleUpload,
   validateBody(uploadImageSchema),
   asyncHandler(async (req, res) => {
@@ -129,7 +129,7 @@ router.post(
 // ---------------------------------------------------------------------------
 router.patch(
   "/reorder",
-  requireRole(Role.ADMIN, Role.MANAGER, Role.EMPLOYEE),
+  requirePermission("images.edit"),
   validateBody(reorderImagesSchema),
   asyncHandler(async (req, res) => {
     const body = req.body as ReorderImagesInput;
@@ -167,7 +167,7 @@ router.patch(
 // ---------------------------------------------------------------------------
 router.patch(
   "/:id",
-  requireRole(Role.ADMIN, Role.MANAGER, Role.EMPLOYEE),
+  requirePermission("images.edit"),
   validateBody(setPrimaryImageSchema),
   asyncHandler(async (req, res) => {
     const image = await prisma.productImage.findUnique({ where: { id: req.params.id } });
@@ -206,7 +206,7 @@ router.patch(
 // ---------------------------------------------------------------------------
 router.delete(
   "/:id",
-  requireRole(Role.ADMIN, Role.MANAGER),
+  requirePermission("images.delete"),
   asyncHandler(async (req, res) => {
     const image = await prisma.productImage.findUnique({ where: { id: req.params.id } });
     if (!image) throw new AppError(404, ERROR_CODES.IMAGE_NOT_FOUND);

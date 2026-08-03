@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useLocale, useTranslations } from "next-intl";
 import { SUPPORTED_LANGUAGES, DEFAULT_LANGUAGE } from "@shared/constants/languages";
 import type { Product } from "@shared/types/product";
+import { can } from "@shared/lib/permissions";
 import { useRouter } from "@/i18n/navigation";
 import { useSession } from "@/components/providers/session-provider";
 import { useTranslateError } from "@/hooks/use-translate-error";
@@ -58,13 +59,13 @@ export function ProductForm({ mode, product }: ProductFormProps) {
   const { user } = useSession();
   const translateError = useTranslateError();
 
-  const canSeeCost = user?.role === "ADMIN" || user?.role === "MANAGER";
-  const showActiveToggle = mode === "edit" || user?.role !== "EMPLOYEE";
+  const canSeeCost = can(user, "product.viewCost");
+  const showActiveToggle = mode === "edit" || can(user, "product.hide");
   // Editing product/variant details (name, pricing, stock, generating more
   // variants) is Admin/Manager only (CLAUDE.md rule 5). "Edit images" is a
   // separate, broader capability — Employees keep full image access below.
-  const canEditDetails = mode === "create" || user?.role === "ADMIN" || user?.role === "MANAGER";
-  const canDeleteImages = user?.role === "ADMIN" || user?.role === "MANAGER";
+  const canEditDetails = mode === "create" || can(user, "product.edit");
+  const canDeleteImages = can(user, "images.delete");
 
   const { data: categoryTree } = useCategoriesQuery();
   const categoryOptions = categoryTree ? flattenCategoryTree(categoryTree) : [];

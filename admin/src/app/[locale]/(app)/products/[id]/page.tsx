@@ -4,6 +4,7 @@ import { useParams } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { ChevronLeft, ImageIcon, PackageX, Pencil } from "lucide-react";
 import type { Product } from "@shared/types/product";
+import { can } from "@shared/lib/permissions";
 import { Link } from "@/i18n/navigation";
 import { useProductQuery } from "@/hooks/use-products";
 import { useSettingsQuery } from "@/hooks/use-settings";
@@ -59,7 +60,7 @@ function ProductDetail({ product, currency, locale }: { product: Product; curren
   // Every role can reach the edit screen — editing details is Admin/Manager
   // only, but "edit images" (CLAUDE.md rule 5) is available to Employees
   // too, and the edit screen itself decides what each role can touch.
-  const canEditDetails = user?.role === "ADMIN" || user?.role === "MANAGER";
+  const canEditDetails = can(user, "product.edit");
   const name = localize(product.name, locale);
   const description = localize(product.description, locale);
   const showCost = product.cost !== undefined;

@@ -1,8 +1,8 @@
 import { Router } from "express";
-import { AuditAction, Role } from "@prisma/client";
+import { AuditAction } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { asyncHandler } from "@/middleware/asyncHandler";
-import { requireAuth, requireRole } from "@/middleware/auth";
+import { requireAuth, requirePermission } from "@/middleware/auth";
 import { validateBody } from "@/middleware/validate";
 import { AppError, sendOk } from "@/lib/response";
 import { updateSettingSchema, type UpdateSettingInput } from "@/validation/setting";
@@ -31,7 +31,7 @@ router.get(
 
 router.patch(
   "/",
-  requireRole(Role.ADMIN),
+  requirePermission("settings.manage"),
   validateBody(updateSettingSchema),
   asyncHandler(async (req, res) => {
     const existing = await getOrCreateSettings();

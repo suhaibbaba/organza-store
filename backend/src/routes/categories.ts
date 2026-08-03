@@ -1,8 +1,8 @@
 import { Router } from "express";
-import { AuditAction, Role, type Category } from "@prisma/client";
+import { AuditAction, type Category } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { asyncHandler } from "@/middleware/asyncHandler";
-import { requireAuth, requireRole } from "@/middleware/auth";
+import { requireAuth, requirePermission } from "@/middleware/auth";
 import { validateBody } from "@/middleware/validate";
 import { AppError, sendOk } from "@/lib/response";
 import {
@@ -69,7 +69,7 @@ router.get(
 // ---------------------------------------------------------------------------
 router.post(
   "/",
-  requireRole(Role.ADMIN, Role.MANAGER),
+  requirePermission("category.manage"),
   validateBody(createCategorySchema),
   asyncHandler(async (req, res) => {
     const body = req.body as CreateCategoryInput;
@@ -105,7 +105,7 @@ router.post(
 // ---------------------------------------------------------------------------
 router.patch(
   "/:id",
-  requireRole(Role.ADMIN, Role.MANAGER),
+  requirePermission("category.manage"),
   validateBody(updateCategorySchema),
   asyncHandler(async (req, res) => {
     const existing = await prisma.category.findUnique({ where: { id: req.params.id } });
@@ -162,7 +162,7 @@ router.patch(
 // ---------------------------------------------------------------------------
 router.delete(
   "/:id",
-  requireRole(Role.ADMIN, Role.MANAGER),
+  requirePermission("category.manage"),
   asyncHandler(async (req, res) => {
     const existing = await prisma.category.findUnique({ where: { id: req.params.id } });
     if (!existing) throw new AppError(404, ERROR_CODES.CATEGORY_NOT_FOUND);
