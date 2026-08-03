@@ -90,6 +90,40 @@ describe("Users", () => {
     expect(res.error?.code).toBe(ERROR_CODES.VALIDATION);
   });
 
+  it("rejects an unparseable phone string as a clean 400, not a 500", async () => {
+    const admin = await getSession("ADMIN");
+    const res = await apiRequest("/api/users", {
+      method: "POST",
+      token: admin.token,
+      body: {
+        name: `Vitest Garbage ${nonce}`,
+        email: `vitest.garbage.${nonce}@organza.test`,
+        password: SEEDED_PASSWORD,
+        role: Role.EMPLOYEE,
+        phone: "+not-a-real-phone#$%",
+      },
+    });
+    expect(res.status).toBe(400);
+    expect(res.error?.code).toBe(ERROR_CODES.VALIDATION);
+  });
+
+  it("rejects an empty phone value as a clean 400, not a 500", async () => {
+    const admin = await getSession("ADMIN");
+    const res = await apiRequest("/api/users", {
+      method: "POST",
+      token: admin.token,
+      body: {
+        name: `Vitest Empty ${nonce}`,
+        email: `vitest.empty.${nonce}@organza.test`,
+        password: SEEDED_PASSWORD,
+        role: Role.EMPLOYEE,
+        phone: "",
+      },
+    });
+    expect(res.status).toBe(400);
+    expect(res.error?.code).toBe(ERROR_CODES.VALIDATION);
+  });
+
   it("forbids Manager and Employee from reading the staff list (idNumber never leaves the backend for non-admins)", async () => {
     const manager = await getSession("MANAGER");
     const employee = await getSession("EMPLOYEE");
