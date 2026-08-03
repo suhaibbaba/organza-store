@@ -189,11 +189,50 @@
       }
     }
   },
+  "categories": {
+    "title": "קטגוריות",
+    "subtitle": "ארגון המוצרים בקטגוריות מקוננות.",
+    "addCategory": "הוספת קטגוריה",
+    "readOnlyHint": "ניתן לצפות בקטגוריות בלבד. לביצוע שינויים, פנה/י למנהל.",
+    "empty": {
+      "title": "אין עדיין קטגוריות",
+      "description": "קטגוריות שתוסיף/י יופיעו כאן."
+    },
+    "tree": {
+      "expand": "הרחבה",
+      "collapse": "כיווץ",
+      "edit": "עריכת קטגוריה",
+      "delete": "מחיקת קטגוריה",
+      "confirmDelete": "מחיקה",
+      "cancelDelete": "ביטול"
+    },
+    "form": {
+      "createTitle": "הוספת קטגוריה",
+      "editTitle": "עריכת קטגוריה",
+      "name": "שם",
+      "required": "חובה",
+      "optional": "אופציונלי",
+      "parent": "קטגוריית אב",
+      "noParent": "ללא קטגוריית אב (רמה עליונה)",
+      "creating": "יוצר…",
+      "saving": "שומר…",
+      "create": "יצירת קטגוריה",
+      "save": "שמירת שינויים"
+    }
+  },
   "placeholders": {
-    "inventory": { "title": "מלאי", "description": "מעקב אחר כמויות המלאי והתראות מלאי נמוך." },
-    "categories": { "title": "קטגוריות", "description": "ארגון מוצרים בקטגוריות מקוננות." },
-    "users": { "title": "משתמשים", "description": "ניהול חשבונות צוות ותפקידים." },
-    "settings": { "title": "הגדרות", "description": "שם החנות, מטבע וסף מלאי נמוך." }
+    "inventory": {
+      "title": "מלאי",
+      "description": "מעקב אחר כמויות המלאי והתראות מלאי נמוך."
+    },
+    "users": {
+      "title": "משתמשים",
+      "description": "ניהול חשבונות צוות ותפקידים."
+    },
+    "settings": {
+      "title": "הגדרות",
+      "description": "שם החנות, מטבע וסף מלאי נמוך."
+    }
   },
   "errors": {
     "notFound": "לא נמצא.",
@@ -202,7 +241,6 @@
     "unauthorized": "יש להתחבר כדי להמשיך.",
     "forbidden": "אין לך הרשאה לבצע פעולה זו.",
     "accountInactive": "החשבון שלך הושבת. יש ליצור קשר עם מנהל המערכת.",
-
     "duplicate": "פריט זה כבר קיים.",
     "skuDuplicate": "מק\"ט זה כבר בשימוש.",
     "barcodeDuplicate": "ברקוד זה כבר בשימוש.",
@@ -210,25 +248,20 @@
     "emailDuplicate": "אימייל זה כבר בשימוש.",
     "phoneDuplicate": "מספר טלפון זה כבר בשימוש.",
     "whatsappDuplicate": "מספר וואטסאפ זה כבר בשימוש.",
-
     "validationRequired": "שדה זה הוא חובה.",
     "validationInvalidNumber": "יש להזין מספר תקין.",
     "validationInvalidPhone": "יש להזין מספר טלפון תקין.",
     "validationInvalidEmail": "יש להזין כתובת אימייל תקינה.",
     "validationPasswordTooShort": "הסיסמה חייבת להכיל לפחות {min} תווים.",
-
     "categoryNotFound": "הקטגוריה לא נמצאה.",
     "categoryCircularParent": "קטגוריה לא יכולה להיות אב-קדמון של עצמה.",
     "categoryHasChildren": "לקטגוריה זו יש עדיין תת-קטגוריות.",
     "categoryHasProducts": "לקטגוריה זו יש עדיין מוצרים.",
-
     "productNotFound": "המוצר לא נמצא.",
     "variantNotFound": "הוריאציה לא נמצאה.",
-
     "variantTypeNotFound": "סוג האפשרות לא נמצא.",
     "variantTypeValueNotFound": "ערך האפשרות לא נמצא.",
     "variantTypeValueDuplicate": "ערך זה כבר קיים עבור סוג זה.",
-
     "imageInvalidType": "סוג התמונה אינו נתמך.",
     "imageTooLarge": "התמונה גדולה מדי.",
     "imageUploadFailed": "העלאת התמונה נכשלה.",
@@ -237,11 +270,8 @@
     "imageOwnerRequired": "יש לבחור מוצר או וריאציה עבור תמונה זו.",
     "imageReorderDuplicate": "לא ניתן לכלול את אותה תמונה פעמיים בסדר.",
     "imageReorderMismatch": "סדר התמונות אינו תואם לתמונות הקיימות.",
-
     "inventoryParentHasVariants": "מלאי מוצר זה מנוהל לפי וריאציות.",
-
     "settingDefaultLanguageNotSupported": "שפה זו עדיין אינה נתמכת.",
-
     "userNotFound": "המשתמש לא נמצא.",
     "authSignupFailed": "יצירת החשבון נכשלה."
   }

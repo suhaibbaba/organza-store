@@ -1,7 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import { Card, CardContent } from "@/components/ui/card";
 
-type PlaceholderKey = "inventory" | "categories" | "users" | "settings";
+type PlaceholderKey = "inventory" | "users" | "settings";
 
 export async function PlaceholderPage({ namespace }: { namespace: PlaceholderKey }) {
   const t = await getTranslations(`placeholders.${namespace}`);

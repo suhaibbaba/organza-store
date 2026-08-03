@@ -1,8 +1,24 @@
-import type { CategoryNode } from "@shared/types/category";
+import type { Category, CategoryNode } from "@shared/types/category";
+import type { CreateCategoryInput, UpdateCategoryInput } from "@shared/schemas/category";
 import { apiFetch } from "@/lib/api/client";
 
 export async function fetchCategoryTree(): Promise<CategoryNode[]> {
   const { data } = await apiFetch<CategoryNode[]>("/api/categories");
+  return data;
+}
+
+export async function createCategory(input: CreateCategoryInput): Promise<Category> {
+  const { data } = await apiFetch<Category>("/api/categories", { method: "POST", body: input });
+  return data;
+}
+
+export async function updateCategory(id: string, input: UpdateCategoryInput): Promise<Category> {
+  const { data } = await apiFetch<Category>(`/api/categories/${id}`, { method: "PATCH", body: input });
+  return data;
+}
+
+export async function deleteCategory(id: string): Promise<{ id: string }> {
+  const { data } = await apiFetch<{ id: string }>(`/api/categories/${id}`, { method: "DELETE" });
   return data;
 }
 
