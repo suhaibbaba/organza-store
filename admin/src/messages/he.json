@@ -105,7 +105,8 @@
     "card": {
       "multipleSkus": "מספר וריאציות",
       "stock": "{count} במלאי",
-      "outOfStock": "אזל מהמלאי"
+      "outOfStock": "אזל מהמלאי",
+      "numbered": "ממוספר · {count}"
     },
     "table": {
       "product": "מוצר",

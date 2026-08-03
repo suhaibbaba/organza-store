@@ -105,7 +105,8 @@
     "card": {
       "multipleSkus": "Multiple variants",
       "stock": "{count} in stock",
-      "outOfStock": "Out of stock"
+      "outOfStock": "Out of stock",
+      "numbered": "Numbered · {count}"
     },
     "table": {
       "product": "Product",
