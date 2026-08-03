@@ -43,10 +43,15 @@ function SheetContent({ className, children, side = "start", closeLabel, ...prop
           "fixed inset-y-0 z-50 flex h-full w-5/6 max-w-sm flex-col gap-4 border-border bg-background pb-[env(safe-area-inset-bottom)] shadow-lg",
           "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
           "data-[state=closed]:duration-200 data-[state=open]:duration-300",
+          // The slide direction must be logical (`start`/`end`), not physical
+          // (`left`/`right`): the panel is pinned with a logical inset, so in
+          // RTL a physical slide would fly it in from the opposite edge and
+          // across the screen. tw-animate-css's *-start/*-end utilities flip
+          // via :dir(), keeping the panel entering from the edge it sits on.
           side === "start" &&
-            "start-0 border-e data-[state=closed]:slide-out-to-left data-[state=open]:slide-in-from-left",
+            "start-0 border-e data-[state=closed]:slide-out-to-start data-[state=open]:slide-in-from-start",
           side === "end" &&
-            "end-0 border-s data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right",
+            "end-0 border-s data-[state=closed]:slide-out-to-end data-[state=open]:slide-in-from-end",
           className
         )}
         {...props}
