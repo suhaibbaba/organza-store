@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { DEFAULT_PAGE, DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE } from "@/constants/pagination";
+import { IMAGE_POINT_MAX, IMAGE_POINT_MIN } from "@/constants/validation";
 import { ERROR_CODES } from "@/constants/errors";
 
 // Translatable content { ar, en, he } — ar (default language) is required,
@@ -33,3 +34,11 @@ export const decimalInput = z
   .refine((v) => v.trim() !== "" && !Number.isNaN(Number(v)) && Number(v) >= 0, {
     message: ERROR_CODES.VALIDATION_INVALID_NUMBER,
   });
+
+// A point on the product image (numbered shawls, spec.md) — percentage of the
+// image's displayed width/height, not pixels, so it stays correct at any
+// screen size.
+export const imagePointCoordinateSchema = z
+  .number()
+  .min(IMAGE_POINT_MIN, ERROR_CODES.VALIDATION_IMAGE_POINT_OUT_OF_RANGE)
+  .max(IMAGE_POINT_MAX, ERROR_CODES.VALIDATION_IMAGE_POINT_OUT_OF_RANGE);

@@ -21,6 +21,7 @@ export const ERROR_CODES = {
   VALIDATION_INVALID_PHONE: "error.validation.invalid_phone",
   VALIDATION_INVALID_EMAIL: "error.validation.invalid_email",
   VALIDATION_PASSWORD_TOO_SHORT: "error.validation.password_too_short",
+  VALIDATION_IMAGE_POINT_OUT_OF_RANGE: "error.validation.image_point_out_of_range",
 
   CATEGORY_NOT_FOUND: "error.category.not_found",
   CATEGORY_CIRCULAR_PARENT: "error.category.circular_parent",

@@ -1,7 +1,7 @@
 import { afterAll, describe, expect, it } from "vitest";
 import { apiRequest, uniqueId } from "@tests/support/client";
 import { getSession } from "@tests/support/auth";
-import { anyCategoryId, twoByTwoOptionSelections } from "@tests/support/fixtures";
+import { anyCategoryId, firstTwoNumberValueIds, twoByTwoOptionSelections } from "@tests/support/fixtures";
 import type { ProductDto, ProductVariantDto } from "@tests/types";
 import { SKU_PAD_LENGTH, SKU_PREFIX } from "@/constants";
 
@@ -67,5 +67,51 @@ describe("Variants", () => {
     }
     const overridden = refreshed.data!.variants.find((v) => v.id === target.id)!;
     expect(Number(overridden.resolvedPrice)).toBe(175.5);
+  });
+
+  it("round-trips a variant's imageX/imageY coordinates (numbered shawls, spec.md)", async () => {
+    const admin = await getSession("ADMIN");
+    const categoryId = await anyCategoryId(admin.token);
+    const { variantTypeId, valueIds } = await firstTwoNumberValueIds(admin.token);
+    const [firstValueId, secondValueId] = valueIds;
+    const name = `Vitest Shawl ${uniqueId()}`;
+
+    const points: Record<string, { imageX: number; imageY: number }> = {
+      [firstValueId]: { imageX: 12.5, imageY: 80 },
+      [secondValueId]: { imageX: 50.25, imageY: 33 },
+    };
+
+    const created = await apiRequest<ProductDto>("/api/products", {
+      method: "POST",
+      token: admin.token,
+      body: {
+        name: { ar: name, en: name },
+        categoryId,
+        basePrice: "90",
+        optionSelections: [{ variantTypeId, valueIds, imagePoints: points }],
+      },
+    });
+    expect(created.status).toBe(201);
+    const product = created.data!;
+    createdProductIds.push(product.id);
+    expect(product.variants).toHaveLength(2);
+
+    for (const variant of product.variants) {
+      const point = points[variant.values[0].id];
+      expect(point).toBeDefined();
+      expect(variant.imageX).toBe(point.imageX);
+      expect(variant.imageY).toBe(point.imageY);
+    }
+
+    // Read back from a fresh GET (not just the create response echo) to
+    // confirm the coordinates were actually persisted.
+    const refreshed = await apiRequest<ProductDto>(`/api/products/${product.id}`, { token: admin.token });
+    expect(refreshed.data!.variants).toHaveLength(2);
+    for (const variant of refreshed.data!.variants) {
+      const point = points[variant.values[0].id];
+      expect(point).toBeDefined();
+      expect(variant.imageX).toBe(point.imageX);
+      expect(variant.imageY).toBe(point.imageY);
+    }
   });
 });

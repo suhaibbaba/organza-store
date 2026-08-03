@@ -9,6 +9,11 @@ export interface ProductVariantDto {
   priceOverride: number | string | null;
   resolvedPrice: number | string;
   stock?: number;
+  // Numbered shawls (spec.md): point on the product image, percentage 0-100.
+  // Null for ordinary (non-numbered) variants.
+  imageX?: number | null;
+  imageY?: number | null;
+  values: { id: string }[];
   // Role-gated (CLAUDE.md rule 19): absent entirely for Employee responses.
   cost?: number | string | null;
   resolvedCost?: number | string | null;
