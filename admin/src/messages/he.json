@@ -207,6 +207,25 @@
         "delete": "מחיקת תמונה",
         "confirmDelete": "מחיקה",
         "cancelDelete": "ביטול"
+      },
+      "numberedShawl": {
+        "title": "נקודות ממוספרות",
+        "needsImage": "יש להוסיף תמונת מוצר למעלה קודם, ואז לחזור לכאן כדי למקם את המספרים.",
+        "stepPlace": "מיקום נקודות",
+        "stepDetails": "כמויות",
+        "placeHint": "יש להקיש על התמונה כדי להוסיף נקודה ממוספרת. ניתן לגרור נקודה כדי להזיז אותה, או להקיש עליה כדי לבחור ולמחוק אותה.",
+        "imageAlt": "תמונת המוצר עם הנקודות הממוספרות",
+        "pointLabel": "נקודה מס' {number}",
+        "deletePoint": "מחיקת נקודה זו",
+        "confirmDelete": "מחיקה",
+        "cancelDelete": "ביטול",
+        "noPointsYet": "עדיין לא מוקמו נקודות — יש לעבור ל\"מיקום נקודות\" ולהקיש על התמונה.",
+        "stock": "כמות",
+        "priceOverride": "מחיר שונה",
+        "inherits": "יורש {value}",
+        "saving": "שומר…",
+        "save": "שמירת נקודות",
+        "saveSuccess": "הנקודות נשמרו."
       }
     }
   },
@@ -424,6 +443,7 @@
     "inventoryParentHasVariants": "מלאי מוצר זה מנוהל לפי וריאציות.",
     "settingDefaultLanguageNotSupported": "שפה זו עדיין אינה נתמכת.",
     "userNotFound": "המשתמש לא נמצא.",
-    "authSignupFailed": "יצירת החשבון נכשלה."
+    "authSignupFailed": "יצירת החשבון נכשלה.",
+    "validationImagePointOutOfRange": "הנקודה חייבת להיות בתוך גבולות התמונה."
   }
 }

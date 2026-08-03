@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { useTranslations } from "next-intl";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   DndContext,
   PointerSensor,
@@ -19,6 +20,7 @@ import { uploadImage, reorderImages, setPrimaryImage, deleteImage, type ImageOwn
 import { SortableImageThumb } from "@/components/products/sortable-image-thumb";
 import { Spinner } from "@/components/ui/spinner";
 import { ApiError } from "@/lib/api/errors";
+import { PRODUCT_LIST_QUERY_KEY } from "@/constants/products";
 
 interface PendingUpload {
   id: string;
@@ -40,6 +42,7 @@ interface ImageManagerProps {
 export function ImageManager({ owner, initialImages, canDelete, emptyHint }: ImageManagerProps) {
   const t = useTranslations("products.form.images");
   const translateError = useTranslateError();
+  const queryClient = useQueryClient();
   const [images, setImages] = useState<ProductImageRef[]>(initialImages);
   const [pending, setPending] = useState<PendingUpload[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -50,6 +53,15 @@ export function ImageManager({ owner, initialImages, canDelete, emptyHint }: Ima
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { delay: 150, tolerance: 6 } })
   );
+
+  // This component keeps its own local `images` state (so it works the same
+  // whether it's live inside the main form or read-only-for-details for
+  // Employees) instead of routing through the product query — so anything
+  // else reading `product.images`/`variant.images` (e.g. the numbered-shawl
+  // placement tool) needs an explicit nudge to refetch after a change.
+  function invalidateProducts() {
+    void queryClient.invalidateQueries({ queryKey: [PRODUCT_LIST_QUERY_KEY] });
+  }
 
   // Uploaded one at a time on purpose: the backend assigns each new image's
   // sortOrder from the current count for its owner, so concurrent uploads
@@ -71,6 +83,7 @@ export function ImageManager({ owner, initialImages, canDelete, emptyHint }: Ima
       try {
         const created = await uploadImage(owner, file);
         setImages((prev) => [...prev, created]);
+        invalidateProducts();
       } catch (err) {
         setError(translateError(err instanceof ApiError ? err.code : "error.internal"));
       } finally {
@@ -88,6 +101,7 @@ export function ImageManager({ owner, initialImages, canDelete, emptyHint }: Ima
     try {
       const updated = await reorderImages(owner, reordered.map((i) => i.id));
       setImages(updated);
+      invalidateProducts();
     } catch (err) {
       setImages(previous);
       setError(translateError(err instanceof ApiError ? err.code : "error.internal"));
@@ -109,6 +123,7 @@ export function ImageManager({ owner, initialImages, canDelete, emptyHint }: Ima
     try {
       const updated = await setPrimaryImage(imageId, next);
       setImages((prev) => prev.map((img) => (img.id === imageId ? updated : next ? { ...img, isPrimary: false } : img)));
+      invalidateProducts();
     } catch (err) {
       setError(translateError(err instanceof ApiError ? err.code : "error.internal"));
     } finally {
@@ -124,6 +139,7 @@ export function ImageManager({ owner, initialImages, canDelete, emptyHint }: Ima
     setBusyId(imageId);
     try {
       await deleteImage(imageId);
+      invalidateProducts();
     } catch (err) {
       setImages(previous);
       setError(translateError(err instanceof ApiError ? err.code : "error.internal"));
