@@ -1,11 +1,12 @@
 import { Role } from "@prisma/client";
+import { can } from "@shared/lib/permissions";
 import type { AnyRecord } from "@/types";
 
 // `cost` is sensitive (CLAUDE.md rule 19): Admin + Manager only, never
 // returned to Employees. Enforced here, at the response boundary, not just
 // hidden in a UI.
 function canSeeCost(role: Role): boolean {
-  return role === Role.ADMIN || role === Role.MANAGER;
+  return can({ role }, "product.viewCost");
 }
 
 function serializeImage(image: AnyRecord) {

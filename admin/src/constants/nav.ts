@@ -1,16 +1,15 @@
 import { LayoutDashboard, Shirt, Boxes, FolderTree, Users, Settings } from "lucide-react";
-import { ROLES } from "@shared/constants/roles";
 import type { NavItem } from "@/types/nav";
 
 // CLAUDE.md rule 5 / task spec: Users + Settings are Admin-only in the nav;
 // everything else is visible to every authenticated role.
 export const NAV_ITEMS: readonly NavItem[] = [
-  { key: "dashboard", href: "/dashboard", icon: LayoutDashboard, roles: ROLES },
-  { key: "products", href: "/products", icon: Shirt, roles: ROLES },
-  { key: "inventory", href: "/inventory", icon: Boxes, roles: ROLES },
-  { key: "categories", href: "/categories", icon: FolderTree, roles: ROLES },
-  { key: "users", href: "/users", icon: Users, roles: ["ADMIN"] },
-  { key: "settings", href: "/settings", icon: Settings, roles: ["ADMIN"] },
+  { key: "dashboard", href: "/dashboard", icon: LayoutDashboard, action: "dashboard.view" },
+  { key: "products", href: "/products", icon: Shirt, action: "product.view" },
+  { key: "inventory", href: "/inventory", icon: Boxes, action: "inventory.view" },
+  { key: "categories", href: "/categories", icon: FolderTree, action: "category.view" },
+  { key: "users", href: "/users", icon: Users, action: "user.manage" },
+  { key: "settings", href: "/settings", icon: Settings, action: "settings.manage" },
 ] as const;
 
 // Bottom nav (mobile) shows these directly; everything else lives in the

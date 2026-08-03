@@ -1,8 +1,8 @@
 import { Router } from "express";
-import { AuditAction, Role } from "@prisma/client";
+import { AuditAction } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { asyncHandler } from "@/middleware/asyncHandler";
-import { requireAuth, requireRole } from "@/middleware/auth";
+import { requireAuth, requirePermission } from "@/middleware/auth";
 import { validateBody } from "@/middleware/validate";
 import { AppError, sendOk } from "@/lib/response";
 import {
@@ -35,7 +35,7 @@ router.get(
 
 router.post(
   "/",
-  requireRole(Role.ADMIN, Role.MANAGER, Role.EMPLOYEE),
+  requirePermission("variantType.manage"),
   validateBody(createVariantTypeSchema),
   asyncHandler(async (req, res) => {
     const body = req.body as CreateVariantTypeInput;
@@ -61,7 +61,7 @@ router.post(
 
 router.post(
   "/:id/values",
-  requireRole(Role.ADMIN, Role.MANAGER, Role.EMPLOYEE),
+  requirePermission("variantType.manage"),
   validateBody(addOptionValueSchema),
   asyncHandler(async (req, res) => {
     const type = await prisma.variantType.findUnique({ where: { id: req.params.id } });

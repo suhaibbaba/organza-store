@@ -3,7 +3,7 @@ import { PlaceholderPage } from "@/components/layout/placeholder-page";
 
 export default function SettingsPage() {
   return (
-    <RoleGuard allow={["ADMIN"]}>
+    <RoleGuard action="settings.manage">
       <PlaceholderPage namespace="settings" />
     </RoleGuard>
   );

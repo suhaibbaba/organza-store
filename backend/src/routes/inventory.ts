@@ -1,8 +1,8 @@
 import { Router } from "express";
-import { AuditAction, Role } from "@prisma/client";
+import { AuditAction } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { asyncHandler } from "@/middleware/asyncHandler";
-import { requireAuth, requireRole } from "@/middleware/auth";
+import { requireAuth, requirePermission } from "@/middleware/auth";
 import { validateBody, validateQuery } from "@/middleware/validate";
 import { AppError, sendOk } from "@/lib/response";
 import {
@@ -19,7 +19,7 @@ import type { StockItem } from "@/types";
 // Variant (variant-bearing products) stock — it doesn't own its own table.
 // Admin/Manager only (CLAUDE.md rule 5: Employee has no stock-management access).
 const router = Router();
-router.use(requireAuth, requireRole(Role.ADMIN, Role.MANAGER));
+router.use(requireAuth, requirePermission("inventory.adjust"));
 
 // ---------------------------------------------------------------------------
 // GET /api/inventory — flattened stock list (simple products + variants),

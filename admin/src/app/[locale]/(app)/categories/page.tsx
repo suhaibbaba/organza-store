@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { Plus } from "lucide-react";
 import type { CategoryNode } from "@shared/types/category";
+import { can } from "@shared/lib/permissions";
 import { useSession } from "@/components/providers/session-provider";
 import { useCategoriesQuery, useDeleteCategoryMutation } from "@/hooks/use-categories";
 import { useTranslateError } from "@/hooks/use-translate-error";
@@ -18,7 +19,7 @@ export default function CategoriesPage() {
   const t = useTranslations("categories");
   const translateError = useTranslateError();
   const { user } = useSession();
-  const canManage = user?.role === "ADMIN" || user?.role === "MANAGER";
+  const canManage = can(user, "category.manage");
 
   const { data: tree, isLoading, isError, error, refetch } = useCategoriesQuery();
   const deleteMutation = useDeleteCategoryMutation();
