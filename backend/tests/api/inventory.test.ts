@@ -37,11 +37,10 @@ describe("Inventory", () => {
     expect(res.data!.some((i) => i.id === productId)).toBe(true);
   });
 
-  it("forbids Employee from viewing inventory", async () => {
+  it("allows Employee to view inventory read-only", async () => {
     const employee = await getSession("EMPLOYEE");
     const res = await apiRequest("/api/inventory", { token: employee.token });
-    expect(res.status).toBe(403);
-    expect(res.error?.code).toBe(ERROR_CODES.FORBIDDEN);
+    expect(res.status).toBe(200);
   });
 
   it("forbids Employee from adjusting stock", async () => {

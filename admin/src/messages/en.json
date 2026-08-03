@@ -189,6 +189,54 @@
       }
     }
   },
+  "inventory": {
+    "title": "Inventory",
+    "subtitle": "Track stock quantities and low-stock alerts.",
+    "readOnlyHint": "You can view inventory only. To change quantities, ask an admin or manager.",
+    "search": {
+      "placeholder": "Search by name or SKU…",
+      "label": "Search inventory",
+      "clear": "Clear search"
+    },
+    "filters": {
+      "category": "Category",
+      "allCategories": "All categories",
+      "lowStockOnly": "Show low stock only",
+      "lowStockCount": "{count} items need restocking"
+    },
+    "card": {
+      "noSku": "No SKU",
+      "stockLabel": "Stock",
+      "outOfStock": "Out of stock",
+      "lowStock": "Low stock"
+    },
+    "table": {
+      "item": "Item",
+      "sku": "SKU",
+      "status": "Status",
+      "stock": "Stock"
+    },
+    "stepper": {
+      "decrease": "Decrease quantity",
+      "increase": "Increase quantity",
+      "edit": "Edit quantity",
+      "quantity": "Quantity",
+      "save": "Save",
+      "cancel": "Cancel",
+      "saved": "Saved"
+    },
+    "empty": {
+      "noItemsTitle": "No inventory yet",
+      "noItemsDescription": "Products you add will show up here.",
+      "noMatchesTitle": "No matching items",
+      "noMatchesDescription": "Try a different search or clear your filters."
+    },
+    "pagination": {
+      "previous": "Previous",
+      "next": "Next",
+      "pageOf": "Page {page} of {totalPages}"
+    }
+  },
   "categories": {
     "title": "Categories",
     "subtitle": "Organize your products into nested categories.",
@@ -244,10 +292,6 @@
     }
   },
   "placeholders": {
-    "inventory": {
-      "title": "Inventory",
-      "description": "Track stock levels and low-stock alerts."
-    },
     "users": {
       "title": "Users",
       "description": "Manage staff accounts and roles."

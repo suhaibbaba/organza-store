@@ -12,14 +12,17 @@ import {
   type ListInventoryQuery,
 } from "@/validation/inventory";
 import { writeAudit } from "@/lib/audit";
+import { searchProductIds } from "@/lib/search";
 import { AUDIT_ENTITY, DEFAULT_LOW_STOCK_THRESHOLD, ERROR_CODES, SETTINGS_SINGLETON_ID } from "@/constants";
 import type { StockItem } from "@/types";
 
 // Inventory is a read/adjust layer over Product (simple products) and
 // Variant (variant-bearing products) stock — it doesn't own its own table.
-// Admin/Manager only (CLAUDE.md rule 5: Employee has no stock-management access).
+// Viewing is Admin/Manager/Employee (inventory.view); adjusting is
+// Admin/Manager only (inventory.adjust — CLAUDE.md rule 5: Employee has no
+// stock-management access).
 const router = Router();
-router.use(requireAuth, requirePermission("inventory.adjust"));
+router.use(requireAuth);
 
 // ---------------------------------------------------------------------------
 // GET /api/inventory — flattened stock list (simple products + variants),
@@ -28,11 +31,22 @@ router.use(requireAuth, requirePermission("inventory.adjust"));
 // ---------------------------------------------------------------------------
 router.get(
   "/",
+  requirePermission("inventory.view"),
   validateQuery(listInventoryQuerySchema),
   asyncHandler(async (req, res) => {
     const query = req.validatedQuery as ListInventoryQuery;
     const setting = await prisma.setting.findUnique({ where: { id: SETTINGS_SINGLETON_ID } });
     const threshold = setting?.lowStockThreshold ?? DEFAULT_LOW_STOCK_THRESHOLD;
+
+    // Name/description matching goes through the shared, normalized,
+    // cross-language search layer (CLAUDE.md rule 10) — the same one
+    // /api/products uses — rather than a raw `contains` against the
+    // already-normalized `searchText` column, which would silently miss
+    // anything with tashkeel or an unnormalized letter (ة/ه, أ/إ/آ/ا, ...).
+    // SKU/barcode matching is exact-ish and checked at both the product and
+    // variant level, since a staff member searches by whichever one is
+    // printed on the item in their hand.
+    const nameMatchIds = query.q ? await searchProductIds(query.q) : null;
 
     const products = await prisma.product.findMany({
       where: {
@@ -41,9 +55,19 @@ router.get(
         ...(query.q
           ? {
               OR: [
+                { id: { in: nameMatchIds ?? [] } },
                 { sku: { contains: query.q, mode: "insensitive" } },
                 { barcode: { contains: query.q, mode: "insensitive" } },
-                { searchText: { contains: query.q, mode: "insensitive" } },
+                {
+                  variants: {
+                    some: {
+                      OR: [
+                        { sku: { contains: query.q, mode: "insensitive" } },
+                        { barcode: { contains: query.q, mode: "insensitive" } },
+                      ],
+                    },
+                  },
+                },
               ],
             }
           : {}),
@@ -110,6 +134,7 @@ router.get(
 // ---------------------------------------------------------------------------
 router.patch(
   "/products/:id",
+  requirePermission("inventory.adjust"),
   validateBody(adjustStockSchema),
   asyncHandler(async (req, res) => {
     const product = await prisma.product.findFirst({
@@ -140,6 +165,7 @@ router.patch(
 // ---------------------------------------------------------------------------
 router.patch(
   "/variants/:id",
+  requirePermission("inventory.adjust"),
   validateBody(adjustStockSchema),
   asyncHandler(async (req, res) => {
     const variant = await prisma.variant.findUnique({ where: { id: req.params.id } });

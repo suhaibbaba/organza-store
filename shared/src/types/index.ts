@@ -1,5 +1,6 @@
 export * from "./category";
 export * from "./common";
+export * from "./inventory";
 export * from "./permission";
 export * from "./product";
 export * from "./role";

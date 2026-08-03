@@ -189,6 +189,54 @@
       }
     }
   },
+  "inventory": {
+    "title": "מלאי",
+    "subtitle": "מעקב אחר כמויות המלאי והתראות על מלאי נמוך.",
+    "readOnlyHint": "ניתן לצפות במלאי בלבד. לשינוי הכמויות, פנה/י למנהל.",
+    "search": {
+      "placeholder": "חיפוש לפי שם או מק\"ט…",
+      "label": "חיפוש במלאי",
+      "clear": "ניקוי חיפוש"
+    },
+    "filters": {
+      "category": "קטגוריה",
+      "allCategories": "כל הקטגוריות",
+      "lowStockOnly": "הצג מלאי נמוך בלבד",
+      "lowStockCount": "{count} פריטים דורשים חידוש מלאי"
+    },
+    "card": {
+      "noSku": "אין מק\"ט",
+      "stockLabel": "מלאי",
+      "outOfStock": "אזל מהמלאי",
+      "lowStock": "מלאי נמוך"
+    },
+    "table": {
+      "item": "פריט",
+      "sku": "מק\"ט",
+      "status": "סטטוס",
+      "stock": "מלאי"
+    },
+    "stepper": {
+      "decrease": "הפחתת כמות",
+      "increase": "הוספת כמות",
+      "edit": "עריכת כמות",
+      "quantity": "כמות",
+      "save": "שמירה",
+      "cancel": "ביטול",
+      "saved": "נשמר"
+    },
+    "empty": {
+      "noItemsTitle": "אין עדיין מלאי",
+      "noItemsDescription": "מוצרים שתוסיף/י יופיעו כאן.",
+      "noMatchesTitle": "לא נמצאו פריטים תואמים",
+      "noMatchesDescription": "נסה/י חיפוש אחר או נקה/י את הסינון."
+    },
+    "pagination": {
+      "previous": "הקודם",
+      "next": "הבא",
+      "pageOf": "עמוד {page} מתוך {totalPages}"
+    }
+  },
   "categories": {
     "title": "קטגוריות",
     "subtitle": "ארגון המוצרים בקטגוריות מקוננות.",
@@ -244,10 +292,6 @@
     }
   },
   "placeholders": {
-    "inventory": {
-      "title": "מלאי",
-      "description": "מעקב אחר כמויות המלאי והתראות מלאי נמוך."
-    },
     "users": {
       "title": "משתמשים",
       "description": "ניהול חשבונות צוות ותפקידים."
