@@ -1,4 +1,5 @@
 export * from "./errors";
+export * from "./inventory";
 export * from "./languages";
 export * from "./pagination";
 export * from "./permissions";

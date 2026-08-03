@@ -189,6 +189,54 @@
       }
     }
   },
+  "inventory": {
+    "title": "المخزون",
+    "subtitle": "تتبع كميات المخزون وتنبيهات النفاد.",
+    "readOnlyHint": "يمكنك عرض المخزون فقط. لتعديل الكميات، تواصل مع مسؤول أو مدير.",
+    "search": {
+      "placeholder": "ابحث بالاسم أو رمز المنتج…",
+      "label": "بحث في المخزون",
+      "clear": "مسح البحث"
+    },
+    "filters": {
+      "category": "القسم",
+      "allCategories": "كل الأقسام",
+      "lowStockOnly": "عرض المخزون المنخفض فقط",
+      "lowStockCount": "{count} عنصر بحاجة لإعادة تعبئة"
+    },
+    "card": {
+      "noSku": "بدون رمز",
+      "stockLabel": "الكمية",
+      "outOfStock": "نفدت الكمية",
+      "lowStock": "مخزون منخفض"
+    },
+    "table": {
+      "item": "المنتج",
+      "sku": "الرمز",
+      "status": "الحالة",
+      "stock": "الكمية"
+    },
+    "stepper": {
+      "decrease": "إنقاص الكمية",
+      "increase": "زيادة الكمية",
+      "edit": "تعديل الكمية",
+      "quantity": "الكمية",
+      "save": "حفظ",
+      "cancel": "إلغاء",
+      "saved": "تم الحفظ"
+    },
+    "empty": {
+      "noItemsTitle": "لا يوجد مخزون بعد",
+      "noItemsDescription": "المنتجات التي تضيفها ستظهر هنا.",
+      "noMatchesTitle": "لا نتائج مطابقة",
+      "noMatchesDescription": "جرّب بحثًا مختلفًا أو أزل التصفية."
+    },
+    "pagination": {
+      "previous": "السابق",
+      "next": "التالي",
+      "pageOf": "صفحة {page} من {totalPages}"
+    }
+  },
   "categories": {
     "title": "الأقسام",
     "subtitle": "نظّم منتجاتك ضمن أقسام متداخلة.",
@@ -244,10 +292,6 @@
     }
   },
   "placeholders": {
-    "inventory": {
-      "title": "المخزون",
-      "description": "تتبع كميات المخزون وتنبيهات النفاد."
-    },
     "users": {
       "title": "المستخدمون",
       "description": "إدارة حسابات الموظفين وصلاحياتهم."
