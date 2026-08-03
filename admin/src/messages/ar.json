@@ -220,6 +220,29 @@
       "save": "حفظ التغييرات"
     }
   },
+  "settings": {
+    "title": "الإعدادات",
+    "subtitle": "اسم المتجر والعملة وحدود المخزون.",
+    "form": {
+      "readOnlyHint": "يمكنك عرض الإعدادات فقط. للتعديل، تواصل مع المسؤول.",
+      "storeInfoTitle": "معلومات المتجر",
+      "storeName": "اسم المتجر",
+      "required": "مطلوب",
+      "optional": "اختياري",
+      "regionalTitle": "الإعدادات الإقليمية",
+      "defaultLanguage": "اللغة الافتراضية",
+      "currency": "العملة",
+      "currencyHint": "العملة ثابتة حاليًا ولا يمكن تغييرها من هنا بعد.",
+      "defaultCountryCode": "مفتاح الهاتف الافتراضي",
+      "defaultCountryCodeHint": "يُستخدم لتعبئة أرقام الهواتف الجديدة تلقائيًا.",
+      "inventoryTitle": "المخزون",
+      "lowStockThreshold": "حد تنبيه انخفاض المخزون",
+      "lowStockThresholdHint": "المنتجات التي تصل كميتها لهذا الحد أو أقل تُعتبر منخفضة المخزون.",
+      "saving": "جارٍ الحفظ…",
+      "save": "حفظ التغييرات",
+      "saved": "تم حفظ الإعدادات."
+    }
+  },
   "placeholders": {
     "inventory": {
       "title": "المخزون",
@@ -228,10 +251,6 @@
     "users": {
       "title": "المستخدمون",
       "description": "إدارة حسابات الموظفين وصلاحياتهم."
-    },
-    "settings": {
-      "title": "الإعدادات",
-      "description": "اسم المتجر والعملة وحدود المخزون."
     }
   },
   "errors": {

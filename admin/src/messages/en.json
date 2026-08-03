@@ -220,6 +220,29 @@
       "save": "Save changes"
     }
   },
+  "settings": {
+    "title": "Settings",
+    "subtitle": "Store name, currency, and stock thresholds.",
+    "form": {
+      "readOnlyHint": "You can view settings only. Ask an admin to make changes.",
+      "storeInfoTitle": "Store info",
+      "storeName": "Store name",
+      "required": "Required",
+      "optional": "Optional",
+      "regionalTitle": "Regional",
+      "defaultLanguage": "Default language",
+      "currency": "Currency",
+      "currencyHint": "Currency is fixed for now and can't be changed here yet.",
+      "defaultCountryCode": "Default phone code",
+      "defaultCountryCodeHint": "Used to prefill new phone numbers.",
+      "inventoryTitle": "Inventory",
+      "lowStockThreshold": "Low-stock alert level",
+      "lowStockThresholdHint": "Products at or below this quantity are flagged as low stock.",
+      "saving": "Saving…",
+      "save": "Save changes",
+      "saved": "Settings saved."
+    }
+  },
   "placeholders": {
     "inventory": {
       "title": "Inventory",
@@ -228,10 +251,6 @@
     "users": {
       "title": "Users",
       "description": "Manage staff accounts and roles."
-    },
-    "settings": {
-      "title": "Settings",
-      "description": "Store name, currency, and stock thresholds."
     }
   },
   "errors": {

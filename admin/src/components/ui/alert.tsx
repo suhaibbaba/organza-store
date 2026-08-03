@@ -7,6 +7,7 @@ const alertVariants = cva("flex items-start gap-3 rounded-lg border p-4 text-sm"
     variant: {
       default: "border-border bg-secondary text-secondary-foreground",
       destructive: "border-destructive/30 bg-destructive/10 text-destructive",
+      success: "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400",
     },
   },
   defaultVariants: {
