@@ -15,6 +15,7 @@ import { LOCALE_LABELS } from "@/constants/locale";
 import type { AppLocale } from "@/i18n/routing";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { NumericInput } from "@/components/ui/numeric-input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -170,11 +171,8 @@ export function SettingsForm({ setting }: { setting: Setting }) {
         </CardHeader>
         <CardContent className="flex flex-col gap-2">
           <Label htmlFor="lowStockThreshold">{t("lowStockThreshold")}</Label>
-          <Input
+          <NumericInput
             id="lowStockThreshold"
-            type="number"
-            inputMode="numeric"
-            min={0}
             disabled={!canManage}
             aria-invalid={!!errors.lowStockThreshold}
             {...register("lowStockThreshold")}

@@ -5,7 +5,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { SlidersHorizontal } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Select } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
+import { NumericInput } from "@/components/ui/numeric-input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { useCategoriesQuery } from "@/hooks/use-categories";
@@ -132,20 +132,16 @@ export function ProductFiltersSheet({ value, onApply, activeCount }: ProductFilt
             <div className="flex flex-col gap-2">
               <Label>{t("priceRange")}</Label>
               <div className="flex items-center gap-3">
-                <Input
-                  type="number"
-                  inputMode="decimal"
-                  min={0}
+                <NumericInput
+                  allowDecimal
                   placeholder={t("priceMin")}
                   aria-label={t("priceMin")}
                   value={draft.priceMin}
                   onChange={(e) => setDraft((d) => ({ ...d, priceMin: e.target.value }))}
                 />
                 <span className="text-muted-foreground">–</span>
-                <Input
-                  type="number"
-                  inputMode="decimal"
-                  min={0}
+                <NumericInput
+                  allowDecimal
                   placeholder={t("priceMax")}
                   aria-label={t("priceMax")}
                   value={draft.priceMax}

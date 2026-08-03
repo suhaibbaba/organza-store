@@ -30,6 +30,7 @@ import { localize } from "@/lib/i18n-content";
 import { formatMoney } from "@/lib/format";
 import { LOCALE_LABELS } from "@/constants/locale";
 import { Input } from "@/components/ui/input";
+import { NumericInput } from "@/components/ui/numeric-input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
@@ -279,12 +280,9 @@ export function ProductForm({ mode, product }: ProductFormProps) {
             <CardContent className="flex flex-col gap-4">
               <div className="flex flex-col gap-2">
                 <Label htmlFor="basePrice">{t("basePrice")}</Label>
-                <Input
+                <NumericInput
                   id="basePrice"
-                  type="number"
-                  inputMode="decimal"
-                  min={0}
-                  step="0.01"
+                  allowDecimal
                   aria-invalid={!!errors.basePrice}
                   {...register("basePrice")}
                 />
@@ -295,12 +293,9 @@ export function ProductForm({ mode, product }: ProductFormProps) {
 
               <div className="flex flex-col gap-2">
                 <Label htmlFor="compareAtPrice">{t("compareAtPrice")}</Label>
-                <Input
+                <NumericInput
                   id="compareAtPrice"
-                  type="number"
-                  inputMode="decimal"
-                  min={0}
-                  step="0.01"
+                  allowDecimal
                   placeholder={t("optional")}
                   aria-invalid={!!errors.compareAtPrice}
                   {...register("compareAtPrice")}
@@ -313,12 +308,9 @@ export function ProductForm({ mode, product }: ProductFormProps) {
               {canSeeCost && (
                 <div className="flex flex-col gap-2">
                   <Label htmlFor="cost">{t("cost")}</Label>
-                  <Input
+                  <NumericInput
                     id="cost"
-                    type="number"
-                    inputMode="decimal"
-                    min={0}
-                    step="0.01"
+                    allowDecimal
                     placeholder={t("optional")}
                     aria-invalid={!!errors.cost}
                     {...register("cost")}
@@ -355,14 +347,7 @@ export function ProductForm({ mode, product }: ProductFormProps) {
               <CardContent className="flex flex-col gap-4">
                 <div className="flex flex-col gap-2">
                   <Label htmlFor="stock">{t("stock")}</Label>
-                  <Input
-                    id="stock"
-                    type="number"
-                    inputMode="numeric"
-                    min={0}
-                    aria-invalid={!!errors.stock}
-                    {...register("stock")}
-                  />
+                  <NumericInput id="stock" aria-invalid={!!errors.stock} {...register("stock")} />
                   {errors.stock && <p className="text-sm text-destructive">{translateError(errors.stock.message ?? "")}</p>}
                 </div>
 

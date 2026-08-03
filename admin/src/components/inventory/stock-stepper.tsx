@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Check, Minus, Plus } from "lucide-react";
 import type { InventoryItem } from "@shared/types/inventory";
-import { Input } from "@/components/ui/input";
+import { NumericInput } from "@/components/ui/numeric-input";
 import { Spinner } from "@/components/ui/spinner";
 import { useAdjustStockMutation } from "@/hooks/use-inventory";
 import { useTranslateError } from "@/hooks/use-translate-error";
@@ -60,10 +60,7 @@ export function StockStepper({ item }: StockStepperProps) {
   if (editValue !== null) {
     return (
       <div className="flex items-center gap-2">
-        <Input
-          type="number"
-          inputMode="numeric"
-          min={0}
+        <NumericInput
           autoFocus
           value={editValue}
           onChange={(e) => setEditValue(e.target.value)}
