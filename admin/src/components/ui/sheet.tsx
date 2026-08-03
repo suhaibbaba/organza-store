@@ -38,7 +38,8 @@ function SheetContent({ className, children, side = "start", closeLabel, ...prop
         data-slot="sheet-content"
         className={cn(
           "fixed inset-y-0 z-50 flex h-full w-5/6 max-w-sm flex-col gap-4 border-border bg-background shadow-lg",
-          "transition ease-in-out data-[state=closed]:duration-200 data-[state=open]:duration-300",
+          "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+          "data-[state=closed]:duration-200 data-[state=open]:duration-300",
           side === "start" &&
             "start-0 border-e data-[state=closed]:slide-out-to-left data-[state=open]:slide-in-from-left",
           side === "end" &&
