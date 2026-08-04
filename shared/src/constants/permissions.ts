@@ -64,7 +64,10 @@ type Action = (typeof PERMISSION_ACTIONS)[number];
 // Admin: everything. Manager: products/stock/orders full, no users/settings.
 // Employee: POS, add products, edit images, create + hand over orders —
 // cannot delete/hide products, cannot delete/edit/cancel orders, cannot mark
-// money collected, no users/settings, no cost/idNumber visibility.
+// money collected, no users/settings, no cost/idNumber visibility, and
+// neither the dashboard nor the inventory list: both are shop-wide overviews
+// (stock levels, inventory value, low-stock alerts) that belong to whoever
+// manages stock, which an Employee does not.
 export const ROLE_PERMISSIONS: Record<Role, readonly Action[]> = {
   ADMIN: [...PERMISSION_ACTIONS],
   MANAGER: [
@@ -93,12 +96,10 @@ export const ROLE_PERMISSIONS: Record<Role, readonly Action[]> = {
     "order.markCollected",
   ],
   EMPLOYEE: [
-    "dashboard.view",
     "product.view",
     "product.create",
     "product.printLabels",
     "category.view",
-    "inventory.view",
     "variantType.manage",
     "images.edit",
     "order.view",
