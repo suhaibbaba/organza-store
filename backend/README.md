@@ -261,6 +261,59 @@ curl "http://localhost:4000/api/reports/sales?from=2026-08-01&to=2026-08-31&tzOf
   -H "Authorization: Bearer <token>"
 ```
 
+## Sale notifications (Web Push)
+
+The shop owner isn't at the counter all day, so a sale rung up by a **Manager** or an
+**Employee** is pushed to the **Admins'** devices. Nobody is ever notified of their own sale,
+and an Admin's own sale notifies nobody (`SALE_NOTIFICATION_TRIGGER_ROLES` in
+`shared/src/constants/push.ts` is the one place that says which roles count).
+
+Transport is the **Web Push standard** — the browser's own push service does the delivery, so
+there is no paid notification service. All the server needs is a VAPID key pair, generated
+**once per deployment** and kept in its `.env` (never committed; regenerating them invalidates
+every subscription already on a phone):
+
+```bash
+npx web-push generate-vapid-keys
+# -> VAPID_PUBLIC_KEY / VAPID_PRIVATE_KEY in .env, plus VAPID_SUBJECT (mailto: or https:)
+```
+
+With those unset, notifications are simply off: `/api/push/config` reports
+`configured: false`, subscribing returns `error.push.not_configured`, and nothing else in the
+API behaves differently.
+
+| Method | Path                       | Role gate     | Notes |
+|--------|----------------------------|---------------|-------|
+| GET    | `/api/push/config`         | any signed-in | `{ configured, publicKey }` — the VAPID public key a browser needs to subscribe |
+| GET    | `/api/push/subscriptions`  | any signed-in | the caller's **own** registered devices |
+| POST   | `/api/push/subscriptions`  | any signed-in | register this device (upsert on `endpoint`) |
+| DELETE | `/api/push/subscriptions`  | any signed-in | unregister it again (body: `{ endpoint }`) |
+
+There is deliberately no permission gate beyond a session: managing your own device isn't a
+capability the role table has anything to say about, and every query is scoped to the session's
+user. Who *receives* a notification is decided on the sending side
+(`src/lib/saleNotifications.ts`), not here.
+
+**Sending never touches the sale.** It runs after the order is committed and its response is on
+its way out, is not awaited, and swallows everything into the error-tracking layer
+(`src/lib/logger.ts`) — a push service being slow or down can't delay a queue at the till or
+turn a completed sale into an error. Dead subscriptions (404/410 from the push service) are
+deleted at the moment we learn of them; any other failure keeps the row and only records the
+attempt (`lastAttemptAt` / `lastSuccessAt` on the subscription).
+
+**The payload is data, not prose** (CLAUDE.md rule 12): translation keys, the item names in
+every language, the total, the currency from the Setting singleton, and who sold it. The
+admin's service worker renders that into a line of text in the reader's own language and deep
+links to the order.
+
+Which sales are worth a notification is a Setting (Admin only):
+`saleNotificationsEnabled`, `saleNotificationMode` and `saleNotificationMinAmount`. Only
+`EVERY_SALE` is implemented — `ABOVE_AMOUNT` and `PERIODIC_SUMMARY` exist in the enum so that
+adding either is a new branch in `shouldNotifyForSale()` plus an entry in
+`IMPLEMENTED_SALE_NOTIFICATION_MODES`, with no migration and no settings redesign. The API
+rejects a mode it can't yet honour rather than accepting one that would silently mean "no
+notifications".
+
 ## Auth notes
 
 - The Better Auth instance lives at `src/lib/auth.ts`. It's configured with

@@ -4,6 +4,8 @@ import { useEffect } from "react";
 import { routing } from "@/i18n/routing";
 import {
   OFFLINE_PATH,
+  PUSH_MESSAGES_BASE_PATH,
+  SERVICE_WORKER_MESSAGES_PARAM,
   SERVICE_WORKER_OFFLINE_PARAM,
   SERVICE_WORKER_PATH,
   SERVICE_WORKER_VERSION_PARAM,
@@ -39,6 +41,9 @@ export function ServiceWorkerRegistrar() {
     const query = new URLSearchParams({
       [SERVICE_WORKER_VERSION_PARAM]: process.env.NEXT_PUBLIC_BUILD_ID ?? "dev",
       [SERVICE_WORKER_OFFLINE_PARAM]: locales.map((locale) => `/${locale}${OFFLINE_PATH}`).join(","),
+      // Where to read notification wording from — the worker can't import
+      // the app's translations, so it is told where they live.
+      [SERVICE_WORKER_MESSAGES_PARAM]: PUSH_MESSAGES_BASE_PATH,
     });
 
     let registration: ServiceWorkerRegistration | undefined;

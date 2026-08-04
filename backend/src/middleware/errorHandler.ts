@@ -2,6 +2,7 @@ import type { ErrorRequestHandler } from "express";
 import { Prisma } from "@prisma/client";
 import { ZodError } from "zod";
 import { AppError, sendError } from "@/lib/response";
+import { captureException } from "@/lib/logger";
 import { ERROR_CODES, type ErrorCode } from "@/constants";
 
 // Schemas built from `@shared/schemas/*` are compiled against shared/'s own
@@ -54,6 +55,9 @@ export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
     }
   }
 
-  console.error(err);
+  // Anything reaching here is a genuine fault rather than a rejected
+  // request, so it goes to the error-tracking layer (CLAUDE.md rule 20) —
+  // which also logs it to the console.
+  captureException(err);
   sendError(res, new AppError(500, ERROR_CODES.INTERNAL));
 };

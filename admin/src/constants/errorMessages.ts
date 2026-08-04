@@ -71,6 +71,11 @@ export const ERROR_MESSAGE_KEYS: Record<string, string> = {
   [ERROR_CODES.REPORT_RANGE_TOO_LONG]: "errors.reportRangeTooLong",
 
   [ERROR_CODES.SETTING_DEFAULT_LANGUAGE_NOT_SUPPORTED]: "errors.settingDefaultLanguageNotSupported",
+  [ERROR_CODES.SETTING_SALE_NOTIFICATION_MODE_UNSUPPORTED]: "errors.settingSaleNotificationModeUnsupported",
+
+  [ERROR_CODES.PUSH_ENDPOINT_INVALID]: "errors.pushEndpointInvalid",
+  [ERROR_CODES.PUSH_NOT_CONFIGURED]: "errors.pushNotConfigured",
+  [ERROR_CODES.PUSH_SUBSCRIPTION_NOT_FOUND]: "errors.pushSubscriptionNotFound",
 
   [ERROR_CODES.USER_NOT_FOUND]: "errors.userNotFound",
   [ERROR_CODES.AUTH_SIGNUP_FAILED]: "errors.authSignupFailed",

@@ -488,3 +488,37 @@ product's current values. This is what makes the sales/profit dashboard accurate
 Employee can **create** orders and advance them as far as the courier handover, but **cannot
 delete, edit, or cancel** them, and **cannot mark their money collected** (anti-theft).
 Admin/Manager have full control. Every mutation writes an audit entry.
+---
+
+## Sale notifications (Web Push)
+
+The owner is not at the counter all day, and the question they actually want answered is
+"what has been sold while I wasn't there". So a sale rung up by a **Manager** or an
+**Employee** pushes a notification to the **Admins'** phones.
+
+- **Nobody is told about their own sale.** An Admin who rings something up at the counter
+  was standing there; being told what *someone else* sold is the whole point.
+- **Transport is the free Web Push standard** — the browser's own push service delivers it,
+  identified by a VAPID key pair the deployment generates once. No paid notification
+  service, in line with the hosting rules.
+- **Devices opt in, one at a time.** An Admin turns notifications on from the admin's
+  Settings screen, on each phone they want them on. On iPhone and iPad the app must first be
+  added to the Home Screen — Safari only allows notifications for an installed app — which
+  the screen says in plain words, alongside the permission the browser actually holds.
+- **The notification is short and plain:** what was sold, the total in the store currency,
+  and who sold it — e.g. "بيع جديد: فستان سهرة — ٢٥٠₪ — أحمد". Tapping it opens that order
+  in the admin. It is translated like every other string; the API sends translation keys and
+  figures, never a sentence.
+- **A notification can never cost a sale.** Sending happens after the order is committed and
+  is never awaited: a push service that is slow, unreachable or has forgotten the device
+  changes nothing about the sale, and the failure goes to error tracking rather than to the
+  person at the till. A subscription the push service reports as gone is cleaned up.
+
+### Settings
+Two store-wide settings (Admin only), on top of the per-device opt-in:
+
+- an **on/off switch** for sale notifications;
+- a **mode**: `EVERY_SALE` today, with `ABOVE_AMOUNT` (only sales worth at least a set
+  figure) and `PERIODIC_SUMMARY` (one digest instead of one notification per sale) modelled
+  now so they can be added later without a migration or a redesign. The stored minimum
+  amount is kept in every mode, so switching modes never loses the figure the shop chose.

@@ -14,6 +14,7 @@ import reportsRouter from "@/routes/reports";
 import usersRouter from "@/routes/users";
 import settingsRouter from "@/routes/settings";
 import imagesRouter from "@/routes/images";
+import pushRouter from "@/routes/push";
 import { errorHandler } from "@/middleware/errorHandler";
 import { AppError, sendError } from "@/lib/response";
 import { UPLOAD_DIR } from "@/lib/image";
@@ -55,6 +56,7 @@ app.use("/api/reports", reportsRouter);
 app.use("/api/users", usersRouter);
 app.use("/api/settings", settingsRouter);
 app.use("/api/images", imagesRouter);
+app.use("/api/push", pushRouter);
 
 app.use((_req, res) => {
   sendError(res, new AppError(404, ERROR_CODES.NOT_FOUND));
