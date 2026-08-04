@@ -52,18 +52,24 @@ services:
     ports:
       - "127.0.0.1:13001:3000"
 
-  # ── pos: add this once that app actually exists ──
-  # pos:
-  #   build:
-  #     context: ./pos
-  #     dockerfile: Dockerfile
-  #     args:
-  #       NEXT_PUBLIC_API_URL: https://api.sandbox.organza-moda.com
-  #       NEXT_PUBLIC_DEFAULT_LOCALE: ar
-  #       NEXT_PUBLIC_SUPPORTED_LOCALES: ar,en,he
-  #   restart: unless-stopped
-  #   depends_on: [backend]
-  #   ports: ["127.0.0.1:13002:3000"]
+  pos:
+    build:
+      # context is the repo root for the same reason as backend/admin: the
+      # build needs the sibling shared/ package.
+      context: .
+      dockerfile: pos/Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: https://api.sandbox.organza-moda.com
+        NEXT_PUBLIC_DEFAULT_LOCALE: ar
+        NEXT_PUBLIC_SUPPORTED_LOCALES: ar,en,he
+        NEXT_PUBLIC_PROJECT_NAME: organza-sandbox-pos
+    restart: unless-stopped
+    depends_on: [backend]
+    # Camera scanning needs HTTPS (spec.md), so this port has to be served
+    # through the TLS-terminating reverse proxy in front of it, not hit
+    # directly over http://<vps>:13002.
+    ports:
+      - "127.0.0.1:13002:3000"
 
 volumes:
   sandbox_db_data:

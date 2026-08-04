@@ -1,0 +1,136 @@
+{
+  "app": {
+    "name": "אורגנזה",
+    "tagline": "מסך מכירה"
+  },
+  "common": {
+    "loading": "טוען…",
+    "retry": "נסה שוב",
+    "logout": "התנתקות",
+    "language": "שפה",
+    "close": "סגירה",
+    "account": "חשבון"
+  },
+  "auth": {
+    "login": {
+      "title": "התחברות",
+      "subtitle": "הזן דוא\"ל וסיסמה כדי להמשיך.",
+      "emailLabel": "דוא\"ל",
+      "emailPlaceholder": "you@organza.test",
+      "passwordLabel": "סיסמה",
+      "passwordPlaceholder": "הזן את הסיסמה",
+      "submit": "התחברות",
+      "submitting": "מתחבר…",
+      "error": "דוא\"ל או סיסמה שגויים."
+    }
+  },
+  "sell": {
+    "noPermission": "החשבון שלך אינו מורשה לבצע מכירות. פנה למנהל.",
+    "feedback": {
+      "added": "{name} נוסף למכירה."
+    },
+    "search": {
+      "label": "חיפוש מוצר או סריקת ברקוד",
+      "placeholder": "חפש לפי שם, או הזן ברקוד",
+      "clear": "ניקוי החיפוש",
+      "scan": "סריקת ברקוד במצלמה",
+      "looking": "מחפש את הברקוד…",
+      "searching": "מחפש…",
+      "empty": "לא נמצאו תוצאות.",
+      "error": "לא ניתן לטעון את תוצאות החיפוש. נסה שוב.",
+      "soldOut": "אזל מהמלאי",
+      "inStock": "{count, plural, one {פריט אחד במלאי} two {# פריטים במלאי} other {# פריטים במלאי}}",
+      "variantCount": "{count, plural, one {אפשרות אחת} two {# אפשרויות} other {# אפשרויות}}"
+    },
+    "scanner": {
+      "title": "סריקת ברקוד",
+      "subtitle": "כוון את המצלמה לברקוד שעל התווית.",
+      "starting": "מפעיל את המצלמה…",
+      "hint": "החזק את הברקוד בתוך המסגרת. הפריט נוסף מיד עם הקריאה.",
+      "fault": {
+        "insecureContext": "המצלמה דורשת חיבור מאובטח (HTTPS). פתח את המסך בקישור מאובטח, או הזן את הברקוד ידנית.",
+        "permission": "הגישה למצלמה נחסמה. אפשר אותה בהגדרות הדפדפן, או הזן את הברקוד ידנית.",
+        "unavailable": "לא ניתן להפעיל את המצלמה במכשיר הזה. הזן את הברקוד בתיבת החיפוש."
+      }
+    },
+    "picker": {
+      "subtitle": "בחר איזו אפשרות נמכרת.",
+      "numberedSubtitle": "הקלד את המספר, או בחר אותו מהרשימה.",
+      "numberLabel": "מספר",
+      "numberPlaceholder": "לדוגמה: 4",
+      "addNumber": "הוספה",
+      "numberNotFound": "אין מספר כזה, או שהוא אזל מהמלאי.",
+      "added": "{name} נוסף.",
+      "soldOut": "אזל מהמלאי",
+      "done": "סיום"
+    },
+    "cart": {
+      "emptyTitle": "אין עדיין פריטים במכירה",
+      "emptyHint": "סרוק את התווית, או חפש לפי שם, כדי להוסיף פריט.",
+      "unitPrice": "ליחידה: {price}",
+      "quantity": "כמות — {name}",
+      "increase": "הגדלת הכמות — {name}",
+      "decrease": "הקטנת הכמות — {name}",
+      "remove": "הסרת {name} מהמכירה",
+      "addDiscount": "הנחה",
+      "discountFor": "הנחה על {name}",
+      "stockCap": "{count, plural, one {זה הפריט האחרון במלאי} two {אלה כל # הפריטים במלאי} other {אלה כל # הפריטים במלאי}}"
+    },
+    "discount": {
+      "title": "הוספת הנחה",
+      "subtitle": "הנחה על {name} — {amount} לפני ההנחה",
+      "typeLabel": "סוג ההנחה",
+      "type": {
+        "PERCENT": "אחוז %",
+        "AMOUNT": "סכום"
+      },
+      "valueLabel": {
+        "PERCENT": "הנחה (%)",
+        "AMOUNT": "סכום ההנחה"
+      },
+      "valuePlaceholder": {
+        "PERCENT": "לדוגמה: 10",
+        "AMOUNT": "לדוגמה: 20"
+      },
+      "invalid": "הזן ערך תקין (אחוז בין 0 ל-100).",
+      "apply": "החלת ההנחה",
+      "remove": "הסרת ההנחה"
+    },
+    "checkout": {
+      "wholeSale": "המכירה כולה",
+      "subtotal": "{count, plural, one {פריט אחד} two {# פריטים} other {# פריטים}}",
+      "itemDiscounts": "הנחות על פריטים",
+      "orderDiscount": "הנחה על המכירה",
+      "total": "סה\"כ",
+      "addOrderDiscount": "הנחה על המכירה",
+      "editOrderDiscount": "עריכת ההנחה על המכירה",
+      "submit": "סיום המכירה",
+      "submitting": "שומר…"
+    },
+    "success": {
+      "title": "המכירה הושלמה",
+      "orderNumber": "מספר הזמנה {number}",
+      "newSale": "מכירה חדשה"
+    }
+  },
+  "errors": {
+    "notFound": "לא נמצא.",
+    "validation": "בדוק את הנתונים שהוזנו.",
+    "internal": "אירעה שגיאה. נסה שוב.",
+    "unauthorized": "ההתחברות פגה. התחבר מחדש.",
+    "forbidden": "אין לך הרשאה לבצע פעולה זו.",
+    "accountInactive": "החשבון אינו פעיל.",
+    "validationRequired": "שדה חובה.",
+    "validationInvalidNumber": "הזן מספר תקין.",
+    "validationInvalidEmail": "הזן כתובת דוא\"ל תקינה.",
+    "validationPasswordTooShort": "הסיסמה חייבת להכיל לפחות {min} תווים.",
+    "productNotFound": "אין מוצר עם ברקוד או קוד כזה.",
+    "variantNotFound": "האפשרות הזו כבר לא קיימת.",
+    "orderNotFound": "ההזמנה לא נמצאה.",
+    "orderItemsRequired": "הוסף לפחות פריט אחד לפני סיום המכירה.",
+    "orderDiscountInvalid": "ערך ההנחה אינו תקין.",
+    "orderInsufficientStock": "אין מספיק מלאי לכמות המבוקשת.",
+    "orderProductUnavailable": "אחד המוצרים אינו זמין יותר למכירה.",
+    "orderVariantRequired": "בחר תחילה איזו אפשרות נמכרת."
+  }
+}

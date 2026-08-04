@@ -10,11 +10,13 @@ import {
   createProductSchema,
   generateVariantsSchema,
   listProductsQuerySchema,
+  lookupProductQuerySchema,
   updateProductSchema,
   updateVariantSchema,
   type CreateProductInput,
   type GenerateVariantsInput,
   type ListProductsQuery,
+  type LookupProductQuery,
   type UpdateProductInput,
   type UpdateVariantInput,
 } from "@/validation/product";
@@ -26,7 +28,7 @@ import { cartesianProduct, buildComboName, buildImagePointMap, resolveComboImage
 import { serializeProduct, serializeProductSummary, serializeVariant } from "@/lib/pricing";
 import { writeAudit } from "@/lib/audit";
 import { AUDIT_ENTITY, DEFAULT_STOCK, ERROR_CODES } from "@/constants";
-import type { I18n, OptionValueLookup } from "@/types";
+import type { AnyRecord, I18n, OptionValueLookup } from "@/types";
 
 const router = Router();
 router.use(requireAuth);
@@ -118,6 +120,53 @@ router.get(
         totalPages: Math.max(1, Math.ceil(total / query.pageSize)),
       }
     );
+  })
+);
+
+// ---------------------------------------------------------------------------
+// GET /api/products/lookup?code= — resolve one scanned/typed code to the
+// exact item being sold (POS). Matched against the barcode AND the SKU of
+// both products and variants, because a staff member scans whichever label
+// is on the piece in their hand and falls back to reading the SKU aloud
+// when it's damaged.
+//
+// Declared before "/:id" — Express matches routes in order, so a literal
+// path registered after the parameter route would never be reached.
+//
+// Hidden (isActive: false) products are still found here, deliberately: a
+// scan is someone holding the piece at the counter, and hiding a product
+// means "don't show it", not "refuse the sale" — the orders API sells it
+// regardless. Only soft-deleted products are excluded. Browsing is the
+// other way round: the POS search filters to active products, so an
+// unpublished draft can be sold but never stumbled upon.
+// ---------------------------------------------------------------------------
+router.get(
+  "/lookup",
+  validateQuery(lookupProductQuerySchema),
+  asyncHandler(async (req, res) => {
+    const { code } = req.validatedQuery as LookupProductQuery;
+
+    // Variants first: a variant-bearing product's parent carries neither the
+    // stock nor the price that gets sold, so if a code matches a variant
+    // that variant is the answer, whatever else it might also match.
+    const variant = await prisma.variant.findFirst({
+      where: { OR: [{ barcode: code }, { sku: code }], product: { deletedAt: null } },
+      select: { id: true, productId: true },
+    });
+
+    const product = await prisma.product.findFirst({
+      where: variant
+        ? { id: variant.productId }
+        : { deletedAt: null, OR: [{ barcode: code }, { sku: code }] },
+      include: productInclude,
+    });
+    if (!product) throw new AppError(404, ERROR_CODES.PRODUCT_NOT_FOUND);
+
+    const serialized = serializeProduct(product, req.user!.role);
+    sendOk(res, {
+      product: serialized,
+      variant: variant ? serialized.variants.find((v: AnyRecord) => v.id === variant.id) ?? null : null,
+    });
   })
 );
 

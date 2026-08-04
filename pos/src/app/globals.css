@@ -1,0 +1,134 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --font-sans: var(--font-geist-sans);
+  --font-arabic: var(--font-cairo);
+  --font-hebrew: var(--font-noto-hebrew);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+:root {
+  --radius: 0.75rem;
+
+  /* Organza logo hues. Every brand tint below is derived from these two, so the
+     whole theme can be re-hued from here instead of per-token. */
+  --brand-hue: 206.4; /* dark teal  #235C63 */
+  --brand-accent-hue: 177.6; /* light mint #B5D3CB */
+
+  --background: oklch(0.99 0 0);
+  --foreground: oklch(0.18 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.18 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.18 0 0);
+
+  /* Organza teal — brand primary (#235C63) */
+  --primary: oklch(0.44 0.06 var(--brand-hue));
+  --primary-foreground: oklch(0.98 0 0);
+
+  --secondary: oklch(0.96 0.012 var(--brand-hue));
+  --secondary-foreground: oklch(0.28 0.03 var(--brand-hue));
+
+  --muted: oklch(0.96 0 0);
+  --muted-foreground: oklch(0.48 0 0);
+
+  /* Organza mint — brand light accent (#B5D3CB) */
+  --accent: oklch(0.843 0.034 var(--brand-accent-hue));
+  --accent-foreground: oklch(0.28 0.03 var(--brand-hue));
+
+  --destructive: oklch(0.55 0.22 27);
+  --destructive-foreground: oklch(0.98 0 0);
+
+  --border: oklch(0.9 0 0);
+  --input: oklch(0.9 0 0);
+  /* 0.65 alpha keeps the focus ring at >=3:1 against the page background. */
+  --ring: oklch(0.44 0.06 var(--brand-hue) / 0.65);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: oklch(0.16 0 0);
+    --foreground: oklch(0.96 0 0);
+    --card: oklch(0.2 0 0);
+    --card-foreground: oklch(0.96 0 0);
+    --popover: oklch(0.2 0 0);
+    --popover-foreground: oklch(0.96 0 0);
+
+    /* Same brand hue, lightened so it reads on a dark surface. */
+    --primary: oklch(0.74 0.07 var(--brand-hue));
+    --primary-foreground: oklch(0.16 0 0);
+
+    --secondary: oklch(0.28 0.03 var(--brand-hue));
+    --secondary-foreground: oklch(0.94 0.015 var(--brand-accent-hue));
+
+    --muted: oklch(0.27 0 0);
+    --muted-foreground: oklch(0.68 0 0);
+
+    --accent: oklch(0.32 0.04 var(--brand-hue));
+    --accent-foreground: oklch(0.94 0.015 var(--brand-accent-hue));
+
+    --destructive: oklch(0.62 0.2 27);
+    --destructive-foreground: oklch(0.16 0 0);
+
+    --border: oklch(1 0 0 / 12%);
+    --input: oklch(1 0 0 / 18%);
+    --ring: oklch(0.74 0.07 var(--brand-hue) / 0.6);
+  }
+}
+
+@layer base {
+  * {
+    border-color: var(--border);
+    outline-color: var(--ring);
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+  }
+
+  html[lang="ar"] body {
+    font-family: var(--font-arabic);
+  }
+
+  html[lang="he"] body {
+    font-family: var(--font-hebrew);
+  }
+
+  /* Native search-input decorations (magnifier/clear) don't respect our
+     RTL layout and collide with the custom icons we render instead. */
+  input[type="search"]::-webkit-search-cancel-button,
+  input[type="search"]::-webkit-search-decoration {
+    appearance: none;
+  }
+}
