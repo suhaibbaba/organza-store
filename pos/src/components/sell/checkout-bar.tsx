@@ -2,7 +2,9 @@
 
 import { useTranslations } from "next-intl";
 import { MessageCircle, Percent } from "lucide-react";
+import { CHECKOUT_BAR_HEIGHT_VAR } from "@/constants/layout";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
+import { usePublishedHeight } from "@/hooks/use-published-height";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import type { CartTotals, DiscountState } from "@/types/cart";
@@ -37,6 +39,11 @@ export function CheckoutBar({
   const t = useTranslations("sell.checkout");
   const formatMoney = useMoneyFormatter();
 
+  // The bar is out of the flow, and it grows and shrinks as discounts come
+  // and go, so it tells the page how tall it currently is instead of the page
+  // guessing — that guess is what leaves the last cart line stuck underneath.
+  const ref = usePublishedHeight<HTMLDivElement>(CHECKOUT_BAR_HEIGHT_VAR);
+
   const hasItemDiscount = Number(totals.itemDiscountTotal) > 0;
   const hasOrderDiscount = Number(totals.orderDiscountAmount) > 0;
 
@@ -44,7 +51,10 @@ export function CheckoutBar({
     // pb: iOS home indicator (CLAUDE.md "Mobile input & device specifics") —
     // without it the last few millimetres of the checkout button sit under
     // the indicator on a notched iPhone and can't be tapped.
-    <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur">
+    <div
+      ref={ref}
+      className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 pb-[var(--safe-bottom)] backdrop-blur"
+    >
       <div className="mx-auto flex w-full max-w-2xl flex-col gap-3 px-4 py-3">
         <div className="flex flex-col gap-1 text-sm">
           <div className="flex items-center justify-between text-muted-foreground">

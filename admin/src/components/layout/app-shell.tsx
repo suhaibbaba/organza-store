@@ -9,7 +9,15 @@ export function AppShell({ children }: { children: ReactNode }) {
       <TopBar />
       <div className="flex">
         <SidebarNav />
-        <main className="min-w-0 flex-1 px-4 pb-20 pt-4 md:px-6 md:pb-6">{children}</main>
+        {/* pb: the bottom nav is fixed, so it covers the end of the page
+            unless the scrolling content reserves exactly what the nav (plus
+            the home indicator under it) takes — --bottom-bar-inset, the same
+            value the nav sizes itself from. The extra 1.5rem is ordinary
+            breathing room, and is all that is left from md up, where the
+            inset collapses to the safe area alone. */}
+        <main className="min-w-0 flex-1 px-4 pb-[calc(var(--bottom-bar-inset)+1.5rem)] pt-4 md:px-6">
+          {children}
+        </main>
       </div>
       <BottomNav />
     </div>

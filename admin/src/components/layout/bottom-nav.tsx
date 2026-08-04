@@ -20,11 +20,15 @@ export function BottomNav() {
   const overflowItems = items.filter((item) => !PRIMARY_NAV_KEYS.includes(item.key));
 
   return (
+    // Height comes from --bottom-nav-height and the home-indicator padding
+    // from --safe-bottom (globals.css); together they are --bottom-bar-inset,
+    // which is what the page content pads by. Never hard-code a height here —
+    // the two would drift and the last card would end up under the nav again.
     <nav
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background pb-[env(safe-area-inset-bottom)] md:hidden"
+      className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background pb-[var(--safe-bottom)] md:hidden"
       aria-label={tCommon("mainNavigation")}
     >
-      <div className="flex h-16 items-stretch">
+      <div className="flex h-[var(--bottom-nav-height)] items-stretch">
         {primaryItems.map((item) => {
           const isActive = pathname === item.href;
           const Icon = item.icon;

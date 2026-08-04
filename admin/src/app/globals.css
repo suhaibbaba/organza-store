@@ -35,6 +35,28 @@
 :root {
   --radius: 0.75rem;
 
+  /* ------------------------------------------------------------------
+     Fixed chrome — the one place that says how much of the viewport the
+     app's own bars occupy. The bars size themselves from these, and the
+     scrolling page reserves space with the same values, so a bar and the
+     room kept clear for it can never drift apart.
+     ------------------------------------------------------------------ */
+
+  /* iOS notch / home indicator. Named once so every bar reads the same
+     value (and so it can be forced to a non-zero number when checking the
+     layout on a desktop browser, where env() is always 0). */
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+
+  /* The bottom nav's row of buttons — see bottom-nav.tsx, which is sized
+     from this and nothing else. */
+  --bottom-nav-height: 4rem;
+
+  /* What is actually spoken for at the bottom of the viewport: the nav plus
+     the home-indicator strip it pads itself with. Scrollable content pads by
+     this, and anything anchored above the nav is offset by it. */
+  --bottom-bar-inset: calc(var(--bottom-nav-height) + var(--safe-bottom));
+
   /* Organza logo hues. Every brand tint below is derived from these two, so the
      whole theme can be re-hued from here instead of per-token. */
   --brand-hue: 206.4; /* dark teal  #235C63 */
@@ -81,6 +103,15 @@
   --chart-2: #eb6834;
   --chart-3: #1baf7a;
   --chart-grid: oklch(0.9 0 0);
+}
+
+/* From md up the bottom nav is gone (the sidebar takes over), so the only
+   thing left to clear at the bottom is the home indicator — which an iPad in
+   landscape still has. Keep this breakpoint in step with the nav's md:hidden. */
+@media (min-width: 48rem) {
+  :root {
+    --bottom-bar-inset: var(--safe-bottom);
+  }
 }
 
 @media (prefers-color-scheme: dark) {

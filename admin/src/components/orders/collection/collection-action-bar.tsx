@@ -19,9 +19,10 @@ interface CollectionActionBarProps {
 // only appears once something is selected — an empty bar would just eat
 // screen on a phone.
 //
-// It sits above the bottom navigation (h-16) and adds the iOS home-indicator
-// inset itself, so its button is never half-hidden on a Pro Max (CLAUDE.md
-// "Mobile input & device specifics").
+// It is anchored one --bottom-bar-inset off the bottom, which is the nav's
+// height plus the iOS home-indicator strip (globals.css), so it lands exactly
+// on top of the nav on a phone and clears the indicator on the wider screens
+// where the nav is hidden (CLAUDE.md "Mobile input & device specifics").
 export function CollectionActionBar({
   count,
   amount,
@@ -35,7 +36,7 @@ export function CollectionActionBar({
   if (count === 0) return null;
 
   return (
-    <div className="fixed inset-x-0 bottom-16 z-30 border-t border-border bg-background px-4 pb-[env(safe-area-inset-bottom)] pt-3 md:bottom-0 md:px-6">
+    <div className="fixed inset-x-0 bottom-[var(--bottom-bar-inset)] z-30 border-t border-border bg-background px-4 py-3 md:px-6">
       <div className="mx-auto flex max-w-3xl flex-col gap-2">
         <div className="flex items-center justify-between gap-3">
           <span className="text-sm text-muted-foreground">{t("selected", { count })}</span>
