@@ -23,6 +23,7 @@ export const ERROR_MESSAGE_KEYS: Record<string, string> = {
 
   [ERROR_CODES.VALIDATION_REQUIRED]: "errors.validationRequired",
   [ERROR_CODES.VALIDATION_INVALID_NUMBER]: "errors.validationInvalidNumber",
+  [ERROR_CODES.VALIDATION_OUT_OF_RANGE]: "errors.validationOutOfRange",
   [ERROR_CODES.VALIDATION_INVALID_PHONE]: "errors.validationInvalidPhone",
   [ERROR_CODES.VALIDATION_INVALID_EMAIL]: "errors.validationInvalidEmail",
   [ERROR_CODES.VALIDATION_PASSWORD_TOO_SHORT]: "errors.validationPasswordTooShort",

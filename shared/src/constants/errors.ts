@@ -18,6 +18,10 @@ export const ERROR_CODES = {
 
   VALIDATION_REQUIRED: "error.validation.required",
   VALIDATION_INVALID_NUMBER: "error.validation.invalid_number",
+  // A number that parses fine but sits outside what the field accepts (a
+  // 5-metre label, a grid of 900 columns). Separate from invalid_number so
+  // the user is told the value is too big/small, not that it isn't a number.
+  VALIDATION_OUT_OF_RANGE: "error.validation.out_of_range",
   VALIDATION_INVALID_PHONE: "error.validation.invalid_phone",
   VALIDATION_INVALID_EMAIL: "error.validation.invalid_email",
   VALIDATION_PASSWORD_TOO_SHORT: "error.validation.password_too_short",
