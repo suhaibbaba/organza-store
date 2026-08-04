@@ -2,7 +2,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { apiRequest } from "@tests/support/client";
 import { getSession } from "@tests/support/auth";
 import { createSellableProduct, readStock } from "@tests/support/orders";
-import type { OrderDto, OrderSummaryDto } from "@tests/types";
+import type { CollectResultDto, CollectionSummaryDto, OrderDto, OrderSummaryDto } from "@tests/types";
 import { ERROR_CODES } from "@/constants";
 
 // Orders (Phase 2). Every assertion here runs against the live API, so each
@@ -52,6 +52,9 @@ describe("Orders", () => {
       expect(res.data!.stockDeductedAt).not.toBeNull();
       expect(res.data!.total).toBe("200.00");
       expect(await readStock(admin.token, product.id)).toBe(8);
+      // Cash in hand at the till — nothing to collect later.
+      expect(res.data!.paymentStatus).toBe("COLLECTED");
+      expect(res.data!.collectedAt).not.toBeNull();
     });
 
     it("opens an online order as NEW, holding no stock yet", async () => {
@@ -70,6 +73,9 @@ describe("Orders", () => {
       // An unanswered WhatsApp order must not hold an item off the shelf.
       expect(res.data!.stockDeductedAt).toBeNull();
       expect(await readStock(admin.token, product.id)).toBe(10);
+      // Its money will come from the delivery company later, not now.
+      expect(res.data!.paymentStatus).toBe("PENDING_COLLECTION");
+      expect(res.data!.collectedAt).toBeNull();
     });
 
     it("requires customer details for an online order but not for a STORE sale", async () => {
@@ -413,23 +419,22 @@ describe("Orders", () => {
       expect(preparing.data!.stockDeductedAt).not.toBeNull();
       expect(await readStock(admin.token, product.id)).toBe(6);
 
-      // ...and every later step leaves it alone.
-      for (const status of ["DELIVERING", "RECEIVED"]) {
-        const res = await apiRequest<OrderDto>(`/api/orders/${created.data!.id}/status`, {
-          method: "PATCH",
-          token: employee.token,
-          body: { status },
-        });
-        expect(res.status).toBe(200);
-        expect(res.data!.status).toBe(status);
-      }
+      // ...and the handover to the courier leaves it alone.
+      const handed = await apiRequest<OrderDto>(`/api/orders/${created.data!.id}/status`, {
+        method: "PATCH",
+        token: employee.token,
+        body: { status: "HANDED_TO_COURIER" },
+      });
+      expect(handed.status).toBe(200);
+      expect(handed.data!.status).toBe("HANDED_TO_COURIER");
       expect(await readStock(admin.token, product.id)).toBe(6);
     });
 
-    // spec.md's status flow ends an online order at RECEIVED; COMPLETED
-    // belongs to a STORE sale, which opens there. Reporting treats the two
+    // spec.md's status flow ends an online order at HANDED_TO_COURIER — the
+    // shop does not follow the parcel to the customer's door. COMPLETED
+    // belongs to a STORE sale, which opens there; reporting treats the two
     // together (FINISHED_ORDER_STATUSES) rather than chaining them.
-    it("ends an online order at RECEIVED, with no move on to COMPLETED", async () => {
+    it("ends an online order at HANDED_TO_COURIER, with no move on to COMPLETED", async () => {
       const admin = await getSession("ADMIN");
       const product = await sellableProduct(admin.token, { stock: 10 });
 
@@ -439,7 +444,7 @@ describe("Orders", () => {
         customerPhone: "+970598500500",
         items: [{ productId: product.id, quantity: 1 }],
       });
-      for (const status of ["PREPARING", "DELIVERING", "RECEIVED"]) {
+      for (const status of ["PREPARING", "HANDED_TO_COURIER"]) {
         const res = await apiRequest<OrderDto>(`/api/orders/${created.data!.id}/status`, {
           method: "PATCH",
           token: admin.token,
@@ -457,6 +462,39 @@ describe("Orders", () => {
       expect(res.error?.code).toBe(ERROR_CODES.ORDER_INVALID_STATUS_TRANSITION);
     });
 
+    // The two dropped states must not survive anywhere: they are not valid
+    // input, not a legal destination, and not a status an order can hold.
+    it("no longer accepts the removed DELIVERING and RECEIVED states", async () => {
+      const admin = await getSession("ADMIN");
+      const product = await sellableProduct(admin.token, { stock: 5 });
+
+      const created = await createOrder(admin.token, {
+        channel: "WHATSAPP",
+        customerName: "شهد",
+        customerPhone: "+970598600600",
+        items: [{ productId: product.id, quantity: 1 }],
+      });
+      await apiRequest(`/api/orders/${created.data!.id}/status`, {
+        method: "PATCH",
+        token: admin.token,
+        body: { status: "PREPARING" },
+      });
+
+      for (const status of ["DELIVERING", "RECEIVED"]) {
+        const res = await apiRequest(`/api/orders/${created.data!.id}/status`, {
+          method: "PATCH",
+          token: admin.token,
+          body: { status },
+        });
+        expect(res.status).toBe(400);
+        expect(res.error?.code).toBe(ERROR_CODES.VALIDATION);
+      }
+
+      // ...and they are not a filter the list understands either.
+      const listed = await apiRequest("/api/orders?status=DELIVERING", { token: admin.token });
+      expect(listed.status).toBe(400);
+    });
+
     it("rejects illegal moves", async () => {
       const admin = await getSession("ADMIN");
       const product = await sellableProduct(admin.token, { stock: 10 });
@@ -469,7 +507,7 @@ describe("Orders", () => {
       });
 
       // NEW may only go to PREPARING or CANCELLED — no skipping ahead.
-      for (const status of ["DELIVERING", "RECEIVED", "COMPLETED"]) {
+      for (const status of ["HANDED_TO_COURIER", "COMPLETED"]) {
         const res = await apiRequest(`/api/orders/${created.data!.id}/status`, {
           method: "PATCH",
           token: admin.token,
@@ -574,17 +612,217 @@ describe("Orders", () => {
   });
 
   // -------------------------------------------------------------------------
+  // Payment collection (spec.md "Payment collection") — money for a courier
+  // order arrives later, from the delivery company, so being sold and being
+  // paid are two separate facts.
+  // -------------------------------------------------------------------------
+  describe("payment collection", () => {
+    async function onlineOrder(token: string, productId: string, quantity = 1) {
+      const created = await createOrder(token, {
+        channel: "WHATSAPP",
+        customerName: "تحصيل",
+        customerPhone: "+970597100100",
+        items: [{ productId, quantity }],
+      });
+      expect(created.status).toBe(201);
+      return created.data!;
+    }
+
+    function collect(token: string, orderIds: string[]) {
+      return apiRequest<CollectResultDto>("/api/orders/collect", {
+        method: "POST",
+        token,
+        body: { orderIds },
+      });
+    }
+
+    it("keeps an online order pending until it is marked collected", async () => {
+      const admin = await getSession("ADMIN");
+      const product = await sellableProduct(admin.token, { basePrice: "100", stock: 10 });
+      const order = await onlineOrder(admin.token, product.id);
+
+      // Walking the whole flow does NOT collect the money — handing a parcel
+      // to the courier is not being paid for it.
+      for (const status of ["PREPARING", "HANDED_TO_COURIER"]) {
+        const moved = await apiRequest<OrderDto>(`/api/orders/${order.id}/status`, {
+          method: "PATCH",
+          token: admin.token,
+          body: { status },
+        });
+        expect(moved.status).toBe(200);
+        expect(moved.data!.paymentStatus).toBe("PENDING_COLLECTION");
+      }
+
+      const collected = await collect(admin.token, [order.id]);
+      expect(collected.status).toBe(200);
+      expect(collected.data!.collectedIds).toEqual([order.id]);
+
+      const reread = await apiRequest<OrderDto>(`/api/orders/${order.id}`, { token: admin.token });
+      expect(reread.data!.paymentStatus).toBe("COLLECTED");
+      expect(reread.data!.collectedAt).not.toBeNull();
+    });
+
+    it("settles several orders in one go, and marking twice changes nothing", async () => {
+      const admin = await getSession("ADMIN");
+      const product = await sellableProduct(admin.token, { basePrice: "100", stock: 10 });
+      const first = await onlineOrder(admin.token, product.id);
+      const second = await onlineOrder(admin.token, product.id);
+
+      const res = await collect(admin.token, [first.id, second.id]);
+      expect(res.status).toBe(200);
+      expect([...res.data!.collectedIds].sort()).toEqual([first.id, second.id].sort());
+      expect(res.data!.alreadyCollectedIds).toEqual([]);
+
+      // Two people settling the same batch at once must not produce a
+      // failure — the second call is simply a no-op.
+      const again = await collect(admin.token, [first.id, second.id]);
+      expect(again.status).toBe(200);
+      expect(again.data!.collectedIds).toEqual([]);
+      expect([...again.data!.alreadyCollectedIds].sort()).toEqual([first.id, second.id].sort());
+
+      const reread = await apiRequest<OrderDto>(`/api/orders/${first.id}`, { token: admin.token });
+      expect(reread.data!.collectedAt).toBe(res.data!.collectedAt);
+    });
+
+    it("blocks an Employee from marking money collected", async () => {
+      const admin = await getSession("ADMIN");
+      const employee = await getSession("EMPLOYEE");
+      const product = await sellableProduct(admin.token, { basePrice: "100", stock: 10 });
+      const order = await onlineOrder(employee.token, product.id);
+
+      const res = await collect(employee.token, [order.id]);
+      expect(res.status).toBe(403);
+      expect(res.error?.code).toBe(ERROR_CODES.FORBIDDEN);
+
+      // ...and the order really is untouched: an Employee may take the sale,
+      // never declare its money received (spec.md "Security rationale").
+      const reread = await apiRequest<OrderDto>(`/api/orders/${order.id}`, { token: admin.token });
+      expect(reread.data!.paymentStatus).toBe("PENDING_COLLECTION");
+      expect(reread.data!.collectedAt).toBeNull();
+
+      // A Manager may.
+      const manager = await getSession("MANAGER");
+      const asManager = await collect(manager.token, [order.id]);
+      expect(asManager.status).toBe(200);
+    });
+
+    it("refuses to collect a cancelled or fully returned sale", async () => {
+      const admin = await getSession("ADMIN");
+      const product = await sellableProduct(admin.token, { basePrice: "100", stock: 10 });
+
+      const cancelled = await onlineOrder(admin.token, product.id);
+      await apiRequest(`/api/orders/${cancelled.id}/status`, {
+        method: "PATCH",
+        token: admin.token,
+        body: { status: "CANCELLED" },
+      });
+      const cancelledRes = await collect(admin.token, [cancelled.id]);
+      expect(cancelledRes.status).toBe(409);
+      expect(cancelledRes.error?.code).toBe(ERROR_CODES.ORDER_NOT_COLLECTABLE);
+
+      const returned = await onlineOrder(admin.token, product.id);
+      for (const status of ["PREPARING", "HANDED_TO_COURIER"]) {
+        await apiRequest(`/api/orders/${returned.id}/status`, {
+          method: "PATCH",
+          token: admin.token,
+          body: { status },
+        });
+      }
+      await apiRequest(`/api/orders/${returned.id}/return`, { method: "POST", token: admin.token, body: {} });
+      const returnedRes = await collect(admin.token, [returned.id]);
+      expect(returnedRes.status).toBe(409);
+      expect(returnedRes.error?.code).toBe(ERROR_CODES.ORDER_NOT_COLLECTABLE);
+
+      // An unknown id fails the whole batch rather than being skipped.
+      const unknown = await collect(admin.token, ["does-not-exist"]);
+      expect(unknown.status).toBe(404);
+      expect(unknown.error?.code).toBe(ERROR_CODES.ORDER_NOT_FOUND);
+    });
+
+    it("lists what the delivery company still owes, and totals it", async () => {
+      const admin = await getSession("ADMIN");
+      const product = await sellableProduct(admin.token, { basePrice: "100", stock: 10 });
+
+      const before = await apiRequest<CollectionSummaryDto>("/api/orders/collection-summary", {
+        token: admin.token,
+      });
+      expect(before.status).toBe(200);
+
+      const order = await onlineOrder(admin.token, product.id, 2);
+
+      const after = await apiRequest<CollectionSummaryDto>("/api/orders/collection-summary", {
+        token: admin.token,
+      });
+      expect(after.data!.orderCount - before.data!.orderCount).toBe(1);
+      expect(Number(after.data!.amount) - Number(before.data!.amount)).toBeCloseTo(200, 2);
+
+      // The outstanding view is the order list filtered on the same fact.
+      const outstanding = await apiRequest<OrderSummaryDto[]>(
+        "/api/orders?paymentStatus=PENDING_COLLECTION&collectableOnly=true&pageSize=100",
+        { token: admin.token }
+      );
+      expect(outstanding.status).toBe(200);
+      expect(outstanding.data!.every((o) => o.paymentStatus === "PENDING_COLLECTION")).toBe(true);
+      expect(outstanding.data!.some((o) => o.id === order.id)).toBe(true);
+
+      // Once settled it leaves both the list and the total.
+      const collected = await collect(admin.token, [order.id]);
+      expect(collected.status).toBe(200);
+
+      const settled = await apiRequest<CollectionSummaryDto>("/api/orders/collection-summary", {
+        token: admin.token,
+      });
+      expect(settled.data!.orderCount).toBe(before.data!.orderCount);
+      expect(Number(settled.data!.amount)).toBeCloseTo(Number(before.data!.amount), 2);
+
+      const stillOutstanding = await apiRequest<OrderSummaryDto[]>(
+        "/api/orders?paymentStatus=PENDING_COLLECTION&collectableOnly=true&pageSize=100",
+        { token: admin.token }
+      );
+      expect(stillOutstanding.data!.some((o) => o.id === order.id)).toBe(false);
+    });
+
+    it("keeps a cancelled sale out of the outstanding money, though it was never collected", async () => {
+      const admin = await getSession("ADMIN");
+      const product = await sellableProduct(admin.token, { basePrice: "100", stock: 10 });
+
+      const before = await apiRequest<CollectionSummaryDto>("/api/orders/collection-summary", {
+        token: admin.token,
+      });
+
+      const order = await onlineOrder(admin.token, product.id);
+      await apiRequest(`/api/orders/${order.id}/status`, {
+        method: "PATCH",
+        token: admin.token,
+        body: { status: "CANCELLED" },
+      });
+
+      const after = await apiRequest<CollectionSummaryDto>("/api/orders/collection-summary", {
+        token: admin.token,
+      });
+      expect(after.data!.orderCount).toBe(before.data!.orderCount);
+      expect(Number(after.data!.amount)).toBeCloseTo(Number(before.data!.amount), 2);
+
+      const outstanding = await apiRequest<OrderSummaryDto[]>(
+        "/api/orders?paymentStatus=PENDING_COLLECTION&collectableOnly=true&pageSize=100",
+        { token: admin.token }
+      );
+      expect(outstanding.data!.some((o) => o.id === order.id)).toBe(false);
+    });
+  });
+
+  // -------------------------------------------------------------------------
   // Returns
   // -------------------------------------------------------------------------
   describe("returns", () => {
-    async function receivedOrder(token: string, productId: string, quantity: number) {
+    async function handedOverOrder(token: string, productId: string, quantity: number) {
       const created = await createOrder(token, {
         channel: "WHATSAPP",
         customerName: "دعاء",
         customerPhone: "+970599600600",
         items: [{ productId, quantity }],
       });
-      for (const status of ["PREPARING", "DELIVERING", "RECEIVED"]) {
+      for (const status of ["PREPARING", "HANDED_TO_COURIER"]) {
         await apiRequest(`/api/orders/${created.data!.id}/status`, {
           method: "PATCH",
           token,
@@ -597,7 +835,7 @@ describe("Orders", () => {
     it("returns specific quantities, restoring only what came back", async () => {
       const admin = await getSession("ADMIN");
       const product = await sellableProduct(admin.token, { stock: 10 });
-      const order = await receivedOrder(admin.token, product.id, 3);
+      const order = await handedOverOrder(admin.token, product.id, 3);
       expect(await readStock(admin.token, product.id)).toBe(7);
 
       const res = await apiRequest<OrderDto>(`/api/orders/${order.id}/return`, {
@@ -609,14 +847,14 @@ describe("Orders", () => {
       expect(res.status).toBe(200);
       expect(res.data!.items[0].returnedQuantity).toBe(1);
       // A partial return records the quantity but leaves the order's status.
-      expect(res.data!.status).toBe("RECEIVED");
+      expect(res.data!.status).toBe("HANDED_TO_COURIER");
       expect(await readStock(admin.token, product.id)).toBe(8);
     });
 
     it("returns a whole order and restores all of its stock", async () => {
       const admin = await getSession("ADMIN");
       const product = await sellableProduct(admin.token, { stock: 10 });
-      const order = await receivedOrder(admin.token, product.id, 3);
+      const order = await handedOverOrder(admin.token, product.id, 3);
       expect(await readStock(admin.token, product.id)).toBe(7);
 
       const res = await apiRequest<OrderDto>(`/api/orders/${order.id}/return`, {
@@ -634,7 +872,7 @@ describe("Orders", () => {
     it("refuses to take back more than was sold, or to return twice", async () => {
       const admin = await getSession("ADMIN");
       const product = await sellableProduct(admin.token, { stock: 10 });
-      const order = await receivedOrder(admin.token, product.id, 2);
+      const order = await handedOverOrder(admin.token, product.id, 2);
 
       const tooMany = await apiRequest(`/api/orders/${order.id}/return`, {
         method: "POST",
@@ -657,7 +895,7 @@ describe("Orders", () => {
       expect(await readStock(admin.token, product.id)).toBe(10);
     });
 
-    it("refuses a return before the goods have reached the customer", async () => {
+    it("refuses a return before the goods have left the shop", async () => {
       const admin = await getSession("ADMIN");
       const product = await sellableProduct(admin.token, { stock: 5 });
       const created = await createOrder(admin.token, {

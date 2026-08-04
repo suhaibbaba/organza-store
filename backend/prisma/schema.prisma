@@ -353,6 +353,9 @@ enum AuditAction {
   STATUS_CHANGE
   CANCEL
   RETURN
+  // Recording that the delivery company has paid for an order. Distinct from
+  // STATUS_CHANGE because "who said this money arrived" is its own question.
+  PAYMENT_COLLECTED
 }
 
 model AuditLog {
@@ -390,8 +393,7 @@ enum OrderChannel {
 enum OrderStatus {
   NEW // online order just taken; nothing committed yet
   PREPARING // being picked/packed — stock is deducted on entering this state
-  DELIVERING // on its way to the customer
-  RECEIVED // customer has it
+  HANDED_TO_COURIER // given to the delivery company — the shop's last step
   COMPLETED // finished (STORE orders open here)
   CANCELLED // voided; any deducted stock is put back
   RETURNED // fully returned; stock restored (see OrderItem.returnedQuantity)
@@ -399,6 +401,16 @@ enum OrderStatus {
 
 enum PaymentMethod {
   CASH // only method for now; an enum so card/transfer slot in later
+}
+
+// Whether the money for a sale is in the shop's hands yet. A counter sale is
+// cash on the spot; a parcel handed to the delivery company is only paid for
+// when that company settles up, which can be weeks later. Keeping this apart
+// from OrderStatus is what makes the profit figures honest — see the
+// "Payment collection" section of spec.md.
+enum PaymentStatus {
+  PENDING_COLLECTION // sold, but the money is still with the delivery company
+  COLLECTED // the shop holds the money
 }
 
 enum DiscountType {
@@ -415,6 +427,14 @@ model Order {
   channel       OrderChannel
   status        OrderStatus   @default(NEW)
   paymentMethod PaymentMethod @default(CASH)
+
+  // --- payment collection (separate from the delivery flow above) ---
+  // Selling and being paid are two different moments here: a STORE sale is
+  // COLLECTED the instant it is rung up, while an online order stays
+  // PENDING_COLLECTION until an Admin/Manager records that the delivery
+  // company has handed the money over. collectedAt is when that happened.
+  paymentStatus PaymentStatus @default(PENDING_COLLECTION)
+  collectedAt   DateTime?
 
   // --- customer snapshot (required for WHATSAPP/WEBSITE, unused for STORE) ---
   // Copied onto the order rather than referenced: a delivery address or a
@@ -463,6 +483,9 @@ model Order {
 
   @@index([status])
   @@index([channel])
+  // Powers the outstanding-money view, which is a list of every order the
+  // delivery company still owes for.
+  @@index([paymentStatus])
   @@index([createdAt])
   @@index([createdById])
   @@index([deletedAt])

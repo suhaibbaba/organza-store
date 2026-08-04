@@ -22,8 +22,12 @@ export interface OrderDto {
   id: string;
   orderNumber: number;
   channel: "STORE" | "WHATSAPP" | "WEBSITE";
-  status: "NEW" | "PREPARING" | "DELIVERING" | "RECEIVED" | "COMPLETED" | "CANCELLED" | "RETURNED";
+  status: "NEW" | "PREPARING" | "HANDED_TO_COURIER" | "COMPLETED" | "CANCELLED" | "RETURNED";
   paymentMethod: "CASH";
+  // Whether the money is in the shop's hands yet — separate from the status
+  // above, because a courier order is paid for long after it is sold.
+  paymentStatus: "PENDING_COLLECTION" | "COLLECTED";
+  collectedAt: string | null;
   customerName: string | null;
   customerPhone: string | null;
   customerAddress: string | null;
@@ -46,6 +50,22 @@ export interface OrderSummaryDto {
   orderNumber: number;
   channel: "STORE" | "WHATSAPP" | "WEBSITE";
   status: OrderDto["status"];
+  paymentStatus: OrderDto["paymentStatus"];
+  collectedAt: string | null;
   total: string;
   itemCount: number;
+}
+
+// POST /api/orders/collect
+export interface CollectResultDto {
+  collectedIds: string[];
+  alreadyCollectedIds: string[];
+  collectedAt: string;
+}
+
+// GET /api/orders/collection-summary
+export interface CollectionSummaryDto {
+  orderCount: number;
+  amount: string;
+  oldestCreatedAt: string | null;
 }

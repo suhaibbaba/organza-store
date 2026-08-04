@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { SlidersHorizontal } from "lucide-react";
-import { ORDER_CHANNELS, ORDER_STATUSES } from "@shared/constants/order";
+import { ORDER_CHANNELS, ORDER_STATUSES, PAYMENT_STATUSES } from "@shared/constants/order";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Select } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
@@ -15,6 +15,7 @@ import type { OrderListFilters } from "@/types/order";
 export interface OrderFiltersValue {
   status: OrderListFilters["status"];
   channel: OrderListFilters["channel"];
+  paymentStatus: OrderListFilters["paymentStatus"];
   dateFrom: string;
   dateTo: string;
 }
@@ -32,6 +33,7 @@ export function OrderFiltersSheet({ value, onApply, activeCount }: OrderFiltersS
   const t = useTranslations("orders.filters");
   const tStatus = useTranslations("orders.status");
   const tChannel = useTranslations("orders.channel");
+  const tPayment = useTranslations("orders.paymentStatus");
   const tCommon = useTranslations("common");
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState(value);
@@ -53,6 +55,7 @@ export function OrderFiltersSheet({ value, onApply, activeCount }: OrderFiltersS
     const reset: OrderFiltersValue = {
       status: null,
       channel: null,
+      paymentStatus: null,
       dateFrom: DEFAULT_ORDER_FILTERS.dateFrom,
       dateTo: DEFAULT_ORDER_FILTERS.dateTo,
     };
@@ -111,6 +114,29 @@ export function OrderFiltersSheet({ value, onApply, activeCount }: OrderFiltersS
                 {ORDER_CHANNELS.map((channel) => (
                   <option key={channel} value={channel}>
                     {tChannel(channel)}
+                  </option>
+                ))}
+              </Select>
+            </div>
+
+            {/* Whether the money has arrived — the shop's other daily
+                question about an order, alongside where the goods are. */}
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="order-filter-payment">{t("paymentStatus")}</Label>
+              <Select
+                id="order-filter-payment"
+                value={draft.paymentStatus ?? ""}
+                onChange={(e) =>
+                  setDraft((d) => ({
+                    ...d,
+                    paymentStatus: (e.target.value || null) as OrderFiltersValue["paymentStatus"],
+                  }))
+                }
+              >
+                <option value="">{t("paymentStatusAll")}</option>
+                {PAYMENT_STATUSES.map((status) => (
+                  <option key={status} value={status}>
+                    {tPayment(status)}
                   </option>
                 ))}
               </Select>

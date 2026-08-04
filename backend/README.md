@@ -141,23 +141,45 @@ A variant with no images of its own falls back to its parent product's gallery a
 
 Two shapes of sale share one model, distinguished by `channel`:
 
-- **`STORE`** — rung up at the POS counter. Opens `COMPLETED` with stock already deducted,
-  because the customer walks out with the goods. No customer details needed.
+- **`STORE`** — rung up at the POS counter. Opens `COMPLETED` with stock already deducted and the
+  cash already in the till, because the customer walks out with the goods. No customer details
+  needed.
 - **`WHATSAPP` / `WEBSITE`** — taken remotely. Opens `NEW` and travels
-  `NEW → PREPARING → DELIVERING → RECEIVED`, committing stock on the move to `PREPARING`.
+  `NEW → PREPARING → HANDED_TO_COURIER`, committing stock on the move to `PREPARING`.
   `customerName` + `customerPhone` are required.
 
 The two channels end in different places, per spec.md's status flow: an online order finishes at
-`RECEIVED`, while `COMPLETED` belongs to a counter sale, which opens there. There is deliberately
-no `RECEIVED → COMPLETED` move — sales and profit reporting should count
-`FINISHED_ORDER_STATUSES` (`RECEIVED` + `COMPLETED`) rather than keying off `COMPLETED` alone.
+`HANDED_TO_COURIER` — the shop's involvement ends when the parcel is given to the delivery
+company, and it does not track the drive to the customer's door — while `COMPLETED` belongs to a
+counter sale, which opens there. There is deliberately no `HANDED_TO_COURIER → COMPLETED` move —
+sales and profit reporting should count `FINISHED_ORDER_STATUSES`
+(`HANDED_TO_COURIER` + `COMPLETED`) rather than keying off `COMPLETED` alone.
+
+### Payment collection
+
+Selling and being paid are two different moments here, so `Order.paymentStatus`
+(`PENDING_COLLECTION` / `COLLECTED`) and `Order.collectedAt` track the money independently of
+the status above:
+
+- a `STORE` sale is `COLLECTED` at creation — cash in hand at the till;
+- an online order stays `PENDING_COLLECTION` until an Admin/Manager records that the delivery
+  company has settled up (`order.markCollected` — an Employee may take the sale but never
+  declare its money received);
+- a cancelled or fully returned sale owes nothing, so it is excluded from the outstanding view
+  and total (`COLLECTABLE_ORDER_STATUSES`).
+
+The outstanding amount is computed from the same per-line view the reports use — net of
+returns, cancelled sales excluded — so the orders screen and the reports screen can never quote
+different figures for the same sales.
 
 Customers are still deferred as an entity (spec.md) — there is no `Customer` table. Contact
 details are snapshotted onto the order: name, phone, optional WhatsApp number, address, and an
 optional map pin (`customerLatitude` / `customerLongitude`, WGS84 degrees, both or neither) for
 places with no street address.
 
-Any status before delivery may go to `CANCELLED` (which puts committed stock back).
+Any status before the courier handover may go to `CANCELLED` (which puts committed stock back).
+A parcel the customer refuses comes back as a return, not a cancellation, so stock and money
+move together.
 `RETURNED` is reachable only through the returns endpoint, so stock and `returnedQuantity`
 always move together. The legal-move table lives in `@shared/constants/order`
 (`ORDER_STATUS_TRANSITIONS`) so the backend gate and the frontends' buttons read one source.
@@ -183,7 +205,9 @@ renaming or repricing a product later never rewrites a past sale.
 
 | Method | Path                        | Role gate               | Notes |
 |--------|-----------------------------|--------------------------|-------|
-| GET    | `/api/orders`               | Admin/Manager/Employee   | pagination (`page`,`pageSize`), filters (`status`,`channel`,`dateFrom`,`dateTo`,`q`), sort (`sortBy`,`sortDir`) |
+| GET    | `/api/orders`               | Admin/Manager/Employee   | pagination (`page`,`pageSize`), filters (`status`,`channel`,`paymentStatus`,`collectableOnly`,`dateFrom`,`dateTo`,`q`), sort (`sortBy`,`sortDir`) |
+| GET    | `/api/orders/collection-summary` | Admin/Manager/Employee | what the delivery company still owes: `{ orderCount, amount, oldestCreatedAt }`, net of returns, across all dates |
+| POST   | `/api/orders/collect`       | Admin/Manager            | body `{ orderIds: string[] }` (max 100) — marks a batch collected; already-collected ids are a no-op, an unknown id 404s, a cancelled/returned one 409s |
 | GET    | `/api/orders/:id`           | Admin/Manager/Employee   | full detail incl. lines |
 | POST   | `/api/orders`               | Admin/Manager/Employee   | `{ channel, items: [{ productId, variantId?, quantity, discount? }], ... }` |
 | PATCH  | `/api/orders/:id/status`    | Admin/Manager/Employee   | Employees may advance the flow; `CANCELLED` additionally needs `order.cancel` (Admin/Manager) |
@@ -191,10 +215,12 @@ renaming or repricing a product later never rewrites a past sale.
 | POST   | `/api/orders/:id/return`    | Admin/Manager            | body `{}` returns the whole order; `{ items: [{ orderItemId, quantity }] }` returns specific lines |
 | DELETE | `/api/orders/:id`           | Admin/Manager            | soft delete (`deletedAt`); restores any still-committed stock and hides the order from every endpoint |
 
-Per spec.md's security rationale, an Employee can create an order and mark it delivered but
-can never edit, cancel, return or delete one — a sale must not be erasable to cover theft.
-`unitCost` is stripped entirely from Employee responses (CLAUDE.md rule 19), and every
-mutation writes an audit entry (`CREATE`/`UPDATE`/`STATUS_CHANGE`/`CANCEL`/`RETURN`/`DELETE`).
+Per spec.md's security rationale, an Employee can create an order and hand it to the courier but
+can never edit, cancel, return, delete or mark the money collected on one — a sale must not be
+erasable to cover theft, and its cash must not be declared received by whoever took it.
+`unitCost` is stripped entirely from Employee responses (CLAUDE.md rule 19), and every mutation
+writes an audit entry
+(`CREATE`/`UPDATE`/`STATUS_CHANGE`/`CANCEL`/`RETURN`/`PAYMENT_COLLECTED`/`DELETE`).
 
 ```bash
 curl -X POST http://localhost:4000/api/orders \
@@ -213,7 +239,11 @@ into memory — and share one set of rules:
 - an order-level discount is apportioned across that order's lines (`total / subtotal`), so
   per-product and per-channel revenue add up to the order's real revenue;
 - profit = revenue − cost, both from the line's own `unitPrice` / `unitCost` snapshot, never
-  from the product's current values.
+  from the product's current values;
+- **revenue is what was sold, not what the shop holds.** It is split into `collectedRevenue`
+  and `pendingCollectionAmount` (+ `pendingCollectionOrderCount`), which always add back up to
+  it, so "we sold 4,000 but 1,500 is still with the delivery company" is answerable. Those
+  three are sales figures, not costs, so every role that may read a report sees them.
 
 | Method | Path                          | Role gate               | Notes |
 |--------|-------------------------------|--------------------------|-------|

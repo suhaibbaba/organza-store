@@ -4,12 +4,14 @@ import type {
   ORDER_SORT_FIELDS,
   ORDER_STATUSES,
   PAYMENT_METHODS,
+  PAYMENT_STATUSES,
 } from "@/constants/order";
 import type { I18n } from "@/types/common";
 
 export type OrderChannel = (typeof ORDER_CHANNELS)[number];
 export type OrderStatus = (typeof ORDER_STATUSES)[number];
 export type PaymentMethod = (typeof PAYMENT_METHODS)[number];
+export type PaymentStatus = (typeof PAYMENT_STATUSES)[number];
 export type DiscountType = (typeof DISCOUNT_TYPES)[number];
 export type OrderSortField = (typeof ORDER_SORT_FIELDS)[number];
 
@@ -52,6 +54,12 @@ export interface Order {
   channel: OrderChannel;
   status: OrderStatus;
   paymentMethod: PaymentMethod;
+  // Whether the money for this sale is actually in the shop's hands. A
+  // counter sale is COLLECTED on the spot; a parcel handed to the delivery
+  // company stays PENDING_COLLECTION until an Admin/Manager records that the
+  // company has paid for it.
+  paymentStatus: PaymentStatus;
+  collectedAt: string | null;
   // Customer snapshot — required for WHATSAPP/WEBSITE, unused for STORE.
   customerName: string | null;
   customerPhone: string | null;
@@ -87,6 +95,10 @@ export interface OrderSummary {
   channel: OrderChannel;
   status: OrderStatus;
   paymentMethod: PaymentMethod;
+  // Carried on the list row too: the outstanding-money view is a filtered
+  // order list, so a row has to be able to say whether it has been collected.
+  paymentStatus: PaymentStatus;
+  collectedAt: string | null;
   customerName: string | null;
   customerPhone: string | null;
   subtotal: string;
@@ -97,4 +109,26 @@ export interface OrderSummary {
   createdById: string;
   createdAt: string;
   updatedAt: string;
+}
+
+// GET /api/orders/collection-summary — what the delivery company still owes
+// the shop, across every order regardless of date. The amount is net of
+// returns and excludes cancelled sales, computed exactly like report revenue
+// so the two figures can never disagree.
+export interface CollectionSummary {
+  orderCount: number;
+  amount: string;
+  // When the oldest still-uncollected sale was taken — "money that has been
+  // owed since 12 July" is what makes an outstanding total actionable.
+  oldestCreatedAt: string | null;
+}
+
+// POST /api/orders/collect — the result of settling a batch. `collectedIds`
+// are the orders this call moved; `alreadyCollectedIds` were settled before
+// it ran (marking twice is a no-op, not an error, so two people tapping at
+// once can't produce a failure).
+export interface CollectResult {
+  collectedIds: string[];
+  alreadyCollectedIds: string[];
+  collectedAt: string;
 }

@@ -1,6 +1,6 @@
 import type { I18n } from "@shared/types/common";
 import type { ListOrdersQuery } from "@shared/schemas/order";
-import type { DiscountType, OrderChannel, OrderStatus } from "@shared/types/order";
+import type { DiscountType, OrderChannel, OrderStatus, PaymentStatus } from "@shared/types/order";
 
 // Client-side filter state for the orders list screen — mirrors
 // `ListOrdersQuery` (the API's validated query shape) but keeps "unset"
@@ -10,6 +10,13 @@ export interface OrderListFilters {
   q: string;
   status: OrderStatus | null;
   channel: OrderChannel | null;
+  // Whether the money is in yet. The outstanding-money screen is this filter
+  // set to PENDING_COLLECTION.
+  paymentStatus: PaymentStatus | null;
+  // Narrows a payment filter to sales that can still be settled — a cancelled
+  // or fully returned order owes nothing and must not pad the amount the shop
+  // is waiting on.
+  collectableOnly: boolean;
   dateFrom: string;
   dateTo: string;
   sortBy: ListOrdersQuery["sortBy"];

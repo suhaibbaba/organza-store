@@ -37,6 +37,15 @@ function PeriodFigures({ totals }: { totals: SalesTotals }) {
         <ReportFigure label={t("orders")} value={totals.orderCount} />
         <ReportFigure label={t("averageOrder")} value={formatMoney(totals.averageOrderValue)} />
       </div>
+      {/* Only worth a line when there is something outstanding: on a day of
+          pure counter sales this would just be a zero taking up space. */}
+      {Number(totals.pendingCollectionAmount) > 0 && (
+        <ReportFigure
+          label={t("pendingCollection")}
+          value={formatMoney(totals.pendingCollectionAmount)}
+          hint={t("pendingCollectionOrders", { count: totals.pendingCollectionOrderCount })}
+        />
+      )}
       {totals.profit !== undefined && (
         <ReportFigure
           seriesColor={CHART_COLORS.profit}

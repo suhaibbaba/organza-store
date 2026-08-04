@@ -51,6 +51,11 @@ export interface TotalsDelta {
   orderCount: number;
   itemCount: number;
   revenue: number;
+  // What was sold vs. what the shop has actually been paid for — the two
+  // move independently once an order goes out with the delivery company.
+  collectedRevenue: number;
+  pendingCollectionAmount: number;
+  pendingCollectionOrderCount: number;
   discountAmount: number;
   cost: number;
   profit: number;
@@ -61,6 +66,9 @@ export function totalsDelta(after: SalesTotals, before: SalesTotals): TotalsDelt
     orderCount: after.orderCount - before.orderCount,
     itemCount: after.itemCount - before.itemCount,
     revenue: num(after.revenue) - num(before.revenue),
+    collectedRevenue: num(after.collectedRevenue) - num(before.collectedRevenue),
+    pendingCollectionAmount: num(after.pendingCollectionAmount) - num(before.pendingCollectionAmount),
+    pendingCollectionOrderCount: after.pendingCollectionOrderCount - before.pendingCollectionOrderCount,
     discountAmount: num(after.discountAmount) - num(before.discountAmount),
     cost: num(after.cost) - num(before.cost),
     profit: num(after.profit) - num(before.profit),

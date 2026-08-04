@@ -64,6 +64,7 @@ export const ERROR_MESSAGE_KEYS: Record<string, string> = {
   [ERROR_CODES.ORDER_RETURN_QUANTITY_EXCEEDED]: "errors.orderReturnQuantityExceeded",
   [ERROR_CODES.ORDER_PRODUCT_UNAVAILABLE]: "errors.orderProductUnavailable",
   [ERROR_CODES.ORDER_VARIANT_REQUIRED]: "errors.orderVariantRequired",
+  [ERROR_CODES.ORDER_NOT_COLLECTABLE]: "errors.orderNotCollectable",
 
   [ERROR_CODES.REPORT_RANGE_INVALID]: "errors.reportRangeInvalid",
   [ERROR_CODES.REPORT_RANGE_TOO_LONG]: "errors.reportRangeTooLong",

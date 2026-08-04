@@ -59,6 +59,9 @@ export const ERROR_CODES = {
   ORDER_RETURN_QUANTITY_EXCEEDED: "error.order.return_quantity_exceeded",
   ORDER_PRODUCT_UNAVAILABLE: "error.order.product_unavailable",
   ORDER_VARIANT_REQUIRED: "error.order.variant_required",
+  // A cancelled or fully returned sale owes the shop nothing, so there is no
+  // money on it to record as collected.
+  ORDER_NOT_COLLECTABLE: "error.order.not_collectable",
 
   REPORT_RANGE_INVALID: "error.report.range_invalid",
   REPORT_RANGE_TOO_LONG: "error.report.range_too_long",

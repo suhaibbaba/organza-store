@@ -1,17 +1,20 @@
 import { Router } from "express";
 import { AuditAction, Prisma, Role } from "@prisma/client";
 import { can } from "@shared/lib/permissions";
+import { isOrderCollectable } from "@shared/lib/orders";
 import { prisma } from "@/lib/prisma";
 import { asyncHandler } from "@/middleware/asyncHandler";
 import { requireAuth, requirePermission } from "@/middleware/auth";
 import { validateBody, validateQuery } from "@/middleware/validate";
 import { AppError, sendOk } from "@/lib/response";
 import {
+  collectOrdersSchema,
   createOrderSchema,
   listOrdersQuerySchema,
   returnOrderSchema,
   updateOrderSchema,
   updateOrderStatusSchema,
+  type CollectOrdersInput,
   type CreateOrderInput,
   type ListOrdersQuery,
   type ReturnOrderInput,
@@ -21,27 +24,36 @@ import {
 import { computeOrderTotals, priceLine, priceRequestedItems, toStockMovements } from "@/lib/orderPricing";
 import { deductStock, restoreStock } from "@/lib/orderStock";
 import { serializeOrder, serializeOrderSummary } from "@/lib/orderSerialize";
+import { queryCollectionSummary, toCollectionSummary } from "@/lib/orderCollection";
 import { writeAudit } from "@/lib/audit";
 import {
   AUDIT_ENTITY,
+  COLLECTABLE_ORDER_STATUSES,
   ERROR_CODES,
   MAX_INT32,
   ONLINE_ORDER_CHANNELS,
+  ONLINE_ORDER_INITIAL_PAYMENT_STATUS,
   ONLINE_ORDER_INITIAL_STATUS,
   ONLINE_STOCK_DEDUCTION_STATUS,
   ORDER_STATUS_TRANSITIONS,
   RETURNABLE_ORDER_STATUSES,
+  STORE_ORDER_INITIAL_PAYMENT_STATUS,
   STORE_ORDER_INITIAL_STATUS,
   UNEDITABLE_ORDER_STATUSES,
 } from "@/constants";
-import type { AnyRecord, OrderStatus } from "@/types";
+import type { AnyRecord, CollectResult, OrderStatus, PaymentStatus } from "@/types";
 
 // Orders (Phase 2). Two shapes of sale share one model:
 //   STORE    — rung up at the POS counter; opens COMPLETED with stock
-//              already deducted, because the customer walks out with it.
+//              already deducted and the cash already in the till, because the
+//              customer walks out with it.
 //   WHATSAPP / WEBSITE — taken remotely; opens NEW and travels
-//              NEW -> PREPARING -> DELIVERING -> RECEIVED -> COMPLETED,
-//              committing stock when preparation starts.
+//              NEW -> PREPARING -> HANDED_TO_COURIER, committing stock when
+//              preparation starts. The shop's part ends at the handover: it
+//              does not track the parcel to the customer's door.
+// Being paid is tracked separately from all of that (paymentStatus): the
+// delivery company settles up later, so a sold order and a collected one are
+// two different facts.
 // Money is computed here from the catalogue and the caller's discounts; no
 // total is ever accepted from a client.
 const router = Router();
@@ -95,6 +107,19 @@ router.get(
 
     if (query.status) where.status = query.status;
     if (query.channel) where.channel = query.channel;
+    if (query.paymentStatus) where.paymentStatus = query.paymentStatus;
+
+    // The outstanding-money view asks for PENDING_COLLECTION + this: a
+    // cancelled or fully returned sale is still technically "not collected",
+    // but nobody owes anything on it, so it must not pad the list the shop
+    // chases the delivery company with.
+    if (query.collectableOnly) {
+      const collectable = [...COLLECTABLE_ORDER_STATUSES] as OrderStatus[];
+      // Combined with an explicit status filter the two intersect, so asking
+      // for a non-collectable status alongside the flag matches nothing
+      // rather than quietly having one of the two dropped.
+      where.status = { in: query.status ? collectable.filter((s) => s === query.status) : collectable };
+    }
 
     if (query.dateFrom || query.dateTo) {
       where.createdAt = {
@@ -139,6 +164,82 @@ router.get(
 );
 
 // ---------------------------------------------------------------------------
+// GET /api/orders/collection-summary — what the delivery company still owes,
+// across every sale regardless of date. Declared before /:id so the literal
+// path isn't swallowed as an order id.
+// ---------------------------------------------------------------------------
+router.get(
+  "/collection-summary",
+  requirePermission("order.view"),
+  asyncHandler(async (_req, res) => {
+    sendOk(res, toCollectionSummary(await queryCollectionSummary()));
+  })
+);
+
+// ---------------------------------------------------------------------------
+// POST /api/orders/collect — record that the delivery company has paid for
+// one or more orders. Admin/Manager only (order.markCollected): an Employee
+// may take a sale but must never be able to declare its money received.
+//
+// Marking an already-collected order is a no-op rather than an error, so two
+// people settling the same batch at once can't produce a failure.
+// ---------------------------------------------------------------------------
+router.post(
+  "/collect",
+  requirePermission("order.markCollected"),
+  validateBody(collectOrdersSchema),
+  asyncHandler(async (req, res) => {
+    const { orderIds } = req.body as CollectOrdersInput;
+    // Same id twice in one batch is the caller repeating themselves, not two
+    // collections.
+    const ids = [...new Set(orderIds)];
+
+    const orders = await prisma.order.findMany({ where: { id: { in: ids }, deletedAt: null } });
+    const found = new Set(orders.map((order) => order.id));
+    if (ids.some((id) => !found.has(id))) throw new AppError(404, ERROR_CODES.ORDER_NOT_FOUND);
+
+    // A cancelled or fully returned sale owes the shop nothing, so there is
+    // no money on it to collect.
+    if (orders.some((order) => !isOrderCollectable(order.status))) {
+      throw new AppError(409, ERROR_CODES.ORDER_NOT_COLLECTABLE);
+    }
+
+    const pending = orders.filter((order) => order.paymentStatus === "PENDING_COLLECTION");
+    const collectedAt = new Date();
+
+    if (pending.length > 0) {
+      await prisma.order.updateMany({
+        where: { id: { in: pending.map((order) => order.id) } },
+        data: { paymentStatus: "COLLECTED" as PaymentStatus, collectedAt },
+      });
+    }
+
+    // One audit entry per order, not per batch: "who said the money for order
+    // 412 arrived" has to be answerable on its own (CLAUDE.md rule 6).
+    for (const order of pending) {
+      await writeAudit({
+        userId: req.user!.id,
+        action: AuditAction.PAYMENT_COLLECTED,
+        entityType: AUDIT_ENTITY.ORDER,
+        entityId: order.id,
+        oldValue: { paymentStatus: order.paymentStatus, collectedAt: order.collectedAt },
+        newValue: { paymentStatus: "COLLECTED", collectedAt },
+      });
+    }
+
+    const result: CollectResult = {
+      collectedIds: pending.map((order) => order.id),
+      alreadyCollectedIds: orders
+        .filter((order) => order.paymentStatus === "COLLECTED")
+        .map((order) => order.id),
+      collectedAt: collectedAt.toISOString(),
+    };
+
+    sendOk(res, result);
+  })
+);
+
+// ---------------------------------------------------------------------------
 // GET /api/orders/:id — detail
 // ---------------------------------------------------------------------------
 router.get(
@@ -169,15 +270,24 @@ router.post(
       body
     );
 
-    const deductNow = body.channel === "STORE";
+    // A counter sale differs from a remote one in three ways at once: it
+    // opens finished, it takes its stock off the shelf immediately, and its
+    // money is already in the till.
+    const isCounterSale = body.channel === "STORE";
     const now = new Date();
 
     const created = await prisma.$transaction(async (tx) => {
       const order = await tx.order.create({
         data: {
           channel: body.channel,
-          status: (deductNow ? STORE_ORDER_INITIAL_STATUS : ONLINE_ORDER_INITIAL_STATUS) as OrderStatus,
+          status: (isCounterSale ? STORE_ORDER_INITIAL_STATUS : ONLINE_ORDER_INITIAL_STATUS) as OrderStatus,
           paymentMethod: body.paymentMethod,
+          // An order going out with the courier is not paid for until the
+          // delivery company settles up (spec.md "Payment collection").
+          paymentStatus: (isCounterSale
+            ? STORE_ORDER_INITIAL_PAYMENT_STATUS
+            : ONLINE_ORDER_INITIAL_PAYMENT_STATUS) as PaymentStatus,
+          collectedAt: isCounterSale ? now : null,
           customerName: body.customerName ?? null,
           customerPhone: body.customerPhone ?? null,
           customerWhatsapp: body.customerWhatsapp ?? null,
@@ -190,7 +300,7 @@ router.post(
           discountValue: body.discountValue ?? null,
           discountAmount: totals.discountAmount,
           total: totals.total,
-          stockDeductedAt: deductNow ? now : null,
+          stockDeductedAt: isCounterSale ? now : null,
           createdById: req.user!.id,
           items: {
             create: priced.map((line) => ({
@@ -214,7 +324,7 @@ router.post(
 
       // A counter sale hands the goods over immediately, so stock moves with
       // the order. Online orders wait for PREPARING — see the status route.
-      if (deductNow) await deductStock(tx, toStockMovements(priced));
+      if (isCounterSale) await deductStock(tx, toStockMovements(priced));
 
       return order;
     });
@@ -333,8 +443,9 @@ router.patch(
 
 // ---------------------------------------------------------------------------
 // PATCH /api/orders/:id/status — move an order along the flow.
-// Employees may advance it (spec.md: "create + mark delivered"); cancelling
-// needs order.cancel, which they don't have.
+// Employees may advance it (spec.md: they "create + hand over" orders);
+// cancelling needs order.cancel, which they don't have, and marking the money
+// collected needs order.markCollected, which they don't have either.
 // ---------------------------------------------------------------------------
 router.patch(
   "/:id/status",

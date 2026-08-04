@@ -34,9 +34,10 @@ export const PERMISSION_ACTIONS = [
 
   "order.view",
   "order.create",
-  // Advancing an order along the delivery flow (spec.md: Employees "create +
-  // mark delivered"). Cancelling is NOT part of this — it has its own action
-  // below, so an Employee can move an order forward but never void it.
+  // Advancing an order along the flow, up to handing it to the courier
+  // (spec.md: Employees "create + hand over" orders). Cancelling is NOT part
+  // of this — it has its own action below, so an Employee can move an order
+  // forward but never void it.
   "order.updateStatus",
   "order.edit",
   "order.cancel",
@@ -45,6 +46,11 @@ export const PERMISSION_ACTIONS = [
   // than with updateStatus for the same reason: a sale must not be undoable
   // by the person who rang it up.
   "order.return",
+  // Recording that the delivery company has actually paid for an order.
+  // Admin/Manager only: this is the shop's cash position, and the person who
+  // took the order must not be able to declare its money received — the same
+  // anti-theft reasoning that keeps cancel and delete out of their hands.
+  "order.markCollected",
 
   "user.manage",
   "user.viewSensitive",
@@ -56,9 +62,9 @@ type Action = (typeof PERMISSION_ACTIONS)[number];
 
 // spec.md "Roles & Permissions" table, verbatim:
 // Admin: everything. Manager: products/stock/orders full, no users/settings.
-// Employee: POS, add products, edit images, create + mark-delivered orders —
-// cannot delete/hide products, cannot delete/edit/cancel orders, no
-// users/settings, no cost/idNumber visibility.
+// Employee: POS, add products, edit images, create + hand over orders —
+// cannot delete/hide products, cannot delete/edit/cancel orders, cannot mark
+// money collected, no users/settings, no cost/idNumber visibility.
 export const ROLE_PERMISSIONS: Record<Role, readonly Action[]> = {
   ADMIN: [...PERMISSION_ACTIONS],
   MANAGER: [
@@ -84,6 +90,7 @@ export const ROLE_PERMISSIONS: Record<Role, readonly Action[]> = {
     "order.cancel",
     "order.delete",
     "order.return",
+    "order.markCollected",
   ],
   EMPLOYEE: [
     "dashboard.view",

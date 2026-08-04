@@ -18,9 +18,19 @@ export interface SalesTotals {
   orderCount: number;
   // Units sold, minus units returned.
   itemCount: number;
-  // What the shop actually took: unit prices less item AND order discounts,
-  // less returns.
+  // What the shop sold: unit prices less item AND order discounts, less
+  // returns. This is the sales figure — NOT the money in hand, because an
+  // order handed to the delivery company is only paid for later.
   revenue: string;
+  // The part of `revenue` whose money has actually been collected (a counter
+  // sale, or a courier order an Admin/Manager has settled).
+  collectedRevenue: string;
+  // The part still owed by the delivery company. Always
+  // revenue - collectedRevenue, stated explicitly so the shop can read what
+  // it is waiting for without doing the subtraction.
+  pendingCollectionAmount: string;
+  // How many orders that outstanding amount is spread over.
+  pendingCollectionOrderCount: number;
   // How much was given away in discounts (both levels) on what stayed sold.
   discountAmount: string;
   averageOrderValue: string;

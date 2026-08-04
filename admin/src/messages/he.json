@@ -20,6 +20,7 @@
   "nav": {
     "dashboard": "לוח בקרה",
     "orders": "הזמנות",
+    "collection": "גבייה",
     "products": "מוצרים",
     "inventory": "מלאי",
     "labels": "מדבקות",
@@ -77,13 +78,16 @@
       "orders": "הזמנות",
       "averageOrder": "הזמנה ממוצעת",
       "profit": "רווח",
-      "margin": "שיעור רווח {value, number, percent}"
+      "margin": "שיעור רווח {value, number, percent}",
+      "pendingCollection": "ממתין לתשלום",
+      "pendingCollectionOrders": "{count, plural, one {הזמנה אחת} two {שתי הזמנות} other {# הזמנות}}"
     }
   },
   "orders": {
     "title": "הזמנות",
     "subtitle": "הזמנות מהחנות, מוואטסאפ ומהאתר.",
     "newOrder": "הזמנה חדשה",
+    "collectionLink": "כסף אצל חברת המשלוחים",
     "search": {
       "placeholder": "חיפוש לפי מספר הזמנה, שם לקוח או טלפון",
       "label": "חיפוש הזמנות",
@@ -105,6 +109,8 @@
       "statusAll": "כל הסטטוסים",
       "channel": "מקור",
       "channelAll": "כל המקורות",
+      "paymentStatus": "תשלום",
+      "paymentStatusAll": "כל התשלומים",
       "dateRange": "טווח תאריכים",
       "dateFrom": "מתאריך",
       "dateTo": "עד תאריך",
@@ -114,8 +120,7 @@
     "status": {
       "NEW": "חדשה",
       "PREPARING": "בהכנה",
-      "DELIVERING": "במשלוח",
-      "RECEIVED": "התקבלה",
+      "HANDED_TO_COURIER": "נמסר לחברת המשלוחים",
       "COMPLETED": "הושלמה",
       "CANCELLED": "בוטלה",
       "RETURNED": "הוחזרה"
@@ -127,6 +132,10 @@
     },
     "payment": {
       "CASH": "מזומן"
+    },
+    "paymentStatus": {
+      "PENDING_COLLECTION": "ממתין לתשלום",
+      "COLLECTED": "שולם"
     },
     "discount": {
       "title": "הנחה",
@@ -157,6 +166,8 @@
       "orderNumber": "הזמנה",
       "channel": "מקור",
       "status": "סטטוס",
+      "payment": "תשלום",
+      "noPayment": "—",
       "customer": "לקוח",
       "noCustomer": "—",
       "date": "תאריך",
@@ -197,6 +208,14 @@
         "openMap": "פתיחת המיקום במפה",
         "note": "הערה"
       },
+      "payment": {
+        "title": "תשלום",
+        "pendingExplainer": "{amount} עדיין אצל חברת המשלוחים.",
+        "nothingToCollect": "ההזמנה בוטלה או הוחזרה, ואין מה לגבות.",
+        "collectedOn": "התשלום התקבל בתאריך {date}.",
+        "markCollected": "התשלום התקבל",
+        "markedCollected": "קבלת התשלום נרשמה."
+      },
       "meta": {
         "createdBy": "נוצרה על ידי",
         "unknownStaff": "לא ידוע",
@@ -210,8 +229,7 @@
         "moved": "הסטטוס עודכן ל: {status}",
         "advanceTo": {
           "PREPARING": "התחלת הכנה",
-          "DELIVERING": "שליחה למשלוח",
-          "RECEIVED": "הלקוח קיבל את ההזמנה"
+          "HANDED_TO_COURIER": "מסירה לחברת המשלוחים"
         },
         "stockDeductionNotice": "תחילת ההכנה מנכה את הפריטים מהמלאי.",
         "cancelOrder": "ביטול ההזמנה",
@@ -309,6 +327,29 @@
         "openOrder": "פתיחת ההזמנה",
         "newOrder": "הזמנה חדשה"
       }
+    },
+    "collection": {
+      "back": "הזמנות",
+      "title": "כסף אצל חברת המשלוחים",
+      "subtitle": "הזמנות שטרם שולמו. סמן את מה שהתקבל.",
+      "listLabel": "הזמנות הממתינות לתשלום",
+      "selectOrder": "בחירת הזמנה {number} — {amount}",
+      "marked": "{count, plural, one {נרשם תשלום עבור הזמנה אחת.} two {נרשם תשלום עבור שתי הזמנות.} other {נרשם תשלום עבור # הזמנות.}}",
+      "summary": {
+        "label": "חייבים לך",
+        "orders": "{count, plural, =0 {אין הזמנות} one {הזמנה אחת} two {שתי הזמנות} other {# הזמנות}}",
+        "oldest": "ההזמנה הוותיקה שטרם שולמה: {date}"
+      },
+      "empty": {
+        "title": "אין חובות פתוחים",
+        "description": "כל ההזמנות שולמו."
+      },
+      "actions": {
+        "selected": "{count, plural, one {הזמנה אחת נבחרה} two {שתי הזמנות נבחרו} other {# הזמנות נבחרו}}",
+        "selectAll": "בחר הכל",
+        "clear": "ניקוי",
+        "markCollected": "{count, plural, one {התקבל תשלום עבור הזמנה} two {התקבל תשלום עבור שתיים} other {התקבל תשלום עבור #}}"
+      }
     }
   },
   "reports": {
@@ -327,6 +368,9 @@
     "totals": {
       "revenue": "מכירות",
       "revenueHint": "{orders} הזמנות, {items} פריטים",
+      "collected": "כסף שהתקבל",
+      "pendingCollection": "ממתין לתשלום",
+      "pendingCollectionOrders": "{count, plural, one {הזמנה אחת} two {שתי הזמנות} other {# הזמנות}}",
       "profit": "רווח",
       "cost": "עלות",
       "margin": "שיעור רווח {value, number, percent}",
@@ -833,6 +877,7 @@
     "orderReturnQuantityExceeded": "הכמות גדולה מהכמות שנמכרה.",
     "orderProductUnavailable": "מוצר זה אינו זמין יותר למכירה.",
     "orderVariantRequired": "יש לבחור איזו וריאציה של המוצר.",
+    "orderNotCollectable": "ההזמנה בוטלה או הוחזרה, ולכן אין תשלום לרשום.",
     "reportRangeInvalid": "התקופה אינה תקינה. בדוק את תאריכי ההתחלה והסיום.",
     "reportRangeTooLong": "התקופה ארוכה מדי. בחר שנה לכל היותר."
   }

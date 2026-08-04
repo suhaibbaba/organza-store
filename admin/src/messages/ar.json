@@ -20,6 +20,7 @@
   "nav": {
     "dashboard": "الرئيسية",
     "orders": "الطلبات",
+    "collection": "التحصيل",
     "products": "المنتجات",
     "inventory": "المخزون",
     "labels": "الملصقات",
@@ -77,13 +78,16 @@
       "orders": "عدد الطلبات",
       "averageOrder": "متوسط الطلب",
       "profit": "الربح",
-      "margin": "نسبة الربح {value, number, percent}"
+      "margin": "نسبة الربح {value, number, percent}",
+      "pendingCollection": "بانتظار التحصيل",
+      "pendingCollectionOrders": "{count, plural, one {طلب واحد} two {طلبان} few {# طلبات} other {# طلبًا}}"
     }
   },
   "orders": {
     "title": "الطلبات",
     "subtitle": "طلبات المتجر والواتساب والموقع.",
     "newOrder": "طلب جديد",
+    "collectionLink": "المبالغ عند شركة التوصيل",
     "search": {
       "placeholder": "ابحث برقم الطلب أو اسم الزبون أو هاتفه",
       "label": "البحث في الطلبات",
@@ -105,6 +109,8 @@
       "statusAll": "كل الحالات",
       "channel": "مصدر الطلب",
       "channelAll": "كل المصادر",
+      "paymentStatus": "حالة التحصيل",
+      "paymentStatusAll": "كل الحالات",
       "dateRange": "الفترة الزمنية",
       "dateFrom": "من تاريخ",
       "dateTo": "إلى تاريخ",
@@ -114,8 +120,7 @@
     "status": {
       "NEW": "جديد",
       "PREPARING": "قيد التحضير",
-      "DELIVERING": "قيد التوصيل",
-      "RECEIVED": "تم الاستلام",
+      "HANDED_TO_COURIER": "تم تسليمه لشركة التوصيل",
       "COMPLETED": "مكتمل",
       "CANCELLED": "ملغي",
       "RETURNED": "مُرجع"
@@ -127,6 +132,10 @@
     },
     "payment": {
       "CASH": "نقدًا"
+    },
+    "paymentStatus": {
+      "PENDING_COLLECTION": "بانتظار التحصيل",
+      "COLLECTED": "تم التحصيل"
     },
     "discount": {
       "title": "خصم",
@@ -157,6 +166,8 @@
       "orderNumber": "رقم الطلب",
       "channel": "المصدر",
       "status": "الحالة",
+      "payment": "التحصيل",
+      "noPayment": "—",
       "customer": "الزبون",
       "noCustomer": "—",
       "date": "التاريخ",
@@ -197,6 +208,14 @@
         "openMap": "فتح الموقع على الخريطة",
         "note": "ملاحظة"
       },
+      "payment": {
+        "title": "التحصيل",
+        "pendingExplainer": "المبلغ {amount} ما زال عند شركة التوصيل.",
+        "nothingToCollect": "هذا الطلب ملغي أو مُرجع، ولا يوجد مبلغ لتحصيله.",
+        "collectedOn": "تم استلام المبلغ بتاريخ {date}.",
+        "markCollected": "استلمت المبلغ",
+        "markedCollected": "تم تسجيل استلام المبلغ."
+      },
       "meta": {
         "createdBy": "أنشأ الطلب",
         "unknownStaff": "غير معروف",
@@ -210,8 +229,7 @@
         "moved": "تم تحديث الحالة إلى: {status}",
         "advanceTo": {
           "PREPARING": "ابدأ التحضير",
-          "DELIVERING": "أرسِل للتوصيل",
-          "RECEIVED": "تم استلام الزبون للطلب"
+          "HANDED_TO_COURIER": "سلّمه لشركة التوصيل"
         },
         "stockDeductionNotice": "عند بدء التحضير سيتم خصم الكميات من المخزون.",
         "cancelOrder": "إلغاء الطلب",
@@ -309,6 +327,29 @@
         "openOrder": "فتح الطلب",
         "newOrder": "طلب جديد"
       }
+    },
+    "collection": {
+      "back": "الطلبات",
+      "title": "المبالغ عند شركة التوصيل",
+      "subtitle": "الطلبات التي لم يصل مبلغها بعد. حدّد ما تم استلامه.",
+      "listLabel": "طلبات بانتظار التحصيل",
+      "selectOrder": "تحديد طلب رقم {number} — {amount}",
+      "marked": "{count, plural, one {تم تسجيل استلام مبلغ طلب واحد.} two {تم تسجيل استلام مبلغ طلبين.} few {تم تسجيل استلام مبالغ # طلبات.} other {تم تسجيل استلام مبالغ # طلبًا.}}",
+      "summary": {
+        "label": "المبلغ المستحق لك",
+        "orders": "{count, plural, =0 {لا توجد طلبات} one {طلب واحد} two {طلبان} few {# طلبات} other {# طلبًا}}",
+        "oldest": "أقدم طلب بانتظار التحصيل: {date}"
+      },
+      "empty": {
+        "title": "لا توجد مبالغ مستحقة",
+        "description": "كل الطلبات تم استلام مبالغها."
+      },
+      "actions": {
+        "selected": "{count, plural, one {طلب واحد محدد} two {طلبان محددان} few {# طلبات محددة} other {# طلبًا محددًا}}",
+        "selectAll": "تحديد الكل",
+        "clear": "إلغاء التحديد",
+        "markCollected": "{count, plural, one {استلمت مبلغ طلب واحد} two {استلمت مبلغ طلبين} few {استلمت مبالغ # طلبات} other {استلمت مبالغ # طلبًا}}"
+      }
     }
   },
   "reports": {
@@ -327,6 +368,9 @@
     "totals": {
       "revenue": "المبيعات",
       "revenueHint": "{orders} طلب، {items} قطعة",
+      "collected": "المبلغ المُحصَّل",
+      "pendingCollection": "بانتظار التحصيل",
+      "pendingCollectionOrders": "{count, plural, one {طلب واحد} two {طلبان} few {# طلبات} other {# طلبًا}}",
       "profit": "الربح",
       "cost": "التكلفة",
       "margin": "نسبة الربح {value, number, percent}",
@@ -833,6 +877,7 @@
     "orderReturnQuantityExceeded": "الكمية المُرجعة أكبر من الكمية المُباعة.",
     "orderProductUnavailable": "هذا المنتج لم يعد متاحًا للبيع.",
     "orderVariantRequired": "اختر المتغير المطلوب من هذا المنتج.",
+    "orderNotCollectable": "لا يمكن تسجيل تحصيل هذا الطلب لأنه ملغي أو مُرجع.",
     "reportRangeInvalid": "الفترة غير صحيحة. راجع تاريخ البداية والنهاية.",
     "reportRangeTooLong": "الفترة طويلة جدًا. اختر مدة سنة كحد أقصى."
   }

@@ -4,8 +4,10 @@ import type { OrderSummary } from "@shared/types/order";
 import { Link } from "@/i18n/navigation";
 import { formatDate } from "@/lib/format";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
+import { isOrderCollectable } from "@shared/lib/orders";
 import { OrderChannelBadge } from "@/components/orders/order-channel-badge";
 import { OrderStatusBadge } from "@/components/orders/order-status-badge";
+import { PaymentStatusBadge } from "@/components/orders/payment-status-badge";
 
 // One order, as a card. This is the primary (mobile) rendering — the table
 // below md is a convenience for desktop, not the other way round (CLAUDE.md
@@ -43,6 +45,13 @@ export function OrderCard({ order }: { order: OrderSummary }) {
         <div className="flex shrink-0 flex-col items-end gap-1">
           <OrderStatusBadge status={order.status} />
           <OrderChannelBadge channel={order.channel} />
+          {/* Money still with the delivery company is worth seeing from the
+              list; money already in hand is the unremarkable case and would
+              only add noise to every other row. A cancelled or returned sale
+              owes nothing, so it says nothing either. */}
+          {order.paymentStatus === "PENDING_COLLECTION" && isOrderCollectable(order.status) && (
+            <PaymentStatusBadge status={order.paymentStatus} />
+          )}
         </div>
       </div>
 

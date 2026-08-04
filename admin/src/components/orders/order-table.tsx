@@ -5,11 +5,13 @@ import { useLocale, useTranslations } from "next-intl";
 import { flexRender, getCoreRowModel, useReactTable, type ColumnDef } from "@tanstack/react-table";
 import { ChevronRight } from "lucide-react";
 import type { OrderSummary } from "@shared/types/order";
+import { isOrderCollectable } from "@shared/lib/orders";
 import { Link } from "@/i18n/navigation";
 import { formatDateTime } from "@/lib/format";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
 import { OrderChannelBadge } from "@/components/orders/order-channel-badge";
 import { OrderStatusBadge } from "@/components/orders/order-status-badge";
+import { PaymentStatusBadge } from "@/components/orders/payment-status-badge";
 
 // Desktop-only view of the same orders the cards show on a phone. Same data,
 // same order, same tap targets — just laid out across a wider screen.
@@ -47,6 +49,18 @@ export function OrderTable({ orders }: { orders: OrderSummary[] }) {
         id: "status",
         header: tTable("status"),
         cell: ({ row }) => <OrderStatusBadge status={row.original.status} />,
+      },
+      {
+        id: "paymentStatus",
+        header: tTable("payment"),
+        // A cancelled or returned sale owes nothing, so it shows no payment
+        // state rather than a debt that doesn't exist.
+        cell: ({ row }) =>
+          isOrderCollectable(row.original.status) ? (
+            <PaymentStatusBadge status={row.original.paymentStatus} />
+          ) : (
+            <span className="text-muted-foreground">{tTable("noPayment")}</span>
+          ),
       },
       {
         id: "customer",

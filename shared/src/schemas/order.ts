@@ -8,11 +8,13 @@ import {
   LATITUDE_MIN,
   LONGITUDE_MAX,
   LONGITUDE_MIN,
+  MAX_BULK_COLLECT_ORDERS,
   ONLINE_ORDER_CHANNELS,
   ORDER_CHANNELS,
   ORDER_SORT_FIELDS,
   ORDER_STATUSES,
   PAYMENT_METHODS,
+  PAYMENT_STATUSES,
   PERCENT_MAX,
   PERCENT_MIN,
 } from "@/constants/order";
@@ -161,9 +163,27 @@ export const returnOrderSchema = z.object({
 });
 export type ReturnOrderInput = z.infer<typeof returnOrderSchema>;
 
+// Settling up with the delivery company: the ids of the orders it has just
+// paid for. One id or a whole run of them — the shop is normally handed a
+// batch — but always a bounded list.
+export const collectOrdersSchema = z.object({
+  orderIds: z
+    .array(z.string().min(1, ERROR_CODES.VALIDATION_REQUIRED))
+    .min(1, ERROR_CODES.VALIDATION_REQUIRED)
+    .max(MAX_BULK_COLLECT_ORDERS, ERROR_CODES.VALIDATION_INVALID_NUMBER),
+});
+export type CollectOrdersInput = z.infer<typeof collectOrdersSchema>;
+
 export const listOrdersQuerySchema = paginationSchema.extend({
   status: z.enum(ORDER_STATUSES).optional(),
   channel: z.enum(ORDER_CHANNELS).optional(),
+  // Drives the "still owed by the delivery company" view: the outstanding
+  // list is this filter set to PENDING_COLLECTION.
+  paymentStatus: z.enum(PAYMENT_STATUSES).optional(),
+  // Narrows a payment-status filter to the sales that can still be settled —
+  // a cancelled or fully returned order owes nothing, so it must not sit in
+  // the outstanding list looking like money on its way.
+  collectableOnly: z.coerce.boolean().optional(),
   // Inclusive date range over createdAt.
   dateFrom: z.coerce.date().optional(),
   dateTo: z.coerce.date().optional(),
