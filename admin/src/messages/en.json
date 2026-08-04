@@ -13,6 +13,10 @@
     "mainNavigation": "Main navigation",
     "account": "Account"
   },
+  "offline": {
+    "title": "No internet connection",
+    "message": "This app needs an internet connection to show products, stock and orders. Check your connection and try again."
+  },
   "nav": {
     "dashboard": "Dashboard",
     "orders": "Orders",

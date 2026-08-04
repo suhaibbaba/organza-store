@@ -4,6 +4,15 @@ import createNextIntlPlugin from "next-intl/plugin";
 
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
+// Stamped into the service-worker URL by components/pwa/service-worker-
+// registrar.tsx. A rebuild changes it, which is what makes an installed app
+// pick up the new worker instead of sticking with the deployed-yesterday one.
+// CI can pin it to a commit SHA by exporting BUILD_ID before `npm run build`;
+// otherwise the build time stands in, which changes for exactly the same
+// reason. Inlined into the client bundle at build time via `env` below, so
+// the value `next start` would compute later never matters.
+const buildId = process.env.BUILD_ID ?? String(Date.now());
+
 // Product images are served by the backend (stored-relative "/uploads/.."
 // URLs resolved against NEXT_PUBLIC_API_URL — see components/sell/
 // product-thumb.tsx), so next/image needs that origin allow-listed here.
@@ -15,6 +24,21 @@ const apiUrl = new URL(process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000
 const isLocalApi = apiUrl.hostname === "localhost" || apiUrl.hostname === "127.0.0.1";
 
 const nextConfig: NextConfig = {
+  env: {
+    NEXT_PUBLIC_BUILD_ID: buildId,
+  },
+  async headers() {
+    return [
+      {
+        source: "/sw.js",
+        headers: [
+          // The worker script must be revalidated on every check, or a phone
+          // can keep re-registering a cached copy of an old worker.
+          { key: "Cache-Control", value: "no-cache, must-revalidate" },
+        ],
+      },
+    ];
+  },
   images: {
     remotePatterns: [
       {

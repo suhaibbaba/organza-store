@@ -2,12 +2,17 @@ import { NextResponse, type NextRequest } from "next/server";
 import createMiddleware from "next-intl/middleware";
 import { routing } from "@/i18n/routing";
 import { SESSION_TOKEN_KEY } from "@/constants/storage";
+import { OFFLINE_PATH } from "@/constants/pwa";
 
 const handleIntl = createMiddleware(routing);
 
-const PUBLIC_PATH = "/login";
+const LOGIN_PATH = "/login";
 // The POS has exactly one screen, so a signed-in user always belongs here.
 const HOME_PATH = "/sell";
+// Reachable without a session. /offline is in here because the service worker
+// precaches it while nobody may be signed in yet, and a cached
+// redirect-to-login is useless as an offline fallback.
+const PUBLIC_PATHS = [LOGIN_PATH, OFFLINE_PATH];
 
 // Optimistic-only check (see Next.js auth guide: "Optimistic checks with
 // Proxy"). It just avoids a flash of protected UI — AuthGuard verifies the
@@ -27,14 +32,16 @@ export function proxy(request: NextRequest): NextResponse {
   const rest = localeMatch[2] ?? "/";
 
   const hasToken = Boolean(request.cookies.get(SESSION_TOKEN_KEY)?.value);
-  const isPublicPath = rest === PUBLIC_PATH;
+  const isPublicPath = PUBLIC_PATHS.includes(rest);
 
   if (!isPublicPath && !hasToken) {
-    const loginUrl = new URL(`/${locale}${PUBLIC_PATH}`, request.url);
+    const loginUrl = new URL(`/${locale}${LOGIN_PATH}`, request.url);
     return NextResponse.redirect(loginUrl);
   }
 
-  if (isPublicPath && hasToken) {
+  // Only the login screen bounces a signed-in user onwards; /offline has to
+  // keep rendering for them too, since that's exactly who sees it.
+  if (rest === LOGIN_PATH && hasToken) {
     const sellUrl = new URL(`/${locale}${HOME_PATH}`, request.url);
     return NextResponse.redirect(sellUrl);
   }
