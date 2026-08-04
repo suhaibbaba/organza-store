@@ -66,3 +66,11 @@ export interface ProductSummary {
   updatedAt: string;
   cost?: string | null;
 }
+
+// GET /api/products/lookup?code=… — what a POS scan resolves to. `variant`
+// is the exact variant whose barcode/SKU matched; it is null when the code
+// belonged to a simple product, which is itself the purchasable item.
+export interface ProductLookupResult {
+  product: Product;
+  variant: Variant | null;
+}

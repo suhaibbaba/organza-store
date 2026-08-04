@@ -1,0 +1,136 @@
+{
+  "app": {
+    "name": "Organza",
+    "tagline": "Point of sale"
+  },
+  "common": {
+    "loading": "Loading…",
+    "retry": "Try again",
+    "logout": "Log out",
+    "language": "Language",
+    "close": "Close",
+    "account": "Account"
+  },
+  "auth": {
+    "login": {
+      "title": "Log in",
+      "subtitle": "Enter your email and password to continue.",
+      "emailLabel": "Email",
+      "emailPlaceholder": "you@organza.test",
+      "passwordLabel": "Password",
+      "passwordPlaceholder": "Enter your password",
+      "submit": "Log in",
+      "submitting": "Logging in…",
+      "error": "Wrong email or password."
+    }
+  },
+  "sell": {
+    "noPermission": "Your account can't complete sales. Ask your manager.",
+    "feedback": {
+      "added": "{name} added to the sale."
+    },
+    "search": {
+      "label": "Search for a product or scan a barcode",
+      "placeholder": "Search by name, or enter a barcode",
+      "clear": "Clear search",
+      "scan": "Scan a barcode with the camera",
+      "looking": "Looking up the barcode…",
+      "searching": "Searching…",
+      "empty": "Nothing matched.",
+      "error": "Couldn't load search results. Try again.",
+      "soldOut": "Sold out",
+      "inStock": "{count, plural, one {# in stock} other {# in stock}}",
+      "variantCount": "{count, plural, one {# option} other {# options}}"
+    },
+    "scanner": {
+      "title": "Scan a barcode",
+      "subtitle": "Point the camera at the barcode on the tag.",
+      "starting": "Starting the camera…",
+      "hint": "Hold the barcode inside the frame. The item is added as soon as it's read.",
+      "fault": {
+        "insecureContext": "The camera needs a secure (HTTPS) connection. Open this screen over a secure link, or type the barcode in instead.",
+        "permission": "Camera access was blocked. Allow it in your browser settings, or type the barcode in instead.",
+        "unavailable": "The camera couldn't start on this device. Type the barcode into the search box instead."
+      }
+    },
+    "picker": {
+      "subtitle": "Choose which one you're selling.",
+      "numberedSubtitle": "Type the number, or pick it from the list.",
+      "numberLabel": "Number",
+      "numberPlaceholder": "e.g. 4",
+      "addNumber": "Add",
+      "numberNotFound": "No such number, or it's sold out.",
+      "added": "{name} added.",
+      "soldOut": "Sold out",
+      "done": "Done"
+    },
+    "cart": {
+      "emptyTitle": "Nothing in the sale yet",
+      "emptyHint": "Scan the tag, or search by name, to add an item.",
+      "unitPrice": "Each: {price}",
+      "quantity": "Quantity — {name}",
+      "increase": "Increase quantity — {name}",
+      "decrease": "Decrease quantity — {name}",
+      "remove": "Remove {name} from the sale",
+      "addDiscount": "Discount",
+      "discountFor": "Discount on {name}",
+      "stockCap": "{count, plural, one {That's the last one in stock} other {That's all # in stock}}"
+    },
+    "discount": {
+      "title": "Add a discount",
+      "subtitle": "Discount on {name} — {amount} before the discount",
+      "typeLabel": "Discount type",
+      "type": {
+        "PERCENT": "Percent %",
+        "AMOUNT": "Amount"
+      },
+      "valueLabel": {
+        "PERCENT": "Discount (%)",
+        "AMOUNT": "Discount amount"
+      },
+      "valuePlaceholder": {
+        "PERCENT": "e.g. 10",
+        "AMOUNT": "e.g. 20"
+      },
+      "invalid": "Enter a valid value (a percentage must be between 0 and 100).",
+      "apply": "Apply discount",
+      "remove": "Remove discount"
+    },
+    "checkout": {
+      "wholeSale": "the whole sale",
+      "subtotal": "{count, plural, one {# item} other {# items}}",
+      "itemDiscounts": "Item discounts",
+      "orderDiscount": "Sale discount",
+      "total": "Total",
+      "addOrderDiscount": "Discount the sale",
+      "editOrderDiscount": "Edit sale discount",
+      "submit": "Complete sale",
+      "submitting": "Saving…"
+    },
+    "success": {
+      "title": "Sale completed",
+      "orderNumber": "Order number {number}",
+      "newSale": "New sale"
+    }
+  },
+  "errors": {
+    "notFound": "Not found.",
+    "validation": "Check what you entered.",
+    "internal": "Something went wrong. Try again.",
+    "unauthorized": "Your session ended. Log in again.",
+    "forbidden": "You don't have permission to do that.",
+    "accountInactive": "This account is not active.",
+    "validationRequired": "This field is required.",
+    "validationInvalidNumber": "Enter a valid number.",
+    "validationInvalidEmail": "Enter a valid email address.",
+    "validationPasswordTooShort": "The password must be at least {min} characters.",
+    "productNotFound": "No product has that barcode or code.",
+    "variantNotFound": "That option no longer exists.",
+    "orderNotFound": "Order not found.",
+    "orderItemsRequired": "Add at least one item before completing the sale.",
+    "orderDiscountInvalid": "That discount value isn't valid.",
+    "orderInsufficientStock": "There isn't enough stock for that quantity.",
+    "orderProductUnavailable": "One of the products is no longer available to sell.",
+    "orderVariantRequired": "Choose which option you're selling first."
+  }
+}

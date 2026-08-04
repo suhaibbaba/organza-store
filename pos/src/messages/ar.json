@@ -1,0 +1,136 @@
+{
+  "app": {
+    "name": "أورجانزا",
+    "tagline": "شاشة البيع"
+  },
+  "common": {
+    "loading": "جارٍ التحميل…",
+    "retry": "إعادة المحاولة",
+    "logout": "تسجيل الخروج",
+    "language": "اللغة",
+    "close": "إغلاق",
+    "account": "الحساب"
+  },
+  "auth": {
+    "login": {
+      "title": "تسجيل الدخول",
+      "subtitle": "أدخل بريدك الإلكتروني وكلمة المرور للمتابعة.",
+      "emailLabel": "البريد الإلكتروني",
+      "emailPlaceholder": "you@organza.test",
+      "passwordLabel": "كلمة المرور",
+      "passwordPlaceholder": "أدخل كلمة المرور",
+      "submit": "تسجيل الدخول",
+      "submitting": "جارٍ تسجيل الدخول…",
+      "error": "البريد الإلكتروني أو كلمة المرور غير صحيحة."
+    }
+  },
+  "sell": {
+    "noPermission": "حسابك لا يسمح بإتمام عمليات البيع. راجع المدير.",
+    "feedback": {
+      "added": "تمت إضافة {name} إلى السلة."
+    },
+    "search": {
+      "label": "البحث عن منتج أو مسح باركود",
+      "placeholder": "ابحث بالاسم أو أدخل الباركود",
+      "clear": "مسح البحث",
+      "scan": "مسح الباركود بالكاميرا",
+      "looking": "جارٍ البحث عن الباركود…",
+      "searching": "جارٍ البحث…",
+      "empty": "لا توجد نتائج مطابقة.",
+      "error": "تعذّر تحميل نتائج البحث. حاول مرة أخرى.",
+      "soldOut": "غير متوفر",
+      "inStock": "{count, plural, zero {لا يوجد مخزون} one {قطعة واحدة} two {قطعتان} few {# قطع} many {# قطعة} other {# قطعة}}",
+      "variantCount": "{count, plural, zero {لا خيارات} one {خيار واحد} two {خياران} few {# خيارات} many {# خيارًا} other {# خيار}}"
+    },
+    "scanner": {
+      "title": "مسح الباركود",
+      "subtitle": "وجّه الكاميرا نحو الباركود الموجود على القطعة.",
+      "starting": "جارٍ تشغيل الكاميرا…",
+      "hint": "ثبّت الباركود داخل الإطار. تُضاف القطعة تلقائيًا عند قراءته.",
+      "fault": {
+        "insecureContext": "الكاميرا تحتاج إلى اتصال آمن (HTTPS). افتح الشاشة عبر رابط آمن أو أدخل الباركود يدويًا.",
+        "permission": "لم يُسمح باستخدام الكاميرا. اسمح بالوصول من إعدادات المتصفح، أو أدخل الباركود يدويًا.",
+        "unavailable": "تعذّر تشغيل الكاميرا على هذا الجهاز. أدخل الباركود يدويًا في خانة البحث."
+      }
+    },
+    "picker": {
+      "subtitle": "اختر الخيار المطلوب.",
+      "numberedSubtitle": "اكتب الرقم المطلوب أو اختره من القائمة.",
+      "numberLabel": "الرقم",
+      "numberPlaceholder": "مثال: 4",
+      "addNumber": "إضافة",
+      "numberNotFound": "لا يوجد هذا الرقم، أو أنه غير متوفر حاليًا.",
+      "added": "تمت إضافة {name}.",
+      "soldOut": "غير متوفر",
+      "done": "تم"
+    },
+    "cart": {
+      "emptyTitle": "لا توجد قطع بعد",
+      "emptyHint": "امسح باركود القطعة أو ابحث عنها بالاسم لإضافتها.",
+      "unitPrice": "سعر القطعة: {price}",
+      "quantity": "الكمية — {name}",
+      "increase": "زيادة الكمية — {name}",
+      "decrease": "إنقاص الكمية — {name}",
+      "remove": "حذف {name} من السلة",
+      "addDiscount": "خصم",
+      "discountFor": "خصم على {name}",
+      "stockCap": "{count, plural, zero {لا يوجد مخزون} one {هذه آخر قطعة متوفرة} two {هذه آخر قطعتين متوفرتين} other {هذا كل المتوفر: # قطعة}}"
+    },
+    "discount": {
+      "title": "إضافة خصم",
+      "subtitle": "خصم على {name} — المبلغ قبل الخصم {amount}",
+      "typeLabel": "نوع الخصم",
+      "type": {
+        "PERCENT": "نسبة ٪",
+        "AMOUNT": "مبلغ"
+      },
+      "valueLabel": {
+        "PERCENT": "نسبة الخصم (٪)",
+        "AMOUNT": "قيمة الخصم"
+      },
+      "valuePlaceholder": {
+        "PERCENT": "مثال: 10",
+        "AMOUNT": "مثال: 20"
+      },
+      "invalid": "أدخل قيمة صحيحة (النسبة بين 0 و100).",
+      "apply": "تطبيق الخصم",
+      "remove": "إزالة الخصم"
+    },
+    "checkout": {
+      "wholeSale": "الفاتورة كاملة",
+      "subtotal": "{count, plural, zero {المجموع} one {قطعة واحدة} two {قطعتان} few {# قطع} many {# قطعة} other {# قطعة}}",
+      "itemDiscounts": "خصومات القطع",
+      "orderDiscount": "خصم الفاتورة",
+      "total": "الإجمالي",
+      "addOrderDiscount": "خصم على الفاتورة",
+      "editOrderDiscount": "تعديل خصم الفاتورة",
+      "submit": "إتمام البيع",
+      "submitting": "جارٍ الحفظ…"
+    },
+    "success": {
+      "title": "تم البيع بنجاح",
+      "orderNumber": "رقم الفاتورة {number}",
+      "newSale": "بيع جديد"
+    }
+  },
+  "errors": {
+    "notFound": "العنصر غير موجود.",
+    "validation": "تحقّق من البيانات المدخلة.",
+    "internal": "حدث خطأ غير متوقع. حاول مرة أخرى.",
+    "unauthorized": "انتهت الجلسة. سجّل الدخول من جديد.",
+    "forbidden": "لا تملك صلاحية تنفيذ هذا الإجراء.",
+    "accountInactive": "هذا الحساب غير مفعّل.",
+    "validationRequired": "هذا الحقل مطلوب.",
+    "validationInvalidNumber": "أدخل رقمًا صحيحًا.",
+    "validationInvalidEmail": "أدخل بريدًا إلكترونيًا صحيحًا.",
+    "validationPasswordTooShort": "كلمة المرور يجب ألا تقل عن {min} أحرف.",
+    "productNotFound": "لا يوجد منتج بهذا الباركود أو الرمز.",
+    "variantNotFound": "هذا الخيار لم يعد موجودًا.",
+    "orderNotFound": "الفاتورة غير موجودة.",
+    "orderItemsRequired": "أضف قطعة واحدة على الأقل قبل إتمام البيع.",
+    "orderDiscountInvalid": "قيمة الخصم غير صحيحة.",
+    "orderInsufficientStock": "الكمية المطلوبة غير متوفرة في المخزون.",
+    "orderProductUnavailable": "أحد المنتجات لم يعد متاحًا للبيع.",
+    "orderVariantRequired": "اختر الخيار المطلوب قبل الإضافة."
+  }
+}

@@ -6,6 +6,7 @@
 export interface ProductVariantDto {
   id: string;
   sku: string;
+  barcode: string | null;
   priceOverride: number | string | null;
   resolvedPrice: number | string;
   stock?: number;
@@ -38,4 +39,12 @@ export interface ProductDto {
 export interface ProductSummaryDto {
   id: string;
   basePrice: number | string;
+}
+
+// GET /api/products/lookup?code=… — one scanned code resolved to the exact
+// item being sold. `variant` is null for a simple product, which is itself
+// the purchasable item.
+export interface ProductLookupDto {
+  product: ProductDto;
+  variant: ProductVariantDto | null;
 }

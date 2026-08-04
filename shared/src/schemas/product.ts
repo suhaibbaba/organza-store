@@ -82,3 +82,13 @@ export const listProductsQuerySchema = paginationSchema.extend({
   sortDir: z.enum(["asc", "desc"]).default("desc"),
 });
 export type ListProductsQuery = z.infer<typeof listProductsQuerySchema>;
+
+// POS barcode/SKU lookup (GET /api/products/lookup). One scan of a tag has
+// to resolve to the exact thing being sold, so the code is matched against
+// both products and variants, and both of their identifiers: the barcode is
+// what the label prints (CLAUDE.md rule 13), the SKU is what a staff member
+// reads out when a label is damaged.
+export const lookupProductQuerySchema = z.object({
+  code: z.string().min(1, ERROR_CODES.VALIDATION_REQUIRED),
+});
+export type LookupProductQuery = z.infer<typeof lookupProductQuerySchema>;
