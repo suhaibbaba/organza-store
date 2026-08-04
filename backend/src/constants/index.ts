@@ -4,6 +4,7 @@ export * from "./barcode";
 export * from "./errors";
 export * from "./images";
 export * from "./inventory";
+export * from "./label";
 export * from "./languages";
 export * from "./order";
 export * from "./pagination";

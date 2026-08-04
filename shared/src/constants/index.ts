@@ -1,5 +1,6 @@
 export * from "./errors";
 export * from "./inventory";
+export * from "./label";
 export * from "./languages";
 export * from "./order";
 export * from "./pagination";

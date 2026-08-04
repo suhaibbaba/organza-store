@@ -5,6 +5,7 @@
 // redeclared inline in every test file that hits /api/products.
 export interface ProductVariantDto {
   id: string;
+  name: { ar: string; en?: string; he?: string };
   sku: string;
   barcode: string | null;
   priceOverride: number | string | null;
@@ -30,6 +31,8 @@ export interface ProductDto {
   // Opt-in low-stock alerts; false unless the caller both asked for it and
   // has the permission to set it.
   trackLowStock: boolean;
+  // Null until the product's barcode labels have been printed at least once.
+  labelsPrintedAt: string | null;
   variants: ProductVariantDto[];
   // Role-gated (CLAUDE.md rule 19): absent entirely for Employee responses.
   cost?: number | string | null;
@@ -39,12 +42,38 @@ export interface ProductDto {
 export interface ProductSummaryDto {
   id: string;
   basePrice: number | string;
+  labelsPrintedAt: string | null;
 }
 
-// GET /api/products/lookup?code=… — one scanned code resolved to the exact
-// item being sold. `variant` is null for a simple product, which is itself
-// the purchasable item.
+// One number of a numbered shawl, as the lookup hands it to the POS.
+export interface ProductNumberOptionDto {
+  variantId: string;
+  variantNumber: number;
+  number: { ar: string; en?: string; he?: string };
+  numberKey: string;
+  sku: string;
+  barcode: string | null;
+  resolvedPrice: number | string;
+  stock: number;
+  available: boolean;
+  imageX: number | null;
+  imageY: number | null;
+}
+
+// GET /api/products/lookup?code=… — one scanned code resolved to what is
+// actually being sold. kind ITEM: `variant` is the matched variant, or null
+// for a simple product (which is itself the purchasable item). kind
+// NUMBER_SELECTION: a numbered shawl's parent label, so nothing sellable
+// comes back — `variant` is null and `numbers` holds the choices.
 export interface ProductLookupDto {
+  kind: "ITEM" | "NUMBER_SELECTION";
   product: ProductDto;
   variant: ProductVariantDto | null;
+  numbers: ProductNumberOptionDto[];
+}
+
+// POST /api/products/labels/printed.
+export interface MarkLabelsPrintedDto {
+  productIds: string[];
+  labelsPrintedAt: string;
 }

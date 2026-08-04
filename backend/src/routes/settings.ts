@@ -52,6 +52,20 @@ router.patch(
         currency: body.currency,
         defaultCountryCode: body.defaultCountryCode,
         lowStockThreshold: body.lowStockThreshold,
+        // Barcode-label geometry (CLAUDE.md rule 13/14): the sheet lives in
+        // settings so any printer the shop owns can be described, and nothing
+        // about it is hard-coded in the apps that render the labels.
+        labelPrintMode: body.labelPrintMode,
+        labelWidthMm: body.labelWidthMm,
+        labelHeightMm: body.labelHeightMm,
+        labelColumns: body.labelColumns,
+        labelRows: body.labelRows,
+        labelPageMarginTopMm: body.labelPageMarginTopMm,
+        labelPageMarginRightMm: body.labelPageMarginRightMm,
+        labelPageMarginBottomMm: body.labelPageMarginBottomMm,
+        labelPageMarginLeftMm: body.labelPageMarginLeftMm,
+        labelGapXMm: body.labelGapXMm,
+        labelGapYMm: body.labelGapYMm,
       },
     });
 
