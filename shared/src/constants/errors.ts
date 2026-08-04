@@ -46,6 +46,19 @@ export const ERROR_CODES = {
 
   INVENTORY_PARENT_HAS_VARIANTS: "error.inventory.parent_has_variants",
 
+  ORDER_NOT_FOUND: "error.order.not_found",
+  ORDER_ITEM_NOT_FOUND: "error.order.item_not_found",
+  ORDER_ITEMS_REQUIRED: "error.order.items_required",
+  ORDER_CUSTOMER_REQUIRED: "error.order.customer_required",
+  ORDER_DISCOUNT_INVALID: "error.order.discount_invalid",
+  ORDER_INVALID_STATUS_TRANSITION: "error.order.invalid_status_transition",
+  ORDER_INSUFFICIENT_STOCK: "error.order.insufficient_stock",
+  ORDER_NOT_EDITABLE: "error.order.not_editable",
+  ORDER_NOT_RETURNABLE: "error.order.not_returnable",
+  ORDER_RETURN_QUANTITY_EXCEEDED: "error.order.return_quantity_exceeded",
+  ORDER_PRODUCT_UNAVAILABLE: "error.order.product_unavailable",
+  ORDER_VARIANT_REQUIRED: "error.order.variant_required",
+
   SETTING_DEFAULT_LANGUAGE_NOT_SUPPORTED: "error.setting.default_language_not_supported",
 
   USER_NOT_FOUND: "error.user.not_found",

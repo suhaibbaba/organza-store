@@ -26,12 +26,19 @@ export const PERMISSION_ACTIONS = [
   "images.edit",
   "images.delete",
 
-  // Phase 2 (spec.md) — not wired to any route yet, modeled now so the
-  // Roles & Permissions table stays a single source of truth.
+  "order.view",
   "order.create",
+  // Advancing an order along the delivery flow (spec.md: Employees "create +
+  // mark delivered"). Cancelling is NOT part of this — it has its own action
+  // below, so an Employee can move an order forward but never void it.
+  "order.updateStatus",
   "order.edit",
   "order.cancel",
   "order.delete",
+  // Reversing a sale, in whole or in part. Gated with cancel/delete rather
+  // than with updateStatus for the same reason: a sale must not be undoable
+  // by the person who rang it up.
+  "order.return",
 
   "user.manage",
   "user.viewSensitive",
@@ -63,10 +70,13 @@ export const ROLE_PERMISSIONS: Record<Role, readonly Action[]> = {
     "variantType.manage",
     "images.edit",
     "images.delete",
+    "order.view",
     "order.create",
+    "order.updateStatus",
     "order.edit",
     "order.cancel",
     "order.delete",
+    "order.return",
   ],
   EMPLOYEE: [
     "dashboard.view",
@@ -76,6 +86,8 @@ export const ROLE_PERMISSIONS: Record<Role, readonly Action[]> = {
     "inventory.view",
     "variantType.manage",
     "images.edit",
+    "order.view",
     "order.create",
+    "order.updateStatus",
   ],
 };

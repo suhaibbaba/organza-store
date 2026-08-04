@@ -4,6 +4,7 @@ export const AUDIT_ENTITY = {
   PRODUCT: "Product",
   VARIANT: "Variant",
   PRODUCT_IMAGE: "ProductImage",
+  ORDER: "Order",
   USER: "User",
   SETTING: "Setting",
   VARIANT_TYPE: "VariantType",

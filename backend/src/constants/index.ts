@@ -5,6 +5,7 @@ export * from "./errors";
 export * from "./images";
 export * from "./inventory";
 export * from "./languages";
+export * from "./order";
 export * from "./pagination";
 export * from "./phone";
 export * from "./product";

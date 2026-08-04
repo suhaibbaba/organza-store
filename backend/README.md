@@ -4,8 +4,9 @@ API for the Organza Store system. Node + Express + TypeScript + Prisma + Postgre
 Auth is [Better Auth](https://www.better-auth.com/), email + password only, admin-driven
 (no public sign-up, no self-service password reset).
 
-> **Phase 2 scope:** Products & Variants CRUD is now built on top of the Phase 1 scaffold
-> (server, schema, auth, dev seed). Orders and the customer storefront are still later phases
+> **Scope:** Products & Variants CRUD sits on top of the Phase 1 scaffold (server, schema,
+> auth, dev seed), and the Orders API below is Phase 2 part 1 (backend only — the POS and
+> admin order screens come next). The customer storefront is still a later phase
 > (see `spec.md` build order at the repo root).
 
 ## Prerequisites
@@ -128,6 +129,58 @@ curl -X POST http://localhost:4000/api/images \
 
 A variant with no images of its own falls back to its parent product's gallery at read time
 (`GET /api/products/:id` and audit snapshots resolve this automatically — nothing is copied).
+
+## Orders API (Phase 2)
+
+Two shapes of sale share one model, distinguished by `channel`:
+
+- **`STORE`** — rung up at the POS counter. Opens `COMPLETED` with stock already deducted,
+  because the customer walks out with the goods. No customer details needed.
+- **`WHATSAPP` / `WEBSITE`** — taken remotely. Opens `NEW` and travels
+  `NEW → PREPARING → DELIVERING → RECEIVED → COMPLETED`, committing stock on the move to
+  `PREPARING`. `customerName` + `customerPhone` are required.
+
+Any non-terminal status may go to `CANCELLED` (which puts committed stock back).
+`RETURNED` is reachable only through the returns endpoint, so stock and `returnedQuantity`
+always move together. The legal-move table lives in `@shared/constants/order`
+(`ORDER_STATUS_TRANSITIONS`) so the backend gate and the frontends' buttons read one source.
+
+**Money is always computed server-side.** A request names products, quantities and discounts;
+`unitPrice`, `lineTotal`, `subtotal` and `total` sent by a client are ignored. Per line:
+`lineTotal = unitPrice × quantity − itemDiscount`; then `subtotal = Σ lineTotal` and
+`total = subtotal − orderDiscount`. A discount is a `PERCENT` (0–100) or `AMOUNT` pair and is
+clamped to what it discounts, so it can never turn into a surcharge.
+
+**Stock is deducted exactly once per order.** `Order.stockDeductedAt` is the single source of
+truth — set when stock leaves the shelf, cleared when it all comes back — so re-entering a
+state can neither double-deduct nor double-restore. Deduction itself is a guarded atomic
+`UPDATE ... WHERE stock >= n`, so two terminals selling the last piece can't both win
+(the loser gets `error.order.insufficient_stock`).
+
+Each line snapshots `name`, `variantName`, `sku`, `unitPrice` and `unitCost` at creation, so
+renaming or repricing a product later never rewrites a past sale.
+
+| Method | Path                        | Role gate               | Notes |
+|--------|-----------------------------|--------------------------|-------|
+| GET    | `/api/orders`               | Admin/Manager/Employee   | pagination (`page`,`pageSize`), filters (`status`,`channel`,`dateFrom`,`dateTo`,`q`), sort (`sortBy`,`sortDir`) |
+| GET    | `/api/orders/:id`           | Admin/Manager/Employee   | full detail incl. lines |
+| POST   | `/api/orders`               | Admin/Manager/Employee   | `{ channel, items: [{ productId, variantId?, quantity, discount? }], ... }` |
+| PATCH  | `/api/orders/:id/status`    | Admin/Manager/Employee   | Employees may advance the flow; `CANCELLED` additionally needs `order.cancel` (Admin/Manager) |
+| PATCH  | `/api/orders/:id`           | Admin/Manager            | contact details, note, payment method, order- and item-level discounts (lines are fixed at creation) |
+| POST   | `/api/orders/:id/return`    | Admin/Manager            | body `{}` returns the whole order; `{ items: [{ orderItemId, quantity }] }` returns specific lines |
+| DELETE | `/api/orders/:id`           | Admin/Manager            | restores any still-deducted stock; the audit entry keeps the full record |
+
+Per spec.md's security rationale, an Employee can create an order and mark it delivered but
+can never edit, cancel, return or delete one — a sale must not be erasable to cover theft.
+`unitCost` is stripped entirely from Employee responses (CLAUDE.md rule 19), and every
+mutation writes an audit entry (`CREATE`/`UPDATE`/`STATUS_CHANGE`/`CANCEL`/`RETURN`/`DELETE`).
+
+```bash
+curl -X POST http://localhost:4000/api/orders \
+  -H "Authorization: Bearer <token>" -H "Content-Type: application/json" \
+  -d '{"channel":"STORE","items":[{"productId":"<id>","quantity":2,
+       "discountType":"PERCENT","discountValue":"10"}]}'
+```
 
 ## Auth notes
 
