@@ -9,6 +9,7 @@ import { localize } from "@/lib/i18n-content";
 import { formatMoney } from "@/lib/format";
 import { ProductImage } from "@/components/products/product-image";
 import { StatusBadge } from "@/components/products/status-badge";
+import { NumberedBadge } from "@/components/products/numbered-badge";
 import { cn } from "@/lib/utils";
 
 interface ProductTableProps {
@@ -33,6 +34,7 @@ export function ProductTable({ products, currency }: ProductTableProps) {
             <div className="flex items-center gap-3">
               <ProductImage src={product.image?.thumbnailUrl} alt={name} className="size-11 shrink-0 rounded-md" sizes="44px" />
               <span className="truncate font-medium text-foreground">{name}</span>
+              {product.isNumbered && <NumberedBadge count={product.numberCount} />}
             </div>
           );
         },

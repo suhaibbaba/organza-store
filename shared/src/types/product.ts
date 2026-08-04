@@ -56,6 +56,11 @@ export interface ProductSummary {
   trackLowStock: boolean;
   hasVariants: boolean;
   variantCount: number;
+  // Numbered products (spec.md "Numbered shawls"): the numbers themselves are
+  // illegible on a list thumbnail, so the list UI labels the product type with
+  // a badge instead. `numberCount` is how many distinct numbers it offers.
+  isNumbered: boolean;
+  numberCount: number;
   image: ProductImageRef | null;
   createdAt: string;
   updatedAt: string;

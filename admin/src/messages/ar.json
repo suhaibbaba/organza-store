@@ -105,7 +105,8 @@
     "card": {
       "multipleSkus": "عدة متغيرات",
       "stock": "{count} متوفر بالمخزون",
-      "outOfStock": "غير متوفر"
+      "outOfStock": "غير متوفر",
+      "numbered": "مرقّم · {count}"
     },
     "table": {
       "product": "المنتج",

@@ -95,7 +95,16 @@ async function main() {
     {
       slug: "number",
       name: { ar: "الأرقام", en: "Number", he: "מספר" },
+      // 1–6 are the numbered-shawl numbers (spec.md "Numbered shawls": the
+      // Number type's values double as the points drawn on the image); 38–42
+      // are the numeric sizes the same type covers.
       values: [
+        { key: "1", value: { ar: "1", en: "1", he: "1" } },
+        { key: "2", value: { ar: "2", en: "2", he: "2" } },
+        { key: "3", value: { ar: "3", en: "3", he: "3" } },
+        { key: "4", value: { ar: "4", en: "4", he: "4" } },
+        { key: "5", value: { ar: "5", en: "5", he: "5" } },
+        { key: "6", value: { ar: "6", en: "6", he: "6" } },
         { key: "38", value: { ar: "38", en: "38", he: "38" } },
         { key: "40", value: { ar: "40", en: "40", he: "40" } },
         { key: "42", value: { ar: "42", en: "42", he: "42" } },
@@ -169,6 +178,10 @@ async function main() {
       stock?: number;
       priceOverride?: number;
       cost?: number;
+      // Numbered shawls (spec.md): the variant's point on the product image,
+      // as percentages. Left out for ordinary variants.
+      imageX?: number;
+      imageY?: number;
     }[];
   }) {
     const searchText = buildSearchText(opts.name, opts.description);
@@ -230,6 +243,8 @@ async function main() {
             stock: v.stock ?? 1,
             priceOverride: v.priceOverride ?? null, // null => inherits basePrice
             cost: v.cost ?? null, // null => inherits product.cost
+            imageX: v.imageX ?? null, // null => ordinary variant, not a point
+            imageY: v.imageY ?? null,
             values: {
               create: v.combo.map((c) => ({ optionValueId: valueId[c] })),
             },
@@ -310,6 +325,31 @@ async function main() {
     basePrice: 50,
     deleted: true,
     simple: { stock: 1 },
+  });
+
+  // 6) Numbered shawl (spec.md) — Number variant type only, every variant a
+  //    placed point on the product image, so the list badge and the numbered
+  //    editor both have real data to render.
+  await upsertProduct({
+    productNumber: 6,
+    slug: "numbered-shawl-collection",
+    name: { ar: "تشكيلة شالات مرقّمة", en: "Numbered Shawl Collection", he: "מארז צעיפים ממוספרים" },
+    description: {
+      ar: "صورة واحدة تضم كل الشالات، لكل رقم قطعة",
+      en: "One photo with every shawl, one piece per number",
+      he: "תמונה אחת עם כל הצעיפים, פריט אחד לכל מספר",
+    },
+    categoryId: abayas.id,
+    basePrice: 60,
+    cost: 25,
+    variants: [
+      { combo: ["number:1"], name: { ar: "1", en: "1", he: "1" }, stock: 1, imageX: 18, imageY: 22 },
+      { combo: ["number:2"], name: { ar: "2", en: "2", he: "2" }, stock: 1, imageX: 42, imageY: 20 },
+      { combo: ["number:3"], name: { ar: "3", en: "3", he: "3" }, stock: 1, imageX: 68, imageY: 26 },
+      { combo: ["number:4"], name: { ar: "4", en: "4", he: "4" }, stock: 1, imageX: 24, imageY: 62 },
+      { combo: ["number:5"], name: { ar: "5", en: "5", he: "5" }, stock: 0, imageX: 50, imageY: 68 },
+      { combo: ["number:6"], name: { ar: "6", en: "6", he: "6" }, stock: 1, imageX: 76, imageY: 64, priceOverride: 75 },
+    ],
   });
 
   // The seed inserts explicit `productNumber` values (for deterministic SKUs),

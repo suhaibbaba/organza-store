@@ -1,5 +1,6 @@
 import { Role } from "@prisma/client";
 import { can } from "@shared/lib/permissions";
+import { NUMBER_VARIANT_TYPE_SLUG } from "@shared/constants/variantType";
 import type { AnyRecord } from "@/types";
 
 // `cost` is sensitive (CLAUDE.md rule 19): Admin + Manager only, never
@@ -98,6 +99,28 @@ export function serializeProduct(product: AnyRecord, role: Role) {
   return dto;
 }
 
+// Numbered products (spec.md "Numbered shawls") are recognised by the Number
+// variant type they use — the same signal the admin's numbered-shawl tools use
+// — since its option values double as the numbers placed on the image.
+// Counted from the distinct Number values, not from variants: a product that
+// also has colours multiplies its combos without offering more numbers.
+function summarizeNumbers(product: AnyRecord): { isNumbered: boolean; numberCount: number } {
+  const numberTypeIds = new Set<string>(
+    (product.variantTypes ?? [])
+      .filter((pvt: AnyRecord) => pvt.variantType?.slug === NUMBER_VARIANT_TYPE_SLUG)
+      .map((pvt: AnyRecord) => pvt.variantType.id as string)
+  );
+  if (numberTypeIds.size === 0) return { isNumbered: false, numberCount: 0 };
+
+  const numberValueIds = new Set<string>();
+  for (const variant of (product.variants ?? []) as AnyRecord[]) {
+    for (const vv of (variant.values ?? []) as AnyRecord[]) {
+      if (numberTypeIds.has(vv.optionValue.variantTypeId)) numberValueIds.add(vv.optionValue.id);
+    }
+  }
+  return { isNumbered: true, numberCount: numberValueIds.size };
+}
+
 // Lighter DTO for list endpoints — no per-variant breakdown, just enough to
 // render a row (aggregate stock, variant count).
 export function serializeProductSummary(product: AnyRecord, role: Role) {
@@ -105,6 +128,7 @@ export function serializeProductSummary(product: AnyRecord, role: Role) {
   const aggregateStock = variants.length
     ? variants.reduce((sum: number, v: AnyRecord) => sum + v.stock, 0)
     : product.stock;
+  const { isNumbered, numberCount } = summarizeNumbers(product);
 
   const dto: AnyRecord = {
     id: product.id,
@@ -123,6 +147,8 @@ export function serializeProductSummary(product: AnyRecord, role: Role) {
     trackLowStock: product.trackLowStock,
     hasVariants: variants.length > 0,
     variantCount: variants.length,
+    isNumbered,
+    numberCount,
     // Lowest sortOrder = primary (spec.md); already loaded by the list
     // query's include, so this costs nothing extra.
     image: product.images?.length ? serializeImage(product.images[0]) : null,

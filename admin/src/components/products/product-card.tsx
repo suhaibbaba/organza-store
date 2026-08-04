@@ -5,6 +5,7 @@ import { localize } from "@/lib/i18n-content";
 import { formatMoney } from "@/lib/format";
 import { ProductImage } from "@/components/products/product-image";
 import { StatusBadge } from "@/components/products/status-badge";
+import { NumberedBadge } from "@/components/products/numbered-badge";
 import { cn } from "@/lib/utils";
 
 interface ProductCardProps {
@@ -30,7 +31,10 @@ export function ProductCard({ product, currency }: ProductCardProps) {
           <p className="truncate text-sm font-medium text-foreground">{name}</p>
           <StatusBadge isActive={product.isActive} />
         </div>
-        <p className="mt-0.5 truncate text-xs text-muted-foreground">{product.sku ?? t("card.multipleSkus")}</p>
+        <div className="mt-0.5 flex items-center gap-2">
+          <p className="min-w-0 truncate text-xs text-muted-foreground">{product.sku ?? t("card.multipleSkus")}</p>
+          {product.isNumbered && <NumberedBadge count={product.numberCount} />}
+        </div>
         <div className="mt-1.5 flex items-center justify-between gap-2">
           <span className="text-sm font-semibold text-foreground">{formatMoney(product.basePrice, currency, locale)}</span>
           <span className={cn("text-xs font-medium", outOfStock ? "text-destructive" : "text-muted-foreground")}>

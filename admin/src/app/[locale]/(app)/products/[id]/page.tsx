@@ -139,7 +139,7 @@ function ProductDetail({ product, currency, locale }: { product: Product; curren
           <h2 className="mb-2 text-sm font-medium text-foreground">
             {t("variantsTitle")} · {t("variantsCount", { count: product.variants.length })}
           </h2>
-          <VariantList variants={product.variants} currency={currency} />
+          <VariantList variants={product.variants} variantTypes={product.variantTypes} currency={currency} />
         </div>
       )}
     </div>
