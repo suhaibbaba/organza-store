@@ -18,6 +18,7 @@
     "orders": "Orders",
     "products": "Products",
     "inventory": "Inventory",
+    "labels": "Labels",
     "categories": "Categories",
     "reports": "Reports",
     "users": "Users",
@@ -579,6 +580,72 @@
       "previous": "Previous",
       "next": "Next",
       "pageOf": "Page {page} of {totalPages}"
+    }
+  },
+  "labels": {
+    "title": "Barcode labels",
+    "subtitle": "Print labels for the pieces that still need one.",
+    "selectAll": "Select all on this page",
+    "clearSelection": "Clear",
+    "selectedCount": "{count} selected",
+    "next": "Next",
+    "filters": {
+      "printState": "Print state",
+      "all": "All",
+      "printed": "Printed",
+      "not_printed": "Not printed",
+      "category": "Category",
+      "allCategories": "All categories"
+    },
+    "row": {
+      "select": "Select {name}",
+      "variants": "{count} variants",
+      "printedOn": "Last printed {date}",
+      "neverPrinted": "Not printed yet"
+    },
+    "empty": {
+      "allPrintedTitle": "Every label is printed",
+      "allPrintedDescription": "New products show up here until their labels have been printed.",
+      "noMatchesTitle": "No matching products",
+      "noMatchesDescription": "Try a different search, category, or print state."
+    },
+    "copies": {
+      "total": "{count} labels",
+      "wholeProduct": "Whole product",
+      "noBarcode": "No barcode",
+      "simpleHint": "One label per piece in stock.",
+      "perVariantHint": "One label per variant ({count}), from each variant's stock.",
+      "numberedHint": "Numbered shawl — one label for the whole product. Type how many you need."
+    },
+    "prepare": {
+      "back": "Back to products",
+      "title": "Copies and preview",
+      "subtitle": "{products} products · {labels} labels",
+      "totalLabels": "{count} labels",
+      "print": "Print"
+    },
+    "preview": {
+      "pageCount": "Preview — {count} pages",
+      "truncated": "Showing the first {shown} of {total} pages — all of them will print."
+    },
+    "sheet": {
+      "title": "Label sheet",
+      "thermal": "{width}×{height} mm — one label per page",
+      "a4": "{width}×{height} mm — A4 sheet, {columns} across × {rows} down",
+      "change": "Change in Settings"
+    },
+    "warnings": {
+      "smallLabel": "This label is narrower than {width} mm, so the barcode may be hard to scan. Print one and try it first.",
+      "gridOverflow": "These labels don't fit on an A4 sheet with the current settings, so some will be cut off. Reduce the columns, rows, or margins in Settings.",
+      "tooManyLabels": "That's more than {max} labels at once. Print them in smaller batches.",
+      "noLabels": "Set how many copies to print for at least one label."
+    },
+    "print": {
+      "confirmTitle": "Did the labels print?",
+      "confirmDescription": "If they came out right, we'll mark these products as printed. You can always print them again later.",
+      "confirmYes": "Yes, mark as printed",
+      "confirmNo": "Not yet",
+      "marked": "Marked as printed."
     }
   },
   "categories": {

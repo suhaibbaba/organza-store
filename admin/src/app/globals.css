@@ -150,3 +150,173 @@
     appearance: none;
   }
 }
+
+/* ============================================================
+   BARCODE LABELS — the printed sheet
+   ------------------------------------------------------------
+   These rules are shared by the on-screen preview and the copy the browser
+   prints, because both render the same <LabelSheet>. Everything is sized in
+   millimetres so a label lands on paper at exactly the size configured in
+   Settings, and the colours are pinned to black-on-white: this is paper, and
+   it must not follow the app's dark theme.
+   ============================================================ */
+
+.label-sheet {
+  background: #fff;
+  color: #000;
+  /* Latin digits under the barcode, and a layout that reads the same in
+     Arabic and English (see label-sheet.tsx). */
+  font-family: var(--font-sans);
+}
+
+.label-page {
+  box-sizing: border-box;
+  background: #fff;
+  overflow: hidden;
+  /* One page per label (thermal) or per sheet (A4). The last one must not
+     force a trailing blank page out of the printer. */
+  break-after: page;
+  page-break-after: always;
+}
+
+.label-page:last-child {
+  break-after: auto;
+  page-break-after: auto;
+}
+
+.label-page--a4 {
+  width: 210mm;
+  height: 297mm;
+}
+
+.label-grid {
+  display: grid;
+  /* Labels keep their configured size; a grid that would overflow the sheet
+     is caught and warned about before printing, never silently squeezed. */
+  justify-content: start;
+  align-content: start;
+}
+
+.label-box {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5mm;
+  padding: 1mm;
+  overflow: hidden;
+  background: #fff;
+  color: #000;
+}
+
+.label-text {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3mm;
+  overflow: hidden;
+  text-align: center;
+}
+
+/* Two lines at most, then ellipsis: a long name must never push the barcode
+   off the sticker. */
+.label-name {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-size: 2.6mm;
+  font-weight: 600;
+  line-height: 1.15;
+}
+
+.label-variant {
+  max-width: 100%;
+  overflow: hidden;
+  font-size: 2.2mm;
+  line-height: 1.15;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* The barcode takes whatever height the text leaves. min-height: 0 is what
+   lets it actually shrink inside the flex column instead of overflowing. */
+.label-code {
+  display: flex;
+  min-height: 0;
+  width: 100%;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+}
+
+.label-code-svg {
+  display: flex;
+  height: 100%;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+}
+
+.label-code-svg svg {
+  height: 100%;
+  width: 100%;
+}
+
+/* No scannable code to draw — print the digits so the piece can still be
+   found by typing them in. */
+.label-code-fallback {
+  font-size: 2.4mm;
+  letter-spacing: 0.05em;
+}
+
+@media screen {
+  /* Preview only: a hairline so the edges of each sticker and each page are
+     visible on screen. Never printed — it isn't on the label stock. */
+  .label-preview .label-box {
+    outline: 1px dashed #cbcbcb;
+  }
+
+  .label-preview .label-page {
+    outline: 1px solid #d8d8d8;
+  }
+}
+
+@media print {
+  /* The sheet is portalled to a direct child of <body> (see
+     label-print-portal.tsx), so one selector hides the entire app around it —
+     no chance of a wrapper's padding or a scroll container shifting or
+     clipping a label. Scoped to the body class the labels screen sets, so
+     Ctrl+P anywhere else in the admin still prints that screen. */
+  body.is-printing-labels > *:not(#label-print-root) {
+    display: none !important;
+  }
+
+  /* The app shell stretches <body> to the viewport height (min-h-dvh). Left
+     alone, that pads the print job out to a screenful of blank pages when the
+     labels themselves are only a few centimetres tall. */
+  body.is-printing-labels {
+    min-height: 0;
+    height: auto;
+    margin: 0;
+    background: #fff;
+  }
+
+  body.is-printing-labels #label-print-root {
+    display: block !important;
+  }
+
+  /* Keep the bars solid black even when the browser is "saving ink". */
+  .label-sheet {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+/* Off-screen at all times: the page shows its own preview of the same
+   component, so this copy exists purely for the printer. */
+#label-print-root {
+  display: none;
+}

@@ -1,4 +1,5 @@
 import type { ListProductsQuery } from "@shared/schemas/product";
+import type { ProductPrintState } from "@shared/types/product";
 
 // Client-side filter state for the products list screen. Kept separate from
 // `ListProductsQuery` (the API's validated query shape) so the UI can hold
@@ -10,6 +11,9 @@ export interface ProductListFilters {
   stock: "in_stock" | "out_of_stock" | null;
   priceMin: string;
   priceMax: string;
+  // Barcode-label print state. "all" on the products screen; the labels
+  // screen is the one that actually narrows it.
+  printState: ProductPrintState;
   sortBy: ListProductsQuery["sortBy"];
   sortDir: ListProductsQuery["sortDir"];
   page: number;
