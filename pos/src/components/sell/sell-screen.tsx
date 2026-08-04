@@ -25,9 +25,11 @@ import { CartPanel } from "@/components/sell/cart-panel";
 import { CheckoutBar } from "@/components/sell/checkout-bar";
 import { DiscountSheet } from "@/components/sell/discount-sheet";
 import { SaleSuccess } from "@/components/sell/sale-success";
+import { WhatsappOrderSheet } from "@/components/sell/whatsapp-order-sheet";
 import { ScannerSheet } from "@/components/sell/scanner/scanner-sheet";
 import { VariantPickerSheet } from "@/components/sell/variant-picker-sheet";
 import { Alert } from "@/components/ui/alert";
+import type { OrderCustomerDraft } from "@/types/customer";
 import { lineGrossCents } from "@/lib/cart";
 import { fromCents } from "@/lib/money";
 
@@ -55,6 +57,8 @@ export function SellScreen() {
   const [pendingProductId, setPendingProductId] = useState<string | null>(null);
   const [discountLineKey, setDiscountLineKey] = useState<string | null>(null);
   const [orderDiscountOpen, setOrderDiscountOpen] = useState(false);
+  const [whatsappOpen, setWhatsappOpen] = useState(false);
+  const [whatsappErrorCode, setWhatsappErrorCode] = useState<string | null>(null);
   const [completedOrder, setCompletedOrder] = useState<Order | null>(null);
 
   const search = useProductSearch(query);
@@ -129,21 +133,29 @@ export function SellScreen() {
     [addToCart, queryClient, show, translateError]
   );
 
-  function handleCheckout() {
+  // Both endings of a cart go through here: without a customer it is a
+  // counter sale, with one it is a WhatsApp order for delivery. Only where
+  // the failure is shown differs — the WhatsApp sheet covers the screen, so
+  // an alert behind it would never be read.
+  function submitOrder(customer?: OrderCustomerDraft) {
     clearMessage();
+    setWhatsappErrorCode(null);
     checkout.mutate(
-      { lines: cart.lines, orderDiscount: cart.orderDiscount },
+      { lines: cart.lines, orderDiscount: cart.orderDiscount, customer },
       {
         onSuccess: (order) => {
           setCompletedOrder(order);
+          setWhatsappOpen(false);
           cart.clear();
           setQuery("");
         },
         onError: (error) => {
-          show({
-            variant: "destructive",
-            text: translateError(error instanceof ApiError ? error.code : ERROR_CODES.INTERNAL),
-          });
+          const code = error instanceof ApiError ? error.code : ERROR_CODES.INTERNAL;
+          if (customer) {
+            setWhatsappErrorCode(code);
+            return;
+          }
+          show({ variant: "destructive", text: translateError(code) });
         },
       }
     );
@@ -151,6 +163,7 @@ export function SellScreen() {
 
   function startNewSale() {
     setCompletedOrder(null);
+    setWhatsappErrorCode(null);
     checkout.reset();
   }
 
@@ -197,7 +210,7 @@ export function SellScreen() {
 
         {/* pb leaves room for the fixed checkout bar so the last cart line
             is never trapped underneath it. */}
-        <div className="pb-64">
+        <div className="pb-72">
           {isSearching ? (
             <SearchResults
               results={search.data}
@@ -218,7 +231,20 @@ export function SellScreen() {
         canCheckout={!cart.isEmpty}
         isSubmitting={checkout.isPending}
         onOrderDiscountClick={() => setOrderDiscountOpen(true)}
-        onCheckout={handleCheckout}
+        onCheckout={() => submitOrder()}
+        onWhatsappOrder={() => setWhatsappOpen(true)}
+      />
+
+      <WhatsappOrderSheet
+        open={whatsappOpen}
+        onOpenChange={(open) => {
+          setWhatsappOpen(open);
+          if (!open) setWhatsappErrorCode(null);
+        }}
+        total={cart.totals.total}
+        isSubmitting={checkout.isPending}
+        errorCode={whatsappErrorCode}
+        onSubmit={(customer) => submitOrder(customer)}
       />
 
       <ScannerSheet

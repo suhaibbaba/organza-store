@@ -69,3 +69,14 @@ export interface CollectionSummaryDto {
   amount: string;
   oldestCreatedAt: string | null;
 }
+
+// GET /api/orders/customer-suggestions
+export interface CustomerSuggestionDto {
+  phone: string;
+  name: string | null;
+  whatsapp: string | null;
+  address: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  lastOrderAt: string;
+}

@@ -109,12 +109,44 @@
       "addOrderDiscount": "Discount the sale",
       "editOrderDiscount": "Edit sale discount",
       "submit": "Complete sale",
-      "submitting": "Saving…"
+      "submitting": "Saving…",
+      "whatsappOrder": "WhatsApp order"
     },
     "success": {
       "title": "Sale completed",
       "orderNumber": "Order number {number}",
-      "newSale": "New sale"
+      "newSale": "New sale",
+      "whatsappTitle": "WhatsApp order saved",
+      "customer": "Customer: {name}",
+      "whatsappNextStep": "The order is New. Stock comes off the shelf when preparation starts.",
+      "whatsappOrderNumber": "Order {number}"
+    },
+    "whatsapp": {
+      "title": "WhatsApp order",
+      "subtitle": "Save this cart as an order to be delivered to the customer.",
+      "total": "Total",
+      "save": "Save order",
+      "saving": "Saving…",
+      "customer": {
+        "name": "Customer name",
+        "namePlaceholder": "e.g. Suad Ahmad",
+        "phone": "Phone number",
+        "phonePrefixLabel": "Country code",
+        "searching": "Looking for earlier orders…",
+        "suggestionsHint": "Customers who ordered from this number before — tap to fill their details in.",
+        "unnamedCustomer": "No name",
+        "address": "Address",
+        "addressPlaceholder": "City, street, nearest landmark…",
+        "moreDetails": "More details (optional)",
+        "whatsapp": "WhatsApp number",
+        "whatsappHint": "Leave empty if it's the same as the phone number.",
+        "location": "Map location (optional)",
+        "locationHint": "Paste the coordinates from WhatsApp into the latitude box and both fields fill in.",
+        "latitude": "Latitude",
+        "longitude": "Longitude",
+        "note": "Note (optional)",
+        "notePlaceholder": "Anything else about this order…"
+      }
     }
   },
   "errors": {
@@ -135,6 +167,9 @@
     "orderDiscountInvalid": "That discount value isn't valid.",
     "orderInsufficientStock": "There isn't enough stock for that quantity.",
     "orderProductUnavailable": "One of the products is no longer available to sell.",
-    "orderVariantRequired": "Choose which option you're selling first."
+    "orderVariantRequired": "Choose which option you're selling first.",
+    "validationInvalidPhone": "Enter a valid phone number.",
+    "orderCustomerRequired": "Enter the customer's name and phone number.",
+    "orderLocationInvalid": "That location isn't valid. Enter both latitude and longitude."
   }
 }

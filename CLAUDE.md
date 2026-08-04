@@ -36,8 +36,10 @@ Phase 1 is DONE and tested: products, variants, categories, inventory, users/rol
 images, audit log, plus the full admin UI.
 **Current work: Orders** (see "Phase 2: Orders" in `spec.md`) — order model, status flow, stock
 deduction, discounts, returns, then the POS screen, the admin orders page, and sales/profit.
-**Still deferred:** the customer storefront (Phase 3), real Customer accounts, the numbered-shawls
-WhatsApp export, and WhatsApp order-entry shortcuts.
+**Still deferred:** the customer storefront (Phase 3), real Customer accounts, and the
+numbered-shawls WhatsApp export. WhatsApp order entry is built (admin *and* POS): a cart can be
+filed as a WHATSAPP order with a customer snapshot, and the phone box suggests repeat customers
+from past orders — there is still no Customer table behind it.
 
 ## Hard rules — do not break these
 1. **SKU is frozen at creation.** Format `ORG-<productNumber>` (simple) or

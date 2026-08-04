@@ -1,8 +1,10 @@
 import { z } from "zod";
 import { decimalInput, paginationSchema } from "@/schemas/common";
 import { phoneSchema } from "@/schemas/phone";
+import { phoneDigits } from "@/lib/phone";
 import { ERROR_CODES } from "@/constants/errors";
 import {
+  CUSTOMER_SUGGESTION_MIN_DIGITS,
   DISCOUNT_TYPES,
   LATITUDE_MAX,
   LATITUDE_MIN,
@@ -173,6 +175,17 @@ export const collectOrdersSchema = z.object({
     .max(MAX_BULK_COLLECT_ORDERS, ERROR_CODES.VALIDATION_INVALID_NUMBER),
 });
 export type CollectOrdersInput = z.infer<typeof collectOrdersSchema>;
+
+// Looking a repeat customer up by the digits the cashier has typed so far.
+// Not a paginated list: it is an autocomplete, capped at
+// CUSTOMER_SUGGESTION_LIMIT entries server-side, and a cashier who needs to
+// page through matches is better off typing another digit.
+export const customerSuggestionsQuerySchema = z.object({
+  q: z
+    .string()
+    .refine((v) => phoneDigits(v).length >= CUSTOMER_SUGGESTION_MIN_DIGITS, ERROR_CODES.VALIDATION_INVALID_PHONE),
+});
+export type CustomerSuggestionsQuery = z.infer<typeof customerSuggestionsQuerySchema>;
 
 export const listOrdersQuerySchema = paginationSchema.extend({
   status: z.enum(ORDER_STATUSES).optional(),

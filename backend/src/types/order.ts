@@ -2,6 +2,7 @@ import type { Prisma } from "@prisma/client";
 import type {
   CollectResult,
   CollectionSummary,
+  CustomerSuggestion,
   DiscountType,
   Order,
   OrderChannel,
@@ -16,6 +17,7 @@ import type {
 export type {
   CollectResult,
   CollectionSummary,
+  CustomerSuggestion,
   DiscountType,
   Order,
   OrderChannel,

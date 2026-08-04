@@ -10,12 +10,25 @@ export const SEARCH_PAGE_SIZE = 12;
 // Below this, a query is almost always still being typed.
 export const SEARCH_MIN_QUERY_LENGTH = 1;
 
-// Sale channel + payment for everything the POS rings up: a counter sale,
-// paid in cash, completed the moment it is created (spec.md "Phase 2:
-// Orders"). Modeled as constants rather than inlined so adding e.g. a card
-// payment later is one edit here.
+// The two ways a cart can be sold. A counter sale is a STORE order: paid in
+// cash and completed the moment it is created, customer standing there. The
+// same cart can instead be filed as a WhatsApp order, which opens NEW, holds
+// no stock until someone starts preparing it, and is paid for by the
+// delivery company later (spec.md "Phase 2: Orders") — that is the order a
+// cashier would otherwise have to leave the POS to write down.
+//
+// WEBSITE isn't offered: those orders arrive from the storefront itself in
+// Phase 3, nobody types them in.
 export const POS_ORDER_CHANNEL = "STORE" as const;
+export const WHATSAPP_ORDER_CHANNEL = "WHATSAPP" as const;
 export const POS_PAYMENT_METHOD = "CASH" as const;
+
+// Phone autocomplete on the WhatsApp form. Slightly longer than the product
+// search debounce: a phone number is typed in one burst, and there is no
+// point querying every digit of it. The digit floor and the result cap are
+// the backend's (CUSTOMER_SUGGESTION_MIN_DIGITS / _LIMIT) — the same numbers
+// decide when to ask and what comes back.
+export const CUSTOMER_SUGGESTION_DEBOUNCE_MS = 350;
 
 // A cart line's quantity: at least one piece, and never more than the store
 // actually holds — the backend re-checks stock atomically at checkout

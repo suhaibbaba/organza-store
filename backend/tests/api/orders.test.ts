@@ -2,8 +2,15 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { apiRequest } from "@tests/support/client";
 import { getSession } from "@tests/support/auth";
 import { createSellableProduct, readStock } from "@tests/support/orders";
-import type { CollectResultDto, CollectionSummaryDto, OrderDto, OrderSummaryDto } from "@tests/types";
-import { ERROR_CODES } from "@/constants";
+import { randomPalestinePhone, samePhoneUnderOtherPrefix } from "@tests/support/phone";
+import type {
+  CollectResultDto,
+  CollectionSummaryDto,
+  CustomerSuggestionDto,
+  OrderDto,
+  OrderSummaryDto,
+} from "@tests/types";
+import { CUSTOMER_SUGGESTION_LIMIT, ERROR_CODES, PALESTINE_PHONE_PREFIXES } from "@/constants";
 
 // Orders (Phase 2). Every assertion here runs against the live API, so each
 // block creates its own product and cleans up the orders it opened — the
@@ -1201,6 +1208,114 @@ describe("Orders", () => {
       const res = await apiRequest("/api/orders/does-not-exist", { token: admin.token });
       expect(res.status).toBe(404);
       expect(res.error?.code).toBe(ERROR_CODES.ORDER_NOT_FOUND);
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // Customer suggestions — repeat customers, read back out of past orders
+  // (there is no Customer table: spec.md "Customer information")
+  // -------------------------------------------------------------------------
+  describe("customer suggestions", () => {
+    function suggestUrl(query: string): string {
+      return `/api/orders/customer-suggestions?q=${encodeURIComponent(query)}`;
+    }
+
+    it("offers the newest snapshot taken under a number, once", async () => {
+      const admin = await getSession("ADMIN");
+      const product = await sellableProduct(admin.token, { stock: 10 });
+      const phone = randomPalestinePhone();
+      const national = phone.slice(PALESTINE_PHONE_PREFIXES[0].length);
+
+      await createOrder(admin.token, {
+        channel: "WHATSAPP",
+        customerName: "ليلى القديمة",
+        customerPhone: phone,
+        customerAddress: "نابلس، شارع قديم",
+        items: [{ productId: product.id, quantity: 1 }],
+      });
+      // A second order under the same number: the address moved, and that is
+      // the one worth offering back.
+      await createOrder(admin.token, {
+        channel: "WHATSAPP",
+        customerName: "ليلى الجديدة",
+        customerPhone: phone,
+        customerAddress: "رام الله، شارع جديد",
+        customerLatitude: 31.9,
+        customerLongitude: 35.2,
+        items: [{ productId: product.id, quantity: 1 }],
+      });
+
+      const res = await apiRequest<CustomerSuggestionDto[]>(suggestUrl(national), { token: admin.token });
+
+      expect(res.status).toBe(200);
+      const matches = res.data!.filter((entry) => entry.phone === phone);
+      // Two orders, one customer.
+      expect(matches).toHaveLength(1);
+      expect(matches[0].name).toBe("ليلى الجديدة");
+      expect(matches[0].address).toBe("رام الله، شارع جديد");
+      expect(matches[0].latitude).toBe(31.9);
+      expect(res.data!.length).toBeLessThanOrEqual(CUSTOMER_SUGGESTION_LIMIT);
+    });
+
+    it("finds a customer saved under the other Palestine prefix", async () => {
+      const admin = await getSession("ADMIN");
+      const product = await sellableProduct(admin.token, { stock: 5 });
+      const phone = samePhoneUnderOtherPrefix(randomPalestinePhone());
+      const national = phone.slice(PALESTINE_PHONE_PREFIXES[1].length);
+
+      await createOrder(admin.token, {
+        channel: "WHATSAPP",
+        customerName: "هدى",
+        customerPhone: phone,
+        items: [{ productId: product.id, quantity: 1 }],
+      });
+
+      // The cashier types the digits they were given; which prefix the number
+      // was filed under is not something they should have to guess
+      // (CLAUDE.md rule 18).
+      const res = await apiRequest<CustomerSuggestionDto[]>(suggestUrl(national), { token: admin.token });
+
+      expect(res.status).toBe(200);
+      // Returned exactly as stored — the prefix is never rewritten.
+      expect(res.data!.some((entry) => entry.phone === phone)).toBe(true);
+    });
+
+    it("matches a number typed with its trunk zero", async () => {
+      const admin = await getSession("ADMIN");
+      const product = await sellableProduct(admin.token, { stock: 5 });
+      const phone = randomPalestinePhone();
+      const national = phone.slice(PALESTINE_PHONE_PREFIXES[0].length);
+
+      await createOrder(admin.token, {
+        channel: "WHATSAPP",
+        customerName: "سميرة",
+        customerPhone: phone,
+        items: [{ productId: product.id, quantity: 1 }],
+      });
+
+      const res = await apiRequest<CustomerSuggestionDto[]>(suggestUrl(`0${national}`), { token: admin.token });
+
+      expect(res.status).toBe(200);
+      expect(res.data!.some((entry) => entry.phone === phone)).toBe(true);
+    });
+
+    it("refuses a query too short to identify anyone", async () => {
+      const admin = await getSession("ADMIN");
+      const res = await apiRequest(suggestUrl("59"), { token: admin.token });
+      expect(res.status).toBe(400);
+      expect(res.error?.code).toBe(ERROR_CODES.VALIDATION);
+    });
+
+    it("is open to an Employee, who is the one taking these orders", async () => {
+      const employee = await getSession("EMPLOYEE");
+      const res = await apiRequest<CustomerSuggestionDto[]>(suggestUrl("599123"), { token: employee.token });
+      expect(res.status).toBe(200);
+      expect(Array.isArray(res.data)).toBe(true);
+    });
+
+    it("requires a session", async () => {
+      const res = await apiRequest(suggestUrl("599123"));
+      expect(res.status).toBe(401);
     });
   });
 });

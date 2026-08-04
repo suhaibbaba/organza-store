@@ -11,3 +11,6 @@ export const SETTINGS_QUERY_KEY = ["settings"] as const;
 export const PRODUCT_SEARCH_QUERY_KEY = ["products", "search"] as const;
 export const PRODUCT_DETAIL_QUERY_KEY = ["products", "detail"] as const;
 export const PRODUCT_LOOKUP_QUERY_KEY = ["products", "lookup"] as const;
+// Repeat customers, matched on the phone digits typed so far (there is no
+// Customer entity — these come out of past orders' snapshots).
+export const CUSTOMER_SUGGESTION_QUERY_KEY = ["orders", "customerSuggestions"] as const;
