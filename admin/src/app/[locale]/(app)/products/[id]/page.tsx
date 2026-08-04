@@ -57,9 +57,11 @@ export default function ProductDetailPage() {
 function ProductDetail({ product, currency, locale }: { product: Product; currency: string; locale: string }) {
   const t = useTranslations("products.detail");
   const { user } = useSession();
-  // Every role can reach the edit screen — editing details is Admin/Manager
-  // only, but "edit images" (CLAUDE.md rule 5) is available to Employees
-  // too, and the edit screen itself decides what each role can touch.
+  // Every role can reach the edit screen. What each of them may change there
+  // differs (price, stock and visibility are gated separately — CLAUDE.md
+  // rule 5), and the edit screen itself decides that; this only picks the
+  // button's wording, since a role without product.edit lands on what is
+  // effectively the image manager.
   const canEditDetails = can(user, "product.edit");
   const name = localize(product.name, locale);
   const description = localize(product.description, locale);

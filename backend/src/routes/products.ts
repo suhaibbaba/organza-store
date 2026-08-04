@@ -28,6 +28,7 @@ import { generateUniqueBarcode } from "@/lib/barcode";
 import { buildSearchText, searchProductIds } from "@/lib/search";
 import { cartesianProduct, buildComboName, buildImagePointMap, resolveComboImagePoint } from "@/lib/variantCombo";
 import { serializeProduct, serializeProductSummary, serializeVariant } from "@/lib/pricing";
+import { moneyChanged } from "@/lib/money";
 import { buildNumberOptions, isNumberedProduct } from "@/lib/numberedProduct";
 import { writeAudit } from "@/lib/audit";
 import { AUDIT_ENTITY, DEFAULT_STOCK, ERROR_CODES, PRODUCT_LOOKUP_KIND } from "@/constants";
@@ -300,10 +301,10 @@ router.post(
     const cost = can(req.user!, "product.viewCost") ? body.cost : undefined;
 
     // Opt-in low-stock tracking is a stock-management decision, so it follows
-    // the same Admin/Manager gate as editing a product — dropped (left at the
-    // schema default of false) for an Employee who can add products but
-    // doesn't manage stock (CLAUDE.md rule 5).
-    const trackLowStock = can(req.user!, "product.edit") ? body.trackLowStock : undefined;
+    // the stock gate itself — dropped (left at the schema default of false)
+    // for an Employee who can add products but doesn't manage stock
+    // (CLAUDE.md rule 5).
+    const trackLowStock = can(req.user!, "inventory.adjust") ? body.trackLowStock : undefined;
 
     const slug = await generateUniqueSlug(body.name.ar, async (candidate) => {
       const existing = await prisma.product.findUnique({ where: { slug: candidate } });
@@ -382,7 +383,8 @@ router.post(
 );
 
 // ---------------------------------------------------------------------------
-// PATCH /api/products/:id — update (Admin/Manager only)
+// PATCH /api/products/:id — update the details (every role that can edit),
+// with the money/stock/visibility fields each behind their own gate
 // ---------------------------------------------------------------------------
 router.patch(
   "/:id",
@@ -396,6 +398,31 @@ router.patch(
     if (!existing) throw new AppError(404, ERROR_CODES.PRODUCT_NOT_FOUND);
 
     const body = req.body as UpdateProductInput;
+
+    // product.edit covers the details — name, description, category. What
+    // the piece sells for, how many there are and whether customers can see
+    // it each need their own permission, none of which an Employee holds
+    // (CLAUDE.md rule 5). Each is compared against what is stored, so a form
+    // that resends an unchanged value still saves; only a real change is
+    // refused, and it's refused loudly rather than dropped, because someone
+    // typing a new price deserves to be told it wasn't taken.
+    const canEditPrice = can(req.user!, "product.editPrice");
+    const canAdjustStock = can(req.user!, "inventory.adjust");
+    const canHide = can(req.user!, "product.hide");
+
+    const priceChanged =
+      moneyChanged(body.basePrice, existing.basePrice) ||
+      moneyChanged(body.compareAtPrice, existing.compareAtPrice);
+    if (!canEditPrice && priceChanged) throw new AppError(403, ERROR_CODES.FORBIDDEN);
+
+    // Stock is ignored outright on a variant-bearing product (each variant
+    // carries its own), so it's only a change worth refusing on a simple one.
+    const stockChanged =
+      existing.variants.length === 0 && body.stock !== undefined && body.stock !== existing.stock;
+    if (!canAdjustStock && stockChanged) throw new AppError(403, ERROR_CODES.FORBIDDEN);
+
+    const visibilityChanged = body.isActive !== undefined && body.isActive !== existing.isActive;
+    if (!canHide && visibilityChanged) throw new AppError(403, ERROR_CODES.FORBIDDEN);
 
     if (body.categoryId) {
       const category = await prisma.category.findUnique({ where: { id: body.categoryId } });
@@ -441,13 +468,19 @@ router.patch(
         slug,
         searchText,
         categoryId: body.categoryId,
-        basePrice: body.basePrice,
-        compareAtPrice: body.compareAtPrice === undefined ? undefined : body.compareAtPrice,
-        cost: body.cost === undefined ? undefined : body.cost,
-        isActive: body.isActive,
-        trackLowStock: body.trackLowStock,
+        // Everything gated above is written only by a caller who holds the
+        // permission for it. The checks already rejected an actual change,
+        // so this just keeps a resent-but-unchanged value from being written
+        // back by someone who may not set it — `cost` in particular, which
+        // an Employee never even receives (CLAUDE.md rule 19) and would
+        // otherwise blank out by echoing the form's empty field.
+        basePrice: canEditPrice ? body.basePrice : undefined,
+        compareAtPrice: canEditPrice && body.compareAtPrice !== undefined ? body.compareAtPrice : undefined,
+        cost: can(req.user!, "product.viewCost") && body.cost !== undefined ? body.cost : undefined,
+        isActive: canHide ? body.isActive : undefined,
+        trackLowStock: canAdjustStock ? body.trackLowStock : undefined,
         sku: body.sku,
-        stock: existing.variants.length ? undefined : body.stock,
+        stock: existing.variants.length || !canAdjustStock ? undefined : body.stock,
       },
       include: productInclude,
     });
@@ -495,7 +528,7 @@ router.delete(
 
 // ---------------------------------------------------------------------------
 // POST /api/products/:id/variants/generate — additive cartesian generation
-// (Admin/Manager only; existing combinations are left untouched)
+// (anyone who may edit the product; existing combinations are left untouched)
 // ---------------------------------------------------------------------------
 router.post(
   "/:id/variants/generate",
@@ -570,8 +603,8 @@ router.post(
 );
 
 // ---------------------------------------------------------------------------
-// PATCH /api/products/:id/variants/:variantId — edit one variant
-// (Admin/Manager only)
+// PATCH /api/products/:id/variants/:variantId — edit one variant (same
+// per-field gates as the product update above)
 // ---------------------------------------------------------------------------
 router.patch(
   "/:id/variants/:variantId",
@@ -592,6 +625,23 @@ router.patch(
 
     const body = req.body as UpdateVariantInput;
 
+    // Same split as the product above, on the variant's own fields: a
+    // priceOverride IS what this combination sells for, so it belongs to
+    // product.editPrice, not to product.edit.
+    const canEditPrice = can(req.user!, "product.editPrice");
+    const canAdjustStock = can(req.user!, "inventory.adjust");
+    const canHide = can(req.user!, "product.hide");
+
+    if (!canEditPrice && moneyChanged(body.priceOverride, variant.priceOverride)) {
+      throw new AppError(403, ERROR_CODES.FORBIDDEN);
+    }
+    if (!canAdjustStock && body.stock !== undefined && body.stock !== variant.stock) {
+      throw new AppError(403, ERROR_CODES.FORBIDDEN);
+    }
+    if (!canHide && body.isActive !== undefined && body.isActive !== variant.isActive) {
+      throw new AppError(403, ERROR_CODES.FORBIDDEN);
+    }
+
     if (body.sku && body.sku !== variant.sku) {
       const dupe = await prisma.variant.findUnique({ where: { sku: body.sku } });
       if (dupe) throw new AppError(409, ERROR_CODES.SKU_DUPLICATE);
@@ -602,10 +652,10 @@ router.patch(
       data: {
         name: body.name,
         sku: body.sku,
-        priceOverride: body.priceOverride === undefined ? undefined : body.priceOverride,
-        cost: body.cost === undefined ? undefined : body.cost,
-        stock: body.stock,
-        isActive: body.isActive,
+        priceOverride: canEditPrice && body.priceOverride !== undefined ? body.priceOverride : undefined,
+        cost: can(req.user!, "product.viewCost") && body.cost !== undefined ? body.cost : undefined,
+        stock: canAdjustStock ? body.stock : undefined,
+        isActive: canHide ? body.isActive : undefined,
         imageX: body.imageX === undefined ? undefined : body.imageX,
         imageY: body.imageY === undefined ? undefined : body.imageY,
       },
