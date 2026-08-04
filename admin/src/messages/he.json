@@ -19,6 +19,7 @@
     "products": "מוצרים",
     "inventory": "מלאי",
     "categories": "קטגוריות",
+    "reports": "דוחות",
     "users": "משתמשים",
     "settings": "הגדרות",
     "more": "עוד"
@@ -58,9 +59,20 @@
         "basisPrice": "לפי מחיר מכירה"
       }
     },
-    "salesPlaceholder": {
-      "title": "מכירות ורווחים",
-      "description": "המידע הזה יהיה זמין לאחר הפעלת מערכת ההזמנות."
+    "sales": {
+      "title": "מכירות ורווח",
+      "viewReports": "דוחות",
+      "error": "לא ניתן לטעון את המכירות.",
+      "periods": {
+        "today": "היום",
+        "week": "השבוע",
+        "month": "החודש"
+      },
+      "revenue": "מכירות",
+      "orders": "הזמנות",
+      "averageOrder": "הזמנה ממוצעת",
+      "profit": "רווח",
+      "margin": "שיעור רווח {value, number, percent}"
     }
   },
   "orders": {
@@ -292,6 +304,59 @@
         "openOrder": "פתיחת ההזמנה",
         "newOrder": "הזמנה חדשה"
       }
+    }
+  },
+  "reports": {
+    "title": "דוחות",
+    "subtitle": "מכירות ורווח לתקופה שתבחר.",
+    "updating": "מתעדכן…",
+    "range": {
+      "today": "היום",
+      "last7Days": "7 הימים האחרונים",
+      "last30Days": "30 הימים האחרונים",
+      "thisMonth": "החודש",
+      "custom": "תקופה אחרת",
+      "from": "מתאריך",
+      "to": "עד תאריך"
+    },
+    "totals": {
+      "revenue": "מכירות",
+      "revenueHint": "{orders} הזמנות, {items} פריטים",
+      "profit": "רווח",
+      "cost": "עלות",
+      "margin": "שיעור רווח {value, number, percent}",
+      "averageOrder": "הזמנה ממוצעת",
+      "discounts": "הנחות",
+      "missingCost": "ל-{count} פריטים שנמכרו אין מחיר עלות, ולכן הרווח המוצג גבוה מהאמיתי."
+    },
+    "trend": {
+      "title": "מכירות לאורך התקופה",
+      "revenue": "מכירות",
+      "profit": "רווח"
+    },
+    "channels": {
+      "title": "לפי ערוץ מכירה",
+      "orders": "{count} הזמנות",
+      "empty": "אין מכירות בתקופה זו."
+    },
+    "topSellers": {
+      "title": "הנמכרים ביותר",
+      "byRevenue": "לפי מכירות",
+      "byQuantity": "לפי כמות",
+      "quantity": "כמות: {count}",
+      "profit": "רווח: {amount}",
+      "empty": "אין מכירות בתקופה זו."
+    },
+    "returns": {
+      "title": "החזרות",
+      "amount": "שווי ההחזרות",
+      "items": "פריטים שהוחזרו",
+      "orders": "מתוך {count} הזמנות",
+      "empty": "אין החזרות בתקופה זו."
+    },
+    "empty": {
+      "title": "אין מכירות בתקופה זו",
+      "description": "נסה תקופה אחרת, או רשום הזמנה ראשונה."
     }
   },
   "products": {
@@ -696,6 +761,8 @@
     "orderNotReturnable": "לא ניתן להחזיר הזמנה זו.",
     "orderReturnQuantityExceeded": "הכמות גדולה מהכמות שנמכרה.",
     "orderProductUnavailable": "מוצר זה אינו זמין יותר למכירה.",
-    "orderVariantRequired": "יש לבחור איזו וריאציה של המוצר."
+    "orderVariantRequired": "יש לבחור איזו וריאציה של המוצר.",
+    "reportRangeInvalid": "התקופה אינה תקינה. בדוק את תאריכי ההתחלה והסיום.",
+    "reportRangeTooLong": "התקופה ארוכה מדי. בחר שנה לכל היותר."
   }
 }

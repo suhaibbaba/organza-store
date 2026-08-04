@@ -4,5 +4,6 @@ export * from "./common";
 export * from "./image";
 export * from "./inventory";
 export * from "./order";
+export * from "./report";
 export * from "./user";
 export * from "./variant";

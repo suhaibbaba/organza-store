@@ -3,7 +3,7 @@ import { Shirt, AlertTriangle, FolderTree, Wallet } from "lucide-react";
 import type { DashboardSummary as DashboardSummaryData } from "@shared/types/dashboard";
 import { formatMoney } from "@/lib/format";
 import { StatCard } from "@/components/dashboard/stat-card";
-import { SalesPlaceholderCard } from "@/components/dashboard/sales-placeholder-card";
+import { SalesSummaryCard } from "@/components/dashboard/sales-summary-card";
 
 interface DashboardSummaryProps {
   summary: DashboardSummaryData;
@@ -51,7 +51,7 @@ export function DashboardSummary({ summary, currency }: DashboardSummaryProps) {
         />
       </div>
 
-      <SalesPlaceholderCard />
+      <SalesSummaryCard />
     </div>
   );
 }

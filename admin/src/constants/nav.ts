@@ -1,4 +1,4 @@
-import { LayoutDashboard, Shirt, Boxes, FolderTree, ReceiptText, Users, Settings } from "lucide-react";
+import { LayoutDashboard, Shirt, Boxes, FolderTree, ReceiptText, ChartColumn, Users, Settings } from "lucide-react";
 import type { NavItem } from "@/types/nav";
 
 // CLAUDE.md rule 5 / task spec: Users + Settings are Admin-only in the nav;
@@ -9,6 +9,10 @@ export const NAV_ITEMS: readonly NavItem[] = [
   { key: "products", href: "/products", icon: Shirt, action: "product.view" },
   { key: "inventory", href: "/inventory", icon: Boxes, action: "inventory.view" },
   { key: "categories", href: "/categories", icon: FolderTree, action: "category.view" },
+  // Sales & profit. Gated with order.view, the same permission the orders
+  // list uses — cost and profit inside the page are gated separately, on the
+  // backend, by product.viewCost (CLAUDE.md rule 19).
+  { key: "reports", href: "/reports", icon: ChartColumn, action: "order.view" },
   { key: "users", href: "/users", icon: Users, action: "user.manage" },
   { key: "settings", href: "/settings", icon: Settings, action: "settings.manage" },
 ] as const;

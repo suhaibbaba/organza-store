@@ -65,6 +65,9 @@ export const ERROR_MESSAGE_KEYS: Record<string, string> = {
   [ERROR_CODES.ORDER_PRODUCT_UNAVAILABLE]: "errors.orderProductUnavailable",
   [ERROR_CODES.ORDER_VARIANT_REQUIRED]: "errors.orderVariantRequired",
 
+  [ERROR_CODES.REPORT_RANGE_INVALID]: "errors.reportRangeInvalid",
+  [ERROR_CODES.REPORT_RANGE_TOO_LONG]: "errors.reportRangeTooLong",
+
   [ERROR_CODES.SETTING_DEFAULT_LANGUAGE_NOT_SUPPORTED]: "errors.settingDefaultLanguageNotSupported",
 
   [ERROR_CODES.USER_NOT_FOUND]: "errors.userNotFound",

@@ -64,6 +64,20 @@ envelope, and throws a typed `ApiError` carrying the backend's error code on fai
 with `@tanstack/react-query` for loading/success/error state and `useTranslateError()` to turn
 an error code into display text.
 
+## Charts (Reports)
+
+The Reports screen and the dashboard's Sales & profit block draw with `recharts`. Series
+colours live in `globals.css` as `--chart-1..3` (light and dark steps, validated together for
+colour-blind separation and for contrast against the card surface) and are read through
+`CHART_COLORS` / `CHANNEL_COLORS` in `src/constants/reports.ts`. The order is fixed and
+meaning-bearing — slot 1 is always revenue, slot 2 always profit — so a colour never changes
+what it stands for between screens, and identity is always carried by a label or legend as
+well as by colour. Charts mirror in RTL (`reversed` axes) and every figure that matters is
+also written out in text, so nothing depends on reading a bar against an axis on a phone.
+
+Cost and profit are not hidden client-side: the API omits them entirely for roles without
+`product.viewCost`, and the components render whatever arrived.
+
 ## Project layout
 
 ```
