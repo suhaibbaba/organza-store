@@ -31,3 +31,22 @@ export const requiredDecimalField = z
 export const optionalDecimalField = z
   .string()
   .refine((v) => v.trim() === "" || isNonNegativeDecimalString(v), { message: ERROR_CODES.VALIDATION_INVALID_NUMBER });
+
+// Fields that measure something real and therefore have a ceiling (label
+// geometry in millimetres, how many labels fit across a sheet). The bounds
+// mirror the shared schema the backend validates with, so the user gets a
+// plain message on the spot instead of a rejected save.
+function isWithin(min: number, max: number) {
+  return (value: string) => {
+    const parsed = Number(value.trim());
+    return Number.isFinite(parsed) && parsed >= min && parsed <= max;
+  };
+}
+
+export function boundedIntegerField(min: number, max: number) {
+  return requiredIntegerField.refine(isWithin(min, max), { message: ERROR_CODES.VALIDATION_OUT_OF_RANGE });
+}
+
+export function boundedDecimalField(min: number, max: number) {
+  return requiredDecimalField.refine(isWithin(min, max), { message: ERROR_CODES.VALIDATION_OUT_OF_RANGE });
+}

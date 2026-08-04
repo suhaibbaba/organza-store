@@ -158,6 +158,7 @@
     "accountInactive": "החשבון אינו פעיל.",
     "validationRequired": "שדה חובה.",
     "validationInvalidNumber": "הזן מספר תקין.",
+    "validationOutOfRange": "המספר מחוץ לטווח המותר.",
     "validationInvalidEmail": "הזן כתובת דוא\"ל תקינה.",
     "validationPasswordTooShort": "הסיסמה חייבת להכיל לפחות {min} תווים.",
     "productNotFound": "אין מוצר עם ברקוד או קוד כזה.",

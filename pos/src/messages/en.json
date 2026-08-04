@@ -158,6 +158,7 @@
     "accountInactive": "This account is not active.",
     "validationRequired": "This field is required.",
     "validationInvalidNumber": "Enter a valid number.",
+    "validationOutOfRange": "That number is outside the allowed range.",
     "validationInvalidEmail": "Enter a valid email address.",
     "validationPasswordTooShort": "The password must be at least {min} characters.",
     "productNotFound": "No product has that barcode or code.",

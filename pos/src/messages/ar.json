@@ -158,6 +158,7 @@
     "accountInactive": "هذا الحساب غير مفعّل.",
     "validationRequired": "هذا الحقل مطلوب.",
     "validationInvalidNumber": "أدخل رقمًا صحيحًا.",
+    "validationOutOfRange": "هذا الرقم خارج النطاق المسموح به.",
     "validationInvalidEmail": "أدخل بريدًا إلكترونيًا صحيحًا.",
     "validationPasswordTooShort": "كلمة المرور يجب ألا تقل عن {min} أحرف.",
     "productNotFound": "لا يوجد منتج بهذا الباركود أو الرمز.",
