@@ -50,6 +50,7 @@ export const ERROR_CODES = {
   ORDER_ITEM_NOT_FOUND: "error.order.item_not_found",
   ORDER_ITEMS_REQUIRED: "error.order.items_required",
   ORDER_CUSTOMER_REQUIRED: "error.order.customer_required",
+  ORDER_LOCATION_INVALID: "error.order.location_invalid",
   ORDER_DISCOUNT_INVALID: "error.order.discount_invalid",
   ORDER_INVALID_STATUS_TRANSITION: "error.order.invalid_status_transition",
   ORDER_INSUFFICIENT_STOCK: "error.order.insufficient_stock",

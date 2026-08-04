@@ -140,6 +140,11 @@ Two shapes of sale share one model, distinguished by `channel`:
   `NEW → PREPARING → DELIVERING → RECEIVED → COMPLETED`, committing stock on the move to
   `PREPARING`. `customerName` + `customerPhone` are required.
 
+Customers are still deferred as an entity (spec.md) — there is no `Customer` table. Contact
+details are snapshotted onto the order: name, phone, optional WhatsApp number, address, and an
+optional map pin (`customerLatitude` / `customerLongitude`, WGS84 degrees, both or neither) for
+places with no street address.
+
 Any non-terminal status may go to `CANCELLED` (which puts committed stock back).
 `RETURNED` is reachable only through the returns endpoint, so stock and `returnedQuantity`
 always move together. The legal-move table lives in `@shared/constants/order`

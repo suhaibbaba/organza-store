@@ -4,6 +4,10 @@ import { phoneSchema } from "@/schemas/phone";
 import { ERROR_CODES } from "@/constants/errors";
 import {
   DISCOUNT_TYPES,
+  LATITUDE_MAX,
+  LATITUDE_MIN,
+  LONGITUDE_MAX,
+  LONGITUDE_MIN,
   ONLINE_ORDER_CHANNELS,
   ORDER_CHANNELS,
   ORDER_SORT_FIELDS,
@@ -39,6 +43,35 @@ const discountShape = {
 
 const DISCOUNT_REFINEMENT = { message: ERROR_CODES.ORDER_DISCOUNT_INVALID } as const;
 
+// Optional map pin for a delivery (spec.md "Customer information"). Half a
+// coordinate points nowhere, so latitude and longitude arrive together or
+// not at all.
+const locationShape = {
+  customerLatitude: z.coerce
+    .number()
+    .min(LATITUDE_MIN, ERROR_CODES.ORDER_LOCATION_INVALID)
+    .max(LATITUDE_MAX, ERROR_CODES.ORDER_LOCATION_INVALID)
+    .nullish(),
+  customerLongitude: z.coerce
+    .number()
+    .min(LONGITUDE_MIN, ERROR_CODES.ORDER_LOCATION_INVALID)
+    .max(LONGITUDE_MAX, ERROR_CODES.ORDER_LOCATION_INVALID)
+    .nullish(),
+};
+
+interface LocationFields {
+  customerLatitude?: number | null;
+  customerLongitude?: number | null;
+}
+
+export function isLocationConsistent(value: LocationFields): boolean {
+  const hasLat = value.customerLatitude !== undefined && value.customerLatitude !== null;
+  const hasLng = value.customerLongitude !== undefined && value.customerLongitude !== null;
+  return hasLat === hasLng;
+}
+
+const LOCATION_REFINEMENT = { message: ERROR_CODES.ORDER_LOCATION_INVALID } as const;
+
 // Note what is deliberately absent from every input schema below: unitPrice,
 // lineTotal, subtotal and total. Money is derived server-side from the
 // catalogue and these discounts, never accepted from the caller.
@@ -64,9 +97,11 @@ export const createOrderSchema = z
     customerWhatsapp: phoneSchema.optional(),
     customerAddress: z.string().min(1).optional(),
     note: z.string().min(1).optional(),
+    ...locationShape,
     ...discountShape,
   })
   .refine(isDiscountConsistent, DISCOUNT_REFINEMENT)
+  .refine(isLocationConsistent, LOCATION_REFINEMENT)
   // An order taken over WhatsApp or the website has to be deliverable back to
   // someone; a STORE sale is handed over at the counter and needs nobody.
   .refine(
@@ -101,9 +136,11 @@ export const updateOrderSchema = z
     customerAddress: z.string().min(1).nullish(),
     note: z.string().min(1).nullish(),
     items: z.array(updateOrderItemSchema).min(1).optional(),
+    ...locationShape,
     ...discountShape,
   })
-  .refine(isDiscountConsistent, DISCOUNT_REFINEMENT);
+  .refine(isDiscountConsistent, DISCOUNT_REFINEMENT)
+  .refine(isLocationConsistent, LOCATION_REFINEMENT);
 export type UpdateOrderInput = z.infer<typeof updateOrderSchema>;
 
 export const updateOrderStatusSchema = z.object({

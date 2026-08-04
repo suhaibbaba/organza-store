@@ -413,11 +413,17 @@ model Order {
   // Copied onto the order rather than referenced: a delivery address or a
   // phone number that changes later must not rewrite a past sale. Phone
   // numbers are stored exactly as entered in E.164 (CLAUDE.md rule 18).
-  customerName     String?
-  customerPhone    String?
-  customerWhatsapp String?
-  customerAddress  String?
-  note             String?
+  customerName      String?
+  customerPhone     String?
+  customerWhatsapp  String?
+  customerAddress   String?
+  // Optional map pin dropped alongside the written address (WGS84 degrees),
+  // so a driver can navigate to a place that has no street address. Float
+  // rather than Decimal — these aren't money; same convention as
+  // Variant.imageX/imageY.
+  customerLatitude  Float?
+  customerLongitude Float?
+  note              String?
 
   // --- money (all server-computed) ---
   // subtotal       = sum of the item lineTotals (item discounts already applied)

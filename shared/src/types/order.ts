@@ -49,6 +49,9 @@ export interface Order {
   customerPhone: string | null;
   customerWhatsapp: string | null;
   customerAddress: string | null;
+  // Optional map pin alongside the written address (WGS84 degrees).
+  customerLatitude: number | null;
+  customerLongitude: number | null;
   note: string | null;
   // All money is computed on the server from the item snapshots; the client
   // never supplies a total.

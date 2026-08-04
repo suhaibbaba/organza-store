@@ -26,6 +26,9 @@ export interface OrderDto {
   paymentMethod: "CASH";
   customerName: string | null;
   customerPhone: string | null;
+  customerAddress: string | null;
+  customerLatitude: number | null;
+  customerLongitude: number | null;
   note: string | null;
   subtotal: string;
   discountType: "PERCENT" | "AMOUNT" | null;

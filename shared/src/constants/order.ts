@@ -68,3 +68,10 @@ export const PERCENT_MAX = 100;
 // Order.orderNumber is a 32-bit column — the ceiling for treating a run of
 // digits in a search box as an order number rather than as text.
 export const MAX_INT32 = 2_147_483_647;
+
+// Optional map pin dropped alongside a delivery address (spec.md "Customer
+// information"). WGS84 degrees.
+export const LATITUDE_MIN = -90;
+export const LATITUDE_MAX = 90;
+export const LONGITUDE_MIN = -180;
+export const LONGITUDE_MAX = 180;

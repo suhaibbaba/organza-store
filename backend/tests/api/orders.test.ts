@@ -91,6 +91,59 @@ describe("Orders", () => {
       expect(store.data!.customerName).toBeNull();
     });
 
+    // spec.md "Customer information": customers are still deferred as an
+    // entity, so the address — and an optional map pin for places with no
+    // street address — are snapshotted onto the order itself.
+    it("stores the delivery address and an optional map pin on an online order", async () => {
+      const admin = await getSession("ADMIN");
+      const product = await sellableProduct(admin.token, { stock: 5 });
+
+      const withPin = await createOrder(admin.token, {
+        channel: "WHATSAPP",
+        customerName: "ميساء",
+        customerPhone: "+970598400400",
+        customerAddress: "طولكرم — شارع نابلس",
+        customerLatitude: 32.3104,
+        customerLongitude: 35.0286,
+        items: [{ productId: product.id, quantity: 1 }],
+      });
+      expect(withPin.status).toBe(201);
+      expect(withPin.data!.customerAddress).toBe("طولكرم — شارع نابلس");
+      expect(withPin.data!.customerLatitude).toBeCloseTo(32.3104);
+      expect(withPin.data!.customerLongitude).toBeCloseTo(35.0286);
+
+      // The pin is optional — an address alone is fine.
+      const withoutPin = await createOrder(admin.token, {
+        channel: "WHATSAPP",
+        customerName: "ميساء",
+        customerPhone: "+970598400400",
+        customerAddress: "طولكرم",
+        items: [{ productId: product.id, quantity: 1 }],
+      });
+      expect(withoutPin.status).toBe(201);
+      expect(withoutPin.data!.customerLatitude).toBeNull();
+
+      // Half a coordinate points nowhere, and neither does an off-globe one.
+      const halfPin = await createOrder(admin.token, {
+        channel: "WHATSAPP",
+        customerName: "ميساء",
+        customerPhone: "+970598400400",
+        customerLatitude: 32.3104,
+        items: [{ productId: product.id, quantity: 1 }],
+      });
+      expect(halfPin.status).toBe(400);
+
+      const offGlobe = await createOrder(admin.token, {
+        channel: "WHATSAPP",
+        customerName: "ميساء",
+        customerPhone: "+970598400400",
+        customerLatitude: 991,
+        customerLongitude: 35.0286,
+        items: [{ productId: product.id, quantity: 1 }],
+      });
+      expect(offGlobe.status).toBe(400);
+    });
+
     it("snapshots name, sku, price and cost onto every line", async () => {
       const admin = await getSession("ADMIN");
       const product = await sellableProduct(admin.token, { basePrice: "75", cost: "30", stock: 4 });

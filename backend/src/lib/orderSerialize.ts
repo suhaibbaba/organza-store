@@ -45,6 +45,8 @@ export function serializeOrder(order: AnyRecord, role: Role) {
     customerPhone: order.customerPhone,
     customerWhatsapp: order.customerWhatsapp,
     customerAddress: order.customerAddress,
+    customerLatitude: order.customerLatitude,
+    customerLongitude: order.customerLongitude,
     note: order.note,
     subtotal: formatMoney(order.subtotal?.toString()),
     discountType: order.discountType,
