@@ -34,6 +34,15 @@ export const PERMISSION_ACTIONS = [
   "inventory.view",
   "inventory.adjust",
 
+  // Adding to the global option lists — a new type (Material), or a new
+  // value under an existing one (Emerald). Additive only, which is what
+  // makes it safe for an Employee to hold: it is part of adding a product
+  // (spec.md "Inline add"), and nothing already on the shelf changes just
+  // because a new colour exists.
+  "variantType.create",
+  // Changing or removing what is already there. A rename reaches every
+  // product using that value (CLAUDE.md rule 2) and a deletion would pull it
+  // out from under them, so this one stays with Admin/Manager.
   "variantType.manage",
 
   "images.edit",
@@ -77,7 +86,9 @@ type Action = (typeof PERMISSION_ACTIONS)[number];
 // belong to whoever manages stock, which an Employee does not.
 // Editing a product is the details only — its price is product.editPrice,
 // its stock inventory.adjust, its visibility product.hide, none of which an
-// Employee holds.
+// Employee holds. On the global option lists they may add (variantType.create,
+// so the inline add on the product form keeps working) but not rename or
+// remove (variantType.manage), which would reach every product at once.
 export const ROLE_PERMISSIONS: Record<Role, readonly Action[]> = {
   ADMIN: [...PERMISSION_ACTIONS],
   MANAGER: [
@@ -94,6 +105,7 @@ export const ROLE_PERMISSIONS: Record<Role, readonly Action[]> = {
     "category.manage",
     "inventory.view",
     "inventory.adjust",
+    "variantType.create",
     "variantType.manage",
     "images.edit",
     "images.delete",
@@ -112,7 +124,7 @@ export const ROLE_PERMISSIONS: Record<Role, readonly Action[]> = {
     "product.edit",
     "product.printLabels",
     "category.view",
-    "variantType.manage",
+    "variantType.create",
     "images.edit",
     "order.view",
     "order.create",
