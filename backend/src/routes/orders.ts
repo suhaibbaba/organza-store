@@ -10,12 +10,14 @@ import { AppError, sendOk } from "@/lib/response";
 import {
   collectOrdersSchema,
   createOrderSchema,
+  customerSuggestionsQuerySchema,
   listOrdersQuerySchema,
   returnOrderSchema,
   updateOrderSchema,
   updateOrderStatusSchema,
   type CollectOrdersInput,
   type CreateOrderInput,
+  type CustomerSuggestionsQuery,
   type ListOrdersQuery,
   type ReturnOrderInput,
   type UpdateOrderInput,
@@ -25,6 +27,7 @@ import { computeOrderTotals, priceLine, priceRequestedItems, toStockMovements } 
 import { deductStock, restoreStock } from "@/lib/orderStock";
 import { serializeOrder, serializeOrderSummary } from "@/lib/orderSerialize";
 import { queryCollectionSummary, toCollectionSummary } from "@/lib/orderCollection";
+import { findCustomerSuggestions } from "@/lib/orderCustomers";
 import { writeAudit } from "@/lib/audit";
 import {
   AUDIT_ENTITY,
@@ -173,6 +176,26 @@ router.get(
   requirePermission("order.view"),
   asyncHandler(async (_req, res) => {
     sendOk(res, toCollectionSummary(await queryCollectionSummary()));
+  })
+);
+
+// ---------------------------------------------------------------------------
+// GET /api/orders/customer-suggestions — repeat customers matching the phone
+// digits typed so far, for the POS's WhatsApp order form. Declared before
+// /:id so the literal path isn't swallowed as an order id.
+//
+// Gated on order.view like every other read of order data, which is exactly
+// the right level: an Employee takes these orders at the counter, and this
+// returns nothing they wouldn't see on the order list anyway (no cost, no
+// staff details — CLAUDE.md rule 19).
+// ---------------------------------------------------------------------------
+router.get(
+  "/customer-suggestions",
+  requirePermission("order.view"),
+  validateQuery(customerSuggestionsQuerySchema),
+  asyncHandler(async (req, res) => {
+    const { q } = req.validatedQuery as CustomerSuggestionsQuery;
+    sendOk(res, await findCustomerSuggestions(q));
   })
 );
 

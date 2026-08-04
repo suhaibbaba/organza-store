@@ -21,6 +21,7 @@ export const ERROR_MESSAGE_KEYS: Record<string, string> = {
 
   [ERROR_CODES.VALIDATION_REQUIRED]: "errors.validationRequired",
   [ERROR_CODES.VALIDATION_INVALID_NUMBER]: "errors.validationInvalidNumber",
+  [ERROR_CODES.VALIDATION_INVALID_PHONE]: "errors.validationInvalidPhone",
   [ERROR_CODES.VALIDATION_INVALID_EMAIL]: "errors.validationInvalidEmail",
   [ERROR_CODES.VALIDATION_PASSWORD_TOO_SHORT]: "errors.validationPasswordTooShort",
 
@@ -29,6 +30,8 @@ export const ERROR_MESSAGE_KEYS: Record<string, string> = {
 
   [ERROR_CODES.ORDER_NOT_FOUND]: "errors.orderNotFound",
   [ERROR_CODES.ORDER_ITEMS_REQUIRED]: "errors.orderItemsRequired",
+  [ERROR_CODES.ORDER_CUSTOMER_REQUIRED]: "errors.orderCustomerRequired",
+  [ERROR_CODES.ORDER_LOCATION_INVALID]: "errors.orderLocationInvalid",
   [ERROR_CODES.ORDER_DISCOUNT_INVALID]: "errors.orderDiscountInvalid",
   [ERROR_CODES.ORDER_INSUFFICIENT_STOCK]: "errors.orderInsufficientStock",
   [ERROR_CODES.ORDER_PRODUCT_UNAVAILABLE]: "errors.orderProductUnavailable",

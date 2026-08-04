@@ -111,6 +111,23 @@ export interface OrderSummary {
   updatedAt: string;
 }
 
+// GET /api/orders/customer-suggestions — one entry per repeat customer, for
+// the phone autocomplete on the POS's WhatsApp order form. Customers are
+// still deferred as an entity (spec.md "Customer information"), so this is
+// the newest snapshot written under that number rather than a stored record:
+// if the address changed on the last order, that is the one offered back.
+export interface CustomerSuggestion {
+  // Exactly as it was stored, on its own prefix (CLAUDE.md rule 18).
+  phone: string;
+  name: string | null;
+  whatsapp: string | null;
+  address: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  // When that snapshot was taken — the newest order under this number.
+  lastOrderAt: string;
+}
+
 // GET /api/orders/collection-summary — what the delivery company still owes
 // the shop, across every order regardless of date. The amount is net of
 // returns and excludes cancelled sales, computed exactly like report revenue

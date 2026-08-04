@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { Percent } from "lucide-react";
+import { MessageCircle, Percent } from "lucide-react";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
@@ -14,11 +14,17 @@ interface CheckoutBarProps {
   isSubmitting: boolean;
   onOrderDiscountClick: () => void;
   onCheckout: () => void;
+  onWhatsappOrder: () => void;
 }
 
-// Pinned to the bottom of the screen: the total and the one button that
-// finishes the sale are always under the cashier's thumb, whatever the cart
-// is scrolled to.
+// Pinned to the bottom of the screen: the total and the buttons that finish
+// the sale are always under the cashier's thumb, whatever the cart is
+// scrolled to.
+//
+// The same cart ends one of two ways, and the choice is made here rather than
+// up front: the counter sale is the primary button, and next to it is the
+// order that gets delivered instead of handed over. Nobody has to decide
+// which kind of sale this is before they start scanning.
 export function CheckoutBar({
   totals,
   orderDiscount,
@@ -26,6 +32,7 @@ export function CheckoutBar({
   isSubmitting,
   onOrderDiscountClick,
   onCheckout,
+  onWhatsappOrder,
 }: CheckoutBarProps) {
   const t = useTranslations("sell.checkout");
   const formatMoney = useMoneyFormatter();
@@ -90,6 +97,20 @@ export function CheckoutBar({
             )}
           </Button>
         </div>
+
+        {/* Full width and the same height as the sale button: an order taken
+            over WhatsApp is an everyday job here, not a secondary one, and it
+            has to be reachable with the same thumb. */}
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onWhatsappOrder}
+          disabled={!canCheckout || isSubmitting}
+          className="w-full"
+        >
+          <MessageCircle aria-hidden="true" />
+          {t("whatsappOrder")}
+        </Button>
       </div>
     </div>
   );

@@ -109,12 +109,44 @@
       "addOrderDiscount": "הנחה על המכירה",
       "editOrderDiscount": "עריכת ההנחה על המכירה",
       "submit": "סיום המכירה",
-      "submitting": "שומר…"
+      "submitting": "שומר…",
+      "whatsappOrder": "הזמנת וואטסאפ"
     },
     "success": {
       "title": "המכירה הושלמה",
       "orderNumber": "מספר הזמנה {number}",
-      "newSale": "מכירה חדשה"
+      "newSale": "מכירה חדשה",
+      "whatsappTitle": "הזמנת הוואטסאפ נשמרה",
+      "customer": "לקוח: {name}",
+      "whatsappNextStep": "ההזמנה בסטטוס חדשה. המלאי מנוכה כשמתחילים בהכנה.",
+      "whatsappOrderNumber": "הזמנה {number}"
+    },
+    "whatsapp": {
+      "title": "הזמנת וואטסאפ",
+      "subtitle": "שמירת העגלה כהזמנה שתישלח ללקוח עם חברת המשלוחים.",
+      "total": "סה\"כ",
+      "save": "שמירת ההזמנה",
+      "saving": "שומר…",
+      "customer": {
+        "name": "שם הלקוח",
+        "namePlaceholder": "לדוגמה: סועאד אחמד",
+        "phone": "מספר טלפון",
+        "phonePrefixLabel": "קידומת מדינה",
+        "searching": "מחפש הזמנות קודמות…",
+        "suggestionsHint": "לקוחות שהזמינו כבר מהמספר הזה — יש להקיש כדי למלא את הפרטים.",
+        "unnamedCustomer": "ללא שם",
+        "address": "כתובת",
+        "addressPlaceholder": "עיר, רחוב, ציון דרך…",
+        "moreDetails": "פרטים נוספים (רשות)",
+        "whatsapp": "מספר וואטסאפ",
+        "whatsappHint": "אפשר להשאיר ריק אם זהה לטלפון.",
+        "location": "מיקום במפה (רשות)",
+        "locationHint": "הדבקת הקואורדינטות מוואטסאפ בשדה קו הרוחב תמלא את שני השדות.",
+        "latitude": "קו רוחב",
+        "longitude": "קו אורך",
+        "note": "הערה (רשות)",
+        "notePlaceholder": "פרטים נוספים על ההזמנה…"
+      }
     }
   },
   "errors": {
@@ -135,6 +167,9 @@
     "orderDiscountInvalid": "ערך ההנחה אינו תקין.",
     "orderInsufficientStock": "אין מספיק מלאי לכמות המבוקשת.",
     "orderProductUnavailable": "אחד המוצרים אינו זמין יותר למכירה.",
-    "orderVariantRequired": "בחר תחילה איזו אפשרות נמכרת."
+    "orderVariantRequired": "בחר תחילה איזו אפשרות נמכרת.",
+    "validationInvalidPhone": "יש להזין מספר טלפון תקין.",
+    "orderCustomerRequired": "יש להזין את שם הלקוח ומספר הטלפון.",
+    "orderLocationInvalid": "המיקום אינו תקין. יש להזין קו רוחב וקו אורך יחד."
   }
 }

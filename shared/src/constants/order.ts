@@ -105,6 +105,25 @@ export const PERCENT_MAX = 100;
 // digits in a search box as an order number rather than as text.
 export const MAX_INT32 = 2_147_483_647;
 
+// Phone autocomplete for repeat customers. There is no Customer table
+// (spec.md "Customer information"), so "a customer" is whatever the last
+// order under that number wrote down — the suggestions are read back out of
+// previous orders' customer snapshots.
+//
+// Below this many digits a query matches half the shop's history, which is
+// noise rather than help; a local mobile number is 9-10 digits, so five is
+// roughly the point where the list becomes worth showing.
+export const CUSTOMER_SUGGESTION_MIN_DIGITS = 5;
+// How many suggestions are ever returned: a phone screen shows a handful
+// without scrolling, and beyond that the cashier is better off finishing the
+// number than reading a list.
+export const CUSTOMER_SUGGESTION_LIMIT = 5;
+// How many recent matching orders are read before being collapsed to one
+// entry per customer. Bounded like every other query (CLAUDE.md rule 15) —
+// a regular buying weekly must not be able to push everyone else out of the
+// list, and nothing here is worth an unbounded scan.
+export const CUSTOMER_SUGGESTION_SCAN_LIMIT = 100;
+
 // Optional map pin dropped alongside a delivery address (spec.md "Customer
 // information"). WGS84 degrees.
 export const LATITUDE_MIN = -90;

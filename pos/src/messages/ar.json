@@ -109,12 +109,44 @@
       "addOrderDiscount": "خصم على الفاتورة",
       "editOrderDiscount": "تعديل خصم الفاتورة",
       "submit": "إتمام البيع",
-      "submitting": "جارٍ الحفظ…"
+      "submitting": "جارٍ الحفظ…",
+      "whatsappOrder": "طلب واتساب"
     },
     "success": {
       "title": "تم البيع بنجاح",
       "orderNumber": "رقم الفاتورة {number}",
-      "newSale": "بيع جديد"
+      "newSale": "بيع جديد",
+      "whatsappTitle": "تم حفظ طلب الواتساب",
+      "customer": "الزبون: {name}",
+      "whatsappNextStep": "الطلب الآن بحالة «جديد». يُخصم المخزون عند بدء التحضير.",
+      "whatsappOrderNumber": "طلب رقم {number}"
+    },
+    "whatsapp": {
+      "title": "طلب واتساب",
+      "subtitle": "سجّل الطلب باسم الزبون ليخرج مع شركة التوصيل.",
+      "total": "الإجمالي",
+      "save": "حفظ الطلب",
+      "saving": "جارٍ الحفظ…",
+      "customer": {
+        "name": "اسم الزبون",
+        "namePlaceholder": "مثال: سعاد أحمد",
+        "phone": "رقم الهاتف",
+        "phonePrefixLabel": "مفتاح الدولة",
+        "searching": "جارٍ البحث عن طلبات سابقة…",
+        "suggestionsHint": "زبائن طلبوا سابقًا بهذا الرقم — اضغط لتعبئة بياناتهم.",
+        "unnamedCustomer": "بدون اسم",
+        "address": "العنوان",
+        "addressPlaceholder": "المدينة، الشارع، أقرب معلم…",
+        "moreDetails": "تفاصيل إضافية (اختياري)",
+        "whatsapp": "رقم الواتساب",
+        "whatsappHint": "اتركه فارغًا إذا كان نفس رقم الهاتف.",
+        "location": "موقع على الخريطة (اختياري)",
+        "locationHint": "الصق الإحداثيات من الواتساب في خانة خط العرض وسيتم تعبئة الخانتين.",
+        "latitude": "خط العرض",
+        "longitude": "خط الطول",
+        "note": "ملاحظة (اختياري)",
+        "notePlaceholder": "أي تفاصيل إضافية عن الطلب…"
+      }
     }
   },
   "errors": {
@@ -135,6 +167,9 @@
     "orderDiscountInvalid": "قيمة الخصم غير صحيحة.",
     "orderInsufficientStock": "الكمية المطلوبة غير متوفرة في المخزون.",
     "orderProductUnavailable": "أحد المنتجات لم يعد متاحًا للبيع.",
-    "orderVariantRequired": "اختر الخيار المطلوب قبل الإضافة."
+    "orderVariantRequired": "اختر الخيار المطلوب قبل الإضافة.",
+    "validationInvalidPhone": "أدخل رقم هاتف صحيحًا.",
+    "orderCustomerRequired": "أدخل اسم الزبون ورقم هاتفه.",
+    "orderLocationInvalid": "الموقع غير صحيح. أدخل خط العرض وخط الطول معًا."
   }
 }
