@@ -39,6 +39,9 @@ export interface SalesAggregateRow {
   orderCount: bigint;
   itemCount: Prisma.Decimal | null;
   revenue: Prisma.Decimal | null;
+  collectedRevenue: Prisma.Decimal | null;
+  pendingCollectionAmount: Prisma.Decimal | null;
+  pendingCollectionOrderCount: bigint;
   grossRevenue: Prisma.Decimal | null;
   cost: Prisma.Decimal | null;
   missingCostItems: bigint;

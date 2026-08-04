@@ -3,6 +3,7 @@ import type { OrderListFilters } from "@/types/order";
 
 export const ORDER_LIST_QUERY_KEY = "orders" as const;
 export const ORDER_DETAIL_QUERY_KEY = "order" as const;
+export const ORDER_COLLECTION_SUMMARY_QUERY_KEY = ["orders", "collectionSummary"] as const;
 
 export const ORDER_LIST_PAGE_SIZE = DEFAULT_PAGE_SIZE;
 
@@ -13,11 +14,24 @@ export const DEFAULT_ORDER_FILTERS: OrderListFilters = {
   q: "",
   status: null,
   channel: null,
+  paymentStatus: null,
+  collectableOnly: false,
   dateFrom: "",
   dateTo: "",
   sortBy: "createdAt",
   sortDir: "desc",
   page: DEFAULT_PAGE,
+};
+
+// The outstanding-money screen is the same order list, pinned to one
+// question: which sales is the delivery company still holding cash for?
+// Oldest first — the money that has been owed longest is the money to chase.
+export const COLLECTION_ORDER_FILTERS: OrderListFilters = {
+  ...DEFAULT_ORDER_FILTERS,
+  paymentStatus: "PENDING_COLLECTION",
+  collectableOnly: true,
+  sortBy: "createdAt",
+  sortDir: "asc",
 };
 
 // Each option pairs a (sortBy, sortDir) combination with a message key under
@@ -35,7 +49,7 @@ export const ORDER_SORT_OPTIONS = [
 // flow"). Drives the progress strip on the detail screen; the legal moves
 // themselves come from ORDER_STATUS_TRANSITIONS in shared/, which the backend
 // enforces.
-export const ONLINE_ORDER_FLOW = ["NEW", "PREPARING", "DELIVERING", "RECEIVED"] as const;
+export const ONLINE_ORDER_FLOW = ["NEW", "PREPARING", "HANDED_TO_COURIER"] as const;
 
 // An order entered by hand in the admin is a WhatsApp order: that is how
 // remote orders reach the shop today (CLAUDE.md "Scope of the CURRENT

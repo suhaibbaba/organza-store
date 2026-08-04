@@ -210,6 +210,109 @@ describe("Reports", () => {
   });
 
   // -------------------------------------------------------------------------
+  // Sales vs. money actually in hand (spec.md "Payment collection"). Revenue
+  // says what was sold; it is NOT what the shop holds, because a courier
+  // order is paid for later.
+  // -------------------------------------------------------------------------
+  describe("collected vs pending revenue", () => {
+    it("counts a counter sale as collected the moment it is rung up", async () => {
+      const admin = await getSession("ADMIN");
+      const product = await sellableProduct(admin.token, { basePrice: "100", cost: "40", stock: 20 });
+
+      const before = await salesReport(admin.token);
+
+      const order = await createOrder(admin.token, {
+        channel: "STORE",
+        items: [{ productId: product.id, quantity: 2 }],
+      });
+      expect(order.status).toBe(201);
+
+      const delta = totalsDelta((await salesReport(admin.token)).totals, before.totals);
+
+      expect(delta.revenue).toBeCloseTo(200, 2);
+      expect(delta.collectedRevenue).toBeCloseTo(200, 2);
+      expect(delta.pendingCollectionAmount).toBeCloseTo(0, 2);
+      expect(delta.pendingCollectionOrderCount).toBe(0);
+    });
+
+    it("holds a courier sale as pending until it is collected, without changing revenue", async () => {
+      const admin = await getSession("ADMIN");
+      const product = await sellableProduct(admin.token, { basePrice: "100", cost: "40", stock: 20 });
+
+      const before = await salesReport(admin.token);
+
+      const order = await createOrder(admin.token, {
+        channel: "WHATSAPP",
+        customerName: "تحصيل",
+        customerPhone: "+970597200200",
+        items: [{ productId: product.id, quantity: 3 }],
+      });
+      expect(order.status).toBe(201);
+
+      const pending = totalsDelta((await salesReport(admin.token)).totals, before.totals);
+      // Sold, but not a shekel of it is in the shop yet.
+      expect(pending.revenue).toBeCloseTo(300, 2);
+      expect(pending.collectedRevenue).toBeCloseTo(0, 2);
+      expect(pending.pendingCollectionAmount).toBeCloseTo(300, 2);
+      expect(pending.pendingCollectionOrderCount).toBe(1);
+      // Profit is a sales figure and is unaffected by when the money lands.
+      expect(pending.profit).toBeCloseTo(180, 2);
+
+      const collected = await apiRequest("/api/orders/collect", {
+        method: "POST",
+        token: admin.token,
+        body: { orderIds: [order.data!.id] },
+      });
+      expect(collected.status).toBe(200);
+
+      const settled = totalsDelta((await salesReport(admin.token)).totals, before.totals);
+      // Collecting moves money between the two columns; the sale itself is
+      // unchanged.
+      expect(settled.revenue).toBeCloseTo(300, 2);
+      expect(settled.collectedRevenue).toBeCloseTo(300, 2);
+      expect(settled.pendingCollectionAmount).toBeCloseTo(0, 2);
+      expect(settled.pendingCollectionOrderCount).toBe(0);
+    });
+
+    it("always splits revenue into collected plus pending, with nothing lost between them", async () => {
+      const admin = await getSession("ADMIN");
+      const product = await sellableProduct(admin.token, { basePrice: "60", cost: "20", stock: 20 });
+
+      await createOrder(admin.token, { channel: "STORE", items: [{ productId: product.id, quantity: 1 }] });
+      await createOrder(admin.token, {
+        channel: "WHATSAPP",
+        customerName: "تحصيل",
+        customerPhone: "+970597300300",
+        items: [{ productId: product.id, quantity: 1 }],
+      });
+
+      const report = await salesReport(admin.token);
+      for (const totals of [report.totals, ...report.byChannel]) {
+        expect(num(totals.collectedRevenue) + num(totals.pendingCollectionAmount)).toBeCloseTo(
+          num(totals.revenue),
+          2
+        );
+      }
+
+      const summary = await salesSummary(admin.token);
+      for (const period of ["today", "week", "month"] as const) {
+        expect(
+          num(summary[period].collectedRevenue) + num(summary[period].pendingCollectionAmount)
+        ).toBeCloseTo(num(summary[period].revenue), 2);
+      }
+    });
+
+    it("shows the collection split to an Employee too — it is a sales figure, not a cost", async () => {
+      const employee = await getSession("EMPLOYEE");
+      const report = await salesReport(employee.token);
+
+      expect(report.totals.collectedRevenue).toBeDefined();
+      expect(report.totals.pendingCollectionAmount).toBeDefined();
+      expect(report.totals.cost).toBeUndefined();
+    });
+  });
+
+  // -------------------------------------------------------------------------
   // Breakdowns
   // -------------------------------------------------------------------------
   describe("breakdowns", () => {

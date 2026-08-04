@@ -19,6 +19,7 @@ import { OrderTotalsCard } from "@/components/orders/detail/order-totals-card";
 import { OrderCustomerCard } from "@/components/orders/detail/order-customer-card";
 import { OrderMetaCard } from "@/components/orders/detail/order-meta-card";
 import { OrderStatusActions } from "@/components/orders/detail/order-status-actions";
+import { OrderPaymentCard } from "@/components/orders/detail/order-payment-card";
 import { OrderManageActions } from "@/components/orders/detail/order-manage-actions";
 
 export default function OrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -93,6 +94,10 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
           it sits above the detail rather than under it — reachable by thumb
           without scrolling on a phone. */}
       <OrderStatusActions order={order} />
+
+      {/* Where the money is, right under where the goods are: the two
+          together are what the shop actually asks about an order. */}
+      <OrderPaymentCard order={order} />
 
       {/* A STORE sale has no customer to show: it was handed over the counter
           (spec.md "Customer information"). */}

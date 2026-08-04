@@ -31,15 +31,30 @@ import type {
 //    * an order-level discount is spread across that order's lines in
 //      proportion to their totals (total / subtotal), so per-product revenue
 //      adds up to the order's real revenue.
+//
+//  Selling and being paid are two different facts (spec.md "Payment
+//  collection"), so revenue is split here into what has been COLLECTED and
+//  what the delivery company still owes — never conflated into one figure.
 // ============================================================================
 
 // The per-line view every aggregate selects from: one row per sold line,
 // already reduced to per-unit money and net (un-returned) quantities.
-function lineView(range: ReportRange): Prisma.Sql {
+//
+// Exported because the outstanding-money summary (lib/orderCollection.ts) has
+// to compute its total exactly the way revenue is computed here — otherwise
+// the orders screen and the reports screen could quote different amounts for
+// the same sales. A null range means "every sale ever", which is what an
+// outstanding balance is.
+export function lineView(range: ReportRange | null): Prisma.Sql {
+  const window = range
+    ? Prisma.sql`AND o."createdAt" >= ${range.from} AND o."createdAt" < ${range.to}`
+    : Prisma.empty;
+
   return Prisma.sql`
     SELECT
       o.id            AS order_id,
       o.channel::text AS channel,
+      o."paymentStatus"::text AS payment_status,
       o."createdAt"   AS created_at,
       oi."productId"  AS product_id,
       oi."variantId"  AS variant_id,
@@ -61,8 +76,7 @@ function lineView(range: ReportRange): Prisma.Sql {
     JOIN "Order" o ON o.id = oi."orderId"
     WHERE o."deletedAt" IS NULL
       AND o.status <> 'CANCELLED'::"OrderStatus"
-      AND o."createdAt" >= ${range.from}
-      AND o."createdAt" < ${range.to}
+      ${window}
   `;
 }
 
@@ -73,6 +87,14 @@ const TOTALS_COLUMNS = Prisma.sql`
   COUNT(DISTINCT order_id) FILTER (WHERE net_units > 0)            AS "orderCount",
   COALESCE(SUM(net_units), 0)                                      AS "itemCount",
   COALESCE(SUM(unit_net_price * net_units), 0)                     AS "revenue",
+  -- Sold vs. actually paid for. The two filters partition the same revenue,
+  -- so collected + pending always adds back up to it.
+  COALESCE(SUM(unit_net_price * net_units)
+    FILTER (WHERE payment_status = 'COLLECTED'), 0)                AS "collectedRevenue",
+  COALESCE(SUM(unit_net_price * net_units)
+    FILTER (WHERE payment_status = 'PENDING_COLLECTION'), 0)       AS "pendingCollectionAmount",
+  COUNT(DISTINCT order_id) FILTER (
+    WHERE payment_status = 'PENDING_COLLECTION' AND net_units > 0) AS "pendingCollectionOrderCount",
   COALESCE(SUM(unit_gross_price * net_units), 0)                   AS "grossRevenue",
   COALESCE(SUM(unit_cost * net_units), 0)                          AS "cost",
   COUNT(*) FILTER (WHERE cost_missing AND net_units > 0)           AS "missingCostItems",
@@ -192,6 +214,12 @@ export function toSalesTotals(row: SalesAggregateRow | undefined, canViewCost: b
     orderCount,
     itemCount: Number(decimal(row?.itemCount ?? null)),
     revenue: revenue.toFixed(MONEY_DECIMAL_PLACES),
+    // What was sold vs. what has actually been paid for. Visible to every
+    // role that may read a report: these are sales figures, not costs, and an
+    // Employee already sees order totals in the list.
+    collectedRevenue: amount(row?.collectedRevenue ?? null),
+    pendingCollectionAmount: amount(row?.pendingCollectionAmount ?? null),
+    pendingCollectionOrderCount: Number(row?.pendingCollectionOrderCount ?? 0),
     discountAmount: roundMoney(grossRevenue.sub(revenue)).toFixed(MONEY_DECIMAL_PLACES),
     averageOrderValue: (orderCount === 0 ? ZERO_MONEY() : roundMoney(revenue.div(orderCount))).toFixed(
       MONEY_DECIMAL_PLACES

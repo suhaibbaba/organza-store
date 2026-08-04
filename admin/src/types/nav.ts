@@ -4,6 +4,7 @@ import type { PermissionAction } from "@shared/types/permission";
 export type NavKey =
   | "dashboard"
   | "orders"
+  | "collection"
   | "products"
   | "inventory"
   | "labels"

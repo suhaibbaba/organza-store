@@ -20,6 +20,7 @@
   "nav": {
     "dashboard": "Dashboard",
     "orders": "Orders",
+    "collection": "Collection",
     "products": "Products",
     "inventory": "Inventory",
     "labels": "Labels",
@@ -77,13 +78,16 @@
       "orders": "Orders",
       "averageOrder": "Average order",
       "profit": "Profit",
-      "margin": "{value, number, percent} margin"
+      "margin": "{value, number, percent} margin",
+      "pendingCollection": "Awaiting payment",
+      "pendingCollectionOrders": "{count, plural, one {1 order} other {# orders}}"
     }
   },
   "orders": {
     "title": "Orders",
     "subtitle": "Store, WhatsApp and website orders.",
     "newOrder": "New order",
+    "collectionLink": "Money with the delivery company",
     "search": {
       "placeholder": "Search by order number, customer name or phone",
       "label": "Search orders",
@@ -105,6 +109,8 @@
       "statusAll": "All statuses",
       "channel": "Channel",
       "channelAll": "All channels",
+      "paymentStatus": "Payment",
+      "paymentStatusAll": "All payments",
       "dateRange": "Date range",
       "dateFrom": "From date",
       "dateTo": "To date",
@@ -114,8 +120,7 @@
     "status": {
       "NEW": "New",
       "PREPARING": "Preparing",
-      "DELIVERING": "Out for delivery",
-      "RECEIVED": "Received",
+      "HANDED_TO_COURIER": "Handed to the delivery company",
       "COMPLETED": "Completed",
       "CANCELLED": "Cancelled",
       "RETURNED": "Returned"
@@ -127,6 +132,10 @@
     },
     "payment": {
       "CASH": "Cash"
+    },
+    "paymentStatus": {
+      "PENDING_COLLECTION": "Awaiting payment",
+      "COLLECTED": "Paid"
     },
     "discount": {
       "title": "Discount",
@@ -157,6 +166,8 @@
       "orderNumber": "Order",
       "channel": "Channel",
       "status": "Status",
+      "payment": "Payment",
+      "noPayment": "—",
       "customer": "Customer",
       "noCustomer": "—",
       "date": "Date",
@@ -197,6 +208,14 @@
         "openMap": "Open location on map",
         "note": "Note"
       },
+      "payment": {
+        "title": "Payment",
+        "pendingExplainer": "{amount} is still with the delivery company.",
+        "nothingToCollect": "This order is cancelled or returned, so there is nothing to collect.",
+        "collectedOn": "Payment received on {date}.",
+        "markCollected": "Payment received",
+        "markedCollected": "Payment recorded as received."
+      },
       "meta": {
         "createdBy": "Created by",
         "unknownStaff": "Unknown",
@@ -210,8 +229,7 @@
         "moved": "Status updated to: {status}",
         "advanceTo": {
           "PREPARING": "Start preparing",
-          "DELIVERING": "Send for delivery",
-          "RECEIVED": "Customer received it"
+          "HANDED_TO_COURIER": "Hand to the delivery company"
         },
         "stockDeductionNotice": "Starting preparation deducts these items from stock.",
         "cancelOrder": "Cancel order",
@@ -309,6 +327,29 @@
         "openOrder": "Open the order",
         "newOrder": "New order"
       }
+    },
+    "collection": {
+      "back": "Orders",
+      "title": "Money with the delivery company",
+      "subtitle": "Orders you have not been paid for yet. Tick off what has come in.",
+      "listLabel": "Orders awaiting payment",
+      "selectOrder": "Select order {number} — {amount}",
+      "marked": "{count, plural, one {Payment recorded for 1 order.} other {Payment recorded for # orders.}}",
+      "summary": {
+        "label": "Owed to you",
+        "orders": "{count, plural, =0 {No orders} one {1 order} other {# orders}}",
+        "oldest": "Oldest unpaid order: {date}"
+      },
+      "empty": {
+        "title": "Nothing outstanding",
+        "description": "Every order has been paid for."
+      },
+      "actions": {
+        "selected": "{count, plural, one {1 order selected} other {# orders selected}}",
+        "selectAll": "Select all",
+        "clear": "Clear",
+        "markCollected": "{count, plural, one {Payment received for 1} other {Payment received for #}}"
+      }
     }
   },
   "reports": {
@@ -327,6 +368,9 @@
     "totals": {
       "revenue": "Sales",
       "revenueHint": "{orders} orders · {items} items",
+      "collected": "Money received",
+      "pendingCollection": "Awaiting payment",
+      "pendingCollectionOrders": "{count, plural, one {1 order} other {# orders}}",
       "profit": "Profit",
       "cost": "Cost",
       "margin": "{value, number, percent} margin",
@@ -833,6 +877,7 @@
     "orderReturnQuantityExceeded": "That's more than was sold.",
     "orderProductUnavailable": "This product is no longer available to sell.",
     "orderVariantRequired": "Choose which variant of this product.",
+    "orderNotCollectable": "This order is cancelled or returned, so there is no payment to record.",
     "reportRangeInvalid": "That period isn't valid. Check the start and end dates.",
     "reportRangeTooLong": "That period is too long. Pick a year at most."
   }

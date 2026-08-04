@@ -249,14 +249,17 @@ Three fixed roles.
 | Edit product details/price/stock  |  ✅   |   ✅    |    ❌    |
 | **Delete** product                |  ✅   |   ✅    |    ❌    |
 | **Hide / publish** product        |  ✅   |   ✅    |    ❌    |
-| Create order + mark delivered     |  ✅   |   ✅    |    ✅    |
+| Create order + hand to courier    |  ✅   |   ✅    |    ✅    |
 | **Delete / edit / cancel** order  |  ✅   |   ✅    |    ❌    |
+| **Mark money collected**          |  ✅   |   ✅    |    ❌    |
 | Manage stock (full)               |  ✅   |   ✅    |    ❌    |
 | Manage users                      |  ✅   |   ❌    |    ❌    |
 | Settings                          |  ✅   |   ❌    |    ❌    |
 
-**Security rationale:** Employee can create and deliver orders but **cannot delete or edit them**,
-so a sale can't be erased to cover theft. Every action is tied to its author via the Audit Log.
+**Security rationale:** Employee can create orders and hand them to the courier but **cannot
+delete or edit them**, so a sale can't be erased to cover theft — and **cannot mark its money
+collected**, so the person who took a sale can't also declare its cash received. Every action is
+tied to its author via the Audit Log.
 
 ---
 
@@ -275,10 +278,13 @@ publish/hide, stock changes, and price changes.
 
 ## Admin dashboard — what's available
 - **Dashboard:** today/month sales summary, top products, low-stock alerts
+- **Orders:** list/filter/search, order detail, status flow, returns
+- **Collection:** money still with the delivery company — the outstanding total and the orders it
+  is spread over, ticked off one or several at a time (Admin/Manager)
 - **Products:** add/edit/delete, manage variants & options, upload/reorder images, categories
 - **Inventory:** per-variant quantities, manual adjust, low-stock threshold alerts
 - **Categories:** nested category management
-- **Reports:** sales by period / by product / best sellers
+- **Reports:** sales by period / by product / best sellers, sold vs. collected
 - **Users:** manage Admin/Manager/Employee (Admin only)
 - **Variant Types:** manage the global option types/values (cleanup)
 - **Settings:** store info, currency, stock thresholds (Admin only)
@@ -390,9 +396,22 @@ type + quantity (+ optional price) per number.
 Every order records its **channel**: `STORE` (sold in the shop via POS), `WHATSAPP`, or `WEBSITE`.
 
 ### Status flow
-- **STORE (in-shop sale):** completed immediately — a direct sale, no delivery pipeline.
-- **Online (WHATSAPP / WEBSITE):** `NEW` → `PREPARING` → `DELIVERING` → `RECEIVED`.
+- **STORE (in-shop sale):** completed immediately — a direct sale, no pipeline at all.
+- **Online (WHATSAPP / WEBSITE):** `NEW` → `PREPARING` → `HANDED_TO_COURIER`
+  ("تم تسليمه لشركة التوصيل"), which is the **final** state.
 - Plus `CANCELLED` and `RETURNED`.
+
+**Why it ends at the handover.** The shop's involvement in an online order stops when the parcel
+is given to the delivery company — it does not track the drive to the customer's door, and nobody
+in the shop is in a position to know when the customer opened the door. So there is no `RECEIVED`
+state to keep up to date, and no separate `DELIVERING` step: "packed" and "gone" are the only two
+facts the shop can actually record, and the handover is the second of them.
+
+A parcel the customer refuses comes back through the **returns** flow, not as a cancellation, so
+the stock and the money move together. `CANCELLED` is reachable from `NEW` and `PREPARING` only —
+before the parcel has left. There is deliberately no `HANDED_TO_COURIER → COMPLETED` move:
+`COMPLETED` belongs to a counter sale, which opens there, and reporting counts the two finished
+states together rather than chaining them.
 
 ### Customer information
 Customers are still **deferred as an entity** — there is no `Customer` table. Instead, customer
@@ -403,6 +422,34 @@ This keeps Phase 3 (real customer accounts) open without blocking orders now.
 
 ### Payment
 **Cash only** for now, but modeled as a field (`paymentMethod`) so more methods can be added later.
+
+### Payment collection (money arrives later)
+Selling and being paid are **two different moments** in this shop, and conflating them is what
+makes profit figures lie. A counter sale is cash in the till. An order handed to the delivery
+company is money that company holds — sometimes for weeks — and hands over in a batch later.
+
+So every order carries a **payment status** alongside its order status:
+
+- `paymentStatus`: `PENDING_COLLECTION` | `COLLECTED`, plus a `collectedAt` timestamp.
+- **STORE sales are `COLLECTED` on creation** — the cash is in hand at the till.
+- **Online orders stay `PENDING_COLLECTION`** until an **Admin/Manager** records that the delivery
+  company has settled up. An Employee may take the sale and hand it over, but **must not** be able
+  to declare its money received (`order.markCollected`, enforced on the backend — the same
+  anti-theft reasoning behind cancel/delete).
+- Marking an order collected is **idempotent**: doing it twice is a no-op, not an error, so two
+  people settling the same batch at once can't produce a failure. Every collection writes an audit
+  entry (`PAYMENT_COLLECTED`), so "who said this money arrived" is always answerable.
+- A **cancelled or fully returned** sale owes the shop nothing, so it is excluded from the
+  outstanding view and total even though it was never collected.
+
+**Admin view — money with the delivery company.** A dedicated screen lists every order still
+awaiting payment, oldest first (the money owed longest is the money to chase), with the total
+owed, how many orders it is spread over, and the date of the oldest one. Orders are ticked off
+with checkboxes and settled **one or several at a time** in a single action.
+
+The outstanding total is computed from the same per-line figures the reports use — net of returns,
+cancelled sales excluded — so the orders screen and the reports screen can never quote different
+amounts for the same sales.
 
 ### Discounts
 Supported at **two levels**: per **line item** and on the **order total**. Each stores its type
@@ -417,11 +464,27 @@ Supported at **two levels**: per **line item** and on the **order total**. Each 
 Returns are supported: an order (or specific items with quantities) can be returned, which
 **restores stock** and is recorded in the audit log.
 
+### Reports: sold vs. collected
+Sales reporting must never let "what we sold" be read as "what we hold". Every totals block
+therefore splits revenue three ways:
+
+- `revenue` — what was sold (net of both discount levels and of returns);
+- `collectedRevenue` — the part actually paid for;
+- `pendingCollectionAmount` (+ `pendingCollectionOrderCount`) — the part still owed by the
+  delivery company.
+
+The two parts always add back up to `revenue`. Profit is unaffected by *when* the money lands —
+it is a sales figure — but the pending total sits next to it so the shop can see the difference
+between a good month and a month that has been paid for. These are sales figures rather than
+costs, so every role that may read a report sees them (unlike cost/profit/margin, which stay
+Admin+Manager per the sensitive-fields rule).
+
 ### Price & cost snapshots (important)
 Each order item stores a **snapshot** of the unit **price** and unit **cost** at the moment of sale.
 Prices and costs change over time, so profit reports must use what was true at sale time, not the
 product's current values. This is what makes the sales/profit dashboard accurate.
 
 ### Roles (already defined in the permissions layer)
-Employee can **create** orders and mark them delivered/received, but **cannot delete, edit, or
-cancel** them (anti-theft). Admin/Manager have full control. Every mutation writes an audit entry.
+Employee can **create** orders and advance them as far as the courier handover, but **cannot
+delete, edit, or cancel** them, and **cannot mark their money collected** (anti-theft).
+Admin/Manager have full control. Every mutation writes an audit entry.

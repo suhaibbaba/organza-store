@@ -1,4 +1,10 @@
-import type { Order, OrderStatus, OrderSummary } from "@shared/types/order";
+import type {
+  CollectResult,
+  CollectionSummary,
+  Order,
+  OrderStatus,
+  OrderSummary,
+} from "@shared/types/order";
 import type { Pagination } from "@shared/types/common";
 import type { CreateOrderInput, ReturnOrderInput } from "@shared/schemas/order";
 import { apiFetch } from "@/lib/api/client";
@@ -25,6 +31,8 @@ function buildOrderListQuery(filters: OrderListFilters, pageSize: number): strin
   if (filters.q.trim()) params.set("q", filters.q.trim());
   if (filters.status) params.set("status", filters.status);
   if (filters.channel) params.set("channel", filters.channel);
+  if (filters.paymentStatus) params.set("paymentStatus", filters.paymentStatus);
+  if (filters.collectableOnly) params.set("collectableOnly", "true");
   if (filters.dateFrom) params.set("dateFrom", startOfDayIso(filters.dateFrom));
   if (filters.dateTo) params.set("dateTo", endOfDayIso(filters.dateTo));
   return params.toString();
@@ -60,6 +68,24 @@ export async function updateOrderStatus(id: string, status: OrderStatus): Promis
 // lines partially. Stock is restored server-side either way.
 export async function returnOrder(id: string, input: ReturnOrderInput): Promise<Order> {
   const { data } = await apiFetch<Order>(`/api/orders/${id}/return`, { method: "POST", body: input });
+  return data;
+}
+
+// What the delivery company still owes the shop, across every date. Net of
+// returns and free of cancelled sales, so it matches the reports figure.
+export async function fetchCollectionSummary(): Promise<CollectionSummary> {
+  const { data } = await apiFetch<CollectionSummary>("/api/orders/collection-summary");
+  return data;
+}
+
+// Records that the delivery company has paid for these orders. One id or a
+// whole batch — the shop is normally handed several at once. Marking an
+// already-collected order is a no-op server-side, not an error.
+export async function collectOrders(orderIds: string[]): Promise<CollectResult> {
+  const { data } = await apiFetch<CollectResult>("/api/orders/collect", {
+    method: "POST",
+    body: { orderIds },
+  });
   return data;
 }
 

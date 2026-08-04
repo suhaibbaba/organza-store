@@ -5,6 +5,7 @@ import {
   Barcode,
   FolderTree,
   ReceiptText,
+  HandCoins,
   ChartColumn,
   Users,
   Settings,
@@ -16,6 +17,10 @@ import type { NavItem } from "@/types/nav";
 export const NAV_ITEMS: readonly NavItem[] = [
   { key: "dashboard", href: "/dashboard", icon: LayoutDashboard, action: "dashboard.view" },
   { key: "orders", href: "/orders", icon: ReceiptText, action: "order.view" },
+  // Money still with the delivery company. Gated on the permission that lets
+  // someone settle it, so an Employee — who may take orders but never declare
+  // their money received — doesn't see a screen they can't act on.
+  { key: "collection", href: "/orders/collection", icon: HandCoins, action: "order.markCollected" },
   { key: "products", href: "/products", icon: Shirt, action: "product.view" },
   { key: "inventory", href: "/inventory", icon: Boxes, action: "inventory.view" },
   // Barcode labels. Every role can print (CLAUDE.md rule 13: a new piece

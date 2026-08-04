@@ -47,6 +47,23 @@ export function ReportHeadline({ totals }: { totals: SalesTotals }) {
           </div>
         )}
 
+        {/* Sold is not the same as paid: an order handed to the delivery
+            company is money the shop is still waiting for (spec.md "Payment
+            collection"). Showing the two under revenue is what stops the
+            headline figure being read as cash in hand. */}
+        <div className="grid grid-cols-2 gap-4">
+          <ReportFigure label={t("collected")} value={formatMoney(totals.collectedRevenue)} />
+          <ReportFigure
+            label={t("pendingCollection")}
+            value={formatMoney(totals.pendingCollectionAmount)}
+            hint={
+              totals.pendingCollectionOrderCount > 0
+                ? t("pendingCollectionOrders", { count: totals.pendingCollectionOrderCount })
+                : undefined
+            }
+          />
+        </div>
+
         <div className="grid grid-cols-2 gap-4">
           <ReportFigure label={t("averageOrder")} value={formatMoney(totals.averageOrderValue)} />
           <ReportFigure label={t("discounts")} value={formatMoney(totals.discountAmount)} />

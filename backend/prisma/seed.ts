@@ -438,7 +438,10 @@ async function main() {
   async function upsertOrder(opts: {
     id: string;
     channel: "STORE" | "WHATSAPP" | "WEBSITE";
-    status: "NEW" | "PREPARING" | "DELIVERING" | "RECEIVED" | "COMPLETED" | "CANCELLED" | "RETURNED";
+    status: "NEW" | "PREPARING" | "HANDED_TO_COURIER" | "COMPLETED" | "CANCELLED" | "RETURNED";
+    // Whether the money for this sale is already in the shop's hands. A
+    // counter sale is; a parcel with the delivery company usually isn't yet.
+    paymentStatus: "PENDING_COLLECTION" | "COLLECTED";
     createdById: string;
     lines: SeedOrderLine[];
     customerName?: string;
@@ -482,6 +485,8 @@ async function main() {
       channel: opts.channel,
       status: opts.status,
       paymentMethod: "CASH" as const,
+      paymentStatus: opts.paymentStatus,
+      collectedAt: opts.paymentStatus === "COLLECTED" ? new Date("2026-01-01T12:00:00.000Z") : null,
       customerName: opts.customerName ?? null,
       customerPhone: opts.customerPhone ?? null,
       customerAddress: opts.customerAddress ?? null,
@@ -512,12 +517,14 @@ async function main() {
     return order;
   }
 
-  // 1) STORE sale — opens COMPLETED with stock already deducted, and shows
-  //    both discount levels at once (10% off the line, then 5 off the order).
+  // 1) STORE sale — opens COMPLETED with stock already deducted and the cash
+  //    already in the till, and shows both discount levels at once (10% off
+  //    the line, then 5 off the order).
   await upsertOrder({
     id: "seed-order-store-completed",
     channel: "STORE",
     status: "COMPLETED",
+    paymentStatus: "COLLECTED",
     createdById: employee.id,
     stockDeducted: true,
     lines: [{ product: silkScarf, quantity: 2, discountType: "PERCENT", discountValue: 10 }],
@@ -530,6 +537,7 @@ async function main() {
     id: "seed-order-whatsapp-preparing",
     channel: "WHATSAPP",
     status: "PREPARING",
+    paymentStatus: "PENDING_COLLECTION",
     createdById: employee.id,
     stockDeducted: true,
     customerName: "سعاد أحمد",
@@ -547,6 +555,7 @@ async function main() {
     id: "seed-order-website-new",
     channel: "WEBSITE",
     status: "NEW",
+    paymentStatus: "PENDING_COLLECTION",
     createdById: admin.id,
     stockDeducted: false,
     customerName: "ليان خالد",
@@ -560,6 +569,7 @@ async function main() {
     id: "seed-order-whatsapp-cancelled",
     channel: "WHATSAPP",
     status: "CANCELLED",
+    paymentStatus: "PENDING_COLLECTION",
     createdById: admin.id,
     stockDeducted: false,
     customerName: "رنا سمير",
@@ -567,12 +577,14 @@ async function main() {
     lines: [{ product: eveningDress, variant: eveningDress.variants[1], quantity: 1 }],
   });
 
-  // 5) Received, then partially returned — one of the two came back, so the
-  //    order keeps its status and only records the quantity.
+  // 5) Handed to the courier, then partially returned — one of the two came
+  //    back, so the order keeps its status and only records the quantity. Its
+  //    money has since been collected from the delivery company.
   await upsertOrder({
     id: "seed-order-website-partially-returned",
     channel: "WEBSITE",
-    status: "RECEIVED",
+    status: "HANDED_TO_COURIER",
+    paymentStatus: "COLLECTED",
     createdById: admin.id,
     stockDeducted: true,
     customerName: "هدى ناصر",
@@ -581,11 +593,28 @@ async function main() {
     lines: [{ product: silkScarf, quantity: 2, returnedQuantity: 1 }],
   });
 
-  // 6) Soft-deleted sale — hidden from every endpoint, kept as a record.
+  // 6) With the courier and still unpaid — the case the outstanding-money
+  //    screen exists for: sold, stock gone, but the delivery company has not
+  //    handed the cash over yet.
+  await upsertOrder({
+    id: "seed-order-whatsapp-awaiting-collection",
+    channel: "WHATSAPP",
+    status: "HANDED_TO_COURIER",
+    paymentStatus: "PENDING_COLLECTION",
+    createdById: employee.id,
+    stockDeducted: true,
+    customerName: "ميساء زهران",
+    customerPhone: "+970599888999",
+    customerAddress: "قلقيلية — شارع القدس",
+    lines: [{ product: silkScarf, quantity: 1 }],
+  });
+
+  // 7) Soft-deleted sale — hidden from every endpoint, kept as a record.
   await upsertOrder({
     id: "seed-order-store-deleted",
     channel: "STORE",
     status: "COMPLETED",
+    paymentStatus: "COLLECTED",
     createdById: admin.id,
     stockDeducted: false,
     deleted: true,

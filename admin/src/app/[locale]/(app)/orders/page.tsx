@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
-import { Plus } from "lucide-react";
+import { HandCoins, Plus } from "lucide-react";
 import { can } from "@shared/lib/permissions";
 import { DEFAULT_PAGE } from "@shared/constants/pagination";
 import { Link } from "@/i18n/navigation";
@@ -29,6 +29,7 @@ export default function OrdersPage() {
   const t = useTranslations("orders");
   const { user } = useSession();
   const canCreate = can(user, "order.create");
+  const canCollect = can(user, "order.markCollected");
 
   const [searchInput, setSearchInput] = useState("");
   const [filters, setFilters] = useState<OrderListFilters>(DEFAULT_ORDER_FILTERS);
@@ -44,10 +45,17 @@ export default function OrdersPage() {
   const filtersValue: OrderFiltersValue = {
     status: filters.status,
     channel: filters.channel,
+    paymentStatus: filters.paymentStatus,
     dateFrom: filters.dateFrom,
     dateTo: filters.dateTo,
   };
-  const activeFilterCount = [filters.status, filters.channel, filters.dateFrom, filters.dateTo].filter(Boolean).length;
+  const activeFilterCount = [
+    filters.status,
+    filters.channel,
+    filters.paymentStatus,
+    filters.dateFrom,
+    filters.dateTo,
+  ].filter(Boolean).length;
   const hasAnyFilter = activeFilterCount > 0 || debouncedSearch.trim().length > 0;
 
   function updatePage(page: number) {
@@ -89,6 +97,18 @@ export default function OrdersPage() {
           </Button>
         )}
       </div>
+
+      {/* The shortest path to "who still owes us money" — the question this
+          screen can answer but doesn't lead with. Admin/Manager only, since
+          settling up is theirs to do. */}
+      {canCollect && (
+        <Button asChild variant="outline" className="h-12 w-full justify-start">
+          <Link href="/orders/collection">
+            <HandCoins className="size-5" aria-hidden="true" />
+            {t("collectionLink")}
+          </Link>
+        </Button>
+      )}
 
       <div className="flex flex-col gap-3">
         <OrderSearch value={searchInput} onChange={handleSearchChange} />

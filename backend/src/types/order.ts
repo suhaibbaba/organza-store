@@ -1,4 +1,7 @@
+import type { Prisma } from "@prisma/client";
 import type {
+  CollectResult,
+  CollectionSummary,
   DiscountType,
   Order,
   OrderChannel,
@@ -7,9 +10,12 @@ import type {
   OrderStatus,
   OrderSummary,
   PaymentMethod,
+  PaymentStatus,
 } from "@shared/types/order";
 
 export type {
+  CollectResult,
+  CollectionSummary,
   DiscountType,
   Order,
   OrderChannel,
@@ -18,7 +24,17 @@ export type {
   OrderStatus,
   OrderSummary,
   PaymentMethod,
+  PaymentStatus,
 };
+
+// The raw aggregate behind CollectionSummary. Postgres hands numeric back as
+// Prisma.Decimal and count as BigInt; lib/orderCollection.ts is the only
+// place that converts them (same convention as the report rows).
+export interface CollectionSummaryRow {
+  orderCount: bigint;
+  amount: Prisma.Decimal | null;
+  oldestCreatedAt: Date | null;
+}
 
 // One line's worth of stock movement: exactly one of variantId/productId is
 // set (the variant owns the stock when the product has variants), plus how
