@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { ERROR_CODES } from "@shared/constants/errors";
 import { LABEL_LIMITS, LABEL_PRINT_MODES } from "@shared/constants/label";
+import { IMPLEMENTED_SALE_NOTIFICATION_MODES } from "@shared/constants/push";
 import type { Setting } from "@shared/types/setting";
 import type { UpdateSettingInput } from "@shared/schemas/setting";
 import { boundedDecimalField, boundedIntegerField, requiredIntegerField } from "@/lib/validation/numeric";
@@ -36,6 +37,11 @@ export const settingsFormSchema = z.object({
   labelPageMarginLeftMm: labelMarginField,
   labelGapXMm: labelGapField,
   labelGapYMm: labelGapField,
+  // Sale notifications. Only the implemented modes are offered — the schema
+  // holds more (see shared/src/constants/push.ts), and the day one of them
+  // ships it appears here on its own.
+  saleNotificationsEnabled: z.boolean(),
+  saleNotificationMode: z.enum(IMPLEMENTED_SALE_NOTIFICATION_MODES),
 });
 export type SettingsFormValues = z.infer<typeof settingsFormSchema>;
 
@@ -56,6 +62,14 @@ export function settingsToFormValues(setting: Setting): SettingsFormValues {
     labelPageMarginLeftMm: String(setting.labelPageMarginLeftMm),
     labelGapXMm: String(setting.labelGapXMm),
     labelGapYMm: String(setting.labelGapYMm),
+    saleNotificationsEnabled: setting.saleNotificationsEnabled,
+    // A row written by a newer build could hold a mode this one can't offer;
+    // showing the first mode it does understand beats an empty select.
+    saleNotificationMode: IMPLEMENTED_SALE_NOTIFICATION_MODES.includes(
+      setting.saleNotificationMode as (typeof IMPLEMENTED_SALE_NOTIFICATION_MODES)[number]
+    )
+      ? (setting.saleNotificationMode as SettingsFormValues["saleNotificationMode"])
+      : IMPLEMENTED_SALE_NOTIFICATION_MODES[0],
   };
 }
 
@@ -90,5 +104,7 @@ export function toUpdatePayload(values: SettingsFormValues): UpdateSettingInput 
     labelPageMarginLeftMm: toNumber(values.labelPageMarginLeftMm),
     labelGapXMm: toNumber(values.labelGapXMm),
     labelGapYMm: toNumber(values.labelGapYMm),
+    saleNotificationsEnabled: values.saleNotificationsEnabled,
+    saleNotificationMode: values.saleNotificationMode,
   };
 }

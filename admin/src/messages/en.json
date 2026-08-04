@@ -729,7 +729,7 @@
   },
   "settings": {
     "title": "Settings",
-    "subtitle": "Store name, currency, stock levels, and barcode labels.",
+    "subtitle": "Store name, currency, stock levels, notifications, and barcode labels.",
     "form": {
       "readOnlyHint": "You can view settings only. Ask an admin to make changes.",
       "storeInfoTitle": "Store info",
@@ -745,6 +745,14 @@
       "inventoryTitle": "Inventory",
       "lowStockThreshold": "Low-stock alert level",
       "lowStockThresholdHint": "Products at or below this quantity are flagged as low stock.",
+      "saleNotificationsTitle": "Sale notifications",
+      "saleNotificationsIntro": "Every sale made by a manager or an employee sends a notification to the admins' phones. Nobody is notified of their own sale.",
+      "saleNotificationsEnabled": "Send a notification for sales",
+      "saleNotificationMode": "When to notify",
+      "saleNotificationModeOption": {
+        "EVERY_SALE": "On every sale"
+      },
+      "saleNotificationModeHint": "More options are coming later, such as sales above a set amount or a periodic summary.",
       "labelsTitle": "Barcode labels",
       "labelsIntro": "How barcode labels come out of your printer. The Labels screen uses these numbers every time it prints.",
       "labelPrintMode": "Printer type",
@@ -778,6 +786,38 @@
       "saving": "Saving…",
       "save": "Save changes",
       "saved": "Settings saved."
+    },
+    "notifications": {
+      "title": "Notifications on this device",
+      "intro": "Turn notifications on to hear about sales on this phone as they happen. This setting applies to this device only.",
+      "state": {
+        "on": "Notifications are on for this device.",
+        "off": "Notifications are off for this device."
+      },
+      "turnOn": "Turn on notifications",
+      "turnOff": "Turn off notifications",
+      "permissionLabel": "Browser notification permission",
+      "permission": {
+        "default": "Not asked yet",
+        "granted": "Allowed",
+        "denied": "Blocked"
+      },
+      "blocked": {
+        "unsupported": "This browser can't show notifications. Try another browser or another phone.",
+        "needs-install": "On iPhone and iPad, add the app to the Home Screen first: tap the share button, choose “Add to Home Screen”, then open the app from its icon and turn notifications on here.",
+        "not-configured": "Notifications aren't set up on the server yet. Ask whoever runs the server.",
+        "denied": "Notifications are blocked for this site. Allow them in your browser or phone settings, then try again."
+      },
+      "failed": "Couldn't change the notification setting. Please try again.",
+      "iosHint": "iPhone and iPad note: notifications only arrive once the app has been added to the Home Screen and opened from its icon."
+    }
+  },
+  "push": {
+    "sale": {
+      "title": "New sale",
+      "body": "{items} — {total} — {staff}",
+      "itemSeparator": ", ",
+      "moreItems": "+{count} more"
     }
   },
   "users": {
@@ -892,6 +932,10 @@
     "imageReorderMismatch": "The image order doesn't match the current images.",
     "inventoryParentHasVariants": "This product's stock is managed per variant.",
     "settingDefaultLanguageNotSupported": "That language isn't supported yet.",
+    "settingSaleNotificationModeUnsupported": "That option isn't available yet.",
+    "pushEndpointInvalid": "This device couldn't be registered for notifications.",
+    "pushNotConfigured": "Notifications aren't set up on the server yet.",
+    "pushSubscriptionNotFound": "This device isn't registered for notifications.",
     "userNotFound": "User not found.",
     "authSignupFailed": "Couldn't create the account.",
     "validationImagePointOutOfRange": "The point must be within the image.",

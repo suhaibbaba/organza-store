@@ -42,6 +42,34 @@ export const SERVICE_WORKER_PATH = "/sw.js";
 /** Query params the worker reads off its own script URL (it can't import app code). */
 export const SERVICE_WORKER_VERSION_PARAM = "v";
 export const SERVICE_WORKER_OFFLINE_PARAM = "offline";
+export const SERVICE_WORKER_MESSAGES_PARAM = "messages";
+
+/**
+ * Where the worker reads the notification wording from, per language.
+ *
+ * A push notification is drawn by the service worker, which cannot import
+ * next-intl — and the API deliberately sends translation keys rather than
+ * sentences (CLAUDE.md rule 12). This route hands the worker the same
+ * messages/*.json the rest of the app uses, so notification text lives in
+ * exactly one place and is never hard-coded in sw.js.
+ */
+export const PUSH_MESSAGES_BASE_PATH = "/api/push-messages";
+export const pushMessagesPath = (locale: string): string => `${PUSH_MESSAGES_BASE_PATH}/${locale}`;
+
+/** The messages namespace that route exposes — the notification wording only. */
+export const PUSH_MESSAGES_NAMESPACE = "push";
+
+/** Where a tapped notification lands: the order it is about. */
+export const orderDetailPath = (locale: string, orderId: string): string => `/${locale}/orders/${orderId}`;
+
+/**
+ * How long to wait for the service worker to take control before giving up
+ * on switching notifications on. `navigator.serviceWorker.ready` never
+ * rejects — it simply never resolves when no worker is registered (which is
+ * every dev build, where registration is skipped) — so a bounded wait is the
+ * difference between an error message and a button that spins forever.
+ */
+export const SERVICE_WORKER_READY_TIMEOUT_MS = 10_000;
 
 /**
  * Offline fallback route. Public (see proxy.ts) because the worker precaches

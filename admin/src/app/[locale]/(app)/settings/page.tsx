@@ -5,6 +5,7 @@ import { RoleGuard } from "@/components/auth/role-guard";
 import { useSettingsQuery } from "@/hooks/use-settings";
 import { useTranslateError } from "@/hooks/use-translate-error";
 import { SettingsForm } from "@/components/settings/settings-form";
+import { NotificationsCard } from "@/components/settings/notifications-card";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { ApiError } from "@/lib/api/errors";
@@ -36,7 +37,12 @@ function SettingsPageContent() {
           </Button>
         </Alert>
       ) : (
-        <SettingsForm setting={setting} />
+        <>
+          {/* This phone's own notification permission sits above the shop-wide
+              settings: it is the part the Admin has to do on each device. */}
+          <NotificationsCard />
+          <SettingsForm setting={setting} />
+        </>
       )}
     </div>
   );

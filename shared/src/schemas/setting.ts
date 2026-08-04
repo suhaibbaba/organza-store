@@ -1,7 +1,9 @@
 import { z } from "zod";
-import { i18nSchema } from "@/schemas/common";
+import { decimalInput, i18nSchema } from "@/schemas/common";
 import { SUPPORTED_LANGUAGES } from "@/constants/languages";
 import { LABEL_LIMITS, LABEL_PRINT_MODES } from "@/constants/label";
+import { IMPLEMENTED_SALE_NOTIFICATION_MODES } from "@/constants/push";
+import { ERROR_CODES } from "@/constants/errors";
 
 // A label dimension in millimetres: a real piece of paper, so it has to be
 // positive and can't be absurd.
@@ -31,5 +33,17 @@ export const updateSettingSchema = z.object({
   labelPageMarginLeftMm: labelSpacingMm.optional(),
   labelGapXMm: z.coerce.number().min(0).max(LABEL_LIMITS.maxGapMm).optional(),
   labelGapYMm: z.coerce.number().min(0).max(LABEL_LIMITS.maxGapMm).optional(),
+  // --- sale notifications ---
+  // Only the modes that are actually implemented may be saved: a mode the
+  // sender doesn't understand yet would silently mean "no notifications".
+  // Adding one later is an entry in IMPLEMENTED_SALE_NOTIFICATION_MODES plus
+  // its branch in the sender — nothing here changes.
+  saleNotificationsEnabled: z.boolean().optional(),
+  saleNotificationMode: z
+    .enum(IMPLEMENTED_SALE_NOTIFICATION_MODES, {
+      errorMap: () => ({ message: ERROR_CODES.SETTING_SALE_NOTIFICATION_MODE_UNSUPPORTED }),
+    })
+    .optional(),
+  saleNotificationMinAmount: decimalInput.optional(),
 });
 export type UpdateSettingInput = z.infer<typeof updateSettingSchema>;

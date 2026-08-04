@@ -28,6 +28,7 @@ import { deductStock, restoreStock } from "@/lib/orderStock";
 import { serializeOrder, serializeOrderSummary } from "@/lib/orderSerialize";
 import { queryCollectionSummary, toCollectionSummary } from "@/lib/orderCollection";
 import { findCustomerSuggestions } from "@/lib/orderCustomers";
+import { scheduleSaleNotification } from "@/lib/saleNotifications";
 import { writeAudit } from "@/lib/audit";
 import {
   AUDIT_ENTITY,
@@ -359,6 +360,14 @@ router.post(
       entityId: created.id,
       newValue: serializeOrder(created, Role.ADMIN),
     });
+
+    // The shop owner isn't at the counter all day, so a sale made by someone
+    // else is pushed to whichever Admin devices have opted in. Deliberately
+    // NOT awaited and after the order is committed: a push service being
+    // slow or down must never delay a queue at the till, and must never turn
+    // a completed sale into an error (failures go to the error-tracking
+    // layer instead — see lib/saleNotifications.ts).
+    scheduleSaleNotification(created, req.user!);
 
     sendOk(res, serializeOrder(created, req.user!.role), null, 201);
   })

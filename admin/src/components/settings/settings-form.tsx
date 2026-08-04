@@ -7,6 +7,7 @@ import { useTranslations } from "next-intl";
 import { can } from "@shared/lib/permissions";
 import { PALESTINE_PHONE_PREFIXES } from "@shared/constants/phone";
 import { LABEL_LIMITS, LABEL_PRINT_MODES } from "@shared/constants/label";
+import { IMPLEMENTED_SALE_NOTIFICATION_MODES } from "@shared/constants/push";
 import type { Setting } from "@shared/types/setting";
 import { useSession } from "@/components/providers/session-provider";
 import { useTranslateError } from "@/hooks/use-translate-error";
@@ -19,6 +20,7 @@ import { Input } from "@/components/ui/input";
 import { NumericInput } from "@/components/ui/numeric-input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Alert } from "@/components/ui/alert";
@@ -106,6 +108,9 @@ export function SettingsForm({ setting }: { setting: Setting }) {
   // screen on a thermal roll — a shorter form is a clearer form on a phone.
   const labelPrintMode = useWatch({ control, name: "labelPrintMode" });
   const isA4Grid = labelPrintMode === "A4_GRID";
+
+  // With notifications off there is nothing to say about *which* sales.
+  const saleNotificationsEnabled = useWatch({ control, name: "saleNotificationsEnabled" });
 
   const mutation = useUpdateSettingsMutation();
 
@@ -244,6 +249,56 @@ export function SettingsForm({ setting }: { setting: Setting }) {
             <p className="text-sm text-destructive">{translateError(errors.lowStockThreshold.message ?? "")}</p>
           )}
           <p className="text-sm text-muted-foreground">{t("lowStockThresholdHint")}</p>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>{t("saleNotificationsTitle")}</CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-4">
+          <p className="text-sm text-muted-foreground">{t("saleNotificationsIntro")}</p>
+
+          <div className="flex items-center justify-between gap-4">
+            <Label htmlFor="saleNotificationsEnabled" className="flex-1">
+              {t("saleNotificationsEnabled")}
+            </Label>
+            <Controller
+              control={control}
+              name="saleNotificationsEnabled"
+              render={({ field }) => (
+                <Switch
+                  id="saleNotificationsEnabled"
+                  disabled={!canManage}
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              )}
+            />
+          </div>
+
+          {/* Which sales are worth a notification. Only one answer today, so
+              it stays off the screen until the switch is on — a select with
+              nothing to choose between is noise on a phone. */}
+          {saleNotificationsEnabled && (
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="saleNotificationMode">{t("saleNotificationMode")}</Label>
+              <Controller
+                control={control}
+                name="saleNotificationMode"
+                render={({ field }) => (
+                  <Select id="saleNotificationMode" disabled={!canManage} value={field.value} onChange={field.onChange}>
+                    {IMPLEMENTED_SALE_NOTIFICATION_MODES.map((mode) => (
+                      <option key={mode} value={mode}>
+                        {t(`saleNotificationModeOption.${mode}`)}
+                      </option>
+                    ))}
+                  </Select>
+                )}
+              />
+              <p className="text-sm text-muted-foreground">{t("saleNotificationModeHint")}</p>
+            </div>
+          )}
         </CardContent>
       </Card>
 

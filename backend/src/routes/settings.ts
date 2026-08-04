@@ -1,6 +1,7 @@
 import { Router } from "express";
-import { AuditAction } from "@prisma/client";
+import { AuditAction, type Setting } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import { formatMoney } from "@/lib/money";
 import { asyncHandler } from "@/middleware/asyncHandler";
 import { requireAuth, requirePermission } from "@/middleware/auth";
 import { validateBody } from "@/middleware/validate";
@@ -22,10 +23,16 @@ async function getOrCreateSettings() {
   });
 }
 
+// Money leaves the API as a fixed-2dp string like it does everywhere else,
+// rather than as whatever Decimal's own JSON form happens to be.
+function serializeSetting(setting: Setting) {
+  return { ...setting, saleNotificationMinAmount: formatMoney(setting.saleNotificationMinAmount) };
+}
+
 router.get(
   "/",
   asyncHandler(async (_req, res) => {
-    sendOk(res, await getOrCreateSettings());
+    sendOk(res, serializeSetting(await getOrCreateSettings()));
   })
 );
 
@@ -66,6 +73,12 @@ router.patch(
         labelPageMarginLeftMm: body.labelPageMarginLeftMm,
         labelGapXMm: body.labelGapXMm,
         labelGapYMm: body.labelGapYMm,
+        // Sale notifications (Admin-only, like the rest of this screen): the
+        // master switch, which sales are worth a notification, and the
+        // threshold the ABOVE_AMOUNT mode will read once it exists.
+        saleNotificationsEnabled: body.saleNotificationsEnabled,
+        saleNotificationMode: body.saleNotificationMode,
+        saleNotificationMinAmount: body.saleNotificationMinAmount,
       },
     });
 
@@ -78,7 +91,7 @@ router.patch(
       newValue: updated,
     });
 
-    sendOk(res, updated);
+    sendOk(res, serializeSetting(updated));
   })
 );
 

@@ -1,5 +1,6 @@
 import type { I18n } from "@/types/common";
 import type { LABEL_PRINT_MODES } from "@/constants/label";
+import type { SaleNotificationMode } from "@/types/push";
 
 export type LabelPrintMode = (typeof LABEL_PRINT_MODES)[number];
 
@@ -27,5 +28,12 @@ export interface Setting {
   labelPageMarginLeftMm: number;
   labelGapXMm: number;
   labelGapYMm: number;
+  // --- sale notifications (Web Push to the Admins) ---
+  // The master switch, plus which sales are worth a notification. Only
+  // EVERY_SALE is implemented today; minAmount is stored in every mode so
+  // switching modes never loses the figure the shop chose.
+  saleNotificationsEnabled: boolean;
+  saleNotificationMode: SaleNotificationMode;
+  saleNotificationMinAmount: string;
   updatedAt: string;
 }

@@ -57,9 +57,10 @@ model User {
   accounts Account[]
   sessions Session[]
 
-  createdProducts Product[]  @relation("ProductCreatedBy")
-  createdOrders   Order[]    @relation("OrderCreatedBy")
-  auditLogs       AuditLog[]
+  createdProducts   Product[]           @relation("ProductCreatedBy")
+  createdOrders     Order[]             @relation("OrderCreatedBy")
+  auditLogs         AuditLog[]
+  pushSubscriptions PushSubscription[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -378,6 +379,52 @@ model AuditLog {
 }
 
 // ============================================================
+//  WEB PUSH SUBSCRIPTIONS
+//  One row per device an Admin has opted in on (the Web Push standard —
+//  free, no paid service). The three fields the standard defines (endpoint +
+//  the two keys) are exactly what the browser hands us; nothing is invented
+//  here. A subscription is a device, not a person: the same phone can be
+//  handed to another member of staff, so the endpoint is unique on its own
+//  and re-subscribing moves it to whoever is signed in now.
+// ============================================================
+
+model PushSubscription {
+  id String @id @default(cuid())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // The push service's URL for this device. Globally unique — it IS the
+  // device's identity as far as the standard is concerned.
+  endpoint String @unique
+  // Public key + auth secret from the browser, used to encrypt the payload
+  // so the push service can carry it without being able to read it.
+  p256dh   String
+  auth     String
+
+  // Language this device asked for, so the notification is rendered in the
+  // language its owner actually reads (null => the store default). Only a
+  // preference, never an identity.
+  locale    String?
+  // Whatever the browser reported at opt-in, purely so a stale device can be
+  // recognised in the list ("iPhone", "Chrome on Android").
+  userAgent String?
+
+  // When a notification was last pushed at this device, and when the push
+  // service last accepted one. Kept apart because a device that is being
+  // written to but never accepting is exactly what a broken subscription
+  // looks like — and because a push that fails must stay invisible to the
+  // sale that triggered it (see lib/saleNotifications.ts).
+  lastAttemptAt DateTime?
+  lastSuccessAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+// ============================================================
 //  ORDERS (Phase 2)
 //  A sale, from either the POS counter or a remote channel.
 //  Money is ALWAYS computed on the server from the line snapshots below —
@@ -546,6 +593,17 @@ enum LabelPrintMode {
   A4_GRID
 }
 
+// When the Admins are told about a sale someone else made. Only EVERY_SALE
+// is implemented today; the other two are declared now so that adding them
+// later is a new branch in lib/saleNotifications.ts rather than a migration
+// plus a settings redesign. shared/src/constants/push.ts is the single list
+// of which of these the API currently accepts.
+enum SaleNotificationMode {
+  EVERY_SALE // one notification per sale
+  ABOVE_AMOUNT // only sales worth at least saleNotificationMinAmount (later)
+  PERIODIC_SUMMARY // one digest every so often instead of per sale (later)
+}
+
 model Setting {
   id                 String   @id @default("default") // singleton row
   storeName          Json // translatable { ar, en, he }
@@ -574,6 +632,17 @@ model Setting {
   labelPageMarginLeftMm   Float          @default(8)
   labelGapXMm             Float          @default(3)
   labelGapYMm             Float          @default(3)
+
+  // --- sale notifications (Web Push to the Admins; Admin-only to edit) ---
+  // The shop owner is not at the counter all day, so a sale rung up by a
+  // Manager or an Employee is pushed to whichever Admin devices have opted
+  // in. The toggle is the master switch; the mode says *which* sales are
+  // worth a notification. minAmount is only read by ABOVE_AMOUNT, but is
+  // stored in either mode so switching back and forth doesn't lose the
+  // figure the shop chose. Decimal because it is money (CLAUDE.md).
+  saleNotificationsEnabled  Boolean              @default(true)
+  saleNotificationMode      SaleNotificationMode @default(EVERY_SALE)
+  saleNotificationMinAmount Decimal              @default(0) @db.Decimal(10, 2)
 
   updatedAt DateTime @updatedAt
 }

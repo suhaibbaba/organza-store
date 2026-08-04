@@ -51,6 +51,12 @@ async function main() {
       currency: "ILS",
       defaultCountryCode: "+970",
       lowStockThreshold: 3,
+      // Sale notifications: on, one per sale. Mirrors the schema defaults and
+      // SALE_NOTIFICATION_DEFAULTS in shared/src/constants/push.ts — a dev
+      // database should behave like a fresh shop.
+      saleNotificationsEnabled: true,
+      saleNotificationMode: "EVERY_SALE",
+      saleNotificationMinAmount: "0",
     },
   });
 

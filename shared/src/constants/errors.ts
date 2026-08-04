@@ -71,6 +71,16 @@ export const ERROR_CODES = {
   REPORT_RANGE_TOO_LONG: "error.report.range_too_long",
 
   SETTING_DEFAULT_LANGUAGE_NOT_SUPPORTED: "error.setting.default_language_not_supported",
+  // A sale-notification mode that exists in the schema but isn't implemented
+  // yet (see IMPLEMENTED_SALE_NOTIFICATION_MODES) — told apart from a plain
+  // validation error so the admin can say "not available yet" rather than
+  // "invalid value".
+  SETTING_SALE_NOTIFICATION_MODE_UNSUPPORTED: "error.setting.sale_notification_mode_unsupported",
+
+  // Web Push
+  PUSH_ENDPOINT_INVALID: "error.push.endpoint_invalid",
+  PUSH_NOT_CONFIGURED: "error.push.not_configured",
+  PUSH_SUBSCRIPTION_NOT_FOUND: "error.push.subscription_not_found",
 
   USER_NOT_FOUND: "error.user.not_found",
   AUTH_SIGNUP_FAILED: "error.auth.signup_failed",
