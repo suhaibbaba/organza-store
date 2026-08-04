@@ -482,7 +482,8 @@
       "cost": "עלות",
       "wasPrice": "היה {price}",
       "descriptionTitle": "תיאור",
-      "imagesTitle": "תמונות",
+      "numberedPointsAlt": "תמונת המוצר עם המספרים שלה",
+      "numberedPointsHint": "{count} מספרים ממוקמים על התמונה הזו.",
       "variantsTitle": "וריאציות",
       "variantsCount": "{count} וריאציות",
       "variantSku": "מק\"ט",
@@ -490,7 +491,13 @@
       "variantPrice": "מחיר",
       "variantStatus": "סטטוס",
       "edit": "עריכה",
-      "manageImages": "תמונות"
+      "delete": {
+        "action": "מחיקת המוצר",
+        "confirm": "למחוק את המוצר הזה? הוא ייעלם מרשימת המוצרים, מהקופה ומהחנות. הזמנות קודמות נשמרות.",
+        "confirmAction": "כן, למחוק",
+        "keep": "להשאיר",
+        "success": "המוצר נמחק."
+      }
     },
     "form": {
       "back": "חזרה",

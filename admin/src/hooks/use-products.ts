@@ -7,6 +7,7 @@ import {
   updateProduct,
   generateVariants,
   updateVariant,
+  deleteProduct,
   deleteVariant,
 } from "@/lib/api/products";
 import type { ProductListFilters } from "@/types/product";
@@ -50,6 +51,16 @@ export function useUpdateProductMutation(id: string) {
   const invalidate = useInvalidateProducts(id);
   return useMutation({
     mutationFn: (input: Parameters<typeof updateProduct>[1]) => updateProduct(id, input),
+    onSuccess: invalidate,
+  });
+}
+
+// Soft delete (CLAUDE.md rule 4) — the product drops out of every list, so
+// both caches are refreshed the same way an edit refreshes them.
+export function useDeleteProductMutation(id: string) {
+  const invalidate = useInvalidateProducts(id);
+  return useMutation({
+    mutationFn: () => deleteProduct(id),
     onSuccess: invalidate,
   });
 }
