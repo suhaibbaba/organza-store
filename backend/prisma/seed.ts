@@ -155,8 +155,12 @@ async function main() {
   });
 
   // helper: create/refresh a product + its variants deterministically
+  //
+  // `productNumber` is deliberately NOT passed in: it's a DB autoincrement, and
+  // hard-coding it made re-seeding blow up with P2002 as soon as real products
+  // (created via the admin or the tests) had taken those numbers. The database
+  // assigns it; `slug` is the stable upsert key.
   async function upsertProduct(opts: {
-    productNumber: number;
     slug: string;
     name: I18n;
     description?: I18n;
@@ -202,18 +206,35 @@ async function main() {
       trackLowStock: opts.trackLowStock ?? false,
       deletedAt: opts.deleted ? new Date() : null,
       barcode,
-      // simple-product fields
-      sku: opts.simple ? productSku(opts.productNumber) : null,
       stock: opts.simple ? opts.simple.stock : 1,
     };
 
+    // No `productNumber` in `create` — Postgres assigns it, exactly like the
+    // POST /api/products route does.
     const product = await prisma.product.upsert({
       where: { slug: opts.slug },
       update: base,
-      create: { productNumber: opts.productNumber, ...base },
+      create: base,
     });
 
-    // reset variants for idempotency, then recreate
+    // SKU is derived from the real assigned productNumber and frozen at
+    // creation (CLAUDE.md rule 1), so it's written once and never rewritten on
+    // a re-seed. Mirrors the second write in POST /api/products, where the
+    // number likewise only exists after the insert.
+    if (opts.simple && !product.sku) {
+      await prisma.product.update({
+        where: { id: product.id },
+        data: { sku: productSku(product.productNumber) },
+      });
+    }
+
+    // reset variants for idempotency, then recreate — keep the existing
+    // barcodes (frozen, like the product's) so they don't rotate every run
+    const previousVariants = await prisma.variant.findMany({
+      where: { productId: product.id },
+      select: { variantNumber: true, barcode: true },
+    });
+    const variantBarcodes = new Map(previousVariants.map((v) => [v.variantNumber, v.barcode]));
     await prisma.variant.deleteMany({ where: { productId: product.id } });
 
     if (opts.variants?.length) {
@@ -238,8 +259,8 @@ async function main() {
             productId: product.id,
             variantNumber: n,
             name: v.name,
-            sku: variantSku(opts.productNumber, n),
-            barcode: await generateUniqueBarcode(),
+            sku: variantSku(product.productNumber, n),
+            barcode: variantBarcodes.get(n) ?? (await generateUniqueBarcode()),
             stock: v.stock ?? 1,
             priceOverride: v.priceOverride ?? null, // null => inherits basePrice
             cost: v.cost ?? null, // null => inherits product.cost
@@ -255,9 +276,17 @@ async function main() {
     return product;
   }
 
+  // Repair for databases touched by the old seed, which inserted explicit
+  // `productNumber` values and so left Postgres's sequence behind the real max.
+  // Nothing here writes the column any more, but an out-of-sync sequence would
+  // still make the next insert (seed or API) fail with P2002. Point it at
+  // max + 1; on an empty table that's 1, i.e. exactly the default.
+  await prisma.$executeRawUnsafe(
+    `SELECT setval(pg_get_serial_sequence('"Product"', 'productNumber'), COALESCE((SELECT MAX("productNumber") FROM "Product"), 0) + 1, false)`
+  );
+
   // 1) Simple product (no variants) — SKU/stock on the parent
   await upsertProduct({
-    productNumber: 1,
     slug: "silk-scarf",
     name: { ar: "شال حرير", en: "Silk Scarf", he: "צעיף משי" },
     description: { ar: "شال حرير ناعم", en: "Soft silk scarf", he: "צעיף משי רך" },
@@ -269,7 +298,6 @@ async function main() {
 
   // 2) One option (Size only)
   await upsertProduct({
-    productNumber: 2,
     slug: "basic-abaya",
     name: { ar: "عباية كلاسيك", en: "Classic Abaya", he: "עבאיה קלאסית" },
     categoryId: abayas.id,
@@ -287,7 +315,6 @@ async function main() {
 
   // 3) Two options (Color × Size) — cartesian; incl. price override + inherited
   await upsertProduct({
-    productNumber: 3,
     slug: "evening-dress",
     name: { ar: "فستان سهرة", en: "Evening Dress", he: "שמלת ערב" },
     description: { ar: "فستان سهرة فاخر", en: "Luxury evening dress", he: "שמלת ערב יוקרתית" },
@@ -307,7 +334,6 @@ async function main() {
 
   // 4) Hidden product (isActive = false) — should not appear in normal listings
   await upsertProduct({
-    productNumber: 4,
     slug: "hidden-sample",
     name: { ar: "منتج مخفي", en: "Hidden Sample", he: "מוצר מוסתר" },
     categoryId: dresses.id,
@@ -318,7 +344,6 @@ async function main() {
 
   // 5) Soft-deleted product (deletedAt set) — should be excluded everywhere
   await upsertProduct({
-    productNumber: 5,
     slug: "deleted-sample",
     name: { ar: "منتج محذوف", en: "Deleted Sample", he: "מוצר שנמחק" },
     categoryId: dresses.id,
@@ -331,7 +356,6 @@ async function main() {
   //    placed point on the product image, so the list badge and the numbered
   //    editor both have real data to render.
   await upsertProduct({
-    productNumber: 6,
     slug: "numbered-shawl-collection",
     name: { ar: "تشكيلة شالات مرقّمة", en: "Numbered Shawl Collection", he: "מארז צעיפים ממוספרים" },
     description: {
@@ -351,14 +375,6 @@ async function main() {
       { combo: ["number:6"], name: { ar: "6", en: "6", he: "6" }, stock: 1, imageX: 76, imageY: 64, priceOverride: 75 },
     ],
   });
-
-  // The seed inserts explicit `productNumber` values (for deterministic SKUs),
-  // which bypasses Postgres's autoincrement sequence — left alone, the very
-  // first API-created product would collide with productNumber=1. Re-sync the
-  // sequence to the current max so real inserts continue from there.
-  await prisma.$executeRawUnsafe(
-    `SELECT setval(pg_get_serial_sequence('"Product"', 'productNumber'), COALESCE((SELECT MAX("productNumber") FROM "Product"), 1))`
-  );
 
   console.log("✅ Seed complete.");
   console.log("   Users: admin@ / manager@ / employee@organza.test  (password: password123)");
