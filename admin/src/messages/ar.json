@@ -15,6 +15,7 @@
   },
   "nav": {
     "dashboard": "الرئيسية",
+    "orders": "الطلبات",
     "products": "المنتجات",
     "inventory": "المخزون",
     "categories": "الأقسام",
@@ -60,6 +61,237 @@
     "salesPlaceholder": {
       "title": "المبيعات والأرباح",
       "description": "ستتوفر هذه البيانات بعد تفعيل نظام الطلبات."
+    }
+  },
+  "orders": {
+    "title": "الطلبات",
+    "subtitle": "طلبات المتجر والواتساب والموقع.",
+    "newOrder": "طلب جديد",
+    "search": {
+      "placeholder": "ابحث برقم الطلب أو اسم الزبون أو هاتفه",
+      "label": "البحث في الطلبات",
+      "clear": "مسح البحث"
+    },
+    "sort": {
+      "label": "الترتيب",
+      "newest": "الأحدث أولًا",
+      "oldest": "الأقدم أولًا",
+      "totalHighToLow": "المبلغ: من الأعلى للأدنى",
+      "totalLowToHigh": "المبلغ: من الأدنى للأعلى",
+      "numberDesc": "رقم الطلب: تنازلي",
+      "numberAsc": "رقم الطلب: تصاعدي"
+    },
+    "filters": {
+      "trigger": "تصفية",
+      "title": "تصفية الطلبات",
+      "status": "الحالة",
+      "statusAll": "كل الحالات",
+      "channel": "مصدر الطلب",
+      "channelAll": "كل المصادر",
+      "dateRange": "الفترة الزمنية",
+      "dateFrom": "من تاريخ",
+      "dateTo": "إلى تاريخ",
+      "reset": "إعادة ضبط",
+      "apply": "تطبيق"
+    },
+    "status": {
+      "NEW": "جديد",
+      "PREPARING": "قيد التحضير",
+      "DELIVERING": "قيد التوصيل",
+      "RECEIVED": "تم الاستلام",
+      "COMPLETED": "مكتمل",
+      "CANCELLED": "ملغي",
+      "RETURNED": "مُرجع"
+    },
+    "channel": {
+      "STORE": "المتجر",
+      "WHATSAPP": "واتساب",
+      "WEBSITE": "الموقع"
+    },
+    "payment": {
+      "CASH": "نقدًا"
+    },
+    "discount": {
+      "title": "خصم",
+      "subtitle": "على {name} — {amount}",
+      "typeLabel": "نوع الخصم",
+      "type": {
+        "PERCENT": "نسبة مئوية",
+        "AMOUNT": "مبلغ ثابت"
+      },
+      "valueLabel": {
+        "PERCENT": "النسبة",
+        "AMOUNT": "المبلغ"
+      },
+      "valuePlaceholder": {
+        "PERCENT": "مثال: 10",
+        "AMOUNT": "مثال: 20"
+      },
+      "invalid": "أدخل قيمة صحيحة (النسبة من 0 إلى 100).",
+      "apply": "تطبيق الخصم",
+      "remove": "إزالة الخصم",
+      "percentValue": "{value}%"
+    },
+    "card": {
+      "orderNumber": "طلب رقم {number}",
+      "itemCount": "{count, plural, one {منتج واحد} two {منتجان} few {# منتجات} other {# منتجًا}}"
+    },
+    "table": {
+      "orderNumber": "رقم الطلب",
+      "channel": "المصدر",
+      "status": "الحالة",
+      "customer": "الزبون",
+      "noCustomer": "—",
+      "date": "التاريخ",
+      "total": "المجموع"
+    },
+    "empty": {
+      "noOrdersTitle": "لا توجد طلبات بعد",
+      "noOrdersDescription": "ستظهر هنا الطلبات فور تسجيلها.",
+      "noMatchesTitle": "لا توجد نتائج",
+      "noMatchesDescription": "جرّب تغيير البحث أو التصفية."
+    },
+    "pagination": {
+      "previous": "السابق",
+      "next": "التالي",
+      "pageOf": "صفحة {page} من {totalPages}"
+    },
+    "detail": {
+      "back": "الطلبات",
+      "notFoundTitle": "الطلب غير موجود",
+      "notFoundDescription": "قد يكون هذا الطلب محذوفًا.",
+      "items": {
+        "title": "{count, plural, one {منتج واحد} two {منتجان} few {# منتجات} other {# منتجًا}}",
+        "noSku": "بدون SKU",
+        "quantity": "الكمية: {count}",
+        "unitPrice": "سعر القطعة: {price}",
+        "itemDiscount": "خصم {label} (−{amount})",
+        "returned": "تم إرجاع {count} من هذا المنتج"
+      },
+      "totals": {
+        "subtotal": "المجموع الفرعي",
+        "orderDiscount": "خصم على الطلب ({label})",
+        "total": "المجموع النهائي",
+        "paymentMethod": "طريقة الدفع"
+      },
+      "customer": {
+        "title": "بيانات الزبون",
+        "whatsappLabel": "واتساب",
+        "openMap": "فتح الموقع على الخريطة",
+        "note": "ملاحظة"
+      },
+      "meta": {
+        "createdBy": "أنشأ الطلب",
+        "unknownStaff": "غير معروف",
+        "createdAt": "تاريخ الإنشاء",
+        "updatedAt": "آخر تحديث",
+        "stockDeducted": "خصم المخزون",
+        "stockNotDeducted": "لم يُخصم بعد"
+      },
+      "statusActions": {
+        "progressLabel": "مراحل الطلب",
+        "moved": "تم تحديث الحالة إلى: {status}",
+        "advanceTo": {
+          "PREPARING": "ابدأ التحضير",
+          "DELIVERING": "أرسِل للتوصيل",
+          "RECEIVED": "تم استلام الزبون للطلب"
+        },
+        "stockDeductionNotice": "عند بدء التحضير سيتم خصم الكميات من المخزون.",
+        "cancelOrder": "إلغاء الطلب",
+        "confirmCancel": "هل تريد إلغاء هذا الطلب؟",
+        "confirmCancelWithStock": "هل تريد إلغاء هذا الطلب؟ ستعود الكميات إلى المخزون.",
+        "confirmCancelAction": "نعم، ألغِ الطلب",
+        "keepOrder": "تراجع"
+      },
+      "returns": {
+        "title": "إرجاع",
+        "description": "أرجِع الطلب بالكامل أو حدّد الكمية لكل منتج. ستعود الكميات إلى المخزون.",
+        "returnWholeOrder": "إرجاع الطلب بالكامل",
+        "or": "أو",
+        "pickItems": "إرجاع منتجات محددة",
+        "outstanding": "المتبقي: {count}",
+        "decrease": "إنقاص الكمية — {name}",
+        "increase": "زيادة الكمية — {name}",
+        "quantityFor": "الكمية المُرجعة — {name}",
+        "returnSelected": "{count, plural, =0 {إرجاع المحدد} one {إرجاع قطعة واحدة} two {إرجاع قطعتين} few {إرجاع # قطع} other {إرجاع # قطعة}}",
+        "nothingLeft": "لا توجد كميات متبقية للإرجاع في هذا الطلب."
+      },
+      "manage": {
+        "returnItems": "إرجاع منتجات",
+        "deleteOrder": "حذف الطلب",
+        "confirmDelete": "هل تريد حذف هذا الطلب؟ سيُخفى من كل الشاشات.",
+        "confirmDeleteWithStock": "هل تريد حذف هذا الطلب؟ سيُخفى من كل الشاشات وستعود الكميات إلى المخزون.",
+        "confirmDeleteAction": "نعم، احذف الطلب",
+        "keepOrder": "تراجع",
+        "noPermission": "يمكنك تحديث حالة الطلب فقط. الإلغاء والإرجاع والحذف تحتاج صلاحية مدير."
+      }
+    },
+    "new": {
+      "back": "الطلبات",
+      "title": "طلب واتساب جديد",
+      "subtitle": "سجّل طلبًا وصل عبر الواتساب.",
+      "itemsTitle": "المنتجات",
+      "needItems": "أضف منتجًا واحدًا على الأقل قبل الحفظ.",
+      "save": "حفظ الطلب",
+      "saving": "جارٍ الحفظ…",
+      "wholeOrder": "الطلب كامل",
+      "search": {
+        "placeholder": "ابحث عن منتج بالاسم أو الـ SKU",
+        "label": "البحث عن منتج",
+        "clear": "مسح البحث",
+        "searching": "جارٍ البحث…",
+        "empty": "لا توجد منتجات مطابقة.",
+        "error": "تعذّر البحث. حاول مرة أخرى.",
+        "variantCount": "{count, plural, one {متغير واحد} two {متغيران} few {# متغيرات} other {# متغيرًا}}",
+        "inStock": "متوفر: {count}",
+        "soldOut": "غير متوفر"
+      },
+      "picker": {
+        "subtitle": "اختر المتغير المطلوب.",
+        "soldOut": "غير متوفر"
+      },
+      "lines": {
+        "empty": "لم تتم إضافة أي منتج بعد.",
+        "unitPrice": "سعر القطعة: {price}",
+        "remove": "إزالة {name}",
+        "decrease": "إنقاص الكمية — {name}",
+        "increase": "زيادة الكمية — {name}",
+        "quantityFor": "الكمية — {name}",
+        "discountFor": "خصم على {name}",
+        "addDiscount": "خصم",
+        "percentValue": "{value}%"
+      },
+      "totals": {
+        "subtotal": "المجموع الفرعي ({count})",
+        "itemDiscounts": "خصومات المنتجات",
+        "orderDiscount": "خصم على الطلب ({label})",
+        "addOrderDiscount": "خصم على الطلب",
+        "editOrderDiscount": "تعديل خصم الطلب",
+        "total": "المجموع النهائي"
+      },
+      "customer": {
+        "title": "بيانات الزبون",
+        "name": "اسم الزبون",
+        "phone": "رقم الهاتف",
+        "phonePrefixLabel": "مفتاح الدولة",
+        "whatsapp": "رقم الواتساب",
+        "whatsappHint": "اتركه فارغًا إذا كان نفس رقم الهاتف.",
+        "address": "العنوان",
+        "addressPlaceholder": "المدينة، الشارع، أقرب معلم…",
+        "location": "موقع على الخريطة (اختياري)",
+        "locationHint": "الصق الإحداثيات من الواتساب في خانة خط العرض وسيتم تعبئة الخانتين.",
+        "latitude": "خط العرض",
+        "longitude": "خط الطول",
+        "note": "ملاحظة (اختياري)",
+        "notePlaceholder": "أي تفاصيل إضافية عن الطلب…"
+      },
+      "success": {
+        "title": "تم حفظ الطلب",
+        "orderNumber": "طلب رقم {number}",
+        "nextStep": "الطلب الآن بحالة «جديد». سيتم خصم المخزون عند بدء التحضير.",
+        "openOrder": "فتح الطلب",
+        "newOrder": "طلب جديد"
+      }
     }
   },
   "products": {
@@ -451,6 +683,19 @@
     "settingDefaultLanguageNotSupported": "هذه اللغة غير مدعومة بعد.",
     "userNotFound": "المستخدم غير موجود.",
     "authSignupFailed": "تعذر إنشاء الحساب.",
-    "validationImagePointOutOfRange": "يجب أن تكون النقطة داخل حدود الصورة."
+    "validationImagePointOutOfRange": "يجب أن تكون النقطة داخل حدود الصورة.",
+    "orderNotFound": "الطلب غير موجود.",
+    "orderItemNotFound": "هذا العنصر غير موجود ضمن الطلب.",
+    "orderItemsRequired": "أضف منتجًا واحدًا على الأقل إلى الطلب.",
+    "orderCustomerRequired": "أدخل اسم الزبون ورقم هاتفه.",
+    "orderLocationInvalid": "الموقع غير صحيح. أدخل خط العرض وخط الطول معًا.",
+    "orderDiscountInvalid": "قيمة الخصم غير صحيحة.",
+    "orderInvalidStatusTransition": "لا يمكن نقل الطلب إلى هذه الحالة.",
+    "orderInsufficientStock": "الكمية المتوفرة في المخزون غير كافية.",
+    "orderNotEditable": "لا يمكن تعديل هذا الطلب بعد الآن.",
+    "orderNotReturnable": "لا يمكن إرجاع هذا الطلب.",
+    "orderReturnQuantityExceeded": "الكمية المُرجعة أكبر من الكمية المُباعة.",
+    "orderProductUnavailable": "هذا المنتج لم يعد متاحًا للبيع.",
+    "orderVariantRequired": "اختر المتغير المطلوب من هذا المنتج."
   }
 }

@@ -38,6 +38,14 @@ export interface OrderItem {
   unitCost?: string | null;
 }
 
+// Who rang the sale up, named rather than referenced by id so the admin can
+// show it without pulling the staff list (which is Admin-only). Deliberately
+// just id + name: nothing else about a staff member belongs on an order.
+export interface OrderCreator {
+  id: string;
+  name: string;
+}
+
 export interface Order {
   id: string;
   orderNumber: number;
@@ -67,6 +75,7 @@ export interface Order {
   deletedAt: string | null;
   items: OrderItem[];
   createdById: string;
+  createdBy: OrderCreator | null;
   createdAt: string;
   updatedAt: string;
 }

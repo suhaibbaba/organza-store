@@ -15,6 +15,7 @@
   },
   "nav": {
     "dashboard": "Dashboard",
+    "orders": "Orders",
     "products": "Products",
     "inventory": "Inventory",
     "categories": "Categories",
@@ -60,6 +61,237 @@
     "salesPlaceholder": {
       "title": "Sales & Profit",
       "description": "This will be available once the orders system is live."
+    }
+  },
+  "orders": {
+    "title": "Orders",
+    "subtitle": "Store, WhatsApp and website orders.",
+    "newOrder": "New order",
+    "search": {
+      "placeholder": "Search by order number, customer name or phone",
+      "label": "Search orders",
+      "clear": "Clear search"
+    },
+    "sort": {
+      "label": "Sort",
+      "newest": "Newest first",
+      "oldest": "Oldest first",
+      "totalHighToLow": "Total: high to low",
+      "totalLowToHigh": "Total: low to high",
+      "numberDesc": "Order number: high to low",
+      "numberAsc": "Order number: low to high"
+    },
+    "filters": {
+      "trigger": "Filter",
+      "title": "Filter orders",
+      "status": "Status",
+      "statusAll": "All statuses",
+      "channel": "Channel",
+      "channelAll": "All channels",
+      "dateRange": "Date range",
+      "dateFrom": "From date",
+      "dateTo": "To date",
+      "reset": "Reset",
+      "apply": "Apply"
+    },
+    "status": {
+      "NEW": "New",
+      "PREPARING": "Preparing",
+      "DELIVERING": "Out for delivery",
+      "RECEIVED": "Received",
+      "COMPLETED": "Completed",
+      "CANCELLED": "Cancelled",
+      "RETURNED": "Returned"
+    },
+    "channel": {
+      "STORE": "Store",
+      "WHATSAPP": "WhatsApp",
+      "WEBSITE": "Website"
+    },
+    "payment": {
+      "CASH": "Cash"
+    },
+    "discount": {
+      "title": "Discount",
+      "subtitle": "On {name} — {amount}",
+      "typeLabel": "Discount type",
+      "type": {
+        "PERCENT": "Percentage",
+        "AMOUNT": "Fixed amount"
+      },
+      "valueLabel": {
+        "PERCENT": "Percentage",
+        "AMOUNT": "Amount"
+      },
+      "valuePlaceholder": {
+        "PERCENT": "e.g. 10",
+        "AMOUNT": "e.g. 20"
+      },
+      "invalid": "Enter a valid value (a percentage must be 0–100).",
+      "apply": "Apply discount",
+      "remove": "Remove discount",
+      "percentValue": "{value}%"
+    },
+    "card": {
+      "orderNumber": "Order {number}",
+      "itemCount": "{count, plural, one {# item} other {# items}}"
+    },
+    "table": {
+      "orderNumber": "Order",
+      "channel": "Channel",
+      "status": "Status",
+      "customer": "Customer",
+      "noCustomer": "—",
+      "date": "Date",
+      "total": "Total"
+    },
+    "empty": {
+      "noOrdersTitle": "No orders yet",
+      "noOrdersDescription": "Orders will appear here as soon as they're taken.",
+      "noMatchesTitle": "No matching orders",
+      "noMatchesDescription": "Try a different search or filter."
+    },
+    "pagination": {
+      "previous": "Previous",
+      "next": "Next",
+      "pageOf": "Page {page} of {totalPages}"
+    },
+    "detail": {
+      "back": "Orders",
+      "notFoundTitle": "Order not found",
+      "notFoundDescription": "This order may have been deleted.",
+      "items": {
+        "title": "{count, plural, one {# item} other {# items}}",
+        "noSku": "No SKU",
+        "quantity": "Qty: {count}",
+        "unitPrice": "Unit price: {price}",
+        "itemDiscount": "{label} off (−{amount})",
+        "returned": "{count} returned"
+      },
+      "totals": {
+        "subtotal": "Subtotal",
+        "orderDiscount": "Order discount ({label})",
+        "total": "Total",
+        "paymentMethod": "Payment method"
+      },
+      "customer": {
+        "title": "Customer",
+        "whatsappLabel": "WhatsApp",
+        "openMap": "Open location on map",
+        "note": "Note"
+      },
+      "meta": {
+        "createdBy": "Created by",
+        "unknownStaff": "Unknown",
+        "createdAt": "Created",
+        "updatedAt": "Last updated",
+        "stockDeducted": "Stock deducted",
+        "stockNotDeducted": "Not deducted yet"
+      },
+      "statusActions": {
+        "progressLabel": "Order progress",
+        "moved": "Status updated to: {status}",
+        "advanceTo": {
+          "PREPARING": "Start preparing",
+          "DELIVERING": "Send for delivery",
+          "RECEIVED": "Customer received it"
+        },
+        "stockDeductionNotice": "Starting preparation deducts these items from stock.",
+        "cancelOrder": "Cancel order",
+        "confirmCancel": "Cancel this order?",
+        "confirmCancelWithStock": "Cancel this order? The items go back into stock.",
+        "confirmCancelAction": "Yes, cancel it",
+        "keepOrder": "Keep it"
+      },
+      "returns": {
+        "title": "Return",
+        "description": "Return the whole order, or set a quantity per item. Stock is restored either way.",
+        "returnWholeOrder": "Return the whole order",
+        "or": "or",
+        "pickItems": "Return specific items",
+        "outstanding": "{count} left",
+        "decrease": "Fewer — {name}",
+        "increase": "More — {name}",
+        "quantityFor": "Quantity to return — {name}",
+        "returnSelected": "{count, plural, =0 {Return selected} one {Return # item} other {Return # items}}",
+        "nothingLeft": "Nothing left to return on this order."
+      },
+      "manage": {
+        "returnItems": "Return items",
+        "deleteOrder": "Delete order",
+        "confirmDelete": "Delete this order? It will be hidden from every screen.",
+        "confirmDeleteWithStock": "Delete this order? It will be hidden from every screen and the items go back into stock.",
+        "confirmDeleteAction": "Yes, delete it",
+        "keepOrder": "Keep it",
+        "noPermission": "You can update the order status only. Cancelling, returning and deleting need a manager."
+      }
+    },
+    "new": {
+      "back": "Orders",
+      "title": "New WhatsApp order",
+      "subtitle": "Write down an order that came in over WhatsApp.",
+      "itemsTitle": "Products",
+      "needItems": "Add at least one product before saving.",
+      "save": "Save order",
+      "saving": "Saving…",
+      "wholeOrder": "the whole order",
+      "search": {
+        "placeholder": "Search products by name or SKU",
+        "label": "Search products",
+        "clear": "Clear search",
+        "searching": "Searching…",
+        "empty": "No matching products.",
+        "error": "Search failed. Please try again.",
+        "variantCount": "{count, plural, one {# variant} other {# variants}}",
+        "inStock": "{count} in stock",
+        "soldOut": "Sold out"
+      },
+      "picker": {
+        "subtitle": "Choose which one.",
+        "soldOut": "Sold out"
+      },
+      "lines": {
+        "empty": "No products added yet.",
+        "unitPrice": "Unit price: {price}",
+        "remove": "Remove {name}",
+        "decrease": "Fewer — {name}",
+        "increase": "More — {name}",
+        "quantityFor": "Quantity — {name}",
+        "discountFor": "Discount on {name}",
+        "addDiscount": "Discount",
+        "percentValue": "{value}%"
+      },
+      "totals": {
+        "subtotal": "Subtotal ({count})",
+        "itemDiscounts": "Item discounts",
+        "orderDiscount": "Order discount ({label})",
+        "addOrderDiscount": "Discount the whole order",
+        "editOrderDiscount": "Edit order discount",
+        "total": "Total"
+      },
+      "customer": {
+        "title": "Customer",
+        "name": "Customer name",
+        "phone": "Phone number",
+        "phonePrefixLabel": "Country code",
+        "whatsapp": "WhatsApp number",
+        "whatsappHint": "Leave empty if it's the same as the phone number.",
+        "address": "Address",
+        "addressPlaceholder": "City, street, nearest landmark…",
+        "location": "Map location (optional)",
+        "locationHint": "Paste the coordinates from WhatsApp into the latitude box and both fields fill in.",
+        "latitude": "Latitude",
+        "longitude": "Longitude",
+        "note": "Note (optional)",
+        "notePlaceholder": "Anything else about this order…"
+      },
+      "success": {
+        "title": "Order saved",
+        "orderNumber": "Order {number}",
+        "nextStep": "The order is New. Stock is deducted when preparation starts.",
+        "openOrder": "Open the order",
+        "newOrder": "New order"
+      }
     }
   },
   "products": {
@@ -451,6 +683,19 @@
     "settingDefaultLanguageNotSupported": "That language isn't supported yet.",
     "userNotFound": "User not found.",
     "authSignupFailed": "Couldn't create the account.",
-    "validationImagePointOutOfRange": "The point must be within the image."
+    "validationImagePointOutOfRange": "The point must be within the image.",
+    "orderNotFound": "Order not found.",
+    "orderItemNotFound": "That item isn't part of this order.",
+    "orderItemsRequired": "Add at least one product to the order.",
+    "orderCustomerRequired": "Enter the customer's name and phone number.",
+    "orderLocationInvalid": "That location isn't valid. Enter both latitude and longitude.",
+    "orderDiscountInvalid": "That discount value isn't valid.",
+    "orderInvalidStatusTransition": "The order can't move to that status.",
+    "orderInsufficientStock": "There isn't enough stock for that.",
+    "orderNotEditable": "This order can no longer be edited.",
+    "orderNotReturnable": "This order can't be returned.",
+    "orderReturnQuantityExceeded": "That's more than was sold.",
+    "orderProductUnavailable": "This product is no longer available to sell.",
+    "orderVariantRequired": "Choose which variant of this product."
   }
 }

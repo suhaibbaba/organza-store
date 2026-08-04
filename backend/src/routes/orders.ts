@@ -49,6 +49,10 @@ router.use(requireAuth);
 
 const orderInclude = {
   items: { orderBy: [{ createdAt: "asc" as const }, { id: "asc" as const }] },
+  // Just the author's name, so the admin can say who took the order without
+  // reading the staff list (which is Admin-only). Nothing sensitive is
+  // selected — no email, phone or idNumber (CLAUDE.md rule 19).
+  createdBy: { select: { id: true, name: true } },
 } satisfies Prisma.OrderInclude;
 
 type OrderWithItems = Prisma.OrderGetPayload<{ include: typeof orderInclude }>;

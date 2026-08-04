@@ -57,6 +57,7 @@ export function serializeOrder(order: AnyRecord, role: Role) {
     deletedAt: order.deletedAt,
     items: (order.items ?? []).map((item: AnyRecord) => serializeItem(item, role)),
     createdById: order.createdById,
+    createdBy: order.createdBy ? { id: order.createdBy.id, name: order.createdBy.name } : null,
     createdAt: order.createdAt,
     updatedAt: order.updatedAt,
   };
