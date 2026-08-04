@@ -11,6 +11,10 @@
     "close": "Close",
     "account": "Account"
   },
+  "offline": {
+    "title": "No internet connection",
+    "message": "The point of sale needs an internet connection to look up products and record sales. Check your connection and try again."
+  },
   "auth": {
     "login": {
       "title": "Log in",
