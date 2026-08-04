@@ -77,10 +77,13 @@ describe("Inventory", () => {
     expect(row!.trackLowStock).toBe(true);
   });
 
-  it("allows Employee to view inventory read-only", async () => {
+  // Stock is Admin/Manager territory (CLAUDE.md rule 5) — an Employee doesn't
+  // get to browse it either, so the list 403s just like an adjustment does.
+  it("forbids Employee from viewing inventory", async () => {
     const employee = await getSession("EMPLOYEE");
     const res = await apiRequest("/api/inventory", { token: employee.token });
-    expect(res.status).toBe(200);
+    expect(res.status).toBe(403);
+    expect(res.error?.code).toBe(ERROR_CODES.FORBIDDEN);
   });
 
   it("forbids Employee from adjusting stock", async () => {

@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { can } from "@shared/lib/permissions";
 import { DEFAULT_PAGE } from "@shared/constants/pagination";
 import { DEFAULT_LOW_STOCK_THRESHOLD } from "@shared/constants/inventory";
+import { RoleGuard } from "@/components/auth/role-guard";
 import { useSession } from "@/components/providers/session-provider";
 import { DEFAULT_INVENTORY_FILTERS, INVENTORY_SEARCH_DEBOUNCE_MS } from "@/constants/inventory";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
@@ -24,7 +25,17 @@ import {
 } from "@/components/inventory/inventory-list-states";
 import type { InventoryListFilters } from "@/types/inventory";
 
+// Admin/Manager only (CLAUDE.md rule 5): stock is theirs to see and to
+// change, so /api/inventory 403s for an Employee and the nav hides the entry.
 export default function InventoryPage() {
+  return (
+    <RoleGuard action="inventory.view">
+      <InventoryPageContent />
+    </RoleGuard>
+  );
+}
+
+function InventoryPageContent() {
   const t = useTranslations("inventory");
   const { user } = useSession();
   const canAdjust = can(user, "inventory.adjust");

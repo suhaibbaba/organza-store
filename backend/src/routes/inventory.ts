@@ -18,9 +18,9 @@ import type { StockItem } from "@/types";
 
 // Inventory is a read/adjust layer over Product (simple products) and
 // Variant (variant-bearing products) stock — it doesn't own its own table.
-// Viewing is Admin/Manager/Employee (inventory.view); adjusting is
-// Admin/Manager only (inventory.adjust — CLAUDE.md rule 5: Employee has no
-// stock-management access).
+// Both viewing (inventory.view) and adjusting (inventory.adjust) are
+// Admin/Manager only — CLAUDE.md rule 5: an Employee has no stock-management
+// access, so the stock list 403s for them just like an adjustment does.
 const router = Router();
 router.use(requireAuth);
 
