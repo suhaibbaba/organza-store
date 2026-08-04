@@ -36,6 +36,7 @@ export interface OrderDto {
   discountAmount: string;
   total: string;
   stockDeductedAt: string | null;
+  deletedAt: string | null;
   items: OrderItemDto[];
   createdById: string;
 }

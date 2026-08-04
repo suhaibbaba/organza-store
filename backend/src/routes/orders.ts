@@ -53,8 +53,11 @@ const orderInclude = {
 
 type OrderWithItems = Prisma.OrderGetPayload<{ include: typeof orderInclude }>;
 
+// Soft-deleted orders are invisible to every route, so a deleted sale can
+// neither be read, edited, advanced nor returned — only the audit log and a
+// direct DB look still hold it.
 async function loadOrder(id: string): Promise<OrderWithItems> {
-  const order = await prisma.order.findUnique({ where: { id }, include: orderInclude });
+  const order = await prisma.order.findFirst({ where: { id, deletedAt: null }, include: orderInclude });
   if (!order) throw new AppError(404, ERROR_CODES.ORDER_NOT_FOUND);
   return order;
 }
@@ -84,7 +87,7 @@ router.get(
   validateQuery(listOrdersQuerySchema),
   asyncHandler(async (req, res) => {
     const query = req.validatedQuery as ListOrdersQuery;
-    const where: Prisma.OrderWhereInput = {};
+    const where: Prisma.OrderWhereInput = { deletedAt: null };
 
     if (query.status) where.status = query.status;
     if (query.channel) where.channel = query.channel;
@@ -483,20 +486,27 @@ router.post(
 );
 
 // ---------------------------------------------------------------------------
-// DELETE /api/orders/:id — Admin/Manager only. Orders are removed outright
-// (unlike products, which are soft-deleted because past sales reference
-// them); anything still deducted goes back on the shelf, and the audit entry
-// keeps the full record of what was removed.
+// DELETE /api/orders/:id — soft delete, Admin/Manager only. A sale is a
+// financial record, so it is hidden rather than destroyed (the same reasoning
+// that makes products soft-delete-only, CLAUDE.md rule 4). Anything still
+// committed goes back on the shelf as it does on a cancellation.
 // ---------------------------------------------------------------------------
 router.delete(
   "/:id",
   requirePermission("order.delete"),
   asyncHandler(async (req, res) => {
     const existing = await loadOrder(req.params.id);
+    const restoreNow = existing.stockDeductedAt !== null;
 
-    await prisma.$transaction(async (tx) => {
-      if (existing.stockDeductedAt) await restoreStock(tx, outstandingMovements(existing));
-      await tx.order.delete({ where: { id: existing.id } });
+    const deleted = await prisma.$transaction(async (tx) => {
+      if (restoreNow) await restoreStock(tx, outstandingMovements(existing));
+
+      return tx.order.update({
+        where: { id: existing.id },
+        // stockDeductedAt is cleared along with it: the goods are back on the
+        // shelf, so this order no longer holds any.
+        data: { deletedAt: new Date(), ...(restoreNow ? { stockDeductedAt: null } : {}) },
+      });
     });
 
     await writeAudit({
@@ -505,9 +515,10 @@ router.delete(
       entityType: AUDIT_ENTITY.ORDER,
       entityId: existing.id,
       oldValue: serializeOrder(existing, Role.ADMIN) as AnyRecord,
+      newValue: { deletedAt: deleted.deletedAt, stockDeductedAt: deleted.stockDeductedAt },
     });
 
-    sendOk(res, { id: existing.id });
+    sendOk(res, { id: deleted.id, deletedAt: deleted.deletedAt });
   })
 );
 

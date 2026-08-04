@@ -440,6 +440,12 @@ model Order {
   // deduction idempotent — stock is never deducted twice for one order.
   stockDeductedAt DateTime?
 
+  // Soft delete (role-gated, Admin/Manager). A sale is a financial record, so
+  // deleting one hides it everywhere rather than destroying it — the row, its
+  // lines and the audit trail all survive. Any stock still committed goes back
+  // on the shelf at the same time.
+  deletedAt DateTime?
+
   items OrderItem[]
 
   createdById String
@@ -452,6 +458,7 @@ model Order {
   @@index([channel])
   @@index([createdAt])
   @@index([createdById])
+  @@index([deletedAt])
 }
 
 model OrderItem {

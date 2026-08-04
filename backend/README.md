@@ -57,6 +57,13 @@ plus global variant types/values, nested categories, and sample products coverin
 Phase 1 rule (simple product, single-option, cartesian 2-option, price override, inherited
 price/cost, out-of-stock variant, hidden product, soft-deleted product).
 
+It also seeds sample **orders** across every channel and through the status flow — a STORE sale
+with both discount levels, an online order mid-preparation, one still `NEW`, a cancelled one, a
+partially returned one, and a soft-deleted one — so the POS, the admin orders page and sales
+reporting have real data to render. Each is upserted under a fixed id, and the seed writes the
+resulting state directly rather than replaying the API's stock deduction (which would walk the
+declared stock down a little further on every run).
+
 ## Run
 
 ```bash
@@ -137,18 +144,27 @@ Two shapes of sale share one model, distinguished by `channel`:
 - **`STORE`** — rung up at the POS counter. Opens `COMPLETED` with stock already deducted,
   because the customer walks out with the goods. No customer details needed.
 - **`WHATSAPP` / `WEBSITE`** — taken remotely. Opens `NEW` and travels
-  `NEW → PREPARING → DELIVERING → RECEIVED → COMPLETED`, committing stock on the move to
-  `PREPARING`. `customerName` + `customerPhone` are required.
+  `NEW → PREPARING → DELIVERING → RECEIVED`, committing stock on the move to `PREPARING`.
+  `customerName` + `customerPhone` are required.
+
+The two channels end in different places, per spec.md's status flow: an online order finishes at
+`RECEIVED`, while `COMPLETED` belongs to a counter sale, which opens there. There is deliberately
+no `RECEIVED → COMPLETED` move — sales and profit reporting should count
+`FINISHED_ORDER_STATUSES` (`RECEIVED` + `COMPLETED`) rather than keying off `COMPLETED` alone.
 
 Customers are still deferred as an entity (spec.md) — there is no `Customer` table. Contact
 details are snapshotted onto the order: name, phone, optional WhatsApp number, address, and an
 optional map pin (`customerLatitude` / `customerLongitude`, WGS84 degrees, both or neither) for
 places with no street address.
 
-Any non-terminal status may go to `CANCELLED` (which puts committed stock back).
+Any status before delivery may go to `CANCELLED` (which puts committed stock back).
 `RETURNED` is reachable only through the returns endpoint, so stock and `returnedQuantity`
 always move together. The legal-move table lives in `@shared/constants/order`
 (`ORDER_STATUS_TRANSITIONS`) so the backend gate and the frontends' buttons read one source.
+
+Orders are **soft-deleted** (`deletedAt`), like products — a sale is a financial record, so
+deleting one hides it from every endpoint instead of destroying it, and puts any stock it still
+held back on the shelf.
 
 **Money is always computed server-side.** A request names products, quantities and discounts;
 `unitPrice`, `lineTotal`, `subtotal` and `total` sent by a client are ignored. Per line:
@@ -173,7 +189,7 @@ renaming or repricing a product later never rewrites a past sale.
 | PATCH  | `/api/orders/:id/status`    | Admin/Manager/Employee   | Employees may advance the flow; `CANCELLED` additionally needs `order.cancel` (Admin/Manager) |
 | PATCH  | `/api/orders/:id`           | Admin/Manager            | contact details, note, payment method, order- and item-level discounts (lines are fixed at creation) |
 | POST   | `/api/orders/:id/return`    | Admin/Manager            | body `{}` returns the whole order; `{ items: [{ orderItemId, quantity }] }` returns specific lines |
-| DELETE | `/api/orders/:id`           | Admin/Manager            | restores any still-deducted stock; the audit entry keeps the full record |
+| DELETE | `/api/orders/:id`           | Admin/Manager            | soft delete (`deletedAt`); restores any still-committed stock and hides the order from every endpoint |
 
 Per spec.md's security rationale, an Employee can create an order and mark it delivered but
 can never edit, cancel, return or delete one — a sale must not be erasable to cover theft.

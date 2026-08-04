@@ -63,6 +63,8 @@ export interface Order {
   // Set the moment stock is taken off the shelf for this order, so it can
   // never be deducted twice.
   stockDeductedAt: string | null;
+  // Soft delete: a deleted sale is hidden from every endpoint, not destroyed.
+  deletedAt: string | null;
   items: OrderItem[];
   createdById: string;
   createdAt: string;

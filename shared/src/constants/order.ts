@@ -35,6 +35,13 @@ export const ONLINE_STOCK_DEDUCTION_STATUS = "PREPARING";
 
 // The only legal moves. Both the backend (as the real gate) and the
 // frontends (to decide which buttons to show) read this one table.
+//
+// The two channels end in different places, per spec.md's status flow: an
+// online order finishes at RECEIVED (the customer has it), while COMPLETED
+// belongs to a STORE sale, which opens there. There is deliberately no
+// RECEIVED -> COMPLETED move — see FINISHED_ORDER_STATUSES below for the
+// "this sale is done" test that reporting should use.
+//
 // CANCELLED is terminal; RETURNED is reached through the returns endpoint,
 // never by setting the status directly, so that stock and returnedQuantity
 // stay in step.
@@ -42,11 +49,16 @@ export const ORDER_STATUS_TRANSITIONS: Record<OrderStatus, readonly OrderStatus[
   NEW: ["PREPARING", "CANCELLED"],
   PREPARING: ["DELIVERING", "CANCELLED"],
   DELIVERING: ["RECEIVED", "CANCELLED"],
-  RECEIVED: ["COMPLETED", "RETURNED"],
+  RECEIVED: ["RETURNED"],
   COMPLETED: ["RETURNED"],
   CANCELLED: [],
   RETURNED: [],
 };
+
+// A finished sale, whichever channel it came through: RECEIVED for an online
+// order, COMPLETED for a counter sale. Sales and profit reporting should
+// count these two together rather than keying off COMPLETED alone.
+export const FINISHED_ORDER_STATUSES = ["RECEIVED", "COMPLETED"] as const;
 
 // Statuses a return can be raised against: the goods have to have reached the
 // customer first, and a partially returned order can still be returned again.

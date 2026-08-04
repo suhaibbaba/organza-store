@@ -414,7 +414,7 @@ describe("Orders", () => {
       expect(await readStock(admin.token, product.id)).toBe(6);
 
       // ...and every later step leaves it alone.
-      for (const status of ["DELIVERING", "RECEIVED", "COMPLETED"]) {
+      for (const status of ["DELIVERING", "RECEIVED"]) {
         const res = await apiRequest<OrderDto>(`/api/orders/${created.data!.id}/status`, {
           method: "PATCH",
           token: employee.token,
@@ -424,6 +424,37 @@ describe("Orders", () => {
         expect(res.data!.status).toBe(status);
       }
       expect(await readStock(admin.token, product.id)).toBe(6);
+    });
+
+    // spec.md's status flow ends an online order at RECEIVED; COMPLETED
+    // belongs to a STORE sale, which opens there. Reporting treats the two
+    // together (FINISHED_ORDER_STATUSES) rather than chaining them.
+    it("ends an online order at RECEIVED, with no move on to COMPLETED", async () => {
+      const admin = await getSession("ADMIN");
+      const product = await sellableProduct(admin.token, { stock: 10 });
+
+      const created = await createOrder(admin.token, {
+        channel: "WHATSAPP",
+        customerName: "ورود",
+        customerPhone: "+970598500500",
+        items: [{ productId: product.id, quantity: 1 }],
+      });
+      for (const status of ["PREPARING", "DELIVERING", "RECEIVED"]) {
+        const res = await apiRequest<OrderDto>(`/api/orders/${created.data!.id}/status`, {
+          method: "PATCH",
+          token: admin.token,
+          body: { status },
+        });
+        expect(res.status).toBe(200);
+      }
+
+      const res = await apiRequest(`/api/orders/${created.data!.id}/status`, {
+        method: "PATCH",
+        token: admin.token,
+        body: { status: "COMPLETED" },
+      });
+      expect(res.status).toBe(400);
+      expect(res.error?.code).toBe(ERROR_CODES.ORDER_INVALID_STATUS_TRANSITION);
     });
 
     it("rejects illegal moves", async () => {
@@ -790,7 +821,10 @@ describe("Orders", () => {
       expect(removed.status).toBe(200);
     });
 
-    it("puts deducted stock back when an order is deleted", async () => {
+    // A sale is a financial record, so deleting one hides it rather than
+    // destroying it (the same reasoning behind CLAUDE.md rule 4 for
+    // products) — and the stock it still held goes back on the shelf.
+    it("soft-deletes an order, restoring its stock and hiding it everywhere", async () => {
       const admin = await getSession("ADMIN");
       const product = await sellableProduct(admin.token, { stock: 10 });
 
@@ -800,16 +834,28 @@ describe("Orders", () => {
       });
       expect(await readStock(admin.token, product.id)).toBe(7);
 
-      const removed = await apiRequest(`/api/orders/${created.data!.id}`, {
-        method: "DELETE",
-        token: admin.token,
-      });
+      const removed = await apiRequest<{ id: string; deletedAt: string | null }>(
+        `/api/orders/${created.data!.id}`,
+        { method: "DELETE", token: admin.token }
+      );
       expect(removed.status).toBe(200);
+      expect(removed.data!.deletedAt).not.toBeNull();
       expect(await readStock(admin.token, product.id)).toBe(10);
 
       const gone = await apiRequest(`/api/orders/${created.data!.id}`, { token: admin.token });
       expect(gone.status).toBe(404);
       expect(gone.error?.code).toBe(ERROR_CODES.ORDER_NOT_FOUND);
+
+      const listed = await apiRequest<OrderSummaryDto[]>("/api/orders?pageSize=100", { token: admin.token });
+      expect(listed.data!.some((o) => o.id === created.data!.id)).toBe(false);
+
+      // Deleting twice must not put the stock back a second time.
+      const again = await apiRequest(`/api/orders/${created.data!.id}`, {
+        method: "DELETE",
+        token: admin.token,
+      });
+      expect(again.status).toBe(404);
+      expect(await readStock(admin.token, product.id)).toBe(10);
     });
   });
 

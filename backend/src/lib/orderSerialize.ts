@@ -54,6 +54,7 @@ export function serializeOrder(order: AnyRecord, role: Role) {
     discountAmount: formatMoney(order.discountAmount?.toString()),
     total: formatMoney(order.total?.toString()),
     stockDeductedAt: order.stockDeductedAt,
+    deletedAt: order.deletedAt,
     items: (order.items ?? []).map((item: AnyRecord) => serializeItem(item, role)),
     createdById: order.createdById,
     createdAt: order.createdAt,
