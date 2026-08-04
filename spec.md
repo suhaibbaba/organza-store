@@ -80,6 +80,11 @@ From inside the product screen the user can:
 Both auto-save to the global tables the moment the product is saved. A dedicated
 management screen for variant types still exists (for cleanup/edit/delete) but is optional to use.
 
+Adding this way is open to every role that can add a product, Employees included — it only ever
+appends, so nothing already on the shelf changes. Renaming or deleting an existing type/value is
+Admin/Manager only: it reaches every product using that value at once (see the reference rule
+above), which is exactly what makes it dangerous in the wrong hands.
+
 ---
 
 ## SKU (auto-generated)
@@ -248,6 +253,8 @@ Three fixed roles.
 | Edit product images               |  ✅   |   ✅    |    ✅    |
 | Edit product details (name, etc.) |  ✅   |   ✅    |    ✅    |
 | Edit product **price**            |  ✅   |   ✅    |    ❌    |
+| Add option type/value (inline)    |  ✅   |   ✅    |    ✅    |
+| **Rename / delete** option value  |  ✅   |   ✅    |    ❌    |
 | **Delete** product                |  ✅   |   ✅    |    ❌    |
 | **Hide / publish** product        |  ✅   |   ✅    |    ❌    |
 | Create order + hand to courier    |  ✅   |   ✅    |    ✅    |

@@ -18,7 +18,14 @@ import { AUDIT_ENTITY, ERROR_CODES } from "@/constants";
 // Global variant types/values (Color, Size, Number, ...), shared across all
 // products. Creation here is what powers the "inline add" flow from the
 // product screen (spec.md "Inline add") — Employees can use it too, since
-// it's part of "add products".
+// it's part of "add products", and it only ever appends to the lists.
+//
+// Hence the two permissions: adding is variantType.create (every role that
+// can add a product), while variantType.manage covers changing or removing
+// what already exists — a rename propagates to every product using that
+// value (CLAUDE.md rule 2) and a deletion pulls it out from under them.
+// There is no rename/delete endpoint yet; when one is added it belongs
+// behind variantType.manage, not behind the create gate below.
 const router = Router();
 router.use(requireAuth);
 
@@ -35,7 +42,7 @@ router.get(
 
 router.post(
   "/",
-  requirePermission("variantType.manage"),
+  requirePermission("variantType.create"),
   validateBody(createVariantTypeSchema),
   asyncHandler(async (req, res) => {
     const body = req.body as CreateVariantTypeInput;
@@ -61,7 +68,7 @@ router.post(
 
 router.post(
   "/:id/values",
-  requirePermission("variantType.manage"),
+  requirePermission("variantType.create"),
   validateBody(addOptionValueSchema),
   asyncHandler(async (req, res) => {
     const type = await prisma.variantType.findUnique({ where: { id: req.params.id } });

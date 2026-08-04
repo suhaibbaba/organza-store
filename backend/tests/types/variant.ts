@@ -9,10 +9,15 @@ export type OptionSelection = z.infer<typeof optionSelectionSchema>;
 // returns the raw Prisma rows via `include`, with no named response type).
 export interface VariantOptionValueDto {
   id: string;
+  // Slugified from the Arabic value — what uniqueness is keyed on, never the
+  // translated text itself (CLAUDE.md rule 9).
+  key?: string;
+  value?: { ar: string; en?: string; he?: string };
 }
 
 export interface VariantTypeDto {
   id: string;
   slug: string;
+  name?: { ar: string; en?: string; he?: string };
   values: VariantOptionValueDto[];
 }
