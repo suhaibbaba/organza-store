@@ -9,6 +9,8 @@
 //    - simple product, 1-option product, 2-option (cartesian) product
 //    - a variant with price override + one that inherits from parent
 //    - compare-at price, hidden product, soft-deleted product
+//    - orders on every channel, covering the status flow, both discount
+//      levels, a cancellation, a partial return and a soft-deleted sale
 // ============================================================
 
 import { PrismaClient, Role } from "@prisma/client";
@@ -374,6 +376,205 @@ async function main() {
       { combo: ["number:5"], name: { ar: "5", en: "5", he: "5" }, stock: 0, imageX: 50, imageY: 68 },
       { combo: ["number:6"], name: { ar: "6", en: "6", he: "6" }, stock: 1, imageX: 76, imageY: 64, priceOverride: 75 },
     ],
+  });
+
+  // ============================================================
+  //  ORDERS (Phase 2)
+  //  Sample sales so the POS, the admin orders page and sales/profit
+  //  reporting all have real data to render on day one.
+  //
+  //  Idempotency: each order is upserted under a fixed id, and the seed
+  //  writes the RESULTING state directly rather than replaying the API's
+  //  stock deduction. That matters — upsertProduct re-asserts every
+  //  product's stock on each run, so a seed that also deducted would walk
+  //  the numbers down a little further every time. The stock figures
+  //  declared above are therefore the post-sale ones.
+  // ============================================================
+
+  const admin = await prisma.user.findUniqueOrThrow({ where: { email: "admin@organza.test" } });
+  const employee = await prisma.user.findUniqueOrThrow({ where: { email: "employee@organza.test" } });
+
+  const silkScarf = await prisma.product.findUniqueOrThrow({ where: { slug: "silk-scarf" } });
+  const eveningDress = await prisma.product.findUniqueOrThrow({
+    where: { slug: "evening-dress" },
+    include: { variants: { orderBy: { variantNumber: "asc" } } },
+  });
+  const redM = eveningDress.variants[0];
+
+  type SeedOrderLine = {
+    product: { id: string; name: unknown; sku: string | null; basePrice: unknown; cost: unknown };
+    variant?: { id: string; name: unknown; sku: string; priceOverride: unknown; cost: unknown };
+    quantity: number;
+    discountType?: "PERCENT" | "AMOUNT";
+    discountValue?: number;
+    returnedQuantity?: number;
+  };
+
+  // Mirrors backend/src/lib/money.ts + orderPricing.ts. Kept as plain numbers
+  // here (dev fixtures, 2dp) rather than importing the Decimal helpers, but
+  // the shape of the calculation is deliberately identical: line discounts
+  // first, then the order discount against their sum.
+  const round2 = (n: number) => Math.round(n * 100) / 100;
+  const discountOf = (base: number, type?: "PERCENT" | "AMOUNT", value?: number) => {
+    if (!type || value === undefined) return 0;
+    return round2(Math.min(base, type === "PERCENT" ? (base * value) / 100 : value));
+  };
+
+  async function upsertOrder(opts: {
+    id: string;
+    channel: "STORE" | "WHATSAPP" | "WEBSITE";
+    status: "NEW" | "PREPARING" | "DELIVERING" | "RECEIVED" | "COMPLETED" | "CANCELLED" | "RETURNED";
+    createdById: string;
+    lines: SeedOrderLine[];
+    customerName?: string;
+    customerPhone?: string;
+    customerAddress?: string;
+    customerLatitude?: number;
+    customerLongitude?: number;
+    note?: string;
+    discountType?: "PERCENT" | "AMOUNT";
+    discountValue?: number;
+    // Whether this order currently holds stock off the shelf.
+    stockDeducted: boolean;
+    deleted?: boolean;
+  }) {
+    const items = opts.lines.map((line) => {
+      const unitPrice = round2(Number(line.variant?.priceOverride ?? line.product.basePrice));
+      const unitCost = line.variant?.cost ?? line.product.cost;
+      const gross = round2(unitPrice * line.quantity);
+      const discountAmount = discountOf(gross, line.discountType, line.discountValue);
+      return {
+        productId: line.product.id,
+        variantId: line.variant?.id ?? null,
+        name: line.product.name as object,
+        variantName: (line.variant?.name ?? null) as object | null,
+        sku: line.variant?.sku ?? line.product.sku,
+        unitPrice,
+        unitCost: unitCost === null || unitCost === undefined ? null : round2(Number(unitCost)),
+        quantity: line.quantity,
+        discountType: line.discountType ?? null,
+        discountValue: line.discountValue ?? null,
+        discountAmount,
+        lineTotal: round2(gross - discountAmount),
+        returnedQuantity: line.returnedQuantity ?? 0,
+      };
+    });
+
+    const subtotal = round2(items.reduce((sum, i) => sum + i.lineTotal, 0));
+    const discountAmount = discountOf(subtotal, opts.discountType, opts.discountValue);
+
+    const base = {
+      channel: opts.channel,
+      status: opts.status,
+      paymentMethod: "CASH" as const,
+      customerName: opts.customerName ?? null,
+      customerPhone: opts.customerPhone ?? null,
+      customerAddress: opts.customerAddress ?? null,
+      customerLatitude: opts.customerLatitude ?? null,
+      customerLongitude: opts.customerLongitude ?? null,
+      note: opts.note ?? null,
+      subtotal,
+      discountType: opts.discountType ?? null,
+      discountValue: opts.discountValue ?? null,
+      discountAmount,
+      total: round2(subtotal - discountAmount),
+      stockDeductedAt: opts.stockDeducted ? new Date("2026-01-01T10:00:00.000Z") : null,
+      deletedAt: opts.deleted ? new Date("2026-01-02T10:00:00.000Z") : null,
+      createdById: opts.createdById,
+    };
+
+    // Lines are rebuilt rather than updated in place: they carry no stable
+    // key of their own, and rewriting them keeps a re-seed deterministic.
+    const order = await prisma.order.upsert({
+      where: { id: opts.id },
+      update: base,
+      create: { id: opts.id, ...base },
+    });
+    await prisma.orderItem.deleteMany({ where: { orderId: order.id } });
+    for (const item of items) {
+      await prisma.orderItem.create({ data: { orderId: order.id, ...item } });
+    }
+    return order;
+  }
+
+  // 1) STORE sale — opens COMPLETED with stock already deducted, and shows
+  //    both discount levels at once (10% off the line, then 5 off the order).
+  await upsertOrder({
+    id: "seed-order-store-completed",
+    channel: "STORE",
+    status: "COMPLETED",
+    createdById: employee.id,
+    stockDeducted: true,
+    lines: [{ product: silkScarf, quantity: 2, discountType: "PERCENT", discountValue: 10 }],
+    discountType: "AMOUNT",
+    discountValue: 5,
+  });
+
+  // 2) Online order mid-flow — stock committed on the move to PREPARING.
+  await upsertOrder({
+    id: "seed-order-whatsapp-preparing",
+    channel: "WHATSAPP",
+    status: "PREPARING",
+    createdById: employee.id,
+    stockDeducted: true,
+    customerName: "سعاد أحمد",
+    customerPhone: "+970599111222",
+    customerAddress: "طولكرم — شارع نابلس، بجانب الصيدلية",
+    customerLatitude: 32.3104,
+    customerLongitude: 35.0286,
+    note: "تسليم بعد الساعة 5 مساءً",
+    lines: [{ product: eveningDress, variant: redM, quantity: 1 }],
+  });
+
+  // 3) Still NEW — nothing committed yet, so the POS can practise the first
+  //    move of the flow.
+  await upsertOrder({
+    id: "seed-order-website-new",
+    channel: "WEBSITE",
+    status: "NEW",
+    createdById: admin.id,
+    stockDeducted: false,
+    customerName: "ليان خالد",
+    customerPhone: "+972598333444",
+    customerAddress: "نابلس — رفيديا",
+    lines: [{ product: silkScarf, quantity: 1 }],
+  });
+
+  // 4) Cancelled before preparation — never held any stock.
+  await upsertOrder({
+    id: "seed-order-whatsapp-cancelled",
+    channel: "WHATSAPP",
+    status: "CANCELLED",
+    createdById: admin.id,
+    stockDeducted: false,
+    customerName: "رنا سمير",
+    customerPhone: "+970599555666",
+    lines: [{ product: eveningDress, variant: eveningDress.variants[1], quantity: 1 }],
+  });
+
+  // 5) Received, then partially returned — one of the two came back, so the
+  //    order keeps its status and only records the quantity.
+  await upsertOrder({
+    id: "seed-order-website-partially-returned",
+    channel: "WEBSITE",
+    status: "RECEIVED",
+    createdById: admin.id,
+    stockDeducted: true,
+    customerName: "هدى ناصر",
+    customerPhone: "+970599777888",
+    customerAddress: "طولكرم — المدينة الرياضية",
+    lines: [{ product: silkScarf, quantity: 2, returnedQuantity: 1 }],
+  });
+
+  // 6) Soft-deleted sale — hidden from every endpoint, kept as a record.
+  await upsertOrder({
+    id: "seed-order-store-deleted",
+    channel: "STORE",
+    status: "COMPLETED",
+    createdById: admin.id,
+    stockDeducted: false,
+    deleted: true,
+    lines: [{ product: silkScarf, quantity: 1 }],
   });
 
   console.log("✅ Seed complete.");

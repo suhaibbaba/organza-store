@@ -1,6 +1,7 @@
 export * from "./category";
 export * from "./common";
 export * from "./inventory";
+export * from "./order";
 export * from "./phone";
 export * from "./product";
 export * from "./setting";

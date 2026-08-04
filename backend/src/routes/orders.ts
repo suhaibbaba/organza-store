@@ -1,0 +1,525 @@
+import { Router } from "express";
+import { AuditAction, Prisma, Role } from "@prisma/client";
+import { can } from "@shared/lib/permissions";
+import { prisma } from "@/lib/prisma";
+import { asyncHandler } from "@/middleware/asyncHandler";
+import { requireAuth, requirePermission } from "@/middleware/auth";
+import { validateBody, validateQuery } from "@/middleware/validate";
+import { AppError, sendOk } from "@/lib/response";
+import {
+  createOrderSchema,
+  listOrdersQuerySchema,
+  returnOrderSchema,
+  updateOrderSchema,
+  updateOrderStatusSchema,
+  type CreateOrderInput,
+  type ListOrdersQuery,
+  type ReturnOrderInput,
+  type UpdateOrderInput,
+  type UpdateOrderStatusInput,
+} from "@/validation/order";
+import { computeOrderTotals, priceLine, priceRequestedItems, toStockMovements } from "@/lib/orderPricing";
+import { deductStock, restoreStock } from "@/lib/orderStock";
+import { serializeOrder, serializeOrderSummary } from "@/lib/orderSerialize";
+import { writeAudit } from "@/lib/audit";
+import {
+  AUDIT_ENTITY,
+  ERROR_CODES,
+  MAX_INT32,
+  ONLINE_ORDER_CHANNELS,
+  ONLINE_ORDER_INITIAL_STATUS,
+  ONLINE_STOCK_DEDUCTION_STATUS,
+  ORDER_STATUS_TRANSITIONS,
+  RETURNABLE_ORDER_STATUSES,
+  STORE_ORDER_INITIAL_STATUS,
+  UNEDITABLE_ORDER_STATUSES,
+} from "@/constants";
+import type { AnyRecord, OrderStatus } from "@/types";
+
+// Orders (Phase 2). Two shapes of sale share one model:
+//   STORE    — rung up at the POS counter; opens COMPLETED with stock
+//              already deducted, because the customer walks out with it.
+//   WHATSAPP / WEBSITE — taken remotely; opens NEW and travels
+//              NEW -> PREPARING -> DELIVERING -> RECEIVED -> COMPLETED,
+//              committing stock when preparation starts.
+// Money is computed here from the catalogue and the caller's discounts; no
+// total is ever accepted from a client.
+const router = Router();
+router.use(requireAuth);
+
+const orderInclude = {
+  items: { orderBy: [{ createdAt: "asc" as const }, { id: "asc" as const }] },
+} satisfies Prisma.OrderInclude;
+
+type OrderWithItems = Prisma.OrderGetPayload<{ include: typeof orderInclude }>;
+
+// Soft-deleted orders are invisible to every route, so a deleted sale can
+// neither be read, edited, advanced nor returned — only the audit log and a
+// direct DB look still hold it.
+async function loadOrder(id: string): Promise<OrderWithItems> {
+  const order = await prisma.order.findFirst({ where: { id, deletedAt: null }, include: orderInclude });
+  if (!order) throw new AppError(404, ERROR_CODES.ORDER_NOT_FOUND);
+  return order;
+}
+
+// What is still on the customer's side of the counter for each line — what a
+// cancellation has to put back, and what a return can still take back.
+function outstandingMovements(order: OrderWithItems) {
+  return toStockMovements(
+    order.items.map((item) => ({
+      productId: item.productId,
+      variantId: item.variantId,
+      quantity: item.quantity - item.returnedQuantity,
+    }))
+  );
+}
+
+function isOnlineChannel(channel: string): boolean {
+  return (ONLINE_ORDER_CHANNELS as readonly string[]).includes(channel);
+}
+
+// ---------------------------------------------------------------------------
+// GET /api/orders — list (pagination + filtering + sorting)
+// ---------------------------------------------------------------------------
+router.get(
+  "/",
+  requirePermission("order.view"),
+  validateQuery(listOrdersQuerySchema),
+  asyncHandler(async (req, res) => {
+    const query = req.validatedQuery as ListOrdersQuery;
+    const where: Prisma.OrderWhereInput = { deletedAt: null };
+
+    if (query.status) where.status = query.status;
+    if (query.channel) where.channel = query.channel;
+
+    if (query.dateFrom || query.dateTo) {
+      where.createdAt = {
+        ...(query.dateFrom ? { gte: query.dateFrom } : {}),
+        ...(query.dateTo ? { lte: query.dateTo } : {}),
+      };
+    }
+
+    // Staff look an order up by whatever they have in front of them: the
+    // number on the receipt, or the customer's name/phone from the chat.
+    // orderNumber is a 32-bit column, so a longer run of digits (a phone
+    // number, say) is matched as text only rather than being handed to
+    // Postgres as an out-of-range integer.
+    if (query.q) {
+      const asNumber = Number(query.q);
+      const isOrderNumber = Number.isInteger(asNumber) && asNumber >= 0 && asNumber <= MAX_INT32;
+      where.OR = [
+        { customerName: { contains: query.q, mode: "insensitive" } },
+        { customerPhone: { contains: query.q, mode: "insensitive" } },
+        ...(isOrderNumber ? [{ orderNumber: asNumber }] : []),
+      ];
+    }
+
+    const [total, orders] = await Promise.all([
+      prisma.order.count({ where }),
+      prisma.order.findMany({
+        where,
+        include: { _count: { select: { items: true } } },
+        orderBy: { [query.sortBy]: query.sortDir },
+        skip: (query.page - 1) * query.pageSize,
+        take: query.pageSize,
+      }),
+    ]);
+
+    sendOk(res, orders.map(serializeOrderSummary), {
+      page: query.page,
+      pageSize: query.pageSize,
+      total,
+      totalPages: Math.max(1, Math.ceil(total / query.pageSize)),
+    });
+  })
+);
+
+// ---------------------------------------------------------------------------
+// GET /api/orders/:id — detail
+// ---------------------------------------------------------------------------
+router.get(
+  "/:id",
+  requirePermission("order.view"),
+  asyncHandler(async (req, res) => {
+    const order = await loadOrder(req.params.id);
+    sendOk(res, serializeOrder(order, req.user!.role));
+  })
+);
+
+// ---------------------------------------------------------------------------
+// POST /api/orders — create (Admin/Manager/Employee: spec.md lets an
+// Employee ring up a sale, just not undo one)
+// ---------------------------------------------------------------------------
+router.post(
+  "/",
+  requirePermission("order.create"),
+  validateBody(createOrderSchema),
+  asyncHandler(async (req, res) => {
+    const body = req.body as CreateOrderInput;
+
+    // Prices, names and costs are read from the catalogue here and frozen
+    // onto the lines — the caller only named products and quantities.
+    const priced = await priceRequestedItems(body.items);
+    const totals = computeOrderTotals(
+      priced.map((line) => line.lineTotal),
+      body
+    );
+
+    const deductNow = body.channel === "STORE";
+    const now = new Date();
+
+    const created = await prisma.$transaction(async (tx) => {
+      const order = await tx.order.create({
+        data: {
+          channel: body.channel,
+          status: (deductNow ? STORE_ORDER_INITIAL_STATUS : ONLINE_ORDER_INITIAL_STATUS) as OrderStatus,
+          paymentMethod: body.paymentMethod,
+          customerName: body.customerName ?? null,
+          customerPhone: body.customerPhone ?? null,
+          customerWhatsapp: body.customerWhatsapp ?? null,
+          customerAddress: body.customerAddress ?? null,
+          customerLatitude: body.customerLatitude ?? null,
+          customerLongitude: body.customerLongitude ?? null,
+          note: body.note ?? null,
+          subtotal: totals.subtotal,
+          discountType: body.discountType ?? null,
+          discountValue: body.discountValue ?? null,
+          discountAmount: totals.discountAmount,
+          total: totals.total,
+          stockDeductedAt: deductNow ? now : null,
+          createdById: req.user!.id,
+          items: {
+            create: priced.map((line) => ({
+              productId: line.productId,
+              variantId: line.variantId,
+              name: line.name as Prisma.InputJsonValue,
+              variantName: (line.variantName ?? Prisma.JsonNull) as Prisma.InputJsonValue,
+              sku: line.sku,
+              unitPrice: line.unitPrice,
+              unitCost: line.unitCost,
+              quantity: line.quantity,
+              discountType: line.discountType,
+              discountValue: line.discountValue,
+              discountAmount: line.discountAmount,
+              lineTotal: line.lineTotal,
+            })),
+          },
+        },
+        include: orderInclude,
+      });
+
+      // A counter sale hands the goods over immediately, so stock moves with
+      // the order. Online orders wait for PREPARING — see the status route.
+      if (deductNow) await deductStock(tx, toStockMovements(priced));
+
+      return order;
+    });
+
+    await writeAudit({
+      userId: req.user!.id,
+      action: AuditAction.CREATE,
+      entityType: AUDIT_ENTITY.ORDER,
+      entityId: created.id,
+      newValue: serializeOrder(created, Role.ADMIN),
+    });
+
+    sendOk(res, serializeOrder(created, req.user!.role), null, 201);
+  })
+);
+
+// ---------------------------------------------------------------------------
+// PATCH /api/orders/:id — edit contact details, note, payment method and
+// discounts (Admin/Manager only — an Employee must not be able to reprice a
+// sale after the fact). Lines themselves are fixed at creation.
+// ---------------------------------------------------------------------------
+router.patch(
+  "/:id",
+  requirePermission("order.edit"),
+  validateBody(updateOrderSchema),
+  asyncHandler(async (req, res) => {
+    const existing = await loadOrder(req.params.id);
+    const body = req.body as UpdateOrderInput;
+
+    if ((UNEDITABLE_ORDER_STATUSES as readonly string[]).includes(existing.status)) {
+      throw new AppError(409, ERROR_CODES.ORDER_NOT_EDITABLE);
+    }
+
+    // An online order still has to be deliverable to someone once the edit
+    // lands — the same invariant the create schema enforces.
+    if (isOnlineChannel(existing.channel)) {
+      const name = body.customerName === undefined ? existing.customerName : body.customerName;
+      const phone = body.customerPhone === undefined ? existing.customerPhone : body.customerPhone;
+      if (!name || !phone) throw new AppError(400, ERROR_CODES.ORDER_CUSTOMER_REQUIRED);
+    }
+
+    const itemPatches = new Map((body.items ?? []).map((item) => [item.id, item]));
+    for (const id of itemPatches.keys()) {
+      if (!existing.items.some((item) => item.id === id)) {
+        throw new AppError(400, ERROR_CODES.ORDER_ITEM_NOT_FOUND);
+      }
+    }
+
+    // Lines are re-priced from their own snapshots, never from today's
+    // catalogue: a past sale keeps the price it was sold at.
+    const repriced = existing.items.map((item) => {
+      const patch = itemPatches.get(item.id);
+      const discount = patch
+        ? { discountType: patch.discountType ?? null, discountValue: patch.discountValue ?? null }
+        : { discountType: item.discountType, discountValue: item.discountValue?.toString() ?? null };
+      const line = priceLine(item.unitPrice.toString(), item.quantity, discount);
+      return { id: item.id, ...discount, ...line };
+    });
+
+    const orderDiscount =
+      body.discountType === undefined && body.discountValue === undefined
+        ? { discountType: existing.discountType, discountValue: existing.discountValue?.toString() ?? null }
+        : { discountType: body.discountType ?? null, discountValue: body.discountValue ?? null };
+
+    const totals = computeOrderTotals(
+      repriced.map((line) => line.lineTotal),
+      orderDiscount
+    );
+
+    const updated = await prisma.$transaction(async (tx) => {
+      for (const line of repriced) {
+        await tx.orderItem.update({
+          where: { id: line.id },
+          data: {
+            discountType: line.discountType,
+            discountValue: line.discountValue,
+            discountAmount: line.discountAmount,
+            lineTotal: line.lineTotal,
+          },
+        });
+      }
+
+      return tx.order.update({
+        where: { id: existing.id },
+        data: {
+          paymentMethod: body.paymentMethod,
+          customerName: body.customerName,
+          customerPhone: body.customerPhone,
+          customerWhatsapp: body.customerWhatsapp,
+          customerAddress: body.customerAddress,
+          customerLatitude: body.customerLatitude,
+          customerLongitude: body.customerLongitude,
+          note: body.note,
+          discountType: orderDiscount.discountType,
+          discountValue: orderDiscount.discountValue,
+          discountAmount: totals.discountAmount,
+          subtotal: totals.subtotal,
+          total: totals.total,
+        },
+        include: orderInclude,
+      });
+    });
+
+    await writeAudit({
+      userId: req.user!.id,
+      action: AuditAction.UPDATE,
+      entityType: AUDIT_ENTITY.ORDER,
+      entityId: updated.id,
+      oldValue: serializeOrder(existing, Role.ADMIN),
+      newValue: serializeOrder(updated, Role.ADMIN),
+    });
+
+    sendOk(res, serializeOrder(updated, req.user!.role));
+  })
+);
+
+// ---------------------------------------------------------------------------
+// PATCH /api/orders/:id/status — move an order along the flow.
+// Employees may advance it (spec.md: "create + mark delivered"); cancelling
+// needs order.cancel, which they don't have.
+// ---------------------------------------------------------------------------
+router.patch(
+  "/:id/status",
+  requirePermission("order.updateStatus"),
+  validateBody(updateOrderStatusSchema),
+  asyncHandler(async (req, res) => {
+    const existing = await loadOrder(req.params.id);
+    const target = (req.body as UpdateOrderStatusInput).status;
+
+    // RETURNED is a legal destination (see ORDER_STATUS_TRANSITIONS) but not
+    // a settable one: it has to come from POST /:id/return so stock and
+    // returnedQuantity move with it.
+    if (target === "RETURNED") throw new AppError(400, ERROR_CODES.ORDER_INVALID_STATUS_TRANSITION);
+
+    const cancelling = target === "CANCELLED";
+    if (cancelling && !can(req.user!, "order.cancel")) throw new AppError(403, ERROR_CODES.FORBIDDEN);
+
+    const allowed = ORDER_STATUS_TRANSITIONS[existing.status as OrderStatus] ?? [];
+    if (!allowed.includes(target)) throw new AppError(400, ERROR_CODES.ORDER_INVALID_STATUS_TRANSITION);
+
+    // stockDeductedAt is the single source of truth for "has this order taken
+    // stock off the shelf" — both branches below key off it, so re-entering a
+    // state can never double-deduct or double-restore.
+    const deductNow = target === ONLINE_STOCK_DEDUCTION_STATUS && existing.stockDeductedAt === null;
+    const restoreNow = cancelling && existing.stockDeductedAt !== null;
+
+    const updated = await prisma.$transaction(async (tx) => {
+      if (deductNow) await deductStock(tx, outstandingMovements(existing));
+      if (restoreNow) await restoreStock(tx, outstandingMovements(existing));
+
+      return tx.order.update({
+        where: { id: existing.id },
+        data: {
+          status: target,
+          ...(deductNow ? { stockDeductedAt: new Date() } : {}),
+          ...(restoreNow ? { stockDeductedAt: null } : {}),
+        },
+        include: orderInclude,
+      });
+    });
+
+    await writeAudit({
+      userId: req.user!.id,
+      action: cancelling ? AuditAction.CANCEL : AuditAction.STATUS_CHANGE,
+      entityType: AUDIT_ENTITY.ORDER,
+      entityId: updated.id,
+      oldValue: { status: existing.status, stockDeductedAt: existing.stockDeductedAt },
+      newValue: { status: updated.status, stockDeductedAt: updated.stockDeductedAt },
+    });
+
+    sendOk(res, serializeOrder(updated, req.user!.role));
+  })
+);
+
+// ---------------------------------------------------------------------------
+// POST /api/orders/:id/return — return the whole order, or specific lines in
+// specific quantities. Admin/Manager only: reversing a sale is exactly what
+// spec.md keeps out of an Employee's hands.
+// ---------------------------------------------------------------------------
+router.post(
+  "/:id/return",
+  requirePermission("order.return"),
+  validateBody(returnOrderSchema),
+  asyncHandler(async (req, res) => {
+    const existing = await loadOrder(req.params.id);
+    const body = req.body as ReturnOrderInput;
+
+    if (!(RETURNABLE_ORDER_STATUSES as readonly string[]).includes(existing.status)) {
+      throw new AppError(409, ERROR_CODES.ORDER_NOT_RETURNABLE);
+    }
+
+    const itemsById = new Map(existing.items.map((item) => [item.id, item]));
+
+    // No `items` means "all of it" — every line, in whatever quantity is
+    // still outstanding.
+    const requested = body.items
+      ? body.items.map((entry) => {
+          const item = itemsById.get(entry.orderItemId);
+          if (!item) throw new AppError(400, ERROR_CODES.ORDER_ITEM_NOT_FOUND);
+          if (entry.quantity > item.quantity - item.returnedQuantity) {
+            throw new AppError(400, ERROR_CODES.ORDER_RETURN_QUANTITY_EXCEEDED);
+          }
+          return { item, quantity: entry.quantity };
+        })
+      : existing.items
+          .map((item) => ({ item, quantity: item.quantity - item.returnedQuantity }))
+          .filter((line) => line.quantity > 0);
+
+    // Nothing left to take back.
+    if (requested.length === 0) throw new AppError(409, ERROR_CODES.ORDER_NOT_RETURNABLE);
+
+    const returnedById = new Map<string, number>();
+    for (const line of requested) {
+      returnedById.set(line.item.id, (returnedById.get(line.item.id) ?? 0) + line.quantity);
+    }
+    // Two entries for the same line must not add up past what was sold.
+    for (const [itemId, quantity] of returnedById) {
+      const item = itemsById.get(itemId)!;
+      if (quantity > item.quantity - item.returnedQuantity) {
+        throw new AppError(400, ERROR_CODES.ORDER_RETURN_QUANTITY_EXCEEDED);
+      }
+    }
+
+    // Goods only go back on the shelf if they ever left it — an order whose
+    // stock was never deducted has nothing to restore.
+    const movements = existing.stockDeductedAt
+      ? toStockMovements(
+          [...returnedById].map(([itemId, quantity]) => ({
+            productId: itemsById.get(itemId)!.productId,
+            variantId: itemsById.get(itemId)!.variantId,
+            quantity,
+          }))
+        )
+      : [];
+
+    // Once every line has come back in full the order itself is RETURNED;
+    // a partial return leaves the status alone and just records quantities.
+    const fullyReturned = existing.items.every(
+      (item) => item.returnedQuantity + (returnedById.get(item.id) ?? 0) >= item.quantity
+    );
+
+    const updated = await prisma.$transaction(async (tx) => {
+      for (const [itemId, quantity] of returnedById) {
+        await tx.orderItem.update({
+          where: { id: itemId },
+          data: { returnedQuantity: { increment: quantity } },
+        });
+      }
+
+      if (movements.length) await restoreStock(tx, movements);
+
+      return tx.order.update({
+        where: { id: existing.id },
+        data: fullyReturned ? { status: "RETURNED", stockDeductedAt: null } : {},
+        include: orderInclude,
+      });
+    });
+
+    await writeAudit({
+      userId: req.user!.id,
+      action: AuditAction.RETURN,
+      entityType: AUDIT_ENTITY.ORDER,
+      entityId: updated.id,
+      oldValue: serializeOrder(existing, Role.ADMIN),
+      newValue: {
+        ...serializeOrder(updated, Role.ADMIN),
+        returned: [...returnedById].map(([orderItemId, quantity]) => ({ orderItemId, quantity })),
+      },
+    });
+
+    sendOk(res, serializeOrder(updated, req.user!.role));
+  })
+);
+
+// ---------------------------------------------------------------------------
+// DELETE /api/orders/:id — soft delete, Admin/Manager only. A sale is a
+// financial record, so it is hidden rather than destroyed (the same reasoning
+// that makes products soft-delete-only, CLAUDE.md rule 4). Anything still
+// committed goes back on the shelf as it does on a cancellation.
+// ---------------------------------------------------------------------------
+router.delete(
+  "/:id",
+  requirePermission("order.delete"),
+  asyncHandler(async (req, res) => {
+    const existing = await loadOrder(req.params.id);
+    const restoreNow = existing.stockDeductedAt !== null;
+
+    const deleted = await prisma.$transaction(async (tx) => {
+      if (restoreNow) await restoreStock(tx, outstandingMovements(existing));
+
+      return tx.order.update({
+        where: { id: existing.id },
+        // stockDeductedAt is cleared along with it: the goods are back on the
+        // shelf, so this order no longer holds any.
+        data: { deletedAt: new Date(), ...(restoreNow ? { stockDeductedAt: null } : {}) },
+      });
+    });
+
+    await writeAudit({
+      userId: req.user!.id,
+      action: AuditAction.DELETE,
+      entityType: AUDIT_ENTITY.ORDER,
+      entityId: existing.id,
+      oldValue: serializeOrder(existing, Role.ADMIN) as AnyRecord,
+      newValue: { deletedAt: deleted.deletedAt, stockDeductedAt: deleted.stockDeductedAt },
+    });
+
+    sendOk(res, { id: deleted.id, deletedAt: deleted.deletedAt });
+  })
+);
+
+export default router;
