@@ -35,6 +35,31 @@
 :root {
   --radius: 0.75rem;
 
+  /* ------------------------------------------------------------------
+     Fixed chrome — the one place that says how much of the viewport the
+     app's own bars occupy. The bars size themselves from these, and the
+     scrolling page reserves space with the same values, so a bar and the
+     room kept clear for it can never drift apart.
+     ------------------------------------------------------------------ */
+
+  /* iOS notch / home indicator. Named once so every bar reads the same
+     value (and so it can be forced to a non-zero number when checking the
+     layout on a desktop browser, where env() is always 0). */
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+
+  /* The POS has no bottom navigation, so on every screen but the selling
+     one the home indicator is the only thing to keep clear of. */
+  --bottom-bar-inset: var(--safe-bottom);
+
+  /* The selling screen's checkout bar is fixed to the bottom, and its height
+     changes with the cart (the discount lines come and go), so the bar
+     measures itself and publishes the result here — see
+     use-published-height.ts. This declaration is only the first-paint
+     fallback, deliberately on the generous side: too much room under the
+     last cart line is a smaller sin than a line trapped under the bar. */
+  --checkout-bar-height: 18rem;
+
   /* Organza logo hues. Every brand tint below is derived from these two, so the
      whole theme can be re-hued from here instead of per-token. */
   --brand-hue: 206.4; /* dark teal  #235C63 */

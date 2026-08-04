@@ -40,7 +40,7 @@ function SheetContent({ className, children, side = "start", closeLabel, ...prop
           // pb: iOS home indicator (CLAUDE.md "Mobile input & device
           // specifics") — every sheet ends in a bottom-anchored action row,
           // so this has to live on the shared root, not each call site.
-          "fixed inset-y-0 z-50 flex h-full w-5/6 max-w-sm flex-col gap-4 border-border bg-background pb-[env(safe-area-inset-bottom)] shadow-lg",
+          "fixed inset-y-0 z-50 flex h-full w-5/6 max-w-sm flex-col gap-4 border-border bg-background pb-[var(--safe-bottom)] shadow-lg",
           "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
           "data-[state=closed]:duration-200 data-[state=open]:duration-300",
           // The slide direction must be logical (`start`/`end`), not physical

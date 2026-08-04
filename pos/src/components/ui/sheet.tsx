@@ -42,7 +42,7 @@ function SheetContent({ className, children, side = "bottom", closeLabel, ...pro
           // pb: iOS home indicator (CLAUDE.md "Mobile input & device
           // specifics") — every sheet ends in a bottom-anchored action row,
           // so this has to live on the shared root, not each call site.
-          "fixed z-50 flex flex-col gap-4 border-border bg-background pb-[env(safe-area-inset-bottom)] shadow-lg",
+          "fixed z-50 flex flex-col gap-4 border-border bg-background pb-[var(--safe-bottom)] shadow-lg",
           "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
           "data-[state=closed]:duration-200 data-[state=open]:duration-300",
           side === "bottom" &&

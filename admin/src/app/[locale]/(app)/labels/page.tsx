@@ -285,7 +285,7 @@ function LabelsPageContent() {
               </>
             )}
 
-            <div className="sticky bottom-[calc(4rem+env(safe-area-inset-bottom))] z-20 -mx-4 border-t border-border bg-background px-4 py-3 md:bottom-0 md:mx-0 md:rounded-xl md:border">
+            <div className="sticky bottom-[var(--bottom-bar-inset)] z-20 -mx-4 border-t border-border bg-background px-4 py-3 md:mx-0 md:rounded-xl md:border">
               <div className="flex items-center justify-between gap-3">
                 <span className="text-sm text-muted-foreground">{t("prepare.totalLabels", { count: totalLabels })}</span>
                 <Button type="button" onClick={handlePrint} disabled={totalLabels === 0 || runTooLarge}>
@@ -360,7 +360,7 @@ function LabelsPageContent() {
         </>
       )}
 
-      <div className="sticky bottom-[calc(4rem+env(safe-area-inset-bottom))] z-20 -mx-4 border-t border-border bg-background px-4 py-3 md:bottom-0 md:mx-0 md:rounded-xl md:border">
+      <div className="sticky bottom-[var(--bottom-bar-inset)] z-20 -mx-4 border-t border-border bg-background px-4 py-3 md:mx-0 md:rounded-xl md:border">
         <div className="flex items-center justify-between gap-3">
           <span className="text-sm text-muted-foreground">{t("selectedCount", { count: selectedIds.length })}</span>
           <Button type="button" onClick={() => setStep("prepare")} disabled={selectedIds.length === 0}>

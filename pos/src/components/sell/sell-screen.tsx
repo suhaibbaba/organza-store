@@ -208,9 +208,11 @@ export function SellScreen() {
           </Alert>
         )}
 
-        {/* pb leaves room for the fixed checkout bar so the last cart line
-            is never trapped underneath it. */}
-        <div className="pb-72">
+        {/* pb leaves room for the fixed checkout bar so the last cart line is
+            never trapped underneath it. The height is the bar's own measured
+            one (CheckoutBar publishes it), not a guess, so it stays right as
+            the bar grows a discount line — plus a little breathing room. */}
+        <div className="pb-[calc(var(--checkout-bar-height)+1rem)]">
           {isSearching ? (
             <SearchResults
               results={search.data}
