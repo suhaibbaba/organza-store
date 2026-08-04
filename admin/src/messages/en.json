@@ -19,6 +19,7 @@
     "products": "Products",
     "inventory": "Inventory",
     "categories": "Categories",
+    "reports": "Reports",
     "users": "Users",
     "settings": "Settings",
     "more": "More"
@@ -58,9 +59,20 @@
         "basisPrice": "At selling price"
       }
     },
-    "salesPlaceholder": {
-      "title": "Sales & Profit",
-      "description": "This will be available once the orders system is live."
+    "sales": {
+      "title": "Sales & profit",
+      "viewReports": "Reports",
+      "error": "Sales could not be loaded.",
+      "periods": {
+        "today": "Today",
+        "week": "This week",
+        "month": "This month"
+      },
+      "revenue": "Sales",
+      "orders": "Orders",
+      "averageOrder": "Average order",
+      "profit": "Profit",
+      "margin": "{value, number, percent} margin"
     }
   },
   "orders": {
@@ -292,6 +304,59 @@
         "openOrder": "Open the order",
         "newOrder": "New order"
       }
+    }
+  },
+  "reports": {
+    "title": "Reports",
+    "subtitle": "Sales and profit for the period you pick.",
+    "updating": "Updating…",
+    "range": {
+      "today": "Today",
+      "last7Days": "Last 7 days",
+      "last30Days": "Last 30 days",
+      "thisMonth": "This month",
+      "custom": "Custom",
+      "from": "From",
+      "to": "To"
+    },
+    "totals": {
+      "revenue": "Sales",
+      "revenueHint": "{orders} orders · {items} items",
+      "profit": "Profit",
+      "cost": "Cost",
+      "margin": "{value, number, percent} margin",
+      "averageOrder": "Average order",
+      "discounts": "Discounts",
+      "missingCost": "{count} sold items have no cost price, so the profit shown is higher than the real one."
+    },
+    "trend": {
+      "title": "Sales over the period",
+      "revenue": "Sales",
+      "profit": "Profit"
+    },
+    "channels": {
+      "title": "By sales channel",
+      "orders": "{count} orders",
+      "empty": "No sales in this period."
+    },
+    "topSellers": {
+      "title": "Best sellers",
+      "byRevenue": "By sales",
+      "byQuantity": "By quantity",
+      "quantity": "Quantity: {count}",
+      "profit": "Profit: {amount}",
+      "empty": "No sales in this period."
+    },
+    "returns": {
+      "title": "Returns",
+      "amount": "Returned value",
+      "items": "Returned items",
+      "orders": "Across {count} orders",
+      "empty": "No returns in this period."
+    },
+    "empty": {
+      "title": "No sales in this period",
+      "description": "Try another period, or record your first order."
     }
   },
   "products": {
@@ -696,6 +761,8 @@
     "orderNotReturnable": "This order can't be returned.",
     "orderReturnQuantityExceeded": "That's more than was sold.",
     "orderProductUnavailable": "This product is no longer available to sell.",
-    "orderVariantRequired": "Choose which variant of this product."
+    "orderVariantRequired": "Choose which variant of this product.",
+    "reportRangeInvalid": "That period isn't valid. Check the start and end dates.",
+    "reportRangeTooLong": "That period is too long. Pick a year at most."
   }
 }

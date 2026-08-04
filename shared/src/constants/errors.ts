@@ -60,6 +60,9 @@ export const ERROR_CODES = {
   ORDER_PRODUCT_UNAVAILABLE: "error.order.product_unavailable",
   ORDER_VARIANT_REQUIRED: "error.order.variant_required",
 
+  REPORT_RANGE_INVALID: "error.report.range_invalid",
+  REPORT_RANGE_TOO_LONG: "error.report.range_too_long",
+
   SETTING_DEFAULT_LANGUAGE_NOT_SUPPORTED: "error.setting.default_language_not_supported",
 
   USER_NOT_FOUND: "error.user.not_found",

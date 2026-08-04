@@ -7,6 +7,7 @@ export type NavKey =
   | "products"
   | "inventory"
   | "categories"
+  | "reports"
   | "users"
   | "settings";
 

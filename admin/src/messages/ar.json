@@ -19,6 +19,7 @@
     "products": "المنتجات",
     "inventory": "المخزون",
     "categories": "الأقسام",
+    "reports": "التقارير",
     "users": "المستخدمون",
     "settings": "الإعدادات",
     "more": "المزيد"
@@ -58,9 +59,20 @@
         "basisPrice": "بسعر البيع"
       }
     },
-    "salesPlaceholder": {
+    "sales": {
       "title": "المبيعات والأرباح",
-      "description": "ستتوفر هذه البيانات بعد تفعيل نظام الطلبات."
+      "viewReports": "التقارير",
+      "error": "تعذّر تحميل المبيعات.",
+      "periods": {
+        "today": "اليوم",
+        "week": "هذا الأسبوع",
+        "month": "هذا الشهر"
+      },
+      "revenue": "المبيعات",
+      "orders": "عدد الطلبات",
+      "averageOrder": "متوسط الطلب",
+      "profit": "الربح",
+      "margin": "نسبة الربح {value, number, percent}"
     }
   },
   "orders": {
@@ -292,6 +304,59 @@
         "openOrder": "فتح الطلب",
         "newOrder": "طلب جديد"
       }
+    }
+  },
+  "reports": {
+    "title": "التقارير",
+    "subtitle": "المبيعات والأرباح خلال الفترة التي تختارها.",
+    "updating": "جارٍ التحديث…",
+    "range": {
+      "today": "اليوم",
+      "last7Days": "آخر ٧ أيام",
+      "last30Days": "آخر ٣٠ يومًا",
+      "thisMonth": "هذا الشهر",
+      "custom": "فترة أخرى",
+      "from": "من تاريخ",
+      "to": "إلى تاريخ"
+    },
+    "totals": {
+      "revenue": "المبيعات",
+      "revenueHint": "{orders} طلب، {items} قطعة",
+      "profit": "الربح",
+      "cost": "التكلفة",
+      "margin": "نسبة الربح {value, number, percent}",
+      "averageOrder": "متوسط الطلب",
+      "discounts": "الخصومات",
+      "missingCost": "{count} قطعة مباعة بدون سعر تكلفة، فالربح المعروض أعلى من الحقيقي."
+    },
+    "trend": {
+      "title": "المبيعات خلال الفترة",
+      "revenue": "المبيعات",
+      "profit": "الربح"
+    },
+    "channels": {
+      "title": "حسب مصدر البيع",
+      "orders": "{count} طلب",
+      "empty": "لا توجد مبيعات في هذه الفترة."
+    },
+    "topSellers": {
+      "title": "الأكثر مبيعًا",
+      "byRevenue": "حسب المبيعات",
+      "byQuantity": "حسب الكمية",
+      "quantity": "الكمية: {count}",
+      "profit": "الربح: {amount}",
+      "empty": "لا توجد مبيعات في هذه الفترة."
+    },
+    "returns": {
+      "title": "المرتجعات",
+      "amount": "قيمة المرتجعات",
+      "items": "قطع مرتجعة",
+      "orders": "ضمن {count} طلب",
+      "empty": "لا توجد مرتجعات في هذه الفترة."
+    },
+    "empty": {
+      "title": "لا توجد مبيعات في هذه الفترة",
+      "description": "جرّب فترة أخرى، أو سجّل أول طلب."
     }
   },
   "products": {
@@ -696,6 +761,8 @@
     "orderNotReturnable": "لا يمكن إرجاع هذا الطلب.",
     "orderReturnQuantityExceeded": "الكمية المُرجعة أكبر من الكمية المُباعة.",
     "orderProductUnavailable": "هذا المنتج لم يعد متاحًا للبيع.",
-    "orderVariantRequired": "اختر المتغير المطلوب من هذا المنتج."
+    "orderVariantRequired": "اختر المتغير المطلوب من هذا المنتج.",
+    "reportRangeInvalid": "الفترة غير صحيحة. راجع تاريخ البداية والنهاية.",
+    "reportRangeTooLong": "الفترة طويلة جدًا. اختر مدة سنة كحد أقصى."
   }
 }

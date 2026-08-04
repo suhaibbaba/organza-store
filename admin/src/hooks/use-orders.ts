@@ -5,6 +5,7 @@ import { ORDER_DETAIL_QUERY_KEY, ORDER_LIST_PAGE_SIZE, ORDER_LIST_QUERY_KEY } fr
 import { PRODUCT_LIST_QUERY_KEY } from "@/constants/products";
 import { INVENTORY_LIST_QUERY_KEY } from "@/constants/inventory";
 import { DASHBOARD_SUMMARY_QUERY_KEY } from "@/constants/api";
+import { REPORTS_SALES_QUERY_KEY, REPORTS_SUMMARY_QUERY_KEY } from "@/constants/reports";
 import { createOrder, deleteOrder, fetchOrder, fetchOrders, returnOrder, updateOrderStatus } from "@/lib/api/orders";
 import type { OrderListFilters } from "@/types/order";
 
@@ -31,6 +32,8 @@ export function useOrderQuery(id: string) {
 // returning or deleting puts it back. So each of them invalidates the
 // catalogue views as well as the order itself — otherwise the products and
 // inventory screens keep showing quantities that are no longer true.
+// The same goes for the sales figures: a new sale, a cancellation or a
+// return all change what the dashboard and the reports should be showing.
 function useInvalidateOrders() {
   const queryClient = useQueryClient();
   return (id?: string) => {
@@ -39,6 +42,8 @@ function useInvalidateOrders() {
     void queryClient.invalidateQueries({ queryKey: [PRODUCT_LIST_QUERY_KEY] });
     void queryClient.invalidateQueries({ queryKey: [INVENTORY_LIST_QUERY_KEY] });
     void queryClient.invalidateQueries({ queryKey: DASHBOARD_SUMMARY_QUERY_KEY });
+    void queryClient.invalidateQueries({ queryKey: REPORTS_SUMMARY_QUERY_KEY });
+    void queryClient.invalidateQueries({ queryKey: [REPORTS_SALES_QUERY_KEY] });
   };
 }
 

@@ -203,6 +203,34 @@ curl -X POST http://localhost:4000/api/orders \
        "discountType":"PERCENT","discountValue":"10"}]}'
 ```
 
+## Reports (sales & profit)
+
+Both endpoints aggregate in Postgres over the order-line snapshots — no order is ever loaded
+into memory — and share one set of rules:
+
+- cancelled and soft-deleted orders are excluded entirely;
+- returned quantities come off revenue **and** cost, so a fully returned order nets to zero;
+- an order-level discount is apportioned across that order's lines (`total / subtotal`), so
+  per-product and per-channel revenue add up to the order's real revenue;
+- profit = revenue − cost, both from the line's own `unitPrice` / `unitCost` snapshot, never
+  from the product's current values.
+
+| Method | Path                          | Role gate               | Notes |
+|--------|-------------------------------|--------------------------|-------|
+| GET    | `/api/reports/sales-summary`  | Admin/Manager/Employee   | today / this week / this month; `tzOffset` (minutes to add to UTC) puts the period boundaries on the caller's clock |
+| GET    | `/api/reports/sales`          | Admin/Manager/Employee   | `from`/`to` are local `YYYY-MM-DD` dates (inclusive), plus `tzOffset` and `topLimit`; returns totals, returns, per-channel split, a trend series and the best sellers |
+
+`cost`, `profit`, `margin` and `missingCostItems` require **`product.viewCost`** (Admin +
+Manager). For anyone else those fields are never computed and never appear in the response —
+an Employee gets sales counts and revenue only, exactly what the orders list already shows
+them. A range longer than a year is rejected (`error.report.range_too_long`), as is a
+reversed or malformed one (`error.report.range_invalid`).
+
+```bash
+curl "http://localhost:4000/api/reports/sales?from=2026-08-01&to=2026-08-31&tzOffset=180" \
+  -H "Authorization: Bearer <token>"
+```
+
 ## Auth notes
 
 - The Better Auth instance lives at `src/lib/auth.ts`. It's configured with

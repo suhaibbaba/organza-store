@@ -4,3 +4,4 @@ export * from "./product";
 export * from "./variant";
 export * from "./inventory";
 export * from "./order";
+export * from "./report";

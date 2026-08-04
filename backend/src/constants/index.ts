@@ -9,6 +9,8 @@ export * from "./order";
 export * from "./pagination";
 export * from "./phone";
 export * from "./product";
+export * from "./report";
 export * from "./settings";
 export * from "./sku";
+export * from "./time";
 export * from "./validation";
