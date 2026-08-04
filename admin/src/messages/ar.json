@@ -18,6 +18,7 @@
     "orders": "الطلبات",
     "products": "المنتجات",
     "inventory": "المخزون",
+    "labels": "الملصقات",
     "categories": "الأقسام",
     "reports": "التقارير",
     "users": "المستخدمون",
@@ -579,6 +580,72 @@
       "previous": "السابق",
       "next": "التالي",
       "pageOf": "صفحة {page} من {totalPages}"
+    }
+  },
+  "labels": {
+    "title": "ملصقات الباركود",
+    "subtitle": "اطبع ملصقات القطع التي ما زالت بحاجة إلى ملصق.",
+    "selectAll": "اختيار كل ما في الصفحة",
+    "clearSelection": "مسح الاختيار",
+    "selectedCount": "{count} محدّد",
+    "next": "التالي",
+    "filters": {
+      "printState": "حالة الطباعة",
+      "all": "الكل",
+      "printed": "مطبوعة",
+      "not_printed": "غير مطبوعة",
+      "category": "الفئة",
+      "allCategories": "كل الفئات"
+    },
+    "row": {
+      "select": "اختيار {name}",
+      "variants": "{count} خيارات",
+      "printedOn": "آخر طباعة {date}",
+      "neverPrinted": "لم تُطبع بعد"
+    },
+    "empty": {
+      "allPrintedTitle": "كل الملصقات مطبوعة",
+      "allPrintedDescription": "المنتجات الجديدة تظهر هنا حتى تُطبع ملصقاتها.",
+      "noMatchesTitle": "لا توجد منتجات مطابقة",
+      "noMatchesDescription": "جرّب بحثًا آخر أو فئة أخرى أو حالة طباعة أخرى."
+    },
+    "copies": {
+      "total": "{count} ملصق",
+      "wholeProduct": "المنتج كامل",
+      "noBarcode": "بدون باركود",
+      "simpleHint": "ملصق لكل قطعة في المخزون.",
+      "perVariantHint": "ملصق لكل خيار ({count})، حسب مخزون كل خيار.",
+      "numberedHint": "شال مرقّم — ملصق واحد للمنتج كامل. اكتب عدد النسخ التي تحتاجها."
+    },
+    "prepare": {
+      "back": "رجوع إلى المنتجات",
+      "title": "عدد النسخ والمعاينة",
+      "subtitle": "{products} منتجات · {labels} ملصق",
+      "totalLabels": "{count} ملصق",
+      "print": "طباعة"
+    },
+    "preview": {
+      "pageCount": "معاينة — {count} صفحات",
+      "truncated": "تظهر أول {shown} صفحات من أصل {total} — وستُطبع كلها."
+    },
+    "sheet": {
+      "title": "ورقة الملصقات",
+      "thermal": "{width}×{height} ملم — ملصق واحد في كل صفحة",
+      "a4": "{width}×{height} ملم — ورقة A4، {columns} بالعرض × {rows} بالطول",
+      "change": "تغيير من الإعدادات"
+    },
+    "warnings": {
+      "smallLabel": "عرض الملصق أقل من {width} ملم، وقد يصعب قراءة الباركود. اطبع ملصقًا واحدًا وجرّبه أولًا.",
+      "gridOverflow": "الملصقات لا تتسع في ورقة A4 بالإعدادات الحالية، وسيُقصّ بعضها. قلّل عدد الأعمدة أو الصفوف أو الهوامش من الإعدادات.",
+      "tooManyLabels": "أكثر من {max} ملصق دفعة واحدة. اطبعها على دفعات أصغر.",
+      "noLabels": "حدّد عدد النسخ لملصق واحد على الأقل."
+    },
+    "print": {
+      "confirmTitle": "هل طُبعت الملصقات؟",
+      "confirmDescription": "إذا خرجت صحيحة، سنسجّل هذه المنتجات كمطبوعة. ويمكنك طباعتها مرة أخرى في أي وقت.",
+      "confirmYes": "نعم، سجّلها كمطبوعة",
+      "confirmNo": "ليس بعد",
+      "marked": "تم تسجيلها كمطبوعة."
     }
   },
   "categories": {

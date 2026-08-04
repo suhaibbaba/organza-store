@@ -1,4 +1,4 @@
-import type { Product, ProductSummary } from "@shared/types/product";
+import type { MarkLabelsPrintedResult, Product, ProductSummary } from "@shared/types/product";
 import type { Variant } from "@shared/types/variant";
 import type { Pagination } from "@shared/types/common";
 import type {
@@ -22,6 +22,9 @@ function buildProductListQuery(filters: ProductListFilters, pageSize: number): s
   if (filters.stock) params.set("stock", filters.stock);
   if (filters.priceMin.trim()) params.set("priceMin", filters.priceMin.trim());
   if (filters.priceMax.trim()) params.set("priceMax", filters.priceMax.trim());
+  // "all" is the backend's own default — left off the query string so the
+  // products screen's URL stays as it was.
+  if (filters.printState !== "all") params.set("printState", filters.printState);
   return params.toString();
 }
 
@@ -58,6 +61,17 @@ export async function updateVariant(id: string, variantId: string, input: Update
   const { data } = await apiFetch<Variant>(`/api/products/${id}/variants/${variantId}`, {
     method: "PATCH",
     body: input,
+  });
+  return data;
+}
+
+// Records that a batch of barcode labels went to the printer, so those
+// products drop out of the "not printed yet" list. Reprinting is always
+// allowed — this only ever moves the timestamp forward.
+export async function markLabelsPrinted(productIds: string[]): Promise<MarkLabelsPrintedResult> {
+  const { data } = await apiFetch<MarkLabelsPrintedResult>("/api/products/labels/printed", {
+    method: "POST",
+    body: { productIds },
   });
   return data;
 }

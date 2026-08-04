@@ -1,4 +1,14 @@
-import { LayoutDashboard, Shirt, Boxes, FolderTree, ReceiptText, ChartColumn, Users, Settings } from "lucide-react";
+import {
+  LayoutDashboard,
+  Shirt,
+  Boxes,
+  Barcode,
+  FolderTree,
+  ReceiptText,
+  ChartColumn,
+  Users,
+  Settings,
+} from "lucide-react";
 import type { NavItem } from "@/types/nav";
 
 // CLAUDE.md rule 5 / task spec: Users + Settings are Admin-only in the nav;
@@ -8,6 +18,10 @@ export const NAV_ITEMS: readonly NavItem[] = [
   { key: "orders", href: "/orders", icon: ReceiptText, action: "order.view" },
   { key: "products", href: "/products", icon: Shirt, action: "product.view" },
   { key: "inventory", href: "/inventory", icon: Boxes, action: "inventory.view" },
+  // Barcode labels. Every role can print (CLAUDE.md rule 13: a new piece
+  // isn't shelf-ready until its label is on it), so it is gated on the same
+  // action the backend enforces.
+  { key: "labels", href: "/labels", icon: Barcode, action: "product.printLabels" },
   { key: "categories", href: "/categories", icon: FolderTree, action: "category.view" },
   // Sales & profit. Gated with order.view, the same permission the orders
   // list uses — cost and profit inside the page are gated separately, on the

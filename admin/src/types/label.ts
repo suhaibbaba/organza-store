@@ -1,0 +1,63 @@
+import type { ProductPrintState } from "@shared/types/product";
+import type { LabelPrintMode } from "@shared/types/setting";
+
+// Client-side filter state for the barcode-labels screen. Mirrors the
+// products list filters it reuses, minus the ones that make no sense when
+// picking what to print (price range, sort).
+export interface LabelListFilters {
+  q: string;
+  categoryId: string | null;
+  printState: ProductPrintState;
+  page: number;
+}
+
+// One design in the print run — a product or one of its variants — plus how
+// many copies of it to print. Which of the three shapes a product takes is
+// decided in lib/labels.ts.
+export interface LabelLine {
+  // Stable identity of the line: `<productId>:<variantId | "product">`.
+  key: string;
+  productId: string;
+  variantId: string | null;
+  // Product name, localized for display and for the sticker itself.
+  name: string;
+  // Variant label ("أحمر / M"); null for a simple product or a numbered
+  // shawl's parent.
+  subtitle: string | null;
+  // What the barcode encodes: the generated barcode, falling back to the SKU
+  // when a variant has none. Null when there is nothing to encode at all.
+  code: string | null;
+  // Copies proposed before the user edits anything: the piece's stock, so a
+  // shop with three of something gets three stickers.
+  suggestedCopies: number;
+  // Numbered shawls print the PARENT only (spec.md: one photo, numbers drawn
+  // on it), so the count can't come from stock — it is entered by hand.
+  isNumbered: boolean;
+}
+
+// One physical sticker. A line with 3 copies expands into 3 of these.
+export interface LabelPrintItem {
+  key: string;
+  name: string;
+  subtitle: string | null;
+  code: string | null;
+}
+
+// Everything the sheet needs to lay itself out, read from the Setting
+// singleton (CLAUDE.md rule 14 — never hard-coded).
+export interface LabelGeometry {
+  printMode: LabelPrintMode;
+  widthMm: number;
+  heightMm: number;
+  columns: number;
+  rows: number;
+  pageMarginTopMm: number;
+  pageMarginRightMm: number;
+  pageMarginBottomMm: number;
+  pageMarginLeftMm: number;
+  gapXMm: number;
+  gapYMm: number;
+}
+
+// Two steps, not a wizard: pick the products, then set counts and print.
+export type LabelStep = "select" | "prepare";

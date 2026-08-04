@@ -18,6 +18,7 @@
     "orders": "הזמנות",
     "products": "מוצרים",
     "inventory": "מלאי",
+    "labels": "מדבקות",
     "categories": "קטגוריות",
     "reports": "דוחות",
     "users": "משתמשים",
@@ -579,6 +580,72 @@
       "previous": "הקודם",
       "next": "הבא",
       "pageOf": "עמוד {page} מתוך {totalPages}"
+    }
+  },
+  "labels": {
+    "title": "מדבקות ברקוד",
+    "subtitle": "הדפסת מדבקות לפריטים שעדיין צריכים אחת.",
+    "selectAll": "בחירת הכול בעמוד",
+    "clearSelection": "ניקוי הבחירה",
+    "selectedCount": "{count} נבחרו",
+    "next": "הבא",
+    "filters": {
+      "printState": "מצב הדפסה",
+      "all": "הכול",
+      "printed": "הודפסו",
+      "not_printed": "לא הודפסו",
+      "category": "קטגוריה",
+      "allCategories": "כל הקטגוריות"
+    },
+    "row": {
+      "select": "בחירת {name}",
+      "variants": "{count} וריאציות",
+      "printedOn": "הודפס לאחרונה {date}",
+      "neverPrinted": "עדיין לא הודפס"
+    },
+    "empty": {
+      "allPrintedTitle": "כל המדבקות הודפסו",
+      "allPrintedDescription": "מוצרים חדשים יופיעו כאן עד שהמדבקות שלהם יודפסו.",
+      "noMatchesTitle": "אין מוצרים תואמים",
+      "noMatchesDescription": "נסו חיפוש אחר, קטגוריה אחרת או מצב הדפסה אחר."
+    },
+    "copies": {
+      "total": "{count} מדבקות",
+      "wholeProduct": "המוצר כולו",
+      "noBarcode": "אין ברקוד",
+      "simpleHint": "מדבקה לכל פריט במלאי.",
+      "perVariantHint": "מדבקה לכל וריאציה ({count}), לפי המלאי של כל אחת.",
+      "numberedHint": "צעיף ממוספר — מדבקה אחת למוצר כולו. הזינו כמה עותקים צריך."
+    },
+    "prepare": {
+      "back": "חזרה למוצרים",
+      "title": "עותקים ותצוגה מקדימה",
+      "subtitle": "{products} מוצרים · {labels} מדבקות",
+      "totalLabels": "{count} מדבקות",
+      "print": "הדפסה"
+    },
+    "preview": {
+      "pageCount": "תצוגה מקדימה — {count} עמודים",
+      "truncated": "מוצגים {shown} העמודים הראשונים מתוך {total} — כולם יודפסו."
+    },
+    "sheet": {
+      "title": "גיליון מדבקות",
+      "thermal": "{width}×{height} מ״מ — מדבקה אחת בכל עמוד",
+      "a4": "{width}×{height} מ״מ — גיליון A4, {columns} לרוחב × {rows} לאורך",
+      "change": "שינוי בהגדרות"
+    },
+    "warnings": {
+      "smallLabel": "רוחב המדבקה קטן מ־{width} מ״מ, וייתכן שיהיה קשה לסרוק את הברקוד. הדפיסו אחת ובדקו קודם.",
+      "gridOverflow": "המדבקות לא נכנסות לגיליון A4 בהגדרות הנוכחיות וחלקן ייחתכו. הקטינו את מספר העמודות, השורות או השוליים בהגדרות.",
+      "tooManyLabels": "יותר מ־{max} מדבקות בבת אחת. הדפיסו במנות קטנות יותר.",
+      "noLabels": "קבעו מספר עותקים למדבקה אחת לפחות."
+    },
+    "print": {
+      "confirmTitle": "המדבקות הודפסו?",
+      "confirmDescription": "אם הן יצאו כמו שצריך, נסמן את המוצרים האלה כמודפסים. תמיד אפשר להדפיס אותן שוב.",
+      "confirmYes": "כן, סמנו כמודפס",
+      "confirmNo": "עדיין לא",
+      "marked": "סומנו כמודפסים."
     }
   },
   "categories": {
