@@ -15,6 +15,7 @@
   },
   "nav": {
     "dashboard": "לוח בקרה",
+    "orders": "הזמנות",
     "products": "מוצרים",
     "inventory": "מלאי",
     "categories": "קטגוריות",
@@ -60,6 +61,237 @@
     "salesPlaceholder": {
       "title": "מכירות ורווחים",
       "description": "המידע הזה יהיה זמין לאחר הפעלת מערכת ההזמנות."
+    }
+  },
+  "orders": {
+    "title": "הזמנות",
+    "subtitle": "הזמנות מהחנות, מוואטסאפ ומהאתר.",
+    "newOrder": "הזמנה חדשה",
+    "search": {
+      "placeholder": "חיפוש לפי מספר הזמנה, שם לקוח או טלפון",
+      "label": "חיפוש הזמנות",
+      "clear": "ניקוי החיפוש"
+    },
+    "sort": {
+      "label": "מיון",
+      "newest": "החדשות תחילה",
+      "oldest": "הישנות תחילה",
+      "totalHighToLow": "סכום: מהגבוה לנמוך",
+      "totalLowToHigh": "סכום: מהנמוך לגבוה",
+      "numberDesc": "מספר הזמנה: מהגבוה לנמוך",
+      "numberAsc": "מספר הזמנה: מהנמוך לגבוה"
+    },
+    "filters": {
+      "trigger": "סינון",
+      "title": "סינון הזמנות",
+      "status": "סטטוס",
+      "statusAll": "כל הסטטוסים",
+      "channel": "מקור",
+      "channelAll": "כל המקורות",
+      "dateRange": "טווח תאריכים",
+      "dateFrom": "מתאריך",
+      "dateTo": "עד תאריך",
+      "reset": "איפוס",
+      "apply": "החלה"
+    },
+    "status": {
+      "NEW": "חדשה",
+      "PREPARING": "בהכנה",
+      "DELIVERING": "במשלוח",
+      "RECEIVED": "התקבלה",
+      "COMPLETED": "הושלמה",
+      "CANCELLED": "בוטלה",
+      "RETURNED": "הוחזרה"
+    },
+    "channel": {
+      "STORE": "חנות",
+      "WHATSAPP": "וואטסאפ",
+      "WEBSITE": "אתר"
+    },
+    "payment": {
+      "CASH": "מזומן"
+    },
+    "discount": {
+      "title": "הנחה",
+      "subtitle": "על {name} — {amount}",
+      "typeLabel": "סוג ההנחה",
+      "type": {
+        "PERCENT": "אחוזים",
+        "AMOUNT": "סכום קבוע"
+      },
+      "valueLabel": {
+        "PERCENT": "אחוז",
+        "AMOUNT": "סכום"
+      },
+      "valuePlaceholder": {
+        "PERCENT": "לדוגמה 10",
+        "AMOUNT": "לדוגמה 20"
+      },
+      "invalid": "יש להזין ערך תקין (אחוז בין 0 ל-100).",
+      "apply": "החלת ההנחה",
+      "remove": "הסרת ההנחה",
+      "percentValue": "{value}%"
+    },
+    "card": {
+      "orderNumber": "הזמנה {number}",
+      "itemCount": "{count, plural, one {פריט אחד} two {שני פריטים} other {# פריטים}}"
+    },
+    "table": {
+      "orderNumber": "הזמנה",
+      "channel": "מקור",
+      "status": "סטטוס",
+      "customer": "לקוח",
+      "noCustomer": "—",
+      "date": "תאריך",
+      "total": "סכום"
+    },
+    "empty": {
+      "noOrdersTitle": "אין הזמנות עדיין",
+      "noOrdersDescription": "הזמנות יופיעו כאן מיד עם קליטתן.",
+      "noMatchesTitle": "לא נמצאו הזמנות",
+      "noMatchesDescription": "כדאי לנסות חיפוש או סינון אחר."
+    },
+    "pagination": {
+      "previous": "הקודם",
+      "next": "הבא",
+      "pageOf": "עמוד {page} מתוך {totalPages}"
+    },
+    "detail": {
+      "back": "הזמנות",
+      "notFoundTitle": "ההזמנה לא נמצאה",
+      "notFoundDescription": "ייתכן שההזמנה נמחקה.",
+      "items": {
+        "title": "{count, plural, one {פריט אחד} two {שני פריטים} other {# פריטים}}",
+        "noSku": "ללא מק\"ט",
+        "quantity": "כמות: {count}",
+        "unitPrice": "מחיר ליחידה: {price}",
+        "itemDiscount": "הנחה {label} (−{amount})",
+        "returned": "{count} הוחזרו"
+      },
+      "totals": {
+        "subtotal": "סכום ביניים",
+        "orderDiscount": "הנחה על ההזמנה ({label})",
+        "total": "סה\"כ",
+        "paymentMethod": "אמצעי תשלום"
+      },
+      "customer": {
+        "title": "פרטי הלקוח",
+        "whatsappLabel": "וואטסאפ",
+        "openMap": "פתיחת המיקום במפה",
+        "note": "הערה"
+      },
+      "meta": {
+        "createdBy": "נוצרה על ידי",
+        "unknownStaff": "לא ידוע",
+        "createdAt": "נוצרה",
+        "updatedAt": "עודכנה לאחרונה",
+        "stockDeducted": "ניכוי מלאי",
+        "stockNotDeducted": "טרם נוכה"
+      },
+      "statusActions": {
+        "progressLabel": "התקדמות ההזמנה",
+        "moved": "הסטטוס עודכן ל: {status}",
+        "advanceTo": {
+          "PREPARING": "התחלת הכנה",
+          "DELIVERING": "שליחה למשלוח",
+          "RECEIVED": "הלקוח קיבל את ההזמנה"
+        },
+        "stockDeductionNotice": "תחילת ההכנה מנכה את הפריטים מהמלאי.",
+        "cancelOrder": "ביטול ההזמנה",
+        "confirmCancel": "לבטל את ההזמנה?",
+        "confirmCancelWithStock": "לבטל את ההזמנה? הפריטים יחזרו למלאי.",
+        "confirmCancelAction": "כן, לבטל",
+        "keepOrder": "לא, להשאיר"
+      },
+      "returns": {
+        "title": "החזרה",
+        "description": "אפשר להחזיר את ההזמנה כולה או לבחור כמות לכל פריט. המלאי מתעדכן בכל מקרה.",
+        "returnWholeOrder": "החזרת ההזמנה כולה",
+        "or": "או",
+        "pickItems": "החזרת פריטים מסוימים",
+        "outstanding": "נותרו {count}",
+        "decrease": "פחות — {name}",
+        "increase": "עוד — {name}",
+        "quantityFor": "כמות להחזרה — {name}",
+        "returnSelected": "{count, plural, =0 {החזרת הנבחרים} one {החזרת פריט אחד} two {החזרת שני פריטים} other {החזרת # פריטים}}",
+        "nothingLeft": "לא נותרו פריטים להחזרה בהזמנה זו."
+      },
+      "manage": {
+        "returnItems": "החזרת פריטים",
+        "deleteOrder": "מחיקת ההזמנה",
+        "confirmDelete": "למחוק את ההזמנה? היא תוסתר מכל המסכים.",
+        "confirmDeleteWithStock": "למחוק את ההזמנה? היא תוסתר מכל המסכים והפריטים יחזרו למלאי.",
+        "confirmDeleteAction": "כן, למחוק",
+        "keepOrder": "לא, להשאיר",
+        "noPermission": "ניתן לעדכן את סטטוס ההזמנה בלבד. ביטול, החזרה ומחיקה דורשים הרשאת מנהל."
+      }
+    },
+    "new": {
+      "back": "הזמנות",
+      "title": "הזמנת וואטסאפ חדשה",
+      "subtitle": "רישום הזמנה שהתקבלה בוואטסאפ.",
+      "itemsTitle": "מוצרים",
+      "needItems": "יש להוסיף מוצר אחד לפחות לפני השמירה.",
+      "save": "שמירת ההזמנה",
+      "saving": "שומר…",
+      "wholeOrder": "ההזמנה כולה",
+      "search": {
+        "placeholder": "חיפוש מוצר לפי שם או מק\"ט",
+        "label": "חיפוש מוצרים",
+        "clear": "ניקוי החיפוש",
+        "searching": "מחפש…",
+        "empty": "לא נמצאו מוצרים מתאימים.",
+        "error": "החיפוש נכשל. נסה/י שוב.",
+        "variantCount": "{count, plural, one {וריאציה אחת} two {שתי וריאציות} other {# וריאציות}}",
+        "inStock": "{count} במלאי",
+        "soldOut": "אזל"
+      },
+      "picker": {
+        "subtitle": "יש לבחור וריאציה.",
+        "soldOut": "אזל"
+      },
+      "lines": {
+        "empty": "עדיין לא נוספו מוצרים.",
+        "unitPrice": "מחיר ליחידה: {price}",
+        "remove": "הסרת {name}",
+        "decrease": "פחות — {name}",
+        "increase": "עוד — {name}",
+        "quantityFor": "כמות — {name}",
+        "discountFor": "הנחה על {name}",
+        "addDiscount": "הנחה",
+        "percentValue": "{value}%"
+      },
+      "totals": {
+        "subtotal": "סכום ביניים ({count})",
+        "itemDiscounts": "הנחות על פריטים",
+        "orderDiscount": "הנחה על ההזמנה ({label})",
+        "addOrderDiscount": "הנחה על כל ההזמנה",
+        "editOrderDiscount": "עריכת ההנחה על ההזמנה",
+        "total": "סה\"כ"
+      },
+      "customer": {
+        "title": "פרטי הלקוח",
+        "name": "שם הלקוח",
+        "phone": "מספר טלפון",
+        "phonePrefixLabel": "קידומת מדינה",
+        "whatsapp": "מספר וואטסאפ",
+        "whatsappHint": "אפשר להשאיר ריק אם זהה לטלפון.",
+        "address": "כתובת",
+        "addressPlaceholder": "עיר, רחוב, ציון דרך…",
+        "location": "מיקום במפה (רשות)",
+        "locationHint": "הדבקת הקואורדינטות מוואטסאפ בשדה קו הרוחב תמלא את שני השדות.",
+        "latitude": "קו רוחב",
+        "longitude": "קו אורך",
+        "note": "הערה (רשות)",
+        "notePlaceholder": "פרטים נוספים על ההזמנה…"
+      },
+      "success": {
+        "title": "ההזמנה נשמרה",
+        "orderNumber": "הזמנה {number}",
+        "nextStep": "ההזמנה בסטטוס חדשה. המלאי מנוכה כשמתחילים בהכנה.",
+        "openOrder": "פתיחת ההזמנה",
+        "newOrder": "הזמנה חדשה"
+      }
     }
   },
   "products": {
@@ -451,6 +683,19 @@
     "settingDefaultLanguageNotSupported": "שפה זו עדיין אינה נתמכת.",
     "userNotFound": "המשתמש לא נמצא.",
     "authSignupFailed": "יצירת החשבון נכשלה.",
-    "validationImagePointOutOfRange": "הנקודה חייבת להיות בתוך גבולות התמונה."
+    "validationImagePointOutOfRange": "הנקודה חייבת להיות בתוך גבולות התמונה.",
+    "orderNotFound": "ההזמנה לא נמצאה.",
+    "orderItemNotFound": "פריט זה אינו חלק מההזמנה.",
+    "orderItemsRequired": "יש להוסיף מוצר אחד לפחות להזמנה.",
+    "orderCustomerRequired": "יש להזין את שם הלקוח ומספר הטלפון.",
+    "orderLocationInvalid": "המיקום אינו תקין. יש להזין קו רוחב וקו אורך יחד.",
+    "orderDiscountInvalid": "ערך ההנחה אינו תקין.",
+    "orderInvalidStatusTransition": "לא ניתן להעביר את ההזמנה לסטטוס זה.",
+    "orderInsufficientStock": "אין מספיק מלאי.",
+    "orderNotEditable": "לא ניתן לערוך הזמנה זו יותר.",
+    "orderNotReturnable": "לא ניתן להחזיר הזמנה זו.",
+    "orderReturnQuantityExceeded": "הכמות גדולה מהכמות שנמכרה.",
+    "orderProductUnavailable": "מוצר זה אינו זמין יותר למכירה.",
+    "orderVariantRequired": "יש לבחור איזו וריאציה של המוצר."
   }
 }

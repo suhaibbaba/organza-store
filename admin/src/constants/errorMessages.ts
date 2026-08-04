@@ -51,6 +51,20 @@ export const ERROR_MESSAGE_KEYS: Record<string, string> = {
 
   [ERROR_CODES.INVENTORY_PARENT_HAS_VARIANTS]: "errors.inventoryParentHasVariants",
 
+  [ERROR_CODES.ORDER_NOT_FOUND]: "errors.orderNotFound",
+  [ERROR_CODES.ORDER_ITEM_NOT_FOUND]: "errors.orderItemNotFound",
+  [ERROR_CODES.ORDER_ITEMS_REQUIRED]: "errors.orderItemsRequired",
+  [ERROR_CODES.ORDER_CUSTOMER_REQUIRED]: "errors.orderCustomerRequired",
+  [ERROR_CODES.ORDER_LOCATION_INVALID]: "errors.orderLocationInvalid",
+  [ERROR_CODES.ORDER_DISCOUNT_INVALID]: "errors.orderDiscountInvalid",
+  [ERROR_CODES.ORDER_INVALID_STATUS_TRANSITION]: "errors.orderInvalidStatusTransition",
+  [ERROR_CODES.ORDER_INSUFFICIENT_STOCK]: "errors.orderInsufficientStock",
+  [ERROR_CODES.ORDER_NOT_EDITABLE]: "errors.orderNotEditable",
+  [ERROR_CODES.ORDER_NOT_RETURNABLE]: "errors.orderNotReturnable",
+  [ERROR_CODES.ORDER_RETURN_QUANTITY_EXCEEDED]: "errors.orderReturnQuantityExceeded",
+  [ERROR_CODES.ORDER_PRODUCT_UNAVAILABLE]: "errors.orderProductUnavailable",
+  [ERROR_CODES.ORDER_VARIANT_REQUIRED]: "errors.orderVariantRequired",
+
   [ERROR_CODES.SETTING_DEFAULT_LANGUAGE_NOT_SUPPORTED]: "errors.settingDefaultLanguageNotSupported",
 
   [ERROR_CODES.USER_NOT_FOUND]: "errors.userNotFound",
