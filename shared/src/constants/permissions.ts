@@ -14,6 +14,12 @@ export const PERMISSION_ACTIONS = [
   "product.delete",
   "product.hide",
   "product.viewCost",
+  // Printing barcode labels and recording that they were printed. Held by
+  // every role on purpose: an Employee may add products (spec.md), and a new
+  // piece is useless on the shelf until its label is on it. It writes nothing
+  // but the print timestamp — no price, stock or visibility — so it stays
+  // clear of the edit/delete/hide gates an Employee must not pass.
+  "product.printLabels",
 
   "category.view",
   "category.manage",
@@ -63,6 +69,7 @@ export const ROLE_PERMISSIONS: Record<Role, readonly Action[]> = {
     "product.delete",
     "product.hide",
     "product.viewCost",
+    "product.printLabels",
     "category.view",
     "category.manage",
     "inventory.view",
@@ -82,6 +89,7 @@ export const ROLE_PERMISSIONS: Record<Role, readonly Action[]> = {
     "dashboard.view",
     "product.view",
     "product.create",
+    "product.printLabels",
     "category.view",
     "inventory.view",
     "variantType.manage",

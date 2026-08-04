@@ -9,6 +9,8 @@
 //    - simple product, 1-option product, 2-option (cartesian) product
 //    - a variant with price override + one that inherits from parent
 //    - compare-at price, hidden product, soft-deleted product
+//    - a numbered shawl (Number variant type), incl. a sold-out number
+//    - one product with its barcode labels already printed, the rest not
 //    - orders on every channel, covering the status flow, both discount
 //      levels, a cancellation, a partial return and a soft-deleted sale
 // ============================================================
@@ -26,6 +28,11 @@ const prisma = new PrismaClient();
 // ---- helpers ------------------------------------------------
 
 type I18n = { ar: string; en?: string; he?: string };
+
+// Fixed (not `new Date()`) so a re-seed produces the exact same row — the
+// stand-in for "these labels have already been printed", giving both sides of
+// the products list's print-state filter real data.
+const SEEDED_LABELS_PRINTED_AT = new Date("2026-01-01T09:00:00.000Z");
 
 // ---- seed ---------------------------------------------------
 
@@ -175,6 +182,10 @@ async function main() {
     // Opt-in low-stock alerts (off by default) — most products sit at
     // stock = 1, so only the ones actually restocked ask to be tracked.
     trackLowStock?: boolean;
+    // Barcode labels already printed for this product — the other side of the
+    // products list's print-state filter. Off by default, so a freshly seeded
+    // catalogue mostly looks like a shop that still has labels to print.
+    labelsPrinted?: boolean;
     // simple product fields (only when no variants)
     simple?: { stock: number };
     // variants: each is a list of `${typeSlug}:${valueKey}` plus optional overrides
@@ -206,6 +217,7 @@ async function main() {
       cost: opts.cost ?? null,
       isActive: opts.isActive ?? true,
       trackLowStock: opts.trackLowStock ?? false,
+      labelsPrintedAt: opts.labelsPrinted ? SEEDED_LABELS_PRINTED_AT : null,
       deletedAt: opts.deleted ? new Date() : null,
       barcode,
       stock: opts.simple ? opts.simple.stock : 1,
@@ -295,6 +307,9 @@ async function main() {
     categoryId: abayas.id,
     basePrice: 45,
     cost: 20,
+    // Already on the shelf with its label on it — everything else below is
+    // still waiting for the printer.
+    labelsPrinted: true,
     simple: { stock: 10 },
   });
 

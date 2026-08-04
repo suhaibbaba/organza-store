@@ -179,6 +179,12 @@ model Product {
   // dashboard count). Off by default.
   trackLowStock Boolean @default(false)
 
+  // When this product's barcode labels were last sent to the printer.
+  // Null = never printed, which is what the "still to print" work queue
+  // filters on. Reprinting only moves the timestamp forward — it is a record,
+  // never a lock (a label falls off, a piece comes back, the roll jams).
+  labelsPrintedAt DateTime?
+
   // --- relations ---
   images       ProductImage[]
   variants     Variant[]
@@ -195,6 +201,7 @@ model Product {
   @@index([categoryId])
   @@index([isActive])
   @@index([deletedAt])
+  @@index([labelsPrintedAt])
   @@index([searchText(ops: raw("gin_trgm_ops"))], type: Gin)
 }
 
@@ -508,6 +515,14 @@ model OrderItem {
 //  so multi-currency can be added later without restructuring.
 // ============================================================
 
+// How barcode labels come out of the printer. THERMAL = one label per page,
+// the page IS the label (roll printers). A4_GRID = a grid of labels on an
+// ordinary sheet of sticker paper.
+enum LabelPrintMode {
+  THERMAL
+  A4_GRID
+}
+
 model Setting {
   id                 String   @id @default("default") // singleton row
   storeName          Json // translatable { ar, en, he }
@@ -516,6 +531,26 @@ model Setting {
   currency           String   @default("ILS") // room for multi-currency later
   defaultCountryCode String   @default("+970") // default phone prefix (المقدمة)
   lowStockThreshold  Int      @default(3)
+
+  // --- barcode-label printing (Admin-only to edit, readable by all staff) ---
+  // The shop buys whatever label printer it can get, so the sheet is
+  // described here rather than assumed anywhere in code. All dimensions are
+  // in millimetres; Float rather than Decimal because these are measurements,
+  // not money (CLAUDE.md: Decimal is for money). The defaults mirror
+  // shared/src/constants/label.ts — keep the two in step.
+  labelPrintMode          LabelPrintMode @default(THERMAL)
+  labelWidthMm            Float          @default(50)
+  labelHeightMm           Float          @default(30)
+  // Grid + page geometry, read in A4_GRID mode only but kept in either so
+  // switching modes doesn't lose the sheet the shop actually owns.
+  labelColumns            Int            @default(3)
+  labelRows               Int            @default(8)
+  labelPageMarginTopMm    Float          @default(10)
+  labelPageMarginRightMm  Float          @default(8)
+  labelPageMarginBottomMm Float          @default(10)
+  labelPageMarginLeftMm   Float          @default(8)
+  labelGapXMm             Float          @default(3)
+  labelGapYMm             Float          @default(3)
 
   updatedAt DateTime @updatedAt
 }

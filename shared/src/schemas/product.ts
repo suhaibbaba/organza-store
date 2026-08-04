@@ -1,7 +1,8 @@
 import { z } from "zod";
 import { decimalInput, i18nOptionalSchema, i18nSchema, imagePointCoordinateSchema, paginationSchema } from "@/schemas/common";
 import { ERROR_CODES } from "@/constants/errors";
-import { PRODUCT_SORT_FIELDS } from "@/constants/product";
+import { PRODUCT_PRINT_STATES, PRODUCT_SORT_FIELDS } from "@/constants/product";
+import { MAX_LABEL_PRINT_BATCH } from "@/constants/label";
 
 // Numbered shawls (spec.md): a point on the product image for one option
 // value, set while the admin is placing/reviewing points, before Save.
@@ -78,10 +79,25 @@ export const listProductsQuerySchema = paginationSchema.extend({
   priceMin: z.coerce.number().min(0).optional(),
   priceMax: z.coerce.number().min(0).optional(),
   q: z.string().min(1).optional(),
+  // Barcode-label print state: "which labels still have to be printed" is a
+  // whole workflow of its own, so it filters the list rather than being
+  // sifted out client-side. Defaults to every product.
+  printState: z.enum(PRODUCT_PRINT_STATES).default("all"),
   sortBy: z.enum(PRODUCT_SORT_FIELDS).default("createdAt"),
   sortDir: z.enum(["asc", "desc"]).default("desc"),
 });
 export type ListProductsQuery = z.infer<typeof listProductsQuerySchema>;
+
+// POST /api/products/labels/printed — record that a batch of labels went to
+// the printer. Bounded like every other list the API takes (CLAUDE.md rule
+// 15); reprinting the same products later is always allowed.
+export const markLabelsPrintedSchema = z.object({
+  productIds: z
+    .array(z.string().min(1))
+    .min(1, ERROR_CODES.VALIDATION_REQUIRED)
+    .max(MAX_LABEL_PRINT_BATCH),
+});
+export type MarkLabelsPrintedInput = z.infer<typeof markLabelsPrintedSchema>;
 
 // POS barcode/SKU lookup (GET /api/products/lookup). One scan of a tag has
 // to resolve to the exact thing being sold, so the code is matched against
