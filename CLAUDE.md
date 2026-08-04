@@ -31,9 +31,13 @@ Each project has its own `package.json`. `shared/` is imported by the others.
 - **Barcode/QR:** `html5-qrcode` in the POS, inside an isolated scanner component.
 - **i18n:** UI via `next-intl`; product content translated via JSON fields. Languages: ar (default), en, he.
 
-## Scope of the CURRENT phase (Phase 1)
-Products, Variants, Categories, Users/Roles, Audit Log.
-**Do NOT build Orders or the customer storefront yet.** They are later phases.
+## Scope of the CURRENT phase (Phase 2 — Orders)
+Phase 1 is DONE and tested: products, variants, categories, inventory, users/roles, settings,
+images, audit log, plus the full admin UI.
+**Current work: Orders** (see "Phase 2: Orders" in `spec.md`) — order model, status flow, stock
+deduction, discounts, returns, then the POS screen, the admin orders page, and sales/profit.
+**Still deferred:** the customer storefront (Phase 3), real Customer accounts, the numbered-shawls
+WhatsApp export, and WhatsApp order-entry shortcuts.
 
 ## Hard rules — do not break these
 1. **SKU is frozen at creation.** Format `ORG-<productNumber>` (simple) or

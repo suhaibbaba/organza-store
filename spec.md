@@ -4,8 +4,11 @@
 E-commerce system for a clothing shop (Organza, Tulkarm branch).
 Custom build — **not** Medusa or any e-commerce framework.
 
-**Phase 1 (this document):** Products, Variants, Categories, Users/Roles, Audit Log.
-**Phase 2 (later):** Orders. **Phase 3 (later):** Customer storefront.
+**Phase 1 (DONE):** Products, Variants, Categories, Inventory, Users/Roles, Settings, Images,
+Audit Log + the full admin UI.
+**Phase 2 (CURRENT):** Orders — see the "Phase 2: Orders" section, then POS, admin orders page,
+and sales/profit reporting.
+**Phase 3 (later):** Customer storefront + real Customer accounts.
 
 ## Architecture — 4 separate projects
 ```
@@ -378,3 +381,47 @@ image's** dimensions, not the screen/viewport — otherwise numbers drift.
 
 **Deliberately omitted (simplicity):** for these products, no sizes/colors — just the Number variant
 type + quantity (+ optional price) per number.
+
+---
+
+## Phase 2: Orders
+
+### Channel (where the sale came from)
+Every order records its **channel**: `STORE` (sold in the shop via POS), `WHATSAPP`, or `WEBSITE`.
+
+### Status flow
+- **STORE (in-shop sale):** completed immediately — a direct sale, no delivery pipeline.
+- **Online (WHATSAPP / WEBSITE):** `NEW` → `PREPARING` → `DELIVERING` → `RECEIVED`.
+- Plus `CANCELLED` and `RETURNED`.
+
+### Customer information
+Customers are still **deferred as an entity** — there is no `Customer` table. Instead, customer
+details are stored **directly on the order** (a snapshot):
+- **STORE:** no customer info needed (all fields empty).
+- **WHATSAPP / WEBSITE:** capture name, phone, and location/address info (optional map coordinates).
+This keeps Phase 3 (real customer accounts) open without blocking orders now.
+
+### Payment
+**Cash only** for now, but modeled as a field (`paymentMethod`) so more methods can be added later.
+
+### Discounts
+Supported at **two levels**: per **line item** and on the **order total**. Each stores its type
+(percentage or fixed amount) and value.
+
+### Stock deduction
+- **STORE:** stock is deducted **immediately** at sale.
+- **Online:** stock is deducted when the order moves to **PREPARING**.
+- An order records when its stock was deducted, so it's never double-deducted.
+
+### Returns
+Returns are supported: an order (or specific items with quantities) can be returned, which
+**restores stock** and is recorded in the audit log.
+
+### Price & cost snapshots (important)
+Each order item stores a **snapshot** of the unit **price** and unit **cost** at the moment of sale.
+Prices and costs change over time, so profit reports must use what was true at sale time, not the
+product's current values. This is what makes the sales/profit dashboard accurate.
+
+### Roles (already defined in the permissions layer)
+Employee can **create** orders and mark them delivered/received, but **cannot delete, edit, or
+cancel** them (anti-theft). Admin/Manager have full control. Every mutation writes an audit entry.
