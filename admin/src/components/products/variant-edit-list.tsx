@@ -23,6 +23,13 @@ interface VariantEditListProps {
   currency: string;
   canSeeCost: boolean;
   canEditDetails: boolean;
+  canEditPrice: boolean;
+  canEditStock: boolean;
+  canHide: boolean;
+  // Deleting a combination is product.delete, not product.edit — an Employee
+  // edits the row but never removes it, so the button isn't there at all
+  // rather than failing on save.
+  canRemoveCombos: boolean;
   canDeleteImages: boolean;
   edits: Record<string, VariantEditValues>;
   onEditChange: (variantId: string, values: VariantEditValues) => void;
@@ -44,6 +51,10 @@ export function VariantEditList({
   currency,
   canSeeCost,
   canEditDetails,
+  canEditPrice,
+  canEditStock,
+  canHide,
+  canRemoveCombos,
   canDeleteImages,
   edits,
   onEditChange,
@@ -133,7 +144,7 @@ export function VariantEditList({
                 )}
                 <p className="mt-1 truncate text-xs text-muted-foreground">{variant.sku}</p>
               </div>
-              {canEditDetails && (
+              {canEditDetails && canRemoveCombos && (
                 <button
                   type="button"
                   onClick={() => onRemove(variant.id)}
@@ -147,25 +158,38 @@ export function VariantEditList({
 
             {canEditDetails && (
               <div className="grid grid-cols-2 gap-3">
-                <div className="flex flex-col gap-1.5">
-                  <Label htmlFor={`stock-${variant.id}`}>{t("stock")}</Label>
-                  <NumericInput
-                    id={`stock-${variant.id}`}
-                    value={values.stock}
-                    onChange={(e) => onEditChange(variant.id, { ...values, stock: e.target.value })}
-                  />
-                </div>
+                {canEditStock && (
+                  <div className="flex flex-col gap-1.5">
+                    <Label htmlFor={`stock-${variant.id}`}>{t("stock")}</Label>
+                    <NumericInput
+                      id={`stock-${variant.id}`}
+                      value={values.stock}
+                      onChange={(e) => onEditChange(variant.id, { ...values, stock: e.target.value })}
+                    />
+                  </div>
+                )}
 
-                <div className="flex flex-col gap-1.5">
-                  <Label htmlFor={`price-${variant.id}`}>{t("priceOverride")}</Label>
-                  <NumericInput
-                    id={`price-${variant.id}`}
-                    allowDecimal
-                    placeholder={t("inherits", { value: formatMoney(variant.resolvedPrice, currency, locale) })}
-                    value={values.priceOverride}
-                    onChange={(e) => onEditChange(variant.id, { ...values, priceOverride: e.target.value })}
-                  />
-                </div>
+                {canEditPrice ? (
+                  <div className="flex flex-col gap-1.5">
+                    <Label htmlFor={`price-${variant.id}`}>{t("priceOverride")}</Label>
+                    <NumericInput
+                      id={`price-${variant.id}`}
+                      allowDecimal
+                      placeholder={t("inherits", { value: formatMoney(variant.resolvedPrice, currency, locale) })}
+                      value={values.priceOverride}
+                      onChange={(e) => onEditChange(variant.id, { ...values, priceOverride: e.target.value })}
+                    />
+                  </div>
+                ) : (
+                  // Read-only for a role that can fix the piece but not
+                  // re-price it — the number still has to be visible.
+                  <div className="flex flex-col gap-1.5">
+                    <Label>{t("priceOverride")}</Label>
+                    <p className="text-sm font-semibold text-foreground">
+                      {formatMoney(variant.resolvedPrice, currency, locale)}
+                    </p>
+                  </div>
+                )}
 
                 {canSeeCost && (
                   <div className="flex flex-col gap-1.5">
@@ -184,14 +208,16 @@ export function VariantEditList({
                   </div>
                 )}
 
-                <div className={cn("flex items-center justify-between gap-2 rounded-lg", !canSeeCost && "col-span-1")}>
-                  <Label htmlFor={`active-${variant.id}`}>{t("active")}</Label>
-                  <Switch
-                    id={`active-${variant.id}`}
-                    checked={values.isActive}
-                    onCheckedChange={(checked) => onEditChange(variant.id, { ...values, isActive: checked })}
-                  />
-                </div>
+                {canHide && (
+                  <div className={cn("flex items-center justify-between gap-2 rounded-lg", !canSeeCost && "col-span-1")}>
+                    <Label htmlFor={`active-${variant.id}`}>{t("active")}</Label>
+                    <Switch
+                      id={`active-${variant.id}`}
+                      checked={values.isActive}
+                      onCheckedChange={(checked) => onEditChange(variant.id, { ...values, isActive: checked })}
+                    />
+                  </div>
+                )}
               </div>
             )}
 

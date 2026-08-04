@@ -508,6 +508,7 @@
       "pricing": "Pricing",
       "basePrice": "Price",
       "compareAtPrice": "Compare-at price",
+      "priceReadOnlyHint": "Only an admin or manager can change the price.",
       "cost": "Cost",
       "isActive": "Visible to customers",
       "isActiveHint": "Hidden products aren't shown in the store.",

@@ -508,6 +508,7 @@
       "pricing": "תמחור",
       "basePrice": "מחיר",
       "compareAtPrice": "מחיר לפני הנחה",
+      "priceReadOnlyHint": "רק מנהל או אחראי יכול לשנות את המחיר.",
       "cost": "עלות",
       "isActive": "גלוי ללקוחות",
       "isActiveHint": "מוצרים מוסתרים אינם מוצגים בחנות.",

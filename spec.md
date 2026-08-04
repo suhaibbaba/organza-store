@@ -246,7 +246,8 @@ Three fixed roles.
 | POS — make sales                  |  ✅   |   ✅    |    ✅    |
 | Add products                      |  ✅   |   ✅    |    ✅    |
 | Edit product images               |  ✅   |   ✅    |    ✅    |
-| Edit product details/price/stock  |  ✅   |   ✅    |    ❌    |
+| Edit product details (name, etc.) |  ✅   |   ✅    |    ✅    |
+| Edit product **price**            |  ✅   |   ✅    |    ❌    |
 | **Delete** product                |  ✅   |   ✅    |    ❌    |
 | **Hide / publish** product        |  ✅   |   ✅    |    ❌    |
 | Create order + hand to courier    |  ✅   |   ✅    |    ✅    |
@@ -258,8 +259,9 @@ Three fixed roles.
 
 **Security rationale:** Employee can create orders and hand them to the courier but **cannot
 delete or edit them**, so a sale can't be erased to cover theft — and **cannot mark its money
-collected**, so the person who took a sale can't also declare its cash received. Every action is
-tied to its author via the Audit Log.
+collected**, so the person who took a sale can't also declare its cash received. For the same
+reason an Employee may fix a product's details but never **re-price** it, so nothing can be sold
+cheap and pocketed. Every action is tied to its author via the Audit Log.
 
 ---
 

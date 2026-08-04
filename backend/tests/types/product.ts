@@ -23,10 +23,13 @@ export interface ProductVariantDto {
 
 export interface ProductDto {
   id: string;
+  name: { ar: string; en?: string; he?: string };
   sku: string | null;
   barcode: string | null;
   hasVariants: boolean;
   basePrice: number | string;
+  compareAtPrice: number | string | null;
+  isActive: boolean;
   stock?: number;
   // Opt-in low-stock alerts; false unless the caller both asked for it and
   // has the permission to set it.

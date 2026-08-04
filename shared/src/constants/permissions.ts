@@ -11,6 +11,13 @@ export const PERMISSION_ACTIONS = [
   "product.view",
   "product.create",
   "product.edit",
+  // What a product SELLS for: basePrice, compareAtPrice and a variant's
+  // priceOverride. Split out of product.edit so an Employee can fix a name,
+  // a description or a category on a piece already on the shelf without
+  // being able to re-price it — the money side stays with Admin/Manager.
+  // `cost` is not here: it is invisible to an Employee entirely
+  // (product.viewCost, CLAUDE.md rule 19).
+  "product.editPrice",
   "product.delete",
   "product.hide",
   "product.viewCost",
@@ -62,12 +69,15 @@ type Action = (typeof PERMISSION_ACTIONS)[number];
 
 // spec.md "Roles & Permissions" table, verbatim:
 // Admin: everything. Manager: products/stock/orders full, no users/settings.
-// Employee: POS, add products, edit images, create + hand over orders —
-// cannot delete/hide products, cannot delete/edit/cancel orders, cannot mark
-// money collected, no users/settings, no cost/idNumber visibility, and
-// neither the dashboard nor the inventory list: both are shop-wide overviews
-// (stock levels, inventory value, low-stock alerts) that belong to whoever
-// manages stock, which an Employee does not.
+// Employee: POS, add and edit products, edit images, create + hand over
+// orders — cannot delete/hide products, cannot delete/edit/cancel orders,
+// cannot mark money collected, no users/settings, no cost/idNumber
+// visibility, and neither the dashboard nor the inventory list: both are
+// shop-wide overviews (stock levels, inventory value, low-stock alerts) that
+// belong to whoever manages stock, which an Employee does not.
+// Editing a product is the details only — its price is product.editPrice,
+// its stock inventory.adjust, its visibility product.hide, none of which an
+// Employee holds.
 export const ROLE_PERMISSIONS: Record<Role, readonly Action[]> = {
   ADMIN: [...PERMISSION_ACTIONS],
   MANAGER: [
@@ -75,6 +85,7 @@ export const ROLE_PERMISSIONS: Record<Role, readonly Action[]> = {
     "product.view",
     "product.create",
     "product.edit",
+    "product.editPrice",
     "product.delete",
     "product.hide",
     "product.viewCost",
@@ -98,6 +109,7 @@ export const ROLE_PERMISSIONS: Record<Role, readonly Action[]> = {
   EMPLOYEE: [
     "product.view",
     "product.create",
+    "product.edit",
     "product.printLabels",
     "category.view",
     "variantType.manage",

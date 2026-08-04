@@ -26,6 +26,19 @@ export function formatMoney(value: Prisma.Decimal.Value | null | undefined): str
   return roundMoney(money(value)).toFixed(MONEY_DECIMAL_PLACES);
 }
 
+// Would an incoming money field actually change what is stored? Used by the
+// permission gates that refuse a *change* rather than the field itself
+// (product.editPrice), so a form resending a value untouched still saves.
+// `undefined` means the field wasn't sent at all; `null` means "clear it".
+export function moneyChanged(
+  input: Prisma.Decimal.Value | null | undefined,
+  current: Prisma.Decimal | null
+): boolean {
+  if (input === undefined) return false;
+  if (input === null || current === null) return input !== current;
+  return !money(input).equals(current);
+}
+
 // Resolves a (type, value) discount against the amount it applies to.
 // Clamped to that base in both directions, so a discount can never exceed
 // the thing it discounts or turn into a surcharge.

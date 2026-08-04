@@ -48,7 +48,7 @@ import { AddVariantsSection } from "@/components/products/add-variants-section";
 import { NumberedShawlEditor } from "@/components/products/numbered-shawl/numbered-shawl-editor";
 import { ImageManager } from "@/components/products/image-manager";
 import { ApiError } from "@/lib/api/errors";
-import type { VariantSelectionMap, VariantEditValues } from "@/types/productForm";
+import type { ProductEditAbilities, VariantSelectionMap, VariantEditValues } from "@/types/productForm";
 
 interface ProductFormProps {
   mode: "create" | "edit";
@@ -63,16 +63,30 @@ export function ProductForm({ mode, product }: ProductFormProps) {
   const translateError = useTranslateError();
 
   const canSeeCost = can(user, "product.viewCost");
-  const showActiveToggle = mode === "edit" || can(user, "product.hide");
-  // Editing product/variant details (name, pricing, stock, generating more
-  // variants) is Admin/Manager only (CLAUDE.md rule 5). "Edit images" is a
+  const canDeleteImages = can(user, "images.delete");
+  const canRemoveCombos = can(user, "product.delete");
+  // Editing the details — name, description, category — is open to every
+  // role that can edit a product, Employees included. "Edit images" is a
   // separate, broader capability — Employees keep full image access below.
   const canEditDetails = mode === "create" || can(user, "product.edit");
-  const canDeleteImages = can(user, "images.delete");
-  // Opting a product into low-stock alerts is a stock-management decision —
-  // same Admin/Manager gate the backend enforces on the field itself, so an
-  // Employee who can add a product simply doesn't see the toggle.
-  const canTrackLowStock = can(user, "product.edit");
+  // Pricing an item is part of adding it, so an Employee still types a price
+  // on a NEW product; changing what an existing one sells for is
+  // product.editPrice (Admin/Manager). Stock and visibility are gated the
+  // same way, each on the permission the backend checks for that field.
+  const canEditPrice = mode === "create" || can(user, "product.editPrice");
+  const canEditStock = mode === "create" || can(user, "inventory.adjust");
+  const showActiveToggle = can(user, "product.hide");
+  // Opting a product into low-stock alerts is a stock-management decision,
+  // so it follows the stock gate: an Employee who can add or edit a product
+  // simply doesn't see the toggle.
+  const canTrackLowStock = can(user, "inventory.adjust");
+
+  const abilities: ProductEditAbilities = {
+    canEditPrice,
+    canEditCost: canSeeCost,
+    canEditStock,
+    canHide: showActiveToggle,
+  };
 
   const { data: categoryTree } = useCategoriesQuery();
   const categoryOptions = categoryTree ? flattenCategoryTree(categoryTree) : [];
@@ -148,7 +162,7 @@ export function ProductForm({ mode, product }: ProductFormProps) {
 
       if (!product) return;
 
-      const payload = toUpdatePayload(values, willHaveVariants);
+      const payload = toUpdatePayload(values, willHaveVariants, abilities);
       await updateMutation.mutateAsync(payload);
 
       const patches = Object.entries(variantEdits)
@@ -156,7 +170,7 @@ export function ProductForm({ mode, product }: ProductFormProps) {
         .flatMap(([variantId, edits]) => {
           const original = product.variants.find((v) => v.id === variantId);
           if (!original) return [];
-          const patch = diffVariantEdit(original, edits);
+          const patch = diffVariantEdit(original, edits, abilities);
           return patch ? [{ variantId, patch }] : [];
         });
       await Promise.all(patches.map(({ variantId, patch }) => updateVariantMutation.mutateAsync({ variantId, input: patch })));
@@ -284,32 +298,49 @@ export function ProductForm({ mode, product }: ProductFormProps) {
               <CardTitle>{t("pricing")}</CardTitle>
             </CardHeader>
             <CardContent className="flex flex-col gap-4">
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="basePrice">{t("basePrice")}</Label>
-                <NumericInput
-                  id="basePrice"
-                  allowDecimal
-                  aria-invalid={!!errors.basePrice}
-                  {...register("basePrice")}
-                />
-                {errors.basePrice && (
-                  <p className="text-sm text-destructive">{translateError(errors.basePrice.message ?? "")}</p>
-                )}
-              </div>
+              {canEditPrice ? (
+                <>
+                  <div className="flex flex-col gap-2">
+                    <Label htmlFor="basePrice">{t("basePrice")}</Label>
+                    <NumericInput
+                      id="basePrice"
+                      allowDecimal
+                      aria-invalid={!!errors.basePrice}
+                      {...register("basePrice")}
+                    />
+                    {errors.basePrice && (
+                      <p className="text-sm text-destructive">{translateError(errors.basePrice.message ?? "")}</p>
+                    )}
+                  </div>
 
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="compareAtPrice">{t("compareAtPrice")}</Label>
-                <NumericInput
-                  id="compareAtPrice"
-                  allowDecimal
-                  placeholder={t("optional")}
-                  aria-invalid={!!errors.compareAtPrice}
-                  {...register("compareAtPrice")}
-                />
-                {errors.compareAtPrice && (
-                  <p className="text-sm text-destructive">{translateError(errors.compareAtPrice.message ?? "")}</p>
-                )}
-              </div>
+                  <div className="flex flex-col gap-2">
+                    <Label htmlFor="compareAtPrice">{t("compareAtPrice")}</Label>
+                    <NumericInput
+                      id="compareAtPrice"
+                      allowDecimal
+                      placeholder={t("optional")}
+                      aria-invalid={!!errors.compareAtPrice}
+                      {...register("compareAtPrice")}
+                    />
+                    {errors.compareAtPrice && (
+                      <p className="text-sm text-destructive">{translateError(errors.compareAtPrice.message ?? "")}</p>
+                    )}
+                  </div>
+                </>
+              ) : (
+                // Shown, not editable: whoever is fixing a name still needs
+                // to see what the piece sells for, and hiding the number
+                // outright would read as "the price is gone".
+                product && (
+                  <div className="flex flex-col gap-1">
+                    <Label>{t("basePrice")}</Label>
+                    <p className="text-base font-semibold text-foreground">
+                      {formatMoney(product.basePrice, currency, locale)}
+                    </p>
+                    <p className="text-sm text-muted-foreground">{t("priceReadOnlyHint")}</p>
+                  </div>
+                )
+              )}
 
               {canSeeCost && (
                 <div className="flex flex-col gap-2">
@@ -373,11 +404,13 @@ export function ProductForm({ mode, product }: ProductFormProps) {
                 <CardTitle>{t("inventory")}</CardTitle>
               </CardHeader>
               <CardContent className="flex flex-col gap-4">
-                <div className="flex flex-col gap-2">
-                  <Label htmlFor="stock">{t("stock")}</Label>
-                  <NumericInput id="stock" aria-invalid={!!errors.stock} {...register("stock")} />
-                  {errors.stock && <p className="text-sm text-destructive">{translateError(errors.stock.message ?? "")}</p>}
-                </div>
+                {canEditStock && (
+                  <div className="flex flex-col gap-2">
+                    <Label htmlFor="stock">{t("stock")}</Label>
+                    <NumericInput id="stock" aria-invalid={!!errors.stock} {...register("stock")} />
+                    {errors.stock && <p className="text-sm text-destructive">{translateError(errors.stock.message ?? "")}</p>}
+                  </div>
+                )}
 
                 <div className="grid grid-cols-2 gap-3">
                   <div className="flex flex-col gap-1.5">
@@ -410,6 +443,10 @@ export function ProductForm({ mode, product }: ProductFormProps) {
                 currency={currency}
                 canSeeCost={canSeeCost}
                 canEditDetails={canEditDetails}
+                canEditPrice={canEditPrice}
+                canEditStock={canEditStock}
+                canHide={showActiveToggle}
+                canRemoveCombos={canRemoveCombos}
                 canDeleteImages={canDeleteImages}
                 edits={variantEdits}
                 onEditChange={(id, v) => setVariantEdits((prev) => ({ ...prev, [id]: v }))}
@@ -441,8 +478,11 @@ export function ProductForm({ mode, product }: ProductFormProps) {
 
       {/* Numbered shawls (spec.md): a dedicated placement tool, separate
           from the generic variant editor above — reachable once the
-          product uses only the Number variant type (or none yet). */}
-      {mode === "edit" && canEditDetails && product && variantTypes && showNumberedShawlEditor(product) && (
+          product uses only the Number variant type (or none yet). Each
+          placed number carries its own price and stock, so the tool as a
+          whole needs those permissions rather than half-working without
+          them. */}
+      {mode === "edit" && canEditDetails && canEditPrice && canEditStock && product && variantTypes && showNumberedShawlEditor(product) && (
         <Card>
           <CardHeader>
             <CardTitle>{t("numberedShawl.title")}</CardTitle>

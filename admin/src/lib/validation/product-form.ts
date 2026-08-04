@@ -4,7 +4,7 @@ import type { I18n } from "@shared/types/common";
 import type { Product } from "@shared/types/product";
 import type { CreateProductInput, UpdateProductInput } from "@shared/schemas/product";
 import { optionalDecimalField, optionalIntegerField, requiredDecimalField } from "@/lib/validation/numeric";
-import type { I18nFormValue } from "@/types/productForm";
+import type { I18nFormValue, ProductEditAbilities } from "@/types/productForm";
 
 // The exact { ar: string; en?: string; he?: string } shape the shared
 // create/update schemas require for `name` — narrower than the generic
@@ -100,16 +100,24 @@ export function toCreatePayload(
   };
 }
 
-export function toUpdatePayload(values: ProductBasicFormValues, hasVariants: boolean): UpdateProductInput {
+// Only the fields this user may write are sent (see ProductEditAbilities):
+// the form still holds a price and a cost for everyone, but an Employee's
+// copy of them is either read-only or never loaded at all, so echoing them
+// back would at best be refused and at worst clear a cost they can't see.
+export function toUpdatePayload(
+  values: ProductBasicFormValues,
+  hasVariants: boolean,
+  abilities: ProductEditAbilities
+): UpdateProductInput {
   return {
     name: sanitizeName(values.name),
     description: sanitizeI18n(values.description) ?? null,
     categoryId: values.categoryId,
-    basePrice: values.basePrice.trim(),
-    compareAtPrice: emptyToNull(values.compareAtPrice),
-    cost: emptyToNull(values.cost),
-    isActive: values.isActive,
-    trackLowStock: values.trackLowStock,
-    stock: hasVariants ? undefined : Number(emptyToUndefined(values.stock) ?? "1"),
+    basePrice: abilities.canEditPrice ? values.basePrice.trim() : undefined,
+    compareAtPrice: abilities.canEditPrice ? emptyToNull(values.compareAtPrice) : undefined,
+    cost: abilities.canEditCost ? emptyToNull(values.cost) : undefined,
+    isActive: abilities.canHide ? values.isActive : undefined,
+    trackLowStock: abilities.canEditStock ? values.trackLowStock : undefined,
+    stock: hasVariants || !abilities.canEditStock ? undefined : Number(emptyToUndefined(values.stock) ?? "1"),
   };
 }
