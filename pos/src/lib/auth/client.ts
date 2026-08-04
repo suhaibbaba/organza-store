@@ -54,7 +54,16 @@ export async function signOut(): Promise<void> {
 
 export async function fetchSession(): Promise<SessionUser | null> {
   const token = getStoredToken();
-  if (!token) return null;
+  if (!token) {
+    // The cookie mirror can outlive the localStorage token — iOS hands a
+    // freshly installed home-screen app the Safari cookie jar but not its
+    // localStorage. Left in place, that cookie makes proxy.ts wave us
+    // through to a screen AuthGuard immediately sends back to /login, which
+    // proxy sends back here: an install stuck on a spinner forever. Clearing
+    // it here keeps the two stores from ever disagreeing.
+    clearStoredToken();
+    return null;
+  }
 
   const res = await fetch(`${API_BASE_URL}${AUTH_ENDPOINTS.GET_SESSION}`, {
     headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
