@@ -16,3 +16,4 @@ export * from "./settings";
 export * from "./sku";
 export * from "./time";
 export * from "./validation";
+export * from "./version";

@@ -1,28 +1,41 @@
 "use client";
 
-import { useEffect } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { routing } from "@/i18n/routing";
 import {
   OFFLINE_PATH,
   SERVICE_WORKER_OFFLINE_PARAM,
   SERVICE_WORKER_PATH,
+  SERVICE_WORKER_SKIP_WAITING_MESSAGE,
   SERVICE_WORKER_VERSION_PARAM,
+  UPDATE_RELOAD_FALLBACK_MS,
 } from "@/constants/pwa";
+import { UpdatePrompt } from "@/components/pwa/update-prompt";
 
 /**
- * Registers public/sw.js. Renders nothing.
+ * Registers public/sw.js, and offers the update when a newer build is ready.
  *
  * The build id rides along in the script URL, so a deploy changes the URL and
- * the browser installs the new worker instead of keeping the old one — this
- * is what stops phones getting stuck on a previous version. The worker then
- * reads the same id back off its own URL to name its caches.
+ * the browser downloads the new worker. That worker then *waits* rather than
+ * taking over silently (see the install handler in public/sw.js), and this is
+ * where the app notices it waiting and asks the user — one tap, which
+ * activates the new build and reloads onto it.
  *
- * There is deliberately no "an update is available, tap to reload" prompt:
- * the people using this aren't tech-savvy (CLAUDE.md), and a reload offered
- * mid-order is a good way to lose an order. The new worker takes over
- * quietly, and the next page load is already on the new build.
+ * Waiting rather than swapping the build underneath a running page is the
+ * cautious half; the prompt is the other half, and it is not optional. An
+ * installed app has no address bar and no reload button, so a phone sitting on
+ * a stale cached build has no way forward on its own — which is exactly the
+ * failure this is here to end.
  */
 export function ServiceWorkerRegistrar() {
+  // The worker that has finished installing and is waiting its turn. Null
+  // whenever the running build is the newest one there is.
+  const [waitingWorker, setWaitingWorker] = useState<ServiceWorker | null>(null);
+  const [isUpdating, setIsUpdating] = useState(false);
+  // One reload, ever: `controllerchange` can fire more than once, and a page
+  // that reloads on each would loop.
+  const hasReloaded = useRef(false);
+
   useEffect(() => {
     // Dev serves uncompiled, constantly-changing chunks; caching those just
     // fights hot reload.
@@ -42,6 +55,24 @@ export function ServiceWorkerRegistrar() {
     });
 
     let registration: ServiceWorkerRegistration | undefined;
+    // Whether this page was already under a worker's control when it loaded.
+    // On a first-ever install the worker claims this page as it activates,
+    // which is a controller change with nothing stale behind it — reloading
+    // for that would be a pointless flash on someone's first visit.
+    const hadController = Boolean(navigator.serviceWorker.controller);
+
+    // A worker only counts as "an update" when something is already
+    // controlling this page. On a first-ever install there is nothing stale to
+    // escape from, and the worker taking over quietly is exactly right.
+    const offerIfWaiting = (worker: ServiceWorker | null) => {
+      if (worker && navigator.serviceWorker.controller) setWaitingWorker(worker);
+    };
+
+    const watchInstalling = (worker: ServiceWorker) => {
+      worker.addEventListener("statechange", () => {
+        if (worker.state === "installed") offerIfWaiting(worker);
+      });
+    };
 
     navigator.serviceWorker
       // updateViaCache "none": the browser must revalidate the worker script
@@ -49,10 +80,26 @@ export function ServiceWorkerRegistrar() {
       .register(`${SERVICE_WORKER_PATH}?${query.toString()}`, { scope: "/", updateViaCache: "none" })
       .then((result) => {
         registration = result;
+        // Already waiting when this page loaded — the update was downloaded
+        // during an earlier visit and never taken up.
+        offerIfWaiting(result.waiting);
+        if (result.installing) watchInstalling(result.installing);
+        result.addEventListener("updatefound", () => {
+          if (result.installing) watchInstalling(result.installing);
+        });
       })
       // Offline, private mode, or an unsupported browser. The app works
       // without a worker — it just isn't installable — so never surface this.
       .catch(() => undefined);
+
+    // The new worker has taken control: everything the page loads from here on
+    // is the new build, so the page itself has to be reloaded to match.
+    const onControllerChange = () => {
+      if (!hadController || hasReloaded.current) return;
+      hasReloaded.current = true;
+      window.location.reload();
+    };
+    navigator.serviceWorker.addEventListener("controllerchange", onControllerChange);
 
     // The app can stay open on a phone for days without a full page load, so
     // bringing it back to the foreground is the moment to look for a deploy.
@@ -63,8 +110,29 @@ export function ServiceWorkerRegistrar() {
     };
 
     document.addEventListener("visibilitychange", checkForUpdate);
-    return () => document.removeEventListener("visibilitychange", checkForUpdate);
+    return () => {
+      document.removeEventListener("visibilitychange", checkForUpdate);
+      navigator.serviceWorker.removeEventListener("controllerchange", onControllerChange);
+    };
   }, []);
 
-  return null;
+  const applyUpdate = useCallback(() => {
+    if (!waitingWorker) return;
+    setIsUpdating(true);
+    // The worker answers by calling skipWaiting(), which makes it the
+    // controller and fires controllerchange above — that is what reloads the
+    // page. The timeout is the safety net for a worker that never answers
+    // (an install interrupted mid-flight): reloading anyway is still better
+    // than a button that does nothing.
+    waitingWorker.postMessage({ type: SERVICE_WORKER_SKIP_WAITING_MESSAGE });
+    window.setTimeout(() => {
+      if (!hasReloaded.current) {
+        hasReloaded.current = true;
+        window.location.reload();
+      }
+    }, UPDATE_RELOAD_FALLBACK_MS);
+  }, [waitingWorker]);
+
+  if (!waitingWorker) return null;
+  return <UpdatePrompt onUpdate={applyUpdate} isUpdating={isUpdating} />;
 }

@@ -25,6 +25,12 @@ services:
       # shared/ must be inside the build context too.
       context: .
       dockerfile: backend/Dockerfile
+      args:
+        # Resolved on the host by the deploy (see .github/workflows/
+        # deploy-sandbox.yml) — the image has no git history to count from.
+        # Empty here means a locally-run compose still builds; the API then
+        # falls back to its package.json version.
+        APP_VERSION: ${APP_VERSION:-}
     restart: unless-stopped
     env_file: .env.sandbox
     environment:
@@ -47,6 +53,8 @@ services:
         NEXT_PUBLIC_DEFAULT_LOCALE: ar
         NEXT_PUBLIC_SUPPORTED_LOCALES: ar,en,he
         NEXT_PUBLIC_PROJECT_NAME: organza-sandbox-admin
+        # Same number as the backend's, resolved once by the deploy.
+        NEXT_PUBLIC_APP_VERSION: ${APP_VERSION:-}
     restart: unless-stopped
     depends_on: [backend]
     ports:
@@ -63,6 +71,8 @@ services:
         NEXT_PUBLIC_DEFAULT_LOCALE: ar
         NEXT_PUBLIC_SUPPORTED_LOCALES: ar,en,he
         NEXT_PUBLIC_PROJECT_NAME: organza-sandbox-pos
+        # Same number as the backend's, resolved once by the deploy.
+        NEXT_PUBLIC_APP_VERSION: ${APP_VERSION:-}
     restart: unless-stopped
     depends_on: [backend]
     # Camera scanning needs HTTPS (spec.md), so this port has to be served

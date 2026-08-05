@@ -12,6 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useSession } from "@/components/providers/session-provider";
+import { AppVersion } from "@/components/pwa/app-version";
 import { cn } from "@/lib/utils";
 
 interface AccountMenuProps {
@@ -60,6 +61,15 @@ export function AccountMenu({ className }: AccountMenuProps) {
           <LogOut className="size-4" aria-hidden="true" />
           {t("logout")}
         </DropdownMenuItem>
+        {/* Last, and quiet: which build this browser is running, for when
+            someone reports that something looks wrong. Not a menu item —
+            tapping it copies rather than navigating, so it must not close the
+            menu the way a DropdownMenuItem would. The mobile half of this
+            menu is the "More" sheet, which carries the same line. */}
+        <DropdownMenuSeparator />
+        <div className="px-1 pb-1">
+          <AppVersion />
+        </div>
       </DropdownMenuContent>
     </DropdownMenu>
   );

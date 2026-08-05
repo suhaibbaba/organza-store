@@ -177,5 +177,19 @@
     "validationInvalidPhone": "יש להזין מספר טלפון תקין.",
     "orderCustomerRequired": "יש להזין את שם הלקוח ומספר הטלפון.",
     "orderLocationInvalid": "המיקום אינו תקין. יש להזין קו רוחב וקו אורך יחד."
+  },
+  "pwa": {
+    "version": {
+      "app": "האפליקציה v{version}",
+      "api": "השרת v{version}",
+      "copy": "העתקת מספרי הגרסה",
+      "copied": "הועתק"
+    },
+    "update": {
+      "title": "גרסה חדשה מוכנה",
+      "description": "הקישו כדי לקבל את הגרסה החדשה. זה לוקח רגע, ושום דבר שנשמר לא הולך לאיבוד.",
+      "action": "עדכון עכשיו",
+      "updating": "מעדכן…"
+    }
   }
 }

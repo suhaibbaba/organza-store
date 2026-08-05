@@ -45,6 +45,21 @@ export const SERVICE_WORKER_OFFLINE_PARAM = "offline";
 export const SERVICE_WORKER_MESSAGES_PARAM = "messages";
 
 /**
+ * Posted to a waiting worker when the user taps "update now"
+ * (components/pwa/update-prompt.tsx). The worker matches on this exact
+ * string — public/sw.js isn't bundled and can't import this file.
+ */
+export const SERVICE_WORKER_SKIP_WAITING_MESSAGE = "SKIP_WAITING";
+
+/**
+ * How long to wait for a waiting worker to answer that message and take over
+ * before reloading anyway. A worker whose install was interrupted mid-flight
+ * may never answer, and a button that does nothing is worse than a reload
+ * that lands on the same build.
+ */
+export const UPDATE_RELOAD_FALLBACK_MS = 3_000;
+
+/**
  * Where the worker reads the notification wording from, per language.
  *
  * A push notification is drawn by the service worker, which cannot import
@@ -99,3 +114,6 @@ export const PULL_REFRESH_MIN_VISIBLE_MS = 400;
 export const PULL_REFRESH_SURFACE_SEARCH_DEPTH = 12;
 /** Opt out of the gesture on a subtree that needs the raw touches. */
 export const PULL_REFRESH_IGNORE_ATTRIBUTE = "data-no-pull-refresh";
+
+/** How long the "copied" tick stays up after the version line is tapped. */
+export const COPIED_FEEDBACK_MS = 2_000;

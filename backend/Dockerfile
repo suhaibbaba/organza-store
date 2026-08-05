@@ -18,6 +18,14 @@ RUN npm ci
 
 RUN npm run build
 
+# Which build of the API is running, served by GET /api/version. Passed in by
+# the deploy for the same reason the frontends' version is: .dockerignore keeps
+# .git out of the build context, so the image cannot count commits itself
+# (shared/scripts/app-version.js). Read at runtime, so it sits after the build
+# where it can't invalidate the install/compile layers.
+ARG APP_VERSION
+ENV APP_VERSION=$APP_VERSION
+
 ENV NODE_ENV=production
 EXPOSE 4000
 CMD ["npm", "run", "start"]
