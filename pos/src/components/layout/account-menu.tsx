@@ -12,6 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useSession } from "@/components/providers/session-provider";
+import { AppVersion } from "@/components/pwa/app-version";
 import { cn } from "@/lib/utils";
 
 interface AccountMenuProps {
@@ -60,6 +61,14 @@ export function AccountMenu({ className }: AccountMenuProps) {
           <LogOut className="size-4" aria-hidden="true" />
           {t("logout")}
         </DropdownMenuItem>
+        {/* Last, and quiet: this is the one place a cashier can find out which
+            build their phone is running when they call about a problem. Not a
+            menu item — tapping it copies rather than navigating, so it must
+            not close the menu the way a DropdownMenuItem would. */}
+        <DropdownMenuSeparator />
+        <div className="px-1 pb-1">
+          <AppVersion />
+        </div>
       </DropdownMenuContent>
     </DropdownMenu>
   );

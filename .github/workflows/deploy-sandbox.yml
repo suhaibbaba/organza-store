@@ -10,6 +10,11 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
+      # No actions/checkout here on purpose: the build happens on the VPS,
+      # from the VPS's own clone. The equivalent of checkout's `fetch-depth: 0`
+      # therefore lives in the script below — the app's version number is
+      # <major>.<minor> plus the repo's commit count, and a shallow clone would
+      # report a commit count of 1 forever (see shared/scripts/app-version.js).
       - name: Deploy over SSH
         uses: appleboy/ssh-action@v1.2.0
         with:
@@ -23,6 +28,29 @@ jobs:
             echo "==> Pulling latest 'sandbox' branch"
             git fetch origin sandbox
             git reset --hard origin/sandbox
+
+            echo "==> Making sure the full history is here (the version is a commit count)"
+            if [ -f "$(git rev-parse --git-dir)/shallow" ]; then
+              echo "    shallow clone — unshallowing"
+              git fetch --unshallow origin sandbox || git fetch --depth=2147483647 origin sandbox
+            fi
+
+            echo "==> Resolving app version"
+            # One number for the whole deploy: the API reports it at
+            # /api/version and both frontends show it in their account menu, so
+            # a mismatch between them is exactly the stale-build symptom this
+            # is here to expose. shared/scripts/app-version.js is the reference
+            # implementation; the shell fallback below mirrors it for a VPS
+            # with no node installed.
+            if command -v node >/dev/null 2>&1; then
+              APP_VERSION="$(node shared/scripts/app-version.js backend)"
+            else
+              BASE="$(sed -n 's/^[[:space:]]*"version"[[:space:]]*:[[:space:]]*"\([0-9]\{1,\}\.[0-9]\{1,\}\).*/\1/p' backend/package.json | head -n 1)"
+              APP_VERSION="${BASE:-0.0}.$(git rev-list --count HEAD)"
+            fi
+            export APP_VERSION
+            echo "    APP_VERSION=$APP_VERSION"
+
             echo "==> Building + starting containers"
             docker compose -f docker-compose.sandbox.yml --env-file .env.sandbox up -d --build
             echo "==> Applying database migrations"

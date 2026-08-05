@@ -9,6 +9,7 @@ import { NotificationsCard } from "@/components/settings/notifications-card";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { ApiError } from "@/lib/api/errors";
+import { AppVersion } from "@/components/pwa/app-version";
 
 function SettingsPageContent() {
   const t = useTranslations("settings");
@@ -42,6 +43,11 @@ function SettingsPageContent() {
               settings: it is the part the Admin has to do on each device. */}
           <NotificationsCard />
           <SettingsForm setting={setting} />
+          {/* Which build this device is running, at the foot of the page it
+              is most likely to be looked for on. The same line lives in the
+              account menu and the mobile "More" sheet, which is where every
+              other role finds it. */}
+          <AppVersion className="w-auto items-center self-center" />
         </>
       )}
     </div>

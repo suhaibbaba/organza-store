@@ -5,3 +5,4 @@ export * from "./variant";
 export * from "./inventory";
 export * from "./order";
 export * from "./report";
+export * from "./version";

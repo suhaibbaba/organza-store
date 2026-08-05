@@ -992,5 +992,19 @@
     "orderNotCollectable": "This order is cancelled or returned, so there is no payment to record.",
     "reportRangeInvalid": "That period isn't valid. Check the start and end dates.",
     "reportRangeTooLong": "That period is too long. Pick a year at most."
+  },
+  "pwa": {
+    "version": {
+      "app": "App v{version}",
+      "api": "API v{version}",
+      "copy": "Copy the version numbers",
+      "copied": "Copied"
+    },
+    "update": {
+      "title": "A new version is ready",
+      "description": "Tap to get the newest version. It takes a moment, and nothing you have saved is lost.",
+      "action": "Update now",
+      "updating": "Updating…"
+    }
   }
 }

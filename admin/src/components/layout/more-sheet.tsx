@@ -7,6 +7,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { Separator } from "@/components/ui/separator";
 import { LanguageSwitcher } from "@/components/layout/language-switcher";
 import { useSession } from "@/components/providers/session-provider";
+import { AppVersion } from "@/components/pwa/app-version";
 import type { NavItem } from "@/types/nav";
 import { cn } from "@/lib/utils";
 
@@ -64,6 +65,10 @@ export function MoreSheet({ open, onOpenChange, items }: MoreSheetProps) {
             <LogOut className="size-5" aria-hidden="true" />
             {tCommon("logout")}
           </button>
+          {/* Which build this phone is running. Installed from a home screen
+              there is nowhere else to find it, and this sheet is where the
+              95% who are on a phone already come for everything else. */}
+          <AppVersion className="px-1" />
         </div>
       </SheetContent>
     </Sheet>

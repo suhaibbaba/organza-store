@@ -15,6 +15,7 @@ import usersRouter from "@/routes/users";
 import settingsRouter from "@/routes/settings";
 import imagesRouter from "@/routes/images";
 import pushRouter from "@/routes/push";
+import versionRouter from "@/routes/version";
 import { errorHandler } from "@/middleware/errorHandler";
 import { AppError, sendError } from "@/lib/response";
 import { UPLOAD_DIR } from "@/lib/image";
@@ -45,6 +46,9 @@ app.use("/uploads", express.static(UPLOAD_DIR));
 app.get("/health", (_req, res) => {
   res.json({ success: true, data: { status: "ok" }, meta: null });
 });
+
+// Open, like /health above — see routes/version.ts for why.
+app.use("/api/version", versionRouter);
 
 app.use("/api/dashboard", dashboardRouter);
 app.use("/api/products", productsRouter);

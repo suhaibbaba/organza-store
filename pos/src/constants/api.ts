@@ -14,3 +14,8 @@ export const PRODUCT_LOOKUP_QUERY_KEY = ["products", "lookup"] as const;
 // Repeat customers, matched on the phone digits typed so far (there is no
 // Customer entity — these come out of past orders' snapshots).
 export const CUSTOMER_SUGGESTION_QUERY_KEY = ["orders", "customerSuggestions"] as const;
+
+// The running API's build number (GET /api/version) — read out alongside the
+// app's own when something looks stale, never polled.
+export const API_VERSION_QUERY_KEY = ["version"] as const;
+export const API_VERSION_STALE_TIME_MS = 5 * 60 * 1000;

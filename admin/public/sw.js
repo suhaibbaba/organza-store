@@ -66,11 +66,25 @@ self.addEventListener("install", (event) => {
           }
         })
       );
-      // Take over as soon as we're ready rather than waiting for every tab to
-      // close — staff leave the app open for days.
-      await self.skipWaiting();
+      // Deliberately NOT skipWaiting() here: taking over silently swaps the
+      // build underneath a page that is already running the old one. This
+      // worker waits, the app notices it waiting and offers the update
+      // (components/pwa/update-prompt.tsx), and the message below is how the
+      // user's "update now" tap gets here. Staff leave the app open for days,
+      // so without that prompt they simply stay on yesterday's build.
     })()
   );
+});
+
+// The one thing this worker is told to do from the page: stop waiting and
+// become the active worker, which fires `controllerchange` there and lets the
+// page reload onto the new build. The string is duplicated from
+// constants/pwa.ts (SERVICE_WORKER_SKIP_WAITING_MESSAGE) — this file isn't
+// bundled and can't import it.
+self.addEventListener("message", (event) => {
+  if (event.data && event.data.type === "SKIP_WAITING") {
+    self.skipWaiting();
+  }
 });
 
 self.addEventListener("activate", (event) => {

@@ -177,5 +177,19 @@
     "validationInvalidPhone": "Enter a valid phone number.",
     "orderCustomerRequired": "Enter the customer's name and phone number.",
     "orderLocationInvalid": "That location isn't valid. Enter both latitude and longitude."
+  },
+  "pwa": {
+    "version": {
+      "app": "App v{version}",
+      "api": "API v{version}",
+      "copy": "Copy the version numbers",
+      "copied": "Copied"
+    },
+    "update": {
+      "title": "A new version is ready",
+      "description": "Tap to get the newest version. It takes a moment, and nothing you have saved is lost.",
+      "action": "Update now",
+      "updating": "Updating…"
+    }
   }
 }

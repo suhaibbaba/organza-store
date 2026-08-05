@@ -1,4 +1,5 @@
 import path from "path";
+import { createRequire } from "module";
 import type { NextConfig } from "next";
 import createNextIntlPlugin from "next-intl/plugin";
 
@@ -13,6 +14,26 @@ const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 // the value `next start` would compute later never matters.
 const buildId = process.env.BUILD_ID ?? String(Date.now());
 
+// The version staff read out when they report a problem: "0.1" from this
+// project's package.json plus the repo's commit count, so it moves forward on
+// its own with every deploy (shared/scripts/app-version.js). Pulled in with
+// createRequire rather than a plain import because it is a build-time
+// CommonJS script living outside the app — the same reason __dirname works
+// below.
+//
+// Inside a container there is no git history to count, so the deploy resolves
+// the number on the host and passes it in as NEXT_PUBLIC_APP_VERSION; that
+// always wins. It is stamped into the client bundle via `env` below, exactly
+// like the build id.
+const { resolveAppVersion } = createRequire(__filename)(
+  path.join(__dirname, "..", "shared", "scripts", "app-version.js")
+) as { resolveAppVersion: (options: { projectDir?: string; envValue?: string }) => string };
+
+const appVersion = resolveAppVersion({
+  projectDir: __dirname,
+  envValue: process.env.NEXT_PUBLIC_APP_VERSION,
+});
+
 // Product images are served by the backend (stored-relative "/uploads/.."
 // URLs resolved against NEXT_PUBLIC_API_URL — see components/sell/
 // product-thumb.tsx), so next/image needs that origin allow-listed here.
@@ -26,6 +47,7 @@ const isLocalApi = apiUrl.hostname === "localhost" || apiUrl.hostname === "127.0
 const nextConfig: NextConfig = {
   env: {
     NEXT_PUBLIC_BUILD_ID: buildId,
+    NEXT_PUBLIC_APP_VERSION: appVersion,
   },
   async headers() {
     return [

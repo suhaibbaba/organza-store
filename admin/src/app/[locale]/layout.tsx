@@ -107,8 +107,11 @@ export default async function LocaleLayout({
       <body className="min-h-dvh antialiased">
         <NextIntlClientProvider>
           <AppProviders>{children}</AppProviders>
+          {/* Inside the intl provider: the registrar no longer renders
+              nothing — it puts the "a new version is ready" prompt on screen,
+              and that wording goes through t() like all the rest. */}
+          <ServiceWorkerRegistrar />
         </NextIntlClientProvider>
-        <ServiceWorkerRegistrar />
       </body>
     </html>
   );
