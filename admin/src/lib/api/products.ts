@@ -76,6 +76,13 @@ export async function markLabelsPrinted(productIds: string[]): Promise<MarkLabel
   return data;
 }
 
+// Soft delete (CLAUDE.md rule 4): the backend only sets deletedAt and hides
+// the product — the row stays, because past orders point at it.
+export async function deleteProduct(id: string): Promise<{ id: string; deletedAt: string }> {
+  const { data } = await apiFetch<{ id: string; deletedAt: string }>(`/api/products/${id}`, { method: "DELETE" });
+  return data;
+}
+
 export async function deleteVariant(id: string, variantId: string): Promise<{ id: string }> {
   const { data } = await apiFetch<{ id: string }>(`/api/products/${id}/variants/${variantId}`, { method: "DELETE" });
   return data;

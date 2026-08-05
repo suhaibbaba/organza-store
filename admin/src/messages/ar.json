@@ -482,7 +482,8 @@
       "cost": "التكلفة",
       "wasPrice": "كان {price}",
       "descriptionTitle": "الوصف",
-      "imagesTitle": "الصور",
+      "numberedPointsAlt": "صورة المنتج مع أرقامها",
+      "numberedPointsHint": "{count} رقم موضوع على هذه الصورة.",
       "variantsTitle": "المتغيرات",
       "variantsCount": "{count} متغيرات",
       "variantSku": "رمز SKU",
@@ -490,7 +491,13 @@
       "variantPrice": "السعر",
       "variantStatus": "الحالة",
       "edit": "تعديل",
-      "manageImages": "الصور"
+      "delete": {
+        "action": "حذف المنتج",
+        "confirm": "حذف هذا المنتج؟ سيختفي من قائمة المنتجات ومن نقطة البيع ومن المتجر. الطلبات السابقة تبقى كما هي.",
+        "confirmAction": "نعم، احذفه",
+        "keep": "الاحتفاظ به",
+        "success": "تم حذف المنتج."
+      }
     },
     "form": {
       "back": "رجوع",

@@ -13,12 +13,23 @@ interface ImagePointCanvasProps {
   imageUrl: string;
   alt: string;
   points: ShawlPoint[];
-  selectedId: string | null;
+  selectedId?: string | null;
   disabled?: boolean;
-  onAddPoint: (x: number, y: number) => void;
-  onMovePoint: (id: string, x: number, y: number) => void;
-  onSelectPoint: (id: string | null) => void;
+  // Display only (the product detail page): the same photo, the same pins,
+  // the same coordinate space — with nothing to tap, drag or add. Sharing
+  // the component is the point: the positions are percentages of THIS box,
+  // so a second implementation would be a second chance to place them
+  // differently.
+  readOnly?: boolean;
+  onAddPoint?: (x: number, y: number) => void;
+  onMovePoint?: (id: string, x: number, y: number) => void;
+  onSelectPoint?: (id: string | null) => void;
 }
+
+// Shared by the pin in both modes, so the read-only one can't drift from the
+// one the points were placed with.
+const PIN_CLASS =
+  "absolute flex size-8 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-2 text-xs font-bold shadow-md";
 
 // A placeholder aspect ratio shown only until the real photo has loaded and
 // reports its natural size (below) — most product photos are portrait.
@@ -33,8 +44,9 @@ export function ImagePointCanvas({
   imageUrl,
   alt,
   points,
-  selectedId,
+  selectedId = null,
   disabled,
+  readOnly,
   onAddPoint,
   onMovePoint,
   onSelectPoint,
@@ -59,7 +71,7 @@ export function ImagePointCanvas({
   }
 
   function handleBoxPointerDown(e: React.PointerEvent) {
-    if (disabled || !isReady) return;
+    if (disabled || readOnly || !isReady) return;
     addGestureRef.current = { startX: e.clientX, startY: e.clientY, moved: false };
   }
 
@@ -74,13 +86,13 @@ export function ImagePointCanvas({
   function handleBoxPointerUp(e: React.PointerEvent) {
     const gesture = addGestureRef.current;
     addGestureRef.current = null;
-    if (disabled || !isReady || !gesture || gesture.moved) return;
+    if (disabled || readOnly || !isReady || !gesture || gesture.moved) return;
     const point = percentFromEvent(e.clientX, e.clientY);
-    if (point) onAddPoint(point.x, point.y);
+    if (point) onAddPoint?.(point.x, point.y);
   }
 
   function handlePinPointerDown(e: React.PointerEvent<HTMLButtonElement>, id: string) {
-    if (disabled) return;
+    if (disabled || readOnly) return;
     e.stopPropagation();
     e.currentTarget.setPointerCapture(e.pointerId);
     dragRef.current = { id, moved: false };
@@ -92,7 +104,7 @@ export function ImagePointCanvas({
     const point = percentFromEvent(e.clientX, e.clientY);
     if (!point) return;
     dragRef.current.moved = true;
-    onMovePoint(id, point.x, point.y);
+    onMovePoint?.(id, point.x, point.y);
   }
 
   function handlePinPointerUp(e: React.PointerEvent<HTMLButtonElement>, id: string) {
@@ -100,18 +112,18 @@ export function ImagePointCanvas({
     e.stopPropagation();
     const wasDrag = dragRef.current.moved;
     dragRef.current = null;
-    if (!wasDrag) onSelectPoint(selectedId === id ? null : id);
+    if (!wasDrag) onSelectPoint?.(selectedId === id ? null : id);
   }
 
   return (
     <div className="overflow-hidden rounded-xl border border-border bg-muted">
       <div
         ref={boxRef}
-        onPointerDown={handleBoxPointerDown}
-        onPointerMove={handleBoxPointerMove}
-        onPointerUp={handleBoxPointerUp}
+        onPointerDown={readOnly ? undefined : handleBoxPointerDown}
+        onPointerMove={readOnly ? undefined : handleBoxPointerMove}
+        onPointerUp={readOnly ? undefined : handleBoxPointerUp}
         style={{ aspectRatio: ratio ?? PLACEHOLDER_ASPECT_RATIO }}
-        className="relative touch-none select-none"
+        className={cn("relative select-none", !readOnly && "touch-none")}
       >
         <Image
           src={resolvedSrc}
@@ -134,26 +146,37 @@ export function ImagePointCanvas({
         )}
 
         {isReady &&
-          points.map((point) => (
-            <button
-              key={point.id}
-              type="button"
-              aria-label={String(point.number)}
-              aria-pressed={selectedId === point.id}
-              onPointerDown={(e) => handlePinPointerDown(e, point.id)}
-              onPointerMove={(e) => handlePinPointerMove(e, point.id)}
-              onPointerUp={(e) => handlePinPointerUp(e, point.id)}
-              style={{ left: `${point.x}%`, top: `${point.y}%` }}
-              className={cn(
-                "absolute flex size-8 -translate-x-1/2 -translate-y-1/2 touch-none items-center justify-center rounded-full border-2 text-xs font-bold shadow-md",
-                selectedId === point.id
-                  ? "border-primary-foreground bg-primary text-primary-foreground ring-2 ring-primary"
-                  : "border-white bg-black/70 text-white"
-              )}
-            >
-              {point.number}
-            </button>
-          ))}
+          points.map((point) =>
+            readOnly ? (
+              <span
+                key={point.id}
+                style={{ left: `${point.x}%`, top: `${point.y}%` }}
+                className={cn(PIN_CLASS, "border-white bg-black/70 text-white")}
+              >
+                {point.number}
+              </span>
+            ) : (
+              <button
+                key={point.id}
+                type="button"
+                aria-label={String(point.number)}
+                aria-pressed={selectedId === point.id}
+                onPointerDown={(e) => handlePinPointerDown(e, point.id)}
+                onPointerMove={(e) => handlePinPointerMove(e, point.id)}
+                onPointerUp={(e) => handlePinPointerUp(e, point.id)}
+                style={{ left: `${point.x}%`, top: `${point.y}%` }}
+                className={cn(
+                  PIN_CLASS,
+                  "touch-none",
+                  selectedId === point.id
+                    ? "border-primary-foreground bg-primary text-primary-foreground ring-2 ring-primary"
+                    : "border-white bg-black/70 text-white"
+                )}
+              >
+                {point.number}
+              </button>
+            )
+          )}
       </div>
     </div>
   );

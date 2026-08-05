@@ -482,7 +482,8 @@
       "cost": "Cost",
       "wasPrice": "Was {price}",
       "descriptionTitle": "Description",
-      "imagesTitle": "Images",
+      "numberedPointsAlt": "Product photo with its numbered points",
+      "numberedPointsHint": "{count} numbers placed on this photo.",
       "variantsTitle": "Variants",
       "variantsCount": "{count} variants",
       "variantSku": "SKU",
@@ -490,7 +491,13 @@
       "variantPrice": "Price",
       "variantStatus": "Status",
       "edit": "Edit",
-      "manageImages": "Images"
+      "delete": {
+        "action": "Delete product",
+        "confirm": "Delete this product? It disappears from the products list, the POS and the storefront. Past orders keep it.",
+        "confirmAction": "Yes, delete it",
+        "keep": "Keep it",
+        "success": "Product deleted."
+      }
     },
     "form": {
       "back": "Back",

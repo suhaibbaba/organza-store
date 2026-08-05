@@ -2,7 +2,7 @@
 
 import { useParams } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
-import { ChevronLeft, ImageIcon, PackageX, Pencil } from "lucide-react";
+import { ChevronLeft, PackageX, Pencil } from "lucide-react";
 import type { Product } from "@shared/types/product";
 import { can } from "@shared/lib/permissions";
 import { Link } from "@/i18n/navigation";
@@ -13,6 +13,11 @@ import { localize } from "@/lib/i18n-content";
 import { formatMoney } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { ProductGallery } from "@/components/products/product-gallery";
+import { ProductDeleteAction } from "@/components/products/product-delete-action";
+import {
+  NumberedShawlPreview,
+  hasPlacedShawlPoints,
+} from "@/components/products/numbered-shawl/numbered-shawl-preview";
 import { StatusBadge } from "@/components/products/status-badge";
 import { VariantList } from "@/components/products/variant-list";
 import { ProductListError, ProductListLoading } from "@/components/products/product-list-states";
@@ -57,11 +62,11 @@ export default function ProductDetailPage() {
 function ProductDetail({ product, currency, locale }: { product: Product; currency: string; locale: string }) {
   const t = useTranslations("products.detail");
   const { user } = useSession();
-  // Every role can reach the edit screen. What each of them may change there
-  // differs (price, stock and visibility are gated separately — CLAUDE.md
-  // rule 5), and the edit screen itself decides that; this only picks the
-  // button's wording, since a role without product.edit lands on what is
-  // effectively the image manager.
+  // One way in and one thing to press: Edit. Everything editable about a
+  // product — including its photos — lives on the edit screen, so this page
+  // only ever shows. What a given role may change once there is decided
+  // there (price, stock and visibility are gated separately — CLAUDE.md
+  // rule 5).
   const canEditDetails = can(user, "product.edit");
   const name = localize(product.name, locale);
   const description = localize(product.description, locale);
@@ -69,28 +74,27 @@ function ProductDetail({ product, currency, locale }: { product: Product; curren
 
   return (
     <div className="flex flex-col gap-5">
-      <ProductGallery images={product.images} alt={name} />
+      {/* A numbered shawl is its numbers: show the photo they were placed on,
+          with them on it. Any other product gets the ordinary gallery. */}
+      {hasPlacedShawlPoints(product) ? (
+        <NumberedShawlPreview product={product} />
+      ) : (
+        <ProductGallery images={product.images} alt={name} />
+      )}
 
       <div className="flex flex-col gap-2">
         <div className="flex items-start justify-between gap-3">
           <h1 className="text-lg font-semibold text-foreground">{name}</h1>
           <div className="flex shrink-0 items-center gap-2">
             <StatusBadge isActive={product.isActive} />
-            <Button asChild variant="outline" size="sm">
-              <Link href={`/products/${product.id}/edit`}>
-                {canEditDetails ? (
-                  <>
-                    <Pencil className="size-4" aria-hidden="true" />
-                    {t("edit")}
-                  </>
-                ) : (
-                  <>
-                    <ImageIcon className="size-4" aria-hidden="true" />
-                    {t("manageImages")}
-                  </>
-                )}
-              </Link>
-            </Button>
+            {canEditDetails && (
+              <Button asChild variant="outline" size="sm">
+                <Link href={`/products/${product.id}/edit`}>
+                  <Pencil className="size-4" aria-hidden="true" />
+                  {t("edit")}
+                </Link>
+              </Button>
+            )}
           </div>
         </div>
         {product.category && (
@@ -144,6 +148,8 @@ function ProductDetail({ product, currency, locale }: { product: Product; curren
           <VariantList variants={product.variants} variantTypes={product.variantTypes} currency={currency} />
         </div>
       )}
+
+      <ProductDeleteAction product={product} />
     </div>
   );
 }
