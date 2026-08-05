@@ -41,10 +41,26 @@ export const MIN_CART_QUANTITY = 1;
 // enough that the till is never left sitting on a finished sale.
 export const SALE_SUCCESS_RESET_MS = 6000;
 
-// A scanned barcode arriving while the previous one is still being looked up
-// is almost always the same item read twice by the camera. Ignore repeats of
-// the same code inside this window.
-export const SCAN_DEDUPE_MS = 1500;
+// The camera reads whatever is in front of it ten times a second, so an item
+// held still under it reports the same barcode over and over. Repeats of the
+// SAME code inside this window are ignored; a different code is never
+// delayed, because scanning a pile of items one after another is the normal
+// case and any wait there would be felt on every single item.
+//
+// About a second is the smallest window that reliably covers "lift this tag
+// away and bring the next one in", while still being short enough that
+// deliberately re-scanning one item to add a second piece just works.
+export const SCAN_DEDUPE_MS = 1000;
+
+// How long the scanned cart line stays lit, and how long its little bar
+// takes to run down. Tied to the window above on purpose: what the bar is
+// showing IS the window, so the cashier can see when the same tag will be
+// read again rather than having to count.
+export const SCAN_FLASH_MS = SCAN_DEDUPE_MS;
+
+// The viewfinder's own flash after a read — much shorter, since it only has
+// to register as "that one went in" before the next tag is under the lens.
+export const SCAN_PULSE_MS = 450;
 
 // Scan region for the scanner (html5-qrcode's `qrbox`), as a fraction of
 // the live viewfinder rather than as fixed pixels: html5-qrcode only decodes

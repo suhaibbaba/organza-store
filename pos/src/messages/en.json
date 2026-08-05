@@ -36,7 +36,7 @@
   "sell": {
     "noPermission": "Your account can't complete sales. Ask your manager.",
     "feedback": {
-      "added": "{name} added to the sale."
+      "added": "{name} × {quantity, number}"
     },
     "search": {
       "label": "Search for a product or scan a barcode",
@@ -49,29 +49,36 @@
       "error": "Couldn't load search results. Try again.",
       "soldOut": "Sold out",
       "inStock": "{count, plural, one {# in stock} other {# in stock}}",
-      "variantCount": "{count, plural, one {# option} other {# options}}"
+      "variantCount": "{count, plural, one {# option} other {# options}}",
+      "backToCart": "Back to the sale",
+      "cartCount": "{count, plural, =0 {Empty} one {# item} other {# items}}",
+      "resultsTitle": "Search results for “{query}”"
     },
     "scanner": {
       "title": "Scan a barcode",
       "subtitle": "Point the camera at the barcode on the tag.",
       "starting": "Starting the camera…",
-      "hint": "Hold the barcode inside the frame. The item is added as soon as it's read.",
+      "hint": "Scan one item after another — the camera stays on until you press Finish scanning.",
       "fault": {
         "insecureContext": "The camera needs a secure (HTTPS) connection. Open this screen over a secure link, or type the barcode in instead.",
         "permission": "Camera access was blocked. Allow it in your browser settings, or type the barcode in instead.",
         "unavailable": "The camera couldn't start on this device. Type the barcode into the search box instead."
-      }
+      },
+      "done": "Finish scanning",
+      "mute": "Mute the beep",
+      "unmute": "Turn the beep on",
+      "cartSummary": "{count, plural, =0 {Empty} one {# item} other {# items}}"
     },
     "picker": {
       "subtitle": "Choose which one you're selling.",
       "numberedSubtitle": "Type the number, or pick it from the list.",
       "numberLabel": "Number",
       "numberPlaceholder": "e.g. 4",
-      "addNumber": "Add",
       "numberNotFound": "No such number, or it's sold out.",
-      "added": "{name} added.",
       "soldOut": "Sold out",
-      "done": "Done"
+      "done": "Done",
+      "add": "Add to the sale",
+      "addNamed": "Add {name}"
     },
     "cart": {
       "emptyTitle": "Nothing in the sale yet",

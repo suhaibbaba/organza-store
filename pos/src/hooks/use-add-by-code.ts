@@ -43,13 +43,32 @@ export function useAddByCode({ onAdd, onOutcome }: UseAddByCodeOptions) {
   // The camera reports the same barcode many times a second while it stays
   // in frame; without this, one item would land in the cart a dozen times.
   const lastScan = useRef<{ code: string; at: number } | null>(null);
+  // A code the cashier has already been asked a question about (which
+  // variant?). Held until some other code is read, because the tag that
+  // raised the question is still lying under the camera when it comes back
+  // — and asking the same question again, and again, is a trap the cashier
+  // cannot scan their way out of. Cleared outright when they open the
+  // scanner themselves, so deliberately scanning that same tag again works.
+  const heldCode = useRef<string | null>(null);
 
   const submitCode = useCallback(
     async (rawCode: string, options: { dedupe?: boolean } = {}) => {
       const code = rawCode.trim();
       if (!code) return;
 
+      // Only what the camera keeps re-reading is held back, and only that
+      // one code: the moment a different barcode comes into frame it is
+      // taken with no wait at all, so scanning a pile of items one after
+      // another is never slowed down. Re-scanning the same tag on purpose
+      // (a second identical piece) works too — it just has to be after the
+      // window the cart line's little bar is counting down.
       if (options.dedupe) {
+        if (heldCode.current !== null) {
+          if (heldCode.current === code) return;
+          // Something else came into frame: the cashier has moved on.
+          heldCode.current = null;
+        }
+
         const previous = lastScan.current;
         const now = Date.now();
         if (previous && previous.code === code && now - previous.at < SCAN_DEDUPE_MS) return;
@@ -61,6 +80,9 @@ export function useAddByCode({ onAdd, onOutcome }: UseAddByCodeOptions) {
         const { product, variant } = await lookupProductByCode(code);
 
         if (!variant && product.hasVariants) {
+          // See heldCode above: the camera is about to be handed back after
+          // the cashier answers, with this same tag still in front of it.
+          if (options.dedupe) heldCode.current = code;
           onOutcome({ status: "pick", product });
           return;
         }
@@ -79,5 +101,13 @@ export function useAddByCode({ onAdd, onOutcome }: UseAddByCodeOptions) {
     [onAdd, onOutcome]
   );
 
-  return { submitCode, isLooking };
+  // Called when the cashier opens the scanner themselves: whatever they
+  // point it at next is a fresh intention, even if it is the tag they were
+  // just looking at.
+  const resetScanHistory = useCallback(() => {
+    lastScan.current = null;
+    heldCode.current = null;
+  }, []);
+
+  return { submitCode, isLooking, resetScanHistory };
 }

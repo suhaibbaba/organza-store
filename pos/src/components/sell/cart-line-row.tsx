@@ -6,12 +6,17 @@ import { localize } from "@/lib/i18n-content";
 import { lineDiscountCents, lineTotal } from "@/lib/cart";
 import { fromCents } from "@/lib/money";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
+import { SCAN_FLASH_MS } from "@/constants/pos";
 import { ProductThumb } from "@/components/sell/product-thumb";
 import { QuantityStepper } from "@/components/ui/quantity-stepper";
+import { cn } from "@/lib/utils";
 import type { CartLine } from "@/types/cart";
+import type { ScanFlash } from "@/types/feedback";
 
 interface CartLineRowProps {
   line: CartLine;
+  // Set for the line a scan just landed on — see hooks/use-scan-flash.ts.
+  flash: ScanFlash | null;
   onQuantityChange: (quantity: number) => void;
   onRemove: () => void;
   onDiscountClick: () => void;
@@ -20,7 +25,7 @@ interface CartLineRowProps {
 // One sold line, as a card — never a table row. On a phone a table would
 // either scroll sideways or shrink the controls below thumb size (CLAUDE.md
 // "Frontend UX"), and this row carries three separate controls.
-export function CartLineRow({ line, onQuantityChange, onRemove, onDiscountClick }: CartLineRowProps) {
+export function CartLineRow({ line, flash, onQuantityChange, onRemove, onDiscountClick }: CartLineRowProps) {
   const t = useTranslations("sell.cart");
   const locale = useLocale();
   const formatMoney = useMoneyFormatter();
@@ -31,7 +36,12 @@ export function CartLineRow({ line, onQuantityChange, onRemove, onDiscountClick 
   const discountCents = lineDiscountCents(line);
 
   return (
-    <li className="flex flex-col gap-3 rounded-xl border border-border bg-card p-3">
+    <li
+      className={cn(
+        "relative flex flex-col gap-3 overflow-hidden rounded-xl border bg-card p-3 transition-colors",
+        flash ? "border-primary bg-primary/5 ring-2 ring-primary" : "border-border"
+      )}
+    >
       <div className="flex items-start gap-3">
         <ProductThumb src={line.imageUrl} alt={name} className="size-14 rounded-lg" />
 
@@ -80,6 +90,19 @@ export function CartLineRow({ line, onQuantityChange, onRemove, onDiscountClick 
 
       {line.quantity >= line.availableStock && (
         <p className="text-xs text-muted-foreground">{t("stockCap", { count: line.availableStock })}</p>
+      )}
+
+      {/* The read, acknowledged: a bar along the bottom of the line that
+          drains over exactly the window in which this same barcode is
+          ignored. Keyed by the flash token so scanning the same item again
+          restarts it instead of leaving a finished bar sitting there. */}
+      {flash && (
+        <span
+          key={flash.token}
+          className="animate-scan-flash-bar absolute bottom-0 start-0 h-1 w-full rounded-full bg-primary"
+          style={{ animationDuration: `${SCAN_FLASH_MS}ms` }}
+          aria-hidden="true"
+        />
       )}
     </li>
   );

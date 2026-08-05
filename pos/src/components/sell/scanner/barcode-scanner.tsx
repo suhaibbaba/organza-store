@@ -9,13 +9,21 @@ import {
   SCANNER_BOX_WIDTH_RATIO,
   SCANNER_ELEMENT_ID,
   SCANNER_FPS,
+  SCAN_PULSE_MS,
 } from "@/constants/pos";
+import { cn } from "@/lib/utils";
+import type { ScanFlash } from "@/types/feedback";
 
 interface BarcodeScannerProps {
   // Fires for every successful read, including repeats of the same barcode
   // while it stays in frame — de-duplication is the caller's business
   // (see hooks/use-add-by-code.ts), not the camera's.
   onDetected: (code: string) => void;
+  // The last read, answered on the viewfinder itself: green for something
+  // that went into the cart, red for a code nothing matched. The cart is
+  // behind this sheet while a run of items is being scanned, so this frame
+  // is the only place the acknowledgement can be seen without looking away.
+  pulse: ScanFlash | null;
 }
 
 // Reason the camera isn't running, as a message key. Kept as a small closed
@@ -42,7 +50,7 @@ class ScannerFaultError extends Error {
 // because it reaches for `navigator`/`document` as it initialises: pulled
 // into the server bundle it would break the render, and it is dead weight
 // for the ~all of the shift when the camera isn't open.
-export function BarcodeScanner({ onDetected }: BarcodeScannerProps) {
+export function BarcodeScanner({ onDetected, pulse }: BarcodeScannerProps) {
   const t = useTranslations("sell.scanner");
   const [isStarting, setIsStarting] = useState(true);
   const [fault, setFault] = useState<ScannerFault | null>(null);
@@ -135,8 +143,29 @@ export function BarcodeScanner({ onDetected }: BarcodeScannerProps) {
 
   return (
     <div className="flex flex-col items-center gap-3">
-      {/* html5-qrcode injects the <video> into this element by id. */}
-      <div id={SCANNER_ELEMENT_ID} className="w-full overflow-hidden rounded-xl bg-black" />
+      {/* The overlay is a sibling of the video host, not a child:
+          html5-qrcode owns that element's contents and empties it. */}
+      <div className="relative w-full">
+        {/* html5-qrcode injects the <video> into this element by id. */}
+        <div id={SCANNER_ELEMENT_ID} className="w-full overflow-hidden rounded-xl bg-black" />
+
+        {pulse && (
+          <span
+            // Keyed by the token so a second read of the same tag replays
+            // the flash rather than showing an already-faded one.
+            key={pulse.token}
+            className={cn(
+              "animate-scan-pulse pointer-events-none absolute inset-0 rounded-xl ring-4 ring-inset",
+              pulse.variant === "success"
+                ? "bg-emerald-400/25 ring-emerald-400"
+                : "bg-destructive/25 ring-destructive"
+            )}
+            style={{ animationDuration: `${SCAN_PULSE_MS}ms` }}
+            aria-hidden="true"
+          />
+        )}
+      </div>
+
       {isStarting ? (
         <p className="flex items-center gap-2 text-sm text-muted-foreground">
           <Spinner />
