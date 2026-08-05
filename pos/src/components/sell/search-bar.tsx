@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, type FormEvent } from "react";
+import { type FormEvent } from "react";
 import { useTranslations } from "next-intl";
 import { ScanLine, Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -30,7 +30,6 @@ interface SearchBarProps {
 // reading a damaged label out by hand.
 export function SearchBar({ value, onChange, onScanClick, onSubmitCode, isLooking }: SearchBarProps) {
   const t = useTranslations("sell.search");
-  const inputRef = useRef<HTMLInputElement>(null);
 
   function handleSubmit(event: FormEvent) {
     event.preventDefault();
@@ -47,7 +46,6 @@ export function SearchBar({ value, onChange, onScanClick, onSubmitCode, isLookin
           aria-hidden="true"
         />
         <Input
-          ref={inputRef}
           type="search"
           value={value}
           onChange={(event) => onChange(event.target.value)}
@@ -68,10 +66,11 @@ export function SearchBar({ value, onChange, onScanClick, onSubmitCode, isLookin
           value && (
             <button
               type="button"
-              onClick={() => {
-                onChange("");
-                inputRef.current?.focus();
-              }}
+              // Clears and stops there. Putting the cursor back in the box
+              // would throw the phone keyboard open over half the screen
+              // when all the cashier asked for was the cart back — the
+              // keyboard belongs to whoever actually taps the field.
+              onClick={() => onChange("")}
               aria-label={t("clear")}
               className="absolute end-1.5 top-1/2 flex size-9 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-accent-foreground"
             >

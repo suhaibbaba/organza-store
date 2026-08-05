@@ -167,6 +167,54 @@
   }
 }
 
+/* ------------------------------------------------------------------
+   Scan acknowledgement — see hooks/use-scan-flash.ts. Both animations
+   are told their duration by the component (from constants/pos.ts), so
+   the numbers stay in one place; only the shapes live here.
+   ------------------------------------------------------------------ */
+
+/* The bar under a freshly scanned cart line. It runs down over exactly the
+   window in which the same barcode is ignored, so "wait a moment before
+   re-scanning this one" is something the cashier can see rather than count.
+   Animating width (not transform) keeps it draining towards the line's
+   start edge in Arabic and English alike, with nothing to mirror. */
+@keyframes scan-flash-bar {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0%;
+  }
+}
+
+.animate-scan-flash-bar {
+  animation: scan-flash-bar linear forwards;
+}
+
+/* The viewfinder frame's blink after a read: full strength, then out. */
+@keyframes scan-pulse {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+.animate-scan-pulse {
+  animation: scan-pulse ease-out forwards;
+}
+
+/* With motion turned down the acknowledgement stays — it just stops moving.
+   Both elements are removed by the component when the window is up, so a
+   still bar and a still frame say the same thing without animating. */
+@media (prefers-reduced-motion: reduce) {
+  .animate-scan-flash-bar,
+  .animate-scan-pulse {
+    animation: none;
+  }
+}
+
 /* Installed from the home screen the app supplies its own pull-to-refresh
    (components/pwa/pull-to-refresh.tsx). Containing the overscroll keeps the
    page from rubber-banding behind the pull, which is what makes the gesture

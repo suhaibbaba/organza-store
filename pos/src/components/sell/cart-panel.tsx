@@ -4,15 +4,18 @@ import { useTranslations } from "next-intl";
 import { ScanLine } from "lucide-react";
 import { CartLineRow } from "@/components/sell/cart-line-row";
 import type { Cart } from "@/hooks/use-cart";
+import type { ScanFlashState } from "@/hooks/use-scan-flash";
 
 interface CartPanelProps {
   cart: Cart;
+  // Which line a scan just landed on, if any (hooks/use-scan-flash.ts).
+  scanFlash: ScanFlashState;
   onLineDiscountClick: (key: string) => void;
 }
 
 // The open sale. Empty is the screen's resting state between customers, so
 // it says what to do next rather than just being blank.
-export function CartPanel({ cart, onLineDiscountClick }: CartPanelProps) {
+export function CartPanel({ cart, scanFlash, onLineDiscountClick }: CartPanelProps) {
   const t = useTranslations("sell.cart");
 
   if (cart.isEmpty) {
@@ -31,6 +34,7 @@ export function CartPanel({ cart, onLineDiscountClick }: CartPanelProps) {
         <CartLineRow
           key={line.key}
           line={line}
+          flash={scanFlash.lineKey === line.key ? scanFlash.flash : null}
           onQuantityChange={(quantity) => cart.setQuantity(line.key, quantity)}
           onRemove={() => cart.removeLine(line.key)}
           onDiscountClick={() => onLineDiscountClick(line.key)}

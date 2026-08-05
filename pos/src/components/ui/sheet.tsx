@@ -96,4 +96,25 @@ function SheetDescription({ className, ...props }: React.ComponentProps<typeof D
   );
 }
 
-export { Sheet, SheetTrigger, SheetClose, SheetContent, SheetHeader, SheetTitle, SheetDescription };
+// Radix opens a dialog by focusing the first focusable thing inside it. When
+// that thing is a text box, the phone throws its keyboard open over a screen
+// nobody asked to type on — and on a POS that is half the sheet gone before
+// the cashier has read it. Sheets that lead with an input pass this to
+// SheetContent's `onOpenAutoFocus`: focus lands on the panel itself, so the
+// focus trap and Escape still work, but no keyboard appears until someone
+// actually taps a field.
+function focusPanelNotFirstField(event: Event) {
+  event.preventDefault();
+  if (event.currentTarget instanceof HTMLElement) event.currentTarget.focus();
+}
+
+export {
+  Sheet,
+  SheetTrigger,
+  SheetClose,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+  focusPanelNotFirstField,
+};
