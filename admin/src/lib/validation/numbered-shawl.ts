@@ -1,35 +1,17 @@
 import type { Product } from "@shared/types/product";
 import type { Variant } from "@shared/types/variant";
 import type { UpdateVariantInput } from "@shared/schemas/product";
-import { NUMBER_VARIANT_TYPE_SLUG } from "@shared/constants/variantType";
 import { isNonNegativeIntegerString } from "@/lib/validation/numeric";
 import { DEFAULT_POINT_STOCK } from "@/constants/numberedShawl";
 import type { ShawlPoint } from "@/types/numberedShawl";
 
-// A product is eligible for the numbered-shawl placement tool once every
-// variant type it uses (if any) is "Number" — spec.md: numbered shawls have
-// no sizes/colors, just numbers. Trivially true for a brand-new product
-// with no variants yet, so the tool is reachable before any Number variant
-// exists.
-export function isNumberedShawlEligible(product: Pick<Product, "variantTypes">): boolean {
-  return product.variantTypes.every((vt) => vt.slug === NUMBER_VARIANT_TYPE_SLUG);
-}
-
-// True once the product actually references the Number variant type, even
-// alongside others (e.g. it was a Colour product and the Number type was just
-// added). Recomputed from product.variantTypes, so it flips reactively in
-// edit mode the moment a Number variant is generated and the product query
-// refetches — not only on a fresh, Number-only product.
-export function productUsesNumberType(product: Pick<Product, "variantTypes">): boolean {
-  return product.variantTypes.some((vt) => vt.slug === NUMBER_VARIANT_TYPE_SLUG);
-}
-
-// Whether to surface the numbered-point placement tool at all: either the
-// product is numbered-shawl shaped (only Number types, or none yet so it's
-// reachable on a brand-new product) OR it now uses the Number type among
-// others (an existing product being converted to numbered).
-export function showNumberedShawlEditor(product: Pick<Product, "variantTypes">): boolean {
-  return isNumberedShawlEligible(product) || productUsesNumberType(product);
+// Whether to surface the numbered-point placement tool at all. It is the
+// product's own explicit choice (spec.md "Numbered shawls" — Product
+// .isNumbered), never a guess based on which variant types it happens to use:
+// the tool appears on a numbered product and on nothing else, and the backend
+// enforces the same rule on every variant it would create.
+export function showNumberedShawlEditor(product: Pick<Product, "isNumbered">): boolean {
+  return product.isNumbered;
 }
 
 export function clampPercent(value: number): number {

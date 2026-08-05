@@ -35,6 +35,15 @@ export const ERROR_CODES = {
   PRODUCT_NOT_FOUND: "error.product.not_found",
   VARIANT_NOT_FOUND: "error.variant.not_found",
 
+  // Numbered products (spec.md "Numbered shawls") are an explicit choice
+  // (Product.isNumbered), and the two shapes never mix: a numbered product
+  // sells numbers and nothing else, an ordinary one never sells numbers.
+  PRODUCT_NUMBERED_ONLY_NUMBERS: "error.product.numbered_only_numbers",
+  PRODUCT_NUMBERS_REQUIRE_NUMBERED: "error.product.numbers_require_numbered",
+  // Flipping the choice on a product that already has variants would strand
+  // (or destroy) them, so it is refused until they are removed.
+  PRODUCT_NUMBERED_SWITCH_HAS_VARIANTS: "error.product.numbered_switch_has_variants",
+
   VARIANT_TYPE_NOT_FOUND: "error.variantType.not_found",
   VARIANT_TYPE_VALUE_NOT_FOUND: "error.variantType.value_not_found",
   VARIANT_TYPE_VALUE_DUPLICATE: "error.variantType.value_duplicate",

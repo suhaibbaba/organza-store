@@ -180,6 +180,14 @@ model Product {
   // dashboard count). Off by default.
   trackLowStock Boolean @default(false)
 
+  // Numbered product (spec.md "Numbered shawls"): one photo with numbers drawn
+  // on it, each number a purchasable piece with its own stock/price. An
+  // explicit choice made when the product is added — never inferred from the
+  // variant types it happens to use — because it decides what the product form
+  // shows and which variant types the API accepts: only Number when true,
+  // never Number when false. Off by default.
+  isNumbered Boolean @default(false)
+
   // When this product's barcode labels were last sent to the printer.
   // Null = never printed, which is what the "still to print" work queue
   // filters on. Reprinting only moves the timestamp forward — it is a record,

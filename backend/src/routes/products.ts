@@ -29,7 +29,7 @@ import { buildSearchText, searchProductIds } from "@/lib/search";
 import { cartesianProduct, buildComboName, buildImagePointMap, resolveComboImagePoint } from "@/lib/variantCombo";
 import { serializeProduct, serializeProductSummary, serializeVariant } from "@/lib/pricing";
 import { moneyChanged } from "@/lib/money";
-import { buildNumberOptions, isNumberedProduct } from "@/lib/numberedProduct";
+import { assertOptionTypesMatchMode, buildNumberOptions, isNumberedProduct } from "@/lib/numberedProduct";
 import { writeAudit } from "@/lib/audit";
 import { AUDIT_ENTITY, DEFAULT_STOCK, ERROR_CODES, PRODUCT_LOOKUP_KIND } from "@/constants";
 import type { AnyRecord, I18n, OptionValueLookup } from "@/types";
@@ -52,12 +52,19 @@ async function fetchFullProduct(id: string) {
 }
 
 // Validates that every selected option value actually belongs to its
-// claimed variant type, returning a lookup of id -> option value row.
-async function validateOptionSelections(selections: { variantTypeId: string; valueIds: string[] }[]) {
+// claimed variant type, and that the types themselves suit the kind of
+// product this is (numbered products sell numbers and nothing else — spec.md
+// "Numbered shawls"). Returns a lookup of id -> option value row.
+async function validateOptionSelections(
+  selections: { variantTypeId: string; valueIds: string[] }[],
+  isNumbered: boolean
+) {
   const valueMap = new Map<string, OptionValueLookup>();
+  const typeSlugs: string[] = [];
   for (const sel of selections) {
     const vt = await prisma.variantType.findUnique({ where: { id: sel.variantTypeId }, include: { values: true } });
     if (!vt) throw new AppError(400, ERROR_CODES.VARIANT_TYPE_NOT_FOUND);
+    typeSlugs.push(vt.slug);
     const validIds = new Set(vt.values.map((v) => v.id));
     for (const valueId of sel.valueIds) {
       if (!validIds.has(valueId)) throw new AppError(400, ERROR_CODES.VARIANT_TYPE_VALUE_NOT_FOUND);
@@ -66,6 +73,9 @@ async function validateOptionSelections(selections: { variantTypeId: string; val
       if (sel.valueIds.includes(v.id)) valueMap.set(v.id, { id: v.id, value: v.value as I18n });
     }
   }
+  // Refused loudly rather than filtered out: someone who picked colours for a
+  // numbered product has misunderstood the product, not mistyped a field.
+  assertOptionTypesMatchMode(isNumbered, typeSlugs);
   return valueMap;
 }
 
@@ -187,15 +197,19 @@ router.get(
       : null;
 
     // A number scanned on its own label is an ordinary hit — it IS one piece.
-    // Only the parent label of a numbered product needs the cashier to choose.
-    const needsNumber = !matched && isNumberedProduct(product);
+    // Only the parent label of a numbered product needs the cashier to choose,
+    // and only once it has numbers to choose from: a numbered product whose
+    // points haven't been placed yet would otherwise answer a scan with an
+    // empty picker and no way forward.
+    const numbers = matched ? [] : buildNumberOptions(product, serialized.variants);
+    const needsNumber = !matched && isNumberedProduct(product) && numbers.length > 0;
 
     sendOk(res, {
       kind: needsNumber ? PRODUCT_LOOKUP_KIND.NUMBER_SELECTION : PRODUCT_LOOKUP_KIND.ITEM,
       product: serialized,
       // Never a sellable item on a NUMBER_SELECTION — that is the whole point.
       variant: needsNumber ? null : matched,
-      numbers: needsNumber ? buildNumberOptions(product, serialized.variants) : [],
+      numbers: needsNumber ? numbers : [],
     });
   })
 );
@@ -285,10 +299,15 @@ router.post(
     const category = await prisma.category.findUnique({ where: { id: body.categoryId } });
     if (!category) throw new AppError(400, ERROR_CODES.CATEGORY_NOT_FOUND);
 
+    // Which kind of product this is, chosen here and never inferred later
+    // (spec.md "Numbered shawls"): a numbered product's variants are its
+    // numbers, an ordinary one's are its colours/sizes, and the two never mix.
+    const isNumbered = body.isNumbered ?? false;
+
     const hasVariants = Boolean(body.optionSelections?.length);
     let valueMap: Map<string, OptionValueLookup> | undefined;
     if (hasVariants) {
-      valueMap = await validateOptionSelections(body.optionSelections!);
+      valueMap = await validateOptionSelections(body.optionSelections!, isNumbered);
     }
 
     if (body.sku) {
@@ -326,6 +345,7 @@ router.post(
         cost: cost ?? null,
         isActive: body.isActive ?? true,
         trackLowStock: trackLowStock ?? false,
+        isNumbered,
         barcode,
         stock: hasVariants ? DEFAULT_STOCK : body.stock ?? DEFAULT_STOCK,
         createdById: req.user!.id,
@@ -424,6 +444,16 @@ router.patch(
     const visibilityChanged = body.isActive !== undefined && body.isActive !== existing.isActive;
     if (!canHide && visibilityChanged) throw new AppError(403, ERROR_CODES.FORBIDDEN);
 
+    // Switching a product between "sells numbers" and "sells colours/sizes"
+    // (spec.md "Numbered shawls") while it still has variants would strand
+    // every one of them under a rule they don't satisfy. Nothing is deleted
+    // on the user's behalf — the switch is refused, and the UI says which
+    // variants have to go first.
+    const kindChanged = body.isNumbered !== undefined && body.isNumbered !== existing.isNumbered;
+    if (kindChanged && existing.variants.length > 0) {
+      throw new AppError(409, ERROR_CODES.PRODUCT_NUMBERED_SWITCH_HAS_VARIANTS);
+    }
+
     if (body.categoryId) {
       const category = await prisma.category.findUnique({ where: { id: body.categoryId } });
       if (!category) throw new AppError(400, ERROR_CODES.CATEGORY_NOT_FOUND);
@@ -479,6 +509,7 @@ router.patch(
         cost: can(req.user!, "product.viewCost") && body.cost !== undefined ? body.cost : undefined,
         isActive: canHide ? body.isActive : undefined,
         trackLowStock: canAdjustStock ? body.trackLowStock : undefined,
+        isNumbered: body.isNumbered,
         sku: body.sku,
         stock: existing.variants.length || !canAdjustStock ? undefined : body.stock,
       },
@@ -542,7 +573,10 @@ router.post(
     if (!product) throw new AppError(404, ERROR_CODES.PRODUCT_NOT_FOUND);
 
     const body = req.body as GenerateVariantsInput;
-    const valueMap = await validateOptionSelections(body.optionSelections);
+    // Gated on the product's own flag, so a numbered product can never grow a
+    // colour and an ordinary one can never grow a number — whichever screen
+    // the request came from.
+    const valueMap = await validateOptionSelections(body.optionSelections, product.isNumbered);
 
     const typeIds = [...new Set(body.optionSelections.map((s) => s.variantTypeId))];
     await prisma.productVariantType.createMany({

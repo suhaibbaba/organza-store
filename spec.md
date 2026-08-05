@@ -373,6 +373,14 @@ stock/price. Send one numbered image on WhatsApp; the customer replies with a nu
   just a normal product using the **Number** variant type: choosing numbers 1–6 generates variants
   1–6 exactly like any other variant. Stock, price (+ override), SKU, barcode, audit — all reused
   as-is, already built and tested.
+- **Which kind a product is, is explicit — `Product.isNumbered` (boolean, default false).** It is
+  chosen up front in the product form, never inferred from the variant types the product happens to
+  use. The two shapes never mix, and the backend enforces it (not just the UI): a numbered product
+  accepts the **Number** type and nothing else, an ordinary one accepts everything **except**
+  Number. Changing the answer on a product that already has variants is **refused**
+  (`error.product.numbered_switch_has_variants`) — the variants have to be removed first, nothing is
+  deleted on the user's behalf. The flag is also what the numbered-points editor, the list badge and
+  the POS parent-barcode scan all branch on.
 - **New fields on Variant (optional):** `imageX` and `imageY` (percentages, nullable). When set,
   the variant is a point on the product image; when null, it's an ordinary variant. Percentages
   (not pixels) so points stay correct at any screen size.

@@ -31,7 +31,12 @@ export function NumberedShawlPreview({ product }: { product: Product }) {
 }
 
 // Whether the detail page should show the preview above instead of the plain
-// gallery: only once numbers have actually been placed on the photo.
+// gallery: the product has to BE a numbered one (its own flag, never guessed
+// from its variants), and its numbers have to have been placed on the photo.
 export function hasPlacedShawlPoints(product: Product): boolean {
-  return product.images.length > 0 && product.variants.some((v) => v.imageX != null && v.imageY != null);
+  return (
+    product.isNumbered &&
+    product.images.length > 0 &&
+    product.variants.some((v) => v.imageX != null && v.imageY != null)
+  );
 }

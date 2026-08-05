@@ -26,6 +26,9 @@ export const productBasicFormSchema = z.object({
   cost: optionalDecimalField,
   isActive: z.boolean(),
   trackLowStock: z.boolean(),
+  // Which kind of product this is (spec.md "Numbered shawls") — asked first,
+  // because it decides what the rest of the form shows.
+  isNumbered: z.boolean(),
   stock: optionalIntegerField,
 });
 export type ProductBasicFormValues = z.infer<typeof productBasicFormSchema>;
@@ -39,6 +42,7 @@ export const DEFAULT_PRODUCT_FORM_VALUES: ProductBasicFormValues = {
   cost: "",
   isActive: true,
   trackLowStock: false,
+  isNumbered: false,
   stock: "1",
 };
 
@@ -77,6 +81,7 @@ export function productToFormValues(product: Product): ProductBasicFormValues {
     cost: product.cost ?? "",
     isActive: product.isActive,
     trackLowStock: product.trackLowStock,
+    isNumbered: product.isNumbered,
     stock: product.hasVariants ? "" : String(product.stock ?? 1),
   };
 }
@@ -95,6 +100,7 @@ export function toCreatePayload(
     cost: emptyToUndefined(values.cost),
     isActive: values.isActive,
     trackLowStock: values.trackLowStock,
+    isNumbered: values.isNumbered,
     stock: hasVariants ? undefined : Number(emptyToUndefined(values.stock) ?? "1"),
     optionSelections: hasVariants ? optionSelections : undefined,
   };
@@ -118,6 +124,10 @@ export function toUpdatePayload(
     cost: abilities.canEditCost ? emptyToNull(values.cost) : undefined,
     isActive: abilities.canHide ? values.isActive : undefined,
     trackLowStock: abilities.canEditStock ? values.trackLowStock : undefined,
+    // Always sent, never diffed here: the API compares it against what is
+    // stored and only refuses a real change on a product that still has
+    // variants (error.product.numbered_switch_has_variants).
+    isNumbered: values.isNumbered,
     stock: hasVariants || !abilities.canEditStock ? undefined : Number(emptyToUndefined(values.stock) ?? "1"),
   };
 }

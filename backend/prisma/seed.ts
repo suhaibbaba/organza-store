@@ -192,6 +192,10 @@ async function main() {
     // products list's print-state filter. Off by default, so a freshly seeded
     // catalogue mostly looks like a shop that still has labels to print.
     labelsPrinted?: boolean;
+    // Numbered product (spec.md "Numbered shawls"): its variants are the
+    // numbers on one photo. An explicit choice, never inferred from the
+    // variant types used — see Product.isNumbered.
+    isNumbered?: boolean;
     // simple product fields (only when no variants)
     simple?: { stock: number };
     // variants: each is a list of `${typeSlug}:${valueKey}` plus optional overrides
@@ -223,6 +227,7 @@ async function main() {
       cost: opts.cost ?? null,
       isActive: opts.isActive ?? true,
       trackLowStock: opts.trackLowStock ?? false,
+      isNumbered: opts.isNumbered ?? false,
       labelsPrintedAt: opts.labelsPrinted ? SEEDED_LABELS_PRINTED_AT : null,
       deletedAt: opts.deleted ? new Date() : null,
       barcode,
@@ -389,6 +394,9 @@ async function main() {
     categoryId: abayas.id,
     basePrice: 60,
     cost: 25,
+    // The explicit choice, not a side effect of using the Number type: this is
+    // what the badge, the product form and the POS all read.
+    isNumbered: true,
     variants: [
       { combo: ["number:1"], name: { ar: "1", en: "1", he: "1" }, stock: 1, imageX: 18, imageY: 22 },
       { combo: ["number:2"], name: { ar: "2", en: "2", he: "2" }, stock: 1, imageX: 42, imageY: 20 },

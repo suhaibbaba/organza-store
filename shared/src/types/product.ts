@@ -28,6 +28,12 @@ export interface Product {
   // Setting.lowStockThreshold (inventory low-stock view + dashboard count).
   // Off by default, since most products are one-off pieces with stock = 1.
   trackLowStock: boolean;
+  // Numbered product (spec.md "Numbered shawls"): one photo carrying numbers,
+  // each number a piece of its own. An explicit choice made when the product
+  // is added, never inferred from which variant types it happens to use — it
+  // decides what the rest of the product form shows, and which variant types
+  // the API accepts (numbers only when true, never when false).
+  isNumbered: boolean;
   // When this product's barcode labels were last printed (CLAUDE.md rule 13).
   // Null means never printed; reprinting simply moves the timestamp forward,
   // it is never a lock.
@@ -66,7 +72,8 @@ export interface ProductSummary {
   variantCount: number;
   // Numbered products (spec.md "Numbered shawls"): the numbers themselves are
   // illegible on a list thumbnail, so the list UI labels the product type with
-  // a badge instead. `numberCount` is how many distinct numbers it offers.
+  // a badge instead. `isNumbered` is the product's own explicit flag;
+  // `numberCount` is how many distinct numbers it offers.
   isNumbered: boolean;
   numberCount: number;
   image: ProductImageRef | null;

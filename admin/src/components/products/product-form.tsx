@@ -5,6 +5,7 @@ import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useLocale, useTranslations } from "next-intl";
 import { SUPPORTED_LANGUAGES, DEFAULT_LANGUAGE } from "@shared/constants/languages";
+import { NUMBER_VARIANT_TYPE_SLUG } from "@shared/constants/variantType";
 import type { Product } from "@shared/types/product";
 import { can } from "@shared/lib/permissions";
 import { useRouter } from "@/i18n/navigation";
@@ -54,6 +55,7 @@ import { VariantPreviewList } from "@/components/products/variant-preview-list";
 import { VariantEditList } from "@/components/products/variant-edit-list";
 import { AddVariantsSection } from "@/components/products/add-variants-section";
 import { NumberedShawlEditor } from "@/components/products/numbered-shawl/numbered-shawl-editor";
+import { ProductKindChoice } from "@/components/products/product-kind-choice";
 import { ImageManager } from "@/components/products/image-manager";
 import { ApiError } from "@/lib/api/errors";
 import type {
@@ -138,6 +140,7 @@ export function ProductForm({ mode, product }: ProductFormProps) {
     register,
     handleSubmit,
     control,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<ProductBasicFormValues>({
     resolver: zodResolver(productBasicFormSchema),
@@ -150,13 +153,31 @@ export function ProductForm({ mode, product }: ProductFormProps) {
   const updateVariantMutation = useUpdateVariantMutation(product?.id ?? "");
   const deleteVariantMutation = useDeleteVariantMutation(product?.id ?? "");
 
+  // The answer to the form's first question, live: a numbered product sells
+  // its numbers and nothing else (spec.md "Numbered shawls"), so the ordinary
+  // colour/size machinery is not merely disabled for it — it isn't shown, and
+  // the API refuses those types for it either way.
+  const isNumbered = watch("isNumbered");
+  // Changing the answer on a product that already has variants would strand
+  // them, so it is locked until they are removed (the API refuses it too).
+  const savedVariantCount = mode === "edit" ? product?.variants.length ?? 0 : 0;
+  const kindLockedReason = savedVariantCount === 0 ? null : product?.isNumbered ? "numbers" : "options";
+
   const newOptionSelections = toOptionSelections(selections);
   const willHaveVariants = mode === "create" ? newOptionSelections.length > 0 : Boolean(product?.hasVariants);
-  const showVariantsCard = mode === "create" || Boolean(product?.hasVariants) || canEditDetails;
+  const showVariantsCard = !isNumbered && (mode === "create" || Boolean(product?.hasVariants) || canEditDetails);
+
+  // The ordinary option types, i.e. everything except Number: numbers are
+  // placed on the photo by the dedicated tool, on a product that has declared
+  // itself numbered, so they never belong in the colour/size picker.
+  const ordinaryVariantTypes = useMemo(
+    () => (variantTypes ?? []).filter((type) => type.slug !== NUMBER_VARIANT_TYPE_SLUG),
+    [variantTypes]
+  );
 
   const previewRows = useMemo(
-    () => (mode === "create" && variantTypes ? buildVariantPreview(variantTypes, selections) : []),
-    [mode, variantTypes, selections]
+    () => (mode === "create" ? buildVariantPreview(ordinaryVariantTypes, selections) : []),
+    [mode, ordinaryVariantTypes, selections]
   );
 
   function toggleExcludedCombo(key: string) {
@@ -317,6 +338,31 @@ export function ProductForm({ mode, product }: ProductFormProps) {
             )}
             <p className="text-base font-semibold text-foreground">{formatMoney(product.basePrice, currency, locale)}</p>
             <p className="mt-2 text-sm text-muted-foreground">{t("employeeReadOnlyHint")}</p>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* The first question, because its answer changes the rest of the form:
+          is this sold by colour/size, or by the numbers drawn on one photo
+          (spec.md "Numbered shawls")? */}
+      {canEditDetails && (
+        <Card>
+          <CardHeader>
+            <CardTitle>{t("kind.title")}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Controller
+              control={control}
+              name="isNumbered"
+              render={({ field }) => (
+                <ProductKindChoice
+                  value={field.value}
+                  onChange={field.onChange}
+                  lockedReason={kindLockedReason}
+                  disabled={isBusy}
+                />
+              )}
+            />
           </CardContent>
         </Card>
       )}
@@ -533,7 +579,11 @@ export function ProductForm({ mode, product }: ProductFormProps) {
                 <CardTitle>{t("inventory")}</CardTitle>
               </CardHeader>
               <CardContent className="flex flex-col gap-4">
-                {canEditStock && (
+                {/* A numbered product keeps its quantities per number, not on
+                    the parent — the parent's label only stands for the whole
+                    collection (the POS never sells it directly). */}
+                {isNumbered && <p className="text-sm text-muted-foreground">{t("kind.stockPerNumber")}</p>}
+                {canEditStock && !isNumbered && (
                   <div className="flex flex-col gap-2">
                     <Label htmlFor="stock">{t("stock")}</Label>
                     <NumericInput id="stock" aria-invalid={!!errors.stock} {...register("stock")} />
@@ -596,25 +646,41 @@ export function ProductForm({ mode, product }: ProductFormProps) {
 
             {mode === "create" && variantTypes && (
               <>
-                <VariantTypePicker variantTypes={variantTypes} value={selections} onChange={setSelections} />
+                <VariantTypePicker variantTypes={ordinaryVariantTypes} value={selections} onChange={setSelections} />
                 <VariantPreviewList rows={previewRows} excluded={excludedCombos} onToggleExcluded={toggleExcludedCombo} />
               </>
             )}
 
             {mode === "edit" && product && variantTypes && canEditDetails && (
-              <AddVariantsSection productId={product.id} variantTypes={variantTypes} />
+              <AddVariantsSection productId={product.id} variantTypes={ordinaryVariantTypes} />
             )}
           </CardContent>
         </Card>
       )}
 
-      {/* Numbered shawls (spec.md): a dedicated placement tool, separate
-          from the generic variant editor above — reachable once the
-          product uses only the Number variant type (or none yet). Each
+      {/* Numbered shawls (spec.md): a dedicated placement tool, separate from
+          the generic variant editor above and shown for numbered products
+          only — the product's own flag decides, nothing is inferred. Each
           placed number carries its own price and stock, so the tool as a
           whole needs those permissions rather than half-working without
-          them. */}
-      {mode === "edit" && canEditDetails && canEditPrice && canEditStock && product && variantTypes && showNumberedShawlEditor(product) && (
+          them.
+
+          It reads the SAVED product, not the choice being made on screen: the
+          numbers it creates are refused by the API until the product itself
+          says it is numbered, so a freshly flipped (unsaved) product is told
+          to save first instead of being handed a tool that would fail. */}
+      {isNumbered && canEditDetails && (mode === "create" || !product?.isNumbered) && (
+        <Card>
+          <CardHeader>
+            <CardTitle>{t("numberedShawl.title")}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground">{t("kind.placeNumbersAfterSave")}</p>
+          </CardContent>
+        </Card>
+      )}
+
+      {mode === "edit" && canEditDetails && canEditPrice && canEditStock && product && variantTypes && isNumbered && showNumberedShawlEditor(product) && (
         <Card>
           <CardHeader>
             <CardTitle>{t("numberedShawl.title")}</CardTitle>

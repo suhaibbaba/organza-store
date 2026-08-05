@@ -31,6 +31,11 @@ export const createProductSchema = z.object({
   // comes from Setting). Off by default — most products are one-off pieces
   // with stock = 1, so alerting on all of them is noise.
   trackLowStock: z.boolean().optional(),
+  // Numbered product (spec.md "Numbered shawls"): one photo carrying numbers,
+  // each number its own piece. Off by default; when on, the only variant type
+  // the API accepts for this product is Number, and when off it accepts every
+  // type except Number.
+  isNumbered: z.boolean().optional(),
   sku: z.string().min(1).optional(),
   stock: z.coerce.number().int().min(0).optional(),
   // Selected global option values to generate variants from (cartesian
@@ -48,6 +53,11 @@ export const updateProductSchema = z.object({
   cost: decimalInput.optional().nullable(),
   isActive: z.boolean().optional(),
   trackLowStock: z.boolean().optional(),
+  // Changing which kind of product this is (see createProductSchema) is only
+  // accepted while it has no variants at all — the API refuses the switch
+  // rather than throwing away numbers or colours (error.product.
+  // numbered_switch_has_variants).
+  isNumbered: z.boolean().optional(),
   sku: z.string().min(1).optional(),
   stock: z.coerce.number().int().min(0).optional(),
 });
