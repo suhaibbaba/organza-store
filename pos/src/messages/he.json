@@ -9,7 +9,12 @@
     "logout": "התנתקות",
     "language": "שפה",
     "close": "סגירה",
-    "account": "חשבון"
+    "account": "חשבון",
+    "pullToRefresh": {
+      "pull": "משכו לרענון",
+      "release": "שחררו לרענון",
+      "refreshing": "מרענן…"
+    }
   },
   "offline": {
     "title": "אין חיבור לאינטרנט",

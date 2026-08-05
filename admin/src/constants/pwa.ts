@@ -76,3 +76,26 @@ export const SERVICE_WORKER_READY_TIMEOUT_MS = 10_000;
  * it, and a precached redirect-to-login would be useless as a fallback.
  */
 export const OFFLINE_PATH = "/offline";
+
+/* ---------------------------------------------------------------------------
+ * Pull to refresh (see components/pwa/pull-to-refresh.tsx)
+ *
+ * Installed from the home screen there is no reload button and no native
+ * pull-to-refresh, so the app provides the gesture itself. These are the
+ * numbers that make it feel like the one the phone would have given you.
+ * ------------------------------------------------------------------------ */
+
+/** Finger travel before a downward drag counts as a pull rather than a scroll. */
+export const PULL_REFRESH_DEAD_ZONE_PX = 8;
+/** How much of the finger's travel the content actually follows. */
+export const PULL_REFRESH_RESISTANCE = 0.5;
+/** Pull this far and letting go refreshes. */
+export const PULL_REFRESH_THRESHOLD_PX = 72;
+/** The pull stops moving here, however hard it is pulled. */
+export const PULL_REFRESH_MAX_PX = 112;
+/** Minimum time the spinner stays up, so a fast refetch still reads as one. */
+export const PULL_REFRESH_MIN_VISIBLE_MS = 400;
+/** How far up the tree to look for something that handles its own touches. */
+export const PULL_REFRESH_SURFACE_SEARCH_DEPTH = 12;
+/** Opt out of the gesture on a subtree that needs the raw touches. */
+export const PULL_REFRESH_IGNORE_ATTRIBUTE = "data-no-pull-refresh";

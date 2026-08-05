@@ -9,7 +9,12 @@
     "logout": "تسجيل الخروج",
     "language": "اللغة",
     "close": "إغلاق",
-    "account": "الحساب"
+    "account": "الحساب",
+    "pullToRefresh": {
+      "pull": "اسحب للتحديث",
+      "release": "أفلت للتحديث",
+      "refreshing": "جارٍ التحديث…"
+    }
   },
   "offline": {
     "title": "لا يوجد اتصال بالإنترنت",

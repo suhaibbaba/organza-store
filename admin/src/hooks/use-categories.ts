@@ -1,6 +1,7 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { CATEGORIES_QUERY_KEY } from "@/constants/api";
 import { createCategory, deleteCategory, fetchCategoryTree, updateCategory } from "@/lib/api/categories";
+import { useCacheInvalidation } from "@/hooks/use-cache-invalidation";
 
 export function useCategoriesQuery() {
   return useQuery({
@@ -11,8 +12,8 @@ export function useCategoriesQuery() {
 }
 
 function useInvalidateCategories() {
-  const queryClient = useQueryClient();
-  return () => void queryClient.invalidateQueries({ queryKey: CATEGORIES_QUERY_KEY });
+  const { categoriesChanged } = useCacheInvalidation();
+  return categoriesChanged;
 }
 
 export function useCreateCategoryMutation() {

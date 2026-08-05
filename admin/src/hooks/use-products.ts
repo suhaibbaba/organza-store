@@ -1,4 +1,4 @@
-import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { keepPreviousData, useMutation, useQuery } from "@tanstack/react-query";
 import { PRODUCT_LIST_PAGE_SIZE, PRODUCT_LIST_QUERY_KEY } from "@/constants/products";
 import {
   fetchProducts,
@@ -10,6 +10,7 @@ import {
   deleteProduct,
   deleteVariant,
 } from "@/lib/api/products";
+import { useCacheInvalidation } from "@/hooks/use-cache-invalidation";
 import type { ProductListFilters } from "@/types/product";
 
 export function useProductsQuery(filters: ProductListFilters) {
@@ -29,14 +30,13 @@ export function useProductQuery(id: string) {
   });
 }
 
-// Invalidates both the list and this product's detail cache after any
-// create/update/variant mutation, so navigating back always shows fresh data.
+// Every product write lands on the same set of screens — the list, this
+// product's page, the stock list and the dashboard — so they all go through
+// one map (hooks/use-cache-invalidation.ts) rather than each mutation
+// remembering its own.
 function useInvalidateProducts(id?: string) {
-  const queryClient = useQueryClient();
-  return () => {
-    void queryClient.invalidateQueries({ queryKey: [PRODUCT_LIST_QUERY_KEY] });
-    if (id) void queryClient.invalidateQueries({ queryKey: [PRODUCT_LIST_QUERY_KEY, id] });
-  };
+  const { productChanged } = useCacheInvalidation();
+  return () => productChanged(id);
 }
 
 export function useCreateProductMutation() {

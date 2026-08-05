@@ -48,6 +48,15 @@
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
 
+  /* The top bar's own row of content — the header sizes itself from this and
+     nothing else, so the bar and anything positioned under it (the
+     pull-to-refresh indicator) can never drift apart. */
+  --top-bar-height: 3.5rem;
+
+  /* What is spoken for at the top of the viewport: the bar plus the notch
+     strip it pads itself with. */
+  --top-bar-inset: calc(var(--top-bar-height) + var(--safe-top));
+
   /* The bottom nav's row of buttons — see bottom-nav.tsx, which is sized
      from this and nothing else. */
   --bottom-nav-height: 4rem;
@@ -111,6 +120,7 @@
 @media (min-width: 48rem) {
   :root {
     --bottom-bar-inset: var(--safe-bottom);
+    --top-bar-height: 4rem;
   }
 }
 
@@ -350,4 +360,14 @@
    component, so this copy exists purely for the printer. */
 #label-print-root {
   display: none;
+}
+
+/* Installed from the home screen the app supplies its own pull-to-refresh
+   (components/pwa/pull-to-refresh.tsx). Containing the overscroll keeps the
+   page from rubber-banding behind the pull, which is what makes the gesture
+   feel like the phone's own rather than like the page coming loose. */
+@media (display-mode: standalone) {
+  html {
+    overscroll-behavior-y: contain;
+  }
 }

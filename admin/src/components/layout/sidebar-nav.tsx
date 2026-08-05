@@ -13,7 +13,7 @@ export function SidebarNav() {
 
   return (
     <aside
-      className="sticky top-16 hidden h-[calc(100dvh-4rem)] w-60 shrink-0 border-e border-border md:block"
+      className="sticky top-[var(--top-bar-inset)] hidden h-[calc(100dvh-var(--top-bar-inset))] w-60 shrink-0 border-e border-border md:block"
       aria-label={tCommon("mainNavigation")}
     >
       <nav className="flex flex-col gap-1 p-3">

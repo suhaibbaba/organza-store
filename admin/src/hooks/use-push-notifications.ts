@@ -10,9 +10,9 @@ import {
   dropSubscription,
   getExistingSubscription,
   isIOSDevice,
-  isInstalledApp,
   isPushSupported,
 } from "@/lib/push-subscription";
+import { isInstalledApp } from "@/lib/pwa";
 import type { PushActionState, PushBlockedReason, PushNotificationState } from "@/types/push";
 
 // Sale notifications, as this device sees them.
