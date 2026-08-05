@@ -1,7 +1,8 @@
-// Helpers for the numbered-shawl suite: a product built on the global Number
-// variant type (spec.md "Numbered shawls" — a numbered shawl is an ordinary
-// product, not a new product type), with the stock of each number set to a
-// known figure so every assertion starts from a fixed point.
+// Helpers for the numbered-shawl suite: a product that declares itself
+// numbered (isNumbered — spec.md "Numbered shawls"; the kind is an explicit
+// choice, never inferred from the variant types it uses) and is built on the
+// global Number variant type, with the stock of each number set to a known
+// figure so every assertion starts from a fixed point.
 import { apiRequest, uniqueId } from "@tests/support/client";
 import { anyCategoryId, firstTwoNumberValueIds } from "@tests/support/fixtures";
 import type { ProductDto } from "@tests/types";
@@ -30,6 +31,7 @@ export async function createNumberedShawl(
       name: { ar: name, en: name },
       categoryId,
       basePrice: options.basePrice ?? "60",
+      isNumbered: true,
       optionSelections: [{ variantTypeId, valueIds }],
     },
   });

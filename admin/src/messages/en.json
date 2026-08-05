@@ -599,6 +599,19 @@
         "save": "Save points",
         "saveSuccess": "Points saved."
       },
+      "kind": {
+        "title": "What are you selling?",
+        "legend": "Product kind",
+        "hint": "Pick one — it changes what you fill in below.",
+        "ordinaryTitle": "A normal product",
+        "ordinaryDescription": "One piece, or several in different colours and sizes.",
+        "numberedTitle": "Numbered pieces",
+        "numberedDescription": "One photo with numbers on it. Each number is its own piece with its own quantity.",
+        "lockedByOptions": "This product already has colours or sizes. Remove them all and save first — then you can change this. Nothing has been deleted.",
+        "lockedByNumbers": "This product already has numbers on its photo. Remove them all and save first — then you can change this. Nothing has been deleted.",
+        "stockPerNumber": "Each number keeps its own quantity, so there's nothing to set here.",
+        "placeNumbersAfterSave": "Save the product first. Then come back here to put the numbers on its photo."
+      },
       "trackLowStock": "Low-stock alert",
       "trackLowStockHint": "Off by default. Turn it on only for products you restock, so alerts aren't buried by one-off pieces."
     }
@@ -940,6 +953,9 @@
     "categoryHasProducts": "This category still has products.",
     "productNotFound": "Product not found.",
     "variantNotFound": "Variant not found.",
+    "productNumberedOnlyNumbers": "This is a numbered product, so it can only have numbers — not colours or sizes.",
+    "productNumbersRequireNumbered": "Only a numbered product can have numbers. Change the product kind at the top of the form first.",
+    "productNumberedSwitchHasVariants": "Delete this product's options first, then you can change its kind. Nothing was deleted.",
     "variantTypeNotFound": "Variant type not found.",
     "variantTypeValueNotFound": "Variant value not found.",
     "variantTypeValueDuplicate": "This value already exists for this type.",

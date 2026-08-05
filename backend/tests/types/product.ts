@@ -34,6 +34,9 @@ export interface ProductDto {
   // Opt-in low-stock alerts; false unless the caller both asked for it and
   // has the permission to set it.
   trackLowStock: boolean;
+  // The product's explicit "this sells numbers, nothing else" choice
+  // (spec.md "Numbered shawls"). False unless it was asked for.
+  isNumbered: boolean;
   // Null until the product's barcode labels have been printed at least once.
   labelsPrintedAt: string | null;
   variants: ProductVariantDto[];

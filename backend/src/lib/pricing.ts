@@ -79,6 +79,9 @@ export function serializeProduct(product: AnyRecord, role: Role) {
     stock: variants.length ? undefined : product.stock,
     isActive: product.isActive,
     trackLowStock: product.trackLowStock,
+    // The product's own explicit "this sells numbers, nothing else" choice
+    // (spec.md "Numbered shawls") — what every screen branches on.
+    isNumbered: product.isNumbered ?? false,
     labelsPrintedAt: product.labelsPrintedAt ?? null,
     deletedAt: product.deletedAt,
     hasVariants: variants.length > 0,

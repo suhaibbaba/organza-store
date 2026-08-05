@@ -1,6 +1,5 @@
 import type { Product } from "@shared/types/product";
 import type { Setting } from "@shared/types/setting";
-import { NUMBER_VARIANT_TYPE_SLUG } from "@shared/constants/variantType";
 import { localize } from "@/lib/i18n-content";
 import { isNonNegativeIntegerString } from "@/lib/validation/numeric";
 import {
@@ -36,10 +35,10 @@ export function hasActiveLabelFilters(filters: LabelListFilters): boolean {
   );
 }
 
-// A numbered shawl is an ordinary product using the global Number variant
-// type (spec.md "Numbered shawls") — one photo with the numbers drawn on it.
-export function isNumberedProduct(product: Product): boolean {
-  return product.variantTypes.some((type) => type.slug === NUMBER_VARIANT_TYPE_SLUG);
+// A numbered shawl (spec.md "Numbered shawls") — one photo with the numbers
+// drawn on it — says so itself, on the flag chosen when it was added.
+export function isNumberedProduct(product: Pick<Product, "isNumbered">): boolean {
+  return product.isNumbered;
 }
 
 // What to print for one product, in the three shapes the catalogue takes:

@@ -36,6 +36,9 @@ export const ERROR_MESSAGE_KEYS: Record<string, string> = {
 
   [ERROR_CODES.PRODUCT_NOT_FOUND]: "errors.productNotFound",
   [ERROR_CODES.VARIANT_NOT_FOUND]: "errors.variantNotFound",
+  [ERROR_CODES.PRODUCT_NUMBERED_ONLY_NUMBERS]: "errors.productNumberedOnlyNumbers",
+  [ERROR_CODES.PRODUCT_NUMBERS_REQUIRE_NUMBERED]: "errors.productNumbersRequireNumbered",
+  [ERROR_CODES.PRODUCT_NUMBERED_SWITCH_HAS_VARIANTS]: "errors.productNumberedSwitchHasVariants",
 
   [ERROR_CODES.VARIANT_TYPE_NOT_FOUND]: "errors.variantTypeNotFound",
   [ERROR_CODES.VARIANT_TYPE_VALUE_NOT_FOUND]: "errors.variantTypeValueNotFound",

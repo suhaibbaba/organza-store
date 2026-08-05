@@ -88,6 +88,8 @@ describe("Variants", () => {
         name: { ar: name, en: name },
         categoryId,
         basePrice: "90",
+        // Numbers only belong to a product that says it is numbered.
+        isNumbered: true,
         optionSelections: [{ variantTypeId, valueIds, imagePoints: points }],
       },
     });

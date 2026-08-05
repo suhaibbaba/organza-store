@@ -2,15 +2,18 @@ import { NUMBER_VARIANT_TYPE_SLUG } from "@shared/constants/variantType";
 import type { Product } from "@shared/types/product";
 import type { Variant } from "@shared/types/variant";
 
-// Numbered shawls (spec.md) are ordinary products using the global "Number"
-// variant type — nothing about them is special-cased in the data model, so
-// the POS recognises them the same way the admin does: by that type's slug.
+// Which variant type carries the numbers, so a variant's number can be read
+// off it below. Only ever consulted on a product that already says it is
+// numbered — this locates the number, it does not decide anything.
 export function numberVariantTypeId(product: Product): string | null {
   return product.variantTypes.find((type) => type.slug === NUMBER_VARIANT_TYPE_SLUG)?.id ?? null;
 }
 
+// Numbered shawls (spec.md) say so themselves: the POS reads the product's
+// own explicit flag, exactly like the admin does, rather than guessing from
+// the variant types it happens to use.
 export function isNumberedProduct(product: Product): boolean {
-  return numberVariantTypeId(product) !== null;
+  return product.isNumbered;
 }
 
 // The number a variant carries, as printed on the shared photo. Taken from

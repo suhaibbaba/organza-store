@@ -4,8 +4,9 @@
 // never hand the POS something sellable, or a sale would deduct stock from the
 // wrong place.
 import { afterAll, describe, expect, it } from "vitest";
-import { apiRequest } from "@tests/support/client";
+import { apiRequest, uniqueId } from "@tests/support/client";
 import { getSession } from "@tests/support/auth";
+import { anyCategoryId, firstTwoNumberValueIds, twoByTwoOptionSelections } from "@tests/support/fixtures";
 import { createNumberedShawl } from "@tests/support/numbered";
 import type { ProductDto, ProductLookupDto } from "@tests/types";
 import { ERROR_CODES, PRODUCT_LOOKUP_KIND } from "@/constants";
@@ -102,6 +103,137 @@ describe("Numbered shawls", () => {
     // The refusal has to be total: no line, no deduction anywhere.
     expect(await readVariantStock(admin.token, product.id, numbers[0].id)).toBe(3);
     expect(await readVariantStock(admin.token, product.id, numbers[1].id)).toBe(3);
+  });
+
+  // The kind of product is an explicit flag, not a guess made from the variant
+  // types it happens to use, and it is enforced on the backend (CLAUDE.md rule
+  // 5) — the two shapes never mix, whichever screen the request came from.
+  it("refuses colours and sizes on a numbered product, at creation and afterwards", async () => {
+    const admin = await getSession("ADMIN");
+    const categoryId = await anyCategoryId(admin.token);
+    const optionSelections = await twoByTwoOptionSelections(admin.token);
+    const name = `Vitest Numbered Reject ${uniqueId()}`;
+
+    const created = await apiRequest<ProductDto>("/api/products", {
+      method: "POST",
+      token: admin.token,
+      body: { name: { ar: name, en: name }, categoryId, basePrice: "80", isNumbered: true, optionSelections },
+    });
+    expect(created.status).toBe(400);
+    expect(created.error?.code).toBe(ERROR_CODES.PRODUCT_NUMBERED_ONLY_NUMBERS);
+
+    // And the same refusal on a numbered product that already exists — the
+    // generate endpoint is the other way colours could sneak in.
+    const { product } = await createNumberedShawl(admin.token, { stocks: [1, 1] });
+    createdProductIds.push(product.id);
+
+    const generated = await apiRequest(`/api/products/${product.id}/variants/generate`, {
+      method: "POST",
+      token: admin.token,
+      body: { optionSelections },
+    });
+    expect(generated.status).toBe(400);
+    expect(generated.error?.code).toBe(ERROR_CODES.PRODUCT_NUMBERED_ONLY_NUMBERS);
+
+    // Refused means refused: the numbers it already had are untouched.
+    const reloaded = await apiRequest<ProductDto>(`/api/products/${product.id}`, { token: admin.token });
+    expect(reloaded.data!.variants).toHaveLength(2);
+  });
+
+  it("refuses numbers on an ordinary product, at creation and afterwards", async () => {
+    const admin = await getSession("ADMIN");
+    const categoryId = await anyCategoryId(admin.token);
+    const { variantTypeId, valueIds } = await firstTwoNumberValueIds(admin.token);
+    const numberSelections = [{ variantTypeId, valueIds }];
+    const name = `Vitest Ordinary ${uniqueId()}`;
+
+    // isNumbered left out entirely — the default is "an ordinary product".
+    const created = await apiRequest<ProductDto>("/api/products", {
+      method: "POST",
+      token: admin.token,
+      body: { name: { ar: name, en: name }, categoryId, basePrice: "80", optionSelections: numberSelections },
+    });
+    expect(created.status).toBe(400);
+    expect(created.error?.code).toBe(ERROR_CODES.PRODUCT_NUMBERS_REQUIRE_NUMBERED);
+
+    const ordinary = await apiRequest<ProductDto>("/api/products", {
+      method: "POST",
+      token: admin.token,
+      body: {
+        name: { ar: `${name} ok`, en: `${name} ok` },
+        categoryId,
+        basePrice: "80",
+        optionSelections: await twoByTwoOptionSelections(admin.token),
+      },
+    });
+    expect(ordinary.status).toBe(201);
+    expect(ordinary.data!.isNumbered).toBe(false);
+    createdProductIds.push(ordinary.data!.id);
+
+    const generated = await apiRequest(`/api/products/${ordinary.data!.id}/variants/generate`, {
+      method: "POST",
+      token: admin.token,
+      body: { optionSelections: numberSelections },
+    });
+    expect(generated.status).toBe(400);
+    expect(generated.error?.code).toBe(ERROR_CODES.PRODUCT_NUMBERS_REQUIRE_NUMBERED);
+
+    const reloaded = await apiRequest<ProductDto>(`/api/products/${ordinary.data!.id}`, { token: admin.token });
+    expect(reloaded.data!.variants).toHaveLength(4);
+  });
+
+  it("refuses to change a product's kind while it still has variants, and destroys nothing", async () => {
+    const admin = await getSession("ADMIN");
+    const { product, numbers } = await createNumberedShawl(admin.token, { stocks: [2, 2] });
+    createdProductIds.push(product.id);
+
+    const patched = await apiRequest(`/api/products/${product.id}`, {
+      method: "PATCH",
+      token: admin.token,
+      body: { isNumbered: false },
+    });
+    expect(patched.status).toBe(409);
+    expect(patched.error?.code).toBe(ERROR_CODES.PRODUCT_NUMBERED_SWITCH_HAS_VARIANTS);
+
+    // Nothing was deleted to make the switch possible — the numbers, their
+    // stock and the flag itself are all exactly as they were.
+    const reloaded = await apiRequest<ProductDto>(`/api/products/${product.id}`, { token: admin.token });
+    expect(reloaded.data!.isNumbered).toBe(true);
+    expect(reloaded.data!.variants.map((v) => v.id)).toEqual(numbers.map((v) => v.id));
+    expect(reloaded.data!.variants.every((v) => v.stock === 2)).toBe(true);
+  });
+
+  it("lets a product with no variants change kind, and then take numbers", async () => {
+    const admin = await getSession("ADMIN");
+    const categoryId = await anyCategoryId(admin.token);
+    const { variantTypeId, valueIds } = await firstTwoNumberValueIds(admin.token);
+    const name = `Vitest Kind Switch ${uniqueId()}`;
+
+    const created = await apiRequest<ProductDto>("/api/products", {
+      method: "POST",
+      token: admin.token,
+      body: { name: { ar: name, en: name }, categoryId, basePrice: "40" },
+    });
+    expect(created.status).toBe(201);
+    expect(created.data!.isNumbered).toBe(false);
+    createdProductIds.push(created.data!.id);
+
+    const patched = await apiRequest<ProductDto>(`/api/products/${created.data!.id}`, {
+      method: "PATCH",
+      token: admin.token,
+      body: { isNumbered: true },
+    });
+    expect(patched.status).toBe(200);
+    expect(patched.data!.isNumbered).toBe(true);
+
+    // The numbers the placement tool would create are accepted only now.
+    const generated = await apiRequest<ProductDto>(`/api/products/${created.data!.id}/variants/generate`, {
+      method: "POST",
+      token: admin.token,
+      body: { optionSelections: [{ variantTypeId, valueIds }] },
+    });
+    expect(generated.status).toBe(201);
+    expect(generated.data!.variants).toHaveLength(2);
   });
 
   it("deducts the chosen number's stock and leaves the other numbers alone", async () => {
