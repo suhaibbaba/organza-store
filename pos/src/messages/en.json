@@ -50,6 +50,11 @@
       "soldOut": "Sold out",
       "inStock": "{count, plural, one {# in stock} other {# in stock}}",
       "variantCount": "{count, plural, one {# option} other {# options}}",
+      "kind": {
+        "numbered": "Numbered · {count}",
+        "named": "{type} · {count}",
+        "mixed": "Options · {count}"
+      },
       "backToCart": "Back to the sale",
       "cartCount": "{count, plural, =0 {Empty} one {# item} other {# items}}",
       "resultsTitle": "Search results for “{query}”"

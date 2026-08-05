@@ -70,6 +70,11 @@ export interface ProductSummary {
   labelsPrintedAt: string | null;
   hasVariants: boolean;
   variantCount: number;
+  // Which kinds of choice this product's variants are made of ("sizes",
+  // "colours"), empty for a simple product. Enough to say what a picker will
+  // ask for without loading every variant — CLAUDE.md rule 2 means these are
+  // references, so a renamed type shows through here on its own.
+  variantTypes: ProductVariantTypeRef[];
   // Numbered products (spec.md "Numbered shawls"): the numbers themselves are
   // illegible on a list thumbnail, so the list UI labels the product type with
   // a badge instead. `isNumbered` is the product's own explicit flag;

@@ -50,6 +50,11 @@
       "soldOut": "אזל מהמלאי",
       "inStock": "{count, plural, one {פריט אחד במלאי} two {# פריטים במלאי} other {# פריטים במלאי}}",
       "variantCount": "{count, plural, one {אפשרות אחת} two {# אפשרויות} other {# אפשרויות}}",
+      "kind": {
+        "numbered": "ממוספר · {count}",
+        "named": "{type} · {count}",
+        "mixed": "אפשרויות · {count}"
+      },
       "backToCart": "חזרה לסל",
       "cartCount": "{count, plural, =0 {הסל ריק} one {פריט אחד} two {# פריטים} other {# פריטים}}",
       "resultsTitle": "תוצאות חיפוש עבור «{query}»"
