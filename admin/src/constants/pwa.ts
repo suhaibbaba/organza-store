@@ -5,10 +5,24 @@
 // names or icons would leave staff guessing which home-screen tile is which.
 // The POS keeps its own copy of this file.
 
+import type { AppleSplashScreen } from "@/types";
+
 /** Brand teal (#235C63) — the logo's dark hue, and the admin icon's background. */
 export const PWA_THEME_COLOR = "#235C63";
-/** Splash-screen backdrop. Teal, so the admin icon sits on its own background while launching. */
+/**
+ * Splash-screen backdrop. Teal, so the admin icon sits on its own background
+ * while launching. This is the single colour the whole launch sequence is
+ * built on: it is what Android paints behind its generated splash, what the
+ * images in public/splash/ are filled with, and what the in-app boot splash
+ * draws — so nothing changes shade between the tap and the first screen.
+ */
 export const PWA_BACKGROUND_COLOR = "#235C63";
+/**
+ * Brand mint (#B5D3CB) — the colour the mark itself is drawn in on the teal
+ * splash. The boot splash uses it so the in-app screen is made of the same
+ * two colours as the image it takes over from.
+ */
+export const PWA_SPLASH_FOREGROUND_COLOR = "#B5D3CB";
 
 export const PWA_NAME = "Organza Admin";
 export const PWA_SHORT_NAME = "Admin";
@@ -36,6 +50,107 @@ export const PWA_MASKABLE_ICON_SIZE = 512;
 export const pwaIconPath = (size: number): string => `/icon-${size}.png`;
 export const PWA_MASKABLE_ICON_PATH = `/icon-maskable-${PWA_MASKABLE_ICON_SIZE}.png`;
 export const PWA_FAVICON_PATH = "/favicon.ico";
+
+/* ---------------------------------------------------------------------------
+ * iOS launch images (see the root layout's `appleWebApp.startupImage`)
+ *
+ * Android needs nothing here: Chrome draws its own splash from the manifest's
+ * name, icon and background_color. iOS draws nothing at all unless a
+ * <link rel="apple-touch-startup-image"> matches the device *exactly* — it
+ * never scales one image to fit another screen — and an installed app with no
+ * match launches on a blank screen. This table is what removes that blank.
+ *
+ * Each entry is one device. The file name and the media query are both
+ * derived from it, so a size can never be listed with the wrong query, and
+ * adding a device means adding one line plus the matching PNG.
+ * ------------------------------------------------------------------------ */
+
+export const APPLE_SPLASH_SCREENS: readonly AppleSplashScreen[] = [
+  { width: 375, height: 667, pixelRatio: 2 }, // iPhone SE (2nd/3rd gen), 6/6s/7/8
+  { width: 414, height: 736, pixelRatio: 3 }, // iPhone 8 Plus
+  { width: 375, height: 812, pixelRatio: 3 }, // iPhone X, XS, 11 Pro
+  { width: 414, height: 896, pixelRatio: 2 }, // iPhone XR, 11
+  { width: 390, height: 844, pixelRatio: 3 }, // iPhone 12, 12 Pro, 13, 13 Pro, 14
+  { width: 393, height: 852, pixelRatio: 3 }, // iPhone 14 Pro, 15, 15 Pro, 16
+  { width: 428, height: 926, pixelRatio: 3 }, // iPhone 12/13/14 Pro Max
+  { width: 430, height: 932, pixelRatio: 3 }, // iPhone 14 Pro Max, 15 Plus/Pro Max, 16 Plus
+  { width: 810, height: 1080, pixelRatio: 2 }, // iPad 10.2"
+] as const;
+
+/** public/splash/splash-<pixel width>x<pixel height>.png — never typed by hand. */
+export const appleSplashImagePath = ({ width, height, pixelRatio }: AppleSplashScreen): string =>
+  `/splash/splash-${width * pixelRatio}x${height * pixelRatio}.png`;
+
+/**
+ * The query iOS matches the image against.
+ *
+ * `orientation: portrait` is what stops a phone launched on its side from
+ * being handed a portrait image: every file here is portrait, and the
+ * manifest asks for a portrait app. -webkit-device-pixel-ratio is the
+ * prefixed form on purpose — it is the one Safari honours here.
+ */
+export const appleSplashMediaQuery = ({ width, height, pixelRatio }: AppleSplashScreen): string =>
+  `(device-width: ${width}px) and (device-height: ${height}px) and (-webkit-device-pixel-ratio: ${pixelRatio}) and (orientation: portrait)`;
+
+/* ---------------------------------------------------------------------------
+ * Boot splash (see components/pwa/boot-splash.tsx)
+ *
+ * The images above are static — they are picture files the OS shows before
+ * any of our code runs. This is the moving half: the same two colours, drawn
+ * by the app itself, covering the gap between "the launch image went away"
+ * and "the session check came back". Motion lives here because this is the
+ * only part of the launch we actually control.
+ * ------------------------------------------------------------------------ */
+
+/**
+ * The mark the boot splash draws: the icon's artwork with its square backing
+ * removed (public/icon-mark-512.png, lifted off public/icon-512.png).
+ *
+ * The square icon itself can't be used here. The splash paints its backdrop
+ * in CSS, and the browser decodes and downscales the icon's flat fill to a
+ * value one level off that colour — a one-level step across a large flat
+ * field, which is exactly the artifact a plain launch screen shows off. With
+ * no backing there is nothing to seam against, and the entrance scales the
+ * mark itself rather than a tile that only looks invisible.
+ *
+ * The icon- prefix is deliberate: that is what the service worker caches
+ * (public/sw.js), so the launch screen still draws on a dead connection.
+ */
+export const BOOT_SPLASH_MARK_SIZE = 512;
+export const BOOT_SPLASH_MARK_PATH = `/icon-mark-${BOOT_SPLASH_MARK_SIZE}.png`;
+
+/** The mark fading up and settling into place. */
+export const BOOT_SPLASH_FADE_IN_MS = 260;
+
+/**
+ * Shortest time the screen stays up once it has appeared.
+ *
+ * A session that answers off a warm connection can come back in well under
+ * the fade-in, and a splash that vanishes halfway through arriving reads as a
+ * glitch rather than a launch. Long enough to finish the entrance, short
+ * enough that nobody waits on it.
+ */
+export const BOOT_SPLASH_MIN_VISIBLE_MS = 380;
+
+/** The fade out. The app underneath stops being covered the moment it starts. */
+export const BOOT_SPLASH_FADE_OUT_MS = 220;
+
+/**
+ * The longest the screen may stay up, whatever the session check is doing.
+ *
+ * A phone on a dead connection can leave that request hanging for tens of
+ * seconds, and a branded screen with no way past it is worse than the app's
+ * own "couldn't reach the server" — which is what the user gets to instead
+ * when this elapses.
+ */
+export const BOOT_SPLASH_MAX_VISIBLE_MS = 3_000;
+
+/** The small row of dots under the mark. */
+export const BOOT_SPLASH_DOT_COUNT = 3;
+/** One dot's full dim-bright-dim cycle. */
+export const BOOT_SPLASH_DOT_PULSE_MS = 1_200;
+/** Offset between neighbouring dots, so the row ripples instead of blinking. */
+export const BOOT_SPLASH_DOT_STAGGER_MS = 160;
 
 /** Service worker — see public/sw.js. */
 export const SERVICE_WORKER_PATH = "/sw.js";

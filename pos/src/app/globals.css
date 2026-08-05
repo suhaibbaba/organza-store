@@ -182,6 +182,97 @@
   }
 }
 
+/* ============================================================
+   BOOT SPLASH — the hand-off from the phone's launch screen
+   ------------------------------------------------------------
+   See components/pwa/boot-splash.tsx, which owns when this is on screen.
+   Every duration is passed in from there (constants/pwa.ts), so the numbers
+   stay in one place and only the shapes live here.
+   ============================================================ */
+
+.boot-splash {
+  position: fixed;
+  inset: 0;
+  /* Above every layer the app itself puts up — the highest of those is the
+     toast at z-[70] — because until this comes down there is nothing
+     underneath worth looking at or tapping. */
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2.5rem;
+  /* The flat backdrop runs edge to edge, under the notch and the home
+     indicator alike (it is one colour, so there is nothing to misalign). The
+     padding is what keeps the mark and the dots clear of both. */
+  padding: calc(var(--safe-top) + 2rem) 1.5rem calc(var(--safe-bottom) + 2rem);
+  opacity: 1;
+  transition-property: opacity;
+  transition-timing-function: ease-out;
+}
+
+/* The app is ready: fade out, and stop taking taps from the first frame of
+   the fade rather than the last — the screen underneath is live from here on,
+   and a launch screen that swallows the first tap is worse than one that
+   lingers. */
+.boot-splash[data-phase="leaving"] {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* The mark arrives rather than appearing: up from nothing and out from very
+   slightly small, which is the whole of the motion in the launch sequence. */
+@keyframes boot-splash-mark {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.boot-splash-mark {
+  animation: boot-splash-mark ease-out both;
+}
+
+/* The dots underneath, each offset from the last so the row ripples. Opacity
+   only — nothing moves, so it reads as "still working" without competing with
+   the mark for attention. */
+@keyframes boot-splash-dot {
+  0%,
+  100% {
+    opacity: 0.25;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.boot-splash-dot {
+  animation: boot-splash-dot ease-in-out infinite;
+}
+
+/* With motion turned down the screen still does its job — it covers the
+   launch, says the app is starting, and goes away — it just does all of it
+   without moving. `transition-property: none` is what drops the fade: the
+   duration itself is an inline style and can't be overridden from here. */
+@media (prefers-reduced-motion: reduce) {
+  .boot-splash {
+    transition-property: none;
+  }
+
+  .boot-splash-mark {
+    animation: none;
+  }
+
+  .boot-splash-dot {
+    animation: none;
+    opacity: 0.6;
+  }
+}
+
 /* ------------------------------------------------------------------
    Scan acknowledgement — see hooks/use-scan-flash.ts. Both animations
    are told their duration by the component (from constants/pos.ts), so
