@@ -47,8 +47,11 @@ export default function EditProductPage() {
       ) : (
         // Remount whenever the variant set changes (e.g. after "add more
         // combinations") so local edit/removal state re-initializes from
-        // the fresh list instead of going stale.
-        <ProductForm key={`${product.id}:${product.variants.length}:${product.updatedAt}`} mode="edit" product={product} />
+        // the fresh list instead of going stale. Deliberately NOT keyed on
+        // updatedAt: saving refetches the product, and remounting on that
+        // would throw away the very thing the form is still holding — the
+        // photos that failed to upload and the panel offering to retry them.
+        <ProductForm key={`${product.id}:${product.variants.length}`} mode="edit" product={product} />
       )}
     </div>
   );

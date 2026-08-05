@@ -12,7 +12,7 @@ import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { ImageManager } from "@/components/products/image-manager";
 import { cn } from "@/lib/utils";
-import type { VariantEditValues } from "@/types/productForm";
+import type { GallerySlot, VariantEditValues } from "@/types/productForm";
 
 interface VariantEditListProps {
   variants: Variant[];
@@ -33,6 +33,12 @@ interface VariantEditListProps {
   canDeleteImages: boolean;
   edits: Record<string, VariantEditValues>;
   onEditChange: (variantId: string, values: VariantEditValues) => void;
+  // Each variant's working gallery, keyed by variant id, and busy while the
+  // form is saving — these are staged like every other edit here and written
+  // by the form's one Save.
+  imageSlots: Record<string, GallerySlot[]>;
+  onImageSlotsChange: (variantId: string, slots: GallerySlot[]) => void;
+  isSaving: boolean;
   removedIds: Set<string>;
   onRemove: (variantId: string) => void;
   onRestore: (variantId: string) => void;
@@ -41,10 +47,9 @@ interface VariantEditListProps {
 // Edit-mode only: existing variant rows, each editable in place. Name comes
 // from the referenced option values (CLAUDE.md rule 2) and stays read-only
 // here — rename the global value instead. Removing a row is staged locally
-// (undo-able) and only sent as DELETE on final submit. Images are the
-// exception: they're always shown and always live (immediate API calls),
-// even for Employees who can't edit stock/price/cost (spec.md: "edit
-// images" is its own, broader capability).
+// (undo-able) and only sent as DELETE on final submit — as are the photos:
+// picking, removing and reordering them here stages the change, and the
+// product form's single Save writes the lot.
 export function VariantEditList({
   variants,
   variantTypes,
@@ -58,6 +63,9 @@ export function VariantEditList({
   canDeleteImages,
   edits,
   onEditChange,
+  imageSlots,
+  onImageSlotsChange,
+  isSaving,
   removedIds,
   onRemove,
   onRestore,
@@ -228,16 +236,17 @@ export function VariantEditList({
               aria-expanded={imagesOpen}
             >
               <span>
-                {tImages("variantSectionTitle")} · {variant.images.length}
+                {tImages("variantSectionTitle")} · {(imageSlots[variant.id] ?? []).length}
               </span>
               <ChevronDown className={cn("size-4 text-muted-foreground transition-transform", imagesOpen && "rotate-180")} aria-hidden="true" />
             </button>
 
             {imagesOpen && (
               <ImageManager
-                owner={{ variantId: variant.id }}
-                initialImages={variant.images}
+                slots={imageSlots[variant.id] ?? []}
+                onChange={(next) => onImageSlotsChange(variant.id, next)}
                 canDelete={canDeleteImages}
+                isBusy={isSaving}
                 emptyHint={tImages("variantFallbackHint")}
               />
             )}

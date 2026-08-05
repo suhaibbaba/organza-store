@@ -528,6 +528,18 @@
       "saving": "Saving…",
       "create": "Create product",
       "save": "Save changes",
+      "progress": {
+        "product": "Saving the product…",
+        "variants": "Saving the options…",
+        "images": "Uploading photos ({done} of {total})…"
+      },
+      "partial": {
+        "title": "The product is saved. Its photos didn't all go through.",
+        "detail": "{count} photos are still waiting — this usually means the connection dropped.",
+        "retry": "Send the photos again",
+        "retrying": "Sending…",
+        "continue": "Continue without them"
+      },
       "variants": {
         "title": "Variants",
         "addValue": "Add a value",
@@ -556,16 +568,12 @@
         "variantSectionTitle": "Images",
         "variantFallbackHint": "No images yet — the product's images are shown instead.",
         "addImages": "Add photos",
+        "pendingHint": "Photos will be uploaded when you save.",
         "dragHandle": "Drag to reorder",
         "setPrimary": "Set as main photo",
         "clearPrimary": "Unset as main photo",
         "primaryBadge": "Main",
-        "delete": "Delete photo",
-        "save": "Save photos",
-        "saving": "Saving…",
-        "discard": "Discard",
-        "saveSuccess": "Photos saved.",
-        "unsavedHint": "You have unsaved photo changes — tap \"Save photos\" to apply them."
+        "delete": "Delete photo"
       },
       "numberedShawl": {
         "title": "Numbered points",
