@@ -27,6 +27,7 @@ import {
 import { initVariantEdits, diffVariantEdit } from "@/lib/validation/variant-edit";
 import { galleryChanged, initGalleries, pendingCount } from "@/lib/image-slots";
 import { syncGallery } from "@/lib/image-sync";
+import { useCacheInvalidation } from "@/hooks/use-cache-invalidation";
 import {
   PRODUCT_GALLERY_KEY,
   variantGalleryKey,
@@ -143,6 +144,7 @@ export function ProductForm({ mode, product }: ProductFormProps) {
     defaultValues: mode === "edit" && product ? productToFormValues(product) : DEFAULT_PRODUCT_FORM_VALUES,
   });
 
+  const { productChanged } = useCacheInvalidation();
   const createMutation = useCreateProductMutation();
   const updateMutation = useUpdateProductMutation(product?.id ?? "");
   const updateVariantMutation = useUpdateVariantMutation(product?.id ?? "");
@@ -193,6 +195,7 @@ export function ProductForm({ mode, product }: ProductFormProps) {
     const jobs = Object.entries(galleries).filter(([, gallery]) => galleryChanged(gallery));
     if (jobs.length === 0) return { pending: 0, errorCode: null };
 
+
     const total = jobs.reduce((sum, [, gallery]) => sum + pendingCount(gallery.slots), 0);
     let uploaded = 0;
     setSaveStep({ kind: "images", done: 0, total });
@@ -221,6 +224,11 @@ export function ProductForm({ mode, product }: ProductFormProps) {
   // where the screen either moves on or explains what is still missing.
   function finishSave(productId: string, result: { pending: number; errorCode: string | null }) {
     setSaveStep(null);
+    // The last word on what this save changed. The product mutation invalidated
+    // when *it* succeeded — before a single photo had gone up — so without this
+    // the product page would keep the gallery it was opened with. It runs on a
+    // partial failure too: a half-finished upload still added photos.
+    productChanged(productId);
     if (result.pending > 0 || result.errorCode) {
       setSavedProductId(productId);
       setPartialFailure({ pending: result.pending, errorCode: result.errorCode });

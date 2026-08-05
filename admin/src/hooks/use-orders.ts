@@ -1,4 +1,4 @@
-import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { keepPreviousData, useMutation, useQuery } from "@tanstack/react-query";
 import type { OrderStatus } from "@shared/types/order";
 import type { CreateOrderInput, ReturnOrderInput } from "@shared/schemas/order";
 import {
@@ -7,10 +7,6 @@ import {
   ORDER_LIST_PAGE_SIZE,
   ORDER_LIST_QUERY_KEY,
 } from "@/constants/orders";
-import { PRODUCT_LIST_QUERY_KEY } from "@/constants/products";
-import { INVENTORY_LIST_QUERY_KEY } from "@/constants/inventory";
-import { DASHBOARD_SUMMARY_QUERY_KEY } from "@/constants/api";
-import { REPORTS_SALES_QUERY_KEY, REPORTS_SUMMARY_QUERY_KEY } from "@/constants/reports";
 import {
   collectOrders,
   createOrder,
@@ -21,6 +17,7 @@ import {
   returnOrder,
   updateOrderStatus,
 } from "@/lib/api/orders";
+import { useCacheInvalidation } from "@/hooks/use-cache-invalidation";
 import type { OrderListFilters } from "@/types/order";
 
 export function useOrdersQuery(filters: OrderListFilters) {
@@ -51,29 +48,12 @@ export function useCollectionSummaryQuery() {
   });
 }
 
-// Every order mutation can move stock: creating deducts it (STORE) or commits
-// it later (online), advancing to PREPARING deducts it, and cancelling,
-// returning or deleting puts it back. So each of them invalidates the
-// catalogue views as well as the order itself — otherwise the products and
-// inventory screens keep showing quantities that are no longer true.
-// The same goes for the sales figures: a new sale, a cancellation or a
-// return all change what the dashboard and the reports should be showing.
+// One order write shows up on the order screens, the catalogue (stock moves
+// with it) and the sales figures — the whole map lives in
+// hooks/use-cache-invalidation.ts.
 function useInvalidateOrders() {
-  const queryClient = useQueryClient();
-  // Takes one id or a whole batch (settling several orders at once), so every
-  // detail screen behind the action refreshes too.
-  return (id?: string | string[]) => {
-    void queryClient.invalidateQueries({ queryKey: [ORDER_LIST_QUERY_KEY] });
-    for (const one of id === undefined ? [] : Array.isArray(id) ? id : [id]) {
-      void queryClient.invalidateQueries({ queryKey: [ORDER_DETAIL_QUERY_KEY, one] });
-    }
-    void queryClient.invalidateQueries({ queryKey: ORDER_COLLECTION_SUMMARY_QUERY_KEY });
-    void queryClient.invalidateQueries({ queryKey: [PRODUCT_LIST_QUERY_KEY] });
-    void queryClient.invalidateQueries({ queryKey: [INVENTORY_LIST_QUERY_KEY] });
-    void queryClient.invalidateQueries({ queryKey: DASHBOARD_SUMMARY_QUERY_KEY });
-    void queryClient.invalidateQueries({ queryKey: REPORTS_SUMMARY_QUERY_KEY });
-    void queryClient.invalidateQueries({ queryKey: [REPORTS_SALES_QUERY_KEY] });
-  };
+  const { ordersChanged } = useCacheInvalidation();
+  return ordersChanged;
 }
 
 export function useCreateOrderMutation() {

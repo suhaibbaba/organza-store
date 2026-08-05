@@ -11,7 +11,12 @@
     "comingSoon": "המסך הזה עדיין לא מוכן — נשוב בקרוב.",
     "close": "סגירה",
     "mainNavigation": "ניווט ראשי",
-    "account": "חשבון"
+    "account": "חשבון",
+    "pullToRefresh": {
+      "pull": "משכו לרענון",
+      "release": "שחררו לרענון",
+      "refreshing": "מרענן…"
+    }
   },
   "offline": {
     "title": "אין חיבור לאינטרנט",

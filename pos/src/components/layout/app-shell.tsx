@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { PullToRefresh } from "@/components/pwa/pull-to-refresh";
 import { TopBar } from "@/components/layout/top-bar";
 
 export function AppShell({ children }: { children: ReactNode }) {
@@ -9,7 +10,9 @@ export function AppShell({ children }: { children: ReactNode }) {
     // last line of any screen ends up under it.
     <div className="min-h-dvh pb-[var(--bottom-bar-inset)]">
       <TopBar />
-      {children}
+      {/* Wraps the selling screen itself: the pull moves what is being read,
+          the bar above it stays put. */}
+      <PullToRefresh>{children}</PullToRefresh>
     </div>
   );
 }

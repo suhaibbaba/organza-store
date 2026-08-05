@@ -21,13 +21,6 @@ export function isIOSDevice(): boolean {
   return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
 }
 
-/** Running from the Home Screen rather than in a browser tab. */
-export function isInstalledApp(): boolean {
-  if (typeof window === "undefined") return false;
-  const iosStandalone = (navigator as Navigator & { standalone?: boolean }).standalone === true;
-  return iosStandalone || window.matchMedia("(display-mode: standalone)").matches;
-}
-
 /**
  * The VAPID public key travels as base64url text and has to reach
  * `pushManager.subscribe` as bytes.

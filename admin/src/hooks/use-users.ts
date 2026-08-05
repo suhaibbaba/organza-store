@@ -1,6 +1,7 @@
-import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { keepPreviousData, useMutation, useQuery } from "@tanstack/react-query";
 import { USERS_LIST_PAGE_SIZE, USERS_LIST_QUERY_KEY } from "@/constants/users";
 import { createUser, fetchUsers, updateUser } from "@/lib/api/users";
+import { useCacheInvalidation } from "@/hooks/use-cache-invalidation";
 import type { UserListFilters } from "@/types/user";
 
 export function useUsersQuery(filters: UserListFilters) {
@@ -14,8 +15,8 @@ export function useUsersQuery(filters: UserListFilters) {
 }
 
 function useInvalidateUsers() {
-  const queryClient = useQueryClient();
-  return () => void queryClient.invalidateQueries({ queryKey: [USERS_LIST_QUERY_KEY] });
+  const { usersChanged } = useCacheInvalidation();
+  return usersChanged;
 }
 
 export function useCreateUserMutation() {

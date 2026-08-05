@@ -3,6 +3,7 @@ import { useMutation, useQueries, useQueryClient, type UseQueryResult } from "@t
 import type { Product } from "@shared/types/product";
 import { PRODUCT_LIST_QUERY_KEY } from "@/constants/products";
 import { fetchProduct, markLabelsPrinted } from "@/lib/api/products";
+import { useCacheInvalidation } from "@/hooks/use-cache-invalidation";
 
 // Declared at module level so its identity never changes: react-query only
 // memoizes a `combine` result while the function itself is stable, and the
@@ -39,14 +40,14 @@ export function useRefetchSelectedProducts(productIds: readonly string[]) {
   }, [queryClient, productIds]);
 }
 
-// Records the print run. Invalidates the product list so the products just
-// printed leave the "not printed yet" filter straight away.
+// Records the print run, so the products just printed leave the "not printed
+// yet" filter straight away — on the list and on each product's own page.
 export function useMarkLabelsPrintedMutation() {
-  const queryClient = useQueryClient();
+  const { productChanged } = useCacheInvalidation();
   return useMutation({
     mutationFn: markLabelsPrinted,
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: [PRODUCT_LIST_QUERY_KEY] });
-    },
+    // Several products at once: refreshing the list (and every product page
+    // behind it) covers the batch.
+    onSuccess: () => productChanged(),
   });
 }

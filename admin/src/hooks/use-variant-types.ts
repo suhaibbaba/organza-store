@@ -1,6 +1,7 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { VARIANT_TYPES_QUERY_KEY } from "@/constants/api";
 import { addOptionValue, createVariantType, fetchVariantTypes } from "@/lib/api/variantTypes";
+import { useCacheInvalidation } from "@/hooks/use-cache-invalidation";
 
 export function useVariantTypesQuery() {
   return useQuery({
@@ -11,22 +12,18 @@ export function useVariantTypesQuery() {
 }
 
 export function useCreateVariantTypeMutation() {
-  const queryClient = useQueryClient();
+  const { variantTypesChanged } = useCacheInvalidation();
   return useMutation({
     mutationFn: createVariantType,
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: VARIANT_TYPES_QUERY_KEY });
-    },
+    onSuccess: variantTypesChanged,
   });
 }
 
 export function useAddOptionValueMutation() {
-  const queryClient = useQueryClient();
+  const { variantTypesChanged } = useCacheInvalidation();
   return useMutation({
     mutationFn: ({ variantTypeId, value }: { variantTypeId: string; value: { ar: string } }) =>
       addOptionValue(variantTypeId, { value }),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: VARIANT_TYPES_QUERY_KEY });
-    },
+    onSuccess: variantTypesChanged,
   });
 }

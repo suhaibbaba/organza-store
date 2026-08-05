@@ -11,7 +11,12 @@
     "comingSoon": "This screen isn't built yet — check back soon.",
     "close": "Close",
     "mainNavigation": "Main navigation",
-    "account": "Account"
+    "account": "Account",
+    "pullToRefresh": {
+      "pull": "Pull to refresh",
+      "release": "Release to refresh",
+      "refreshing": "Refreshing…"
+    }
   },
   "offline": {
     "title": "No internet connection",

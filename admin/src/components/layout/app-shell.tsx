@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { PullToRefresh } from "@/components/pwa/pull-to-refresh";
 import { TopBar } from "@/components/layout/top-bar";
 import { SidebarNav } from "@/components/layout/sidebar-nav";
 import { BottomNav } from "@/components/layout/bottom-nav";
@@ -16,7 +17,9 @@ export function AppShell({ children }: { children: ReactNode }) {
             breathing room, and is all that is left from md up, where the
             inset collapses to the safe area alone. */}
         <main className="min-w-0 flex-1 px-4 pb-[calc(var(--bottom-bar-inset)+1.5rem)] pt-4 md:px-6">
-          {children}
+          {/* Wraps the page's own content, not the bars: the pull moves what
+              is being read, while the top bar and the bottom nav stay put. */}
+          <PullToRefresh>{children}</PullToRefresh>
         </main>
       </div>
       <BottomNav />

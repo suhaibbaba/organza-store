@@ -9,7 +9,12 @@
     "logout": "Log out",
     "language": "Language",
     "close": "Close",
-    "account": "Account"
+    "account": "Account",
+    "pullToRefresh": {
+      "pull": "Pull to refresh",
+      "release": "Release to refresh",
+      "refreshing": "Refreshing…"
+    }
   },
   "offline": {
     "title": "No internet connection",
