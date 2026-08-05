@@ -8,14 +8,7 @@ import type { Variant } from "@shared/types/variant";
 import { localize } from "@/lib/i18n-content";
 import { isNumberedProduct, variantsByNumber } from "@/lib/numbered";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  focusPanelNotFirstField,
-} from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { NumericInput } from "@/components/ui/numeric-input";
 import { Button } from "@/components/ui/button";
 import { Alert } from "@/components/ui/alert";
@@ -39,10 +32,7 @@ export function VariantPickerSheet({ product, onOpenChange, onPick }: VariantPic
 
   return (
     <Sheet open={product !== null} onOpenChange={onOpenChange}>
-      {/* The numbered variant of this sheet leads with a number box; without
-          this the phone keyboard would cover the very grid the cashier came
-          here to look at. */}
-      <SheetContent closeLabel={tCommon("close")} onOpenAutoFocus={focusPanelNotFirstField}>
+      <SheetContent closeLabel={tCommon("close")}>
         {product && (
           <>
             <SheetHeader>

@@ -5,6 +5,11 @@ import type { ScanTone } from "@/types/feedback";
 // an item, short enough that it never lingers into the next scan.
 export const FEEDBACK_TIMEOUT_MS = 3000;
 
+// How long a toast takes to slide in from beyond the screen edge, and to
+// slide back out again when its time is up. Short enough that a run of scans
+// never feels like it is waiting for animations.
+export const TOAST_SLIDE_MS = 220;
+
 // How many confirmations may stack at once. Kept low because the column
 // hangs over the cart: repeats of one item collapse into a single counting
 // toast (hooks/use-toasts.ts), so reaching even two means genuinely

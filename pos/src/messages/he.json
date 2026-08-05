@@ -90,7 +90,9 @@
       "remove": "הסרת {name} מהמכירה",
       "addDiscount": "הנחה",
       "discountFor": "הנחה על {name}",
-      "stockCap": "{count, plural, one {זה הפריט האחרון במלאי} two {אלה כל # הפריטים במלאי} other {אלה כל # הפריטים במלאי}}"
+      "stockCap": "{count, plural, one {זה הפריט האחרון במלאי} two {אלה כל # הפריטים במלאי} other {אלה כל # הפריטים במלאי}}",
+      "discountApplied": "הנחה {value} · ‎−{amount}",
+      "discountValue": "הנחה {value}"
     },
     "discount": {
       "title": "הוספת הנחה",
@@ -122,7 +124,8 @@
       "editOrderDiscount": "עריכת ההנחה על המכירה",
       "submit": "סיום המכירה",
       "submitting": "שומר…",
-      "whatsappOrder": "הזמנת וואטסאפ"
+      "whatsappOrder": "הזמנת וואטסאפ",
+      "orderDiscountApplied": "הנחה על המכירה ({value})"
     },
     "success": {
       "title": "המכירה הושלמה",

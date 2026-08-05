@@ -90,7 +90,9 @@
       "remove": "Remove {name} from the sale",
       "addDiscount": "Discount",
       "discountFor": "Discount on {name}",
-      "stockCap": "{count, plural, one {That's the last one in stock} other {That's all # in stock}}"
+      "stockCap": "{count, plural, one {That's the last one in stock} other {That's all # in stock}}",
+      "discountApplied": "{value} discount · −{amount}",
+      "discountValue": "{value} discount"
     },
     "discount": {
       "title": "Add a discount",
@@ -122,7 +124,8 @@
       "editOrderDiscount": "Edit sale discount",
       "submit": "Complete sale",
       "submitting": "Saving…",
-      "whatsappOrder": "WhatsApp order"
+      "whatsappOrder": "WhatsApp order",
+      "orderDiscountApplied": "Sale discount ({value})"
     },
     "success": {
       "title": "Sale completed",

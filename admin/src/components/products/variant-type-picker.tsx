@@ -128,8 +128,10 @@ function AddValueInline({ typeId, onAdded }: { typeId: string; onAdded: (valueId
   return (
     <div className="flex flex-col gap-1.5">
       <div className="flex items-center gap-2">
+        {/* No autoFocus: revealing the box is not the same as asking to
+            type in it, and on a phone the keyboard covers the list of
+            values being added to. */}
         <Input
-          autoFocus
           value={text}
           onChange={(e) => setText(e.target.value)}
           placeholder={t("newValuePlaceholder")}
@@ -195,8 +197,8 @@ function AddTypeInline({ onCreated }: { onCreated: (typeId: string) => void }) {
   return (
     <div className="flex flex-col gap-1.5 rounded-xl border border-dashed border-border p-3">
       <div className="flex items-center gap-2">
+        {/* No autoFocus — same reason as the value box above. */}
         <Input
-          autoFocus
           value={text}
           onChange={(e) => setText(e.target.value)}
           placeholder={t("newTypePlaceholder")}

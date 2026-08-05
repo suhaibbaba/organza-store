@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { MessageCircle, Percent } from "lucide-react";
 import { CHECKOUT_BAR_HEIGHT_VAR } from "@/constants/layout";
+import { useDiscountLabel } from "@/hooks/use-discount-label";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
 import { usePublishedHeight } from "@/hooks/use-published-height";
 import { Button } from "@/components/ui/button";
@@ -38,6 +39,7 @@ export function CheckoutBar({
 }: CheckoutBarProps) {
   const t = useTranslations("sell.checkout");
   const formatMoney = useMoneyFormatter();
+  const discountLabel = useDiscountLabel();
 
   // The bar is out of the flow, and it grows and shrinks as discounts come
   // and go, so it tells the page how tall it currently is instead of the page
@@ -46,6 +48,9 @@ export function CheckoutBar({
 
   const hasItemDiscount = Number(totals.itemDiscountTotal) > 0;
   const hasOrderDiscount = Number(totals.orderDiscountAmount) > 0;
+  // What was keyed in — "2%", or a flat sum — as opposed to what it took
+  // off. The row below shows both, for the same reason a cart line does.
+  const appliedOrderDiscount = discountLabel(orderDiscount.type, orderDiscount.value);
 
   return (
     // pb: iOS home indicator (CLAUDE.md "Mobile input & device specifics") —
@@ -71,7 +76,11 @@ export function CheckoutBar({
 
           {hasOrderDiscount && (
             <div className="flex items-center justify-between text-muted-foreground">
-              <span>{t("orderDiscount")}</span>
+              <span>
+                {appliedOrderDiscount
+                  ? t("orderDiscountApplied", { value: appliedOrderDiscount })
+                  : t("orderDiscount")}
+              </span>
               <span className="tabular-nums">−{formatMoney(totals.orderDiscountAmount)}</span>
             </div>
           )}

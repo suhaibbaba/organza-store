@@ -30,12 +30,20 @@ interface SheetContentProps extends React.ComponentProps<typeof DialogPrimitive.
   closeLabel: string;
 }
 
-function SheetContent({ className, children, side = "start", closeLabel, ...props }: SheetContentProps) {
+function SheetContent({
+  className,
+  children,
+  side = "start",
+  closeLabel,
+  onOpenAutoFocus = focusPanelNotFirstField,
+  ...props
+}: SheetContentProps) {
   return (
     <SheetPortal>
       <SheetOverlay />
       <DialogPrimitive.Content
         data-slot="sheet-content"
+        onOpenAutoFocus={onOpenAutoFocus}
         className={cn(
           // pb: iOS home indicator (CLAUDE.md "Mobile input & device
           // specifics") — every sheet ends in a bottom-anchored action row,
@@ -80,6 +88,20 @@ function SheetTitle({ className, ...props }: React.ComponentProps<typeof DialogP
       {...props}
     />
   );
+}
+
+// Radix opens a dialog by focusing the first focusable thing inside it. When
+// that thing is a text box, the phone throws its keyboard open over a screen
+// nobody asked to type on — and most of this app is used on a phone
+// (CLAUDE.md "Frontend UX").
+//
+// This is every sheet's default `onOpenAutoFocus`: focus lands on the panel
+// itself, so the focus trap and Escape still work, but no keyboard appears
+// until someone actually taps a field. A sheet that genuinely wants a field
+// focused has to say so by passing its own handler.
+function focusPanelNotFirstField(event: Event) {
+  event.preventDefault();
+  if (event.currentTarget instanceof HTMLElement) event.currentTarget.focus();
 }
 
 export { Sheet, SheetTrigger, SheetClose, SheetContent, SheetHeader, SheetTitle };

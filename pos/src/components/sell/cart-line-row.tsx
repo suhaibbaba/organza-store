@@ -4,7 +4,8 @@ import { useLocale, useTranslations } from "next-intl";
 import { Percent, Trash2 } from "lucide-react";
 import { localize } from "@/lib/i18n-content";
 import { lineDiscountCents, lineTotal } from "@/lib/cart";
-import { fromCents } from "@/lib/money";
+import { fromCents, toCents } from "@/lib/money";
+import { useDiscountLabel } from "@/hooks/use-discount-label";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
 import { SCAN_FLASH_MS } from "@/constants/pos";
 import { ProductThumb } from "@/components/sell/product-thumb";
@@ -29,11 +30,14 @@ export function CartLineRow({ line, flash, onQuantityChange, onRemove, onDiscoun
   const t = useTranslations("sell.cart");
   const locale = useLocale();
   const formatMoney = useMoneyFormatter();
+  const discountLabel = useDiscountLabel();
 
   const name = localize(line.name, locale);
   const variantName = line.variantName ? localize(line.variantName, locale) : null;
   const fullName = variantName ? `${name} — ${variantName}` : name;
   const discountCents = lineDiscountCents(line);
+  const appliedDiscount = discountLabel(line.discountType, line.discountValue);
+  const isFlatAndExact = line.discountType === "AMOUNT" && discountCents === toCents(line.discountValue);
 
   return (
     <li
@@ -51,6 +55,25 @@ export function CartLineRow({ line, flash, onQuantityChange, onRemove, onDiscoun
           <span className="text-sm text-muted-foreground">
             {t("unitPrice", { price: formatMoney(line.unitPrice) })}
           </span>
+
+          {/* Right under the price, because that is the number it changes:
+              what was applied AND what it comes to. The button below can
+              only ever hold one of the two.
+
+              A flat discount is usually its own answer ("5 ₪ off" takes 5 ₪
+              off), so saying it twice would just be noise — the money is
+              spelled out only when it differs, which is a percentage, or a
+              flat amount clamped down to what the line was worth. */}
+          {appliedDiscount && (
+            <span className="text-sm font-medium text-primary">
+              {isFlatAndExact
+                ? t("discountValue", { value: appliedDiscount })
+                : t("discountApplied", {
+                    value: appliedDiscount,
+                    amount: formatMoney(fromCents(discountCents)),
+                  })}
+            </span>
+          )}
         </div>
 
         <button
@@ -79,7 +102,9 @@ export function CartLineRow({ line, flash, onQuantityChange, onRemove, onDiscoun
             className="flex h-11 items-center gap-1.5 rounded-lg border border-input px-3 text-sm font-medium transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             <Percent className="size-4" aria-hidden="true" />
-            {discountCents > 0 ? `−${formatMoney(fromCents(discountCents))}` : t("addDiscount")}
+            {/* The value, not the money: the money is on the line above,
+                and this button is how you change the value. */}
+            {appliedDiscount ?? t("addDiscount")}
           </button>
 
           <span className="min-w-20 text-end text-lg font-semibold tabular-nums">

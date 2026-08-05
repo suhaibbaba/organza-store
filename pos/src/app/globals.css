@@ -159,6 +159,21 @@
     font-family: var(--font-hebrew);
   }
 
+  /* A placeholder longer than its box is otherwise chopped off mid-word
+     ("Search by name, or enter a ba"), which reads as a rendering fault
+     rather than as a hint. Arabic and Hebrew run longer than the English
+     these boxes are sized for, so this is the rule and not the exception —
+     it belongs on every input, not on the one that was noticed.
+
+     On the input itself, not on ::placeholder: browsers don't honour
+     text-overflow on that pseudo-element (it stays `clip` however it is
+     declared), but they do inherit the input's own into it. This also
+     ellipsises an over-long *value* while the field is unfocused, which is
+     the same improvement for the same reason. */
+  input {
+    text-overflow: ellipsis;
+  }
+
   /* Native search-input decorations (magnifier/clear) don't respect our
      RTL layout and collide with the custom icons we render instead. */
   input[type="search"]::-webkit-search-cancel-button,

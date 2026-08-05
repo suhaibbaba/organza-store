@@ -90,7 +90,9 @@
       "remove": "حذف {name} من السلة",
       "addDiscount": "خصم",
       "discountFor": "خصم على {name}",
-      "stockCap": "{count, plural, zero {لا يوجد مخزون} one {هذه آخر قطعة متوفرة} two {هذه آخر قطعتين متوفرتين} other {هذا كل المتوفر: # قطعة}}"
+      "stockCap": "{count, plural, zero {لا يوجد مخزون} one {هذه آخر قطعة متوفرة} two {هذه آخر قطعتين متوفرتين} other {هذا كل المتوفر: # قطعة}}",
+      "discountApplied": "خصم {value} · ‎−{amount}",
+      "discountValue": "خصم {value}"
     },
     "discount": {
       "title": "إضافة خصم",
@@ -122,7 +124,8 @@
       "editOrderDiscount": "تعديل خصم الفاتورة",
       "submit": "إتمام البيع",
       "submitting": "جارٍ الحفظ…",
-      "whatsappOrder": "طلب واتساب"
+      "whatsappOrder": "طلب واتساب",
+      "orderDiscountApplied": "خصم الفاتورة ({value})"
     },
     "success": {
       "title": "تم البيع بنجاح",
