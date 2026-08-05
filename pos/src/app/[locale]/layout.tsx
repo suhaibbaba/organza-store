@@ -8,6 +8,7 @@ import { notFound } from "next/navigation";
 import { routing, type AppLocale } from "@/i18n/routing";
 import { getTextDirection } from "@/constants/locale";
 import {
+  APPLE_SPLASH_SCREENS,
   PWA_APPLE_ICON_SIZE,
   PWA_DESCRIPTION,
   PWA_FAVICON_PATH,
@@ -16,9 +17,12 @@ import {
   PWA_NAME,
   PWA_SHORT_NAME,
   PWA_THEME_COLOR,
+  appleSplashImagePath,
+  appleSplashMediaQuery,
   pwaIconPath,
 } from "@/constants/pwa";
 import { AppProviders } from "@/components/providers/app-providers";
+import { BootSplash } from "@/components/pwa/boot-splash";
 import { ServiceWorkerRegistrar } from "@/components/pwa/service-worker-registrar";
 import "../globals.css";
 
@@ -59,6 +63,14 @@ export const metadata: Metadata = {
     // "default", not "black-translucent": translucent would let the page
     // scroll up underneath the clock and battery.
     statusBarStyle: "default",
+    // The launch images, one <link rel="apple-touch-startup-image"> per
+    // device. Without these an installed app opens on a blank white screen
+    // while iOS gets the web view up; with them it opens on the brand. The
+    // list and both derived strings live in constants/pwa.ts.
+    startupImage: APPLE_SPLASH_SCREENS.map((screen) => ({
+      url: appleSplashImagePath(screen),
+      media: appleSplashMediaQuery(screen),
+    })),
   },
   other: {
     // For `capable: true` Next now emits only the modern
@@ -109,7 +121,14 @@ export default async function LocaleLayout({
     >
       <body className="min-h-dvh antialiased">
         <NextIntlClientProvider>
-          <AppProviders>{children}</AppProviders>
+          <AppProviders>
+            {/* First thing in the document, and inside the session provider
+                it watches: it holds the brand on screen from the frame the
+                phone's launch image disappears until the app knows who is
+                signed in. */}
+            <BootSplash />
+            {children}
+          </AppProviders>
           {/* Inside the intl provider: the registrar no longer renders
               nothing — it puts the "a new version is ready" prompt on screen,
               and that wording goes through t() like all the rest. */}
