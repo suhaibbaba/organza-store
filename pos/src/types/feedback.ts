@@ -16,6 +16,9 @@ export interface Toast {
   key?: string;
   variant: FeedbackVariant;
   text: string;
+  // On its way out: still rendered so it can slide back off the screen edge
+  // rather than vanishing. Removed for real once the slide is done.
+  leaving?: boolean;
 }
 
 // One step of an audible cue (lib/scan-sound.ts). A cue is a list of these

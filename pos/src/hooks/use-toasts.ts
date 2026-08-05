@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { FEEDBACK_TIMEOUT_MS, MAX_VISIBLE_TOASTS } from "@/constants/feedback";
+import { FEEDBACK_TIMEOUT_MS, MAX_VISIBLE_TOASTS, TOAST_SLIDE_MS } from "@/constants/feedback";
 import type { FeedbackVariant, Toast } from "@/types/feedback";
 
 export interface ToastQueue {
@@ -49,12 +49,27 @@ export function useToasts(): ToastQueue {
     timers.current.delete(id);
   }, []);
 
-  const dismiss = useCallback(
+  const remove = useCallback(
     (id: number) => {
       forget(id);
       commit(toastsRef.current.filter((toast) => toast.id !== id));
     },
     [commit, forget]
+  );
+
+  // Time is up: the toast is marked as leaving and stays mounted for the
+  // length of the slide, then goes. Without the two steps it would blink out
+  // of existence instead of sliding back off the edge it came from.
+  const expire = useCallback(
+    (id: number) => {
+      forget(id);
+      commit(toastsRef.current.map((toast) => (toast.id === id ? { ...toast, leaving: true } : toast)));
+      timers.current.set(
+        id,
+        setTimeout(() => remove(id), TOAST_SLIDE_MS)
+      );
+    },
+    [commit, forget, remove]
   );
 
   // Starts (or restarts) a toast's life. Restarting matters for a rewritten
@@ -64,10 +79,10 @@ export function useToasts(): ToastQueue {
       forget(id);
       timers.current.set(
         id,
-        setTimeout(() => dismiss(id), FEEDBACK_TIMEOUT_MS)
+        setTimeout(() => expire(id), FEEDBACK_TIMEOUT_MS)
       );
     },
-    [dismiss, forget]
+    [expire, forget]
   );
 
   const show = useCallback(
@@ -77,8 +92,13 @@ export function useToasts(): ToastQueue {
       if (existing) {
         // Rewritten where it already sits, rather than moved to the top —
         // a line jumping around under a thumb is harder to read than one
-        // whose number simply changes.
-        commit(toastsRef.current.map((toast) => (toast.id === existing.id ? { ...toast, variant, text } : toast)));
+        // whose number simply changes. `leaving` is cleared in case the news
+        // arrived while it was already sliding away.
+        commit(
+          toastsRef.current.map((toast) =>
+            toast.id === existing.id ? { ...toast, variant, text, leaving: false } : toast
+          )
+        );
         scheduleExpiry(existing.id);
         return;
       }

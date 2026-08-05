@@ -60,8 +60,10 @@ export function StockStepper({ item }: StockStepperProps) {
   if (editValue !== null) {
     return (
       <div className="flex items-center gap-2">
+        {/* No autoFocus: the keyboard comes up when the box is tapped, not
+            when it appears. On a phone it covers the rows underneath, and
+            revealing a field is not the same as asking to type in it. */}
         <NumericInput
-          autoFocus
           value={editValue}
           onChange={(e) => setEditValue(e.target.value)}
           className="h-11 w-20 px-2 text-center"

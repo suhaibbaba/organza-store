@@ -339,11 +339,7 @@ export function SellScreen() {
         onApply={cart.setOrderDiscount}
       />
 
-      {/* While the camera is up it owns the bottom of the screen, so the
-          confirmations move to the strip above it; the rest of the time
-          they sit low, out of the way of the search box and of the cart
-          line they are talking about. */}
-      <Toaster toasts={toasts.toasts} placement={scannerOpen ? "top" : "bottom"} />
+      <Toaster toasts={toasts.toasts} />
     </>
   );
 }

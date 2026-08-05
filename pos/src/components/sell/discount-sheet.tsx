@@ -109,7 +109,10 @@ function DiscountForm({ current, onApply }: DiscountFormProps) {
           placeholder={t(`valuePlaceholder.${type}`)}
           aria-invalid={showRangeError}
           enterKeyHint="done"
-          autoFocus
+          // No autoFocus: opening this sheet used to throw the phone
+          // keyboard up over the sheet itself, hiding the type buttons and
+          // the Apply button the cashier came here to press. The keyboard
+          // belongs to whoever taps the field.
           className="text-lg"
         />
         {showRangeError && <Alert variant="destructive">{t("invalid")}</Alert>}

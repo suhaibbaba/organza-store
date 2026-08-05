@@ -3,23 +3,19 @@
 import { useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import { Check, TriangleAlert } from "lucide-react";
+import { TOAST_SLIDE_MS } from "@/constants/feedback";
 import { cn } from "@/lib/utils";
 import type { Toast } from "@/types/feedback";
 
 interface ToasterProps {
   toasts: Toast[];
-  // Where the screen currently has room to spare. "bottom" floats just above
-  // the checkout bar, clear of the search box and of whatever was just added
-  // at the top of the cart; "top" is for when a sheet has taken over the
-  // bottom of the screen and the strip above it is all that is left.
-  placement: "top" | "bottom";
 }
 
 // "Are we past hydration yet" never changes after it flips, so there is
 // nothing to subscribe to.
 const subscribeToNothing = () => () => {};
 
-// Brief confirmations that float over whatever is on screen.
+// Brief confirmations that slide in at the top corner and slide back out.
 //
 // Deliberately not a dialog: a scan is not a question, and a cashier holding
 // a garment in one hand and a phone in the other cannot be asked to dismiss
@@ -35,7 +31,7 @@ const subscribeToNothing = () => () => {};
 // transformed ancestor would pin these to it instead of to the viewport),
 // and the scanner is a Radix sheet portalled to the body — a toast has to
 // come out on top of the camera it is reporting on.
-export function Toaster({ toasts, placement }: ToasterProps) {
+export function Toaster({ toasts }: ToasterProps) {
   // There is no document to portal into while this renders on the server,
   // and the first client render has to match that markup — so the portal
   // opens on the render straight after hydration.
@@ -43,21 +39,15 @@ export function Toaster({ toasts, placement }: ToasterProps) {
 
   if (!isHydrated) return null;
 
-  const atBottom = placement === "bottom";
-
   return createPortal(
-    // Centred, because a centred column is identical in both writing
-    // directions and leaves nothing to mirror for RTL. z is above the sheet
-    // layer (z-50) on purpose; see the note above.
+    // The corner the reading direction ends in: top-right in English, top-
+    // left in Arabic. `items-end` is flex's own logical end, so the column
+    // mirrors with the layout instead of being pinned to a physical side.
+    //
+    // top is offset by the notch/status-bar inset, never under it. z is above
+    // the sheet layer (z-50) on purpose; see the note above.
     <div
-      className={cn(
-        "pointer-events-none fixed inset-x-0 z-[70] flex flex-col items-center gap-2 px-4",
-        atBottom
-          ? // Column grows upwards from just above the checkout bar, newest
-            // nearest the bottom — closest to where the cashier is looking.
-            "bottom-[calc(var(--checkout-bar-height)+0.75rem)] flex-col-reverse"
-          : "top-[calc(var(--top-bar-inset)+0.5rem)]"
-      )}
+      className="pointer-events-none fixed inset-x-0 top-[calc(var(--safe-top)+0.5rem)] z-[70] flex flex-col items-end gap-2 px-3"
       // polite, not assertive: it must not cut across a screen reader
       // half-way through reading the cart out.
       aria-live="polite"
@@ -67,16 +57,20 @@ export function Toaster({ toasts, placement }: ToasterProps) {
         <div
           key={toast.id}
           className={cn(
-            "flex w-full max-w-sm items-center gap-2.5 rounded-full border px-3 py-2 text-start shadow-lg",
-            "animate-in fade-in-0 duration-200",
-            atBottom ? "slide-in-from-bottom-2" : "slide-in-from-top-2",
-            // Both fills are opaque: a toast floats over the search box and
-            // the cart, and a see-through one leaves two lines of text
-            // printed on top of each other.
+            "flex max-w-[min(20rem,calc(100vw-1.5rem))] items-center gap-2.5 rounded-full border py-2 pe-4 ps-2 text-start shadow-lg",
+            // In and out along the writing direction: from beyond the edge
+            // the toast sits on, and back out the same way. The *-end
+            // utilities flip via :dir(), so nothing here is physical.
+            "fill-mode-forwards",
+            toast.leaving ? "animate-out fade-out-0 slide-out-to-end" : "animate-in fade-in-0 slide-in-from-end",
+            // Both fills are opaque: a toast floats over the top bar and the
+            // cart, and a see-through one leaves two lines of text printed
+            // on top of each other.
             toast.variant === "success"
               ? "border-emerald-500/40 bg-emerald-50 text-emerald-900 dark:border-emerald-400/30 dark:bg-emerald-950 dark:text-emerald-100"
               : "border-destructive/40 bg-red-50 text-red-900 dark:border-red-400/30 dark:bg-red-950 dark:text-red-100"
           )}
+          style={{ animationDuration: `${TOAST_SLIDE_MS}ms` }}
         >
           <span
             className={cn(
@@ -90,7 +84,7 @@ export function Toaster({ toasts, placement }: ToasterProps) {
             {toast.variant === "success" ? <Check className="size-4" /> : <TriangleAlert className="size-4" />}
           </span>
 
-          <span className="min-w-0 flex-1 text-sm font-semibold">{toast.text}</span>
+          <span className="min-w-0 truncate text-sm font-semibold">{toast.text}</span>
         </div>
       ))}
     </div>,
