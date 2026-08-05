@@ -50,6 +50,11 @@
       "soldOut": "غير متوفر",
       "inStock": "{count, plural, zero {لا يوجد مخزون} one {قطعة واحدة} two {قطعتان} few {# قطع} many {# قطعة} other {# قطعة}}",
       "variantCount": "{count, plural, zero {لا خيارات} one {خيار واحد} two {خياران} few {# خيارات} many {# خيارًا} other {# خيار}}",
+      "kind": {
+        "numbered": "مرقّم · {count}",
+        "named": "{type} · {count}",
+        "mixed": "خيارات · {count}"
+      },
       "backToCart": "الرجوع إلى السلة",
       "cartCount": "{count, plural, zero {السلة فارغة} one {قطعة واحدة} two {قطعتان} few {# قطع} many {# قطعة} other {# قطعة}}",
       "resultsTitle": "نتائج البحث عن «{query}»"

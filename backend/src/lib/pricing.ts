@@ -130,6 +130,16 @@ export function serializeProductSummary(product: AnyRecord, role: Role) {
     labelsPrintedAt: product.labelsPrintedAt ?? null,
     hasVariants: variants.length > 0,
     variantCount: variants.length,
+    // What kind of choice this product asks for — "sizes", "colours" — so a
+    // list can say so without fetching each product's detail. The POS search
+    // reads it to tell a card that opens a picker apart from one that adds
+    // straight to the cart. Already loaded by the list query's include (it is
+    // what summarizeNumbers counts against), so this costs nothing extra.
+    variantTypes: (product.variantTypes ?? []).map((pvt: AnyRecord) => ({
+      id: pvt.variantType.id,
+      name: pvt.variantType.name,
+      slug: pvt.variantType.slug,
+    })),
     isNumbered,
     numberCount,
     // Lowest sortOrder = primary (spec.md); already loaded by the list
