@@ -13,7 +13,8 @@ export interface DashboardSummary {
     count: number;
     threshold: number;
   };
-  // `basis: "cost"` only for roles with product.viewCost (CLAUDE.md rule 19);
+  // `basis: "cost"` only for Admin, who alone holds product.viewCost
+  // (CLAUDE.md rule 19);
   // everyone else gets a retail valuation off basePrice/priceOverride.
   inventoryValue: {
     amount: string;

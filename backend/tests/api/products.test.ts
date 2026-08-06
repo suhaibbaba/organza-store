@@ -46,17 +46,21 @@ describe("Products", () => {
     expect(res.data!.hasVariants).toBe(false);
   });
 
-  it("hides cost from Employee but returns it to Admin/Manager", async () => {
+  // Cost is ADMIN ONLY (CLAUDE.md rule 19) — a Manager is on the same side of
+  // this gate as an Employee: they may run the shop floor, but not read what
+  // the owner paid for the stock.
+  it("hides cost from an Employee and a Manager, and returns it to an Admin", async () => {
     const employee = await getSession("EMPLOYEE");
     const manager = await getSession("MANAGER");
+    const admin = await getSession("ADMIN");
     const categoryId = await anyCategoryId(employee.token);
     const name = `Vitest Cost ${uniqueId()}`;
 
     const created = await apiRequest<ProductDto>("/api/products", {
       method: "POST",
-      token: employee.token,
-      // Employees cannot set cost (CLAUDE.md rule 19) — the backend must
-      // silently drop it, not error.
+      token: manager.token,
+      // Neither an Employee nor a Manager can SET cost either — the backend
+      // must silently drop it, not error.
       body: { name: { ar: name, en: name }, categoryId, basePrice: "50", cost: "999" },
     });
     expect(created.status).toBe(201);
@@ -65,12 +69,16 @@ describe("Products", () => {
 
     expect(created.data).not.toHaveProperty("cost");
 
-    const asEmployee = await apiRequest(`/api/products/${id}`, { token: employee.token });
-    expect(asEmployee.data).not.toHaveProperty("cost");
+    for (const role of ["EMPLOYEE", "MANAGER"] as const) {
+      const session = await getSession(role);
+      const res = await apiRequest(`/api/products/${id}`, { token: session.token });
+      expect(res.data).not.toHaveProperty("cost");
+    }
 
-    const asManager = await apiRequest<ProductDto>(`/api/products/${id}`, { token: manager.token });
-    expect(asManager.data).toHaveProperty("cost");
-    expect(asManager.data!.cost).toBeNull();
+    const asAdmin = await apiRequest<ProductDto>(`/api/products/${id}`, { token: admin.token });
+    expect(asAdmin.data).toHaveProperty("cost");
+    // Dropped on the way in, so it never got stored.
+    expect(asAdmin.data!.cost).toBeNull();
   });
 
   // CLAUDE.md rule 5 / spec.md: an Employee may fix a product that's already
@@ -277,15 +285,16 @@ describe("Products", () => {
       expect(res.data!.variant?.id).toBe(target.id);
     });
 
-    it("404s on an unknown code and withholds cost from an Employee", async () => {
+    it("404s on an unknown code and withholds cost from everyone below Admin", async () => {
       const employee = await getSession("EMPLOYEE");
       const manager = await getSession("MANAGER");
+      const admin = await getSession("ADMIN");
       const categoryId = await anyCategoryId(manager.token);
       const name = `Vitest Lookup Cost ${uniqueId()}`;
 
       const created = await apiRequest<ProductDto>("/api/products", {
         method: "POST",
-        token: manager.token,
+        token: admin.token,
         body: { name: { ar: name, en: name }, categoryId, basePrice: "60", cost: "25" },
       });
       const product = created.data!;
@@ -310,7 +319,14 @@ describe("Products", () => {
         `/api/products/lookup?code=${encodeURIComponent(product.barcode!)}`,
         { token: manager.token }
       );
-      expect(asManager.data!.product).toHaveProperty("cost");
+      expect(asManager.data!.product).not.toHaveProperty("cost");
+
+      const asAdmin = await apiRequest<ProductLookupDto>(
+        `/api/products/lookup?code=${encodeURIComponent(product.barcode!)}`,
+        { token: admin.token }
+      );
+      expect(asAdmin.data!.product).toHaveProperty("cost");
+      expect(Number(asAdmin.data!.product.cost)).toBe(25);
     });
   });
 });

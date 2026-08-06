@@ -22,6 +22,8 @@ export interface OrderDto {
   id: string;
   orderNumber: number;
   channel: "STORE" | "WHATSAPP" | "WEBSITE";
+  // SALE or GIFT (spec.md "Cash drawer & expenses" -> Gifts).
+  type: "SALE" | "GIFT";
   status: "NEW" | "PREPARING" | "HANDED_TO_COURIER" | "COMPLETED" | "CANCELLED" | "RETURNED";
   paymentMethod: "CASH";
   // Whether the money is in the shop's hands yet — separate from the status
@@ -49,6 +51,8 @@ export interface OrderSummaryDto {
   id: string;
   orderNumber: number;
   channel: "STORE" | "WHATSAPP" | "WEBSITE";
+  // SALE or GIFT (spec.md "Cash drawer & expenses" -> Gifts).
+  type: "SALE" | "GIFT";
   status: OrderDto["status"];
   paymentStatus: OrderDto["paymentStatus"];
   collectedAt: string | null;

@@ -57,10 +57,16 @@ model User {
   accounts Account[]
   sessions Session[]
 
-  createdProducts   Product[]           @relation("ProductCreatedBy")
-  createdOrders     Order[]             @relation("OrderCreatedBy")
+  createdProducts   Product[]          @relation("ProductCreatedBy")
+  createdOrders     Order[]            @relation("OrderCreatedBy")
   auditLogs         AuditLog[]
   pushSubscriptions PushSubscription[]
+
+  createdExpenses       Expense[]     @relation("ExpenseCreatedBy")
+  approvedExpenses      Expense[]     @relation("ExpenseApprovedBy")
+  openedCashSessions    CashSession[] @relation("CashSessionOpenedBy")
+  closedCashSessions    CashSession[] @relation("CashSessionClosedBy")
+  resolvedCashFollowUps CashSession[] @relation("CashSessionFollowUpBy")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -365,6 +371,14 @@ enum AuditAction {
   // Recording that the delivery company has paid for an order. Distinct from
   // STATUS_CHANGE because "who said this money arrived" is its own question.
   PAYMENT_COLLECTED
+  // The cash drawer. "Who counted the till, and what did they say was in it"
+  // is the single most audit-worthy action in the shop, so opening and
+  // closing a session are their own actions rather than CREATE/UPDATE.
+  CASH_SESSION_OPENED
+  CASH_SESSION_CLOSED
+  // Signing off (or turning down) an expense someone else recorded.
+  APPROVE
+  REJECT
 }
 
 model AuditLog {
@@ -445,6 +459,18 @@ enum OrderChannel {
   WEBSITE // placed on the storefront (Phase 3)
 }
 
+// What the order IS, as opposed to where it came from. A GIFT moves stock
+// through exactly the same machinery as a sale — same lines, same deduction,
+// same audit trail — but every line is priced at zero, because nothing was
+// charged. Deliberately NOT a fourth channel: a gift is still handed over at
+// the counter, so it already has one, and keeping the two axes apart is what
+// lets reporting drop gifts out of sales without also dropping the STORE
+// channel. See spec.md "Cash drawer & expenses" -> Gifts.
+enum OrderType {
+  SALE
+  GIFT
+}
+
 enum OrderStatus {
   NEW // online order just taken; nothing committed yet
   PREPARING // being picked/packed — stock is deducted on entering this state
@@ -480,6 +506,9 @@ model Order {
   orderNumber Int @unique @default(autoincrement())
 
   channel       OrderChannel
+  // SALE (money in) or GIFT (stock out, nothing charged). Defaults to SALE so
+  // every order written before gifts existed reads back as what it was.
+  type          OrderType     @default(SALE)
   status        OrderStatus   @default(NEW)
   paymentMethod PaymentMethod @default(CASH)
 
@@ -538,6 +567,12 @@ model Order {
 
   @@index([status])
   @@index([channel])
+  // Every sales figure filters on this (gifts are excluded from all of them),
+  // and the gift-cost aggregate selects on it.
+  @@index([type])
+  // The cash drawer asks "what cash reached the till on this day", which is
+  // a window over collectedAt rather than over createdAt.
+  @@index([collectedAt])
   // Powers the outstanding-money view, which is a list of every order the
   // delivery company still owes for.
   @@index([paymentStatus])
@@ -565,7 +600,7 @@ model OrderItem {
   variantName Json? // variant label ("أحمر / M"), null for simple products
   sku         String?
   unitPrice   Decimal  @db.Decimal(10, 2) // resolved price (variant override or parent base)
-  unitCost    Decimal? @db.Decimal(10, 2) // resolved cost — SENSITIVE, Admin/Manager only
+  unitCost    Decimal? @db.Decimal(10, 2) // resolved cost — SENSITIVE, Admin only
 
   quantity Int
 
@@ -585,6 +620,172 @@ model OrderItem {
   @@index([orderId])
   @@index([productId])
   @@index([variantId])
+}
+
+// ============================================================
+//  EXPENSES (what the shop spends)
+//  The other half of the profit sum: orders say what came in, these say
+//  what went out. See spec.md "Cash drawer & expenses".
+// ============================================================
+
+// Anyone may RECORD an expense — whoever pays the electricity bill should be
+// able to write it down there and then — but an Employee's record is a
+// request, not a payout: it opens PENDING and buys nothing until an
+// Admin/Manager signs it off. Only APPROVED expenses move the cash drawer or
+// the profit figures. Same anti-theft reasoning as cancel/delete and
+// "mark collected".
+enum ExpenseApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+// The shop's own list, seeded with utilities/salaries/supplies/maintenance/
+// delivery and extendable from the admin. A row rather than an enum
+// precisely because it is the shop's to change — and identity is the stable
+// `key`, never the translated name (CLAUDE.md rule 9), so renaming
+// "Supplies" in three languages can never orphan an expense.
+model ExpenseCategory {
+  id   String @id @default(cuid())
+  key  String @unique // stable identifier: "utilities", "salaries", ...
+  name Json // translatable { ar, en, he }
+
+  // Retired rather than deleted once expenses reference it: the past has to
+  // keep making sense, so it drops out of the picker and stays on the record.
+  isActive  Boolean @default(true)
+  sortOrder Int     @default(0)
+
+  expenses Expense[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isActive])
+}
+
+model Expense {
+  id String @id @default(cuid())
+
+  categoryId String
+  category   ExpenseCategory @relation(fields: [categoryId], references: [id])
+
+  amount Decimal @db.Decimal(10, 2) // money — never a Float (CLAUDE.md)
+
+  // When the money was actually spent, NOT when the row was written: a bill
+  // paid on the 30th and entered on the 2nd belongs to the 30th, both for
+  // the drawer and for the month's figures.
+  date DateTime @default(now())
+
+  note String?
+
+  // Did it come out of the till? Only a cash expense moves the drawer; a
+  // transfer is just as real a cost, but the drawer never held that money.
+  paidInCash Boolean @default(true)
+
+  // A standing cost (rent, salaries, the internet) as opposed to a one-off
+  // (a new mannequin). A label only — nothing is generated automatically —
+  // so that "what do we pay every month" is answerable at all.
+  isRecurring Boolean @default(false)
+
+  approvalStatus ExpenseApprovalStatus @default(APPROVED)
+  approvedById   String?
+  approvedBy     User?                 @relation("ExpenseApprovedBy", fields: [approvedById], references: [id])
+  approvedAt     DateTime?
+
+  createdById String
+  createdBy   User   @relation("ExpenseCreatedBy", fields: [createdById], references: [id])
+
+  // Soft delete, like an order: an expense is a financial record, so it is
+  // hidden rather than destroyed.
+  deletedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([categoryId])
+  @@index([date])
+  @@index([approvalStatus])
+  @@index([createdById])
+  @@index([deletedAt])
+  // The drawer's "cash out today" query: approved, in cash, dated in the day.
+  @@index([paidInCash, approvalStatus, date])
+}
+
+// ============================================================
+//  CASH DRAWER (one session per trading day)
+//
+//    expected   = openingFloat + cashSales - cashExpenses
+//    difference = countedAmount - expected
+//    next day's openingFloat = countedAmount - withdrawnAmount
+//
+//  A difference NEVER blocks the close. The money in the drawer is a fact,
+//  and a system that refuses to record it only teaches people to fudge the
+//  count — so it is always saved, always needs a note, and can be carried
+//  to the next day as a follow-up. See spec.md "Cash drawer & expenses".
+// ============================================================
+
+enum CashSessionStatus {
+  OPEN // the day is running; the figures below move with every sale
+  CLOSED // counted and signed off; the figures are frozen as they stood
+}
+
+model CashSession {
+  id String @id @default(cuid())
+
+  // The trading day, as a local calendar date. One drawer per day.
+  date DateTime @unique @db.Date
+
+  // Minutes to ADD to UTC that turn `date` into the window this session
+  // actually covers. Frozen at open, so every later read of that day
+  // resolves the same boundaries no matter who asks or from where — the same
+  // offset convention the reports use, but stored rather than re-supplied.
+  tzOffset Int @default(0)
+
+  status CashSessionStatus @default(OPEN)
+
+  // What was in the drawer when the day started — normally the previous
+  // day's remainder, carried over automatically.
+  openingFloat Decimal @db.Decimal(10, 2)
+
+  // Computed live while the session is OPEN and frozen onto the row at
+  // close, so a past day always reads back exactly as it was signed off: a
+  // later return, or an expense backdated into that day, can never quietly
+  // rewrite yesterday's count.
+  cashSales      Decimal? @db.Decimal(10, 2)
+  cashExpenses   Decimal? @db.Decimal(10, 2)
+  expectedAmount Decimal? @db.Decimal(10, 2)
+
+  // --- the close ---
+  countedAmount   Decimal? @db.Decimal(10, 2) // what was physically counted
+  withdrawnAmount Decimal  @default(0) @db.Decimal(10, 2) // banked / handed over
+  difference      Decimal? @db.Decimal(10, 2) // counted - expected (negative = short)
+  closingBalance  Decimal? @db.Decimal(10, 2) // counted - withdrawn => tomorrow's float
+  note            String?
+
+  // A difference the shop chose to keep on the list until someone works out
+  // what happened. The money itself needs no moving — the next day opens on
+  // what was COUNTED, so the drawer already tells the truth — this is purely
+  // the reminder that a day did not add up.
+  differenceCarried    Boolean   @default(false)
+  followUpResolvedAt   DateTime?
+  followUpResolvedById String?
+  followUpResolvedBy   User?     @relation("CashSessionFollowUpBy", fields: [followUpResolvedById], references: [id])
+
+  openedById String
+  openedBy   User    @relation("CashSessionOpenedBy", fields: [openedById], references: [id])
+  closedById String?
+  closedBy   User?   @relation("CashSessionClosedBy", fields: [closedById], references: [id])
+
+  openedAt DateTime  @default(now())
+  closedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([date])
+  // The follow-up list: carried differences nobody has signed off yet.
+  @@index([differenceCarried, followUpResolvedAt])
 }
 
 // ============================================================

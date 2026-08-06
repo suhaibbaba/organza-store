@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { CreateOrderInput } from "@shared/schemas/order";
+import { SALE_ORDER_TYPE } from "@shared/constants/order";
 import { PRODUCT_DETAIL_QUERY_KEY, PRODUCT_LOOKUP_QUERY_KEY, PRODUCT_SEARCH_QUERY_KEY } from "@/constants/api";
 import { POS_ORDER_CHANNEL, POS_PAYMENT_METHOD, WHATSAPP_ORDER_CHANNEL } from "@/constants/pos";
 import { createOrder } from "@/lib/api/orders";
@@ -28,6 +29,9 @@ export function useCheckout() {
     mutationFn: ({ lines, orderDiscount, customer }: CheckoutInput) => {
       const input: CreateOrderInput = {
         channel: customer ? WHATSAPP_ORDER_CHANNEL : POS_ORDER_CHANNEL,
+        // Money in. Giving stock away is a GIFT order — a separate,
+        // Admin/Manager-only action, not something a cart can turn into.
+        type: SALE_ORDER_TYPE,
         paymentMethod: POS_PAYMENT_METHOD,
         items: toOrderItems(lines),
         ...(customer ? toCustomerFields(customer) : {}),

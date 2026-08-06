@@ -9,4 +9,7 @@ export const AUDIT_ENTITY = {
   SETTING: "Setting",
   VARIANT_TYPE: "VariantType",
   VARIANT_OPTION_VALUE: "VariantOptionValue",
+  EXPENSE: "Expense",
+  EXPENSE_CATEGORY: "ExpenseCategory",
+  CASH_SESSION: "CashSession",
 } as const;

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { decimalInput, paginationSchema } from "@/schemas/common";
+import { booleanInput, decimalInput, paginationSchema } from "@/schemas/common";
 import { phoneSchema } from "@/schemas/phone";
 import { phoneDigits } from "@/lib/phone";
 import { ERROR_CODES } from "@/constants/errors";
@@ -10,11 +10,14 @@ import {
   LATITUDE_MIN,
   LONGITUDE_MAX,
   LONGITUDE_MIN,
+  GIFT_ORDER_CHANNEL,
+  GIFT_ORDER_TYPE,
   MAX_BULK_COLLECT_ORDERS,
   ONLINE_ORDER_CHANNELS,
   ORDER_CHANNELS,
   ORDER_SORT_FIELDS,
   ORDER_STATUSES,
+  ORDER_TYPES,
   PAYMENT_METHODS,
   PAYMENT_STATUSES,
   PERCENT_MAX,
@@ -94,6 +97,10 @@ export type CreateOrderItemInput = z.infer<typeof createOrderItemSchema>;
 export const createOrderSchema = z
   .object({
     channel: z.enum(ORDER_CHANNELS),
+    // SALE unless the shop says otherwise. A GIFT needs order.createGift
+    // (Admin/Manager), which is checked on the backend — the type here only
+    // says what is being asked for.
+    type: z.enum(ORDER_TYPES).default("SALE"),
     paymentMethod: z.enum(PAYMENT_METHODS).default("CASH"),
     items: z.array(createOrderItemSchema).min(1, ERROR_CODES.ORDER_ITEMS_REQUIRED),
     customerName: z.string().min(1).optional(),
@@ -113,7 +120,13 @@ export const createOrderSchema = z
       !(ONLINE_ORDER_CHANNELS as readonly string[]).includes(v.channel) ||
       Boolean(v.customerName && v.customerPhone),
     { message: ERROR_CODES.ORDER_CUSTOMER_REQUIRED }
-  );
+  )
+  // A gift is handed over at the counter, in person. A parcel the shop pays
+  // the delivery company to carry and is never paid for is a different
+  // problem, and pretending it is a gift would hide it.
+  .refine((v) => v.type !== GIFT_ORDER_TYPE || v.channel === GIFT_ORDER_CHANNEL, {
+    message: ERROR_CODES.ORDER_GIFT_CHANNEL_INVALID,
+  });
 export type CreateOrderInput = z.infer<typeof createOrderSchema>;
 
 // Editing reprices an existing order: contact details, the note, the payment
@@ -190,13 +203,16 @@ export type CustomerSuggestionsQuery = z.infer<typeof customerSuggestionsQuerySc
 export const listOrdersQuerySchema = paginationSchema.extend({
   status: z.enum(ORDER_STATUSES).optional(),
   channel: z.enum(ORDER_CHANNELS).optional(),
+  // Sales or gifts. Unset means both — the orders list is the record of
+  // everything that left the shop, however it left.
+  type: z.enum(ORDER_TYPES).optional(),
   // Drives the "still owed by the delivery company" view: the outstanding
   // list is this filter set to PENDING_COLLECTION.
   paymentStatus: z.enum(PAYMENT_STATUSES).optional(),
   // Narrows a payment-status filter to the sales that can still be settled —
   // a cancelled or fully returned order owes nothing, so it must not sit in
   // the outstanding list looking like money on its way.
-  collectableOnly: z.coerce.boolean().optional(),
+  collectableOnly: booleanInput.optional(),
   // Inclusive date range over createdAt.
   dateFrom: z.coerce.date().optional(),
   dateTo: z.coerce.date().optional(),

@@ -1,5 +1,7 @@
 export * from "./client";
 export * from "./auth";
+export * from "./cash";
+export * from "./expense";
 export * from "./product";
 export * from "./variant";
 export * from "./inventory";

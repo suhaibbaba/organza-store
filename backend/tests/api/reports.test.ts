@@ -1,7 +1,8 @@
 import { afterAll, describe, expect, it } from "vitest";
-import { apiRequest } from "@tests/support/client";
+import { apiRequest, uniqueId } from "@tests/support/client";
 import { getSession } from "@tests/support/auth";
 import { createSellableProduct } from "@tests/support/orders";
+import { createExpense, expenseCategoryId } from "@tests/support/cash";
 import {
   channelTotals,
   fetchSalesReport,
@@ -27,6 +28,9 @@ import { ERROR_CODES } from "@/constants";
 describe("Reports", () => {
   const openedOrderIds: string[] = [];
   const openedProductIds: string[] = [];
+  // Expenses move the net-profit figures other tests measure as deltas, so
+  // the ones raised here are cleaned up like the orders are.
+  const openedExpenseIds: string[] = [];
 
   async function createOrder(token: string, body: unknown) {
     const res = await apiRequest<OrderDto>("/api/orders", { method: "POST", token, body });
@@ -51,6 +55,9 @@ describe("Reports", () => {
     }
     for (const id of openedProductIds) {
       await apiRequest(`/api/products/${id}`, { method: "DELETE", token: admin.token });
+    }
+    for (const id of openedExpenseIds) {
+      await apiRequest(`/api/expenses/${id}`, { method: "DELETE", token: admin.token });
     }
   });
 
@@ -313,6 +320,137 @@ describe("Reports", () => {
   });
 
   // -------------------------------------------------------------------------
+  // Sold vs. received vs. owed, gross vs. net (spec.md "Cash drawer &
+  // expenses" -> Reporting). ADMIN ONLY: every figure here is derived from
+  // cost.
+  // -------------------------------------------------------------------------
+  describe("the money states", () => {
+    it("states sold, received and owed separately, and they always reconcile", async () => {
+      const admin = await getSession("ADMIN");
+      const product = await sellableProduct(admin.token, { basePrice: "100", cost: "40", stock: 20 });
+
+      const before = await salesReport(admin.token);
+
+      // One sale paid at the counter...
+      await createOrder(admin.token, { channel: "STORE", items: [{ productId: product.id, quantity: 1 }] });
+      // ...and one gone out with the courier, whose money the delivery
+      // company is still holding.
+      const owed = await createOrder(admin.token, {
+        channel: "WHATSAPP",
+        customerName: "مستحق",
+        customerPhone: "+970597400400",
+        items: [{ productId: product.id, quantity: 2 }],
+      });
+      expect(owed.status).toBe(201);
+
+      const after = await salesReport(admin.token);
+      const money = after.profit!;
+      const was = before.profit!;
+
+      expect(num(money.sold) - num(was.sold)).toBeCloseTo(300, 2);
+      expect(num(money.received) - num(was.received)).toBeCloseTo(100, 2);
+      expect(num(money.owed) - num(was.owed)).toBeCloseTo(200, 2);
+      expect(money.owedOrderCount - was.owedOrderCount).toBe(1);
+
+      // The three are one figure split, never three opinions.
+      expect(num(money.received) + num(money.owed)).toBeCloseTo(num(money.sold), 2);
+      expect(num(money.sold)).toBeCloseTo(num(after.totals.revenue), 2);
+      expect(num(money.received)).toBeCloseTo(num(after.totals.collectedRevenue), 2);
+      expect(num(money.owed)).toBeCloseTo(num(after.totals.pendingCollectionAmount), 2);
+    });
+
+    it("computes COGS and gross profit for all sales and for the received part alone", async () => {
+      const admin = await getSession("ADMIN");
+      const product = await sellableProduct(admin.token, { basePrice: "100", cost: "40", stock: 20 });
+
+      const before = await salesReport(admin.token);
+
+      // 1 collected at the counter, 2 still with the courier.
+      await createOrder(admin.token, { channel: "STORE", items: [{ productId: product.id, quantity: 1 }] });
+      await createOrder(admin.token, {
+        channel: "WHATSAPP",
+        customerName: "ربح",
+        customerPhone: "+970597500500",
+        items: [{ productId: product.id, quantity: 2 }],
+      });
+
+      const money = (await salesReport(admin.token)).profit!;
+      const was = before.profit!;
+
+      // Cost of goods sold: 3 pieces at 40. Received-only: the 1 at the till.
+      expect(num(money.cogs) - num(was.cogs)).toBeCloseTo(120, 2);
+      expect(num(money.receivedCogs) - num(was.receivedCogs)).toBeCloseTo(40, 2);
+      // Gross = sales - COGS, on each side.
+      expect(num(money.grossProfit) - num(was.grossProfit)).toBeCloseTo(180, 2);
+      expect(num(money.receivedGrossProfit) - num(was.receivedGrossProfit)).toBeCloseTo(60, 2);
+
+      // And the identities hold outright, not just as deltas.
+      expect(num(money.grossProfit)).toBeCloseTo(num(money.sold) - num(money.cogs), 2);
+      expect(num(money.receivedGrossProfit)).toBeCloseTo(num(money.received) - num(money.receivedCogs), 2);
+      expect(num(money.netProfit)).toBeCloseTo(
+        num(money.grossProfit) - num(money.expenses) - num(money.giftCost),
+        2
+      );
+      expect(num(money.receivedNetProfit)).toBeCloseTo(
+        num(money.receivedGrossProfit) - num(money.expenses) - num(money.giftCost),
+        2
+      );
+    });
+
+    it("takes an approved expense off the net profit but leaves gross alone", async () => {
+      const admin = await getSession("ADMIN");
+      const categoryId = await expenseCategoryId(admin.token);
+
+      const before = (await salesReport(admin.token)).profit!;
+
+      const recorded = await createExpense(admin.token, {
+        categoryId,
+        amount: "77",
+        note: `Vitest report expense ${uniqueId()}`,
+        // Non-cash on purpose: a bill paid by transfer is just as real a
+        // cost, even though the drawer never held that money.
+        paidInCash: false,
+      });
+      expect(recorded.status).toBe(201);
+      openedExpenseIds.push(recorded.data!.id);
+
+      const after = (await salesReport(admin.token)).profit!;
+
+      expect(num(after.expenses) - num(before.expenses)).toBeCloseTo(77, 2);
+      // Overheads are not cost of goods sold, so gross is untouched...
+      expect(num(after.grossProfit) - num(before.grossProfit)).toBeCloseTo(0, 2);
+      expect(num(after.cogs) - num(before.cogs)).toBeCloseTo(0, 2);
+      // ...and both nets drop by it. A bill is owed whether or not the
+      // delivery company has settled up yet.
+      expect(num(after.netProfit) - num(before.netProfit)).toBeCloseTo(-77, 2);
+      expect(num(after.receivedNetProfit) - num(before.receivedNetProfit)).toBeCloseTo(-77, 2);
+    });
+
+    it("ignores an expense that is still awaiting approval", async () => {
+      const admin = await getSession("ADMIN");
+      const employee = await getSession("EMPLOYEE");
+      const categoryId = await expenseCategoryId(employee.token);
+
+      const before = (await salesReport(admin.token)).profit!;
+
+      const pending = await createExpense(employee.token, { categoryId, amount: "500" });
+      expect(pending.data!.approvalStatus).toBe("PENDING");
+      openedExpenseIds.push(pending.data!.id);
+
+      const during = (await salesReport(admin.token)).profit!;
+      expect(num(during.expenses) - num(before.expenses)).toBeCloseTo(0, 2);
+      expect(num(during.netProfit) - num(before.netProfit)).toBeCloseTo(0, 2);
+
+      // Signing it off is what makes it real money.
+      await apiRequest(`/api/expenses/${pending.data!.id}/approve`, { method: "POST", token: admin.token });
+
+      const after = (await salesReport(admin.token)).profit!;
+      expect(num(after.expenses) - num(before.expenses)).toBeCloseTo(500, 2);
+      expect(num(after.netProfit) - num(before.netProfit)).toBeCloseTo(-500, 2);
+    });
+  });
+
+  // -------------------------------------------------------------------------
   // Breakdowns
   // -------------------------------------------------------------------------
   describe("breakdowns", () => {
@@ -413,11 +551,15 @@ describe("Reports", () => {
 
   // -------------------------------------------------------------------------
   // Role gating (CLAUDE.md rule 19) — the whole point of doing this on the
-  // backend: an Employee's response must not CONTAIN cost or profit.
+  // backend: below Admin, a response must not CONTAIN cost or profit.
+  //
+  // Cost and profit are ADMIN ONLY. A Manager runs the shop floor but the
+  // owner's margin is not theirs to read, so the two non-Admin roles are
+  // asserted with the SAME expectations here.
   // -------------------------------------------------------------------------
   describe("role gating", () => {
-    it("returns no cost, profit or margin to an Employee", async () => {
-      const employee = await getSession("EMPLOYEE");
+    it.each(["EMPLOYEE", "MANAGER"] as const)("returns no cost, profit or margin to a %s", async (role) => {
+      const employee = await getSession(role);
 
       const summary = await salesSummary(employee.token);
       for (const period of ["today", "week", "month"] as const) {
@@ -445,6 +587,9 @@ describe("Reports", () => {
         expect(seller.profit).toBeUndefined();
       }
 
+      // ...including the whole sold/received/owed + gross/net profit block.
+      expect(report.profit).toBeUndefined();
+
       // Nothing cost-shaped anywhere in the payload, however nested.
       const raw = JSON.stringify(report);
       expect(raw).not.toContain("cost");
@@ -452,13 +597,14 @@ describe("Reports", () => {
       expect(raw).not.toContain("margin");
     });
 
-    it("returns cost, profit and margin to a Manager", async () => {
-      const manager = await getSession("MANAGER");
-      const report = await salesReport(manager.token);
+    it("returns cost, profit and margin to an Admin", async () => {
+      const admin = await getSession("ADMIN");
+      const report = await salesReport(admin.token);
 
       expect(report.totals.cost).toBeDefined();
       expect(report.totals.profit).toBeDefined();
       expect(report.totals.missingCostItems).toBeDefined();
+      expect(report.profit).toBeDefined();
     });
 
     it("refuses an unauthenticated caller", async () => {

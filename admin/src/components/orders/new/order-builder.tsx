@@ -7,6 +7,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { useQueryClient } from "@tanstack/react-query";
 import { Save } from "lucide-react";
 import { ERROR_CODES } from "@shared/constants/errors";
+import { SALE_ORDER_TYPE } from "@shared/constants/order";
 import type { Order } from "@shared/types/order";
 import type { Product, ProductSummary } from "@shared/types/product";
 import type { Variant } from "@shared/types/variant";
@@ -116,6 +117,9 @@ export function OrderBuilder() {
 
     const input: CreateOrderInput = {
       channel: MANUAL_ORDER_CHANNEL,
+      // Money in. Giving stock away is a GIFT order, rung up at the POS by
+      // an Admin/Manager — never something this form can produce.
+      type: SALE_ORDER_TYPE,
       paymentMethod: MANUAL_ORDER_PAYMENT_METHOD,
       items: toOrderItems(draft.lines),
       ...toCustomerFields(toCustomerDraft(values)),

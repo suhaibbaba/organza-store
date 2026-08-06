@@ -315,8 +315,9 @@ router.post(
       if (dupe) throw new AppError(409, ERROR_CODES.SKU_DUPLICATE);
     }
 
-    // `cost` is Admin/Manager-only (CLAUDE.md rule 19) — silently dropped
-    // for Employees rather than erroring, since they simply can't set it.
+    // `cost` is ADMIN-ONLY (CLAUDE.md rule 19) — silently dropped for a
+    // Manager or an Employee rather than erroring, since they simply can't
+    // set what they can't see.
     const cost = can(req.user!, "product.viewCost") ? body.cost : undefined;
 
     // Opt-in low-stock tracking is a stock-management decision, so it follows
@@ -502,8 +503,8 @@ router.patch(
         // permission for it. The checks already rejected an actual change,
         // so this just keeps a resent-but-unchanged value from being written
         // back by someone who may not set it — `cost` in particular, which
-        // an Employee never even receives (CLAUDE.md rule 19) and would
-        // otherwise blank out by echoing the form's empty field.
+        // nobody below Admin even receives (CLAUDE.md rule 19) and would
+        // otherwise be blanked out by echoing the form's empty field.
         basePrice: canEditPrice ? body.basePrice : undefined,
         compareAtPrice: canEditPrice && body.compareAtPrice !== undefined ? body.compareAtPrice : undefined,
         cost: can(req.user!, "product.viewCost") && body.cost !== undefined ? body.cost : undefined,

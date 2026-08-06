@@ -160,8 +160,10 @@ key into the user's language.
   needed for staff (Admin creates their accounts).
 
 ## Sensitive fields (never exposed broadly)
-- **`cost`** (purchase cost): visible to **Admin + Manager only**. Never returned by the API to
-  Employees — enforced on the backend, not just hidden in the UI.
+- **`cost`** (purchase cost) **and everything derived from it** — COGS, gross profit, net profit,
+  margin, the inventory valuation at cost: **Admin only**. Never returned by the API to a Manager
+  or an Employee — enforced on the backend, not just hidden in the UI. A Manager runs the shop
+  floor; the owner's margin is not theirs to read.
 - **`idNumber`** (staff ID): **Admin only**. Optional field. Never returned by the API to others.
 
 ## No static text — everything is translated
@@ -260,7 +262,12 @@ Three fixed roles.
 | Create order + hand to courier    |  ✅   |   ✅    |    ✅    |
 | **Delete / edit / cancel** order  |  ✅   |   ✅    |    ❌    |
 | **Mark money collected**          |  ✅   |   ✅    |    ❌    |
+| **Give stock away** (GIFT order)  |  ✅   |   ✅    |    ❌    |
 | Manage stock (full)               |  ✅   |   ✅    |    ❌    |
+| Record an expense                 |  ✅   |   ✅    | ✅ (needs approval) |
+| Read / edit / approve expenses    |  ✅   |   ✅    |    ❌    |
+| Open + close the cash drawer      |  ✅   |   ✅    |    ❌    |
+| **See cost, COGS, profit, margin**|  ✅   |   ❌    |    ❌    |
 | Manage users                      |  ✅   |   ❌    |    ❌    |
 | Settings                          |  ✅   |   ❌    |    ❌    |
 
@@ -268,7 +275,15 @@ Three fixed roles.
 delete or edit them**, so a sale can't be erased to cover theft — and **cannot mark its money
 collected**, so the person who took a sale can't also declare its cash received. For the same
 reason an Employee may fix a product's details but never **re-price** it, so nothing can be sold
-cheap and pocketed. Every action is tied to its author via the Audit Log.
+cheap and pocketed, and never file an order as a **gift**, which would be the same thing with a
+nicer name. Every action is tied to its author via the Audit Log.
+
+**Cost and profit are Admin only.** A Manager runs the shop floor — stock, orders, the drawer,
+what was spent — but what each piece cost the owner, and therefore what the shop earns on it, is
+the owner's alone. One permission (`product.viewCost`) gates the lot: the `cost` field on products
+and variants, `unitCost` on order lines, the inventory valuation's cost basis, and COGS / gross
+profit / net profit / margin in every report. Below it those figures are never computed into the
+response at all, so there is nothing to un-hide client-side.
 
 ---
 
@@ -505,6 +520,116 @@ product's current values. This is what makes the sales/profit dashboard accurate
 Employee can **create** orders and advance them as far as the courier handover, but **cannot
 delete, edit, or cancel** them, and **cannot mark their money collected** (anti-theft).
 Admin/Manager have full control. Every mutation writes an audit entry.
+---
+
+## Cash drawer & expenses
+
+Orders answer "what did we sell". They do not answer the two questions the shop actually closes
+the day on: **is the money in the drawer right**, and **what did we spend**. Without those, a
+"profit" figure is just revenue minus the cost of goods, which is not what anyone gets to keep.
+
+### The cash drawer (one session per trading day)
+
+A session opens with the float left in the drawer the night before, takes in the day's cash sales,
+pays out the day's cash expenses, and is closed by **counting what is actually there**:
+
+```
+expected   = openingFloat + cash sales − cash expenses
+difference = counted − expected            (negative = short, positive = over)
+tomorrow's openingFloat = counted − withdrawn
+```
+
+- **Admin and Manager only**, both reading and writing. The count *is* the shop's cash position,
+  so the person standing at the till must not be the one who declares what should have been in it
+  — the same anti-theft reasoning as "mark money collected".
+- **Cash sales** are sales paid in cash whose money was actually *collected* inside the day's
+  window. A counter sale counts the moment it is rung up; a courier order counts on the day the
+  delivery company settles it, because that is the day the notes reach the drawer. Computed from
+  the same per-line view the reports use, so the drawer and the reports can never disagree.
+- **Cash expenses** are approved expenses marked `paidInCash`, dated inside the window. A card or
+  transfer expense is just as real a cost, but the drawer never held that money.
+- **Closing records the count and any withdrawal.** What is left (`counted − withdrawn`) becomes
+  the next day's opening float **automatically** — nobody has to remember a number overnight. Note
+  it carries the *counted* figure, not the expected one: the next day opens on the money that is
+  really there.
+- **A difference is never a reason to refuse the close.** The money in the drawer is a fact, and a
+  system that won't record it only teaches people to fudge the count. It is always saved. What *is*
+  required is a **note** explaining it, and the shop may **carry it forward** as a follow-up
+  reminder that stays on the list until someone signs it off. Carrying moves no money — the next
+  day already opens on what was counted — it is purely the reminder that a day did not add up.
+- **One drawer per day**, and that is the only restriction. Yesterday's session still being open
+  does *not* stop today's from starting: money is attributed to a day by that day's window, never
+  by "whichever drawer happens to be open", so nothing can be double-counted — and refusing to let
+  the shop trade because someone forgot to count last night is exactly the kind of block this
+  feature rejects everywhere else. An uncounted day stays visible as an open session in the list.
+- Opening, closing and signing off a follow-up each write an audit entry.
+
+### Expenses
+
+- **Anyone may record one** — whoever pays the electricity bill should be able to write it down
+  there and then. But an expense recorded by an **Employee opens as a pending approval** and counts
+  for nothing (not against the drawer, not against profit) until an Admin/Manager approves it. An
+  Admin's or Manager's own expense is approved as it is written, since they could approve it
+  anyway. Rejected expenses stay on the record, with who turned them down and why.
+- **Only approved expenses count**, and **only `paidInCash` ones move the drawer**.
+- Each expense carries a **category**, an **amount**, the **date the money was actually spent**
+  (not when the row was written — a bill paid on the 30th and entered on the 2nd belongs to the
+  30th), a note, `paidInCash`, and **recurring vs one-off** (a label: rent and salaries recur,
+  a new mannequin does not — nothing is generated automatically).
+- Expenses soft-delete, like orders: a financial record is hidden, never destroyed.
+
+### Expense categories
+
+The shop's own list, not an enum — seeded with **utilities, salaries, supplies, maintenance,
+delivery** and extendable from the admin. Identity is a stable `key`; the display name is
+translatable, so renaming it in three languages can never orphan a past expense. Every role may
+*read* the list (picking one is part of recording an expense); changing it is Admin/Manager. A
+category with expenses filed under it cannot be deleted — retire it instead, so the past keeps
+making sense.
+
+### Gifts
+
+Stock walks out of the shop for nothing more often than a system likes to admit: a piece for a
+relative, a replacement after a complaint, something thrown in with a wedding order. That is an
+order of type **`GIFT`**.
+
+- Created **from the POS, by Admin/Manager only**. An Employee who could file a sale as a gift
+  could walk out with the piece.
+- It is a **type, not a channel**: a gift is still handed over at the counter, so it keeps the
+  `STORE` channel. Keeping the two axes apart is what lets reporting drop gifts out of sales
+  without also dropping the STORE channel.
+- It **deducts stock through exactly the same machinery** as a counter sale, and is audited the
+  same way.
+- Every line is **priced at zero** — not discounted 100%. A discounted line is a sale that earned
+  less; a gift earned nothing, and keeping them apart stops a month of giveaways from reading as a
+  month of generous discounts. Only `unitCost` survives on the line.
+- It is **excluded from sales entirely**, and what it cost the shop is **subtracted as a cost of
+  doing business** (alongside expenses), not as cost of goods sold.
+
+### Reporting: the money states, stated explicitly
+
+Every totals block already splits revenue three ways (see "Reports: sold vs. collected"). The
+profit block on the sales report takes that the whole way, and is **Admin only** because every
+figure in it is derived from cost:
+
+- `sold` — what left the shop, net of both discount levels and of returns;
+- `received` — the part actually paid for;
+- `owed` — the part the delivery company is still holding (+ how many orders it is spread over).
+  `sold = received + owed`, always.
+
+and two profits, each given **for all sales and for the received part alone**, because a good month
+and a month that has been paid for are different months:
+
+```
+gross = sales − COGS
+net   = gross − approved expenses − gifts at cost
+```
+
+Expenses are subtracted in full from the received-only net too: a bill is owed whether or not the
+delivery company has settled up yet. Sold lines whose product had no cost recorded at the time of
+sale are surfaced as `missingCostItems`, because they count as zero and quietly make both profits
+look better than they are.
+
 ---
 
 ## Sale notifications (Web Push)

@@ -36,6 +36,8 @@ Phase 1 is DONE and tested: products, variants, categories, inventory, users/rol
 images, audit log, plus the full admin UI.
 **Current work: Orders** (see "Phase 2: Orders" in `spec.md`) — order model, status flow, stock
 deduction, discounts, returns, then the POS screen, the admin orders page, and sales/profit.
+The **cash drawer, expenses and gift orders** are built on the backend (see "Cash drawer &
+expenses" in `spec.md`); their admin/POS screens are not built yet.
 **Still deferred:** the customer storefront (Phase 3), real Customer accounts, and the
 numbered-shawls WhatsApp export. WhatsApp order entry is built (admin *and* POS): a cart can be
 filed as a WHATSAPP order with a customer snapshot, and the phone box suggests repeat customers
@@ -87,8 +89,9 @@ from past orders — there is still no Customer table behind it.
     `libphonenumber-js`. **Palestine dual-prefix (+970/+972): enforce uniqueness by checking BOTH
     prefixes** (look up `+970<national>` and `+972<national>`), not by rewriting. Phone is
     contact-only, not a login method. Only format validation (free); ownership OTP is deferred.
-19. **Sensitive fields are backend-gated, not just UI-hidden:** `cost` → Admin+Manager only;
-    `idNumber` → Admin only. The API must not return them to anyone else.
+19. **Sensitive fields are backend-gated, not just UI-hidden:** `cost` **and everything derived
+    from it** (COGS, gross/net profit, margin, inventory value at cost) → **Admin only**;
+    `idNumber` → Admin only. The API must not return them to anyone else — not zeroed, absent.
 20. **Error tracking via Sentry**, behind an isolated logging layer (swappable for self-hosted
     GlitchTip). Separate from the Audit Log.
 

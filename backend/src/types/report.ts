@@ -1,6 +1,7 @@
 import type { Prisma } from "@prisma/client";
 import type {
   ChannelSales,
+  ProfitTotals,
   ReportGranularity,
   ReportPeriod,
   ReturnsTotals,
@@ -13,6 +14,7 @@ import type {
 
 export type {
   ChannelSales,
+  ProfitTotals,
   ReportGranularity,
   ReportPeriod,
   ReturnsTotals,
@@ -44,6 +46,9 @@ export interface SalesAggregateRow {
   pendingCollectionOrderCount: bigint;
   grossRevenue: Prisma.Decimal | null;
   cost: Prisma.Decimal | null;
+  // COGS on the part that has actually been paid for — what makes a
+  // "received only" profit answerable at all.
+  collectedCost: Prisma.Decimal | null;
   missingCostItems: bigint;
   returnedOrderCount: bigint;
   returnedItemCount: Prisma.Decimal | null;
@@ -52,6 +57,16 @@ export interface SalesAggregateRow {
 
 export interface ChannelAggregateRow extends SalesAggregateRow {
   channel: string;
+}
+
+// What the stock given away in a range cost the shop. Its own query because
+// gifts are excluded from the sales view entirely — they earn nothing, so
+// letting them anywhere near revenue would be the bug this separation exists
+// to prevent.
+export interface GiftAggregateRow {
+  orderCount: bigint;
+  itemCount: Prisma.Decimal | null;
+  cost: Prisma.Decimal | null;
 }
 
 export interface SeriesAggregateRow {
