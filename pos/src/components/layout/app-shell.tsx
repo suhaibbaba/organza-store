@@ -10,8 +10,9 @@ export function AppShell({ children }: { children: ReactNode }) {
     // last line of any screen ends up under it.
     <div className="min-h-dvh pb-[var(--bottom-bar-inset)]">
       <TopBar />
-      {/* Wraps the selling screen itself: the pull moves what is being read,
-          the bar above it stays put. */}
+      {/* Wraps the selling screen itself: the gesture is only listened for
+          over the page's own content, and the indicator it raises floats
+          above it without moving anything. */}
       <PullToRefresh>{children}</PullToRefresh>
     </div>
   );

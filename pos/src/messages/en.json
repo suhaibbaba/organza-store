@@ -74,6 +74,17 @@
       "unmute": "Turn the beep on",
       "cartSummary": "{count, plural, =0 {Empty} one {# item} other {# items}}"
     },
+    "counter": {
+      "title": "Ready to scan",
+      "hint": "Pull the trigger on the scanner and the item goes straight into the sale. Nothing has to be clicked first.",
+      "camera": "Use the camera instead",
+      "shortcuts": {
+        "focusSearch": "Search by name",
+        "scan": "Open the camera",
+        "checkout": "Complete the sale",
+        "clear": "Clear the search"
+      }
+    },
     "picker": {
       "subtitle": "Choose which one you're selling.",
       "numberedSubtitle": "Type the number, or pick it from the list.",
@@ -86,6 +97,7 @@
       "addNamed": "Add {name}"
     },
     "cart": {
+      "title": "Current sale",
       "emptyTitle": "Nothing in the sale yet",
       "emptyHint": "Scan the tag, or search by name, to add an item.",
       "unitPrice": "Each: {price}",

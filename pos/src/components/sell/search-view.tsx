@@ -40,10 +40,15 @@ export function SearchView({
 
   return (
     <section aria-labelledby="pos-search-heading" className="flex flex-col gap-3">
+      {/* Phone only. From `lg` the cart is a column of its own sitting right
+          beside these results, so "back to the sale" would point at
+          something already on screen and its count would repeat a total the
+          cashier can read. Clearing the box (or Escape) is the way out
+          there. */}
       <button
         type="button"
         onClick={onBack}
-        className="flex min-h-14 w-full items-center gap-3 rounded-xl border border-border bg-secondary px-3 text-secondary-foreground transition-colors hover:bg-secondary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className="flex min-h-14 w-full items-center gap-3 rounded-xl border border-border bg-secondary px-3 text-secondary-foreground transition-colors hover:bg-secondary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring lg:hidden"
       >
         {/* The arrow means "back", which points against the reading
             direction — leftward in English, rightward in Arabic. */}

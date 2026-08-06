@@ -201,12 +201,19 @@ export const OFFLINE_PATH = "/offline";
 
 /** Finger travel before a downward drag counts as a pull rather than a scroll. */
 export const PULL_REFRESH_DEAD_ZONE_PX = 8;
-/** How much of the finger's travel the content actually follows. */
+/** How much of the finger's travel the indicator actually follows. */
 export const PULL_REFRESH_RESISTANCE = 0.5;
 /** Pull this far and letting go refreshes. */
 export const PULL_REFRESH_THRESHOLD_PX = 72;
 /** The pull stops moving here, however hard it is pulled. */
 export const PULL_REFRESH_MAX_PX = 112;
+/**
+ * How much of the pull the indicator itself travels. It is the only thing
+ * that moves — the page underneath stays exactly where it is — so it has to
+ * track the finger closely enough to feel attached to it, while staying
+ * inside the strip of screen under the top bar.
+ */
+export const PULL_REFRESH_INDICATOR_TRAVEL_RATIO = 0.5;
 /** Minimum time the spinner stays up, so a fast refetch still reads as one. */
 export const PULL_REFRESH_MIN_VISIBLE_MS = 400;
 /** How far up the tree to look for something that handles its own touches. */
