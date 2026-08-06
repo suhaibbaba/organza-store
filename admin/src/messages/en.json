@@ -16,7 +16,8 @@
       "pull": "Pull to refresh",
       "release": "Release to refresh",
       "refreshing": "Refreshing…"
-    }
+    },
+    "cancel": "Cancel"
   },
   "offline": {
     "title": "No internet connection",
@@ -33,7 +34,8 @@
     "reports": "Reports",
     "users": "Users",
     "settings": "Settings",
-    "more": "More"
+    "more": "More",
+    "changeRequests": "Approvals"
   },
   "auth": {
     "login": {
@@ -721,7 +723,17 @@
         "placeNumbersAfterSave": "Save the product first. Then come back here to put the numbers on its photo."
       },
       "trackLowStock": "Low-stock alert",
-      "trackLowStockHint": "Off by default. Turn it on only for products you restock, so alerts aren't buried by one-off pieces."
+      "trackLowStockHint": "Off by default. Turn it on only for products you restock, so alerts aren't buried by one-off pieces.",
+      "needsApproval": {
+        "price": "A new price needs an admin's approval. Type it and save — it will be applied once approved.",
+        "stock": "A new quantity needs an admin's approval. Type it and save — it will be applied once approved.",
+        "visibility": "Hiding or showing a product needs an admin's approval."
+      },
+      "awaitingApproval": {
+        "title": "Saved — some changes are waiting",
+        "detail": "{count} of your changes need an admin's approval before they take effect. Nothing was lost.",
+        "viewProduct": "View product"
+      }
     }
   },
   "inventory": {
@@ -960,6 +972,10 @@
       "body": "{items} — {total} — {staff}",
       "itemSeparator": ", ",
       "moreItems": "+{count} more"
+    },
+    "changeRequest": {
+      "title": "Approval needed",
+      "body": "{staff} asked to change {field} on {item} — {count} waiting"
     }
   },
   "users": {
@@ -1108,11 +1124,15 @@
     "cashSessionWithdrawalExceedsCount": "You can't take out more than was counted in the drawer.",
     "cashSessionNoOpenFollowUp": "There is nothing left to follow up on this day.",
     "expenseNotFound": "That expense could not be found.",
-    "expenseNotPending": "This expense has already been decided.",
     "expenseCategoryNotFound": "That expense category could not be found.",
     "expenseCategoryKeyDuplicate": "An expense category with this key already exists.",
     "expenseCategoryKeyInvalid": "Use lowercase letters, numbers and dashes only.",
-    "expenseCategoryHasExpenses": "Expenses are filed under this category, so it can't be deleted. Turn it off instead."
+    "expenseCategoryHasExpenses": "Expenses are filed under this category, so it can't be deleted. Turn it off instead.",
+    "changeRequestNotFound": "That request no longer exists.",
+    "changeRequestNotPending": "That request has already been decided.",
+    "changeRequestSelfDecision": "You can't approve your own request.",
+    "changeRequestTargetMissing": "The item this request was about is no longer there.",
+    "changeRequestNotApplicable": "This request can no longer be applied — things have changed since it was made."
   },
   "pwa": {
     "version": {
@@ -1126,6 +1146,68 @@
       "description": "Tap to get the newest version. It takes a moment, and nothing you have saved is lost.",
       "action": "Update now",
       "updating": "Updating…"
+    }
+  },
+  "changeRequests": {
+    "title": "Approvals",
+    "subtitle": "Changes staff have asked for. Approve to apply them, or reject to discard them.",
+    "subtitleOwn": "Changes you asked for. They take effect once an admin approves them.",
+    "badgeLabel": "{count} changes waiting",
+    "status": {
+      "PENDING": "Waiting",
+      "APPROVED": "Approved",
+      "REJECTED": "Rejected"
+    },
+    "fields": {
+      "price": "Price",
+      "comparePrice": "Compare-at price",
+      "stock": "Stock",
+      "visibility": "Visible to customers",
+      "variantSet": "Options",
+      "variantPrice": "Option price",
+      "variantStock": "Option stock",
+      "photoDeletion": "Delete photo",
+      "expense": "Expense",
+      "other": "Change"
+    },
+    "values": {
+      "none": "None",
+      "visible": "Visible",
+      "hidden": "Hidden",
+      "deleted": "Deleted",
+      "kept": "Kept",
+      "approved": "Approved",
+      "awaiting": "Waiting",
+      "variantCount": "{count} options",
+      "adding": "Adding:",
+      "removing": "Removing:",
+      "listSeparator": ", "
+    },
+    "card": {
+      "unknownItem": "Item",
+      "askedBy": "Asked by {name} · {when}",
+      "approvedBy": "Approved by {name} · {when}",
+      "rejectedBy": "Rejected by {name} · {when}",
+      "approve": "Approve",
+      "reject": "Reject",
+      "confirmReject": "Confirm reject",
+      "noteLabel": "Reason",
+      "notePlaceholder": "Why not? (optional)"
+    },
+    "pending": {
+      "waiting": "Waiting for approval",
+      "waitingWithValue": "Waiting for approval:"
+    },
+    "empty": {
+      "noneWaitingTitle": "Nothing waiting",
+      "noneWaitingDescription": "Everything staff have asked for has been dealt with.",
+      "noneTitle": "Nothing here",
+      "noneDescription": "No changes with this status yet."
+    },
+    "pagination": {
+      "previous": "Previous",
+      "next": "Next",
+      "pageOf": "Page {page} of {totalPages}"
     }
   }
 }

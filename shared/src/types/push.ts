@@ -38,6 +38,30 @@ export interface PushConfig {
  * them, so the notification arrives in whichever language the device asked
  * for and no sentence is ever hard-coded in the API.
  */
+/**
+ * A change somebody has asked for and cannot make themselves (spec.md
+ * "Employee change approvals"). Same shape of thinking as the sale payload:
+ * keys plus data, so the Admin's phone renders it in their own language and
+ * tapping it opens the approval screen.
+ */
+export interface ChangeRequestNotificationPayload {
+  type: PushPayloadType;
+  titleKey: string;
+  bodyKey: string;
+  changeRequestId: string;
+  /** What is being changed — rendered through t(), never worded here. */
+  entityType: string;
+  field: string;
+  /** The affected thing's name, still translatable. */
+  entityLabel: I18n | null;
+  /** Who asked. */
+  staffName: string;
+  /** How many requests are waiting in total, so the phone can show the queue. */
+  pendingCount: number;
+  locale: string | null;
+  defaultLanguage: string;
+}
+
 export interface SaleNotificationPayload {
   type: PushPayloadType;
   titleKey: string;

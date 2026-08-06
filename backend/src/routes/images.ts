@@ -2,6 +2,7 @@ import { Router } from "express";
 import type { NextFunction, Request, Response } from "express";
 import multer, { MulterError } from "multer";
 import { AuditAction, type ProductImage } from "@prisma/client";
+import { can } from "@shared/lib/permissions";
 import { prisma } from "@/lib/prisma";
 import { asyncHandler } from "@/middleware/asyncHandler";
 import { requireAuth, requirePermission } from "@/middleware/auth";
@@ -17,7 +18,8 @@ import {
   type UploadImageInput,
 } from "@/validation/image";
 import { writeAudit } from "@/lib/audit";
-import { AUDIT_ENTITY, ERROR_CODES } from "@/constants";
+import { cancelPendingChangesFor, deletionValue, fileChangeRequests } from "@/lib/changeRequests";
+import { AUDIT_ENTITY, CHANGE_REQUEST_ENTITIES, CHANGE_REQUEST_FIELDS, ERROR_CODES } from "@/constants";
 
 const router = Router();
 router.use(requireAuth);
@@ -201,17 +203,61 @@ router.patch(
 );
 
 // ---------------------------------------------------------------------------
-// DELETE /api/images/:id — deletion follows product-edit permissions
-// (Admin/Manager only; Employee can add/edit but not delete images).
+// DELETE /api/images/:id — Admin/Manager delete the photo there and then.
+//
+// An Employee may add and reorder photos but not destroy one, so their delete
+// becomes a REQUEST (spec.md "Employee change approvals") and the photo stays
+// exactly where it is until an Admin agrees. Reaching this endpoint needs
+// images.edit — the same permission that lets someone manage the gallery at
+// all — and images.delete is what decides whether the photo actually goes.
 // ---------------------------------------------------------------------------
 router.delete(
   "/:id",
-  requirePermission("images.delete"),
+  requirePermission("images.edit"),
   asyncHandler(async (req, res) => {
     const image = await prisma.productImage.findUnique({ where: { id: req.params.id } });
     if (!image) throw new AppError(404, ERROR_CODES.IMAGE_NOT_FOUND);
 
-    await prisma.productImage.delete({ where: { id: image.id } });
+    if (!can(req.user!, "images.delete")) {
+      if (!can(req.user!, "changeRequest.create")) throw new AppError(403, ERROR_CODES.FORBIDDEN);
+
+      // The photo belongs to a product or to one of its variants; either way
+      // the approval screen wants the product's name to show WHICH gallery
+      // this is, and the thumbnail so the Admin can see what would go.
+      const owner = image.productId
+        ? await prisma.product.findUnique({ where: { id: image.productId }, select: { id: true, name: true } })
+        : await prisma.variant
+            .findUnique({
+              where: { id: image.variantId! },
+              select: { product: { select: { id: true, name: true } } },
+            })
+            .then((v) => v?.product ?? null);
+
+      const [filed] = await fileChangeRequests(req.user!, [
+        {
+          entityType: CHANGE_REQUEST_ENTITIES.PRODUCT_IMAGE,
+          entityId: image.id,
+          field: CHANGE_REQUEST_FIELDS.IMAGE_DELETION,
+          entityLabel: owner?.name ?? null,
+          entityDetail: image.thumbnailUrl,
+          productId: owner?.id ?? null,
+          oldValue: deletionValue(false),
+          newValue: deletionValue(true),
+        },
+      ]);
+      // 202: accepted, not applied. The photo is still in the gallery.
+      sendOk(res, { id: image.id, deleted: false, pendingChange: filed }, null, 202);
+      return;
+    }
+
+    await prisma.$transaction(async (tx) => {
+      await tx.productImage.delete({ where: { id: image.id } });
+      // A photo that has gone cannot still be waiting to go.
+      await cancelPendingChangesFor(tx, [
+        { entityType: CHANGE_REQUEST_ENTITIES.PRODUCT_IMAGE, entityId: image.id },
+      ]);
+    });
+    // Only once the row is gone: file deletion cannot be rolled back.
     await deleteProductImageFiles(image.filename);
 
     await writeAudit({
@@ -222,7 +268,7 @@ router.delete(
       oldValue: image,
     });
 
-    sendOk(res, { id: image.id });
+    sendOk(res, { id: image.id, deleted: true });
   })
 );
 

@@ -4,6 +4,8 @@ import type { InventoryItem } from "@shared/types/inventory";
 import { Link } from "@/i18n/navigation";
 import { localize } from "@/lib/i18n-content";
 import { StockStepper } from "@/components/inventory/stock-stepper";
+import { PendingChangeBadge } from "@/components/change-requests/pending-change-badge";
+import { CHANGE_REQUEST_ENTITIES, CHANGE_REQUEST_FIELDS } from "@shared/constants/changeRequest";
 import { cn } from "@/lib/utils";
 
 interface InventoryCardProps {
@@ -55,8 +57,19 @@ export function InventoryCard({ item, threshold, canAdjust }: InventoryCardProps
         )}
       </div>
 
-      <div className="flex items-center justify-between gap-3 border-t border-border pt-2">
-        <span className="text-xs text-muted-foreground">{t("stockLabel")}</span>
+      <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border pt-2">
+        <span className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+          {t("stockLabel")}
+          {/* A quantity somebody has asked to change is spoken for, not
+              wrong — saying so here stops two people editing the same figure
+              (spec.md "Employee change approvals"). */}
+          <PendingChangeBadge
+            changes={item.pendingChanges}
+            entityType={item.type === "variant" ? CHANGE_REQUEST_ENTITIES.VARIANT : CHANGE_REQUEST_ENTITIES.PRODUCT}
+            entityId={item.id}
+            field={item.type === "variant" ? CHANGE_REQUEST_FIELDS.VARIANT_STOCK : CHANGE_REQUEST_FIELDS.PRODUCT_STOCK}
+          />
+        </span>
         {canAdjust ? (
           // Lifted above the card-wide link so +/- and the quantity field stay
           // their own tap targets instead of navigating.

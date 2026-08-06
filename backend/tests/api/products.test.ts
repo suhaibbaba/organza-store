@@ -2,7 +2,7 @@ import { afterAll, describe, expect, it } from "vitest";
 import { apiRequest, uniqueId } from "@tests/support/client";
 import { getSession } from "@tests/support/auth";
 import { anyCategoryId, twoByTwoOptionSelections } from "@tests/support/fixtures";
-import type { ProductDto, ProductLookupDto } from "@tests/types";
+import type { ChangeRequestDto, ProductDto, ProductLookupDto, ProductVariantDto } from "@tests/types";
 import { ERROR_CODES, SKU_PAD_LENGTH, SKU_PREFIX } from "@/constants";
 
 const skuPattern = new RegExp(`^${SKU_PREFIX}\\d{${SKU_PAD_LENGTH}}$`);
@@ -85,6 +85,12 @@ describe("Products", () => {
   // on the shelf — its name, description, category — but not what it sells
   // for. Price lives behind product.editPrice (Admin/Manager), as do stock
   // (inventory.adjust) and visibility (product.hide).
+  //
+  // Those three are no longer REFUSED, though: they are held for approval
+  // (spec.md "Employee change approvals"). The edit is neither applied nor
+  // discarded — it waits, attributed, and comes back on the product so the
+  // Employee's screen can show it waiting rather than appearing to have
+  // dropped what they typed.
   describe("an Employee edits a product but not its price", () => {
     async function createProduct(token: string, label: string): Promise<ProductDto> {
       const categoryId = await anyCategoryId(token);
@@ -115,27 +121,37 @@ describe("Products", () => {
       expect(res.data!.name.ar).toBe(newName);
     });
 
-    it("rejects an Employee changing the price, and leaves it as it was", async () => {
+    // No longer a refusal (spec.md "Employee change approvals"): the price
+    // the Employee typed is HELD, not applied and not thrown away, and comes
+    // straight back on the product so their screen can say so.
+    it("holds an Employee's price change for approval, leaving the price as it was", async () => {
       const admin = await getSession("ADMIN");
       const employee = await getSession("EMPLOYEE");
       const product = await createProduct(admin.token, "Employee Price");
 
-      const res = await apiRequest(`/api/products/${product.id}`, {
+      const res = await apiRequest<ProductDto>(`/api/products/${product.id}`, {
         method: "PATCH",
         token: employee.token,
         body: { basePrice: "1" },
       });
-      expect(res.status).toBe(403);
-      expect(res.error?.code).toBe(ERROR_CODES.FORBIDDEN);
+      expect(res.status).toBe(200);
+      const basePriceRequest = res.data!.pendingChanges!.find((c) => c.field === "basePrice");
+      expect(basePriceRequest).toBeDefined();
+      expect(basePriceRequest!.status).toBe("PENDING");
+      expect(basePriceRequest!.oldValue!.value).toBe("100.00");
+      expect(basePriceRequest!.newValue!.value).toBe("1.00");
+      expect(basePriceRequest!.requestedById).toBe(employee.userId);
 
-      const compare = await apiRequest(`/api/products/${product.id}`, {
+      const compare = await apiRequest<ProductDto>(`/api/products/${product.id}`, {
         method: "PATCH",
         token: employee.token,
         body: { compareAtPrice: "5" },
       });
-      expect(compare.status).toBe(403);
-      expect(compare.error?.code).toBe(ERROR_CODES.FORBIDDEN);
+      expect(compare.status).toBe(200);
+      // A different field waits independently — superseding is per field.
+      expect(compare.data!.pendingChanges!.map((c) => c.field).sort()).toEqual(["basePrice", "compareAtPrice"]);
 
+      // Nothing was applied.
       const after = await apiRequest<ProductDto>(`/api/products/${product.id}`, { token: employee.token });
       expect(Number(after.data!.basePrice)).toBe(100);
       expect(Number(after.data!.compareAtPrice)).toBe(150);
@@ -160,27 +176,32 @@ describe("Products", () => {
       expect(res.data!.name.ar).toBe(newName);
     });
 
-    it("keeps stock and visibility out of an Employee's reach on the same route", async () => {
+    it("holds an Employee's stock and visibility changes on the same route", async () => {
       const admin = await getSession("ADMIN");
       const employee = await getSession("EMPLOYEE");
       const product = await createProduct(admin.token, "Employee Stock");
 
-      const stock = await apiRequest(`/api/products/${product.id}`, {
+      const stock = await apiRequest<ProductDto>(`/api/products/${product.id}`, {
         method: "PATCH",
         token: employee.token,
         body: { stock: 99 },
       });
-      expect(stock.status).toBe(403);
-      expect(stock.error?.code).toBe(ERROR_CODES.FORBIDDEN);
+      expect(stock.status).toBe(200);
+      const stockRequest = stock.data!.pendingChanges!.find((c) => c.field === "stock");
+      expect(stockRequest!.oldValue!.value).toBe(1);
+      expect(stockRequest!.newValue!.value).toBe(99);
 
-      const hide = await apiRequest(`/api/products/${product.id}`, {
+      const hide = await apiRequest<ProductDto>(`/api/products/${product.id}`, {
         method: "PATCH",
         token: employee.token,
         body: { isActive: false },
       });
-      expect(hide.status).toBe(403);
-      expect(hide.error?.code).toBe(ERROR_CODES.FORBIDDEN);
+      expect(hide.status).toBe(200);
+      const hideRequest = hide.data!.pendingChanges!.find((c) => c.field === "isActive");
+      expect(hideRequest!.oldValue!.value).toBe(true);
+      expect(hideRequest!.newValue!.value).toBe(false);
 
+      // Held, not applied: the piece is still on the shelf, still visible.
       const after = await apiRequest<ProductDto>(`/api/products/${product.id}`, { token: employee.token });
       expect(after.data!.stock).toBe(1);
       expect(after.data!.isActive).toBe(true);
@@ -189,7 +210,7 @@ describe("Products", () => {
     // A variant's priceOverride IS what that combination sells for, so the
     // same gate has to hold there — otherwise the product-level check is just
     // a detour.
-    it("rejects an Employee changing a variant's price override", async () => {
+    it("holds an Employee's change to a variant's price override", async () => {
       const admin = await getSession("ADMIN");
       const employee = await getSession("EMPLOYEE");
       const categoryId = await anyCategoryId(admin.token);
@@ -205,13 +226,19 @@ describe("Products", () => {
       createdProductIds.push(created.data!.id);
       const variant = created.data!.variants[0];
 
-      const res = await apiRequest(`/api/products/${created.data!.id}/variants/${variant.id}`, {
-        method: "PATCH",
-        token: employee.token,
-        body: { priceOverride: "1" },
-      });
-      expect(res.status).toBe(403);
-      expect(res.error?.code).toBe(ERROR_CODES.FORBIDDEN);
+      const res = await apiRequest<ProductVariantDto & { pendingChanges: ChangeRequestDto[] }>(
+        `/api/products/${created.data!.id}/variants/${variant.id}`,
+        { method: "PATCH", token: employee.token, body: { priceOverride: "1" } }
+      );
+      expect(res.status).toBe(200);
+      const request = res.data!.pendingChanges.find((c) => c.field === "priceOverride");
+      expect(request!.entityType).toBe("Variant");
+      expect(request!.entityId).toBe(variant.id);
+      expect(request!.newValue!.value).toBe("1.00");
+
+      // The variant still sells for what it did.
+      const after = await apiRequest<ProductDto>(`/api/products/${created.data!.id}`, { token: admin.token });
+      expect(after.data!.variants.find((v) => v.id === variant.id)!.priceOverride).toBeNull();
     });
 
     it("still lets a Manager change the price", async () => {

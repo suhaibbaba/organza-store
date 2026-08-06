@@ -3,6 +3,7 @@ import { apiRequest, uniqueId } from "@tests/support/client";
 import { getSession } from "@tests/support/auth";
 import { createSellableProduct } from "@tests/support/orders";
 import { createExpense, expenseCategoryId } from "@tests/support/cash";
+import { approveExpense } from "@tests/support/changeRequests";
 import {
   channelTotals,
   fetchSalesReport,
@@ -442,7 +443,7 @@ describe("Reports", () => {
       expect(num(during.netProfit) - num(before.netProfit)).toBeCloseTo(0, 2);
 
       // Signing it off is what makes it real money.
-      await apiRequest(`/api/expenses/${pending.data!.id}/approve`, { method: "POST", token: admin.token });
+      await approveExpense(admin.token, pending.data!.id);
 
       const after = (await salesReport(admin.token)).profit!;
       expect(num(after.expenses) - num(before.expenses)).toBeCloseTo(500, 2);

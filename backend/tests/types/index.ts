@@ -1,6 +1,7 @@
 export * from "./client";
 export * from "./auth";
 export * from "./cash";
+export * from "./changeRequest";
 export * from "./expense";
 export * from "./product";
 export * from "./variant";

@@ -1,4 +1,5 @@
 import type { I18n } from "@/types/common";
+import type { ChangeRequest } from "@/types/changeRequest";
 
 // Global option value (e.g. Color -> "أحمر"), GET /api/variant-types.
 export interface VariantOptionValue {
@@ -63,4 +64,8 @@ export interface Variant {
   // from Employee responses.
   cost?: string | null;
   resolvedCost?: string | null;
+  // Gated changes waiting for an Admin on this variant — its price override
+  // or its stock (spec.md "Employee change approvals"). Present on the
+  // responses that could have filed one; empty otherwise.
+  pendingChanges?: ChangeRequest[];
 }

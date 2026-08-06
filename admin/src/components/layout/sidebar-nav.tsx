@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { Link, usePathname } from "@/i18n/navigation";
 import { useVisibleNavItems } from "@/hooks/use-visible-nav-items";
+import { NavPendingBadge } from "@/components/change-requests/nav-pending-badge";
 import { cn } from "@/lib/utils";
 
 export function SidebarNav() {
@@ -32,6 +33,7 @@ export function SidebarNav() {
             >
               <Icon className="size-5" aria-hidden="true" />
               {t(item.key)}
+              {item.key === "changeRequests" && <NavPendingBadge className="ms-auto" />}
             </Link>
           );
         })}

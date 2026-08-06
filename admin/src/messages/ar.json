@@ -16,7 +16,8 @@
       "pull": "اسحب للتحديث",
       "release": "أفلت للتحديث",
       "refreshing": "جارٍ التحديث…"
-    }
+    },
+    "cancel": "إلغاء"
   },
   "offline": {
     "title": "لا يوجد اتصال بالإنترنت",
@@ -33,7 +34,8 @@
     "reports": "التقارير",
     "users": "المستخدمون",
     "settings": "الإعدادات",
-    "more": "المزيد"
+    "more": "المزيد",
+    "changeRequests": "الموافقات"
   },
   "auth": {
     "login": {
@@ -721,7 +723,17 @@
         "placeNumbersAfterSave": "احفظ المنتج أولاً، ثم عد إلى هنا لوضع الأرقام على صورته."
       },
       "trackLowStock": "تنبيه عند قلّة المخزون",
-      "trackLowStockHint": "مغلق افتراضيًا. فعّله للمنتجات التي تعيد شراءها فقط، حتى لا تمتلئ التنبيهات بالقطع الفردية."
+      "trackLowStockHint": "مغلق افتراضيًا. فعّله للمنتجات التي تعيد شراءها فقط، حتى لا تمتلئ التنبيهات بالقطع الفردية.",
+      "needsApproval": {
+        "price": "تغيير السعر يحتاج موافقة المدير. اكتبه واحفظ — سيُطبَّق بعد الموافقة.",
+        "stock": "تغيير الكمية يحتاج موافقة المدير. اكتبها واحفظ — ستُطبَّق بعد الموافقة.",
+        "visibility": "إخفاء المنتج أو إظهاره يحتاج موافقة المدير."
+      },
+      "awaitingApproval": {
+        "title": "تم الحفظ — بعض التعديلات بالانتظار",
+        "detail": "{count} من تعديلاتك تحتاج موافقة المدير قبل أن تُطبَّق. لم يضِع شيء.",
+        "viewProduct": "عرض المنتج"
+      }
     }
   },
   "inventory": {
@@ -960,6 +972,10 @@
       "body": "{items} — {total} — {staff}",
       "itemSeparator": "، ",
       "moreItems": "و{count} أخرى"
+    },
+    "changeRequest": {
+      "title": "مطلوب موافقة",
+      "body": "{staff} طلب تعديل {field} على {item} — {count} بالانتظار"
     }
   },
   "users": {
@@ -1108,11 +1124,15 @@
     "cashSessionWithdrawalExceedsCount": "لا يمكن سحب أكثر ممّا جُرد في الصندوق.",
     "cashSessionNoOpenFollowUp": "لا يوجد ما يُتابع في هذا اليوم.",
     "expenseNotFound": "تعذّر العثور على هذا المصروف.",
-    "expenseNotPending": "تمّ البتّ في هذا المصروف من قبل.",
     "expenseCategoryNotFound": "تعذّر العثور على بند المصاريف.",
     "expenseCategoryKeyDuplicate": "يوجد بند مصاريف بهذا المعرّف بالفعل.",
     "expenseCategoryKeyInvalid": "استخدم حروفًا إنجليزية صغيرة وأرقامًا وشرطات فقط.",
-    "expenseCategoryHasExpenses": "توجد مصاريف مسجّلة تحت هذا البند فلا يمكن حذفه. أوقفه بدلًا من ذلك."
+    "expenseCategoryHasExpenses": "توجد مصاريف مسجّلة تحت هذا البند فلا يمكن حذفه. أوقفه بدلًا من ذلك.",
+    "changeRequestNotFound": "هذا الطلب لم يعد موجودًا.",
+    "changeRequestNotPending": "تم البتّ في هذا الطلب مسبقًا.",
+    "changeRequestSelfDecision": "لا يمكنك الموافقة على طلبك أنت.",
+    "changeRequestTargetMissing": "العنصر الذي يخصّه هذا الطلب لم يعد موجودًا.",
+    "changeRequestNotApplicable": "لم يعد بالإمكان تطبيق هذا الطلب — تغيّرت الأمور منذ تقديمه."
   },
   "pwa": {
     "version": {
@@ -1126,6 +1146,68 @@
       "description": "اضغط للحصول على أحدث إصدار. لن يستغرق الأمر سوى لحظة، ولن يضيع أي شيء محفوظ.",
       "action": "التحديث الآن",
       "updating": "جارٍ التحديث…"
+    }
+  },
+  "changeRequests": {
+    "title": "الموافقات",
+    "subtitle": "تعديلات طلبها الموظفون. وافق لتطبيقها، أو ارفض لإلغائها.",
+    "subtitleOwn": "التعديلات التي طلبتها. تُطبَّق بعد موافقة المدير.",
+    "badgeLabel": "{count} تعديلات بانتظار الموافقة",
+    "status": {
+      "PENDING": "بالانتظار",
+      "APPROVED": "تمت الموافقة",
+      "REJECTED": "مرفوض"
+    },
+    "fields": {
+      "price": "السعر",
+      "comparePrice": "السعر قبل الخصم",
+      "stock": "الكمية",
+      "visibility": "الظهور للزبائن",
+      "variantSet": "الخيارات",
+      "variantPrice": "سعر الخيار",
+      "variantStock": "كمية الخيار",
+      "photoDeletion": "حذف صورة",
+      "expense": "مصروف",
+      "other": "تعديل"
+    },
+    "values": {
+      "none": "لا يوجد",
+      "visible": "ظاهر",
+      "hidden": "مخفي",
+      "deleted": "محذوفة",
+      "kept": "باقية",
+      "approved": "تمت الموافقة",
+      "awaiting": "بالانتظار",
+      "variantCount": "{count} خيارات",
+      "adding": "إضافة:",
+      "removing": "حذف:",
+      "listSeparator": "، "
+    },
+    "card": {
+      "unknownItem": "العنصر",
+      "askedBy": "طلبها {name} · {when}",
+      "approvedBy": "وافق عليها {name} · {when}",
+      "rejectedBy": "رفضها {name} · {when}",
+      "approve": "موافقة",
+      "reject": "رفض",
+      "confirmReject": "تأكيد الرفض",
+      "noteLabel": "السبب",
+      "notePlaceholder": "لماذا؟ (اختياري)"
+    },
+    "pending": {
+      "waiting": "بانتظار الموافقة",
+      "waitingWithValue": "بانتظار الموافقة:"
+    },
+    "empty": {
+      "noneWaitingTitle": "لا يوجد شيء بالانتظار",
+      "noneWaitingDescription": "كل ما طلبه الموظفون تمت معالجته.",
+      "noneTitle": "لا يوجد شيء هنا",
+      "noneDescription": "لا توجد تعديلات بهذه الحالة بعد."
+    },
+    "pagination": {
+      "previous": "السابق",
+      "next": "التالي",
+      "pageOf": "صفحة {page} من {totalPages}"
     }
   }
 }

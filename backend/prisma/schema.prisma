@@ -64,6 +64,10 @@ model User {
 
   createdExpenses       Expense[]     @relation("ExpenseCreatedBy")
   approvedExpenses      Expense[]     @relation("ExpenseApprovedBy")
+
+  requestedChanges ChangeRequest[] @relation("ChangeRequestRequestedBy")
+  decidedChanges   ChangeRequest[] @relation("ChangeRequestDecidedBy")
+
   openedCashSessions    CashSession[] @relation("CashSessionOpenedBy")
   closedCashSessions    CashSession[] @relation("CashSessionClosedBy")
   resolvedCashFollowUps CashSession[] @relation("CashSessionFollowUpBy")
@@ -376,9 +380,19 @@ enum AuditAction {
   // closing a session are their own actions rather than CREATE/UPDATE.
   CASH_SESSION_OPENED
   CASH_SESSION_CLOSED
-  // Signing off (or turning down) an expense someone else recorded.
+  // Signing off (or turning down) a change somebody asked for — an expense
+  // they recorded, a price they want changed, a photo they want gone.
   APPROVE
   REJECT
+  // Asking for a change you may not make yourself (spec.md "Employee change
+  // approvals"). Its own action rather than CREATE: "who wanted this price"
+  // and "who agreed to it" are two different questions, and both have to be
+  // answerable from the trail.
+  REQUEST
+  // A newer request replacing an older pending one for the same field —
+  // recorded so the value somebody first asked for is still in the trail
+  // even though the request row itself now carries the newer one.
+  SUPERSEDE
 }
 
 model AuditLog {
@@ -398,6 +412,89 @@ model AuditLog {
   @@index([userId])
   @@index([entityType, entityId])
   @@index([createdAt])
+}
+
+// ============================================================
+//  CHANGE REQUESTS (spec.md "Employee change approvals")
+//
+//  One table for every gated change in the shop. A request is
+//  (entityType, entityId, field, old value, requested value) plus who asked
+//  and who decided — it names no product, no expense and no image, which is
+//  what lets a new entity be gated later by adding an applier on the backend
+//  instead of another approvalStatus column on another table.
+//
+//  The expense approval that used to live on Expense.approvalStatus /
+//  approvedBy is one of these now (field = "approvalStatus"); the columns
+//  over there survive as the APPLIED state, written by the approval, exactly
+//  like Product.basePrice is the applied state of a price request.
+// ============================================================
+
+enum ChangeRequestStatus {
+  PENDING // waiting on an Admin
+  APPROVED // applied, atomically, at the moment of approval
+  REJECTED // discarded; the entity was never touched
+}
+
+model ChangeRequest {
+  id String @id @default(cuid())
+
+  // What is being changed. entityType matches the AUDIT_ENTITY vocabulary
+  // (backend/src/constants/audit.ts) so "what was this about" reads the same
+  // whether you are looking at a request or at the audit trail. `field` is
+  // usually a column name, but not always: "variantSet" means which variants
+  // a product has, and "deletion" means the image itself.
+  entityType String
+  entityId   String
+  field      String
+
+  // "<entityType>:<entityId>:<field>" WHILE PENDING, null once decided.
+  //
+  // This is superseding, enforced by the database rather than by convention:
+  // Postgres treats nulls as distinct in a unique index, so any number of
+  // decided rows may share a target while at most one pending row ever can.
+  // A newer request for the same field therefore cannot queue up behind the
+  // old one — it replaces it in place (see lib/changeRequests.ts).
+  pendingKey String? @unique
+
+  // What is stored now, and what is being asked for. Both are
+  // { kind, value, detail? } — data with a rendering hint, never a sentence
+  // (CLAUDE.md rule 12); the frontends do the wording through t().
+  oldValue Json?
+  newValue Json?
+
+  // Snapshots taken when the request is filed, so the approval screen can say
+  // WHICH piece is being re-priced without a second round trip — and so a
+  // request still reads correctly if its subject has since been deleted.
+  // Never what the change is applied to: that is always the triple above.
+  entityLabel  Json? // translatable name { ar, en, he }
+  entityDetail String? // a SKU, an amount — data, not prose
+  // Deep-link target for the admin screen. A plain column, not a relation:
+  // the product may be soft-deleted by the time anyone looks.
+  productId    String?
+
+  status ChangeRequestStatus @default(PENDING)
+
+  requestedById String
+  requestedBy   User     @relation("ChangeRequestRequestedBy", fields: [requestedById], references: [id])
+  // Moves forward when a newer request supersedes this row in place, so
+  // "asked for 40 minutes ago" always describes the value actually shown.
+  requestedAt   DateTime @default(now())
+
+  decidedById  String?
+  decidedBy    User?     @relation("ChangeRequestDecidedBy", fields: [decidedById], references: [id])
+  decidedAt    DateTime?
+  decisionNote String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // The approval screen: pending first, newest first.
+  @@index([status, requestedAt])
+  // "What is waiting on this product/variant/image", which is what every
+  // product response attaches so an Employee sees their edit waiting.
+  @@index([entityType, entityId, status])
+  @@index([productId, status])
+  @@index([requestedById])
 }
 
 // ============================================================

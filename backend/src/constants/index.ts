@@ -2,6 +2,7 @@ export * from "./audit";
 export * from "./auth";
 export * from "./barcode";
 export * from "./cash";
+export * from "./changeRequest";
 export * from "./errors";
 export * from "./expense";
 export * from "./images";

@@ -1,7 +1,7 @@
 import { hasLocale } from "next-intl";
 import { getMessages } from "next-intl/server";
 import { routing } from "@/i18n/routing";
-import { PUSH_MESSAGES_NAMESPACE } from "@/constants/pwa";
+import { PUSH_MESSAGES_NAMESPACES } from "@/constants/pwa";
 
 // The notification wording, per language, for the service worker.
 //
@@ -15,6 +15,11 @@ import { PUSH_MESSAGES_NAMESPACE } from "@/constants/pwa";
 // Public on purpose (see the matcher in proxy.ts, which skips /api): these
 // are UI labels, identical for everyone, and a service worker handling a
 // push has no session to send.
+//
+// More than one namespace is exposed now: an approval notification names the
+// field being changed, and those labels belong to the approvals screen — so
+// they are sent from there rather than written a second time (see
+// PUSH_MESSAGES_NAMESPACES).
 
 /** Flattens `{ sale: { title } }` into `{ "push.sale.title": ... }` — the keys the payload names. */
 function flatten(value: unknown, prefix: string, target: Record<string, string> = {}): Record<string, string> {
@@ -44,5 +49,11 @@ export async function GET(_request: Request, ctx: { params: Promise<{ locale: st
   }
 
   const messages = (await getMessages({ locale })) as Record<string, unknown>;
-  return Response.json(flatten(messages[PUSH_MESSAGES_NAMESPACE] ?? {}, PUSH_MESSAGES_NAMESPACE));
+  // One flat bag across every exposed namespace, keyed exactly as the payload
+  // names them ("push.sale.title", "changeRequests.fields.price").
+  const flat: Record<string, string> = {};
+  for (const namespace of PUSH_MESSAGES_NAMESPACES) {
+    flatten(messages[namespace] ?? {}, namespace, flat);
+  }
+  return Response.json(flat);
 }

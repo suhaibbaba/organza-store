@@ -62,6 +62,10 @@ export interface ImageSyncOutcome {
   slots: GallerySlot[];
   // Photos still waiting to upload after this attempt.
   pendingCount: number;
+  // Photos whose DELETION is waiting for an Admin (spec.md "Employee change
+  // approvals"). Not an error: the request was filed and the photo stays in
+  // the gallery until somebody decides.
+  awaitingApproval: number;
   // First error hit, as an `error.*` key for t() (CLAUDE.md rule 12).
   errorCode: string | null;
 }

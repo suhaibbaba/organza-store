@@ -80,8 +80,14 @@ export function ProductForm({ mode, product }: ProductFormProps) {
   const translateError = useTranslateError();
 
   const canSeeCost = can(user, "product.viewCost");
-  const canDeleteImages = can(user, "images.delete");
-  const canRemoveCombos = can(user, "product.delete");
+  // May ASK for a change they cannot make themselves (spec.md "Employee
+  // change approvals"). It is what turns each gate below from "you cannot
+  // touch this" into "type it and it waits", which is why the fields are
+  // shown to them at all — a field you cannot see is a change you cannot ask
+  // for.
+  const canRequestChanges = can(user, "changeRequest.create");
+  const canDeleteImages = can(user, "images.delete") || canRequestChanges;
+  const canRemoveCombos = can(user, "product.editVariantSet") || canRequestChanges;
   // Editing the details — name, description, category — is open to every
   // role that can edit a product, Employees included. "Edit images" is a
   // separate, broader capability — Employees keep full image access below.
@@ -90,9 +96,19 @@ export function ProductForm({ mode, product }: ProductFormProps) {
   // on a NEW product; changing what an existing one sells for is
   // product.editPrice (Admin/Manager). Stock and visibility are gated the
   // same way, each on the permission the backend checks for that field.
-  const canEditPrice = mode === "create" || can(user, "product.editPrice");
-  const canEditStock = mode === "create" || can(user, "inventory.adjust");
-  const showActiveToggle = can(user, "product.hide");
+  const appliesPrice = mode === "create" || can(user, "product.editPrice");
+  const appliesStock = mode === "create" || can(user, "inventory.adjust");
+  const appliesVisibility = can(user, "product.hide");
+  // Whether the FIELD is offered at all. Someone who can only request still
+  // types into it — the backend decides, on save, whether the value lands or
+  // waits, and the hint under the field says which to expect.
+  const canEditPrice = appliesPrice || canRequestChanges;
+  const canEditStock = appliesStock || canRequestChanges;
+  const showActiveToggle = appliesVisibility || canRequestChanges;
+  // ...and the little "this needs approval" line beneath each of them.
+  const priceNeedsApproval = !appliesPrice && canRequestChanges;
+  const stockNeedsApproval = !appliesStock && canRequestChanges;
+  const visibilityNeedsApproval = !appliesVisibility && canRequestChanges;
   // Opting a product into low-stock alerts is a stock-management decision,
   // so it follows the stock gate: an Employee who can add or edit a product
   // simply doesn't see the toggle.
@@ -120,6 +136,12 @@ export function ProductForm({ mode, product }: ProductFormProps) {
   );
   const [removedVariantIds, setRemovedVariantIds] = useState<Set<string>>(new Set());
   const [submitError, setSubmitError] = useState<string | null>(null);
+  // How many of the things this save asked for are now waiting for an Admin
+  // (spec.md "Employee change approvals") — a price, a stock figure, the
+  // visibility, a variant combination, a photo. Reported as news, never as an
+  // error: nothing failed, and the person who typed it needs to know their
+  // edit is being held rather than assume it was ignored.
+  const [awaitingApproval, setAwaitingApproval] = useState(0);
 
   // Every gallery on this screen — the product's, and one per variant — as a
   // working copy plus the server state it is diffed against. Photos are held
@@ -212,9 +234,11 @@ export function ProductForm({ mode, product }: ProductFormProps) {
   // through so the progress line can say "3 of 7". Never throws for a photo:
   // failures come back as counts, and whatever failed stays pending in the
   // gallery so a retry picks up exactly those.
-  async function saveGalleries(productId: string): Promise<{ pending: number; errorCode: string | null }> {
+  async function saveGalleries(
+    productId: string
+  ): Promise<{ pending: number; awaiting: number; errorCode: string | null }> {
     const jobs = Object.entries(galleries).filter(([, gallery]) => galleryChanged(gallery));
-    if (jobs.length === 0) return { pending: 0, errorCode: null };
+    if (jobs.length === 0) return { pending: 0, awaiting: 0, errorCode: null };
 
 
     const total = jobs.reduce((sum, [, gallery]) => sum + pendingCount(gallery.slots), 0);
@@ -224,6 +248,8 @@ export function ProductForm({ mode, product }: ProductFormProps) {
     const next = { ...galleries };
     let pending = 0;
     let errorCode: string | null = null;
+    // Photo deletions that were filed as requests rather than carried out.
+    let awaiting = 0;
 
     for (const [key, gallery] of jobs) {
       const variantId = variantIdFromGalleryKey(key);
@@ -234,17 +260,24 @@ export function ProductForm({ mode, product }: ProductFormProps) {
       });
       next[key] = { slots: outcome.slots, saved: outcome.images };
       pending += outcome.pendingCount;
+      awaiting += outcome.awaitingApproval;
       errorCode ??= outcome.errorCode;
     }
 
     setGalleries(next);
-    return { pending, errorCode };
+    return { pending, awaiting, errorCode };
   }
 
   // Shared tail of both save and retry: photos are the last step, so this is
   // where the screen either moves on or explains what is still missing.
-  function finishSave(productId: string, result: { pending: number; errorCode: string | null }) {
+  function finishSave(
+    productId: string,
+    result: { pending: number; awaiting: number; errorCode: string | null },
+    requestsFiled = 0
+  ) {
     setSaveStep(null);
+    const waiting = requestsFiled + result.awaiting;
+    setAwaitingApproval(waiting);
     // The last word on what this save changed. The product mutation invalidated
     // when *it* succeeded — before a single photo had gone up — so without this
     // the product page would keep the gallery it was opened with. It runs on a
@@ -253,6 +286,15 @@ export function ProductForm({ mode, product }: ProductFormProps) {
     if (result.pending > 0 || result.errorCode) {
       setSavedProductId(productId);
       setPartialFailure({ pending: result.pending, errorCode: result.errorCode });
+      return;
+    }
+    // Something the user typed is being HELD rather than applied. Leaving the
+    // screen now would look exactly like a normal save, and they would come
+    // back later to a price that never changed and no idea why — so the form
+    // stays put and says so, with one button out (spec.md "Employee change
+    // approvals").
+    if (waiting > 0) {
+      setSavedProductId(productId);
       return;
     }
     router.push(`/products/${productId}`);
@@ -298,9 +340,15 @@ export function ProductForm({ mode, product }: ProductFormProps) {
 
       if (!product) return;
 
+      // Everything this save asked for and could not do itself, collected by
+      // request id so the notice at the bottom can say how many are waiting
+      // (spec.md "Employee change approvals").
+      const filedRequests = new Set<string>();
+
       if (canEditDetails) {
         setSaveStep({ kind: "product" });
-        await updateMutation.mutateAsync(toUpdatePayload(values, willHaveVariants, abilities));
+        const saved = await updateMutation.mutateAsync(toUpdatePayload(values, willHaveVariants, abilities));
+        for (const change of saved.pendingChanges ?? []) filedRequests.add(change.id);
 
         const patches = Object.entries(variantEdits)
           .filter(([id]) => !removedVariantIds.has(id))
@@ -313,14 +361,22 @@ export function ProductForm({ mode, product }: ProductFormProps) {
 
         if (patches.length > 0 || removedVariantIds.size > 0) {
           setSaveStep({ kind: "variants" });
-          await Promise.all(
+          const patched = await Promise.all(
             patches.map(({ variantId, patch }) => updateVariantMutation.mutateAsync({ variantId, input: patch }))
           );
-          await Promise.all([...removedVariantIds].map((variantId) => deleteVariantMutation.mutateAsync(variantId)));
+          for (const variant of patched) {
+            for (const change of variant.pendingChanges ?? []) filedRequests.add(change.id);
+          }
+          const removals = await Promise.all(
+            [...removedVariantIds].map((variantId) => deleteVariantMutation.mutateAsync(variantId))
+          );
+          for (const removal of removals) {
+            if (removal.pendingChange) filedRequests.add(removal.pendingChange.id);
+          }
         }
       }
 
-      finishSave(product.id, await saveGalleries(product.id));
+      finishSave(product.id, await saveGalleries(product.id), filedRequests.size);
     } catch (err) {
       setSaveStep(null);
       setSubmitError(translateError(err instanceof ApiError ? err.code : "error.internal"));
@@ -501,6 +557,10 @@ export function ProductForm({ mode, product }: ProductFormProps) {
                       <p className="text-sm text-destructive">{translateError(errors.compareAtPrice.message ?? "")}</p>
                     )}
                   </div>
+
+                  {priceNeedsApproval && (
+                    <p className="text-sm text-muted-foreground">{t("needsApproval.price")}</p>
+                  )}
                 </>
               ) : (
                 // Shown, not editable: whoever is fixing a name still needs
@@ -538,7 +598,9 @@ export function ProductForm({ mode, product }: ProductFormProps) {
               <CardContent className="flex items-center justify-between gap-3 py-5">
                 <div>
                   <Label htmlFor="isActive">{t("isActive")}</Label>
-                  <p className="text-sm text-muted-foreground">{t("isActiveHint")}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {visibilityNeedsApproval ? t("needsApproval.visibility") : t("isActiveHint")}
+                  </p>
                 </div>
                 <Controller
                   control={control}
@@ -588,6 +650,9 @@ export function ProductForm({ mode, product }: ProductFormProps) {
                     <Label htmlFor="stock">{t("stock")}</Label>
                     <NumericInput id="stock" aria-invalid={!!errors.stock} {...register("stock")} />
                     {errors.stock && <p className="text-sm text-destructive">{translateError(errors.stock.message ?? "")}</p>}
+                    {stockNeedsApproval && (
+                      <p className="text-sm text-muted-foreground">{t("needsApproval.stock")}</p>
+                    )}
                   </div>
                 )}
 
@@ -692,6 +757,21 @@ export function ProductForm({ mode, product }: ProductFormProps) {
       )}
 
       {submitError && <Alert variant="destructive">{submitError}</Alert>}
+
+      {/* Saved — but part of it needs an Admin's yes first. Plain language,
+          a count, and the one thing left to do: go and look at the product,
+          where each held value is shown against the one still in force. */}
+      {awaitingApproval > 0 && savedProductId && (
+        <Alert className="flex-col items-stretch gap-3">
+          <div className="flex flex-col gap-1">
+            <p className="font-medium">{t("awaitingApproval.title")}</p>
+            <p>{t("awaitingApproval.detail", { count: awaitingApproval })}</p>
+          </div>
+          <Button type="button" className="w-full" onClick={() => router.push(`/products/${savedProductId}`)}>
+            {t("awaitingApproval.viewProduct")}
+          </Button>
+        </Alert>
+      )}
 
       {/* The product is saved and its photos are not: say exactly that, say
           how many are missing, and offer to send just those again. Pressing

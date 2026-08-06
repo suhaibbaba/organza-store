@@ -9,8 +9,9 @@
  *      come from the backend API on a different origin, and this worker
  *      declines to touch anything cross-origin. A cached stock figure would
  *      mean selling something the shop no longer has.
- *   3. Draw the sale notifications the backend pushes (see the push handler
- *      at the bottom), and open the order they are about when tapped.
+ *   3. Draw the notifications the backend pushes (see the push handler at the
+ *      bottom) — a sale, or a change waiting for an Admin's approval — and
+ *      open what they are about when tapped.
  *
  * The cached HTML is safe to keep because every screen is a client component
  * that fetches its data at runtime (see e.g. dashboard/page.tsx) — the
@@ -269,6 +270,10 @@ function isStorable(response) {
  * ============================================================ */
 
 const SALE_PAYLOAD_TYPE = "sale";
+// Somebody asked for a change they may not make themselves (spec.md
+// "Employee change approvals"). Mirrors PUSH_PAYLOAD_TYPES in
+// shared/src/constants/push.ts — this file isn't bundled and can't import it.
+const CHANGE_REQUEST_PAYLOAD_TYPE = "changeRequest";
 const NOTIFICATION_ICON = "/icon-192.png";
 const NOTIFICATION_BADGE = "/icon-64.png";
 
@@ -291,11 +296,18 @@ async function handlePush(data) {
   }
   // Only this backend can push here (the subscription is bound to its VAPID
   // key), so anything unreadable is a version mismatch, not an attack —
-  // there is nothing truthful to draw, so nothing is drawn.
-  if (!payload || payload.type !== SALE_PAYLOAD_TYPE) return;
+  // there is nothing truthful to draw, so nothing is drawn. A type this build
+  // has never heard of is the same case.
+  if (!payload) return;
 
   const locale = payload.locale || payload.defaultLanguage;
   const messages = await loadPushMessages(locale);
+
+  if (payload.type === CHANGE_REQUEST_PAYLOAD_TYPE) {
+    await showChangeRequest(payload, messages, locale);
+    return;
+  }
+  if (payload.type !== SALE_PAYLOAD_TYPE) return;
 
   const values = {
     items: describeItems(payload, messages, locale),
@@ -322,6 +334,65 @@ async function handlePush(data) {
     tag: `${SALE_PAYLOAD_TYPE}-${payload.orderId}`,
     data: { url: orderUrl(locale, payload.orderId) },
   });
+}
+
+/**
+ * "Employee asked to change Price on Silk Scarf — 3 waiting".
+ *
+ * The payload names the entity type and the field; the words for both come
+ * from the app's own translations, sent alongside the notification wording
+ * (see src/app/api/push-messages/[locale]/route.ts), so nothing user-facing
+ * is written here either. Tapping it opens the approvals screen.
+ */
+async function showChangeRequest(payload, messages, locale) {
+  const values = {
+    staff: payload.staffName || "",
+    field: changeFieldLabel(payload, messages),
+    item: localize(payload.entityLabel, locale, payload.defaultLanguage),
+    count: payload.pendingCount || 0,
+  };
+
+  const title = fill(messages[payload.titleKey], values);
+  const body = fill(messages[payload.bodyKey], values);
+
+  await self.registration.showNotification(title || values.field, {
+    body: body || [values.item, values.staff].filter(Boolean).join(" — "),
+    icon: NOTIFICATION_ICON,
+    badge: NOTIFICATION_BADGE,
+    lang: locale,
+    dir: "auto",
+    // One notification per request: a superseding ask replaces its
+    // predecessor rather than stacking a second copy of the same decision.
+    tag: `${CHANGE_REQUEST_PAYLOAD_TYPE}-${payload.changeRequestId}`,
+    data: { url: changeRequestsUrl(locale) },
+  });
+}
+
+/**
+ * "Price", "Stock", "Delete photo" — the same labels the approvals screen
+ * uses, looked up by the (entityType, field) pair the payload carries. The
+ * mapping mirrors src/lib/change-requests.ts; an unknown pair falls back to
+ * the generic label rather than showing a raw column name.
+ */
+const CHANGE_FIELD_LABEL_KEYS = {
+  "Product:basePrice": "changeRequests.fields.price",
+  "Product:compareAtPrice": "changeRequests.fields.comparePrice",
+  "Product:stock": "changeRequests.fields.stock",
+  "Product:isActive": "changeRequests.fields.visibility",
+  "Product:variantSet": "changeRequests.fields.variantSet",
+  "Variant:priceOverride": "changeRequests.fields.variantPrice",
+  "Variant:stock": "changeRequests.fields.variantStock",
+  "ProductImage:deletion": "changeRequests.fields.photoDeletion",
+  "Expense:approvalStatus": "changeRequests.fields.expense",
+};
+
+function changeFieldLabel(payload, messages) {
+  const key = CHANGE_FIELD_LABEL_KEYS[`${payload.entityType}:${payload.field}`] || "changeRequests.fields.other";
+  return messages[key] || "";
+}
+
+function changeRequestsUrl(locale) {
+  return `/${locale}/change-requests`;
 }
 
 /** Tapping a sale opens that sale — reusing an open tab when there is one. */

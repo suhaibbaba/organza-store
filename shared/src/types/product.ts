@@ -1,4 +1,5 @@
 import type { I18n } from "@/types/common";
+import type { ChangeRequest } from "@/types/changeRequest";
 import type { CategoryRef } from "@/types/category";
 import type { ProductImageRef, Variant } from "@/types/variant";
 import type { PRODUCT_LOOKUP_KINDS, PRODUCT_PRINT_STATES } from "@/constants/product";
@@ -45,6 +46,11 @@ export interface Product {
   variants: Variant[];
   createdAt: string;
   updatedAt: string;
+  // Everything still waiting for an Admin on this product, its variants or
+  // its photos (spec.md "Employee change approvals"). Empty when nothing is
+  // held. What makes an Employee's gated edit show as WAITING on the screen
+  // they made it from, instead of looking as though it was thrown away.
+  pendingChanges?: ChangeRequest[];
   // SENSITIVE (CLAUDE.md rule 19): Admin + Manager only — absent entirely
   // from Employee responses.
   cost?: string | null;

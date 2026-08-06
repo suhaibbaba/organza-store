@@ -16,7 +16,8 @@
       "pull": "משכו לרענון",
       "release": "שחררו לרענון",
       "refreshing": "מרענן…"
-    }
+    },
+    "cancel": "ביטול"
   },
   "offline": {
     "title": "אין חיבור לאינטרנט",
@@ -33,7 +34,8 @@
     "reports": "דוחות",
     "users": "משתמשים",
     "settings": "הגדרות",
-    "more": "עוד"
+    "more": "עוד",
+    "changeRequests": "אישורים"
   },
   "auth": {
     "login": {
@@ -721,7 +723,17 @@
         "placeNumbersAfterSave": "שמרו קודם את המוצר, ואז חזרו לכאן כדי למקם את המספרים על התמונה."
       },
       "trackLowStock": "התראת מלאי נמוך",
-      "trackLowStockHint": "כבוי כברירת מחדל. הפעילו רק עבור מוצרים שאתם מחדשים במלאי, כדי שההתראות לא יוצפו בפריטים חד-פעמיים."
+      "trackLowStockHint": "כבוי כברירת מחדל. הפעילו רק עבור מוצרים שאתם מחדשים במלאי, כדי שההתראות לא יוצפו בפריטים חד-פעמיים.",
+      "needsApproval": {
+        "price": "שינוי מחיר דורש אישור מנהל. הקלידו ושמרו — הוא יוחל לאחר האישור.",
+        "stock": "שינוי כמות דורש אישור מנהל. הקלידו ושמרו — היא תוחל לאחר האישור.",
+        "visibility": "הסתרה או הצגה של מוצר דורשת אישור מנהל."
+      },
+      "awaitingApproval": {
+        "title": "נשמר — חלק מהשינויים ממתינים",
+        "detail": "{count} מהשינויים שלכם דורשים אישור מנהל לפני שייכנסו לתוקף. שום דבר לא אבד.",
+        "viewProduct": "הצגת המוצר"
+      }
     }
   },
   "inventory": {
@@ -960,6 +972,10 @@
       "body": "{items} — {total} — {staff}",
       "itemSeparator": ", ",
       "moreItems": "ועוד {count}"
+    },
+    "changeRequest": {
+      "title": "נדרש אישור",
+      "body": "{staff} ביקש לשנות {field} ב{item} — {count} ממתינים"
     }
   },
   "users": {
@@ -1108,11 +1124,15 @@
     "cashSessionWithdrawalExceedsCount": "אי אפשר למשוך יותר ממה שנספר בקופה.",
     "cashSessionNoOpenFollowUp": "אין מה לעקוב אחריו ביום הזה.",
     "expenseNotFound": "ההוצאה לא נמצאה.",
-    "expenseNotPending": "כבר הוחלט לגבי ההוצאה הזו.",
     "expenseCategoryNotFound": "קטגוריית ההוצאה לא נמצאה.",
     "expenseCategoryKeyDuplicate": "כבר קיימת קטגוריית הוצאה עם המזהה הזה.",
     "expenseCategoryKeyInvalid": "השתמשו באותיות אנגליות קטנות, ספרות ומקפים בלבד.",
-    "expenseCategoryHasExpenses": "יש הוצאות תחת הקטגוריה הזו ולכן אי אפשר למחוק אותה. כבו אותה במקום."
+    "expenseCategoryHasExpenses": "יש הוצאות תחת הקטגוריה הזו ולכן אי אפשר למחוק אותה. כבו אותה במקום.",
+    "changeRequestNotFound": "הבקשה הזו כבר לא קיימת.",
+    "changeRequestNotPending": "כבר הוכרע בבקשה הזו.",
+    "changeRequestSelfDecision": "אי אפשר לאשר בקשה של עצמך.",
+    "changeRequestTargetMissing": "הפריט שהבקשה הזו נגעה בו כבר לא קיים.",
+    "changeRequestNotApplicable": "כבר אי אפשר להחיל את הבקשה — הדברים השתנו מאז שהוגשה."
   },
   "pwa": {
     "version": {
@@ -1126,6 +1146,68 @@
       "description": "הקישו כדי לקבל את הגרסה החדשה. זה לוקח רגע, ושום דבר שנשמר לא הולך לאיבוד.",
       "action": "עדכון עכשיו",
       "updating": "מעדכן…"
+    }
+  },
+  "changeRequests": {
+    "title": "אישורים",
+    "subtitle": "שינויים שהעובדים ביקשו. אשרו כדי להחיל אותם, או דחו כדי לבטלם.",
+    "subtitleOwn": "השינויים שביקשתם. הם ייכנסו לתוקף לאחר אישור מנהל.",
+    "badgeLabel": "{count} שינויים ממתינים",
+    "status": {
+      "PENDING": "ממתין",
+      "APPROVED": "אושר",
+      "REJECTED": "נדחה"
+    },
+    "fields": {
+      "price": "מחיר",
+      "comparePrice": "מחיר לפני הנחה",
+      "stock": "מלאי",
+      "visibility": "מוצג ללקוחות",
+      "variantSet": "אפשרויות",
+      "variantPrice": "מחיר אפשרות",
+      "variantStock": "מלאי אפשרות",
+      "photoDeletion": "מחיקת תמונה",
+      "expense": "הוצאה",
+      "other": "שינוי"
+    },
+    "values": {
+      "none": "אין",
+      "visible": "מוצג",
+      "hidden": "מוסתר",
+      "deleted": "נמחקה",
+      "kept": "נשארה",
+      "approved": "אושר",
+      "awaiting": "ממתין",
+      "variantCount": "{count} אפשרויות",
+      "adding": "הוספה:",
+      "removing": "הסרה:",
+      "listSeparator": ", "
+    },
+    "card": {
+      "unknownItem": "פריט",
+      "askedBy": "ביקש {name} · {when}",
+      "approvedBy": "אושר על ידי {name} · {when}",
+      "rejectedBy": "נדחה על ידי {name} · {when}",
+      "approve": "אישור",
+      "reject": "דחייה",
+      "confirmReject": "אישור דחייה",
+      "noteLabel": "סיבה",
+      "notePlaceholder": "למה? (רשות)"
+    },
+    "pending": {
+      "waiting": "ממתין לאישור",
+      "waitingWithValue": "ממתין לאישור:"
+    },
+    "empty": {
+      "noneWaitingTitle": "אין מה שממתין",
+      "noneWaitingDescription": "כל מה שהעובדים ביקשו טופל.",
+      "noneTitle": "אין כאן כלום",
+      "noneDescription": "אין עדיין שינויים בסטטוס הזה."
+    },
+    "pagination": {
+      "previous": "הקודם",
+      "next": "הבא",
+      "pageOf": "עמוד {page} מתוך {totalPages}"
     }
   }
 }

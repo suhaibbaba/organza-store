@@ -21,6 +21,8 @@ import {
 import { StatusBadge } from "@/components/products/status-badge";
 import { VariantList } from "@/components/products/variant-list";
 import { ProductListError, ProductListLoading } from "@/components/products/product-list-states";
+import { PendingChangeBadge } from "@/components/change-requests/pending-change-badge";
+import { CHANGE_REQUEST_ENTITIES, CHANGE_REQUEST_FIELDS } from "@shared/constants/changeRequest";
 import { ApiError } from "@/lib/api/errors";
 
 export default function ProductDetailPage() {
@@ -85,8 +87,18 @@ function ProductDetail({ product, currency, locale }: { product: Product; curren
       <div className="flex flex-col gap-2">
         <div className="flex items-start justify-between gap-3">
           <h1 className="text-lg font-semibold text-foreground">{name}</h1>
-          <div className="flex shrink-0 items-center gap-2">
+          <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
             <StatusBadge isActive={product.isActive} />
+            {/* Their edit did not vanish — it is waiting (spec.md "Employee
+                change approvals"). Shown to everybody, not just the person
+                who asked: an Admin looking at the product should see that
+                somebody wants it hidden. */}
+            <PendingChangeBadge
+              changes={product.pendingChanges}
+              entityType={CHANGE_REQUEST_ENTITIES.PRODUCT}
+              entityId={product.id}
+              field={CHANGE_REQUEST_FIELDS.PRODUCT_IS_ACTIVE}
+            />
             {canEditDetails && (
               <Button asChild variant="outline" size="sm">
                 <Link href={`/products/${product.id}/edit`}>
@@ -101,13 +113,19 @@ function ProductDetail({ product, currency, locale }: { product: Product; curren
           <p className="text-sm text-muted-foreground">{localize(product.category.name, locale)}</p>
         )}
 
-        <div className="flex items-baseline gap-2">
+        <div className="flex flex-wrap items-baseline gap-2">
           <span className="text-xl font-semibold text-foreground">{formatMoney(product.basePrice, currency, locale)}</span>
           {product.compareAtPrice && (
             <span className="text-sm text-muted-foreground line-through">
               {formatMoney(product.compareAtPrice, currency, locale)}
             </span>
           )}
+          <PendingChangeBadge
+            changes={product.pendingChanges}
+            entityType={CHANGE_REQUEST_ENTITIES.PRODUCT}
+            entityId={product.id}
+            field={CHANGE_REQUEST_FIELDS.PRODUCT_BASE_PRICE}
+          />
         </div>
         {showCost && product.cost && (
           <p className="text-sm text-muted-foreground">
@@ -128,7 +146,15 @@ function ProductDetail({ product, currency, locale }: { product: Product; curren
           </div>
           <div>
             <dt className="text-muted-foreground">{t("stock")}</dt>
-            <dd className="font-medium text-foreground">{product.stock ?? 0}</dd>
+            <dd className="flex flex-wrap items-center gap-2 font-medium text-foreground">
+              {product.stock ?? 0}
+              <PendingChangeBadge
+                changes={product.pendingChanges}
+                entityType={CHANGE_REQUEST_ENTITIES.PRODUCT}
+                entityId={product.id}
+                field={CHANGE_REQUEST_FIELDS.PRODUCT_STOCK}
+              />
+            </dd>
           </div>
         </dl>
       )}
@@ -142,8 +168,14 @@ function ProductDetail({ product, currency, locale }: { product: Product; curren
 
       {product.hasVariants && (
         <div>
-          <h2 className="mb-2 text-sm font-medium text-foreground">
+          <h2 className="mb-2 flex flex-wrap items-center gap-2 text-sm font-medium text-foreground">
             {t("variantsTitle")} · {t("variantsCount", { count: product.variants.length })}
+            <PendingChangeBadge
+              changes={product.pendingChanges}
+              entityType={CHANGE_REQUEST_ENTITIES.PRODUCT}
+              entityId={product.id}
+              field={CHANGE_REQUEST_FIELDS.PRODUCT_VARIANT_SET}
+            />
           </h2>
           <VariantList variants={product.variants} variantTypes={product.variantTypes} currency={currency} />
         </div>

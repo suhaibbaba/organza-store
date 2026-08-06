@@ -2,6 +2,7 @@ import { afterAll, describe, expect, it } from "vitest";
 import { apiRequest, uniqueId } from "@tests/support/client";
 import { getSession } from "@tests/support/auth";
 import { createExpense, expenseCategoryId, num } from "@tests/support/cash";
+import { approveChange, pendingChangeFor, rejectExpense } from "@tests/support/changeRequests";
 import { DEFAULT_EXPENSE_CATEGORY_KEYS, ERROR_CODES } from "@/constants";
 import type { ExpenseCategoryDto, ExpenseDto } from "@tests/types";
 
@@ -9,8 +10,10 @@ import type { ExpenseCategoryDto, ExpenseDto } from "@tests/types";
 // sum. Two rules carry the whole feature and are what this suite proves:
 //
 //   * ANYONE may record one, but an Employee's is a REQUEST: it opens PENDING
-//     and counts for nothing until someone senior signs it off. Which of the
-//     two it is depends on the caller's ROLE, never on the request body.
+//     and counts for nothing until an Admin signs it off. Which of the two it
+//     is depends on the caller's ROLE, never on the request body. The signing
+//     off itself happens through the generic change-request flow (spec.md
+//     "Employee change approvals"), which is where its tests live.
 //   * Only APPROVED expenses are real money. (That they then reach the cash
 //     drawer is asserted in cashDrawer.test.ts, where the drawer is.)
 describe("Expenses", () => {
@@ -136,31 +139,43 @@ describe("Expenses", () => {
   // -------------------------------------------------------------------------
   // Approval
   // -------------------------------------------------------------------------
+  // The approval itself lives in the generic change-request flow now (spec.md
+  // "Employee change approvals") — there is one approval mechanism in the
+  // shop, not an expense-shaped one beside everything else. What an expense
+  // still owns is its APPLIED state: approvalStatus/approvedBy, which every
+  // money query filters on.
   describe("approval", () => {
-    it("lets a Manager sign off an Employee's request, once", async () => {
+    it("files a change request for an Employee's expense, and applies it on approval", async () => {
       const employee = await getSession("EMPLOYEE");
-      const manager = await getSession("MANAGER");
+      const admin = await getSession("ADMIN");
       const categoryId = await expenseCategoryId(employee.token);
 
       const created = await expense(employee.token, { categoryId, amount: "55", paidInCash: true });
       expect(created.data!.approvalStatus).toBe("PENDING");
+      // The request comes straight back, so the screen that recorded it can
+      // say it is waiting rather than leaving the person guessing.
+      expect(created.data!.pendingChange?.status).toBe("PENDING");
+      expect(created.data!.pendingChange?.requestedById).toBe(employee.userId);
 
-      const approved = await apiRequest<ExpenseDto>(`/api/expenses/${created.data!.id}/approve`, {
-        method: "POST",
-        token: manager.token,
-      });
+      const pending = await pendingChangeFor(admin.token, "Expense", created.data!.id);
+      expect(pending).toBeDefined();
+      expect(pending!.field).toBe("approvalStatus");
+
+      const approved = await approveChange(admin.token, pending!.id);
       expect(approved.status).toBe(200);
-      expect(approved.data!.approvalStatus).toBe("APPROVED");
-      expect(approved.data!.approvedBy?.id).toBe(manager.userId);
+      expect(approved.data!.status).toBe("APPROVED");
+      expect(approved.data!.decidedBy?.id).toBe(admin.userId);
 
-      // Approving again would silently overwrite who decided what — the one
-      // thing the audit trail exists to hold.
-      const again = await apiRequest(`/api/expenses/${created.data!.id}/approve`, {
-        method: "POST",
-        token: manager.token,
-      });
+      const reread = await apiRequest<ExpenseDto>(`/api/expenses/${created.data!.id}`, { token: admin.token });
+      expect(reread.data!.approvalStatus).toBe("APPROVED");
+      expect(reread.data!.approvedBy?.id).toBe(admin.userId);
+      expect(reread.data!.approvedAt).not.toBeNull();
+
+      // Deciding it again would silently overwrite who decided what — the one
+      // thing the record exists to hold.
+      const again = await approveChange(admin.token, pending!.id);
       expect(again.status).toBe(409);
-      expect(again.error?.code).toBe(ERROR_CODES.EXPENSE_NOT_PENDING);
+      expect(again.error?.code).toBe(ERROR_CODES.CHANGE_REQUEST_NOT_PENDING);
     });
 
     it("records a rejection with its reason instead of making it vanish", async () => {
@@ -170,41 +185,58 @@ describe("Expenses", () => {
 
       const created = await expense(employee.token, { categoryId, amount: "90", note: "تصليح" });
 
-      const rejected = await apiRequest<ExpenseDto>(`/api/expenses/${created.data!.id}/reject`, {
-        method: "POST",
-        token: admin.token,
-        body: { note: "مسجّلة مرتين" },
-      });
+      const rejected = await rejectExpense(admin.token, created.data!.id, "مسجّلة مرتين");
       expect(rejected.status).toBe(200);
-      expect(rejected.data!.approvalStatus).toBe("REJECTED");
-      expect(rejected.data!.approvedBy?.id).toBe(admin.userId);
-      expect(rejected.data!.note).toContain("تصليح");
-      expect(rejected.data!.note).toContain("مسجّلة مرتين");
+      expect(rejected.data!.status).toBe("REJECTED");
+      expect(rejected.data!.decidedBy?.id).toBe(admin.userId);
+      // The reason stays on the decision rather than being appended to what
+      // the person who recorded the expense wrote.
+      expect(rejected.data!.decisionNote).toBe("مسجّلة مرتين");
 
-      const approveAfter = await apiRequest(`/api/expenses/${created.data!.id}/approve`, {
-        method: "POST",
-        token: admin.token,
-      });
+      const reread = await apiRequest<ExpenseDto>(`/api/expenses/${created.data!.id}`, { token: admin.token });
+      // Rejected on the expense too — a refused expense says so on its own
+      // row rather than sitting pending forever — and its own note is intact.
+      expect(reread.data!.approvalStatus).toBe("REJECTED");
+      expect(reread.data!.approvedBy?.id).toBe(admin.userId);
+      expect(reread.data!.note).toBe("تصليح");
+
+      const approveAfter = await approveChange(admin.token, rejected.data!.id);
       expect(approveAfter.status).toBe(409);
     });
 
     it("does not let an Employee approve anything, including their own", async () => {
       const employee = await getSession("EMPLOYEE");
+      const admin = await getSession("ADMIN");
       const categoryId = await expenseCategoryId(employee.token);
 
       const created = await expense(employee.token, { categoryId, amount: "30" });
+      const pending = await pendingChangeFor(admin.token, "Expense", created.data!.id);
 
-      const res = await apiRequest(`/api/expenses/${created.data!.id}/approve`, {
-        method: "POST",
-        token: employee.token,
-      });
+      const res = await approveChange(employee.token, pending!.id);
       expect(res.status).toBe(403);
       expect(res.error?.code).toBe(ERROR_CODES.FORBIDDEN);
 
       // ...and it really is untouched.
-      const admin = await getSession("ADMIN");
       const reread = await apiRequest<ExpenseDto>(`/api/expenses/${created.data!.id}`, { token: admin.token });
       expect(reread.data!.approvalStatus).toBe("PENDING");
+    });
+
+    // Approving is Admin-only now (changeRequest.approve). A Manager still
+    // records spending that counts immediately — they hold expense.approve,
+    // so their own expense never becomes a request at all — but signing off
+    // somebody ELSE's is the Admin's.
+    it("does not let a Manager decide an Employee's expense", async () => {
+      const employee = await getSession("EMPLOYEE");
+      const manager = await getSession("MANAGER");
+      const admin = await getSession("ADMIN");
+      const categoryId = await expenseCategoryId(employee.token);
+
+      const created = await expense(employee.token, { categoryId, amount: "44" });
+      const pending = await pendingChangeFor(admin.token, "Expense", created.data!.id);
+
+      const res = await approveChange(manager.token, pending!.id);
+      expect(res.status).toBe(403);
+      expect(res.error?.code).toBe(ERROR_CODES.FORBIDDEN);
     });
   });
 

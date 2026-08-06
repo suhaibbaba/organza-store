@@ -196,11 +196,22 @@ export const UPDATE_RELOAD_FALLBACK_MS = 3_000;
 export const PUSH_MESSAGES_BASE_PATH = "/api/push-messages";
 export const pushMessagesPath = (locale: string): string => `${PUSH_MESSAGES_BASE_PATH}/${locale}`;
 
-/** The messages namespace that route exposes — the notification wording only. */
-export const PUSH_MESSAGES_NAMESPACE = "push";
+/**
+ * The message namespaces that route exposes.
+ *
+ * "push" is the notification wording itself. "changeRequests" comes with it
+ * because an approval notification has to name WHAT is being changed ("Price",
+ * "Stock"), and those labels already exist for the approvals screen — sending
+ * them here keeps one wording per concept instead of a copy that drifts
+ * (CLAUDE.md rule 12: nothing user-facing is written into the worker).
+ */
+export const PUSH_MESSAGES_NAMESPACES = ["push", "changeRequests"] as const;
 
 /** Where a tapped notification lands: the order it is about. */
 export const orderDetailPath = (locale: string, orderId: string): string => `/${locale}/orders/${orderId}`;
+
+/** ...or, for an approval, the screen where it can be decided. */
+export const changeRequestsPath = (locale: string): string => `/${locale}/change-requests`;
 
 /**
  * How long to wait for the service worker to take control before giving up

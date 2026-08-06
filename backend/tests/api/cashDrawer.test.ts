@@ -2,6 +2,7 @@ import { afterAll, describe, expect, it } from "vitest";
 import { apiRequest } from "@tests/support/client";
 import { getSession } from "@tests/support/auth";
 import { createSellableProduct } from "@tests/support/orders";
+import { approveExpense } from "@tests/support/changeRequests";
 import {
   closeSession,
   createExpense,
@@ -144,10 +145,9 @@ describe("Cash drawer", () => {
 
       expect(num((await readSession(admin.token, session.id)).expected)).toBe(400);
 
-      await apiRequest<ExpenseDto>(`/api/expenses/${pending.data!.id}/approve`, {
-        method: "POST",
-        token: admin.token,
-      });
+      // Signed off through the one approval mechanism there now is
+      // (spec.md "Employee change approvals").
+      await approveExpense(admin.token, pending.data!.id);
 
       expect(num((await readSession(admin.token, session.id)).expected)).toBe(340);
 

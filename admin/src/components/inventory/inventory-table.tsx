@@ -8,6 +8,8 @@ import type { InventoryItem } from "@shared/types/inventory";
 import { Link } from "@/i18n/navigation";
 import { localize } from "@/lib/i18n-content";
 import { StockStepper } from "@/components/inventory/stock-stepper";
+import { PendingChangeBadge } from "@/components/change-requests/pending-change-badge";
+import { CHANGE_REQUEST_ENTITIES, CHANGE_REQUEST_FIELDS } from "@shared/constants/changeRequest";
 import { cn } from "@/lib/utils";
 
 interface InventoryTableProps {
@@ -77,12 +79,31 @@ export function InventoryTable({ items, threshold, canAdjust }: InventoryTablePr
       {
         id: "stock",
         header: tTable("stock"),
-        cell: ({ row }) =>
-          canAdjust ? (
-            <StockStepper item={row.original} />
-          ) : (
-            <span className="font-medium text-foreground">{row.original.stock}</span>
-          ),
+        cell: ({ row }) => (
+          <div className="flex flex-wrap items-center gap-2">
+            {canAdjust ? (
+              <StockStepper item={row.original} />
+            ) : (
+              <span className="font-medium text-foreground">{row.original.stock}</span>
+            )}
+            {/* Same rule as the mobile card: a figure somebody has asked to
+                change is spoken for, not wrong. */}
+            <PendingChangeBadge
+              changes={row.original.pendingChanges}
+              entityType={
+                row.original.type === "variant"
+                  ? CHANGE_REQUEST_ENTITIES.VARIANT
+                  : CHANGE_REQUEST_ENTITIES.PRODUCT
+              }
+              entityId={row.original.id}
+              field={
+                row.original.type === "variant"
+                  ? CHANGE_REQUEST_FIELDS.VARIANT_STOCK
+                  : CHANGE_REQUEST_FIELDS.PRODUCT_STOCK
+              }
+            />
+          </div>
+        ),
       },
     ],
     [locale, threshold, canAdjust, t, tTable]

@@ -20,6 +20,9 @@ export const COUNTED_EXPENSE_APPROVAL_STATUS = "APPROVED";
 // wording can never disagree about it.
 export const PENDING_EXPENSE_APPROVAL_STATUS = "PENDING";
 export const APPROVED_EXPENSE_APPROVAL_STATUS = "APPROVED";
+// What a refused request leaves behind. A rejected expense stays on the
+// record — with who turned it down — rather than vanishing (spec.md).
+export const REJECTED_EXPENSE_APPROVAL_STATUS = "REJECTED";
 
 export const EXPENSE_SORT_FIELDS = ["date", "amount", "createdAt"] as const;
 

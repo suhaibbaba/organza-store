@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { BARCODE_MAX_ATTEMPTS, BARCODE_PREFIX, BARCODE_RANDOM_DIGITS } from "@/constants";
+import type { DbClient } from "@/types/changeRequest";
 
 function checkDigit(twelveDigits: string): number {
   let sum = 0;
@@ -21,12 +22,16 @@ function randomCandidate(): string {
 
 // Barcodes are unique across BOTH products and variants (one shared
 // namespace), per CLAUDE.md rule 13.
-export async function generateUniqueBarcode(): Promise<string> {
+//
+// Takes the client so a caller generating several inside one transaction
+// (a whole variant set at once) checks against the rows that same transaction
+// has already written, rather than against the last committed state.
+export async function generateUniqueBarcode(client: DbClient = prisma): Promise<string> {
   for (let attempt = 0; attempt < BARCODE_MAX_ATTEMPTS; attempt++) {
     const candidate = randomCandidate();
     const [existingProduct, existingVariant] = await Promise.all([
-      prisma.product.findUnique({ where: { barcode: candidate }, select: { id: true } }),
-      prisma.variant.findUnique({ where: { barcode: candidate }, select: { id: true } }),
+      client.product.findUnique({ where: { barcode: candidate }, select: { id: true } }),
+      client.variant.findUnique({ where: { barcode: candidate }, select: { id: true } }),
     ]);
     if (!existingProduct && !existingVariant) return candidate;
   }

@@ -34,7 +34,19 @@ export async function setPrimaryImage(imageId: string, isPrimary: boolean): Prom
   return data;
 }
 
-export async function deleteImage(imageId: string): Promise<{ id: string }> {
-  const { data } = await apiFetch<{ id: string }>(`/api/images/${imageId}`, { method: "DELETE" });
-  return data;
+/**
+ * Remove a photo — or ASK for it to be removed.
+ *
+ * Deleting a photo is a gated action (spec.md "Employee change approvals"):
+ * whoever holds images.delete removes it there and then, and everyone else's
+ * attempt files a request and leaves the photo exactly where it is. The
+ * backend says which happened in `deleted`, so the gallery can put a held
+ * photo back on screen instead of pretending it has gone.
+ */
+export async function deleteImage(imageId: string): Promise<{ id: string; deleted: boolean }> {
+  const { data } = await apiFetch<{ id: string; deleted?: boolean }>(`/api/images/${imageId}`, {
+    method: "DELETE",
+  });
+  // Older backends answered without the flag, and they only ever deleted.
+  return { id: data.id, deleted: data.deleted ?? true };
 }

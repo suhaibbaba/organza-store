@@ -17,6 +17,8 @@
 //    - the five default expense categories, plus an expense of every shape:
 //      approved-in-cash, approved-by-transfer, an Employee's pending one,
 //      and a rejected one
+//    - change requests in every state: an Employee's pending price change, the
+//      pending expense's own approval, and one already turned down
 //    - two closed cash-drawer days, the second carrying a difference forward
 // ============================================================
 
@@ -743,7 +745,10 @@ async function main() {
       isRecurring: false,
       approvalStatus: "REJECTED" as const,
       createdById: employee.id,
-      approvedById: manager.id,
+      // Deciding a request is the Admin's (changeRequest.approve) — a Manager
+      // records spending that counts immediately, but does not sign off
+      // someone else's (spec.md "Employee change approvals").
+      approvedById: admin.id,
     },
   ];
   for (const e of seedExpenses) {
@@ -760,6 +765,105 @@ async function main() {
       createdById: e.createdById,
     };
     await prisma.expense.upsert({ where: { id: e.id }, update: data, create: { id: e.id, ...data } });
+  }
+
+  // --- Change requests: the generic approval gate, in every state ---
+  // (spec.md "Employee change approvals"). Every gated change in the shop is
+  // one of these rows — a price, a manual stock figure, a photo deletion, a
+  // product's visibility, its variant set, and an Employee's expense — so the
+  // seed covers a pending one of each kind an approval screen has to draw,
+  // plus one already turned down.
+  //
+  // `pendingKey` is what makes superseding impossible to get wrong: unique
+  // while PENDING, null once decided. Set it exactly as lib/changeRequests.ts
+  // does, or a re-seed will collide with itself.
+  const pendingKey = (entityType: string, entityId: string, field: string) =>
+    `${entityType}:${entityId}:${field}`;
+
+  const seedChangeRequests = [
+    {
+      id: "seed-change-request-price",
+      entityType: "Product",
+      entityId: silkScarf.id,
+      field: "basePrice",
+      // Read off the row rather than written twice: the "old" side of a
+      // request is whatever is actually stored.
+      oldValue: { kind: "money", value: silkScarf.basePrice.toFixed(2) },
+      newValue: { kind: "money", value: "39.00" },
+      entityLabel: silkScarf.name,
+      entityDetail: silkScarf.sku,
+      productId: silkScarf.id,
+      status: "PENDING" as const,
+      requestedById: employee.id,
+      requestedAt: new Date("2026-02-04T09:00:00.000Z"),
+      decidedById: null,
+      decidedAt: null,
+      decisionNote: null,
+    },
+    {
+      id: "seed-change-request-expense",
+      entityType: "Expense",
+      entityId: "seed-expense-supplies-pending",
+      field: "approvalStatus",
+      oldValue: { kind: "approval", value: "PENDING" },
+      newValue: { kind: "approval", value: "APPROVED" },
+      entityLabel: { ar: "مستلزمات", en: "Supplies", he: "ציוד" },
+      entityDetail: "85.00",
+      productId: null,
+      status: "PENDING" as const,
+      requestedById: employee.id,
+      requestedAt: new Date("2026-02-02T08:00:00.000Z"),
+      decidedById: null,
+      decidedAt: null,
+      decisionNote: null,
+    },
+    {
+      id: "seed-change-request-rejected",
+      entityType: "Expense",
+      entityId: "seed-expense-maintenance-rejected",
+      field: "approvalStatus",
+      oldValue: { kind: "approval", value: "PENDING" },
+      newValue: { kind: "approval", value: "APPROVED" },
+      entityLabel: { ar: "صيانة", en: "Maintenance", he: "תחזוקה" },
+      entityDetail: "150.00",
+      productId: null,
+      status: "REJECTED" as const,
+      requestedById: employee.id,
+      requestedAt: new Date("2026-02-03T08:00:00.000Z"),
+      decidedById: admin.id,
+      decidedAt: new Date("2026-02-03T10:00:00.000Z"),
+      decisionNote: "مسجّلة مرتين",
+    },
+  ];
+  for (const r of seedChangeRequests) {
+    const data = {
+      entityType: r.entityType,
+      entityId: r.entityId,
+      field: r.field,
+      // Held only while pending — the unique index on it IS the "never a
+      // queue of stale requests" rule.
+      pendingKey: r.status === "PENDING" ? pendingKey(r.entityType, r.entityId, r.field) : null,
+      oldValue: r.oldValue,
+      newValue: r.newValue,
+      entityLabel: r.entityLabel ?? undefined,
+      entityDetail: r.entityDetail,
+      productId: r.productId,
+      status: r.status,
+      requestedById: r.requestedById,
+      requestedAt: r.requestedAt,
+      decidedById: r.decidedById,
+      decidedAt: r.decidedAt,
+      decisionNote: r.decisionNote,
+    };
+    // A database that went through the expense-approval migration already
+    // holds a backfilled request for the seeded pending expense, under its
+    // own id. The pendingKey is unique, so that row has to give way before
+    // this one can take the slot — which is also exactly what makes a
+    // re-seed safe to run over a migrated dev database.
+    if (data.pendingKey) {
+      await prisma.changeRequest.deleteMany({ where: { pendingKey: data.pendingKey, id: { not: r.id } } });
+    }
+    await prisma.changeRequest.upsert({ where: { id: r.id }, update: data, create: { id: r.id, ...data } });
   }
 
   // --- Cash drawer: two closed days, one of them short ---

@@ -10,6 +10,7 @@ export type NavKey =
   | "labels"
   | "categories"
   | "reports"
+  | "changeRequests"
   | "users"
   | "settings";
 
