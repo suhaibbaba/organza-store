@@ -9,6 +9,18 @@ export const CLIENT_ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/web
 
 export const IMAGE_GRID_THUMB_SIZES = "(min-width: 768px) 120px, 30vw";
 
+/**
+ * Drawn wherever a product has no photo, or the photo it has won't load
+ * (public/product-placeholder.svg).
+ *
+ * One flat file at one URL, served straight out of public/ rather than
+ * through the image optimizer: the browser and the service worker both cache
+ * it by URL, so a list of a hundred photoless products fetches it once. It is
+ * also what the app falls back to instead of ever showing the browser's own
+ * broken-image glyph.
+ */
+export const PRODUCT_PLACEHOLDER_PATH = "/product-placeholder.svg";
+
 // Keys for the galleries the product form holds while it is being edited:
 // the product's own, plus one per variant. They live in a single map so the
 // form's one Save can walk every gallery the same way.

@@ -2,7 +2,8 @@
 
 import { useRef, useState } from "react";
 import Image from "next/image";
-import { API_BASE_URL } from "@/lib/env";
+import { PRODUCT_PLACEHOLDER_PATH } from "@/constants/images";
+import { hasImageFailed, markImageFailed, resolveImageUrl } from "@/lib/image-fallback";
 import { POINT_DRAG_THRESHOLD_PX, NUMBERED_SHAWL_IMAGE_SIZES } from "@/constants/numberedShawl";
 import { clampPercent } from "@/lib/validation/numbered-shawl";
 import { Spinner } from "@/components/ui/spinner";
@@ -58,8 +59,14 @@ export function ImagePointCanvas({
   // Tracks a possible drag/tap gesture on one pin.
   const dragRef = useRef<{ id: string; moved: boolean } | null>(null);
 
-  const resolvedSrc = imageUrl.startsWith("http") ? imageUrl : `${API_BASE_URL}${imageUrl}`;
-  const isReady = ratio !== null;
+  const resolvedSrc = resolveImageUrl(imageUrl);
+  // Seeded from the session's record of broken URLs, so re-opening the editor
+  // on a photo already known to be gone goes straight to the placeholder.
+  const [imageFailed, setImageFailed] = useState(() => hasImageFailed(resolvedSrc));
+
+  // The placeholder can't report a natural size, so it stands in as "ready"
+  // itself — otherwise the pins would never be drawn on top of it.
+  const isReady = ratio !== null || imageFailed;
 
   function percentFromEvent(clientX: number, clientY: number) {
     const rect = boxRef.current?.getBoundingClientRect();
@@ -125,19 +132,34 @@ export function ImagePointCanvas({
         style={{ aspectRatio: ratio ?? PLACEHOLDER_ASPECT_RATIO }}
         className={cn("relative select-none", !readOnly && "touch-none")}
       >
-        <Image
-          src={resolvedSrc}
-          alt={alt}
-          fill
-          sizes={NUMBERED_SHAWL_IMAGE_SIZES}
-          className="object-contain"
-          draggable={false}
-          priority
-          onLoad={(e) => {
-            const img = e.currentTarget;
-            if (img.naturalWidth && img.naturalHeight) setRatio(img.naturalWidth / img.naturalHeight);
-          }}
-        />
+        {imageFailed ? (
+          // The photo is gone. The pins still are not: they are stored as
+          // percentages of this box, so the box keeps its shape and they keep
+          // their places over the placeholder, waiting for the photo to be
+          // re-uploaded. Left to next/image this was a spinner that never
+          // stopped — `onLoad` never fires for an image that failed, so the
+          // canvas sat "loading" forever with the numbers unreachable.
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={PRODUCT_PLACEHOLDER_PATH} alt="" className="size-full object-contain" draggable={false} />
+        ) : (
+          <Image
+            src={resolvedSrc}
+            alt={alt}
+            fill
+            sizes={NUMBERED_SHAWL_IMAGE_SIZES}
+            className="object-contain"
+            draggable={false}
+            priority
+            onLoad={(e) => {
+              const img = e.currentTarget;
+              if (img.naturalWidth && img.naturalHeight) setRatio(img.naturalWidth / img.naturalHeight);
+            }}
+            onError={() => {
+              markImageFailed(resolvedSrc);
+              setImageFailed(true);
+            }}
+          />
+        )}
 
         {!isReady && (
           <div className="absolute inset-0 flex items-center justify-center">

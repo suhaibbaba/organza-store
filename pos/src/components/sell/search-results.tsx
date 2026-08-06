@@ -31,13 +31,17 @@ interface SearchResultsProps {
 // wrong mid-sale means an unexpected sheet over the counter, or a tap that
 // silently added something when the cashier expected to choose.
 //
-// So a product with variants is drawn as a card with another card behind it —
-// tinted, with a sliver showing above its top edge — and points forward with
-// a chevron instead of offering a plus. The tint is the brand's own secondary,
-// the same one the cart and the back button use, kept faint: a list of ten
-// results has to stay calm, and the difference has to survive being glanced
-// at rather than read. Nothing changes size, so the rows still scan as one
-// list.
+// So the two are drawn as two kinds of card. One with variants carries a
+// solid accent bar down its leading edge and the faintest wash of the brand's
+// secondary, and ends in a chevron: it leads somewhere. A simple one is a
+// plain white card that ends in a filled "+": it acts. The bar is what does
+// the work at a glance — a single vertical mark in a column of results is
+// visible before anything is read — and the tint only has to whisper.
+//
+// Both cards reserve the same 4px on the leading edge, so a bar appearing
+// never nudges a thumbnail sideways and the list still scans as one column.
+// Both action marks are the same 44px circle, and the whole row stays the tap
+// target, so neither is a small thing to aim at.
 export function SearchResults({ results, isLoading, isError, pendingId, onSelect }: SearchResultsProps) {
   const t = useTranslations("sell.search");
   const locale = useLocale();
@@ -67,58 +71,74 @@ export function SearchResults({ results, isLoading, isError, pendingId, onSelect
         const soldOut = product.stock <= 0;
 
         return (
-          <li key={product.id} className={product.hasVariants ? "pt-1" : undefined}>
+          <li key={product.id}>
             <button
               type="button"
               disabled={soldOut || pendingId !== null}
               onClick={() => onSelect(product)}
               className={cn(
-                "relative flex w-full items-center gap-3 rounded-xl border border-border p-3 text-start transition-colors",
+                "flex w-full items-center gap-3 rounded-xl border border-border p-3 text-start transition-colors",
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-60",
+                // border-s-* is the logical side, so the bar sits on the
+                // leading edge and swaps to the right of the card in Arabic
+                // with nothing to mirror by hand. The plain card reserves the
+                // same width in transparent, which is what keeps every
+                // thumbnail in the list on one vertical line.
+                "border-s-4",
                 product.hasVariants
-                  ? [
-                      "bg-secondary hover:bg-secondary/70",
-                      // The card behind this one: a sliver of a second card
-                      // peeking out above the top edge, inset from both sides
-                      // so it reads as stacked rather than as a stray line.
-                      // Inset symmetrically and sized with logical properties,
-                      // so there is nothing here to mirror in Arabic.
-                      "before:absolute before:inset-x-5 before:-top-1 before:h-1.5 before:rounded-t-lg",
-                      "before:border before:border-b-0 before:border-border before:bg-secondary before:content-['']",
-                    ]
-                  : "bg-card hover:bg-accent/60"
+                  ? "border-s-primary bg-secondary/40 hover:bg-secondary/70"
+                  : "border-s-transparent bg-card hover:bg-accent/60"
               )}
             >
               <ProductThumb src={product.image?.thumbnailUrl} alt={name} className="size-16 rounded-lg" />
 
               <span className="flex min-w-0 flex-1 flex-col items-start gap-1">
                 <span className="w-full truncate text-base font-medium">{name}</span>
-                <span className="flex items-center gap-x-2 text-sm text-muted-foreground">
-                  <span className="font-semibold text-foreground">{formatMoney(product.basePrice)}</span>
-                  <span className={soldOut ? "text-destructive" : undefined}>
-                    · {soldOut ? t("soldOut") : t("inStock", { count: product.stock })}
+
+                {/* The price leads and the stock follows it quietly — one
+                    figure to read and one to check, rather than two competing
+                    for the same glance. */}
+                <span className="flex items-baseline gap-2">
+                  <span className="text-base font-semibold text-foreground">
+                    {formatMoney(product.basePrice)}
+                  </span>
+                  <span className={cn("text-sm", soldOut ? "text-destructive" : "text-muted-foreground")}>
+                    {soldOut ? t("soldOut") : t("inStock", { count: product.stock })}
                   </span>
                 </span>
-                {/* Replaces the old "· 4 options", and on a line of its own
-                    rather than trailing the price. Sharing that line meant the
-                    badge fitted in Arabic and wrapped in English — and wrapped
-                    only for the pricier rows within one list, so a column of
-                    results came out ragged. Its own line is the same height
-                    every time, whatever the price, the count or the language. */}
+
+                {/* On a line of its own: sharing the price line, it fitted in
+                    Arabic and wrapped in English — and wrapped only for the
+                    pricier rows within one list, so a column of results came
+                    out ragged. */}
                 <VariantKindBadge product={product} />
               </span>
 
-              {pendingId === product.id ? (
-                <Spinner className="text-muted-foreground" />
-              ) : product.hasVariants ? (
-                // rtl:rotate-180 — the chevron points "forward" in the
-                // reading direction, which is rightward only in LTR.
-                <ChevronRight className="size-5 shrink-0 text-primary rtl:rotate-180" aria-hidden="true" />
-              ) : (
-                // A plus has no direction to mirror: this one adds to the
-                // cart on the spot, and says so the same way in every locale.
-                <Plus className="size-5 shrink-0 text-muted-foreground" aria-hidden="true" />
-              )}
+              {/* Both marks are the same 44px circle, in the same place, so
+                  the eye lands on one thing and reads which it is. Neither is
+                  a control of its own — the whole row is the button, which is
+                  a far bigger target than the circle it contains. */}
+              <span
+                className={cn(
+                  "flex size-11 shrink-0 items-center justify-center rounded-full",
+                  product.hasVariants
+                    ? "border border-primary/25 bg-background text-primary"
+                    : "bg-primary text-primary-foreground"
+                )}
+                aria-hidden="true"
+              >
+                {pendingId === product.id ? (
+                  <Spinner className={product.hasVariants ? "text-primary" : "text-primary-foreground"} />
+                ) : product.hasVariants ? (
+                  // rtl:rotate-180 — the chevron points "forward" in the
+                  // reading direction, which is rightward only in LTR.
+                  <ChevronRight className="size-5 rtl:rotate-180" />
+                ) : (
+                  // A plus has no direction to mirror: this one adds to the
+                  // cart on the spot, and says so the same way in every locale.
+                  <Plus className="size-5" />
+                )}
+              </span>
             </button>
           </li>
         );

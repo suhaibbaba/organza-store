@@ -49,8 +49,12 @@ const SHELL_CACHE = `${CACHE_PREFIX}-shell-${VERSION}`;
 const ASSET_CACHE = `${CACHE_PREFIX}-assets`;
 const MAX_ASSET_ENTRIES = 200;
 
-// Files served straight out of public/ — icons and the manifest.
-const PUBLIC_ASSET_PATTERN = /^\/(favicon\.ico|icon-[\w-]+\.png|manifest\.webmanifest)$/;
+// Files served straight out of public/ — icons, the manifest, and the
+// stand-in drawn for a product with no photo. The placeholder is in here
+// because it is the one image the app draws when the network is the very
+// thing that failed: fetching it from a dead connection would leave the
+// fallback needing a fallback.
+const PUBLIC_ASSET_PATTERN = /^\/(favicon\.ico|icon-[\w-]+\.png|product-placeholder\.svg|manifest\.webmanifest)$/;
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
