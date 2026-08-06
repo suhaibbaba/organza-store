@@ -80,6 +80,11 @@ export interface CashSessionActor {
 // recomputed on every read while the session is open.
 export interface CurrentCashSession {
   session: CashSession | null;
+  // The most recently closed day. `session` only ever holds an OPEN drawer,
+  // so without this a screen has no way to tell "the day is finished, here is
+  // what it came to" apart from "nobody has started a drawer yet" — and would
+  // offer to open a day that has already been counted.
+  lastClosed: CashSession | null;
   // What the next session would open with if one were started now: the last
   // closed day's remainder. Lets the POS show the float before committing to
   // opening the day.

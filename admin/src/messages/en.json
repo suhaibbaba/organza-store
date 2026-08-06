@@ -51,41 +51,149 @@
   "dashboard": {
     "title": "Dashboard",
     "welcome": "Welcome, {name}",
-    "subtitle": "Here's a quick look at your store.",
-    "cards": {
-      "products": {
-        "label": "Products",
-        "subtitle": "{active} active · {hidden} hidden"
+    "subtitle": "Money received and money still owed are never mixed together here.",
+    "figures": {
+      "explain": "What does “{label}” mean?",
+      "sold": {
+        "label": "Sold",
+        "help": "Everything that left the shop, after discounts and returns. It is not money in hand — part of it is still with the delivery company."
       },
-      "lowStock": {
-        "label": "Low stock",
-        "subtitle": "At {threshold} pieces or fewer"
+      "received": {
+        "label": "Received",
+        "help": "The part of what you sold that has actually been paid for: counter sales, plus delivery orders the company has settled up for."
       },
-      "categories": {
-        "label": "Categories"
-      },
-      "inventoryValue": {
-        "label": "Inventory value",
-        "basisCost": "At cost price",
-        "basisPrice": "At selling price"
+      "owed": {
+        "label": "Still owed to us",
+        "help": "What the delivery company is still holding for orders it has taken. Sold minus received — money on its way, not money you have."
       }
     },
-    "sales": {
-      "title": "Sales & profit",
-      "viewReports": "Reports",
-      "error": "Sales could not be loaded.",
+    "today": {
+      "title": "Today",
+      "orders": "{count, plural, =0 {No orders} one {1 order} other {# orders}}",
+      "receivedHint": "cash in hand",
+      "owedOrders": "{count, plural, =0 {Nothing outstanding} one {1 delivery order} other {# delivery orders}}",
+      "profit": {
+        "label": "Profit on today's sales",
+        "help": "Today's sales less what the stock cost and what the shop spent today. It counts every sale, including ones the delivery company hasn't paid for yet.",
+        "hint": "after cost + expenses"
+      }
+    },
+    "drawer": {
+      "title": "Cash drawer",
+      "subtitle": "Where the end-of-day count is entered",
+      "staleDay": "This drawer is still open from {date}. Count it before starting a new day.",
+      "openingFloat": {
+        "label": "Cash at open (this morning)",
+        "help": "What was in the drawer when the day started — last night's remainder after any cash was taken out. It is a starting figure, not what is in there now."
+      },
+      "cashSales": "Cash sales today",
+      "cashExpenses": "Cash expenses today",
+      "expected": {
+        "label": "Expected in drawer now",
+        "help": "The morning float plus today's cash sales, less cash spent from the till. This is what should be there right now, before you count."
+      },
+      "notClosed": {
+        "title": "Day not closed yet",
+        "body": "Count the drawer, record any cash you take out",
+        "action": "Close the day / count"
+      },
+      "notStarted": {
+        "title": "Day not started",
+        "body": "Last night left {amount} in the drawer. Open the day to start recording cash.",
+        "action": "Open the drawer"
+      },
+      "openDay": {
+        "title": "Open the drawer",
+        "description": "The drawer starts with what was left in it last night: {amount}. Change it only if you put a different amount in.",
+        "openingFloat": "Cash in the drawer now",
+        "note": "Note (optional)",
+        "notePlaceholder": "Anything worth remembering about this morning",
+        "submit": "Open the day"
+      },
+      "closeDay": {
+        "title": "Close the day",
+        "blindHint": "Count the drawer first. What should be in it is hidden on purpose — you'll see it, and any difference, as soon as you save.",
+        "counted": "Cash counted in the drawer",
+        "withdrawn": "Cash taken out",
+        "withdrawnHint": "What you are removing now. The rest stays in for tomorrow.",
+        "note": "Note (optional)",
+        "noteRequired": "What happened? (required)",
+        "noteRequiredHint": "The count doesn't match. Write down what you think happened — it is saved either way.",
+        "notePlaceholder": "e.g. paid the driver from the till",
+        "expected": "Expected",
+        "short": "Short by",
+        "over": "Over by",
+        "balanced": "Difference",
+        "carry": "Follow this up tomorrow",
+        "carryHint": "Keeps the day on the follow-up list until someone works out what happened.",
+        "submit": "Save the count",
+        "saveWithNote": "Save anyway",
+        "saved": "The day is closed and the count is saved.",
+        "done": "Done",
+        "countedShort": "Counted"
+      },
+      "closed": {
+        "title": "Day closed",
+        "body": "Counted {counted}. {carried} stays in the drawer for tomorrow.",
+        "short": "Came up {amount} short",
+        "over": "Came up {amount} over"
+      }
+    },
+    "period": {
+      "export": "Export Excel",
       "periods": {
         "today": "Today",
         "week": "This week",
         "month": "This month"
       },
-      "revenue": "Sales",
-      "orders": "Orders",
-      "averageOrder": "Average order",
-      "profit": "Profit",
-      "margin": "{value, number, percent} margin",
-      "pendingCollection": "Awaiting payment",
-      "pendingCollectionOrders": "{count, plural, one {1 order} other {# orders}}"
+      "exportColumns": {
+        "figure": "Figure",
+        "amount": "Amount ({currency})"
+      },
+      "sold": {
+        "label": "Total sold",
+        "hint": "all orders"
+      },
+      "received": {
+        "label": "Total received",
+        "hint": "money actually in"
+      },
+      "owed": {
+        "hint": "from delivery company"
+      },
+      "cogs": {
+        "label": "Cost of goods sold",
+        "help": "What the pieces you sold had cost the shop to buy — the price you paid, not the price you sold them for.",
+        "hint": "what stock cost us"
+      },
+      "expenses": {
+        "label": "Operating expenses",
+        "help": "Approved spending in this period — bills, salaries, supplies — plus what any stock you gave away had cost. Expenses still waiting for approval are not counted.",
+        "hint": "bills, salaries, gifts"
+      },
+      "profitAll": {
+        "label": "Profit (all sales)",
+        "help": "Everything sold, less stock cost and expenses. It includes sales the delivery company hasn't paid you for yet.",
+        "hint": "incl. money not yet received"
+      },
+      "profitReceived": {
+        "label": "Profit (received only)",
+        "help": "The same sum counting only sales you have actually been paid for. Expenses come off in full, because a bill is owed either way.",
+        "hint": "money truly in hand"
+      },
+      "margin": {
+        "label": "Profit margin",
+        "help": "Profit on all sales divided by what you sold — what the shop keeps out of every shekel that goes through it.",
+        "hint": "profit ÷ sold",
+        "value": "{value, number, percent}",
+        "none": "—"
+      }
+    },
+    "attention": {
+      "title": "Needs attention",
+      "lowStock": "Low stock items",
+      "pendingApprovals": "Waiting for your approval",
+      "uncollected": "Uncollected from delivery"
     }
   },
   "orders": {
@@ -991,7 +1099,20 @@
     "orderVariantRequired": "Choose which variant of this product.",
     "orderNotCollectable": "This order is cancelled or returned, so there is no payment to record.",
     "reportRangeInvalid": "That period isn't valid. Check the start and end dates.",
-    "reportRangeTooLong": "That period is too long. Pick a year at most."
+    "reportRangeTooLong": "That period is too long. Pick a year at most.",
+    "orderGiftChannelInvalid": "A gift can only be given at the counter.",
+    "cashSessionNotFound": "That day's drawer could not be found.",
+    "cashSessionDateTaken": "This day already has a drawer.",
+    "cashSessionAlreadyClosed": "This day has already been counted and closed.",
+    "cashSessionDifferenceNoteRequired": "The count doesn't match — please write down what happened.",
+    "cashSessionWithdrawalExceedsCount": "You can't take out more than was counted in the drawer.",
+    "cashSessionNoOpenFollowUp": "There is nothing left to follow up on this day.",
+    "expenseNotFound": "That expense could not be found.",
+    "expenseNotPending": "This expense has already been decided.",
+    "expenseCategoryNotFound": "That expense category could not be found.",
+    "expenseCategoryKeyDuplicate": "An expense category with this key already exists.",
+    "expenseCategoryKeyInvalid": "Use lowercase letters, numbers and dashes only.",
+    "expenseCategoryHasExpenses": "Expenses are filed under this category, so it can't be deleted. Turn it off instead."
   },
   "pwa": {
     "version": {

@@ -3,6 +3,7 @@
 // suite asserts against the very types the API is typed with.
 export type {
   ChannelSales,
+  PeriodSummary,
   ProfitTotals,
   ReportGranularity,
   ReportPeriod,

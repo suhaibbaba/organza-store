@@ -27,6 +27,7 @@ export interface CashSessionDto {
 
 export interface CurrentCashSessionDto {
   session: CashSessionDto | null;
+  lastClosed: CashSessionDto | null;
   suggestedOpeningFloat: string;
   openFollowUpCount: number;
 }

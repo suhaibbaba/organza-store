@@ -557,6 +557,13 @@ tomorrow's openingFloat = counted − withdrawn
   required is a **note** explaining it, and the shop may **carry it forward** as a follow-up
   reminder that stays on the list until someone signs it off. Carrying moves no money — the next
   day already opens on what was counted — it is purely the reminder that a day did not add up.
+- **The count is blind.** The closing screen deliberately withholds the expected figure while the
+  money is being counted: a count made with the answer in view is not a count, it is a chance to
+  make the drawer agree with the books. Expected, counted and the difference are revealed together
+  the moment a count is submitted — and only then is the note asked for, because only then is there
+  a difference to explain. (Mechanically: the close endpoint refuses an unexplained difference and
+  returns the three figures with the refusal, so the screen can reveal them without ever having
+  been told the answer in advance. The count itself is fixed once revealed.)
 - **One drawer per day**, and that is the only restriction. Yesterday's session still being open
   does *not* stop today's from starting: money is attributed to a day by that day's window, never
   by "whichever drawer happens to be open", so nothing can be double-counted — and refusing to let
@@ -629,6 +636,29 @@ Expenses are subtracted in full from the received-only net too: a bill is owed w
 delivery company has settled up yet. Sold lines whose product had no cost recorded at the time of
 sale are surfaced as `missingCostItems`, because they count as zero and quietly make both profits
 look better than they are.
+
+### The admin dashboard
+
+Figures only — **no chart**. The people reading it are standing at a counter with a phone in one
+hand, and what they need is a number they can act on, not a trend to interpret. Four sections, in
+the order of the day: **Today → Cash drawer → a period (today / this week / this month, with an
+Excel export) → Needs attention** (low stock, expenses awaiting approval, money uncollected from
+the delivery company).
+
+Two rules govern the wording, and they are what the whole screen is for:
+
+- **Never one vague "revenue".** Every block says *Sold*, *Received* and *Still owed* separately,
+  with "still owed" in a warning tone so it can never be mistaken for takings.
+- **Never one vague "profit".** Profit is always given twice — on all sales, and on the received
+  part alone — so it is never ambiguous whether the money is actually in hand.
+
+The drawer is shown as the sum it is, line by line, so that when a count disagrees it is obvious
+*where* the expectation came from. Every label carries a **(?)** that expands a plain-language
+explanation inline beneath it — tapped, not hovered (there is no hover on a phone), and in normal
+flow so it can never clip at the edge of a narrow screen.
+
+Cost and profit cards are Admin only. A Manager's dashboard does not render them empty — the
+figures are absent from their payload, so the cards simply aren't there.
 
 ---
 

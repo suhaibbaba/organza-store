@@ -12,6 +12,7 @@ import {
   openSyntheticSession,
   readCurrent,
   readSession,
+  skipWithoutTodaysDrawer,
   todaysOpenSession,
 } from "@tests/support/cash";
 import { ERROR_CODES } from "@/constants";
@@ -80,6 +81,20 @@ describe("Cash drawer", () => {
       expect(closed.data!.status).toBe("CLOSED");
       expect(num(closed.data!.difference)).toBe(0);
       expect(closed.data!.closedBy?.id).toBe(admin.userId);
+
+      // A counted, closed day is reported back as such. Without it a screen
+      // could not tell "the day is finished" from "nobody has started one",
+      // and would offer to open a drawer that has already been signed off.
+      //
+      // Asserted as an invariant rather than as "it is this row": the target
+      // database holds other closed days, and what `lastClosed` promises is
+      // the NEWEST one — never older than the day just closed.
+      const current = await readCurrent(admin.token);
+      const lastClosed = current.data!.lastClosed;
+      expect(lastClosed).not.toBeNull();
+      expect(lastClosed!.status).toBe("CLOSED");
+      expect(lastClosed!.countedAmount).not.toBeNull();
+      expect(lastClosed!.date >= session.date).toBe(true);
     });
 
     it("subtracts a cash expense from what the drawer should hold, and ignores a non-cash one", async () => {
@@ -147,6 +162,16 @@ describe("Cash drawer", () => {
       const unexplained = await closeSession(admin.token, session.id, { countedAmount: "275" });
       expect(unexplained.status).toBe(400);
       expect(unexplained.error?.code).toBe(ERROR_CODES.CASH_SESSION_DIFFERENCE_NOTE_REQUIRED);
+
+      // ...and the refusal carries the figures, because counting is BLIND:
+      // the closing screen withholds what the drawer should hold until a
+      // count has been submitted, so this is how it learns there is a
+      // difference at all — and can reveal "expected 300, counted 275,
+      // short 25" before asking for the explanation.
+      const details = unexplained.error?.details as Record<string, string> | undefined;
+      expect(num(details?.expected)).toBe(300);
+      expect(num(details?.counted)).toBe(275);
+      expect(num(details?.difference)).toBe(-25);
 
       // ...and the drawer is still open, not half-closed.
       expect((await readSession(admin.token, session.id)).status).toBe("OPEN");
@@ -343,11 +368,13 @@ describe("Cash drawer", () => {
   // cover, so it is a delta on today's session.
   // -------------------------------------------------------------------------
   describe("cash sales", () => {
-    it("adds a cash counter sale to what the drawer should hold", async () => {
+    it("adds a cash counter sale to what the drawer should hold", async (ctx) => {
       const admin = await getSession("ADMIN");
-      const product = await sellableProduct(admin.token, { basePrice: "60", stock: 5 });
 
       const before = await todaysOpenSession(admin.token);
+      if (!skipWithoutTodaysDrawer(ctx, before)) return;
+
+      const product = await sellableProduct(admin.token, { basePrice: "60", stock: 5 });
 
       const sale = await apiRequest<OrderDto>("/api/orders", {
         method: "POST",
@@ -363,8 +390,11 @@ describe("Cash drawer", () => {
       expect(num(after.expected) - num(before.expected)).toBeCloseTo(120, 2);
     });
 
-    it("counts an online order's cash on the day it is collected, not the day it was sold", async () => {
+    it("counts an online order's cash on the day it is collected, not the day it was sold", async (ctx) => {
       const admin = await getSession("ADMIN");
+      const opened = await todaysOpenSession(admin.token);
+      if (!skipWithoutTodaysDrawer(ctx, opened)) return;
+
       const product = await sellableProduct(admin.token, { basePrice: "45", stock: 5 });
 
       const order = await apiRequest<OrderDto>("/api/orders", {
@@ -382,7 +412,7 @@ describe("Cash drawer", () => {
 
       // Sold, but the delivery company is still holding the money: nothing
       // has reached the drawer.
-      const before = await todaysOpenSession(admin.token);
+      const before = await readSession(admin.token, opened.id);
 
       const collected = await apiRequest("/api/orders/collect", {
         method: "POST",
