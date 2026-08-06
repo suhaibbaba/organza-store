@@ -9,6 +9,14 @@ export const CLIENT_ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/web
 
 export const IMAGE_GRID_THUMB_SIZES = "(min-width: 768px) 120px, 30vw";
 
+// The one big photo on the product detail page. Its box is capped at
+// max-w-sm (24rem = 384px), so there is never a reason to fetch more than
+// that; below md it is the page width minus the screen padding.
+export const PRODUCT_DETAIL_IMAGE_SIZES = "(min-width: 768px) 384px, 92vw";
+
+// Its thumbnail strip — small fixed squares at every screen size.
+export const PRODUCT_DETAIL_THUMB_SIZES = "56px";
+
 /**
  * Drawn wherever a product has no photo, or the photo it has won't load
  * (public/product-placeholder.svg).
