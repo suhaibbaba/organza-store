@@ -98,14 +98,30 @@ export const ERROR_CODES = {
 
   // --- expenses ---
   EXPENSE_NOT_FOUND: "error.expense.not_found",
-  // Approving or rejecting something that is no longer pending.
-  EXPENSE_NOT_PENDING: "error.expense.not_pending",
+  // NOTE: there is no expense-specific "already decided" code any more. An
+  // expense's approval is an ordinary change request now (spec.md "Employee
+  // change approvals"), so deciding one twice answers with
+  // CHANGE_REQUEST_NOT_PENDING like every other gated change.
   EXPENSE_CATEGORY_NOT_FOUND: "error.expenseCategory.not_found",
   EXPENSE_CATEGORY_KEY_DUPLICATE: "error.expenseCategory.key_duplicate",
   EXPENSE_CATEGORY_KEY_INVALID: "error.expenseCategory.key_invalid",
   // Deleting a category would strand the expenses filed under it, so it is
   // refused while any exist — deactivate it instead.
   EXPENSE_CATEGORY_HAS_EXPENSES: "error.expenseCategory.has_expenses",
+
+  // --- change requests (spec.md "Employee change approvals") ---
+  CHANGE_REQUEST_NOT_FOUND: "error.changeRequest.not_found",
+  // Approving or rejecting something already decided. Never a no-op: it
+  // would overwrite who decided what, which is the one thing the record
+  // exists to hold (the same reasoning as an expense that isn't pending).
+  CHANGE_REQUEST_NOT_PENDING: "error.changeRequest.not_pending",
+  // Nobody signs off their own request — that would make the gate decorative.
+  CHANGE_REQUEST_SELF_DECISION: "error.changeRequest.self_decision",
+  // The change was asked for, but by the time it was approved the thing it
+  // was about had gone (a product soft-deleted, a photo already removed) or
+  // the change no longer makes sense against what is stored now.
+  CHANGE_REQUEST_TARGET_MISSING: "error.changeRequest.target_missing",
+  CHANGE_REQUEST_NOT_APPLICABLE: "error.changeRequest.not_applicable",
 
   REPORT_RANGE_INVALID: "error.report.range_invalid",
   REPORT_RANGE_TOO_LONG: "error.report.range_too_long",

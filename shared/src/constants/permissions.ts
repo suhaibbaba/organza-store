@@ -20,6 +20,13 @@ export const PERMISSION_ACTIONS = [
   "product.editPrice",
   "product.delete",
   "product.hide",
+  // WHICH variants a product has — adding combinations, or removing one.
+  // Split out of product.edit for the same reason product.editPrice was: an
+  // Employee may fix a name or a photo on a piece already on the shelf, but
+  // changing what the piece even IS reaches its stock, its barcodes and its
+  // labels all at once (spec.md "Employee change approvals"), so it stays
+  // with Admin/Manager — and an Employee's attempt becomes a request.
+  "product.editVariantSet",
   // What a piece COST the shop, and everything derived from it: COGS, gross
   // and net profit, margin, the inventory valuation at cost. ADMIN ONLY —
   // this is the owner's own margin, and it is not a Manager's to read
@@ -107,6 +114,25 @@ export const PERMISSION_ACTIONS = [
   "expenseCategory.view",
   "expenseCategory.manage",
 
+  // --- change requests (spec.md "Employee change approvals") ---
+  // Being allowed to ASK for a change you may not make yourself. Held by
+  // every role, and only ever reached by someone who lacks the permission
+  // that would apply the change outright: an Admin re-prices a piece, an
+  // Employee asks to. Without it a gated action is simply refused, which is
+  // what the flow looked like before this existed.
+  "changeRequest.create",
+  // Reading requests. Held by every role, but it does NOT mean "read
+  // everyone's": the route narrows the list to your own unless you also hold
+  // changeRequest.approve (see routes/changeRequests.ts). An Employee has to
+  // be able to see that their price change is waiting rather than lost.
+  "changeRequest.view",
+  // Deciding one. ADMIN ONLY for now — this is the whole point of the gate,
+  // and the person who asked must never be able to sign their own request
+  // off. Modelled as its own action rather than as "is the user an Admin" so
+  // that widening it later (a senior Manager, a second Admin tier) is one
+  // entry in ROLE_PERMISSIONS below and nothing else.
+  "changeRequest.approve",
+
   "user.manage",
   "user.viewSensitive",
 
@@ -147,6 +173,7 @@ export const ROLE_PERMISSIONS: Record<Role, readonly Action[]> = {
     "product.editPrice",
     "product.delete",
     "product.hide",
+    "product.editVariantSet",
     // NOTE: no "product.viewCost" — cost and profit are Admin only.
     "product.printLabels",
     "category.view",
@@ -174,6 +201,13 @@ export const ROLE_PERMISSIONS: Record<Role, readonly Action[]> = {
     "expense.approve",
     "expenseCategory.view",
     "expenseCategory.manage",
+    // A Manager holds every gated permission outright, so they never file a
+    // request — but they carry the action anyway, so that gating a NEW field
+    // above them later needs no change here. What they do NOT hold is
+    // changeRequest.approve: deciding someone else's request is the Admin's,
+    // which is the whole reason the gate exists.
+    "changeRequest.create",
+    "changeRequest.view",
   ],
   EMPLOYEE: [
     "product.view",
@@ -192,5 +226,12 @@ export const ROLE_PERMISSIONS: Record<Role, readonly Action[]> = {
     "expense.create",
     // ...and to record one they have to be able to read the category list.
     "expenseCategory.view",
+    // The five gated actions (price, manual stock, image deletion,
+    // hide/unhide, the variant set) are refused to an Employee outright —
+    // these two are what turn that refusal into a request an Admin can say
+    // yes to, and what lets them watch it waiting (spec.md "Employee change
+    // approvals").
+    "changeRequest.create",
+    "changeRequest.view",
   ],
 };

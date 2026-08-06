@@ -27,12 +27,31 @@ import { productSku, variantSku } from "@/lib/sku";
 import { generateUniqueBarcode } from "@/lib/barcode";
 import { buildSearchText, searchProductIds } from "@/lib/search";
 import { cartesianProduct, buildComboName, buildImagePointMap, resolveComboImagePoint } from "@/lib/variantCombo";
+import { generateVariantsForProduct, previewComboNames, validateOptionSelections } from "@/lib/variants";
 import { serializeProduct, serializeProductSummary, serializeVariant } from "@/lib/pricing";
 import { moneyChanged } from "@/lib/money";
-import { assertOptionTypesMatchMode, buildNumberOptions, isNumberedProduct } from "@/lib/numberedProduct";
+import { buildNumberOptions, isNumberedProduct } from "@/lib/numberedProduct";
 import { writeAudit } from "@/lib/audit";
-import { AUDIT_ENTITY, DEFAULT_STOCK, ERROR_CODES, PRODUCT_LOOKUP_KIND } from "@/constants";
-import type { AnyRecord, I18n, OptionValueLookup } from "@/types";
+import {
+  cancelPendingChangesFor,
+  countValue,
+  fileChangeRequests,
+  findPendingChangesForProduct,
+  flagValue,
+  moneyValue,
+  serializeChangeRequests,
+  variantSetValue,
+} from "@/lib/changeRequests";
+import {
+  AUDIT_ENTITY,
+  CHANGE_REQUEST_ENTITIES,
+  CHANGE_REQUEST_FIELDS,
+  CHANGE_REQUEST_VARIANT_SET_ACTIONS,
+  DEFAULT_STOCK,
+  ERROR_CODES,
+  PRODUCT_LOOKUP_KIND,
+} from "@/constants";
+import type { AnyRecord, ChangeRequestDraft, I18n, OptionValueLookup } from "@/types";
 
 const router = Router();
 router.use(requireAuth);
@@ -51,32 +70,24 @@ async function fetchFullProduct(id: string) {
   return prisma.product.findUnique({ where: { id }, include: productInclude });
 }
 
-// Validates that every selected option value actually belongs to its
-// claimed variant type, and that the types themselves suit the kind of
-// product this is (numbered products sell numbers and nothing else — spec.md
-// "Numbered shawls"). Returns a lookup of id -> option value row.
-async function validateOptionSelections(
-  selections: { variantTypeId: string; valueIds: string[] }[],
-  isNumbered: boolean
-) {
-  const valueMap = new Map<string, OptionValueLookup>();
-  const typeSlugs: string[] = [];
-  for (const sel of selections) {
-    const vt = await prisma.variantType.findUnique({ where: { id: sel.variantTypeId }, include: { values: true } });
-    if (!vt) throw new AppError(400, ERROR_CODES.VARIANT_TYPE_NOT_FOUND);
-    typeSlugs.push(vt.slug);
-    const validIds = new Set(vt.values.map((v) => v.id));
-    for (const valueId of sel.valueIds) {
-      if (!validIds.has(valueId)) throw new AppError(400, ERROR_CODES.VARIANT_TYPE_VALUE_NOT_FOUND);
-    }
-    for (const v of vt.values) {
-      if (sel.valueIds.includes(v.id)) valueMap.set(v.id, { id: v.id, value: v.value as I18n });
-    }
-  }
-  // Refused loudly rather than filtered out: someone who picked colours for a
-  // numbered product has misunderstood the product, not mistyped a field.
-  assertOptionTypesMatchMode(isNumbered, typeSlugs);
-  return valueMap;
+// A product plus whatever is still waiting for an Admin on it, its variants
+// or its photos (spec.md "Employee change approvals"). Attached to every
+// product response so that an Employee who re-prices a piece sees their
+// figure held against the old one rather than apparently discarded — and so
+// an Admin looking at the same product sees what is outstanding on it.
+async function serializeProductWithPending(product: AnyRecord, role: Role) {
+  const pending = await findPendingChangesForProduct(product);
+  return { ...serializeProduct(product, role), pendingChanges: serializeChangeRequests(pending) };
+}
+
+/**
+ * Whether this caller may ASK for a change they cannot make (spec.md
+ * "Employee change approvals"), and the refusal when they may not. Without
+ * changeRequest.create a gated field is simply refused, which is what the
+ * flow looked like before requests existed.
+ */
+function assertMayRequest(user: { role: string }): void {
+  if (!can(user, "changeRequest.create")) throw new AppError(403, ERROR_CODES.FORBIDDEN);
 }
 
 // ---------------------------------------------------------------------------
@@ -282,7 +293,7 @@ router.get(
       include: productInclude,
     });
     if (!product) throw new AppError(404, ERROR_CODES.PRODUCT_NOT_FOUND);
-    sendOk(res, serializeProduct(product, req.user!.role));
+    sendOk(res, await serializeProductWithPending(product, req.user!.role));
   })
 );
 
@@ -424,26 +435,71 @@ router.patch(
     // the piece sells for, how many there are and whether customers can see
     // it each need their own permission, none of which an Employee holds
     // (CLAUDE.md rule 5). Each is compared against what is stored, so a form
-    // that resends an unchanged value still saves; only a real change is
-    // refused, and it's refused loudly rather than dropped, because someone
-    // typing a new price deserves to be told it wasn't taken.
+    // that resends an unchanged value still saves.
+    //
+    // A real change to one of those fields by somebody who may not make it is
+    // no longer refused: it becomes a REQUEST (spec.md "Employee change
+    // approvals"). The rest of the save goes through as normal, so an
+    // Employee fixing a name and a price in one go gets the name saved and
+    // the price held — nothing of what they typed is thrown away.
     const canEditPrice = can(req.user!, "product.editPrice");
     const canAdjustStock = can(req.user!, "inventory.adjust");
     const canHide = can(req.user!, "product.hide");
 
-    const priceChanged =
-      moneyChanged(body.basePrice, existing.basePrice) ||
-      moneyChanged(body.compareAtPrice, existing.compareAtPrice);
-    if (!canEditPrice && priceChanged) throw new AppError(403, ERROR_CODES.FORBIDDEN);
+    const drafts: ChangeRequestDraft[] = [];
+    const productTarget = {
+      entityType: CHANGE_REQUEST_ENTITIES.PRODUCT,
+      entityId: existing.id,
+      entityLabel: existing.name,
+      entityDetail: existing.sku,
+      productId: existing.id,
+    } as const;
+
+    if (!canEditPrice) {
+      if (moneyChanged(body.basePrice, existing.basePrice)) {
+        assertMayRequest(req.user!);
+        drafts.push({
+          ...productTarget,
+          field: CHANGE_REQUEST_FIELDS.PRODUCT_BASE_PRICE,
+          oldValue: moneyValue(existing.basePrice),
+          newValue: moneyValue(body.basePrice),
+        });
+      }
+      if (moneyChanged(body.compareAtPrice, existing.compareAtPrice)) {
+        assertMayRequest(req.user!);
+        drafts.push({
+          ...productTarget,
+          field: CHANGE_REQUEST_FIELDS.PRODUCT_COMPARE_AT_PRICE,
+          oldValue: moneyValue(existing.compareAtPrice),
+          newValue: moneyValue(body.compareAtPrice ?? null),
+        });
+      }
+    }
 
     // Stock is ignored outright on a variant-bearing product (each variant
-    // carries its own), so it's only a change worth refusing on a simple one.
+    // carries its own), so it's only a change worth gating on a simple one.
     const stockChanged =
       existing.variants.length === 0 && body.stock !== undefined && body.stock !== existing.stock;
-    if (!canAdjustStock && stockChanged) throw new AppError(403, ERROR_CODES.FORBIDDEN);
+    if (!canAdjustStock && stockChanged) {
+      assertMayRequest(req.user!);
+      drafts.push({
+        ...productTarget,
+        field: CHANGE_REQUEST_FIELDS.PRODUCT_STOCK,
+        oldValue: countValue(existing.stock),
+        newValue: countValue(body.stock!),
+      });
+    }
 
     const visibilityChanged = body.isActive !== undefined && body.isActive !== existing.isActive;
-    if (!canHide && visibilityChanged) throw new AppError(403, ERROR_CODES.FORBIDDEN);
+    if (!canHide && visibilityChanged) {
+      assertMayRequest(req.user!);
+      drafts.push({
+        ...productTarget,
+        field: CHANGE_REQUEST_FIELDS.PRODUCT_IS_ACTIVE,
+        oldValue: flagValue(existing.isActive),
+        newValue: flagValue(body.isActive!),
+      });
+    }
 
     // Switching a product between "sells numbers" and "sells colours/sizes"
     // (spec.md "Numbered shawls") while it still has variants would strand
@@ -526,7 +582,11 @@ router.patch(
       newValue: serializeProduct(updated, Role.ADMIN),
     });
 
-    sendOk(res, serializeProduct(updated, req.user!.role));
+    // Filed after the save, so a request only ever exists alongside a change
+    // that actually went through.
+    if (drafts.length) await fileChangeRequests(req.user!, drafts);
+
+    sendOk(res, await serializeProductWithPending(updated, req.user!.role));
   })
 );
 
@@ -537,12 +597,26 @@ router.delete(
   "/:id",
   requirePermission("product.delete"),
   asyncHandler(async (req, res) => {
-    const existing = await prisma.product.findFirst({ where: { id: req.params.id, deletedAt: null } });
+    const existing = await prisma.product.findFirst({
+      where: { id: req.params.id, deletedAt: null },
+      include: { variants: { select: { id: true } }, images: { select: { id: true } } },
+    });
     if (!existing) throw new AppError(404, ERROR_CODES.PRODUCT_NOT_FOUND);
 
-    const deleted = await prisma.product.update({
-      where: { id: existing.id },
-      data: { deletedAt: new Date(), isActive: false },
+    const deleted = await prisma.$transaction(async (tx) => {
+      const product = await tx.product.update({
+        where: { id: existing.id },
+        data: { deletedAt: new Date(), isActive: false },
+      });
+      // Nothing can be waiting on a product that has just been taken off the
+      // books — leaving those requests on the approval screen would only
+      // offer an Admin decisions that no longer mean anything.
+      await cancelPendingChangesFor(tx, [
+        { entityType: CHANGE_REQUEST_ENTITIES.PRODUCT, entityId: existing.id },
+        ...existing.variants.map((v) => ({ entityType: CHANGE_REQUEST_ENTITIES.VARIANT, entityId: v.id })),
+        ...existing.images.map((i) => ({ entityType: CHANGE_REQUEST_ENTITIES.PRODUCT_IMAGE, entityId: i.id })),
+      ]);
+      return product;
     });
 
     await writeAudit({
@@ -560,7 +634,11 @@ router.delete(
 
 // ---------------------------------------------------------------------------
 // POST /api/products/:id/variants/generate — additive cartesian generation
-// (anyone who may edit the product; existing combinations are left untouched)
+// (existing combinations are left untouched).
+//
+// WHICH variants a product has is a gated change (spec.md "Employee change
+// approvals"): an Employee may ask for combinations to be added, and an
+// Admin decides. Admin/Manager generate them on the spot, as before.
 // ---------------------------------------------------------------------------
 router.post(
   "/:id/variants/generate",
@@ -574,55 +652,49 @@ router.post(
     if (!product) throw new AppError(404, ERROR_CODES.PRODUCT_NOT_FOUND);
 
     const body = req.body as GenerateVariantsInput;
-    // Gated on the product's own flag, so a numbered product can never grow a
-    // colour and an ordinary one can never grow a number — whichever screen
-    // the request came from.
+    // Validated either way, before anything else: a request to add colours to
+    // a numbered product is a misunderstanding of the product, and telling
+    // the person now beats telling the Admin who tries to approve it later.
     const valueMap = await validateOptionSelections(body.optionSelections, product.isNumbered);
 
-    const typeIds = [...new Set(body.optionSelections.map((s) => s.variantTypeId))];
-    await prisma.productVariantType.createMany({
-      data: typeIds.map((variantTypeId) => ({ productId: product.id, variantTypeId })),
-      skipDuplicates: true,
-    });
-
-    const existingCombos = new Set(
-      product.variants.map((v) => v.values.map((vv) => vv.optionValueId).sort().join(","))
-    );
-
-    const combos = cartesianProduct(body.optionSelections.map((s) => s.valueIds));
-    const imagePointMap = buildImagePointMap(body.optionSelections);
-    let nextNumber = product.variants.reduce((max, v) => Math.max(max, v.variantNumber), 0);
-    const createdSkus: string[] = [];
-
-    for (const combo of combos) {
-      const key = [...combo].sort().join(",");
-      if (existingCombos.has(key)) continue; // already generated — leave as-is
-
-      nextNumber += 1;
-      const values = combo.map((valueId) => valueMap.get(valueId)!);
-      const point = resolveComboImagePoint(combo, imagePointMap);
-      const sku = variantSku(product.productNumber, nextNumber);
-      await prisma.variant.create({
-        data: {
+    if (!can(req.user!, "product.editVariantSet")) {
+      assertMayRequest(req.user!);
+      // The variant set is one field in both directions (add and remove), so
+      // a second ask replaces the first rather than queueing behind it. The
+      // option value IDs are what gets stored — never the names they happen
+      // to have today (CLAUDE.md rule 2) — so a value renamed while the
+      // request waits still resolves to the right thing on approval.
+      const requestedNames = previewComboNames(body.optionSelections, valueMap);
+      await fileChangeRequests(req.user!, [
+        {
+          entityType: CHANGE_REQUEST_ENTITIES.PRODUCT,
+          entityId: product.id,
+          field: CHANGE_REQUEST_FIELDS.PRODUCT_VARIANT_SET,
+          entityLabel: product.name,
+          entityDetail: product.sku,
           productId: product.id,
-          variantNumber: nextNumber,
-          name: buildComboName(values),
-          sku,
-          barcode: await generateUniqueBarcode(),
-          stock: DEFAULT_STOCK,
-          imageX: point?.imageX ?? null,
-          imageY: point?.imageY ?? null,
-          values: { create: combo.map((optionValueId) => ({ optionValueId })) },
+          oldValue: variantSetValue(product.variants.length, {
+            variants: product.variants.map((v) => ({ id: v.id, sku: v.sku, name: v.name as I18n })),
+          }),
+          newValue: variantSetValue(requestedNames.length, {
+            action: CHANGE_REQUEST_VARIANT_SET_ACTIONS.ADD,
+            variants: requestedNames.map((name) => ({ name })),
+            optionSelections: body.optionSelections.map((s) => ({
+              variantTypeId: s.variantTypeId,
+              valueIds: s.valueIds,
+            })),
+          }),
         },
-      });
-      createdSkus.push(sku);
+      ]);
+
+      const held = await fetchFullProduct(product.id);
+      // 200, not 201: nothing was created. What comes back is the product as
+      // it still stands, carrying the request that is waiting on it.
+      sendOk(res, await serializeProductWithPending(held, req.user!.role));
+      return;
     }
 
-    // A product transitioning from simple to variant-based no longer uses
-    // its own sku (variants own it from here on).
-    if (createdSkus.length && product.sku) {
-      await prisma.product.update({ where: { id: product.id }, data: { sku: null } });
-    }
+    const { createdSkus } = await generateVariantsForProduct(prisma, product, body.optionSelections, valueMap);
 
     await writeAudit({
       userId: req.user!.id,
@@ -633,7 +705,7 @@ router.post(
     });
 
     const full = await fetchFullProduct(product.id);
-    sendOk(res, serializeProduct(full, req.user!.role), null, 201);
+    sendOk(res, await serializeProductWithPending(full, req.user!.role), null, 201);
   })
 );
 
@@ -662,17 +734,41 @@ router.patch(
 
     // Same split as the product above, on the variant's own fields: a
     // priceOverride IS what this combination sells for, so it belongs to
-    // product.editPrice, not to product.edit.
+    // product.editPrice, not to product.edit — and a change to it by someone
+    // without that permission becomes a request rather than a refusal.
     const canEditPrice = can(req.user!, "product.editPrice");
     const canAdjustStock = can(req.user!, "inventory.adjust");
     const canHide = can(req.user!, "product.hide");
 
+    const drafts: ChangeRequestDraft[] = [];
+    const variantTarget = {
+      entityType: CHANGE_REQUEST_ENTITIES.VARIANT,
+      entityId: variant.id,
+      entityLabel: variant.name,
+      entityDetail: variant.sku,
+      productId: product.id,
+    } as const;
+
     if (!canEditPrice && moneyChanged(body.priceOverride, variant.priceOverride)) {
-      throw new AppError(403, ERROR_CODES.FORBIDDEN);
+      assertMayRequest(req.user!);
+      drafts.push({
+        ...variantTarget,
+        field: CHANGE_REQUEST_FIELDS.VARIANT_PRICE_OVERRIDE,
+        oldValue: moneyValue(variant.priceOverride),
+        newValue: moneyValue(body.priceOverride ?? null),
+      });
     }
     if (!canAdjustStock && body.stock !== undefined && body.stock !== variant.stock) {
-      throw new AppError(403, ERROR_CODES.FORBIDDEN);
+      assertMayRequest(req.user!);
+      drafts.push({
+        ...variantTarget,
+        field: CHANGE_REQUEST_FIELDS.VARIANT_STOCK,
+        oldValue: countValue(variant.stock),
+        newValue: countValue(body.stock),
+      });
     }
+    // A variant's own isActive is not one of the five gated actions (spec.md
+    // gates hiding the PRODUCT), so this stays a plain refusal.
     if (!canHide && body.isActive !== undefined && body.isActive !== variant.isActive) {
       throw new AppError(403, ERROR_CODES.FORBIDDEN);
     }
@@ -706,24 +802,72 @@ router.patch(
       newValue: updated,
     });
 
-    sendOk(res, serializeVariant(updated, product, req.user!.role));
+    if (drafts.length) await fileChangeRequests(req.user!, drafts);
+
+    const pending = await findPendingChangesForProduct({ id: product.id, variants: [{ id: variant.id }] });
+    sendOk(res, {
+      ...serializeVariant(updated, product, req.user!.role),
+      pendingChanges: serializeChangeRequests(pending),
+    });
   })
 );
 
 // ---------------------------------------------------------------------------
-// DELETE /api/products/:id/variants/:variantId — remove one combination
-// (Admin/Manager only)
+// DELETE /api/products/:id/variants/:variantId — remove one combination.
+//
+// Part of the same gated field as generation above: WHICH variants a product
+// has. Admin/Manager remove it there and then; an Employee's attempt becomes
+// a request, and the variant stays exactly where it is until an Admin agrees.
 // ---------------------------------------------------------------------------
 router.delete(
   "/:id/variants/:variantId",
-  requirePermission("product.delete"),
+  requirePermission("product.edit"),
   asyncHandler(async (req, res) => {
     const variant = await prisma.variant.findFirst({
       where: { id: req.params.variantId, productId: req.params.id },
     });
     if (!variant) throw new AppError(404, ERROR_CODES.VARIANT_NOT_FOUND);
 
-    await prisma.variant.delete({ where: { id: variant.id } });
+    const product = await prisma.product.findFirst({
+      where: { id: req.params.id, deletedAt: null },
+      include: { variants: { select: { id: true, sku: true, name: true } } },
+    });
+    if (!product) throw new AppError(404, ERROR_CODES.PRODUCT_NOT_FOUND);
+
+    if (!can(req.user!, "product.editVariantSet")) {
+      assertMayRequest(req.user!);
+      const [filed] = await fileChangeRequests(req.user!, [
+        {
+          entityType: CHANGE_REQUEST_ENTITIES.PRODUCT,
+          entityId: product.id,
+          field: CHANGE_REQUEST_FIELDS.PRODUCT_VARIANT_SET,
+          entityLabel: product.name,
+          entityDetail: variant.sku,
+          productId: product.id,
+          oldValue: variantSetValue(product.variants.length, {
+            variants: product.variants.map((v) => ({ id: v.id, sku: v.sku, name: v.name as I18n })),
+          }),
+          newValue: variantSetValue(product.variants.length - 1, {
+            action: CHANGE_REQUEST_VARIANT_SET_ACTIONS.REMOVE,
+            variantId: variant.id,
+            variants: [{ id: variant.id, sku: variant.sku, name: variant.name as I18n }],
+          }),
+        },
+      ]);
+      // 202: the ask was accepted, the variant is still there. The request
+      // comes back so the screen can say what is now waiting on it.
+      sendOk(res, { id: variant.id, deleted: false, pendingChange: filed }, null, 202);
+      return;
+    }
+
+    await prisma.$transaction(async (tx) => {
+      await tx.variant.delete({ where: { id: variant.id } });
+      // Anything anyone was waiting on for this variant is moot now — better
+      // cleared than left on the approval screen pointing at nothing.
+      await cancelPendingChangesFor(tx, [
+        { entityType: CHANGE_REQUEST_ENTITIES.VARIANT, entityId: variant.id },
+      ]);
+    });
 
     await writeAudit({
       userId: req.user!.id,
@@ -733,7 +877,7 @@ router.delete(
       oldValue: variant,
     });
 
-    sendOk(res, { id: variant.id });
+    sendOk(res, { id: variant.id, deleted: true });
   })
 );
 

@@ -7,6 +7,7 @@ import { Link, usePathname } from "@/i18n/navigation";
 import { NAV_ICON_FILL_ACTIVE, NAV_ICON_FILL_INACTIVE, PRIMARY_NAV_KEYS } from "@/constants/nav";
 import { useVisibleNavItems } from "@/hooks/use-visible-nav-items";
 import { MoreSheet } from "@/components/layout/more-sheet";
+import { NavPendingBadge } from "@/components/change-requests/nav-pending-badge";
 import { cn } from "@/lib/utils";
 
 export function BottomNav() {
@@ -60,9 +61,20 @@ export function BottomNav() {
           <button
             type="button"
             onClick={() => setMoreOpen(true)}
-            className="flex flex-1 flex-col items-center justify-center gap-1 text-xs font-medium text-muted-foreground"
+            className="relative flex flex-1 flex-col items-center justify-center gap-1 text-xs font-medium text-muted-foreground"
           >
-            <MoreHorizontal className="size-6" aria-hidden="true" />
+            {/* Approvals live behind "More" on a phone, so the count has to
+                surface on the tab itself — otherwise a request waiting on
+                somebody is a screen deep and invisible. Anchored to the ICON,
+                not to the tab: tab width changes with how many a role can
+                see, and a badge positioned against the tab would drift onto
+                the dots on some roles and off them on others. */}
+            <span className="relative">
+              <MoreHorizontal className="size-6" aria-hidden="true" />
+              {overflowItems.some((item) => item.key === "changeRequests") && (
+                <NavPendingBadge className="absolute -top-1.5 -end-2.5" />
+              )}
+            </span>
             {t("more")}
           </button>
         )}

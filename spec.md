@@ -254,18 +254,21 @@ Three fixed roles.
 | Add products                      |  ✅   |   ✅    |    ✅    |
 | Edit product images               |  ✅   |   ✅    |    ✅    |
 | Edit product details (name, etc.) |  ✅   |   ✅    |    ✅    |
-| Edit product **price**            |  ✅   |   ✅    |    ❌    |
+| Edit product **price**            |  ✅   |   ✅    | ✅ (needs approval) |
 | Add option type/value (inline)    |  ✅   |   ✅    |    ✅    |
 | **Rename / delete** option value  |  ✅   |   ✅    |    ❌    |
 | **Delete** product                |  ✅   |   ✅    |    ❌    |
-| **Hide / publish** product        |  ✅   |   ✅    |    ❌    |
+| **Hide / publish** product        |  ✅   |   ✅    | ✅ (needs approval) |
 | Create order + hand to courier    |  ✅   |   ✅    |    ✅    |
 | **Delete / edit / cancel** order  |  ✅   |   ✅    |    ❌    |
 | **Mark money collected**          |  ✅   |   ✅    |    ❌    |
 | **Give stock away** (GIFT order)  |  ✅   |   ✅    |    ❌    |
-| Manage stock (full)               |  ✅   |   ✅    |    ❌    |
+| Manage stock (full)               |  ✅   |   ✅    | ✅ (needs approval) |
+| **Delete** a product photo        |  ✅   |   ✅    | ✅ (needs approval) |
+| Change a product's **variant set**|  ✅   |   ✅    | ✅ (needs approval) |
 | Record an expense                 |  ✅   |   ✅    | ✅ (needs approval) |
-| Read / edit / approve expenses    |  ✅   |   ✅    |    ❌    |
+| Read / edit expenses              |  ✅   |   ✅    |    ❌    |
+| **Approve** a pending change      |  ✅   |   ❌    |    ❌    |
 | Open + close the cash drawer      |  ✅   |   ✅    |    ❌    |
 | **See cost, COGS, profit, margin**|  ✅   |   ❌    |    ❌    |
 | Manage users                      |  ✅   |   ❌    |    ❌    |
@@ -287,6 +290,67 @@ response at all, so there is nothing to un-hide client-side.
 
 ---
 
+## Employee change approvals
+
+Some changes are too consequential to hand to whoever happens to be at the counter, but refusing
+them outright leaves an Employee stuck: they can see the piece in front of them, they know the
+price on the tag is wrong, and there is nobody to tell. So the answer is neither "yes" nor "no" —
+it is **ask**.
+
+**What is gated.** Five things an Employee may ask for but not do:
+
+| Change | Requested via | Applied by |
+|---|---|---|
+| A product's **price** (`basePrice`, `compareAtPrice`, a variant's `priceOverride`) | the product form | `product.editPrice` |
+| A **manual stock** figure | the product form / the stock screen | `inventory.adjust` |
+| **Deleting a photo** | the gallery | `images.delete` |
+| **Hiding or unhiding** a product | the product form | `product.hide` |
+| A product's **variant set** (adding combinations, removing one) | the options section | `product.editVariantSet` |
+
+Admin and Manager hold every one of those permissions, so their edits apply immediately and no
+request is ever filed. An Employee's edit is neither applied nor discarded: it is **held**, and
+the screen says so against the value still in force ("waiting for approval — 39.00"), because an
+edit that silently disappears is an edit somebody types again.
+
+**Automatic stock deduction is never gated.** Stock leaving the shelf because something was
+*sold* — or coming back on a return — happens on the spot, whoever rang it up. There is a customer
+standing there. Only *manual* stock edits go through approval.
+
+**One mechanism, not several.** A request is `(entity type, entity id, field, old value,
+requested value)` plus who asked and who decided. Nothing about it is product-shaped, which is why
+the **expense approval** is one of these too: an Employee's expense still opens `PENDING` and still
+counts for nothing until it is signed off, but the thing an Admin acts on is an ordinary change
+request rather than a second approval flow bolted onto the expense table. Gating a new field later
+is an entry in the field table plus an applier on the backend — never another `approvalStatus`
+column somewhere else.
+
+**Superseding.** A newer request for the same field on the same entity **replaces** the older
+pending one. There is never a queue of stale requests to wade through: the database holds at most
+one pending request per (entity, field), and the value an Admin sees is always the latest one
+asked for. What was displaced stays in the audit log.
+
+**Deciding.** Approving **applies the change atomically** — the change and its record are one
+transaction, so a half-applied approval is impossible. Rejecting **discards** it and touches
+nothing (an expense is the one exception: a refused expense is marked `REJECTED` on its own row,
+with who refused it, rather than sitting pending forever). Nobody decides their own request.
+Approval is **Admin only** for now, modelled as a permission (`changeRequest.approve`) so it can
+be widened later without touching the flow.
+
+**Who sees what.** An Admin sees everything waiting and can act on it. Everyone else sees only
+what they themselves asked for, enforced on the backend — an Employee has to be able to follow
+their own request, and nothing more. Both get a count on the navigation.
+
+**The trail.** Every request, every superseding, every approval and every rejection writes an
+audit entry — who asked, and who decided. Approving also writes the entity's own entry
+(`PRICE_CHANGE`, `STOCK_CHANGE`, `HIDE`, ...) attributed to whoever approved it: they are the one
+who made it happen.
+
+**Notification.** Creating a request notifies the Admins over Web Push, reusing the sale
+notification transport (translation keys and data, never a sentence). With no VAPID keys
+configured it is silently off, exactly like sale notifications.
+
+---
+
 ## Soft delete
 Products are never hard-deleted (they may be linked to past orders). Deleting sets `deletedAt`
 and hides the product from all normal views. Role-gated (Manager/Admin only).
@@ -296,7 +360,8 @@ and hides the product from all normal views. Role-gated (Manager/Admin only).
 ## Audit Log
 Every meaningful action is recorded: who (`userId`), what (`action`), on which entity
 (`entityType` + `entityId`), and the `oldValue` / `newValue`. Covers create/update/delete,
-publish/hide, stock changes, and price changes.
+publish/hide, stock changes, price changes, and — for gated changes — who **requested** one, whose
+request **superseded** an earlier one, and who **approved** or **rejected** it.
 
 ---
 
@@ -575,9 +640,14 @@ tomorrow's openingFloat = counted − withdrawn
 
 - **Anyone may record one** — whoever pays the electricity bill should be able to write it down
   there and then. But an expense recorded by an **Employee opens as a pending approval** and counts
-  for nothing (not against the drawer, not against profit) until an Admin/Manager approves it. An
-  Admin's or Manager's own expense is approved as it is written, since they could approve it
-  anyway. Rejected expenses stay on the record, with who turned them down and why.
+  for nothing (not against the drawer, not against profit) until it is approved. An Admin's or
+  Manager's own expense is approved as it is written, since they hold `expense.approve` and could
+  approve it anyway. Rejected expenses stay on the record, with who turned them down and why.
+- **The approval itself is an ordinary change request** (see "Employee change approvals"): the
+  expense's `approvalStatus`/`approvedBy` columns are the *applied* state — which every money
+  query still filters on — while the thing an Admin acts on lives in the one approval flow the
+  whole shop uses. Deciding it is **Admin only**; a Manager records spending that counts
+  immediately, but does not sign off somebody else's.
 - **Only approved expenses count**, and **only `paidInCash` ones move the drawer**.
 - Each expense carries a **category**, an **amount**, the **date the money was actually spent**
   (not when the row was written — a bill paid on the 30th and entered on the 2nd belongs to the

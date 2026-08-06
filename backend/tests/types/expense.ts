@@ -1,3 +1,5 @@
+import type { ChangeRequestDto } from "@tests/types/changeRequest";
+
 // DTO shapes the expense suite reads back. Money crosses the API as 2dp
 // strings, so every amount here is a string (never a float — CLAUDE.md).
 export interface ExpenseCategoryDto {
@@ -24,4 +26,8 @@ export interface ExpenseDto {
   createdById: string;
   createdBy: { id: string; name: string } | null;
   deletedAt: string | null;
+  // The approval this expense is waiting on, when it opened PENDING — the
+  // same generic record every other gated change files. Null when the person
+  // who recorded it could approve it anyway.
+  pendingChange?: ChangeRequestDto | null;
 }

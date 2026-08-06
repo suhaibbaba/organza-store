@@ -47,10 +47,22 @@ export const PUSH_MESSAGE_KEYS = {
   SALE_BODY: "push.sale.body",
   SALE_ITEM_SEPARATOR: "push.sale.itemSeparator",
   SALE_MORE_ITEMS: "push.sale.moreItems",
+  // Somebody asked for a change they may not make themselves (spec.md
+  // "Employee change approvals"). Same rule as a sale: keys and data, never
+  // a sentence — the Admin's own phone renders it in their language.
+  CHANGE_REQUEST_TITLE: "push.changeRequest.title",
+  CHANGE_REQUEST_BODY: "push.changeRequest.body",
 } as const;
 
 /** Discriminates the payload so future notification kinds can share the worker. */
-export const PUSH_PAYLOAD_TYPES = { SALE: "sale" } as const;
+export const PUSH_PAYLOAD_TYPES = { SALE: "sale", CHANGE_REQUEST: "changeRequest" } as const;
+
+/**
+ * Whose devices are told about a new change request: the people who can
+ * actually decide it. Mirrors who holds changeRequest.approve — a
+ * notification nobody in the list can act on is only noise.
+ */
+export const CHANGE_REQUEST_NOTIFICATION_ROLES = ["ADMIN"] as const;
 
 /**
  * Bounds on what a client may register. An endpoint is a URL from the

@@ -1,5 +1,6 @@
 import type { MarkLabelsPrintedResult, Product, ProductSummary } from "@shared/types/product";
 import type { Variant } from "@shared/types/variant";
+import type { ChangeRequest } from "@shared/types/changeRequest";
 import type { Pagination } from "@shared/types/common";
 import type {
   CreateProductInput,
@@ -83,7 +84,23 @@ export async function deleteProduct(id: string): Promise<{ id: string; deletedAt
   return data;
 }
 
-export async function deleteVariant(id: string, variantId: string): Promise<{ id: string }> {
-  const { data } = await apiFetch<{ id: string }>(`/api/products/${id}/variants/${variantId}`, { method: "DELETE" });
-  return data;
+/**
+ * Remove one combination — or ASK for it to be removed.
+ *
+ * Which variants a product has is a gated change (spec.md "Employee change
+ * approvals"): whoever holds product.editVariantSet removes it there and
+ * then, and everyone else's attempt files a request while the variant stays
+ * exactly where it is. `deleted` says which happened, so the form can report
+ * "waiting" instead of showing a combination as gone when it isn't.
+ */
+export async function deleteVariant(
+  id: string,
+  variantId: string
+): Promise<{ id: string; deleted: boolean; pendingChange?: ChangeRequest | null }> {
+  const { data } = await apiFetch<{ id: string; deleted?: boolean; pendingChange?: ChangeRequest | null }>(
+    `/api/products/${id}/variants/${variantId}`,
+    { method: "DELETE" }
+  );
+  // Older backends answered without the flag, and they only ever deleted.
+  return { id: data.id, deleted: data.deleted ?? true, pendingChange: data.pendingChange ?? null };
 }

@@ -8,6 +8,7 @@ import { Separator } from "@/components/ui/separator";
 import { LanguageSwitcher } from "@/components/layout/language-switcher";
 import { useSession } from "@/components/providers/session-provider";
 import { AppVersion } from "@/components/pwa/app-version";
+import { NavPendingBadge } from "@/components/change-requests/nav-pending-badge";
 import type { NavItem } from "@/types/nav";
 import { cn } from "@/lib/utils";
 
@@ -46,6 +47,7 @@ export function MoreSheet({ open, onOpenChange, items }: MoreSheetProps) {
               >
                 <Icon className="size-5" aria-hidden="true" />
                 {t(item.key)}
+                {item.key === "changeRequests" && <NavPendingBadge className="ms-auto" />}
               </Link>
             );
           })}

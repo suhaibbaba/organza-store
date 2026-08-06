@@ -37,7 +37,10 @@ images, audit log, plus the full admin UI.
 **Current work: Orders** (see "Phase 2: Orders" in `spec.md`) — order model, status flow, stock
 deduction, discounts, returns, then the POS screen, the admin orders page, and sales/profit.
 The **cash drawer, expenses and gift orders** are built on the backend (see "Cash drawer &
-expenses" in `spec.md`); their admin/POS screens are not built yet.
+expenses" in `spec.md`); their admin/POS screens are not built yet. The **generic change-approval
+system** is built end to end (backend + admin screen + nav badge + Web Push) — see rule 21 below
+and "Employee change approvals" in `spec.md`; the old per-expense `/approve` and `/reject`
+endpoints are gone, lifted into it.
 **Still deferred:** the customer storefront (Phase 3), real Customer accounts, and the
 numbered-shawls WhatsApp export. WhatsApp order entry is built (admin *and* POS): a cart can be
 filed as a WHATSAPP order with a customer snapshot, and the phone box suggests repeat customers
@@ -53,9 +56,10 @@ from past orders — there is still no Customer table behind it.
 4. **Soft delete only** for products (`deletedAt`). Never hard-delete.
 5. **Role gating is enforced on the backend**, not just hidden in the UI:
    - Admin: everything.
-   - Manager: products/stock/orders full; no users/settings.
+   - Manager: products/stock/orders full; no users/settings; cannot approve change requests.
    - Employee: POS, add products, edit images, create + mark-delivered orders.
      **Cannot** delete/hide products, **cannot** delete/edit/cancel orders, no users/settings.
+   Five Employee actions are neither applied nor refused but **held for approval** (rule 21).
 6. **Every mutation writes an Audit Log entry** (userId, action, entityType, entityId, old/new).
 7. **stock default = 1** for products and variants.
 8. **Validate all inputs with Zod** (shared schemas where possible).
@@ -94,6 +98,16 @@ from past orders — there is still no Customer table behind it.
     `idNumber` → Admin only. The API must not return them to anyone else — not zeroed, absent.
 20. **Error tracking via Sentry**, behind an isolated logging layer (swappable for self-hosted
     GlitchTip). Separate from the Audit Log.
+21. **One generic change-approval mechanism** (see "Employee change approvals" in `spec.md`).
+    Gated Employee actions — product price, manual stock, image deletion, hide/unhide, and a
+    product's variant set — file a `ChangeRequest` `(entityType, entityId, field, oldValue,
+    newValue)` instead of applying; Admin/Manager edits apply immediately. **Automatic stock
+    deduction from a sale is never gated** — a sale always completes. A newer request for the same
+    field on the same entity **replaces** the pending one (enforced by the unique `pendingKey`
+    column, never by a sweep). Approving applies the change atomically; rejecting discards it;
+    both are audited alongside the request itself. Approval is `changeRequest.approve` (Admin
+    only, widenable). Never add a second `approvalStatus` column to another table — add an entry
+    to `CHANGE_REQUEST_FIELDS` and an applier in `backend/src/lib/changeRequestAppliers.ts`.
 
 ## Workflow
 - Build **one stage at a time** (see the build order in `spec.md`). Test a stage before the next.

@@ -79,7 +79,6 @@ export const ERROR_MESSAGE_KEYS: Record<string, string> = {
   [ERROR_CODES.CASH_SESSION_NO_OPEN_FOLLOW_UP]: "errors.cashSessionNoOpenFollowUp",
 
   [ERROR_CODES.EXPENSE_NOT_FOUND]: "errors.expenseNotFound",
-  [ERROR_CODES.EXPENSE_NOT_PENDING]: "errors.expenseNotPending",
   [ERROR_CODES.EXPENSE_CATEGORY_NOT_FOUND]: "errors.expenseCategoryNotFound",
   [ERROR_CODES.EXPENSE_CATEGORY_KEY_DUPLICATE]: "errors.expenseCategoryKeyDuplicate",
   [ERROR_CODES.EXPENSE_CATEGORY_KEY_INVALID]: "errors.expenseCategoryKeyInvalid",
@@ -94,6 +93,13 @@ export const ERROR_MESSAGE_KEYS: Record<string, string> = {
   [ERROR_CODES.PUSH_ENDPOINT_INVALID]: "errors.pushEndpointInvalid",
   [ERROR_CODES.PUSH_NOT_CONFIGURED]: "errors.pushNotConfigured",
   [ERROR_CODES.PUSH_SUBSCRIPTION_NOT_FOUND]: "errors.pushSubscriptionNotFound",
+
+  // --- change requests (spec.md "Employee change approvals") ---
+  [ERROR_CODES.CHANGE_REQUEST_NOT_FOUND]: "errors.changeRequestNotFound",
+  [ERROR_CODES.CHANGE_REQUEST_NOT_PENDING]: "errors.changeRequestNotPending",
+  [ERROR_CODES.CHANGE_REQUEST_SELF_DECISION]: "errors.changeRequestSelfDecision",
+  [ERROR_CODES.CHANGE_REQUEST_TARGET_MISSING]: "errors.changeRequestTargetMissing",
+  [ERROR_CODES.CHANGE_REQUEST_NOT_APPLICABLE]: "errors.changeRequestNotApplicable",
 
   [ERROR_CODES.USER_NOT_FOUND]: "errors.userNotFound",
   [ERROR_CODES.AUTH_SIGNUP_FAILED]: "errors.authSignupFailed",

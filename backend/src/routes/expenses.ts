@@ -7,20 +7,27 @@ import { requireAuth, requirePermission } from "@/middleware/auth";
 import { validateBody, validateQuery } from "@/middleware/validate";
 import { AppError, sendOk } from "@/lib/response";
 import { serializeExpense } from "@/lib/expenses";
+import { formatMoney } from "@/lib/money";
 import { writeAudit } from "@/lib/audit";
+import {
+  approvalValue,
+  cancelPendingChangesFor,
+  fileChangeRequest,
+  serializeChangeRequest,
+} from "@/lib/changeRequests";
 import {
   createExpenseSchema,
   listExpensesQuerySchema,
-  rejectExpenseSchema,
   updateExpenseSchema,
   type CreateExpenseInput,
   type ListExpensesQuery,
-  type RejectExpenseInput,
   type UpdateExpenseInput,
 } from "@/validation/expense";
 import {
   APPROVED_EXPENSE_APPROVAL_STATUS,
   AUDIT_ENTITY,
+  CHANGE_REQUEST_ENTITIES,
+  CHANGE_REQUEST_FIELDS,
   ERROR_CODES,
   PENDING_EXPENSE_APPROVAL_STATUS,
 } from "@/constants";
@@ -35,12 +42,21 @@ import type { ExpenseApprovalStatus } from "@/types";
 //   * expense.view    — Admin/Manager. The expense list is the shop's
 //                       spending laid bare.
 //   * expense.manage  — Admin/Manager. Editing or deleting after the fact.
-//   * expense.approve — Admin/Manager. Signing off someone else's.
+//   * expense.approve — Admin/Manager. Recording spending that counts the
+//                       moment it is written, rather than as a request.
 //
 // And the rule that makes "anyone can record one" safe: an expense recorded
 // by someone WITHOUT expense.approve opens PENDING and counts for nothing —
 // not against the drawer, not against profit — until it is approved. That is
 // decided by the caller's role, never by the request body.
+//
+// WHERE THE APPROVAL WENT (spec.md "Employee change approvals"): there used
+// to be POST /:id/approve and POST /:id/reject here. There is one approval
+// mechanism in the shop now, so a pending expense files an ordinary change
+// request (entityType "Expense", field "approvalStatus") and is decided
+// through /api/change-requests like every other gated change. The columns on
+// Expense stay exactly as they were — they are the APPLIED state, and every
+// money query in the shop still filters on "only approved expenses count".
 const router = Router();
 router.use(requireAuth);
 
@@ -165,7 +181,27 @@ router.post(
       newValue: serializeExpense(created),
     });
 
-    sendOk(res, serializeExpense(created), null, 201);
+    // An expense that opens PENDING is a request like any other, so it goes
+    // on the same approval screen and notifies the same people. Nothing here
+    // is expense-specific beyond the values.
+    const pendingChange = selfApproving
+      ? null
+      : await fileChangeRequest(req.user!, {
+          entityType: CHANGE_REQUEST_ENTITIES.EXPENSE,
+          entityId: created.id,
+          field: CHANGE_REQUEST_FIELDS.EXPENSE_APPROVAL,
+          entityLabel: created.category?.name ?? null,
+          entityDetail: formatMoney(created.amount),
+          oldValue: approvalValue(PENDING_EXPENSE_APPROVAL_STATUS),
+          newValue: approvalValue(APPROVED_EXPENSE_APPROVAL_STATUS),
+        });
+
+    sendOk(
+      res,
+      { ...serializeExpense(created), pendingChange: pendingChange ? serializeChangeRequest(pendingChange) : null },
+      null,
+      201
+    );
   })
 );
 
@@ -210,86 +246,6 @@ router.patch(
 );
 
 // ---------------------------------------------------------------------------
-// POST /api/expenses/:id/approve — sign off a pending request. Only then
-// does it reach the drawer and the profit figures.
-// ---------------------------------------------------------------------------
-router.post(
-  "/:id/approve",
-  requirePermission("expense.approve"),
-  asyncHandler(async (req, res) => {
-    const existing = await loadExpense(req.params.id);
-    // Approving something already approved (or already turned down) is not a
-    // no-op the way collecting an order is: it would silently overwrite who
-    // decided what, which is the one thing the audit trail exists to hold.
-    if (existing.approvalStatus !== PENDING_EXPENSE_APPROVAL_STATUS) {
-      throw new AppError(409, ERROR_CODES.EXPENSE_NOT_PENDING);
-    }
-
-    const updated = await prisma.expense.update({
-      where: { id: existing.id },
-      data: {
-        approvalStatus: APPROVED_EXPENSE_APPROVAL_STATUS as ExpenseApprovalStatus,
-        approvedById: req.user!.id,
-        approvedAt: new Date(),
-      },
-      include: expenseInclude,
-    });
-
-    await writeAudit({
-      userId: req.user!.id,
-      action: AuditAction.APPROVE,
-      entityType: AUDIT_ENTITY.EXPENSE,
-      entityId: updated.id,
-      oldValue: { approvalStatus: existing.approvalStatus },
-      newValue: { approvalStatus: updated.approvalStatus, approvedAt: updated.approvedAt },
-    });
-
-    sendOk(res, serializeExpense(updated));
-  })
-);
-
-// ---------------------------------------------------------------------------
-// POST /api/expenses/:id/reject — turn one down. It stays on the record
-// (rejected, with who and why) rather than vanishing.
-// ---------------------------------------------------------------------------
-router.post(
-  "/:id/reject",
-  requirePermission("expense.approve"),
-  validateBody(rejectExpenseSchema),
-  asyncHandler(async (req, res) => {
-    const existing = await loadExpense(req.params.id);
-    if (existing.approvalStatus !== PENDING_EXPENSE_APPROVAL_STATUS) {
-      throw new AppError(409, ERROR_CODES.EXPENSE_NOT_PENDING);
-    }
-    const body = req.body as RejectExpenseInput;
-
-    const updated = await prisma.expense.update({
-      where: { id: existing.id },
-      data: {
-        approvalStatus: "REJECTED" as ExpenseApprovalStatus,
-        approvedById: req.user!.id,
-        approvedAt: new Date(),
-        // The reason goes on the expense itself, appended rather than
-        // replacing what the person who recorded it wrote down.
-        note: body.note ? [existing.note, body.note].filter(Boolean).join(" — ") : existing.note,
-      },
-      include: expenseInclude,
-    });
-
-    await writeAudit({
-      userId: req.user!.id,
-      action: AuditAction.REJECT,
-      entityType: AUDIT_ENTITY.EXPENSE,
-      entityId: updated.id,
-      oldValue: { approvalStatus: existing.approvalStatus, note: existing.note },
-      newValue: { approvalStatus: updated.approvalStatus, note: updated.note },
-    });
-
-    sendOk(res, serializeExpense(updated));
-  })
-);
-
-// ---------------------------------------------------------------------------
 // DELETE /api/expenses/:id — soft delete. An expense is a financial record,
 // so it is hidden rather than destroyed (the same reasoning as an order).
 // ---------------------------------------------------------------------------
@@ -299,9 +255,14 @@ router.delete(
   asyncHandler(async (req, res) => {
     const existing = await loadExpense(req.params.id);
 
-    const deleted = await prisma.expense.update({
-      where: { id: existing.id },
-      data: { deletedAt: new Date() },
+    const deleted = await prisma.$transaction(async (tx) => {
+      const row = await tx.expense.update({ where: { id: existing.id }, data: { deletedAt: new Date() } });
+      // A deleted expense is not waiting on anybody: leaving its approval on
+      // the screen would offer an Admin a decision about a hidden record.
+      await cancelPendingChangesFor(tx, [
+        { entityType: CHANGE_REQUEST_ENTITIES.EXPENSE, entityId: existing.id },
+      ]);
+      return row;
     });
 
     await writeAudit({

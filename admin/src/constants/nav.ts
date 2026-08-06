@@ -7,6 +7,7 @@ import {
   ReceiptText,
   HandCoins,
   ChartColumn,
+  ClipboardCheck,
   Users,
   Settings,
 } from "lucide-react";
@@ -32,6 +33,12 @@ export const NAV_ITEMS: readonly NavItem[] = [
   // list uses — cost and profit inside the page are gated separately, on the
   // backend, by product.viewCost (CLAUDE.md rule 19).
   { key: "reports", href: "/reports", icon: ChartColumn, action: "order.view" },
+  // Changes waiting on somebody (spec.md "Employee change approvals").
+  // Gated on the permission to READ requests, which every role holds — an
+  // Admin comes here to decide, an Employee to see their own edit waiting
+  // rather than wondering where it went. The badge next to it counts
+  // whichever of those two the reader actually has.
+  { key: "changeRequests", href: "/change-requests", icon: ClipboardCheck, action: "changeRequest.view" },
   { key: "users", href: "/users", icon: Users, action: "user.manage" },
   { key: "settings", href: "/settings", icon: Settings, action: "settings.manage" },
 ] as const;

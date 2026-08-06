@@ -61,11 +61,24 @@ export async function syncGallery(
   // 2. Deletions. One that fails is still on the server, so it goes back into
   //    the gallery rather than being quietly dropped from the user's view —
   //    and stays in the set the reorder call below has to account for.
+  //
+  //    A photo somebody may not delete is not a failure: the backend files a
+  //    request and answers `deleted: false` (spec.md "Employee change
+  //    approvals"). That photo is still there, so it goes back into the
+  //    gallery exactly like a failed deletion would — and the caller is told
+  //    how many are waiting, so it can say so rather than reporting an error
+  //    for something that worked as designed.
+  let awaitingApproval = 0;
   for (const image of saved) {
     if (keptIds.has(image.id)) continue;
     try {
-      await deleteImage(image.id);
-      onServer.delete(image.id);
+      const result = await deleteImage(image.id);
+      if (result.deleted) {
+        onServer.delete(image.id);
+      } else {
+        awaitingApproval += 1;
+        working.push({ kind: "existing", id: image.id, image, isPrimary: false });
+      }
     } catch (err) {
       errorCode ??= errorCodeOf(err);
       working.push({ kind: "existing", id: image.id, image, isPrimary: false });
@@ -98,5 +111,5 @@ export async function syncGallery(
     return stored ? { ...slot, image: stored, isPrimary: stored.isPrimary } : slot;
   });
 
-  return { images, slots: settled, pendingCount: pendingCount(settled), errorCode };
+  return { images, slots: settled, pendingCount: pendingCount(settled), awaitingApproval, errorCode };
 }

@@ -21,6 +21,8 @@ export interface ProductVariantDto {
   resolvedCost?: number | string | null;
 }
 
+import type { ChangeRequestDto } from "@tests/types/changeRequest";
+
 export interface ProductDto {
   id: string;
   name: { ar: string; en?: string; he?: string };
@@ -37,6 +39,14 @@ export interface ProductDto {
   // The product's explicit "this sells numbers, nothing else" choice
   // (spec.md "Numbered shawls"). False unless it was asked for.
   isNumbered: boolean;
+  // Whatever is still waiting for an Admin on this product, its variants or
+  // its photos (spec.md "Employee change approvals"). Present on every
+  // product response; empty when nothing is held.
+  pendingChanges?: ChangeRequestDto[];
+  // The gallery, lowest sortOrder first. Only the id is asserted against
+  // today (the photo-deletion approval), so only the shape that needs
+  // asserting is declared.
+  images: { id: string; url: string; thumbnailUrl: string; isPrimary: boolean }[];
   // Null until the product's barcode labels have been printed at least once.
   labelsPrintedAt: string | null;
   variants: ProductVariantDto[];

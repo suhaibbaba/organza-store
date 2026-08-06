@@ -1,5 +1,6 @@
 export * from "./cash";
 export * from "./category";
+export * from "./changeRequest";
 export * from "./common";
 export * from "./expense";
 export * from "./inventory";
