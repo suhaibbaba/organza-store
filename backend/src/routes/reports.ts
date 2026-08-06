@@ -7,15 +7,18 @@ import { sendOk } from "@/lib/response";
 import { granularityFor, periodRange, pickedRange } from "@/lib/reportRange";
 import {
   queryChannelTotals,
+  queryGiftCost,
   querySeries,
   queryTopSellers,
   queryTotals,
   toChannelSales,
+  toProfitTotals,
   toReturnsTotals,
   toSalesTotals,
   toSeries,
   toTopSellers,
 } from "@/lib/reports";
+import { expenseTotal, queryExpenseTotals } from "@/lib/expenses";
 import {
   salesReportQuerySchema,
   salesSummaryQuerySchema,
@@ -31,11 +34,13 @@ import type { SalesReport, SalesSummary } from "@/types";
 //   * order.view  — reaching the reports at all. Everyone who may look at a
 //                   sale may look at the totals of those sales, Employees
 //                   included (they already see order totals in the list).
-//   * product.viewCost — cost, profit and margin. Admin + Manager only, the
-//                   same permission that hides `cost` on products and
-//                   `unitCost` on order lines (CLAUDE.md rule 19). Below
-//                   that, those fields are never computed into the response
-//                   at all, so there is nothing to un-hide client-side.
+//   * product.viewCost — cost, COGS, profit and margin. ADMIN ONLY, the same
+//                   permission that hides `cost` on products and `unitCost`
+//                   on order lines (CLAUDE.md rule 19). Below that, those
+//                   fields are never computed into the response at all, so
+//                   there is nothing to un-hide client-side — and the whole
+//                   `profit` block (sold/received/owed, gross and net) is
+//                   simply absent.
 const router = Router();
 router.use(requireAuth);
 
@@ -83,12 +88,16 @@ router.get(
     const range = pickedRange(query.from, query.to, query.tzOffset);
     const granularity = granularityFor(range);
 
-    const [totals, channels, series, topByRevenue, topByQuantity] = await Promise.all([
+    const [totals, channels, series, topByRevenue, topByQuantity, gifts, expenses] = await Promise.all([
       queryTotals(range),
       queryChannelTotals(range),
       querySeries(range, granularity, query.tzOffset),
       queryTopSellers(range, "revenue", query.topLimit),
       queryTopSellers(range, "quantity", query.topLimit),
+      // Only ever read for the profit block below, which is Admin-only —
+      // but cheap enough that branching the fan-out would buy nothing.
+      queryGiftCost(range),
+      queryExpenseTotals(range),
     ]);
 
     const report: SalesReport = {
@@ -101,6 +110,13 @@ router.get(
       topByRevenue: toTopSellers(topByRevenue, canViewCost),
       topByQuantity: toTopSellers(topByQuantity, canViewCost),
     };
+
+    // Sold vs. received vs. owed, gross vs. net — the block that answers the
+    // money question without a single ambiguous number. Attached only for a
+    // role that may see cost, because every figure in it is derived from one.
+    if (canViewCost) {
+      report.profit = toProfitTotals(totals, gifts, expenseTotal(expenses));
+    }
 
     sendOk(res, report);
   })

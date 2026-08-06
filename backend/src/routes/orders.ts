@@ -23,7 +23,13 @@ import {
   type UpdateOrderInput,
   type UpdateOrderStatusInput,
 } from "@/validation/order";
-import { computeOrderTotals, priceLine, priceRequestedItems, toStockMovements } from "@/lib/orderPricing";
+import {
+  asGiftLines,
+  computeOrderTotals,
+  priceLine,
+  priceRequestedItems,
+  toStockMovements,
+} from "@/lib/orderPricing";
 import { deductStock, restoreStock } from "@/lib/orderStock";
 import { serializeOrder, serializeOrderSummary } from "@/lib/orderSerialize";
 import { queryCollectionSummary, toCollectionSummary } from "@/lib/orderCollection";
@@ -34,6 +40,7 @@ import {
   AUDIT_ENTITY,
   COLLECTABLE_ORDER_STATUSES,
   ERROR_CODES,
+  GIFT_ORDER_TYPE,
   MAX_INT32,
   ONLINE_ORDER_CHANNELS,
   ONLINE_ORDER_INITIAL_PAYMENT_STATUS,
@@ -45,7 +52,7 @@ import {
   STORE_ORDER_INITIAL_STATUS,
   UNEDITABLE_ORDER_STATUSES,
 } from "@/constants";
-import type { AnyRecord, CollectResult, OrderStatus, PaymentStatus } from "@/types";
+import type { AnyRecord, CollectResult, OrderStatus, OrderType, PaymentStatus } from "@/types";
 
 // Orders (Phase 2). Two shapes of sale share one model:
 //   STORE    — rung up at the POS counter; opens COMPLETED with stock
@@ -111,6 +118,9 @@ router.get(
 
     if (query.status) where.status = query.status;
     if (query.channel) where.channel = query.channel;
+    // Unset means both: the orders list is the record of everything that left
+    // the shop, sold or given away.
+    if (query.type) where.type = query.type;
     if (query.paymentStatus) where.paymentStatus = query.paymentStatus;
 
     // The outstanding-money view asks for PENDING_COLLECTION + this: a
@@ -286,17 +296,31 @@ router.post(
   asyncHandler(async (req, res) => {
     const body = req.body as CreateOrderInput;
 
+    // Giving stock away is not something an Employee may do: someone who
+    // could file a sale as a gift could walk out with the piece. Checked here
+    // rather than on the route because order.create is the gate for the
+    // ordinary case and this is the narrower one on top of it. (The schema
+    // has already refused a gift on any channel but STORE.)
+    const isGift = body.type === GIFT_ORDER_TYPE;
+    if (isGift && !can(req.user!, "order.createGift")) throw new AppError(403, ERROR_CODES.FORBIDDEN);
+
     // Prices, names and costs are read from the catalogue here and frozen
     // onto the lines — the caller only named products and quantities.
-    const priced = await priceRequestedItems(body.items);
+    const catalogue = await priceRequestedItems(body.items);
+    // A gift charges nothing: every line is re-priced at zero, and only
+    // unitCost survives — that is what the shop actually lost.
+    const priced = isGift ? asGiftLines(catalogue) : catalogue;
     const totals = computeOrderTotals(
       priced.map((line) => line.lineTotal),
-      body
+      // A discount off nothing is nothing; a gift's order-level discount is
+      // dropped rather than applied to a zero subtotal.
+      isGift ? {} : body
     );
 
     // A counter sale differs from a remote one in three ways at once: it
     // opens finished, it takes its stock off the shelf immediately, and its
-    // money is already in the till.
+    // money is already in the till. A gift takes the same path — it is handed
+    // over at the counter — with nothing to collect.
     const isCounterSale = body.channel === "STORE";
     const now = new Date();
 
@@ -304,6 +328,7 @@ router.post(
       const order = await tx.order.create({
         data: {
           channel: body.channel,
+          type: body.type as OrderType,
           status: (isCounterSale ? STORE_ORDER_INITIAL_STATUS : ONLINE_ORDER_INITIAL_STATUS) as OrderStatus,
           paymentMethod: body.paymentMethod,
           // An order going out with the courier is not paid for until the
@@ -320,8 +345,8 @@ router.post(
           customerLongitude: body.customerLongitude ?? null,
           note: body.note ?? null,
           subtotal: totals.subtotal,
-          discountType: body.discountType ?? null,
-          discountValue: body.discountValue ?? null,
+          discountType: isGift ? null : body.discountType ?? null,
+          discountValue: isGift ? null : body.discountValue ?? null,
           discountAmount: totals.discountAmount,
           total: totals.total,
           stockDeductedAt: isCounterSale ? now : null,
@@ -367,7 +392,11 @@ router.post(
     // slow or down must never delay a queue at the till, and must never turn
     // a completed sale into an error (failures go to the error-tracking
     // layer instead — see lib/saleNotifications.ts).
-    scheduleSaleNotification(created, req.user!);
+    //
+    // Gifts are left out: the notification says "new sale — <amount>", and a
+    // gift is neither. Only an Admin or a Manager can give stock away, and
+    // the audit log holds who did (spec.md "Cash drawer & expenses").
+    if (!isGift) scheduleSaleNotification(created, req.user!);
 
     sendOk(res, serializeOrder(created, req.user!.role), null, 201);
   })

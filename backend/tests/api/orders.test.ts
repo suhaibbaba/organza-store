@@ -1023,7 +1023,9 @@ describe("Orders", () => {
       expect(reread.data!.status).toBe("NEW");
     });
 
-    it("hides unitCost from an Employee but shows it to a Manager", async () => {
+    // unitCost is ADMIN ONLY (CLAUDE.md rule 19) — a Manager sits on the same
+    // side of this gate as an Employee.
+    it("hides unitCost from an Employee and a Manager, and shows it to an Admin", async () => {
       const admin = await getSession("ADMIN");
       const manager = await getSession("MANAGER");
       const employee = await getSession("EMPLOYEE");
@@ -1037,7 +1039,10 @@ describe("Orders", () => {
       expect(created.data!.items[0]).not.toHaveProperty("unitCost");
 
       const asManager = await apiRequest<OrderDto>(`/api/orders/${created.data!.id}`, { token: manager.token });
-      expect(asManager.data!.items[0].unitCost).toBe("30.00");
+      expect(asManager.data!.items[0]).not.toHaveProperty("unitCost");
+
+      const asAdmin = await apiRequest<OrderDto>(`/api/orders/${created.data!.id}`, { token: admin.token });
+      expect(asAdmin.data!.items[0].unitCost).toBe("30.00");
     });
 
     it("lets a Manager cancel and delete", async () => {

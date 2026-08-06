@@ -3,12 +3,14 @@ import type {
   ORDER_CHANNELS,
   ORDER_SORT_FIELDS,
   ORDER_STATUSES,
+  ORDER_TYPES,
   PAYMENT_METHODS,
   PAYMENT_STATUSES,
 } from "@/constants/order";
 import type { I18n } from "@/types/common";
 
 export type OrderChannel = (typeof ORDER_CHANNELS)[number];
+export type OrderType = (typeof ORDER_TYPES)[number];
 export type OrderStatus = (typeof ORDER_STATUSES)[number];
 export type PaymentMethod = (typeof PAYMENT_METHODS)[number];
 export type PaymentStatus = (typeof PAYMENT_STATUSES)[number];
@@ -35,8 +37,8 @@ export interface OrderItem {
   discountAmount: string;
   lineTotal: string;
   returnedQuantity: number;
-  // SENSITIVE (CLAUDE.md rule 19): Admin + Manager only — absent entirely
-  // from Employee responses.
+  // SENSITIVE (CLAUDE.md rule 19): ADMIN ONLY — absent entirely from a
+  // Manager's or an Employee's response, not merely null.
   unitCost?: string | null;
 }
 
@@ -52,6 +54,11 @@ export interface Order {
   id: string;
   orderNumber: number;
   channel: OrderChannel;
+  // SALE or GIFT. A gift moves the same stock through the same machinery but
+  // charges nothing: every line is priced at zero, so it never adds revenue,
+  // and its COST is what the shop lost by giving it away (reported as an
+  // expense, not as cost of goods sold).
+  type: OrderType;
   status: OrderStatus;
   paymentMethod: PaymentMethod;
   // Whether the money for this sale is actually in the shop's hands. A
@@ -93,6 +100,7 @@ export interface OrderSummary {
   id: string;
   orderNumber: number;
   channel: OrderChannel;
+  type: OrderType;
   status: OrderStatus;
   paymentMethod: PaymentMethod;
   // Carried on the list row too: the outstanding-money view is a filtered

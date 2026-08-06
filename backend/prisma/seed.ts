@@ -13,6 +13,11 @@
 //    - one product with its barcode labels already printed, the rest not
 //    - orders on every channel, covering the status flow, both discount
 //      levels, a cancellation, a partial return and a soft-deleted sale
+//    - a GIFT order (stock out, nothing charged)
+//    - the five default expense categories, plus an expense of every shape:
+//      approved-in-cash, approved-by-transfer, an Employee's pending one,
+//      and a rejected one
+//    - two closed cash-drawer days, the second carrying a difference forward
 // ============================================================
 
 import { PrismaClient, Role } from "@prisma/client";
@@ -422,6 +427,9 @@ async function main() {
 
   const admin = await prisma.user.findUniqueOrThrow({ where: { email: "admin@organza.test" } });
   const employee = await prisma.user.findUniqueOrThrow({ where: { email: "employee@organza.test" } });
+  // Used by the expense + cash-drawer fixtures below: the Manager is who
+  // approves someone else's expense and who counts the drawer.
+  const manager = await prisma.user.findUniqueOrThrow({ where: { email: "manager@organza.test" } });
 
   const silkScarf = await prisma.product.findUniqueOrThrow({ where: { slug: "silk-scarf" } });
   const eveningDress = await prisma.product.findUniqueOrThrow({
@@ -452,6 +460,9 @@ async function main() {
   async function upsertOrder(opts: {
     id: string;
     channel: "STORE" | "WHATSAPP" | "WEBSITE";
+    // SALE unless stated. A GIFT prices every line at zero (nothing was
+    // charged) but keeps unitCost — what the shop lost by giving it away.
+    type?: "SALE" | "GIFT";
     status: "NEW" | "PREPARING" | "HANDED_TO_COURIER" | "COMPLETED" | "CANCELLED" | "RETURNED";
     // Whether the money for this sale is already in the shop's hands. A
     // counter sale is; a parcel with the delivery company usually isn't yet.
@@ -470,11 +481,14 @@ async function main() {
     stockDeducted: boolean;
     deleted?: boolean;
   }) {
+    const isGift = opts.type === "GIFT";
     const items = opts.lines.map((line) => {
-      const unitPrice = round2(Number(line.variant?.priceOverride ?? line.product.basePrice));
+      // Mirrors asGiftLines() in src/lib/orderPricing.ts: a gift charges
+      // nothing, so the price is zero rather than discounted to zero.
+      const unitPrice = isGift ? 0 : round2(Number(line.variant?.priceOverride ?? line.product.basePrice));
       const unitCost = line.variant?.cost ?? line.product.cost;
       const gross = round2(unitPrice * line.quantity);
-      const discountAmount = discountOf(gross, line.discountType, line.discountValue);
+      const discountAmount = isGift ? 0 : discountOf(gross, line.discountType, line.discountValue);
       return {
         productId: line.product.id,
         variantId: line.variant?.id ?? null,
@@ -484,8 +498,8 @@ async function main() {
         unitPrice,
         unitCost: unitCost === null || unitCost === undefined ? null : round2(Number(unitCost)),
         quantity: line.quantity,
-        discountType: line.discountType ?? null,
-        discountValue: line.discountValue ?? null,
+        discountType: isGift ? null : line.discountType ?? null,
+        discountValue: isGift ? null : line.discountValue ?? null,
         discountAmount,
         lineTotal: round2(gross - discountAmount),
         returnedQuantity: line.returnedQuantity ?? 0,
@@ -493,10 +507,11 @@ async function main() {
     });
 
     const subtotal = round2(items.reduce((sum, i) => sum + i.lineTotal, 0));
-    const discountAmount = discountOf(subtotal, opts.discountType, opts.discountValue);
+    const discountAmount = isGift ? 0 : discountOf(subtotal, opts.discountType, opts.discountValue);
 
     const base = {
       channel: opts.channel,
+      type: opts.type ?? ("SALE" as const),
       status: opts.status,
       paymentMethod: "CASH" as const,
       paymentStatus: opts.paymentStatus,
@@ -508,8 +523,8 @@ async function main() {
       customerLongitude: opts.customerLongitude ?? null,
       note: opts.note ?? null,
       subtotal,
-      discountType: opts.discountType ?? null,
-      discountValue: opts.discountValue ?? null,
+      discountType: isGift ? null : opts.discountType ?? null,
+      discountValue: isGift ? null : opts.discountValue ?? null,
       discountAmount,
       total: round2(subtotal - discountAmount),
       stockDeductedAt: opts.stockDeducted ? new Date("2026-01-01T10:00:00.000Z") : null,
@@ -634,6 +649,178 @@ async function main() {
     deleted: true,
     lines: [{ product: silkScarf, quantity: 1 }],
   });
+
+  // 8) A GIFT — stock walked out of the shop for nothing. Same machinery as a
+  //    counter sale (COMPLETED, stock deducted, nothing to collect), but every
+  //    line is priced at zero, so it contributes no revenue anywhere. What it
+  //    cost the shop is reported as a cost of doing business, not as COGS.
+  await upsertOrder({
+    id: "seed-order-store-gift",
+    channel: "STORE",
+    type: "GIFT",
+    status: "COMPLETED",
+    paymentStatus: "COLLECTED",
+    createdById: admin.id,
+    stockDeducted: true,
+    note: "هدية لعروس — بدون مقابل",
+    lines: [{ product: silkScarf, quantity: 1 }],
+  });
+
+  // --- Expense categories (the shop's own list, extendable from the admin) ---
+  // Upserted by `key`, which is the stable identity: renaming the display
+  // name in three languages must never orphan an expense (CLAUDE.md rule 9).
+  const expenseCategories = [
+    { key: "utilities", name: { ar: "فواتير", en: "Utilities", he: "חשבונות" } },
+    { key: "salaries", name: { ar: "رواتب", en: "Salaries", he: "משכורות" } },
+    { key: "supplies", name: { ar: "مستلزمات", en: "Supplies", he: "ציוד" } },
+    { key: "maintenance", name: { ar: "صيانة", en: "Maintenance", he: "תחזוקה" } },
+    { key: "delivery", name: { ar: "توصيل", en: "Delivery", he: "משלוחים" } },
+  ];
+  const expenseCategoryId: Record<string, string> = {};
+  for (let i = 0; i < expenseCategories.length; i++) {
+    const c = expenseCategories[i];
+    const row = await prisma.expenseCategory.upsert({
+      where: { key: c.key },
+      update: { name: c.name, sortOrder: i },
+      create: { key: c.key, name: c.name, sortOrder: i, isActive: true },
+    });
+    expenseCategoryId[c.key] = row.id;
+  }
+
+  // --- Expenses: every shape the rules define ---
+  //   approved + cash      -> counts against the drawer AND against profit
+  //   approved + not cash   -> counts against profit only (never touched the till)
+  //   pending (an Employee's) -> counts for nothing until it is signed off
+  //   rejected              -> never happened, kept on the record anyway
+  // Dates are fixed so a re-seed produces the same rows.
+  const seedExpenses = [
+    {
+      id: "seed-expense-utilities-cash",
+      categoryKey: "utilities",
+      amount: 320,
+      date: new Date("2026-01-05T08:00:00.000Z"),
+      note: "فاتورة كهرباء كانون الثاني",
+      paidInCash: true,
+      isRecurring: true,
+      approvalStatus: "APPROVED" as const,
+      createdById: admin.id,
+      approvedById: admin.id,
+    },
+    {
+      id: "seed-expense-salaries-transfer",
+      categoryKey: "salaries",
+      amount: 4500,
+      date: new Date("2026-01-31T08:00:00.000Z"),
+      note: "رواتب الشهر — تحويل بنكي",
+      // A transfer is just as real a cost, but the drawer never held it.
+      paidInCash: false,
+      isRecurring: true,
+      approvalStatus: "APPROVED" as const,
+      createdById: admin.id,
+      approvedById: admin.id,
+    },
+    {
+      id: "seed-expense-supplies-pending",
+      categoryKey: "supplies",
+      amount: 85,
+      date: new Date("2026-02-02T08:00:00.000Z"),
+      note: "أكياس وشرائط تغليف",
+      paidInCash: true,
+      isRecurring: false,
+      // Recorded by an Employee, so it is a request: it moves neither the
+      // drawer nor the profit figures until someone senior approves it.
+      approvalStatus: "PENDING" as const,
+      createdById: employee.id,
+      approvedById: null,
+    },
+    {
+      id: "seed-expense-maintenance-rejected",
+      categoryKey: "maintenance",
+      amount: 150,
+      date: new Date("2026-02-03T08:00:00.000Z"),
+      note: "تصليح مكيّف — مسجّلة بالخطأ مرتين",
+      paidInCash: true,
+      isRecurring: false,
+      approvalStatus: "REJECTED" as const,
+      createdById: employee.id,
+      approvedById: manager.id,
+    },
+  ];
+  for (const e of seedExpenses) {
+    const data = {
+      categoryId: expenseCategoryId[e.categoryKey],
+      amount: e.amount,
+      date: e.date,
+      note: e.note,
+      paidInCash: e.paidInCash,
+      isRecurring: e.isRecurring,
+      approvalStatus: e.approvalStatus,
+      approvedById: e.approvedById,
+      approvedAt: e.approvedById ? e.date : null,
+      createdById: e.createdById,
+    };
+    await prisma.expense.upsert({ where: { id: e.id }, update: data, create: { id: e.id, ...data } });
+  }
+
+  // --- Cash drawer: two closed days, one of them short ---
+  // Both are CLOSED on purpose. A seeded OPEN drawer would be a day nobody
+  // ever counted, and would sit at the top of "the current drawer" forever.
+  //
+  // Day 2 carries a difference forward: the count came up short, the close was
+  // recorded anyway (a difference NEVER blocks it), a note explains it, and it
+  // stays on the follow-up list until someone signs it off — which is exactly
+  // the state the follow-up reminder exists to show.
+  const seedSessions = [
+    {
+      id: "seed-cash-session-balanced",
+      date: new Date("2026-01-05T00:00:00.000Z"),
+      openingFloat: 200,
+      cashSales: 1450,
+      cashExpenses: 320,
+      counted: 1330,
+      withdrawn: 1000,
+      note: null as string | null,
+      carried: false,
+    },
+    {
+      id: "seed-cash-session-short",
+      date: new Date("2026-01-06T00:00:00.000Z"),
+      // Exactly what day one left behind: 1330 counted less 1000 banked.
+      openingFloat: 330,
+      cashSales: 640,
+      cashExpenses: 0,
+      // 30 short of the 970 expected — recorded, explained, carried.
+      counted: 940,
+      withdrawn: 0,
+      note: "نقص ٣٠ شيكل — يُراجع مع ورديّة المساء",
+      carried: true,
+    },
+  ];
+  for (const s of seedSessions) {
+    const expected = round2(s.openingFloat + s.cashSales - s.cashExpenses);
+    const data = {
+      date: s.date,
+      tzOffset: 0,
+      status: "CLOSED" as const,
+      openingFloat: s.openingFloat,
+      cashSales: s.cashSales,
+      cashExpenses: s.cashExpenses,
+      expectedAmount: expected,
+      countedAmount: s.counted,
+      withdrawnAmount: s.withdrawn,
+      difference: round2(s.counted - expected),
+      closingBalance: round2(s.counted - s.withdrawn),
+      note: s.note,
+      differenceCarried: s.carried,
+      followUpResolvedAt: null,
+      followUpResolvedById: null,
+      openedById: manager.id,
+      closedById: manager.id,
+      openedAt: new Date(s.date.getTime() + 7 * 60 * 60 * 1000),
+      closedAt: new Date(s.date.getTime() + 20 * 60 * 60 * 1000),
+    };
+    await prisma.cashSession.upsert({ where: { id: s.id }, update: data, create: { id: s.id, ...data } });
+  }
 
   console.log("✅ Seed complete.");
   console.log("   Users: admin@ / manager@ / employee@organza.test  (password: password123)");

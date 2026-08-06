@@ -75,6 +75,37 @@ export const ERROR_CODES = {
   // A cancelled or fully returned sale owes the shop nothing, so there is no
   // money on it to record as collected.
   ORDER_NOT_COLLECTABLE: "error.order.not_collectable",
+  // A gift is rung up at the counter with the person standing there, so it
+  // only exists on the STORE channel (spec.md "Gifts").
+  ORDER_GIFT_CHANNEL_INVALID: "error.order.gift_channel_invalid",
+
+  // --- cash drawer ---
+  CASH_SESSION_NOT_FOUND: "error.cashSession.not_found",
+  // One drawer per trading day. (Yesterday's still being open is deliberately
+  // NOT an error — see routes/cashSessions.ts.)
+  CASH_SESSION_DATE_TAKEN: "error.cashSession.date_taken",
+  // A closed drawer is a counted, signed record — it is not re-counted.
+  CASH_SESSION_ALREADY_CLOSED: "error.cashSession.already_closed",
+  // The count and the expectation disagree. NEVER a refusal to close — this
+  // is only raised when the difference was left unexplained: the note is what
+  // makes a discrepancy investigable instead of invisible.
+  CASH_SESSION_DIFFERENCE_NOTE_REQUIRED: "error.cashSession.difference_note_required",
+  // More taken out of the drawer than was counted in it.
+  CASH_SESSION_WITHDRAWAL_EXCEEDS_COUNT: "error.cashSession.withdrawal_exceeds_count",
+  // Nothing to sign off: this day's difference was never carried forward, or
+  // has already been dealt with.
+  CASH_SESSION_NO_OPEN_FOLLOW_UP: "error.cashSession.no_open_follow_up",
+
+  // --- expenses ---
+  EXPENSE_NOT_FOUND: "error.expense.not_found",
+  // Approving or rejecting something that is no longer pending.
+  EXPENSE_NOT_PENDING: "error.expense.not_pending",
+  EXPENSE_CATEGORY_NOT_FOUND: "error.expenseCategory.not_found",
+  EXPENSE_CATEGORY_KEY_DUPLICATE: "error.expenseCategory.key_duplicate",
+  EXPENSE_CATEGORY_KEY_INVALID: "error.expenseCategory.key_invalid",
+  // Deleting a category would strand the expenses filed under it, so it is
+  // refused while any exist — deactivate it instead.
+  EXPENSE_CATEGORY_HAS_EXPENSES: "error.expenseCategory.has_expenses",
 
   REPORT_RANGE_INVALID: "error.report.range_invalid",
   REPORT_RANGE_TOO_LONG: "error.report.range_too_long",

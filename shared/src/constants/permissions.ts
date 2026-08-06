@@ -20,6 +20,11 @@ export const PERMISSION_ACTIONS = [
   "product.editPrice",
   "product.delete",
   "product.hide",
+  // What a piece COST the shop, and everything derived from it: COGS, gross
+  // and net profit, margin, the inventory valuation at cost. ADMIN ONLY —
+  // this is the owner's own margin, and it is not a Manager's to read
+  // (CLAUDE.md rule 19). One action gates the field and every figure computed
+  // from it, so there is no second place a profit number can slip out of.
   "product.viewCost",
   // Printing barcode labels and recording that they were printed. Held by
   // every role on purpose: an Employee may add products (spec.md), and a new
@@ -67,6 +72,40 @@ export const PERMISSION_ACTIONS = [
   // took the order must not be able to declare its money received — the same
   // anti-theft reasoning that keeps cancel and delete out of their hands.
   "order.markCollected",
+  // Giving stock away: an order of type GIFT, rung up at the POS, which
+  // deducts stock exactly like a sale but takes no money. Admin/Manager only
+  // — an Employee who could file a sale as a gift could walk out with the
+  // piece, which is the same reasoning that keeps cancel and delete from
+  // them.
+  "order.createGift",
+
+  // --- the cash drawer (spec.md "Cash drawer & expenses") ---
+  // Opening the day's drawer, closing it against a physical count, and
+  // reading what it says. Admin/Manager only, both halves: the count IS the
+  // shop's cash position, so the person standing at the till must not be the
+  // one who declares what should have been in it.
+  "cashSession.view",
+  "cashSession.manage",
+
+  // --- expenses ---
+  // Recording what the shop spent. Held by every role on purpose: whoever
+  // pays the electricity bill should be able to write it down there and then.
+  // An Employee's expense opens PENDING and buys nothing until it is
+  // approved, so this is a request, not a payout.
+  "expense.create",
+  // Reading the expense list, which is the shop's spending laid bare —
+  // Admin/Manager, like every other figure that adds up to profit.
+  "expense.view",
+  // Editing and deleting an expense after the fact.
+  "expense.manage",
+  // Signing off (or refusing) an expense someone else recorded.
+  "expense.approve",
+
+  // The category list an expense is filed under. Everyone may READ it —
+  // picking "Utilities" is part of recording an expense — but changing the
+  // list itself reaches every past expense, so it stays with Admin/Manager.
+  "expenseCategory.view",
+  "expenseCategory.manage",
 
   "user.manage",
   "user.viewSensitive",
@@ -77,13 +116,22 @@ export const PERMISSION_ACTIONS = [
 type Action = (typeof PERMISSION_ACTIONS)[number];
 
 // spec.md "Roles & Permissions" table, verbatim:
-// Admin: everything. Manager: products/stock/orders full, no users/settings.
-// Employee: POS, add and edit products, edit images, create + hand over
-// orders — cannot delete/hide products, cannot delete/edit/cancel orders,
-// cannot mark money collected, no users/settings, no cost/idNumber
-// visibility, and neither the dashboard nor the inventory list: both are
-// shop-wide overviews (stock levels, inventory value, low-stock alerts) that
-// belong to whoever manages stock, which an Employee does not.
+// Admin: everything. Manager: products/stock/orders full, no users/settings,
+// AND NO COST OR PROFIT. Employee: POS, add and edit products, edit images,
+// create + hand over orders — cannot delete/hide products, cannot
+// delete/edit/cancel orders, cannot mark money collected, no users/settings,
+// no cost/idNumber visibility, and neither the dashboard nor the inventory
+// list: both are shop-wide overviews (stock levels, inventory value,
+// low-stock alerts) that belong to whoever manages stock, which an Employee
+// does not.
+//
+// Cost and profit are ADMIN ONLY (spec.md "Sensitive fields"). A Manager runs
+// the shop floor — stock, orders, the drawer, what was spent — but what each
+// piece cost the owner, and therefore what the shop earns on it, is the
+// owner's alone. product.viewCost is the single gate: dropping it from
+// MANAGER below is what removes cost from products, unitCost from order
+// lines, the cost basis from the inventory valuation, and COGS / gross
+// profit / net profit / margin from every report, all at once.
 // Editing a product is the details only — its price is product.editPrice,
 // its stock inventory.adjust, its visibility product.hide, none of which an
 // Employee holds. On the global option lists they may add (variantType.create,
@@ -99,7 +147,7 @@ export const ROLE_PERMISSIONS: Record<Role, readonly Action[]> = {
     "product.editPrice",
     "product.delete",
     "product.hide",
-    "product.viewCost",
+    // NOTE: no "product.viewCost" — cost and profit are Admin only.
     "product.printLabels",
     "category.view",
     "category.manage",
@@ -117,6 +165,15 @@ export const ROLE_PERMISSIONS: Record<Role, readonly Action[]> = {
     "order.delete",
     "order.return",
     "order.markCollected",
+    "order.createGift",
+    "cashSession.view",
+    "cashSession.manage",
+    "expense.create",
+    "expense.view",
+    "expense.manage",
+    "expense.approve",
+    "expenseCategory.view",
+    "expenseCategory.manage",
   ],
   EMPLOYEE: [
     "product.view",
@@ -129,5 +186,11 @@ export const ROLE_PERMISSIONS: Record<Role, readonly Action[]> = {
     "order.view",
     "order.create",
     "order.updateStatus",
+    // Whoever pays the bill writes it down. It opens PENDING and needs an
+    // Admin/Manager to approve it before it touches the drawer or the books,
+    // so recording one spends nothing on its own.
+    "expense.create",
+    // ...and to record one they have to be able to read the category list.
+    "expenseCategory.view",
   ],
 };

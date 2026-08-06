@@ -10,6 +10,7 @@ import type {
   OrderSortField,
   OrderStatus,
   OrderSummary,
+  OrderType,
   PaymentMethod,
   PaymentStatus,
 } from "@shared/types/order";
@@ -25,6 +26,7 @@ export type {
   OrderSortField,
   OrderStatus,
   OrderSummary,
+  OrderType,
   PaymentMethod,
   PaymentStatus,
 };

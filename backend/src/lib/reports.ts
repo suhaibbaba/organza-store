@@ -5,7 +5,9 @@ import { MARGIN_DECIMAL_PLACES, MONEY_DECIMAL_PLACES, ORDER_CHANNELS } from "@/c
 import type {
   ChannelAggregateRow,
   ChannelSales,
+  GiftAggregateRow,
   OrderChannel,
+  ProfitTotals,
   ReportGranularity,
   ReportRange,
   ReturnsTotals,
@@ -35,6 +37,12 @@ import type {
 //  Selling and being paid are two different facts (spec.md "Payment
 //  collection"), so revenue is split here into what has been COLLECTED and
 //  what the delivery company still owes — never conflated into one figure.
+//
+//  GIFTS ARE NOT SALES. An order of type GIFT is excluded from everything
+//  below: it earned nothing, so counting it would drag the average order
+//  value, the margin and the channel split towards zero for no reason. What
+//  it COST the shop is aggregated separately (queryGiftCost) and subtracted
+//  as a cost of doing business — see spec.md "Cash drawer & expenses".
 // ============================================================================
 
 // The per-line view every aggregate selects from: one row per sold line,
@@ -55,7 +63,12 @@ export function lineView(range: ReportRange | null): Prisma.Sql {
       o.id            AS order_id,
       o.channel::text AS channel,
       o."paymentStatus"::text AS payment_status,
+      o."paymentMethod"::text AS payment_method,
       o."createdAt"   AS created_at,
+      -- When the money actually reached the shop. The cash drawer windows on
+      -- this rather than on created_at: a courier order rung up in July but
+      -- settled in August is August's cash.
+      o."collectedAt" AS collected_at,
       oi."productId"  AS product_id,
       oi."variantId"  AS variant_id,
       oi.name         AS name,
@@ -76,6 +89,31 @@ export function lineView(range: ReportRange | null): Prisma.Sql {
     JOIN "Order" o ON o.id = oi."orderId"
     WHERE o."deletedAt" IS NULL
       AND o.status <> 'CANCELLED'::"OrderStatus"
+      -- Gifts earn nothing; they are a cost, counted by queryGiftCost below.
+      AND o.type = 'SALE'::"OrderType"
+      ${window}
+  `;
+}
+
+// The same per-line reduction for GIFTS — the orders the view above
+// deliberately drops. Only the cost side exists here: there is no revenue to
+// compute, and the retail price of something given away is not money the
+// shop ever had.
+function giftLineView(range: ReportRange | null): Prisma.Sql {
+  const window = range
+    ? Prisma.sql`AND o."createdAt" >= ${range.from} AND o."createdAt" < ${range.to}`
+    : Prisma.empty;
+
+  return Prisma.sql`
+    SELECT
+      o.id AS order_id,
+      (oi.quantity - oi."returnedQuantity")::numeric AS net_units,
+      COALESCE(oi."unitCost", 0)                     AS unit_cost
+    FROM "OrderItem" oi
+    JOIN "Order" o ON o.id = oi."orderId"
+    WHERE o."deletedAt" IS NULL
+      AND o.status <> 'CANCELLED'::"OrderStatus"
+      AND o.type = 'GIFT'::"OrderType"
       ${window}
   `;
 }
@@ -97,6 +135,10 @@ const TOTALS_COLUMNS = Prisma.sql`
     WHERE payment_status = 'PENDING_COLLECTION' AND net_units > 0) AS "pendingCollectionOrderCount",
   COALESCE(SUM(unit_gross_price * net_units), 0)                   AS "grossRevenue",
   COALESCE(SUM(unit_cost * net_units), 0)                          AS "cost",
+  -- COGS on the part that has actually been paid for, so a "received only"
+  -- profit is a real subtraction rather than an estimate.
+  COALESCE(SUM(unit_cost * net_units)
+    FILTER (WHERE payment_status = 'COLLECTED'), 0)                AS "collectedCost",
   COUNT(*) FILTER (WHERE cost_missing AND net_units > 0)           AS "missingCostItems",
   COUNT(DISTINCT order_id) FILTER (WHERE returned_units > 0)       AS "returnedOrderCount",
   COALESCE(SUM(returned_units), 0)                                 AS "returnedItemCount",
@@ -120,6 +162,21 @@ export async function queryTotals(range: ReportRange): Promise<SalesAggregateRow
   const rows = await prisma.$queryRaw<SalesAggregateRow[]>`
     WITH line AS (${lineView(range)})
     SELECT ${TOTALS_COLUMNS} FROM line
+  `;
+  return rows[0];
+}
+
+// What the shop gave away in this range, at what it paid for it. Returns
+// zeros rather than nothing when no gifts were given, so the caller never has
+// to special-case an empty range.
+export async function queryGiftCost(range: ReportRange): Promise<GiftAggregateRow> {
+  const rows = await prisma.$queryRaw<GiftAggregateRow[]>`
+    WITH line AS (${giftLineView(range)})
+    SELECT
+      COUNT(DISTINCT order_id) FILTER (WHERE net_units > 0) AS "orderCount",
+      COALESCE(SUM(net_units), 0)                           AS "itemCount",
+      COALESCE(SUM(unit_cost * net_units), 0)               AS "cost"
+    FROM line
   `;
   return rows[0];
 }
@@ -236,6 +293,62 @@ export function toSalesTotals(row: SalesAggregateRow | undefined, canViewCost: b
   }
 
   return totals;
+}
+
+// The money question stated without a single ambiguous number (spec.md
+// "Cash drawer & expenses" -> Reporting).
+//
+// Three states of the same sales — sold / received / owed, which always add
+// back up — and two profits, each given for all sales AND for the received
+// part alone:
+//
+//   gross = sales - COGS
+//   net   = gross - approved expenses - gifts at cost
+//
+// Expenses are subtracted in full from the received-only net too: a bill is
+// owed whether or not the delivery company has settled up yet.
+//
+// ADMIN ONLY. The caller (routes/reports.ts) is what decides whether this is
+// computed at all — below that permission the block is simply absent from the
+// response, so there is nothing to un-hide client-side.
+export function toProfitTotals(
+  row: SalesAggregateRow | undefined,
+  gifts: GiftAggregateRow | undefined,
+  expenses: Prisma.Decimal
+): ProfitTotals {
+  const sold = roundMoney(decimal(row?.revenue ?? null));
+  const received = roundMoney(decimal(row?.collectedRevenue ?? null));
+  const cogs = roundMoney(decimal(row?.cost ?? null));
+  const receivedCogs = roundMoney(decimal(row?.collectedCost ?? null));
+  const giftCost = roundMoney(decimal(gifts?.cost ?? null));
+  const spent = roundMoney(expenses);
+
+  const grossProfit = roundMoney(sold.sub(cogs));
+  const receivedGrossProfit = roundMoney(received.sub(receivedCogs));
+  // Everything the shop paid out, whether the money came from the till or a
+  // transfer, plus what the stock it gave away had cost it.
+  const overheads = roundMoney(spent.add(giftCost));
+
+  return {
+    sold: sold.toFixed(MONEY_DECIMAL_PLACES),
+    received: received.toFixed(MONEY_DECIMAL_PLACES),
+    // Stated rather than left as a subtraction, because "what is still with
+    // the delivery company" is the figure the shop chases.
+    owed: amount(row?.pendingCollectionAmount ?? null),
+    owedOrderCount: Number(row?.pendingCollectionOrderCount ?? 0),
+
+    cogs: cogs.toFixed(MONEY_DECIMAL_PLACES),
+    receivedCogs: receivedCogs.toFixed(MONEY_DECIMAL_PLACES),
+    expenses: spent.toFixed(MONEY_DECIMAL_PLACES),
+    giftCost: giftCost.toFixed(MONEY_DECIMAL_PLACES),
+
+    grossProfit: grossProfit.toFixed(MONEY_DECIMAL_PLACES),
+    netProfit: roundMoney(grossProfit.sub(overheads)).toFixed(MONEY_DECIMAL_PLACES),
+    receivedGrossProfit: receivedGrossProfit.toFixed(MONEY_DECIMAL_PLACES),
+    receivedNetProfit: roundMoney(receivedGrossProfit.sub(overheads)).toFixed(MONEY_DECIMAL_PLACES),
+
+    missingCostItems: Number(row?.missingCostItems ?? 0),
+  };
 }
 
 export function toReturnsTotals(row: SalesAggregateRow | undefined): ReturnsTotals {

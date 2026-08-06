@@ -3,9 +3,9 @@ import { can } from "@shared/lib/permissions";
 import { formatMoney } from "@/lib/money";
 import type { AnyRecord } from "@/types";
 
-// `unitCost` is sensitive (CLAUDE.md rule 19): Admin + Manager only. Gated
-// here, at the response boundary, with the same permission the product API
-// uses for cost — one rule, one place.
+// `unitCost` is sensitive (CLAUDE.md rule 19): ADMIN ONLY. Gated here, at
+// the response boundary, with the same permission the product API uses for
+// cost — one rule, one place.
 function canSeeCost(role: Role): boolean {
   return can({ role }, "product.viewCost");
 }
@@ -39,6 +39,8 @@ export function serializeOrder(order: AnyRecord, role: Role) {
     id: order.id,
     orderNumber: order.orderNumber,
     channel: order.channel,
+    // SALE or GIFT — what this order IS, as opposed to where it came from.
+    type: order.type,
     status: order.status,
     paymentMethod: order.paymentMethod,
     paymentStatus: order.paymentStatus,
@@ -72,6 +74,7 @@ export function serializeOrderSummary(order: AnyRecord) {
     id: order.id,
     orderNumber: order.orderNumber,
     channel: order.channel,
+    type: order.type,
     status: order.status,
     paymentMethod: order.paymentMethod,
     paymentStatus: order.paymentStatus,

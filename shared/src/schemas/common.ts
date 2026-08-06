@@ -26,6 +26,16 @@ export const paginationSchema = z.object({
   pageSize: z.coerce.number().int().min(1).max(MAX_PAGE_SIZE).default(DEFAULT_PAGE_SIZE),
 });
 
+// A boolean that survives the trip through a query string.
+//
+// NOT z.coerce.boolean(): that is `Boolean(value)`, and `Boolean("false")` is
+// `true` — so `?paidInCash=false` would silently mean "yes". Harmless for a
+// flag that is only ever switched on, wrong for any filter where `false` is a
+// real answer, so this parses the words instead of casting them.
+export const booleanInput = z
+  .union([z.boolean(), z.enum(["true", "false", "1", "0"])])
+  .transform((v) => v === true || v === "true" || v === "1");
+
 // Prisma Decimal fields accept number|string; coerce + bound-check here so
 // invalid input never reaches the DB.
 export const decimalInput = z

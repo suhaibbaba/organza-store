@@ -3,8 +3,8 @@ import { can } from "@shared/lib/permissions";
 import { summarizeNumbers } from "@/lib/numberedProduct";
 import type { AnyRecord } from "@/types";
 
-// `cost` is sensitive (CLAUDE.md rule 19): Admin + Manager only, never
-// returned to Employees. Enforced here, at the response boundary, not just
+// `cost` is sensitive (CLAUDE.md rule 19): ADMIN ONLY — never returned to a
+// Manager or an Employee. Enforced here, at the response boundary, not just
 // hidden in a UI.
 function canSeeCost(role: Role): boolean {
   return can({ role }, "product.viewCost");

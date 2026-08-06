@@ -5,6 +5,28 @@ import type { OrderStatus } from "@/types/order";
 // are taken remotely and travel through the delivery flow below.
 export const ORDER_CHANNELS = ["STORE", "WHATSAPP", "WEBSITE"] as const;
 
+// What the order IS, as opposed to where it came from. A SALE is money in;
+// a GIFT is stock walking out of the shop for nothing — a piece given to a
+// relative, a replacement handed over after a complaint, something thrown in
+// with a wedding order.
+//
+// Deliberately NOT a fourth channel: a gift is still handed over at the
+// counter, so it has a channel of its own already. Keeping it a separate axis
+// is what lets reporting drop gifts out of sales without also dropping the
+// STORE channel, and what keeps the channel breakdown meaning "where the
+// money came from" (spec.md "Cash drawer & expenses" -> Gifts).
+export const ORDER_TYPES = ["SALE", "GIFT"] as const;
+
+export const SALE_ORDER_TYPE = "SALE";
+export const GIFT_ORDER_TYPE = "GIFT";
+
+// A gift is rung up at the POS with the person standing there, so it takes
+// the counter path: it opens finished, its stock leaves immediately, and
+// there is no money to wait for. Taking a "gift" over WhatsApp would be a
+// delivery the shop is not paid for, which is a different thing entirely and
+// is not modelled.
+export const GIFT_ORDER_CHANNEL = "STORE";
+
 // Channels whose orders are placed remotely: customer contact details are
 // required, and stock is only committed once preparation starts.
 export const ONLINE_ORDER_CHANNELS = ["WHATSAPP", "WEBSITE"] as const;

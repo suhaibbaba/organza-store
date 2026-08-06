@@ -104,6 +104,27 @@ export async function priceRequestedItems(items: readonly RequestedItem[]): Prom
   return priced;
 }
 
+// A gift charges nothing, so every line is re-priced at zero — the piece
+// still leaves the shop and its stock still moves, but no money changes
+// hands. What the shop LOST is `unitCost`, which is left exactly as the
+// catalogue resolved it: that is the figure gifts are reported at.
+//
+// Zeroing the price rather than discounting it 100% is deliberate. A
+// discounted line is a sale that earned less; a gift earned nothing, and
+// keeping the two apart is what stops a month of giveaways from reading as a
+// month of generous discounts.
+export function asGiftLines(lines: readonly PricedOrderItem[]): PricedOrderItem[] {
+  const free = ZERO_MONEY().toFixed(2);
+  return lines.map((line) => ({
+    ...line,
+    unitPrice: free,
+    discountType: null,
+    discountValue: null,
+    discountAmount: free,
+    lineTotal: free,
+  }));
+}
+
 // Collapses lines into per-stock-target quantities: the same variant listed
 // twice in one order has to be checked and deducted as one total, or the
 // second line could oversell what the first already took.
