@@ -123,14 +123,34 @@ export function ImagePointCanvas({
   }
 
   return (
-    <div className="overflow-hidden rounded-xl border border-border bg-muted">
+    <div
+      className={cn(
+        "overflow-hidden rounded-xl border border-border",
+        // Reading the shawl (the detail page): the same white plate the
+        // ordinary gallery uses. Placing the points (the editor): the grey
+        // one, where the photo is the work surface and wants the contrast.
+        readOnly ? "flex justify-center bg-photo-surface" : "bg-muted"
+      )}
+    >
       <div
         ref={boxRef}
         onPointerDown={readOnly ? undefined : handleBoxPointerDown}
         onPointerMove={readOnly ? undefined : handleBoxPointerMove}
         onPointerUp={readOnly ? undefined : handleBoxPointerUp}
         style={{ aspectRatio: ratio ?? PLACEHOLDER_ASPECT_RATIO }}
-        className={cn("relative select-none", !readOnly && "touch-none")}
+        className={cn(
+          "relative select-none",
+          // On the detail page the photo is capped by HEIGHT and takes its
+          // width from that — a portrait shawl at full column width stood
+          // taller than the phone and buried everything under it. The box
+          // still has exactly the photo's aspect ratio, which is what the
+          // points' percentages are measured against, so capping it moves
+          // the numbers with the photo instead of off it. In the editor the
+          // photo stays as large as the column allows: the points are placed
+          // by finger there, and a smaller target is a harder one.
+          readOnly ? "h-[min(18rem,45vh)] w-auto max-w-full md:h-[min(22rem,60vh)]" : "w-full",
+          !readOnly && "touch-none"
+        )}
       >
         {imageFailed ? (
           // The photo is gone. The pins still are not: they are stored as

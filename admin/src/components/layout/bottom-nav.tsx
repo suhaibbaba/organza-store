@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { MoreHorizontal } from "lucide-react";
 import { Link, usePathname } from "@/i18n/navigation";
-import { PRIMARY_NAV_KEYS } from "@/constants/nav";
+import { NAV_ICON_FILL_ACTIVE, NAV_ICON_FILL_INACTIVE, PRIMARY_NAV_KEYS } from "@/constants/nav";
 import { useVisibleNavItems } from "@/hooks/use-visible-nav-items";
 import { MoreSheet } from "@/components/layout/more-sheet";
 import { cn } from "@/lib/utils";
@@ -37,12 +37,21 @@ export function BottomNav() {
               key={item.key}
               href={item.href}
               className={cn(
-                "flex flex-1 flex-col items-center justify-center gap-1 text-xs font-medium",
-                isActive ? "text-primary" : "text-muted-foreground"
+                "flex flex-1 flex-col items-center justify-center gap-1 text-xs",
+                // Solid icon + brand colour + a heavier label for the tab you
+                // are on; outline + muted + regular weight for the rest. No
+                // border or filled pill behind it — on a four-tab bar that
+                // reads as a button someone still has to press, and it is the
+                // icon that carries the difference here.
+                isActive ? "font-semibold text-primary" : "font-medium text-muted-foreground"
               )}
               aria-current={isActive ? "page" : undefined}
             >
-              <Icon className="size-6" aria-hidden="true" />
+              <Icon
+                className="size-6"
+                fill={isActive ? NAV_ICON_FILL_ACTIVE : NAV_ICON_FILL_INACTIVE}
+                aria-hidden="true"
+              />
               {t(item.key)}
             </Link>
           );

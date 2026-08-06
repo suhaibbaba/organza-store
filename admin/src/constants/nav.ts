@@ -36,6 +36,15 @@ export const NAV_ITEMS: readonly NavItem[] = [
   { key: "settings", href: "/settings", icon: Settings, action: "settings.manage" },
 ] as const;
 
+// How the bottom nav says which tab you are on. Lucide ships one outline set
+// and no solid twin, so "filled" is the icon's own `fill` — its real geometry
+// flooded with the current colour (a lucide-supported SVG attribute, which is
+// how Heart, Star and friends are filled) rather than a look faked underneath
+// it with a background or a border. Outline vs solid is a difference you can
+// see across a room; a tint alone is not, which is what this replaces.
+export const NAV_ICON_FILL_ACTIVE = "currentColor";
+export const NAV_ICON_FILL_INACTIVE = "none";
+
 // Bottom nav (mobile) shows these directly; everything else lives in the
 // "More" sheet, reachable via one extra tap. Orders earns a slot over
 // Categories: incoming orders are checked many times a day, while the
