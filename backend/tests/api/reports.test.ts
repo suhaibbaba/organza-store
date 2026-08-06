@@ -304,8 +304,8 @@ describe("Reports", () => {
       const summary = await salesSummary(admin.token);
       for (const period of ["today", "week", "month"] as const) {
         expect(
-          num(summary[period].collectedRevenue) + num(summary[period].pendingCollectionAmount)
-        ).toBeCloseTo(num(summary[period].revenue), 2);
+          num(summary[period].totals.collectedRevenue) + num(summary[period].totals.pendingCollectionAmount)
+        ).toBeCloseTo(num(summary[period].totals.revenue), 2);
       }
     });
 
@@ -533,16 +533,22 @@ describe("Reports", () => {
       const after = await salesSummary(admin.token);
 
       for (const period of ["today", "week", "month"] as const) {
-        const delta = totalsDelta(after[period], before[period]);
+        const delta = totalsDelta(after[period].totals, before[period].totals);
         expect(delta.orderCount).toBe(1);
         expect(delta.revenue).toBeCloseTo(100, 2);
         expect(delta.profit).toBeCloseTo(60, 2);
+
+        // The dashboard reads its Today block and its period tabs from this
+        // one response, so each period carries the money states too.
+        expect(num(after[period].profit!.sold) - num(before[period].profit!.sold)).toBeCloseTo(100, 2);
+        expect(num(after[period].profit!.received) - num(before[period].profit!.received)).toBeCloseTo(100, 2);
+        expect(num(after[period].profit!.grossProfit) - num(before[period].profit!.grossProfit)).toBeCloseTo(60, 2);
       }
     });
 
     it("reports the average order value as revenue over orders", async () => {
       const admin = await getSession("ADMIN");
-      const today = (await salesSummary(admin.token)).today;
+      const today = (await salesSummary(admin.token)).today.totals;
 
       const expected = today.orderCount === 0 ? 0 : num(today.revenue) / today.orderCount;
       expect(num(today.averageOrderValue)).toBeCloseTo(expected, 1);
@@ -563,11 +569,14 @@ describe("Reports", () => {
 
       const summary = await salesSummary(employee.token);
       for (const period of ["today", "week", "month"] as const) {
-        expect(summary[period].revenue).toBeDefined();
-        expect(summary[period].cost).toBeUndefined();
+        expect(summary[period].totals.revenue).toBeDefined();
+        expect(summary[period].totals.cost).toBeUndefined();
+        expect(summary[period].totals.profit).toBeUndefined();
+        expect(summary[period].totals.margin).toBeUndefined();
+        expect(summary[period].totals.missingCostItems).toBeUndefined();
+        // ...and no money-states block at all, so the dashboard has no
+        // empty profit cards to render.
         expect(summary[period].profit).toBeUndefined();
-        expect(summary[period].margin).toBeUndefined();
-        expect(summary[period].missingCostItems).toBeUndefined();
       }
 
       const report = await salesReport(employee.token);

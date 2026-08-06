@@ -1,5 +1,7 @@
 import type {
   ChannelSales,
+  PeriodSummary,
+  ProfitTotals,
   ReportGranularity,
   ReportPeriod,
   ReturnsTotals,
@@ -12,6 +14,8 @@ import type {
 
 export type {
   ChannelSales,
+  PeriodSummary,
+  ProfitTotals,
   ReportGranularity,
   ReportPeriod,
   ReturnsTotals,

@@ -122,6 +122,10 @@ export interface ProfitTotals {
   expenses: string;
   // What the stock given away this range cost the shop.
   giftCost: string;
+  // Everything subtracted from gross to reach net: `expenses` + `giftCost`.
+  // Stated rather than left for the reader to add up, so a screen showing
+  // "what running the shop cost" never does money arithmetic of its own.
+  overheads: string;
 
   grossProfit: string;
   netProfit: string;
@@ -130,14 +134,31 @@ export interface ProfitTotals {
   // the delivery company has settled up yet.
   receivedNetProfit: string;
 
+  // netProfit / sold * 100, as a 2dp string — what the shop actually keeps
+  // out of what it sold. Null when nothing was sold: there is no margin on
+  // no sales, and a 0% would read as a loss. Note this is the NET margin;
+  // SalesTotals.margin is the gross one.
+  netMargin: string | null;
+
   // Sold lines whose product had no cost recorded at the time of sale. They
   // count as zero, so a non-zero number here means both profits are
   // optimistic — surfaced rather than left to quietly mislead.
   missingCostItems: number;
 }
 
-// GET /api/reports/sales-summary — the dashboard's Sales & Profit block.
-export type SalesSummary = Record<ReportPeriod, SalesTotals>;
+// One period of the dashboard's summary. The sales figures every role may
+// read are in `totals`; `profit` — sold/received/owed and the two profits —
+// is ADMIN ONLY and simply absent for everyone else, so a screen renders what
+// arrived rather than deciding a role for itself.
+export interface PeriodSummary {
+  totals: SalesTotals;
+  profit?: ProfitTotals;
+}
+
+// GET /api/reports/sales-summary — today / this week / this month, which is
+// exactly what the dashboard shows: its Today block reads `today`, and its
+// period tabs switch between the three without another request.
+export type SalesSummary = Record<ReportPeriod, PeriodSummary>;
 
 // GET /api/reports/sales?from=&to= — the Reports page.
 export interface SalesReport {

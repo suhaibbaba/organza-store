@@ -96,9 +96,13 @@ export function readCurrent(token: string): Promise<ApiResult<CurrentCashSession
 // legitimate, and it means a suite running at 23:59 UTC still puts its sale
 // squarely inside the window it is measuring.
 //
-// Never closed by the suite: today happens once, and a closed day cannot be
-// reopened, so closing it would make the next run on the same day untestable.
-export async function todaysOpenSession(token: string): Promise<CashSessionDto> {
+// Returns null when today's drawer has already been COUNTED AND CLOSED. That
+// is a real state — someone can close the day from the admin — and it cannot
+// be undone: a day is one drawer, and a closed one is a signed record. The
+// suite itself never closes today's, so the callers treat null as "not
+// testable right now" and skip, the same way the push tests skip a
+// deployment with no VAPID keys.
+export async function todaysOpenSession(token: string): Promise<CashSessionDto | null> {
   const now = new Date();
   const utcMinutes = now.getUTCHours() * 60 + now.getUTCMinutes();
   const tzOffset = 720 - utcMinutes;
@@ -109,21 +113,26 @@ export async function todaysOpenSession(token: string): Promise<CashSessionDto> 
     { token }
   );
   const found = existing.data?.[0];
-  if (found) {
-    if (found.status !== "OPEN") {
-      throw new Error(
-        `Today's drawer (${date}) is already CLOSED, so a live cash sale cannot be measured against it. ` +
-          "The suite never closes it — reopen the day by hand, or run against a sandbox where it is still open."
-      );
-    }
-    return found;
-  }
+  if (found) return found.status === "OPEN" ? found : null;
 
   const opened = await openSessionRequest(token, { date, tzOffset });
-  if (opened.status !== 201 || !opened.data) {
-    throw new Error(`Could not open today's drawer (HTTP ${opened.status}, ${opened.error?.code}).`);
-  }
-  return opened.data;
+  if (opened.status === 201 && opened.data) return opened.data;
+  // Someone opened it in the split second since the list was read.
+  if (opened.status === 409) return null;
+  throw new Error(`Could not open today's drawer (HTTP ${opened.status}, ${opened.error?.code}).`);
+}
+
+// vitest's skip() throws, so the `return true` is belt and braces for the
+// caller's own early return rather than something that runs.
+export function skipWithoutTodaysDrawer(ctx: { skip: () => void }, session: CashSessionDto | null): session is CashSessionDto {
+  if (session) return true;
+  console.warn(
+    "\n⚠️  Live cash-sale test SKIPPED: today's drawer is already closed.\n" +
+      "   A day is one drawer and a closed one cannot be reopened, so this\n" +
+      "   assertion can only run on a day whose drawer is still open.\n"
+  );
+  ctx.skip();
+  return false;
 }
 
 // --- expenses --------------------------------------------------------------

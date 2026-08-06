@@ -3,14 +3,28 @@
 import { useTranslations } from "next-intl";
 import { RoleGuard } from "@/components/auth/role-guard";
 import { useSession } from "@/components/providers/session-provider";
-import { useSettingsQuery } from "@/hooks/use-settings";
 import { useDashboardSummaryQuery } from "@/hooks/use-dashboard";
-import { DashboardSummary } from "@/components/dashboard/dashboard-summary";
+import { useCurrentCashSessionQuery } from "@/hooks/use-cash-sessions";
+import { useSalesSummaryQuery } from "@/hooks/use-reports";
+import { TodaySection } from "@/components/dashboard/today-section";
+import { CashDrawerSection } from "@/components/dashboard/cash-drawer-section";
+import { PeriodSection } from "@/components/dashboard/period-section";
+import { NeedsAttentionSection } from "@/components/dashboard/needs-attention-section";
 import { DashboardError, DashboardLoading } from "@/components/dashboard/dashboard-states";
 
-// Admin/Manager only (CLAUDE.md rule 5) — /api/dashboard/summary 403s for an
-// Employee, and several routes still point here (the root redirect, the
-// post-login redirect), so the guard sends them on to their own first screen.
+// The dashboard (spec.md "Cash drawer & expenses" -> Reporting).
+//
+// Figures only — no chart. The people reading this are standing at a counter
+// with a phone in one hand, and what they need is a number they can act on,
+// not a trend they have to interpret.
+//
+// Four sections, always in this order, because it is the order of the day:
+// what happened today -> is the drawer right -> how the period is going ->
+// what still needs doing.
+//
+// Admin/Manager only (CLAUDE.md rule 5): /api/dashboard/summary 403s for an
+// Employee, and several routes point here (the root redirect, the post-login
+// redirect), so the guard sends them on to their own first screen.
 export default function DashboardPage() {
   return (
     <RoleGuard action="dashboard.view">
@@ -22,13 +36,25 @@ export default function DashboardPage() {
 function DashboardPageContent() {
   const t = useTranslations("dashboard");
   const { user } = useSession();
-  const { data: settings } = useSettingsQuery();
-  const { data: summary, isLoading, isError, error, refetch } = useDashboardSummaryQuery();
 
-  const currency = settings?.currency ?? "ILS";
+  const summaryQuery = useDashboardSummaryQuery();
+  const salesQuery = useSalesSummaryQuery();
+  const drawerQuery = useCurrentCashSessionQuery();
+
+  // The three requests run together and are only judged together: half a
+  // dashboard, with one section silently missing, is worse than saying it
+  // couldn't be loaded.
+  const isLoading = summaryQuery.isLoading || salesQuery.isLoading || drawerQuery.isLoading;
+  const error = summaryQuery.error ?? salesQuery.error ?? drawerQuery.error;
+
+  function retry() {
+    void summaryQuery.refetch();
+    void salesQuery.refetch();
+    void drawerQuery.refetch();
+  }
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-6">
       <div>
         <h1 className="text-xl font-semibold">{user ? t("welcome", { name: user.name }) : t("title")}</h1>
         <p className="text-sm text-muted-foreground">{t("subtitle")}</p>
@@ -36,11 +62,16 @@ function DashboardPageContent() {
 
       {isLoading ? (
         <DashboardLoading />
-      ) : isError ? (
-        <DashboardError error={error} onRetry={() => void refetch()} />
-      ) : summary ? (
-        <DashboardSummary summary={summary} currency={currency} />
-      ) : null}
+      ) : error ? (
+        <DashboardError error={error} onRetry={retry} />
+      ) : (
+        <>
+          {salesQuery.data && <TodaySection summary={salesQuery.data.today} />}
+          {drawerQuery.data && <CashDrawerSection current={drawerQuery.data} />}
+          {salesQuery.data && <PeriodSection summary={salesQuery.data} />}
+          {summaryQuery.data && <NeedsAttentionSection summary={summaryQuery.data} />}
+        </>
+      )}
     </div>
   );
 }

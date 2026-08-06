@@ -328,6 +328,7 @@ export function toProfitTotals(
   // Everything the shop paid out, whether the money came from the till or a
   // transfer, plus what the stock it gave away had cost it.
   const overheads = roundMoney(spent.add(giftCost));
+  const netProfit = roundMoney(grossProfit.sub(overheads));
 
   return {
     sold: sold.toFixed(MONEY_DECIMAL_PLACES),
@@ -341,11 +342,15 @@ export function toProfitTotals(
     receivedCogs: receivedCogs.toFixed(MONEY_DECIMAL_PLACES),
     expenses: spent.toFixed(MONEY_DECIMAL_PLACES),
     giftCost: giftCost.toFixed(MONEY_DECIMAL_PLACES),
+    overheads: overheads.toFixed(MONEY_DECIMAL_PLACES),
 
     grossProfit: grossProfit.toFixed(MONEY_DECIMAL_PLACES),
-    netProfit: roundMoney(grossProfit.sub(overheads)).toFixed(MONEY_DECIMAL_PLACES),
+    netProfit: netProfit.toFixed(MONEY_DECIMAL_PLACES),
     receivedGrossProfit: receivedGrossProfit.toFixed(MONEY_DECIMAL_PLACES),
     receivedNetProfit: roundMoney(receivedGrossProfit.sub(overheads)).toFixed(MONEY_DECIMAL_PLACES),
+
+    // What the shop keeps out of what it sold, after everything.
+    netMargin: marginOf(sold, netProfit),
 
     missingCostItems: Number(row?.missingCostItems ?? 0),
   };

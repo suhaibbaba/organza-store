@@ -59,12 +59,26 @@ router.get(
     // what time it is halfway through the request.
     const now = new Date();
 
-    const rows = await Promise.all(
-      REPORT_PERIODS.map((period) => queryTotals(periodRange(period, tzOffset, now)))
+    // Gifts and expenses are only read for the profit block, which is
+    // Admin-only — so below that permission they aren't queried at all.
+    const periods = await Promise.all(
+      REPORT_PERIODS.map(async (period) => {
+        const range = periodRange(period, tzOffset, now);
+        const [totals, gifts, expenses] = await Promise.all([
+          queryTotals(range),
+          canViewCost ? queryGiftCost(range) : undefined,
+          canViewCost ? queryExpenseTotals(range) : undefined,
+        ]);
+        return { totals, gifts, expenses };
+      })
     );
 
     const summary = REPORT_PERIODS.reduce((acc, period, index) => {
-      acc[period] = toSalesTotals(rows[index], canViewCost);
+      const { totals, gifts, expenses } = periods[index];
+      acc[period] = {
+        totals: toSalesTotals(totals, canViewCost),
+        ...(canViewCost ? { profit: toProfitTotals(totals, gifts, expenseTotal(expenses)) } : {}),
+      };
       return acc;
     }, {} as SalesSummary);
 

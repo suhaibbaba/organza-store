@@ -81,10 +81,18 @@ router.get(
   "/current",
   requirePermission("cashSession.view"),
   asyncHandler(async (_req, res) => {
-    const [open, suggested, openFollowUpCount] = await Promise.all([
+    const [open, lastClosed, suggested, openFollowUpCount] = await Promise.all([
       prisma.cashSession.findFirst({
         where: { status: "OPEN" },
         orderBy: [{ date: "desc" }, { openedAt: "desc" }],
+        include: sessionInclude,
+      }),
+      // The day just finished. Without it a caller cannot tell a counted,
+      // closed day from a day nobody has started — and would offer to open a
+      // drawer that has already been signed off.
+      prisma.cashSession.findFirst({
+        where: { status: "CLOSED" },
+        orderBy: [{ date: "desc" }, { closedAt: "desc" }],
         include: sessionInclude,
       }),
       suggestedOpeningFloat(),
@@ -93,6 +101,7 @@ router.get(
 
     const current: CurrentCashSession = {
       session: open ? serializeCashSession(open, await figuresFor(open)) : null,
+      lastClosed: lastClosed ? serializeCashSession(lastClosed, storedFigures(lastClosed)) : null,
       suggestedOpeningFloat: suggested.toFixed(MONEY_DECIMAL_PLACES),
       openFollowUpCount,
     };
@@ -256,9 +265,21 @@ router.post(
 
     // The only thing a discrepancy is refused for: being left unexplained. A
     // note is what makes it investigable instead of invisible.
+    //
+    // The figures ride along on the refusal on purpose. Counting is BLIND —
+    // the closing screen deliberately withholds what the drawer was expected
+    // to hold until a count has been submitted, so that nobody can make the
+    // count agree with the books. That leaves the client unable to know a
+    // difference exists, let alone how big, until it asks: this response is
+    // what lets it reveal "expected 380, counted 350, short 30" and then ask
+    // for the explanation, without ever having been told the answer up front.
     const note = body.note ?? existing.note;
     if (!difference.isZero() && !note) {
-      throw new AppError(400, ERROR_CODES.CASH_SESSION_DIFFERENCE_NOTE_REQUIRED);
+      throw new AppError(400, ERROR_CODES.CASH_SESSION_DIFFERENCE_NOTE_REQUIRED, {
+        expected: expected.toFixed(MONEY_DECIMAL_PLACES),
+        counted: counted.toFixed(MONEY_DECIMAL_PLACES),
+        difference: difference.toFixed(MONEY_DECIMAL_PLACES),
+      });
     }
 
     const closedAt = new Date();

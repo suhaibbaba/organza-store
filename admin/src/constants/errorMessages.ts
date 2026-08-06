@@ -69,6 +69,21 @@ export const ERROR_MESSAGE_KEYS: Record<string, string> = {
   [ERROR_CODES.ORDER_PRODUCT_UNAVAILABLE]: "errors.orderProductUnavailable",
   [ERROR_CODES.ORDER_VARIANT_REQUIRED]: "errors.orderVariantRequired",
   [ERROR_CODES.ORDER_NOT_COLLECTABLE]: "errors.orderNotCollectable",
+  [ERROR_CODES.ORDER_GIFT_CHANNEL_INVALID]: "errors.orderGiftChannelInvalid",
+
+  [ERROR_CODES.CASH_SESSION_NOT_FOUND]: "errors.cashSessionNotFound",
+  [ERROR_CODES.CASH_SESSION_DATE_TAKEN]: "errors.cashSessionDateTaken",
+  [ERROR_CODES.CASH_SESSION_ALREADY_CLOSED]: "errors.cashSessionAlreadyClosed",
+  [ERROR_CODES.CASH_SESSION_DIFFERENCE_NOTE_REQUIRED]: "errors.cashSessionDifferenceNoteRequired",
+  [ERROR_CODES.CASH_SESSION_WITHDRAWAL_EXCEEDS_COUNT]: "errors.cashSessionWithdrawalExceedsCount",
+  [ERROR_CODES.CASH_SESSION_NO_OPEN_FOLLOW_UP]: "errors.cashSessionNoOpenFollowUp",
+
+  [ERROR_CODES.EXPENSE_NOT_FOUND]: "errors.expenseNotFound",
+  [ERROR_CODES.EXPENSE_NOT_PENDING]: "errors.expenseNotPending",
+  [ERROR_CODES.EXPENSE_CATEGORY_NOT_FOUND]: "errors.expenseCategoryNotFound",
+  [ERROR_CODES.EXPENSE_CATEGORY_KEY_DUPLICATE]: "errors.expenseCategoryKeyDuplicate",
+  [ERROR_CODES.EXPENSE_CATEGORY_KEY_INVALID]: "errors.expenseCategoryKeyInvalid",
+  [ERROR_CODES.EXPENSE_CATEGORY_HAS_EXPENSES]: "errors.expenseCategoryHasExpenses",
 
   [ERROR_CODES.REPORT_RANGE_INVALID]: "errors.reportRangeInvalid",
   [ERROR_CODES.REPORT_RANGE_TOO_LONG]: "errors.reportRangeTooLong",
