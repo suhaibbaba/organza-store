@@ -60,4 +60,20 @@ jobs:
             docker compose -f docker-compose.sandbox.yml --env-file .env.sandbox exec -T backend npm run seed
             echo "==> Pruning old images"
             docker image prune -f
+
+            echo "==> Capping the build cache"
+            # `docker image prune` never touches build cache, which is what
+            # actually filled the disk (150 GB across 526 entries). Cap it
+            # rather than emptying it: the Dockerfiles are ordered so the
+            # "npm ci" layer survives between deploys, and an unbounded
+            # `docker builder prune -f` would throw that away and make every
+            # build cold. The flag was renamed --keep-storage ->
+            # --max-used-space, so ask this Docker which one it speaks.
+            if docker builder prune --help 2>&1 | grep -q -- '--max-used-space'; then
+              docker builder prune -f --max-used-space 10GB
+            else
+              docker builder prune -f --keep-storage 10GB
+            fi
+            docker system df
+
             echo "==> Done."

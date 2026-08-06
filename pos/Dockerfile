@@ -1,11 +1,30 @@
+# Build context is the repo root (see docker-compose.sandbox.yml).
+#
+# Split in two on purpose: a dependency layer, then a source layer. Docker
+# caching is sequential, so copying all of pos/ before "npm ci" made every
+# source edit reinstall node_modules and write a fresh ~1 GB layer into the
+# build cache — three apps' worth, every push, until the disk filled. Only the
+# files "npm ci" actually needs go above it; everything else lands after.
 FROM node:22-slim
 WORKDIR /app
 
+# --- dependency layer -------------------------------------------------------
+# postinstall runs build:shared, so the sibling shared/ package and the script
+# that compiles it must exist before "npm ci". Nothing else does.
 COPY shared ./shared
-COPY pos ./pos
+COPY pos/package.json pos/package-lock.json ./pos/
+COPY pos/scripts ./pos/scripts
 
 WORKDIR /app/pos
+RUN --mount=type=cache,target=/root/.npm npm ci
 
+# --- source layer -----------------------------------------------------------
+# node_modules is in .dockerignore, so this cannot clobber the install above.
+COPY pos /app/pos
+
+# Inlined into the bundle by next build, so they belong to the build, not the
+# install — declared after "npm ci" so that editing e.g. the locale list
+# rebuilds the app without dragging a full dependency reinstall along with it.
 ARG NEXT_PUBLIC_API_URL
 ARG NEXT_PUBLIC_DEFAULT_LOCALE
 ARG NEXT_PUBLIC_SUPPORTED_LOCALES
@@ -14,8 +33,6 @@ ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL \
     NEXT_PUBLIC_DEFAULT_LOCALE=$NEXT_PUBLIC_DEFAULT_LOCALE \
     NEXT_PUBLIC_SUPPORTED_LOCALES=$NEXT_PUBLIC_SUPPORTED_LOCALES \
     NEXT_PUBLIC_PROJECT_NAME=$NEXT_PUBLIC_PROJECT_NAME
-
-RUN npm ci
 
 # The version staff read out when they report a problem, inlined into the
 # bundle by next.config.ts. Resolved by the deploy on the host and passed in
