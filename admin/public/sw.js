@@ -34,6 +34,11 @@ const VERSION = params.get("v") || "dev";
 // shared/ and isn't duplicated here. First entry is the default locale.
 const OFFLINE_URLS = (params.get("offline") || "").split(",").filter(Boolean);
 
+// The cookie the app stores the chosen language in (src/constants/locale.ts).
+// Only used offline: with a connection, proxy.ts reads the same cookie and
+// the request never reaches the fallback below.
+const LOCALE_COOKIE_NAME = params.get("localeCookie") || "";
+
 // Where the notification wording lives, per language (see
 // src/app/api/push-messages/[locale]/route.ts). Passed in for the same
 // reason as the offline pages: this file knows no app routes of its own.
@@ -210,12 +215,37 @@ async function staleWhileRevalidate(event) {
 /** The offline page for the locale the user was heading to, if we have it. */
 async function matchOfflinePage(request) {
   const localeMatch = new URL(request.url).pathname.match(/^\/([a-z]{2})(?:\/|$)/);
-  const forLocale = localeMatch && OFFLINE_URLS.find((url) => url.startsWith(`/${localeMatch[1]}/`));
+  // start_url is "/", so a launch made offline arrives here with no locale to
+  // read. The stored choice is what proxy.ts would have used had the request
+  // reached it, which keeps an offline launch in the same language as an
+  // online one — a cashier who set Arabic never sees an English screen just
+  // because the connection dropped.
+  const locale = localeMatch ? localeMatch[1] : await storedLocale();
+  const forLocale = locale && OFFLINE_URLS.find((url) => url.startsWith(`/${locale}/`));
   // Falls back to the first entry, which the registrar puts in the app's
   // default language.
   const url = forLocale || OFFLINE_URLS[0];
   if (!url) return undefined;
   return caches.match(url, { cacheName: SHELL_CACHE });
+}
+
+/**
+ * The language this device chose, read straight from the cookie.
+ *
+ * The Cookie Store API is the only way a worker can see a cookie, and it is
+ * Chromium-only — which is most phones in the shop, and every one of them
+ * where an installed app launches offline often. Anywhere it is missing this
+ * returns nothing and the caller uses the default language, which is exactly
+ * what the old behaviour was.
+ */
+async function storedLocale() {
+  if (!LOCALE_COOKIE_NAME || !self.cookieStore) return undefined;
+  try {
+    const cookie = await self.cookieStore.get(LOCALE_COOKIE_NAME);
+    return cookie ? cookie.value : undefined;
+  } catch {
+    return undefined;
+  }
 }
 
 /**

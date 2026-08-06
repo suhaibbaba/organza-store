@@ -28,6 +28,11 @@ export function LanguageSwitcher({ className, variant = "list" }: LanguageSwitch
   const router = useRouter();
   const t = useTranslations("common");
 
+  // Moves to the same screen in the chosen language *and* records the choice:
+  // next-intl writes the locale cookie configured in i18n/routing.ts as it
+  // navigates. That cookie is the whole point — it is what proxy.ts reads on
+  // the next launch, so the pick survives a reload, a service-worker update,
+  // and the app being closed, instead of living only in the current URL.
   function handleChange(loc: AppLocale) {
     router.replace(pathname, { locale: loc });
   }

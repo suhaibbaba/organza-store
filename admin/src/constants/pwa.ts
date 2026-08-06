@@ -29,9 +29,11 @@ export const PWA_SHORT_NAME = "Admin";
 export const PWA_DESCRIPTION = "Organza Store admin dashboard";
 
 // Not a locale-prefixed path: launching from the home screen lands on "/",
-// and proxy.ts + next-intl resolve whichever language the user last chose.
-// Hard-coding "/ar" here would drag an English- or Hebrew-speaking employee
-// back to Arabic on every launch.
+// and proxy.ts resolves it against the language this device last chose —
+// falling back to the shop's default, never to the phone's `Accept-Language`
+// (see i18n/routing.ts). Hard-coding "/ar" here would drag an English- or
+// Hebrew-speaking employee back to Arabic on every launch; leaving the
+// resolution to the browser is what used to drag everyone else to English.
 export const PWA_START_URL = "/";
 export const PWA_SCOPE = "/";
 // Pinned so a future change to start_url doesn't read as a *different* app,
@@ -158,6 +160,14 @@ export const SERVICE_WORKER_PATH = "/sw.js";
 export const SERVICE_WORKER_VERSION_PARAM = "v";
 export const SERVICE_WORKER_OFFLINE_PARAM = "offline";
 export const SERVICE_WORKER_MESSAGES_PARAM = "messages";
+/**
+ * The locale cookie's name (constants/locale.ts), so a launch made offline
+ * can fall back to the same language a launch made online would have. The
+ * proxy is unreachable with no connection, and "/" carries no locale of its
+ * own, so without this the worker would answer every offline start_url in
+ * the default language regardless of what the user chose.
+ */
+export const SERVICE_WORKER_LOCALE_COOKIE_PARAM = "localeCookie";
 
 /**
  * Posted to a waiting worker when the user taps "update now"
