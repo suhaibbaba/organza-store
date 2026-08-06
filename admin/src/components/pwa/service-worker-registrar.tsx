@@ -2,9 +2,11 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { routing } from "@/i18n/routing";
+import { LOCALE_COOKIE_NAME } from "@/constants/locale";
 import {
   OFFLINE_PATH,
   PUSH_MESSAGES_BASE_PATH,
+  SERVICE_WORKER_LOCALE_COOKIE_PARAM,
   SERVICE_WORKER_MESSAGES_PARAM,
   SERVICE_WORKER_OFFLINE_PARAM,
   SERVICE_WORKER_PATH,
@@ -54,6 +56,9 @@ export function ServiceWorkerRegistrar() {
     const query = new URLSearchParams({
       [SERVICE_WORKER_VERSION_PARAM]: process.env.NEXT_PUBLIC_BUILD_ID ?? "dev",
       [SERVICE_WORKER_OFFLINE_PARAM]: locales.map((locale) => `/${locale}${OFFLINE_PATH}`).join(","),
+      // Which cookie holds the chosen language, so an offline launch from
+      // "/" can answer in it instead of always in the default.
+      [SERVICE_WORKER_LOCALE_COOKIE_PARAM]: LOCALE_COOKIE_NAME,
       // Where to read notification wording from — the worker can't import
       // the app's translations, so it is told where they live.
       [SERVICE_WORKER_MESSAGES_PARAM]: PUSH_MESSAGES_BASE_PATH,
