@@ -17,8 +17,9 @@ export function AppShell({ children }: { children: ReactNode }) {
             breathing room, and is all that is left from md up, where the
             inset collapses to the safe area alone. */}
         <main className="min-w-0 flex-1 px-4 pb-[calc(var(--bottom-bar-inset)+1.5rem)] pt-4 md:px-6">
-          {/* Wraps the page's own content, not the bars: the pull moves what
-              is being read, while the top bar and the bottom nav stay put. */}
+          {/* Wraps the page's own content, not the bars: the gesture is only
+              listened for over the page itself, and the indicator it raises
+              floats above it without moving anything. */}
           <PullToRefresh>{children}</PullToRefresh>
         </main>
       </div>

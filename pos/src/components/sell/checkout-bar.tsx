@@ -6,6 +6,7 @@ import { CHECKOUT_BAR_HEIGHT_VAR } from "@/constants/layout";
 import { useDiscountLabel } from "@/hooks/use-discount-label";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
 import { usePublishedHeight } from "@/hooks/use-published-height";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import type { CartTotals, DiscountState } from "@/types/cart";
@@ -60,22 +61,38 @@ export function CheckoutBar({
       ref={ref}
       className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 pb-[var(--safe-bottom)] backdrop-blur"
     >
-      <div className="mx-auto flex w-full max-w-2xl flex-col gap-3 px-4 py-3">
-        <div className="flex flex-col gap-1 text-sm">
-          <div className="flex items-center justify-between text-muted-foreground">
+      {/* Three stacked rows on a phone, where vertical room is the thing
+          there is most of and the thumb wants full-width targets. One row
+          from `lg`: a laptop's screen is wide and short, and a bar three
+          rows deep would eat the bottom third of the cart beside it. Only
+          the arrangement changes — every button keeps its full height, since
+          a touch monitor is going on this counter too. */}
+      <div
+        className={cn(
+          "mx-auto flex w-full max-w-2xl flex-col gap-3 px-4 py-3",
+          "lg:max-w-6xl lg:flex-row lg:items-center lg:gap-6"
+        )}
+      >
+        <div
+          className={cn(
+            "flex flex-col gap-1 text-sm",
+            "lg:min-w-0 lg:flex-1 lg:flex-row lg:flex-wrap lg:items-baseline lg:gap-x-6 lg:gap-y-1"
+          )}
+        >
+          <div className="flex items-center justify-between text-muted-foreground lg:justify-start lg:gap-2">
             <span>{t("subtotal", { count: totals.itemCount })}</span>
             <span className="tabular-nums">{formatMoney(totals.subtotal)}</span>
           </div>
 
           {hasItemDiscount && (
-            <div className="flex items-center justify-between text-muted-foreground">
+            <div className="flex items-center justify-between text-muted-foreground lg:justify-start lg:gap-2">
               <span>{t("itemDiscounts")}</span>
               <span className="tabular-nums">−{formatMoney(totals.itemDiscountTotal)}</span>
             </div>
           )}
 
           {hasOrderDiscount && (
-            <div className="flex items-center justify-between text-muted-foreground">
+            <div className="flex items-center justify-between text-muted-foreground lg:justify-start lg:gap-2">
               <span>
                 {appliedOrderDiscount
                   ? t("orderDiscountApplied", { value: appliedOrderDiscount })
@@ -85,13 +102,13 @@ export function CheckoutBar({
             </div>
           )}
 
-          <div className="flex items-center justify-between pt-1 text-2xl font-bold">
+          <div className="flex items-center justify-between pt-1 text-2xl font-bold lg:justify-start lg:gap-3 lg:pt-0">
             <span>{t("total")}</span>
             <span className="tabular-nums">{formatMoney(totals.total)}</span>
           </div>
         </div>
 
-        <div className="flex items-stretch gap-2">
+        <div className="flex items-stretch gap-2 lg:shrink-0">
           <Button
             type="button"
             variant="outline"
@@ -119,13 +136,14 @@ export function CheckoutBar({
 
         {/* Full width and the same height as the sale button: an order taken
             over WhatsApp is an everyday job here, not a secondary one, and it
-            has to be reachable with the same thumb. */}
+            has to be reachable with the same thumb. In the laptop's row it
+            keeps that height and takes only the width of its own label. */}
         <Button
           type="button"
           variant="outline"
           onClick={onWhatsappOrder}
           disabled={!canCheckout || isSubmitting}
-          className="w-full"
+          className="w-full lg:w-auto lg:shrink-0"
         >
           <MessageCircle aria-hidden="true" />
           {t("whatsappOrder")}

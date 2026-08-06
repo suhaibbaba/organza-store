@@ -1,6 +1,6 @@
 "use client";
 
-import { type FormEvent } from "react";
+import { type FormEvent, type RefObject } from "react";
 import { useTranslations } from "next-intl";
 import { ScanLine, Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -15,6 +15,10 @@ interface SearchBarProps {
   // than a name to search for.
   onSubmitCode: (code: string) => void;
   isLooking: boolean;
+  // Lets the screen put the cursor here from the counter keyboard. Only ever
+  // used by a deliberate keypress — never on mount, which on a phone would
+  // throw the keyboard open over the cart before anyone asked for it.
+  inputRef?: RefObject<HTMLInputElement | null>;
 }
 
 // The one thing on screen the cashier touches first. It does double duty:
@@ -24,11 +28,14 @@ interface SearchBarProps {
 //   - submitting it looks the text up as a barcode/SKU and adds that item
 //     straight to the cart.
 //
-// The second behaviour is what makes a plug-in barcode wedge work: those
-// scanners type the code into whatever field has focus and press Enter, so
-// the same box serves the phone camera, a hardware scanner, and a cashier
-// reading a damaged label out by hand.
-export function SearchBar({ value, onChange, onScanClick, onSubmitCode, isLooking }: SearchBarProps) {
+// The second behaviour is what makes a plug-in barcode wedge work while the
+// box has the cursor: those scanners type the code into whatever field has
+// focus and press Enter, so the same box serves the phone camera, a hardware
+// scanner, and a cashier reading a damaged label out by hand. At the counter
+// the usual case is nothing focused at all, which the screen listens for
+// separately (hooks/use-hardware-scanner.ts) — this box is never focused on
+// its own initiative.
+export function SearchBar({ value, onChange, onScanClick, onSubmitCode, isLooking, inputRef }: SearchBarProps) {
   const t = useTranslations("sell.search");
 
   function handleSubmit(event: FormEvent) {
@@ -46,6 +53,7 @@ export function SearchBar({ value, onChange, onScanClick, onSubmitCode, isLookin
           aria-hidden="true"
         />
         <Input
+          ref={inputRef}
           type="search"
           value={value}
           onChange={(event) => onChange(event.target.value)}

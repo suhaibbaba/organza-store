@@ -62,6 +62,48 @@ export const SCAN_FLASH_MS = SCAN_DEDUPE_MS;
 // to register as "that one went in" before the next tag is under the lens.
 export const SCAN_PULSE_MS = 450;
 
+/* ---------------------------------------------------------------------------
+ * The counter: a laptop with a plug-in barcode scanner
+ *
+ * The phone stays the primary till (CLAUDE.md "Frontend UX"), but the shop
+ * counter has a laptop and a hardware scanner on it. Nothing below changes
+ * anything the phone does — it is all keyboard, and a phone has none.
+ * ------------------------------------------------------------------------ */
+
+// A hardware scanner is a keyboard as far as the browser is concerned: it
+// types the code and presses Enter. Nothing needs to be focused for those
+// keys to arrive, which is the whole point — the cashier pulls the trigger
+// with both hands full and no on-screen keyboard ever opens.
+//
+// The one thing that has to be got right is telling the machine apart from a
+// person, and the giveaway is speed: a scanner puts its characters out a few
+// milliseconds apart, where even a quick typist is nearer a tenth of a
+// second. A gap longer than this ends the burst and starts a new one, so a
+// person cannot accidentally assemble a "scan" by typing.
+export const HARDWARE_SCAN_MAX_KEY_GAP_MS = 40;
+
+// Shortest run of characters that may be taken for a code. The barcodes this
+// store prints are EAN-13 and the SKUs are longer still (ORG-12-3), so this
+// only has to sit above the length a stray keypress or two could reach.
+export const HARDWARE_SCAN_MIN_LENGTH = 4;
+
+// What a scanner sends after the code. Enter is the factory default on
+// essentially every model; Tab is the other one in the wild, and a scanner
+// already configured that way should not have to be re-programmed to work
+// here.
+export const HARDWARE_SCAN_TERMINATORS: readonly string[] = ["Enter", "Tab"];
+
+// The keys the counter keyboard drives a sale with.
+//
+// Deliberately not plain letters: a letter is also the first character of a
+// code, and the scanner is listening for those. "/" is safe because it is
+// only ever acted on when nothing is focused, and the function keys and
+// Escape are not characters at all.
+export const SELL_SHORTCUT_FOCUS_SEARCH = "/";
+export const SELL_SHORTCUT_SCAN = "F2";
+export const SELL_SHORTCUT_CHECKOUT = "F9";
+export const SELL_SHORTCUT_CLEAR = "Escape";
+
 // Scan region for the scanner (html5-qrcode's `qrbox`), as a fraction of
 // the live viewfinder rather than as fixed pixels: html5-qrcode only decodes
 // what falls INSIDE this box, and a 1D barcode on a clothing tag is nearly

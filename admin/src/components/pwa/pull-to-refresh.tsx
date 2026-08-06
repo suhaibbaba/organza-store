@@ -7,6 +7,7 @@ import { RefreshCw } from "lucide-react";
 import {
   PULL_REFRESH_DEAD_ZONE_PX,
   PULL_REFRESH_IGNORE_ATTRIBUTE,
+  PULL_REFRESH_INDICATOR_TRAVEL_RATIO,
   PULL_REFRESH_MAX_PX,
   PULL_REFRESH_MIN_VISIBLE_MS,
   PULL_REFRESH_RESISTANCE,
@@ -32,11 +33,12 @@ export function PullToRefresh({ children }: { children: ReactNode }) {
   const t = useTranslations("common.pullToRefresh");
   const queryClient = useQueryClient();
 
-  // How far the content has been dragged down, in px, after resistance.
+  // How far the finger has travelled, in px, after resistance. Only the
+  // indicator is drawn from it — see the note on the overlay below.
   const [distance, setDistance] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  // True while the finger is down and the pull is settling back, so the
-  // content animates home instead of snapping.
+  // True once the finger is up, so the indicator animates to where it has
+  // been let go to instead of snapping there.
   const [isSettling, setIsSettling] = useState(false);
 
   // Touch bookkeeping is refs, not state: it changes on every touchmove and
@@ -118,8 +120,8 @@ export function PullToRefresh({ children }: { children: ReactNode }) {
         setIsSettling(false);
       }
 
-      // Past the dead zone the page follows the finger, with resistance so it
-      // feels like something is being pulled rather than dragged loose.
+      // Past the dead zone the indicator follows the finger, with resistance
+      // so it feels like something is being pulled rather than dragged loose.
       const pulled = Math.min(PULL_REFRESH_MAX_PX, (dy - PULL_REFRESH_DEAD_ZONE_PX) * PULL_REFRESH_RESISTANCE);
       if (pulled <= 0) return;
       // Stops the page itself from rubber-banding behind the pull.
@@ -168,16 +170,28 @@ export function PullToRefresh({ children }: { children: ReactNode }) {
 
   return (
     <>
-      {/* Centred on the viewport: a centred thing is the same in both
+      {/* An overlay, and only an overlay. The pull used to drag the page down
+          with it, which on a screen carrying fixed chrome — a top bar, a
+          sticky search box, a checkout bar — read as the layout coming apart
+          rather than as a gesture: everything shifted, and the parts that are
+          pinned to the viewport stayed where they were. So the indicator is
+          all that moves now. It is out of the flow entirely and displaces
+          nothing, and the content underneath never budges.
+
+          Centred on the viewport: a centred thing is the same in both
           directions, so there is nothing to mirror for RTL. It rides down
           with the pull and sits below the top bar and the notch, whose
-          combined height the shell already names. */}
+          combined height the shell already names — so it clears the notch on
+          a phone without knowing anything about safe areas itself. */}
       {isVisible && (
         <div
           className="pointer-events-none fixed inset-x-0 top-[calc(var(--top-bar-inset)+0.5rem)] z-40 flex justify-center"
           style={{
-            transform: `translateY(${Math.max(0, distance - PULL_REFRESH_THRESHOLD_PX / 2)}px)`,
-            transition: isSettling ? "transform 200ms ease-out" : "none",
+            transform: `translateY(${distance * PULL_REFRESH_INDICATOR_TRAVEL_RATIO}px)`,
+            // Fades in over the first part of the pull, so a pull that was
+            // half a scroll leaves nothing but a faint hint behind it.
+            opacity: Math.min(1, distance / PULL_REFRESH_THRESHOLD_PX),
+            transition: isSettling ? "transform 200ms ease-out, opacity 200ms ease-out" : "none",
           }}
         >
           <div className="flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1.5 text-sm font-medium text-foreground shadow-lg">
@@ -191,14 +205,7 @@ export function PullToRefresh({ children }: { children: ReactNode }) {
         </div>
       )}
 
-      <div
-        style={{
-          transform: distance > 0 ? `translateY(${distance}px)` : undefined,
-          transition: isSettling ? "transform 200ms ease-out" : "none",
-        }}
-      >
-        {children}
-      </div>
+      {children}
     </>
   );
 }

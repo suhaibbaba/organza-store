@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { useQueryClient } from "@tanstack/react-query";
 import { can } from "@shared/lib/permissions";
@@ -16,14 +16,17 @@ import { useSession } from "@/components/providers/session-provider";
 import { useCart } from "@/hooks/use-cart";
 import { useAddByCode, type CodeOutcome } from "@/hooks/use-add-by-code";
 import { useCheckout } from "@/hooks/use-checkout";
+import { useHardwareScanner } from "@/hooks/use-hardware-scanner";
 import { useProductSearch } from "@/hooks/use-product-search";
 import { useScanFlash } from "@/hooks/use-scan-flash";
 import { useScanSound } from "@/hooks/use-scan-sound";
+import { useSellShortcuts } from "@/hooks/use-sell-shortcuts";
 import { useToasts } from "@/hooks/use-toasts";
 import { useTranslateError } from "@/hooks/use-translate-error";
 import { SearchBar } from "@/components/sell/search-bar";
 import { SearchView } from "@/components/sell/search-view";
 import { CartPanel } from "@/components/sell/cart-panel";
+import { CounterPanel } from "@/components/sell/counter-panel";
 import { CheckoutBar } from "@/components/sell/checkout-bar";
 import { DiscountSheet } from "@/components/sell/discount-sheet";
 import { SaleSuccess } from "@/components/sell/sale-success";
@@ -36,19 +39,29 @@ import type { OrderCustomerDraft } from "@/types/customer";
 import type { CartLine } from "@/types/cart";
 import { lineGrossCents } from "@/lib/cart";
 import { fromCents } from "@/lib/money";
+import { cn } from "@/lib/utils";
 
 // The selling screen. One screen, one job: get what the customer is holding
 // into the cart and take the money, in as few taps as possible.
 //
-// Three ways in, in the order they're reached for at a counter: the camera
-// (scan the tag), the search box (when the tag is unreadable), and typing a
-// number (numbered shawls — see VariantPickerSheet). All three funnel into
-// the same cart.
+// Four ways in, in the order they're reached for: the phone's camera (scan
+// the tag), the counter's plug-in scanner (pull the trigger), the search box
+// (when the tag is unreadable), and typing a number (numbered shawls — see
+// VariantPickerSheet). All four funnel into the same cart, through the same
+// submitCode, and answer the same way.
 //
 // Nothing any of them do interrupts the next one. An item that lands in the
 // cart says so with a beep and a toast that clears itself, the camera keeps
 // running until it is closed by hand, and the cart is one tap away from
 // wherever the cashier is.
+//
+// The phone is the till this was built for and stays the default: one column,
+// cart or search, checkout under the thumb. From `lg` up — the counter's
+// laptop, and the touch monitor planned to go with it — the same pieces
+// split into two columns so the cart never has to be swapped back to. That
+// is a second arrangement of this screen, not a second screen: every
+// difference below is a responsive class, and the phone's path through the
+// code is the one it always had.
 export function SellScreen() {
   const t = useTranslations("sell");
   const locale = useLocale();
@@ -76,6 +89,9 @@ export function SellScreen() {
   const [whatsappOpen, setWhatsappOpen] = useState(false);
   const [whatsappErrorCode, setWhatsappErrorCode] = useState<string | null>(null);
   const [completedOrder, setCompletedOrder] = useState<Order | null>(null);
+  // Only ever focused by a deliberate keypress from the counter keyboard —
+  // never on mount, which on a phone would open the keyboard over the cart.
+  const searchInputRef = useRef<HTMLInputElement | null>(null);
 
   const search = useProductSearch(query);
   const isSearching = query.trim().length > 0;
@@ -137,6 +153,56 @@ export function SellScreen() {
   const { submitCode, isLooking, resetScanHistory } = useAddByCode({
     onAdd: addToCart,
     onOutcome: handleCodeOutcome,
+  });
+
+  // Sheets that ask about something other than what is being scanned. While
+  // one of them has the screen, a scan would land in a cart nobody can see
+  // and a function key would answer a question that was not asked.
+  const isAskingSomethingElse = whatsappOpen || orderDiscountOpen || discountLineKey !== null;
+  // The two sheets that ARE part of scanning: the picker a variant-bearing
+  // parent raises, and the camera. Neither of them takes a text field's focus
+  // (SheetContent's onOpenAutoFocus), so the counter's scanner keeps working
+  // straight through — the next trigger pull just replaces what is on screen.
+  const isScanningSheetOpen = pickerProduct !== null || scannerOpen;
+
+  // The counter's plug-in scanner. What a scan does is the camera's behaviour
+  // verbatim — the same lookup, the same toast, the same beep, the same
+  // swallowing of repeats — because it is the same call.
+  useHardwareScanner({
+    enabled: canSell && completedOrder === null && !isAskingSomethingElse,
+    onScan: (code) => {
+      // A keypress is a user gesture, and at the counter it is the only one
+      // there is: nobody taps the scan button, so without taking this one
+      // the browser would never let the first beep of the shift play.
+      scanSound.unlock();
+      void submitCode(code, { dedupe: true });
+    },
+  });
+
+  // Keys for the counter keyboard. Every one of them is also a button, and
+  // the phone — which has no keyboard — never sees any of this.
+  useSellShortcuts({
+    enabled: canSell && completedOrder === null && !isAskingSomethingElse && !isScanningSheetOpen,
+    onFocusSearch: () => {
+      const input = searchInputRef.current;
+      if (!input) return;
+      input.focus();
+      // Selected, not appended to: reaching for the search box means a new
+      // search, not a longer one.
+      input.select();
+    },
+    onScan: openScanner,
+    onCheckout: () => {
+      if (cart.isEmpty || checkout.isPending) return;
+      submitOrder();
+    },
+    onClear: () => {
+      setQuery("");
+      // Focus goes back to the page, which is where the hardware scanner
+      // reads from — otherwise clearing the box would leave the cursor in it
+      // and the next trigger pull would type into it instead.
+      searchInputRef.current?.blur();
+    },
   });
 
   // A tapped search result: the list DTO carries no variants, so the full
@@ -237,24 +303,40 @@ export function SellScreen() {
 
   return (
     <>
-      <main className="mx-auto w-full max-w-2xl px-4 pt-4">
-        {/* The search bar stays put while the results or cart scroll under
-            it — the next scan is always one tap away. */}
-        <div className="sticky top-0 z-20 -mx-4 bg-background/95 px-4 pb-3 backdrop-blur">
-          <SearchBar
-            value={query}
-            onChange={setQuery}
-            onScanClick={openScanner}
-            onSubmitCode={(code) => void submitCode(code)}
-            isLooking={isLooking}
-          />
-        </div>
+      {/* One column on a phone, two from `lg`. The pb reserves room for the
+          fixed checkout bar at every width so the last cart line is never
+          trapped underneath it — the height is the bar's own measured one
+          (CheckoutBar publishes it), not a guess, so it stays right as the
+          bar grows a discount line or reflows into a single row on a laptop. */}
+      <main
+        className={cn(
+          "mx-auto w-full max-w-2xl px-4 pb-[calc(var(--checkout-bar-height)+1rem)] pt-4",
+          "lg:grid lg:max-w-6xl lg:grid-cols-[minmax(0,1fr)_24rem] lg:items-start lg:gap-6"
+        )}
+      >
+        {/* Finding things: the search box, and whatever it turns up. */}
+        <div className="min-w-0">
+          {/* The search bar stays put while the results or cart scroll under
+              it — the next scan is always one tap away. The bleed to the
+              screen edge is a phone thing; in a column it would spill into
+              the gutter, so it is dropped from `lg`, where the bar instead
+              sticks below the top bar rather than under it. */}
+          <div
+            className={cn(
+              "sticky top-0 z-20 -mx-4 bg-background/95 px-4 pb-3 backdrop-blur",
+              "lg:top-[var(--top-bar-inset)] lg:mx-0 lg:px-0"
+            )}
+          >
+            <SearchBar
+              value={query}
+              onChange={setQuery}
+              onScanClick={openScanner}
+              onSubmitCode={(code) => void submitCode(code)}
+              isLooking={isLooking}
+              inputRef={searchInputRef}
+            />
+          </div>
 
-        {/* pb leaves room for the fixed checkout bar so the last cart line is
-            never trapped underneath it. The height is the bar's own measured
-            one (CheckoutBar publishes it), not a guess, so it stays right as
-            the bar grows a discount line — plus a little breathing room. */}
-        <div className="pb-[calc(var(--checkout-bar-height)+1rem)]">
           {isSearching ? (
             <SearchView
               query={query.trim()}
@@ -267,9 +349,33 @@ export function SellScreen() {
               onBack={() => setQuery("")}
             />
           ) : (
-            <CartPanel cart={cart} scanFlash={scanFlash} onLineDiscountClick={setDiscountLineKey} />
+            // Renders from `lg` only: on a phone this column IS the cart when
+            // nothing is being searched for, and there is nothing to fill.
+            <CounterPanel onScanClick={openScanner} />
           )}
         </div>
+
+        {/* The sale. On a phone it is the screen's resting state, swapped out
+            by the search — exactly as before. From `lg` it is a column of its
+            own that never goes away, and it sticks so a long list of results
+            beside it cannot scroll the cart off the top. */}
+        <section
+          aria-label={t("cart.title")}
+          className={cn(
+            "min-w-0",
+            isSearching && "hidden lg:block",
+            "lg:sticky lg:top-[calc(var(--top-bar-inset)+1rem)]",
+            "lg:max-h-[calc(100dvh-var(--top-bar-inset)-var(--checkout-bar-height)-2rem)] lg:overflow-y-auto"
+          )}
+        >
+          {/* Two columns need saying which is which; one column does not —
+              on a phone the section's label carries it for screen readers
+              without spending a line of a small screen on a word. */}
+          <h2 className="mb-3 hidden text-base font-semibold lg:block" aria-hidden="true">
+            {t("cart.title")}
+          </h2>
+          <CartPanel cart={cart} scanFlash={scanFlash} onLineDiscountClick={setDiscountLineKey} />
+        </section>
       </main>
 
       <CheckoutBar
@@ -312,7 +418,14 @@ export function SellScreen() {
           if (resumeScanAfterPick) {
             setResumeScanAfterPick(false);
             setScannerOpen(true);
+            return;
           }
+          // The camera is not going back up, so the reason the code that
+          // raised this question is being held — that the tag is still lying
+          // under the lens — has gone with it. At the counter the same tag
+          // is pulled again on purpose for the second piece, and holding it
+          // would swallow that scan and every repeat after it.
+          resetScanHistory();
         }}
         onPick={addToCart}
       />
