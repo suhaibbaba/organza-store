@@ -1138,6 +1138,7 @@
     "changeRequestNotFound": "هذا الطلب لم يعد موجودًا.",
     "changeRequestNotPending": "تم البتّ في هذا الطلب مسبقًا.",
     "changeRequestSelfDecision": "لا يمكنك الموافقة على طلبك أنت.",
+    "changeRequestNotRequester": "لا يمكنك سحب طلب قدّمه شخص آخر.",
     "changeRequestTargetMissing": "العنصر الذي يخصّه هذا الطلب لم يعد موجودًا.",
     "changeRequestNotApplicable": "لم يعد بالإمكان تطبيق هذا الطلب — تغيّرت الأمور منذ تقديمه."
   },
@@ -1202,7 +1203,10 @@
       "reject": "رفض",
       "confirmReject": "تأكيد الرفض",
       "noteLabel": "السبب",
-      "notePlaceholder": "لماذا؟ (اختياري)"
+      "notePlaceholder": "لماذا؟ (اختياري)",
+      "cancelRequest": "سحب الطلب",
+      "confirmCancelRequest": "تأكيد السحب",
+      "cancelConfirmPrompt": "سيُحذف الطلب ولن يصل إلى المدير. متأكد؟"
     },
     "pending": {
       "waiting": "بانتظار الموافقة",

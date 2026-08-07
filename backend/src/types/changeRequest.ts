@@ -2,6 +2,7 @@ import type { Prisma } from "@prisma/client";
 import type {
   ChangeRequest,
   ChangeRequestActor,
+  ChangeRequestCancelled,
   ChangeRequestEntityType,
   ChangeRequestStatus,
   ChangeRequestValue,
@@ -15,6 +16,7 @@ import type {
 export type {
   ChangeRequest,
   ChangeRequestActor,
+  ChangeRequestCancelled,
   ChangeRequestCount,
   ChangeRequestEntityType,
   ChangeRequestStatus,
@@ -49,6 +51,13 @@ export interface ChangeRequestDraft {
   newValue: ChangeRequestValue;
   /** Snapshots for the approval screen — see the schema comment. */
   entityLabel?: unknown;
+  /**
+   * The owning product's name. Set it on every draft that HAS a product,
+   * whether the entity is the product, one of its variants or one of its
+   * photos — it is what the approval screen heads the card with, and without
+   * it a variant request names only the combination.
+   */
+  productLabel?: unknown;
   entityDetail?: string | null;
   productId?: string | null;
 }

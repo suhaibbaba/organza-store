@@ -791,6 +791,9 @@ async function main() {
       oldValue: { kind: "money", value: silkScarf.basePrice.toFixed(2) },
       newValue: { kind: "money", value: "39.00" },
       entityLabel: silkScarf.name,
+      // The piece the card is headed with. Same as entityLabel here because
+      // the entity IS the product; on a variant request the two differ.
+      productLabel: silkScarf.name,
       entityDetail: silkScarf.sku,
       productId: silkScarf.id,
       status: "PENDING" as const,
@@ -808,6 +811,8 @@ async function main() {
       oldValue: { kind: "approval", value: "PENDING" },
       newValue: { kind: "approval", value: "APPROVED" },
       entityLabel: { ar: "مستلزمات", en: "Supplies", he: "ציוד" },
+      // No product behind an expense — its category is what names the card.
+      productLabel: null,
       entityDetail: "85.00",
       productId: null,
       status: "PENDING" as const,
@@ -825,6 +830,7 @@ async function main() {
       oldValue: { kind: "approval", value: "PENDING" },
       newValue: { kind: "approval", value: "APPROVED" },
       entityLabel: { ar: "صيانة", en: "Maintenance", he: "תחזוקה" },
+      productLabel: null,
       entityDetail: "150.00",
       productId: null,
       status: "REJECTED" as const,
@@ -846,6 +852,7 @@ async function main() {
       oldValue: r.oldValue,
       newValue: r.newValue,
       entityLabel: r.entityLabel ?? undefined,
+      productLabel: r.productLabel ?? undefined,
       entityDetail: r.entityDetail,
       productId: r.productId,
       status: r.status,

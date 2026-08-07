@@ -10,6 +10,7 @@ import {
 } from "@/constants/changeRequests";
 import {
   approveChangeRequest,
+  cancelChangeRequest,
   fetchChangeRequestCount,
   fetchChangeRequests,
   rejectChangeRequest,
@@ -63,6 +64,29 @@ export function useDecideChangeRequestMutation() {
       // productId is null for an expense; productChanged() with no id still
       // refreshes the catalogue views, which is the safe answer either way.
       productChanged(request.productId ?? undefined);
+    },
+  });
+}
+
+/**
+ * Withdrawing your own request.
+ *
+ * Nothing about the entity changes — that is the point, the change was never
+ * applied — but everything that DISPLAYS the request has to forget it: the
+ * approvals list, the count on the navigation, and the "waiting for approval"
+ * badges hanging off the product it was about (productChanged), which would
+ * otherwise keep showing a figure nobody is asking for any more.
+ */
+export function useCancelChangeRequestMutation() {
+  const queryClient = useQueryClient();
+  const { productChanged } = useCacheInvalidation();
+
+  return useMutation({
+    mutationFn: ({ id }: { id: string; productId?: string | null }) => cancelChangeRequest(id),
+    onSuccess: (_result, variables) => {
+      void queryClient.invalidateQueries({ queryKey: [CHANGE_REQUEST_LIST_QUERY_KEY] });
+      void queryClient.invalidateQueries({ queryKey: CHANGE_REQUEST_COUNT_QUERY_KEY });
+      productChanged(variables.productId ?? undefined);
     },
   });
 }

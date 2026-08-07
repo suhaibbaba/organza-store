@@ -98,6 +98,7 @@ export const ERROR_MESSAGE_KEYS: Record<string, string> = {
   [ERROR_CODES.CHANGE_REQUEST_NOT_FOUND]: "errors.changeRequestNotFound",
   [ERROR_CODES.CHANGE_REQUEST_NOT_PENDING]: "errors.changeRequestNotPending",
   [ERROR_CODES.CHANGE_REQUEST_SELF_DECISION]: "errors.changeRequestSelfDecision",
+  [ERROR_CODES.CHANGE_REQUEST_NOT_REQUESTER]: "errors.changeRequestNotRequester",
   [ERROR_CODES.CHANGE_REQUEST_TARGET_MISSING]: "errors.changeRequestTargetMissing",
   [ERROR_CODES.CHANGE_REQUEST_NOT_APPLICABLE]: "errors.changeRequestNotApplicable",
 

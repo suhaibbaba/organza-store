@@ -74,6 +74,19 @@ export function rejectChange(token: string, id: string, note?: string): Promise<
 }
 
 /**
+ * Taking your own ask back (spec.md "Employee change approvals"). Not a third
+ * decision: it answers with `{ id, cancelled }` rather than a request, because
+ * the row is gone once it succeeds.
+ */
+export function cancelChange(token: string, id: string): Promise<ApiResult<{ id: string; cancelled: boolean }>> {
+  return apiRequest<{ id: string; cancelled: boolean }>(`/api/change-requests/${id}/cancel`, {
+    method: "POST",
+    token,
+    body: {},
+  });
+}
+
+/**
  * Sign off an expense that opened PENDING, the way the shop now does it:
  * find the request it filed and approve that. Replaces the old
  * POST /api/expenses/:id/approve, which no longer exists — there is one

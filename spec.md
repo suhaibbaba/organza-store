@@ -349,9 +349,28 @@ history and nothing re-files it, and the dev seed clears any earlier row for the
 (entity type, entity id, field) before writing its own, so a database that went through the
 expense-approval backfill does not end up listing one refusal twice under two different deciders.
 
+**Withdrawing.** The person who asked may take a pending request back (`changeRequest.cancel`,
+held by every role) — somebody who typed the wrong price should not have to occupy an Admin's
+attention to undo it. Two conditions, both enforced on the backend: it must be **your own**
+request, and it must still be **pending**. There is deliberately no Admin override — an Admin who
+disagrees *rejects*, which stays on the record with their name on it — and a decided request can
+never be withdrawn, because that would erase somebody else's answer. Withdrawing removes the row
+(freeing the pending slot, so the same field can be asked about again immediately) and writes a
+`CANCEL` audit entry carrying what was asked for, exactly the way a superseded request survives.
+The UI asks for a confirmation first.
+
 **Who sees what.** An Admin sees everything waiting and can act on it. Everyone else sees only
 what they themselves asked for, enforced on the backend — an Employee has to be able to follow
 their own request, and nothing more. Both get a count on the navigation.
+
+**What a card says.** The **product's name** heads every request that has one, because that is the
+question an approver actually asks — *which piece is this about?* The entity's own label sits
+underneath as secondary detail, which matters on a variant: the entity there is the combination
+(`أحمر / M`), and on its own it named nothing. Both are snapshots taken when the request is filed
+(`productLabel` / `entityLabel`), so a card still reads correctly after the product is renamed or
+soft-deleted, and the screen needs no second query per row. An expense has no product behind it,
+so its category heads the card instead. The cards are **informational only** — nothing on one
+navigates; the decisions are the only things you can touch.
 
 **The trail.** Every request, every superseding, every approval and every rejection writes an
 audit entry — who asked, and who decided. Approving also writes the entity's own entry

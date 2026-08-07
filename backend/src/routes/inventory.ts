@@ -216,6 +216,7 @@ router.patch(
           entityId: product.id,
           field: CHANGE_REQUEST_FIELDS.PRODUCT_STOCK,
           entityLabel: product.name,
+          productLabel: product.name,
           entityDetail: product.sku,
           productId: product.id,
           oldValue: countValue(product.stock),
@@ -252,7 +253,9 @@ router.patch(
   asyncHandler(async (req, res) => {
     const variant = await prisma.variant.findUnique({
       where: { id: req.params.id },
-      include: { product: { select: { id: true } } },
+      // ...and its product's name, which is what the approval screen heads
+      // the card with — a stock request on "1" names nothing on its own.
+      include: { product: { select: { id: true, name: true } } },
     });
     if (!variant) throw new AppError(404, ERROR_CODES.VARIANT_NOT_FOUND);
 
@@ -266,6 +269,7 @@ router.patch(
           entityId: variant.id,
           field: CHANGE_REQUEST_FIELDS.VARIANT_STOCK,
           entityLabel: variant.name,
+          productLabel: variant.product.name,
           entityDetail: variant.sku,
           productId: variant.product.id,
           oldValue: countValue(variant.stock),

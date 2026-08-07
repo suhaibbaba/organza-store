@@ -249,4 +249,62 @@ router.post(
   })
 );
 
+// ---------------------------------------------------------------------------
+// POST /api/change-requests/:id/cancel — take your own ask back.
+//
+// Not a third decision: a decision is somebody ELSE's answer to the question,
+// and this is withdrawing the question. Which is why it is the asker's alone
+// and why it is refused the moment the request has been decided — a refusal
+// with an Admin's name on it is a record, and nobody gets to delete a record
+// of their own by asking nicely.
+//
+// The row goes rather than gaining a fourth status, which is exactly what
+// SUPERSEDING already does to a request replaced by a newer one: what was
+// asked for lives on in the audit trail, and the approval screen is left
+// holding only decisions that are still somebody's to make. It also frees
+// the pendingKey, so the same field can be asked about again straight away.
+// ---------------------------------------------------------------------------
+router.post(
+  "/:id/cancel",
+  requirePermission("changeRequest.cancel"),
+  asyncHandler(async (req, res) => {
+    const existing = await loadRequest(req.params.id);
+
+    // Yours only. Checked here, not in the UI (CLAUDE.md rule 5) — and
+    // deliberately without an Admin override: an Admin who disagrees with a
+    // request has REJECT, which says who disagreed and why.
+    if (existing.requestedById !== req.user!.id) {
+      throw new AppError(403, ERROR_CODES.CHANGE_REQUEST_NOT_REQUESTER);
+    }
+    // Already answered. Withdrawing it now would erase the answer.
+    if (existing.status !== PENDING_CHANGE_REQUEST_STATUS) {
+      throw new AppError(409, ERROR_CODES.CHANGE_REQUEST_NOT_PENDING);
+    }
+
+    await prisma.changeRequest.delete({ where: { id: existing.id } });
+
+    // What was asked for, kept (CLAUDE.md rule 6) — the row is gone, so the
+    // trail is the only place the withdrawn value survives. Same shape as the
+    // REQUEST entry it undoes, so the pair reads as one story.
+    await writeAudit({
+      userId: req.user!.id,
+      action: AuditAction.CANCEL,
+      entityType: AUDIT_ENTITY.CHANGE_REQUEST,
+      entityId: existing.id,
+      oldValue: {
+        status: existing.status,
+        entityType: existing.entityType,
+        entityId: existing.entityId,
+        field: existing.field,
+        requestedById: existing.requestedById,
+        requestedAt: existing.requestedAt,
+        value: existing.newValue,
+      },
+      newValue: null,
+    });
+
+    sendOk(res, { id: existing.id, cancelled: true });
+  })
+);
+
 export default router;

@@ -54,6 +54,8 @@ export interface ChangeRequestNotificationPayload {
   field: string;
   /** The affected thing's name, still translatable. */
   entityLabel: I18n | null;
+  /** The owning product's name, preferred over entityLabel when present. */
+  productLabel: I18n | null;
   /** Who asked. */
   staffName: string;
   /** How many requests are waiting in total, so the phone can show the queue. */
