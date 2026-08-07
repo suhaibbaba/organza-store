@@ -20,6 +20,8 @@
   --color-destructive-foreground: var(--destructive-foreground);
   --color-success: var(--success);
   --color-warning: var(--warning);
+  --color-gift: var(--gift);
+  --color-gift-foreground: var(--gift-foreground);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
@@ -120,6 +122,19 @@
   --success: oklch(0.52 0.13 152);
   --warning: oklch(0.56 0.13 70);
 
+  /* Giving stock away — an order of type GIFT (spec.md "Gifts").
+     A violet that is deliberately none of the four colours already in use:
+     not the brand teal, which is what "complete the sale" is drawn in and
+     the one thing a gift must never be mistaken for; not destructive red,
+     because giving a piece to a bride is not an error; and not the amber or
+     green above, which now mean something specific about stock. It is the
+     one action on the selling screen that moves goods without taking money,
+     so it gets a colour of its own and keeps it everywhere — the button, its
+     confirmation, the receipt panel, and the badge in the admin's orders
+     list. */
+  --gift: oklch(0.5 0.16 300);
+  --gift-foreground: oklch(0.99 0 0);
+
   --border: oklch(0.9 0 0);
   --input: oklch(0.9 0 0);
   /* 0.65 alpha keeps the focus ring at >=3:1 against the page background. */
@@ -155,6 +170,8 @@
        flipped, so amber is still amber and green still green. */
     --success: oklch(0.76 0.15 152);
     --warning: oklch(0.8 0.14 75);
+    --gift: oklch(0.75 0.14 300);
+    --gift-foreground: oklch(0.16 0 0);
 
     --border: oklch(1 0 0 / 12%);
     --input: oklch(1 0 0 / 18%);

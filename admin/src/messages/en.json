@@ -250,6 +250,10 @@
       "WHATSAPP": "WhatsApp",
       "WEBSITE": "Website"
     },
+    "type": {
+      "SALE": "Sale",
+      "GIFT": "Gift"
+    },
     "payment": {
       "CASH": "Cash"
     },

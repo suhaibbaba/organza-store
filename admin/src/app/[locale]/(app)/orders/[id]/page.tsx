@@ -13,6 +13,7 @@ import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { OrderChannelBadge } from "@/components/orders/order-channel-badge";
 import { OrderStatusBadge } from "@/components/orders/order-status-badge";
+import { OrderTypeBadge } from "@/components/orders/order-type-badge";
 import { OrderListError } from "@/components/orders/order-list-states";
 import { OrderItemsList } from "@/components/orders/detail/order-items-list";
 import { OrderTotalsCard } from "@/components/orders/detail/order-totals-card";
@@ -85,6 +86,9 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
           <div className="mt-2 flex flex-wrap items-center gap-2">
             <OrderStatusBadge status={order.status} />
             <OrderChannelBadge channel={order.channel} />
+            {/* Renders nothing for an ordinary sale. On a gift it is what
+                explains the 0.00 beside it. */}
+            <OrderTypeBadge type={order.type} />
           </div>
         </div>
         <p className="text-xl font-bold tabular-nums">{formatMoney(order.total)}</p>

@@ -11,6 +11,7 @@ import { formatDateTime } from "@/lib/format";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
 import { OrderChannelBadge } from "@/components/orders/order-channel-badge";
 import { OrderStatusBadge } from "@/components/orders/order-status-badge";
+import { OrderTypeBadge } from "@/components/orders/order-type-badge";
 import { PaymentStatusBadge } from "@/components/orders/payment-status-badge";
 
 // Desktop-only view of the same orders the cards show on a phone. Same data,
@@ -27,17 +28,24 @@ export function OrderTable({ orders }: { orders: OrderSummary[] }) {
         id: "orderNumber",
         header: tTable("orderNumber"),
         cell: ({ row }) => (
-          // ::after stretches the link over its whole cell, so the number
-          // column is clickable end to end.
-          <Link
-            href={`/orders/${row.original.id}`}
-            className="flex min-w-0 items-center gap-2 rounded-md after:absolute after:inset-0 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          >
-            <span className="font-medium text-foreground">
-              {t("orderNumber", { number: String(row.original.orderNumber) })}
-            </span>
-            <ChevronRight className="size-4 shrink-0 text-muted-foreground rtl:-scale-x-100" aria-hidden="true" />
-          </Link>
+          <div className="flex min-w-0 flex-wrap items-center gap-2">
+            {/* ::after stretches the link over its whole cell, so the number
+                column is clickable end to end. */}
+            <Link
+              href={`/orders/${row.original.id}`}
+              className="flex min-w-0 items-center gap-2 rounded-md after:absolute after:inset-0 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <span className="font-medium text-foreground">
+                {t("orderNumber", { number: String(row.original.orderNumber) })}
+              </span>
+              <ChevronRight className="size-4 shrink-0 text-muted-foreground rtl:-scale-x-100" aria-hidden="true" />
+            </Link>
+            {/* Beside the number rather than in the Channel column: a gift is
+                not a channel (it is a STORE order like any counter sale), and
+                what it changes is what the row's total means. Renders nothing
+                for an ordinary sale. */}
+            <OrderTypeBadge type={row.original.type} />
+          </div>
         ),
       },
       {

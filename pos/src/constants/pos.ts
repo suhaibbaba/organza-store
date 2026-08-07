@@ -30,6 +30,14 @@ export const POS_PAYMENT_METHOD = "CASH" as const;
 // decide when to ask and what comes back.
 export const CUSTOMER_SUGGESTION_DEBOUNCE_MS = 350;
 
+// The "who is it for / why" line on a gift (spec.md "Gifts"), which rides
+// along on the order's own `note`. Capped in the box rather than validated
+// after the fact: it is a label on a giveaway, not a paragraph, and a cashier
+// should find out it is too long while typing rather than when the save is
+// refused. The backend accepts any non-empty string, so this is the shop's
+// idea of "short", not a protocol limit.
+export const GIFT_NOTE_MAX_LENGTH = 200;
+
 // A cart line's quantity: at least one piece, and never more than the store
 // actually holds — the backend re-checks stock atomically at checkout
 // (ORDER_INSUFFICIENT_STOCK), this only keeps the counter from building a

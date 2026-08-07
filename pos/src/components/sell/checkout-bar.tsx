@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { MessageCircle, Percent } from "lucide-react";
+import { Gift, MessageCircle, Percent } from "lucide-react";
 import { CHECKOUT_BAR_HEIGHT_VAR } from "@/constants/layout";
 import { useDiscountLabel } from "@/hooks/use-discount-label";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
@@ -16,27 +16,40 @@ interface CheckoutBarProps {
   orderDiscount: DiscountState;
   canCheckout: boolean;
   isSubmitting: boolean;
+  // Whether this account may give stock away — `can(user, "order.createGift")`
+  // (Admin/Manager). False hides the action outright rather than disabling
+  // it: an Employee has no business being shown a door they may not open,
+  // and the backend refuses the request regardless (CLAUDE.md rule 5).
+  canGift: boolean;
   onOrderDiscountClick: () => void;
   onCheckout: () => void;
   onWhatsappOrder: () => void;
+  onGiftOrder: () => void;
 }
 
 // Pinned to the bottom of the screen: the total and the buttons that finish
 // the sale are always under the cashier's thumb, whatever the cart is
 // scrolled to.
 //
-// The same cart ends one of two ways, and the choice is made here rather than
-// up front: the counter sale is the primary button, and next to it is the
-// order that gets delivered instead of handed over. Nobody has to decide
-// which kind of sale this is before they start scanning.
+// The same cart ends one of three ways, and the choice is made here rather
+// than up front: the counter sale is the primary button, next to it is the
+// order that gets delivered instead of handed over, and — for an Admin or a
+// Manager — the cart that is given away rather than sold. Nobody has to
+// decide which kind of order this is before they start scanning.
+//
+// Only the sale is solid brand teal. The other two are outlines, and the gift
+// carries its own violet (see globals.css) so that the button which takes no
+// money can never be reached for in place of the one that does.
 export function CheckoutBar({
   totals,
   orderDiscount,
   canCheckout,
   isSubmitting,
+  canGift,
   onOrderDiscountClick,
   onCheckout,
   onWhatsappOrder,
+  onGiftOrder,
 }: CheckoutBarProps) {
   const t = useTranslations("sell.checkout");
   const formatMoney = useMoneyFormatter();
@@ -136,18 +149,44 @@ export function CheckoutBar({
 
         {/* Full width and the same height as the sale button: an order taken
             over WhatsApp is an everyday job here, not a secondary one, and it
-            has to be reachable with the same thumb. In the laptop's row it
-            keeps that height and takes only the width of its own label. */}
-        <Button
-          type="button"
-          variant="outline"
-          onClick={onWhatsappOrder}
-          disabled={!canCheckout || isSubmitting}
-          className="w-full lg:w-auto lg:shrink-0"
-        >
-          <MessageCircle aria-hidden="true" />
-          {t("whatsappOrder")}
-        </Button>
+            has to be reachable with the same thumb. In the laptop's row both
+            keep that height and take only the width of their own labels.
+
+            The gift shares this row rather than sitting beside the sale
+            button: a thumb reaching for "complete the sale" must not be able
+            to land on it, and one row down is far enough away to make that
+            impossible while still being a single tap for the Admin who
+            actually wants it. */}
+        <div className="flex items-stretch gap-2 lg:shrink-0">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onWhatsappOrder}
+            disabled={!canCheckout || isSubmitting}
+            className="flex-1 lg:w-auto lg:flex-none lg:shrink-0"
+          >
+            <MessageCircle aria-hidden="true" />
+            {t("whatsappOrder")}
+          </Button>
+
+          {/* Admin/Manager only. Hidden, not disabled — see canGift. */}
+          {canGift && (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onGiftOrder}
+              disabled={!canCheckout || isSubmitting}
+              // The way IN to giving stock away, so it is an outline: the
+              // solid violet is spent on the button inside the sheet that
+              // actually commits it. It still carries the colour, because
+              // this is where the cashier learns that violet means "no money".
+              className="flex-1 border-gift/40 text-gift hover:bg-gift/10 hover:text-gift lg:w-auto lg:flex-none lg:shrink-0"
+            >
+              <Gift aria-hidden="true" />
+              {t("giftOrder")}
+            </Button>
+          )}
+        </div>
       </div>
     </div>
   );

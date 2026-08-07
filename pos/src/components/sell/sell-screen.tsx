@@ -31,6 +31,7 @@ import { CheckoutBar } from "@/components/sell/checkout-bar";
 import { DiscountSheet } from "@/components/sell/discount-sheet";
 import { SaleSuccess } from "@/components/sell/sale-success";
 import { WhatsappOrderSheet } from "@/components/sell/whatsapp-order-sheet";
+import { GiftOrderSheet } from "@/components/sell/gift-order-sheet";
 import { ScannerSheet } from "@/components/sell/scanner/scanner-sheet";
 import { VariantPickerSheet } from "@/components/sell/variant-picker-sheet";
 import { Alert } from "@/components/ui/alert";
@@ -88,6 +89,8 @@ export function SellScreen() {
   const [orderDiscountOpen, setOrderDiscountOpen] = useState(false);
   const [whatsappOpen, setWhatsappOpen] = useState(false);
   const [whatsappErrorCode, setWhatsappErrorCode] = useState<string | null>(null);
+  const [giftOpen, setGiftOpen] = useState(false);
+  const [giftErrorCode, setGiftErrorCode] = useState<string | null>(null);
   const [completedOrder, setCompletedOrder] = useState<Order | null>(null);
   // Only ever focused by a deliberate keypress from the counter keyboard —
   // never on mount, which on a phone would open the keyboard over the cart.
@@ -101,6 +104,11 @@ export function SellScreen() {
   // plain explanation instead of a screen whose buttons all fail — the real
   // gate is the backend's, on every request (CLAUDE.md rule 5).
   const canSell = can(user, "order.create");
+  // Giving stock away is Admin/Manager only: an Employee who could file a
+  // sale as a gift could walk out with the piece (spec.md "Gifts"). This
+  // decides whether the action is drawn at all; the backend refuses the
+  // request either way.
+  const canGift = can(user, "order.createGift");
 
   // One item in the cart, however it got there. All four answers land at
   // once — the beep, the buzz, the toast naming it and its new quantity, and
@@ -186,8 +194,12 @@ export function SellScreen() {
 
   // Sheets that ask about something other than what is being scanned. While
   // one of them has the screen, a scan would land in a cart nobody can see
-  // and a function key would answer a question that was not asked.
-  const isAskingSomethingElse = whatsappOpen || orderDiscountOpen || discountLineKey !== null;
+  // and a function key would answer a question that was not asked. The gift
+  // confirmation is the sharpest case of both: it lists what is about to be
+  // given away, and a scan landing behind it would change that list after the
+  // cashier read it.
+  const isAskingSomethingElse =
+    whatsappOpen || giftOpen || orderDiscountOpen || discountLineKey !== null;
   // The two sheets that ARE part of scanning: the picker a variant-bearing
   // parent raises, and the camera. Neither of them takes a text field's focus
   // (SheetContent's onOpenAutoFocus), so the counter's scanner keeps working
@@ -265,19 +277,24 @@ export function SellScreen() {
     [addToCart, queryClient, toasts, translateError]
   );
 
-  // Both endings of a cart go through here: without a customer it is a
-  // counter sale, with one it is a WhatsApp order for delivery. Only where
-  // the failure is shown differs — the WhatsApp sheet covers the screen, so
-  // its own message has to be inside it.
-  function submitOrder(customer?: OrderCustomerDraft) {
+  // Every ending of a cart goes through here: on its own it is a counter
+  // sale, with a customer it is a WhatsApp order for delivery, and with
+  // `gift` it is stock given away for nothing (spec.md "Gifts"). Only where
+  // the failure is shown differs — each sheet covers the screen, so its own
+  // message has to be inside it, or a refused save would look like nothing
+  // happening at all.
+  function submitOrder(options: { customer?: OrderCustomerDraft; gift?: { note: string } } = {}) {
+    const { customer, gift } = options;
     toasts.clear();
     setWhatsappErrorCode(null);
+    setGiftErrorCode(null);
     checkout.mutate(
-      { lines: cart.lines, orderDiscount: cart.orderDiscount, customer },
+      { lines: cart.lines, orderDiscount: cart.orderDiscount, customer, gift },
       {
         onSuccess: (order) => {
           setCompletedOrder(order);
           setWhatsappOpen(false);
+          setGiftOpen(false);
           cart.clear();
           setQuery("");
         },
@@ -285,6 +302,13 @@ export function SellScreen() {
           const code = error instanceof ApiError ? error.code : ERROR_CODES.INTERNAL;
           if (customer) {
             setWhatsappErrorCode(code);
+            return;
+          }
+          // An Employee who reached this call at all is refused here (403),
+          // which is the gate that matters — the hidden button is only the
+          // courtesy in front of it.
+          if (gift) {
+            setGiftErrorCode(code);
             return;
           }
           toasts.show("destructive", translateError(code));
@@ -422,9 +446,11 @@ export function SellScreen() {
         orderDiscount={cart.orderDiscount}
         canCheckout={!cart.isEmpty}
         isSubmitting={checkout.isPending}
+        canGift={canGift}
         onOrderDiscountClick={() => setOrderDiscountOpen(true)}
         onCheckout={() => submitOrder()}
         onWhatsappOrder={() => setWhatsappOpen(true)}
+        onGiftOrder={() => setGiftOpen(true)}
       />
 
       <WhatsappOrderSheet
@@ -436,8 +462,25 @@ export function SellScreen() {
         total={cart.totals.total}
         isSubmitting={checkout.isPending}
         errorCode={whatsappErrorCode}
-        onSubmit={(customer) => submitOrder(customer)}
+        onSubmit={(customer) => submitOrder({ customer })}
       />
+
+      {/* Only mounted for an account that may give stock away, so there is
+          nothing behind the hidden button either. */}
+      {canGift && (
+        <GiftOrderSheet
+          open={giftOpen}
+          onOpenChange={(open) => {
+            setGiftOpen(open);
+            if (!open) setGiftErrorCode(null);
+          }}
+          lines={cart.lines}
+          itemCount={cart.totals.itemCount}
+          isSubmitting={checkout.isPending}
+          errorCode={giftErrorCode}
+          onConfirm={(note) => submitOrder({ gift: { note } })}
+        />
+      )}
 
       <ScannerSheet
         open={scannerOpen}

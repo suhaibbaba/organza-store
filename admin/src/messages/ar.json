@@ -250,6 +250,10 @@
       "WHATSAPP": "واتساب",
       "WEBSITE": "الموقع"
     },
+    "type": {
+      "SALE": "بيع",
+      "GIFT": "هدية"
+    },
     "payment": {
       "CASH": "نقدًا"
     },

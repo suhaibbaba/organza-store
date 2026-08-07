@@ -7,6 +7,7 @@ import { useMoneyFormatter } from "@/hooks/use-money-formatter";
 import { isOrderCollectable } from "@shared/lib/orders";
 import { OrderChannelBadge } from "@/components/orders/order-channel-badge";
 import { OrderStatusBadge } from "@/components/orders/order-status-badge";
+import { OrderTypeBadge } from "@/components/orders/order-type-badge";
 import { PaymentStatusBadge } from "@/components/orders/payment-status-badge";
 
 // One order, as a card. This is the primary (mobile) rendering — the table
@@ -45,6 +46,8 @@ export function OrderCard({ order }: { order: OrderSummary }) {
         <div className="flex shrink-0 flex-col items-end gap-1">
           <OrderStatusBadge status={order.status} />
           <OrderChannelBadge channel={order.channel} />
+          {/* Renders nothing for an ordinary sale — see OrderTypeBadge. */}
+          <OrderTypeBadge type={order.type} />
           {/* Money still with the delivery company is worth seeing from the
               list; money already in hand is the unremarkable case and would
               only add noise to every other row. A cancelled or returned sale
