@@ -1,16 +1,14 @@
+import { TARGET } from "@tests/support/target";
+import { noteResponse } from "@tests/support/fixtureRegistry";
 import type { ApiResult, RequestOptions } from "@tests/types";
 
 // Thin fetch wrapper around a LIVE API — these tests never start an
-// in-process server, they hit whatever API_URL points at (sandbox or prod).
-const rawApiUrl = process.env.API_URL;
-if (!rawApiUrl) {
-  throw new Error(
-    "API_URL is not set. Run tests via `npm run api-test` (sandbox) or " +
-      "`npm run api-test:prod` (production), or export API_URL yourself before invoking vitest."
-  );
-}
-
-export const API_BASE_URL = rawApiUrl.replace(/\/+$/, "");
+// in-process server, they hit whatever the resolved target points at.
+//
+// The target itself (and whether this run is allowed to touch it) is decided
+// in tests/support/target.ts: API_URL when it is set, the sandbox when it is
+// not, and never production without an explicit override.
+export const API_BASE_URL = TARGET.url;
 
 // Better Auth's CSRF guard (src/lib/auth.ts -> trustedOrigins) rejects any
 // state-changing request that carries an Origin header it doesn't
@@ -38,6 +36,12 @@ export async function rawRequest(path: string, options: RequestOptions = {}): Pr
 
 export async function apiRequest<T = unknown>(path: string, options: RequestOptions = {}): Promise<ApiResult<T>> {
   const { status, body } = await rawRequest(path, options);
+
+  // Everything this run creates is recorded here, at the one point every
+  // test's requests pass through, so teardown can take it away again without
+  // any test having to remember (tests/support/cleanup.ts).
+  noteResponse(path, options.method ?? "GET", status, body);
+
   return {
     status,
     success: Boolean(body?.success),

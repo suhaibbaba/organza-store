@@ -26,6 +26,8 @@ import type { ChangeRequestDto } from "@tests/types/changeRequest";
 export interface ProductDto {
   id: string;
   name: { ar: string; en?: string; he?: string };
+  // Nested category the product is filed under, as the detail DTO returns it.
+  category: { id: string; name: Record<string, string>; slug: string } | null;
   sku: string | null;
   barcode: string | null;
   hasVariants: boolean;
@@ -49,6 +51,8 @@ export interface ProductDto {
   images: { id: string; url: string; thumbnailUrl: string; isPrimary: boolean }[];
   // Null until the product's barcode labels have been printed at least once.
   labelsPrintedAt: string | null;
+  // Soft delete (CLAUDE.md rule 4) — a product is hidden, never destroyed.
+  deletedAt: string | null;
   variants: ProductVariantDto[];
   // Role-gated (CLAUDE.md rule 19): absent entirely for Employee responses.
   cost?: number | string | null;

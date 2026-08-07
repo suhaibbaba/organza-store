@@ -91,6 +91,74 @@ The response includes a session `token`. Every route below requires it, either a
 curl http://localhost:4000/api/products -H "Authorization: Bearer <token>"
 ```
 
+## Verification suite (`npm run verify`)
+
+One command that proves the system is correct — and prints a pass/fail verdict per **area**
+rather than per file, so a money bug is obvious at a glance:
+
+```bash
+npm run verify                       # against the sandbox (the default)
+npm run verify -- tests/verify        # only the verification suite
+API_URL=http://localhost:4000 npm run verify   # against a local API
+```
+
+It runs the whole vitest suite — `tests/api/*.test.ts` (per-feature) plus
+`tests/verify/*.verify.test.ts` (the money and permissions verification) — against a **live,
+already-running, already-seeded API**, then writes a shareable report to
+`tests/verify-report.md` and the raw run to `tests/verify-result.json` (both gitignored).
+
+Every assertion names its figure, so a failure reads as a sentence about money:
+
+```
+FAIL  2. Discounts & rounding      18 passed, 1 failed
+      ✗ Verify · discounts › both levels at once › applies the line discount first
+        order total: expected 157.50, got 157.49 (off by -0.01)
+```
+
+### The areas
+
+| # | Area | What it proves |
+|---|---|---|
+| 1 | Pricing | A variant's `priceOverride` applies, an empty one inherits the parent's `basePrice` (and the same for `cost`) resolved at read time, the SKU is frozen at creation, and `compareAtPrice` never changes what is charged. |
+| 2 | Discounts & rounding | Percentage and fixed, at line and order level, alone and combined; 2dp HALF-UP rounding with no float drift (3 × 0.10 = 0.30); the server recomputes every total and ignores a tampered one; malformed discounts refused, over-large ones clamped. |
+| 3 | Quantities & stock | Whole numbers only; stock leaves the shelf exactly once (STORE at the sale, online at `PREPARING`, guarded by `stockDeductedAt`); overselling refused; stock never negative. |
+| 4 | Returns | Partial and full, exact quantities restored, `returnedQuantity` recorded, sales and profit adjusted, nothing returned twice. |
+| 5 | Cash drawer | A whole day walked end to end: `expected = opening + cash sales − cash expenses`, a difference recorded with its note and never blocking, a withdrawal subtracted, the remainder carried into the next day, and a counted day never rewritten. |
+| 6 | Sold vs received vs owed | The three always reconcile; collecting moves money from owed to received; a bulk settlement takes only what was pending at that moment. |
+| 7 | Profit | Gross and net, for all sales and for the received part alone, from the snapshotted `unitPrice`/`unitCost` — re-pricing a product afterwards moves nothing. |
+| 8 | Permissions & data exposure | Every role against every sensitive action, enforced on the backend; gated Employee edits held for approval; no endpoint leaking `cost`, `unitCost`, COGS, profit, margin or `idNumber`. |
+| 9 | Edge cases | Concurrent sales of the last unit, duplicate SKU, generated EAN-13 uniqueness, a numbered shawl's parent barcode, `+970`/`+972` phone uniqueness. |
+| 10 | Platform & API contract | The envelope, pagination, search, categories, images, labels, notifications, version. |
+
+### Safety
+
+The suite is **not read-only**. It creates orders, moves stock, records expenses and opens cash
+drawers, so it decides where it is pointed before it sends a single request:
+
+- **The sandbox is the default.** With `API_URL` unset it targets
+  `https://api.sandbox.organza-moda.com`.
+- **Production is refused**, loudly, with instructions — and so is *any host this suite does not
+  recognise*, which is treated as production until told otherwise. To override:
+
+  ```bash
+  ORGANZA_ALLOW_PRODUCTION=I-KNOW-THIS-IS-PRODUCTION npm run verify
+  ```
+
+  which prints a large warning banner before it starts.
+- **Nothing is left behind.** Every product, order and expense the run creates is recorded from
+  inside `apiRequest` (`tests/support/fixtureRegistry.ts`) and soft-deleted afterwards, and
+  anything left waiting for an Admin is rejected — so the target ends the run in the state it
+  started it. Re-running changes no count. `ORGANZA_KEEP_FIXTURES=1` skips the teardown when
+  something needs inspecting by hand.
+- **A real trading day's cash session is never touched.** A drawer is one per calendar day and
+  the API has no way to delete one, so the arithmetic is walked on synthetic dates in 2100+,
+  which no sale can fall inside. The one assertion that needs a live window measures the drawer
+  **the shop has already opened**, or reports itself skipped. `ORGANZA_ALLOW_TODAY_DRAWER=1`
+  lets it open one — only ever appropriate on a disposable database.
+
+`npm run api-test` and `npm run api-test:prod` still exist and run the same vitest suite without
+the summary; the production one now needs the override above, like everything else.
+
 ## Products & Variants API (Phase 2)
 
 All endpoints return the unified envelope (`{ success, data, meta }` / `{ success: false, error: { code } }`)
@@ -348,6 +416,14 @@ backend/
 │   ├── schema.prisma   # source of truth for the DB schema
 │   ├── migrations/
 │   └── seed.ts         # idempotent dev seed
+├── scripts/
+│   └── verify.ts       # `npm run verify` — runs the suite, summarises by area, writes the report
+├── tests/
+│   ├── api/            # per-feature API suites
+│   ├── verify/         # the money + permissions verification suite
+│   ├── support/        # client, auth, fixtures, money assertions, target guard, teardown
+│   ├── constants/      # areas, target hosts, the figures the suite works in
+│   └── types/
 ├── src/
 │   ├── index.ts          # Express app entry
 │   ├── constants/        # magic strings/numbers (SKU prefix, image sizes, error keys, ...)

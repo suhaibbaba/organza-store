@@ -12,6 +12,19 @@ export async function anyCategoryId(token: string): Promise<string> {
   return res.data[0].id;
 }
 
+// A category that is NOT the one given — for proving that moving a product
+// between categories leaves its SKU alone (CLAUDE.md rule 1). The seed nests
+// several, so there is always a second one; if there somehow isn't, the
+// caller gets the same id back and the assertion still holds, just weaker.
+export async function anotherCategoryId(token: string, notId: string): Promise<string> {
+  const res = await apiRequest<{ id: string }[]>("/api/categories?flat=true", { token });
+  const categories = res.data ?? [];
+  if (!categories.length) {
+    throw new Error("No categories available — ensure the target API has been seeded via `npm run seed`.");
+  }
+  return (categories.find((category) => category.id !== notId) ?? categories[0]).id;
+}
+
 // Two option types x two values each = a 2x2 cartesian product (4 variants),
 // reusing the seeded "color" and "size" types instead of creating new global
 // variant types on every run.

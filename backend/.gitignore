@@ -3,4 +3,6 @@ dist/
 .env
 uploads/
 *.log
-tests/report.json
+# `npm run verify` artefacts: the raw vitest run and the report built from it.
+tests/verify-result.json
+tests/verify-report.md
