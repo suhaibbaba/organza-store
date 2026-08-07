@@ -180,6 +180,13 @@ Design for that reality:
   padding/margins, alignment), Arabic uses a clear legible Arabic font, and numbers/dates render
   correctly. **Verify Arabic visually** — do not assume it works. Arabic is the default locale.
 - **Accessibility basics:** readable font sizes on mobile, sufficient contrast, labels on inputs.
+- **Never fake a solid icon by putting `fill` on an outline one.** lucide is an outline set; filling
+  one floods the body and swallows every inner stroke — a receipt loses its lines, stacked boxes
+  merge into a blob. A filled icon must be *drawn* filled, with its detail knocked out as negative
+  space (`fill-rule="evenodd"`) or split into separate shapes. The bottom nav's solid twins live in
+  `admin/src/components/icons/nav-solid-icons.tsx`, one per `PRIMARY_NAV_KEYS` entry (the table is
+  typed so a new tab without a drawn twin fails the build). Check any new one at 24px, light and
+  dark — not zoomed.
 - Keep the visual language consistent between admin and pos (shared components where sensible).
 
 ## Mobile input & device specifics (admin + pos)
