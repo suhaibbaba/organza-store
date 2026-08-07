@@ -348,7 +348,9 @@ async function showChangeRequest(payload, messages, locale) {
   const values = {
     staff: payload.staffName || "",
     field: changeFieldLabel(payload, messages),
-    item: localize(payload.entityLabel, locale, payload.defaultLanguage),
+    // The piece, falling back to the entity's own label — an expense has
+    // no product, and its category is what names it.
+    item: localize(payload.productLabel || payload.entityLabel, locale, payload.defaultLanguage),
     count: payload.pendingCount || 0,
   };
 

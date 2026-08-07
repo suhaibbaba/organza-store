@@ -238,7 +238,10 @@ router.delete(
           entityType: CHANGE_REQUEST_ENTITIES.PRODUCT_IMAGE,
           entityId: image.id,
           field: CHANGE_REQUEST_FIELDS.IMAGE_DELETION,
-          entityLabel: owner?.name ?? null,
+          // A photo has no name of its own; the gallery it is in is what
+          // identifies it, together with the thumbnail below.
+          entityLabel: null,
+          productLabel: owner?.name ?? null,
           entityDetail: image.thumbnailUrl,
           productId: owner?.id ?? null,
           oldValue: deletionValue(false),

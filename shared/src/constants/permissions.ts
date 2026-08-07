@@ -126,6 +126,14 @@ export const PERMISSION_ACTIONS = [
   // changeRequest.approve (see routes/changeRequests.ts). An Employee has to
   // be able to see that their price change is waiting rather than lost.
   "changeRequest.view",
+  // Taking your OWN request back while it is still waiting. Held by every
+  // role, and — like changeRequest.view — it does not mean "anybody's": the
+  // route also checks that the caller is the one who asked. Somebody who
+  // typed the wrong price should not have to occupy an Admin's attention to
+  // undo it, but withdrawing is the asker's only. An Admin who disagrees
+  // REJECTS, which stays on the record; a decided request can never be
+  // withdrawn at all.
+  "changeRequest.cancel",
   // Deciding one. ADMIN ONLY for now — this is the whole point of the gate,
   // and the person who asked must never be able to sign their own request
   // off. Modelled as its own action rather than as "is the user an Admin" so
@@ -208,6 +216,7 @@ export const ROLE_PERMISSIONS: Record<Role, readonly Action[]> = {
     // which is the whole reason the gate exists.
     "changeRequest.create",
     "changeRequest.view",
+    "changeRequest.cancel",
   ],
   EMPLOYEE: [
     "product.view",
@@ -233,5 +242,8 @@ export const ROLE_PERMISSIONS: Record<Role, readonly Action[]> = {
     // approvals").
     "changeRequest.create",
     "changeRequest.view",
+    // ...and to take one back when they typed it by mistake, rather than
+    // waiting for an Admin to turn down something nobody wanted.
+    "changeRequest.cancel",
   ],
 };

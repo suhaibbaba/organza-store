@@ -117,6 +117,10 @@ export const ERROR_CODES = {
   CHANGE_REQUEST_NOT_PENDING: "error.changeRequest.not_pending",
   // Nobody signs off their own request — that would make the gate decorative.
   CHANGE_REQUEST_SELF_DECISION: "error.changeRequest.self_decision",
+  // Withdrawing somebody else's request. Taking an ask back is the ASKER's,
+  // and only theirs: an Admin who disagrees with a request rejects it, on the
+  // record, rather than making it disappear.
+  CHANGE_REQUEST_NOT_REQUESTER: "error.changeRequest.not_requester",
   // The change was asked for, but by the time it was approved the thing it
   // was about had gone (a product soft-deleted, a photo already removed) or
   // the change no longer makes sense against what is stored now.

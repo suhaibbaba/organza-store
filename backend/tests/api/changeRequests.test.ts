@@ -5,6 +5,7 @@ import { anyCategoryId, twoByTwoOptionSelections } from "@tests/support/fixtures
 import { createSellableProduct, readStock } from "@tests/support/orders";
 import {
   approveChange,
+  cancelChange,
   changeRequestsFor,
   listChangeRequests,
   pendingChangeFor,
@@ -732,6 +733,234 @@ describe("Change requests", () => {
       expect(decided.data!.decidedById).toBe(admin.userId);
       expect(decided.data!.decidedById).not.toBe(manager.userId);
       expect(decided.data!.requestedById).toBe(employee.userId);
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // WHICH PIECE the card is about
+  //
+  // An approver's first question. It used to go unanswered on a variant: the
+  // card was headed with the ENTITY's label, which for a combination is "1"
+  // or "أحمر / M", so a stock request read "كمية الخيار · 1 · ORG-00089-1"
+  // and the only way to tell what it concerned was to decode the SKU. Every
+  // request that has a product behind it now carries that product's name.
+  // -------------------------------------------------------------------------
+  describe("naming the product", () => {
+    it("names the product on every kind of request, with the combination beneath it", async () => {
+      const admin = await getSession("ADMIN");
+      const employee = await getSession("EMPLOYEE");
+      const optionSelections = await twoByTwoOptionSelections(admin.token);
+      const created = await product(admin.token, "ProductName", { optionSelections, stock: "5" });
+      const productName = (created.name as Record<string, string>).ar;
+      const [firstVariant] = created.variants;
+
+      // Every gated shape, filed against the one product so each assertion is
+      // about a card an Admin could actually be looking at.
+      const priceAndVisibility = await apiRequest<ProductDto>(`/api/products/${created.id}`, {
+        method: "PATCH",
+        token: employee.token,
+        body: { basePrice: "9.99", isActive: false },
+      });
+      expect(priceAndVisibility.status).toBe(200);
+
+      // A variant's own price and stock. Through the product form, which is
+      // the only door an Employee has to them: the stock SCREEN needs
+      // inventory.view, which they do not hold at all (CLAUDE.md rule 5), so
+      // its own request branch is unreachable until that widens.
+      const variantEdit = await apiRequest<{ pendingChanges: ChangeRequestDto[] }>(
+        `/api/products/${created.id}/variants/${firstVariant.id}`,
+        { method: "PATCH", token: employee.token, body: { priceOverride: "12", stock: 3 } }
+      );
+      expect(variantEdit.status).toBe(200);
+
+      // Removing a combination — the variant-set field.
+      const variantSet = await apiRequest<{ pendingChange: ChangeRequestDto }>(
+        `/api/products/${created.id}/variants/${firstVariant.id}`,
+        { method: "DELETE", token: employee.token }
+      );
+      expect(variantSet.status).toBe(202);
+
+      // A photo.
+      const form = new FormData();
+      form.append("productId", created.id);
+      form.append("file", new Blob([new Uint8Array(ONE_PIXEL_PNG)], { type: "image/png" }), "pixel.png");
+      const uploaded = await fetch(`${API_BASE_URL}/api/images`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${admin.token}`, Origin: API_ORIGIN },
+        body: form,
+      });
+      const image = ((await uploaded.json()) as { data: { id: string } }).data;
+      const photo = await apiRequest<{ pendingChange: ChangeRequestDto }>(`/api/images/${image.id}`, {
+        method: "DELETE",
+        token: employee.token,
+      });
+      expect(photo.status).toBe(202);
+
+      const filed = [
+        ...(await changeRequestsFor(admin.token, "Product", created.id)),
+        ...(await changeRequestsFor(admin.token, "Variant", firstVariant.id)),
+        ...(await changeRequestsFor(admin.token, "ProductImage", image.id)),
+      ];
+
+      // One of every gated shape a product can produce.
+      expect(filed.map((c) => c.field).sort()).toEqual(
+        ["basePrice", "deletion", "isActive", "priceOverride", "stock", "variantSet"].sort()
+      );
+
+      // THE ASSERTION: whatever the entity is, the card can name the piece.
+      for (const request of filed) {
+        expect(request.productLabel?.ar).toBe(productName);
+        expect(request.productId).toBe(created.id);
+      }
+
+      // ...and on a variant the combination is still there, underneath, as
+      // its own label rather than as the heading.
+      const variantRequests = filed.filter((c) => c.entityType === "Variant");
+      expect(variantRequests.length).toBeGreaterThan(0);
+      for (const request of variantRequests) {
+        expect(request.entityLabel).not.toBeNull();
+        expect(request.entityLabel?.ar).not.toBe(productName);
+        // ...next to the combination's own SKU, which is what it was before
+        // and is now the third line rather than the only identification.
+        expect(request.entityDetail).toBe(firstVariant.sku);
+      }
+    });
+
+    it("heads an expense with its category, having no product to name", async () => {
+      const admin = await getSession("ADMIN");
+      const employee = await getSession("EMPLOYEE");
+      const categoryId = await expenseCategoryId(employee.token);
+
+      const created = await createExpense(employee.token, {
+        categoryId,
+        amount: "31.50",
+        note: `Vitest CR label ${uniqueId()}`,
+      });
+      expect(created.status).toBe(201);
+      createdExpenseIds.push(created.data!.id);
+
+      const request = (await pendingChangeFor(admin.token, "Expense", created.data!.id))!;
+      // No product behind an expense, so nothing to head it with but itself.
+      expect(request.productLabel).toBeNull();
+      expect(request.productId).toBeNull();
+      expect(request.entityLabel).not.toBeNull();
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // Withdrawing your own ask
+  //
+  // Not a third decision: a decision is somebody else's answer, and this is
+  // taking the question back. Two conditions, both enforced here rather than
+  // in the UI (CLAUDE.md rule 5): yours, and still waiting.
+  // -------------------------------------------------------------------------
+  describe("cancelling", () => {
+    async function askedByEmployee(label: string) {
+      const admin = await getSession("ADMIN");
+      const employee = await getSession("EMPLOYEE");
+      const created = await product(admin.token, label);
+      const res = await apiRequest<ProductDto>(`/api/products/${created.id}`, {
+        method: "PATCH",
+        token: employee.token,
+        body: { basePrice: "4.44" },
+      });
+      expect(res.status).toBe(200);
+      return {
+        admin,
+        employee,
+        productId: created.id,
+        request: res.data!.pendingChanges!.find((c) => c.field === "basePrice")!,
+      };
+    }
+
+    it("lets the person who asked take their own pending request back", async () => {
+      const { admin, employee, productId, request } = await askedByEmployee("CancelOwn");
+
+      const before = await apiRequest<ChangeRequestCountDto>("/api/change-requests/count", {
+        token: admin.token,
+      });
+
+      const cancelled = await cancelChange(employee.token, request.id);
+      expect(cancelled.status).toBe(200);
+      expect(cancelled.data!.id).toBe(request.id);
+      expect(cancelled.data!.cancelled).toBe(true);
+
+      // Gone, not decided: it is in no tab, and nothing is left waiting on the
+      // product it was about.
+      expect(await changeRequestsFor(admin.token, "Product", productId, "basePrice")).toHaveLength(0);
+      expect((await apiRequest(`/api/change-requests/${request.id}`, { token: admin.token })).status).toBe(404);
+
+      // ...and the badge in the navigation counts one fewer.
+      const after = await apiRequest<ChangeRequestCountDto>("/api/change-requests/count", { token: admin.token });
+      expect(after.data!.pending).toBe(before.data!.pending - 1);
+
+      // The value it was about never moved — that is the point of withdrawing
+      // something that was never applied.
+      const untouched = await apiRequest<ProductDto>(`/api/products/${productId}`, { token: admin.token });
+      expect(Number(untouched.data!.basePrice)).toBe(100);
+      expect(untouched.data!.pendingChanges).toEqual([]);
+
+      // The slot is free, so the same field can be asked about again at once.
+      const again = await apiRequest<ProductDto>(`/api/products/${productId}`, {
+        method: "PATCH",
+        token: employee.token,
+        body: { basePrice: "5.55" },
+      });
+      expect(again.data!.pendingChanges!.filter((c) => c.field === "basePrice")).toHaveLength(1);
+    });
+
+    it("refuses anybody else — including the Admin who would decide it", async () => {
+      const { admin, employee, request } = await askedByEmployee("CancelOther");
+      const manager = await getSession("MANAGER");
+
+      // An Admin has REJECT, which says who disagreed and why. Making
+      // somebody else's request disappear is not on offer to anyone.
+      for (const token of [admin.token, manager.token]) {
+        const res = await cancelChange(token, request.id);
+        expect(res.status).toBe(403);
+        expect(res.error?.code).toBe(ERROR_CODES.CHANGE_REQUEST_NOT_REQUESTER);
+      }
+
+      // Still there, still waiting, still owned by whoever asked.
+      const still = await apiRequest<ChangeRequestDto>(`/api/change-requests/${request.id}`, {
+        token: admin.token,
+      });
+      expect(still.status).toBe(200);
+      expect(still.data!.status).toBe("PENDING");
+      expect(still.data!.requestedById).toBe(employee.userId);
+
+      // ...and the one person it does belong to can still take it back.
+      expect((await cancelChange(employee.token, request.id)).status).toBe(200);
+    });
+
+    it("refuses a decided request, so a decision can never be erased", async () => {
+      for (const decision of ["approve", "reject"] as const) {
+        const { admin, employee, request } = await askedByEmployee(`CancelDecided-${decision}`);
+
+        const decided =
+          decision === "approve"
+            ? await approveChange(admin.token, request.id)
+            : await rejectChange(admin.token, request.id, "لا");
+        expect(decided.status).toBe(200);
+
+        const res = await cancelChange(employee.token, request.id);
+        expect(res.status).toBe(409);
+        expect(res.error?.code).toBe(ERROR_CODES.CHANGE_REQUEST_NOT_PENDING);
+
+        // The record stands, with the decision still on it.
+        const after = await apiRequest<ChangeRequestDto>(`/api/change-requests/${request.id}`, {
+          token: admin.token,
+        });
+        expect(after.status).toBe(200);
+        expect(after.data!.decidedById).toBe(admin.userId);
+      }
+    });
+
+    it("404s on a request that does not exist", async () => {
+      const employee = await getSession("EMPLOYEE");
+      const res = await cancelChange(employee.token, "no-such-change-request");
+      expect(res.status).toBe(404);
+      expect(res.error?.code).toBe(ERROR_CODES.CHANGE_REQUEST_NOT_FOUND);
     });
   });
 

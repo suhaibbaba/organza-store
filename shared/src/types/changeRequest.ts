@@ -76,6 +76,13 @@ export interface ChangeRequest {
   newValue: ChangeRequestValue | null;
 
   entityLabel: I18n | null;
+  /**
+   * The owning product's name — what the approval screen heads the card
+   * with. Distinct from entityLabel on a variant, where the entity is the
+   * combination; null where there is no product behind the request (an
+   * expense), and the entity's own label is the heading instead.
+   */
+  productLabel: I18n | null;
   entityDetail: string | null;
   /** Where the admin screen links to, when the request is about a product. */
   productId: string | null;
@@ -105,4 +112,15 @@ export type PendingChange = ChangeRequest;
 /** GET /api/change-requests/count — what the nav badge shows. */
 export interface ChangeRequestCount {
   pending: number;
+}
+
+/**
+ * POST /api/change-requests/:id/cancel — the asker took it back.
+ *
+ * There is no request to return: withdrawing removes the row (what was asked
+ * for stays in the audit trail), so the id is all there is left to say.
+ */
+export interface ChangeRequestCancelled {
+  id: string;
+  cancelled: boolean;
 }

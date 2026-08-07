@@ -451,6 +451,7 @@ router.patch(
       entityType: CHANGE_REQUEST_ENTITIES.PRODUCT,
       entityId: existing.id,
       entityLabel: existing.name,
+      productLabel: existing.name,
       entityDetail: existing.sku,
       productId: existing.id,
     } as const;
@@ -671,6 +672,7 @@ router.post(
           entityId: product.id,
           field: CHANGE_REQUEST_FIELDS.PRODUCT_VARIANT_SET,
           entityLabel: product.name,
+          productLabel: product.name,
           entityDetail: product.sku,
           productId: product.id,
           oldValue: variantSetValue(product.variants.length, {
@@ -744,7 +746,10 @@ router.patch(
     const variantTarget = {
       entityType: CHANGE_REQUEST_ENTITIES.VARIANT,
       entityId: variant.id,
+      // The combination's own name, and above it the piece it belongs to —
+      // "1" on its own is not something anybody can approve.
       entityLabel: variant.name,
+      productLabel: product.name,
       entityDetail: variant.sku,
       productId: product.id,
     } as const;
@@ -842,6 +847,7 @@ router.delete(
           entityId: product.id,
           field: CHANGE_REQUEST_FIELDS.PRODUCT_VARIANT_SET,
           entityLabel: product.name,
+          productLabel: product.name,
           entityDetail: variant.sku,
           productId: product.id,
           oldValue: variantSetValue(product.variants.length, {

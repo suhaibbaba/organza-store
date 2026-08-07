@@ -1138,6 +1138,7 @@
     "changeRequestNotFound": "That request no longer exists.",
     "changeRequestNotPending": "That request has already been decided.",
     "changeRequestSelfDecision": "You can't approve your own request.",
+    "changeRequestNotRequester": "You can't withdraw someone else's request.",
     "changeRequestTargetMissing": "The item this request was about is no longer there.",
     "changeRequestNotApplicable": "This request can no longer be applied — things have changed since it was made."
   },
@@ -1202,7 +1203,10 @@
       "reject": "Reject",
       "confirmReject": "Confirm reject",
       "noteLabel": "Reason",
-      "notePlaceholder": "Why not? (optional)"
+      "notePlaceholder": "Why not? (optional)",
+      "cancelRequest": "Withdraw request",
+      "confirmCancelRequest": "Confirm withdrawal",
+      "cancelConfirmPrompt": "The request will be removed and won't reach the manager. Sure?"
     },
     "pending": {
       "waiting": "Waiting for approval",

@@ -1138,6 +1138,7 @@
     "changeRequestNotFound": "הבקשה הזו כבר לא קיימת.",
     "changeRequestNotPending": "כבר הוכרע בבקשה הזו.",
     "changeRequestSelfDecision": "אי אפשר לאשר בקשה של עצמך.",
+    "changeRequestNotRequester": "אי אפשר לבטל בקשה של מישהו אחר.",
     "changeRequestTargetMissing": "הפריט שהבקשה הזו נגעה בו כבר לא קיים.",
     "changeRequestNotApplicable": "כבר אי אפשר להחיל את הבקשה — הדברים השתנו מאז שהוגשה."
   },
@@ -1202,7 +1203,10 @@
       "reject": "דחייה",
       "confirmReject": "אישור דחייה",
       "noteLabel": "סיבה",
-      "notePlaceholder": "למה? (רשות)"
+      "notePlaceholder": "למה? (רשות)",
+      "cancelRequest": "ביטול הבקשה",
+      "confirmCancelRequest": "אישור הביטול",
+      "cancelConfirmPrompt": "הבקשה תימחק ולא תגיע למנהל. בטוח?"
     },
     "pending": {
       "waiting": "ממתין לאישור",

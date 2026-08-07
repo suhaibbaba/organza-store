@@ -468,6 +468,21 @@ model ChangeRequest {
   // Never what the change is applied to: that is always the triple above.
   entityLabel  Json? // translatable name { ar, en, he }
   entityDetail String? // a SKU, an amount — data, not prose
+  // The owning PRODUCT's name, snapshotted the same way.
+  //
+  // Not a duplicate of entityLabel: on a variant they are different things.
+  // The ENTITY is the combination ("1", "أحمر / M"), which on its own told an
+  // Admin nothing about which piece they were being asked to re-price — the
+  // card read "كمية الخيار · 1 · ORG-00089-1" and the only way to know what
+  // that was was to decode the SKU. So the piece is named here and the
+  // combination stays beneath it. Null where there is no product behind the
+  // request at all, which today means an expense.
+  productLabel Json?
+  // Stored alongside rather than looked up: a name is what the requester was
+  // looking at when they asked, the product may since have been renamed or
+  // soft-deleted, and an approvals screen must not need a second query per
+  // card to say what it is about.
+  //
   // Deep-link target for the admin screen. A plain column, not a relation:
   // the product may be soft-deleted by the time anyone looks.
   productId    String?

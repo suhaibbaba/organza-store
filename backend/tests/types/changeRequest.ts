@@ -22,6 +22,8 @@ export interface ChangeRequestDto {
   oldValue: ChangeRequestValueDto | null;
   newValue: ChangeRequestValueDto | null;
   entityLabel: Record<string, string> | null;
+  /** The owning product's name — what the approval screen heads the card with. */
+  productLabel: Record<string, string> | null;
   entityDetail: string | null;
   productId: string | null;
   requestedById: string;

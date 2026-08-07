@@ -1,4 +1,8 @@
-import type { ChangeRequest, ChangeRequestCount } from "@shared/types/changeRequest";
+import type {
+  ChangeRequest,
+  ChangeRequestCancelled,
+  ChangeRequestCount,
+} from "@shared/types/changeRequest";
 import type { Pagination } from "@shared/types/common";
 import { apiFetch } from "@/lib/api/client";
 import type { ChangeRequestListFilters } from "@/types/changeRequest";
@@ -47,6 +51,22 @@ export async function rejectChangeRequest(id: string, note?: string): Promise<Ch
   const { data } = await apiFetch<ChangeRequest>(`/api/change-requests/${id}/reject`, {
     method: "POST",
     body: note ? { note } : {},
+  });
+  return data;
+}
+
+/**
+ * Taking your OWN ask back, while it is still waiting.
+ *
+ * Not a decision, so it answers with the id rather than a request: the row is
+ * removed and what was asked for lives on in the audit trail. The backend
+ * checks both halves — that the caller is the one who asked, and that nobody
+ * has answered yet — so nothing here is trusted to have got it right.
+ */
+export async function cancelChangeRequest(id: string): Promise<ChangeRequestCancelled> {
+  const { data } = await apiFetch<ChangeRequestCancelled>(`/api/change-requests/${id}/cancel`, {
+    method: "POST",
+    body: {},
   });
   return data;
 }

@@ -33,6 +33,7 @@ export interface NotifiableChangeRequest {
   entityType: string;
   field: string;
   entityLabel: unknown;
+  productLabel: unknown;
   requestedById: string;
   requestedBy?: { name: string } | null;
 }
@@ -71,6 +72,10 @@ function buildPayload(
     entityType: request.entityType,
     field: request.field,
     entityLabel: (request.entityLabel ?? null) as I18n | null,
+    // Named the same way the approval screen heads its cards: the piece
+    // first, because "Employee asked to change Stock on 1" tells nobody
+    // anything. Null on an expense, where entityLabel is the category.
+    productLabel: (request.productLabel ?? null) as I18n | null,
     staffName,
     pendingCount,
     locale,
