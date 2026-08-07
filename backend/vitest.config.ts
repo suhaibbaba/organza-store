@@ -1,5 +1,8 @@
 import path from "node:path";
 import { defineConfig } from "vitest/config";
+// Relative on purpose: this file is loaded by vite before its own `resolve.alias`
+// below is in effect, so it cannot import itself through "@tests".
+import { VERIFY_RESULT_JSON } from "./tests/constants/areas";
 
 // API integration suite — every test hits a real, already-running API
 // (see tests/support/client.ts), never an in-process server. Files run
@@ -23,6 +26,8 @@ export default defineConfig({
     },
   },
   test: {
+    // tests/api/*.test.ts (the per-feature suites) and tests/verify/*.verify.test.ts
+    // (the money/permissions verification suite) — `npm run verify` runs both.
     include: ["tests/**/*.test.ts"],
     setupFiles: ["./tests/setup.ts"],
     environment: "node",
@@ -33,7 +38,10 @@ export default defineConfig({
     poolOptions: {
       forks: { singleFork: true },
     },
+    // The json run is what `npm run verify` reads back to build its by-area
+    // summary and its shareable report (scripts/verify.ts) — hence the one
+    // shared constant, so the two ends can never drift apart.
     reporters: ["default", "json"],
-    outputFile: { json: "./tests/report.json" },
+    outputFile: { json: VERIFY_RESULT_JSON },
   },
 });

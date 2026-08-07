@@ -25,6 +25,8 @@
     "prisma:studio": "prisma studio",
     "seed": "prisma db seed",
     "auth:generate": "npx @better-auth/cli generate --config src/lib/auth.ts --output prisma/schema.prisma -y",
+    "preverify": "npm run build:shared",
+    "verify": "tsx scripts/verify.ts",
     "preapi-test": "npm run build:shared",
     "api-test": "cross-env API_URL=https://api.sandbox.organza-moda.com vitest run",
     "preapi-test:prod": "npm run build:shared",

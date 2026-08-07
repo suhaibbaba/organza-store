@@ -15,6 +15,8 @@
 //   2. DELTAS, for the one thing a synthetic day cannot cover: a real sale
 //      reaching a real drawer, which can only happen on today's.
 import { apiRequest } from "@tests/support/client";
+import { mayOpenTodaysDrawer } from "@tests/support/target";
+import { ALLOW_TODAY_DRAWER_ENV } from "@tests/constants";
 import { MS_PER_DAY } from "@/constants";
 import type { ApiResult, CashSessionDto, CurrentCashSessionDto, ExpenseCategoryDto, ExpenseDto } from "@tests/types";
 
@@ -42,6 +44,13 @@ export function allocateDate(): string {
 // UTC calendar day), for dating an expense into it.
 export function middleOfDay(date: string): string {
   return `${date}T12:00:00.000Z`;
+}
+
+// The calendar day after this one — what tomorrow's drawer is labelled with,
+// and therefore what the carry-over has to land on. Computed rather than
+// allocated so the two days are guaranteed adjacent.
+export function dayAfter(date: string): string {
+  return new Date(Date.parse(`${date}T00:00:00.000Z`) + MS_PER_DAY).toISOString().slice(0, 10);
 }
 
 // --- sessions --------------------------------------------------------------
@@ -102,6 +111,14 @@ export function readCurrent(token: string): Promise<ApiResult<CurrentCashSession
 // suite itself never closes today's, so the callers treat null as "not
 // testable right now" and skip, the same way the push tests skip a
 // deployment with no VAPID keys.
+//
+// AND IT NEVER OPENS ONE EITHER, unless the run says the database is
+// disposable (ORGANZA_ALLOW_TODAY_DRAWER=1). A drawer is one per calendar day
+// and there is no endpoint that deletes one, so a test that opened today's
+// would take the shop's own day away from it — the float would be whatever
+// the carry-over happened to be, and the shop's first act of the morning
+// would be a 409. Measuring the drawer the shop already opened is safe;
+// creating one is not.
 export async function todaysOpenSession(token: string): Promise<CashSessionDto | null> {
   const now = new Date();
   const utcMinutes = now.getUTCHours() * 60 + now.getUTCMinutes();
@@ -115,6 +132,8 @@ export async function todaysOpenSession(token: string): Promise<CashSessionDto |
   const found = existing.data?.[0];
   if (found) return found.status === "OPEN" ? found : null;
 
+  if (!mayOpenTodaysDrawer()) return null;
+
   const opened = await openSessionRequest(token, { date, tzOffset });
   if (opened.status === 201 && opened.data) return opened.data;
   // Someone opened it in the split second since the list was read.
@@ -127,9 +146,19 @@ export async function todaysOpenSession(token: string): Promise<CashSessionDto |
 export function skipWithoutTodaysDrawer(ctx: { skip: () => void }, session: CashSessionDto | null): session is CashSessionDto {
   if (session) return true;
   console.warn(
-    "\n⚠️  Live cash-sale test SKIPPED: today's drawer is already closed.\n" +
-      "   A day is one drawer and a closed one cannot be reopened, so this\n" +
-      "   assertion can only run on a day whose drawer is still open.\n"
+    [
+      "",
+      "⚠️  Live cash-sale assertion SKIPPED: there is no OPEN drawer for the",
+      "   window that contains right now.",
+      "",
+      "   A drawer is one per calendar day and cannot be deleted, so this suite",
+      "   never opens today's — that day belongs to the shop. It measures the",
+      `   drawer the shop has already opened, or it reports itself skipped.`,
+      "",
+      `   On a disposable database, set ${ALLOW_TODAY_DRAWER_ENV}=1 to let it`,
+      "   open one itself. Never do that against real data.",
+      "",
+    ].join("\n")
   );
   ctx.skip();
   return false;

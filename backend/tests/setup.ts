@@ -1,10 +1,22 @@
 // Global setup (wired via vitest.config.ts's `setupFiles`), so it runs
 // ahead of every test file's own tests.
-import { beforeAll } from "vitest";
+import { afterAll, beforeAll } from "vitest";
 import { Role } from "@prisma/client";
 import { getSession } from "@tests/support/auth";
+import { assertSafeTarget } from "@tests/support/target";
+import { drainFixtures, warnAboutLeftovers } from "@tests/support/cleanup";
 import { SEEDED_ACCOUNTS } from "@tests/constants";
 import type { SeededRole } from "@tests/types";
+
+// THE SAFETY GATE, before anything else in the file — including the imports'
+// own side effects, which is why it is a bare statement rather than a hook.
+//
+// The suite is not read-only: it creates orders, moves stock, records
+// expenses and opens cash drawers. So the target is classified first, the
+// sandbox is the default, and the live shop (or any host this suite does not
+// recognise) is refused outright unless the run says otherwise in full —
+// see tests/support/target.ts and tests/constants/targets.ts.
+assertSafeTarget();
 
 // Fails fast with a clear, actionable message instead of a cryptic
 // "Cannot read properties of undefined (reading 'EMPLOYEE')" deep inside a
@@ -31,4 +43,17 @@ beforeAll(async () => {
   for (const role of Object.keys(SEEDED_ACCOUNTS) as SeededRole[]) {
     await getSession(role);
   }
+});
+
+// ...and takes back everything the file created once it is done: orders,
+// expenses, products, and anything left waiting for an Admin's approval.
+// Registered here rather than per file so it covers every suite, including
+// the ones written before there was a registry to feed
+// (tests/support/fixtureRegistry.ts records fixtures from inside apiRequest).
+//
+// Deliberately never throws: a teardown failure must not mask the assertion
+// that actually matters, so leftovers are reported loudly and the run's own
+// verdict stands.
+afterAll(async () => {
+  warnAboutLeftovers(await drainFixtures());
 });
