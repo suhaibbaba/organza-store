@@ -45,17 +45,17 @@ export const NAV_ITEMS: readonly NavItem[] = [
   { key: "settings", href: "/settings", icon: Settings, action: "settings.manage" },
 ] as const;
 
-// How the bottom nav says which tab you are on. Lucide ships one outline set
-// and no solid twin, so "filled" is the icon's own `fill` — its real geometry
-// flooded with the current colour (a lucide-supported SVG attribute, which is
-// how Heart, Star and friends are filled) rather than a look faked underneath
-// it with a background or a border. Outline vs solid is a difference you can
-// see across a room; a tint alone is not, which is what this replaces.
-export const NAV_ICON_FILL_ACTIVE = "currentColor";
-export const NAV_ICON_FILL_INACTIVE = "none";
-
 // Bottom nav (mobile) shows these directly; everything else lives in the
 // "More" sheet, reachable via one extra tap. Orders earns a slot over
 // Categories: incoming orders are checked many times a day, while the
 // category tree is set up once and rarely revisited.
-export const PRIMARY_NAV_KEYS: readonly string[] = ["dashboard", "orders", "products", "inventory"];
+//
+// A tuple, not a string[], so the solid-icon table can be typed against it:
+// every tab here MUST have a drawn solid twin (components/icons/
+// nav-solid-icons.tsx) or the build fails. Outline vs solid is how this bar
+// says which tab you are on — a difference you can see across a room, unlike a
+// tint — and that only holds if the solid is legible, which only holds if
+// somebody drew it.
+export const PRIMARY_NAV_KEYS = ["dashboard", "orders", "products", "inventory"] as const;
+
+export type PrimaryNavKey = (typeof PRIMARY_NAV_KEYS)[number];
