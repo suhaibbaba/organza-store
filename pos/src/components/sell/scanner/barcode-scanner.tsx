@@ -24,6 +24,10 @@ interface BarcodeScannerProps {
   // behind this sheet while a run of items is being scanned, so this frame
   // is the only place the acknowledgement can be seen without looking away.
   pulse: ScanFlash | null;
+  // Fires once the camera is actually live. Its one caller re-takes the audio
+  // unlock, because starting a capture on iOS re-negotiates the device's audio
+  // session and can silence a context that was unlocked a moment earlier.
+  onStarted?: () => void;
 }
 
 // Reason the camera isn't running, as a message key. Kept as a small closed
@@ -50,18 +54,23 @@ class ScannerFaultError extends Error {
 // because it reaches for `navigator`/`document` as it initialises: pulled
 // into the server bundle it would break the render, and it is dead weight
 // for the ~all of the shift when the camera isn't open.
-export function BarcodeScanner({ onDetected, pulse }: BarcodeScannerProps) {
+export function BarcodeScanner({ onDetected, pulse, onStarted }: BarcodeScannerProps) {
   const t = useTranslations("sell.scanner");
   const [isStarting, setIsStarting] = useState(true);
   const [fault, setFault] = useState<ScannerFault | null>(null);
 
-  // The callback identity changes on every parent render; reading it through
-  // a ref keeps the effect from restarting the camera each time, which on a
-  // phone means a visible black flash mid-scan.
+  // Both callback identities change on every parent render; reading them
+  // through refs keeps the effect from restarting the camera each time, which
+  // on a phone means a visible black flash mid-scan.
   const onDetectedRef = useRef(onDetected);
   useEffect(() => {
     onDetectedRef.current = onDetected;
   }, [onDetected]);
+
+  const onStartedRef = useRef(onStarted);
+  useEffect(() => {
+    onStartedRef.current = onStarted;
+  }, [onStarted]);
 
   useEffect(() => {
     let cancelled = false;
@@ -111,7 +120,10 @@ export function BarcodeScanner({ onDetected, pulse }: BarcodeScannerProps) {
     // throws.
     const running = start()
       .then((scanner) => {
-        if (!cancelled) setIsStarting(false);
+        if (!cancelled && scanner) {
+          setIsStarting(false);
+          onStartedRef.current?.();
+        }
         return scanner;
       })
       .catch((error: unknown) => {

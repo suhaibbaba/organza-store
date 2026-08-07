@@ -29,6 +29,21 @@ export interface ScanTone {
   durationMs: number;
 }
 
+// A per-device yes/no preference (lib/device-flag.ts), in the shape
+// useSyncExternalStore wants: the browser owns the value, React only
+// subscribes to it.
+export interface DeviceFlag {
+  subscribe: (onChange: () => void) => () => void;
+  read: () => boolean;
+  readOnServer: () => boolean;
+  write: (value: boolean) => void;
+}
+
+// A haptic cue, in the shape the Vibration API takes: alternating buzz and
+// pause lengths in milliseconds, starting with a buzz. A single-element
+// pattern is therefore one plain buzz.
+export type VibrationPattern = readonly number[];
+
 // A one-shot visual acknowledgement — the cart line that just grew, or the
 // viewfinder frame after a read. The token is what makes it repeatable: the
 // same line scanned twice in a row changes the token, and the animation

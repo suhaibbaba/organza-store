@@ -18,8 +18,8 @@ import { useAddByCode, type CodeOutcome } from "@/hooks/use-add-by-code";
 import { useCheckout } from "@/hooks/use-checkout";
 import { useHardwareScanner } from "@/hooks/use-hardware-scanner";
 import { useProductSearch } from "@/hooks/use-product-search";
+import { useScanFeedback } from "@/hooks/use-scan-feedback";
 import { useScanFlash } from "@/hooks/use-scan-flash";
-import { useScanSound } from "@/hooks/use-scan-sound";
 import { useSellShortcuts } from "@/hooks/use-sell-shortcuts";
 import { useToasts } from "@/hooks/use-toasts";
 import { useTranslateError } from "@/hooks/use-translate-error";
@@ -73,7 +73,7 @@ export function SellScreen() {
   const checkout = useCheckout();
   const toasts = useToasts();
   const scanFlash = useScanFlash();
-  const scanSound = useScanSound();
+  const scanFeedback = useScanFeedback();
 
   const [query, setQuery] = useState("");
   const [scannerOpen, setScannerOpen] = useState(false);
@@ -102,11 +102,12 @@ export function SellScreen() {
   // gate is the backend's, on every request (CLAUDE.md rule 5).
   const canSell = can(user, "order.create");
 
-  // One item in the cart, however it got there. All three answers land at
-  // once — the beep, the toast naming it and its new quantity, and the lit
-  // cart line — because each covers for the others: the sound works while
-  // the phone is face down on the counter, the toast works over the open
-  // camera, and the line is what is still there afterwards.
+  // One item in the cart, however it got there. All four answers land at
+  // once — the beep, the buzz, the toast naming it and its new quantity, and
+  // the lit cart line — because each covers for the others: the sound works
+  // while the phone is face down on the counter, the buzz works while the shop
+  // is too loud for the sound (or iOS has silenced it), the toast works over
+  // the open camera, and the line is what is still there afterwards.
   const addToCart = useCallback(
     (product: Product, variant: Variant | null) => {
       const line = cart.addItem(product, variant);
@@ -118,9 +119,37 @@ export function SellScreen() {
         line.key
       );
       scanFlash.markScanned(line.key);
-      scanSound.play("success");
+      scanFeedback.play("success");
     },
-    [cart, locale, scanFlash, scanSound, t, toasts]
+    [cart, locale, scanFeedback, scanFlash, t, toasts]
+  );
+
+  // A whole handful at once, from the variant picker: the same dress in M and
+  // L, three shawls off one photo. Each variant becomes its own line at
+  // quantity 1 (the cart is where a quantity is changed), and the cashier is
+  // told once — a toast per variant would push the others off the screen and
+  // still leave them counting ticks to check.
+  const addManyToCart = useCallback(
+    (product: Product, variants: Variant[]) => {
+      if (variants.length === 0) return;
+      // One is not "many": it keeps the named, counting toast it would have
+      // had from a scan, which says more than a bare "1 added".
+      if (variants.length === 1) {
+        addToCart(product, variants[0]);
+        return;
+      }
+
+      const lines = variants.map((variant) => cart.addItem(product, variant));
+      toasts.show(
+        "success",
+        t("feedback.addedMany", { name: localize(product.name, locale), count: lines.length })
+      );
+      // The last one added sits at the top of the cart (addItem prepends), so
+      // that is the line worth lighting — the rest are right under it.
+      scanFlash.markScanned(lines[lines.length - 1].key);
+      scanFeedback.play("success");
+    },
+    [addToCart, cart, locale, scanFeedback, scanFlash, t, toasts]
   );
 
   const handleCodeOutcome = useCallback(
@@ -145,9 +174,9 @@ export function SellScreen() {
       // one problem, not five.
       toasts.show("destructive", translateError(outcome.code), outcome.code);
       scanFlash.markFailed();
-      scanSound.play("destructive");
+      scanFeedback.play("destructive");
     },
-    [scanFlash, scanSound, scannerOpen, toasts, translateError]
+    [scanFeedback, scanFlash, scannerOpen, toasts, translateError]
   );
 
   const { submitCode, isLooking, resetScanHistory } = useAddByCode({
@@ -174,7 +203,7 @@ export function SellScreen() {
       // A keypress is a user gesture, and at the counter it is the only one
       // there is: nobody taps the scan button, so without taking this one
       // the browser would never let the first beep of the shift play.
-      scanSound.unlock();
+      scanFeedback.unlock();
       void submitCode(code, { dedupe: true });
     },
   });
@@ -274,7 +303,7 @@ export function SellScreen() {
     // The tap that opens the camera is also the user gesture browsers
     // require before any sound may be played — take it while it's here, or
     // the first successful scan of the shift is silent.
-    scanSound.unlock();
+    scanFeedback.unlock();
     // Opening it by hand means "scan this now", whatever it is — including
     // the tag that was last in front of the lens.
     resetScanHistory();
@@ -406,8 +435,8 @@ export function SellScreen() {
         onDetected={(code) => void submitCode(code, { dedupe: true })}
         pulse={scanFlash.pulse}
         totals={cart.totals}
-        isMuted={scanSound.isMuted}
-        onToggleMute={scanSound.toggleMute}
+        sound={scanFeedback.sound}
+        vibration={scanFeedback.vibration}
       />
 
       <VariantPickerSheet
@@ -427,7 +456,7 @@ export function SellScreen() {
           // would swallow that scan and every repeat after it.
           resetScanHistory();
         }}
-        onPick={addToCart}
+        onPick={addManyToCart}
       />
 
       {discountLine && (

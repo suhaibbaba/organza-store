@@ -36,7 +36,8 @@
   "sell": {
     "noPermission": "החשבון שלך אינו מורשה לבצע מכירות. פנה למנהל.",
     "feedback": {
-      "added": "{name} × {quantity, number}"
+      "added": "{name} × {quantity, number}",
+      "addedMany": "{name} — {count, plural, one {נוסף פריט אחד} two {נוספו # פריטים} other {נוספו # פריטים}}"
     },
     "search": {
       "label": "חיפוש מוצר או סריקת ברקוד",
@@ -72,6 +73,8 @@
       "done": "סיום הסריקה",
       "mute": "השתקת הצפצוף",
       "unmute": "הפעלת הצפצוף",
+      "vibrateOff": "כיבוי הרטט",
+      "vibrateOn": "הפעלת הרטט",
       "cartSummary": "{count, plural, =0 {הסל ריק} one {פריט אחד} two {# פריטים} other {# פריטים}}"
     },
     "counter": {
@@ -86,15 +89,17 @@
       }
     },
     "picker": {
-      "subtitle": "בחר איזו אפשרות נמכרת.",
-      "numberedSubtitle": "הקלד את המספר, או בחר אותו מהרשימה.",
+      "subtitle": "בחר אפשרות אחת או יותר, ואז הוסף לסל.",
+      "numberedSubtitle": "הקלד מספר ולחץ «סיום», או בחר כמה מהרשימה.",
       "numberLabel": "מספר",
       "numberPlaceholder": "לדוגמה: 4",
       "numberNotFound": "אין מספר כזה, או שהוא אזל מהמלאי.",
       "soldOut": "אזל מהמלאי",
       "done": "סיום",
       "add": "הוספה לסל",
-      "addNamed": "הוספת {name}"
+      "addNamed": "הוספת {name}",
+      "addCount": "הוספת {count, plural, one {פריט אחד} two {# פריטים} other {# פריטים}} לסל",
+      "selectedCount": "{count, plural, one {נבחר פריט אחד} two {נבחרו # פריטים} other {נבחרו # פריטים}}"
     },
     "cart": {
       "title": "המכירה הנוכחית",

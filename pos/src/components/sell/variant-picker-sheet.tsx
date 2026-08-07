@@ -17,10 +17,12 @@ import { cn } from "@/lib/utils";
 interface VariantPickerSheetProps {
   product: Product | null;
   onOpenChange: (open: boolean) => void;
-  onPick: (product: Product, variant: Variant) => void;
+  // Everything the cashier chose, in the order they chose it — one variant or
+  // ten. The cart takes them in one go so the sale is reported once.
+  onPick: (product: Product, variants: Variant[]) => void;
 }
 
-// Which variant is being sold. A variant-bearing product's parent is not
+// Which variants are being sold. A variant-bearing product's parent is not
 // purchasable — it owns neither the price nor the stock — so this is asked
 // whenever a search result or a parent barcode lands on one.
 export function VariantPickerSheet({ product, onOpenChange, onPick }: VariantPickerSheetProps) {
@@ -60,33 +62,40 @@ export function VariantPickerSheet({ product, onOpenChange, onPick }: VariantPic
 interface VariantPickerProps {
   product: Product;
   isNumbered: boolean;
-  onPick: (product: Product, variant: Variant) => void;
+  onPick: (product: Product, variants: Variant[]) => void;
   onClose: () => void;
 }
 
 // Picking is two separate steps, and deliberately so: tapping a variant only
-// says which one, and nothing reaches the cart until the Add button at the
+// says which ones, and nothing reaches the cart until the Add button at the
 // bottom is pressed.
 //
 // A tap that added immediately meant a mis-tap was already a wrong sale —
 // undoing it needed the sheet closed and the line found and deleted, with a
-// customer waiting. Now a mis-tap costs a second tap on the right one, and
-// what is about to be added is readable on screen before it happens.
+// customer waiting. Now a mis-tap costs a second tap on the same tile to
+// un-choose it, and what is about to be added is readable on screen, and
+// counted, before it happens.
 //
-// Numbered shawls (spec.md) keep their fast lane: the customer says "number
-// 4" over WhatsApp or points at the photo, so typing 4 picks that shawl out
-// and Add rings it up. The sheet stays open afterwards, because numbers
-// from one collection are typically sold several at a time.
+// Several at once because that is how these clothes sell: a customer takes the
+// same dress in M and L, or three shawls off one photo. One trip through this
+// sheet, one Add, one line in the cart per variant (quantity 1, adjustable
+// there afterwards) — not a scan-search-tap-repeat cycle per piece.
+//
+// Numbered shawls (spec.md) keep their fast lane: the customer says "number 4"
+// over WhatsApp or points at the photo, so typing 4 picks that shawl out and
+// the keypad's Done adds it to the selection and clears the box for the next
+// number. The sheet stays open after adding, because numbers from one
+// collection are typically sold several at a time.
 function VariantPicker({ product, isNumbered, onPick, onClose }: VariantPickerProps) {
   const t = useTranslations("sell.picker");
   const locale = useLocale();
   const formatMoney = useMoneyFormatter();
 
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  // An array, not a Set: the order the cashier tapped in is the order the
+  // lines land in the cart, which is the order they will read them back in.
+  const [selectedIds, setSelectedIds] = useState<readonly string[]>([]);
   const [numberQuery, setNumberQuery] = useState("");
   const [notFound, setNotFound] = useState(false);
-
-  const selected = product.variants.find((variant) => variant.id === selectedId) ?? null;
 
   // Typing a number narrows the list to it, so the grid always agrees with
   // what's in the box — and the cashier can tap the match instead, whichever
@@ -98,38 +107,74 @@ function VariantPicker({ product, isNumbered, onPick, onClose }: VariantPickerPr
     return matches.length > 0 ? matches : product.variants;
   }, [product, isNumbered, numberQuery]);
 
-  function handleNumberChange(value: string) {
-    setNumberQuery(value);
+  // The one sellable variant the number box is pointing at, if it points at
+  // exactly one. Anything else — no such number, sold out, or a number shared
+  // by several variants — is not a choice, and the narrowed grid is there to
+  // make it one.
+  const typedMatch = useMemo(() => {
+    if (!isNumbered || !numberQuery.trim()) return null;
+    const matches = variantsByNumber(product, numberQuery).filter((variant) => variant.stock > 0);
+    return matches.length === 1 ? matches[0] : null;
+  }, [product, isNumbered, numberQuery]);
+
+  // What Add would take right now: what has been chosen, plus whatever is
+  // still sitting in the number box. A cashier who types 4 and then reaches
+  // straight for Add means the 4, and the tile shows as chosen to say so.
+  const chosen = useMemo(() => {
+    const ids = [...selectedIds];
+    if (typedMatch && !ids.includes(typedMatch.id)) ids.push(typedMatch.id);
+    return ids
+      .map((id) => product.variants.find((variant) => variant.id === id))
+      .filter((variant): variant is Variant => variant !== undefined && variant.stock > 0);
+  }, [product, selectedIds, typedMatch]);
+
+  const chosenIds = useMemo(() => new Set(chosen.map((variant) => variant.id)), [chosen]);
+
+  function toggle(variant: Variant) {
+    // Sold out is not selectable at all — the tile is disabled, this is the
+    // belt to that braces.
+    if (variant.stock <= 0) return;
     setNotFound(false);
-    // Exactly one sellable match is unambiguous, so it becomes the
-    // selection — which is all it becomes. Anything else (no such number,
-    // sold out, or a number shared by several variants) leaves nothing
-    // selected and the narrowed grid to choose from.
-    const matches = variantsByNumber(product, value).filter((variant) => variant.stock > 0);
-    setSelectedId(matches.length === 1 ? matches[0].id : null);
+
+    // It is only shown as chosen because it is what the number box holds, so
+    // un-choosing it means clearing the box rather than editing the list.
+    if (typedMatch?.id === variant.id && !selectedIds.includes(variant.id)) {
+      setNumberQuery("");
+      return;
+    }
+
+    setSelectedIds((previous) =>
+      previous.includes(variant.id)
+        ? previous.filter((id) => id !== variant.id)
+        : [...previous, variant.id]
+    );
   }
 
   // "Done" on the phone's number pad, or Enter from a keyboard: the cashier
-  // has typed a number and asked for it, so this adds what that number
-  // selected. It is still the explicit act — nothing was added while they
-  // were typing.
+  // has typed a number and asked for it, so it joins the selection and the box
+  // empties, ready for the next number. Still nothing in the cart — that is
+  // the Add button's job, and it is one tap away with all of them on it.
   function handleNumberSubmit(event: FormEvent) {
     event.preventDefault();
-    if (selected) {
-      add(selected);
+    if (!typedMatch) {
+      setNotFound(true);
       return;
     }
-    setNotFound(true);
+    setSelectedIds((previous) =>
+      previous.includes(typedMatch.id) ? previous : [...previous, typedMatch.id]
+    );
+    setNumberQuery("");
+    setNotFound(false);
   }
 
-  function add(variant: Variant) {
-    if (variant.stock <= 0) return;
-    onPick(product, variant);
-    setSelectedId(null);
+  function addChosen() {
+    if (chosen.length === 0) return;
+    onPick(product, chosen);
+    setSelectedIds([]);
     setNumberQuery("");
     setNotFound(false);
 
-    // What landed in the cart is said by the toast over this sheet, so
+    // What landed in the cart is said by the one toast over this sheet, so
     // there is nothing to report in here.
     //
     // Nothing is focused afterwards on purpose: the number box keeps the
@@ -149,7 +194,10 @@ function VariantPicker({ product, isNumbered, onPick, onClose }: VariantPickerPr
             <NumericInput
               id="pos-number-entry"
               value={numberQuery}
-              onChange={(event) => handleNumberChange(event.target.value)}
+              onChange={(event) => {
+                setNumberQuery(event.target.value);
+                setNotFound(false);
+              }}
               placeholder={t("numberPlaceholder")}
               enterKeyHint="done"
               className="text-lg"
@@ -162,7 +210,7 @@ function VariantPicker({ product, isNumbered, onPick, onClose }: VariantPickerPr
         <ul className={cn("grid gap-2", isNumbered ? "grid-cols-3 sm:grid-cols-4" : "grid-cols-1")}>
           {visibleVariants.map((variant) => {
             const soldOut = variant.stock <= 0;
-            const isSelected = variant.id === selectedId;
+            const isChosen = chosenIds.has(variant.id);
             const name = localize(variant.name, locale);
 
             return (
@@ -170,26 +218,27 @@ function VariantPicker({ product, isNumbered, onPick, onClose }: VariantPickerPr
                 <button
                   type="button"
                   disabled={soldOut}
-                  aria-pressed={isSelected}
-                  onClick={() => {
-                    setSelectedId(variant.id);
-                    setNotFound(false);
-                  }}
+                  aria-pressed={isChosen}
+                  onClick={() => toggle(variant)}
                   className={cn(
                     "relative flex w-full flex-col items-start justify-center gap-1 rounded-xl border p-3 text-start transition-colors",
                     "min-h-16 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                    "disabled:cursor-not-allowed disabled:opacity-50",
+                    // Sold out reads as unavailable before it is tapped: no
+                    // card fill, a dashed edge, and the words in place of the
+                    // price. Faded alone looked like a loading state.
+                    "disabled:cursor-not-allowed disabled:border-dashed disabled:bg-muted/40 disabled:opacity-70",
                     isNumbered && "items-center text-center",
-                    // The chosen one has to be unmistakable across a counter
-                    // at arm's length, so it changes fill, border and weight
-                    // at once and carries a tick — not a faint tint that
-                    // disappears under a shop's lighting.
-                    isSelected
+                    // Every chosen one has to be unmistakable across a counter
+                    // at arm's length — and with several chosen at once, at a
+                    // glance — so it changes fill, border and weight together
+                    // and carries a tick, not a faint tint that disappears
+                    // under a shop's lighting.
+                    isChosen
                       ? "border-primary bg-primary/15 font-semibold text-foreground ring-2 ring-primary"
                       : "border-border bg-card hover:bg-accent/60"
                   )}
                 >
-                  {isSelected && (
+                  {isChosen && (
                     <span
                       className="absolute end-2 top-2 flex size-5 items-center justify-center rounded-full bg-primary text-primary-foreground"
                       aria-hidden="true"
@@ -198,7 +247,15 @@ function VariantPicker({ product, isNumbered, onPick, onClose }: VariantPickerPr
                     </span>
                   )}
 
-                  <span className={cn("font-medium", isNumbered ? "text-xl" : "text-base")}>{name}</span>
+                  <span
+                    className={cn(
+                      "font-medium",
+                      isNumbered ? "text-xl" : "text-base",
+                      soldOut && "line-through decoration-1"
+                    )}
+                  >
+                    {name}
+                  </span>
                   <span className="text-sm text-muted-foreground">
                     {soldOut ? t("soldOut") : formatMoney(variant.resolvedPrice)}
                   </span>
@@ -212,16 +269,30 @@ function VariantPicker({ product, isNumbered, onPick, onClose }: VariantPickerPr
       {/* Pinned under the list: with a long grid the Add button must not be
           something you have to scroll to find, and it belongs where the
           thumb already is. */}
-      <div className="flex items-center gap-2 border-t border-border bg-background px-5 pb-5 pt-3">
-        <Button type="button" onClick={() => selected && add(selected)} disabled={!selected} className="flex-1">
-          {selected ? t("addNamed", { name: localize(selected.name, locale) }) : t("add")}
-        </Button>
+      <div className="flex flex-col gap-2 border-t border-border bg-background px-5 pb-5 pt-3">
+        {/* How many are about to be added, said in words as well as in ticks —
+            with a grid of numbers the ticks are easy to miscount, and this is
+            also what a screen reader announces as the selection changes. */}
+        <p aria-live="polite" className="min-h-5 text-sm font-medium text-muted-foreground">
+          {chosen.length > 0 ? t("selectedCount", { count: chosen.length }) : ""}
+        </p>
 
-        {isNumbered && (
-          <Button type="button" variant="secondary" onClick={onClose} className="shrink-0">
-            {t("done")}
+        <div className="flex items-center gap-2">
+          <Button type="button" onClick={addChosen} disabled={chosen.length === 0} className="flex-1">
+            {/* One chosen variant is named outright — it is the common case
+                and the name is the confirmation. Several are counted, because
+                eight names do not fit on a phone's button. */}
+            {chosen.length === 0 && t("add")}
+            {chosen.length === 1 && t("addNamed", { name: localize(chosen[0].name, locale) })}
+            {chosen.length > 1 && t("addCount", { count: chosen.length })}
           </Button>
-        )}
+
+          {isNumbered && (
+            <Button type="button" variant="secondary" onClick={onClose} className="shrink-0">
+              {t("done")}
+            </Button>
+          )}
+        </div>
       </div>
     </div>
   );

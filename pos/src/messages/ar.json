@@ -36,7 +36,8 @@
   "sell": {
     "noPermission": "حسابك لا يسمح بإتمام عمليات البيع. راجع المدير.",
     "feedback": {
-      "added": "{name} × {quantity, number}"
+      "added": "{name} × {quantity, number}",
+      "addedMany": "{name} — أُضيفت {count, plural, one {قطعة واحدة} two {قطعتان} few {# قطع} many {# قطعة} other {# قطعة}}"
     },
     "search": {
       "label": "البحث عن منتج أو مسح باركود",
@@ -72,6 +73,8 @@
       "done": "إنهاء المسح",
       "mute": "كتم الصوت",
       "unmute": "تشغيل الصوت",
+      "vibrateOff": "إيقاف الاهتزاز",
+      "vibrateOn": "تشغيل الاهتزاز",
       "cartSummary": "{count, plural, zero {السلة فارغة} one {قطعة واحدة} two {قطعتان} few {# قطع} many {# قطعة} other {# قطعة}}"
     },
     "counter": {
@@ -86,15 +89,17 @@
       }
     },
     "picker": {
-      "subtitle": "اختر الخيار المطلوب.",
-      "numberedSubtitle": "اكتب الرقم المطلوب أو اختره من القائمة.",
+      "subtitle": "اختر خيارًا واحدًا أو أكثر، ثم اضغط «إضافة إلى السلة».",
+      "numberedSubtitle": "اكتب الرقم واضغط «تم» على لوحة الأرقام، أو اختر أكثر من رقم من القائمة.",
       "numberLabel": "الرقم",
       "numberPlaceholder": "مثال: 4",
       "numberNotFound": "لا يوجد هذا الرقم، أو أنه غير متوفر حاليًا.",
       "soldOut": "غير متوفر",
       "done": "تم",
       "add": "إضافة إلى السلة",
-      "addNamed": "إضافة {name}"
+      "addNamed": "إضافة {name}",
+      "addCount": "إضافة {count, plural, one {قطعة واحدة} two {قطعتين} few {# قطع} many {# قطعة} other {# قطعة}} إلى السلة",
+      "selectedCount": "{count, plural, one {تم اختيار قطعة واحدة} two {تم اختيار قطعتين} few {تم اختيار # قطع} many {تم اختيار # قطعة} other {تم اختيار # قطعة}}"
     },
     "cart": {
       "title": "البيع الحالي",
