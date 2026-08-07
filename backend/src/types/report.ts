@@ -2,11 +2,9 @@ import type { Prisma } from "@prisma/client";
 import type {
   ChannelSales,
   ProfitTotals,
-  ReportGranularity,
   ReportPeriod,
   ReturnsTotals,
   SalesReport,
-  SalesSeriesPoint,
   SalesSummary,
   SalesTotals,
   TopSeller,
@@ -15,11 +13,9 @@ import type {
 export type {
   ChannelSales,
   ProfitTotals,
-  ReportGranularity,
   ReportPeriod,
   ReturnsTotals,
   SalesReport,
-  SalesSeriesPoint,
   SalesSummary,
   SalesTotals,
   TopSeller,
@@ -66,13 +62,6 @@ export interface ChannelAggregateRow extends SalesAggregateRow {
 export interface GiftAggregateRow {
   orderCount: bigint;
   itemCount: Prisma.Decimal | null;
-  cost: Prisma.Decimal | null;
-}
-
-export interface SeriesAggregateRow {
-  bucket: string;
-  orderCount: bigint;
-  revenue: Prisma.Decimal | null;
   cost: Prisma.Decimal | null;
 }
 

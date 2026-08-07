@@ -56,9 +56,12 @@ from past orders — there is still no Customer table behind it.
 4. **Soft delete only** for products (`deletedAt`). Never hard-delete.
 5. **Role gating is enforced on the backend**, not just hidden in the UI:
    - Admin: everything.
-   - Manager: products/stock/orders full; no users/settings; cannot approve change requests.
+   - Manager: products/stock/orders full; no users/settings; cannot approve change requests;
+     **no Reports screen** (the dashboard carries their sales figures, minus cost/profit).
    - Employee: POS, add products, edit images, create + mark-delivered orders.
-     **Cannot** delete/hide products, **cannot** delete/edit/cancel orders, no users/settings.
+     **Cannot** delete/hide products, **cannot** delete/edit/cancel orders, no users/settings,
+     and **no shop-wide money view at all** — no dashboard, no Reports, no outstanding total.
+     They see the orders they take, never every order added up.
    Five Employee actions are neither applied nor refused but **held for approval** (rule 21).
 6. **Every mutation writes an Audit Log entry** (userId, action, entityType, entityId, old/new).
 7. **stock default = 1** for products and variants.
@@ -96,6 +99,10 @@ from past orders — there is still no Customer table behind it.
 19. **Sensitive fields are backend-gated, not just UI-hidden:** `cost` **and everything derived
     from it** (COGS, gross/net profit, margin, inventory value at cost) → **Admin only**;
     `idNumber` → Admin only. The API must not return them to anyone else — not zeroed, absent.
+    Separately, a **shop-wide money total is gated on the screen it serves, never on
+    `order.view`**: reports → `report.view` (Admin), the dashboard's sales block →
+    `dashboard.view` (Admin/Manager), the outstanding total → `order.markCollected`. `order.view`
+    is what lets somebody follow the orders they take; it must never add up to the whole shop.
 20. **Error tracking via Sentry**, behind an isolated logging layer (swappable for self-hosted
     GlitchTip). Separate from the Audit Log.
 21. **One generic change-approval mechanism** (see "Employee change approvals" in `spec.md`).

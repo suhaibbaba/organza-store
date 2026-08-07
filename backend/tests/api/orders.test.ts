@@ -713,6 +713,26 @@ describe("Orders", () => {
       expect(asManager.status).toBe(200);
     });
 
+    it("blocks an Employee from reading the outstanding total at all", async () => {
+      const employee = await getSession("EMPLOYEE");
+      const manager = await getSession("MANAGER");
+
+      // Not "how much of my own sale is unpaid" — this is every sale in the
+      // shop added up, the same class of figure as a report, so it is gated
+      // on settling the money rather than on seeing an order.
+      const refused = await apiRequest<CollectionSummaryDto>("/api/orders/collection-summary", {
+        token: employee.token,
+      });
+      expect(refused.status).toBe(403);
+      expect(refused.error?.code).toBe(ERROR_CODES.FORBIDDEN);
+      expect(refused.data).toBeUndefined();
+
+      const allowed = await apiRequest<CollectionSummaryDto>("/api/orders/collection-summary", {
+        token: manager.token,
+      });
+      expect(allowed.status).toBe(200);
+    });
+
     it("refuses to collect a cancelled or fully returned sale", async () => {
       const admin = await getSession("ADMIN");
       const product = await sellableProduct(admin.token, { basePrice: "100", stock: 10 });

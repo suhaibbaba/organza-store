@@ -5,14 +5,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
 import { localize } from "@/lib/i18n-content";
-import { CHART_COLORS } from "@/constants/reports";
 import type { TopSeller } from "@/types/report";
 
-// Best sellers as a ranked list rather than a chart: on a phone, five names
-// with their numbers beside them are read faster than five bars that still
-// need labels — and long Arabic product names have room to breathe. The bar
-// under each row is a proportional cue, not the data itself.
-function SellerRow({ seller, rank, share }: { seller: TopSeller; rank: number; share: number }) {
+// Best sellers as a ranked list: on a phone, five names with their numbers
+// beside them are read faster than five bars that still need labels — and
+// long Arabic product names have room to breathe. The rank and the amount
+// carry the ordering; nothing here has to be measured against anything.
+function SellerRow({ seller, rank }: { seller: TopSeller; rank: number }) {
   const t = useTranslations("reports.topSellers");
   const locale = useLocale();
   const formatMoney = useMoneyFormatter();
@@ -37,39 +36,26 @@ function SellerRow({ seller, rank, share }: { seller: TopSeller; rank: number; s
         <span>{t("quantity", { count: seller.quantity })}</span>
         {seller.profit !== undefined && <span>{t("profit", { amount: formatMoney(seller.profit) })}</span>}
       </div>
-
-      <div className="h-1.5 overflow-hidden rounded-full bg-muted" aria-hidden="true">
-        <div
-          className="h-full rounded-full"
-          style={{ width: `${Math.max(share, 2)}%`, backgroundColor: CHART_COLORS.revenue }}
-        />
-      </div>
     </li>
   );
 }
 
-function SellerList({ sellers, by }: { sellers: TopSeller[]; by: "revenue" | "quantity" }) {
+function SellerList({ sellers }: { sellers: TopSeller[] }) {
   const t = useTranslations("reports.topSellers");
 
   if (sellers.length === 0) {
     return <p className="py-6 text-center text-sm text-muted-foreground">{t("empty")}</p>;
   }
 
-  const max = Math.max(...sellers.map((seller) => (by === "revenue" ? Number(seller.revenue) : seller.quantity)), 1);
-
   return (
     <ul className="flex flex-col gap-2">
-      {sellers.map((seller, index) => {
-        const value = by === "revenue" ? Number(seller.revenue) : seller.quantity;
-        return (
-          <SellerRow
-            key={`${seller.productId ?? "none"}-${seller.variantId ?? "none"}`}
-            seller={seller}
-            rank={index + 1}
-            share={(value / max) * 100}
-          />
-        );
-      })}
+      {sellers.map((seller, index) => (
+        <SellerRow
+          key={`${seller.productId ?? "none"}-${seller.variantId ?? "none"}`}
+          seller={seller}
+          rank={index + 1}
+        />
+      ))}
     </ul>
   );
 }
@@ -94,10 +80,10 @@ export function ReportTopSellers({ byRevenue, byQuantity }: ReportTopSellersProp
             <TabsTrigger value="quantity">{t("byQuantity")}</TabsTrigger>
           </TabsList>
           <TabsContent value="revenue">
-            <SellerList sellers={byRevenue} by="revenue" />
+            <SellerList sellers={byRevenue} />
           </TabsContent>
           <TabsContent value="quantity">
-            <SellerList sellers={byQuantity} by="quantity" />
+            <SellerList sellers={byQuantity} />
           </TabsContent>
         </Tabs>
       </CardContent>

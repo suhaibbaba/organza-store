@@ -7,7 +7,7 @@ import { can } from "@shared/lib/permissions";
 import { REPORT_PERIODS } from "@shared/constants/report";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { FigureCard } from "@/components/dashboard/figure-card";
+import { FigureCard } from "@/components/figures/figure-card";
 import { useSession } from "@/components/providers/session-provider";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
 import { useSettingsQuery } from "@/hooks/use-settings";
@@ -26,7 +26,7 @@ import type { ReportPeriod, SalesSummary } from "@/types/report";
 // Manager's payload, so there is nothing to render and no empty placeholder.
 export function PeriodSection({ summary }: { summary: SalesSummary }) {
   const t = useTranslations("dashboard.period");
-  const tFigures = useTranslations("dashboard.figures");
+  const tFigures = useTranslations("figures");
   const formatMoney = useMoneyFormatter();
   const { user } = useSession();
   const { data: settings } = useSettingsQuery();

@@ -7,6 +7,7 @@ import { can } from "@shared/lib/permissions";
 import { ONLINE_ORDER_CHANNELS } from "@shared/constants/order";
 import { Link } from "@/i18n/navigation";
 import { useSession } from "@/components/providers/session-provider";
+import { RoleGuard } from "@/components/auth/role-guard";
 import { useOrderQuery } from "@/hooks/use-orders";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
 import { Alert } from "@/components/ui/alert";
@@ -24,6 +25,14 @@ import { OrderPaymentCard } from "@/components/orders/detail/order-payment-card"
 import { OrderManageActions } from "@/components/orders/detail/order-manage-actions";
 
 export default function OrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  return (
+    <RoleGuard action="order.view">
+      <OrderDetailPageContent params={params} />
+    </RoleGuard>
+  );
+}
+
+function OrderDetailPageContent({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const t = useTranslations("orders.detail");
   const tCard = useTranslations("orders.card");
@@ -31,10 +40,6 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
   const formatMoney = useMoneyFormatter();
 
   const { data: order, isLoading, isError, error, refetch } = useOrderQuery(id);
-
-  // The nav already hides Orders from anyone without this, but a stale
-  // bookmark shouldn't land on a screen whose every request 403s.
-  if (!can(user, "order.view")) return null;
 
   if (isLoading) {
     return (

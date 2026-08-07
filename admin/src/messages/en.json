@@ -17,7 +17,8 @@
       "release": "Release to refresh",
       "refreshing": "Refreshing…"
     },
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "backToStart": "Back to the main screen"
   },
   "stock": {
     "out": "Out of stock",
@@ -59,21 +60,6 @@
     "title": "Dashboard",
     "welcome": "Welcome, {name}",
     "subtitle": "Money received and money still owed are never mixed together here.",
-    "figures": {
-      "explain": "What does “{label}” mean?",
-      "sold": {
-        "label": "Sold",
-        "help": "Everything that left the shop, after discounts and returns. It is not money in hand — part of it is still with the delivery company."
-      },
-      "received": {
-        "label": "Received",
-        "help": "The part of what you sold that has actually been paid for: counter sales, plus delivery orders the company has settled up for."
-      },
-      "owed": {
-        "label": "Still owed to us",
-        "help": "What the delivery company is still holding for orders it has taken. Sold minus received — money on its way, not money you have."
-      }
-    },
     "today": {
       "title": "Today",
       "orders": "{count, plural, =0 {No orders} one {1 order} other {# orders}}",
@@ -201,6 +187,21 @@
       "lowStock": "Low stock items",
       "pendingApprovals": "Waiting for your approval",
       "uncollected": "Uncollected from delivery"
+    }
+  },
+  "figures": {
+    "explain": "What does “{label}” mean?",
+    "sold": {
+      "label": "Sold",
+      "help": "Everything that left the shop, after discounts and returns. It is not money in hand — part of it is still with the delivery company."
+    },
+    "received": {
+      "label": "Received",
+      "help": "The part of what you sold that has actually been paid for: counter sales, plus delivery orders the company has settled up for."
+    },
+    "owed": {
+      "label": "Still owed to us",
+      "help": "What the delivery company is still holding for orders it has taken. Sold minus received — money on its way, not money you have."
     }
   },
   "orders": {
@@ -490,27 +491,33 @@
       "to": "To"
     },
     "totals": {
-      "revenue": "Sales",
-      "revenueHint": "{orders} orders · {items} items",
-      "collected": "Money received",
-      "pendingCollection": "Awaiting payment",
-      "pendingCollectionOrders": "{count, plural, one {1 order} other {# orders}}",
-      "profit": "Profit",
-      "cost": "Cost",
+      "title": "Sales in this period",
+      "soldHint": "{orders} orders · {items} items",
+      "owedOrders": "{count, plural, one {1 order} other {# orders}}",
+      "averageOrder": {
+        "label": "Average order",
+        "help": "Sales divided by the number of orders — what a typical order in this period was worth."
+      },
+      "discounts": {
+        "label": "Discounts",
+        "help": "How much came off the full price in this period, counting both discounts on an item and discounts on a whole order."
+      },
+      "cost": {
+        "label": "Cost of goods",
+        "help": "What the items sold in this period had cost the shop to buy."
+      },
+      "profit": {
+        "label": "Gross profit",
+        "help": "Sales minus what those goods cost. Rent, salaries and other expenses are not taken off it."
+      },
       "margin": "{value, number, percent} margin",
-      "averageOrder": "Average order",
-      "discounts": "Discounts",
       "missingCost": "{count} sold items have no cost price, so the profit shown is higher than the real one."
-    },
-    "trend": {
-      "title": "Sales over the period",
-      "revenue": "Sales",
-      "profit": "Profit"
     },
     "channels": {
       "title": "By sales channel",
       "orders": "{count} orders",
-      "empty": "No sales in this period."
+      "empty": "No sales in this period.",
+      "help": "Where the sales came from: the shop counter, WhatsApp, or the website."
     },
     "topSellers": {
       "title": "Best sellers",
@@ -525,7 +532,9 @@
       "amount": "Returned value",
       "items": "Returned items",
       "orders": "Across {count} orders",
-      "empty": "No returns in this period."
+      "empty": "No returns in this period.",
+      "amountHelp": "The value of what customers handed back in this period. The sales figures above already have it taken off.",
+      "itemsHelp": "How many items came back, and how many orders they came from."
     },
     "empty": {
       "title": "No sales in this period",
@@ -1140,7 +1149,8 @@
     "changeRequestSelfDecision": "You can't approve your own request.",
     "changeRequestNotRequester": "You can't withdraw someone else's request.",
     "changeRequestTargetMissing": "The item this request was about is no longer there.",
-    "changeRequestNotApplicable": "This request can no longer be applied — things have changed since it was made."
+    "changeRequestNotApplicable": "This request can no longer be applied — things have changed since it was made.",
+    "forbiddenHint": "This screen is only for certain roles. If you need it, ask an admin."
   },
   "pwa": {
     "version": {

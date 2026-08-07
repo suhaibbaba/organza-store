@@ -271,6 +271,8 @@ Three fixed roles.
 | **Approve** a pending change      |  ✅   |   ❌    |    ❌    |
 | Open + close the cash drawer      |  ✅   |   ✅    |    ❌    |
 | **See cost, COGS, profit, margin**|  ✅   |   ❌    |    ❌    |
+| **Open the Reports screen**       |  ✅   |   ❌    |    ❌    |
+| Dashboard (sold / received / owed)|  ✅   |   ✅    |    ❌    |
 | Manage users                      |  ✅   |   ❌    |    ❌    |
 | Settings                          |  ✅   |   ❌    |    ❌    |
 
@@ -280,6 +282,16 @@ collected**, so the person who took a sale can't also declare its cash received.
 reason an Employee may fix a product's details but never **re-price** it, so nothing can be sold
 cheap and pocketed, and never file an order as a **gift**, which would be the same thing with a
 nicer name. Every action is tied to its author via the Audit Log.
+
+**Reports are Admin only** (`report.view`). The Reports screen is the owner's read of the
+business — what the shop sold, through which channel, what it cost and what it earned — and it is
+gated on its own permission rather than on `order.view`, which every role holds so that whoever
+takes an order can follow it. Reading *one* order is not reading *every* order added up. A Manager
+still gets what running the floor needs from the **dashboard** (sold / received / still owed, with
+every cost-derived figure absent from their payload); an **Employee** reaches neither screen, so no
+shop-wide sales figure of any kind is computed for them — a 403, never a partial or zeroed one.
+The same reasoning gates the outstanding-money total (`GET /api/orders/collection-summary`) on
+`order.markCollected` rather than on `order.view`.
 
 **Cost and profit are Admin only.** A Manager runs the shop floor — stock, orders, the drawer,
 what was spent — but what each piece cost the owner, and therefore what the shop earns on it, is
@@ -405,7 +417,10 @@ request **superseded** an earlier one, and who **approved** or **rejected** it.
 - **Products:** add/edit/delete, manage variants & options, upload/reorder images, categories
 - **Inventory:** per-variant quantities, manual adjust, low-stock threshold alerts
 - **Categories:** nested category management
-- **Reports:** sales by period / by product / best sellers, sold vs. collected
+- **Reports:** sales by period / by product / best sellers, sold vs. collected (**Admin only**).
+  Figures only — **no chart**, for the same reason the dashboard has none: the reader is on a
+  phone and needs a number they can act on, not a trend to interpret. Every figure carries the
+  same tap-to-expand **(?)** explanation the dashboard uses.
 - **Users:** manage Admin/Manager/Employee (Admin only)
 - **Variant Types:** manage the global option types/values (cleanup)
 - **Settings:** store info, currency, stock thresholds (Admin only)
@@ -605,8 +620,9 @@ therefore splits revenue three ways:
 The two parts always add back up to `revenue`. Profit is unaffected by *when* the money lands —
 it is a sales figure — but the pending total sits next to it so the shop can see the difference
 between a good month and a month that has been paid for. These are sales figures rather than
-costs, so every role that may read a report sees them (unlike cost/profit/margin, which stay
-Admin+Manager per the sensitive-fields rule).
+costs, so every role that may read the block at all sees them — the Reports screen is Admin only
+and the dashboard is Admin/Manager, while cost/profit/margin stay **Admin only** inside both, per
+the sensitive-fields rule.
 
 ### Price & cost snapshots (important)
 Each order item stores a **snapshot** of the unit **price** and unit **cost** at the moment of sale.

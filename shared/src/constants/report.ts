@@ -24,13 +24,6 @@ export const REPORT_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 // A year and a day, so "the last 12 months" always fits.
 export const MAX_REPORT_RANGE_DAYS = 366;
 
-// Chart buckets: a phone can read ~two months of daily bars, but not a year
-// of them. The backend picks the granularity from the range length and says
-// which one it used, so the chart never has to guess.
-export const REPORT_GRANULARITIES = ["day", "week", "month"] as const;
-export const REPORT_DAILY_MAX_DAYS = 62;
-export const REPORT_WEEKLY_MAX_DAYS = 180;
-
 // Best sellers are a bounded "top N", not a browsable list — the full
 // per-product breakdown is what the products/orders lists are for.
 export const DEFAULT_TOP_SELLERS_LIMIT = 5;

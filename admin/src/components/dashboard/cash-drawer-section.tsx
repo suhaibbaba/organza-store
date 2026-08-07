@@ -7,7 +7,7 @@ import type { CashSession, CurrentCashSession } from "@shared/types/cash";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { ExplainedLabel } from "@/components/dashboard/explained-label";
+import { ExplainedLabel } from "@/components/figures/explained-label";
 import { CloseDaySheet } from "@/components/dashboard/close-day-sheet";
 import { OpenDaySheet } from "@/components/dashboard/open-day-sheet";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
@@ -30,7 +30,7 @@ import { cn } from "@/lib/utils";
 // started yet.
 export function CashDrawerSection({ current }: { current: CurrentCashSession }) {
   const t = useTranslations("dashboard.drawer");
-  const tFigures = useTranslations("dashboard.figures");
+  const tFigures = useTranslations("figures");
   const locale = useLocale();
   const formatMoney = useMoneyFormatter();
   const [opening, setOpening] = useState(false);

@@ -265,23 +265,37 @@ describe("Verify · permissions and data exposure", () => {
   // ==========================================================================
   describe("nothing derived from cost ever leaves the backend", () => {
     // Every endpoint the two roles can actually read. A leak would show up as
-    // a key anywhere in the payload — a list row, a nested variant, a series
-    // point — which is why the whole tree is walked rather than the top level.
+    // a key anywhere in the payload — a list row, a nested variant, a channel
+    // entry — which is why the whole tree is walked rather than the top level.
     const sharedReads = [
       "/api/products?pageSize=10",
       "/api/orders?pageSize=10",
-      "/api/reports/sales-summary?tzOffset=0",
-      "/api/orders/collection-summary",
       "/api/change-requests?pageSize=10",
       "/api/categories?flat=true",
       "/api/variant-types",
       "/api/settings",
     ];
 
+    // The shop-wide money screens. These are not "a report with the costs
+    // taken out" — they are refused outright to whoever may not read them,
+    // which is a different and stronger thing:
+    //   * the Reports page (report.view) is ADMIN ONLY, so both roles are out;
+    //   * the dashboard's sales block (dashboard.view) and the outstanding
+    //     total (order.markCollected) answer a Manager and refuse an Employee,
+    //     who sees the orders they took and nothing added up.
+    function moneyReads(role: "manager" | "employee", range: string): { path: string; status: number }[] {
+      const managerOnly = role === "manager" ? 200 : 403;
+      return [
+        { path: `/api/reports/sales?from=${range}&to=${range}&tzOffset=0&topLimit=50`, status: 403 },
+        { path: "/api/reports/sales-summary?tzOffset=0", status: managerOnly },
+        { path: "/api/orders/collection-summary", status: managerOnly },
+      ];
+    }
+
     it.each([
-      ["a Manager", () => manager],
-      ["an Employee", () => employee],
-    ])("returns no cost, COGS, profit, margin or idNumber to %s", async (_who, tokenOf) => {
+      ["a Manager", "manager", () => manager],
+      ["an Employee", "employee", () => employee],
+    ] as const)("returns no cost, COGS, profit, margin or idNumber to %s", async (_who, role, tokenOf) => {
       const token = tokenOf();
       const order = await sell(admin, [{ productId: product.id, quantity: 1 }]);
 
@@ -291,7 +305,6 @@ describe("Verify · permissions and data exposure", () => {
         `/api/products/${product.id}`,
         `/api/products/lookup?code=${encodeURIComponent(product.product.barcode!)}`,
         `/api/orders/${order.id}`,
-        `/api/reports/sales?from=${range}&to=${range}&tzOffset=0&topLimit=50`,
       ];
 
       for (const path of paths) {
@@ -304,6 +317,36 @@ describe("Verify · permissions and data exposure", () => {
           `${path} leaked cost-derived data:\n   ${leaks.join("\n   ")}`
         ).toEqual([]);
       }
+
+      for (const { path, status } of moneyReads(role, range)) {
+        const res = await apiRequest(path, { token });
+        expect(res.status, `${path} must answer this role with exactly ${status}`).toBe(status);
+
+        if (status === 403) {
+          // A refusal carries no figures at all — not zeroed ones, none.
+          expect(res.data, `${path} must return nothing when it refuses`).toBeUndefined();
+          continue;
+        }
+
+        const leaks = leakedPaths(res.data, COST_BEARING_KEYS);
+        expect(
+          leaks,
+          `${path} leaked cost-derived data:\n   ${leaks.join("\n   ")}`
+        ).toEqual([]);
+      }
+    });
+
+    it("keeps the Reports screen on the owner's side of the permission table", () => {
+      expect(ROLE_PERMISSIONS.ADMIN, "an Admin reads the reports").toContain("report.view");
+      for (const role of ["MANAGER", "EMPLOYEE"] as const) {
+        // Its own action, deliberately: it used to ride on order.view, which
+        // an Employee holds so they can follow the orders they take.
+        expect(ROLE_PERMISSIONS[role], `a ${role} must not hold report.view`).not.toContain("report.view");
+        expect(ROLE_PERMISSIONS[role], `a ${role} must not hold product.viewCost`).not.toContain("product.viewCost");
+      }
+      expect(ROLE_PERMISSIONS.EMPLOYEE, "an Employee has no shop-wide overview at all").not.toContain(
+        "dashboard.view"
+      );
     });
 
     it("returns them all to an Admin, so the absence above is a gate and not a gap", async () => {

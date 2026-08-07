@@ -4,18 +4,16 @@ import { asyncHandler } from "@/middleware/asyncHandler";
 import { requireAuth, requirePermission } from "@/middleware/auth";
 import { validateQuery } from "@/middleware/validate";
 import { sendOk } from "@/lib/response";
-import { granularityFor, periodRange, pickedRange } from "@/lib/reportRange";
+import { periodRange, pickedRange } from "@/lib/reportRange";
 import {
   queryChannelTotals,
   queryGiftCost,
-  querySeries,
   queryTopSellers,
   queryTotals,
   toChannelSales,
   toProfitTotals,
   toReturnsTotals,
   toSalesTotals,
-  toSeries,
   toTopSellers,
 } from "@/lib/reports";
 import { expenseTotal, queryExpenseTotals } from "@/lib/expenses";
@@ -30,10 +28,20 @@ import type { SalesReport, SalesSummary } from "@/types";
 
 // Sales & profit reporting (spec.md "Reports" / "Dashboard"), Phase 2.
 //
-// Two gates, both enforced here rather than in the UI:
-//   * order.view  — reaching the reports at all. Everyone who may look at a
-//                   sale may look at the totals of those sales, Employees
-//                   included (they already see order totals in the list).
+// Nothing here is reachable with order.view, which is what it used to take.
+// That permission exists so somebody can ring up a sale and follow the orders
+// they took — an Employee holds it — and hanging the reports off it handed
+// them every sale in the shop added up. Reading ONE order is not reading ALL
+// of them, so each endpoint is gated on the screen it actually serves:
+//
+//   * report.view    — the Reports page (/sales). ADMIN ONLY.
+//   * dashboard.view — the dashboard's Sales block (/sales-summary), which is
+//                      Admin/Manager, exactly like the rest of that screen.
+//
+// An Employee holds neither, so both 403 for them: no sales figure of any
+// kind reaches an Employee, not a partial one and not a zeroed one.
+//
+// On top of that, and independent of it:
 //   * product.viewCost — cost, COGS, profit and margin. ADMIN ONLY, the same
 //                   permission that hides `cost` on products and `unitCost`
 //                   on order lines (CLAUDE.md rule 19). Below that, those
@@ -50,7 +58,7 @@ router.use(requireAuth);
 // ---------------------------------------------------------------------------
 router.get(
   "/sales-summary",
-  requirePermission("order.view"),
+  requirePermission("dashboard.view"),
   validateQuery(salesSummaryQuerySchema),
   asyncHandler(async (req, res) => {
     const { tzOffset } = req.validatedQuery as SalesSummaryQuery;
@@ -88,24 +96,22 @@ router.get(
 
 // ---------------------------------------------------------------------------
 // GET /api/reports/sales?from=&to= — the Reports page: totals, returns, the
-// channel split, a trend series and the best sellers for a picked range.
-// Every part is aggregated by Postgres; no order is ever loaded into memory.
+// channel split and the best sellers for a picked range. Every part is
+// aggregated by Postgres; no order is ever loaded into memory.
 // ---------------------------------------------------------------------------
 router.get(
   "/sales",
-  requirePermission("order.view"),
+  requirePermission("report.view"),
   validateQuery(salesReportQuerySchema),
   asyncHandler(async (req, res) => {
     const query = req.validatedQuery as SalesReportQuery;
     const canViewCost = can(req.user!, "product.viewCost");
 
     const range = pickedRange(query.from, query.to, query.tzOffset);
-    const granularity = granularityFor(range);
 
-    const [totals, channels, series, topByRevenue, topByQuantity, gifts, expenses] = await Promise.all([
+    const [totals, channels, topByRevenue, topByQuantity, gifts, expenses] = await Promise.all([
       queryTotals(range),
       queryChannelTotals(range),
-      querySeries(range, granularity, query.tzOffset),
       queryTopSellers(range, "revenue", query.topLimit),
       queryTopSellers(range, "quantity", query.topLimit),
       // Only ever read for the profit block below, which is Admin-only —
@@ -116,11 +122,9 @@ router.get(
 
     const report: SalesReport = {
       range: { from: range.from.toISOString(), to: range.to.toISOString() },
-      granularity,
       totals: toSalesTotals(totals, canViewCost),
       returns: toReturnsTotals(totals),
       byChannel: toChannelSales(channels, canViewCost),
-      series: toSeries(series, canViewCost),
       topByRevenue: toTopSellers(topByRevenue, canViewCost),
       topByQuantity: toTopSellers(topByQuantity, canViewCost),
     };
