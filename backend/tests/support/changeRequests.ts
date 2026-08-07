@@ -34,6 +34,29 @@ export async function pendingChangeFor(
   return field ? rows.find((r) => r.field === field) : rows[0];
 }
 
+/**
+ * EVERY request about one entity's field, decided ones included — no status
+ * filter at all.
+ *
+ * pendingChangeFor above can only ever see the pending slot, which is the one
+ * state the database itself keeps unique. This is what "one decision, once"
+ * has to be checked against: a decided row's pendingKey is null, so nothing
+ * stops two of them describing the same decision except the flow being right.
+ */
+export async function changeRequestsFor(
+  token: string,
+  entityType: string,
+  entityId: string,
+  field?: string
+): Promise<ChangeRequestDto[]> {
+  const res = await listChangeRequests(
+    token,
+    `?entityType=${entityType}&entityId=${encodeURIComponent(entityId)}&pageSize=100`
+  );
+  const rows = res.data ?? [];
+  return field ? rows.filter((r) => r.field === field) : rows;
+}
+
 export function approveChange(token: string, id: string, note?: string): Promise<ApiResult<ChangeRequestDto>> {
   return apiRequest<ChangeRequestDto>(`/api/change-requests/${id}/approve`, {
     method: "POST",

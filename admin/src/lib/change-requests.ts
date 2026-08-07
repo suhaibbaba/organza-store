@@ -1,4 +1,10 @@
-import { CHANGE_REQUEST_ENTITIES, CHANGE_REQUEST_FIELDS } from "@shared/constants/changeRequest";
+import {
+  CHANGE_REQUEST_ENTITIES,
+  CHANGE_REQUEST_FIELDS,
+  CHANGE_REQUEST_VALUE_KINDS,
+  PENDING_CHANGE_REQUEST_STATUS,
+} from "@shared/constants/changeRequest";
+import type { ChangeRequestStatus, ChangeRequestValue } from "@shared/types/changeRequest";
 
 // Which translation key describes a given gated change.
 //
@@ -21,4 +27,30 @@ const FIELD_LABEL_KEYS: Record<string, string> = {
 
 export function changeRequestLabelKey(entityType: string, field: string): string {
   return FIELD_LABEL_KEYS[`${entityType}:${field}`] ?? "fields.other";
+}
+
+/**
+ * What the "requested" side of a decided request should actually say.
+ *
+ * For every gated field but one it is simply the value that was asked for: a
+ * price of 39.00 stays 39.00 whether the Admin agreed to it or not, and the
+ * request's own status (drawn separately, see change-request-status-badge)
+ * says which happened.
+ *
+ * The exception is the `approval` kind — an expense, where the FIELD being
+ * changed is itself an approval status. Every one of those requests asks for
+ * the same thing (PENDING → APPROVED), so a refused one would sit in the
+ * Rejected tab reading "→ approved": the screen contradicting itself. Once
+ * decided, the request's outcome IS what the field became — approving writes
+ * APPROVED onto the expense, refusing writes REJECTED — so that is what is
+ * shown. The two vocabularies are the same three words on purpose
+ * (CHANGE_REQUEST_STATUSES / EXPENSE_APPROVAL_STATUSES).
+ */
+export function resolveRequestedValue(
+  newValue: ChangeRequestValue | null,
+  status: ChangeRequestStatus
+): ChangeRequestValue | null {
+  if (!newValue || newValue.kind !== CHANGE_REQUEST_VALUE_KINDS.APPROVAL) return newValue;
+  if (status === PENDING_CHANGE_REQUEST_STATUS) return newValue;
+  return { ...newValue, value: status };
 }
