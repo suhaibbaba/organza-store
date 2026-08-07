@@ -36,7 +36,8 @@
   "sell": {
     "noPermission": "Your account can't complete sales. Ask your manager.",
     "feedback": {
-      "added": "{name} × {quantity, number}"
+      "added": "{name} × {quantity, number}",
+      "addedMany": "{name} — {count, plural, one {# item} other {# items}} added"
     },
     "search": {
       "label": "Search for a product or scan a barcode",
@@ -72,6 +73,8 @@
       "done": "Finish scanning",
       "mute": "Mute the beep",
       "unmute": "Turn the beep on",
+      "vibrateOff": "Stop the buzz",
+      "vibrateOn": "Turn the buzz on",
       "cartSummary": "{count, plural, =0 {Empty} one {# item} other {# items}}"
     },
     "counter": {
@@ -86,15 +89,17 @@
       }
     },
     "picker": {
-      "subtitle": "Choose which one you're selling.",
-      "numberedSubtitle": "Type the number, or pick it from the list.",
+      "subtitle": "Choose one or more, then add them to the sale.",
+      "numberedSubtitle": "Type a number and press Done, or pick several from the list.",
       "numberLabel": "Number",
       "numberPlaceholder": "e.g. 4",
       "numberNotFound": "No such number, or it's sold out.",
       "soldOut": "Sold out",
       "done": "Done",
       "add": "Add to the sale",
-      "addNamed": "Add {name}"
+      "addNamed": "Add {name}",
+      "addCount": "Add {count, plural, one {# item} other {# items}} to the sale",
+      "selectedCount": "{count, plural, one {# chosen} other {# chosen}}"
     },
     "cart": {
       "title": "Current sale",

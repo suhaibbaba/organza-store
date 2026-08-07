@@ -21,12 +21,9 @@ export interface ScanSound {
   unlock: () => void;
 }
 
-// Beeps for scanning, with the mute switch that goes with them.
-//
-// A cashier working a queue is looking at the clothes and the customer, not
-// at a phone propped up by the till — the sound is what tells them the item
-// went in, and the different sound is what stops them handing over something
-// that never scanned.
+// Beeps for scanning, with the mute switch that goes with them. The buzz that
+// accompanies them is useScanVibration; useScanFeedback is where the two are
+// asked for together, and what the selling screen actually uses.
 export function useScanSound(): ScanSound {
   const isMuted = useSyncExternalStore(subscribeToScanSoundMuted, isScanSoundMuted, isScanSoundMutedOnServer);
 

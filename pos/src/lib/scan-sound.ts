@@ -1,5 +1,6 @@
-import { SCAN_SOUND_ENVELOPE_MS, SCAN_SOUND_VOLUME } from "@/constants/feedback";
+import { SCAN_SOUND_ENVELOPE_MS, SCAN_SOUND_LEAD_MS, SCAN_SOUND_VOLUME } from "@/constants/feedback";
 import { SCAN_SOUND_MUTED_KEY } from "@/constants/storage";
+import { createDeviceFlag } from "@/lib/device-flag";
 import type { ScanTone } from "@/types/feedback";
 
 // The audible half of scan feedback. Synthesised rather than played from
@@ -25,25 +26,70 @@ function audioContext(): AudioContext | null {
   return context;
 }
 
-// iOS hands out every audio context suspended and only resumes one from
-// inside a user gesture. Called from the taps that mean "I am about to
-// scan" (opening the scanner, un-muting), so the first successful read
-// actually makes a sound instead of silently failing.
+// iOS hands out every audio context suspended, and a resume() is only granted
+// from inside a user gesture — but a resume on its own is not what unlocks the
+// output. Safari only counts the context as unlocked once a source node has
+// actually run through it, so this pushes one frame of silence through as
+// well: inaudible, and the difference between a shift that beeps and a shift
+// that doesn't.
+//
+// Called from every tap that means "I am about to scan" — opening the camera,
+// un-muting, the counter scanner's own keypress — and again once the camera is
+// live, because starting a capture on iOS re-negotiates the audio session
+// underneath us and can leave the context interrupted.
 export function unlockScanSound(): void {
   const ctx = audioContext();
-  if (ctx && ctx.state === "suspended") void ctx.resume();
+  if (!ctx) return;
+  if (ctx.state !== "running") void ctx.resume().catch(() => {});
+  primeOutput(ctx);
 }
 
-// Plays the tones back to back. Scheduled on the audio clock rather than
-// with timers so the two halves of the failure cue stay glued together even
-// while the main thread is busy rendering the cart.
+// One sample of nothing, played now. This is the part iOS actually wants.
+function primeOutput(ctx: AudioContext): void {
+  try {
+    const source = ctx.createBufferSource();
+    source.buffer = ctx.createBuffer(1, 1, ctx.sampleRate);
+    source.connect(ctx.destination);
+    source.start();
+  } catch {
+    // A context that refuses to build a one-frame buffer is not going to
+    // make a beep either; the cashier still has the toast and the buzz.
+  }
+}
+
+// Plays the tones back to back.
+//
+// The scan that produced them came from a camera callback, not from a tap, so
+// the context may well be suspended — which is precisely how this went silent
+// before: a suspended context's clock does not advance, so tones scheduled
+// against `currentTime` sat at a moment that had already passed by the time it
+// resumed, and nothing was ever heard. So resume FIRST, and only schedule once
+// the clock is running again.
 export function playScanTones(tones: readonly ScanTone[]): void {
   const ctx = audioContext();
   if (!ctx) return;
-  if (ctx.state === "suspended") void ctx.resume();
 
+  if (ctx.state === "running") {
+    schedule(ctx, tones);
+    return;
+  }
+
+  void ctx
+    .resume()
+    .then(() => schedule(ctx, tones))
+    .catch(() => {
+      // No gesture has reached this tab yet, so the browser is entitled to
+      // refuse. The next tap on the scan button unlocks it (unlockScanSound),
+      // and until then the toast and the vibration carry the answer.
+    });
+}
+
+// Scheduled on the audio clock rather than with timers so the two halves of
+// the failure cue stay glued together even while the main thread is busy
+// decoding camera frames and rendering the cart.
+function schedule(ctx: AudioContext, tones: readonly ScanTone[]): void {
   const envelope = SCAN_SOUND_ENVELOPE_MS / 1000;
-  let at = ctx.currentTime;
+  let at = ctx.currentTime + SCAN_SOUND_LEAD_MS / 1000;
 
   for (const tone of tones) {
     const seconds = tone.durationMs / 1000;
@@ -71,62 +117,19 @@ export function playScanTones(tones: readonly ScanTone[]): void {
 
 // ---- The mute switch ----------------------------------------------------
 //
-// Remembered per device (constants/storage.ts) and shaped for
-// useSyncExternalStore, like the app's other browser-owned facts (lib/pwa.ts)
-// — read from where it actually lives rather than mirrored into React state,
-// so there is nothing to set in an effect and nothing to go stale.
+// Remembered per device (constants/storage.ts). The store itself is
+// lib/device-flag.ts, shared with the vibration switch — the two behave
+// identically, and one implementation is one thing to get right.
 //
-// Storage can throw outright — Safari in private mode, a locked-down kiosk
-// profile — and a till that cannot remember a preference must still sell, so
-// every path falls back to "not muted" rather than to an error.
+// Note for anyone chasing "the beep is on but I hear nothing" on an iPhone:
+// iOS silences Web Audio outright while the ring/silent switch is set to
+// silent. Nothing on this side can override that, which is the other reason
+// the buzz exists (lib/scan-vibration.ts).
 
-const mutedListeners = new Set<() => void>();
-// Read once and kept, because getSnapshot runs on every render.
-let mutedCache: boolean | null = null;
+const mutedFlag = createDeviceFlag(SCAN_SOUND_MUTED_KEY);
 
-function readMuted(): boolean {
-  try {
-    return window.localStorage.getItem(SCAN_SOUND_MUTED_KEY) === "true";
-  } catch {
-    return false;
-  }
-}
-
-function handleStorageChange(event: StorageEvent) {
-  // key === null is a whole-storage clear, which counts.
-  if (event.key !== null && event.key !== SCAN_SOUND_MUTED_KEY) return;
-  mutedCache = readMuted();
-  mutedListeners.forEach((listener) => listener());
-}
-
-export function subscribeToScanSoundMuted(onChange: () => void): () => void {
-  if (typeof window === "undefined") return () => {};
-  mutedListeners.add(onChange);
-  // The same till can have the POS open in two tabs; muting in one should
-  // not leave the other beeping.
-  if (mutedListeners.size === 1) window.addEventListener("storage", handleStorageChange);
-  return () => {
-    mutedListeners.delete(onChange);
-    if (mutedListeners.size === 0) window.removeEventListener("storage", handleStorageChange);
-  };
-}
-
-export function isScanSoundMuted(): boolean {
-  if (typeof window === "undefined") return false;
-  if (mutedCache === null) mutedCache = readMuted();
-  return mutedCache;
-}
-
+export const subscribeToScanSoundMuted = mutedFlag.subscribe;
+export const isScanSoundMuted = mutedFlag.read;
 /** Server render: assume audible, so the markup matches first paint. */
-export const isScanSoundMutedOnServer = (): boolean => false;
-
-export function setScanSoundMuted(muted: boolean): void {
-  mutedCache = muted;
-  try {
-    window.localStorage.setItem(SCAN_SOUND_MUTED_KEY, String(muted));
-  } catch {
-    // Nothing to tell the cashier: the setting still holds for this tab, it
-    // just won't survive a reload.
-  }
-  mutedListeners.forEach((listener) => listener());
-}
+export const isScanSoundMutedOnServer = mutedFlag.readOnServer;
+export const setScanSoundMuted = mutedFlag.write;
