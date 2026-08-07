@@ -250,6 +250,10 @@
       "WHATSAPP": "וואטסאפ",
       "WEBSITE": "אתר"
     },
+    "type": {
+      "SALE": "מכירה",
+      "GIFT": "מתנה"
+    },
     "payment": {
       "CASH": "מזומן"
     },

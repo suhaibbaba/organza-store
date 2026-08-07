@@ -151,7 +151,8 @@
       "submit": "סיום המכירה",
       "submitting": "שומר…",
       "whatsappOrder": "הזמנת וואטסאפ",
-      "orderDiscountApplied": "הנחה על המכירה ({value})"
+      "orderDiscountApplied": "הנחה על המכירה ({value})",
+      "giftOrder": "מסירה כמתנה"
     },
     "success": {
       "title": "המכירה הושלמה",
@@ -160,7 +161,10 @@
       "whatsappTitle": "הזמנת הוואטסאפ נשמרה",
       "customer": "לקוח: {name}",
       "whatsappNextStep": "ההזמנה בסטטוס חדשה. המלאי מנוכה כשמתחילים בהכנה.",
-      "whatsappOrderNumber": "הזמנה {number}"
+      "whatsappOrderNumber": "הזמנה {number}",
+      "giftTitle": "המתנה נרשמה",
+      "giftCount": "{count, plural, one {פריט אחד} two {שני פריטים} other {# פריטים}}",
+      "giftNextStep": "הפריטים ירדו מהמלאי ולא נגבה שום תשלום."
     },
     "whatsapp": {
       "title": "הזמנת וואטסאפ",
@@ -188,6 +192,19 @@
         "note": "הערה (רשות)",
         "notePlaceholder": "פרטים נוספים על ההזמנה…"
       }
+    },
+    "gift": {
+      "title": "מסירה כמתנה",
+      "subtitle": "בדוק/י את הפריטים לפני האישור — הם יֵצאו מהמלאי ללא כל תשלום.",
+      "warning": "הפריטים האלה יירדו מהמלאי ולא ייגבה שום תשלום.",
+      "itemsTitle": "פריטים שיימסרו ({count, plural, one {פריט אחד} two {שני פריטים} other {# פריטים}})",
+      "quantity": "כמות: {count, number}",
+      "noteLabel": "הערה (רשות)",
+      "notePlaceholder": "לדוגמה: מתנה לאם הכלה",
+      "noteHint": "למי המתנה או מדוע — נשמר יחד עם ההזמנה.",
+      "cancel": "חזרה למכירה",
+      "confirm": "אישור המתנה",
+      "saving": "שומר…"
     }
   },
   "errors": {

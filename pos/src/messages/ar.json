@@ -151,7 +151,8 @@
       "submit": "إتمام البيع",
       "submitting": "جارٍ الحفظ…",
       "whatsappOrder": "طلب واتساب",
-      "orderDiscountApplied": "خصم الفاتورة ({value})"
+      "orderDiscountApplied": "خصم الفاتورة ({value})",
+      "giftOrder": "إعطاء كهدية"
     },
     "success": {
       "title": "تم البيع بنجاح",
@@ -160,7 +161,10 @@
       "whatsappTitle": "تم حفظ طلب الواتساب",
       "customer": "الزبون: {name}",
       "whatsappNextStep": "الطلب الآن بحالة «جديد». يُخصم المخزون عند بدء التحضير.",
-      "whatsappOrderNumber": "طلب رقم {number}"
+      "whatsappOrderNumber": "طلب رقم {number}",
+      "giftTitle": "تم تسجيل الهدية",
+      "giftCount": "{count, plural, one {قطعة واحدة} two {قطعتان} few {# قطع} many {# قطعة} other {# قطعة}}",
+      "giftNextStep": "خرجت القطع من المخزون ولم يتم تحصيل أي مبلغ."
     },
     "whatsapp": {
       "title": "طلب واتساب",
@@ -188,6 +192,19 @@
         "note": "ملاحظة (اختياري)",
         "notePlaceholder": "أي تفاصيل إضافية عن الطلب…"
       }
+    },
+    "gift": {
+      "title": "إعطاء كهدية",
+      "subtitle": "راجع القطع قبل التأكيد — ستخرج من المخزون بدون أي مبلغ.",
+      "warning": "سيتم خصم هذه القطع من المخزون ولن يتم تحصيل أي مبلغ.",
+      "itemsTitle": "القطع التي ستُهدى ({count, plural, one {قطعة واحدة} two {قطعتان} few {# قطع} many {# قطعة} other {# قطعة}})",
+      "quantity": "الكمية: {count, number}",
+      "noteLabel": "ملاحظة (اختياري)",
+      "notePlaceholder": "مثال: هدية لأم العروس",
+      "noteHint": "لمن الهدية أو سبب إعطائها — تُحفظ مع الطلب.",
+      "cancel": "الرجوع إلى البيع",
+      "confirm": "تأكيد الهدية",
+      "saving": "جارٍ الحفظ…"
     }
   },
   "errors": {

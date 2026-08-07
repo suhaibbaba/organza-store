@@ -13,6 +13,14 @@ const buttonVariants = cva(
         outline: "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
         ghost: "hover:bg-accent hover:text-accent-foreground",
         destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
+        // Giving stock away (spec.md "Gifts"). Its own colour rather than
+        // `default`, because the one thing this action must never be
+        // mistaken for is completing a sale — and its own colour rather than
+        // `destructive`, because handing a piece to a bride is not an error.
+        // Only ever the button that COMMITS a gift; the way in is an outline
+        // (see CheckoutBar), so the solid violet appears once, on the tap
+        // that actually gives the stock away.
+        gift: "bg-gift text-gift-foreground hover:bg-gift/90",
         link: "text-primary underline-offset-4 hover:underline",
       },
       size: {

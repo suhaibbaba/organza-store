@@ -151,7 +151,8 @@
       "submit": "Complete sale",
       "submitting": "Saving…",
       "whatsappOrder": "WhatsApp order",
-      "orderDiscountApplied": "Sale discount ({value})"
+      "orderDiscountApplied": "Sale discount ({value})",
+      "giftOrder": "Give as gift"
     },
     "success": {
       "title": "Sale completed",
@@ -160,7 +161,10 @@
       "whatsappTitle": "WhatsApp order saved",
       "customer": "Customer: {name}",
       "whatsappNextStep": "The order is New. Stock comes off the shelf when preparation starts.",
-      "whatsappOrderNumber": "Order {number}"
+      "whatsappOrderNumber": "Order {number}",
+      "giftTitle": "Gift recorded",
+      "giftCount": "{count, plural, one {# piece} other {# pieces}}",
+      "giftNextStep": "The stock has been deducted and no money was taken."
     },
     "whatsapp": {
       "title": "WhatsApp order",
@@ -188,6 +192,19 @@
         "note": "Note (optional)",
         "notePlaceholder": "Anything else about this order…"
       }
+    },
+    "gift": {
+      "title": "Give as a gift",
+      "subtitle": "Check the pieces before you confirm — they leave the stock and nothing is charged.",
+      "warning": "These pieces will be taken off the stock and no money will be collected.",
+      "itemsTitle": "Being given away ({count, plural, one {# piece} other {# pieces}})",
+      "quantity": "Qty {count, number}",
+      "noteLabel": "Note (optional)",
+      "notePlaceholder": "e.g. for the bride's mother",
+      "noteHint": "Who it is for, or why — saved with the order.",
+      "cancel": "Back to the sale",
+      "confirm": "Confirm the gift",
+      "saving": "Saving…"
     }
   },
   "errors": {
