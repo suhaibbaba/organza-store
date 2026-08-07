@@ -40,6 +40,21 @@ export const PERMISSION_ACTIONS = [
   // clear of the edit/delete/hide gates an Employee must not pass.
   "product.printLabels",
 
+  // The Reports screen and the endpoints behind it: sales by period, the
+  // channel split, best sellers, returns, and — for whoever also holds
+  // product.viewCost — cost, COGS, profit and margin. ADMIN ONLY.
+  //
+  // Its own action rather than a reuse of order.view, which was the bug this
+  // replaces: order.view is held by an Employee so they can ring up and
+  // follow the orders they take, and hanging the reports off it handed them
+  // the shop's whole takings as a side effect. Reading ONE order you took is
+  // not the same as reading EVERY order added up, so the two are now
+  // different permissions. Modelled separately from product.viewCost as well,
+  // even though both are Admin-only today: that one gates cost-derived
+  // figures wherever they appear, this one gates a screen, and widening
+  // either later must not silently widen the other.
+  "report.view",
+
   "category.view",
   "category.manage",
 
@@ -154,10 +169,17 @@ type Action = (typeof PERMISSION_ACTIONS)[number];
 // AND NO COST OR PROFIT. Employee: POS, add and edit products, edit images,
 // create + hand over orders — cannot delete/hide products, cannot
 // delete/edit/cancel orders, cannot mark money collected, no users/settings,
-// no cost/idNumber visibility, and neither the dashboard nor the inventory
-// list: both are shop-wide overviews (stock levels, inventory value,
-// low-stock alerts) that belong to whoever manages stock, which an Employee
-// does not.
+// no cost/idNumber visibility, and none of the dashboard, the reports or the
+// inventory list: all three are shop-wide overviews (takings, stock levels,
+// inventory value, low-stock alerts) that belong to whoever runs the shop,
+// which an Employee does not. An Employee sees the orders they take and
+// nothing added up.
+//
+// Reports are ADMIN ONLY (report.view): the sales, cost, profit and margin
+// figures on that screen are the owner's read of the business, and a Manager
+// gets what they need to run the floor from the dashboard instead — sold,
+// received and still owed, with every cost-derived figure absent from their
+// payload.
 //
 // Cost and profit are ADMIN ONLY (spec.md "Sensitive fields"). A Manager runs
 // the shop floor — stock, orders, the drawer, what was spent — but what each
@@ -183,6 +205,9 @@ export const ROLE_PERMISSIONS: Record<Role, readonly Action[]> = {
     "product.hide",
     "product.editVariantSet",
     // NOTE: no "product.viewCost" — cost and profit are Admin only.
+    // NOTE: no "report.view" either — the Reports screen is Admin only. The
+    // dashboard (dashboard.view, above) carries the sales figures a Manager
+    // runs the floor on.
     "product.printLabels",
     "category.view",
     "category.manage",

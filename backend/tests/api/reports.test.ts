@@ -310,13 +310,13 @@ describe("Reports", () => {
       }
     });
 
-    it("shows the collection split to an Employee too — it is a sales figure, not a cost", async () => {
-      const employee = await getSession("EMPLOYEE");
-      const report = await salesReport(employee.token);
+    it("shows the collection split to a Manager on the dashboard — it is a sales figure, not a cost", async () => {
+      const manager = await getSession("MANAGER");
+      const summary = await salesSummary(manager.token);
 
-      expect(report.totals.collectedRevenue).toBeDefined();
-      expect(report.totals.pendingCollectionAmount).toBeDefined();
-      expect(report.totals.cost).toBeUndefined();
+      expect(summary.today.totals.collectedRevenue).toBeDefined();
+      expect(summary.today.totals.pendingCollectionAmount).toBeDefined();
+      expect(summary.today.totals.cost).toBeUndefined();
     });
   });
 
@@ -499,19 +499,14 @@ describe("Reports", () => {
       expect(topSeller(report, product.id, "topByQuantity")).toBeDefined();
     });
 
-    it("buckets the trend series by day for a short range", async () => {
+    it("covers exactly the picked range, last day included", async () => {
       const admin = await getSession("ADMIN");
       const report = await salesReport(admin.token);
       const { from, to } = surroundingRange();
 
-      expect(report.granularity).toBe("day");
       expect(report.range.from).toBe(`${from}T00:00:00.000Z`);
       // `to` is exclusive: the picked last day counts in full.
       expect(new Date(report.range.to).getTime() - new Date(`${to}T00:00:00.000Z`).getTime()).toBe(24 * 60 * 60 * 1000);
-      for (const point of report.series) {
-        expect(point.date >= from).toBe(true);
-        expect(point.date <= to).toBe(true);
-      }
     });
   });
 
@@ -557,18 +552,47 @@ describe("Reports", () => {
   });
 
   // -------------------------------------------------------------------------
-  // Role gating (CLAUDE.md rule 19) — the whole point of doing this on the
-  // backend: below Admin, a response must not CONTAIN cost or profit.
+  // Role gating — two separate gates, both enforced here rather than in the
+  // UI, and the reason this suite exists at all:
   //
-  // Cost and profit are ADMIN ONLY. A Manager runs the shop floor but the
-  // owner's margin is not theirs to read, so the two non-Admin roles are
-  // asserted with the SAME expectations here.
+  //   * WHO REACHES A REPORT. /sales is report.view (ADMIN ONLY);
+  //     /sales-summary is dashboard.view (Admin/Manager). An EMPLOYEE holds
+  //     neither, so no sales figure of any kind reaches them — not a partial
+  //     one, not a zeroed one, a 403.
+  //   * WHAT A REPORT CONTAINS. Cost, COGS, profit and margin are ADMIN ONLY
+  //     (product.viewCost, CLAUDE.md rule 19). A Manager runs the shop floor,
+  //     but the owner's margin is not theirs to read, so their summary must
+  //     not CONTAIN those fields — absent, never zeroed.
   // -------------------------------------------------------------------------
   describe("role gating", () => {
-    it.each(["EMPLOYEE", "MANAGER"] as const)("returns no cost, profit or margin to a %s", async (role) => {
-      const employee = await getSession(role);
+    it("refuses the reports page to an Employee outright", async () => {
+      const employee = await getSession("EMPLOYEE");
 
-      const summary = await salesSummary(employee.token);
+      const report = await fetchSalesReport(employee.token);
+      expect(report.status).toBe(403);
+      expect(report.error?.code).toBe(ERROR_CODES.FORBIDDEN);
+      expect(report.data).toBeUndefined();
+
+      // ...and the dashboard's block too: an Employee has no business
+      // reading the shop's takings from either screen.
+      const summary = await fetchSalesSummary(employee.token);
+      expect(summary.status).toBe(403);
+      expect(summary.error?.code).toBe(ERROR_CODES.FORBIDDEN);
+      expect(summary.data).toBeUndefined();
+    });
+
+    it("refuses the reports page to a Manager — sales, cost and profit alike", async () => {
+      const manager = await getSession("MANAGER");
+
+      const report = await fetchSalesReport(manager.token);
+      expect(report.status).toBe(403);
+      expect(report.error?.code).toBe(ERROR_CODES.FORBIDDEN);
+    });
+
+    it("returns no cost, profit or margin to a Manager on the dashboard", async () => {
+      const manager = await getSession("MANAGER");
+
+      const summary = await salesSummary(manager.token);
       for (const period of ["today", "week", "month"] as const) {
         expect(summary[period].totals.revenue).toBeDefined();
         expect(summary[period].totals.cost).toBeUndefined();
@@ -580,28 +604,8 @@ describe("Reports", () => {
         expect(summary[period].profit).toBeUndefined();
       }
 
-      const report = await salesReport(employee.token);
-      expect(report.totals.revenue).toBeDefined();
-      expect(report.totals.cost).toBeUndefined();
-      expect(report.totals.profit).toBeUndefined();
-      expect(report.totals.margin).toBeUndefined();
-
-      for (const channel of report.byChannel) {
-        expect(channel.cost).toBeUndefined();
-        expect(channel.profit).toBeUndefined();
-      }
-      for (const point of report.series) {
-        expect(point.profit).toBeUndefined();
-      }
-      for (const seller of [...report.topByRevenue, ...report.topByQuantity]) {
-        expect(seller.profit).toBeUndefined();
-      }
-
-      // ...including the whole sold/received/owed + gross/net profit block.
-      expect(report.profit).toBeUndefined();
-
       // Nothing cost-shaped anywhere in the payload, however nested.
-      const raw = JSON.stringify(report);
+      const raw = JSON.stringify(summary);
       expect(raw).not.toContain("cost");
       expect(raw).not.toContain("profit");
       expect(raw).not.toContain("margin");
@@ -615,6 +619,13 @@ describe("Reports", () => {
       expect(report.totals.profit).toBeDefined();
       expect(report.totals.missingCostItems).toBeDefined();
       expect(report.profit).toBeDefined();
+
+      for (const channel of report.byChannel) {
+        expect(channel.cost).toBeDefined();
+      }
+      for (const seller of [...report.topByRevenue, ...report.topByQuantity]) {
+        expect(seller.profit).toBeDefined();
+      }
     });
 
     it("refuses an unauthenticated caller", async () => {

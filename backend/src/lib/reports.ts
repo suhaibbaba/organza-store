@@ -8,13 +8,10 @@ import type {
   GiftAggregateRow,
   OrderChannel,
   ProfitTotals,
-  ReportGranularity,
   ReportRange,
   ReturnsTotals,
   SalesAggregateRow,
-  SalesSeriesPoint,
   SalesTotals,
-  SeriesAggregateRow,
   TopSeller,
   TopSellerRow,
 } from "@/types";
@@ -145,17 +142,6 @@ const TOTALS_COLUMNS = Prisma.sql`
   COALESCE(SUM(unit_net_price * returned_units), 0)                AS "returnedAmount"
 `;
 
-// Postgres date_trunc unit for the chart buckets. Fixed strings from a
-// closed set — never caller input — so they can be inlined safely.
-// Note date_trunc('week') cuts on Monday (ISO); that only labels the bars of
-// a long range, and is independent of REPORT_WEEK_START_DAY, which decides
-// where the dashboard's "this week" figure starts.
-const TRUNC_UNIT: Record<ReportGranularity, string> = {
-  day: "day",
-  week: "week",
-  month: "month",
-};
-
 // --- query runners -----------------------------------------------------
 
 export async function queryTotals(range: ReportRange): Promise<SalesAggregateRow> {
@@ -187,28 +173,6 @@ export async function queryChannelTotals(range: ReportRange): Promise<ChannelAgg
     SELECT channel AS "channel", ${TOTALS_COLUMNS}
     FROM line
     GROUP BY channel
-  `;
-}
-
-// Revenue (and cost) per chart bucket. The bucket is cut on the VIEWER's
-// clock — createdAt is shifted by their offset before truncation — so a late
-// evening sale lands on the day they made it.
-export async function querySeries(
-  range: ReportRange,
-  granularity: ReportGranularity,
-  tzOffset: number
-): Promise<SeriesAggregateRow[]> {
-  const unit = Prisma.raw(`'${TRUNC_UNIT[granularity]}'`);
-  return prisma.$queryRaw<SeriesAggregateRow[]>`
-    WITH line AS (${lineView(range)})
-    SELECT
-      to_char(date_trunc(${unit}, created_at + make_interval(mins => ${tzOffset}::int)), 'YYYY-MM-DD') AS "bucket",
-      COUNT(DISTINCT order_id) FILTER (WHERE net_units > 0) AS "orderCount",
-      COALESCE(SUM(unit_net_price * net_units), 0)          AS "revenue",
-      COALESCE(SUM(unit_cost * net_units), 0)               AS "cost"
-    FROM line
-    GROUP BY 1
-    ORDER BY 1
   `;
 }
 
@@ -272,8 +236,9 @@ export function toSalesTotals(row: SalesAggregateRow | undefined, canViewCost: b
     itemCount: Number(decimal(row?.itemCount ?? null)),
     revenue: revenue.toFixed(MONEY_DECIMAL_PLACES),
     // What was sold vs. what has actually been paid for. Visible to every
-    // role that may read a report: these are sales figures, not costs, and an
-    // Employee already sees order totals in the list.
+    // role that may read a report at all (see routes/reports.ts — Admin on
+    // the Reports page, Admin/Manager on the dashboard): these are sales
+    // figures rather than costs, so they don't need product.viewCost on top.
     collectedRevenue: amount(row?.collectedRevenue ?? null),
     pendingCollectionAmount: amount(row?.pendingCollectionAmount ?? null),
     pendingCollectionOrderCount: Number(row?.pendingCollectionOrderCount ?? 0),
@@ -373,21 +338,6 @@ export function toChannelSales(rows: ChannelAggregateRow[], canViewCost: boolean
     channel: channel as OrderChannel,
     ...toSalesTotals(byChannel.get(channel), canViewCost),
   }));
-}
-
-export function toSeries(rows: SeriesAggregateRow[], canViewCost: boolean): SalesSeriesPoint[] {
-  return rows.map((row) => {
-    const revenue = roundMoney(decimal(row.revenue));
-    const point: SalesSeriesPoint = {
-      date: row.bucket,
-      orderCount: Number(row.orderCount),
-      revenue: revenue.toFixed(MONEY_DECIMAL_PLACES),
-    };
-    if (canViewCost) {
-      point.profit = roundMoney(revenue.sub(decimal(row.cost))).toFixed(MONEY_DECIMAL_PLACES);
-    }
-    return point;
-  });
 }
 
 export function toTopSellers(rows: TopSellerRow[], canViewCost: boolean): TopSeller[] {

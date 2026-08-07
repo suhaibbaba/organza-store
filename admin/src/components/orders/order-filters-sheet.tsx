@@ -142,29 +142,49 @@ export function OrderFiltersSheet({ value, onApply, activeCount }: OrderFiltersS
               </Select>
             </div>
 
-            <div className="flex flex-col gap-2">
+            {/* Two dates, each with its OWN visible label. An empty date
+                input renders as an empty box on a phone — no "yyyy-mm-dd"
+                hint, nothing — so two of them stacked were two identical
+                blanks with no way to tell which one was "from". An aria-label
+                answered that for a screen reader only, which is the one
+                reader who wasn't confused. Same shape as the reports range
+                picker, so the two screens read alike.
+                They also used to push the sheet sideways on a phone; that is
+                fixed once for every date field in components/ui/input.tsx. */}
+            <div className="flex min-w-0 flex-col gap-2">
               <Label>{t("dateRange")}</Label>
-              {/* A native date input gets the OS date picker on a phone — no
-                  calendar library, no typing a format wrong. dir="ltr" keeps
-                  the y/m/d segments in their expected order inside an RTL
-                  page. */}
-              <div className="flex flex-col gap-2">
-                <Input
-                  type="date"
-                  dir="ltr"
-                  aria-label={t("dateFrom")}
-                  value={draft.dateFrom}
-                  max={draft.dateTo || undefined}
-                  onChange={(e) => setDraft((d) => ({ ...d, dateFrom: e.target.value }))}
-                />
-                <Input
-                  type="date"
-                  dir="ltr"
-                  aria-label={t("dateTo")}
-                  value={draft.dateTo}
-                  min={draft.dateFrom || undefined}
-                  onChange={(e) => setDraft((d) => ({ ...d, dateTo: e.target.value }))}
-                />
+              <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2">
+                <div className="flex min-w-0 flex-col gap-2">
+                  <Label htmlFor="order-filter-date-from" className="text-muted-foreground">
+                    {t("dateFrom")}
+                  </Label>
+                  {/* A native date input gets the OS date picker on a phone —
+                      no calendar library, no typing a format wrong. dir="ltr"
+                      keeps the y/m/d segments in their expected order inside
+                      an RTL page. */}
+                  <Input
+                    id="order-filter-date-from"
+                    type="date"
+                    dir="ltr"
+                    value={draft.dateFrom}
+                    max={draft.dateTo || undefined}
+                    onChange={(e) => setDraft((d) => ({ ...d, dateFrom: e.target.value }))}
+                  />
+                </div>
+
+                <div className="flex min-w-0 flex-col gap-2">
+                  <Label htmlFor="order-filter-date-to" className="text-muted-foreground">
+                    {t("dateTo")}
+                  </Label>
+                  <Input
+                    id="order-filter-date-to"
+                    type="date"
+                    dir="ltr"
+                    value={draft.dateTo}
+                    min={draft.dateFrom || undefined}
+                    onChange={(e) => setDraft((d) => ({ ...d, dateTo: e.target.value }))}
+                  />
+                </div>
               </div>
             </div>
           </div>

@@ -2,25 +2,39 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
+import { RoleGuard } from "@/components/auth/role-guard";
 import { useSalesReportQuery } from "@/hooks/use-reports";
 import { DEFAULT_REPORT_PRESET } from "@/constants/reports";
 import { rangeForPreset } from "@/lib/report-range";
 import { ReportRangePicker } from "@/components/reports/report-range-picker";
 import { ReportHeadline } from "@/components/reports/report-headline";
-import { ReportTrendChart } from "@/components/reports/report-trend-chart";
-import { ReportChannelChart } from "@/components/reports/report-channel-chart";
+import { ReportChannelsCard } from "@/components/reports/report-channels-card";
 import { ReportTopSellers } from "@/components/reports/report-top-sellers";
 import { ReportReturnsCard } from "@/components/reports/report-returns-card";
 import { ReportEmpty, ReportError, ReportLoading } from "@/components/reports/report-states";
 import { Spinner } from "@/components/ui/spinner";
 import type { ReportRangeValue } from "@/types/report";
 
-// Sales & profit for a picked range (spec.md "Reports"). Access is gated on
-// the backend: the report endpoints require order.view, and cost/profit are
-// only computed for roles with product.viewCost — an Employee opening this
-// page sees the same sales figures they already see on the orders list, and
-// no cost or profit anywhere.
+// Sales & profit for a picked range (spec.md "Reports"). ADMIN ONLY.
+//
+// The gate is report.view, and the real one is on the backend: /api/reports/
+// sales 403s without it. This guard is what stops a typed URL or an old
+// bookmark from showing a signed-in Manager or Employee a broken-looking
+// screen — they get the same "you don't have permission" sentence the API
+// would have answered with, and a way back to a screen that is theirs.
+//
+// Figures only, no chart — the same choice as the dashboard (spec.md "The
+// admin dashboard"): the reader is standing at a counter with a phone in one
+// hand, and a number they can act on beats a trend they have to interpret.
 export default function ReportsPage() {
+  return (
+    <RoleGuard action="report.view">
+      <ReportsPageContent />
+    </RoleGuard>
+  );
+}
+
+function ReportsPageContent() {
   const t = useTranslations("reports");
   const [range, setRange] = useState<ReportRangeValue>(() => rangeForPreset(DEFAULT_REPORT_PRESET));
 
@@ -56,8 +70,7 @@ export default function ReportsPage() {
           ) : (
             <>
               <ReportHeadline totals={data.totals} />
-              <ReportTrendChart series={data.series} granularity={data.granularity} />
-              <ReportChannelChart byChannel={data.byChannel} />
+              <ReportChannelsCard byChannel={data.byChannel} />
               <ReportTopSellers byRevenue={data.topByRevenue} byQuantity={data.topByQuantity} />
               <ReportReturnsCard returns={data.returns} />
             </>

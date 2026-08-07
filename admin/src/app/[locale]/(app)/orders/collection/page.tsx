@@ -3,11 +3,10 @@
 import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { ArrowLeft, Check, HandCoins } from "lucide-react";
-import { can } from "@shared/lib/permissions";
 import { ERROR_CODES } from "@shared/constants/errors";
 import { DEFAULT_PAGE } from "@shared/constants/pagination";
 import { Link } from "@/i18n/navigation";
-import { useSession } from "@/components/providers/session-provider";
+import { RoleGuard } from "@/components/auth/role-guard";
 import { COLLECTION_ORDER_FILTERS } from "@/constants/orders";
 import { useCollectOrdersMutation, useCollectionSummaryQuery, useOrdersQuery } from "@/hooks/use-orders";
 import { useTranslateError } from "@/hooks/use-translate-error";
@@ -26,9 +25,20 @@ import type { OrderListFilters } from "@/types/order";
 // One question, one screen: which sales has the shop not been paid for, how
 // much is that in total, and tick off the ones that have just been settled.
 // Oldest first, because the money owed longest is the money to chase.
+//
+// Admin/Manager only, on the permission that lets somebody settle the money:
+// the total here is every unpaid sale in the shop added up, which the backend
+// refuses an Employee outright (GET /api/orders/collection-summary).
 export default function OrderCollectionPage() {
+  return (
+    <RoleGuard action="order.markCollected">
+      <OrderCollectionPageContent />
+    </RoleGuard>
+  );
+}
+
+function OrderCollectionPageContent() {
   const t = useTranslations("orders.collection");
-  const { user } = useSession();
   const translateError = useTranslateError();
 
   const [filters, setFilters] = useState<OrderListFilters>(COLLECTION_ORDER_FILTERS);
@@ -49,11 +59,6 @@ export default function OrderCollectionPage() {
   const selectedAmount = selectedOnPage
     .reduce((sum, order) => sum + Number(order.total), 0)
     .toFixed(2);
-
-  // The nav hides this screen from anyone who can't settle up, but a stale
-  // bookmark shouldn't land on one whose every action 403s (CLAUDE.md rule 5
-  // — the backend is the real gate).
-  if (!can(user, "order.markCollected")) return null;
 
   function toggle(id: string) {
     setSelectedIds((ids) => (ids.includes(id) ? ids.filter((one) => one !== id) : [...ids, id]));

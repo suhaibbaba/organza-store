@@ -181,10 +181,17 @@ router.get(
 // GET /api/orders/collection-summary — what the delivery company still owes,
 // across every sale regardless of date. Declared before /:id so the literal
 // path isn't swallowed as an order id.
+//
+// Gated on order.markCollected, NOT on order.view: this is a shop-wide money
+// total, the same class of figure as a report, and order.view is held by an
+// Employee so they can follow the orders they took. It also matches who the
+// answer is for — the people who settle up with the delivery company are the
+// people who chase it — and it is what the two screens reading it (the
+// collection page, the dashboard's "needs attention") already require.
 // ---------------------------------------------------------------------------
 router.get(
   "/collection-summary",
-  requirePermission("order.view"),
+  requirePermission("order.markCollected"),
   asyncHandler(async (_req, res) => {
     sendOk(res, toCollectionSummary(await queryCollectionSummary()));
   })

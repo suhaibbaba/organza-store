@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { ExplainedLabel } from "@/components/dashboard/explained-label";
+import { ExplainedLabel } from "@/components/figures/explained-label";
 import { cn } from "@/lib/utils";
 import type { FigureTone } from "@/types/dashboard";
 

@@ -29,10 +29,12 @@ export const NAV_ITEMS: readonly NavItem[] = [
   // action the backend enforces.
   { key: "labels", href: "/labels", icon: Barcode, action: "product.printLabels" },
   { key: "categories", href: "/categories", icon: FolderTree, action: "category.view" },
-  // Sales & profit. Gated with order.view, the same permission the orders
-  // list uses — cost and profit inside the page are gated separately, on the
-  // backend, by product.viewCost (CLAUDE.md rule 19).
-  { key: "reports", href: "/reports", icon: ChartColumn, action: "order.view" },
+  // Sales & profit. ADMIN ONLY, on its own permission: it used to be gated
+  // with order.view — the permission that lets somebody ring up and follow
+  // the orders they take — which put the shop's whole takings one tap away
+  // from an Employee. Cost and profit inside the page are gated again, and
+  // separately, by product.viewCost (CLAUDE.md rule 19).
+  { key: "reports", href: "/reports", icon: ChartColumn, action: "report.view" },
   // Changes waiting on somebody (spec.md "Employee change approvals").
   // Gated on the permission to READ requests, which every role holds — an
   // Admin comes here to decide, an Employee to see their own edit waiting

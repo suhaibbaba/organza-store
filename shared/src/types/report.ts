@@ -1,9 +1,8 @@
-import type { REPORT_GRANULARITIES, REPORT_PERIODS } from "@/constants/report";
+import type { REPORT_PERIODS } from "@/constants/report";
 import type { I18n } from "@/types/common";
 import type { OrderChannel } from "@/types/order";
 
 export type ReportPeriod = (typeof REPORT_PERIODS)[number];
-export type ReportGranularity = (typeof REPORT_GRANULARITIES)[number];
 
 // Every money figure below is a 2dp string, like the rest of the API: floats
 // can't hold every 2dp value exactly (CLAUDE.md — money is never a Float).
@@ -41,8 +40,8 @@ export interface SalesTotals {
   // `cost` is cost of goods sold on what stayed sold; `profit` is the GROSS
   // profit (revenue - COGS) — what the shop earns before anything it spends
   // to keep the doors open. Net profit needs expenses, which cannot be
-  // attributed to a channel or a chart bucket, so it lives on the report's
-  // own `profit` block rather than here.
+  // attributed to a single channel, so it lives on the report's own `profit`
+  // block rather than here.
   cost?: string;
   profit?: string;
   // profit / revenue * 100, as a 2dp string. Null when revenue is 0 (there
@@ -64,15 +63,6 @@ export interface ReturnsTotals {
 
 export interface ChannelSales extends SalesTotals {
   channel: OrderChannel;
-}
-
-// One bucket of the trend chart. `date` is the bucket's first local day
-// (YYYY-MM-DD) — the granularity says how wide it is.
-export interface SalesSeriesPoint {
-  date: string;
-  orderCount: number;
-  revenue: string;
-  profit?: string;
 }
 
 // One best-selling line: a variant when the product has them, the product
@@ -165,14 +155,12 @@ export interface SalesReport {
   // The instants the figures actually cover, resolved from the requested
   // local dates + offset. `to` is exclusive (local midnight after `to`).
   range: { from: string; to: string };
-  granularity: ReportGranularity;
   totals: SalesTotals;
   // Sold vs. received vs. owed, gross vs. net. ADMIN ONLY — absent entirely
   // for every other role, like every other cost-derived figure.
   profit?: ProfitTotals;
   returns: ReturnsTotals;
   byChannel: ChannelSales[];
-  series: SalesSeriesPoint[];
   topByRevenue: TopSeller[];
   topByQuantity: TopSeller[];
 }

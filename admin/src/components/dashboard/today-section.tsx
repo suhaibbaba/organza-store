@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { FigureCard } from "@/components/dashboard/figure-card";
+import { FigureCard } from "@/components/figures/figure-card";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
 import type { PeriodSummary } from "@/types/report";
 
@@ -21,7 +21,7 @@ import type { PeriodSummary } from "@/types/report";
 // is no empty card to render and nothing to un-hide.
 export function TodaySection({ summary }: { summary: PeriodSummary }) {
   const t = useTranslations("dashboard.today");
-  const tFigures = useTranslations("dashboard.figures");
+  const tFigures = useTranslations("figures");
   const formatMoney = useMoneyFormatter();
   const { totals, profit } = summary;
 

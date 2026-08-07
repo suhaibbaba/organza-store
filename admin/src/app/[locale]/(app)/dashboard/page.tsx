@@ -22,12 +22,15 @@ import { DashboardError, DashboardLoading } from "@/components/dashboard/dashboa
 // what happened today -> is the drawer right -> how the period is going ->
 // what still needs doing.
 //
-// Admin/Manager only (CLAUDE.md rule 5): /api/dashboard/summary 403s for an
-// Employee, and several routes point here (the root redirect, the post-login
-// redirect), so the guard sends them on to their own first screen.
+// Admin/Manager only (CLAUDE.md rule 5): /api/dashboard/summary and
+// /api/reports/sales-summary both 403 for an Employee. This is also the
+// screen everything else points at when it doesn't know the role yet (the
+// root redirect, the proxy, the login form), so an Employee landing here
+// asked for nothing — the guard sends them on to their own first screen
+// rather than telling them off for a redirect they didn't choose.
 export default function DashboardPage() {
   return (
-    <RoleGuard action="dashboard.view">
+    <RoleGuard action="dashboard.view" onDenied="redirect">
       <DashboardPageContent />
     </RoleGuard>
   );

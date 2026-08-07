@@ -1,10 +1,5 @@
-import {
-  MS_PER_MINUTE,
-  REPORT_DAILY_MAX_DAYS,
-  REPORT_WEEKLY_MAX_DAYS,
-  REPORT_WEEK_START_DAY,
-} from "@/constants";
-import type { ReportGranularity, ReportPeriod, ReportRange } from "@/types";
+import { MS_PER_MINUTE, REPORT_WEEK_START_DAY } from "@/constants";
+import type { ReportPeriod, ReportRange } from "@/types";
 
 // Turning "today" into instants.
 //
@@ -61,13 +56,4 @@ export function pickedRange(from: string, to: string, tzOffset: number): ReportR
   const fromInstant = shift(new Date(`${from}T00:00:00.000Z`), -tzOffset);
   const toInstant = addLocalDays(shift(new Date(`${to}T00:00:00.000Z`), -tzOffset), 1, tzOffset);
   return { from: fromInstant, to: toInstant };
-}
-
-// How wide the chart's buckets should be. A phone can read two months of
-// daily bars but not a year of them, so longer ranges group up.
-export function granularityFor(range: ReportRange): ReportGranularity {
-  const days = (range.to.getTime() - range.from.getTime()) / (24 * 60 * MS_PER_MINUTE);
-  if (days <= REPORT_DAILY_MAX_DAYS) return "day";
-  if (days <= REPORT_WEEKLY_MAX_DAYS) return "week";
-  return "month";
 }
