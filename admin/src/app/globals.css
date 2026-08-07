@@ -18,6 +18,8 @@
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
@@ -96,6 +98,23 @@
   --destructive: oklch(0.55 0.22 27);
   --destructive-foreground: oklch(0.98 0 0);
 
+  /* ------------------------------------------------------------------
+     Stock status — red / amber / green, and only ever these three.
+
+     The same two values as pos/src/app/globals.css, on purpose: a quantity
+     that is "nearly out" in the POS has to be the same amber here in the
+     inventory, or the colour stops meaning anything. They replace the
+     tailwind `amber-500/amber-600` literals that used to be written into
+     the inventory table and card by hand.
+
+     Both are lightnesses that carry text on the page background at >=4.5:1,
+     because that is what they are mostly used as — a word in colour, on a
+     10% wash of the same colour. The label is always spelled out next to
+     them, so nothing here is the only thing saying what the status is.
+     ------------------------------------------------------------------ */
+  --success: oklch(0.52 0.13 152);
+  --warning: oklch(0.56 0.13 70);
+
   --border: oklch(0.9 0 0);
   --input: oklch(0.9 0 0);
   /* 0.65 alpha keeps the focus ring at >=3:1 against the page background. */
@@ -156,6 +175,11 @@
 
     --destructive: oklch(0.62 0.2 27);
     --destructive-foreground: oklch(0.16 0 0);
+
+    /* Same two hues, re-stepped for a dark surface — lightened rather than
+       flipped, so amber is still amber and green still green. */
+    --success: oklch(0.76 0.15 152);
+    --warning: oklch(0.8 0.14 75);
 
     --border: oklch(1 0 0 / 12%);
     --input: oklch(1 0 0 / 18%);

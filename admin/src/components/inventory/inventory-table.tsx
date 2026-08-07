@@ -3,10 +3,12 @@
 import { useMemo } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { flexRender, getCoreRowModel, useReactTable, type ColumnDef } from "@tanstack/react-table";
-import { AlertTriangle, ChevronRight } from "lucide-react";
+import { ChevronRight } from "lucide-react";
+import { resolveStockStatus } from "@shared/lib/stock";
 import type { InventoryItem } from "@shared/types/inventory";
 import { Link } from "@/i18n/navigation";
 import { localize } from "@/lib/i18n-content";
+import { StockBadge, STOCK_FIGURE_TONES } from "@/components/inventory/stock-badge";
 import { StockStepper } from "@/components/inventory/stock-stepper";
 import { PendingChangeBadge } from "@/components/change-requests/pending-change-badge";
 import { CHANGE_REQUEST_ENTITIES, CHANGE_REQUEST_FIELDS } from "@shared/constants/changeRequest";
@@ -57,24 +59,13 @@ export function InventoryTable({ items, threshold, canAdjust }: InventoryTablePr
       {
         id: "status",
         header: tTable("status"),
-        cell: ({ row }) => {
-          const { stock, trackLowStock } = row.original;
-          const isOut = stock <= 0;
-          // Opt-in only (Product.trackLowStock) — see InventoryCard.
-          const isLow = trackLowStock && stock > 0 && stock <= threshold;
-          if (!isOut && !isLow) return null;
-          return (
-            <span
-              className={cn(
-                "inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium",
-                isOut ? "bg-destructive/10 text-destructive" : "bg-amber-500/10 text-amber-600 dark:text-amber-400"
-              )}
-            >
-              <AlertTriangle className="size-3.5" aria-hidden="true" />
-              {isOut ? t("outOfStock") : t("lowStock")}
-            </span>
-          );
-        },
+        cell: ({ row }) => (
+          <StockBadge
+            stock={row.original.stock}
+            trackLowStock={row.original.trackLowStock}
+            threshold={threshold}
+          />
+        ),
       },
       {
         id: "stock",
@@ -84,7 +75,22 @@ export function InventoryTable({ items, threshold, canAdjust }: InventoryTablePr
             {canAdjust ? (
               <StockStepper item={row.original} />
             ) : (
-              <span className="font-medium text-foreground">{row.original.stock}</span>
+              // The figure takes the status colour, so the number and the
+              // badge beside it never disagree.
+              <span
+                className={cn(
+                  "font-medium",
+                  STOCK_FIGURE_TONES[
+                    resolveStockStatus({
+                      stock: row.original.stock,
+                      trackLowStock: row.original.trackLowStock,
+                      threshold,
+                    })
+                  ]
+                )}
+              >
+                {row.original.stock}
+              </span>
             )}
             {/* Same rule as the mobile card: a figure somebody has asked to
                 change is spoken for, not wrong. */}

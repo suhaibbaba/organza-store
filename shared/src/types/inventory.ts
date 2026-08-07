@@ -1,5 +1,9 @@
 import type { I18n } from "@/types/common";
 import type { ChangeRequest } from "@/types/changeRequest";
+import type { STOCK_STATUSES } from "@/constants/inventory";
+
+// How a quantity reads to the person looking at it — see STOCK_STATUSES.
+export type StockStatus = (typeof STOCK_STATUSES)[number];
 
 // Flattened stock row returned by GET /api/inventory (backend/src/routes/inventory.ts):
 // one row per simple product, or per variant when the product has variants.

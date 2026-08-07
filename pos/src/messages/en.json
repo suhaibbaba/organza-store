@@ -16,6 +16,13 @@
       "refreshing": "Refreshing…"
     }
   },
+  "stock": {
+    "out": "Out of stock",
+    "low": "Low stock",
+    "in": "In stock",
+    "lowCount": "Low stock · {count, plural, one {# left} other {# left}}",
+    "inCount": "In stock · {count, plural, one {# left} other {# left}}"
+  },
   "offline": {
     "title": "No internet connection",
     "message": "The point of sale needs an internet connection to look up products and record sales. Check your connection and try again."
@@ -48,8 +55,6 @@
       "searching": "Searching…",
       "empty": "Nothing matched.",
       "error": "Couldn't load search results. Try again.",
-      "soldOut": "Sold out",
-      "inStock": "{count, plural, one {# in stock} other {# in stock}}",
       "variantCount": "{count, plural, one {# option} other {# options}}",
       "kind": {
         "numbered": "Numbered · {count}",
@@ -94,7 +99,6 @@
       "numberLabel": "Number",
       "numberPlaceholder": "e.g. 4",
       "numberNotFound": "No such number, or it's sold out.",
-      "soldOut": "Sold out",
       "done": "Done",
       "add": "Add to the sale",
       "addNamed": "Add {name}",

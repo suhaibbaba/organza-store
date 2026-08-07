@@ -75,6 +75,10 @@ export const SCAN_PULSE_MS = 450;
 // keys to arrive, which is the whole point — the cashier pulls the trigger
 // with both hands full and no on-screen keyboard ever opens.
 //
+// Which keys it pressed is read off `event.code`, never off `event.key` —
+// see constants/keyboard.ts, and the shop's Arabic keyboard layout, which
+// otherwise turns every scan into Arabic letters.
+//
 // The one thing that has to be got right is telling the machine apart from a
 // person, and the giveaway is speed: a scanner puts its characters out a few
 // milliseconds apart, where even a quick typist is nearer a tenth of a
@@ -90,8 +94,14 @@ export const HARDWARE_SCAN_MIN_LENGTH = 4;
 // What a scanner sends after the code. Enter is the factory default on
 // essentially every model; Tab is the other one in the wild, and a scanner
 // already configured that way should not have to be re-programmed to work
-// here.
-export const HARDWARE_SCAN_TERMINATORS: readonly string[] = ["Enter", "Tab"];
+// here. NumpadEnter is the same Enter, pressed by a scanner set up to send
+// the code over the numeric keypad.
+//
+// Key CODES, like every other key this screen reads: these three happen to
+// be layout-independent either way, but mixing the two ways of naming a key
+// in one listener is how the next person introduces the bug this file's
+// header is about.
+export const HARDWARE_SCAN_TERMINATOR_CODES: readonly string[] = ["Enter", "NumpadEnter", "Tab"];
 
 // The keys the counter keyboard drives a sale with.
 //
@@ -103,6 +113,14 @@ export const SELL_SHORTCUT_FOCUS_SEARCH = "/";
 export const SELL_SHORTCUT_SCAN = "F2";
 export const SELL_SHORTCUT_CHECKOUT = "F9";
 export const SELL_SHORTCUT_CLEAR = "Escape";
+
+// "/" is the only one of the four that is a character, so it is the only one
+// the keyboard layout can take away: on an Arabic layout that key types `ظ`
+// and `event.key` never says "/" at all. The key is matched by its place on
+// the keyboard as well, which is the key the cap above is printed on
+// whatever the layout — the other three are not characters and are already
+// the same everywhere.
+export const SELL_SHORTCUT_FOCUS_SEARCH_CODE = "Slash";
 
 // Scan region for the scanner (html5-qrcode's `qrbox`), as a fraction of
 // the live viewfinder rather than as fixed pixels: html5-qrcode only decodes

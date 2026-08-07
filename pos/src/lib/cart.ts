@@ -34,6 +34,10 @@ export function toCartLine(product: Product, variant: Variant | null): CartLine 
     // design (variants own it), so a missing value means "not sellable"
     // rather than "unlimited".
     availableStock: variant ? variant.stock : product.stock ?? 0,
+    // Variants have no flag of their own — low-stock alerts are opt-in per
+    // PRODUCT (CLAUDE.md rule 7's stock default is 1, so most pieces here are
+    // one-offs), and a variant inherits its parent's answer.
+    trackLowStock: product.trackLowStock,
     quantity: MIN_CART_QUANTITY,
     discountType: null,
     discountValue: null,

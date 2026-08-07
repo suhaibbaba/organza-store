@@ -6,6 +6,7 @@ import type { Variant } from "@shared/types/variant";
 import { ERROR_CODES } from "@shared/constants/errors";
 import { ApiError } from "@/lib/api/errors";
 import { lookupProductByCode } from "@/lib/api/products";
+import { toLatinDigits } from "@/lib/keyboard";
 import { SCAN_DEDUPE_MS } from "@/constants/pos";
 
 export interface AddByCodeResult {
@@ -53,7 +54,13 @@ export function useAddByCode({ onAdd, onOutcome }: UseAddByCodeOptions) {
 
   const submitCode = useCallback(
     async (rawCode: string, options: { dedupe?: boolean } = {}) => {
-      const code = rawCode.trim();
+      // `٤٠١٢` is 4012. A cashier reading a torn label out by hand types it
+      // on the Arabic keyboard they already have, whose digit row sends
+      // Arabic-Indic digits — and every barcode and SKU in the catalogue is
+      // ASCII, so the lookup would answer "no such product" for a code they
+      // typed perfectly correctly. Both scanners send ASCII already, so this
+      // only ever changes the hand-typed path.
+      const code = toLatinDigits(rawCode.trim());
       if (!code) return;
 
       // Only what the camera keeps re-reading is held back, and only that
