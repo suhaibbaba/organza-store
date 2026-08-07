@@ -5,11 +5,19 @@ import { anyCategoryId, twoByTwoOptionSelections } from "@tests/support/fixtures
 import { createSellableProduct, readStock } from "@tests/support/orders";
 import {
   approveChange,
+  changeRequestsFor,
   listChangeRequests,
   pendingChangeFor,
   rejectChange,
 } from "@tests/support/changeRequests";
-import type { ChangeRequestCountDto, ChangeRequestDto, OrderDto, ProductDto } from "@tests/types";
+import { createExpense, expenseCategoryId } from "@tests/support/cash";
+import type {
+  ChangeRequestCountDto,
+  ChangeRequestDto,
+  ExpenseDto,
+  OrderDto,
+  ProductDto,
+} from "@tests/types";
 import { ERROR_CODES } from "@/constants";
 
 // The generic change-approval flow (spec.md "Employee change approvals").
@@ -37,11 +45,15 @@ const ONE_PIXEL_PNG = Buffer.from(
 
 describe("Change requests", () => {
   const createdProductIds: string[] = [];
+  const createdExpenseIds: string[] = [];
 
   afterAll(async () => {
     const admin = await getSession("ADMIN");
     for (const id of createdProductIds) {
       await apiRequest(`/api/products/${id}`, { method: "DELETE", token: admin.token });
+    }
+    for (const id of createdExpenseIds) {
+      await apiRequest(`/api/expenses/${id}`, { method: "DELETE", token: admin.token });
     }
   });
 
@@ -493,6 +505,233 @@ describe("Change requests", () => {
       expect(res.status).toBe(200);
       expect(res.meta?.pageSize).toBe(1);
       expect(res.data!.length).toBeLessThanOrEqual(1);
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // What the approvals screen is allowed to say
+  //
+  // The screen has three tabs and draws one card per request, so two things
+  // have to hold or it contradicts itself in front of an Admin: a decided
+  // request must carry the decision that was actually made, and each tab must
+  // list only requests in its own state. Both are the API's answer, not the
+  // frontend's — a card can only be as truthful as the row behind it.
+  // -------------------------------------------------------------------------
+  describe("status, as reported", () => {
+    // Two requests on two products, one turned down and one signed off, so
+    // every assertion below reads a real decided row rather than a fixture.
+    async function decidedPair() {
+      const admin = await getSession("ADMIN");
+      const employee = await getSession("EMPLOYEE");
+
+      async function askedPrice(label: string, price: string) {
+        const created = await product(admin.token, label);
+        const res = await apiRequest<ProductDto>(`/api/products/${created.id}`, {
+          method: "PATCH",
+          token: employee.token,
+          body: { basePrice: price },
+        });
+        return { productId: created.id, id: res.data!.pendingChanges!.find((c) => c.field === "basePrice")!.id };
+      }
+
+      const rejected = await askedPrice("StatusRejected", "11");
+      const approved = await askedPrice("StatusApproved", "22");
+      expect((await rejectChange(admin.token, rejected.id, "غالي")).status).toBe(200);
+      expect((await approveChange(admin.token, approved.id)).status).toBe(200);
+      return { admin, employee, rejected, approved };
+    }
+
+    /** One Employee price request, still waiting on a decision. */
+    async function heldPriceForDecision(label: string) {
+      const admin = await getSession("ADMIN");
+      const manager = await getSession("MANAGER");
+      const employee = await getSession("EMPLOYEE");
+      const created = await product(admin.token, label);
+      const res = await apiRequest<ProductDto>(`/api/products/${created.id}`, {
+        method: "PATCH",
+        token: employee.token,
+        body: { basePrice: "8.25" },
+      });
+      expect(res.status).toBe(200);
+      return {
+        admin,
+        manager,
+        employee,
+        request: res.data!.pendingChanges!.find((c) => c.field === "basePrice")!,
+      };
+    }
+
+    it("reports a rejected request as REJECTED and an approved one as APPROVED, however it is read", async () => {
+      const { admin, rejected, approved } = await decidedPair();
+
+      // Read one at a time...
+      for (const [id, status] of [
+        [rejected.id, "REJECTED"],
+        [approved.id, "APPROVED"],
+      ] as const) {
+        const single = await apiRequest<ChangeRequestDto>(`/api/change-requests/${id}`, { token: admin.token });
+        expect(single.status).toBe(200);
+        expect(single.data!.status).toBe(status);
+      }
+
+      // ...and off the list the screen actually draws from. A card renders
+      // whatever this row says, so this is the value the badge shows.
+      const listed = await changeRequestsFor(admin.token, "Product", rejected.productId, "basePrice");
+      expect(listed).toHaveLength(1);
+      expect(listed[0].status).toBe("REJECTED");
+      // Its decision is on it, so the card needs no second lookup to say who.
+      expect(listed[0].decidedBy?.id).toBe(admin.userId);
+      expect(listed[0].decisionNote).toBe("غالي");
+      // A refusal changes the request and nothing else: the value asked for
+      // is still on the row (that is what the card shows), and the product
+      // still holds the price it always had.
+      expect(listed[0].newValue).toEqual({ kind: "money", value: "11.00" });
+      const untouched = await apiRequest<ProductDto>(`/api/products/${rejected.productId}`, { token: admin.token });
+      expect(Number(untouched.data!.basePrice)).toBe(100);
+    });
+
+    it("lists a request under its own status tab only", async () => {
+      const { admin, rejected, approved } = await decidedPair();
+
+      // Each tab is one status= call. Every row it returns must be in that
+      // state — otherwise a card lands under a heading that contradicts it,
+      // which is exactly the bug this covers.
+      for (const status of ["PENDING", "APPROVED", "REJECTED"] as const) {
+        const tab = await listChangeRequests(admin.token, `?status=${status}&pageSize=100`);
+        expect(tab.status).toBe(200);
+        expect(tab.data!.every((c) => c.status === status)).toBe(true);
+      }
+
+      // ...and the two known rows land in one tab each, not in two and not in
+      // none. Scoped to their own product so other people's requests on the
+      // same live database cannot make this pass or fail by accident.
+      for (const { id, productId, belongs } of [
+        { ...rejected, belongs: "REJECTED" },
+        { ...approved, belongs: "APPROVED" },
+      ] as const) {
+        for (const status of ["PENDING", "APPROVED", "REJECTED"] as const) {
+          const tab = await listChangeRequests(
+            admin.token,
+            `?status=${status}&entityType=Product&entityId=${productId}&pageSize=100`
+          );
+          expect(tab.data!.map((c) => c.id).includes(id)).toBe(status === belongs);
+        }
+      }
+    });
+
+    it("records exactly one decision, and never a second row describing it", async () => {
+      const { admin, manager, request } = await heldPriceForDecision("OneDecision");
+
+      // Before: nothing decided.
+      expect(request.status).toBe("PENDING");
+      expect(request.decidedById).toBeNull();
+      expect(request.decidedAt).toBeNull();
+
+      const rejected = await rejectChange(admin.token, request.id, "لا");
+      expect(rejected.status).toBe(200);
+      const decidedById = rejected.data!.decidedById;
+      const decidedAt = rejected.data!.decidedAt;
+      expect(decidedById).toBe(admin.userId);
+      expect(decidedAt).not.toBeNull();
+
+      // Deciding again — the other way, by anyone — is refused rather than
+      // overwriting who agreed to what. That is what keeps ONE decision one.
+      expect((await approveChange(admin.token, request.id)).status).toBe(409);
+      expect((await rejectChange(manager.token, request.id)).status).toBe(403);
+
+      const after = await apiRequest<ChangeRequestDto>(`/api/change-requests/${request.id}`, {
+        token: admin.token,
+      });
+      expect(after.data!.status).toBe("REJECTED");
+      expect(after.data!.decidedById).toBe(decidedById);
+      expect(after.data!.decidedAt).toBe(decidedAt);
+
+      // And ONE row carries it. Not two rows describing the same refusal
+      // under two different deciders, which is what an approvals screen with
+      // duplicate records looks like.
+      const rows = await changeRequestsFor(admin.token, "Product", request.entityId, "basePrice");
+      expect(rows).toHaveLength(1);
+      expect(rows[0].id).toBe(request.id);
+    });
+
+    // The expense approval is the same mechanism (spec.md "Employee change
+    // approvals") and the one where every request asks for the identical
+    // thing — PENDING → APPROVED — so a refused one is where a screen that
+    // reads the ASKED-FOR value instead of the STATUS says "approved" under
+    // the Rejected tab. Its row has to be unambiguous about which happened.
+    it("marks a refused expense's request REJECTED, once, with the Admin who refused it", async () => {
+      const admin = await getSession("ADMIN");
+      const employee = await getSession("EMPLOYEE");
+      const categoryId = await expenseCategoryId(employee.token);
+
+      const created = await createExpense(employee.token, {
+        categoryId,
+        amount: "63.25",
+        note: `Vitest CR expense ${uniqueId()}`,
+        paidInCash: true,
+      });
+      expect(created.status).toBe(201);
+      createdExpenseIds.push(created.data!.id);
+      expect(created.data!.approvalStatus).toBe("PENDING");
+
+      const asked = (await pendingChangeFor(admin.token, "Expense", created.data!.id))!;
+      expect(asked.status).toBe("PENDING");
+      // Every one of these asks for the same thing, which is precisely why
+      // the request's own status is the only honest answer once it is decided.
+      expect(asked.newValue).toEqual({ kind: "approval", value: "APPROVED" });
+
+      const refused = await rejectChange(admin.token, asked.id, "مسجّلة مرتين");
+      expect(refused.status).toBe(200);
+      expect(refused.data!.status).toBe("REJECTED");
+      expect(refused.data!.decidedBy?.id).toBe(admin.userId);
+
+      // One row for this expense, in the REJECTED state, decided by the Admin
+      // — never the same refusal listed twice under two deciders.
+      const rows = await changeRequestsFor(admin.token, "Expense", created.data!.id);
+      expect(rows).toHaveLength(1);
+      expect(rows[0].status).toBe("REJECTED");
+      expect(rows[0].decidedById).toBe(admin.userId);
+
+      // ...and the expense itself agrees with it, so the two screens that
+      // show this spending cannot disagree either.
+      const expense = await apiRequest<ExpenseDto>(`/api/expenses/${created.data!.id}`, { token: admin.token });
+      expect(expense.data!.approvalStatus).toBe("REJECTED");
+      expect(expense.data!.approvedBy?.id).toBe(admin.userId);
+    });
+
+    // Rule 5 / rule 21: deciding is changeRequest.approve, and only an Admin
+    // holds it. A Manager holds expense.approve — "the spending I record
+    // MYSELF counts immediately" — which is a different thing and must not
+    // let them sign off somebody else's request.
+    it("refuses every non-Admin, on both endpoints, and stores no decider when it does", async () => {
+      const admin = await getSession("ADMIN");
+      const manager = await getSession("MANAGER");
+      const employee = await getSession("EMPLOYEE");
+      const { request } = await heldPriceForDecision("NonAdminDecider");
+
+      for (const token of [manager.token, employee.token]) {
+        expect((await approveChange(token, request.id)).status).toBe(403);
+        expect((await rejectChange(token, request.id, "لا")).status).toBe(403);
+      }
+
+      // Refused means refused: still waiting, and nobody recorded as having
+      // decided it. A 403 that had already written decidedBy would be worse
+      // than one that applied the change.
+      const still = await apiRequest<ChangeRequestDto>(`/api/change-requests/${request.id}`, {
+        token: admin.token,
+      });
+      expect(still.data!.status).toBe("PENDING");
+      expect(still.data!.decidedById).toBeNull();
+      expect(still.data!.decidedBy).toBeNull();
+      expect(still.data!.decidedAt).toBeNull();
+
+      // ...and when it IS decided, the stored decider is the Admin who called,
+      // not whoever asked and not whoever tried.
+      const decided = await approveChange(admin.token, request.id);
+      expect(decided.status).toBe(200);
+      expect(decided.data!.decidedById).toBe(admin.userId);
+      expect(decided.data!.decidedById).not.toBe(manager.userId);
+      expect(decided.data!.requestedById).toBe(employee.userId);
     });
   });
 

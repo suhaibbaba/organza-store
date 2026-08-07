@@ -855,14 +855,23 @@ async function main() {
       decidedAt: r.decidedAt,
       decisionNote: r.decisionNote,
     };
-    // A database that went through the expense-approval migration already
-    // holds a backfilled request for the seeded pending expense, under its
-    // own id. The pendingKey is unique, so that row has to give way before
-    // this one can take the slot — which is also exactly what makes a
-    // re-seed safe to run over a migrated dev database.
-    if (data.pendingKey) {
-      await prisma.changeRequest.deleteMany({ where: { pendingKey: data.pendingKey, id: { not: r.id } } });
-    }
+    // The seed OWNS the (entityType, entityId, field) of every request it
+    // writes, so anything else describing that same change is a leftover and
+    // goes first. A database that went through the expense-approval migration
+    // holds exactly that: the backfill wrote its own request for each seeded
+    // expense under a generated id, attributed to whoever had signed the
+    // expense off at the time.
+    //
+    // Cleared for DECIDED rows as well as pending ones, which is the part
+    // that was missing. pendingKey is null once a request is decided — that
+    // is what frees the slot for the next ask — so nothing in the database
+    // stops two decided rows describing one decision, and the approvals
+    // screen listed both: the same refusal twice, under two different
+    // deciders. Matching on the triple rather than on the pendingKey covers
+    // both states with one rule.
+    await prisma.changeRequest.deleteMany({
+      where: { entityType: r.entityType, entityId: r.entityId, field: r.field, id: { not: r.id } },
+    });
     await prisma.changeRequest.upsert({ where: { id: r.id }, update: data, create: { id: r.id, ...data } });
   }
 

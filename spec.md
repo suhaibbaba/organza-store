@@ -334,7 +334,20 @@ transaction, so a half-applied approval is impossible. Rejecting **discards** it
 nothing (an expense is the one exception: a refused expense is marked `REJECTED` on its own row,
 with who refused it, rather than sitting pending forever). Nobody decides their own request.
 Approval is **Admin only** for now, modelled as a permission (`changeRequest.approve`) so it can
-be widened later without touching the flow.
+be widened later without touching the flow. **A Manager cannot decide a request** — deliberately,
+and it is the whole reason the gate exists. Note that a Manager *does* hold `expense.approve`,
+which is a different thing entirely: it means "the spending I record myself counts immediately",
+never "I may sign off somebody else's". If a request ever shows a Manager as its decider it is
+historical data, not a decision this API would accept today — the migration that lifted expense
+approvals into this table carried each expense's existing `approvedById` across, and under the old
+per-expense endpoints that could legitimately be a Manager.
+
+**One decision per request.** A request carries exactly one `(decidedById, decidedAt)`, written
+once: deciding an already-decided request is a `409`, never a silent overwrite of who agreed to
+what. There is likewise never a second row describing the same decision — a decided request is
+history and nothing re-files it, and the dev seed clears any earlier row for the same
+(entity type, entity id, field) before writing its own, so a database that went through the
+expense-approval backfill does not end up listing one refusal twice under two different deciders.
 
 **Who sees what.** An Admin sees everything waiting and can act on it. Everyone else sees only
 what they themselves asked for, enforced on the backend — an Employee has to be able to follow
