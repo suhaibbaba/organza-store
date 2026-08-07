@@ -5,6 +5,7 @@ import {
   SELL_SHORTCUT_CHECKOUT,
   SELL_SHORTCUT_CLEAR,
   SELL_SHORTCUT_FOCUS_SEARCH,
+  SELL_SHORTCUT_FOCUS_SEARCH_CODE,
   SELL_SHORTCUT_SCAN,
 } from "@/constants/pos";
 
@@ -52,16 +53,24 @@ export function useSellShortcuts({ enabled, onFocusSearch, onScan, onCheckout, o
       const handlers = handlersRef.current;
       const typing = isTypingInto(event.target);
 
-      switch (event.key) {
-        // A character, so it is only a shortcut where a character has nowhere
-        // to go. In a field it is a "/", as it must be.
-        case SELL_SHORTCUT_FOCUS_SEARCH:
-          if (typing) return;
-          // Or it would land in the box it just focused.
-          event.preventDefault();
-          handlers.onFocusSearch();
-          return;
+      // A character, so it is only a shortcut where a character has nowhere
+      // to go. In a field it types, as it must.
+      //
+      // Matched by its place on the keyboard as well as by what it typed,
+      // because the shop's layout is Arabic and that key sends `ظ` under it
+      // — the same reason the scanner reads `event.code` (constants/
+      // keyboard.ts). Both, not just the code: on a layout that puts "/"
+      // somewhere else entirely, the key printed "/" is still the one the
+      // cashier will reach for.
+      if (event.key === SELL_SHORTCUT_FOCUS_SEARCH || event.code === SELL_SHORTCUT_FOCUS_SEARCH_CODE) {
+        if (typing) return;
+        // Or it would land in the box it just focused.
+        event.preventDefault();
+        handlers.onFocusSearch();
+        return;
+      }
 
+      switch (event.key) {
         // Function keys are safe to take anywhere: they type nothing, so
         // reaching for the camera or finishing the sale works with the cursor
         // still sitting in the search box.

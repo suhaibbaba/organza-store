@@ -19,6 +19,11 @@
     },
     "cancel": "Cancel"
   },
+  "stock": {
+    "out": "Out of stock",
+    "low": "Low stock",
+    "in": "In stock"
+  },
   "offline": {
     "title": "No internet connection",
     "message": "This app needs an internet connection to show products, stock and orders. Check your connection and try again."
@@ -753,9 +758,7 @@
     },
     "card": {
       "noSku": "No SKU",
-      "stockLabel": "Stock",
-      "outOfStock": "Out of stock",
-      "lowStock": "Low stock"
+      "stockLabel": "Stock"
     },
     "table": {
       "item": "Item",

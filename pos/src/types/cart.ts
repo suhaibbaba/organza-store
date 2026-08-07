@@ -25,6 +25,11 @@ export interface CartLine {
   // cashier building a cart the backend will reject. The backend's atomic
   // stock guard remains the real check (two tills, one last piece).
   availableStock: number;
+  // The parent product's opt-in low-stock flag (Product.trackLowStock),
+  // copied in for the same reason the name and the price are: the line says
+  // in colour how close to gone this piece is, and the cart must not have to
+  // re-fetch a product to draw itself.
+  trackLowStock: boolean;
   quantity: number;
   discountType: DiscountType | null;
   discountValue: string | null;

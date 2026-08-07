@@ -10,6 +10,7 @@ import { useMoneyFormatter } from "@/hooks/use-money-formatter";
 import { SCAN_FLASH_MS } from "@/constants/pos";
 import { ProductThumb } from "@/components/sell/product-thumb";
 import { QuantityStepper } from "@/components/ui/quantity-stepper";
+import { StockBadge } from "@/components/ui/stock-badge";
 import { cn } from "@/lib/utils";
 import type { CartLine } from "@/types/cart";
 import type { ScanFlash } from "@/types/feedback";
@@ -52,8 +53,18 @@ export function CartLineRow({ line, flash, onQuantityChange, onRemove, onDiscoun
         <div className="flex min-w-0 flex-1 flex-col gap-0.5">
           <span className="truncate text-base font-medium">{name}</span>
           {variantName && <span className="truncate text-sm text-muted-foreground">{variantName}</span>}
-          <span className="text-sm text-muted-foreground">
-            {t("unitPrice", { price: formatMoney(line.unitPrice) })}
+          <span className="flex flex-wrap items-center gap-2">
+            <span className="text-sm text-muted-foreground">
+              {t("unitPrice", { price: formatMoney(line.unitPrice) })}
+            </span>
+            {/* What the shop still has of this piece, in the same red / amber
+                / green as the search result the cashier picked it from. It
+                belongs on the line and not only on the way in: a cart sits
+                open while the customer decides, and "there is only one left"
+                is exactly what somebody asking for a second one needs to
+                hear. The count is what the stepper is capped at, so the two
+                always agree. */}
+            <StockBadge stock={line.availableStock} trackLowStock={line.trackLowStock} showCount />
           </span>
 
           {/* Right under the price, because that is the number it changes:

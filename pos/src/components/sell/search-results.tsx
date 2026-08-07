@@ -10,6 +10,7 @@ import { ProductThumb } from "@/components/sell/product-thumb";
 import { VariantKindBadge } from "@/components/sell/variant-kind-badge";
 import { Alert } from "@/components/ui/alert";
 import { Spinner } from "@/components/ui/spinner";
+import { StockBadge } from "@/components/ui/stock-badge";
 
 interface SearchResultsProps {
   results: ProductSummary[] | undefined;
@@ -95,16 +96,17 @@ export function SearchResults({ results, isLoading, isError, pendingId, onSelect
               <span className="flex min-w-0 flex-1 flex-col items-start gap-1">
                 <span className="w-full truncate text-base font-medium">{name}</span>
 
-                {/* The price leads and the stock follows it quietly — one
-                    figure to read and one to check, rather than two competing
-                    for the same glance. */}
-                <span className="flex items-baseline gap-2">
+                {/* The price leads and the stock follows it — one figure to
+                    read and one thing to check, rather than two competing for
+                    the same glance. The check is a coloured badge rather than
+                    a quiet grey count: "can I sell this" is the question a
+                    cashier is actually asking of a search result, and red /
+                    amber / green answers it before the row is read. */}
+                <span className="flex flex-wrap items-center gap-2">
                   <span className="text-base font-semibold text-foreground">
                     {formatMoney(product.basePrice)}
                   </span>
-                  <span className={cn("text-sm", soldOut ? "text-destructive" : "text-muted-foreground")}>
-                    {soldOut ? t("soldOut") : t("inStock", { count: product.stock })}
-                  </span>
+                  <StockBadge stock={product.stock} trackLowStock={product.trackLowStock} showCount />
                 </span>
 
                 {/* On a line of its own: sharing the price line, it fitted in

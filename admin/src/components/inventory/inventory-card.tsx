@@ -1,8 +1,10 @@
 import { useLocale, useTranslations } from "next-intl";
-import { AlertTriangle, ChevronRight } from "lucide-react";
+import { ChevronRight } from "lucide-react";
+import { resolveStockStatus } from "@shared/lib/stock";
 import type { InventoryItem } from "@shared/types/inventory";
 import { Link } from "@/i18n/navigation";
 import { localize } from "@/lib/i18n-content";
+import { StockBadge, STOCK_FIGURE_TONES } from "@/components/inventory/stock-badge";
 import { StockStepper } from "@/components/inventory/stock-stepper";
 import { PendingChangeBadge } from "@/components/change-requests/pending-change-badge";
 import { CHANGE_REQUEST_ENTITIES, CHANGE_REQUEST_FIELDS } from "@shared/constants/changeRequest";
@@ -19,11 +21,7 @@ export function InventoryCard({ item, threshold, canAdjust }: InventoryCardProps
   const t = useTranslations("inventory.card");
   const productName = localize(item.productName, locale);
   const variantName = item.variantName ? localize(item.variantName, locale) : null;
-  const isOut = item.stock <= 0;
-  // Low-stock alerts are opt-in per product (Product.trackLowStock): most
-  // pieces are one-offs sitting at stock = 1, so badging every small quantity
-  // would bury the products that actually need restocking.
-  const isLow = item.trackLowStock && item.stock > 0 && item.stock <= threshold;
+  const status = resolveStockStatus({ stock: item.stock, trackLowStock: item.trackLowStock, threshold });
 
   return (
     <div className="relative flex flex-col gap-2 rounded-xl border border-border bg-card p-3 transition-colors has-[a:active]:bg-accent">
@@ -44,17 +42,12 @@ export function InventoryCard({ item, threshold, canAdjust }: InventoryCardProps
           </Link>
           <p className="mt-0.5 truncate text-xs text-muted-foreground">{item.sku ?? t("noSku")}</p>
         </div>
-        {(isOut || isLow) && (
-          <span
-            className={cn(
-              "inline-flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium",
-              isOut ? "bg-destructive/10 text-destructive" : "bg-amber-500/10 text-amber-600 dark:text-amber-400"
-            )}
-          >
-            <AlertTriangle className="size-3.5" aria-hidden="true" />
-            {isOut ? t("outOfStock") : t("lowStock")}
-          </span>
-        )}
+        <StockBadge
+          stock={item.stock}
+          trackLowStock={item.trackLowStock}
+          threshold={threshold}
+          className="shrink-0"
+        />
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border pt-2">
@@ -77,14 +70,9 @@ export function InventoryCard({ item, threshold, canAdjust }: InventoryCardProps
             <StockStepper item={item} />
           </div>
         ) : (
-          <span
-            className={cn(
-              "text-base font-semibold",
-              isOut ? "text-destructive" : isLow ? "text-amber-600 dark:text-amber-400" : "text-foreground"
-            )}
-          >
-            {item.stock}
-          </span>
+          // The figure takes the status colour, so the number and the badge
+          // above it never disagree.
+          <span className={cn("text-base font-semibold", STOCK_FIGURE_TONES[status])}>{item.stock}</span>
         )}
       </div>
     </div>

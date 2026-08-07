@@ -336,11 +336,21 @@ export function SellScreen() {
           fixed checkout bar at every width so the last cart line is never
           trapped underneath it — the height is the bar's own measured one
           (CheckoutBar publishes it), not a guess, so it stays right as the
-          bar grows a discount line or reflows into a single row on a laptop. */}
+          bar grows a discount line or reflows into a single row on a laptop.
+
+          The two columns are the other way round from how they started. The
+          finding side used to take everything left over after a fixed 24rem
+          cart, which on the counter's laptop meant a half-empty panel filling
+          most of the screen while the sale — the thing actually being worked
+          on, and the thing with the most in it — was squeezed into a strip.
+          Now the finding side is the one that is capped and the cart takes
+          the rest, so the sale gets the room and the search column is only
+          ever as wide as a result card needs to be. */}
       <main
         className={cn(
           "mx-auto w-full max-w-2xl px-4 pb-[calc(var(--checkout-bar-height)+1rem)] pt-4",
-          "lg:grid lg:max-w-6xl lg:grid-cols-[minmax(0,1fr)_24rem] lg:items-start lg:gap-6"
+          "lg:grid lg:max-w-6xl lg:grid-cols-[24rem_minmax(0,1fr)] lg:items-start lg:gap-6",
+          "xl:grid-cols-[26rem_minmax(0,1fr)]"
         )}
       >
         {/* Finding things: the search box, and whatever it turns up. */}

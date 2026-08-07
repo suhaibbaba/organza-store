@@ -12,6 +12,7 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "
 import { NumericInput } from "@/components/ui/numeric-input";
 import { Button } from "@/components/ui/button";
 import { Alert } from "@/components/ui/alert";
+import { StockBadge } from "@/components/ui/stock-badge";
 import { cn } from "@/lib/utils";
 
 interface VariantPickerSheetProps {
@@ -256,9 +257,23 @@ function VariantPicker({ product, isNumbered, onPick, onClose }: VariantPickerPr
                   >
                     {name}
                   </span>
-                  <span className="text-sm text-muted-foreground">
-                    {soldOut ? t("soldOut") : formatMoney(variant.resolvedPrice)}
-                  </span>
+                  {/* The price stays on a sold-out tile now that the badge
+                      below says it is gone: the cashier is often being asked
+                      "how much is that one?" about a piece that has just sold,
+                      and the tile used to answer by hiding the figure.
+
+                      The count is only spelled out where there is room for it.
+                      A numbered tile is a third of a phone's width and shows
+                      the status alone — how many of shawl number 4 are left is
+                      almost always one, and the cart's own line says so when
+                      it matters. */}
+                  <span className="text-sm text-muted-foreground">{formatMoney(variant.resolvedPrice)}</span>
+                  <StockBadge
+                    stock={variant.stock}
+                    trackLowStock={product.trackLowStock}
+                    showCount={!isNumbered}
+                    size={isNumbered ? "sm" : "md"}
+                  />
                 </button>
               </li>
             );
@@ -277,8 +292,24 @@ function VariantPicker({ product, isNumbered, onPick, onClose }: VariantPickerPr
           {chosen.length > 0 ? t("selectedCount", { count: chosen.length }) : ""}
         </p>
 
-        <div className="flex items-center gap-2">
-          <Button type="button" onClick={addChosen} disabled={chosen.length === 0} className="flex-1">
+        {/* Two real buttons, not one button and an afterthought.
+            "Done" is a short word — تم is two letters — and left to size
+            itself it came out a third of Add's height in visual weight and
+            barely wider than a thumb, which is a poor target for the one
+            control that closes the sheet.
+
+            So it is given a floor of its own (7rem, growing to 9rem where
+            there is room) and the same h-12 as Add, and the hierarchy is
+            carried by fill instead of by size: Add is the solid brand button
+            and takes the remaining width, Done is outlined. Both stay well
+            over the 44px minimum. */}
+        <div className="flex items-stretch gap-3">
+          <Button
+            type="button"
+            onClick={addChosen}
+            disabled={chosen.length === 0}
+            className="min-w-0 flex-1"
+          >
             {/* One chosen variant is named outright — it is the common case
                 and the name is the confirmation. Several are counted, because
                 eight names do not fit on a phone's button. */}
@@ -288,7 +319,12 @@ function VariantPicker({ product, isNumbered, onPick, onClose }: VariantPickerPr
           </Button>
 
           {isNumbered && (
-            <Button type="button" variant="secondary" onClick={onClose} className="shrink-0">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onClose}
+              className="min-w-28 shrink-0 sm:min-w-36"
+            >
               {t("done")}
             </Button>
           )}

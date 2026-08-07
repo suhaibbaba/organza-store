@@ -16,6 +16,13 @@
       "refreshing": "جارٍ التحديث…"
     }
   },
+  "stock": {
+    "out": "غير متوفر",
+    "low": "كمية قليلة",
+    "in": "متوفر",
+    "lowCount": "كمية قليلة · {count, plural, one {قطعة واحدة} two {قطعتان} few {# قطع} many {# قطعة} other {# قطعة}}",
+    "inCount": "متوفر · {count, plural, one {قطعة واحدة} two {قطعتان} few {# قطع} many {# قطعة} other {# قطعة}}"
+  },
   "offline": {
     "title": "لا يوجد اتصال بالإنترنت",
     "message": "تحتاج شاشة البيع إلى اتصال بالإنترنت للبحث عن المنتجات وتسجيل المبيعات. تحقّق من الاتصال ثم أعد المحاولة."
@@ -48,8 +55,6 @@
       "searching": "جارٍ البحث…",
       "empty": "لا توجد نتائج مطابقة.",
       "error": "تعذّر تحميل نتائج البحث. حاول مرة أخرى.",
-      "soldOut": "غير متوفر",
-      "inStock": "{count, plural, zero {لا يوجد مخزون} one {قطعة واحدة} two {قطعتان} few {# قطع} many {# قطعة} other {# قطعة}}",
       "variantCount": "{count, plural, zero {لا خيارات} one {خيار واحد} two {خياران} few {# خيارات} many {# خيارًا} other {# خيار}}",
       "kind": {
         "numbered": "مرقّم · {count}",
@@ -94,7 +99,6 @@
       "numberLabel": "الرقم",
       "numberPlaceholder": "مثال: 4",
       "numberNotFound": "لا يوجد هذا الرقم، أو أنه غير متوفر حاليًا.",
-      "soldOut": "غير متوفر",
       "done": "تم",
       "add": "إضافة إلى السلة",
       "addNamed": "إضافة {name}",
