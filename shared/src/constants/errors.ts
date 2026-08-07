@@ -10,7 +10,17 @@ export const ERROR_CODES = {
 
   DUPLICATE: "error.duplicate",
   SKU_DUPLICATE: "error.sku.duplicate",
+  // A code already in use somewhere in the store — on a product or on a
+  // variant, since barcodes share one namespace. Carries `details` naming
+  // what it clashes with, because "already used" is unanswerable without
+  // knowing by what (see lib/barcode.ts).
   BARCODE_DUPLICATE: "error.barcode.duplicate",
+  // Not a barcode at all: too short, too long, or characters no scanner
+  // could have produced.
+  BARCODE_INVALID: "error.barcode.invalid",
+  // "Use the supplier's code" with no code given. Nothing is generated in
+  // its place — the garment either carries a tag or it doesn't.
+  BARCODE_REQUIRED: "error.barcode.required",
   SLUG_DUPLICATE: "error.slug.duplicate",
   EMAIL_DUPLICATE: "error.email.duplicate",
   PHONE_DUPLICATE: "error.phone.duplicate",

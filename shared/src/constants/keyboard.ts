@@ -1,6 +1,10 @@
 /* ---------------------------------------------------------------------------
  * Physical keys, not the letters the operating system thinks they are
  *
+ * Shared between the POS (which listens for scans on the whole screen) and
+ * the admin (whose barcode fields are filled by the same wedge scanner), so
+ * both ends read a scan the same way.
+ *
  * The counter's barcode scanner is a USB keyboard. It does not send text — it
  * sends key presses, and the operating system turns each one into a character
  * using whichever layout is currently active. In this shop that layout is

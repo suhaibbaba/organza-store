@@ -6,15 +6,26 @@ export const PRODUCT_SORT_FIELDS = ["createdAt", "basePrice", "stock", "slug"] a
 export const PRODUCT_PRINT_STATES = ["all", "printed", "not_printed"] as const;
 
 // What one scanned code resolved to (GET /api/products/lookup).
-//   ITEM             — exactly one sellable thing; put it in the cart.
-//   NUMBER_SELECTION — a numbered shawl's parent label (spec.md "Numbered
-//                      shawls"): the label covers the whole collection, so
-//                      the cashier still has to pick which number. Nothing
-//                      sellable is returned, on purpose — selling the parent
-//                      would deduct stock from the wrong place.
-export const PRODUCT_LOOKUP_KINDS = ["ITEM", "NUMBER_SELECTION"] as const;
+//   ITEM              — exactly one sellable thing; put it in the cart.
+//   VARIANT_SELECTION — the code was the PARENT of a product that has
+//                       variants, so it stands for the whole piece rather
+//                       than for one of them and the cashier still has to
+//                       pick which. Nothing sellable is returned, on purpose:
+//                       selling the parent would deduct stock from the wrong
+//                       place, and the orders API refuses it anyway
+//                       (error.order.variant_required).
+//
+// One mechanism, two flavours of the same answer. It started as the numbered
+// shawls' parent scan (spec.md "Numbered shawls" — one photo, numbers drawn
+// on it, one label for the collection) and now covers every parent barcode,
+// because a supplier that prints ONE code for all sizes leaves the shop in
+// exactly the same position: the code identifies the garment, not the size
+// that just sold. `numbers` is still filled for a numbered product, since its
+// picker is laid out by number; an ordinary parent's variants are picked from
+// `product.variants`.
+export const PRODUCT_LOOKUP_KINDS = ["ITEM", "VARIANT_SELECTION"] as const;
 
 export const PRODUCT_LOOKUP_KIND = {
   ITEM: "ITEM",
-  NUMBER_SELECTION: "NUMBER_SELECTION",
+  VARIANT_SELECTION: "VARIANT_SELECTION",
 } as const;

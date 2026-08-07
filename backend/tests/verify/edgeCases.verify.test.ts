@@ -136,7 +136,7 @@ describe("Verify · edge cases", () => {
       }
     });
 
-    it("refuses a barcode sent on creation instead of honouring it", async () => {
+    it("ignores a bare barcode sent on creation, and honours one the caller asks for by source", async () => {
       const categoryId = await anyCategoryId(admin);
       const created = await apiRequest<ProductDto>("/api/products", {
         method: "POST",
@@ -152,9 +152,29 @@ describe("Verify · edge cases", () => {
       expect(created.status).toBe(201);
       expect(
         created.data!.barcode,
-        "a client-supplied barcode must be ignored — barcodes are generated (CLAUDE.md rule 13)"
+        "a code with no source is not a decision — generation stays the default (CLAUDE.md rule 13)"
       ).not.toBe("1234567890128");
       expect(isValidEan13(created.data!.barcode!), "and the generated one is a valid EAN-13").toBe(true);
+      expect(created.data!.barcodeSource, "which is what the stored source says").toBe("GENERATED");
+
+      // A garment that arrived already barcoded is the other case, and it is
+      // asked for explicitly — never inferred from a code turning up.
+      const supplierCode = `9${uniqueId().replace(/\D/g, "").padEnd(11, "7").slice(0, 11)}0`;
+      const supplied = await apiRequest<ProductDto>("/api/products", {
+        method: "POST",
+        token: admin,
+        body: {
+          name: { ar: `باركود مورّد ${uniqueId()}`, en: `[verify] supplier barcode ${uniqueId()}` },
+          categoryId,
+          basePrice: UNIT_PRICE,
+          barcodeSource: "SUPPLIER",
+          barcode: supplierCode,
+        },
+      });
+
+      expect(supplied.status).toBe(201);
+      expect(supplied.data!.barcode, "the supplier's own code is kept exactly as given").toBe(supplierCode);
+      expect(supplied.data!.barcodeSource).toBe("SUPPLIER");
     });
   });
 
@@ -167,7 +187,7 @@ describe("Verify · edge cases", () => {
         { token: admin }
       );
       expect(scan.status).toBe(200);
-      expect(scan.data!.kind, "the parent label asks which number").toBe("NUMBER_SELECTION");
+      expect(scan.data!.kind, "the parent label asks which number").toBe("VARIANT_SELECTION");
       expect(scan.data!.variant, "and offers nothing sellable on its own").toBeNull();
       expectCount(scan.data!.numbers.length, 2, "numbers offered");
 

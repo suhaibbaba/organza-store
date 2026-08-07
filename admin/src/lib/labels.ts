@@ -1,3 +1,4 @@
+import { BARCODE_SOURCE } from "@shared/constants/barcode";
 import type { Product } from "@shared/types/product";
 import type { Setting } from "@shared/types/setting";
 import { localize } from "@/lib/i18n-content";
@@ -49,11 +50,21 @@ export function isNumberedProduct(product: Pick<Product, "isNumbered">): boolean
 //   numbered shawl   — the PARENT only. Its numbers live on the photo, not on
 //                      separate tags, so there is nothing per-number to stick;
 //                      the count is whatever the shop wants and is typed in.
+//
+// A line whose code is the supplier's own needs no sticker: the garment came
+// with one printed on it. Those lines are kept but proposed at zero copies and
+// marked on screen — the state is shown, never faked by pretending the label
+// was printed (see the products list's `printState` filter, which excludes the
+// same pieces by source). Printing one anyway is a typed count away.
 export function buildLabelLines(product: Product, locale: string): LabelLine[] {
   const name = localize(product.name, locale);
   // The suggestion can't propose more than the field itself accepts, or the
   // number on screen would stop matching the number being counted.
   const suggest = (stock: number) => Math.min(Math.max(stock, 0), LABEL_COPIES_MAX);
+  // A supplier code on the PARENT covers every variant under it: that is the
+  // shared-code case — one tag for all sizes — so nothing per-variant is owed
+  // either.
+  const parentIsSupplier = product.barcodeSource === BARCODE_SOURCE.SUPPLIER;
 
   if (isNumberedProduct(product)) {
     return [
@@ -64,25 +75,30 @@ export function buildLabelLines(product: Product, locale: string): LabelLine[] {
         name,
         subtitle: null,
         code: product.barcode,
-        suggestedCopies: 1,
+        suggestedCopies: parentIsSupplier ? 0 : 1,
+        supplierBarcode: parentIsSupplier,
         isNumbered: true,
       },
     ];
   }
 
   if (product.hasVariants) {
-    return product.variants.map((variant) => ({
-      key: `${product.id}:${variant.id}`,
-      productId: product.id,
-      variantId: variant.id,
-      name,
-      subtitle: localize(variant.name, locale),
-      // A variant always has a SKU; the barcode is what the label prints, so
-      // the SKU only stands in if a barcode somehow never got generated.
-      code: variant.barcode ?? variant.sku,
-      suggestedCopies: suggest(variant.stock),
-      isNumbered: false,
-    }));
+    return product.variants.map((variant) => {
+      const supplierBarcode = parentIsSupplier || variant.barcodeSource === BARCODE_SOURCE.SUPPLIER;
+      return {
+        key: `${product.id}:${variant.id}`,
+        productId: product.id,
+        variantId: variant.id,
+        name,
+        subtitle: localize(variant.name, locale),
+        // A variant always has a SKU; the barcode is what the label prints, so
+        // the SKU only stands in if a barcode somehow never got generated.
+        code: variant.barcode ?? variant.sku,
+        suggestedCopies: supplierBarcode ? 0 : suggest(variant.stock),
+        supplierBarcode,
+        isNumbered: false,
+      };
+    });
   }
 
   return [
@@ -93,7 +109,8 @@ export function buildLabelLines(product: Product, locale: string): LabelLine[] {
       name,
       subtitle: null,
       code: product.barcode ?? product.sku,
-      suggestedCopies: suggest(product.stock ?? 0),
+      suggestedCopies: parentIsSupplier ? 0 : suggest(product.stock ?? 0),
+      supplierBarcode: parentIsSupplier,
       isNumbered: false,
     },
   ];

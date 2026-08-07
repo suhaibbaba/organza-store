@@ -11,6 +11,10 @@
 //    - compare-at price, hidden product, soft-deleted product
 //    - a numbered shawl (Number variant type), incl. a sold-out number
 //    - one product with its barcode labels already printed, the rest not
+//    - supplier barcodes: a simple product carrying the code it arrived with,
+//      a variant product whose PARENT carries one shared code for every size
+//      (the parent scan opens the picker), and one whose single variant has
+//      its own supplier code while its siblings keep ours
 //    - orders on every channel, covering the status flow, both discount
 //      levels, a cancellation, a partial return and a soft-deleted sale
 //    - a GIFT order (stock out, nothing charged)
@@ -40,6 +44,16 @@ type I18n = { ar: string; en?: string; he?: string };
 // stand-in for "these labels have already been printed", giving both sides of
 // the products list's print-state filter real data.
 const SEEDED_LABELS_PRINTED_AT = new Date("2026-01-01T09:00:00.000Z");
+
+// Codes "printed by the supplier" on the seeded garments — fixed, so a
+// re-seed keeps them, and picked from the published EAN example range so they
+// can never collide with one this system generates (those all start 200-299,
+// see src/constants/barcode.ts).
+const SEEDED_SUPPLIER_BARCODES = {
+  simple: "5901234123457", // EAN-13 on a single piece
+  sharedParent: "4006381333931", // one code for every size, on the parent
+  variant: "96385074", // EAN-8 on one size only
+} as const;
 
 // ---- seed ---------------------------------------------------
 
@@ -203,6 +217,10 @@ async function main() {
     // numbers on one photo. An explicit choice, never inferred from the
     // variant types used — see Product.isNumbered.
     isNumbered?: boolean;
+    // The code the garment arrived carrying (shared/constants/barcode.ts).
+    // Set on a product WITH variants it is the shared-parent case: one tag for
+    // every size, so nothing per-variant gets printed either.
+    supplierBarcode?: string;
     // simple product fields (only when no variants)
     simple?: { stock: number };
     // variants: each is a list of `${typeSlug}:${valueKey}` plus optional overrides
@@ -216,13 +234,25 @@ async function main() {
       // as percentages. Left out for ordinary variants.
       imageX?: number;
       imageY?: number;
+      // This size's own supplier code, independent of its siblings' and of
+      // the parent's.
+      supplierBarcode?: string;
     }[];
   }) {
     const searchText = buildSearchText(opts.name, opts.description);
     // Barcode is generated once and frozen thereafter, same spirit as SKU —
     // reuse it across reseed runs instead of rotating on every `upsert`.
-    const existing = await prisma.product.findUnique({ where: { slug: opts.slug }, select: { barcode: true } });
-    const barcode = existing?.barcode ?? (await generateUniqueBarcode());
+    const existing = await prisma.product.findUnique({
+      where: { slug: opts.slug },
+      select: { barcode: true, barcodeSource: true, generatedBarcode: true },
+    });
+    // A supplier-coded piece still keeps OUR code parked, exactly as the API
+    // does when the toggle is flipped — so toggling it back in the admin
+    // restores a code rather than minting a third one.
+    const generated =
+      (existing?.barcodeSource === "SUPPLIER" ? existing.generatedBarcode : existing?.barcode) ??
+      (await generateUniqueBarcode());
+    const barcode = opts.supplierBarcode ?? generated;
     const base = {
       name: opts.name,
       description: opts.description ?? undefined,
@@ -238,6 +268,8 @@ async function main() {
       labelsPrintedAt: opts.labelsPrinted ? SEEDED_LABELS_PRINTED_AT : null,
       deletedAt: opts.deleted ? new Date() : null,
       barcode,
+      barcodeSource: opts.supplierBarcode ? ("SUPPLIER" as const) : ("GENERATED" as const),
+      generatedBarcode: opts.supplierBarcode ? generated : null,
       stock: opts.simple ? opts.simple.stock : 1,
     };
 
@@ -264,9 +296,14 @@ async function main() {
     // barcodes (frozen, like the product's) so they don't rotate every run
     const previousVariants = await prisma.variant.findMany({
       where: { productId: product.id },
-      select: { variantNumber: true, barcode: true },
+      select: { variantNumber: true, barcode: true, barcodeSource: true, generatedBarcode: true },
     });
-    const variantBarcodes = new Map(previousVariants.map((v) => [v.variantNumber, v.barcode]));
+    const variantBarcodes = new Map(
+      previousVariants.map((v) => [
+        v.variantNumber,
+        v.barcodeSource === "SUPPLIER" ? v.generatedBarcode : v.barcode,
+      ])
+    );
     await prisma.variant.deleteMany({ where: { productId: product.id } });
 
     if (opts.variants?.length) {
@@ -286,13 +323,16 @@ async function main() {
       let n = 0;
       for (const v of opts.variants) {
         n++;
+        const variantGenerated = variantBarcodes.get(n) ?? (await generateUniqueBarcode());
         await prisma.variant.create({
           data: {
             productId: product.id,
             variantNumber: n,
             name: v.name,
             sku: variantSku(product.productNumber, n),
-            barcode: variantBarcodes.get(n) ?? (await generateUniqueBarcode()),
+            barcode: v.supplierBarcode ?? variantGenerated,
+            barcodeSource: v.supplierBarcode ? ("SUPPLIER" as const) : ("GENERATED" as const),
+            generatedBarcode: v.supplierBarcode ? variantGenerated : null,
             stock: v.stock ?? 1,
             priceOverride: v.priceOverride ?? null, // null => inherits basePrice
             cost: v.cost ?? null, // null => inherits product.cost
@@ -411,6 +451,63 @@ async function main() {
       { combo: ["number:4"], name: { ar: "4", en: "4", he: "4" }, stock: 1, imageX: 24, imageY: 62 },
       { combo: ["number:5"], name: { ar: "5", en: "5", he: "5" }, stock: 0, imageX: 50, imageY: 68 },
       { combo: ["number:6"], name: { ar: "6", en: "6", he: "6" }, stock: 1, imageX: 76, imageY: 64, priceOverride: 75 },
+    ],
+  });
+
+  // 7) A piece that arrived already barcoded (shared/constants/barcode.ts):
+  //    its tag is the supplier's, so it owes no label of ours and drops out of
+  //    the "not printed yet" queue by source — never by a faked print date.
+  await upsertProduct({
+    slug: "supplier-coded-belt",
+    name: { ar: "حزام مستورد", en: "Imported Belt", he: "חגורה מיובאת" },
+    description: {
+      ar: "وصل بباركود المورّد مطبوع عليه",
+      en: "Arrived with the supplier's barcode printed on it",
+      he: "הגיע עם ברקוד היבואן מודפס עליו",
+    },
+    categoryId: abayas.id,
+    basePrice: 35,
+    cost: 15,
+    supplierBarcode: SEEDED_SUPPLIER_BARCODES.simple,
+    simple: { stock: 4 },
+  });
+
+  // 8) One supplier code for EVERY size, stuck on the parent — the case the
+  //    parent-scan picker exists for: the code names the garment, not the size
+  //    that just sold, so scanning it in the POS asks which (and the orders API
+  //    refuses a sale on the parent alone).
+  await upsertProduct({
+    slug: "supplier-coded-tunic",
+    name: { ar: "تونيك مستورد", en: "Imported Tunic", he: "טוניקה מיובאת" },
+    categoryId: dresses.id,
+    basePrice: 90,
+    cost: 40,
+    supplierBarcode: SEEDED_SUPPLIER_BARCODES.sharedParent,
+    variants: [
+      { combo: ["size:m"], name: { ar: "M", en: "M", he: "M" }, stock: 2 },
+      { combo: ["size:l"], name: { ar: "L", en: "L", he: "L" }, stock: 3 },
+      // Sold out, so the picker has a disabled tile to render.
+      { combo: ["size:xl"], name: { ar: "XL", en: "XL", he: "XL" }, stock: 0 },
+    ],
+  });
+
+  // 9) Both levels at once: our own code on the parent, and one size carrying
+  //    the supplier's own tag. Scanning that size adds it straight to the cart;
+  //    scanning the parent still opens the picker.
+  await upsertProduct({
+    slug: "mixed-barcode-blouse",
+    name: { ar: "بلوزة مختلطة الباركود", en: "Mixed-Barcode Blouse", he: "חולצה עם ברקוד מעורב" },
+    categoryId: dresses.id,
+    basePrice: 70,
+    cost: 30,
+    variants: [
+      {
+        combo: ["size:m"],
+        name: { ar: "M", en: "M", he: "M" },
+        stock: 3,
+        supplierBarcode: SEEDED_SUPPLIER_BARCODES.variant,
+      },
+      { combo: ["size:l"], name: { ar: "L", en: "L", he: "L" }, stock: 3 },
     ],
   });
 

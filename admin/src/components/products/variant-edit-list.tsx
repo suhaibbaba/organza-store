@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { ImageManager } from "@/components/products/image-manager";
+import { BarcodeField } from "@/components/products/barcode-field";
 import { cn } from "@/lib/utils";
 import type { GallerySlot, VariantEditValues } from "@/types/productForm";
 
@@ -226,6 +227,23 @@ export function VariantEditList({
                     />
                   </div>
                 )}
+
+                {/* Each size's own code: one can carry the supplier's printed
+                    tag while the next still uses ours. Full width — the toggle
+                    plus a scannable field does not fit in half a phone. */}
+                <div className="col-span-2">
+                  <BarcodeField
+                    id={`barcode-${variant.id}`}
+                    compact
+                    source={values.barcodeSource}
+                    value={values.barcode}
+                    onChange={({ source, value }) =>
+                      onEditChange(variant.id, { ...values, barcodeSource: source, barcode: value })
+                    }
+                    currentCode={variant.barcode}
+                    disabled={isSaving}
+                  />
+                </div>
               </div>
             )}
 

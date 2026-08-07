@@ -1,3 +1,4 @@
+import type { BarcodeSource } from "@shared/types/product";
 import type { ProductImageRef } from "@shared/types/variant";
 
 // Raw <input> values for the translatable name/description fields — always
@@ -77,4 +78,10 @@ export interface VariantEditValues {
   priceOverride: string;
   cost: string;
   isActive: boolean;
+  // Ours or the supplier's, per variant (shared/constants/barcode.ts).
+  // `barcode` holds only the supplier's typed/scanned code — the generated one
+  // is never edited by hand — and is kept across a toggle so flipping back and
+  // forth doesn't wipe what was just scanned.
+  barcodeSource: BarcodeSource;
+  barcode: string;
 }

@@ -4,6 +4,7 @@ import { useParams } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { ChevronLeft, PackageX, Pencil } from "lucide-react";
 import type { Product } from "@shared/types/product";
+import { BARCODE_SOURCE } from "@shared/constants/barcode";
 import { can } from "@shared/lib/permissions";
 import { Link } from "@/i18n/navigation";
 import { useProductQuery } from "@/hooks/use-products";
@@ -134,15 +135,30 @@ function ProductDetail({ product, currency, locale }: { product: Product; curren
         )}
       </div>
 
+      {/* The barcode stands on its own, outside the simple-product block: a
+          product WITH variants can carry one too — a supplier's single code for
+          every size, stuck on the parent — and scanning it in the POS opens the
+          variant picker rather than selling anything. */}
+      <dl className="grid grid-cols-2 gap-3 rounded-xl border border-border bg-card p-4 text-sm">
+        <div>
+          <dt className="text-muted-foreground">{t("barcode")}</dt>
+          <dd className="font-medium text-foreground" dir="ltr">
+            {product.barcode ?? "—"}
+          </dd>
+        </div>
+        <div>
+          <dt className="text-muted-foreground">{t("barcodeSource")}</dt>
+          <dd className="font-medium text-foreground">
+            {product.barcodeSource === BARCODE_SOURCE.SUPPLIER ? t("barcodeSupplier") : t("barcodeGenerated")}
+          </dd>
+        </div>
+      </dl>
+
       {!product.hasVariants && (
         <dl className="grid grid-cols-2 gap-3 rounded-xl border border-border bg-card p-4 text-sm">
           <div>
             <dt className="text-muted-foreground">{t("sku")}</dt>
             <dd className="font-medium text-foreground">{product.sku ?? "—"}</dd>
-          </div>
-          <div>
-            <dt className="text-muted-foreground">{t("barcode")}</dt>
-            <dd className="font-medium text-foreground">{product.barcode ?? "—"}</dd>
           </div>
           <div>
             <dt className="text-muted-foreground">{t("stock")}</dt>

@@ -8,6 +8,9 @@ export interface ProductVariantDto {
   name: { ar: string; en?: string; he?: string };
   sku: string;
   barcode: string | null;
+  // Ours or the supplier's (shared/constants/barcode.ts) — stored per variant,
+  // never inferred from the code.
+  barcodeSource: "GENERATED" | "SUPPLIER";
   priceOverride: number | string | null;
   resolvedPrice: number | string;
   stock?: number;
@@ -30,6 +33,7 @@ export interface ProductDto {
   category: { id: string; name: Record<string, string>; slug: string } | null;
   sku: string | null;
   barcode: string | null;
+  barcodeSource: "GENERATED" | "SUPPLIER";
   hasVariants: boolean;
   basePrice: number | string;
   compareAtPrice: number | string | null;
@@ -63,6 +67,11 @@ export interface ProductSummaryDto {
   id: string;
   basePrice: number | string;
   labelsPrintedAt: string | null;
+  barcode: string | null;
+  barcodeSource: "GENERATED" | "SUPPLIER";
+  // Whether a label of ours is still owed — false once every code the product
+  // would print is the supplier's own.
+  needsLabel: boolean;
 }
 
 // One number of a numbered shawl, as the lookup hands it to the POS.
@@ -83,10 +92,13 @@ export interface ProductNumberOptionDto {
 // GET /api/products/lookup?code=… — one scanned code resolved to what is
 // actually being sold. kind ITEM: `variant` is the matched variant, or null
 // for a simple product (which is itself the purchasable item). kind
-// NUMBER_SELECTION: a numbered shawl's parent label, so nothing sellable
-// comes back — `variant` is null and `numbers` holds the choices.
+// VARIANT_SELECTION: the parent of a product that has variants — a numbered
+// shawl's collection label, or a supplier's one code for every size — so
+// nothing sellable comes back: `variant` is null, and `numbers` holds the
+// choices for a numbered product (empty for an ordinary one, whose variants
+// are picked from `product.variants`).
 export interface ProductLookupDto {
-  kind: "ITEM" | "NUMBER_SELECTION";
+  kind: "ITEM" | "VARIANT_SELECTION";
   product: ProductDto;
   variant: ProductVariantDto | null;
   numbers: ProductNumberOptionDto[];

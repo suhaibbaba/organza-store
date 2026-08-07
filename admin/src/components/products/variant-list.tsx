@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import { useLocale, useTranslations } from "next-intl";
+import { BARCODE_SOURCE } from "@shared/constants/barcode";
 import type { ProductVariantTypeRef } from "@shared/types/product";
 import type { Variant } from "@shared/types/variant";
 import { localize } from "@/lib/i18n-content";
@@ -74,6 +75,18 @@ export function VariantList({ variants, variantTypes, currency }: VariantListPro
                 <StatusBadge isActive={variant.isActive} />
               </div>
               <p className="mt-0.5 truncate text-xs text-muted-foreground">{variant.sku}</p>
+              {/* The code a scan at the counter matches, and whose it is: a
+                  size carrying the supplier's own tag needs no label of ours. */}
+              {variant.barcode && (
+                <p className="truncate text-xs text-muted-foreground" dir="ltr">
+                  {variant.barcode}
+                  {variant.barcodeSource === BARCODE_SOURCE.SUPPLIER && (
+                    <span dir="auto" className="ms-2 font-medium">
+                      {t("barcodeSupplierShort")}
+                    </span>
+                  )}
+                </p>
+              )}
               <div className="mt-1.5 flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
                 <span className="text-sm font-semibold text-foreground">
                   {formatMoney(variant.resolvedPrice, currency, locale)}

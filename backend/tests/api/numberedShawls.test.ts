@@ -43,7 +43,7 @@ describe("Numbered shawls", () => {
     );
 
     expect(res.status).toBe(200);
-    expect(res.data!.kind).toBe(PRODUCT_LOOKUP_KIND.NUMBER_SELECTION);
+    expect(res.data!.kind).toBe(PRODUCT_LOOKUP_KIND.VARIANT_SELECTION);
     // Nothing sellable: the cashier has to pick a number first.
     expect(res.data!.variant).toBeNull();
     expect(res.data!.product.id).toBe(product.id);

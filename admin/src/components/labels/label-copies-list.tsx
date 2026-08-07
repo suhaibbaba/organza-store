@@ -64,6 +64,12 @@ export function LabelCopiesList({ lines, copies, onChange }: LabelCopiesListProp
                       <p className="mt-0.5 truncate text-xs text-muted-foreground" dir="ltr">
                         {line.code ?? t("noBarcode")}
                       </p>
+                      {/* Says why the count starts at zero. The field is still
+                          live — printing our own label over a supplier's code
+                          is allowed, just not proposed. */}
+                      {line.supplierBarcode && (
+                        <p className="mt-0.5 text-xs font-medium text-muted-foreground">{t("supplierBarcode")}</p>
+                      )}
                     </div>
 
                     <div className="flex items-center gap-2">

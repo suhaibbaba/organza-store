@@ -6,6 +6,21 @@ import {
   PHYSICAL_KEY_CHARS,
 } from "@/constants/keyboard";
 
+// See constants/keyboard.ts for why any of this exists: the shop's keyboard
+// layout is Arabic, and a wedge scanner's key presses come out of it as
+// Arabic letters and Arabic-Indic digits unless they are read off the key's
+// physical position instead.
+
+// The parts of a keydown event this module reads, as a structural type rather
+// than the DOM's `KeyboardEvent`: `shared` is compiled for the backend too,
+// which has no DOM lib. A real KeyboardEvent satisfies it as-is.
+export interface PhysicalKeyEvent {
+  code: string;
+  key: string;
+  shiftKey: boolean;
+  getModifierState(key: string): boolean;
+}
+
 // What a key press was meant to type, worked out from the key's place on the
 // keyboard rather than from what the current layout made of it — see the
 // header of constants/keyboard.ts for why that distinction is the difference
@@ -13,7 +28,7 @@ import {
 //
 // Returns null for anything that is not a character: arrows, Escape, function
 // keys, Enter, and the modifiers themselves.
-export function physicalKeyChar(event: Pick<KeyboardEvent, "code" | "key" | "shiftKey" | "getModifierState">): string | null {
+export function physicalKeyChar(event: PhysicalKeyEvent): string | null {
   const pair = PHYSICAL_KEY_CHARS[event.code];
 
   if (!pair) {
@@ -38,7 +53,7 @@ export function physicalKeyChar(event: Pick<KeyboardEvent, "code" | "key" | "shi
 
 // Shift, Caps Lock and friends, pressed on their own account. Not a
 // character, but not the end of one either.
-export function isModifierKey(event: Pick<KeyboardEvent, "code">): boolean {
+export function isModifierKey(event: Pick<PhysicalKeyEvent, "code">): boolean {
   return MODIFIER_KEY_CODES.includes(event.code);
 }
 

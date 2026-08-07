@@ -1,5 +1,6 @@
 import { Role } from "@prisma/client";
 import { can } from "@shared/lib/permissions";
+import { needsLabel } from "@/lib/labelState";
 import { summarizeNumbers } from "@/lib/numberedProduct";
 import type { AnyRecord } from "@/types";
 
@@ -34,6 +35,10 @@ export function serializeVariant(variant: AnyRecord, product: AnyRecord, role: R
     name: variant.name,
     sku: variant.sku,
     barcode: variant.barcode,
+    // Ours or the supplier's (shared/constants/barcode.ts). Not sensitive —
+    // it is what a screen needs to say whether this variant still owes a
+    // label, and what the barcode field in the form opens on.
+    barcodeSource: variant.barcodeSource,
     priceOverride: variant.priceOverride,
     resolvedPrice,
     stock: variant.stock,
@@ -76,6 +81,7 @@ export function serializeProduct(product: AnyRecord, role: Role) {
     compareAtPrice: product.compareAtPrice,
     sku: product.sku,
     barcode: product.barcode,
+    barcodeSource: product.barcodeSource,
     stock: variants.length ? undefined : product.stock,
     isActive: product.isActive,
     trackLowStock: product.trackLowStock,
@@ -124,10 +130,16 @@ export function serializeProductSummary(product: AnyRecord, role: Role) {
     compareAtPrice: product.compareAtPrice,
     sku: product.sku,
     barcode: product.barcode,
+    barcodeSource: product.barcodeSource,
     stock: aggregateStock,
     isActive: product.isActive,
     trackLowStock: product.trackLowStock,
     labelsPrintedAt: product.labelsPrintedAt ?? null,
+    // Whether a label is still owed at all, which the list row cannot work
+    // out for itself: it depends on the variants' own barcode sources, and a
+    // summary carries no variants. Same rule as the "not printed yet" filter
+    // (lib/labelState.ts).
+    needsLabel: needsLabel(product),
     hasVariants: variants.length > 0,
     variantCount: variants.length,
     // What kind of choice this product asks for — "sizes", "colours" — so a

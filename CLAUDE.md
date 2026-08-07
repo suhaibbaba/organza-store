@@ -79,8 +79,18 @@ from past orders — there is still no Customer table behind it.
 12. **No hard-coded user-facing text — anywhere.** Every label/message/placeholder/validation goes
     through `t()`. Backend returns translation **keys** (`error.*`), never literal sentences. A
     single hard-coded string is a bug.
-13. **Barcodes are auto-generated & unique** (EAN-13), for both products and variants — not the SKU,
-    not scanned from the item.
+13. **Barcodes are auto-generated & unique** (EAN-13), for both products and variants — not the SKU.
+    A garment that arrives **already barcoded** may keep the supplier's printed code instead: the
+    field is editable (typed or scanned) on create and on edit, per product *and* per variant, and
+    which of the two a piece uses is **stored** (`barcodeSource`), never inferred from the code.
+    The toggle is reversible — switching back restores the code we minted, so a label already stuck
+    on the piece keeps working. Uniqueness is enforced across the whole store (products and
+    variants share one namespace). A **parent** may carry one shared supplier code for every
+    variant: scanning it in the POS opens the variant picker (the same mechanism as a numbered
+    shawl's collection label, `PRODUCT_LOOKUP_KIND.VARIANT_SELECTION`) and a sale on the parent
+    alone is refused. Supplier-coded pieces leave the "not printed yet" label queue **by source**
+    — never by stamping `labelsPrintedAt`, which would record a print that never happened — and can
+    still be printed on request.
 14. **Settings drive currency/language/thresholds.** Never hard-code currency symbol, default
     language, or low-stock threshold — read them from the `Setting` singleton.
 15. **Unified API envelope** for every endpoint: `{ success, data, meta }` / `{ success, error: { code } }`.
