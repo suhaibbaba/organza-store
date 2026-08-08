@@ -4,9 +4,10 @@ import { useCallback, useRef, useState } from "react";
 import type { Product } from "@shared/types/product";
 import type { Variant } from "@shared/types/variant";
 import { ERROR_CODES } from "@shared/constants/errors";
+import { PRODUCT_LOOKUP_KIND } from "@shared/constants/product";
+import { toLatinDigits } from "@shared/lib/keyboard";
 import { ApiError } from "@/lib/api/errors";
 import { lookupProductByCode } from "@/lib/api/products";
-import { toLatinDigits } from "@/lib/keyboard";
 import { SCAN_DEDUPE_MS } from "@/constants/pos";
 
 export interface AddByCodeResult {
@@ -18,6 +19,10 @@ export interface AddByCodeResult {
 export interface PickVariantResult {
   // The code named a variant-bearing product (its parent barcode), so the
   // cashier still has to say which variant — the parent isn't sellable.
+  //
+  // A numbered shawl's collection label and a supplier's one-code-for-every-
+  // size are the same situation, and the API answers both the same way
+  // (PRODUCT_LOOKUP_KIND.VARIANT_SELECTION).
   status: "pick";
   product: Product;
 }
@@ -84,9 +89,12 @@ export function useAddByCode({ onAdd, onOutcome }: UseAddByCodeOptions) {
 
       setIsLooking(true);
       try {
-        const { product, variant } = await lookupProductByCode(code);
+        const { kind, product, variant } = await lookupProductByCode(code);
 
-        if (!variant && product.hasVariants) {
+        // The backend's own verdict, not a guess from the shape of what came
+        // back: it is the side that also refuses a sale on the parent
+        // (error.order.variant_required), so the two can never disagree.
+        if (kind === PRODUCT_LOOKUP_KIND.VARIANT_SELECTION) {
           // See heldCode above: the camera is about to be handed back after
           // the cashier answers, with this same tag still in front of it.
           if (options.dedupe) heldCode.current = code;

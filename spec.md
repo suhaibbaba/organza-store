@@ -107,10 +107,48 @@ A singleton `Setting` row holds: `storeName` (translatable), `defaultLanguage` (
   added later** without restructuring. Prices are stored as `Decimal` in the store currency.
 - The currency symbol/format shown in the UI comes from settings, never hard-coded.
 
-## Barcode (auto-generated)
-- **Every product and variant gets a system-generated, unique barcode** (not scanned from the item,
-  not the SKU). Use a standard format (**EAN-13**) so any scanner/label printer works.
-- Generated once at creation and unique across the store.
+## Barcode (auto-generated, or the supplier's own)
+- **Every product and variant gets a system-generated, unique barcode** (not the SKU). Use a
+  standard format (**EAN-13**) so any scanner/label printer works.
+- Generated once at creation and unique across the store. This is the default and covers every
+  piece that arrives with nothing printed on it.
+
+### Supplier barcodes
+Many garments arrive **already barcoded**. Printing our own label over a perfectly good one wastes
+a label and a minute per piece, so the shop can scan the supplier's code and keep it instead.
+
+- **The barcode field is editable** — typed or scanned — on create and on edit, for the parent
+  product and for each variant individually. On a phone it is filled with the camera; on the
+  counter's laptop with the wedge scanner, whose characters are read off the key's physical
+  position so an Arabic keyboard layout doesn't turn `5` into `٥`, and whose terminating Enter must
+  not submit the form.
+- **The source is stored, not guessed:** `Product.barcodeSource` / `Variant.barcodeSource`
+  (`GENERATED` | `SUPPLIER`). A supplier's EAN-13 is indistinguishable from one of ours, and the
+  source is what decides whether a label is owed.
+- **Reversible at any time.** Switching to the supplier's code parks ours; switching back
+  **restores** it, so a label already printed and stuck on the piece still scans. Only if that code
+  has since been taken is a fresh one minted.
+- **Accepted formats:** EAN-13, EAN-8, UPC-A and the free-form Code 128 / Code 39 strings small
+  suppliers print. Whitespace is stripped and Arabic-Indic digits folded to ASCII before storing.
+  No check digit is required — a code a scanner reads and a supplier printed is a valid code.
+- **Unique across the whole store**, products and variants sharing one namespace: a duplicate would
+  silently sell the wrong piece. A clash is refused with `error.barcode.duplicate`, naming what it
+  clashed with, and the two ways out (put one shared code on the parent, or keep the generated
+  barcode and print a label).
+- **A shared parent code.** Some suppliers print ONE code for all sizes; the shop then puts it on
+  the parent rather than printing a label per variant. Scanning it must not resolve to a single
+  item — it opens the **variant picker**, listing each variant with its stock (zero-stock ones
+  disabled but visible, multi-select kept) so the cashier picks what actually sold. This is the
+  numbered-shawl parent scan generalised, not a second mechanism: any parent with variants answers
+  a scan with `PRODUCT_LOOKUP_KIND.VARIANT_SELECTION`, and the orders API refuses a sale that names
+  no variant (`error.order.variant_required`). Both levels coexist — a variant's own code adds it
+  to the cart directly.
+- **Labels:** a supplier-coded piece is excluded from the "not printed yet" queue **by source**,
+  and the screen says so ("supplier barcode — no label needed") rather than faking a print date.
+  Printing one anyway is always allowed — the count simply starts at zero.
+- Barcode and source changes are audited old → new like any other field, and follow the same
+  permissions as the SKU beside them (`product.edit`); they are not one of the gated Employee
+  actions.
 
 ## Slug conflicts
 Slugs are generated from the default-language name. On collision, append an incrementing numeric

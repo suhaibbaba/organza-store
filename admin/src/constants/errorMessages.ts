@@ -16,6 +16,8 @@ export const ERROR_MESSAGE_KEYS: Record<string, string> = {
   [ERROR_CODES.DUPLICATE]: "errors.duplicate",
   [ERROR_CODES.SKU_DUPLICATE]: "errors.skuDuplicate",
   [ERROR_CODES.BARCODE_DUPLICATE]: "errors.barcodeDuplicate",
+  [ERROR_CODES.BARCODE_INVALID]: "errors.barcodeInvalid",
+  [ERROR_CODES.BARCODE_REQUIRED]: "errors.barcodeRequired",
   [ERROR_CODES.SLUG_DUPLICATE]: "errors.slugDuplicate",
   [ERROR_CODES.EMAIL_DUPLICATE]: "errors.emailDuplicate",
   [ERROR_CODES.PHONE_DUPLICATE]: "errors.phoneDuplicate",

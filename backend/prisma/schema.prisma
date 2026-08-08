@@ -149,6 +149,14 @@ model Category {
   @@index([parentId])
 }
 
+// Where a piece's barcode came from. GENERATED = the EAN-13 this system
+// minted and prints on a label; SUPPLIER = the code the garment already
+// arrived carrying, typed or scanned in (shared/constants/barcode.ts).
+enum BarcodeSource {
+  GENERATED
+  SUPPLIER
+}
+
 // ============================================================
 //  PRODUCTS (parent)
 // ============================================================
@@ -176,9 +184,25 @@ model Product {
   cost           Decimal? @db.Decimal(10, 2) // purchase cost (for profit calc)
 
   // --- fields used ONLY when the product has NO variants (simple product) ---
-  sku     String? @unique // frozen at creation; editable; ORG-00042
+  sku   String? @unique // frozen at creation; editable; ORG-00042
+  stock Int     @default(1)
+
+  // The barcode, which — unlike sku/stock — a product WITH variants may also
+  // carry: many suppliers print ONE code for every size, and the shop sticks
+  // that on the parent instead of printing a label per variant. Scanning it in
+  // the POS opens the variant picker rather than selling anything
+  // (PRODUCT_LOOKUP_KIND.VARIANT_SELECTION).
   barcode String? @unique
-  stock   Int     @default(1)
+  // Ours or the supplier's (CLAUDE.md rule 13 + shared/constants/barcode.ts).
+  // Stored, never inferred from the code: a supplier's EAN-13 looks exactly
+  // like one of ours, and this is what decides whether a label is owed.
+  barcodeSource BarcodeSource @default(GENERATED)
+  // The EAN-13 we minted, parked here while a supplier code is in use so that
+  // switching back restores the code any label already printed carries,
+  // instead of minting a third one and stranding those labels. Not unique —
+  // it is a memory, not an identity — so it is re-checked for availability
+  // before it goes back into `barcode`.
+  generatedBarcode String?
 
   // --- status & soft delete ---
   isActive  Boolean   @default(true) // published / hidden  (role-gated)
@@ -237,9 +261,14 @@ model Variant {
   // sequential number within the product, used for SKU suffix (ORG-00042-1)
   variantNumber Int
 
-  name    Json // translatable; auto-suggested, editable
-  sku     String  @unique // frozen at creation; editable
-  barcode String? @unique
+  name Json // translatable; auto-suggested, editable
+  sku  String @unique // frozen at creation; editable
+
+  // Per variant, and independent of the parent's: one size can carry the
+  // supplier's own tag while the next still uses ours. See Product.barcode.
+  barcode          String?       @unique
+  barcodeSource    BarcodeSource @default(GENERATED)
+  generatedBarcode String?
 
   priceOverride Decimal? @db.Decimal(10, 2) // null => falls back to product.basePrice
   cost          Decimal? @db.Decimal(10, 2) // null => falls back to product.cost

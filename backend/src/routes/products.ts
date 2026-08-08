@@ -24,7 +24,8 @@ import {
 } from "@/validation/product";
 import { generateUniqueSlug } from "@/lib/slug";
 import { productSku, variantSku } from "@/lib/sku";
-import { generateUniqueBarcode } from "@/lib/barcode";
+import { generateUniqueBarcode, resolveBarcodeChange, resolveNewBarcode } from "@/lib/barcode";
+import { NEEDS_LABEL_WHERE } from "@/lib/labelState";
 import { buildSearchText, searchProductIds } from "@/lib/search";
 import { cartesianProduct, buildComboName, buildImagePointMap, resolveComboImagePoint } from "@/lib/variantCombo";
 import { generateVariantsForProduct, previewComboNames, validateOptionSelections } from "@/lib/variants";
@@ -122,8 +123,20 @@ router.get(
     // Barcode-label work queue: "not_printed" is the list of pieces still
     // waiting for a label, "printed" is what has already been through the
     // printer (for a reprint). "all" — the default — filters nothing.
-    if (query.printState === "not_printed") where.labelsPrintedAt = null;
-    else if (query.printState === "printed") where.labelsPrintedAt = { not: null };
+    //
+    // A piece using the supplier's own barcode is not waiting for anything: it
+    // came with its label on. It drops out of the queue by its barcode SOURCE
+    // — never by stamping labelsPrintedAt, which would claim a print run that
+    // never happened. `printed` and `all` still list it, because printing our
+    // own label over a supplier code has to stay possible.
+    if (query.printState === "not_printed") {
+      where.labelsPrintedAt = null;
+      // AND, not a merge: NEEDS_LABEL_WHERE carries its own OR, and the stock
+      // filter above may already own `where.OR`.
+      where.AND = [NEEDS_LABEL_WHERE];
+    } else if (query.printState === "printed") {
+      where.labelsPrintedAt = { not: null };
+    }
 
     if (query.q) {
       const ids = await searchProductIds(query.q);
@@ -171,14 +184,20 @@ router.get(
 // other way round: the POS search filters to active products, so an
 // unpublished draft can be sold but never stumbled upon.
 //
-// One code does NOT always resolve to one sellable thing: a numbered shawl
-// (spec.md "Numbered shawls") is a single garment photo carrying numbers 1-6,
-// each its own piece with its own stock, so its parent label stands for the
-// whole collection. Scanning it answers with the numbers and their stock —
-// kind NUMBER_SELECTION, variant null — and the cashier picks one. Handing
+// One code does NOT always resolve to one sellable thing. A PARENT code on a
+// product that has variants stands for the whole garment, not for the size
+// that just sold, so scanning it answers with the choice instead of an item —
+// kind VARIANT_SELECTION, variant null — and the cashier picks which. Handing
 // back the parent as an item would invite a sale that deducts stock from the
 // wrong place; the orders API refuses a variant-bearing parent regardless
 // (error.order.variant_required), so the two gates agree.
+//
+// This began as the numbered shawls' parent scan (spec.md "Numbered shawls":
+// one photo, numbers drawn on it, one label for the collection) and is now the
+// rule for every parent code, because a supplier who prints ONE barcode for
+// all sizes leaves the shop in exactly the same position. One mechanism, not
+// two: a numbered product additionally gets `numbers` — the same choice laid
+// out by number, with each number's stock and its point on the photo.
 // ---------------------------------------------------------------------------
 router.get(
   "/lookup",
@@ -207,20 +226,23 @@ router.get(
       ? serialized.variants.find((v: AnyRecord) => v.id === variant.id) ?? null
       : null;
 
-    // A number scanned on its own label is an ordinary hit — it IS one piece.
-    // Only the parent label of a numbered product needs the cashier to choose,
-    // and only once it has numbers to choose from: a numbered product whose
-    // points haven't been placed yet would otherwise answer a scan with an
-    // empty picker and no way forward.
-    const numbers = matched ? [] : buildNumberOptions(product, serialized.variants);
-    const needsNumber = !matched && isNumberedProduct(product) && numbers.length > 0;
+    // A variant scanned on its own label is an ordinary hit — it IS one piece.
+    // A parent code is only a question when there is something to ask about:
+    // a product with no variants (including a numbered one whose points have
+    // not been placed yet) is itself the item, and answering a scan with an
+    // empty picker would leave the cashier no way forward.
+    const needsVariant = !matched && serialized.variants.length > 0;
+    const numbers = needsVariant ? buildNumberOptions(product, serialized.variants) : [];
 
     sendOk(res, {
-      kind: needsNumber ? PRODUCT_LOOKUP_KIND.NUMBER_SELECTION : PRODUCT_LOOKUP_KIND.ITEM,
+      kind: needsVariant ? PRODUCT_LOOKUP_KIND.VARIANT_SELECTION : PRODUCT_LOOKUP_KIND.ITEM,
       product: serialized,
-      // Never a sellable item on a NUMBER_SELECTION — that is the whole point.
-      variant: needsNumber ? null : matched,
-      numbers: needsNumber ? numbers : [],
+      // Never a sellable item on a VARIANT_SELECTION — that is the whole point.
+      variant: needsVariant ? null : matched,
+      // Numbered products only; an ordinary parent's variants are picked from
+      // `product.variants` (isNumberedProduct is what buildNumberOptions
+      // branches on).
+      numbers,
     });
   })
 );
@@ -343,7 +365,11 @@ router.post(
     });
 
     const searchText = buildSearchText(body.name, body.description);
-    const barcode = await generateUniqueBarcode();
+    // Ours unless the body says the garment came with its own (CLAUDE.md rule
+    // 13: generation is the default). A product WITH variants may carry one
+    // too — a supplier's single code for every size lives on the parent, and
+    // scanning it opens the variant picker.
+    const barcodeFields = await resolveNewBarcode(body);
 
     const created = await prisma.product.create({
       data: {
@@ -358,7 +384,7 @@ router.post(
         isActive: body.isActive ?? true,
         trackLowStock: trackLowStock ?? false,
         isNumbered,
-        barcode,
+        ...barcodeFields,
         stock: hasVariants ? DEFAULT_STOCK : body.stock ?? DEFAULT_STOCK,
         createdById: req.user!.id,
       },
@@ -522,6 +548,19 @@ router.patch(
       if (dupe) throw new AppError(409, ERROR_CODES.SKU_DUPLICATE);
     }
 
+    // Which code this piece carries, and whether it is ours or the
+    // supplier's. Reversible in both directions at any time, and refused
+    // outright when the code is already in use anywhere in the store
+    // (error.barcode.duplicate, naming what it clashes with) — a duplicate
+    // would silently sell the wrong item. Null when the request said nothing
+    // about the barcode, or said what is already stored.
+    //
+    // Gated on product.edit, like the SKU beside it: both are the piece's
+    // identity rather than its money, its stock or its visibility, so this is
+    // not one of the five actions held for approval (CLAUDE.md rule 21). The
+    // audit entry below carries the old and new code and source either way.
+    const barcodeUpdate = await resolveBarcodeChange(existing, body, { productId: existing.id });
+
     const nameChanged = body.name !== undefined && JSON.stringify(body.name) !== JSON.stringify(existing.name);
     const descChanged =
       body.description !== undefined && JSON.stringify(body.description) !== JSON.stringify(existing.description);
@@ -569,6 +608,12 @@ router.patch(
         trackLowStock: canAdjustStock ? body.trackLowStock : undefined,
         isNumbered: body.isNumbered,
         sku: body.sku,
+        ...(barcodeUpdate?.data ?? {}),
+        // A code nobody has printed yet puts the piece back in the label queue:
+        // whatever sticker is on it now carries a different number. Restoring
+        // the code we parked leaves the timestamp alone, because that label is
+        // still correct.
+        labelsPrintedAt: barcodeUpdate?.mintedFresh ? null : undefined,
         stock: existing.variants.length || !canAdjustStock ? undefined : body.stock,
       },
       include: productInclude,
@@ -783,6 +828,11 @@ router.patch(
       if (dupe) throw new AppError(409, ERROR_CODES.SKU_DUPLICATE);
     }
 
+    // Each variant's barcode is its own (see the product update above for the
+    // gate and the guarantees): one size can carry the supplier's printed tag
+    // while the next still uses ours.
+    const barcodeUpdate = await resolveBarcodeChange(variant, body, { variantId: variant.id });
+
     const updated = await prisma.variant.update({
       where: { id: variant.id },
       data: {
@@ -794,9 +844,17 @@ router.patch(
         isActive: canHide ? body.isActive : undefined,
         imageX: body.imageX === undefined ? undefined : body.imageX,
         imageY: body.imageY === undefined ? undefined : body.imageY,
+        ...(barcodeUpdate?.data ?? {}),
       },
       include: { values: { include: { optionValue: true } }, images: { orderBy: { sortOrder: "asc" } } },
     });
+
+    // A variant on a brand-new code means the product's label sheet is out of
+    // date, and the print record lives on the product (there is one timestamp
+    // for the piece, not one per size).
+    if (barcodeUpdate?.mintedFresh) {
+      await prisma.product.update({ where: { id: product.id }, data: { labelsPrintedAt: null } });
+    }
 
     await writeAudit({
       userId: req.user!.id,

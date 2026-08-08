@@ -28,8 +28,15 @@ export interface LabelLine {
   // when a variant has none. Null when there is nothing to encode at all.
   code: string | null;
   // Copies proposed before the user edits anything: the piece's stock, so a
-  // shop with three of something gets three stickers.
+  // shop with three of something gets three stickers — and zero for a piece
+  // that already carries the supplier's own barcode, which needs no label of
+  // ours at all. Only ever a proposal: typing a count over it prints anyway.
   suggestedCopies: number;
+  // The code on this line is the supplier's, printed on the garment before it
+  // reached the shop (shared/constants/barcode.ts). The line stays on the list,
+  // marked, rather than disappearing: printing our own label over it has to
+  // remain possible.
+  supplierBarcode: boolean;
   // Numbered shawls print the PARENT only (spec.md: one photo, numbers drawn
   // on it), so the count can't come from stock — it is entered by hand.
   isNumbered: boolean;

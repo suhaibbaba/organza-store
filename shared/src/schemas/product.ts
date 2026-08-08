@@ -1,8 +1,51 @@
 import { z } from "zod";
 import { decimalInput, i18nOptionalSchema, i18nSchema, imagePointCoordinateSchema, paginationSchema } from "@/schemas/common";
+import { BARCODE_SOURCE, BARCODE_SOURCES } from "@/constants/barcode";
+import { isValidBarcode, normalizeBarcode } from "@/lib/barcode";
 import { ERROR_CODES } from "@/constants/errors";
 import { PRODUCT_PRINT_STATES, PRODUCT_SORT_FIELDS } from "@/constants/product";
 import { MAX_LABEL_PRINT_BATCH } from "@/constants/label";
+
+// A supplier's own code, typed or scanned into a barcode field. Normalized
+// before it is validated (see lib/barcode.ts) so the value stored is exactly
+// what a scanner will send back at the counter, whatever the field collected.
+export const supplierBarcodeInput = z
+  .string()
+  .transform(normalizeBarcode)
+  .refine(isValidBarcode, { message: ERROR_CODES.BARCODE_INVALID });
+
+// Where a piece's barcode comes from (CLAUDE.md rule 13 + constants/barcode.ts).
+// Sent explicitly by the client rather than deduced from whether a code came
+// with it: "use your own code" and "use this code the supplier printed" are
+// two different intentions, and only one of them survives an empty field.
+export const barcodeSourceInput = z.enum(BARCODE_SOURCES);
+
+// The barcode half of a create/update body, shared by products and variants.
+//   { barcodeSource: "SUPPLIER", barcode: "5901234123457" } — keep the tag
+//     the garment came with.
+//   { barcodeSource: "GENERATED" } — ours: minted on create, and on an edit
+//     this switches back, restoring the code we had before (or minting a
+//     fresh one if it is gone).
+//   neither — leave whatever the piece already has alone.
+export const barcodeFields = {
+  barcodeSource: barcodeSourceInput.optional(),
+  barcode: supplierBarcodeInput.optional(),
+};
+
+// A supplier source with nothing to put in it is the one combination that
+// cannot be honoured, so it is refused by name instead of silently generating
+// a code the garment does not carry. Applied to create and update alike.
+export function refineBarcodeFields(value: {
+  barcodeSource?: string;
+  barcode?: string;
+}): boolean {
+  return value.barcodeSource !== BARCODE_SOURCE.SUPPLIER || typeof value.barcode === "string";
+}
+
+export const BARCODE_REFINEMENT = {
+  message: ERROR_CODES.BARCODE_REQUIRED,
+  path: ["barcode"] as (string | number)[],
+};
 
 // Numbered shawls (spec.md): a point on the product image for one option
 // value, set while the admin is placing/reviewing points, before Save.
@@ -38,10 +81,14 @@ export const createProductSchema = z.object({
   isNumbered: z.boolean().optional(),
   sku: z.string().min(1).optional(),
   stock: z.coerce.number().int().min(0).optional(),
+  // Auto-generation is the default (CLAUDE.md rule 13): omit these and the
+  // product is given a fresh EAN-13. A product WITH variants may still carry
+  // one here — a supplier's single code for every size lives on the parent.
+  ...barcodeFields,
   // Selected global option values to generate variants from (cartesian
   // product across each type's valueIds). Omit for a simple product.
   optionSelections: z.array(optionSelectionSchema).optional(),
-});
+}).refine(refineBarcodeFields, BARCODE_REFINEMENT);
 export type CreateProductInput = z.infer<typeof createProductSchema>;
 
 export const updateProductSchema = z.object({
@@ -60,7 +107,9 @@ export const updateProductSchema = z.object({
   isNumbered: z.boolean().optional(),
   sku: z.string().min(1).optional(),
   stock: z.coerce.number().int().min(0).optional(),
-});
+  // Reversible in both directions, at any time (see barcodeFields).
+  ...barcodeFields,
+}).refine(refineBarcodeFields, BARCODE_REFINEMENT);
 export type UpdateProductInput = z.infer<typeof updateProductSchema>;
 
 export const generateVariantsSchema = z.object({
@@ -79,7 +128,10 @@ export const updateVariantSchema = z.object({
   // Null clears it back to an ordinary variant.
   imageX: imagePointCoordinateSchema.optional().nullable(),
   imageY: imagePointCoordinateSchema.optional().nullable(),
-});
+  // Each variant's barcode is its own: one size can carry the supplier's tag
+  // while the next still uses ours.
+  ...barcodeFields,
+}).refine(refineBarcodeFields, BARCODE_REFINEMENT);
 export type UpdateVariantInput = z.infer<typeof updateVariantSchema>;
 
 export const listProductsQuerySchema = paginationSchema.extend({

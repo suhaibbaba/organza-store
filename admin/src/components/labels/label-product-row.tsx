@@ -41,9 +41,15 @@ export function LabelProductRow({ product, selected, onToggle }: LabelProductRow
           {product.isNumbered && <NumberedBadge count={product.numberCount} />}
         </div>
         {/* Helpful, never a block: a product that has been printed before can
-            always be printed again. */}
+            always be printed again — and a piece that arrived already barcoded
+            says so instead of claiming a label is owed. It is still selectable:
+            printing our own label over the supplier's code is allowed. */}
         <p className="mt-1 text-xs text-muted-foreground">
-          {printedAt ? t("printedOn", { date: printedAt }) : t("neverPrinted")}
+          {!product.needsLabel
+            ? t("supplierBarcode")
+            : printedAt
+              ? t("printedOn", { date: printedAt })
+              : t("neverPrinted")}
         </p>
       </div>
     </label>
