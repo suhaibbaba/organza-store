@@ -1,5 +1,12 @@
 import { z } from "zod";
-import { decimalInput, i18nOptionalSchema, i18nSchema, imagePointCoordinateSchema, paginationSchema } from "@/schemas/common";
+import {
+  booleanInput,
+  decimalInput,
+  i18nOptionalSchema,
+  i18nSchema,
+  imagePointCoordinateSchema,
+  paginationSchema,
+} from "@/schemas/common";
 import { BARCODE_SOURCE, BARCODE_SOURCES } from "@/constants/barcode";
 import { isValidBarcode, normalizeBarcode } from "@/lib/barcode";
 import { ERROR_CODES } from "@/constants/errors";
@@ -136,6 +143,12 @@ export type UpdateVariantInput = z.infer<typeof updateVariantSchema>;
 
 export const listProductsQuerySchema = paginationSchema.extend({
   categoryId: z.string().min(1).optional(),
+  // Whether `categoryId` means that one category or the whole branch under
+  // it. Off by default, which is what the admin's product filter has always
+  // done ("show me exactly this shelf"); the POS product browser turns it on,
+  // because a cashier tapping "Women" means every dress and abaya filed under
+  // it and not the handful of products left directly on the parent.
+  includeSubcategories: booleanInput.optional(),
   status: z.enum(["active", "hidden"]).optional(),
   stock: z.enum(["in_stock", "out_of_stock"]).optional(),
   priceMin: z.coerce.number().min(0).optional(),

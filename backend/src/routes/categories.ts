@@ -85,7 +85,12 @@ router.post(
     });
 
     const created = await prisma.category.create({
-      data: { name: body.name, slug, parentId: body.parentId ?? null },
+      data: {
+        name: body.name,
+        slug,
+        parentId: body.parentId ?? null,
+        isFavorite: body.isFavorite ?? false,
+      },
     });
 
     await writeAudit({
@@ -138,6 +143,9 @@ router.patch(
         name: body.name,
         slug,
         parentId: body.parentId === undefined ? undefined : body.parentId,
+        // Pinning a category to the front of the POS browser is an ordinary
+        // category edit — same permission, same audit entry as a rename.
+        isFavorite: body.isFavorite,
       },
     });
 

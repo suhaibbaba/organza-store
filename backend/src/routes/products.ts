@@ -22,6 +22,7 @@ import {
   type UpdateProductInput,
   type UpdateVariantInput,
 } from "@/validation/product";
+import { collectCategorySubtreeIds } from "@/lib/categories";
 import { generateUniqueSlug } from "@/lib/slug";
 import { productSku, variantSku } from "@/lib/sku";
 import { generateUniqueBarcode, resolveBarcodeChange, resolveNewBarcode } from "@/lib/barcode";
@@ -101,7 +102,15 @@ router.get(
     const query = req.validatedQuery as ListProductsQuery;
     const where: Prisma.ProductWhereInput = { deletedAt: null };
 
-    if (query.categoryId) where.categoryId = query.categoryId;
+    if (query.categoryId) {
+      // "Women" on the POS browser's sidebar has to bring back the dresses
+      // filed under it, not the nothing that usually sits on the parent
+      // itself (see lib/categories.ts). Opt-in, so the admin's own filter
+      // keeps meaning exactly the shelf it names.
+      where.categoryId = query.includeSubcategories
+        ? { in: await collectCategorySubtreeIds(query.categoryId) }
+        : query.categoryId;
+    }
     if (query.status) where.isActive = query.status === "active";
 
     if (query.priceMin !== undefined || query.priceMax !== undefined) {

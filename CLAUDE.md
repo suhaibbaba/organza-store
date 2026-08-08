@@ -41,6 +41,9 @@ expenses" in `spec.md`); their admin/POS screens are not built yet. The **generi
 system** is built end to end (backend + admin screen + nav badge + Web Push) — see rule 21 below
 and "Employee change approvals" in `spec.md`; the old per-expense `/approve` and `/reject`
 endpoints are gone, lifted into it.
+The POS also has a **product browser** — a drawer over the sale with categories on the start side
+and a photo grid on the other, for pieces that can't carry a label (see "POS product browser" in
+`spec.md`); its favourite categories are flagged from the admin's category screen.
 **Still deferred:** the customer storefront (Phase 3), real Customer accounts, and the
 numbered-shawls WhatsApp export. WhatsApp order entry is built (admin *and* POS): a cart can be
 filed as a WHATSAPP order with a customer snapshot, and the phone box suggests repeat customers

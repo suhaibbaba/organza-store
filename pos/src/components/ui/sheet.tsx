@@ -60,10 +60,13 @@ function SheetContent({
           // RTL a physical slide would fly it in from the opposite edge and
           // across the screen. tw-animate-css's *-start/*-end utilities flip
           // via :dir(), keeping the panel entering from the edge it sits on.
+          // pt for the same reason the root has its pb: a side panel runs the
+          // full height of the viewport, so on a notched phone its first row
+          // would otherwise sit under the status bar.
           side === "start" &&
-            "inset-y-0 start-0 h-full w-5/6 max-w-sm border-e data-[state=closed]:slide-out-to-start data-[state=open]:slide-in-from-start",
+            "inset-y-0 start-0 h-full w-5/6 max-w-sm border-e pt-[var(--safe-top)] data-[state=closed]:slide-out-to-start data-[state=open]:slide-in-from-start",
           side === "end" &&
-            "inset-y-0 end-0 h-full w-5/6 max-w-sm border-s data-[state=closed]:slide-out-to-end data-[state=open]:slide-in-from-end",
+            "inset-y-0 end-0 h-full w-5/6 max-w-sm border-s pt-[var(--safe-top)] data-[state=closed]:slide-out-to-end data-[state=open]:slide-in-from-end",
           className
         )}
         {...props}
@@ -71,7 +74,16 @@ function SheetContent({
         {children}
         <DialogPrimitive.Close
           aria-label={closeLabel}
-          className="absolute end-3 top-3 inline-flex size-11 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className={cn(
+            "absolute end-3 inline-flex size-11 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+            // A bottom sheet's top edge is somewhere in the middle of the
+            // screen and owes the notch nothing; a full-height side panel's
+            // is the top of the viewport, and its ✕ has to clear the same
+            // status bar the panel padded itself for. Insets are measured
+            // from the border box, so the panel's own padding doesn't move
+            // this — it has to be said again here.
+            side === "bottom" ? "top-3" : "top-[calc(var(--safe-top)+0.75rem)]"
+          )}
         >
           <X className="size-5" />
         </DialogPrimitive.Close>
