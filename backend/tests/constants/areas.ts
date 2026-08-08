@@ -1,9 +1,10 @@
 // The areas `npm run verify` reports a pass/fail verdict for.
 //
-// The nine the shop actually cares about are the nine it was asked for —
+// The ones the shop actually cares about are the ones it asked for —
 // anything touching money, prices, quantities, discounts and permissions —
-// plus a tenth for the platform-level suites (the API envelope, pagination,
-// search, images, push) that hold everything else up.
+// plus going live (passwords by email, and the commands that set a real shop
+// up), and a last one for the platform-level suites (the API envelope,
+// pagination, search, images, push) that hold everything else up.
 //
 // Every test FILE belongs to exactly one area, matched on its basename. A
 // file with no entry falls into UNASSIGNED_AREA, which is reported rather
@@ -75,14 +76,28 @@ export const VERIFY_AREAS: readonly VerifyArea[] = [
     ],
   },
   {
+    key: "passwords",
+    title: "9. Passwords & go-live",
+    claim:
+      "A link works once, dies on time, tells an attacker nothing, and `init` refuses a database in use.",
+    files: [
+      "passwordSetup.test.ts",
+      "passwordTokens.test.ts",
+      "emailTemplates.test.ts",
+      "rateLimit.test.ts",
+      "dangerousCommands.test.ts",
+      "init.test.ts",
+    ],
+  },
+  {
     key: "edgeCases",
-    title: "9. Edge cases",
+    title: "10. Edge cases",
     claim: "The last unit sells once, identifiers stay unique, and a numbered shawl needs its number.",
     files: ["edgeCases.verify.test.ts", "numberedShawls.test.ts"],
   },
   {
     key: "platform",
-    title: "10. Platform & API contract",
+    title: "11. Platform & API contract",
     claim: "The envelope, pagination, search, categories, images, labels, notifications and version.",
     files: [
       "orders.test.ts",

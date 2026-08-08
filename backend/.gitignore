@@ -6,3 +6,6 @@ uploads/
 # `npm run verify` artefacts: the raw vitest run and the report built from it.
 tests/verify-result.json
 tests/verify-report.md
+
+# `npm run email:preview` output — rendered emails, for looking at.
+tmp/

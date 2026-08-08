@@ -1,4 +1,4 @@
-// Fixture lookups against data the seed guarantees exists (backend/prisma/seed.ts):
+// Fixture lookups against data the seed guarantees exists (backend/prisma/dev/demo-seed.ts):
 // nested categories, and the global "color"/"size"/"number" variant types
 // with >=2 values each.
 import { apiRequest } from "@tests/support/client";

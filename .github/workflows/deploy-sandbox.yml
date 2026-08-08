@@ -56,8 +56,18 @@ jobs:
             echo "==> Applying database migrations"
             sleep 5
             docker compose -f docker-compose.sandbox.yml --env-file .env.sandbox exec -T backend npx prisma migrate deploy
-            echo "==> Seeding database (idempotent)"
-            docker compose -f docker-compose.sandbox.yml --env-file .env.sandbox exec -T backend npm run seed
+            echo "==> Creating essential data (settings, variant types, expense categories)"
+            # NOT a seed. This creates only the lists the app cannot run
+            # without, each exactly once in the life of the database (see
+            # backend/src/lib/bootstrap.ts) — so a colour or an expense
+            # category the shop retires stays retired instead of coming back
+            # on the next push.
+            #
+            # The demo seed (fake products, fake orders, admin@organza.test)
+            # is deliberately NOT here any more, and cannot be reached from a
+            # deploy at all: it is quarantined under backend/prisma/dev/ and
+            # refuses to run without being told the database is disposable.
+            docker compose -f docker-compose.sandbox.yml --env-file .env.sandbox exec -T backend npm run bootstrap
             echo "==> Pruning old images"
             docker image prune -f
 

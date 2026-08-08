@@ -1,6 +1,26 @@
 // ============================================================
-//  Organza Store — Prisma seed (DEV / TESTING ONLY)
-//  Run: npx prisma db seed
+//  Organza Store — DEMO seed (DEV / SANDBOX ONLY — NEVER PRODUCTION)
+//
+//  ⚠️  QUARANTINED. This file writes fake products, fake orders and test
+//  accounts whose password is printed at the bottom of this very file. On the
+//  shop's real database that is a stranger's login and a shelf full of
+//  garments that do not exist.
+//
+//  It is therefore:
+//    - NOT wired to `prisma db seed` (package.json#prisma is gone), so
+//      neither `prisma migrate dev` nor `prisma migrate reset` can trigger it;
+//    - NOT run by the deploy (.github/workflows/deploy-sandbox.yml runs
+//      `npm run bootstrap`, which creates essential data only);
+//    - refused outright unless the run says, in full, that the database is
+//      disposable (see the guard below).
+//
+//  Run it by hand, against a sandbox or a local machine:
+//      ORGANZA_ALLOW_DEMO_SEED=I-KNOW-THIS-IS-NOT-PRODUCTION npm run seed:demo
+//
+//  What a REAL shop gets instead:
+//      npm run bootstrap   — settings, variant types, expense categories
+//      npm run init        — the four real staff accounts, by email
+//
 //  Idempotent: safe to run multiple times (uses upsert).
 //  Covers every rule so the system can be tested end-to-end:
 //    - one user per role
@@ -27,12 +47,30 @@
 // ============================================================
 
 import { PrismaClient, Role } from "@prisma/client";
-import { auth } from "../src/lib/auth"; // Better Auth instance (adjust path if different)
+import { auth } from "@/lib/auth"; // Better Auth instance
 // Reuse the real search normalizer + SKU generator so the seed can never
 // silently drift from the production logic (CLAUDE.md rule 11).
-import { buildSearchText } from "../src/lib/search";
-import { productSku, variantSku } from "../src/lib/sku";
-import { generateUniqueBarcode } from "../src/lib/barcode";
+import { buildSearchText } from "@/lib/search";
+import { productSku, variantSku } from "@/lib/sku";
+import { generateUniqueBarcode } from "@/lib/barcode";
+import { assertDisposableDatabase } from "@/lib/dangerousCommands";
+import { DANGEROUS_COMMAND_ENV } from "@/constants";
+
+// THE GATE, before the Prisma client is even constructed. Bare rather than
+// inside main() so that importing this file for any reason cannot start
+// writing demo rows into somebody's shop.
+try {
+  assertDisposableDatabase({
+    command: "seed:demo",
+    overrideEnv: DANGEROUS_COMMAND_ENV.demoSeed,
+    what: "write demo products, demo orders and test staff accounts",
+  });
+} catch (error) {
+  // The refusal is a message for a person at a terminal — printed as one,
+  // not as a stack trace they have to read past.
+  console.error(error instanceof Error ? error.message : error);
+  process.exit(1);
+}
 
 const prisma = new PrismaClient();
 
@@ -605,7 +643,9 @@ async function main() {
         productId: line.product.id,
         variantId: line.variant?.id ?? null,
         name: line.product.name as object,
-        variantName: (line.variant?.name ?? null) as object | null,
+        // `undefined`, not null: Prisma writes SQL NULL for an omitted
+        // nullable Json column, and only accepts Prisma.DbNull explicitly.
+        variantName: (line.variant?.name ?? undefined) as object | undefined,
         sku: line.variant?.sku ?? line.product.sku,
         unitPrice,
         unitCost: unitCost === null || unitCost === undefined ? null : round2(Number(unitCost)),

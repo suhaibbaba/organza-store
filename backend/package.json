@@ -5,9 +5,7 @@
   "description": "Organza Store API — Node + Express + TypeScript + Prisma + PostgreSQL",
   "type": "commonjs",
   "main": "dist/index.js",
-  "prisma": {
-    "seed": "tsx prisma/seed.ts"
-  },
+  "_comment_prisma_seed": "There is deliberately no `prisma.seed` entry. It used to point at the demo seed, which meant `prisma migrate dev` and `prisma migrate reset` could fill a database with fake products and test accounts on their own. Essential data is `npm run bootstrap`; the demo seed is quarantined under prisma/dev/ and has to be asked for by name.",
   "scripts": {
     "postinstall": "npm run build:shared && prisma generate",
     "build:shared": "node scripts/build-shared.js",
@@ -23,7 +21,16 @@
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",
-    "seed": "prisma db seed",
+    "prebootstrap": "npm run build:shared",
+    "bootstrap": "tsx scripts/bootstrap.ts",
+    "preinit": "npm run build:shared",
+    "init": "tsx scripts/init.ts",
+    "predb:reset": "npm run build:shared",
+    "db:reset": "tsx scripts/db-reset.ts",
+    "preemail:preview": "npm run build:shared",
+    "email:preview": "tsx scripts/email-preview.ts",
+    "preseed:demo": "npm run build:shared",
+    "seed:demo": "tsx prisma/dev/demo-seed.ts",
     "auth:generate": "npx @better-auth/cli generate --config src/lib/auth.ts --output prisma/schema.prisma -y",
     "preverify": "npm run build:shared",
     "verify": "tsx scripts/verify.ts",

@@ -7,10 +7,13 @@ import type { User } from "@shared/types/user";
 import type { CreateUserInput, UpdateUserInput } from "@shared/schemas/user";
 
 // Field messages are backend error codes (CLAUDE.md rule 12), same as every
-// other form. Password stays optional at the schema level in both modes —
-// "required on create" is enforced manually in the form's submit handler,
-// since a create-only requirement isn't expressible without swapping
-// resolvers mid-lifecycle for the same mounted sheet (see UserFormSheet).
+// other form.
+//
+// Password is optional in BOTH modes now, and blank is the normal answer on
+// create: the new member of staff is emailed a single-use link and chooses
+// their own, so nobody at the counter ever types (or knows) somebody else's
+// password. Typing one anyway is still supported — the fallback for a person
+// whose mailbox is unreachable.
 export const userFormSchema = z.object({
   name: z.string().min(1, ERROR_CODES.VALIDATION_REQUIRED),
   email: z.string().min(1, ERROR_CODES.VALIDATION_REQUIRED).email(ERROR_CODES.VALIDATION_INVALID_EMAIL),
@@ -50,7 +53,9 @@ export function toCreatePayload(values: UserFormValues): CreateUserInput {
   return {
     name: values.name.trim(),
     email: values.email.trim(),
-    password: values.password,
+    // Omitted when blank — the backend then creates the account with no
+    // password at all and emails a set-password link.
+    ...(values.password.trim() ? { password: values.password } : {}),
     role: values.role,
     phone: values.phone,
     whatsapp: values.whatsapp.trim() ? values.whatsapp : undefined,

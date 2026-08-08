@@ -6,7 +6,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslations } from "next-intl";
 import { can } from "@shared/lib/permissions";
 import { ROLES } from "@shared/constants/roles";
-import { ERROR_CODES } from "@shared/constants/errors";
 import type { User } from "@shared/types/user";
 import { useSession } from "@/components/providers/session-provider";
 import { useTranslateError } from "@/hooks/use-translate-error";
@@ -20,6 +19,7 @@ import {
   toUpdatePayload,
   type UserFormValues,
 } from "@/lib/validation/user-form";
+import { PasswordResetAction } from "@/components/users/password-reset-action";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -51,7 +51,6 @@ export function UserFormSheet({ open, onOpenChange, mode, user }: UserFormSheetP
     handleSubmit,
     control,
     reset,
-    setError,
     formState: { errors },
   } = useForm<UserFormValues>({
     resolver: zodResolver(userFormSchema),
@@ -70,13 +69,9 @@ export function UserFormSheet({ open, onOpenChange, mode, user }: UserFormSheetP
   const mutation = mode === "create" ? createMutation : updateMutation;
 
   async function onSubmit(values: UserFormValues) {
-    // Password is required on create but optional on edit (blank = keep
-    // current password) — kept as a manual check instead of a second zod
-    // schema so the same mounted form doesn't need to swap resolvers.
-    if (mode === "create" && !values.password.trim()) {
-      setError("password", { type: "manual", message: ERROR_CODES.VALIDATION_REQUIRED });
-      return;
-    }
+    // Blank password is the normal case in BOTH modes now: on create the new
+    // member of staff is emailed a link and picks their own, on edit it means
+    // "leave the one they have alone". Typing one is the fallback.
     try {
       if (mode === "create") {
         await createMutation.mutateAsync(toCreatePayload(values));
@@ -133,9 +128,16 @@ export function UserFormSheet({ open, onOpenChange, mode, user }: UserFormSheetP
             {errors.password ? (
               <p className="text-sm text-destructive">{translateError(errors.password.message ?? "")}</p>
             ) : (
-              mode === "edit" && <p className="text-sm text-muted-foreground">{t("passwordHintEdit")}</p>
+              <p className="text-sm text-muted-foreground">
+                {t(mode === "create" ? "passwordHintCreate" : "passwordHintEdit")}
+              </p>
             )}
           </div>
+
+          {/* Re-sending the link is the everyday answer to "I can't get in",
+              and it means an Admin never has to invent a password for
+              somebody and read it out. */}
+          {mode === "edit" && user && <PasswordResetAction user={user} />}
 
           <div className="flex flex-col gap-2">
             <Label htmlFor="role">{t("role")}</Label>

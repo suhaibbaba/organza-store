@@ -1,13 +1,15 @@
+import crypto from "node:crypto";
 import { Router } from "express";
 import { AuditAction } from "@prisma/client";
 import { APIError } from "better-auth";
-import { hashPassword } from "better-auth/crypto";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { asyncHandler } from "@/middleware/asyncHandler";
 import { requireAuth, requirePermission } from "@/middleware/auth";
 import { validateBody, validateQuery } from "@/middleware/validate";
 import { AppError, sendOk } from "@/lib/response";
+import { setUserPassword } from "@/lib/credentials";
+import { sendPasswordSetupEmail } from "@/lib/passwordSetup";
 import {
   createUserSchema,
   listUsersQuerySchema,
@@ -19,6 +21,7 @@ import {
 import { findUserByPhoneField } from "@/lib/phone";
 import { writeAudit } from "@/lib/audit";
 import { AUDIT_ENTITY, AUTH_PROVIDER_CREDENTIAL, ERROR_CODES } from "@/constants";
+import { PASSWORD_TOKEN_BYTES } from "@shared/constants/passwordSetup";
 import type { SerializableUser } from "@/types";
 
 // Staff management — Admin only (CLAUDE.md rule 5). `idNumber` is Admin-only
@@ -120,10 +123,21 @@ router.post(
     if (emailTaken) throw new AppError(409, ERROR_CODES.EMAIL_DUPLICATE);
     await assertPhonesAvailable(body);
 
+    // Better Auth's sign-up always wants a password, so an account that is
+    // meant to have none is created with a throwaway one and then stripped of
+    // it below. Nobody ever sees this value — not the Admin creating the
+    // account, not the log, not the response.
+    const throwawayPassword = crypto.randomBytes(PASSWORD_TOKEN_BYTES).toString("base64url");
+
     let userId: string;
     try {
       const result = await auth.api.signUpEmail({
-        body: { email: body.email, password: body.password, name: body.name, phone: body.phone },
+        body: {
+          email: body.email,
+          password: body.password ?? throwawayPassword,
+          name: body.name,
+          phone: body.phone,
+        },
       });
       userId = result.user.id;
     } catch (err) {
@@ -140,6 +154,16 @@ router.post(
       },
     });
 
+    // No password given => the account genuinely has none. The hash is
+    // cleared rather than left as the throwaway, so there is no secret in
+    // the database that would let anybody in if it ever leaked.
+    if (!body.password) {
+      await prisma.account.updateMany({
+        where: { userId: created.id, providerId: AUTH_PROVIDER_CREDENTIAL },
+        data: { password: null },
+      });
+    }
+
     await writeAudit({
       userId: req.user!.id,
       action: AuditAction.CREATE,
@@ -148,7 +172,49 @@ router.post(
       newValue: serializeUser(created),
     });
 
+    // After the writes, never inside them, and never awaited on the mail
+    // itself: a mail provider having a bad afternoon must not turn "the
+    // account was created" into a 500 (see lib/email/index.ts). If it fails,
+    // it lands in error tracking and the Admin can send another from the
+    // users screen.
+    if (!body.password) {
+      await sendPasswordSetupEmail(created, "SET");
+    }
+
     sendOk(res, serializeUser(created), null, 201);
+  })
+);
+
+// ---------------------------------------------------------------------------
+// POST /api/users/:id/password-reset — email this person a set-password link
+//
+// Admin only, like everything else on this router. The link is single-use and
+// short-lived, and issuing it invalidates any earlier one.
+//
+// The link is RETURNED as well as emailed, deliberately: an Admin already
+// holds unrestricted password authority over every account (PATCH below sets
+// one outright), so this hands them nothing they did not have — and it is
+// what lets the shop pass a link over WhatsApp when somebody's mailbox is
+// unreachable, which is the situation this whole flow has to survive.
+// ---------------------------------------------------------------------------
+router.post(
+  "/:id/password-reset",
+  asyncHandler(async (req, res) => {
+    const user = await prisma.user.findUnique({ where: { id: req.params.id } });
+    if (!user) throw new AppError(404, ERROR_CODES.USER_NOT_FOUND);
+
+    const invite = await sendPasswordSetupEmail(user, "RESET");
+
+    await writeAudit({
+      userId: req.user!.id,
+      action: AuditAction.REQUEST,
+      entityType: AUDIT_ENTITY.USER,
+      entityId: user.id,
+      // The link itself is never written to the trail.
+      newValue: { passwordReset: "REQUESTED", source: "ADMIN", expiresAt: invite.expiresAt },
+    });
+
+    sendOk(res, { email: user.email, url: invite.url, expiresAt: invite.expiresAt });
   })
 );
 
@@ -177,26 +243,12 @@ router.patch(
       },
     });
 
-    // Admin-driven reset (CLAUDE.md rule 17) — hash with Better Auth's own
-    // hasher and write straight to the credential Account row, same
-    // algorithm Better Auth itself would use on sign-up.
+    // The admin-set fallback (CLAUDE.md rule 17), kept alongside the emailed
+    // link for the member of staff whose mailbox is unreachable. Hashing and
+    // the credential-account write live in lib/credentials.ts, shared with
+    // the emailed-link path so the two can never drift apart.
     if (body.password) {
-      const passwordHash = await hashPassword(body.password);
-      const account = await prisma.account.findFirst({
-        where: { userId: existing.id, providerId: AUTH_PROVIDER_CREDENTIAL },
-      });
-      if (account) {
-        await prisma.account.update({ where: { id: account.id }, data: { password: passwordHash } });
-      } else {
-        await prisma.account.create({
-          data: {
-            userId: existing.id,
-            providerId: AUTH_PROVIDER_CREDENTIAL,
-            accountId: existing.id,
-            password: passwordHash,
-          },
-        });
-      }
+      await setUserPassword(existing.id, body.password);
     }
 
     await writeAudit({

@@ -5,6 +5,7 @@ export * from "./common";
 export * from "./expense";
 export * from "./inventory";
 export * from "./order";
+export * from "./passwordSetup";
 export * from "./phone";
 export * from "./product";
 export * from "./push";

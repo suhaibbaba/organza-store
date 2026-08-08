@@ -5,6 +5,7 @@ export * from "./common";
 export * from "./dashboard";
 export * from "./expense";
 export * from "./inventory";
+export * from "./language";
 export * from "./order";
 export * from "./permission";
 export * from "./product";

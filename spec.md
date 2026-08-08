@@ -181,9 +181,57 @@ key into the user's language.
 - Auth tables (User/Session/Account/Verification) come from Better Auth's schema — generate/verify
   with its CLI (`npx @better-auth/cli generate`). Password is stored (hashed) by Better Auth in
   `Account`, **not** on `User`.
-- **Password reset is admin-driven** (Admin sets/resets staff passwords; no email self-reset).
 - Role checks enforced on the **backend** for every protected route.
 - Keep auth behind a thin wrapper so plugins (OTP/passkey for customers) slot in later.
+
+### Passwords: nobody is handed one
+
+There is still **no public sign-up** — an Admin creates every staff account. But an account is
+created with **no password at all**, and its owner chooses one from a **single-use, time-limited
+link sent to their own mailbox**. So the only person who ever knows a password is the person it
+belongs to, and an Admin never has to invent one and read it out across a counter.
+
+- **`PasswordSetupToken`** holds only the **SHA-256** of the emailed token, never the token
+  itself, and never writes it to a log. It carries a purpose (`SET` for a new account, `RESET`
+  for a forgotten password), an expiry, and a `usedAt` that is written by a conditional update —
+  which is what makes a link genuinely single-use rather than single-use-if-nobody-double-clicks.
+- **A link lasts 72 hours for a new account and 2 hours for a forgotten password.** A new member
+  of staff may not open their mail until the next shift; somebody who has just clicked "I forgot"
+  is dealing with it now.
+- **Issuing a link kills the previous one.** Otherwise an Admin's reset would leave a link that
+  had already gone astray still working.
+- **Redeeming one signs every device out** and marks the email verified. If the reason for the
+  reset was that somebody else had the old password, leaving their session alive would make the
+  reset decorative.
+- **The public "email me a link" endpoint reveals nothing.** Known address, unknown address,
+  deactivated account: the same status and the same body every time — anything else turns the
+  form into a way of asking whether somebody works here. It is rate-limited **per address** (the
+  real defence against mail-bombing and probing) and, more loosely, per caller, since the whole
+  shop shares one public address. Unknown, expired, already-used and revoked links all answer
+  with the same single error key, for the same reason.
+- **An Admin can send anyone a fresh link** from the Users screen. The link is shown to them as
+  well as emailed — an Admin already holds unrestricted password authority over every account, so
+  it grants nothing new, and it is what lets the shop pass a link on over WhatsApp when a mailbox
+  is unreachable.
+- **The admin-set password stays as a fallback**, for exactly that case.
+
+**Email is transactional and must not be able to cost anything.** It goes out through one
+swappable provider (Resend today) behind a small service, **after** the write it belongs to has
+committed, and is **never awaited**: a mail provider that is slow, unreachable or has had its key
+rotated must not turn "the account was created" into a failure. A send that fails goes to error
+tracking, exactly like a sale notification. With no provider configured, mail is simply not sent
+and the log says so.
+
+**The templates live in the codebase, not in a provider's dashboard** — version-controlled,
+reviewable, and translated through the same per-language message files the rest of the system
+uses (ar default, en, he), with `dir="rtl"` and a legible Arabic font stack. They are branded in
+the Organza palette, carry the logo, one obvious action button and the raw link underneath it as
+a fallback, and are written as email HTML rather than web HTML: tables, inline styles, nothing
+Outlook cannot render, a real plain-text alternative, a subject and a preheader. They carry **no
+tracking pixel and no rewritten links** — both make a transactional mail look like marketing to
+the filters, and the link in this one has to arrive. They are sent from a no-reply address on the
+verified domain, with a **reply-to that reaches the shop**, because somebody replying to it is a
+person trying to get hold of the shop.
 
 ## Phone numbers
 - **`phone` and `whatsapp` are both required-unique / optional-unique respectively**, and both are
@@ -545,9 +593,45 @@ request **superseded** an earlier one, and who **approved** or **rejected** it.
 
 ---
 
+---
+
+## Going live: essential data, not seed data
+
+A shop opening for real needs three things in its database and nothing else: the settings
+singleton every screen reads, the global option types a product is built from, and the
+categories an expense is filed under. It does **not** need a demo catalogue, and it must never
+be given one by accident.
+
+- **`npm run bootstrap` — essential data, on every deploy.** Settings, the three variant types
+  with a starting set of values, the five expense categories. Safe to run repeatedly, and
+  stronger than merely idempotent: each item is created **at most once in the life of the
+  database**, recorded in a `BootstrapRecord` row. An upsert-based version would be idempotent
+  and still wrong — the shop retires a colour it never stocks, the next push puts it back, and
+  the shop learns the system overrules them. A genuinely *new* default added in a later release
+  still lands. An item that already exists (from the old dev seed) is adopted and left untouched.
+- **`npm run init` — the real staff accounts, once, by hand.** Never on a deploy. It creates the
+  agreed accounts with no password and emails each of them a set-password link, and it
+  **refuses outright if any user already exists** — there is no partial mode and no "top up the
+  ones that are missing", because a database with a user in it is a database somebody is already
+  using. It asks for a phone number per account rather than inventing one: phone is required,
+  unique, and reaches a real person.
+- **`npm run db:reset` — destructive, manual only.** Drops every table, re-applies every
+  migration, and deletes uploaded images that no longer belong to anything. It seeds nothing. It
+  refuses without an explicit confirmation typed out in full, every run, and needs a second,
+  separate declaration when the environment is production.
+- **The demo seed is quarantined.** It is not wired to `prisma db seed`, so no migration command
+  can trigger it; it is not in the deploy pipeline; and it refuses to run unless told the
+  database is disposable — and refuses outright under `NODE_ENV=production`, with no override.
+
+The go-live sequence is therefore: **reset → migrate → bootstrap → init → each person sets their
+own password by email → start entering real stock.**
+
+---
+
 ## Seed data (dev/testing)
-A `backend/prisma/seed.ts` provides idempotent test data (run: `npx prisma db seed`).
-It must be **idempotent** (upsert-based, safe to re-run) and **dev-only**. It covers every rule:
+`backend/prisma/dev/demo-seed.ts` provides idempotent test data (run: `npm run seed:demo`, with
+the disposable-database declaration above). It must be **idempotent** (upsert-based, safe to
+re-run) and **dev-only**. It covers every rule:
 - one user per role (admin/manager/employee @organza.test, password `password123`)
 - global variant types + values in ar/en/he (Color, Size, Number)
 - nested categories (Women > Dresses > Evening; Women > Abayas)
@@ -556,7 +640,8 @@ It must be **idempotent** (upsert-based, safe to re-run) and **dev-only**. It co
 - a compare-at price, an out-of-stock variant, a hidden product, a soft-deleted product
 
 ## Build order (for Claude Code — one stage at a time)
-1. `backend/` — Prisma schema + migrations + seed (`prisma/seed.ts`, idempotent, covers all rules).
+1. `backend/` — Prisma schema + migrations + demo seed (`prisma/dev/demo-seed.ts`, idempotent,
+   covers all rules; quarantined — see "Going live" above).
 2. Auth (JWT) + role middleware.
 3. Products + variants CRUD + variant generation logic + SKU generation.
 4. Categories (nested) + images (upload + sharp optimization + reorder).

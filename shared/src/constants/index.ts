@@ -1,4 +1,5 @@
 export * from "./barcode";
+export * from "./brand";
 export * from "./cash";
 export * from "./changeRequest";
 export * from "./errors";
@@ -9,6 +10,7 @@ export * from "./label";
 export * from "./languages";
 export * from "./order";
 export * from "./pagination";
+export * from "./passwordSetup";
 export * from "./permissions";
 export * from "./phone";
 export * from "./product";
