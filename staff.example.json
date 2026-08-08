@@ -1,0 +1,22 @@
+[
+  {
+    "_comment": "Copy this file to staff.json (git-ignored) and put the shop's real people in it. `npm run init` reads it once, at go-live, and creates these accounts with NO password — each person is emailed a single-use link and chooses their own.",
+    "email": "owner@example.com",
+    "role": "ADMIN",
+    "name": "الاسم الكامل",
+    "phone": "+970599123456"
+  },
+  {
+    "_comment": "role is one of ADMIN, MANAGER, EMPLOYEE. phone is E.164, stored exactly as written — the +970/+972 prefix is never rewritten, and the same line under either prefix counts as a duplicate.",
+    "email": "manager@example.com",
+    "role": "MANAGER",
+    "name": "Manager Name",
+    "phone": "+972599123457"
+  },
+  {
+    "email": "employee@example.com",
+    "role": "EMPLOYEE",
+    "name": "Employee Name",
+    "phone": "+970599123458"
+  }
+]

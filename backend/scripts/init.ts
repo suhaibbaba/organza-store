@@ -6,6 +6,14 @@
 //  to be run by hand at go-live, on a database that has just been migrated and
 //  bootstrapped and has no users in it yet.
 //
+//  WHO it creates comes from a JSON roster read at run time, not from this
+//  repo — see src/constants/init.ts for why, and staff.example.json for the
+//  shape:
+//
+//      npm run init                                  # ../staff.json
+//      npm run init -- --accounts /srv/staff.json    # somewhere else
+//      ORGANZA_STAFF_FILE=/srv/staff.json npm run init
+//
 //  Each account is created with NO PASSWORD and is emailed a single-use
 //  "set your password" link, so the only person who ever knows a password is
 //  the person it belongs to. Nothing is printed that would let anybody in.
@@ -14,26 +22,23 @@
 //  no "top up the ones that are missing". A database with a user in it is a
 //  database somebody is already using, and this command's whole job is to
 //  populate an empty one.
-//
-//  Phone numbers are asked for rather than invented (CLAUDE.md rule 18: phone
-//  is required, unique, and reaches a real person).
 // ============================================================================
 import "dotenv/config";
-import readline from "node:readline/promises";
 import crypto from "node:crypto";
+import path from "node:path";
 import { APIError } from "better-auth";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { isValidE164 } from "@/lib/phone";
 import { sendPasswordSetupEmail } from "@/lib/passwordSetup";
 import { emailConfig, isEmailConfigured } from "@/lib/email";
 import { describeDatabase } from "@/lib/dangerousCommands";
 import { createInitialStaff, InitRefusedError } from "@/lib/init";
-import { INIT_FLAGS, INIT_STAFF_ACCOUNTS, type InitStaffAccount } from "@/constants/init";
-import type { InitAccountDetails } from "@/types/init";
+import { applyStaffOverrides, loadStaffAccounts, resolveStaffFilePath } from "@/lib/staffAccounts";
+import { INIT_FLAGS } from "@/constants/init";
 import { AUTH_PROVIDER_CREDENTIAL, PASSWORD_TOKEN_BYTES } from "@/constants";
 
 const RULE = "═".repeat(74);
+const REPO_ROOT = path.resolve(__dirname, "..", "..");
 
 // --- flags: --phone email=+970… / --name email=Some Name --------------------
 
@@ -48,64 +53,51 @@ function parseKeyedFlags(argv: string[], flag: string): Map<string, string> {
   return out;
 }
 
-async function collectDetails(accounts: InitStaffAccount[], argv: string[]) {
-  const phoneFlags = parseKeyedFlags(argv, INIT_FLAGS.phone);
-  const nameFlags = parseKeyedFlags(argv, INIT_FLAGS.name);
-  const interactive = process.stdin.isTTY === true;
-  const rl = interactive ? readline.createInterface({ input: process.stdin, output: process.stdout }) : null;
-
-  try {
-    const resolved: InitAccountDetails[] = [];
-
-    for (const account of accounts) {
-      const key = account.email.toLowerCase();
-
-      let name = nameFlags.get(key) ?? "";
-      if (!name && rl) {
-        const answer = (await rl.question(`\n${account.email} (${account.role})\n  name [${account.defaultName}]: `)).trim();
-        name = answer || account.defaultName;
-      }
-      if (!name) name = account.defaultName;
-
-      let phone = phoneFlags.get(key) ?? "";
-      while (!isValidE164(phone)) {
-        if (!rl) {
-          throw new Error(
-            `Missing or invalid phone number for ${account.email}.\n` +
-              `Pass one per account, in E.164 (the prefix is never rewritten — CLAUDE.md rule 18):\n` +
-              `    npm run init -- ${INIT_FLAGS.phone} ${account.email}=+970599123456`
-          );
-        }
-        if (phone) console.log("  ↳ that is not a valid international number (E.164, e.g. +970599123456)");
-        phone = (await rl.question("  phone (E.164, e.g. +970599123456): ")).trim();
-      }
-
-      resolved.push({ email: account.email, role: account.role, name, phone });
-    }
-
-    return resolved;
-  } finally {
-    rl?.close();
-  }
-}
-
 async function main(): Promise<void> {
+  const argv = process.argv.slice(2);
+  const staffFile = resolveStaffFilePath(argv, REPO_ROOT);
+
   console.log(RULE);
   console.log("  Organza — creating the shop's staff accounts");
   console.log(RULE);
   console.log(`  Database : ${describeDatabase()}`);
+  console.log(`  Accounts : ${staffFile}`);
   console.log(`  Email    : ${isEmailConfigured() ? emailConfig().from : "NOT CONFIGURED (links will not be sent)"}`);
   console.log(RULE);
 
-  // The refusal, before anything is asked for. createInitialStaff checks it
+  // The roster is read and checked in full BEFORE the database is touched, so
+  // a typo in the fourth entry can never leave the first three created.
+  const details = applyStaffOverrides(
+    loadStaffAccounts(staffFile),
+    { names: parseKeyedFlags(argv, INIT_FLAGS.name), phones: parseKeyedFlags(argv, INIT_FLAGS.phone) },
+    staffFile
+  );
+
+  // The refusal, before anything is written. createInitialStaff checks it
   // again for itself (it is that function's rule, not this file's) — this
-  // early copy only exists so nobody is asked to type four phone numbers into
-  // a prompt that was always going to refuse.
+  // early copy only exists so the roster is echoed back before the refusal
+  // rather than after it.
   const existing = await prisma.user.count();
   if (existing > 0) {
-    console.error(["", RULE, "  ⛔  REFUSING TO RUN — init", RULE, ...new InitRefusedError(existing).message.split("\n").map((line) => `  ${line}`), RULE, ""].join("\n"));
+    console.error(
+      [
+        "",
+        RULE,
+        "  ⛔  REFUSING TO RUN — init",
+        RULE,
+        ...new InitRefusedError(existing).message.split("\n").map((line) => `  ${line}`),
+        RULE,
+        "",
+      ].join("\n")
+    );
     process.exitCode = 1;
     return;
+  }
+
+  console.log("");
+  console.log(`  About to create ${details.length} account(s):`);
+  for (const account of details) {
+    console.log(`    ${account.role.padEnd(8)} ${account.email}  ${account.name}  ${account.phone}`);
   }
 
   if (!isEmailConfigured()) {
@@ -115,8 +107,6 @@ async function main(): Promise<void> {
         "     admin's Users screen once email is configured.\n"
     );
   }
-
-  const details = await collectDetails(INIT_STAFF_ACCOUNTS, process.argv.slice(2));
 
   console.log("");
   const results = await createInitialStaff(details, {
@@ -155,7 +145,7 @@ async function main(): Promise<void> {
 
   // "created" rather than "sent" when there is no provider: the accounts and
   // their links are real either way, but claiming a delivery that never
-  // happened is exactly the kind of thing somebody would act on.
+  // happened is exactly the sort of thing somebody would act on.
   const verb = isEmailConfigured() ? "link sent" : "link created (NOT emailed)";
   for (const result of results) {
     console.log(
@@ -177,7 +167,7 @@ async function main(): Promise<void> {
 
 main()
   .catch((error) => {
-    console.error(error instanceof Error ? error.message : error);
+    console.error(`\n${error instanceof Error ? error.message : error}\n`);
     process.exit(1);
   })
   .finally(async () => {
