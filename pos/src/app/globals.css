@@ -365,6 +365,53 @@
   }
 }
 
+/* ------------------------------------------------------------------
+   Product browser — the drawer's grid (components/sell/browser).
+
+   The panel and its backdrop are animated by the sheet itself; this is
+   only what the cards do once it is open. Each one rises a few pixels
+   into place a beat after the one before it (the delay is an inline
+   style — see constants/pos.ts), so a screenful of photos arrives as a
+   sweep instead of appearing all at once like a page that jumped.
+
+   Opacity and transform only: both are composited, so a full grid of
+   photos animating at the same time costs no layout and stays smooth on
+   the counter's modest laptop. `both` holds the card invisible through
+   its delay; the animation itself is over in a fifth of a second,
+   because this is a till and nobody is here to watch it.
+   ------------------------------------------------------------------ */
+@keyframes pos-browse-card-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 8px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.pos-browse-card {
+  animation: pos-browse-card-in 200ms ease-out both;
+}
+
+/* With motion turned down nothing moves — every card is simply there, at
+   full strength, the moment the drawer opens. The panel and the backdrop
+   go still with it: they are the largest moving things in the app, and a
+   device asking for less motion is asking about exactly this. Radix
+   only waits for an animation that is actually running, so removing
+   these leaves opening and closing instant rather than stuck. */
+@media (prefers-reduced-motion: reduce) {
+  .pos-browse-card {
+    animation: none;
+  }
+
+  [data-slot="sheet-content"],
+  [data-slot="sheet-overlay"] {
+    animation: none;
+  }
+}
+
 /* Installed from the home screen the app supplies its own pull-to-refresh
    (components/pwa/pull-to-refresh.tsx). Containing the overscroll keeps the
    page from rubber-banding behind the pull, which is what makes the gesture

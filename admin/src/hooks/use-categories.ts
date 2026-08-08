@@ -32,6 +32,18 @@ export function useUpdateCategoryMutation(id: string) {
   });
 }
 
+// Pinning a category to the top of the POS product browser's sidebar
+// (spec.md "POS product browser"). Separate from useUpdateCategoryMutation,
+// which is bound to one id at construction: the star is drawn on every row of
+// a recursive tree, so the id has to travel with the click.
+export function useToggleCategoryFavoriteMutation() {
+  const invalidate = useInvalidateCategories();
+  return useMutation({
+    mutationFn: ({ id, isFavorite }: { id: string; isFavorite: boolean }) => updateCategory(id, { isFavorite }),
+    onSuccess: invalidate,
+  });
+}
+
 export function useDeleteCategoryMutation() {
   const invalidate = useInvalidateCategories();
   return useMutation({

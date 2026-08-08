@@ -10,6 +10,24 @@ export const SEARCH_PAGE_SIZE = 12;
 // Below this, a query is almost always still being typed.
 export const SEARCH_MIN_QUERY_LENGTH = 1;
 
+// The product browser's grid (components/sell/browser). Bigger than a page of
+// search results — the drawer is browsed by eye rather than read row by row,
+// and a page has to fill the grid on the counter's laptop as well as two
+// columns on a phone. The rest arrives on "Show more" rather than as an
+// endless list, so the API is never asked for an unbounded one (CLAUDE.md
+// rule 15).
+export const BROWSE_PAGE_SIZE = 24;
+
+// The grid's entrance: each card starts a beat after the one before it, so a
+// screenful arrives as a sweep rather than as a slab. Small numbers on
+// purpose — this has to be over before a cashier who knows what they are
+// reaching for can reach it, and the last card of a full first screen is in
+// place well inside a quarter of a second. Past BROWSE_CARD_STAGGER_MAX the
+// delay stops growing: a card twelve rows down is scrolled to, not watched,
+// and staggering it would only make it late.
+export const BROWSE_CARD_STAGGER_STEP_MS = 18;
+export const BROWSE_CARD_STAGGER_MAX = 11;
+
 // The two ways a cart can be sold. A counter sale is a STORE order: paid in
 // cash and completed the moment it is created, customer standing there. The
 // same cart can instead be filed as a WhatsApp order, which opens NEW, holds

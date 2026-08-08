@@ -65,6 +65,25 @@
       "cartCount": "{count, plural, =0 {הסל ריק} one {פריט אחד} two {# פריטים} other {# פריטים}}",
       "resultsTitle": "תוצאות חיפוש עבור «{query}»"
     },
+    "browse": {
+      "open": "עיון במוצרים",
+      "title": "מוצרים",
+      "categories": "קטגוריות",
+      "categoriesLoading": "טוען קטגוריות…",
+      "categoriesError": "לא ניתן לטעון את הקטגוריות.",
+      "all": "הכול",
+      "favorites": "מועדפים",
+      "allCategories": "כל הקטגוריות",
+      "searchLabel": "חיפוש בתוך המוצרים",
+      "searchPlaceholder": "חיפוש לפי שם",
+      "clearSearch": "ניקוי החיפוש",
+      "loading": "טוען…",
+      "error": "לא ניתן לטעון את המוצרים. נסו שוב.",
+      "empty": "אין מוצרים בקטגוריה הזו.",
+      "emptySearch": "אין תוצאות מתאימות.",
+      "clearFilters": "הצגת כל המוצרים",
+      "showMore": "הצגת עוד"
+    },
     "scanner": {
       "title": "סריקת ברקוד",
       "subtitle": "כוון את המצלמה לברקוד שעל התווית.",

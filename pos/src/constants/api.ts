@@ -9,6 +9,14 @@ export const AUTH_ENDPOINTS = {
 export const SESSION_QUERY_KEY = ["session"] as const;
 export const SETTINGS_QUERY_KEY = ["settings"] as const;
 export const PRODUCT_SEARCH_QUERY_KEY = ["products", "search"] as const;
+// The product browser's grid — a page of a category (optionally narrowed by
+// its own search box), kept apart from the search box's key so opening the
+// drawer never evicts the results the cashier already has on screen.
+export const PRODUCT_BROWSE_QUERY_KEY = ["products", "browse"] as const;
+// The shop's shelves, for the browser's sidebar. Changed from the admin
+// perhaps once a season, so it is held for the shift.
+export const CATEGORIES_QUERY_KEY = ["categories"] as const;
+export const CATEGORIES_STALE_TIME_MS = 30 * 60 * 1000;
 export const PRODUCT_DETAIL_QUERY_KEY = ["products", "detail"] as const;
 export const PRODUCT_LOOKUP_QUERY_KEY = ["products", "lookup"] as const;
 // Repeat customers, matched on the phone digits typed so far (there is no

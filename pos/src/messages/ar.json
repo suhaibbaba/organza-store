@@ -65,6 +65,25 @@
       "cartCount": "{count, plural, zero {السلة فارغة} one {قطعة واحدة} two {قطعتان} few {# قطع} many {# قطعة} other {# قطعة}}",
       "resultsTitle": "نتائج البحث عن «{query}»"
     },
+    "browse": {
+      "open": "تصفّح المنتجات",
+      "title": "المنتجات",
+      "categories": "الأقسام",
+      "categoriesLoading": "جارٍ تحميل الأقسام…",
+      "categoriesError": "تعذّر تحميل الأقسام.",
+      "all": "الكل",
+      "favorites": "المفضّلة",
+      "allCategories": "كل الأقسام",
+      "searchLabel": "ابحث داخل المنتجات",
+      "searchPlaceholder": "ابحث بالاسم",
+      "clearSearch": "مسح البحث",
+      "loading": "جارٍ التحميل…",
+      "error": "تعذّر تحميل المنتجات. حاول مرة أخرى.",
+      "empty": "لا توجد منتجات في هذا القسم.",
+      "emptySearch": "لا يوجد ما يطابق البحث.",
+      "clearFilters": "عرض كل المنتجات",
+      "showMore": "عرض المزيد"
+    },
     "scanner": {
       "title": "مسح الباركود",
       "subtitle": "وجّه الكاميرا نحو الباركود الموجود على القطعة.",

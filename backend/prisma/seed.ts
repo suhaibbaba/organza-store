@@ -169,6 +169,9 @@ async function main() {
   }
 
   // --- Categories (nested) ---
+  // `isFavorite` is seeded on some and not others so the POS product browser
+  // has both groups to draw: pinned shelves at the top of its sidebar, the
+  // rest of the tree under them.
   const women = await prisma.category.upsert({
     where: { slug: "women" },
     update: { name: { ar: "نسائي", en: "Women", he: "נשים" } },
@@ -176,8 +179,13 @@ async function main() {
   });
   const dresses = await prisma.category.upsert({
     where: { slug: "dresses" },
-    update: { name: { ar: "فساتين", en: "Dresses", he: "שמלות" }, parentId: women.id },
-    create: { slug: "dresses", name: { ar: "فساتين", en: "Dresses", he: "שמלות" }, parentId: women.id },
+    update: { name: { ar: "فساتين", en: "Dresses", he: "שמלות" }, parentId: women.id, isFavorite: true },
+    create: {
+      slug: "dresses",
+      name: { ar: "فساتين", en: "Dresses", he: "שמלות" },
+      parentId: women.id,
+      isFavorite: true,
+    },
   });
   const evening = await prisma.category.upsert({
     where: { slug: "evening" },
@@ -186,8 +194,13 @@ async function main() {
   });
   const abayas = await prisma.category.upsert({
     where: { slug: "abayas" },
-    update: { name: { ar: "عبايات", en: "Abayas", he: "עבאיות" }, parentId: women.id },
-    create: { slug: "abayas", name: { ar: "عبايات", en: "Abayas", he: "עבאיות" }, parentId: women.id },
+    update: { name: { ar: "عبايات", en: "Abayas", he: "עבאיות" }, parentId: women.id, isFavorite: true },
+    create: {
+      slug: "abayas",
+      name: { ar: "عبايات", en: "Abayas", he: "עבאיות" },
+      parentId: women.id,
+      isFavorite: true,
+    },
   });
 
   // helper: create/refresh a product + its variants deterministically

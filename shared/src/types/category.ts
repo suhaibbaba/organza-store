@@ -12,6 +12,10 @@ export interface Category {
   name: I18n;
   slug: string;
   parentId: string | null;
+  // Pinned to the top of the POS product browser's sidebar. Set by hand in
+  // the admin and stored here, not per device, so every till agrees on which
+  // shelves come first.
+  isFavorite: boolean;
   createdAt: string;
   updatedAt: string;
 }

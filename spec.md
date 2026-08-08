@@ -31,7 +31,8 @@ organza-store/
 ### Product (parent)
 Holds the shared/general info:
 - `name`, auto-generated `slug`, `description`
-- `category` (nested categories supported: e.g. Women > Dresses > Evening)
+- `category` (nested categories supported: e.g. Women > Dresses > Evening; a category may be
+  flagged `isFavorite` to pin it at the top of the POS product browser — see "POS product browser")
 - `primaryImage` + `gallery` (ordered images, drag-to-reorder, lowest sortOrder = primary)
 - `barcode`
 - `basePrice` — the product's base price
@@ -280,6 +281,47 @@ translations live in the DB. No paid search or translation services.
 - Fallback if 1D accuracy is poor: **`@zxing/library`**.
 - Written as an **isolated scanner component** so the engine can be swapped in one place.
 - **Requires HTTPS** on the POS (mandatory for camera access on iOS).
+
+---
+
+## POS product browser (picking by eye)
+Not every piece can carry a label. A silk scarf has nothing to stick one to, and some cashiers are
+simply faster finding a garment by its photo than by typing its name. So the selling screen has a
+fourth way in, beside the camera, the counter's hand scanner and the search box — and it ends in
+the same cart, through the same lookup.
+
+- **A drawer, not a screen.** A clear labelled button under the search box opens it; it slides in
+  from the **start edge** (right in Arabic, left in English) over the sale, with the backdrop
+  fading in. It closes on the ✕, on the backdrop, on Escape, and by itself the moment something is
+  picked — the cart it was covering is exactly as it was, with one more line on it. It never
+  permanently occupies the screen.
+- **Two columns.** Categories down the start side, product grid on the other. Both scroll
+  independently.
+- **Sidebar = categories, never products.** "All" first, then the shop's **favourites**, then the
+  whole tree indented under its parents. Selecting one filters the grid; selecting a parent shows
+  everything filed under it, not just what hangs off the parent itself.
+- **Favourite categories** are flagged by hand in the admin (a star on each row of the category
+  screen, `category.manage`) and stored on the category (`Category.isFavorite`) — **server-side, so
+  every till and every phone agrees**, not a per-device preference. A pinned category still appears
+  in the tree below as well.
+- **Cards** show the photo (the shared placeholder when there is none), the name, the price, and a
+  red/amber/green stock badge **that always spells its state out in words**. Out of stock stays
+  visible but cannot be tapped. A product with variants is marked exactly as it is in the search
+  results — accent bar, tinted card, chevron instead of "+" — and a numbered collection shows its
+  number count.
+- **Search inside the drawer** is the same cross-language, typo-tolerant search the selling screen
+  runs, narrowed to the selected category. A search that finds nothing inside a category offers a
+  way back out to all of them.
+- **Tapping a product does exactly what tapping a search result does:** a simple product goes
+  straight into the cart with the usual toast; one with variants opens the variant picker.
+- **The grid is paged** ("Show more"), never an unbounded list.
+- **Motion** is transforms and opacity only — the panel slide, the backdrop fade, a short staggered
+  entrance for the cards, a small dip on press — and all of it is dropped under
+  `prefers-reduced-motion: reduce`.
+
+Nothing about the existing phone flow changes: the camera, the hardware scanner, the toasts, the
+beep, de-duplication, quantity increment, the variant picker and the safe areas are the same code
+they were, and the browser is an addition layered on top of them.
 
 ---
 

@@ -918,7 +918,10 @@
       "edit": "Edit category",
       "delete": "Delete category",
       "confirmDelete": "Delete",
-      "cancelDelete": "Cancel"
+      "cancelDelete": "Cancel",
+      "pinned": "Pinned",
+      "pin": "Pin {name} to the till's product browser",
+      "unpin": "Unpin {name} from the till's product browser"
     },
     "form": {
       "createTitle": "Add category",
@@ -932,7 +935,8 @@
       "saving": "Saving…",
       "create": "Create category",
       "save": "Save changes"
-    }
+    },
+    "favoritesHint": "Star the ones your cashiers reach for most — they come first in the till's product browser."
   },
   "settings": {
     "title": "Settings",

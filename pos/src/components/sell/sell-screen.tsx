@@ -2,6 +2,7 @@
 
 import { useCallback, useRef, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
+import { LayoutGrid } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { can } from "@shared/lib/permissions";
 import { ERROR_CODES } from "@shared/constants/errors";
@@ -33,8 +34,10 @@ import { SaleSuccess } from "@/components/sell/sale-success";
 import { WhatsappOrderSheet } from "@/components/sell/whatsapp-order-sheet";
 import { GiftOrderSheet } from "@/components/sell/gift-order-sheet";
 import { ScannerSheet } from "@/components/sell/scanner/scanner-sheet";
+import { ProductBrowserDrawer } from "@/components/sell/browser/product-browser-drawer";
 import { VariantPickerSheet } from "@/components/sell/variant-picker-sheet";
 import { Alert } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 import { Toaster } from "@/components/ui/toast";
 import type { OrderCustomerDraft } from "@/types/customer";
 import type { CartLine } from "@/types/cart";
@@ -78,6 +81,11 @@ export function SellScreen() {
 
   const [query, setQuery] = useState("");
   const [scannerOpen, setScannerOpen] = useState(false);
+  // The product browser (components/sell/browser): the way in for a piece
+  // that carries no label to scan, and for a cashier who would rather point
+  // at the photo. It covers the sale while it is open and gets out of the way
+  // the moment something is picked.
+  const [browserOpen, setBrowserOpen] = useState(false);
   const [pickerProduct, setPickerProduct] = useState<Product | null>(null);
   // Whether the picker interrupted a run of scans. Set when a scanned code
   // turns out to need a choice, and used to put the camera back afterwards
@@ -200,11 +208,14 @@ export function SellScreen() {
   // cashier read it.
   const isAskingSomethingElse =
     whatsappOpen || giftOpen || orderDiscountOpen || discountLineKey !== null;
-  // The two sheets that ARE part of scanning: the picker a variant-bearing
-  // parent raises, and the camera. Neither of them takes a text field's focus
-  // (SheetContent's onOpenAutoFocus), so the counter's scanner keeps working
-  // straight through — the next trigger pull just replaces what is on screen.
-  const isScanningSheetOpen = pickerProduct !== null || scannerOpen;
+  // The sheets that ARE part of finding what is being sold: the picker a
+  // variant-bearing parent raises, the camera, and the product browser. None
+  // of them takes a text field's focus (SheetContent's onOpenAutoFocus), so
+  // the counter's scanner keeps working straight through — the next trigger
+  // pull just replaces what is on screen. What they do switch off is the
+  // keyboard shortcuts, which answer questions this screen is no longer the
+  // one asking.
+  const isFindingSheetOpen = pickerProduct !== null || scannerOpen || browserOpen;
 
   // The counter's plug-in scanner. What a scan does is the camera's behaviour
   // verbatim — the same lookup, the same toast, the same beep, the same
@@ -223,7 +234,7 @@ export function SellScreen() {
   // Keys for the counter keyboard. Every one of them is also a button, and
   // the phone — which has no keyboard — never sees any of this.
   useSellShortcuts({
-    enabled: canSell && completedOrder === null && !isAskingSomethingElse && !isScanningSheetOpen,
+    enabled: canSell && completedOrder === null && !isAskingSomethingElse && !isFindingSheetOpen,
     onFocusSearch: () => {
       const input = searchInputRef.current;
       if (!input) return;
@@ -246,10 +257,16 @@ export function SellScreen() {
     },
   });
 
-  // A tapped search result: the list DTO carries no variants, so the full
-  // product is fetched before deciding whether to ask which one.
+  // A tapped product, from the search results or from the browser's grid:
+  // the list DTO carries no variants, so the full product is fetched before
+  // deciding whether to ask which one.
+  //
+  // Answers whether the tap got anywhere — added, or opened the picker — so a
+  // caller that has something to close can close it. A failed lookup leaves
+  // everything where it was, with the toast over it, rather than shutting the
+  // drawer on a cashier who now has nothing to show for the tap.
   const selectSearchResult = useCallback(
-    async (summary: ProductSummary) => {
+    async (summary: ProductSummary): Promise<boolean> => {
       setPendingProductId(summary.id);
       try {
         const product = await queryClient.fetchQuery({
@@ -268,13 +285,28 @@ export function SellScreen() {
         // the first place, and a customer buying three dresses off one list
         // would have to type the same word three times. The toast and the
         // count on that door say what just went in.
+        return true;
       } catch (error) {
         toasts.show("destructive", translateError(error instanceof ApiError ? error.code : ERROR_CODES.INTERNAL));
+        return false;
       } finally {
         setPendingProductId(null);
       }
     },
     [addToCart, queryClient, toasts, translateError]
+  );
+
+  // A product picked out of the browser's grid. Identical to tapping a search
+  // result — same fetch, same cart, same picker for a product with variants —
+  // and then the drawer gets out of the way, because the whole point of it
+  // being a drawer is that the sale is underneath it. The picker, when there
+  // is one, comes up over the sale in its place.
+  const selectBrowsedProduct = useCallback(
+    async (summary: ProductSummary) => {
+      const picked = await selectSearchResult(summary);
+      if (picked) setBrowserOpen(false);
+    },
+    [selectSearchResult]
   );
 
   // Every ending of a cart goes through here: on its own it is a counter
@@ -398,6 +430,31 @@ export function SellScreen() {
               isLooking={isLooking}
               inputRef={searchInputRef}
             />
+
+            {/* The way into the product browser, and deliberately a wide
+                labelled button rather than another icon squeezed into the row
+                above: a cashier who is reaching for it is reaching for it
+                because they cannot scan or spell the thing in their hand,
+                which is the worst moment to be hunting for a glyph. It sits
+                under the search box — the finding corner of the screen — and
+                only while the cart is what is on screen: during a search the
+                results ARE the browser, and a second way to browse over the
+                top of them is noise.
+
+                The camera and the scanner keep the row above to themselves,
+                so nothing about the way this screen was scanned yesterday
+                has moved. */}
+            {!isSearching && (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setBrowserOpen(true)}
+                className="mt-2 h-12 w-full"
+              >
+                <LayoutGrid aria-hidden="true" />
+                {t("browse.open")}
+              </Button>
+            )}
           </div>
 
           {isSearching ? (
@@ -490,6 +547,13 @@ export function SellScreen() {
         totals={cart.totals}
         sound={scanFeedback.sound}
         vibration={scanFeedback.vibration}
+      />
+
+      <ProductBrowserDrawer
+        open={browserOpen}
+        onOpenChange={setBrowserOpen}
+        pendingId={pendingProductId}
+        onSelect={(summary) => void selectBrowsedProduct(summary)}
       />
 
       <VariantPickerSheet

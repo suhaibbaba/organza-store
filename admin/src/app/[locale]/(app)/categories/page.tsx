@@ -6,7 +6,11 @@ import { Plus } from "lucide-react";
 import type { CategoryNode } from "@shared/types/category";
 import { can } from "@shared/lib/permissions";
 import { useSession } from "@/components/providers/session-provider";
-import { useCategoriesQuery, useDeleteCategoryMutation } from "@/hooks/use-categories";
+import {
+  useCategoriesQuery,
+  useDeleteCategoryMutation,
+  useToggleCategoryFavoriteMutation,
+} from "@/hooks/use-categories";
 import { useTranslateError } from "@/hooks/use-translate-error";
 import { Button } from "@/components/ui/button";
 import { Alert } from "@/components/ui/alert";
@@ -23,12 +27,13 @@ export default function CategoriesPage() {
 
   const { data: tree, isLoading, isError, error, refetch } = useCategoriesQuery();
   const deleteMutation = useDeleteCategoryMutation();
+  const favoriteMutation = useToggleCategoryFavoriteMutation();
 
   const [formOpen, setFormOpen] = useState(false);
   const [formMode, setFormMode] = useState<"create" | "edit">("create");
   const [editingCategory, setEditingCategory] = useState<CategoryNode | undefined>(undefined);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
-  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   function openCreateForm() {
     setFormMode("create");
@@ -43,22 +48,36 @@ export default function CategoriesPage() {
   }
 
   function requestDelete(id: string) {
-    setDeleteError(null);
+    setActionError(null);
     setConfirmDeleteId(id);
   }
 
   async function confirmDelete(node: CategoryNode) {
-    setDeleteError(null);
+    setActionError(null);
     try {
       await deleteMutation.mutateAsync(node.id);
       setConfirmDeleteId(null);
     } catch (err) {
       setConfirmDeleteId(null);
-      setDeleteError(translateError(err instanceof ApiError ? err.code : "error.internal"));
+      setActionError(translateError(err instanceof ApiError ? err.code : "error.internal"));
+    }
+  }
+
+  // Pinning a shelf to the front of the POS browser is a save like any
+  // other, so a refused one is said out loud in the same place a refused
+  // delete is — silently leaving the star where it was is how somebody ends
+  // up believing every till has been re-ordered when nothing has.
+  async function toggleFavorite(node: CategoryNode) {
+    setActionError(null);
+    try {
+      await favoriteMutation.mutateAsync({ id: node.id, isFavorite: !node.isFavorite });
+    } catch (err) {
+      setActionError(translateError(err instanceof ApiError ? err.code : "error.internal"));
     }
   }
 
   const deletingId = deleteMutation.isPending ? (deleteMutation.variables ?? null) : null;
+  const favoritePendingId = favoriteMutation.isPending ? (favoriteMutation.variables?.id ?? null) : null;
 
   return (
     <div className="flex flex-col gap-4">
@@ -66,6 +85,9 @@ export default function CategoriesPage() {
         <div>
           <h1 className="text-xl font-semibold">{t("title")}</h1>
           <p className="text-sm text-muted-foreground">{t("subtitle")}</p>
+          {/* The star on each row is the only control on this screen whose
+              effect is somewhere else entirely, so the screen says where. */}
+          {canManage && <p className="mt-1 text-sm text-muted-foreground">{t("favoritesHint")}</p>}
         </div>
         {canManage && (
           <Button size="sm" className="shrink-0" onClick={openCreateForm}>
@@ -77,7 +99,7 @@ export default function CategoriesPage() {
 
       {!canManage && <p className="text-sm text-muted-foreground">{t("readOnlyHint")}</p>}
 
-      {deleteError && <Alert variant="destructive">{deleteError}</Alert>}
+      {actionError && <Alert variant="destructive">{actionError}</Alert>}
 
       {isLoading ? (
         <CategoryListLoading />
@@ -90,6 +112,8 @@ export default function CategoriesPage() {
           nodes={tree}
           canManage={canManage}
           onEdit={openEditForm}
+          onToggleFavorite={(node) => void toggleFavorite(node)}
+          favoritePendingId={favoritePendingId}
           confirmDeleteId={confirmDeleteId}
           onRequestDelete={requestDelete}
           onCancelDelete={() => setConfirmDeleteId(null)}

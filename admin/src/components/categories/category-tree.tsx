@@ -5,6 +5,8 @@ interface CategoryTreeProps {
   nodes: CategoryNode[];
   canManage: boolean;
   onEdit: (node: CategoryNode) => void;
+  onToggleFavorite: (node: CategoryNode) => void;
+  favoritePendingId: string | null;
   confirmDeleteId: string | null;
   onRequestDelete: (id: string) => void;
   onCancelDelete: () => void;
