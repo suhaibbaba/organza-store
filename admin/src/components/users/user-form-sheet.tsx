@@ -22,6 +22,7 @@ import {
 import { PasswordResetAction } from "@/components/users/password-reset-action";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { PhoneField } from "@/components/ui/phone-field";
@@ -117,9 +118,8 @@ export function UserFormSheet({ open, onOpenChange, mode, user }: UserFormSheetP
 
           <div className="flex flex-col gap-2">
             <Label htmlFor="password">{t("password")}</Label>
-            <Input
+            <PasswordInput
               id="password"
-              type="password"
               autoComplete="new-password"
               placeholder={mode === "create" ? t("passwordPlaceholderCreate") : t("passwordPlaceholderEdit")}
               aria-invalid={!!errors.password}

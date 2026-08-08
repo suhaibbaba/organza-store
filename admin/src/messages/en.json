@@ -10,6 +10,10 @@
     "menu": "Menu",
     "comingSoon": "This screen isn't built yet — check back soon.",
     "close": "Close",
+    "password": {
+      "show": "Show password",
+      "hide": "Hide password"
+    },
     "mainNavigation": "Main navigation",
     "account": "Account",
     "pullToRefresh": {
@@ -53,7 +57,8 @@
       "passwordPlaceholder": "Enter your password",
       "submit": "Sign in",
       "submitting": "Signing in…",
-      "error": "Incorrect email or password."
+      "error": "Incorrect email or password.",
+      "tooManyAttempts": "Too many attempts in a short time. Wait a minute and try again."
     },
     "setPassword": {
       "titleSet": "Choose your password",
@@ -1095,6 +1100,9 @@
       "active": "Active",
       "inactive": "Inactive"
     },
+    "accountState": {
+      "pending": "Password not set"
+    },
     "card": {
       "edit": "Edit staff member",
       "activate": "Activate",
@@ -1148,7 +1156,10 @@
       "sent": "A set-password link has been emailed to {email}.",
       "copyLink": "Copy link",
       "copied": "Link copied.",
-      "linkHint": "If the email doesn't arrive, you can pass this link on yourself. It works only once."
+      "linkHint": "If the email doesn't arrive, you can pass this link on yourself. It works only once.",
+      "resendInvite": "Resend the set-up link",
+      "inviteSent": "A link to choose a password has been emailed to {email}.",
+      "pendingHint": "This person hasn't chosen a password yet, so they can't sign in. Resend the link if it never arrived."
     }
   },
   "errors": {
@@ -1238,7 +1249,8 @@
     "barcodeInvalid": "That doesn't look like a barcode. Scan it again, or check the digits.",
     "barcodeRequired": "Scan or type the supplier's barcode, or switch back to our own.",
     "rateLimited": "Too many attempts in a short time. Wait a moment and try again.",
-    "passwordTokenInvalid": "This link has expired or has already been used. Ask for a new one."
+    "passwordTokenInvalid": "This link has expired or has already been used. Ask for a new one.",
+    "userAlreadyActivated": "This account is already set up and has a password. Send a password reset instead."
   },
   "pwa": {
     "version": {

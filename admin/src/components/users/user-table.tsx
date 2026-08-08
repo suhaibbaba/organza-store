@@ -8,6 +8,7 @@ import type { User } from "@shared/types/user";
 import { Spinner } from "@/components/ui/spinner";
 import { RoleBadge } from "@/components/users/role-badge";
 import { UserStatusBadge } from "@/components/users/user-status-badge";
+import { AccountStateBadge } from "@/components/users/account-state-badge";
 
 interface UserTableProps {
   users: User[];
@@ -54,7 +55,12 @@ export function UserTable({ users, onEdit, confirmToggleId, onRequestToggle, onC
       {
         id: "status",
         header: tTable("status"),
-        cell: ({ row }) => <UserStatusBadge isActive={row.original.isActive} />,
+        cell: ({ row }) => (
+          <div className="flex flex-wrap items-center gap-1">
+            <UserStatusBadge isActive={row.original.isActive} />
+            <AccountStateBadge hasPassword={row.original.hasPassword} />
+          </div>
+        ),
       },
       {
         id: "actions",

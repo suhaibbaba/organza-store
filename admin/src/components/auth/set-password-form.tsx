@@ -19,7 +19,7 @@ import {
   type SetPasswordValues,
 } from "@/lib/validation/set-password";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { Alert } from "@/components/ui/alert";
 import { Spinner } from "@/components/ui/spinner";
@@ -115,9 +115,8 @@ export function SetPasswordForm() {
 
       <div className="flex flex-col gap-2">
         <Label htmlFor="password">{t("passwordLabel")}</Label>
-        <Input
+        <PasswordInput
           id="password"
-          type="password"
           autoComplete="new-password"
           placeholder={t("passwordPlaceholder")}
           aria-invalid={!!errors.password}
@@ -132,9 +131,8 @@ export function SetPasswordForm() {
 
       <div className="flex flex-col gap-2">
         <Label htmlFor="confirm">{t("confirmLabel")}</Label>
-        <Input
+        <PasswordInput
           id="confirm"
-          type="password"
           autoComplete="new-password"
           placeholder={t("confirmPlaceholder")}
           aria-invalid={!!errors.confirm}

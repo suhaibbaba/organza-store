@@ -5,7 +5,7 @@ import { useMutation } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import type { User } from "@shared/types/user";
 import { useTranslateError } from "@/hooks/use-translate-error";
-import { sendUserPasswordReset } from "@/lib/api/password-setup";
+import { resendUserInvite, sendUserPasswordReset } from "@/lib/api/password-setup";
 import { ApiError } from "@/lib/api/errors";
 import { Button } from "@/components/ui/button";
 import { Alert } from "@/components/ui/alert";
@@ -18,12 +18,24 @@ import { Spinner } from "@/components/ui/spinner";
 // they ever know what they choose. The link is shown here as well, because a
 // mailbox that bounces is a real thing in this shop and passing it on over
 // WhatsApp has to be possible — it works exactly once either way.
+//
+// Which of the two it sends depends on where this person has got to, because
+// they are genuinely different things to say. Somebody who has never chosen a
+// password is still being INVITED — their link lasts 72 hours and the mail
+// says "choose your password" — and the button says "send the invitation
+// again". Somebody who already has one is being RESET, in two hours, and the
+// button says so. The backend enforces the same split (it refuses a resend
+// for an account that has a password), so the wording on the button can never
+// be a lie about what happened.
 export function PasswordResetAction({ user }: { user: User }) {
   const t = useTranslations("users.passwordReset");
   const translateError = useTranslateError();
   const [copied, setCopied] = useState(false);
+  const pending = !user.hasPassword;
 
-  const mutation = useMutation({ mutationFn: () => sendUserPasswordReset(user.id) });
+  const mutation = useMutation({
+    mutationFn: () => (pending ? resendUserInvite(user.id) : sendUserPasswordReset(user.id)),
+  });
 
   async function copyLink(url: string) {
     try {
@@ -38,6 +50,8 @@ export function PasswordResetAction({ user }: { user: User }) {
 
   return (
     <div className="flex flex-col gap-2 rounded-lg border border-border p-4">
+      {pending && <p className="text-sm text-muted-foreground">{t("pendingHint")}</p>}
+
       {/* type="button": this sits inside the staff <form>, and a bare button
           there would submit it. */}
       <Button
@@ -53,7 +67,7 @@ export function PasswordResetAction({ user }: { user: User }) {
             {t("sending")}
           </>
         ) : (
-          t("action")
+          t(pending ? "resendInvite" : "action")
         )}
       </Button>
 
@@ -65,7 +79,7 @@ export function PasswordResetAction({ user }: { user: User }) {
 
       {mutation.isSuccess && (
         <>
-          <Alert variant="success">{t("sent", { email: mutation.data.email })}</Alert>
+          <Alert variant="success">{t(pending ? "inviteSent" : "sent", { email: mutation.data.email })}</Alert>
           <p className="text-sm text-muted-foreground">{t("linkHint")}</p>
           <p dir="ltr" className="break-all rounded-md bg-muted p-2 text-xs text-muted-foreground">
             {mutation.data.url}

@@ -123,7 +123,12 @@ from past orders — there is still no Customer table behind it.
     stored; the token is never logged. The public request endpoint is rate-limited and never
     reveals whether an address exists, and unknown/expired/used links all answer with one error
     key. Admin-set passwords (`PATCH /api/users/:id`) remain as the fallback for an unreachable
-    mailbox. Email sending is **after commit and never awaited** — it can never fail the operation
+    mailbox. **A password is always written through Better Auth's own context** —
+    `ctx.password.hash` + `ctx.internalAdapter.updatePassword`, in `backend/src/lib/credentials.ts`
+    — never a hasher imported on the side and never a hand-picked `Account` row, so what sign-in
+    verifies can never drift from what was stored. The users list reports whether an account has a
+    password at all (`hasPassword`), so "invited, never signed in" is visible, and re-sending the
+    invitation is refused once it has one. Email sending is **after commit and never awaited** — it can never fail the operation
     that triggered it (failures go to Sentry), and it sits behind a swappable provider in
     `backend/src/lib/email/` (Resend today). Email templates live in the codebase and are
     translated through the same per-language message files as everything else.
@@ -221,6 +226,11 @@ Design for that reality:
   padding/margins, alignment), Arabic uses a clear legible Arabic font, and numbers/dates render
   correctly. **Verify Arabic visually** — do not assume it works. Arabic is the default locale.
 - **Accessibility basics:** readable font sizes on mobile, sufficient contrast, labels on inputs.
+- **Every password field is a `PasswordInput`** (`components/ui/password-input.tsx`, one per app),
+  never a bare `<Input type="password">`. Typing eight unseen characters on a phone keyboard and
+  being told only that they were wrong is not something to ask of anyone. It starts hidden always,
+  the eye is a 44px button carrying a `t()` label and `aria-pressed`, and it sits at the field's
+  **end** (`end-*` / `pe-*`) so it mirrors correctly in Arabic and Hebrew.
 - **Never fake a solid icon by putting `fill` on an outline one.** lucide is an outline set; filling
   one floods the body and swallows every inner stroke — a receipt loses its lines, stacked boxes
   merge into a blob. A filled icon must be *drawn* filled, with its detail knocked out as negative

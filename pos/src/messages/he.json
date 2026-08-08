@@ -9,6 +9,10 @@
     "logout": "התנתקות",
     "language": "שפה",
     "close": "סגירה",
+    "password": {
+      "show": "הצגת הסיסמה",
+      "hide": "הסתרת הסיסמה"
+    },
     "account": "חשבון",
     "pullToRefresh": {
       "pull": "משכו לרענון",
@@ -37,7 +41,20 @@
       "passwordPlaceholder": "הזן את הסיסמה",
       "submit": "התחברות",
       "submitting": "מתחבר…",
-      "error": "דוא\"ל או סיסמה שגויים."
+      "error": "דוא\"ל או סיסמה שגויים.",
+      "tooManyAttempts": "יותר מדי ניסיונות בזמן קצר. המתן דקה ונסה שוב."
+    },
+    "forgotPassword": {
+      "link": "שכחת סיסמה?",
+      "title": "שכחתי סיסמה",
+      "subtitle": "הזן/י את האימייל ונשלח קישור לבחירת סיסמה חדשה.",
+      "emailLabel": "אימייל",
+      "emailPlaceholder": "you@example.com",
+      "submit": "שליחת הקישור",
+      "submitting": "שולח…",
+      "sentTitle": "בדוק/בדקי את המייל",
+      "sentBody": "אם הכתובת שייכת לחשבון, קישור לבחירת סיסמה חדשה בדרך. כדאי לבדוק גם בתיקיית הספאם.",
+      "back": "חזרה להתחברות"
     }
   },
   "sell": {
@@ -248,7 +265,8 @@
     "orderVariantRequired": "בחר תחילה איזו אפשרות נמכרת.",
     "validationInvalidPhone": "יש להזין מספר טלפון תקין.",
     "orderCustomerRequired": "יש להזין את שם הלקוח ומספר הטלפון.",
-    "orderLocationInvalid": "המיקום אינו תקין. יש להזין קו רוחב וקו אורך יחד."
+    "orderLocationInvalid": "המיקום אינו תקין. יש להזין קו רוחב וקו אורך יחד.",
+    "rateLimited": "יותר מדי ניסיונות בזמן קצר. המתן/י רגע ונסה/י שוב."
   },
   "pwa": {
     "version": {

@@ -18,6 +18,9 @@ export const ERROR_MESSAGE_KEYS: Record<string, string> = {
   [ERROR_CODES.UNAUTHORIZED]: "errors.unauthorized",
   [ERROR_CODES.FORBIDDEN]: "errors.forbidden",
   [ERROR_CODES.ACCOUNT_INACTIVE]: "errors.accountInactive",
+  // The "email me a link" form is rate-limited per address (spec.md "Auth
+  // (details)"), so this one is reachable from the POS too.
+  [ERROR_CODES.RATE_LIMITED]: "errors.rateLimited",
 
   [ERROR_CODES.VALIDATION_REQUIRED]: "errors.validationRequired",
   [ERROR_CODES.VALIDATION_INVALID_NUMBER]: "errors.validationInvalidNumber",

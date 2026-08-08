@@ -40,3 +40,18 @@ export async function sendUserPasswordReset(userId: string): Promise<PasswordRes
   });
   return data;
 }
+
+/**
+ * Sends the "choose your password" invitation AGAIN, for somebody who never
+ * got the first one.
+ *
+ * A different endpoint from the reset above, not a nicer name for it: the
+ * backend refuses this one once the account has a password, so "resend the
+ * invitation" cannot quietly become "reset a working password".
+ */
+export async function resendUserInvite(userId: string): Promise<PasswordResetInvite> {
+  const { data } = await apiFetch<PasswordResetInvite>(`/api/users/${userId}/resend-invite`, {
+    method: "POST",
+  });
+  return data;
+}

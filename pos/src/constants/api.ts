@@ -27,3 +27,9 @@ export const CUSTOMER_SUGGESTION_QUERY_KEY = ["orders", "customerSuggestions"] a
 // app's own when something looks stale, never polled.
 export const API_VERSION_QUERY_KEY = ["version"] as const;
 export const API_VERSION_STALE_TIME_MS = 5 * 60 * 1000;
+
+// Sign-in refused because it has been tried too often, not because the
+// password was wrong (Better Auth rate-limits that route). Worth telling
+// apart on screen: the two are indistinguishable otherwise, and a password
+// that was in fact correct then looks broken.
+export const HTTP_TOO_MANY_REQUESTS = 429;
