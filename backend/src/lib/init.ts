@@ -12,11 +12,16 @@ export class InitRefusedError extends Error {
   readonly existingUsers: number;
 
   constructor(existingUsers: number) {
+    // Written as separate lines because it is printed to a terminal inside a
+    // boxed banner — one long line would run off the edge of it.
     super(
-      `This database already has ${existingUsers} user account(s).\n` +
-        "`init` only ever populates an EMPTY database. Adding one more member of staff " +
-        "is the admin's Users screen; starting over is `npm run db:reset` followed by " +
-        "migrate, bootstrap, and this."
+      [
+        `This database already has ${existingUsers} user account(s).`,
+        "",
+        "`init` only ever populates an EMPTY database. Adding one more member",
+        "of staff is the admin's Users screen; starting over is",
+        "`npm run db:reset` followed by migrate, bootstrap, and this.",
+      ].join("\n")
     );
     this.name = "InitRefusedError";
     this.existingUsers = existingUsers;

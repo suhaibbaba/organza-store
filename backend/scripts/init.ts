@@ -153,15 +153,24 @@ async function main(): Promise<void> {
     sendInvite: (user) => sendPasswordSetupEmail(user, "SET"),
   });
 
+  // "created" rather than "sent" when there is no provider: the accounts and
+  // their links are real either way, but claiming a delivery that never
+  // happened is exactly the kind of thing somebody would act on.
+  const verb = isEmailConfigured() ? "link sent" : "link created (NOT emailed)";
   for (const result of results) {
     console.log(
-      `  ✓ ${result.role.padEnd(8)} ${result.email} — link sent, valid until ${result.expiresAt.toISOString()}`
+      `  ✓ ${result.role.padEnd(8)} ${result.email} — ${verb}, valid until ${result.expiresAt.toISOString()}`
     );
   }
 
   console.log("");
   console.log(RULE);
-  console.log("  Done. Each person now sets their own password from the link in their email.");
+  if (isEmailConfigured()) {
+    console.log("  Done. Each person now sets their own password from the link in their email.");
+  } else {
+    console.log("  Done — but nothing was emailed. Configure RESEND_API_KEY, then send each");
+    console.log("  person a link from the admin's Users screen.");
+  }
   console.log("  Nobody — including whoever ran this — knows any of those passwords.");
   console.log(RULE);
 }
