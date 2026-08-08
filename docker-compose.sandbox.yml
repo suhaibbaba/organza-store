@@ -11,6 +11,15 @@ services:
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: ${DB_NAME}
     volumes:
+      # postgres:16 keeps its cluster in /var/lib/postgresql/data, and this is
+      # that exact path — so the shop's orders live on the named volume below,
+      # not in the container, and a rebuild cannot touch them.
+      #
+      # If this image is ever bumped to postgres:18 or later, CHECK THIS PATH
+      # FIRST: 18 moved PGDATA to /var/lib/postgresql, and a mount left at the
+      # old path would leave the new cluster writing into the container layer.
+      # It would look like it worked, right up until the next deploy — the
+      # same failure the uploads mount had (see the backend service).
       - sandbox_db_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
@@ -40,11 +49,31 @@ services:
     environment:
       # assembled here so backend always points at the compose DB
       DATABASE_URL: postgresql://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}?schema=public
+      # WHERE THE PHOTOS GO — the mount point below, spelled out, absolute.
+      #
+      # This has to be stated here rather than left to .env.sandbox, and it has
+      # to be absolute, because of how it went wrong: `.env.example` ships
+      # UPLOAD_DIR=./uploads, the API resolves it against the process's working
+      # directory, and the Dockerfile's last WORKDIR is /app/backend. So every
+      # photo was written to /app/backend/uploads — the container's own
+      # writable layer — while the volume sat empty one directory up. Nothing
+      # errored; `up -d --build` simply threw the container away, and with it
+      # every image the shop had uploaded since the last deploy.
+      #
+      # `environment:` wins over `env_file:` in compose, which is the point:
+      # .env.sandbox lives on the VPS and is not in this repo, so it cannot be
+      # trusted to hold the right value, and a stale UPLOAD_DIR=./uploads in it
+      # can no longer break this. The mount point and the app's idea of it are
+      # now the same two lines, in the same file, and change together.
+      UPLOAD_DIR: /app/uploads
     depends_on:
       db:
         condition: service_healthy
     volumes:
-      - sandbox_uploads:/app/uploads     # keep uploaded images across rebuilds
+      # Uploaded product photos (the WebP sizes sharp writes). Survives
+      # `up -d --build`, `docker compose down`, and a full image rebuild —
+      # everything except `down -v` and an explicit `docker volume rm`.
+      - sandbox_uploads:/app/uploads
     ports:
       - "127.0.0.1:14000:4000"           # sandbox range (leaves 4000 free for prod later)
 
@@ -85,6 +114,28 @@ services:
     ports:
       - "127.0.0.1:13002:3000"
 
+# The two things in this stack that are not rebuildable: the shop's database
+# and the shop's photographs. Everything else here can be thrown away and made
+# again from git.
+#
+# DO NOT RENAME THESE KEYS, and do not change `name:` at the top of the file.
+# Compose derives the real volume name from both (`organza-sandbox` +
+# `sandbox_db_data` -> `organza-sandbox_sandbox_db_data`), so editing either
+# one points the stack at a DIFFERENT, empty volume. Postgres would come up on
+# an empty data directory and the shop would look like it had lost everything
+# — while the real data sat in the old volume nobody was looking at.
+#
+# They survive `up -d --build`, `docker compose down`, and image rebuilds.
+# They do NOT survive:
+#   docker compose down -v          <- deletes both. Never run this on the VPS.
+#   docker volume rm ...
+#   docker system prune --volumes   <- deletes any volume no container is
+#                                      using, so it is only dangerous AFTER a
+#                                      `down`. Use `docker image prune` /
+#                                      `docker builder prune` for disk space,
+#                                      which is what the deploy does.
+# And a volume is not a backup: it is on the same disk as everything else.
+# See ops/README.md.
 volumes:
   sandbox_db_data:
   sandbox_uploads:

@@ -4,6 +4,7 @@ export * from "./cash";
 export * from "./changeRequest";
 export * from "./expense";
 export * from "./fixture";
+export * from "./image";
 export * from "./product";
 export * from "./variant";
 export * from "./inventory";

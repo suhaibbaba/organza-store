@@ -176,6 +176,9 @@ Uploads are processed with `sharp` into three WebP sizes (thumbnail/medium/full)
 `UPLOAD_DIR` and served statically at `/uploads/*`. Max size and allowed MIME types come from
 `UPLOAD_MAX_SIZE_MB` / `ALLOWED_IMAGE_TYPES` in `.env`.
 
+`UPLOAD_DIR` is relative in local development and **absolute in every deployment**, where it
+must match the mounted volume exactly — see [Data, volumes & backups](#data-volumes--backups).
+
 | Method | Path                     | Role gate               | Notes |
 |--------|--------------------------|--------------------------|-------|
 | POST   | `/api/images`             | Admin/Manager/Employee   | `multipart/form-data`: `file` + exactly one of `productId` / `variantId`. First image for an owner becomes primary automatically. |
@@ -504,6 +507,54 @@ simply not sent and the API says so in the log.
 
 Configure in `.env` (see `.env.example`): `RESEND_API_KEY`, `EMAIL_FROM`, `EMAIL_REPLY_TO`,
 `ADMIN_URL`, and `TRUST_PROXY` when the API sits behind the reverse proxy.
+
+## Data, volumes & backups
+
+Two things in a deployment cannot be rebuilt from this repo: **the database** and **the
+uploaded photographs**. Both live on Docker named volumes declared in
+`docker-compose.sandbox.yml`, and both are mounted at absolute paths the app is pointed at
+explicitly:
+
+| | Volume | Mounted at | Told to the app by |
+|---|---|---|---|
+| Database | `sandbox_db_data` | `/var/lib/postgresql/data` (postgres:16's `PGDATA`) | the `db` image's own default |
+| Uploaded images | `sandbox_uploads` | `/app/uploads` | `UPLOAD_DIR` in the compose file's `environment:` |
+
+`UPLOAD_DIR` is set **in the compose file rather than in `.env.sandbox`**, and absolutely
+rather than relatively. It has to be: the API resolves a relative `UPLOAD_DIR` against the
+process's working directory, which inside the container is `/app/backend` — one level below
+the mount. Every photo was being written to `/app/backend/uploads`, inside the container's
+own writable layer, and thrown away by the next `up -d --build`. Nothing errored; the files
+just stopped existing. `environment:` overrides `env_file:`, so the mount point and the
+app's idea of it now live two lines apart in one file and cannot drift.
+
+The API says which directory it is using on every start, and `/health` reports whether it
+can actually write there:
+
+```bash
+docker compose -f docker-compose.sandbox.yml logs backend | grep -i uploads
+# Uploads directory: /app/uploads (writable)
+
+curl -s https://api.sandbox.organza-moda.com/health
+# {"success":true,"data":{"status":"ok","uploadsWritable":true},"meta":null}
+```
+
+`uploadsWritable: false` means the volume is missing, mounted elsewhere, or not writable by
+the container's user — the last of which is what a `USER` line in the Dockerfile would
+introduce (the image runs as root today, so the mount is writable by construction).
+
+### What is backed up: nothing, yet
+
+The volumes survive redeploys, `docker compose down`, and image rebuilds. They do **not**
+survive `docker compose down -v`, `docker volume rm`, `docker system prune --volumes` after
+a `down`, `npm run db:reset`, or the VPS's disk failing. **As of this commit there is no
+scheduled backup and no copy of the shop's data anywhere but the VPS's own disk.**
+
+`ops/backup.sh` takes one (a `pg_dump` of the database and a tar of the uploads volume,
+both read out of the running containers and both checked for readability afterwards);
+`ops/restore.sh` puts one back. Neither runs on its own. **[`ops/README.md`](../ops/README.md)**
+has the cron entry that would schedule it, the `rsync` that would get the copies off the
+box, and the restore rehearsal — read it before the shop starts entering real orders.
 
 ## Demo data (dev / sandbox only)
 

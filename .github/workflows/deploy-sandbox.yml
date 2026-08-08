@@ -68,6 +68,32 @@ jobs:
             # deploy at all: it is quarantined under backend/prisma/dev/ and
             # refuses to run without being told the database is disposable.
             docker compose -f docker-compose.sandbox.yml --env-file .env.sandbox exec -T backend npm run bootstrap
+
+            echo "==> Checking the uploads volume is mounted and writable"
+            # The shop's photographs are the one thing a deploy can silently
+            # destroy: point UPLOAD_DIR one directory away from the mount and
+            # every upload lands in the container's own layer, to be thrown
+            # away by the NEXT deploy. Nothing errors — the files just stop
+            # existing, and nobody finds out for a week.
+            #
+            # So the deploy asks. The API reports the directory it is using on
+            # startup and answers /health with whether it can write there.
+            # Both come from the same resolved path the uploads themselves use
+            # (backend/src/lib/image.ts), so this cannot pass while uploads
+            # are broken.
+            docker compose -f docker-compose.sandbox.yml --env-file .env.sandbox logs --tail 50 backend \
+              | grep -i "Uploads directory" || true
+            UPLOADS_OK="$(docker compose -f docker-compose.sandbox.yml --env-file .env.sandbox exec -T backend \
+              node -e "fetch('http://localhost:4000/health').then(r=>r.json()).then(b=>console.log(b.data.uploadsWritable)).catch(()=>console.log('unreachable'))")"
+            echo "    uploadsWritable=$UPLOADS_OK"
+            if [ "$UPLOADS_OK" != "true" ]; then
+              echo "::error::The API cannot write uploaded images. The code is deployed, but every"
+              echo "::error::image upload will fail and any image uploaded since the last good deploy"
+              echo "::error::may already be lost. Check the uploads volume mount and UPLOAD_DIR in"
+              echo "::error::docker-compose.sandbox.yml — see ops/README.md."
+              exit 1
+            fi
+
             echo "==> Pruning old images"
             docker image prune -f
 

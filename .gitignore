@@ -7,6 +7,11 @@ dist/
 uploads/
 *.log
 
+# Where ops/backup.sh writes by default, on the VPS, inside this checkout.
+# Database dumps and every photograph the shop owns — never in git, and never
+# something a `git status` on the server should have to scroll past.
+backups/
+
 # The staff roster `npm run init` reads (see backend/src/constants/init.ts).
 # Real people's names, addresses and phone numbers are operational data and
 # must never enter git — the committed staff.example.json shows the shape.
