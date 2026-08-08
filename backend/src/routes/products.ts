@@ -559,7 +559,7 @@ router.patch(
     // identity rather than its money, its stock or its visibility, so this is
     // not one of the five actions held for approval (CLAUDE.md rule 21). The
     // audit entry below carries the old and new code and source either way.
-    const barcodePatch = await resolveBarcodeChange(existing, body, { productId: existing.id });
+    const barcodeUpdate = await resolveBarcodeChange(existing, body, { productId: existing.id });
 
     const nameChanged = body.name !== undefined && JSON.stringify(body.name) !== JSON.stringify(existing.name);
     const descChanged =
@@ -608,7 +608,12 @@ router.patch(
         trackLowStock: canAdjustStock ? body.trackLowStock : undefined,
         isNumbered: body.isNumbered,
         sku: body.sku,
-        ...(barcodePatch ?? {}),
+        ...(barcodeUpdate?.data ?? {}),
+        // A code nobody has printed yet puts the piece back in the label queue:
+        // whatever sticker is on it now carries a different number. Restoring
+        // the code we parked leaves the timestamp alone, because that label is
+        // still correct.
+        labelsPrintedAt: barcodeUpdate?.mintedFresh ? null : undefined,
         stock: existing.variants.length || !canAdjustStock ? undefined : body.stock,
       },
       include: productInclude,
@@ -826,7 +831,7 @@ router.patch(
     // Each variant's barcode is its own (see the product update above for the
     // gate and the guarantees): one size can carry the supplier's printed tag
     // while the next still uses ours.
-    const barcodePatch = await resolveBarcodeChange(variant, body, { variantId: variant.id });
+    const barcodeUpdate = await resolveBarcodeChange(variant, body, { variantId: variant.id });
 
     const updated = await prisma.variant.update({
       where: { id: variant.id },
@@ -839,10 +844,17 @@ router.patch(
         isActive: canHide ? body.isActive : undefined,
         imageX: body.imageX === undefined ? undefined : body.imageX,
         imageY: body.imageY === undefined ? undefined : body.imageY,
-        ...(barcodePatch ?? {}),
+        ...(barcodeUpdate?.data ?? {}),
       },
       include: { values: { include: { optionValue: true } }, images: { orderBy: { sortOrder: "asc" } } },
     });
+
+    // A variant on a brand-new code means the product's label sheet is out of
+    // date, and the print record lives on the product (there is one timestamp
+    // for the piece, not one per size).
+    if (barcodeUpdate?.mintedFresh) {
+      await prisma.product.update({ where: { id: product.id }, data: { labelsPrintedAt: null } });
+    }
 
     await writeAudit({
       userId: req.user!.id,

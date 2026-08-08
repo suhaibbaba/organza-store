@@ -160,10 +160,23 @@ function scanRegion(viewfinderWidth: number, viewfinderHeight: number) {
   };
 }
 
-// getUserMedia rejects with a DOMException whose name says whether the user
-// refused or the device has no camera to offer.
+// Told apart so the user gets an instruction rather than a shrug: a refused
+// permission is fixable ("allow the camera"), a missing camera is not.
+//
+// html5-qrcode does not re-throw the DOMException getUserMedia gave it — it
+// rejects with a STRING it built from the message ("Error getting userMedia,
+// error = NotAllowedError: Permission denied"). So the reason has to be read out
+// of the text as well as off `name`, or every refusal is reported as "no camera
+// on this device" and the one person who could fix it is told not to bother.
 function toFault(error: unknown): ScannerFault {
   if (error instanceof ScannerFaultError) return error.fault;
-  const name = typeof error === "object" && error !== null && "name" in error ? String(error.name) : "";
-  return name === "NotAllowedError" || name === "SecurityError" ? "permission" : "unavailable";
+
+  const described =
+    typeof error === "string"
+      ? error
+      : typeof error === "object" && error !== null
+        ? `${String((error as { name?: unknown }).name ?? "")} ${String((error as { message?: unknown }).message ?? "")}`
+        : "";
+
+  return /NotAllowedError|SecurityError|Permission ?denied/i.test(described) ? "permission" : "unavailable";
 }

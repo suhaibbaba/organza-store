@@ -19,10 +19,20 @@ export interface BarcodeState {
   generatedBarcode: string | null;
 }
 
-// The columns to write. Null means "nothing about the barcode changed" — the
-// callers merge this into a larger update, so an untouched barcode must not
-// appear in it at all.
+// The columns to write. The resolver returns null instead when nothing about
+// the barcode changed — the callers merge this into a larger update, so an
+// untouched barcode must not appear in it at all.
 export type BarcodePatch = BarcodeState;
+
+// A resolved edit: the columns to write, plus whether the code that came out is
+// one nobody has ever printed. That only happens switching back to ours with no
+// parked code to restore, and it means whatever label is on the piece now says
+// something else — so the caller puts the product back in the "still to print"
+// queue (labelsPrintedAt = null).
+export interface BarcodeUpdate {
+  data: BarcodePatch;
+  mintedFresh: boolean;
+}
 
 // Which row is asking, so the uniqueness check can ignore the code the row
 // already owns (re-saving a form must not clash with itself).

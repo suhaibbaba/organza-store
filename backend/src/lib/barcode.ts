@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { AppError } from "@/lib/response";
 import { BARCODE_MAX_ATTEMPTS, BARCODE_PREFIX, BARCODE_RANDOM_DIGITS, ERROR_CODES } from "@/constants";
 import type { DbClient } from "@/types/changeRequest";
-import type { BarcodeInput, BarcodeOwner, BarcodePatch, BarcodeState } from "@/types/barcode";
+import type { BarcodeInput, BarcodeOwner, BarcodePatch, BarcodeState, BarcodeUpdate } from "@/types/barcode";
 
 function checkDigit(twelveDigits: string): number {
   let sum = 0;
@@ -32,13 +32,34 @@ function randomCandidate(): string {
 export async function generateUniqueBarcode(client: DbClient = prisma): Promise<string> {
   for (let attempt = 0; attempt < BARCODE_MAX_ATTEMPTS; attempt++) {
     const candidate = randomCandidate();
-    const [existingProduct, existingVariant] = await Promise.all([
-      client.product.findUnique({ where: { barcode: candidate }, select: { id: true } }),
-      client.variant.findUnique({ where: { barcode: candidate }, select: { id: true } }),
-    ]);
-    if (!existingProduct && !existingVariant) return candidate;
+    if (await isCodeUnused(candidate, {}, client)) return candidate;
   }
   throw new Error("Failed to generate a unique EAN-13 barcode after multiple attempts");
+}
+
+// Whoever holds this code, in either table and in either column. `generatedBarcode`
+// counts: a code parked there is on a label that is still physically stuck on a
+// garment, waiting for the toggle to be flipped back, so handing it to a second
+// piece would put one code on two labels — and scanning that sticker would sell
+// the wrong item, which is the whole thing this check exists to prevent.
+async function findBarcodeHolders(code: string, owner: BarcodeOwner, client: DbClient) {
+  const productWhere = { OR: [{ barcode: code }, { generatedBarcode: code }] };
+  const variantWhere = { OR: [{ barcode: code }, { generatedBarcode: code }] };
+  return Promise.all([
+    client.product.findFirst({
+      where: owner.productId ? { AND: [productWhere, { id: { not: owner.productId } }] } : productWhere,
+      select: { id: true, sku: true, deletedAt: true },
+    }),
+    client.variant.findFirst({
+      where: owner.variantId ? { AND: [variantWhere, { id: { not: owner.variantId } }] } : variantWhere,
+      select: { id: true, sku: true, productId: true, product: { select: { deletedAt: true } } },
+    }),
+  ]);
+}
+
+async function isCodeUnused(code: string, owner: BarcodeOwner, client: DbClient): Promise<boolean> {
+  const [product, variant] = await findBarcodeHolders(code, owner, client);
+  return !product && !variant;
 }
 
 /* ---------------------------------------------------------------------------
@@ -72,16 +93,7 @@ export async function assertBarcodeAvailable(
   owner: BarcodeOwner = {},
   client: DbClient = prisma
 ): Promise<void> {
-  const [product, variant] = await Promise.all([
-    client.product.findFirst({
-      where: { barcode: code, ...(owner.productId ? { id: { not: owner.productId } } : {}) },
-      select: { id: true, sku: true, deletedAt: true },
-    }),
-    client.variant.findFirst({
-      where: { barcode: code, ...(owner.variantId ? { id: { not: owner.variantId } } : {}) },
-      select: { id: true, sku: true, productId: true, product: { select: { deletedAt: true } } },
-    }),
-  ]);
+  const [product, variant] = await findBarcodeHolders(code, owner, client);
 
   if (product) {
     throw new AppError(409, ERROR_CODES.BARCODE_DUPLICATE, {
@@ -137,7 +149,7 @@ export async function resolveBarcodeChange(
   input: BarcodeInput,
   owner: BarcodeOwner,
   client: DbClient = prisma
-): Promise<BarcodePatch | null> {
+): Promise<BarcodeUpdate | null> {
   if (!input.barcodeSource) return null;
 
   if (input.barcodeSource === BARCODE_SOURCE.SUPPLIER) {
@@ -148,33 +160,33 @@ export async function resolveBarcodeChange(
 
     await assertBarcodeAvailable(code, owner, client);
     return {
-      barcode: code,
-      barcodeSource: BARCODE_SOURCE.SUPPLIER,
-      // Parked on the way out, and left alone when one supplier code simply
-      // replaces another — the code to restore is still the one WE minted.
-      generatedBarcode:
-        existing.barcodeSource === BARCODE_SOURCE.GENERATED ? existing.barcode : existing.generatedBarcode,
+      data: {
+        barcode: code,
+        barcodeSource: BARCODE_SOURCE.SUPPLIER,
+        // Parked on the way out, and left alone when one supplier code simply
+        // replaces another — the code to restore is still the one WE minted.
+        generatedBarcode:
+          existing.barcodeSource === BARCODE_SOURCE.GENERATED ? existing.barcode : existing.generatedBarcode,
+      },
+      mintedFresh: false,
     };
   }
 
   if (existing.barcodeSource === BARCODE_SOURCE.GENERATED) return null;
 
   const parked = existing.generatedBarcode;
-  const restorable = parked !== null && (await isBarcodeFree(parked, owner, client));
+  // Parked codes are reserved (see findBarcodeHolders), so this is normally a
+  // formality; it still asks, because data predating that reservation — or a
+  // piece that never had a code of ours — has nothing to come back to.
+  const restorable = parked !== null && (await isCodeUnused(parked, owner, client));
   return {
-    barcode: restorable ? parked : await generateUniqueBarcode(client),
-    barcodeSource: BARCODE_SOURCE.GENERATED,
-    generatedBarcode: null,
+    data: {
+      barcode: restorable ? parked : await generateUniqueBarcode(client),
+      barcodeSource: BARCODE_SOURCE.GENERATED,
+      generatedBarcode: null,
+    },
+    // A code nobody has ever printed. Whatever label is on the piece now says
+    // something else, so the caller puts it back in the "still to print" queue.
+    mintedFresh: !restorable,
   };
-}
-
-async function isBarcodeFree(code: string, owner: BarcodeOwner, client: DbClient): Promise<boolean> {
-  try {
-    await assertBarcodeAvailable(code, owner, client);
-    return true;
-  } catch {
-    // Someone else holds it now. Not an error to report — the caller simply
-    // mints a fresh code instead of failing an edit over it.
-    return false;
-  }
 }

@@ -332,7 +332,12 @@ export function ProductForm({ mode, product }: ProductFormProps) {
     // unusable code. Refused here rather than quietly saved without it: the
     // row already shows what is wrong, and a save that dropped the code would
     // look like it worked.
-    if (Object.values(variantEdits).some(variantBarcodeIncomplete)) {
+    // Rows staged for removal are exempt: their fields are off the screen, so a
+    // half-typed code on one would block every save with nothing to correct.
+    const liveVariantEdits = Object.entries(variantEdits)
+      .filter(([id]) => !removedVariantIds.has(id))
+      .map(([, edits]) => edits);
+    if (liveVariantEdits.some(variantBarcodeIncomplete)) {
       setSubmitError(translateError(ERROR_CODES.BARCODE_INVALID));
       return;
     }
