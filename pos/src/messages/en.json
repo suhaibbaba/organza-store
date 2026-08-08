@@ -9,6 +9,10 @@
     "logout": "Log out",
     "language": "Language",
     "close": "Close",
+    "password": {
+      "show": "Show password",
+      "hide": "Hide password"
+    },
     "account": "Account",
     "pullToRefresh": {
       "pull": "Pull to refresh",
@@ -37,7 +41,20 @@
       "passwordPlaceholder": "Enter your password",
       "submit": "Log in",
       "submitting": "Logging in…",
-      "error": "Wrong email or password."
+      "error": "Wrong email or password.",
+      "tooManyAttempts": "Too many attempts in a short time. Wait a minute and try again."
+    },
+    "forgotPassword": {
+      "link": "Forgot your password?",
+      "title": "Forgot password",
+      "subtitle": "Enter your email and we will send you a link to choose a new password.",
+      "emailLabel": "Email",
+      "emailPlaceholder": "you@example.com",
+      "submit": "Send the link",
+      "submitting": "Sending…",
+      "sentTitle": "Check your email",
+      "sentBody": "If that address belongs to an account, a link to choose a new password is on its way. Check the spam folder too.",
+      "back": "Back to sign in"
     }
   },
   "sell": {
@@ -248,7 +265,8 @@
     "orderVariantRequired": "Choose which option you're selling first.",
     "validationInvalidPhone": "Enter a valid phone number.",
     "orderCustomerRequired": "Enter the customer's name and phone number.",
-    "orderLocationInvalid": "That location isn't valid. Enter both latitude and longitude."
+    "orderLocationInvalid": "That location isn't valid. Enter both latitude and longitude.",
+    "rateLimited": "Too many attempts in a short time. Wait a moment and try again."
   },
   "pwa": {
     "version": {

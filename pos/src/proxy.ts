@@ -4,6 +4,7 @@ import createMiddleware from "next-intl/middleware";
 import { routing, type AppLocale } from "@/i18n/routing";
 import { LOCALE_COOKIE_NAME } from "@/constants/locale";
 import { SESSION_TOKEN_KEY } from "@/constants/storage";
+import { FORGOT_PASSWORD_PATH } from "@/constants/auth";
 import { OFFLINE_PATH } from "@/constants/pwa";
 
 const handleIntl = createMiddleware(routing);
@@ -11,10 +12,11 @@ const handleIntl = createMiddleware(routing);
 const LOGIN_PATH = "/login";
 // The POS has exactly one screen, so a signed-in user always belongs here.
 const HOME_PATH = "/sell";
-// Reachable without a session. /offline is in here because the service worker
-// precaches it while nobody may be signed in yet, and a cached
-// redirect-to-login is useless as an offline fallback.
-const PUBLIC_PATHS = [LOGIN_PATH, OFFLINE_PATH];
+// Reachable without a session. /forgot-password is here because somebody who
+// cannot sign in cannot sign in to ask for a link; /offline is in here
+// because the service worker precaches it while nobody may be signed in yet,
+// and a cached redirect-to-login is useless as an offline fallback.
+const PUBLIC_PATHS = [LOGIN_PATH, FORGOT_PASSWORD_PATH, OFFLINE_PATH];
 
 // The language an un-prefixed URL should open in: what this device last
 // chose, and otherwise the shop's own default. Deliberately not the phone's

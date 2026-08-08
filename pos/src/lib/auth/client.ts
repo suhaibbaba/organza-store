@@ -8,9 +8,18 @@ import type { Session, SessionUser } from "@/types/auth";
 // their own response shape, so this talks to them directly instead of going
 // through lib/api/client.ts.
 export class AuthError extends Error {
-  constructor() {
+  /**
+   * The HTTP status the sign-in came back with, so the screen can tell
+   * "wrong password" apart from "you have tried too often" — Better Auth
+   * rate-limits sign-in, and a 429 that reads as "your password is wrong" is
+   * how a password somebody has just chosen appears to be broken.
+   */
+  readonly status: number;
+
+  constructor(status = 0) {
     super("auth_error");
     this.name = "AuthError";
+    this.status = status;
   }
 }
 
@@ -28,12 +37,12 @@ export async function signInWithEmail(email: string, password: string): Promise<
   });
 
   if (!res.ok) {
-    throw new AuthError();
+    throw new AuthError(res.status);
   }
 
   const body = (await res.json().catch(() => null)) as SignInResponse | null;
   if (!body?.token || !body.user) {
-    throw new AuthError();
+    throw new AuthError(res.status);
   }
 
   setStoredToken(body.token);

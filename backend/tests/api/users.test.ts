@@ -5,7 +5,7 @@ import { getSession } from "@tests/support/auth";
 import { randomPalestinePhone, samePhoneUnderOtherPrefix } from "@tests/support/phone";
 import { SEEDED_PASSWORD } from "@tests/constants";
 import { ERROR_CODES } from "@/constants";
-import type { SerializableUser } from "@/types";
+import type { StaffAccountView } from "@tests/types";
 
 describe("Users", () => {
   const nonce = uniqueId();
@@ -24,7 +24,7 @@ describe("Users", () => {
     const admin = await getSession("ADMIN");
     const phone = randomPalestinePhone();
 
-    const res = await apiRequest<SerializableUser>("/api/users", {
+    const res = await apiRequest<StaffAccountView>("/api/users", {
       method: "POST",
       token: admin.token,
       body: {
@@ -44,7 +44,7 @@ describe("Users", () => {
     const admin = await getSession("ADMIN");
     const phone = randomPalestinePhone();
 
-    const first = await apiRequest<SerializableUser>("/api/users", {
+    const first = await apiRequest<StaffAccountView>("/api/users", {
       method: "POST",
       token: admin.token,
       body: {
@@ -122,6 +122,47 @@ describe("Users", () => {
     });
     expect(res.status).toBe(400);
     expect(res.error?.code).toBe(ERROR_CODES.VALIDATION);
+  });
+
+  it("says on the staff list who has finished setting up and who has not", async () => {
+    const admin = await getSession("ADMIN");
+
+    // Created with no password — invited, and waiting on their link.
+    const invited = await apiRequest<StaffAccountView>("/api/users", {
+      method: "POST",
+      token: admin.token,
+      body: {
+        name: `Vitest Invited ${nonce}`,
+        email: `vitest.invited.${nonce}@organza.test`,
+        role: Role.EMPLOYEE,
+        phone: randomPalestinePhone(),
+      },
+    });
+    expect(invited.status).toBe(201);
+    createdUserIds.push(invited.data!.id);
+
+    // Newest-first, so the account this test just made is on the first page.
+    const list = await apiRequest<StaffAccountView[]>("/api/users?pageSize=50", { token: admin.token });
+    expect(list.status).toBe(200);
+
+    const row = list.data!.find((user) => user.id === invited.data!.id);
+    // Enabled, but nobody can sign in as them yet: the two are different
+    // questions and the screen has to be able to ask both.
+    expect(row?.isActive).toBe(true);
+    expect(row?.hasPassword).toBe(false);
+
+    // The password is never on the wire in any shape, not even as a length.
+    expect(JSON.stringify(row)).not.toContain("password\":\"");
+
+    // Setting one from the Admin's own box flips it — the same flag the
+    // emailed link flips (tests/api/passwordSetup.test.ts).
+    await apiRequest(`/api/users/${invited.data!.id}`, {
+      method: "PATCH",
+      token: admin.token,
+      body: { password: SEEDED_PASSWORD },
+    });
+    const after = await apiRequest<StaffAccountView>(`/api/users/${invited.data!.id}`, { token: admin.token });
+    expect(after.data!.hasPassword).toBe(true);
   });
 
   it("forbids Manager and Employee from reading the staff list (idNumber never leaves the backend for non-admins)", async () => {

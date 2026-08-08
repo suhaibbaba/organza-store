@@ -8,7 +8,7 @@ import { asyncHandler } from "@/middleware/asyncHandler";
 import { requireAuth, requirePermission } from "@/middleware/auth";
 import { validateBody, validateQuery } from "@/middleware/validate";
 import { AppError, sendOk } from "@/lib/response";
-import { setUserPassword } from "@/lib/credentials";
+import { hasUsablePassword, setUserPassword, usersWithPassword } from "@/lib/credentials";
 import { sendPasswordSetupEmail } from "@/lib/passwordSetup";
 import {
   createUserSchema,
@@ -44,6 +44,26 @@ function serializeUser(user: SerializableUser) {
     createdAt: user.createdAt,
     updatedAt: user.updatedAt,
   };
+}
+
+/**
+ * What the screen shows, which is the staff row PLUS whether the account has
+ * ever been finished off.
+ *
+ * `hasPassword` is deliberately separate from `isActive`: an account is
+ * created with no password at all and its owner chooses one from an emailed
+ * link (CLAUDE.md rule 17), so "enabled but nobody has ever signed in with
+ * it" is a real and common state — and without it on the screen there is no
+ * way to tell who is still waiting on their link. It is a boolean and never
+ * the hash, the way it was set, or when: none of that is anybody's business,
+ * including an Admin's.
+ *
+ * Kept out of `serializeUser` on purpose — that one feeds the audit trail
+ * too, and an audit entry should record what an Admin CHANGED, not a fact
+ * about the account that they did not touch.
+ */
+function serializeUserWithState(user: SerializableUser, hasPassword: boolean) {
+  return { ...serializeUser(user), hasPassword };
 }
 
 async function assertPhonesAvailable(input: { phone?: string; whatsapp?: string | null }, excludeUserId?: string) {
@@ -89,7 +109,10 @@ router.get(
       }),
     ]);
 
-    sendOk(res, users.map(serializeUser), {
+    // One query for the whole page rather than one per row.
+    const activated = await usersWithPassword(users.map((user) => user.id));
+
+    sendOk(res, users.map((user) => serializeUserWithState(user, activated.has(user.id))), {
       page: query.page,
       pageSize: query.pageSize,
       total,
@@ -106,7 +129,7 @@ router.get(
   asyncHandler(async (req, res) => {
     const user = await prisma.user.findUnique({ where: { id: req.params.id } });
     if (!user) throw new AppError(404, ERROR_CODES.USER_NOT_FOUND);
-    sendOk(res, serializeUser(user));
+    sendOk(res, serializeUserWithState(user, await hasUsablePassword(user.id)));
   })
 );
 
@@ -181,7 +204,7 @@ router.post(
       await sendPasswordSetupEmail(created, "SET");
     }
 
-    sendOk(res, serializeUser(created), null, 201);
+    sendOk(res, serializeUserWithState(created, Boolean(body.password)), null, 201);
   })
 );
 
@@ -214,6 +237,49 @@ router.post(
       newValue: { passwordReset: "REQUESTED", source: "ADMIN", expiresAt: invite.expiresAt },
     });
 
+    sendOk(res, { email: user.email, url: invite.url, expiresAt: invite.expiresAt });
+  })
+);
+
+// ---------------------------------------------------------------------------
+// POST /api/users/:id/resend-invite — send the SET-UP link again
+//
+// The everyday answer to "I never got my email". Deliberately NOT the same
+// endpoint as the reset above, even though both put a link in the post:
+//
+//   * this one is refused once the account HAS a password. Somebody who has
+//     finished setting up is not pending, and "resend the invitation" is then
+//     the wrong description of what would happen — it would quietly become a
+//     password reset, which is a different decision with a different button;
+//   * it carries the SET purpose, so the link lasts 72 hours (a new member of
+//     staff may not read their mail until the next shift) and the email says
+//     "choose your password" rather than "you asked to reset it".
+//
+// A deactivated account gets nothing: there is no point setting a password on
+// an account that cannot sign in, and sending one would say the opposite.
+// ---------------------------------------------------------------------------
+router.post(
+  "/:id/resend-invite",
+  asyncHandler(async (req, res) => {
+    const user = await prisma.user.findUnique({ where: { id: req.params.id } });
+    if (!user) throw new AppError(404, ERROR_CODES.USER_NOT_FOUND);
+    if (!user.isActive) throw new AppError(409, ERROR_CODES.ACCOUNT_INACTIVE);
+    if (await hasUsablePassword(user.id)) throw new AppError(409, ERROR_CODES.USER_ALREADY_ACTIVATED);
+
+    const invite = await sendPasswordSetupEmail(user, "SET");
+
+    await writeAudit({
+      userId: req.user!.id,
+      action: AuditAction.REQUEST,
+      entityType: AUDIT_ENTITY.USER,
+      entityId: user.id,
+      // The link itself never goes into the trail.
+      newValue: { passwordSetup: "RESENT", source: "ADMIN", expiresAt: invite.expiresAt },
+    });
+
+    // Handed back for the same reason as the reset's (see above): a mailbox
+    // that bounces is a real thing in this shop, and an Admin already holds
+    // unrestricted password authority over every account.
     sendOk(res, { email: user.email, url: invite.url, expiresAt: invite.expiresAt });
   })
 );
@@ -260,7 +326,7 @@ router.patch(
       newValue: serializeUser(updated),
     });
 
-    sendOk(res, serializeUser(updated));
+    sendOk(res, serializeUserWithState(updated, await hasUsablePassword(updated.id)));
   })
 );
 

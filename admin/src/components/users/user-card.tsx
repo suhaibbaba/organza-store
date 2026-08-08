@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Spinner } from "@/components/ui/spinner";
 import { RoleBadge } from "@/components/users/role-badge";
 import { UserStatusBadge } from "@/components/users/user-status-badge";
+import { AccountStateBadge } from "@/components/users/account-state-badge";
 
 interface UserCardProps {
   user: User;
@@ -41,6 +42,7 @@ export function UserCard({ user, onEdit, confirmToggleId, onRequestToggle, onCan
         <div className="flex shrink-0 flex-col items-end gap-1">
           <RoleBadge role={user.role} />
           <UserStatusBadge isActive={user.isActive} />
+          <AccountStateBadge hasPassword={user.hasPassword} />
         </div>
       </div>
 

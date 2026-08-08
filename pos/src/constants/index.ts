@@ -1,4 +1,5 @@
 export * from "./api";
+export * from "./auth";
 export * from "./feedback";
 export * from "./layout";
 export * from "./locale";

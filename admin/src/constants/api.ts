@@ -21,3 +21,9 @@ export const API_VERSION_QUERY_KEY = ["version"] as const;
 // about the first one.
 export const PASSWORD_TOKEN_QUERY_KEY = "passwordToken";
 export const API_VERSION_STALE_TIME_MS = 5 * 60 * 1000;
+
+// Sign-in refused because it has been tried too often, not because the
+// password was wrong (Better Auth rate-limits that route). Worth telling
+// apart on screen: the two are indistinguishable otherwise, and a password
+// that was in fact correct then looks broken.
+export const HTTP_TOO_MANY_REQUESTS = 429;

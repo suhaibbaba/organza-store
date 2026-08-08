@@ -203,16 +203,47 @@ belongs to, and an Admin never has to invent one and read it out across a counte
 - **Redeeming one signs every device out** and marks the email verified. If the reason for the
   reset was that somebody else had the old password, leaving their session alive would make the
   reset decorative.
+- **The password is written through Better Auth itself**, never by hand. The hash lives on the
+  credential `Account` row, and sign-in reads it back with Better Auth's own verifier against
+  *every* credential row it finds — so the password is hashed with `ctx.password.hash` and stored
+  with `ctx.internalAdapter`, rather than with a hasher imported on the side and a row picked by
+  our own query. The three ways those two ends could disagree — a different hash format, a row
+  Better Auth does not consult, and a second stale credential row shadowing the fresh one — are
+  then not things the code is able to express. A password that is set and then rejected at sign-in
+  is the worst failure this flow has, because everything on screen says it worked.
 - **The public "email me a link" endpoint reveals nothing.** Known address, unknown address,
   deactivated account: the same status and the same body every time — anything else turns the
   form into a way of asking whether somebody works here. It is rate-limited **per address** (the
   real defence against mail-bombing and probing) and, more loosely, per caller, since the whole
   shop shares one public address. Unknown, expired, already-used and revoked links all answer
   with the same single error key, for the same reason.
+- **"I forgot my password" is on both login screens** — the admin's and the POS's. Somebody who
+  cannot sign in cannot sign in to ask, and the till is where they discover it. Both post to the
+  same public endpoint and show the same neutral confirmation whether or not the address exists;
+  the link itself always lands on the admin app's set-password screen, since that is the address
+  the backend builds it from, so there is no second copy of that screen to keep in step.
+- **The Users screen says who has finished setting up.** An account is created with no password,
+  so "added, but has never signed in" is an ordinary state and used to be invisible: a link that
+  went to a mistyped address looked exactly like one that had been used. Each row therefore
+  carries whether a password exists at all (`hasPassword` — the fact, never the hash, the length
+  or when it was set), shown as a "password not set" badge beside the active/inactive one. They
+  are different questions: one is whether the account is ALLOWED to sign in, the other whether it
+  CAN yet.
 - **An Admin can send anyone a fresh link** from the Users screen. The link is shown to them as
   well as emailed — an Admin already holds unrestricted password authority over every account, so
   it grants nothing new, and it is what lets the shop pass a link on over WhatsApp when a mailbox
-  is unreachable.
+  is unreachable. For somebody still pending that button **re-sends the invitation** (a `SET`
+  link, 72 hours, "choose your password"), and it is refused once the account has a password:
+  re-inviting somebody who has finished would quietly be a password reset, which is a different
+  decision and has its own button.
+- **Being refused for trying too often must not read as "wrong password".** Better Auth
+  rate-limits sign-in, and its own default — three attempts per ten seconds, per client IP, or
+  for *everybody at once* when no trusted client address can be resolved behind the proxy — is
+  spent by ordinary use: somebody who has just chosen a password, mistypes it twice on a phone
+  keyboard and then types it correctly is refused on the attempt that was right. The window is
+  therefore widened to something a person cannot reach by hand but a script still trips over, and
+  both login screens say "too many attempts, wait a moment" on a 429 rather than repeating the
+  bad-credentials message.
 - **The admin-set password stays as a fallback**, for exactly that case.
 
 **Email is transactional and must not be able to cost anything.** It goes out through one

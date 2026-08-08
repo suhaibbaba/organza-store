@@ -158,6 +158,11 @@ export const ERROR_CODES = {
 
   USER_NOT_FOUND: "error.user.not_found",
   AUTH_SIGNUP_FAILED: "error.auth.signup_failed",
+  // Re-sending the "choose your password" invitation to somebody who has
+  // already chosen one. Refused rather than quietly turned into a password
+  // reset — resetting a working password is a different decision, and it has
+  // its own button.
+  USER_ALREADY_ACTIVATED: "error.user.already_activated",
 
   // --- password set / reset by email ---
   // ONE code for unknown, expired, already-used and revoked links, on
