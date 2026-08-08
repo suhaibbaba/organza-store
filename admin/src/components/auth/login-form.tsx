@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslations } from "next-intl";
 import { PASSWORD_MIN_LENGTH } from "@shared/constants/validation";
-import { useRouter } from "@/i18n/navigation";
+import { Link, useRouter } from "@/i18n/navigation";
 import { useSession } from "@/components/providers/session-provider";
 import { useTranslateError } from "@/hooks/use-translate-error";
 import { loginSchema, type LoginInput } from "@/lib/validation/login";
@@ -17,6 +17,7 @@ import { Spinner } from "@/components/ui/spinner";
 
 export function LoginForm() {
   const t = useTranslations("auth.login");
+  const tForgot = useTranslations("auth.forgotPassword");
   const translateError = useTranslateError();
   const { login } = useSession();
   const router = useRouter();
@@ -96,6 +97,12 @@ export function LoginForm() {
         ) : (
           t("submit")
         )}
+      </Button>
+
+      {/* Password resets are self-service by email now (spec.md "Auth
+          (details)"), so nobody has to catch an Admin to get back in. */}
+      <Button asChild variant="ghost" className="w-full">
+        <Link href="/forgot-password">{tForgot("link")}</Link>
       </Button>
     </form>
   );

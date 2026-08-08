@@ -1,11 +1,12 @@
 # Organza Store — Backend
 
 API for the Organza Store system. Node + Express + TypeScript + Prisma + PostgreSQL.
-Auth is [Better Auth](https://www.better-auth.com/), email + password only, admin-driven
-(no public sign-up, no self-service password reset).
+Auth is [Better Auth](https://www.better-auth.com/), email + password only, admin-provisioned
+(no public sign-up). Staff choose their own passwords from a single-use emailed link — see
+[Going live](#going-live).
 
 > **Scope:** Products & Variants CRUD sits on top of the Phase 1 scaffold (server, schema,
-> auth, dev seed), and the Orders API below is Phase 2 part 1 (backend only — the POS and
+> auth), and the Orders API below is Phase 2 part 1 (backend only — the POS and
 > admin order screens come next). The customer storefront is still a later phase
 > (see `spec.md` build order at the repo root).
 
@@ -39,30 +40,16 @@ Apply migrations (creates all tables, including Better Auth's `user`/`session`/`
 npx prisma migrate dev
 ```
 
-Seed dev data (idempotent — safe to re-run any time):
+Create the essential data every install needs — the store settings singleton, the global
+variant types with a starting set of values, and the expense categories:
 
 ```bash
-npx prisma db seed
+npm run bootstrap
 ```
 
-This creates one user per role (all `password123`):
-
-| Email                    | Role     |
-|---------------------------|----------|
-| admin@organza.test        | ADMIN    |
-| manager@organza.test      | MANAGER  |
-| employee@organza.test     | EMPLOYEE |
-
-plus global variant types/values, nested categories, and sample products covering every
-Phase 1 rule (simple product, single-option, cartesian 2-option, price override, inherited
-price/cost, out-of-stock variant, hidden product, soft-deleted product).
-
-It also seeds sample **orders** across every channel and through the status flow — a STORE sale
-with both discount levels, an online order mid-preparation, one still `NEW`, a cancelled one, a
-partially returned one, and a soft-deleted one — so the POS, the admin orders page and sales
-reporting have real data to render. Each is upserted under a fixed id, and the seed writes the
-resulting state directly rather than replaying the API's stock deduction (which would walk the
-declared stock down a little further on every run).
+Nothing in there is sample data: no products, no orders, no accounts. See
+**[Going live](#going-live)** below for the full sequence, and
+**[Demo data](#demo-data-dev--sandbox-only)** for the fake catalogue used by the test suite.
 
 ## Run
 
@@ -75,7 +62,7 @@ npm start           # run compiled build
 Health check: `GET /health` → `{ "success": true, "data": { "status": "ok" } }`
 
 Auth endpoints are mounted at `/api/auth/*` (Better Auth's own routes — sign-in, sign-out,
-session, etc.). Example:
+session, etc.). Example, using an account from the demo seed:
 
 ```bash
 curl -X POST http://localhost:4000/api/auth/sign-in/email \
@@ -127,8 +114,9 @@ FAIL  2. Discounts & rounding      18 passed, 1 failed
 | 6 | Sold vs received vs owed | The three always reconcile; collecting moves money from owed to received; a bulk settlement takes only what was pending at that moment. |
 | 7 | Profit | Gross and net, for all sales and for the received part alone, from the snapshotted `unitPrice`/`unitCost` — re-pricing a product afterwards moves nothing. |
 | 8 | Permissions & data exposure | Every role against every sensitive action, enforced on the backend; gated Employee edits held for approval; no endpoint leaking `cost`, `unitCost`, COGS, profit, margin or `idNumber`. |
-| 9 | Edge cases | Concurrent sales of the last unit, duplicate SKU, generated EAN-13 uniqueness, a numbered shawl's parent barcode, `+970`/`+972` phone uniqueness. |
-| 10 | Platform & API contract | The envelope, pagination, search, categories, images, labels, notifications, version. |
+| 9 | Passwords & go-live | An emailed link works exactly once and dies on time; the public endpoint answers a known and an unknown address identically; the per-address rate limit bites; `init` refuses a database that already has users and writes nothing when it does; a mail provider that cannot deliver never fails the account creation that triggered it; and the guards in front of `seed:demo` and `db:reset` refuse production. |
+| 10 | Edge cases | Concurrent sales of the last unit, duplicate SKU, generated EAN-13 uniqueness, a numbered shawl's parent barcode, `+970`/`+972` phone uniqueness. |
+| 11 | Platform & API contract | The envelope, pagination, search, categories, images, labels, notifications, version. |
 
 ### Safety
 
@@ -382,6 +370,110 @@ adding either is a new branch in `shouldNotifyForSale()` plus an entry in
 rejects a mode it can't yet honour rather than accepting one that would silently mean "no
 notifications".
 
+## Going live
+
+Setting up the shop's real database, in order. Every step is a separate command on purpose:
+nothing here happens as a side effect of a deploy, and nothing here creates sample data.
+
+```bash
+# 0. only when starting over — DESTRUCTIVE, see below
+ORGANZA_DB_RESET_CONFIRM=I-KNOW-THIS-DELETES-EVERYTHING npm run db:reset
+
+# 1. schema
+npx prisma migrate deploy
+
+# 2. essential data — settings, variant types, expense categories
+npm run bootstrap
+
+# 3. the real staff accounts, ONCE, by hand
+npm run init
+
+# 4. …each person opens the email they were sent and chooses their own password
+
+# 5. start entering real products
+```
+
+Then sign in at the admin and start adding stock. There is no step where anybody types
+somebody else's password.
+
+### The commands
+
+| Command | What it does | Safe to run twice? |
+|---|---|---|
+| `npm run bootstrap` | Creates the store settings singleton, the three global variant types with a starting set of values, and the five expense categories. Runs on every deploy. | **Yes** — the second run creates nothing. Each item is recorded in `BootstrapRecord` and created at most once in the life of the database, so a colour or an expense category the shop retires stays retired instead of coming back on the next push. A *new* default added in a later release still lands. |
+| `npm run init` | Creates the four agreed staff accounts (`src/constants/init.ts`) with **no password**, and emails each of them a single-use "set your password" link. | **Yes, and the second run refuses** — it will not touch a database that already has any user in it. There is no partial mode: adding one more member of staff is the admin's Users screen. |
+| `npm run db:reset` | Drops every table, re-applies every migration, and deletes uploaded image files that no longer belong to any product. Seeds nothing. | **Yes** — the second run leaves an empty database empty. It refuses without `ORGANZA_DB_RESET_CONFIRM` typed out in full, every single time, and needs `ORGANZA_ALLOW_PRODUCTION=I-KNOW-THIS-IS-PRODUCTION` on top when `NODE_ENV=production`. |
+| `npm run email:preview` | Renders every email in every language to `tmp/email-preview/` (git-ignored). Sends nothing, needs no API key, touches no database. | Yes. |
+
+`init` asks for a phone number per account, because `phone` is required, unique and reaches a
+real person (CLAUDE.md rule 18) — it is not something to invent. It offers a name for each
+address which you confirm or correct. For a non-interactive run, pass them as flags:
+
+```bash
+npm run init -- \
+  --name rawandabdelhadi@gmail.com="روان عبد الهادي" \
+  --phone rawandabdelhadi@gmail.com=+970599123456 \
+  --phone abumajd99.nn@gmail.com=+970599123457 \
+  --phone shahdmeflh@gmail.com=+970599123458 \
+  --phone jannah2642009@icloud.com=+970599123459
+```
+
+### Passwords by email
+
+Nobody is ever handed a password. An account is created with none and its owner chooses one
+from a link:
+
+- **`POST /api/password-setup/request`** — public, rate-limited, "email me a link". Answers
+  identically whether or not the address belongs to an account.
+- **`POST /api/password-setup/verify`** — public, checks a link without consuming it, so the
+  screen can say "expired" before anything is typed.
+- **`POST /api/password-setup/complete`** — public, redeems the link and sets the password.
+  Works exactly once per link, signs every other device out, and marks the email verified.
+- **`POST /api/users/:id/password-reset`** — Admin only, sends somebody a fresh link. Returns
+  the link too, so it can be passed on by hand when a mailbox is unreachable — an Admin can
+  already set any password outright via `PATCH /api/users/:id`, so this hands them nothing new.
+
+The token is 32 random bytes; only its SHA-256 is stored, and it is never written to a log.
+A link lasts **72 hours** for a new account and **2 hours** for a forgotten password, and
+issuing a new one kills the old one. The `PATCH /api/users/:id` password field stays as the
+fallback for a member of staff whose mailbox is unreachable.
+
+Email goes through **Resend** behind a small transport abstraction (`src/lib/email/`) — swap
+the provider by adding a file there. Sending happens **after** the write commits and is never
+awaited, so a mail provider having a bad afternoon can never turn "the account was created"
+into a failure; the failure goes to Sentry instead. With no `RESEND_API_KEY` set, mail is
+simply not sent and the API says so in the log.
+
+Configure in `.env` (see `.env.example`): `RESEND_API_KEY`, `EMAIL_FROM`, `EMAIL_REPLY_TO`,
+`ADMIN_URL`, and `TRUST_PROXY` when the API sits behind the reverse proxy.
+
+## Demo data (dev / sandbox only)
+
+The old `prisma/seed.ts` is now `prisma/dev/demo-seed.ts` and is **quarantined**: it is not
+wired to `prisma db seed` (so `prisma migrate dev`/`reset` cannot trigger it), it is not in the
+deploy pipeline, and it refuses to run unless told the database is disposable — and refuses
+outright when `NODE_ENV=production`, with no override.
+
+```bash
+ORGANZA_ALLOW_DEMO_SEED=I-KNOW-THIS-IS-NOT-PRODUCTION npm run seed:demo
+```
+
+It creates one user per role (all `password123`) —
+
+| Email                    | Role     |
+|---------------------------|----------|
+| admin@organza.test        | ADMIN    |
+| manager@organza.test      | MANAGER  |
+| employee@organza.test     | EMPLOYEE |
+
+— plus nested categories, sample products covering every Phase 1 rule (simple, single-option,
+cartesian 2-option, price override, inherited price/cost, out-of-stock variant, hidden and
+soft-deleted products, supplier barcodes, a numbered shawl), sample **orders** across every
+channel and status, expenses in every state, change requests, and two closed cash-drawer days.
+
+**The API test suite depends on these accounts**, so a sandbox the suite is pointed at has to
+have been demo-seeded by hand at least once.
+
 ## Auth notes
 
 - The Better Auth instance lives at `src/lib/auth.ts`. It's configured with
@@ -392,10 +484,14 @@ notifications".
   set by the sign-up caller, only by server-side/admin code.
 - Because sign-up requires `phone` (a required additional field), staff creation always
   goes through `auth.api.signUpEmail({ body: { email, password, name, phone } })` — see
-  `prisma/seed.ts`. There's no public registration route; staff accounts are always
-  provisioned server-side.
-- Password reset is admin-driven (a future admin endpoint using Better Auth's server API),
-  never a self-service email flow.
+  `routes/users.ts` and `scripts/init.ts`. There's no public registration route; staff
+  accounts are always provisioned server-side.
+- An account created **without** a password has its credential row's `password` set to
+  `null`, so there is no secret in the database at all until its owner sets one from an
+  emailed link. Sign-in simply fails until then.
+- **Password set/reset is by email** (see [Going live](#going-live)) — single-use,
+  time-limited links, with the admin-set password on `PATCH /api/users/:id` kept as the
+  fallback for an unreachable mailbox.
 - To regenerate/verify the Better Auth-managed tables against `src/lib/auth.ts` after
   changing its config: `npm run auth:generate` (writes into `prisma/schema.prisma` — review
   the diff, then run `npx prisma migrate dev`).
@@ -413,13 +509,19 @@ npx prisma studio        # browse the DB
 ```
 backend/
 ├── prisma/
-│   ├── schema.prisma   # source of truth for the DB schema
+│   ├── schema.prisma       # source of truth for the DB schema
 │   ├── migrations/
-│   └── seed.ts         # idempotent dev seed
+│   └── dev/
+│       └── demo-seed.ts    # QUARANTINED fake catalogue — `npm run seed:demo`, never on deploy
 ├── scripts/
-│   └── verify.ts       # `npm run verify` — runs the suite, summarises by area, writes the report
+│   ├── verify.ts           # `npm run verify` — runs the suite, summarises by area, writes the report
+│   ├── bootstrap.ts        # `npm run bootstrap` — essential data, runs on every deploy
+│   ├── init.ts             # `npm run init` — the real staff accounts, once, by hand
+│   ├── db-reset.ts         # `npm run db:reset` — DESTRUCTIVE, manual only
+│   └── email-preview.ts    # `npm run email:preview` — render every email without sending
 ├── tests/
-│   ├── api/            # per-feature API suites
+│   ├── api/            # per-feature API suites (against a live API)
+│   ├── unit/           # pure logic — token rules, rate limiter, email templates, guards
 │   ├── verify/         # the money + permissions verification suite
 │   ├── support/        # client, auth, fixtures, money assertions, target guard, teardown
 │   ├── constants/      # areas, target hosts, the figures the suite works in
@@ -429,6 +531,7 @@ backend/
 │   ├── constants/        # magic strings/numbers (SKU prefix, image sizes, error keys, ...)
 │   ├── types/            # centralized types, split by domain, re-exported from types/index.ts
 │   ├── lib/               # auth.ts (Better Auth instance), prisma.ts (shared PrismaClient), and other core logic
+│   │   └── email/         # the swappable email service: config, transports/, templates/, messages/
 │   ├── middleware/        # asyncHandler, auth, error handling, request validation
 │   ├── routes/            # one router per resource
 │   └── validation/        # Zod schemas (+ their inferred input types)

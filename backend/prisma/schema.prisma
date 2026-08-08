@@ -54,8 +54,9 @@ model User {
   idNumber String? // SENSITIVE: Admin-only; never returned by API to others
   isActive Boolean @default(true)
 
-  accounts Account[]
-  sessions Session[]
+  accounts            Account[]
+  sessions            Session[]
+  passwordSetupTokens PasswordSetupToken[]
 
   createdProducts   Product[]          @relation("ProductCreatedBy")
   createdOrders     Order[]            @relation("OrderCreatedBy")
@@ -126,6 +127,65 @@ model Verification {
 
   @@index([identifier])
   @@map("verification")
+}
+
+// --- Password set / reset by email ---
+//
+// A staff account is created with no password; the person who owns the
+// mailbox picks one from a single-use, time-limited link. The same row type
+// serves a forgotten password, so the two differ only in what the email says.
+//
+// Deliberately OUR table rather than Better Auth's `verification`: the flow
+// is admin-provisioned (no public sign-up, no self-service email change), and
+// keeping it here means the audit trail, the purpose and the revocation rules
+// are ours to state rather than a plugin's to imply.
+
+enum PasswordSetupPurpose {
+  SET // a brand-new account choosing its first password
+  RESET // an existing account replacing a forgotten one
+}
+
+model PasswordSetupToken {
+  id String @id @default(cuid())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // SHA-256 of the token that was emailed. The token itself is never stored
+  // and never logged: a database dump (or a stray log line) must not hand
+  // anybody a working link. Unique so a lookup is one indexed read.
+  tokenHash String @unique
+
+  purpose PasswordSetupPurpose
+
+  expiresAt DateTime
+  // Set the moment the link is redeemed — the single-use gate. Written by a
+  // conditional update (usedAt IS NULL), so two simultaneous redemptions can
+  // never both succeed.
+  usedAt    DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+// ============================================================
+//  BOOTSTRAP RECORD
+// ============================================================
+// What the essential-data bootstrap has already created, one row per item
+// (`variantValue:color:red`, `expenseCategory:utilities`, ...).
+//
+// This is what makes `npm run bootstrap` safe to run on every deploy without
+// it becoming a resurrection machine: the shop deleting a default colour, or
+// retiring a default expense category, is a decision — and a bootstrap that
+// simply upserts "what should exist" would undo that decision on the next
+// push. A marker is written when an item is first created and never removed,
+// so each default is created exactly once in the life of the database, while
+// a NEW default added in a later release still lands.
+model BootstrapRecord {
+  key       String   @id
+  appliedAt DateTime @default(now())
 }
 
 // ============================================================

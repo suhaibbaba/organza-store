@@ -16,6 +16,7 @@ import expenseCategoriesRouter from "@/routes/expenseCategories";
 import cashSessionsRouter from "@/routes/cashSessions";
 import reportsRouter from "@/routes/reports";
 import usersRouter from "@/routes/users";
+import passwordSetupRouter from "@/routes/passwordSetup";
 import settingsRouter from "@/routes/settings";
 import imagesRouter from "@/routes/images";
 import pushRouter from "@/routes/push";
@@ -26,6 +27,17 @@ import { UPLOAD_DIR } from "@/lib/image";
 import { ERROR_CODES } from "@/constants";
 
 const app = express();
+
+// Behind the VPS's TLS-terminating reverse proxy, req.ip is the proxy unless
+// express is told how many hops to look through — and the password endpoints'
+// rate limit is only worth anything if it counts real callers rather than
+// counting nginx once. Off unless configured, because trusting
+// X-Forwarded-For with nothing in front of the app lets any caller claim any
+// address (see backend/.env.example).
+const trustProxy = process.env.TRUST_PROXY?.trim();
+if (trustProxy) {
+  app.set("trust proxy", /^\d+$/.test(trustProxy) ? Number(trustProxy) : trustProxy);
+}
 
 const corsOrigins = (process.env.CORS_ORIGINS ?? "").split(",").filter(Boolean);
 
@@ -66,6 +78,10 @@ app.use("/api/expense-categories", expenseCategoriesRouter);
 app.use("/api/cash-sessions", cashSessionsRouter);
 app.use("/api/reports", reportsRouter);
 app.use("/api/users", usersRouter);
+// Unauthenticated by design — somebody with no password cannot sign in to
+// ask for one. Every route on it is rate-limited and none of them confirms
+// that an account exists (see routes/passwordSetup.ts).
+app.use("/api/password-setup", passwordSetupRouter);
 app.use("/api/settings", settingsRouter);
 app.use("/api/images", imagesRouter);
 app.use("/api/push", pushRouter);

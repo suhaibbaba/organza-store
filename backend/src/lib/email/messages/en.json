@@ -1,0 +1,29 @@
+{
+  "brand": {
+    "name": "Organza",
+    "tagline": "Organza Store — Tulkarm"
+  },
+  "common": {
+    "greeting": "Hello {name},",
+    "buttonFallback": "If the button above doesn't open, copy this link into your browser:",
+    "expiry": "This link is valid for {hours} hours and can be used only once.",
+    "signature": "The Organza team",
+    "replyNote": "This is an automated message from the store system — you can reply to it to reach the shop."
+  },
+  "passwordSet": {
+    "subject": "Set up your Organza account",
+    "preheader": "Choose your password to sign in to the store system.",
+    "heading": "Welcome to Organza",
+    "intro": "An account has been created for you in the Organza store system. No password was set for you — choose your own using the button below, so nobody else ever knows it.",
+    "cta": "Set your password",
+    "ignore": "If this message reached you by mistake, ignore it and no account will be activated."
+  },
+  "passwordReset": {
+    "subject": "Reset your Organza password",
+    "preheader": "A single-use link to choose a new password.",
+    "heading": "Reset your password",
+    "intro": "We received a request to reset the password for your Organza store account. Use the button below to choose a new one.",
+    "cta": "Choose a new password",
+    "ignore": "If you didn't ask for this, ignore this message — your current password stays as it is."
+  }
+}

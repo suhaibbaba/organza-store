@@ -32,6 +32,10 @@ services:
         # falls back to its package.json version.
         APP_VERSION: ${APP_VERSION:-}
     restart: unless-stopped
+    # Everything in backend/.env.example comes through here, including the
+    # transactional-email settings the password links need:
+    #   RESEND_API_KEY, EMAIL_FROM, EMAIL_REPLY_TO, ADMIN_URL, TRUST_PROXY
+    # The file lives on the VPS and is never committed.
     env_file: .env.sandbox
     environment:
       # assembled here so backend always points at the compose DB

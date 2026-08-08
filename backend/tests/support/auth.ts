@@ -1,4 +1,4 @@
-// Login helper for the three seeded staff accounts (backend/prisma/seed.ts).
+// Login helper for the three demo staff accounts (backend/prisma/dev/demo-seed.ts).
 // Sessions are cached ONCE for the whole suite (see the module-level
 // sessionCache below, and vitest.config.ts's isolate:false/singleFork which
 // makes that cache a true process-wide singleton instead of one copy per
@@ -58,7 +58,7 @@ export function getSession(role: SeededRole): Promise<Session> {
         if (!result.session) {
           throw new Error(
             `Seeded ${role} login failed (HTTP ${result.status}). ` +
-              "Make sure the target API has been seeded via `npm run seed`."
+              "Make sure the target API has been demo-seeded via `npm run seed:demo` (see backend/README.md)."
           );
         }
         return result.session;

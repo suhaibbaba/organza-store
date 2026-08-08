@@ -54,6 +54,40 @@
       "submit": "Sign in",
       "submitting": "Signing in…",
       "error": "Incorrect email or password."
+    },
+    "setPassword": {
+      "titleSet": "Choose your password",
+      "titleReset": "New password",
+      "subtitleSet": "Choose a password for your account — nobody else will know it.",
+      "subtitleReset": "Choose a new password for your account.",
+      "forAccount": "Account: {email}",
+      "passwordLabel": "New password",
+      "passwordPlaceholder": "Enter a password",
+      "confirmLabel": "Repeat the password",
+      "confirmPlaceholder": "Repeat the password",
+      "mismatch": "The two passwords do not match.",
+      "submit": "Save password",
+      "submitting": "Saving…",
+      "checking": "Checking the link…",
+      "invalidTitle": "This link no longer works",
+      "invalidBody": "The link has expired or has already been used. Ask the shop for a new one, or request one from the sign-in page.",
+      "missingToken": "The link is incomplete. Open the full link exactly as it arrived in your email.",
+      "successTitle": "Password saved",
+      "successBody": "You can now sign in with your email and your new password.",
+      "goToLogin": "Go to sign in",
+      "requestNewLink": "Request a new link"
+    },
+    "forgotPassword": {
+      "link": "Forgot your password?",
+      "title": "Forgot password",
+      "subtitle": "Enter your email and we will send you a link to choose a new password.",
+      "emailLabel": "Email",
+      "emailPlaceholder": "you@example.com",
+      "submit": "Send the link",
+      "submitting": "Sending…",
+      "sentTitle": "Check your email",
+      "sentBody": "If that address belongs to an account, a link to choose a new password is on its way. Check the spam folder too.",
+      "back": "Back to sign in"
     }
   },
   "dashboard": {
@@ -1093,7 +1127,7 @@
       "email": "Email",
       "emailHint": "Email can't be changed after the account is created.",
       "password": "Password",
-      "passwordPlaceholderCreate": "Set a password",
+      "passwordPlaceholderCreate": "Leave blank so they choose their own",
       "passwordPlaceholderEdit": "Leave blank to keep current password",
       "passwordHintEdit": "Leave blank to keep the current password.",
       "role": "Role",
@@ -1105,7 +1139,16 @@
       "creating": "Creating…",
       "saving": "Saving…",
       "create": "Add staff",
-      "save": "Save changes"
+      "save": "Save changes",
+      "passwordHintCreate": "Leave this blank (recommended): they get a link by email and choose their own password, so nobody else ever knows it."
+    },
+    "passwordReset": {
+      "action": "Send password link",
+      "sending": "Sending…",
+      "sent": "A set-password link has been emailed to {email}.",
+      "copyLink": "Copy link",
+      "copied": "Link copied.",
+      "linkHint": "If the email doesn't arrive, you can pass this link on yourself. It works only once."
     }
   },
   "errors": {
@@ -1193,7 +1236,9 @@
     "changeRequestNotApplicable": "This request can no longer be applied — things have changed since it was made.",
     "forbiddenHint": "This screen is only for certain roles. If you need it, ask an admin.",
     "barcodeInvalid": "That doesn't look like a barcode. Scan it again, or check the digits.",
-    "barcodeRequired": "Scan or type the supplier's barcode, or switch back to our own."
+    "barcodeRequired": "Scan or type the supplier's barcode, or switch back to our own.",
+    "rateLimited": "Too many attempts in a short time. Wait a moment and try again.",
+    "passwordTokenInvalid": "This link has expired or has already been used. Ask for a new one."
   },
   "pwa": {
     "version": {

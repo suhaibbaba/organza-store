@@ -7,6 +7,10 @@ export const ERROR_CODES = {
   UNAUTHORIZED: "error.unauthorized",
   FORBIDDEN: "error.forbidden",
   ACCOUNT_INACTIVE: "error.account.inactive",
+  // Too many attempts in too short a window. Carries no detail about what
+  // was being attempted — a rate limit that explains itself is a rate limit
+  // that helps whoever is probing.
+  RATE_LIMITED: "error.rate_limited",
 
   DUPLICATE: "error.duplicate",
   SKU_DUPLICATE: "error.sku.duplicate",
@@ -154,6 +158,13 @@ export const ERROR_CODES = {
 
   USER_NOT_FOUND: "error.user.not_found",
   AUTH_SIGNUP_FAILED: "error.auth.signup_failed",
+
+  // --- password set / reset by email ---
+  // ONE code for unknown, expired, already-used and revoked links, on
+  // purpose: telling the difference apart is telling whoever is holding a
+  // stale link whether the account behind it exists. The screen says "ask
+  // for a new link" either way, which is the only useful answer.
+  PASSWORD_TOKEN_INVALID: "error.passwordToken.invalid",
 } as const;
 
 export type ErrorCode = (typeof ERROR_CODES)[keyof typeof ERROR_CODES];
