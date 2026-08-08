@@ -610,11 +610,22 @@ be given one by accident.
   the shop learns the system overrules them. A genuinely *new* default added in a later release
   still lands. An item that already exists (from the old dev seed) is adopted and left untouched.
 - **`npm run init` — the real staff accounts, once, by hand.** Never on a deploy. It creates the
-  agreed accounts with no password and emails each of them a set-password link, and it
-  **refuses outright if any user already exists** — there is no partial mode and no "top up the
-  ones that are missing", because a database with a user in it is a database somebody is already
-  using. It asks for a phone number per account rather than inventing one: phone is required,
-  unique, and reaches a real person.
+  accounts with no password and emails each of them a set-password link, and it **refuses
+  outright if any user already exists** — there is no partial mode and no "top up the ones that
+  are missing", because a database with a user in it is a database somebody is already using.
+
+  **Who** it creates is a JSON roster read at run time (`staff.json` beside the repo, or
+  `--accounts <path>` / `ORGANZA_STAFF_FILE`), never a list in the source. Real people's names,
+  addresses and phone numbers are operational data: hiring somebody is not a commit and a
+  deploy, and a person's contact details should not sit in git history after they have left. The
+  file is git-ignored; a committed `staff.example.json` shows the shape.
+
+  The **whole file is validated before the database is touched** — every missing field, unknown
+  role, malformed or duplicate email, invalid or duplicate number (both `+970` and `+972`
+  spellings of one line, per the phone rule), and every unrecognised key — and every problem is
+  reported at once, naming the entry it is in. Nothing is created until the file is clean: a
+  typo in the fourth entry must never leave the first three accounts made, because `init` would
+  then refuse to finish the job.
 - **`npm run db:reset` — destructive, manual only.** Drops every table, re-applies every
   migration, and deletes uploaded images that no longer belong to anything. It seeds nothing. It
   refuses without an explicit confirmation typed out in full, every run, and needs a second,

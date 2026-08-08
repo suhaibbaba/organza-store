@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import { createInitialStaff, InitRefusedError } from "@/lib/init";
-import { INIT_STAFF_ACCOUNTS } from "@/constants/init";
 import type { InitAccountDetails, InitDependencies } from "@/types/init";
 
 // The go-live command, without a database, a mail provider or a terminal.
@@ -35,26 +34,6 @@ function recordingDeps(existingUsers: number): InitDependencies & {
 }
 
 describe("init — the go-live staff command", () => {
-  describe("the accounts it is for", () => {
-    it("is the four agreed addresses, with their agreed roles", () => {
-      // Hard-coded on purpose (constants/init.ts): this command IS those four
-      // accounts. If somebody edits the table, that should be a deliberate
-      // change to a test, not a quiet one to a live shop.
-      expect(INIT_STAFF_ACCOUNTS.map((a) => [a.email, a.role])).toEqual([
-        ["rawandabdelhadi@gmail.com", "ADMIN"],
-        ["abumajd99.nn@gmail.com", "ADMIN"],
-        ["shahdmeflh@gmail.com", "MANAGER"],
-        ["jannah2642009@icloud.com", "MANAGER"],
-      ]);
-    });
-
-    it("names no passwords anywhere", () => {
-      // Every account is created with none, so there is nothing in the table
-      // that could be one.
-      expect(JSON.stringify(INIT_STAFF_ACCOUNTS)).not.toMatch(/password/i);
-    });
-  });
-
   describe("refusing a database that is already in use", () => {
     it("refuses when even one user exists", async () => {
       const deps = recordingDeps(1);

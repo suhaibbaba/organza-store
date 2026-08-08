@@ -8,6 +8,25 @@ export interface InitAccountDetails {
   role: Role;
 }
 
+/**
+ * One thing wrong with the roster file, located precisely enough to fix
+ * without guessing: which entry, which field, and what is wrong with it.
+ *
+ * `entry` is how a human finds the row — its email when there is one to read,
+ * and its position when there is not.
+ */
+export interface StaffFileProblem {
+  entry: string;
+  field?: string;
+  message: string;
+}
+
+/** Overrides applied on top of the file, keyed by lower-cased email. */
+export interface StaffOverrides {
+  names?: Map<string, string>;
+  phones?: Map<string, string>;
+}
+
 /** What was created, per account. Printed by the CLI. */
 export interface InitAccountResult {
   email: string;

@@ -385,37 +385,95 @@ npx prisma migrate deploy
 # 2. essential data — settings, variant types, expense categories
 npm run bootstrap
 
-# 3. the real staff accounts, ONCE, by hand
+# 3. write the staff roster ON THE SERVER (git-ignored — see below)
+cp staff.example.json staff.json && $EDITOR staff.json
+
+# 4. the real staff accounts, ONCE, by hand
 npm run init
 
-# 4. …each person opens the email they were sent and chooses their own password
+# 5. …each person opens the email they were sent and chooses their own password
 
-# 5. start entering real products
+# 6. start entering real products
 ```
 
 Then sign in at the admin and start adding stock. There is no step where anybody types
 somebody else's password.
+
+### The staff roster
+
+**Who** gets an account is a JSON file read at run time, not a list in this repo. The people
+who work in the shop, their names, their addresses and their phone numbers are operational
+data: hiring somebody should not be a commit and a deploy, and a real person's contact details
+should not sit in git history forever after they have left.
+
+`staff.example.json` (committed, at the repo root) shows the shape. Copy it to `staff.json`
+next to it — `staff.json` and `staff.*.json` are git-ignored, and `git reset --hard` on the
+deploy does not touch ignored files, so it survives every push.
+
+```json
+[
+  { "email": "owner@example.com",   "role": "ADMIN",    "name": "الاسم الكامل", "phone": "+970599123456" },
+  { "email": "manager@example.com", "role": "MANAGER",  "name": "Manager Name", "phone": "+972599123457" },
+  { "email": "employee@example.com","role": "EMPLOYEE", "name": "Employee Name","phone": "+970599123458" }
+]
+```
+
+Every field is required. `role` is `ADMIN`, `MANAGER` or `EMPLOYEE`. `phone` is E.164 and is
+stored exactly as written — the `+970`/`+972` prefix is never rewritten (CLAUDE.md rule 18), and
+the same line under either prefix counts as a duplicate. Keys beginning with `_` are ignored, so
+`"_comment"` works as a note; any other unrecognised key is an error rather than something
+silently dropped.
+
+The whole file is validated **before the database is touched** — unknown or missing roles,
+malformed or duplicate emails, invalid or duplicate numbers, missing fields, stray keys — and
+every problem is reported at once, naming the entry:
+
+```
+7 problem(s) in /opt/organza/sandbox/staff.json:
+  • entry #1 (one@example.com) — role: unknown role "OWNER" — one of ADMIN, MANAGER, EMPLOYEE
+  • entry #3 (three@example.com) — phone: already used by entry #1 (one@example.com) — the same
+    line written under the other prefix (+970/+972)
+  • entry #4: expected an object with email, role, name and phone
+```
+
+Nothing is created until the file is clean, so a typo in the fourth entry can never leave the
+first three accounts made — which would matter, because `init` refuses a database that already
+has users and so could not finish the job on a second run.
+
+Where the file is, in precedence order:
+
+```bash
+npm run init -- --accounts /srv/organza/staff.json   # flag wins
+ORGANZA_STAFF_FILE=/srv/organza/staff.json npm run init
+npm run init                                          # <repo>/staff.json
+```
+
+Inside the sandbox container, copy it in for the one run rather than baking it into the image:
+
+```bash
+docker compose -f docker-compose.sandbox.yml cp staff.json backend:/tmp/staff.json
+docker compose -f docker-compose.sandbox.yml exec -T backend npm run init -- --accounts /tmp/staff.json
+docker compose -f docker-compose.sandbox.yml exec -T backend rm /tmp/staff.json
+```
 
 ### The commands
 
 | Command | What it does | Safe to run twice? |
 |---|---|---|
 | `npm run bootstrap` | Creates the store settings singleton, the three global variant types with a starting set of values, and the five expense categories. Runs on every deploy. | **Yes** — the second run creates nothing. Each item is recorded in `BootstrapRecord` and created at most once in the life of the database, so a colour or an expense category the shop retires stays retired instead of coming back on the next push. A *new* default added in a later release still lands. |
-| `npm run init` | Creates the four agreed staff accounts (`src/constants/init.ts`) with **no password**, and emails each of them a single-use "set your password" link. | **Yes, and the second run refuses** — it will not touch a database that already has any user in it. There is no partial mode: adding one more member of staff is the admin's Users screen. |
+| `npm run init` | Creates every account in the staff roster (see above) with **no password**, and emails each of them a single-use "set your password" link. | **Yes, and the second run refuses** — it will not touch a database that already has any user in it. There is no partial mode: adding one more member of staff is the admin's Users screen. |
 | `npm run db:reset` | Drops every table, re-applies every migration, and deletes uploaded image files that no longer belong to any product. Seeds nothing. | **Yes** — the second run leaves an empty database empty. It refuses without `ORGANZA_DB_RESET_CONFIRM` typed out in full, every single time, and needs `ORGANZA_ALLOW_PRODUCTION=I-KNOW-THIS-IS-PRODUCTION` on top when `NODE_ENV=production`. |
 | `npm run email:preview` | Renders every email in every language to `tmp/email-preview/` (git-ignored). Sends nothing, needs no API key, touches no database. | Yes. |
 
-`init` asks for a phone number per account, because `phone` is required, unique and reaches a
-real person (CLAUDE.md rule 18) — it is not something to invent. It offers a name for each
-address which you confirm or correct. For a non-interactive run, pass them as flags:
+A single value can be corrected on the command line without editing the file — useful for a
+scripted run where the phone number comes from somewhere else. Overrides are matched by email
+and face exactly the same checks as file values; naming an address that is **not** in the file
+is an error rather than a silent no-op:
 
 ```bash
 npm run init -- \
-  --name rawandabdelhadi@gmail.com="روان عبد الهادي" \
-  --phone rawandabdelhadi@gmail.com=+970599123456 \
-  --phone abumajd99.nn@gmail.com=+970599123457 \
-  --phone shahdmeflh@gmail.com=+970599123458 \
-  --phone jannah2642009@icloud.com=+970599123459
+  --name  someone@example.com="Their Name" \
+  --phone someone@example.com=+970599123456
 ```
 
 ### Passwords by email
@@ -516,7 +574,7 @@ backend/
 ├── scripts/
 │   ├── verify.ts           # `npm run verify` — runs the suite, summarises by area, writes the report
 │   ├── bootstrap.ts        # `npm run bootstrap` — essential data, runs on every deploy
-│   ├── init.ts             # `npm run init` — the real staff accounts, once, by hand
+│   ├── init.ts             # `npm run init` — the staff roster, once, by hand
 │   ├── db-reset.ts         # `npm run db:reset` — DESTRUCTIVE, manual only
 │   └── email-preview.ts    # `npm run email:preview` — render every email without sending
 ├── tests/

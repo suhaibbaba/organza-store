@@ -79,7 +79,7 @@ export const VERIFY_AREAS: readonly VerifyArea[] = [
     key: "passwords",
     title: "9. Passwords & go-live",
     claim:
-      "A link works once, dies on time, tells an attacker nothing, and `init` refuses a database in use.",
+      "A link works once, dies on time, tells an attacker nothing, and the staff roster is checked in full before `init` writes anything.",
     files: [
       "passwordSetup.test.ts",
       "passwordTokens.test.ts",
@@ -87,6 +87,7 @@ export const VERIFY_AREAS: readonly VerifyArea[] = [
       "rateLimit.test.ts",
       "dangerousCommands.test.ts",
       "init.test.ts",
+      "staffAccounts.test.ts",
     ],
   },
   {

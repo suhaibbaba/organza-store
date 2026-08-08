@@ -6,3 +6,10 @@ node_modules/
 dist/
 uploads/
 *.log
+
+# The staff roster `npm run init` reads (see backend/src/constants/init.ts).
+# Real people's names, addresses and phone numbers are operational data and
+# must never enter git — the committed staff.example.json shows the shape.
+staff.json
+staff.*.json
+!staff.example.json

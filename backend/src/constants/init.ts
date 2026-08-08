@@ -1,39 +1,50 @@
-import type { Role } from "@shared/types/role";
-
-// The shop's real staff, as agreed for go-live. Emails and roles are fixed
-// here — they ARE the command; `npm run init` exists to create exactly these
-// four accounts and nothing else.
+// `npm run init` — where the shop's staff roster comes from.
 //
-// No passwords, anywhere: each account is created with none and its owner
-// receives a single-use "set your password" link, so the only person who ever
-// knows a password is the person it belongs to.
-//
-// `defaultName` is a starting point the command offers and the person running
-// it confirms or corrects — it is somebody's actual name, and guessing one
-// off an email address and then writing it into a live database without
-// asking would be rude at best.
+// Deliberately NOT a list in this file. The people who work in the shop, their
+// names, their email addresses and their phone numbers are operational data,
+// not source code: hiring somebody should not be a commit, and a real person's
+// contact details should not sit in git history forever, on a public remote,
+// after they have left. So the roster is a JSON file read at run time, and
+// this file only knows how to find it.
 
-export interface InitStaffAccount {
-  email: string;
-  role: Role;
-  defaultName: string;
-}
+/** The flags `init` understands. */
+export const INIT_FLAGS = {
+  /** Path to the roster. `npm run init -- --accounts ./staff.json` */
+  accounts: "--accounts",
+  /**
+   * Per-account overrides for a scripted run, keyed by email — for correcting
+   * one number without editing the file:
+   *
+   *   npm run init -- --phone someone@example.com=+970599123456 \
+   *                   --name  someone@example.com="Their Name"
+   */
+  phone: "--phone",
+  name: "--name",
+} as const;
 
-export const INIT_STAFF_ACCOUNTS: InitStaffAccount[] = [
-  { email: "rawandabdelhadi@gmail.com", role: "ADMIN", defaultName: "روان عبد الهادي" },
-  { email: "abumajd99.nn@gmail.com", role: "ADMIN", defaultName: "أبو مجد" },
-  { email: "shahdmeflh@gmail.com", role: "MANAGER", defaultName: "شهد مفلح" },
-  { email: "jannah2642009@icloud.com", role: "MANAGER", defaultName: "جنة" },
-];
+/** Overrides the default path. Lowest precedence after the flag. */
+export const STAFF_FILE_ENV = "ORGANZA_STAFF_FILE";
 
 /**
- * Phone is a required, unique field on every user (CLAUDE.md rule 18) and it
- * is a real contact number, so the command asks for one per account rather
- * than inventing something that would sit in the shop's contact list
- * pretending to be a person. Supplied interactively, or with these flags for
- * a scripted run:
+ * Where the roster lives when nothing says otherwise: `staff.json` beside the
+ * repo, NOT inside `backend/`.
  *
- *   npm run init -- --phone rawandabdelhadi@gmail.com=+970599123456 \
- *                   --name  rawandabdelhadi@gmail.com="روان عبد الهادي"
+ * Outside the project on purpose — it sits next to the deployment's `.env`
+ * files, is git-ignored, and survives the deploy's `git reset --hard` because
+ * git does not touch ignored files.
  */
-export const INIT_FLAGS = { phone: "--phone", name: "--name" } as const;
+export const DEFAULT_STAFF_FILE = "staff.json";
+
+/** Committed alongside it, showing the shape. Named in the "file not found" message. */
+export const STAFF_EXAMPLE_FILE = "staff.example.json";
+
+/**
+ * Fields a roster entry may carry. Anything else is refused rather than
+ * ignored: a `"phoneNumber"` that silently does nothing is a phone number
+ * nobody notices is missing until the account is created without one.
+ *
+ * Keys beginning with `_` are allowed through as comments, since JSON has no
+ * syntax for one.
+ */
+export const STAFF_ENTRY_FIELDS = ["email", "role", "name", "phone"] as const;
+export const STAFF_COMMENT_PREFIX = "_";

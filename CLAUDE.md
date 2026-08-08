@@ -87,7 +87,12 @@ from past orders — there is still no Customer table behind it.
     `prisma db seed`, not in CI, and refused unless the run declares the database disposable
     (never under `NODE_ENV=production`). The API test suite depends on its accounts.
     `npm run init` creates the shop's real staff, by hand, once, and refuses a database that
-    already has users. `npm run db:reset` wipes everything and is manual + double-confirmed.
+    already has users. **Who** it creates is a git-ignored JSON roster read at run time
+    (`staff.json`, or `--accounts`/`ORGANZA_STAFF_FILE`; `staff.example.json` shows the shape) —
+    never a list in the source: real people's names, addresses and phone numbers are operational
+    data, not code. The whole file is validated before the database is touched, so a bad entry
+    can never leave half the accounts created. `npm run db:reset` wipes everything and is
+    manual + double-confirmed.
 12. **No hard-coded user-facing text — anywhere.** Every label/message/placeholder/validation goes
     through `t()`. Backend returns translation **keys** (`error.*`), never literal sentences. A
     single hard-coded string is a bug.
