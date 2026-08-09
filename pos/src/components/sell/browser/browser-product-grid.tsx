@@ -75,7 +75,15 @@ export function BrowserProductGrid({
 
   return (
     <div className="flex flex-col gap-4 p-3">
-      <ul className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+      {/* Two up on a phone, fixed — that is the one width where the answer is
+          known and the shelf sidebar has already taken its bite out of the
+          panel. Above that the column count is left to the grid: this lives
+          inside a drawer whose width is its own (92vw, capped, less the
+          sidebar), so a viewport breakpoint was guessing at a width it could
+          not see, and gave three 117px cards at the very size a photo starts
+          being worth looking at. auto-fill with a floor fits as many columns
+          of at least 8.5rem as the panel actually has room for. */}
+      <ul className="grid grid-cols-2 gap-2.5 sm:grid-cols-[repeat(auto-fill,minmax(8.5rem,1fr))]">
         {(products ?? []).map((product, index) => (
           <li key={product.id} className="flex">
             <BrowserProductCard

@@ -35,7 +35,13 @@ export function VariantPickerSheet({ product, onOpenChange, onPick }: VariantPic
 
   return (
     <Sheet open={product !== null} onOpenChange={onOpenChange}>
-      <SheetContent closeLabel={tCommon("close")}>
+      {/* Capped and centred on a wide screen. A bottom sheet is pinned to
+          both edges, so on the counter's laptop — or the touch monitor this
+          is heading for — it used to run the full width of the display, with
+          a row of size tiles marooned at one end and the cashier's eye
+          travelling a foot to read it. On a phone the cap is above the
+          viewport width, so nothing there changes at all. */}
+      <SheetContent closeLabel={tCommon("close")} className="mx-auto max-w-4xl">
         {product && (
           <>
             <SheetHeader>
@@ -208,7 +214,22 @@ function VariantPicker({ product, isNumbered, onPick, onClose }: VariantPickerPr
 
         {notFound && <Alert variant="destructive">{t("numberNotFound")}</Alert>}
 
-        <ul className={cn("grid gap-2", isNumbered ? "grid-cols-3 sm:grid-cols-4" : "grid-cols-1")}>
+        {/* One tile per row on a phone for sizes and colours — the names are
+            words ("أخضر زيتي · مقاس L") and a phone has room for one of them
+            across — and more per row as the screen grows, so a product with a
+            dozen combinations is read at a glance on the counter's screen
+            instead of scrolled through. Numbers keep their phone layout
+            exactly: a number tile is a number, three fit across a phone and
+            always have, and they simply get more columns where there is room.
+            Every tile keeps its min-h-16 floor either way. */}
+        <ul
+          className={cn(
+            "grid gap-2",
+            isNumbered
+              ? "grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6"
+              : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+          )}
+        >
           {visibleVariants.map((variant) => {
             const soldOut = variant.stock <= 0;
             const isChosen = chosenIds.has(variant.id);
