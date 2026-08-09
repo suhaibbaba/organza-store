@@ -220,6 +220,31 @@
 }
 
 /* ============================================================
+   PAGE CONTAINER — one page-level gutter, not two
+   ------------------------------------------------------------
+   The shell's <main> pads every page (components/layout/app-shell.tsx),
+   because most pages have no container of their own. A page that DOES use
+   components/layout/page-container.tsx brings its own gutter and its own
+   max width, so the shell steps out of the way for that page only —
+   otherwise a phone gets 2rem of margin down each side and less room for the
+   thing being read.
+
+   The bottom padding is not the shell's breathing room, it is the height of
+   the fixed bottom nav plus the home indicator: the container has no idea
+   about either, so that part stays exactly as it was and only the 1.5rem of
+   air on top of it is handed over (the container's own py-6 replaces it).
+
+   Unlayered on purpose — this has to win over the utilities on <main>
+   regardless of which breakpoint they came from.
+   ============================================================ */
+
+main:has([data-page-container]) {
+  padding-inline: 0;
+  padding-top: 0;
+  padding-bottom: var(--bottom-bar-inset);
+}
+
+/* ============================================================
    BOOT SPLASH — the hand-off from the phone's launch screen
    ------------------------------------------------------------
    See components/pwa/boot-splash.tsx, which owns when this is on screen.

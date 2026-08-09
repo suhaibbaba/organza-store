@@ -15,6 +15,9 @@ interface ExplainedLabelProps {
   // figure share a baseline without any hand-tuned offsets.
   trailing?: ReactNode;
   labelClassName?: string;
+  // The label's own row (label + the (?) beside it). Only for callers that
+  // need the two pushed apart — a stat card puts the (?) in the corner.
+  rowClassName?: string;
   className?: string;
 }
 
@@ -39,6 +42,7 @@ export function ExplainedLabel({
   toggleLabel,
   trailing,
   labelClassName,
+  rowClassName,
   className,
 }: ExplainedLabelProps) {
   const [open, setOpen] = useState(false);
@@ -46,7 +50,7 @@ export function ExplainedLabel({
 
   return (
     <div className={cn("flex min-w-0 flex-col", className)}>
-      <div className="flex min-h-11 items-center gap-1">
+      <div className={cn("flex min-h-11 items-center gap-1", rowClassName)}>
         <p className={cn("min-w-0 text-sm text-muted-foreground", labelClassName)}>{label}</p>
 
         {description && (

@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { FigureCard } from "@/components/figures/figure-card";
+import { StatCard } from "@/components/layout/stat-card";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
 import type { ReturnsTotals } from "@/types/report";
 
@@ -12,7 +12,6 @@ import type { ReturnsTotals } from "@/types/report";
 // exactly the wrong subtraction.
 export function ReportReturnsCard({ returns }: { returns: ReturnsTotals }) {
   const t = useTranslations("reports.returns");
-  const tFigures = useTranslations("figures");
   const formatMoney = useMoneyFormatter();
 
   return (
@@ -24,19 +23,13 @@ export function ReportReturnsCard({ returns }: { returns: ReturnsTotals }) {
           {t("empty")}
         </p>
       ) : (
-        <div className="grid grid-cols-2 gap-3">
-          <FigureCard
-            label={t("amount")}
-            description={t("amountHelp")}
-            toggleLabel={tFigures("explain", { label: t("amount") })}
-            value={formatMoney(returns.amount)}
-          />
-          <FigureCard
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <StatCard label={t("amount")} tooltip={t("amountHelp")} value={formatMoney(returns.amount)} />
+          <StatCard
             label={t("items")}
-            description={t("itemsHelp")}
-            toggleLabel={tFigures("explain", { label: t("items") })}
+            tooltip={t("itemsHelp")}
             value={returns.itemCount}
-            subtitle={t("orders", { count: returns.orderCount })}
+            hint={t("orders", { count: returns.orderCount })}
           />
         </div>
       )}
