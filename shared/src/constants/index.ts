@@ -15,6 +15,7 @@ export * from "./permissions";
 export * from "./phone";
 export * from "./product";
 export * from "./push";
+export * from "./quantity";
 export * from "./report";
 export * from "./roles";
 export * from "./time";

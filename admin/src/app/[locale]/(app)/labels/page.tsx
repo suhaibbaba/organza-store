@@ -347,7 +347,9 @@ function LabelsPageContent() {
 
             {list.isFetching && <LabelListSpinnerOverlay />}
 
-            <div className="flex flex-col gap-3">
+            {/* A pick-list of thumbnails and names: several fit across a desk
+                screen, one across a phone, exactly as before. */}
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
               {products.map((product) => (
                 <LabelProductRow
                   key={product.id}

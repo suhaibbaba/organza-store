@@ -1,4 +1,5 @@
 import { DEFAULT_PAGE, DEFAULT_PAGE_SIZE } from "@shared/constants/pagination";
+import { QUANTITY_MAX } from "@shared/constants/quantity";
 import type { LabelListFilters } from "@/types/label";
 
 export const LABEL_SEARCH_DEBOUNCE_MS = 400;
@@ -27,10 +28,12 @@ export const A4_HEIGHT_MM = 297;
 export const MM_PER_INCH = 25.4;
 export const CSS_PX_PER_INCH = 96;
 
-// Per design. Generous enough for a genuinely deep line, tight enough that a
-// stray extra digit can't eat a whole roll — the run total below is the real
-// ceiling anyway.
-export const LABEL_COPIES_MAX = 999;
+// Per design. The same ceiling every counting box in the admin and the POS
+// carries (shared/constants/quantity.ts), so "how many" means the same thing
+// here as it does in a cart or a stock correction — generous enough for a
+// genuinely deep line, tight enough that a stray extra digit can't eat a
+// whole roll. The run total below is the real ceiling anyway.
+export const LABEL_COPIES_MAX = QUANTITY_MAX;
 
 // Ceiling for a whole print run. Past this the browser's print preview gets
 // slow enough to look broken on a phone, so we ask for a smaller batch

@@ -19,7 +19,11 @@ export function OrderItemsList({ items }: { items: OrderItem[] }) {
       <CardHeader className="pb-3">
         <CardTitle className="text-base">{t("title", { count: items.length })}</CardTitle>
       </CardHeader>
-      <CardContent className="flex flex-col gap-3">
+      {/* A sold line is a name, a SKU and three short figures. One per row
+          left most of an order's card empty on anything wider than a phone,
+          so they flow — and a ten-line order is checked against a chat
+          message without scrolling. */}
+      <CardContent className="grid grid-cols-1 items-start gap-3 sm:grid-cols-2 xl:grid-cols-3">
         {items.map((item) => {
           const name = localize(item.name, locale);
           const variantName = item.variantName ? localize(item.variantName, locale) : null;

@@ -7,6 +7,8 @@ import type { Variant, VariantType } from "@shared/types/variant";
 import { localize } from "@/lib/i18n-content";
 import { formatMoney } from "@/lib/format";
 import { NumericInput } from "@/components/ui/numeric-input";
+import { QuantityStepper } from "@/components/ui/quantity-stepper";
+import { parseQuantity } from "@/lib/validation/numeric";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
@@ -72,6 +74,7 @@ export function VariantEditList({
   onRestore,
 }: VariantEditListProps) {
   const t = useTranslations("products.form.variants");
+  const tCommon = useTranslations("common");
   const tImages = useTranslations("products.form.images");
   const locale = useLocale();
   const [expandedImagesId, setExpandedImagesId] = useState<string | null>(null);
@@ -94,8 +97,12 @@ export function VariantEditList({
     }));
   }
 
+  // Two editors across on a wide screen — each one is a small form, so it
+  // takes more room than a display row and gets fewer columns than the read-
+  // only list does. `items-start` keeps a card whose photos are expanded from
+  // stretching its neighbour to match.
   return (
-    <div className="flex flex-col gap-2">
+    <div className="grid grid-cols-1 items-start gap-2 xl:grid-cols-2">
       {variants.map((variant) => {
         const name = localize(variant.name, locale);
         const groups = labeledValues(variant);
@@ -169,11 +176,13 @@ export function VariantEditList({
               <div className="grid grid-cols-2 gap-3">
                 {canEditStock && (
                   <div className="flex flex-col gap-1.5">
-                    <Label htmlFor={`stock-${variant.id}`}>{t("stock")}</Label>
-                    <NumericInput
-                      id={`stock-${variant.id}`}
-                      value={values.stock}
-                      onChange={(e) => onEditChange(variant.id, { ...values, stock: e.target.value })}
+                    <span className="text-sm font-medium">{t("stock")}</span>
+                    <QuantityStepper
+                      value={parseQuantity(values.stock)}
+                      onChange={(stock) => onEditChange(variant.id, { ...values, stock: String(stock) })}
+                      decreaseLabel={tCommon("quantity.decrease", { name })}
+                      increaseLabel={tCommon("quantity.increase", { name })}
+                      valueLabel={tCommon("quantity.value", { name })}
                     />
                   </div>
                 )}

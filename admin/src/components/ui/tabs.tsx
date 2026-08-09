@@ -2,9 +2,20 @@
 
 import * as React from "react";
 import * as TabsPrimitive from "@radix-ui/react-tabs";
+import { useLocale } from "next-intl";
+import { getTextDirection } from "@/constants/locale";
+import type { AppLocale } from "@/i18n/routing";
 import { cn } from "@/lib/utils";
 
-const Tabs = TabsPrimitive.Root;
+// Radix's Tabs.Root defaults `dir` to "ltr" and writes it onto the DOM node,
+// which pins the WHOLE panel — triggers, content, and every `rtl:` utility
+// inside it — to left-to-right no matter what the page is doing. In an app
+// whose default language is Arabic that is backwards everywhere it is used,
+// so the direction comes from the locale unless a caller states otherwise.
+function Tabs({ dir, ...props }: React.ComponentProps<typeof TabsPrimitive.Root>) {
+  const locale = useLocale() as AppLocale;
+  return <TabsPrimitive.Root dir={dir ?? getTextDirection(locale)} {...props} />;
+}
 
 function TabsList({ className, ...props }: React.ComponentProps<typeof TabsPrimitive.List>) {
   return (

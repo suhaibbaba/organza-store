@@ -22,7 +22,12 @@
       "refreshing": "מרענן…"
     },
     "cancel": "ביטול",
-    "backToStart": "חזרה למסך הראשי"
+    "backToStart": "חזרה למסך הראשי",
+    "quantity": {
+      "value": "כמות — {name}",
+      "increase": "הגדלת הכמות — {name}",
+      "decrease": "הקטנת הכמות — {name}"
+    }
   },
   "stock": {
     "out": "אזל מהמלאי",
@@ -562,6 +567,7 @@
       "title": "הנמכרים ביותר",
       "byRevenue": "לפי מכירות",
       "byQuantity": "לפי כמות",
+      "revenue": "מכירות: {amount}",
       "quantity": "כמות: {count}",
       "profit": "רווח: {amount}",
       "empty": "אין מכירות בתקופה זו."
@@ -909,7 +915,12 @@
       "simpleHint": "מדבקה לכל פריט במלאי.",
       "perVariantHint": "מדבקה לכל וריאציה ({count}), לפי המלאי של כל אחת.",
       "numberedHint": "צעיף ממוספר — מדבקה אחת למוצר כולו. הזינו כמה עותקים צריך.",
-      "supplierBarcode": "ברקוד היבואן — לא צריך מדבקה. הזן כמות כדי להדפיס בכל זאת."
+      "supplierBarcode": "ברקוד היבואן — לא צריך מדבקה. הזן כמות כדי להדפיס בכל זאת.",
+      "copiesLabel": "עותקים",
+      "copiesFor": "מספר עותקים — {name}",
+      "increase": "יותר עותקים — {name}",
+      "decrease": "פחות עותקים — {name}",
+      "stockAboveMax": "המלאי הוא {stock}, ו-{max} מדבקות הוא המרב שאפשר להזין בבת אחת. הדפיסו את היתר במנה נוספת."
     },
     "prepare": {
       "back": "חזרה למוצרים",

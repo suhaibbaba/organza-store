@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Percent, Trash2 } from "lucide-react";
 import { localize } from "@/lib/i18n-content";
@@ -32,6 +33,26 @@ export function CartLineRow({ line, flash, onQuantityChange, onRemove, onDiscoun
   const locale = useLocale();
   const formatMoney = useMoneyFormatter();
   const discountLabel = useDiscountLabel();
+
+  // Taking a line off the sale is the one destructive thing on this card, and
+  // it is one tap away from the quantity control beside it. So it is asked
+  // about — never on an ordinary decrement, only at the moment the line would
+  // actually go — and the question sits inside the card rather than in a
+  // dialog over the counter: answering it costs one tap either way, and
+  // nothing else on the screen stops working while it is up.
+  //
+  // Held as the quantity it was asked about rather than a plain flag, so the
+  // question withdraws itself the moment the line changes under it: a scan of
+  // the same tag while it is open makes this no longer the line that was about
+  // to go, and a "remove" answered a second later would take away something
+  // that had just been added.
+  const [confirmingAt, setConfirmingAt] = useState<number | null>(null);
+  const confirmingRemove = confirmingAt === line.quantity;
+
+  function handleQuantityChange(quantity: number) {
+    setConfirmingAt(null);
+    onQuantityChange(quantity);
+  }
 
   const name = localize(line.name, locale);
   const variantName = line.variantName ? localize(line.variantName, locale) : null;
@@ -89,7 +110,7 @@ export function CartLineRow({ line, flash, onQuantityChange, onRemove, onDiscoun
 
         <button
           type="button"
-          onClick={onRemove}
+          onClick={() => setConfirmingAt(line.quantity)}
           aria-label={t("remove", { name: fullName })}
           className="flex size-11 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
@@ -101,7 +122,11 @@ export function CartLineRow({ line, flash, onQuantityChange, onRemove, onDiscoun
         <QuantityStepper
           value={line.quantity}
           max={line.availableStock}
-          onChange={onQuantityChange}
+          onChange={handleQuantityChange}
+          // One below a single piece is not a quantity, it is a removal —
+          // so it asks instead of applying. The line never sits at zero in
+          // between: it is either still here at one, or gone.
+          onBelowMin={() => setConfirmingAt(line.quantity)}
           itemLabel={fullName}
         />
 
@@ -126,6 +151,30 @@ export function CartLineRow({ line, flash, onQuantityChange, onRemove, onDiscoun
 
       {line.quantity >= line.availableStock && (
         <p className="text-xs text-muted-foreground">{t("stockCap", { count: line.availableStock })}</p>
+      )}
+
+      {confirmingRemove && (
+        <div
+          role="group"
+          aria-label={t("removeConfirmTitle")}
+          className="flex flex-wrap items-center gap-2 rounded-lg border border-destructive/40 bg-destructive/5 p-2"
+        >
+          <p className="min-w-0 flex-1 text-sm font-medium">{t("removeConfirmTitle")}</p>
+          <button
+            type="button"
+            onClick={() => setConfirmingAt(null)}
+            className="h-11 rounded-lg border border-input px-4 text-sm font-medium transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            {t("removeConfirmKeep")}
+          </button>
+          <button
+            type="button"
+            onClick={onRemove}
+            className="h-11 rounded-lg bg-destructive px-4 text-sm font-semibold text-destructive-foreground transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            {t("removeConfirmYes")}
+          </button>
+        </div>
       )}
 
       {/* The read, acknowledged: a bar along the bottom of the line that

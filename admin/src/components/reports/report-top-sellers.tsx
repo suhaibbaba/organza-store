@@ -11,6 +11,12 @@ import type { TopSeller } from "@/types/report";
 // beside them are read faster than five bars that still need labels — and
 // long Arabic product names have room to breathe. The rank and the amount
 // carry the ordering; nothing here has to be measured against anything.
+//
+// The three figures sit together under the name rather than pinned to the
+// opposite edge of the row: on a wide screen that left a product's own sales
+// figure half a metre away from the product, with white space where the
+// reader's eye had to travel. Each is a labelled pair, so "1,240" is never
+// read as the quantity.
 function SellerRow({ seller, rank }: { seller: TopSeller; rank: number }) {
   const t = useTranslations("reports.topSellers");
   const locale = useLocale();
@@ -21,20 +27,24 @@ function SellerRow({ seller, rank }: { seller: TopSeller; rank: number }) {
 
   return (
     <li className="flex flex-col gap-2 rounded-lg border border-border p-3">
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="truncate font-medium text-foreground">
-            <span className="text-muted-foreground">{rank}. </span>
-            {name}
-          </p>
-          {variantName && <p className="truncate text-sm text-muted-foreground">{variantName}</p>}
-        </div>
-        <p className="shrink-0 font-semibold text-foreground">{formatMoney(seller.revenue)}</p>
+      <div className="min-w-0">
+        <p className="truncate font-medium text-foreground">
+          <span className="text-muted-foreground">{rank}. </span>
+          {name}
+        </p>
+        {variantName && <p className="truncate text-sm text-muted-foreground">{variantName}</p>}
       </div>
 
-      <div className="flex items-center justify-between gap-3 text-sm text-muted-foreground">
-        <span>{t("quantity", { count: seller.quantity })}</span>
-        {seller.profit !== undefined && <span>{t("profit", { amount: formatMoney(seller.profit) })}</span>}
+      <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1 text-sm">
+        <span className="font-semibold tabular-nums text-foreground">
+          {t("revenue", { amount: formatMoney(seller.revenue) })}
+        </span>
+        <span className="tabular-nums text-muted-foreground">{t("quantity", { count: seller.quantity })}</span>
+        {seller.profit !== undefined && (
+          <span className="tabular-nums text-muted-foreground">
+            {t("profit", { amount: formatMoney(seller.profit) })}
+          </span>
+        )}
       </div>
     </li>
   );
@@ -47,8 +57,10 @@ function SellerList({ sellers }: { sellers: TopSeller[] }) {
     return <p className="py-6 text-center text-sm text-muted-foreground">{t("empty")}</p>;
   }
 
+  // One product per cell: a name and three short figures never needed a whole
+  // screen width. The phone keeps its single column exactly as before.
   return (
-    <ul className="flex flex-col gap-2">
+    <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-3">
       {sellers.map((seller, index) => (
         <SellerRow
           key={`${seller.productId ?? "none"}-${seller.variantId ?? "none"}`}

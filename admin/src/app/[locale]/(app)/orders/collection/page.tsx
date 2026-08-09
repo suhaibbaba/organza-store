@@ -148,7 +148,10 @@ function OrderCollectionPageContent() {
 
             {isFetching && <OrderListSpinnerOverlay />}
 
-            <div className="flex flex-col gap-3">
+            {/* Ticking off a batch: an order number, a date and an amount per
+                row. Several across on a desk screen means the whole batch is
+                visible while it is being ticked. */}
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
               {orders.map((order) => (
                 <CollectionOrderRow
                   key={order.id}

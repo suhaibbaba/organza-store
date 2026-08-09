@@ -22,7 +22,12 @@
       "refreshing": "Refreshing…"
     },
     "cancel": "Cancel",
-    "backToStart": "Back to the main screen"
+    "backToStart": "Back to the main screen",
+    "quantity": {
+      "value": "Quantity — {name}",
+      "increase": "Increase quantity — {name}",
+      "decrease": "Decrease quantity — {name}"
+    }
   },
   "stock": {
     "out": "Out of stock",
@@ -562,6 +567,7 @@
       "title": "Best sellers",
       "byRevenue": "By sales",
       "byQuantity": "By quantity",
+      "revenue": "Sales: {amount}",
       "quantity": "Quantity: {count}",
       "profit": "Profit: {amount}",
       "empty": "No sales in this period."
@@ -909,7 +915,12 @@
       "simpleHint": "One label per piece in stock.",
       "perVariantHint": "One label per variant ({count}), from each variant's stock.",
       "numberedHint": "Numbered shawl — one label for the whole product. Type how many you need.",
-      "supplierBarcode": "Supplier barcode — no label needed. Set a count to print one anyway."
+      "supplierBarcode": "Supplier barcode — no label needed. Set a count to print one anyway.",
+      "copiesLabel": "Copies",
+      "copiesFor": "Copies — {name}",
+      "increase": "More copies — {name}",
+      "decrease": "Fewer copies — {name}",
+      "stockAboveMax": "Stock is {stock}, and {max} labels is the most that can be set at once. Print the rest in a second batch."
     },
     "prepare": {
       "back": "Back to products",

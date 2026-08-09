@@ -31,8 +31,12 @@ export function VariantList({ variants, variantTypes, currency }: VariantListPro
     return map;
   }, [variantTypes, locale]);
 
+  // Each variant is a photo, a couple of values and two figures — never a
+  // screen's worth. Two across from the large-tablet width up, so a product
+  // with a dozen sizes is taken in rather than scrolled through; one column
+  // on a phone, unchanged.
   return (
-    <div className="flex flex-col gap-2">
+    <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
       {variants.map((variant) => {
         const name = localize(variant.name, locale);
         const outOfStock = variant.stock <= 0;
