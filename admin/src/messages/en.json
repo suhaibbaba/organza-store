@@ -863,7 +863,8 @@
     },
     "card": {
       "noSku": "No SKU",
-      "stockLabel": "Stock"
+      "stockLabel": "Stock",
+      "outsideFilter": "No longer matches the current filter"
     },
     "table": {
       "item": "Item",
@@ -878,7 +879,11 @@
       "quantity": "Quantity",
       "save": "Save",
       "cancel": "Cancel",
-      "saved": "Saved"
+      "saved": "Saved",
+      "unsaved": "Not saved yet",
+      "saving": "Saving…",
+      "savedValue": "Saved: {count}",
+      "revertedTo": "Put back to {count}."
     },
     "empty": {
       "noItemsTitle": "No inventory yet",
@@ -890,7 +895,9 @@
       "previous": "Previous",
       "next": "Next",
       "pageOf": "Page {page} of {totalPages}"
-    }
+    },
+    "outsideFilterNotice": "{count, plural, one {1 item no longer matches the filter — kept here so it doesn't vanish while you work} other {# items no longer match the filter — kept here so they don't vanish while you work}}",
+    "refreshList": "Refresh the list"
   },
   "labels": {
     "title": "Barcode labels",
