@@ -7,6 +7,8 @@ import { can } from "@shared/lib/permissions";
 import { DEFAULT_PAGE } from "@shared/constants/pagination";
 import { DEFAULT_LOW_STOCK_THRESHOLD } from "@shared/constants/inventory";
 import { RoleGuard } from "@/components/auth/role-guard";
+import { PageContainer } from "@/components/layout/page-container";
+import { PageHeader } from "@/components/layout/page-header";
 import { useSession } from "@/components/providers/session-provider";
 import { DEFAULT_INVENTORY_FILTERS, INVENTORY_SEARCH_DEBOUNCE_MS } from "@/constants/inventory";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
@@ -81,48 +83,47 @@ function InventoryPageContent() {
   const items = data?.items ?? [];
 
   return (
-    <div className="flex flex-col gap-4">
-      <div>
-        <h1 className="text-xl font-semibold">{t("title")}</h1>
-        <p className="text-sm text-muted-foreground">{t("subtitle")}</p>
+    <PageContainer>
+      <PageHeader title={t("title")} description={t("subtitle")} />
+
+      <div className="flex flex-col gap-4">
+        {!canAdjust && <p className="text-sm text-muted-foreground">{t("readOnlyHint")}</p>}
+
+        <div className="flex flex-col gap-3">
+          <InventorySearch value={searchInput} onChange={handleSearchChange} />
+          <InventoryFilters
+            categoryId={filters.categoryId}
+            lowStock={filters.lowStock}
+            lowStockCount={filters.lowStock ? (data?.meta?.total ?? null) : null}
+            onCategoryChange={handleCategoryChange}
+            onLowStockChange={handleLowStockChange}
+          />
+        </div>
+
+        {isLoading ? (
+          <InventoryListLoading />
+        ) : isError ? (
+          <InventoryListError error={error} onRetry={() => void refetch()} />
+        ) : items.length === 0 ? (
+          <InventoryListEmpty hasFilters={hasAnyFilter} />
+        ) : (
+          <>
+            {isFetching && <InventoryListSpinnerOverlay />}
+
+            <div className="flex flex-col gap-3 md:hidden">
+              {items.map((item) => (
+                <InventoryCard key={item.id} item={item} threshold={threshold} canAdjust={canAdjust} />
+              ))}
+            </div>
+
+            <div className="hidden md:block">
+              <InventoryTable items={items} threshold={threshold} canAdjust={canAdjust} />
+            </div>
+
+            {data?.meta && <InventoryPagination meta={data.meta} onPageChange={updatePage} />}
+          </>
+        )}
       </div>
-
-      {!canAdjust && <p className="text-sm text-muted-foreground">{t("readOnlyHint")}</p>}
-
-      <div className="flex flex-col gap-3">
-        <InventorySearch value={searchInput} onChange={handleSearchChange} />
-        <InventoryFilters
-          categoryId={filters.categoryId}
-          lowStock={filters.lowStock}
-          lowStockCount={filters.lowStock ? (data?.meta?.total ?? null) : null}
-          onCategoryChange={handleCategoryChange}
-          onLowStockChange={handleLowStockChange}
-        />
-      </div>
-
-      {isLoading ? (
-        <InventoryListLoading />
-      ) : isError ? (
-        <InventoryListError error={error} onRetry={() => void refetch()} />
-      ) : items.length === 0 ? (
-        <InventoryListEmpty hasFilters={hasAnyFilter} />
-      ) : (
-        <>
-          {isFetching && <InventoryListSpinnerOverlay />}
-
-          <div className="flex flex-col gap-3 md:hidden">
-            {items.map((item) => (
-              <InventoryCard key={item.id} item={item} threshold={threshold} canAdjust={canAdjust} />
-            ))}
-          </div>
-
-          <div className="hidden md:block">
-            <InventoryTable items={items} threshold={threshold} canAdjust={canAdjust} />
-          </div>
-
-          {data?.meta && <InventoryPagination meta={data.meta} onPageChange={updatePage} />}
-        </>
-      )}
-    </div>
+    </PageContainer>
   );
 }

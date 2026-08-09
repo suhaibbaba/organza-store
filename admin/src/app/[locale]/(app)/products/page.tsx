@@ -6,6 +6,8 @@ import { Plus } from "lucide-react";
 import { DEFAULT_PAGE } from "@shared/constants/pagination";
 import { Link } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
+import { PageContainer } from "@/components/layout/page-container";
+import { PageHeader } from "@/components/layout/page-header";
 import { DEFAULT_PRODUCT_FILTERS, PRODUCT_SEARCH_DEBOUNCE_MS } from "@/constants/products";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { useProductsQuery } from "@/hooks/use-products";
@@ -75,53 +77,55 @@ export default function ProductsPage() {
   const products = data?.products ?? [];
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <h1 className="text-xl font-semibold">{t("title")}</h1>
-          <p className="text-sm text-muted-foreground">{t("subtitle")}</p>
+    <PageContainer>
+      <PageHeader
+        title={t("title")}
+        description={t("subtitle")}
+        actions={
+          <Button asChild size="sm" className="shrink-0">
+            <Link href="/products/new">
+              <Plus className="size-4" aria-hidden="true" />
+              {t("addProduct")}
+            </Link>
+          </Button>
+        }
+      />
+
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-3">
+          <ProductSearch value={searchInput} onChange={handleSearchChange} />
+          <div className="flex gap-3">
+            <div className="flex-1">
+              <ProductSortSelect sortBy={filters.sortBy} sortDir={filters.sortDir} onChange={handleSortChange} />
+            </div>
+            <ProductFiltersSheet value={filtersValue} onApply={applyFilters} activeCount={activeFilterCount} />
+          </div>
         </div>
-        <Button asChild size="sm" className="shrink-0">
-          <Link href="/products/new">
-            <Plus className="size-4" aria-hidden="true" />
-            {t("addProduct")}
-          </Link>
-        </Button>
+
+        {isLoading ? (
+          <ProductListLoading />
+        ) : isError ? (
+          <ProductListError error={error} onRetry={() => void refetch()} />
+        ) : products.length === 0 ? (
+          <ProductListEmpty hasFilters={hasAnyFilter} />
+        ) : (
+          <>
+            {isFetching && <ProductListSpinnerOverlay />}
+
+            <div className="flex flex-col gap-3 md:hidden">
+              {products.map((product) => (
+                <ProductCard key={product.id} product={product} currency={currency} />
+              ))}
+            </div>
+
+            <div className="hidden md:block">
+              <ProductTable products={products} currency={currency} />
+            </div>
+
+            {data?.meta && <ProductPagination meta={data.meta} onPageChange={updatePage} />}
+          </>
+        )}
       </div>
-
-      <div className="flex flex-col gap-3">
-        <ProductSearch value={searchInput} onChange={handleSearchChange} />
-        <div className="flex gap-3">
-          <div className="flex-1">
-            <ProductSortSelect sortBy={filters.sortBy} sortDir={filters.sortDir} onChange={handleSortChange} />
-          </div>
-          <ProductFiltersSheet value={filtersValue} onApply={applyFilters} activeCount={activeFilterCount} />
-        </div>
-      </div>
-
-      {isLoading ? (
-        <ProductListLoading />
-      ) : isError ? (
-        <ProductListError error={error} onRetry={() => void refetch()} />
-      ) : products.length === 0 ? (
-        <ProductListEmpty hasFilters={hasAnyFilter} />
-      ) : (
-        <>
-          {isFetching && <ProductListSpinnerOverlay />}
-
-          <div className="flex flex-col gap-3 md:hidden">
-            {products.map((product) => (
-              <ProductCard key={product.id} product={product} currency={currency} />
-            ))}
-          </div>
-
-          <div className="hidden md:block">
-            <ProductTable products={products} currency={currency} />
-          </div>
-
-          {data?.meta && <ProductPagination meta={data.meta} onPageChange={updatePage} />}
-        </>
-      )}
-    </div>
+    </PageContainer>
   );
 }

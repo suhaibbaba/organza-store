@@ -6,6 +6,8 @@ import { can } from "@shared/lib/permissions";
 import { DEFAULT_PAGE } from "@shared/constants/pagination";
 import type { ChangeRequestStatus } from "@shared/types/changeRequest";
 import { RoleGuard } from "@/components/auth/role-guard";
+import { PageContainer } from "@/components/layout/page-container";
+import { PageHeader } from "@/components/layout/page-header";
 import { useSession } from "@/components/providers/session-provider";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -48,52 +50,51 @@ function ChangeRequestsPageContent() {
   const items = data?.items ?? [];
 
   return (
-    <div className="flex flex-col gap-4">
-      <div>
-        <h1 className="text-xl font-semibold">{t("title")}</h1>
-        <p className="text-sm text-muted-foreground">{canDecide ? t("subtitle") : t("subtitleOwn")}</p>
-      </div>
+    <PageContainer>
+      <PageHeader title={t("title")} description={canDecide ? t("subtitle") : t("subtitleOwn")} />
 
-      <Tabs
-        value={filters.status}
-        onValueChange={(status) =>
-          setFilters({ status: status as ChangeRequestStatus, page: DEFAULT_PAGE })
-        }
-      >
-        {/* Sized to its three labels rather than stretched across the row —
-            the triggers keep their 44px height, so they stay big targets
-            without a tab strip running the width of a desktop. */}
-        <TabsList className="inline-flex w-fit">
-          {CHANGE_REQUEST_STATUS_TABS.map((status) => (
-            <TabsTrigger key={status} value={status}>
-              {t(`status.${status}`)}
-            </TabsTrigger>
-          ))}
-        </TabsList>
-      </Tabs>
-
-      {isLoading ? (
-        <ChangeRequestListLoading />
-      ) : isError ? (
-        <ChangeRequestListError error={error} onRetry={() => void refetch()} />
-      ) : items.length === 0 ? (
-        <ChangeRequestListEmpty status={filters.status} />
-      ) : (
-        <>
-          {isFetching && <ChangeRequestListSpinnerOverlay />}
-          <div className="flex flex-col gap-3">
-            {items.map((request) => (
-              <ChangeRequestCard key={request.id} request={request} canDecide={canDecide} />
+      <div className="flex flex-col gap-4">
+        <Tabs
+          value={filters.status}
+          onValueChange={(status) =>
+            setFilters({ status: status as ChangeRequestStatus, page: DEFAULT_PAGE })
+          }
+        >
+          {/* Sized to its three labels rather than stretched across the row —
+              the triggers keep their 44px height, so they stay big targets
+              without a tab strip running the width of a desktop. */}
+          <TabsList className="inline-flex w-fit">
+            {CHANGE_REQUEST_STATUS_TABS.map((status) => (
+              <TabsTrigger key={status} value={status}>
+                {t(`status.${status}`)}
+              </TabsTrigger>
             ))}
-          </div>
-          {data?.meta && (
-            <ChangeRequestPagination
-              meta={data.meta}
-              onPageChange={(page) => setFilters((f) => ({ ...f, page }))}
-            />
-          )}
-        </>
-      )}
-    </div>
+          </TabsList>
+        </Tabs>
+
+        {isLoading ? (
+          <ChangeRequestListLoading />
+        ) : isError ? (
+          <ChangeRequestListError error={error} onRetry={() => void refetch()} />
+        ) : items.length === 0 ? (
+          <ChangeRequestListEmpty status={filters.status} />
+        ) : (
+          <>
+            {isFetching && <ChangeRequestListSpinnerOverlay />}
+            <div className="flex flex-col gap-3">
+              {items.map((request) => (
+                <ChangeRequestCard key={request.id} request={request} canDecide={canDecide} />
+              ))}
+            </div>
+            {data?.meta && (
+              <ChangeRequestPagination
+                meta={data.meta}
+                onPageChange={(page) => setFilters((f) => ({ ...f, page }))}
+              />
+            )}
+          </>
+        )}
+      </div>
+    </PageContainer>
   );
 }
