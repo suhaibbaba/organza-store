@@ -261,3 +261,26 @@ Design for that reality:
   `pb-[env(safe-area-inset-bottom)]`) so its last part isn't hidden under the indicator on devices
   like iPhone Pro Max. Ensure the viewport meta includes `viewport-fit=cover` (required for safe
   areas to work). Apply the same to any fixed top bar with `safe-area-inset-top` where relevant.
+
+## Admin layout conventions
+The admin app uses shared layout primitives (`admin/src/components/layout/`). Use them —
+don't hand-roll page chrome:
+- **Every admin page is wrapped in `<PageContainer>`** — it provides the max width and page
+  padding. Never add page-level padding on top of it (that double-pads).
+- **Page titles use `<PageHeader>`** (title, optional description, and page-level actions in
+  `actions`) — not an ad-hoc heading block.
+- **Summary metrics use `<StatCard>`**, never a bespoke card, so figures look and behave the
+  same everywhere.
+- **Never use bare `w-full` on a button** — use `w-full sm:w-auto`, so buttons fill the width on
+  phones but size to their content on desktop. Exceptions: buttons inside Dialog/Sheet/AlertDialog
+  footers, dropdown-menu items, command-palette items and nav items.
+- **Segmented controls and tab rows** use `inline-flex w-fit`, not `grid grid-cols-N w-full`.
+- **Card grids** scale as `grid-cols-1 sm:grid-cols-2 xl:grid-cols-4` rather than being fixed at
+  two columns.
+- **Use logical CSS utilities only** (`ms-/me-/ps-/pe-`), never `ml-/mr-/pl-/pr-`, so layouts
+  mirror correctly in RTL.
+- **Desktop layout work must never regress mobile.** The admin is used ~95% on phones: verify
+  every change on a phone-sized viewport in Arabic RTL before finishing.
+
+**Note:** these primitives are for `admin/` only. The POS (`pos/`) is a distinct operational
+screen with its own layout and is deliberately not converted.
