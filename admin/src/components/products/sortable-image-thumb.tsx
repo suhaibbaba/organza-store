@@ -69,7 +69,7 @@ export function SortableImageThumb({
         disabled={isBusy}
         aria-pressed={isPrimary}
         aria-label={t("setPrimary")}
-        className="absolute end-1 top-1 z-10 inline-flex size-8 items-center justify-center rounded-full bg-black/50 text-white disabled:opacity-50"
+        className="absolute end-1 top-1 z-10 inline-flex size-8 items-center justify-center rounded-full bg-black/50 text-white disabled:cursor-not-allowed disabled:opacity-50"
       >
         <Star className={cn("size-4", isPrimary && "fill-amber-400 text-amber-400")} aria-hidden="true" />
       </button>
@@ -93,7 +93,7 @@ export function SortableImageThumb({
             onClick={() => onRemove(id)}
             disabled={isBusy}
             aria-label={t("delete")}
-            className="z-20 inline-flex size-9 shrink-0 items-center justify-center rounded-full bg-black/60 text-white shadow-sm ring-1 ring-white/20 disabled:opacity-50"
+            className="z-20 inline-flex size-9 shrink-0 items-center justify-center rounded-full bg-black/60 text-white shadow-sm ring-1 ring-white/20 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <Trash2 className="size-4" aria-hidden="true" />
           </button>

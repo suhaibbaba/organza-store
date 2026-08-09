@@ -165,17 +165,22 @@
       "typeLabel": "نوع الخصم",
       "type": {
         "PERCENT": "نسبة ٪",
-        "AMOUNT": "مبلغ"
+        "AMOUNT": "مبلغ",
+        "AMOUNT_currency": "مبلغ {currency}"
       },
       "valueLabel": {
         "PERCENT": "نسبة الخصم (٪)",
-        "AMOUNT": "قيمة الخصم"
+        "AMOUNT": "قيمة الخصم",
+        "AMOUNT_currency": "قيمة الخصم ({currency})"
       },
       "valuePlaceholder": {
         "PERCENT": "مثال: 10",
         "AMOUNT": "مثال: 20"
       },
-      "invalid": "أدخل قيمة صحيحة (النسبة بين 0 و100).",
+      "invalid": {
+        "PERCENT": "أدخل رقماً صحيحاً بين 0 و{max}.",
+        "AMOUNT": "أدخل رقماً صحيحاً، بحد أقصى {max}."
+      },
       "apply": "تطبيق الخصم",
       "remove": "إزالة الخصم"
     },

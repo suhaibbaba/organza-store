@@ -103,7 +103,7 @@ export function UserTable({ users, onEdit, confirmToggleId, onRequestToggle, onC
                 onClick={() => onRequestToggle(user.id)}
                 aria-label={user.isActive ? tCard("deactivate") : tCard("activate")}
                 disabled={isToggling}
-                className="inline-flex size-10 items-center justify-center rounded-lg text-muted-foreground hover:bg-accent hover:text-accent-foreground disabled:opacity-50"
+                className="inline-flex size-10 items-center justify-center rounded-lg text-muted-foreground not-disabled:hover:bg-accent not-disabled:hover:text-accent-foreground disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {isToggling ? <Spinner className="size-4" /> : user.isActive ? <UserX className="size-4" aria-hidden="true" /> : <UserCheck className="size-4" aria-hidden="true" />}
               </button>

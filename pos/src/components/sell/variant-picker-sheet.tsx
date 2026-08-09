@@ -257,7 +257,7 @@ function VariantPicker({ product, isNumbered, onPick, onClose }: VariantPickerPr
                     // under a shop's lighting.
                     isChosen
                       ? "border-primary bg-primary/15 font-semibold text-foreground ring-2 ring-primary"
-                      : "border-border bg-card hover:bg-accent/60"
+                      : "border-border bg-card not-disabled:hover:bg-accent/60"
                   )}
                 >
                   {isChosen && (

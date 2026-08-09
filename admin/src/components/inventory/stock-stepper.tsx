@@ -80,7 +80,7 @@ export function StockStepper({ item }: StockStepperProps) {
           onClick={saveEdit}
           disabled={isPending}
           aria-label={t("save")}
-          className="inline-flex size-11 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground disabled:opacity-50"
+          className="inline-flex size-11 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground disabled:cursor-not-allowed disabled:opacity-50"
         >
           {isPending ? <Spinner className="size-4" /> : <Check className="size-5" aria-hidden="true" />}
         </button>
@@ -88,7 +88,7 @@ export function StockStepper({ item }: StockStepperProps) {
           type="button"
           onClick={() => setEditValue(null)}
           disabled={isPending}
-          className="shrink-0 px-1 text-xs font-medium text-muted-foreground"
+          className="shrink-0 px-1 text-xs font-medium text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50"
         >
           {t("cancel")}
         </button>
@@ -104,7 +104,7 @@ export function StockStepper({ item }: StockStepperProps) {
           onClick={() => commit(item.stock - 1)}
           disabled={isPending || item.stock <= QUANTITY_MIN}
           aria-label={t("decrease")}
-          className="inline-flex size-11 shrink-0 items-center justify-center rounded-lg border border-input text-foreground disabled:opacity-40"
+          className="inline-flex size-11 shrink-0 items-center justify-center rounded-lg border border-input text-foreground disabled:cursor-not-allowed disabled:opacity-40"
         >
           <Minus className="size-4" aria-hidden="true" />
         </button>
@@ -114,7 +114,7 @@ export function StockStepper({ item }: StockStepperProps) {
           onClick={() => setEditValue(String(item.stock))}
           disabled={isPending}
           aria-label={t("edit")}
-          className="flex min-w-11 shrink-0 items-center justify-center rounded-lg px-1 text-base font-semibold text-foreground disabled:opacity-50"
+          className="flex min-w-11 shrink-0 items-center justify-center rounded-lg px-1 text-base font-semibold text-foreground disabled:cursor-not-allowed disabled:opacity-50"
         >
           {isPending ? <Spinner className="size-4" /> : item.stock}
         </button>
@@ -124,7 +124,7 @@ export function StockStepper({ item }: StockStepperProps) {
           onClick={() => commit(item.stock + 1)}
           disabled={isPending || item.stock >= QUANTITY_MAX}
           aria-label={t("increase")}
-          className="inline-flex size-11 shrink-0 items-center justify-center rounded-lg border border-input text-foreground disabled:opacity-40"
+          className="inline-flex size-11 shrink-0 items-center justify-center rounded-lg border border-input text-foreground disabled:cursor-not-allowed disabled:opacity-40"
         >
           <Plus className="size-4" aria-hidden="true" />
         </button>

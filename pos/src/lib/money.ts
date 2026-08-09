@@ -62,11 +62,24 @@ export function resolveDiscountCents(
   return raw > baseCents ? baseCents : raw;
 }
 
-// A percentage over 100 discounts more than the whole line — clamped by
-// resolveDiscountCents above, but caught at input time so the cashier sees
-// why rather than watching a number silently stop moving.
-export function isDiscountValueInRange(type: DiscountType, value: string): boolean {
+// Both kinds of discount have a ceiling, and it is the same ceiling stated
+// two ways: you cannot take off more than there is. A percentage stops at
+// 100; a flat sum stops at the amount it applies to. resolveDiscountCents
+// above clamps either one anyway, but silently — so this catches it at input
+// time, where the person can be told which limit they crossed instead of
+// watching a number stop moving for no visible reason.
+export function isDiscountValueInRange(type: DiscountType, value: string, baseAmount?: string): boolean {
   const parsed = Number(value);
   if (!Number.isFinite(parsed) || parsed < 0) return false;
-  return type === "PERCENT" ? parsed <= PERCENT_MAX : true;
+  if (type === "PERCENT") return parsed <= PERCENT_MAX;
+  // No base given means the caller has nothing to measure against (an order
+  // discount before anything is in the cart) — the clamp still applies later.
+  if (baseAmount === undefined) return true;
+  return toCents(value) <= toCents(baseAmount);
+}
+
+// The most a discount of this type may be, for the field's own digit cap and
+// for the message that explains the limit.
+export function maxDiscountValue(type: DiscountType, baseAmount: string): number {
+  return type === "PERCENT" ? PERCENT_MAX : Math.floor(toCents(baseAmount) / 10 ** MONEY_DECIMAL_PLACES);
 }

@@ -57,15 +57,16 @@ export function BrowserProductCard({ product, isPending, isBusy, onSelect, index
       style={{ animationDelay: `${Math.min(index, BROWSE_CARD_STAGGER_MAX) * BROWSE_CARD_STAGGER_STEP_MS}ms` }}
       className={cn(
         "pos-browse-card group relative flex w-full flex-col overflow-hidden rounded-xl border border-border text-start",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-60",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+        "disabled:cursor-not-allowed disabled:opacity-60",
         // Press feedback: a transform, so it is composited rather than
         // re-laying the grid out, and dropped entirely when the phone asks
         // for less motion.
-        "transition-transform duration-100 active:scale-[0.97] motion-reduce:transition-none motion-reduce:active:scale-100",
+        "transition-transform duration-100 not-disabled:active:scale-[0.97] motion-reduce:transition-none motion-reduce:active:scale-100",
         "border-s-4",
         product.hasVariants
-          ? "border-s-primary bg-secondary/40 hover:bg-secondary/70"
-          : "border-s-transparent bg-card hover:bg-accent/60"
+          ? "border-s-primary bg-secondary/40 not-disabled:hover:bg-secondary/70"
+          : "border-s-transparent bg-card not-disabled:hover:bg-accent/60"
       )}
     >
       {/* Square, always. The photo is the reason this drawer exists, and a

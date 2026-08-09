@@ -50,7 +50,7 @@ export function VariantPickerSheet({ product, onOpenChange, onPick }: VariantPic
                         onPick(product, variant);
                         onOpenChange(false);
                       }}
-                      className="flex min-h-16 w-full items-center justify-between gap-3 rounded-xl border border-border bg-card p-3 text-start transition-colors hover:bg-accent/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                      className="flex min-h-16 w-full items-center justify-between gap-3 rounded-xl border border-border bg-card p-3 text-start transition-colors not-disabled:hover:bg-accent/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       <span className="min-w-0">
                         <span className="block truncate text-base font-medium">{name}</span>
