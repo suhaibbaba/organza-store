@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { FigureCard } from "@/components/figures/figure-card";
+import { StatCard } from "@/components/layout/stat-card";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
 import type { PeriodSummary } from "@/types/report";
 
@@ -29,41 +29,37 @@ export function TodaySection({ summary }: { summary: PeriodSummary }) {
     <section className="flex flex-col gap-3">
       <h2 className="text-base font-semibold">{t("title")}</h2>
 
-      <div className="grid grid-cols-2 gap-3">
-        <FigureCard
-          tone="positive"
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <StatCard
+          tone="success"
           label={tFigures("sold.label")}
-          description={tFigures("sold.help")}
-          toggleLabel={tFigures("explain", { label: tFigures("sold.label") })}
+          tooltip={tFigures("sold.help")}
           value={formatMoney(totals.revenue)}
-          subtitle={t("orders", { count: totals.orderCount })}
+          hint={t("orders", { count: totals.orderCount })}
         />
 
-        <FigureCard
-          tone="positive"
+        <StatCard
+          tone="success"
           label={tFigures("received.label")}
-          description={tFigures("received.help")}
-          toggleLabel={tFigures("explain", { label: tFigures("received.label") })}
+          tooltip={tFigures("received.help")}
           value={formatMoney(totals.collectedRevenue)}
-          subtitle={t("receivedHint")}
+          hint={t("receivedHint")}
         />
 
-        <FigureCard
+        <StatCard
           tone="warning"
           label={tFigures("owed.label")}
-          description={tFigures("owed.help")}
-          toggleLabel={tFigures("explain", { label: tFigures("owed.label") })}
+          tooltip={tFigures("owed.help")}
           value={formatMoney(totals.pendingCollectionAmount)}
-          subtitle={t("owedOrders", { count: totals.pendingCollectionOrderCount })}
+          hint={t("owedOrders", { count: totals.pendingCollectionOrderCount })}
         />
 
         {profit && (
-          <FigureCard
+          <StatCard
             label={t("profit.label")}
-            description={t("profit.help")}
-            toggleLabel={tFigures("explain", { label: t("profit.label") })}
+            tooltip={t("profit.help")}
             value={formatMoney(profit.netProfit)}
-            subtitle={t("profit.hint")}
+            hint={t("profit.hint")}
           />
         )}
       </div>

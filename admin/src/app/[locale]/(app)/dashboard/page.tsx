@@ -1,16 +1,22 @@
 "use client";
 
+import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { RoleGuard } from "@/components/auth/role-guard";
 import { useSession } from "@/components/providers/session-provider";
 import { useDashboardSummaryQuery } from "@/hooks/use-dashboard";
 import { useCurrentCashSessionQuery } from "@/hooks/use-cash-sessions";
 import { useSalesSummaryQuery } from "@/hooks/use-reports";
+import { PageContainer } from "@/components/layout/page-container";
+import { PageHeader } from "@/components/layout/page-header";
 import { TodaySection } from "@/components/dashboard/today-section";
 import { CashDrawerSection } from "@/components/dashboard/cash-drawer-section";
+import { PeriodControls } from "@/components/dashboard/period-controls";
 import { PeriodSection } from "@/components/dashboard/period-section";
 import { NeedsAttentionSection } from "@/components/dashboard/needs-attention-section";
 import { DashboardError, DashboardLoading } from "@/components/dashboard/dashboard-states";
+import { DEFAULT_DASHBOARD_PERIOD } from "@/constants/dashboard";
+import type { ReportPeriod } from "@/types/report";
 
 // The dashboard (spec.md "Cash drawer & expenses" -> Reporting).
 //
@@ -44,6 +50,11 @@ function DashboardPageContent() {
   const salesQuery = useSalesSummaryQuery();
   const drawerQuery = useCurrentCashSessionQuery();
 
+  // Which window the figures block shows. It lives here rather than inside
+  // the block because its control sits in the page header — one request
+  // carries all three periods, so switching is still instant.
+  const [period, setPeriod] = useState<ReportPeriod>(DEFAULT_DASHBOARD_PERIOD);
+
   // The three requests run together and are only judged together: half a
   // dashboard, with one section silently missing, is worse than saying it
   // couldn't be loaded.
@@ -57,24 +68,33 @@ function DashboardPageContent() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-xl font-semibold">{user ? t("welcome", { name: user.name }) : t("title")}</h1>
-        <p className="text-sm text-muted-foreground">{t("subtitle")}</p>
-      </div>
+    <PageContainer>
+      <PageHeader
+        title={user ? t("welcome", { name: user.name }) : t("title")}
+        description={t("subtitle")}
+        // Only once there are figures to switch between and to export —
+        // the same condition the figures block itself is rendered under.
+        actions={
+          salesQuery.data && !isLoading && !error ? (
+            <PeriodControls period={period} onPeriodChange={setPeriod} summary={salesQuery.data} />
+          ) : undefined
+        }
+      />
 
-      {isLoading ? (
-        <DashboardLoading />
-      ) : error ? (
-        <DashboardError error={error} onRetry={retry} />
-      ) : (
-        <>
-          {salesQuery.data && <TodaySection summary={salesQuery.data.today} />}
-          {drawerQuery.data && <CashDrawerSection current={drawerQuery.data} />}
-          {salesQuery.data && <PeriodSection summary={salesQuery.data} />}
-          {summaryQuery.data && <NeedsAttentionSection summary={summaryQuery.data} />}
-        </>
-      )}
-    </div>
+      <div className="flex flex-col gap-6">
+        {isLoading ? (
+          <DashboardLoading />
+        ) : error ? (
+          <DashboardError error={error} onRetry={retry} />
+        ) : (
+          <>
+            {salesQuery.data && <TodaySection summary={salesQuery.data.today} />}
+            {drawerQuery.data && <CashDrawerSection current={drawerQuery.data} />}
+            {salesQuery.data && <PeriodSection summary={salesQuery.data} period={period} />}
+            {summaryQuery.data && <NeedsAttentionSection summary={summaryQuery.data} />}
+          </>
+        )}
+      </div>
+    </PageContainer>
   );
 }

@@ -6,6 +6,8 @@ import { RoleGuard } from "@/components/auth/role-guard";
 import { useSalesReportQuery } from "@/hooks/use-reports";
 import { DEFAULT_REPORT_PRESET } from "@/constants/reports";
 import { rangeForPreset } from "@/lib/report-range";
+import { PageContainer } from "@/components/layout/page-container";
+import { PageHeader } from "@/components/layout/page-header";
 import { ReportRangePicker } from "@/components/reports/report-range-picker";
 import { ReportHeadline } from "@/components/reports/report-headline";
 import { ReportChannelsCard } from "@/components/reports/report-channels-card";
@@ -42,41 +44,42 @@ function ReportsPageContent() {
   const isEmpty = data !== undefined && data.totals.orderCount === 0 && data.returns.itemCount === 0;
 
   return (
-    <div className="flex flex-col gap-4">
-      <div>
-        <h1 className="text-xl font-semibold">{t("title")}</h1>
-        <p className="text-sm text-muted-foreground">{t("subtitle")}</p>
+    <PageContainer>
+      <PageHeader
+        title={t("title")}
+        description={t("subtitle")}
+        actions={<ReportRangePicker value={range} onChange={setRange} />}
+      />
+
+      <div className="flex flex-col gap-4">
+        {isLoading ? (
+          <ReportLoading />
+        ) : isError ? (
+          <ReportError error={error} onRetry={() => void refetch()} />
+        ) : data ? (
+          <>
+            {/* The previous range stays on screen while the next one loads, so
+                this spinner is the only thing that changes mid-fetch. */}
+            {isFetching && (
+              <p className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+                <Spinner className="size-4" />
+                {t("updating")}
+              </p>
+            )}
+
+            {isEmpty ? (
+              <ReportEmpty />
+            ) : (
+              <>
+                <ReportHeadline totals={data.totals} />
+                <ReportChannelsCard byChannel={data.byChannel} />
+                <ReportTopSellers byRevenue={data.topByRevenue} byQuantity={data.topByQuantity} />
+                <ReportReturnsCard returns={data.returns} />
+              </>
+            )}
+          </>
+        ) : null}
       </div>
-
-      <ReportRangePicker value={range} onChange={setRange} />
-
-      {isLoading ? (
-        <ReportLoading />
-      ) : isError ? (
-        <ReportError error={error} onRetry={() => void refetch()} />
-      ) : data ? (
-        <>
-          {/* The previous range stays on screen while the next one loads, so
-              this spinner is the only thing that changes mid-fetch. */}
-          {isFetching && (
-            <p className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
-              <Spinner className="size-4" />
-              {t("updating")}
-            </p>
-          )}
-
-          {isEmpty ? (
-            <ReportEmpty />
-          ) : (
-            <>
-              <ReportHeadline totals={data.totals} />
-              <ReportChannelsCard byChannel={data.byChannel} />
-              <ReportTopSellers byRevenue={data.topByRevenue} byQuantity={data.topByQuantity} />
-              <ReportReturnsCard returns={data.returns} />
-            </>
-          )}
-        </>
-      ) : null}
-    </div>
+    </PageContainer>
   );
 }

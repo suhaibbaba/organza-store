@@ -16,6 +16,10 @@ interface ReportRangePickerProps {
 // One row of big tappable chips for the ranges people actually ask for, with
 // two date fields appearing only when they pick their own. No calendar
 // library and no wizard: the common case is a single tap.
+//
+// It sits in the page header, so it is sized to its own chips (w-fit) rather
+// than stretched across the row — and bounded by the header (max-w-full), so
+// on a phone the chips scroll inside it instead of widening the page.
 export function ReportRangePicker({ value, onChange }: ReportRangePickerProps) {
   const t = useTranslations("reports.range");
 
@@ -24,10 +28,10 @@ export function ReportRangePicker({ value, onChange }: ReportRangePickerProps) {
   }
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="inline-flex w-fit min-w-0 max-w-full flex-col gap-3">
       {/* Scrolls sideways on a narrow phone instead of wrapping into a block
           of chips that pushes the figures off screen. */}
-      <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
+      <div className="flex max-w-full gap-2 overflow-x-auto pb-1">
         {REPORT_PRESETS.map((preset) => (
           <button
             key={preset}
