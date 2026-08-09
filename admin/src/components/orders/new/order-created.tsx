@@ -40,10 +40,10 @@ export function OrderCreated({ order, onNewOrder }: OrderCreatedProps) {
       <p className="text-sm text-muted-foreground">{t("nextStep")}</p>
 
       <div className="flex w-full max-w-xs flex-col gap-2">
-        <Button asChild className="w-full">
+        <Button asChild className="w-full sm:w-auto sm:self-center">
           <Link href={`/orders/${order.id}`}>{t("openOrder")}</Link>
         </Button>
-        <Button type="button" variant="outline" className="w-full" onClick={onNewOrder}>
+        <Button type="button" variant="outline" className="w-full sm:w-auto sm:self-center" onClick={onNewOrder}>
           <Plus className="size-5" aria-hidden="true" />
           {t("newOrder")}
         </Button>

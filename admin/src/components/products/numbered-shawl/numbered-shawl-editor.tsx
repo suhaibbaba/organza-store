@@ -274,7 +274,7 @@ export function NumberedShawlEditor({ product, variantTypes, currency }: Numbere
       {saveError && <Alert variant="destructive">{saveError}</Alert>}
       {saved && <Alert variant="success">{t("saveSuccess")}</Alert>}
 
-      <Button type="button" onClick={() => void handleSave()} disabled={isSaving || !isDirty} className="w-full">
+      <Button type="button" onClick={() => void handleSave()} disabled={isSaving || !isDirty} className="w-full sm:w-auto sm:self-start">
         {isSaving ? (
           <>
             <Spinner />

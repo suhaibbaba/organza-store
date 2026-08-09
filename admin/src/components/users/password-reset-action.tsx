@@ -57,7 +57,7 @@ export function PasswordResetAction({ user }: { user: User }) {
       <Button
         type="button"
         variant="outline"
-        className="w-full"
+        className="w-full sm:w-auto sm:self-start"
         disabled={mutation.isPending}
         onClick={() => mutation.mutate()}
       >
@@ -84,7 +84,7 @@ export function PasswordResetAction({ user }: { user: User }) {
           <p dir="ltr" className="break-all rounded-md bg-muted p-2 text-xs text-muted-foreground">
             {mutation.data.url}
           </p>
-          <Button type="button" variant="ghost" className="w-full" onClick={() => copyLink(mutation.data.url)}>
+          <Button type="button" variant="ghost" className="w-full sm:w-auto sm:self-start" onClick={() => copyLink(mutation.data.url)}>
             {copied ? t("copied") : t("copyLink")}
           </Button>
         </>

@@ -56,7 +56,7 @@ export function DraftTotalsCard({ totals, orderDiscount, onOrderDiscountClick }:
           </div>
         )}
 
-        <Button type="button" variant="outline" className="w-full" onClick={onOrderDiscountClick}>
+        <Button type="button" variant="outline" className="w-full sm:w-auto sm:self-start" onClick={onOrderDiscountClick}>
           <Percent className="size-4" aria-hidden="true" />
           {hasOrderDiscount ? t("editOrderDiscount") : t("addOrderDiscount")}
         </Button>

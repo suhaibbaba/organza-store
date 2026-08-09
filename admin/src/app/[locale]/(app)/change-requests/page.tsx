@@ -60,8 +60,10 @@ function ChangeRequestsPageContent() {
           setFilters({ status: status as ChangeRequestStatus, page: DEFAULT_PAGE })
         }
       >
-        {/* Full width on a phone: three big tab targets, not a dense strip. */}
-        <TabsList className="flex w-full">
+        {/* Sized to its three labels rather than stretched across the row —
+            the triggers keep their 44px height, so they stay big targets
+            without a tab strip running the width of a desktop. */}
+        <TabsList className="inline-flex w-fit">
           {CHANGE_REQUEST_STATUS_TABS.map((status) => (
             <TabsTrigger key={status} value={status}>
               {t(`status.${status}`)}

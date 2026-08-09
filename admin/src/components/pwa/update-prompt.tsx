@@ -44,7 +44,7 @@ export function UpdatePrompt({ onUpdate, isUpdating }: UpdatePromptProps) {
             <p className="text-sm text-muted-foreground">{t("description")}</p>
           </div>
         </div>
-        <Button type="button" onClick={onUpdate} disabled={isUpdating} className="w-full">
+        <Button type="button" onClick={onUpdate} disabled={isUpdating} className="w-full sm:w-auto sm:self-start">
           {isUpdating ? (
             <>
               <Spinner />

@@ -47,7 +47,7 @@ export function ForgotPasswordForm() {
     return (
       <div className="flex flex-col gap-5">
         <Alert variant="success">{t("sentBody")}</Alert>
-        <Button asChild variant="outline" className="w-full">
+        <Button asChild variant="outline" className="w-full sm:w-auto sm:self-start">
           <Link href="/login">{t("back")}</Link>
         </Button>
       </div>
@@ -73,7 +73,7 @@ export function ForgotPasswordForm() {
         {errors.email && <p className="text-sm text-destructive">{translateError(errors.email.message ?? "")}</p>}
       </div>
 
-      <Button type="submit" disabled={isSubmitting} className="mt-2 w-full">
+      <Button type="submit" disabled={isSubmitting} className="mt-2 w-full sm:w-auto sm:self-start">
         {isSubmitting ? (
           <>
             <Spinner />
@@ -84,7 +84,7 @@ export function ForgotPasswordForm() {
         )}
       </Button>
 
-      <Button asChild variant="ghost" className="w-full">
+      <Button asChild variant="ghost" className="w-full sm:w-auto sm:self-start">
         <Link href="/login">{t("back")}</Link>
       </Button>
     </form>

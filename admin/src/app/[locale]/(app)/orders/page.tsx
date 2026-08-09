@@ -102,7 +102,7 @@ export default function OrdersPage() {
           screen can answer but doesn't lead with. Admin/Manager only, since
           settling up is theirs to do. */}
       {canCollect && (
-        <Button asChild variant="outline" className="h-12 w-full justify-start">
+        <Button asChild variant="outline" className="h-12 w-full justify-start sm:w-auto sm:self-start">
           <Link href="/orders/collection">
             <HandCoins className="size-5" aria-hidden="true" />
             {t("collectionLink")}

@@ -78,7 +78,7 @@ export function OrderPaymentCard({ order }: { order: Order }) {
         {canCollect && (
           <Button
             type="button"
-            className="h-14 w-full text-base"
+            className="h-14 w-full text-base sm:w-auto sm:self-start"
             disabled={mutation.isPending}
             onClick={() => mutation.mutate([order.id])}
           >

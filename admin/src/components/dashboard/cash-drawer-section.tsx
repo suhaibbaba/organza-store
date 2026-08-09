@@ -115,7 +115,7 @@ export function CashDrawerSection({ current }: { current: CurrentCashSession }) 
               {t("notStarted.body", { amount: formatMoney(current.suggestedOpeningFloat) })}
             </p>
           </div>
-          <Button type="button" className="h-12 w-full text-base" onClick={() => setOpening(true)}>
+          <Button type="button" className="h-12 w-full text-base sm:w-auto sm:self-start" onClick={() => setOpening(true)}>
             {t("notStarted.action")}
           </Button>
         </Card>

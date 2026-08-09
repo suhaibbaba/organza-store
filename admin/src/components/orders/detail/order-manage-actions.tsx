@@ -61,7 +61,7 @@ export function OrderManageActions({ order }: { order: Order }) {
           )}
 
           {canReturn && (
-            <Button type="button" variant="outline" className="w-full" onClick={() => setReturnOpen(true)}>
+            <Button type="button" variant="outline" className="w-full sm:w-auto sm:self-start" onClick={() => setReturnOpen(true)}>
               <Undo2 className="size-5 rtl:-scale-x-100" aria-hidden="true" />
               {t("returnItems")}
             </Button>
@@ -101,7 +101,7 @@ export function OrderManageActions({ order }: { order: Order }) {
               <Button
                 type="button"
                 variant="ghost"
-                className="w-full text-destructive"
+                className="w-full text-destructive sm:w-auto sm:self-start"
                 onClick={() => setConfirmingDelete(true)}
               >
                 <Trash2 className="size-5" aria-hidden="true" />
