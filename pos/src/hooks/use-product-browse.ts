@@ -1,6 +1,7 @@
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { PRODUCT_BROWSE_QUERY_KEY } from "@/constants/api";
 import { SEARCH_DEBOUNCE_MS } from "@/constants/pos";
+import { STOCK_POLL_INTERVAL_MS } from "@/constants/polling";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { browseProducts } from "@/lib/api/products";
 
@@ -32,6 +33,19 @@ export function useProductBrowse({ categoryId, query }: UseProductBrowseOptions)
       if (!meta || meta.page >= meta.totalPages) return undefined;
       return meta.page + 1;
     },
+    // Same reasoning as the search list: every card shows a stock badge, and
+    // a second till can move those numbers while this one is looking at them.
+    // The grid keeps its scroll position and its loaded pages across a
+    // refresh — react-query replaces the page data in place, and nothing here
+    // reads `isFetching`, so the only visible change is a badge.
+    //
+    // Confined to the drawer's lifetime by construction: the sheet unmounts
+    // its contents on close, the query loses its last observer, and
+    // react-query drops the interval with it. A till that never opens the
+    // browser never polls it.
+    staleTime: 0,
+    refetchInterval: STOCK_POLL_INTERVAL_MS,
+    refetchIntervalInBackground: false,
   });
 
   return {
