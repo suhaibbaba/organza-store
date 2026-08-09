@@ -11,6 +11,8 @@ import { DEFAULT_ORDER_FILTERS, ORDER_SEARCH_DEBOUNCE_MS } from "@/constants/ord
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { useOrdersQuery } from "@/hooks/use-orders";
 import { Button } from "@/components/ui/button";
+import { PageContainer } from "@/components/layout/page-container";
+import { PageHeader } from "@/components/layout/page-header";
 import { OrderSearch } from "@/components/orders/order-search";
 import { OrderSortSelect } from "@/components/orders/order-sort-select";
 import { OrderFiltersSheet, type OrderFiltersValue } from "@/components/orders/order-filters-sheet";
@@ -80,69 +82,75 @@ export default function OrdersPage() {
   const orders = data?.orders ?? [];
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <h1 className="text-xl font-semibold">{t("title")}</h1>
-          <p className="text-sm text-muted-foreground">{t("subtitle")}</p>
+    <PageContainer>
+      <PageHeader
+        title={t("title")}
+        description={t("subtitle")}
+        actions={
+          <>
+            {/* Employees may take an order, just not undo one (spec.md "Roles &
+                Permissions") — the backend is the real gate (CLAUDE.md rule 5). */}
+            {canCreate && (
+              <Button asChild size="sm" className="shrink-0">
+                <Link href="/orders/new">
+                  <Plus className="size-4" aria-hidden="true" />
+                  {t("newOrder")}
+                </Link>
+              </Button>
+            )}
+
+            {/* The shortest path to "who still owes us money" — the question
+                this screen can answer but doesn't lead with. Admin/Manager
+                only, since settling up is theirs to do. Still the full width
+                of the row on a phone: w-full takes a line of its own inside
+                the header's wrap. */}
+            {canCollect && (
+              <Button asChild variant="outline" className="h-12 w-full justify-start sm:w-auto">
+                <Link href="/orders/collection">
+                  <HandCoins className="size-5" aria-hidden="true" />
+                  {t("collectionLink")}
+                </Link>
+              </Button>
+            )}
+          </>
+        }
+      />
+
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-3">
+          <OrderSearch value={searchInput} onChange={handleSearchChange} />
+          <div className="flex gap-3">
+            <div className="flex-1">
+              <OrderSortSelect sortBy={filters.sortBy} sortDir={filters.sortDir} onChange={handleSortChange} />
+            </div>
+            <OrderFiltersSheet value={filtersValue} onApply={applyFilters} activeCount={activeFilterCount} />
+          </div>
         </div>
-        {/* Employees may take an order, just not undo one (spec.md "Roles &
-            Permissions") — the backend is the real gate (CLAUDE.md rule 5). */}
-        {canCreate && (
-          <Button asChild size="sm" className="shrink-0">
-            <Link href="/orders/new">
-              <Plus className="size-4" aria-hidden="true" />
-              {t("newOrder")}
-            </Link>
-          </Button>
+
+        {isLoading ? (
+          <OrderListLoading />
+        ) : isError ? (
+          <OrderListError error={error} onRetry={() => void refetch()} />
+        ) : orders.length === 0 ? (
+          <OrderListEmpty hasFilters={hasAnyFilter} />
+        ) : (
+          <>
+            {isFetching && <OrderListSpinnerOverlay />}
+
+            <div className="flex flex-col gap-3 md:hidden">
+              {orders.map((order) => (
+                <OrderCard key={order.id} order={order} />
+              ))}
+            </div>
+
+            <div className="hidden md:block">
+              <OrderTable orders={orders} />
+            </div>
+
+            {data?.meta && <OrderPagination meta={data.meta} onPageChange={updatePage} />}
+          </>
         )}
       </div>
-
-      {/* The shortest path to "who still owes us money" — the question this
-          screen can answer but doesn't lead with. Admin/Manager only, since
-          settling up is theirs to do. */}
-      {canCollect && (
-        <Button asChild variant="outline" className="h-12 w-full justify-start sm:w-auto sm:self-start">
-          <Link href="/orders/collection">
-            <HandCoins className="size-5" aria-hidden="true" />
-            {t("collectionLink")}
-          </Link>
-        </Button>
-      )}
-
-      <div className="flex flex-col gap-3">
-        <OrderSearch value={searchInput} onChange={handleSearchChange} />
-        <div className="flex gap-3">
-          <div className="flex-1">
-            <OrderSortSelect sortBy={filters.sortBy} sortDir={filters.sortDir} onChange={handleSortChange} />
-          </div>
-          <OrderFiltersSheet value={filtersValue} onApply={applyFilters} activeCount={activeFilterCount} />
-        </div>
-      </div>
-
-      {isLoading ? (
-        <OrderListLoading />
-      ) : isError ? (
-        <OrderListError error={error} onRetry={() => void refetch()} />
-      ) : orders.length === 0 ? (
-        <OrderListEmpty hasFilters={hasAnyFilter} />
-      ) : (
-        <>
-          {isFetching && <OrderListSpinnerOverlay />}
-
-          <div className="flex flex-col gap-3 md:hidden">
-            {orders.map((order) => (
-              <OrderCard key={order.id} order={order} />
-            ))}
-          </div>
-
-          <div className="hidden md:block">
-            <OrderTable orders={orders} />
-          </div>
-
-          {data?.meta && <OrderPagination meta={data.meta} onPageChange={updatePage} />}
-        </>
-      )}
-    </div>
+    </PageContainer>
   );
 }
