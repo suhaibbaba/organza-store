@@ -68,11 +68,17 @@ export function BrowserProductCard({ product, isPending, isBusy, onSelect, index
           : "border-s-transparent bg-card hover:bg-accent/60"
       )}
     >
+      {/* Square, always. The photo is the reason this drawer exists, and a
+          fixed ratio is what keeps a row of cards the same height whatever
+          shape the shop photographed the piece in. */}
       <ProductThumb
         src={product.image?.thumbnailUrl}
         alt={name}
         className="aspect-square w-full"
-        sizes="(max-width: 640px) 45vw, (max-width: 1024px) 30vw, 220px"
+        // The grid sizes its columns from the panel's width now, not the
+        // viewport's, and a column settles between about 8.5rem and 12rem —
+        // so ask for that rather than for a 220px image the card never uses.
+        sizes="(max-width: 640px) 45vw, 200px"
       />
 
       {/* The same 44px-circle marks the search results use, in the same two
@@ -96,20 +102,30 @@ export function BrowserProductCard({ product, isPending, isBusy, onSelect, index
         )}
       </span>
 
-      <span className="flex w-full flex-1 flex-col items-start gap-1 p-2">
-        {/* Two lines, then an ellipsis: every card in a row stays the same
-            height, and a long Arabic name is still readable enough to pick
-            from. */}
-        <span className="line-clamp-2 w-full text-sm font-medium leading-snug">{name}</span>
-        <span className="text-sm font-semibold text-foreground">{formatMoney(product.basePrice)}</span>
-        {/* No count here, unlike a search result: a card is half a phone
-            wide, and "In stock · 6 left" truncates to "In stock · 6 le…" in
-            English and worse in Arabic. The words are what make this readable
-            to somebody who cannot separate the three colours, so the words
-            are what must survive — and "low stock" already says the only
-            thing a count would add at a glance. */}
-        <StockBadge stock={product.stock} trackLowStock={product.trackLowStock} size="sm" />
-        <VariantKindBadge product={product} />
+      <span className="flex w-full min-w-0 flex-1 flex-col items-start gap-2 p-2.5">
+        {/* Two lines, then an ellipsis — and two lines' worth of room whether
+            the name fills them or not, so the price and the stock word sit at
+            the same height on every card in a row instead of stepping up and
+            down with the length of each name. break-words is for the name
+            with no spaces in it: without it a long unbroken string pushes the
+            card wider than its column instead of being clipped. */}
+        <span className="line-clamp-2 min-h-[2.4rem] w-full break-words text-sm font-medium leading-snug">
+          {name}
+        </span>
+
+        {/* Pinned to the foot of the card, so the facts line up across a row
+            however tall the card had to become. */}
+        <span className="mt-auto flex w-full min-w-0 flex-col items-start gap-1.5">
+          <span className="text-sm font-semibold text-foreground">{formatMoney(product.basePrice)}</span>
+          {/* No count here, unlike a search result: a card is half a phone
+              wide, and "In stock · 6 left" truncates to "In stock · 6 le…" in
+              English and worse in Arabic. The words are what make this readable
+              to somebody who cannot separate the three colours, so the words
+              are what must survive — and "low stock" already says the only
+              thing a count would add at a glance. */}
+          <StockBadge stock={product.stock} trackLowStock={product.trackLowStock} size="sm" />
+          <VariantKindBadge product={product} />
+        </span>
       </span>
     </button>
   );
