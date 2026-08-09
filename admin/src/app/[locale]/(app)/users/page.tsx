@@ -6,6 +6,8 @@ import { Plus } from "lucide-react";
 import type { User } from "@shared/types/user";
 import { DEFAULT_PAGE } from "@shared/constants/pagination";
 import { RoleGuard } from "@/components/auth/role-guard";
+import { PageContainer } from "@/components/layout/page-container";
+import { PageHeader } from "@/components/layout/page-header";
 import { DEFAULT_USER_FILTERS, USER_SEARCH_DEBOUNCE_MS } from "@/constants/users";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { useUsersQuery, useToggleUserActiveMutation } from "@/hooks/use-users";
@@ -100,45 +102,59 @@ function UsersPageContent() {
   const users = data?.users ?? [];
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <h1 className="text-xl font-semibold">{t("title")}</h1>
-          <p className="text-sm text-muted-foreground">{t("subtitle")}</p>
+    <PageContainer>
+      <PageHeader
+        title={t("title")}
+        description={t("subtitle")}
+        actions={
+          <Button size="sm" className="shrink-0" onClick={openCreateForm}>
+            <Plus className="size-4" aria-hidden="true" />
+            {t("addUser")}
+          </Button>
+        }
+      />
+
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-3">
+          <UserSearch value={searchInput} onChange={handleSearchChange} />
+          <UserFilters
+            role={filters.role}
+            isActive={filters.isActive}
+            onRoleChange={handleRoleChange}
+            onIsActiveChange={handleIsActiveChange}
+          />
         </div>
-        <Button size="sm" className="shrink-0" onClick={openCreateForm}>
-          <Plus className="size-4" aria-hidden="true" />
-          {t("addUser")}
-        </Button>
-      </div>
 
-      <div className="flex flex-col gap-3">
-        <UserSearch value={searchInput} onChange={handleSearchChange} />
-        <UserFilters
-          role={filters.role}
-          isActive={filters.isActive}
-          onRoleChange={handleRoleChange}
-          onIsActiveChange={handleIsActiveChange}
-        />
-      </div>
+        {toggleError && <Alert variant="destructive">{toggleError}</Alert>}
 
-      {toggleError && <Alert variant="destructive">{toggleError}</Alert>}
+        {isLoading ? (
+          <UserListLoading />
+        ) : isError ? (
+          <UserListError error={error} onRetry={() => void refetch()} />
+        ) : users.length === 0 ? (
+          <UserListEmpty hasFilters={hasAnyFilter} />
+        ) : (
+          <>
+            {isFetching && <UserListSpinnerOverlay />}
 
-      {isLoading ? (
-        <UserListLoading />
-      ) : isError ? (
-        <UserListError error={error} onRetry={() => void refetch()} />
-      ) : users.length === 0 ? (
-        <UserListEmpty hasFilters={hasAnyFilter} />
-      ) : (
-        <>
-          {isFetching && <UserListSpinnerOverlay />}
+            <div className="flex flex-col gap-3 md:hidden">
+              {users.map((user) => (
+                <UserCard
+                  key={user.id}
+                  user={user}
+                  onEdit={openEditForm}
+                  confirmToggleId={confirmToggleId}
+                  onRequestToggle={requestToggle}
+                  onCancelToggle={() => setConfirmToggleId(null)}
+                  onConfirmToggle={(u) => void confirmToggle(u)}
+                  togglingId={togglingId}
+                />
+              ))}
+            </div>
 
-          <div className="flex flex-col gap-3 md:hidden">
-            {users.map((user) => (
-              <UserCard
-                key={user.id}
-                user={user}
+            <div className="hidden md:block">
+              <UserTable
+                users={users}
                 onEdit={openEditForm}
                 confirmToggleId={confirmToggleId}
                 onRequestToggle={requestToggle}
@@ -146,26 +162,14 @@ function UsersPageContent() {
                 onConfirmToggle={(u) => void confirmToggle(u)}
                 togglingId={togglingId}
               />
-            ))}
-          </div>
+            </div>
 
-          <div className="hidden md:block">
-            <UserTable
-              users={users}
-              onEdit={openEditForm}
-              confirmToggleId={confirmToggleId}
-              onRequestToggle={requestToggle}
-              onCancelToggle={() => setConfirmToggleId(null)}
-              onConfirmToggle={(u) => void confirmToggle(u)}
-              togglingId={togglingId}
-            />
-          </div>
+            {data?.meta && <UserPagination meta={data.meta} onPageChange={updatePage} />}
+          </>
+        )}
 
-          {data?.meta && <UserPagination meta={data.meta} onPageChange={updatePage} />}
-        </>
-      )}
-
-      <UserFormSheet open={formOpen} onOpenChange={setFormOpen} mode={formMode} user={editingUser} />
-    </div>
+        <UserFormSheet open={formOpen} onOpenChange={setFormOpen} mode={formMode} user={editingUser} />
+      </div>
+    </PageContainer>
   );
 }

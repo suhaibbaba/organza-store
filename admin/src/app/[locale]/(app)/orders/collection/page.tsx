@@ -7,6 +7,8 @@ import { ERROR_CODES } from "@shared/constants/errors";
 import { DEFAULT_PAGE } from "@shared/constants/pagination";
 import { Link } from "@/i18n/navigation";
 import { RoleGuard } from "@/components/auth/role-guard";
+import { PageContainer } from "@/components/layout/page-container";
+import { PageHeader } from "@/components/layout/page-header";
 import { COLLECTION_ORDER_FILTERS } from "@/constants/orders";
 import { useCollectOrdersMutation, useCollectionSummaryQuery, useOrdersQuery } from "@/hooks/use-orders";
 import { useTranslateError } from "@/hooks/use-translate-error";
@@ -89,8 +91,10 @@ function OrderCollectionPageContent() {
   const allOnPageSelected = orders.length > 0 && selectedOnPage.length === orders.length;
 
   return (
-    <div className="flex flex-col gap-4">
-      <Button asChild variant="ghost" size="sm" className="-ms-2 self-start px-2">
+    <PageContainer>
+      {/* Above the header, not inside it: this is the way out of the screen,
+          not one of its actions. */}
+      <Button asChild variant="ghost" size="sm" className="-ms-2 mb-4 self-start px-2">
         <Link href="/orders">
           {/* Points back in the reading direction — leftward only in LTR. */}
           <ArrowLeft className="size-4 rtl:-scale-x-100" aria-hidden="true" />
@@ -98,80 +102,79 @@ function OrderCollectionPageContent() {
         </Link>
       </Button>
 
-      <div>
-        <h1 className="text-xl font-semibold">{t("title")}</h1>
-        <p className="text-sm text-muted-foreground">{t("subtitle")}</p>
+      <PageHeader title={t("title")} description={t("subtitle")} />
+
+      <div className="flex flex-col gap-4">
+        {summaryQuery.data && <CollectionSummaryCard summary={summaryQuery.data} />}
+
+        {mutation.isError && (
+          <Alert variant="destructive">
+            {translateError(mutation.error instanceof ApiError ? mutation.error.code : ERROR_CODES.INTERNAL)}
+          </Alert>
+        )}
+
+        {mutation.isSuccess && !mutation.isPending && (
+          <Alert variant="success">
+            <Check className="size-4 shrink-0" aria-hidden="true" />
+            {t("marked", { count: mutation.data.collectedIds.length })}
+          </Alert>
+        )}
+
+        {isLoading ? (
+          <OrderListLoading />
+        ) : isError ? (
+          <OrderListError error={error} onRetry={() => void refetch()} />
+        ) : orders.length === 0 ? (
+          <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-border py-16 text-center">
+            <HandCoins className="size-10 text-muted-foreground" aria-hidden="true" />
+            <div>
+              <p className="font-medium text-foreground">{t("empty.title")}</p>
+              <p className="mt-1 text-sm text-muted-foreground">{t("empty.description")}</p>
+            </div>
+          </div>
+        ) : (
+          <>
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-sm text-muted-foreground">{t("listLabel")}</span>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => (allOnPageSelected ? setSelectedIds([]) : selectAllOnPage())}
+              >
+                {allOnPageSelected ? t("actions.clear") : t("actions.selectAll")}
+              </Button>
+            </div>
+
+            {isFetching && <OrderListSpinnerOverlay />}
+
+            <div className="flex flex-col gap-3">
+              {orders.map((order) => (
+                <CollectionOrderRow
+                  key={order.id}
+                  order={order}
+                  selected={selectedIds.includes(order.id)}
+                  onToggle={toggle}
+                />
+              ))}
+            </div>
+
+            {data?.meta && <OrderPagination meta={data.meta} onPageChange={changePage} />}
+
+            {/* Room for the fixed action bar, so the last row is never stuck
+                underneath it. */}
+            {selectedOnPage.length > 0 && <div className="h-32" aria-hidden="true" />}
+          </>
+        )}
+
+        <CollectionActionBar
+          count={selectedOnPage.length}
+          amount={selectedAmount}
+          isPending={mutation.isPending}
+          onConfirm={confirm}
+          onClear={() => setSelectedIds([])}
+        />
       </div>
-
-      {summaryQuery.data && <CollectionSummaryCard summary={summaryQuery.data} />}
-
-      {mutation.isError && (
-        <Alert variant="destructive">
-          {translateError(mutation.error instanceof ApiError ? mutation.error.code : ERROR_CODES.INTERNAL)}
-        </Alert>
-      )}
-
-      {mutation.isSuccess && !mutation.isPending && (
-        <Alert variant="success">
-          <Check className="size-4 shrink-0" aria-hidden="true" />
-          {t("marked", { count: mutation.data.collectedIds.length })}
-        </Alert>
-      )}
-
-      {isLoading ? (
-        <OrderListLoading />
-      ) : isError ? (
-        <OrderListError error={error} onRetry={() => void refetch()} />
-      ) : orders.length === 0 ? (
-        <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-border py-16 text-center">
-          <HandCoins className="size-10 text-muted-foreground" aria-hidden="true" />
-          <div>
-            <p className="font-medium text-foreground">{t("empty.title")}</p>
-            <p className="mt-1 text-sm text-muted-foreground">{t("empty.description")}</p>
-          </div>
-        </div>
-      ) : (
-        <>
-          <div className="flex items-center justify-between gap-3">
-            <span className="text-sm text-muted-foreground">{t("listLabel")}</span>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => (allOnPageSelected ? setSelectedIds([]) : selectAllOnPage())}
-            >
-              {allOnPageSelected ? t("actions.clear") : t("actions.selectAll")}
-            </Button>
-          </div>
-
-          {isFetching && <OrderListSpinnerOverlay />}
-
-          <div className="flex flex-col gap-3">
-            {orders.map((order) => (
-              <CollectionOrderRow
-                key={order.id}
-                order={order}
-                selected={selectedIds.includes(order.id)}
-                onToggle={toggle}
-              />
-            ))}
-          </div>
-
-          {data?.meta && <OrderPagination meta={data.meta} onPageChange={changePage} />}
-
-          {/* Room for the fixed action bar, so the last row is never stuck
-              underneath it. */}
-          {selectedOnPage.length > 0 && <div className="h-32" aria-hidden="true" />}
-        </>
-      )}
-
-      <CollectionActionBar
-        count={selectedOnPage.length}
-        amount={selectedAmount}
-        isPending={mutation.isPending}
-        onConfirm={confirm}
-        onClear={() => setSelectedIds([])}
-      />
-    </div>
+    </PageContainer>
   );
 }

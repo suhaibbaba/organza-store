@@ -2,6 +2,8 @@
 
 import { useTranslations } from "next-intl";
 import { RoleGuard } from "@/components/auth/role-guard";
+import { PageContainer } from "@/components/layout/page-container";
+import { PageHeader } from "@/components/layout/page-header";
 import { useSettingsQuery } from "@/hooks/use-settings";
 import { useTranslateError } from "@/hooks/use-translate-error";
 import { SettingsForm } from "@/components/settings/settings-form";
@@ -18,39 +20,38 @@ function SettingsPageContent() {
   const { data: setting, isLoading, isError, error, refetch } = useSettingsQuery();
 
   return (
-    <div className="flex flex-col gap-4">
-      <div>
-        <h1 className="text-xl font-semibold">{t("title")}</h1>
-        <p className="text-sm text-muted-foreground">{t("subtitle")}</p>
-      </div>
+    <PageContainer>
+      <PageHeader title={t("title")} description={t("subtitle")} />
 
-      {isLoading ? (
-        <div className="flex flex-col gap-3">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="h-32 animate-pulse rounded-xl bg-muted" />
-          ))}
-        </div>
-      ) : isError || !setting ? (
-        <Alert variant="destructive" className="flex-col items-center gap-3 text-center">
-          <p>{translateError(error instanceof ApiError ? error.code : "error.internal")}</p>
-          <Button type="button" variant="outline" size="sm" onClick={() => void refetch()}>
-            {tCommon("retry")}
-          </Button>
-        </Alert>
-      ) : (
-        <>
-          {/* This phone's own notification permission sits above the shop-wide
-              settings: it is the part the Admin has to do on each device. */}
-          <NotificationsCard />
-          <SettingsForm setting={setting} />
-          {/* Which build this device is running, at the foot of the page it
-              is most likely to be looked for on. The same line lives in the
-              account menu and the mobile "More" sheet, which is where every
-              other role finds it. */}
-          <AppVersion className="w-auto items-center self-center" />
-        </>
-      )}
-    </div>
+      <div className="flex flex-col gap-4">
+        {isLoading ? (
+          <div className="flex flex-col gap-3">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="h-32 animate-pulse rounded-xl bg-muted" />
+            ))}
+          </div>
+        ) : isError || !setting ? (
+          <Alert variant="destructive" className="flex-col items-center gap-3 text-center">
+            <p>{translateError(error instanceof ApiError ? error.code : "error.internal")}</p>
+            <Button type="button" variant="outline" size="sm" onClick={() => void refetch()}>
+              {tCommon("retry")}
+            </Button>
+          </Alert>
+        ) : (
+          <>
+            {/* This phone's own notification permission sits above the shop-wide
+                settings: it is the part the Admin has to do on each device. */}
+            <NotificationsCard />
+            <SettingsForm setting={setting} />
+            {/* Which build this device is running, at the foot of the page it
+                is most likely to be looked for on. The same line lives in the
+                account menu and the mobile "More" sheet, which is where every
+                other role finds it. */}
+            <AppVersion className="w-auto items-center self-center" />
+          </>
+        )}
+      </div>
+    </PageContainer>
   );
 }
 

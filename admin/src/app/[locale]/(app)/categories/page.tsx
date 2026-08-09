@@ -13,6 +13,8 @@ import {
 } from "@/hooks/use-categories";
 import { useTranslateError } from "@/hooks/use-translate-error";
 import { Button } from "@/components/ui/button";
+import { PageContainer } from "@/components/layout/page-container";
+import { PageHeader } from "@/components/layout/page-header";
 import { Alert } from "@/components/ui/alert";
 import { CategoryTree } from "@/components/categories/category-tree";
 import { CategoryFormSheet } from "@/components/categories/category-form-sheet";
@@ -80,57 +82,62 @@ export default function CategoriesPage() {
   const favoritePendingId = favoriteMutation.isPending ? (favoriteMutation.variables?.id ?? null) : null;
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <h1 className="text-xl font-semibold">{t("title")}</h1>
-          <p className="text-sm text-muted-foreground">{t("subtitle")}</p>
-          {/* The star on each row is the only control on this screen whose
-              effect is somewhere else entirely, so the screen says where. */}
-          {canManage && <p className="mt-1 text-sm text-muted-foreground">{t("favoritesHint")}</p>}
-        </div>
+    <PageContainer>
+      <PageHeader
+        title={t("title")}
+        description={t("subtitle")}
+        actions={
+          canManage && (
+            <Button size="sm" className="shrink-0" onClick={openCreateForm}>
+              <Plus className="size-4" aria-hidden="true" />
+              {t("addCategory")}
+            </Button>
+          )
+        }
+      />
+
+      <div className="flex flex-col gap-4">
+        {/* The star on each row is the only control on this screen whose
+            effect is somewhere else entirely, so the screen says where. It
+            sits under the header rather than inside it: PageHeader carries
+            one description, and this is a second, conditional sentence. */}
+        {canManage && <p className="text-sm text-muted-foreground">{t("favoritesHint")}</p>}
+
+        {!canManage && <p className="text-sm text-muted-foreground">{t("readOnlyHint")}</p>}
+
+        {actionError && <Alert variant="destructive">{actionError}</Alert>}
+
+        {isLoading ? (
+          <CategoryListLoading />
+        ) : isError ? (
+          <CategoryListError error={error} onRetry={() => void refetch()} />
+        ) : !tree || tree.length === 0 ? (
+          <CategoryListEmpty />
+        ) : (
+          <CategoryTree
+            nodes={tree}
+            canManage={canManage}
+            onEdit={openEditForm}
+            onToggleFavorite={(node) => void toggleFavorite(node)}
+            favoritePendingId={favoritePendingId}
+            confirmDeleteId={confirmDeleteId}
+            onRequestDelete={requestDelete}
+            onCancelDelete={() => setConfirmDeleteId(null)}
+            onConfirmDelete={(node) => void confirmDelete(node)}
+            deletingId={deletingId}
+          />
+        )}
+
         {canManage && (
-          <Button size="sm" className="shrink-0" onClick={openCreateForm}>
-            <Plus className="size-4" aria-hidden="true" />
-            {t("addCategory")}
-          </Button>
+          <CategoryFormSheet
+            open={formOpen}
+            onOpenChange={setFormOpen}
+            mode={formMode}
+            category={editingCategory}
+            tree={tree ?? []}
+          />
         )}
       </div>
-
-      {!canManage && <p className="text-sm text-muted-foreground">{t("readOnlyHint")}</p>}
-
-      {actionError && <Alert variant="destructive">{actionError}</Alert>}
-
-      {isLoading ? (
-        <CategoryListLoading />
-      ) : isError ? (
-        <CategoryListError error={error} onRetry={() => void refetch()} />
-      ) : !tree || tree.length === 0 ? (
-        <CategoryListEmpty />
-      ) : (
-        <CategoryTree
-          nodes={tree}
-          canManage={canManage}
-          onEdit={openEditForm}
-          onToggleFavorite={(node) => void toggleFavorite(node)}
-          favoritePendingId={favoritePendingId}
-          confirmDeleteId={confirmDeleteId}
-          onRequestDelete={requestDelete}
-          onCancelDelete={() => setConfirmDeleteId(null)}
-          onConfirmDelete={(node) => void confirmDelete(node)}
-          deletingId={deletingId}
-        />
-      )}
-
-      {canManage && (
-        <CategoryFormSheet
-          open={formOpen}
-          onOpenChange={setFormOpen}
-          mode={formMode}
-          category={editingCategory}
-          tree={tree ?? []}
-        />
-      )}
-    </div>
+    </PageContainer>
   );
 }

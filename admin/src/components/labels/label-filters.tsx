@@ -44,10 +44,12 @@ export function LabelFilters({
             onClick={() => onPrintStateChange(state)}
             aria-pressed={printState === state}
             className={cn(
-              // whitespace-nowrap: the row is sized to its content now, and
-              // "غير مطبوعة" broken across two lines is not a label anybody
-              // should have to reassemble.
-              "min-h-11 min-w-16 flex-1 whitespace-nowrap rounded-lg px-3 text-sm font-medium transition-colors",
+              // The row is sized to its content, so each chip takes the width
+              // of its own label — flex-1 would give all three the same width
+              // and clip the longest ("غير مطبوعة"), which whitespace-nowrap
+              // then has nowhere to put. min-w keeps the shortest a full
+              // 44px target all the same.
+              "min-h-11 min-w-16 whitespace-nowrap rounded-lg px-3 text-sm font-medium transition-colors",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
               printState === state
                 ? "bg-primary text-primary-foreground"

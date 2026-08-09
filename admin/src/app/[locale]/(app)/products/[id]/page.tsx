@@ -13,6 +13,8 @@ import { useSession } from "@/components/providers/session-provider";
 import { localize } from "@/lib/i18n-content";
 import { formatMoney } from "@/lib/format";
 import { Button } from "@/components/ui/button";
+import { PageContainer } from "@/components/layout/page-container";
+import { PageHeader } from "@/components/layout/page-header";
 import { ProductGallery } from "@/components/products/product-gallery";
 import { ProductDeleteAction } from "@/components/products/product-delete-action";
 import {
@@ -37,8 +39,13 @@ export default function ProductDetailPage() {
   const notFound = error instanceof ApiError && error.status === 404;
 
   return (
-    <div className="flex flex-col gap-4">
-      <Link href="/products" className="inline-flex w-fit items-center gap-1 text-sm text-muted-foreground">
+    <PageContainer>
+      {/* Above the header, not inside it: this is the way out of the screen,
+          not one of its actions. */}
+      <Link
+        href="/products"
+        className="mb-4 inline-flex w-fit items-center gap-1 text-sm text-muted-foreground"
+      >
         <ChevronLeft className="size-4 rtl:-scale-x-100" aria-hidden="true" />
         {t("back")}
       </Link>
@@ -58,7 +65,7 @@ export default function ProductDetailPage() {
       ) : (
         <ProductDetail product={product} currency={currency} locale={locale} />
       )}
-    </div>
+    </PageContainer>
   );
 }
 
@@ -85,10 +92,15 @@ function ProductDetail({ product, currency, locale }: { product: Product; curren
         <ProductGallery images={product.images} alt={name} />
       )}
 
-      <div className="flex flex-col gap-2">
-        <div className="flex items-start justify-between gap-3">
-          <h1 className="text-lg font-semibold text-foreground">{name}</h1>
-          <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
+      {/* The product's own name is this screen's title, and its category the
+          one line under it — so the page header sits below the photographs
+          rather than above them, which is where the name has always been. */}
+      <PageHeader
+        className="mb-0"
+        title={name}
+        description={product.category ? localize(product.category.name, locale) : undefined}
+        actions={
+          <>
             <StatusBadge isActive={product.isActive} />
             {/* Their edit did not vanish — it is waiting (spec.md "Employee
                 change approvals"). Shown to everybody, not just the person
@@ -108,12 +120,11 @@ function ProductDetail({ product, currency, locale }: { product: Product; curren
                 </Link>
               </Button>
             )}
-          </div>
-        </div>
-        {product.category && (
-          <p className="text-sm text-muted-foreground">{localize(product.category.name, locale)}</p>
-        )}
+          </>
+        }
+      />
 
+      <div className="flex flex-col gap-2">
         <div className="flex flex-wrap items-baseline gap-2">
           <span className="text-xl font-semibold text-foreground">{formatMoney(product.basePrice, currency, locale)}</span>
           {product.compareAtPrice && (

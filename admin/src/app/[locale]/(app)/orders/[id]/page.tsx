@@ -8,6 +8,8 @@ import { ONLINE_ORDER_CHANNELS } from "@shared/constants/order";
 import { Link } from "@/i18n/navigation";
 import { useSession } from "@/components/providers/session-provider";
 import { RoleGuard } from "@/components/auth/role-guard";
+import { PageContainer } from "@/components/layout/page-container";
+import { PageHeader } from "@/components/layout/page-header";
 import { useOrderQuery } from "@/hooks/use-orders";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
 import { Alert } from "@/components/ui/alert";
@@ -43,35 +45,41 @@ function OrderDetailPageContent({ params }: { params: Promise<{ id: string }> })
 
   if (isLoading) {
     return (
-      <div className="flex flex-col gap-3">
-        <div className="h-8 w-40 animate-pulse rounded-lg bg-muted" />
-        <div className="h-40 animate-pulse rounded-xl bg-muted" />
-        <div className="h-56 animate-pulse rounded-xl bg-muted" />
-      </div>
+      <PageContainer>
+        <div className="flex flex-col gap-3">
+          <div className="h-8 w-40 animate-pulse rounded-lg bg-muted" />
+          <div className="h-40 animate-pulse rounded-xl bg-muted" />
+          <div className="h-56 animate-pulse rounded-xl bg-muted" />
+        </div>
+      </PageContainer>
     );
   }
 
   if (isError) {
     return (
-      <div className="flex flex-col gap-4">
-        <BackLink label={t("back")} />
-        <OrderListError error={error} onRetry={() => void refetch()} />
-      </div>
+      <PageContainer>
+        <div className="flex flex-col gap-4">
+          <BackLink label={t("back")} />
+          <OrderListError error={error} onRetry={() => void refetch()} />
+        </div>
+      </PageContainer>
     );
   }
 
   if (!order) {
     return (
-      <div className="flex flex-col gap-4">
-        <BackLink label={t("back")} />
-        <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-border py-16 text-center">
-          <ReceiptText className="size-10 text-muted-foreground" aria-hidden="true" />
-          <div>
-            <p className="font-medium text-foreground">{t("notFoundTitle")}</p>
-            <p className="mt-1 text-sm text-muted-foreground">{t("notFoundDescription")}</p>
+      <PageContainer>
+        <div className="flex flex-col gap-4">
+          <BackLink label={t("back")} />
+          <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-border py-16 text-center">
+            <ReceiptText className="size-10 text-muted-foreground" aria-hidden="true" />
+            <div>
+              <p className="font-medium text-foreground">{t("notFoundTitle")}</p>
+              <p className="mt-1 text-sm text-muted-foreground">{t("notFoundDescription")}</p>
+            </div>
           </div>
         </div>
-      </div>
+      </PageContainer>
     );
   }
 
@@ -82,42 +90,50 @@ function OrderDetailPageContent({ params }: { params: Promise<{ id: string }> })
   const canManage = can(user, "order.return") || can(user, "order.delete") || can(user, "order.cancel");
 
   return (
-    <div className="flex flex-col gap-4">
-      <BackLink label={t("back")} />
-
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="min-w-0">
-          <h1 className="text-xl font-semibold">{tCard("orderNumber", { number: String(order.orderNumber) })}</h1>
-          <div className="mt-2 flex flex-wrap items-center gap-2">
-            <OrderStatusBadge status={order.status} />
-            <OrderChannelBadge channel={order.channel} />
-            {/* Renders nothing for an ordinary sale. On a gift it is what
-                explains the 0.00 beside it. */}
-            <OrderTypeBadge type={order.type} />
-          </div>
-        </div>
-        <p className="text-xl font-bold tabular-nums">{formatMoney(order.total)}</p>
+    <PageContainer>
+      {/* Above the header, not inside it: this is the way out of the screen,
+          not one of its actions. */}
+      <div className="mb-4">
+        <BackLink label={t("back")} />
       </div>
 
-      {/* Advancing the delivery flow is the reason this screen is opened, so
-          it sits above the detail rather than under it — reachable by thumb
-          without scrolling on a phone. */}
-      <OrderStatusActions order={order} />
+      <PageHeader
+        className="mb-3"
+        title={tCard("orderNumber", { number: String(order.orderNumber) })}
+        actions={<p className="text-xl font-bold tabular-nums">{formatMoney(order.total)}</p>}
+      />
 
-      {/* Where the money is, right under where the goods are: the two
-          together are what the shop actually asks about an order. */}
-      <OrderPaymentCard order={order} />
+      <div className="flex flex-col gap-4">
+        {/* Under the header rather than inside it: three badges are a row of
+            their own, not a sentence PageHeader's description could hold. */}
+        <div className="flex flex-wrap items-center gap-2">
+          <OrderStatusBadge status={order.status} />
+          <OrderChannelBadge channel={order.channel} />
+          {/* Renders nothing for an ordinary sale. On a gift it is what
+              explains the 0.00 beside it. */}
+          <OrderTypeBadge type={order.type} />
+        </div>
 
-      {/* A STORE sale has no customer to show: it was handed over the counter
-          (spec.md "Customer information"). */}
-      {isOnline && <OrderCustomerCard order={order} />}
+        {/* Advancing the delivery flow is the reason this screen is opened, so
+            it sits above the detail rather than under it — reachable by thumb
+            without scrolling on a phone. */}
+        <OrderStatusActions order={order} />
 
-      <OrderItemsList items={order.items} />
-      <OrderTotalsCard order={order} />
-      <OrderMetaCard order={order} />
+        {/* Where the money is, right under where the goods are: the two
+            together are what the shop actually asks about an order. */}
+        <OrderPaymentCard order={order} />
 
-      {canManage ? <OrderManageActions order={order} /> : <Alert>{t("manage.noPermission")}</Alert>}
-    </div>
+        {/* A STORE sale has no customer to show: it was handed over the counter
+            (spec.md "Customer information"). */}
+        {isOnline && <OrderCustomerCard order={order} />}
+
+        <OrderItemsList items={order.items} />
+        <OrderTotalsCard order={order} />
+        <OrderMetaCard order={order} />
+
+        {canManage ? <OrderManageActions order={order} /> : <Alert>{t("manage.noPermission")}</Alert>}
+      </div>
+    </PageContainer>
   );
 }
 

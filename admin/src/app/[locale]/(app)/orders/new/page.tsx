@@ -4,6 +4,8 @@ import { useTranslations } from "next-intl";
 import { ArrowLeft } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { RoleGuard } from "@/components/auth/role-guard";
+import { PageContainer } from "@/components/layout/page-container";
+import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
 import { OrderBuilder } from "@/components/orders/new/order-builder";
 
@@ -15,21 +17,20 @@ export default function NewOrderPage() {
     // (CLAUDE.md rule 5). Every staff role can create an order, so in
     // practice this only catches a stale session.
     <RoleGuard action="order.create">
-      <div className="flex flex-col gap-4">
-        <Button asChild variant="ghost" size="sm" className="-ms-2 self-start px-2">
+      <PageContainer>
+        {/* Above the header, not inside it: this is the way out of the
+            screen, not one of its actions. */}
+        <Button asChild variant="ghost" size="sm" className="-ms-2 mb-4 self-start px-2">
           <Link href="/orders">
             <ArrowLeft className="size-4 rtl:-scale-x-100" aria-hidden="true" />
             {t("back")}
           </Link>
         </Button>
 
-        <div>
-          <h1 className="text-xl font-semibold">{t("title")}</h1>
-          <p className="text-sm text-muted-foreground">{t("subtitle")}</p>
-        </div>
+        <PageHeader title={t("title")} description={t("subtitle")} />
 
         <OrderBuilder />
-      </div>
+      </PageContainer>
     </RoleGuard>
   );
 }
