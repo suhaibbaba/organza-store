@@ -17,3 +17,23 @@ export const DEFAULT_INVENTORY_FILTERS: InventoryListFilters = {
   sortDir: "asc",
   page: DEFAULT_PAGE,
 };
+
+// How long the +/- presses may keep coming before the run is treated as
+// finished and sent as ONE change.
+//
+// Long enough to cover the gap between two deliberate taps — somebody
+// counting a rail of ten pieces presses about twice a second — and short
+// enough that letting go and looking at the row shows it saved rather than
+// still thinking about it. A press during the wait restarts the clock, so a
+// run of any length is still one request and one audit entry.
+export const STOCK_SAVE_DEBOUNCE_MS = 900;
+
+// How long the row says "saved" afterwards. Comfortably longer than the
+// refetch that follows, so the confirmation never disappears before the
+// figure it is confirming has come back from the server.
+export const STOCK_SAVED_FLASH_MS = 2500;
+
+// How long a failed save keeps explaining itself. Longer than a success —
+// the value has just been put back to what the server holds, and that is
+// worth reading before it goes.
+export const STOCK_ERROR_FLASH_MS = 6000;

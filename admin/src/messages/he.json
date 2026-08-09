@@ -863,7 +863,8 @@
     },
     "card": {
       "noSku": "אין מק\"ט",
-      "stockLabel": "מלאי"
+      "stockLabel": "מלאי",
+      "outsideFilter": "כבר לא תואם את הסינון הנוכחי"
     },
     "table": {
       "item": "פריט",
@@ -878,7 +879,11 @@
       "quantity": "כמות",
       "save": "שמירה",
       "cancel": "ביטול",
-      "saved": "נשמר"
+      "saved": "נשמר",
+      "unsaved": "טרם נשמר",
+      "saving": "שומר…",
+      "savedValue": "נשמר: {count}",
+      "revertedTo": "הוחזר ל-{count}."
     },
     "empty": {
       "noItemsTitle": "אין עדיין מלאי",
@@ -890,7 +895,9 @@
       "previous": "הקודם",
       "next": "הבא",
       "pageOf": "עמוד {page} מתוך {totalPages}"
-    }
+    },
+    "outsideFilterNotice": "{count, plural, one {פריט אחד כבר לא תואם את הסינון — נשאר כאן כדי שלא ייעלם תוך כדי עבודה} two {# פריטים כבר לא תואמים את הסינון — נשארו כאן כדי שלא ייעלמו תוך כדי עבודה} other {# פריטים כבר לא תואמים את הסינון — נשארו כאן כדי שלא ייעלמו תוך כדי עבודה}}",
+    "refreshList": "רענון הרשימה"
   },
   "labels": {
     "title": "מדבקות ברקוד",

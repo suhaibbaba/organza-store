@@ -13,25 +13,27 @@ import { StockStepper } from "@/components/inventory/stock-stepper";
 import { PendingChangeBadge } from "@/components/change-requests/pending-change-badge";
 import { CHANGE_REQUEST_ENTITIES, CHANGE_REQUEST_FIELDS } from "@shared/constants/changeRequest";
 import { cn } from "@/lib/utils";
+import type { InventoryRow } from "@/types/inventory";
 
 interface InventoryTableProps {
-  items: InventoryItem[];
+  rows: InventoryRow[];
   threshold: number;
   canAdjust: boolean;
+  onStockChange: (item: InventoryItem, next: number) => void;
 }
 
-export function InventoryTable({ items, threshold, canAdjust }: InventoryTableProps) {
+export function InventoryTable({ rows, threshold, canAdjust, onStockChange }: InventoryTableProps) {
   const locale = useLocale();
   const t = useTranslations("inventory.card");
   const tTable = useTranslations("inventory.table");
 
-  const columns = useMemo<ColumnDef<InventoryItem>[]>(
+  const columns = useMemo<ColumnDef<InventoryRow>[]>(
     () => [
       {
         id: "item",
         header: tTable("item"),
         cell: ({ row }) => {
-          const item = row.original;
+          const { item } = row.original;
           const name = localize(item.productName, locale);
           const variantName = item.variantName ? localize(item.variantName, locale) : null;
           return (
@@ -54,17 +56,27 @@ export function InventoryTable({ items, threshold, canAdjust }: InventoryTablePr
       {
         id: "sku",
         header: tTable("sku"),
-        cell: ({ row }) => <span className="text-muted-foreground">{row.original.sku ?? t("noSku")}</span>,
+        cell: ({ row }) => <span className="text-muted-foreground">{row.original.item.sku ?? t("noSku")}</span>,
       },
       {
         id: "status",
         header: tTable("status"),
         cell: ({ row }) => (
-          <StockBadge
-            stock={row.original.stock}
-            trackLowStock={row.original.trackLowStock}
-            threshold={threshold}
-          />
+          <span className="flex flex-col items-start gap-1">
+            {/* Reads the row's effective quantity, so the badge and its
+                colour move with the +/- presses rather than waiting for a
+                round trip. */}
+            <StockBadge
+              stock={row.original.stock}
+              trackLowStock={row.original.item.trackLowStock}
+              threshold={threshold}
+            />
+            {/* Held on screen on purpose: the user's own edit took it outside
+                the filter they are working under. */}
+            {row.original.isOutsideFilter && (
+              <span className="text-xs text-muted-foreground">{t("outsideFilter")}</span>
+            )}
+          </span>
         ),
       },
       {
@@ -73,7 +85,12 @@ export function InventoryTable({ items, threshold, canAdjust }: InventoryTablePr
         cell: ({ row }) => (
           <div className="flex flex-wrap items-center gap-2">
             {canAdjust ? (
-              <StockStepper item={row.original} />
+              <StockStepper
+                item={row.original.item}
+                stock={row.original.stock}
+                edit={row.original.edit}
+                onChange={onStockChange}
+              />
             ) : (
               // The figure takes the status colour, so the number and the
               // badge beside it never disagree.
@@ -83,7 +100,7 @@ export function InventoryTable({ items, threshold, canAdjust }: InventoryTablePr
                   STOCK_FIGURE_TONES[
                     resolveStockStatus({
                       stock: row.original.stock,
-                      trackLowStock: row.original.trackLowStock,
+                      trackLowStock: row.original.item.trackLowStock,
                       threshold,
                     })
                   ]
@@ -95,15 +112,15 @@ export function InventoryTable({ items, threshold, canAdjust }: InventoryTablePr
             {/* Same rule as the mobile card: a figure somebody has asked to
                 change is spoken for, not wrong. */}
             <PendingChangeBadge
-              changes={row.original.pendingChanges}
+              changes={row.original.item.pendingChanges}
               entityType={
-                row.original.type === "variant"
+                row.original.item.type === "variant"
                   ? CHANGE_REQUEST_ENTITIES.VARIANT
                   : CHANGE_REQUEST_ENTITIES.PRODUCT
               }
-              entityId={row.original.id}
+              entityId={row.original.item.id}
               field={
-                row.original.type === "variant"
+                row.original.item.type === "variant"
                   ? CHANGE_REQUEST_FIELDS.VARIANT_STOCK
                   : CHANGE_REQUEST_FIELDS.PRODUCT_STOCK
               }
@@ -112,10 +129,10 @@ export function InventoryTable({ items, threshold, canAdjust }: InventoryTablePr
         ),
       },
     ],
-    [locale, threshold, canAdjust, t, tTable]
+    [locale, threshold, canAdjust, onStockChange, t, tTable]
   );
 
-  const table = useReactTable({ data: items, columns, getCoreRowModel: getCoreRowModel() });
+  const table = useReactTable({ data: rows, columns, getCoreRowModel: getCoreRowModel() });
 
   return (
     <div className="overflow-hidden rounded-xl border border-border">

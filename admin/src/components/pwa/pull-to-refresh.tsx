@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
+import { notifyManualRefresh } from "@/lib/manual-refresh";
 import { useQueryClient } from "@tanstack/react-query";
 import { RefreshCw } from "lucide-react";
 import {
@@ -59,6 +60,11 @@ export function PullToRefresh({ children }: { children: ReactNode }) {
     setDistance(PULL_REFRESH_THRESHOLD_PX);
     const startedAt = performance.now();
     try {
+      // Screens that deliberately hold something on display against the
+      // server's latest answer need to know this one came from the user
+      // (lib/manual-refresh.ts) — the inventory list lets go of the rows it
+      // was keeping in place.
+      notifyManualRefresh();
       await queryClient.refetchQueries({ type: "active" });
     } finally {
       // A refetch off a good connection can land in 40ms; snapping the

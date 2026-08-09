@@ -1,66 +1,44 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { Check, Minus, Plus } from "lucide-react";
+import { Check, CircleAlert, Minus, Plus } from "lucide-react";
 import type { InventoryItem } from "@shared/types/inventory";
 import { QUANTITY_MAX, QUANTITY_MAX_LENGTH, QUANTITY_MIN, clampQuantity } from "@shared/constants/quantity";
 import { NumericInput } from "@/components/ui/numeric-input";
 import { Spinner } from "@/components/ui/spinner";
 import { isNonNegativeIntegerString } from "@/lib/validation/numeric";
-import { useAdjustStockMutation } from "@/hooks/use-inventory";
 import { useTranslateError } from "@/hooks/use-translate-error";
-import { ApiError } from "@/lib/api/errors";
-
-const SUCCESS_FLASH_MS = 1500;
+import { cn } from "@/lib/utils";
+import type { StockEdit } from "@/types/inventory";
 
 interface StockStepperProps {
   item: InventoryItem;
+  /** The quantity to show: the draft while one is in flight, the server's otherwise. */
+  stock: number;
+  /** What the save is doing, or null when there is nothing outstanding. */
+  edit: StockEdit | null;
+  onChange: (item: InventoryItem, next: number) => void;
 }
 
-// Big +/- taps apply immediately (each tap is already a deliberate,
-// single-unit action); typing an exact quantity requires an explicit Save
-// (the "confirmation" step) before it's sent. Each row owns its own
-// mutation, so pending/success/error feedback never leaks across rows.
-export function StockStepper({ item }: StockStepperProps) {
+// Big +/- taps move the number at once and the run of them is saved as one
+// change a moment after the finger stops (hooks/use-stock-edits.ts). Typing an
+// exact quantity still takes an explicit Save, because a typed figure is a
+// replacement rather than a nudge and deserves to be confirmed.
+//
+// Nothing here is disabled while a save is in flight: being able to keep
+// pressing IS the feature — the presses collapse into one request rather than
+// queueing behind each other.
+export function StockStepper({ item, stock, edit, onChange }: StockStepperProps) {
   const t = useTranslations("inventory.stepper");
   const translateError = useTranslateError();
-  const mutation = useAdjustStockMutation();
   const [editValue, setEditValue] = useState<string | null>(null);
-  const [showSaved, setShowSaved] = useState(false);
-  const flashTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  // Cleanup only — the flash itself is triggered from the mutate() success
-  // callback below, not from an effect reacting to mutation state.
-  useEffect(() => {
-    return () => {
-      if (flashTimer.current) clearTimeout(flashTimer.current);
-    };
-  }, []);
-
-  function flashSaved() {
-    setShowSaved(true);
-    if (flashTimer.current) clearTimeout(flashTimer.current);
-    flashTimer.current = setTimeout(() => setShowSaved(false), SUCCESS_FLASH_MS);
-  }
-
-  // Every route in — the two buttons and the typed box — goes through the
-  // same clamp, so 1200 typed in is worth what pressing + until it stopped
-  // would have been, and neither can send a number the other refuses.
-  function commit(stock: number) {
-    const clamped = clampQuantity(stock);
-    if (clamped === item.stock) return;
-    mutation.mutate({ item, stock: clamped }, { onSuccess: flashSaved });
-  }
 
   function saveEdit() {
     if (editValue === null) return;
-    if (!isNonNegativeIntegerString(editValue)) return;
-    commit(Number(editValue));
+    if (isNonNegativeIntegerString(editValue)) onChange(item, clampQuantity(Number(editValue)));
     setEditValue(null);
   }
-
-  const isPending = mutation.isPending;
 
   if (editValue !== null) {
     return (
@@ -78,17 +56,15 @@ export function StockStepper({ item }: StockStepperProps) {
         <button
           type="button"
           onClick={saveEdit}
-          disabled={isPending}
           aria-label={t("save")}
-          className="inline-flex size-11 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground disabled:cursor-not-allowed disabled:opacity-50"
+          className="inline-flex size-11 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground"
         >
-          {isPending ? <Spinner className="size-4" /> : <Check className="size-5" aria-hidden="true" />}
+          <Check className="size-5" aria-hidden="true" />
         </button>
         <button
           type="button"
           onClick={() => setEditValue(null)}
-          disabled={isPending}
-          className="shrink-0 px-1 text-xs font-medium text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50"
+          className="shrink-0 px-1 text-xs font-medium text-muted-foreground"
         >
           {t("cancel")}
         </button>
@@ -101,8 +77,8 @@ export function StockStepper({ item }: StockStepperProps) {
       <div className="flex items-center gap-1.5">
         <button
           type="button"
-          onClick={() => commit(item.stock - 1)}
-          disabled={isPending || item.stock <= QUANTITY_MIN}
+          onClick={() => onChange(item, stock - 1)}
+          disabled={stock <= QUANTITY_MIN}
           aria-label={t("decrease")}
           className="inline-flex size-11 shrink-0 items-center justify-center rounded-lg border border-input text-foreground disabled:cursor-not-allowed disabled:opacity-40"
         >
@@ -111,18 +87,17 @@ export function StockStepper({ item }: StockStepperProps) {
 
         <button
           type="button"
-          onClick={() => setEditValue(String(item.stock))}
-          disabled={isPending}
+          onClick={() => setEditValue(String(stock))}
           aria-label={t("edit")}
-          className="flex min-w-11 shrink-0 items-center justify-center rounded-lg px-1 text-base font-semibold text-foreground disabled:cursor-not-allowed disabled:opacity-50"
+          className="flex min-w-11 shrink-0 items-center justify-center rounded-lg px-1 text-base font-semibold text-foreground"
         >
-          {isPending ? <Spinner className="size-4" /> : item.stock}
+          {stock}
         </button>
 
         <button
           type="button"
-          onClick={() => commit(item.stock + 1)}
-          disabled={isPending || item.stock >= QUANTITY_MAX}
+          onClick={() => onChange(item, stock + 1)}
+          disabled={stock >= QUANTITY_MAX}
           aria-label={t("increase")}
           className="inline-flex size-11 shrink-0 items-center justify-center rounded-lg border border-input text-foreground disabled:cursor-not-allowed disabled:opacity-40"
         >
@@ -130,10 +105,35 @@ export function StockStepper({ item }: StockStepperProps) {
         </button>
       </div>
 
-      {showSaved && <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400">{t("saved")}</span>}
-      {mutation.isError && (
-        <span className="max-w-40 text-end text-xs text-destructive">
-          {translateError(mutation.error instanceof ApiError ? mutation.error.code : "error.internal")}
+      {/* Three states, never two at once, and each says the quantity it is
+          talking about — the row may by now be marked as no longer matching
+          the filter, and "saved" on its own would leave the user guessing
+          which number was saved. Announced politely so the confirmation is
+          not only a colour. */}
+      {edit && (
+        <span role="status" aria-live="polite" className="text-end text-xs font-medium">
+          {edit.status === "saved" ? (
+            <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
+              <Check className="size-3.5 shrink-0" aria-hidden="true" />
+              {t("savedValue", { count: edit.value })}
+            </span>
+          ) : edit.status === "error" ? (
+            <span className="inline-flex max-w-48 items-start gap-1 text-destructive">
+              <CircleAlert className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
+              <span>
+                {translateError(edit.errorCode ?? "error.internal")} {t("revertedTo", { count: edit.value })}
+              </span>
+            </span>
+          ) : (
+            <span className={cn("inline-flex items-center gap-1 text-muted-foreground")}>
+              {edit.status === "saving" ? (
+                <Spinner className="size-3.5" />
+              ) : (
+                <span className="size-1.5 shrink-0 rounded-full bg-warning" aria-hidden="true" />
+              )}
+              {edit.status === "saving" ? t("saving") : t("unsaved")}
+            </span>
+          )}
         </span>
       )}
     </div>
