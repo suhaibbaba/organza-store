@@ -828,7 +828,7 @@ export function ProductForm({ mode, product }: ProductFormProps) {
             <p className="font-medium">{t("awaitingApproval.title")}</p>
             <p>{t("awaitingApproval.detail", { count: awaitingApproval })}</p>
           </div>
-          <Button type="button" className="w-full" onClick={() => router.push(`/products/${savedProductId}`)}>
+          <Button type="button" className="w-full sm:w-auto sm:self-start" onClick={() => router.push(`/products/${savedProductId}`)}>
             {t("awaitingApproval.viewProduct")}
           </Button>
         </Alert>
@@ -852,7 +852,7 @@ export function ProductForm({ mode, product }: ProductFormProps) {
               )}
             </div>
             <div className="flex flex-col gap-2">
-              <Button type="button" onClick={() => void handleRetryImages()} disabled={isBusy} className="w-full">
+              <Button type="button" onClick={() => void handleRetryImages()} disabled={isBusy} className="w-full sm:w-auto sm:self-start">
                 {isBusy ? (
                   <>
                     <Spinner />
@@ -866,7 +866,7 @@ export function ProductForm({ mode, product }: ProductFormProps) {
                 type="button"
                 variant="outline"
                 disabled={isBusy}
-                className="w-full"
+                className="w-full sm:w-auto sm:self-start"
                 onClick={() => savedProductId && router.push(`/products/${savedProductId}`)}
               >
                 {t("partial.continue")}
@@ -879,7 +879,7 @@ export function ProductForm({ mode, product }: ProductFormProps) {
           <>
             {/* One button, one progress line — the several calls behind it
                 are the app's problem, not the user's. */}
-            <Button type="submit" disabled={isBusy} className="w-full">
+            <Button type="submit" disabled={isBusy} className="w-full sm:w-auto sm:self-start">
               {isBusy ? (
                 <>
                   <Spinner />

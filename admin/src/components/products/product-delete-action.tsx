@@ -76,7 +76,7 @@ export function ProductDeleteAction({ product }: { product: Product }) {
             </div>
           </div>
         ) : (
-          <Button type="button" variant="ghost" className="w-full text-destructive" onClick={() => setConfirming(true)}>
+          <Button type="button" variant="ghost" className="w-full text-destructive sm:w-auto sm:self-start" onClick={() => setConfirming(true)}>
             <Trash2 className="size-5" aria-hidden="true" />
             {t("action")}
           </Button>

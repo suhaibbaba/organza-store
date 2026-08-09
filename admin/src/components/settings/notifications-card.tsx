@@ -39,7 +39,7 @@ export function NotificationsCard() {
         ) : isSubscribed ? (
           <>
             <Alert variant="success">{t("state.on")}</Alert>
-            <Button type="button" variant="outline" onClick={() => void disable()} disabled={isPending} className="w-full">
+            <Button type="button" variant="outline" onClick={() => void disable()} disabled={isPending} className="w-full sm:w-auto sm:self-start">
               {isPending ? <Spinner /> : <BellOff aria-hidden />}
               {t("turnOff")}
             </Button>
@@ -47,7 +47,7 @@ export function NotificationsCard() {
         ) : (
           <>
             <p className="text-sm text-muted-foreground">{t("state.off")}</p>
-            <Button type="button" onClick={() => void enable()} disabled={isPending} className="w-full">
+            <Button type="button" onClick={() => void enable()} disabled={isPending} className="w-full sm:w-auto sm:self-start">
               {isPending ? <Spinner /> : <BellRing aria-hidden />}
               {t("turnOn")}
             </Button>

@@ -72,7 +72,7 @@ export function SetPasswordForm() {
     return (
       <div className="flex flex-col gap-5">
         <Alert variant="success">{t("successBody")}</Alert>
-        <Button asChild className="w-full">
+        <Button asChild className="w-full sm:w-auto sm:self-start">
           <Link href="/login">{t("goToLogin")}</Link>
         </Button>
       </div>
@@ -86,7 +86,7 @@ export function SetPasswordForm() {
     return (
       <div className="flex flex-col gap-5">
         <Alert variant="destructive">{t(!token ? "missingToken" : "invalidBody")}</Alert>
-        <Button asChild variant="outline" className="w-full">
+        <Button asChild variant="outline" className="w-full sm:w-auto sm:self-start">
           <Link href="/forgot-password">{t("requestNewLink")}</Link>
         </Button>
       </div>
@@ -147,7 +147,7 @@ export function SetPasswordForm() {
         )}
       </div>
 
-      <Button type="submit" disabled={isSubmitting} className="mt-2 w-full">
+      <Button type="submit" disabled={isSubmitting} className="mt-2 w-full sm:w-auto sm:self-start">
         {isSubmitting ? (
           <>
             <Spinner />

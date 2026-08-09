@@ -100,7 +100,7 @@ export function LoginForm() {
         )}
       </div>
 
-      <Button type="submit" disabled={isSubmitting} className="mt-2 w-full">
+      <Button type="submit" disabled={isSubmitting} className="mt-2 w-full sm:w-auto sm:self-start">
         {isSubmitting ? (
           <>
             <Spinner />
@@ -113,7 +113,7 @@ export function LoginForm() {
 
       {/* Password resets are self-service by email now (spec.md "Auth
           (details)"), so nobody has to catch an Admin to get back in. */}
-      <Button asChild variant="ghost" className="w-full">
+      <Button asChild variant="ghost" className="w-full sm:w-auto sm:self-start">
         <Link href={FORGOT_PASSWORD_PATH}>{tForgot("link")}</Link>
       </Button>
     </form>

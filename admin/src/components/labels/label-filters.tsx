@@ -32,7 +32,11 @@ export function LabelFilters({
 
   return (
     <div className="flex flex-col gap-3">
-      <div role="group" aria-label={t("printState")} className="flex gap-1 rounded-xl border border-border bg-card p-1">
+      <div
+        role="group"
+        aria-label={t("printState")}
+        className="inline-flex w-fit gap-1 rounded-xl border border-border bg-card p-1"
+      >
         {PRODUCT_PRINT_STATES.map((state) => (
           <button
             key={state}
@@ -40,7 +44,10 @@ export function LabelFilters({
             onClick={() => onPrintStateChange(state)}
             aria-pressed={printState === state}
             className={cn(
-              "min-h-11 flex-1 rounded-lg px-2 text-sm font-medium transition-colors",
+              // whitespace-nowrap: the row is sized to its content now, and
+              // "غير مطبوعة" broken across two lines is not a label anybody
+              // should have to reassemble.
+              "min-h-11 min-w-16 flex-1 whitespace-nowrap rounded-lg px-3 text-sm font-medium transition-colors",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
               printState === state
                 ? "bg-primary text-primary-foreground"

@@ -106,7 +106,7 @@ export function OrderStatusActions({ order }: { order: Order }) {
             <div key={status} className="flex flex-col gap-2">
               <Button
                 type="button"
-                className="h-14 w-full text-base"
+                className="h-14 w-full text-base sm:w-auto sm:self-start"
                 disabled={mutation.isPending}
                 onClick={() => move(status)}
               >
@@ -158,7 +158,7 @@ export function OrderStatusActions({ order }: { order: Order }) {
             <Button
               type="button"
               variant="outline"
-              className="w-full text-destructive"
+              className="w-full text-destructive sm:w-auto sm:self-start"
               onClick={() => setConfirmingCancel(true)}
             >
               <XCircle className="size-5" aria-hidden="true" />

@@ -459,7 +459,7 @@ export function SettingsForm({ setting }: { setting: Setting }) {
           )}
           {showSaved && <Alert variant="success">{t("saved")}</Alert>}
 
-          <Button type="submit" disabled={mutation.isPending} className="w-full">
+          <Button type="submit" disabled={mutation.isPending} className="w-full sm:w-auto sm:self-start">
             {mutation.isPending ? (
               <>
                 <Spinner />

@@ -186,7 +186,7 @@ export function OrderBuilder() {
           </Alert>
         )}
 
-        <Button type="submit" className="h-14 w-full text-base" disabled={mutation.isPending || draft.isEmpty}>
+        <Button type="submit" className="h-14 w-full text-base sm:w-auto sm:self-start" disabled={mutation.isPending || draft.isEmpty}>
           {mutation.isPending ? <Spinner /> : <Save className="size-5" aria-hidden="true" />}
           {mutation.isPending ? t("saving") : t("save")}
         </Button>
