@@ -1,4 +1,5 @@
 import { BARCODE_SOURCE } from "@shared/constants/barcode";
+import { clampQuantity } from "@shared/constants/quantity";
 import type { Product } from "@shared/types/product";
 import type { Setting } from "@shared/types/setting";
 import { localize } from "@/lib/i18n-content";
@@ -59,8 +60,11 @@ export function isNumberedProduct(product: Pick<Product, "isNumbered">): boolean
 export function buildLabelLines(product: Product, locale: string): LabelLine[] {
   const name = localize(product.name, locale);
   // The suggestion can't propose more than the field itself accepts, or the
-  // number on screen would stop matching the number being counted.
-  const suggest = (stock: number) => Math.min(Math.max(stock, 0), LABEL_COPIES_MAX);
+  // number on screen would stop matching the number being counted. Where that
+  // bites, the stock it was drawn from travels with the line so the screen can
+  // say so out loud (see LabelCopiesList) — a silently shortened print run is
+  // how somebody ends up with 999 stickers for 1200 pieces and no idea why.
+  const suggest = (stock: number) => clampQuantity(stock, 0, LABEL_COPIES_MAX);
   // A supplier code on the PARENT covers every variant under it: that is the
   // shared-code case — one tag for all sizes — so nothing per-variant is owed
   // either.
@@ -76,6 +80,9 @@ export function buildLabelLines(product: Product, locale: string): LabelLine[] {
         subtitle: null,
         code: product.barcode,
         suggestedCopies: parentIsSupplier ? 0 : 1,
+        // Never a stock figure: the numbers live on the photo, so how many
+        // collection labels the shop wants is a decision, not a count.
+        stock: null,
         supplierBarcode: parentIsSupplier,
         isNumbered: true,
       },
@@ -95,6 +102,10 @@ export function buildLabelLines(product: Product, locale: string): LabelLine[] {
         // the SKU only stands in if a barcode somehow never got generated.
         code: variant.barcode ?? variant.sku,
         suggestedCopies: supplierBarcode ? 0 : suggest(variant.stock),
+        // Reported even when the line is proposed at zero for a supplier
+        // code: the piece still has a stock, and the person who overrides
+        // the zero should see the number they are overriding it towards.
+        stock: variant.stock,
         supplierBarcode,
         isNumbered: false,
       };
@@ -110,6 +121,7 @@ export function buildLabelLines(product: Product, locale: string): LabelLine[] {
       subtitle: null,
       code: product.barcode ?? product.sku,
       suggestedCopies: parentIsSupplier ? 0 : suggest(product.stock ?? 0),
+      stock: product.stock ?? 0,
       supplierBarcode: parentIsSupplier,
       isNumbered: false,
     },
@@ -121,7 +133,7 @@ export function buildLabelLines(product: Product, locale: string): LabelLine[] {
 // rather than crashing the preview.
 export function parseCopies(value: string | undefined): number {
   if (value === undefined || !isNonNegativeIntegerString(value)) return 0;
-  return Math.min(Number(value), LABEL_COPIES_MAX);
+  return clampQuantity(Number(value), 0, LABEL_COPIES_MAX);
 }
 
 export function countLabels(lines: readonly LabelLine[], copies: Record<string, string>): number {

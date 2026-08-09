@@ -2,19 +2,23 @@
 
 import { useState } from "react";
 import { Minus, Plus } from "lucide-react";
+import { QUANTITY_MAX, QUANTITY_MAX_LENGTH, QUANTITY_MIN, clampQuantity } from "@shared/constants/quantity";
 import { NumericInput } from "@/components/ui/numeric-input";
 import { isNonNegativeIntegerString } from "@/lib/validation/numeric";
 import { cn } from "@/lib/utils";
 
 interface QuantityStepperProps {
   value: number;
-  min: number;
-  max: number;
+  // Each screen may narrow the shared 0–999 range — never widen it: a return
+  // can't exceed what is outstanding, an order line can't be zero pieces.
+  min?: number;
+  max?: number;
   onChange: (quantity: number) => void;
   // Accessible names, passed in rather than read from a fixed namespace, so
-  // the same control serves the order builder and the returns sheet. Each
-  // should already name the line it belongs to, so a screen reader announces
-  // "more — Silk Scarf" rather than several identical "more" buttons.
+  // the same control serves the order builder, the returns sheet and the
+  // label counts. Each should already name the line it belongs to, so a
+  // screen reader announces "more — Silk Scarf" rather than several identical
+  // "more" buttons.
   decreaseLabel: string;
   increaseLabel: string;
   valueLabel: string;
@@ -25,6 +29,12 @@ interface QuantityStepperProps {
 // field that opens the numeric keypad (CLAUDE.md "Mobile input & device
 // specifics" — never <input type="number">, integers only).
 //
+// The bounds hold whichever way a number arrives. The buttons stop at them
+// and go disabled there; a typed or pasted number is clamped into the same
+// range when the field is left, so "1200" in a box that tops out at 999 is
+// worth exactly what pressing + until it stopped would have been. The digit
+// cap on the field means a fourth digit cannot even be typed.
+//
 // The field holds a draft string only while it is actually being edited,
 // because clearing it to type "12" passes through "" — reflecting that
 // straight back as a number would snap it to the minimum under the user's
@@ -32,8 +42,8 @@ interface QuantityStepperProps {
 // again, so the +/- buttons need nothing kept in sync.
 export function QuantityStepper({
   value,
-  min,
-  max,
+  min = QUANTITY_MIN,
+  max = QUANTITY_MAX,
   onChange,
   decreaseLabel,
   increaseLabel,
@@ -42,19 +52,26 @@ export function QuantityStepper({
 }: QuantityStepperProps) {
   const [draft, setDraft] = useState<string | null>(null);
 
+  const floor = clampQuantity(min);
+  const ceiling = clampQuantity(max, floor);
+
+  function step(next: number) {
+    const clamped = clampQuantity(next, floor, ceiling);
+    if (clamped !== value) onChange(clamped);
+  }
+
   function commit(raw: string) {
     setDraft(null);
     if (!isNonNegativeIntegerString(raw)) return;
-    const clamped = Math.min(Math.max(Number(raw), min), Math.max(min, max));
-    if (clamped !== value) onChange(clamped);
+    step(Number(raw));
   }
 
   return (
     <div className={cn("flex items-center gap-1", className)}>
       <button
         type="button"
-        onClick={() => onChange(value - 1)}
-        disabled={value <= min}
+        onClick={() => step(value - 1)}
+        disabled={value <= floor}
         aria-label={decreaseLabel}
         className="flex size-11 shrink-0 items-center justify-center rounded-lg border border-input text-foreground transition-colors hover:bg-accent disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
@@ -65,14 +82,15 @@ export function QuantityStepper({
         value={draft ?? String(value)}
         onChange={(event) => setDraft(event.target.value)}
         onBlur={(event) => commit(event.target.value)}
+        maxLength={QUANTITY_MAX_LENGTH}
         aria-label={valueLabel}
         className="h-11 w-14 px-0 text-center text-base font-semibold"
       />
 
       <button
         type="button"
-        onClick={() => onChange(value + 1)}
-        disabled={value >= max}
+        onClick={() => step(value + 1)}
+        disabled={value >= ceiling}
         aria-label={increaseLabel}
         className="flex size-11 shrink-0 items-center justify-center rounded-lg border border-input text-foreground transition-colors hover:bg-accent disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >

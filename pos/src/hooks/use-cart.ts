@@ -4,6 +4,7 @@ import { useCallback, useMemo, useRef, useState } from "react";
 import type { Product } from "@shared/types/product";
 import type { Variant } from "@shared/types/variant";
 import type { DiscountType } from "@shared/types/order";
+import { clampQuantity } from "@shared/constants/quantity";
 import { cartLineKey, computeTotals, toCartLine } from "@/lib/cart";
 import { MIN_CART_QUANTITY } from "@/constants/pos";
 import type { CartLine, CartTotals, DiscountState } from "@/types/cart";
@@ -30,10 +31,10 @@ export interface Cart {
 // Quantity can never leave [1, what's on the shelf]: below one the line
 // should have been removed, above stock the backend would reject the sale
 // anyway (ORDER_INSUFFICIENT_STOCK) and the cashier would find out only at
-// checkout, with the customer waiting.
-function clampQuantity(quantity: number, line: CartLine): number {
-  const ceiling = Math.max(MIN_CART_QUANTITY, line.availableStock);
-  return Math.min(Math.max(quantity, MIN_CART_QUANTITY), ceiling);
+// checkout, with the customer waiting. The shared 999 ceiling applies on top
+// of that, so a line can never carry a number the stepper refuses to show.
+function clampLineQuantity(quantity: number, line: CartLine): number {
+  return clampQuantity(quantity, MIN_CART_QUANTITY, Math.max(MIN_CART_QUANTITY, line.availableStock));
 }
 
 // The open sale. Held in component state on purpose: a sale belongs to the
@@ -84,7 +85,7 @@ export function useCart(): Cart {
         imageUrl: incoming.imageUrl,
         quantity: existing.quantity + 1,
       };
-      const updated: CartLine = { ...refreshed, quantity: clampQuantity(refreshed.quantity, refreshed) };
+      const updated: CartLine = { ...refreshed, quantity: clampLineQuantity(refreshed.quantity, refreshed) };
       commit(linesRef.current.map((line) => (line.key === updated.key ? updated : line)));
       return updated;
     },
@@ -93,21 +94,21 @@ export function useCart(): Cart {
 
   const setQuantity = useCallback(
     (key: string, quantity: number) => {
-      updateLine(key, (line) => ({ ...line, quantity: clampQuantity(quantity, line) }));
+      updateLine(key, (line) => ({ ...line, quantity: clampLineQuantity(quantity, line) }));
     },
     [updateLine]
   );
 
   const incrementQuantity = useCallback(
     (key: string) => {
-      updateLine(key, (line) => ({ ...line, quantity: clampQuantity(line.quantity + 1, line) }));
+      updateLine(key, (line) => ({ ...line, quantity: clampLineQuantity(line.quantity + 1, line) }));
     },
     [updateLine]
   );
 
   const decrementQuantity = useCallback(
     (key: string) => {
-      updateLine(key, (line) => ({ ...line, quantity: clampQuantity(line.quantity - 1, line) }));
+      updateLine(key, (line) => ({ ...line, quantity: clampLineQuantity(line.quantity - 1, line) }));
     },
     [updateLine]
   );

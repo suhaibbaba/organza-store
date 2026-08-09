@@ -32,6 +32,13 @@ export interface LabelLine {
   // that already carries the supplier's own barcode, which needs no label of
   // ours at all. Only ever a proposal: typing a count over it prints anyway.
   suggestedCopies: number;
+  // What the proposal was drawn from, before the field's own ceiling was
+  // applied — the variant's stock, or the product's for a simple one. Null
+  // when the count was never a stock figure at all (a numbered shawl, whose
+  // count is typed by hand). Carried separately so the screen can SAY that a
+  // stock of 1200 was proposed as 999, rather than quietly handing back a
+  // smaller number than the shop has pieces.
+  stock: number | null;
   // The code on this line is the supplier's, printed on the garment before it
   // reached the shop (shared/constants/barcode.ts). The line stays on the list,
   // marked, rather than disappearing: printing our own label over it has to

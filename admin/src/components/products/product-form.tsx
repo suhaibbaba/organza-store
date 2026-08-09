@@ -42,6 +42,8 @@ import { formatMoney } from "@/lib/format";
 import { LOCALE_LABELS } from "@/constants/locale";
 import { Input } from "@/components/ui/input";
 import { NumericInput } from "@/components/ui/numeric-input";
+import { QuantityStepper } from "@/components/ui/quantity-stepper";
+import { parseQuantity } from "@/lib/validation/numeric";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
@@ -77,6 +79,7 @@ interface ProductFormProps {
 
 export function ProductForm({ mode, product }: ProductFormProps) {
   const t = useTranslations("products.form");
+  const tCommon = useTranslations("common");
   const locale = useLocale();
   const router = useRouter();
   const { user } = useSession();
@@ -674,8 +677,23 @@ export function ProductForm({ mode, product }: ProductFormProps) {
                 {isNumbered && <p className="text-sm text-muted-foreground">{t("kind.stockPerNumber")}</p>}
                 {canEditStock && !isNumbered && (
                   <div className="flex flex-col gap-2">
-                    <Label htmlFor="stock">{t("stock")}</Label>
-                    <NumericInput id="stock" aria-invalid={!!errors.stock} {...register("stock")} />
+                    <span className="text-sm font-medium">{t("stock")}</span>
+                    {/* Controller, not register(): the stepper hands back a
+                        number it has already clamped, and the form field is
+                        the string the payload builder expects. */}
+                    <Controller
+                      control={control}
+                      name="stock"
+                      render={({ field }) => (
+                        <QuantityStepper
+                          value={parseQuantity(field.value)}
+                          onChange={(quantity) => field.onChange(String(quantity))}
+                          decreaseLabel={tCommon("quantity.decrease", { name: t("stock") })}
+                          increaseLabel={tCommon("quantity.increase", { name: t("stock") })}
+                          valueLabel={tCommon("quantity.value", { name: t("stock") })}
+                        />
+                      )}
+                    />
                     {errors.stock && <p className="text-sm text-destructive">{translateError(errors.stock.message ?? "")}</p>}
                     {stockNeedsApproval && (
                       <p className="text-sm text-muted-foreground">{t("needsApproval.stock")}</p>

@@ -4,6 +4,7 @@ import { useCallback, useMemo, useState } from "react";
 import type { Product } from "@shared/types/product";
 import type { Variant } from "@shared/types/variant";
 import type { DiscountType } from "@shared/types/order";
+import { clampQuantity } from "@shared/constants/quantity";
 import { MIN_ORDER_QUANTITY } from "@/constants/orders";
 import { computeDraftTotals, orderLineKey, toDraftLine } from "@/lib/order-draft";
 import type { DiscountState, OrderDraftLine, OrderDraftTotals } from "@/types/order";
@@ -30,9 +31,8 @@ export interface OrderDraft {
 // Quantity can never leave [1, what's on the shelf]: below one the line should
 // have been removed, above stock the backend would reject the order anyway
 // (ORDER_INSUFFICIENT_STOCK) and the user would only find out on save.
-function clampQuantity(quantity: number, line: OrderDraftLine): number {
-  const ceiling = Math.max(MIN_ORDER_QUANTITY, line.availableStock);
-  return Math.min(Math.max(quantity, MIN_ORDER_QUANTITY), ceiling);
+function clampLineQuantity(quantity: number, line: OrderDraftLine): number {
+  return clampQuantity(quantity, MIN_ORDER_QUANTITY, Math.max(MIN_ORDER_QUANTITY, line.availableStock));
 }
 
 // The order being written down. Held in component state on purpose: a
@@ -68,7 +68,7 @@ export function useOrderDraft(): OrderDraft {
         imageUrl: incoming.imageUrl,
         quantity: existing.quantity + 1,
       };
-      const updated: OrderDraftLine = { ...refreshed, quantity: clampQuantity(refreshed.quantity, refreshed) };
+      const updated: OrderDraftLine = { ...refreshed, quantity: clampLineQuantity(refreshed.quantity, refreshed) };
       result = updated;
       return current.map((line) => (line.key === updated.key ? updated : line));
     });
@@ -78,21 +78,21 @@ export function useOrderDraft(): OrderDraft {
 
   const setQuantity = useCallback(
     (key: string, quantity: number) => {
-      updateLine(key, (line) => ({ ...line, quantity: clampQuantity(quantity, line) }));
+      updateLine(key, (line) => ({ ...line, quantity: clampLineQuantity(quantity, line) }));
     },
     [updateLine]
   );
 
   const incrementQuantity = useCallback(
     (key: string) => {
-      updateLine(key, (line) => ({ ...line, quantity: clampQuantity(line.quantity + 1, line) }));
+      updateLine(key, (line) => ({ ...line, quantity: clampLineQuantity(line.quantity + 1, line) }));
     },
     [updateLine]
   );
 
   const decrementQuantity = useCallback(
     (key: string) => {
-      updateLine(key, (line) => ({ ...line, quantity: clampQuantity(line.quantity - 1, line) }));
+      updateLine(key, (line) => ({ ...line, quantity: clampLineQuantity(line.quantity - 1, line) }));
     },
     [updateLine]
   );

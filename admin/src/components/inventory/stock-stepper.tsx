@@ -4,8 +4,10 @@ import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Check, Minus, Plus } from "lucide-react";
 import type { InventoryItem } from "@shared/types/inventory";
+import { QUANTITY_MAX, QUANTITY_MAX_LENGTH, QUANTITY_MIN, clampQuantity } from "@shared/constants/quantity";
 import { NumericInput } from "@/components/ui/numeric-input";
 import { Spinner } from "@/components/ui/spinner";
+import { isNonNegativeIntegerString } from "@/lib/validation/numeric";
 import { useAdjustStockMutation } from "@/hooks/use-inventory";
 import { useTranslateError } from "@/hooks/use-translate-error";
 import { ApiError } from "@/lib/api/errors";
@@ -42,16 +44,19 @@ export function StockStepper({ item }: StockStepperProps) {
     flashTimer.current = setTimeout(() => setShowSaved(false), SUCCESS_FLASH_MS);
   }
 
+  // Every route in — the two buttons and the typed box — goes through the
+  // same clamp, so 1200 typed in is worth what pressing + until it stopped
+  // would have been, and neither can send a number the other refuses.
   function commit(stock: number) {
-    if (stock < 0) return;
-    mutation.mutate({ item, stock }, { onSuccess: flashSaved });
+    const clamped = clampQuantity(stock);
+    if (clamped === item.stock) return;
+    mutation.mutate({ item, stock: clamped }, { onSuccess: flashSaved });
   }
 
   function saveEdit() {
     if (editValue === null) return;
-    const parsed = Number(editValue);
-    if (!Number.isInteger(parsed) || parsed < 0) return;
-    commit(parsed);
+    if (!isNonNegativeIntegerString(editValue)) return;
+    commit(Number(editValue));
     setEditValue(null);
   }
 
@@ -66,6 +71,7 @@ export function StockStepper({ item }: StockStepperProps) {
         <NumericInput
           value={editValue}
           onChange={(e) => setEditValue(e.target.value)}
+          maxLength={QUANTITY_MAX_LENGTH}
           className="h-11 w-20 px-2 text-center"
           aria-label={t("quantity")}
         />
@@ -96,7 +102,7 @@ export function StockStepper({ item }: StockStepperProps) {
         <button
           type="button"
           onClick={() => commit(item.stock - 1)}
-          disabled={isPending || item.stock <= 0}
+          disabled={isPending || item.stock <= QUANTITY_MIN}
           aria-label={t("decrease")}
           className="inline-flex size-11 shrink-0 items-center justify-center rounded-lg border border-input text-foreground disabled:opacity-40"
         >
@@ -116,7 +122,7 @@ export function StockStepper({ item }: StockStepperProps) {
         <button
           type="button"
           onClick={() => commit(item.stock + 1)}
-          disabled={isPending}
+          disabled={isPending || item.stock >= QUANTITY_MAX}
           aria-label={t("increase")}
           className="inline-flex size-11 shrink-0 items-center justify-center rounded-lg border border-input text-foreground disabled:opacity-40"
         >

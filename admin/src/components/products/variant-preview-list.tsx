@@ -27,7 +27,10 @@ export function VariantPreviewList({ rows, excluded, onToggleExcluded }: Variant
   return (
     <div className="flex flex-col gap-2">
       <p className="text-sm font-medium text-foreground">{t("previewCount", { count: activeCount })}</p>
-      <div className="flex flex-col gap-2">
+      {/* A combination is a short name and a remove button. Three variant
+          types make a cartesian of thirty of them, and a row each turned the
+          preview into a scroll on every screen — so they flow instead. */}
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {rows.map((row) => {
           const isExcluded = excluded.has(row.key);
           return (

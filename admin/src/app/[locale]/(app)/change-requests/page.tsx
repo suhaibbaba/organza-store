@@ -81,7 +81,11 @@ function ChangeRequestsPageContent() {
         ) : (
           <>
             {isFetching && <ChangeRequestListSpinnerOverlay />}
-            <div className="flex flex-col gap-3">
+            {/* Decision cards, two across from the large-tablet width up —
+                each carries a couple of buttons and a note box, so it wants
+                more room than a plain row. `items-start` keeps a card whose
+                refusal note is open from stretching the one beside it. */}
+            <div className="grid grid-cols-1 items-start gap-3 lg:grid-cols-2">
               {items.map((request) => (
                 <ChangeRequestCard key={request.id} request={request} canDecide={canDecide} />
               ))}
