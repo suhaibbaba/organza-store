@@ -1,7 +1,12 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { CreateOrderInput } from "@shared/schemas/order";
 import { GIFT_ORDER_CHANNEL, GIFT_ORDER_TYPE, SALE_ORDER_TYPE } from "@shared/constants/order";
-import { PRODUCT_DETAIL_QUERY_KEY, PRODUCT_LOOKUP_QUERY_KEY, PRODUCT_SEARCH_QUERY_KEY } from "@/constants/api";
+import {
+  PRODUCT_BROWSE_QUERY_KEY,
+  PRODUCT_DETAIL_QUERY_KEY,
+  PRODUCT_LOOKUP_QUERY_KEY,
+  PRODUCT_SEARCH_QUERY_KEY,
+} from "@/constants/api";
 import { POS_ORDER_CHANNEL, POS_PAYMENT_METHOD, WHATSAPP_ORDER_CHANNEL } from "@/constants/pos";
 import { createOrder } from "@/lib/api/orders";
 import { toOrderItems } from "@/lib/cart";
@@ -74,6 +79,10 @@ export function useCheckout() {
       // alone.
       if (order.stockDeductedAt === null) return;
       void queryClient.invalidateQueries({ queryKey: PRODUCT_SEARCH_QUERY_KEY });
+      // The browser's grid shows the same stock badges as the search list and
+      // was being left out of this, so a drawer opened straight after a sale
+      // showed the counts from before it.
+      void queryClient.invalidateQueries({ queryKey: PRODUCT_BROWSE_QUERY_KEY });
       void queryClient.invalidateQueries({ queryKey: PRODUCT_DETAIL_QUERY_KEY });
       void queryClient.invalidateQueries({ queryKey: PRODUCT_LOOKUP_QUERY_KEY });
     },
