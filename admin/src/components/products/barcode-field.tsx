@@ -61,28 +61,54 @@ export function BarcodeField({
   // field on a freshly flipped toggle is where the user is about to scan.
   const invalid = isSupplier && trimmed.length > 0 && !isValidBarcode(trimmed);
 
-  return (
-    <div className="flex flex-col gap-2">
-      <Label htmlFor={isSupplier ? id : undefined}>{t("label")}</Label>
+  const label = <Label htmlFor={isSupplier ? id : undefined}>{t("label")}</Label>;
 
-      <div className="grid grid-cols-2 gap-2" role="group" aria-label={t("label")}>
-        <SourceChoice
-          isSelected={!isSupplier}
-          disabled={disabled}
-          onSelect={() => onChange({ source: BARCODE_SOURCE.GENERATED, value })}
-          title={t("generated.title")}
-          hint={t("generated.hint")}
-          compact={compact}
-        />
-        <SourceChoice
-          isSelected={isSupplier}
-          disabled={disabled}
-          onSelect={() => onChange({ source: BARCODE_SOURCE.SUPPLIER, value })}
-          title={t("supplier.title")}
-          hint={t("supplier.hint")}
-          compact={compact}
-        />
-      </div>
+  // Two boxes with an explanation each on the product's own card, where this
+  // decision is being made for the first time and there is room to explain
+  // it. A segmented control inside a variant, where it is being repeated for
+  // the twelfth time and the words are already known — `w-fit` so it takes
+  // the width of what it says rather than a whole row of the card (CLAUDE.md
+  // "Admin layout conventions").
+  const sources = (
+    <div
+      className={cn("gap-2", compact ? "inline-flex w-fit rounded-lg border border-input p-1" : "grid grid-cols-2")}
+      role="group"
+      aria-label={t("label")}
+    >
+      <SourceChoice
+        isSelected={!isSupplier}
+        disabled={disabled}
+        onSelect={() => onChange({ source: BARCODE_SOURCE.GENERATED, value })}
+        title={t("generated.title")}
+        hint={t("generated.hint")}
+        compact={compact}
+      />
+      <SourceChoice
+        isSelected={isSupplier}
+        disabled={disabled}
+        onSelect={() => onChange({ source: BARCODE_SOURCE.SUPPLIER, value })}
+        title={t("supplier.title")}
+        hint={t("supplier.hint")}
+        compact={compact}
+      />
+    </div>
+  );
+
+  return (
+    <div className={cn("flex flex-col", compact ? "gap-1.5" : "gap-2")}>
+      {compact ? (
+        // Label and control share one line: a whole row for the word
+        // "Barcode" is a row a variant card cannot spare.
+        <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5">
+          {label}
+          {sources}
+        </div>
+      ) : (
+        <>
+          {label}
+          {sources}
+        </>
+      )}
 
       {isSupplier ? (
         <>
@@ -113,7 +139,7 @@ export function BarcodeField({
             </Button>
           </div>
 
-          <p id={`${id}-hint`} className="flex items-start gap-1.5 text-sm text-muted-foreground">
+          <p id={`${id}-hint`} className={cn("flex items-start gap-1.5 text-muted-foreground", compact ? "text-xs" : "text-sm")}>
             <ScanLine className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
             {t("supplier.entryHint")}
           </p>
@@ -149,7 +175,7 @@ export function BarcodeField({
         // that is one tap away above.
         <>
           <Input id={`${id}-generated`} value={currentCode ?? t("generated.pending")} dir="ltr" disabled readOnly />
-          <p className="text-sm text-muted-foreground">
+          <p className={cn("text-muted-foreground", compact ? "text-xs" : "text-sm")}>
             {currentCode ? t("generated.printHint") : t("generated.pendingHint")}
           </p>
         </>
@@ -168,7 +194,10 @@ interface SourceChoiceProps {
 }
 
 // A big, obvious tap target for each option (CLAUDE.md "Frontend UX": ~44px
-// minimum, and the chosen one has to read as chosen across a counter).
+// minimum, and the chosen one has to read as chosen across a counter). The
+// compact form keeps the 44px and drops everything else: no card border of
+// its own — the segment strip around it supplies that — no hint, and only as
+// much width as the label needs.
 function SourceChoice({ isSelected, disabled, onSelect, title, hint, compact }: SourceChoiceProps) {
   return (
     <button
@@ -177,14 +206,19 @@ function SourceChoice({ isSelected, disabled, onSelect, title, hint, compact }: 
       disabled={disabled}
       aria-pressed={isSelected}
       className={cn(
-        "flex min-h-12 flex-col justify-center gap-0.5 rounded-xl border p-3 text-start transition-colors",
+        "flex items-center transition-colors",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50",
+        compact
+          ? "min-h-11 justify-center rounded-md px-3 text-sm font-medium"
+          : "min-h-12 flex-col justify-center gap-0.5 rounded-xl border p-3 text-start",
         isSelected
-          ? "border-primary bg-primary/10 ring-2 ring-primary"
-          : "border-border bg-card not-disabled:hover:bg-accent/60"
+          ? compact
+            ? "bg-primary text-primary-foreground"
+            : "border-primary bg-primary/10 ring-2 ring-primary"
+          : cn("text-foreground not-disabled:hover:bg-accent/60", !compact && "border-border bg-card")
       )}
     >
-      <span className={cn("font-medium text-foreground", compact ? "text-sm" : "text-base")}>{title}</span>
+      <span className={cn("font-medium", compact ? "text-sm" : "text-base text-foreground")}>{title}</span>
       {!compact && <span className="text-xs text-muted-foreground">{hint}</span>}
     </button>
   );

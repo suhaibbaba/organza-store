@@ -781,7 +781,11 @@
         "active": "גלוי",
         "addMoreTitle": "הוספת שילובים נוספים",
         "addMoreSuccess": "הוריאציות נוספו.",
-        "generate": "יצירת וריאציות"
+        "generate": "יצירת וריאציות",
+        "toggleDetails": "פרטים — {name}",
+        "summaryStock": "מלאי: {count}",
+        "hidden": "מוסתר",
+        "barcodeIncomplete": "הברקוד חסר"
       },
       "images": {
         "productTitle": "תמונות המוצר",
