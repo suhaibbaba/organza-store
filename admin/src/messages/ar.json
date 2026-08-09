@@ -781,7 +781,11 @@
         "active": "ظاهر",
         "addMoreTitle": "إضافة مزيد من التركيبات",
         "addMoreSuccess": "تمت إضافة المتغيرات.",
-        "generate": "إنشاء المتغيرات"
+        "generate": "إنشاء المتغيرات",
+        "toggleDetails": "تفاصيل {name}",
+        "summaryStock": "المخزون: {count}",
+        "hidden": "مخفي",
+        "barcodeIncomplete": "الباركود ناقص"
       },
       "images": {
         "productTitle": "صور المنتج",

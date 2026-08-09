@@ -2,13 +2,14 @@
 
 import { useMemo, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { ChevronDown, Trash2 } from "lucide-react";
+import { ChevronDown, Trash2, TriangleAlert } from "lucide-react";
 import type { Variant, VariantType } from "@shared/types/variant";
 import { localize } from "@/lib/i18n-content";
 import { formatMoney } from "@/lib/format";
 import { NumericInput } from "@/components/ui/numeric-input";
 import { QuantityStepper } from "@/components/ui/quantity-stepper";
-import { parseQuantity } from "@/lib/validation/numeric";
+import { isNonNegativeDecimalString, parseQuantity } from "@/lib/validation/numeric";
+import { variantBarcodeIncomplete } from "@/lib/validation/variant-edit";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
@@ -53,6 +54,12 @@ interface VariantEditListProps {
 // (undo-able) and only sent as DELETE on final submit — as are the photos:
 // picking, removing and reordering them here stages the change, and the
 // product form's single Save writes the lot.
+//
+// Every variant is a small form, and a product can have thirty of them. Open,
+// they turned this screen into a scroll nobody could find anything in — so
+// each one is folded down to a line that answers the question actually being
+// asked of a list ("which one is this, and how many are there?") and opens
+// only when it is the one being edited.
 export function VariantEditList({
   variants,
   variantTypes,
@@ -78,6 +85,16 @@ export function VariantEditList({
   const tImages = useTranslations("products.form.images");
   const locale = useLocale();
   const [expandedImagesId, setExpandedImagesId] = useState<string | null>(null);
+  // Only the cards the user has opened or closed by hand. Everything else
+  // falls back to the rule below, so nothing has to be kept in sync.
+  const [openOverrides, setOpenOverrides] = useState<Record<string, boolean>>({});
+
+  // The variants this product already had when the screen was opened. Anything
+  // that turns up later arrived from "add more combinations" — it is what the
+  // user just asked for, and it opens on arrival rather than as another closed
+  // line they have to go and find. Held as lazily-initialised state rather
+  // than a ref because it is read while rendering.
+  const [knownIds] = useState(() => new Set(variants.map((variant) => variant.id)));
 
   // variantTypeId -> translated type name (e.g. "اللون", "المقاس", "الأرقام").
   const typeNameById = useMemo(() => {
@@ -139,143 +156,231 @@ export function VariantEditList({
           );
         }
 
+        // A supplier code that is half-typed blocks the whole form's Save
+        // (see product-form.tsx). Folding that card away would leave the user
+        // staring at an error with nothing on screen to fix, so a card with a
+        // problem opens itself and says so on its own line — unless the user
+        // has deliberately closed it, which their own choice still wins.
+        const hasProblem = variantBarcodeIncomplete(values);
+        const isNew = !knownIds.has(variant.id);
+        const isOpen = openOverrides[variant.id] ?? (isNew || hasProblem);
+
+        // What the fold has to answer without being opened: which one is this,
+        // how many are there, and what does it sell for. The price is the one
+        // that will actually be charged — the override if a valid one has been
+        // typed, the inherited price otherwise (CLAUDE.md rule 3).
+        const effectivePrice = isNonNegativeDecimalString(values.priceOverride)
+          ? values.priceOverride
+          : variant.resolvedPrice;
+        const summary = [
+          t("summaryStock", { count: parseQuantity(values.stock) }),
+          formatMoney(effectivePrice, currency, locale),
+        ];
+
         return (
-          <div key={variant.id} className="flex flex-col gap-3 rounded-xl border border-border bg-card p-3">
-            <div className="flex items-start justify-between gap-2">
-              <div className="min-w-0">
-                {groups.length > 0 ? (
-                  <div className="flex flex-wrap gap-x-2 gap-y-1">
-                    {groups.map((g) => (
+          <div key={variant.id} className="rounded-xl border border-border bg-card">
+            {/* The whole line is the tap target — on a phone a chevron alone
+                is a poor one, and this list is worked through card by card. */}
+            <button
+              type="button"
+              onClick={() => setOpenOverrides((prev) => ({ ...prev, [variant.id]: !isOpen }))}
+              aria-expanded={isOpen}
+              aria-label={t("toggleDetails", { name })}
+              className="flex w-full items-center gap-2 p-3 text-start transition-colors not-disabled:hover:bg-accent/40"
+            >
+              <ChevronDown
+                className={cn("size-4 shrink-0 text-muted-foreground transition-transform", isOpen && "rotate-180")}
+                aria-hidden="true"
+              />
+
+              <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+                <span className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+                  {groups.length > 0 ? (
+                    groups.map((g) => (
                       <span
                         key={g.key}
-                        className="inline-flex items-baseline gap-1 rounded-md bg-secondary px-2 py-0.5 text-sm font-medium text-secondary-foreground"
+                        className="inline-flex items-baseline gap-1 rounded-md bg-secondary px-1.5 py-0.5 text-sm font-medium text-secondary-foreground"
                       >
                         <span className="text-xs text-muted-foreground">{g.typeName}:</span>
                         {g.value}
                       </span>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="truncate text-sm font-medium text-foreground">{name}</p>
+                    ))
+                  ) : (
+                    <span className="truncate text-sm font-medium text-foreground">{name}</span>
+                  )}
+                  <span className="truncate text-xs text-muted-foreground" dir="ltr">
+                    {variant.sku}
+                  </span>
+                </span>
+
+                {/* Closed, this is the whole card. Open, it would only repeat
+                    the fields below it. */}
+                {!isOpen && (
+                  <span className="flex flex-wrap items-baseline gap-x-3 gap-y-0.5 text-xs">
+                    <span className="tabular-nums text-muted-foreground">{summary[0]}</span>
+                    <span className="font-medium tabular-nums text-foreground">{summary[1]}</span>
+                    {!values.isActive && <span className="font-medium text-muted-foreground">{t("hidden")}</span>}
+                    {hasProblem && (
+                      <span className="inline-flex items-center gap-1 font-medium text-destructive">
+                        <TriangleAlert className="size-3.5" aria-hidden="true" />
+                        {t("barcodeIncomplete")}
+                      </span>
+                    )}
+                  </span>
                 )}
-                <p className="mt-1 truncate text-xs text-muted-foreground">{variant.sku}</p>
-              </div>
-              {canEditDetails && canRemoveCombos && (
-                <button
-                  type="button"
-                  onClick={() => onRemove(variant.id)}
-                  className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-                  aria-label={t("removeCombo")}
-                >
-                  <Trash2 className="size-4" aria-hidden="true" />
-                </button>
-              )}
-            </div>
-
-            {canEditDetails && (
-              <div className="grid grid-cols-2 gap-3">
-                {canEditStock && (
-                  <div className="flex flex-col gap-1.5">
-                    <span className="text-sm font-medium">{t("stock")}</span>
-                    <QuantityStepper
-                      value={parseQuantity(values.stock)}
-                      onChange={(stock) => onEditChange(variant.id, { ...values, stock: String(stock) })}
-                      decreaseLabel={tCommon("quantity.decrease", { name })}
-                      increaseLabel={tCommon("quantity.increase", { name })}
-                      valueLabel={tCommon("quantity.value", { name })}
-                    />
-                  </div>
-                )}
-
-                {canEditPrice ? (
-                  <div className="flex flex-col gap-1.5">
-                    <Label htmlFor={`price-${variant.id}`}>{t("priceOverride")}</Label>
-                    <NumericInput
-                      id={`price-${variant.id}`}
-                      allowDecimal
-                      placeholder={t("inherits", { value: formatMoney(variant.resolvedPrice, currency, locale) })}
-                      value={values.priceOverride}
-                      onChange={(e) => onEditChange(variant.id, { ...values, priceOverride: e.target.value })}
-                    />
-                  </div>
-                ) : (
-                  // Read-only for a role that can fix the piece but not
-                  // re-price it — the number still has to be visible.
-                  <div className="flex flex-col gap-1.5">
-                    <Label>{t("priceOverride")}</Label>
-                    <p className="text-sm font-semibold text-foreground">
-                      {formatMoney(variant.resolvedPrice, currency, locale)}
-                    </p>
-                  </div>
-                )}
-
-                {canSeeCost && (
-                  <div className="flex flex-col gap-1.5">
-                    <Label htmlFor={`cost-${variant.id}`}>{t("cost")}</Label>
-                    <NumericInput
-                      id={`cost-${variant.id}`}
-                      allowDecimal
-                      placeholder={
-                        variant.resolvedCost
-                          ? t("inherits", { value: formatMoney(variant.resolvedCost, currency, locale) })
-                          : undefined
-                      }
-                      value={values.cost}
-                      onChange={(e) => onEditChange(variant.id, { ...values, cost: e.target.value })}
-                    />
-                  </div>
-                )}
-
-                {canHide && (
-                  <div className={cn("flex items-center justify-between gap-2 rounded-lg", !canSeeCost && "col-span-1")}>
-                    <Label htmlFor={`active-${variant.id}`}>{t("active")}</Label>
-                    <Switch
-                      id={`active-${variant.id}`}
-                      checked={values.isActive}
-                      onCheckedChange={(checked) => onEditChange(variant.id, { ...values, isActive: checked })}
-                    />
-                  </div>
-                )}
-
-                {/* Each size's own code: one can carry the supplier's printed
-                    tag while the next still uses ours. Full width — the toggle
-                    plus a scannable field does not fit in half a phone. */}
-                <div className="col-span-2">
-                  <BarcodeField
-                    id={`barcode-${variant.id}`}
-                    compact
-                    source={values.barcodeSource}
-                    value={values.barcode}
-                    onChange={({ source, value }) =>
-                      onEditChange(variant.id, { ...values, barcodeSource: source, barcode: value })
-                    }
-                    currentCode={variant.barcode}
-                    disabled={isSaving}
-                  />
-                </div>
-              </div>
-            )}
-
-            <button
-              type="button"
-              onClick={() => setExpandedImagesId(imagesOpen ? null : variant.id)}
-              className="flex min-h-9 items-center justify-between gap-2 text-sm font-medium text-foreground"
-              aria-expanded={imagesOpen}
-            >
-              <span>
-                {tImages("variantSectionTitle")} · {(imageSlots[variant.id] ?? []).length}
               </span>
-              <ChevronDown className={cn("size-4 text-muted-foreground transition-transform", imagesOpen && "rotate-180")} aria-hidden="true" />
             </button>
 
-            {imagesOpen && (
-              <ImageManager
-                slots={imageSlots[variant.id] ?? []}
-                onChange={(next) => onImageSlotsChange(variant.id, next)}
-                canDelete={canDeleteImages}
-                isBusy={isSaving}
-                emptyHint={tImages("variantFallbackHint")}
-              />
+            {isOpen && (
+              // Read top to bottom: stock, then what it costs and sells for,
+              // then its code, then its photos — with hairlines rather than
+              // large gaps doing the separating, which is what lets three of
+              // these fit where one used to.
+              <div className="flex flex-col divide-y divide-border border-t border-border">
+                {canEditDetails && (
+                  <>
+                    {(canEditStock || canHide) && (
+                      <div className="flex flex-col gap-2 px-3 py-2">
+                        {canEditStock && (
+                          // Label and stepper on one line: a stepper is a
+                          // fixed 150-odd pixels and can never fill a row, so
+                          // giving it one leaves exactly the dead space this
+                          // card had too much of.
+                          <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5">
+                            <span className="text-sm font-medium">{t("stock")}</span>
+                            <QuantityStepper
+                              value={parseQuantity(values.stock)}
+                              onChange={(stock) => onEditChange(variant.id, { ...values, stock: String(stock) })}
+                              decreaseLabel={tCommon("quantity.decrease", { name })}
+                              increaseLabel={tCommon("quantity.increase", { name })}
+                              valueLabel={tCommon("quantity.value", { name })}
+                            />
+                          </div>
+                        )}
+
+                        {/* Its own row, next to its own label: sat in the
+                            pricing grid it read as a switch belonging to the
+                            cost box beside it. */}
+                        {canHide && (
+                          <div className="flex min-h-11 flex-wrap items-center justify-between gap-x-3 gap-y-1.5">
+                            <Label htmlFor={`active-${variant.id}`}>{t("active")}</Label>
+                            <Switch
+                              id={`active-${variant.id}`}
+                              checked={values.isActive}
+                              onCheckedChange={(checked) => onEditChange(variant.id, { ...values, isActive: checked })}
+                            />
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Cost and price are the same kind of number about the
+                        same piece, so they share a row and each takes half of
+                        it — rather than one narrow box with a void beside it. */}
+                    <div className="grid grid-cols-2 gap-x-3 gap-y-2 px-3 py-2">
+                      {canSeeCost && (
+                        <div className="flex flex-col gap-1">
+                          <Label htmlFor={`cost-${variant.id}`}>{t("cost")}</Label>
+                          <NumericInput
+                            id={`cost-${variant.id}`}
+                            allowDecimal
+                            placeholder={
+                              variant.resolvedCost
+                                ? t("inherits", { value: formatMoney(variant.resolvedCost, currency, locale) })
+                                : undefined
+                            }
+                            value={values.cost}
+                            onChange={(e) => onEditChange(variant.id, { ...values, cost: e.target.value })}
+                          />
+                        </div>
+                      )}
+
+                      {canEditPrice ? (
+                        <div className={cn("flex flex-col gap-1", !canSeeCost && "col-span-2")}>
+                          <Label htmlFor={`price-${variant.id}`}>{t("priceOverride")}</Label>
+                          <NumericInput
+                            id={`price-${variant.id}`}
+                            allowDecimal
+                            placeholder={t("inherits", { value: formatMoney(variant.resolvedPrice, currency, locale) })}
+                            value={values.priceOverride}
+                            onChange={(e) => onEditChange(variant.id, { ...values, priceOverride: e.target.value })}
+                          />
+                        </div>
+                      ) : (
+                        // Read-only for a role that can fix the piece but not
+                        // re-price it — the number still has to be visible.
+                        <div className={cn("flex flex-col gap-1", !canSeeCost && "col-span-2")}>
+                          <Label>{t("priceOverride")}</Label>
+                          <p className="text-sm font-semibold text-foreground">
+                            {formatMoney(variant.resolvedPrice, currency, locale)}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Each size's own code: one can carry the supplier's
+                        printed tag while the next still uses ours. */}
+                    <div className="px-3 py-2">
+                      <BarcodeField
+                        id={`barcode-${variant.id}`}
+                        compact
+                        source={values.barcodeSource}
+                        value={values.barcode}
+                        onChange={({ source, value }) =>
+                          onEditChange(variant.id, { ...values, barcodeSource: source, barcode: value })
+                        }
+                        currentCode={variant.barcode}
+                        disabled={isSaving}
+                      />
+                    </div>
+                  </>
+                )}
+
+                <div className="flex flex-col gap-2 px-3 py-2">
+                  <button
+                    type="button"
+                    onClick={() => setExpandedImagesId(imagesOpen ? null : variant.id)}
+                    className="flex min-h-11 items-center justify-between gap-2 text-sm font-medium text-foreground"
+                    aria-expanded={imagesOpen}
+                  >
+                    <span>
+                      {tImages("variantSectionTitle")} · {(imageSlots[variant.id] ?? []).length}
+                    </span>
+                    <ChevronDown
+                      className={cn("size-4 text-muted-foreground transition-transform", imagesOpen && "rotate-180")}
+                      aria-hidden="true"
+                    />
+                  </button>
+
+                  {imagesOpen && (
+                    <ImageManager
+                      slots={imageSlots[variant.id] ?? []}
+                      onChange={(next) => onImageSlotsChange(variant.id, next)}
+                      canDelete={canDeleteImages}
+                      isBusy={isSaving}
+                      emptyHint={tImages("variantFallbackHint")}
+                    />
+                  )}
+                </div>
+
+                {/* Last, behind its own rule, and only inside an opened card:
+                    the one irreversible thing here should not be a small
+                    target sitting beside the line you tap to read a variant. */}
+                {canEditDetails && canRemoveCombos && (
+                  <div className="px-3 py-2">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => onRemove(variant.id)}
+                      className="text-destructive not-disabled:hover:bg-destructive/10 not-disabled:hover:text-destructive"
+                    >
+                      <Trash2 aria-hidden="true" />
+                      {t("removeCombo")}
+                    </Button>
+                  </div>
+                )}
+              </div>
             )}
           </div>
         );
