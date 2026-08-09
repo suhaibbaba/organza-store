@@ -4,8 +4,9 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { DISCOUNT_TYPES } from "@shared/constants/order";
 import type { DiscountType } from "@shared/types/order";
-import { isDiscountValueInRange } from "@/lib/money";
-import { isNonNegativeDecimalString } from "@/lib/validation/numeric";
+import { isDiscountValueInRange, maxDiscountValue } from "@/lib/money";
+import { isNonNegativeIntegerString } from "@/lib/validation/numeric";
+import { useCurrencySymbol } from "@/hooks/use-currency-symbol";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { NumericInput } from "@/components/ui/numeric-input";
@@ -21,7 +22,7 @@ interface OrderDiscountSheetProps {
   // What the discount applies to — the line's own name, or the whole order.
   title: string;
   // The amount being discounted, so it's visible what a percentage is a
-  // percentage of.
+  // percentage of — and so a flat sum can be held to it.
   baseAmount: string;
   current: DiscountState;
   onApply: (type: DiscountType | null, value: string | null) => void;
@@ -58,6 +59,7 @@ export function OrderDiscountSheet({
             currently applied, not what was last typed and abandoned. */}
         {open && (
           <DiscountForm
+            baseAmount={baseAmount}
             current={current}
             onApply={(type, value) => {
               onApply(type, value);
@@ -71,20 +73,28 @@ export function OrderDiscountSheet({
 }
 
 interface DiscountFormProps {
+  baseAmount: string;
   current: DiscountState;
   onApply: (type: DiscountType | null, value: string | null) => void;
 }
 
-function DiscountForm({ current, onApply }: DiscountFormProps) {
+function DiscountForm({ baseAmount, current, onApply }: DiscountFormProps) {
   const t = useTranslations("orders.discount");
+  const currency = useCurrencySymbol();
+  const formatMoney = useMoneyFormatter();
   const [type, setType] = useState<DiscountType>(current.type ?? "PERCENT");
   const [value, setValue] = useState(current.value ?? "");
 
   const trimmed = value.trim();
-  const isValid = trimmed !== "" && isNonNegativeDecimalString(trimmed) && isDiscountValueInRange(type, trimmed);
+  // Whole numbers only, on both sides of the toggle (CLAUDE.md "Mobile input
+  // & device specifics"): this is keyed in on a phone keypad, where a stray
+  // "." is a mis-key rather than an intention.
+  const isValid =
+    trimmed !== "" && isNonNegativeIntegerString(trimmed) && isDiscountValueInRange(type, trimmed, baseAmount);
   // Only complain about something actually typed — an empty field is where
   // everyone starts, not a mistake.
   const showRangeError = trimmed !== "" && !isValid;
+  const max = maxDiscountValue(type, baseAmount);
 
   return (
     <div className="flex flex-col gap-4 overflow-y-auto px-5 pb-5">
@@ -98,25 +108,32 @@ function DiscountForm({ current, onApply }: DiscountFormProps) {
               onClick={() => setType(option)}
               aria-pressed={type === option}
               className={cn(
-                "h-12 rounded-lg border text-base font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                "min-h-12 rounded-lg border px-4 py-3 text-base font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                 type === option
                   ? "border-primary bg-primary text-primary-foreground"
                   : "border-input bg-background text-foreground hover:bg-accent"
               )}
             >
-              {t(`type.${option}`)}
+              {/* The fixed-amount option names the shop's currency, from
+                  Settings — "Fixed amount" alone left the two options saying
+                  nothing about which one deals in money. */}
+              {option === "AMOUNT" && currency ? t("type.AMOUNT_currency", { currency }) : t(`type.${option}`)}
             </button>
           ))}
         </div>
       </div>
 
       <div className="flex flex-col gap-2">
-        <Label htmlFor="order-discount-value">{t(`valueLabel.${type}`)}</Label>
+        <Label htmlFor="order-discount-value">
+          {type === "AMOUNT" && currency ? t("valueLabel.AMOUNT_currency", { currency }) : t(`valueLabel.${type}`)}
+        </Label>
         <NumericInput
           id="order-discount-value"
-          allowDecimal
           value={value}
           onChange={(event) => setValue(event.target.value)}
+          // A whole percentage can only ever be three digits, and a flat sum
+          // can only ever be as long as the amount it comes off.
+          maxLength={String(Math.max(max, 1)).length}
           placeholder={t(`valuePlaceholder.${type}`)}
           aria-invalid={showRangeError}
           enterKeyHint="done"
@@ -125,18 +142,38 @@ function DiscountForm({ current, onApply }: DiscountFormProps) {
           // the Apply button. The keyboard belongs to whoever taps the field.
           className="text-lg"
         />
-        {showRangeError && <Alert variant="destructive">{t("invalid")}</Alert>}
+        {showRangeError && (
+          <Alert variant="destructive">
+            {type === "PERCENT" ? t("invalid.PERCENT", { max }) : t("invalid.AMOUNT", { max: formatMoney(baseAmount) })}
+          </Alert>
+        )}
       </div>
 
-      <div className="flex flex-col gap-2">
-        <Button type="button" onClick={() => isValid && onApply(type, trimmed)} disabled={!isValid}>
-          {t("apply")}
-        </Button>
+      {/* Apply stays the primary button; Remove is destructive, because
+          undoing a discount somebody was promised is not a neutral act — and
+          it is absent entirely when there is nothing to remove. Written after
+          Remove so the row reads Remove → Apply once there is width for a
+          row, putting the primary action at the end of it in both reading
+          directions. */}
+      <div className="mt-2 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
         {current.type && (
-          <Button type="button" variant="ghost" onClick={() => onApply(null, null)} className="text-destructive">
+          <Button
+            type="button"
+            variant="destructive"
+            onClick={() => onApply(null, null)}
+            className="w-full sm:w-auto"
+          >
             {t("remove")}
           </Button>
         )}
+        <Button
+          type="button"
+          onClick={() => isValid && onApply(type, trimmed)}
+          disabled={!isValid}
+          className="w-full sm:w-auto"
+        >
+          {t("apply")}
+        </Button>
       </div>
     </div>
   );

@@ -92,7 +92,7 @@ export function CategoryTreeNode(props: CategoryTreeNodeProps) {
               aria-label={node.isFavorite ? t("unpin", { name }) : t("pin", { name })}
               disabled={isTogglingFavorite}
               className={cn(
-                "inline-flex size-11 items-center justify-center rounded-lg hover:bg-accent disabled:opacity-50",
+                "inline-flex size-11 items-center justify-center rounded-lg not-disabled:hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50",
                 node.isFavorite ? "text-warning" : "text-muted-foreground hover:text-accent-foreground"
               )}
             >
@@ -111,7 +111,7 @@ export function CategoryTreeNode(props: CategoryTreeNodeProps) {
               onClick={() => onRequestDelete(node.id)}
               aria-label={t("delete")}
               disabled={isDeleting}
-              className="inline-flex size-11 items-center justify-center rounded-lg text-muted-foreground hover:bg-destructive/10 hover:text-destructive disabled:opacity-50"
+              className="inline-flex size-11 items-center justify-center rounded-lg text-muted-foreground not-disabled:hover:bg-destructive/10 not-disabled:hover:text-destructive disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isDeleting ? <Spinner className="size-4" /> : <Trash2 className="size-4" aria-hidden="true" />}
             </button>

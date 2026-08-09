@@ -165,17 +165,22 @@
       "typeLabel": "סוג ההנחה",
       "type": {
         "PERCENT": "אחוז %",
-        "AMOUNT": "סכום"
+        "AMOUNT": "סכום",
+        "AMOUNT_currency": "סכום {currency}"
       },
       "valueLabel": {
         "PERCENT": "הנחה (%)",
-        "AMOUNT": "סכום ההנחה"
+        "AMOUNT": "סכום ההנחה",
+        "AMOUNT_currency": "סכום ההנחה ({currency})"
       },
       "valuePlaceholder": {
         "PERCENT": "לדוגמה: 10",
         "AMOUNT": "לדוגמה: 20"
       },
-      "invalid": "הזן ערך תקין (אחוז בין 0 ל-100).",
+      "invalid": {
+        "PERCENT": "הזינו מספר שלם בין 0 ל-{max}.",
+        "AMOUNT": "הזינו מספר שלם, עד {max}."
+      },
       "apply": "החלת ההנחה",
       "remove": "הסרת ההנחה"
     },

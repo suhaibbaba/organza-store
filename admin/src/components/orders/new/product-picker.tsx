@@ -85,7 +85,7 @@ export function ProductPicker({ query, onQueryChange, pendingId, onSelect }: Pro
                   type="button"
                   disabled={soldOut || pendingId !== null}
                   onClick={() => onSelect(product)}
-                  className="flex w-full items-center gap-3 rounded-xl border border-border bg-card p-3 text-start transition-colors hover:bg-accent/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-60"
+                  className="flex w-full items-center gap-3 rounded-xl border border-border bg-card p-3 text-start transition-colors not-disabled:hover:bg-accent/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   <ProductImage
                     src={product.image?.thumbnailUrl}

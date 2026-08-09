@@ -73,7 +73,7 @@ export function ProductKindChoice({ value, onChange, lockedReason, disabled }: P
                 "flex min-h-24 flex-1 flex-col items-start gap-1 rounded-xl border p-4 text-start transition-colors",
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                 "disabled:cursor-not-allowed disabled:opacity-50",
-                selected ? "border-primary bg-primary/10" : "border-border bg-card hover:bg-accent/60"
+                selected ? "border-primary bg-primary/10" : "border-border bg-card not-disabled:hover:bg-accent/60"
               )}
             >
               <span className="flex items-center gap-2 text-base font-medium text-foreground">

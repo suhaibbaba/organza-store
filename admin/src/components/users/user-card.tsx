@@ -66,7 +66,7 @@ export function UserCard({ user, onEdit, confirmToggleId, onRequestToggle, onCan
               onClick={() => onRequestToggle(user.id)}
               aria-label={user.isActive ? t("deactivate") : t("activate")}
               disabled={isToggling}
-              className="inline-flex size-11 items-center justify-center rounded-lg text-muted-foreground hover:bg-accent hover:text-accent-foreground disabled:opacity-50"
+              className="inline-flex size-11 items-center justify-center rounded-lg text-muted-foreground not-disabled:hover:bg-accent not-disabled:hover:text-accent-foreground disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isToggling ? (
                 <Spinner className="size-4" />

@@ -181,7 +181,7 @@ function SourceChoice({ isSelected, disabled, onSelect, title, hint, compact }: 
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50",
         isSelected
           ? "border-primary bg-primary/10 ring-2 ring-primary"
-          : "border-border bg-card hover:bg-accent/60"
+          : "border-border bg-card not-disabled:hover:bg-accent/60"
       )}
     >
       <span className={cn("font-medium text-foreground", compact ? "text-sm" : "text-base")}>{title}</span>

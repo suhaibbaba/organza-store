@@ -70,7 +70,7 @@ export function QuantityStepper({ value, max, onChange, onBelowMin, itemLabel, c
         // otherwise it is a button that would do nothing.
         disabled={value <= floor && !onBelowMin}
         aria-label={t("decrease", { name: itemLabel })}
-        className="flex size-11 shrink-0 items-center justify-center rounded-lg border border-input text-foreground transition-colors hover:bg-accent disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className="flex size-11 shrink-0 items-center justify-center rounded-lg border border-input text-foreground transition-colors not-disabled:hover:bg-accent disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
         <Minus className="size-5" aria-hidden="true" />
       </button>
@@ -89,7 +89,7 @@ export function QuantityStepper({ value, max, onChange, onBelowMin, itemLabel, c
         onClick={() => step(value + 1)}
         disabled={value >= ceiling}
         aria-label={t("increase", { name: itemLabel })}
-        className="flex size-11 shrink-0 items-center justify-center rounded-lg border border-input text-foreground transition-colors hover:bg-accent disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className="flex size-11 shrink-0 items-center justify-center rounded-lg border border-input text-foreground transition-colors not-disabled:hover:bg-accent disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
         <Plus className="size-5" aria-hidden="true" />
       </button>

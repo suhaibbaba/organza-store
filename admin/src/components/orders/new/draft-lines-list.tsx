@@ -1,9 +1,10 @@
 "use client";
 
 import { useLocale, useTranslations } from "next-intl";
-import { Percent, Trash2 } from "lucide-react";
+import { Tag, Trash2 } from "lucide-react";
 import { localize } from "@/lib/i18n-content";
-import { lineTotal } from "@/lib/order-draft";
+import { lineDiscountCents, lineTotal } from "@/lib/order-draft";
+import { fromCents, toCents } from "@/lib/money";
 import { MIN_ORDER_QUANTITY } from "@/constants/orders";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
 import { QuantityStepper } from "@/components/ui/quantity-stepper";
@@ -38,6 +39,23 @@ export function DraftLinesList({ draft, onLineDiscountClick }: DraftLinesListPro
         const variantName = line.variantName ? localize(line.variantName, locale) : null;
         const label = variantName ? `${name} — ${variantName}` : name;
         const hasDiscount = line.discountType !== null && line.discountValue !== null;
+        const discountCents = lineDiscountCents(line);
+        // What was applied, written the way its own type is written: a
+        // percentage as a percentage, a flat sum in the shop's currency (from
+        // Settings, via the money formatter). Never a percent sign over an
+        // amount.
+        const appliedDiscount = hasDiscount
+          ? line.discountType === "PERCENT"
+            ? t("percentValue", { value: Number(line.discountValue) })
+            : formatMoney(line.discountValue ?? "0")
+          : null;
+        // A percentage says nothing about the money until it is resolved
+        // against the line, so the money is spelled out beside it. A flat sum
+        // already is the money — unless it was clamped down to what the line
+        // was worth, which is the one case worth spelling out too.
+        const showResolvedAmount =
+          hasDiscount &&
+          (line.discountType === "PERCENT" || discountCents !== toCents(line.discountValue));
 
         return (
           <li key={line.key} className="flex flex-col gap-2 rounded-xl border border-border bg-card p-3">
@@ -50,6 +68,19 @@ export function DraftLinesList({ draft, onLineDiscountClick }: DraftLinesListPro
                 <p className="truncate text-xs text-muted-foreground">
                   {t("unitPrice", { price: formatMoney(line.unitPrice) })}
                 </p>
+                {/* Under the price, because that is the number it changes.
+                    A percentage is shown with the money it comes to — "10%"
+                    alone is not an amount anybody can check an order against. */}
+                {appliedDiscount && (
+                  <p className="truncate text-xs font-medium text-primary">
+                    {showResolvedAmount
+                      ? t("discountApplied", {
+                          value: appliedDiscount,
+                          amount: formatMoney(fromCents(discountCents)),
+                        })
+                      : t("discountValue", { value: appliedDiscount })}
+                  </p>
+                )}
               </div>
 
               <button
@@ -82,31 +113,29 @@ export function DraftLinesList({ draft, onLineDiscountClick }: DraftLinesListPro
                   aria-label={t("discountFor", { name: label })}
                   className={
                     hasDiscount
-                      ? "flex h-11 items-center gap-1 rounded-lg border border-primary px-3 text-xs font-medium text-primary"
-                      : "flex h-11 items-center gap-1 rounded-lg border border-input px-3 text-xs font-medium text-muted-foreground transition-colors hover:bg-accent"
+                      ? "flex min-h-11 items-center gap-1 rounded-lg border border-primary px-3 py-2 text-xs font-medium text-primary"
+                      : "flex min-h-11 items-center gap-1 rounded-lg border border-input px-3 py-2 text-xs font-medium text-muted-foreground transition-colors hover:bg-accent"
                   }
                 >
-                  {/* The icon labels an empty control. Once a discount is set,
-                      the value speaks for itself — "10%" next to a % glyph
-                      just reads as a stutter. */}
-                  {hasDiscount ? (
-                    line.discountType === "PERCENT" ? (
-                      t("percentValue", { value: Number(line.discountValue) })
-                    ) : (
-                      formatMoney(line.discountValue ?? "0")
-                    )
-                  ) : (
-                    <>
-                      <Percent className="size-4" aria-hidden="true" />
-                      {t("addDiscount")}
-                    </>
-                  )}
+                  {/* A price tag, not a percent sign: the glyph names the
+                      control, and it cannot know whether this discount is a
+                      percentage or a flat sum. The text beside it does — it is
+                      either "10%" or an amount in the shop's own currency. */}
+                  <Tag className="size-4" aria-hidden="true" />
+                  {appliedDiscount ?? t("addDiscount")}
                 </button>
                 <span className="w-20 shrink-0 text-end text-sm font-semibold tabular-nums text-foreground">
                   {formatMoney(lineTotal(line))}
                 </span>
               </div>
             </div>
+
+            {/* Why the + went dead. A disabled control with no explanation
+                reads as a broken screen; the shop simply hasn't got another
+                one of these. */}
+            {line.quantity >= line.availableStock && (
+              <p className="text-xs text-muted-foreground">{t("stockCap", { count: line.availableStock })}</p>
+            )}
           </li>
         );
       })}

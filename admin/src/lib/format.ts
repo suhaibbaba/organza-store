@@ -9,6 +9,19 @@ export function formatMoney(amount: string | number, currency: string, locale: s
   }
 }
 
+// The currency's own symbol, as the current language writes it — read out of
+// the same Intl formatter every price goes through, so a label that NAMES the
+// currency ("Amount (₪)") can never drift from the figures beside it. Falls
+// back to the code, which is still true, just less pretty.
+export function currencySymbol(currency: string, locale: string): string {
+  try {
+    const parts = new Intl.NumberFormat(locale, { style: "currency", currency }).formatToParts(0);
+    return parts.find((part) => part.type === "currency")?.value ?? currency;
+  } catch {
+    return currency;
+  }
+}
+
 // Order timestamps arrive as ISO strings. Rendered in the user's own locale
 // and calendar (Intl gives Arabic its own numerals and month names), which is
 // what "dates render correctly" means for an Arabic-first UI. An unparseable

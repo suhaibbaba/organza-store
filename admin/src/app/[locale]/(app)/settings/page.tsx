@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import { RoleGuard } from "@/components/auth/role-guard";
 import { PageContainer } from "@/components/layout/page-container";
 import { PageHeader } from "@/components/layout/page-header";
+import { FormContainer } from "@/components/layout/form-container";
 import { useSettingsQuery } from "@/hooks/use-settings";
 import { useTranslateError } from "@/hooks/use-translate-error";
 import { SettingsForm } from "@/components/settings/settings-form";
@@ -23,7 +24,10 @@ function SettingsPageContent() {
     <PageContainer>
       <PageHeader title={t("title")} description={t("subtitle")} />
 
-      <div className="flex flex-col gap-4">
+      {/* A form screen, not a table one: the whole column — the device
+          card as well as the form under it — is held to a readable width so
+          the two line up instead of one running the span of a laptop. */}
+      <FormContainer className="flex flex-col gap-4">
         {isLoading ? (
           <div className="flex flex-col gap-3">
             {Array.from({ length: 3 }).map((_, i) => (
@@ -50,7 +54,7 @@ function SettingsPageContent() {
             <AppVersion className="w-auto items-center self-center" />
           </>
         )}
-      </div>
+      </FormContainer>
     </PageContainer>
   );
 }

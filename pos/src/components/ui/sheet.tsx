@@ -29,6 +29,12 @@ interface SheetContentProps extends React.ComponentProps<typeof DialogPrimitive.
   // from a screen edge two hands away. "start"/"end" are the writing-
   // direction edges (start = right in RTL), kept for anything drawer-like.
   side?: "bottom" | "start" | "end";
+  // A bottom sheet whose contents are a short form rather than something to
+  // browse — the discount dialog is two options and one field. On a phone it
+  // is exactly the sheet it always was, full width under the thumb. From the
+  // small breakpoint up it stops being a strip across a 1600px laptop and
+  // becomes what it actually is: a small modal in the middle of the screen.
+  compact?: boolean;
   closeLabel: string;
 }
 
@@ -36,6 +42,7 @@ function SheetContent({
   className,
   children,
   side = "bottom",
+  compact = false,
   closeLabel,
   onOpenAutoFocus = focusPanelNotFirstField,
   ...props
@@ -55,6 +62,15 @@ function SheetContent({
           "data-[state=closed]:duration-200 data-[state=open]:duration-300",
           side === "bottom" &&
             "inset-x-0 bottom-0 max-h-[90dvh] rounded-t-2xl border-t data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom",
+          // Centred with `inset-0` + `m-auto` rather than a half-translate:
+          // no transform to fight the open/close animation, and nothing
+          // direction-dependent to get wrong — centre is centre in Arabic
+          // too. `h-fit` is what makes the vertical half of that work: with
+          // `inset-0` and an auto height the box would be stretched to the
+          // full viewport instead of centred in it.
+          side === "bottom" &&
+            compact &&
+            "sm:inset-0 sm:m-auto sm:h-fit sm:w-full sm:max-w-md sm:max-h-[85dvh] sm:rounded-2xl sm:border",
           // The slide direction must be logical (`start`/`end`), not physical
           // (`left`/`right`): the panel is pinned with a logical inset, so in
           // RTL a physical slide would fly it in from the opposite edge and

@@ -312,17 +312,22 @@
       "typeLabel": "نوع الخصم",
       "type": {
         "PERCENT": "نسبة مئوية",
-        "AMOUNT": "مبلغ ثابت"
+        "AMOUNT": "مبلغ ثابت",
+        "AMOUNT_currency": "مبلغ ثابت {currency}"
       },
       "valueLabel": {
         "PERCENT": "النسبة",
-        "AMOUNT": "المبلغ"
+        "AMOUNT": "المبلغ",
+        "AMOUNT_currency": "المبلغ ({currency})"
       },
       "valuePlaceholder": {
         "PERCENT": "مثال: 10",
         "AMOUNT": "مثال: 20"
       },
-      "invalid": "أدخل قيمة صحيحة (النسبة من 0 إلى 100).",
+      "invalid": {
+        "PERCENT": "أدخل رقماً صحيحاً بين 0 و{max}.",
+        "AMOUNT": "أدخل رقماً صحيحاً، بحد أقصى {max}."
+      },
       "apply": "تطبيق الخصم",
       "remove": "إزالة الخصم",
       "percentValue": "{value}%"
@@ -463,7 +468,10 @@
         "quantityFor": "الكمية — {name}",
         "discountFor": "خصم على {name}",
         "addDiscount": "خصم",
-        "percentValue": "{value}%"
+        "percentValue": "{value}%",
+        "discountApplied": "خصم {value} · ‎−{amount}",
+        "discountValue": "خصم {value}",
+        "stockCap": "{count, plural, zero {لا يوجد مخزون} one {هذه آخر قطعة متوفرة} two {هاتان آخر قطعتين متوفرتين} other {هذا كل المتوفر: # قطعة}}"
       },
       "totals": {
         "subtotal": "المجموع الفرعي ({count})",

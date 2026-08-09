@@ -79,7 +79,8 @@ export function SearchResults({ results, isLoading, isError, pendingId, onSelect
               onClick={() => onSelect(product)}
               className={cn(
                 "flex w-full items-center gap-3 rounded-xl border border-border p-3 text-start transition-colors",
-                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-60",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                "disabled:cursor-not-allowed disabled:opacity-60",
                 // border-s-* is the logical side, so the bar sits on the
                 // leading edge and swaps to the right of the card in Arabic
                 // with nothing to mirror by hand. The plain card reserves the
@@ -87,8 +88,8 @@ export function SearchResults({ results, isLoading, isError, pendingId, onSelect
                 // thumbnail in the list on one vertical line.
                 "border-s-4",
                 product.hasVariants
-                  ? "border-s-primary bg-secondary/40 hover:bg-secondary/70"
-                  : "border-s-transparent bg-card hover:bg-accent/60"
+                  ? "border-s-primary bg-secondary/40 not-disabled:hover:bg-secondary/70"
+                  : "border-s-transparent bg-card not-disabled:hover:bg-accent/60"
               )}
             >
               <ProductThumb src={product.image?.thumbnailUrl} alt={name} className="size-16 rounded-lg" />

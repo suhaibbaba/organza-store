@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { Percent, Trash2 } from "lucide-react";
+import { Tag, Trash2 } from "lucide-react";
 import { localize } from "@/lib/i18n-content";
 import { lineDiscountCents, lineTotal } from "@/lib/cart";
 import { fromCents, toCents } from "@/lib/money";
@@ -137,7 +137,13 @@ export function CartLineRow({ line, flash, onQuantityChange, onRemove, onDiscoun
             aria-label={t("discountFor", { name: fullName })}
             className="flex h-11 items-center gap-1.5 rounded-lg border border-input px-3 text-sm font-medium transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
-            <Percent className="size-4" aria-hidden="true" />
+            {/* A price tag, not a percent sign. The glyph names the
+                CONTROL ("discount"), and it is the only thing here that
+                cannot know the type — so it must not claim one. What kind of
+                discount this is comes from the text beside it, which is
+                either a percentage ("2%") or an amount in the shop's own
+                currency ("₪5.00"), and never both. */}
+            <Tag className="size-4" aria-hidden="true" />
             {/* The value, not the money: the money is on the line above,
                 and this button is how you change the value. */}
             {appliedDiscount ?? t("addDiscount")}

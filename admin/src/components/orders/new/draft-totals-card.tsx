@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { Percent } from "lucide-react";
+import { Tag } from "lucide-react";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -57,7 +57,9 @@ export function DraftTotalsCard({ totals, orderDiscount, onOrderDiscountClick }:
         )}
 
         <Button type="button" variant="outline" className="w-full sm:w-auto sm:self-start" onClick={onOrderDiscountClick}>
-          <Percent className="size-4" aria-hidden="true" />
+          {/* Type-neutral: the row above states whether this is a
+              percentage or a flat sum. */}
+          <Tag className="size-4" aria-hidden="true" />
           {hasOrderDiscount ? t("editOrderDiscount") : t("addOrderDiscount")}
         </Button>
 

@@ -40,6 +40,7 @@ import { buildVariantPreview, toOptionSelections, comboKey } from "@/lib/variant
 import { localize } from "@/lib/i18n-content";
 import { formatMoney } from "@/lib/format";
 import { LOCALE_LABELS } from "@/constants/locale";
+import { FormContainer } from "@/components/layout/form-container";
 import { Input } from "@/components/ui/input";
 import { NumericInput } from "@/components/ui/numeric-input";
 import { QuantityStepper } from "@/components/ui/quantity-stepper";
@@ -414,7 +415,7 @@ export function ProductForm({ mode, product }: ProductFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} noValidate className="flex flex-col gap-4 pb-6">
+    <FormContainer asForm onSubmit={handleSubmit(onSubmit)} noValidate className="flex flex-col gap-4 pb-6">
       {mode === "edit" && !canEditDetails && product && (
         <Card>
           <CardContent className="flex flex-col gap-1 py-5">
@@ -917,6 +918,6 @@ export function ProductForm({ mode, product }: ProductFormProps) {
           </>
         )
       )}
-    </form>
+    </FormContainer>
   );
 }

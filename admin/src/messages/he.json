@@ -312,17 +312,22 @@
       "typeLabel": "סוג ההנחה",
       "type": {
         "PERCENT": "אחוזים",
-        "AMOUNT": "סכום קבוע"
+        "AMOUNT": "סכום קבוע",
+        "AMOUNT_currency": "סכום קבוע {currency}"
       },
       "valueLabel": {
         "PERCENT": "אחוז",
-        "AMOUNT": "סכום"
+        "AMOUNT": "סכום",
+        "AMOUNT_currency": "סכום ({currency})"
       },
       "valuePlaceholder": {
         "PERCENT": "לדוגמה 10",
         "AMOUNT": "לדוגמה 20"
       },
-      "invalid": "יש להזין ערך תקין (אחוז בין 0 ל-100).",
+      "invalid": {
+        "PERCENT": "הזינו מספר שלם בין 0 ל-{max}.",
+        "AMOUNT": "הזינו מספר שלם, עד {max}."
+      },
       "apply": "החלת ההנחה",
       "remove": "הסרת ההנחה",
       "percentValue": "{value}%"
@@ -463,7 +468,10 @@
         "quantityFor": "כמות — {name}",
         "discountFor": "הנחה על {name}",
         "addDiscount": "הנחה",
-        "percentValue": "{value}%"
+        "percentValue": "{value}%",
+        "discountApplied": "הנחה {value} · ‎−{amount}",
+        "discountValue": "הנחה {value}",
+        "stockCap": "{count, plural, one {זה הפריט האחרון במלאי} two {אלה כל # הפריטים במלאי} other {אלה כל # הפריטים במלאי}}"
       },
       "totals": {
         "subtotal": "סכום ביניים ({count})",

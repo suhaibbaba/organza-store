@@ -312,17 +312,22 @@
       "typeLabel": "Discount type",
       "type": {
         "PERCENT": "Percentage",
-        "AMOUNT": "Fixed amount"
+        "AMOUNT": "Fixed amount",
+        "AMOUNT_currency": "Fixed amount {currency}"
       },
       "valueLabel": {
         "PERCENT": "Percentage",
-        "AMOUNT": "Amount"
+        "AMOUNT": "Amount",
+        "AMOUNT_currency": "Amount ({currency})"
       },
       "valuePlaceholder": {
         "PERCENT": "e.g. 10",
         "AMOUNT": "e.g. 20"
       },
-      "invalid": "Enter a valid value (a percentage must be 0–100).",
+      "invalid": {
+        "PERCENT": "Enter a whole number between 0 and {max}.",
+        "AMOUNT": "Enter a whole number, up to {max}."
+      },
       "apply": "Apply discount",
       "remove": "Remove discount",
       "percentValue": "{value}%"
@@ -463,7 +468,10 @@
         "quantityFor": "Quantity — {name}",
         "discountFor": "Discount on {name}",
         "addDiscount": "Discount",
-        "percentValue": "{value}%"
+        "percentValue": "{value}%",
+        "discountApplied": "{value} discount · −{amount}",
+        "discountValue": "{value} discount",
+        "stockCap": "{count, plural, one {That's the last one in stock} other {That's all # in stock}}"
       },
       "totals": {
         "subtotal": "Subtotal ({count})",

@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { Gift, MessageCircle, Percent } from "lucide-react";
+import { Gift, MessageCircle, Tag } from "lucide-react";
 import { CHECKOUT_BAR_HEIGHT_VAR } from "@/constants/layout";
 import { useDiscountLabel } from "@/hooks/use-discount-label";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
@@ -129,7 +129,9 @@ export function CheckoutBar({
             disabled={!canCheckout}
             className="shrink-0"
           >
-            <Percent aria-hidden="true" />
+            {/* Type-neutral: this discount may be a percentage or a flat
+                sum, and the row above says which. */}
+            <Tag aria-hidden="true" />
             <span className="sr-only sm:not-sr-only">
               {orderDiscount.type ? t("editOrderDiscount") : t("addOrderDiscount")}
             </span>
@@ -180,7 +182,7 @@ export function CheckoutBar({
               // solid violet is spent on the button inside the sheet that
               // actually commits it. It still carries the colour, because
               // this is where the cashier learns that violet means "no money".
-              className="flex-1 border-gift/40 text-gift hover:bg-gift/10 hover:text-gift lg:w-auto lg:flex-none lg:shrink-0"
+              className="flex-1 border-gift/40 text-gift not-disabled:hover:bg-gift/10 not-disabled:hover:text-gift lg:w-auto lg:flex-none lg:shrink-0"
             >
               <Gift aria-hidden="true" />
               {t("giftOrder")}
