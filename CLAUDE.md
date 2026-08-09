@@ -187,6 +187,16 @@ managed on the VPS and never committed. When updating CI, remember there are now
 never create accounts, and never run `init` or `db:reset`. Those three are manual, one-time
 commands (rule 11).
 
+**Persistent data lives on named volumes, at absolute paths the app is told explicitly.** The
+database (`sandbox_db_data` → `/var/lib/postgresql/data`) and the uploaded photographs
+(`sandbox_uploads` → `/app/uploads`, with `UPLOAD_DIR` set in the compose file's `environment:`,
+never left to `.env`) are the only things a deploy cannot rebuild. A **relative** `UPLOAD_DIR`
+resolves against the container's working directory (`/app/backend`), which is how every uploaded
+image was being written into the container layer and lost on each deploy — so any new service or
+compose file states its data path absolutely and mounts a volume there. Never rename a volume key
+or the compose `name:`: both feed the real volume name, and changing either points the stack at a
+new empty volume. See `ops/README.md` for backups — the volumes survive redeploys, not disks.
+
 ## When unsure
 Check `spec.md` first. If the answer isn't there, ask the user. Never silently guess product
 behavior — guessing is what broke the previous attempt.

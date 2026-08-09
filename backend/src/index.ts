@@ -23,10 +23,17 @@ import pushRouter from "@/routes/push";
 import versionRouter from "@/routes/version";
 import { errorHandler } from "@/middleware/errorHandler";
 import { AppError, sendError } from "@/lib/response";
-import { UPLOAD_DIR } from "@/lib/image";
+import { UPLOAD_DIR, checkUploadDirWritable } from "@/lib/image";
+import { captureException } from "@/lib/logger";
 import { ERROR_CODES } from "@/constants";
 
 const app = express();
+
+// Whether this process can actually keep an uploaded photo, established once
+// at startup and reported by /health (see the listen callback at the bottom).
+// Optimistic until proven otherwise so /health answers during the moment
+// between listening and the check completing.
+let uploadsWritable = true;
 
 // Behind the VPS's TLS-terminating reverse proxy, req.ip is the proxy unless
 // express is told how many hops to look through — and the password endpoints'
@@ -60,7 +67,12 @@ app.use(express.json());
 app.use("/uploads", express.static(UPLOAD_DIR));
 
 app.get("/health", (_req, res) => {
-  res.json({ success: true, data: { status: "ok" }, meta: null });
+  // `uploads` is the one piece of state a container cannot rebuild for
+  // itself, so it is worth being able to ask after a deploy — from the
+  // outside, without an upload and without shell access. A boolean and
+  // nothing more: this route is public, and the absolute path on the VPS is
+  // not the internet's business.
+  res.json({ success: true, data: { status: "ok", uploadsWritable }, meta: null });
 });
 
 // Open, like /health above — see routes/version.ts for why.
@@ -93,6 +105,29 @@ app.use((_req, res) => {
 app.use(errorHandler);
 
 const port = Number(process.env.PORT ?? 4000);
-app.listen(port, () => {
+app.listen(port, async () => {
   console.log(`Organza Store API listening on port ${port}`);
+
+  // Where the photographs go, said out loud on every start. One line in
+  // `docker compose logs backend` that answers "is the volume actually
+  // mounted where the app is writing?" — the question behind every uploaded
+  // image the shop has lost.
+  const uploads = await checkUploadDirWritable();
+  uploadsWritable = uploads.ok;
+
+  if (uploads.ok) {
+    console.log(`Uploads directory: ${UPLOAD_DIR} (writable)`);
+    return;
+  }
+
+  // Not fatal (see checkUploadDirWritable) — but it must be impossible to
+  // miss, and it goes to error tracking as well, because the alternative is
+  // finding out from a member of staff a week later.
+  captureException(uploads.error, {
+    uploadDir: UPLOAD_DIR,
+    hint:
+      "The API cannot write uploaded images here. Check that the volume is mounted at this exact " +
+      "path and that the container's user owns it (docker-compose.sandbox.yml sets UPLOAD_DIR).",
+  });
+  console.error(`Uploads directory: ${UPLOAD_DIR} is NOT WRITABLE — image uploads will fail.`);
 });
