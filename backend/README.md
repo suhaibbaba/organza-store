@@ -466,6 +466,7 @@ docker compose -f docker-compose.sandbox.yml exec -T backend rm /tmp/staff.json
 | `npm run bootstrap` | Creates the store settings singleton, the three global variant types with a starting set of values, and the five expense categories. Runs on every deploy. | **Yes** — the second run creates nothing. Each item is recorded in `BootstrapRecord` and created at most once in the life of the database, so a colour or an expense category the shop retires stays retired instead of coming back on the next push. A *new* default added in a later release still lands. |
 | `npm run init` | Creates every account in the staff roster (see above) with **no password**, and emails each of them a single-use "set your password" link. | **Yes, and the second run refuses** — it will not touch a database that already has any user in it. There is no partial mode: adding one more member of staff is the admin's Users screen. |
 | `npm run db:reset` | Drops every table, re-applies every migration, and deletes uploaded image files that no longer belong to any product. Seeds nothing. | **Yes** — the second run leaves an empty database empty. It refuses without `ORGANZA_DB_RESET_CONFIRM` typed out in full, every single time, and needs `ORGANZA_ALLOW_PRODUCTION=I-KNOW-THIS-IS-PRODUCTION` on top when `NODE_ENV=production`. |
+| `npm run import:prod` | Copies the **live shop's catalogue** into the **sandbox** — products, categories, variants, images — after wiping the sandbox's own. Staff accounts survive. See [Importing the production catalogue](#importing-the-production-catalogue-into-the-sandbox). | **Yes** — it wipes first, so two runs leave byte-identical data. It refuses unless the target says *sandbox* in both `APP_ENV` and its database name, and unless the run names that database. |
 | `npm run email:preview` | Renders every email in every language to `tmp/email-preview/` (git-ignored). Sends nothing, needs no API key, touches no database. | Yes. |
 
 A single value can be corrected on the command line without editing the file — useful for a
@@ -556,6 +557,107 @@ both read out of the running containers and both checked for readability afterwa
 has the cron entry that would schedule it, the `rsync` that would get the copies off the
 box, and the restore rehearsal — read it before the shop starts entering real orders.
 
+## Importing the production catalogue into the sandbox
+
+Testing against ten invented dresses proves very little. `npm run import:prod` copies the **live
+shop's catalogue** into the **sandbox**, so the practice stack holds the real products, the real
+categories and the real photographs — and nothing else.
+
+```bash
+# on the SANDBOX server, over SSH
+docker compose -f docker-compose.sandbox.yml exec -T backend \
+  env ORGANZA_IMPORT_CONFIRM=<the sandbox's database name> \
+  npm run import:prod
+```
+
+It is a terminal command and deliberately **not** a button in the admin. It is used a handful of
+times; a mis-tap would empty an environment, and putting it in the app would mean keeping
+production's database credentials inside the sandbox deployment — the less protected of the two.
+
+### What crosses over, and what never does
+
+| Imported | Left in production |
+|---|---|
+| Categories (including the nesting and the POS favourites) | Orders and order lines |
+| Products — including hidden and soft-deleted ones | Users, credentials, sessions, password links |
+| Variants, and the global variant types + option values | Expenses and cash sessions |
+| Images (rows **and** the files on disk) | Change requests and the audit log |
+| Barcodes, `barcodeSource`, SKUs, prices, costs, stock | Push subscriptions |
+
+**No customer or staff data ever leaves the live shop.** The one staff field on an imported row —
+`Product.createdById`, who added it — is dropped; everything else is copied byte for byte.
+
+Production's **ids are copied verbatim**, so every internal relation (variant → option value,
+image → product, product → category) resolves without remapping. That only works because the
+sandbox is wiped first: with the tables empty, nothing can clash on an id, a slug, a SKU or a
+barcode.
+
+### What the sandbox keeps
+
+Its **staff accounts, their credentials and their sessions** — you are never locked out and
+nobody has to set a password again — plus its `Setting` row, its expense categories, its
+bootstrap record and its push subscriptions. Everything else in it (its own products,
+categories, variants, images, orders, expenses, cash sessions, approvals, label history and
+audit entries) is deleted before the import writes.
+
+`Product.productNumber` is realigned to production's highest, so the next product added by hand
+gets the next number rather than colliding on a frozen SKU; the order number sequence goes back
+to 1, since no orders are imported.
+
+### The safeguards
+
+The command copies one way. Run the other way it would delete the shop's entire catalogue, so
+that direction is made structurally impossible rather than discouraged:
+
+1. **`APP_ENV` must say `sandbox`.** Unset means production (see `src/lib/appEnv.ts`), so a
+   missing env file refuses instead of proceeding. There is no override.
+2. **The target database's own name must contain `sandbox`.** An env var can be copied into the
+   wrong compose file; the name travels with the data. Both have to agree.
+3. **The run must name the database it is about to empty** —
+   `ORGANZA_IMPORT_CONFIRM=<database>` — so a command pasted from elsewhere fires against
+   nothing.
+4. **Source and target must be different databases**, checked by host, port and name.
+5. **The production connection is read-only at the server.** `PRODUCTION_DATABASE_URL` is
+   rewritten with `options=-c default_transaction_read_only=on` before Prisma opens it, the
+   session is then *proven* read-only — a write is attempted and has to fail — and only then is
+   a row read. Give it a role with no write privileges as well
+   (`.env.example` has the `GRANT`s): the connection is read-only either way, but a role that
+   cannot write is the version that survives somebody editing the code.
+6. **The client that reaches production never leaves `src/lib/productionImport/source.ts`.** It
+   is created, used and disconnected inside one function, so no other module in the codebase
+   holds an object that *could* write to the live shop.
+
+Production is read **before** the sandbox is touched, and the wipe plus the whole write are one
+transaction. A production database that is unreachable, or a run that is refused, leaves the
+sandbox exactly as it was; a write that fails halfway rolls back to the catalogue it already had.
+
+### The photographs
+
+Image rows without files are a catalogue of broken images, so `PRODUCTION_UPLOAD_DIR` — the live
+shop's `UPLOAD_DIR` **as this machine can see it** — is required, and the command refuses without
+it. Files are copied per image, sandbox files belonging to the catalogue that was just wiped are
+removed, and a file missing on either side is counted and named rather than failing the run
+(a photo deleted off the live server months ago must not cost you the whole import).
+
+Where production's uploads are on another machine, sync them across first, or import the rows
+alone and knowingly:
+
+```bash
+npm run import:prod -- --skip-images
+```
+
+### Configuration
+
+Both variables live in the **sandbox's** `.env` and nowhere else (see `.env.example`):
+
+```bash
+PRODUCTION_DATABASE_URL=postgresql://organza_readonly:…@…/organza?schema=public
+PRODUCTION_UPLOAD_DIR=/srv/organza/production-uploads
+```
+
+The run prints what it wiped, what it imported and how many photographs came across, and ends by
+saying how many staff accounts it left alone.
+
 ## Demo data (dev / sandbox only)
 
 The old `prisma/seed.ts` is now `prisma/dev/demo-seed.ts` and is **quarantined**: it is not
@@ -627,6 +729,7 @@ backend/
 │   ├── bootstrap.ts        # `npm run bootstrap` — essential data, runs on every deploy
 │   ├── init.ts             # `npm run init` — the staff roster, once, by hand
 │   ├── db-reset.ts         # `npm run db:reset` — DESTRUCTIVE, manual only
+│   ├── import-from-production.ts  # `npm run import:prod` — production catalogue -> sandbox, one way
 │   └── email-preview.ts    # `npm run email:preview` — render every email without sending
 ├── tests/
 │   ├── api/            # per-feature API suites (against a live API)

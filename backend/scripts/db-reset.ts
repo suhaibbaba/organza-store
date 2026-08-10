@@ -14,10 +14,10 @@
 // ============================================================================
 import "dotenv/config";
 import { spawnSync } from "node:child_process";
-import fs from "node:fs/promises";
 import path from "node:path";
 import { prisma } from "@/lib/prisma";
 import { UPLOAD_DIR } from "@/lib/image";
+import { deleteOrphanedUploads } from "@/lib/uploads";
 import {
   assertDestructiveConfirmed,
   describeAppEnv,
@@ -29,45 +29,18 @@ import { DANGEROUS_COMMAND_ENV } from "@/constants";
 const RULE = "═".repeat(74);
 
 /**
- * Every file under UPLOAD_DIR that no ProductImage row claims.
+ * Every file under UPLOAD_DIR that no ProductImage row claims. Run straight
+ * after a reset that is every file there is — which is the point: a wiped
+ * database with a full uploads folder is gigabytes of pictures of nothing.
  *
- * A stored image is one base name and three files
- * (`<name>-thumbnail.webp`, `-medium`, `-full`), so a file belongs to a row
- * when its base name matches that row's `filename`. Run straight after a
- * reset that is every file there is — which is the point: a wiped database
- * with a full uploads folder is gigabytes of pictures of nothing.
+ * The sweep itself lives in lib/uploads.ts, shared with `import:prod`, which
+ * leaves the folder out of step with the database for the same reason.
  */
-async function deleteOrphanedUploads(): Promise<{ deleted: number; kept: number }> {
-  let entries: string[];
-  try {
-    entries = await fs.readdir(UPLOAD_DIR);
-  } catch {
-    // No uploads folder yet — nothing to clean.
-    return { deleted: 0, kept: 0 };
-  }
-
+async function deleteUploadsBelongingToNothing(): Promise<{ deleted: number; kept: number }> {
   const claimed = new Set(
     (await prisma.productImage.findMany({ select: { filename: true } })).map((row) => row.filename)
   );
-
-  let deleted = 0;
-  let kept = 0;
-  for (const entry of entries) {
-    const base = entry.replace(/-(thumbnail|medium|full)\.webp$/, "");
-    if (claimed.has(base)) {
-      kept += 1;
-      continue;
-    }
-    const target = path.join(UPLOAD_DIR, entry);
-    const stat = await fs.stat(target).catch(() => null);
-    // Only files. A directory in here is not something this command invented
-    // and not something it will remove.
-    if (!stat?.isFile()) continue;
-    await fs.unlink(target).catch(() => undefined);
-    deleted += 1;
-  }
-
-  return { deleted, kept };
+  return deleteOrphanedUploads(claimed);
 }
 
 async function main(): Promise<void> {
@@ -99,7 +72,7 @@ async function main(): Promise<void> {
   }
 
   console.log("\n==> Removing uploaded images that belong to nothing");
-  const uploads = await deleteOrphanedUploads();
+  const uploads = await deleteUploadsBelongingToNothing();
   console.log(`    deleted ${uploads.deleted} file(s), kept ${uploads.kept}`);
 
   console.log("");

@@ -92,7 +92,13 @@ from past orders — there is still no Customer table behind it.
     never a list in the source: real people's names, addresses and phone numbers are operational
     data, not code. The whole file is validated before the database is touched, so a bad entry
     can never leave half the accounts created. `npm run db:reset` wipes everything and is
-    manual + double-confirmed.
+    manual + double-confirmed. `npm run import:prod` copies the **live shop's catalogue into the
+    sandbox** — products, categories, variants, images — one way only, wiping the sandbox's own
+    catalogue first and never its staff accounts, sessions or settings. It carries nothing
+    personal (no orders, users, expenses, cash sessions, approvals or audit history), refuses
+    unless the target says `sandbox` in **both** `APP_ENV` and its own database name, makes the
+    run name that database out loud, and reads production over a connection that is read-only at
+    the server and proven so before a row is read. Terminal only — never a screen in the app.
 12. **No hard-coded user-facing text — anywhere.** Every label/message/placeholder/validation goes
     through `t()`. Backend returns translation **keys** (`error.*`), never literal sentences. A
     single hard-coded string is a bug.

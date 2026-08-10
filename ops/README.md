@@ -108,6 +108,24 @@ confirmation phrase typed out in full, for the same reason `db:reset` does.
 restored is a hope. The check that matters afterwards is not "the command exited 0" —
 it is opening the admin, finding a product with a photograph, and seeing the photograph.
 
+## Moving the catalogue from production to the sandbox
+
+`npm run import:prod` (backend) copies the live shop's **products, categories, variants and
+photographs** into the sandbox, so the practice stack can be tested against the real
+catalogue. It is not a backup and not a restore: it wipes the sandbox's own catalogue first,
+takes **nothing** personal (no orders, users, expenses, cash sessions, approvals or audit
+history), and leaves the sandbox's staff accounts and settings alone so you can still sign in.
+
+It goes one way only, and cannot be pointed the other way: the target has to declare itself
+`sandbox` in `APP_ENV` **and** carry `sandbox` in its own database name, the run has to name
+that database out loud, and production is opened on a connection that is read-only at the
+server and proven so before a row is read. Full description and the `PRODUCTION_DATABASE_URL`
+/ `PRODUCTION_UPLOAD_DIR` setup:
+[backend/README.md](../backend/README.md#importing-the-production-catalogue-into-the-sandbox).
+
+Both volumes are involved on the sandbox side — the database and `sandbox_uploads` — so it is
+the one routine operation, besides a restore, that changes data a deploy cannot rebuild.
+
 ## If images stop appearing after a deploy
 
 In order:

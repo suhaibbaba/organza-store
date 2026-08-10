@@ -27,6 +27,8 @@
     "init": "tsx scripts/init.ts",
     "predb:reset": "npm run build:shared",
     "db:reset": "tsx scripts/db-reset.ts",
+    "preimport:prod": "npm run build:shared",
+    "import:prod": "tsx scripts/import-from-production.ts",
     "preemail:preview": "npm run build:shared",
     "email:preview": "tsx scripts/email-preview.ts",
     "preseed:demo": "npm run build:shared",
