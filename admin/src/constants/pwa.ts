@@ -5,6 +5,8 @@
 // names or icons would leave staff guessing which home-screen tile is which.
 // The POS keeps its own copy of this file.
 
+import { SANDBOX_NAME_SUFFIX, appIconBasePath } from "@shared/constants/appEnv";
+import { APP_ENV, IS_SANDBOX } from "@/lib/env";
 import type { AppleSplashScreen } from "@/types";
 
 /** Brand teal (#235C63) — the logo's dark hue, and the admin icon's background. */
@@ -24,8 +26,26 @@ export const PWA_BACKGROUND_COLOR = "#235C63";
  */
 export const PWA_SPLASH_FOREGROUND_COLOR = "#B5D3CB";
 
-export const PWA_NAME = "Organza Admin";
-export const PWA_SHORT_NAME = "Admin";
+const PWA_BASE_NAME = "Organza Admin";
+const PWA_BASE_SHORT_NAME = "Admin";
+
+/*
+ * The sandbox and the live shop are installed on the same phone, by the same
+ * people, from the same two apps. The icons already differ (an amber SBX band
+ * — see PWA_ICON_BASE_PATH below), and the label under the tile has to differ
+ * with them, or the home screen shows two tiles called "Admin" and the only
+ * way to tell which is which is to open one and start typing into it.
+ *
+ * Not a t() string, deliberately: this is the app's own name — the identity
+ * the operating system files the install under, chosen once at build time and
+ * the same in every language, exactly like PWA_BASE_NAME above it. CLAUDE.md
+ * rule 12 is about text shown to staff inside the app; the SANDBOX chip that
+ * does that job goes through t() (components/layout/environment-badge.tsx).
+ */
+export const PWA_NAME = IS_SANDBOX ? `${PWA_BASE_NAME} (${SANDBOX_NAME_SUFFIX})` : PWA_BASE_NAME;
+export const PWA_SHORT_NAME = IS_SANDBOX
+  ? `${PWA_BASE_SHORT_NAME} ${SANDBOX_NAME_SUFFIX}`
+  : PWA_BASE_SHORT_NAME;
 export const PWA_DESCRIPTION = "Organza Store admin dashboard";
 
 // Not a locale-prefixed path: launching from the home screen lands on "/",
@@ -42,16 +62,57 @@ export const PWA_ID = "/";
 
 export const PWA_MANIFEST_PATH = "/manifest.webmanifest";
 
-/** Square PNGs in public/, used for the manifest and the browser's favicon set. */
-export const PWA_ICON_SIZES = [16, 32, 48, 64, 128, 192, 256, 512] as const;
+/* ---------------------------------------------------------------------------
+ * Icons
+ *
+ * public/app_icon/production/ and public/app_icon/sandbox/ hold the same file
+ * names; which folder every path below points at is decided here, once, from
+ * NEXT_PUBLIC_APP_ENV (lib/env.ts). The sandbox artwork carries an amber SBX
+ * band, so a phone with both installed shows two tiles that cannot be
+ * confused — which is the whole point, since one of them writes to the shop's
+ * real orders.
+ *
+ * Resolved at build time rather than served from a route: these paths end up
+ * in <link> tags and in the manifest, both of which the browser and the
+ * service worker cache aggressively, and a path that could change per request
+ * is a path that gets cached wrong once and stays wrong.
+ * ------------------------------------------------------------------------ */
+
+export const PWA_ICON_BASE_PATH = appIconBasePath(APP_ENV);
+
+/**
+ * What Android installs from (the manifest's `icons`). 192 is the launcher
+ * icon, 512 is what Chrome's install prompt and its generated splash use;
+ * anything in between it derives itself. The maskable 512 below rides along
+ * with them.
+ */
+export const PWA_MANIFEST_ICON_SIZES = [192, 512] as const;
+/**
+ * The browser tab, and nothing else.
+ *
+ * favicon.ico is a single 16×16 image, which is exactly one device pixel per
+ * CSS pixel on a display nobody has any more: every current phone and laptop
+ * draws that tab at 32 physical pixels and would be upscaling a 16. So a real
+ * 32 is declared alongside it and wins wherever PNG favicons are understood,
+ * with the .ico left in for the browsers and bookmark exports that still ask
+ * for it by name. (Derived from icon-512.png — see the app's README.)
+ */
+export const PWA_FAVICON_PNG_SIZES = [32] as const;
 /** iOS home-screen icon. Fixed at 180 — iOS ignores the manifest icons entirely. */
 export const PWA_APPLE_ICON_SIZE = 180;
 /** Android adaptive icon: the logo sits inside the safe zone so a circular mask can't clip it. */
 export const PWA_MASKABLE_ICON_SIZE = 512;
+/**
+ * The icon drawn on a pushed notification. The 192 rather than a small icon
+ * of its own: Android asks for ~96px here and scales whatever it is given, so
+ * a downscale of the launcher icon is sharper than an upscale of the tab one,
+ * and it is a file the phone has already fetched for the home screen.
+ */
+export const PWA_NOTIFICATION_ICON_SIZE = 192;
 
-export const pwaIconPath = (size: number): string => `/icon-${size}.png`;
-export const PWA_MASKABLE_ICON_PATH = `/icon-maskable-${PWA_MASKABLE_ICON_SIZE}.png`;
-export const PWA_FAVICON_PATH = "/favicon.ico";
+export const pwaIconPath = (size: number): string => `${PWA_ICON_BASE_PATH}/icon-${size}.png`;
+export const PWA_MASKABLE_ICON_PATH = `${PWA_ICON_BASE_PATH}/icon-maskable-${PWA_MASKABLE_ICON_SIZE}.png`;
+export const PWA_FAVICON_PATH = `${PWA_ICON_BASE_PATH}/favicon.ico`;
 
 /* ---------------------------------------------------------------------------
  * iOS launch images (see the root layout's `appleWebApp.startupImage`)
@@ -105,8 +166,13 @@ export const appleSplashMediaQuery = ({ width, height, pixelRatio }: AppleSplash
  * ------------------------------------------------------------------------ */
 
 /**
- * The mark the boot splash draws: the icon's artwork with its square backing
- * removed (public/icon-mark-512.png, lifted off public/icon-512.png).
+ * The mark the boot splash draws: that environment's icon with its square
+ * backing lifted off (app_icon/<env>/icon-mark-512.png, derived from
+ * icon-512.png in the same folder — see the app's README).
+ *
+ * Per environment like everything else here, which means the sandbox's amber
+ * SBX band is part of the mark and the launch screen says which stack is
+ * opening before the first screen arrives.
  *
  * The square icon itself can't be used here. The splash paints its backdrop
  * in CSS, and the browser decodes and downscales the icon's flat fill to a
@@ -115,11 +181,11 @@ export const appleSplashMediaQuery = ({ width, height, pixelRatio }: AppleSplash
  * no backing there is nothing to seam against, and the entrance scales the
  * mark itself rather than a tile that only looks invisible.
  *
- * The icon- prefix is deliberate: that is what the service worker caches
+ * Its location is deliberate: app_icon/ is what the service worker caches
  * (public/sw.js), so the launch screen still draws on a dead connection.
  */
 export const BOOT_SPLASH_MARK_SIZE = 512;
-export const BOOT_SPLASH_MARK_PATH = `/icon-mark-${BOOT_SPLASH_MARK_SIZE}.png`;
+export const BOOT_SPLASH_MARK_PATH = `${PWA_ICON_BASE_PATH}/icon-mark-${BOOT_SPLASH_MARK_SIZE}.png`;
 
 /** The mark fading up and settling into place. */
 export const BOOT_SPLASH_FADE_IN_MS = 260;
@@ -160,6 +226,14 @@ export const SERVICE_WORKER_PATH = "/sw.js";
 export const SERVICE_WORKER_VERSION_PARAM = "v";
 export const SERVICE_WORKER_OFFLINE_PARAM = "offline";
 export const SERVICE_WORKER_MESSAGES_PARAM = "messages";
+/**
+ * Which environment's icon a pushed notification is drawn with. Passed in
+ * rather than written into sw.js, for the same reason as everything else on
+ * this URL: the worker is not bundled, so it cannot read APP_ENV and would
+ * otherwise have one folder hard-coded into it — the sandbox drawing the live
+ * shop's mark on a notification about the sandbox's own fake sale.
+ */
+export const SERVICE_WORKER_NOTIFICATION_ICON_PARAM = "notificationIcon";
 /**
  * The locale cookie's name (constants/locale.ts), so a launch made offline
  * can fall back to the same language a launch made online would have. The

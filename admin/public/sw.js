@@ -60,7 +60,13 @@ const MAX_ASSET_ENTRIES = 200;
 // because it is the one image the app draws when the network is the very
 // thing that failed: fetching it from a dead connection would leave the
 // fallback needing a fallback.
-const PUBLIC_ASSET_PATTERN = /^\/(favicon\.ico|icon-[\w-]+\.png|product-placeholder\.svg|manifest\.webmanifest)$/;
+//
+// The icons live one folder deeper than they used to (app_icon/production/,
+// app_icon/sandbox/ — src/constants/pwa.ts), and the folder segment is
+// matched loosely rather than spelled out: a build only ever requests its own
+// environment's folder, and this file cannot read which one that is.
+const PUBLIC_ASSET_PATTERN =
+  /^\/(app_icon\/[\w-]+\/(favicon\.ico|icon-[\w-]+\.png)|product-placeholder\.svg|manifest\.webmanifest)$/;
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -274,8 +280,20 @@ const SALE_PAYLOAD_TYPE = "sale";
 // "Employee change approvals"). Mirrors PUSH_PAYLOAD_TYPES in
 // shared/src/constants/push.ts — this file isn't bundled and can't import it.
 const CHANGE_REQUEST_PAYLOAD_TYPE = "changeRequest";
-const NOTIFICATION_ICON = "/icon-192.png";
-const NOTIFICATION_BADGE = "/icon-64.png";
+// The launcher icon of whichever environment registered this worker, passed
+// in on the script URL (src/constants/pwa.ts). Not a path written in here:
+// the sandbox and the live shop ship different artwork, and a notification
+// about a sandbox sale drawn with the live shop's mark is precisely the
+// confusion the two icon sets exist to prevent.
+// undefined rather than "" when it is missing: an empty string is a relative
+// URL, which the browser resolves against this scope and then fails to fetch,
+// where undefined simply means "no icon" and draws the browser's own.
+const NOTIFICATION_ICON = params.get("notificationIcon") || undefined;
+// Android draws the badge — the small monochrome glyph in the status bar — at
+// around 24dp, from whatever image it is handed. The launcher icon is that
+// image: it is already cached for the home screen, and scaling it down beats
+// scaling the 32px tab icon up.
+const NOTIFICATION_BADGE = NOTIFICATION_ICON;
 
 self.addEventListener("push", (event) => {
   event.waitUntil(handlePush(event.data));

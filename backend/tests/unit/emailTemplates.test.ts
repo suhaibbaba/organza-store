@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { SUPPORTED_LANGUAGES } from "@shared/constants/languages";
 import { PASSWORD_TOKEN_PURPOSES, PASSWORD_TOKEN_TTL_HOURS } from "@shared/constants/passwordSetup";
 import { BRAND_COLORS } from "@shared/constants/brand";
+import { EMAIL_LOGO_PATH } from "@/constants/email";
 import { renderPasswordSetupEmail } from "@/lib/email/templates/passwordSetup";
 import type { SupportedLanguage } from "@/types/common";
 
@@ -109,7 +110,12 @@ describe("Password setup email", () => {
     });
 
     it("shows the logo, with the shop's name in text beside it for clients with images off", () => {
-      expect(html).toContain(`${ADMIN_URL}/icon-192.png`);
+      // Asserted through the constant rather than a written-out path: the
+      // logo now lives under app_icon/<environment>/, and pinning the string
+      // here would just mean this test and the mail disagree the next time
+      // the icons move.
+      expect(html).toContain(`${ADMIN_URL}${EMAIL_LOGO_PATH}`);
+      expect(EMAIL_LOGO_PATH).toMatch(/^\/app_icon\/(sandbox|production)\/icon-\d+\.png$/);
       expect(html).toContain('alt="أورجانزا"');
       expect(html).toContain(">أورجانزا<");
     });

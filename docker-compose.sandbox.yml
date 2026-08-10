@@ -66,6 +66,15 @@ services:
       # can no longer break this. The mount point and the app's idea of it are
       # now the same two lines, in the same file, and change together.
       UPLOAD_DIR: /app/uploads
+      # WHICH STACK THIS IS. Stated here for the same reason as UPLOAD_DIR
+      # above: `environment:` wins over `env_file:`, and .env.sandbox lives on
+      # the VPS where this repo cannot see it. The compose file that IS the
+      # sandbox is the honest place to say so.
+      #
+      # NODE_ENV cannot carry this — it is "production" here too, which is why
+      # `db:reset` announced "that is the LIVE SHOP" on a database whose whole
+      # purpose is to be wiped (backend/src/lib/appEnv.ts).
+      APP_ENV: sandbox
     depends_on:
       db:
         condition: service_healthy
@@ -86,6 +95,10 @@ services:
         NEXT_PUBLIC_DEFAULT_LOCALE: ar
         NEXT_PUBLIC_SUPPORTED_LOCALES: ar,en,he
         NEXT_PUBLIC_PROJECT_NAME: organza-sandbox-admin
+        # Amber-banded SBX icons, "Organza Admin (SBX)" under the tile, and a
+        # SANDBOX chip in the top bar. Baked in at build time, so this stack
+        # has to be rebuilt — not just restarted — to change it.
+        NEXT_PUBLIC_APP_ENV: sandbox
         # Same number as the backend's, resolved once by the deploy.
         NEXT_PUBLIC_APP_VERSION: ${APP_VERSION:-}
     restart: unless-stopped
@@ -104,6 +117,10 @@ services:
         NEXT_PUBLIC_DEFAULT_LOCALE: ar
         NEXT_PUBLIC_SUPPORTED_LOCALES: ar,en,he
         NEXT_PUBLIC_PROJECT_NAME: organza-sandbox-pos
+        # Amber-banded SBX icons, "Organza POS (SBX)" under the tile, and a
+        # SANDBOX chip in the top bar. Baked in at build time, so this stack
+        # has to be rebuilt — not just restarted — to change it.
+        NEXT_PUBLIC_APP_ENV: sandbox
         # Same number as the backend's, resolved once by the deploy.
         NEXT_PUBLIC_APP_VERSION: ${APP_VERSION:-}
     restart: unless-stopped

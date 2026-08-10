@@ -1,6 +1,7 @@
 {
   "app": {
-    "name": "Organza Store"
+    "name": "Organza Store",
+    "sandbox": "SANDBOX"
   },
   "common": {
     "loading": "Loading…",

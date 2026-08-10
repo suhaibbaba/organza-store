@@ -94,6 +94,30 @@ jobs:
               exit 1
             fi
 
+            echo "==> Checking both apps were built as the SANDBOX"
+            # NEXT_PUBLIC_APP_ENV is inlined at build time, so a missing build
+            # arg cannot be noticed at runtime — the container comes up
+            # perfectly, serving the live shop's plain icons under the live
+            # shop's name, on the stack people go to precisely because it is
+            # safe to break. Nothing 404s and nothing logs.
+            #
+            # The manifest is where that choice surfaces: it names the app and
+            # lists the icon paths, both resolved from the same value. If it
+            # says sandbox, the tiles, the tab, the boot splash and the chip
+            # in the top bar all do too (src/constants/pwa.ts).
+            for APP in admin pos; do
+              MANIFEST="$(docker compose -f docker-compose.sandbox.yml --env-file .env.sandbox exec -T "$APP" \
+                node -e "fetch('http://localhost:3000/manifest.webmanifest').then(r=>r.text()).then(t=>console.log(t)).catch(e=>console.log('unreachable: '+e.message))")"
+              if ! printf '%s' "$MANIFEST" | grep -q "/app_icon/sandbox/"; then
+                echo "::error::The $APP app is not serving the sandbox icons. It was built without"
+                echo "::error::NEXT_PUBLIC_APP_ENV=sandbox, so it is wearing the LIVE SHOP's icons and"
+                echo "::error::name on the sandbox — see docker-compose.sandbox.yml, service '$APP'."
+                printf '%s\n' "$MANIFEST" | head -c 500
+                exit 1
+              fi
+              echo "    $APP: sandbox icons ✓"
+            done
+
             echo "==> Pruning old images"
             docker image prune -f
 

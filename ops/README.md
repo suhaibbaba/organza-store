@@ -12,7 +12,7 @@ Both are named volumes declared at the bottom of `docker-compose.sandbox.yml`.
 ### There is no production stack in this repo yet
 
 `docker-compose.sandbox.yml` is the only compose file here, and the only deploy workflow is
-`deploy-sandbox.yml`. When a production one is written, it inherits all three rules or it
+`deploy-sandbox.yml`. When a production one is written, it inherits all four rules or it
 inherits the bug:
 
 1. **A named volume for each of the two**, database and uploads.
@@ -21,6 +21,18 @@ inherits the bug:
    that is what keeps the two from drifting.
 3. **Its own volume keys**, distinct from the sandbox's, so the two stacks can never end up
    sharing one database.
+4. **`APP_ENV: production` on the backend, and `NEXT_PUBLIC_APP_ENV: production` as a build
+   arg on `admin` and `pos`.** This is the only thing that tells the two stacks apart —
+   `NODE_ENV` is `production` on both, which is why `db:reset` used to announce "that is the
+   LIVE SHOP" while pointed at the sandbox. It decides which `public/app_icon/<env>/` folder
+   the tiles, the tab icon and the launch screen come from, whether the installed app is
+   called "Organza Admin" or "Organza Admin (SBX)", whether staff see a SANDBOX chip in the
+   top bar, and which mark a password email carries.
+
+   Left unset it means *production* on purpose, so a missed env file cannot label the real
+   shop as practice data. The consequence is that the mistake runs the other way: a **sandbox**
+   built without it wears the live shop's icons and name. `deploy-sandbox.yml` checks for
+   exactly that after every build — a production deploy wants the mirror-image check.
 
 The scripts here take `COMPOSE_FILE` and `ENV_FILE`, so they work against it unchanged:
 

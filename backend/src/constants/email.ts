@@ -1,3 +1,6 @@
+import { appIconPath } from "@shared/constants/appEnv";
+import { APP_ENV } from "@/lib/appEnv";
+
 // Transactional email — provider, addresses, and the numbers the templates
 // are laid out against.
 //
@@ -32,6 +35,8 @@ export const EMAIL_TRANSPORTS = ["resend", "console"] as const;
 /** Card width on a desktop client; below this the card simply fills the screen. */
 export const EMAIL_CONTENT_WIDTH_PX = 600;
 export const EMAIL_LOGO_HEIGHT_PX = 44;
+/** Which square PNG the logo above is drawn from — retina-sharp at that height. */
+export const EMAIL_LOGO_ICON_SIZE = 192;
 export const EMAIL_BUTTON_RADIUS_PX = 8;
 export const EMAIL_CARD_RADIUS_PX = 12;
 
@@ -49,8 +54,16 @@ export const EMAIL_FONT_STACK =
  * A remote URL rather than an inline `data:` image on purpose: Gmail strips
  * data URIs, and an attached image turns a password mail into something with
  * an attachment on it.
+ *
+ * Built from this API's own APP_ENV, so a "set your password" mail sent by the
+ * sandbox carries the amber SBX mark and one from the live shop carries the
+ * plain one — the same distinction the home-screen tiles make, in the inbox
+ * where the link is actually clicked. The folder layout comes from
+ * @shared/constants/appEnv rather than being spelled out here: the file it
+ * points at lives in another project, and nothing would report a 404 on it —
+ * the mail would simply arrive with a hole where the logo was.
  */
-export const EMAIL_LOGO_PATH = "/icon-192.png";
+export const EMAIL_LOGO_PATH = appIconPath(APP_ENV, EMAIL_LOGO_ICON_SIZE);
 
 /** Where the preview command writes its rendered files. */
 export const EMAIL_PREVIEW_DIR = "tmp/email-preview";

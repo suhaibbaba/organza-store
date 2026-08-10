@@ -2,6 +2,7 @@ import { getTranslations } from "next-intl/server";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { LoginForm } from "@/components/auth/login-form";
 import { LanguageSwitcher } from "@/components/layout/language-switcher";
+import { EnvironmentBadge } from "@/components/layout/environment-badge";
 
 export default async function LoginPage() {
   const t = await getTranslations("auth.login");
@@ -12,7 +13,12 @@ export default async function LoginPage() {
       <LanguageSwitcher />
 
       <div className="w-full max-w-sm">
-        <p className="mb-1 text-center text-2xl font-semibold text-primary">{tApp("name")}</p>
+        {/* Which stack is being signed into, before the password is typed —
+            this screen has no top bar to carry the chip. */}
+        <div className="mb-1 flex items-center justify-center gap-2">
+          <p className="text-2xl font-semibold text-primary">{tApp("name")}</p>
+          <EnvironmentBadge />
+        </div>
         <p className="mb-6 text-center text-sm text-muted-foreground">{tApp("tagline")}</p>
 
         <Card>

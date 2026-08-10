@@ -52,7 +52,13 @@ const MAX_ASSET_ENTRIES = 200;
 // because it is the one image the app draws when the network is the very
 // thing that failed: fetching it from a dead connection would leave the
 // fallback needing a fallback.
-const PUBLIC_ASSET_PATTERN = /^\/(favicon\.ico|icon-[\w-]+\.png|product-placeholder\.svg|manifest\.webmanifest)$/;
+//
+// The icons live one folder deeper than they used to (app_icon/production/,
+// app_icon/sandbox/ — src/constants/pwa.ts), and the folder segment is
+// matched loosely rather than spelled out: a build only ever requests its own
+// environment's folder, and this file cannot read which one that is.
+const PUBLIC_ASSET_PATTERN =
+  /^\/(app_icon\/[\w-]+\/(favicon\.ico|icon-[\w-]+\.png)|product-placeholder\.svg|manifest\.webmanifest)$/;
 
 self.addEventListener("install", (event) => {
   event.waitUntil(

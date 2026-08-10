@@ -4,8 +4,8 @@ import { getTextDirection } from "@/constants/locale";
 import {
   PWA_BACKGROUND_COLOR,
   PWA_DESCRIPTION,
-  PWA_ICON_SIZES,
   PWA_ID,
+  PWA_MANIFEST_ICON_SIZES,
   PWA_MASKABLE_ICON_PATH,
   PWA_MASKABLE_ICON_SIZE,
   PWA_NAME,
@@ -37,7 +37,7 @@ export default function manifest(): MetadataRoute.Manifest {
     background_color: PWA_BACKGROUND_COLOR,
     theme_color: PWA_THEME_COLOR,
     icons: [
-      ...PWA_ICON_SIZES.map((size) => ({
+      ...PWA_MANIFEST_ICON_SIZES.map((size) => ({
         src: pwaIconPath(size),
         sizes: `${size}x${size}`,
         type: "image/png",
