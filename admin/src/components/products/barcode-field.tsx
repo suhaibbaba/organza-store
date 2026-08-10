@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { BarcodeInput } from "@/components/ui/barcode-input";
+import { SegmentedControl } from "@/components/ui/segmented-control";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { BarcodeCamera } from "@/components/products/barcode-camera";
 import { cn } from "@/lib/utils";
@@ -66,22 +67,33 @@ export function BarcodeField({
   // Two boxes with an explanation each on the product's own card, where this
   // decision is being made for the first time and there is room to explain
   // it. A segmented control inside a variant, where it is being repeated for
-  // the twelfth time and the words are already known — `w-fit` so it takes
-  // the width of what it says rather than a whole row of the card (CLAUDE.md
-  // "Admin layout conventions").
-  const sources = (
-    <div
-      className={cn("gap-2", compact ? "inline-flex w-fit rounded-lg border border-input p-1" : "grid grid-cols-2")}
-      role="group"
-      aria-label={t("label")}
-    >
+  // the twelfth time and the words are already known — sized to what it says
+  // rather than to a whole row of the card (CLAUDE.md "Admin layout
+  // conventions").
+  const sources = compact ? (
+    // Inside a variant row the two options are a plain tab row, and get the
+    // shared control's behaviour with them: each segment the width of its own
+    // label, on one line, scrolling rather than wrapping in a narrow row.
+    <SegmentedControl
+      label={t("label")}
+      value={source}
+      onChange={(next) => onChange({ source: next, value })}
+      disabled={disabled}
+      options={[
+        { value: BARCODE_SOURCE.GENERATED, label: t("generated.title") },
+        { value: BARCODE_SOURCE.SUPPLIER, label: t("supplier.title") },
+      ]}
+    />
+  ) : (
+    // On the product's own card each option is a card with its explanation
+    // under it — two boxes, not a tab row.
+    <div className="grid grid-cols-2 gap-2" role="group" aria-label={t("label")}>
       <SourceChoice
         isSelected={!isSupplier}
         disabled={disabled}
         onSelect={() => onChange({ source: BARCODE_SOURCE.GENERATED, value })}
         title={t("generated.title")}
         hint={t("generated.hint")}
-        compact={compact}
       />
       <SourceChoice
         isSelected={isSupplier}
@@ -89,7 +101,6 @@ export function BarcodeField({
         onSelect={() => onChange({ source: BARCODE_SOURCE.SUPPLIER, value })}
         title={t("supplier.title")}
         hint={t("supplier.hint")}
-        compact={compact}
       />
     </div>
   );
@@ -190,15 +201,14 @@ interface SourceChoiceProps {
   onSelect: () => void;
   title: string;
   hint: string;
-  compact?: boolean;
 }
 
 // A big, obvious tap target for each option (CLAUDE.md "Frontend UX": ~44px
-// minimum, and the chosen one has to read as chosen across a counter). The
-// compact form keeps the 44px and drops everything else: no card border of
-// its own — the segment strip around it supplies that — no hint, and only as
-// much width as the label needs.
-function SourceChoice({ isSelected, disabled, onSelect, title, hint, compact }: SourceChoiceProps) {
+// minimum, and the chosen one has to read as chosen across a counter). Used
+// on the product's own card, where this decision is being made for the first
+// time and there is room to explain it; the variant rows repeat it as a plain
+// segmented control instead.
+function SourceChoice({ isSelected, disabled, onSelect, title, hint }: SourceChoiceProps) {
   return (
     <button
       type="button"
@@ -206,20 +216,15 @@ function SourceChoice({ isSelected, disabled, onSelect, title, hint, compact }: 
       disabled={disabled}
       aria-pressed={isSelected}
       className={cn(
-        "flex items-center transition-colors",
+        "flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-xl border p-3 text-start transition-colors",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50",
-        compact
-          ? "min-h-11 justify-center rounded-md px-3 text-sm font-medium"
-          : "min-h-12 flex-col justify-center gap-0.5 rounded-xl border p-3 text-start",
         isSelected
-          ? compact
-            ? "bg-primary text-primary-foreground"
-            : "border-primary bg-primary/10 ring-2 ring-primary"
-          : cn("text-foreground not-disabled:hover:bg-accent/60", !compact && "border-border bg-card")
+          ? "border-primary bg-primary/10 ring-2 ring-primary"
+          : "border-border bg-card text-foreground not-disabled:hover:bg-accent/60"
       )}
     >
-      <span className={cn("font-medium", compact ? "text-sm" : "text-base text-foreground")}>{title}</span>
-      {!compact && <span className="text-xs text-muted-foreground">{hint}</span>}
+      <span className="text-base font-medium text-foreground">{title}</span>
+      <span className="text-xs text-muted-foreground">{hint}</span>
     </button>
   );
 }

@@ -2,9 +2,10 @@ import type { ListProductsQuery } from "@shared/schemas/product";
 import type { ProductPrintState } from "@shared/types/product";
 
 // How a product photo meets the box it is drawn in: cropped to fill it
-// (thumbnails) or shown whole inside it (the detail page). See
-// components/products/product-image.tsx.
-export type ProductImageFit = "cover" | "contain";
+// (thumbnails), shown whole inside it (a plate the photo is centred on), or
+// given no box at all and drawn at its own size within a cap (the detail
+// page). See components/products/product-image.tsx.
+export type ProductImageFit = "cover" | "contain" | "natural";
 
 // Client-side filter state for the products list screen. Kept separate from
 // `ListProductsQuery` (the API's validated query shape) so the UI can hold

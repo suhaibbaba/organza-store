@@ -22,9 +22,9 @@ import { ImagePointCanvas } from "@/components/products/numbered-shawl/image-poi
 import { PointDetailsList } from "@/components/products/numbered-shawl/point-details-list";
 import { Button } from "@/components/ui/button";
 import { Alert } from "@/components/ui/alert";
+import { SegmentedControl } from "@/components/ui/segmented-control";
 import { Spinner } from "@/components/ui/spinner";
 import { ApiError } from "@/lib/api/errors";
-import { cn } from "@/lib/utils";
 import type { ShawlPoint } from "@/types/numberedShawl";
 
 interface NumberedShawlEditorProps {
@@ -202,30 +202,18 @@ export function NumberedShawlEditor({ product, variantTypes, currency }: Numbere
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex rounded-lg border border-border p-1">
-        <button
-          type="button"
-          onClick={() => setStep("place")}
-          aria-pressed={step === "place"}
-          className={cn(
-            "min-h-10 flex-1 rounded-md text-sm font-medium transition-colors",
-            step === "place" ? "bg-primary text-primary-foreground" : "text-muted-foreground"
-          )}
-        >
-          {t("stepPlace")}
-        </button>
-        <button
-          type="button"
-          onClick={() => setStep("details")}
-          aria-pressed={step === "details"}
-          className={cn(
-            "min-h-10 flex-1 rounded-md text-sm font-medium transition-colors",
-            step === "details" ? "bg-primary text-primary-foreground" : "text-muted-foreground"
-          )}
-        >
-          {t("stepDetails")}
-        </button>
-      </div>
+      {/* Two steps, each as wide as its own name: the halves this used to be
+          gave "وضع الأرقام" the same room as "التفاصيل" and broke the long
+          one onto a second line. */}
+      <SegmentedControl
+        label={t("stepsLabel")}
+        value={step}
+        onChange={setStep}
+        options={[
+          { value: "place", label: t("stepPlace") },
+          { value: "details", label: t("stepDetails") },
+        ]}
+      />
 
       {step === "place" ? (
         <>

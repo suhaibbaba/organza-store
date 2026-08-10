@@ -20,11 +20,20 @@ interface ProductImageProps {
    * consistent grid matters more than seeing every edge of the garment.
    *
    * "contain" shows the whole photo, centred and un-stretched, on the white
-   * photo plate — for the one large image on the detail page, where the point
-   * is the garment itself and a crop would cut the ends off a shawl.
+   * photo plate — for a photo that has to sit in a box of a fixed shape.
+   *
+   * "natural" gives the photo no box at all: it is drawn at its own size,
+   * scaled down to fit whatever room it has, with nothing around it — for the
+   * one large image on the detail page, where a plate with a border left
+   * empty bars either side of a portrait shawl. The caller supplies the cap
+   * (a max-h-*), never a height.
    */
   fit?: ProductImageFit;
 }
+
+// The photo sizing itself: its own width and height, scaled down — never up,
+// never squashed — to whatever the caller's max-width/max-height allow.
+const NATURAL_IMAGE_CLASS = "h-auto w-auto max-w-full object-contain";
 
 /**
  * A product photo, or the branded placeholder standing in for one.
@@ -53,6 +62,30 @@ export function ProductImage({ src, alt, className, sizes, fit = "cover" }: Prod
   const [failed, setFailed] = useState<string | null>(null);
 
   const usePlaceholder = !resolved || failed === resolved || hasImageFailed(resolved);
+
+  // No wrapper at all in this mode — a div would be the box this exists to
+  // get rid of. `width`/`height` of 0 alongside `h-auto w-auto` is how
+  // next/image is told "the dimensions of this photo aren't known here, use
+  // its own": the srcset is built from `sizes`, not from those numbers.
+  if (fit === "natural") {
+    return usePlaceholder ? (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img src={PRODUCT_PLACEHOLDER_PATH} alt="" className={cn(NATURAL_IMAGE_CLASS, className)} />
+    ) : (
+      <Image
+        src={resolved}
+        alt={alt}
+        width={0}
+        height={0}
+        sizes={sizes ?? "96px"}
+        className={cn(NATURAL_IMAGE_CLASS, className)}
+        onError={() => {
+          markImageFailed(resolved);
+          setFailed(resolved);
+        }}
+      />
+    );
+  }
 
   return (
     // A cropped thumbnail sits on the grey that reads as "an image goes

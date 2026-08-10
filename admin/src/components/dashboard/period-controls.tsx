@@ -67,12 +67,12 @@ export function PeriodControls({ period, onPeriodChange, summary }: PeriodContro
     <>
       {/* Sized to its labels, not to the row: a full-width tab strip on a
           desktop puts "Today" and "This month" a hand's width apart. The
-          labels still never wrap or truncate — whitespace-nowrap keeps a tab
-          reading "This m…" off the screen. */}
+          labels never wrap or truncate either — both are TabsList's own doing
+          now, so every tab row in the app behaves the same way. */}
       <Tabs value={period} onValueChange={(value) => onPeriodChange(value as ReportPeriod)}>
-        <TabsList className="inline-flex w-fit shrink-0">
+        <TabsList>
           {REPORT_PERIODS.map((key) => (
-            <TabsTrigger key={key} value={key} className="whitespace-nowrap px-2">
+            <TabsTrigger key={key} value={key}>
               {t(`periods.${key}`)}
             </TabsTrigger>
           ))}

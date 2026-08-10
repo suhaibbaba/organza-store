@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { REPORT_PRESETS } from "@/constants/reports";
 import { rangeForPreset } from "@/lib/report-range";
+import { useActiveSegmentInView } from "@/lib/segmented-scroll";
 import { cn } from "@/lib/utils";
 import type { ReportPresetKey, ReportRangeValue } from "@/types/report";
 
@@ -22,6 +23,7 @@ interface ReportRangePickerProps {
 // on a phone the chips scroll inside it instead of widening the page.
 export function ReportRangePicker({ value, onChange }: ReportRangePickerProps) {
   const t = useTranslations("reports.range");
+  const chipsRef = useActiveSegmentInView<HTMLDivElement>();
 
   function selectPreset(preset: ReportPresetKey) {
     onChange(rangeForPreset(preset, value));
@@ -30,8 +32,10 @@ export function ReportRangePicker({ value, onChange }: ReportRangePickerProps) {
   return (
     <div className="inline-flex w-fit min-w-0 max-w-full flex-col gap-3">
       {/* Scrolls sideways on a narrow phone instead of wrapping into a block
-          of chips that pushes the figures off screen. */}
-      <div className="flex max-w-full gap-2 overflow-x-auto pb-1">
+          of chips that pushes the figures off screen — with the chosen chip
+          scrolled back into view, the same as every other tab row
+          (lib/segmented-scroll.ts). */}
+      <div ref={chipsRef} className="flex max-w-full gap-2 overflow-x-auto pb-1">
         {REPORT_PRESETS.map((preset) => (
           <button
             key={preset}
@@ -39,7 +43,9 @@ export function ReportRangePicker({ value, onChange }: ReportRangePickerProps) {
             aria-pressed={value.preset === preset}
             onClick={() => selectPreset(preset)}
             className={cn(
-              "h-11 shrink-0 rounded-full border px-4 text-sm font-medium transition-colors",
+              // Never two lines: a chip is as wide as its own label and keeps
+              // that width once the row overflows.
+              "h-11 shrink-0 whitespace-nowrap rounded-full border px-4 text-sm font-medium transition-colors",
               value.preset === preset
                 ? "border-primary bg-primary text-primary-foreground"
                 : "border-border bg-card text-foreground active:bg-accent"

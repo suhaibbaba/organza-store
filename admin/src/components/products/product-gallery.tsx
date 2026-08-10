@@ -17,22 +17,29 @@ export function ProductGallery({ images, alt }: ProductGalleryProps) {
 
   return (
     <div className="flex w-full max-w-sm flex-col gap-2">
-      {/* A fixed, modest height rather than a square that grew with the
-          screen: at aspect-square on a phone the photo was as tall as it was
-          wide and pushed the price, the stock and the Edit button off the
-          first screenful. Height is capped twice — a set height, plus 45vh
-          for short screens (a phone held sideways) — and width by the
-          max-w-sm on the column, so the photo can never dominate the page at
-          either end. `contain` keeps whatever shape the photo actually is,
-          centred on the white plate, instead of cropping the ends off a
-          shawl to fill a square. */}
-      <ProductImage
-        src={active?.url}
-        alt={alt}
-        fit="contain"
-        className="h-64 max-h-[45vh] w-full rounded-xl border border-border md:h-72"
-        sizes={PRODUCT_DETAIL_IMAGE_SIZES}
-      />
+      {/* The photo and nothing else: no card, no border, no plate behind it.
+          It is drawn at its own shape and scaled down to fit — so a portrait
+          shawl is exactly as wide as it is tall, with no empty bars either
+          side of it, and a landscape one takes no more height than it needs.
+          Capped by height, not given one: 16rem (18 from md up), and never
+          more than 45vh on a short screen — a phone held sideways — so the
+          photo can't push the price, the stock and the Edit button off the
+          first screenful. Width is bounded by the max-w-sm column. */}
+      <div className="flex justify-center">
+        <ProductImage
+          src={active?.url}
+          alt={alt}
+          fit="natural"
+          className="max-h-[min(16rem,45vh)] md:max-h-[min(18rem,45vh)]"
+          sizes={PRODUCT_DETAIL_IMAGE_SIZES}
+        />
+      </div>
+      {/* The strip keeps its small even squares — they are an index of the
+          photos, not the photo itself, and they carry no card or plate of
+          their own: the only ring drawn is the one marking which photo is
+          being shown. Left-aligned rather than centred on purpose: a centred
+          scroll container puts its first item out of reach once there are
+          more thumbnails than fit. */}
       {images.length > 1 && (
         <div className="flex gap-2 overflow-x-auto">
           {images.map((image, index) => (

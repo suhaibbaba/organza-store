@@ -13,7 +13,7 @@ import { NumericInput } from "@/components/ui/numeric-input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Alert } from "@/components/ui/alert";
-import { cn } from "@/lib/utils";
+import { SegmentedControl } from "@/components/ui/segmented-control";
 import type { DiscountState } from "@/types/cart";
 
 interface DiscountSheetProps {
@@ -91,34 +91,22 @@ function DiscountForm({ baseAmount, current, onApply }: DiscountFormProps) {
     <div className="flex flex-col gap-4 overflow-y-auto px-5 pb-5">
       <div className="flex flex-col gap-2">
         <Label>{t("typeLabel")}</Label>
-        {/* Two words wide, not half the screen each: `w-fit` keeps the pair
-            the size of what it says on a laptop, while `grid-cols-2` still
-            splits a phone's width between two thumb-sized targets. */}
-        <div
-          className="grid grid-cols-2 gap-2 sm:inline-flex sm:w-fit"
-          role="group"
-          aria-label={t("typeLabel")}
-        >
-          {DISCOUNT_TYPES.map((option) => (
-            <button
-              key={option}
-              type="button"
-              onClick={() => setType(option)}
-              aria-pressed={type === option}
-              className={cn(
-                "min-h-12 rounded-lg border px-4 py-3 text-base font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                type === option
-                  ? "border-primary bg-primary text-primary-foreground"
-                  : "border-input bg-background text-foreground hover:bg-accent"
-              )}
-            >
-              {/* The fixed-amount option names the shop's currency, from
-                  Settings — "Amount" alone left the two options telling the
-                  cashier nothing about which one deals in money. */}
-              {option === "AMOUNT" && currency ? t("type.AMOUNT_currency", { currency }) : t(`type.${option}`)}
-            </button>
-          ))}
-        </div>
+        {/* Two words wide, not half the screen each — and each the width of
+            its own label, so "مبلغ ثابت (₪)" stays on one line instead of
+            breaking in half against the shorter option beside it. */}
+        <SegmentedControl
+          size="lg"
+          label={t("typeLabel")}
+          value={type}
+          onChange={setType}
+          options={DISCOUNT_TYPES.map((option) => ({
+            value: option,
+            // The fixed-amount option names the shop's currency, from
+            // Settings — "Amount" alone left the two options telling the
+            // cashier nothing about which one deals in money.
+            label: option === "AMOUNT" && currency ? t("type.AMOUNT_currency", { currency }) : t(`type.${option}`),
+          }))}
+        />
       </div>
 
       <div className="flex flex-col gap-2">

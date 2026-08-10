@@ -6,4 +6,5 @@ export * from "./locale";
 export * from "./numeric";
 export * from "./pos";
 export * from "./pwa";
+export * from "./segmented";
 export * from "./storage";

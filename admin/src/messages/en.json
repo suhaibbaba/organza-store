@@ -803,6 +803,7 @@
       "numberedShawl": {
         "title": "Numbered points",
         "needsImage": "Add a product photo above first, then come back here to place the numbers.",
+        "stepsLabel": "Numbering steps",
         "stepPlace": "Place points",
         "stepDetails": "Quantities",
         "placeHint": "Tap the photo to add a numbered point. Drag a point to move it, or tap it to select and delete it.",

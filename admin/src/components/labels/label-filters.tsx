@@ -7,7 +7,7 @@ import { useCategoriesQuery } from "@/hooks/use-categories";
 import { flattenCategoryTree } from "@/lib/api/categories";
 import { localize } from "@/lib/i18n-content";
 import { Select } from "@/components/ui/select";
-import { cn } from "@/lib/utils";
+import { SegmentedControl } from "@/components/ui/segmented-control";
 
 interface LabelFiltersProps {
   printState: ProductPrintState;
@@ -32,34 +32,15 @@ export function LabelFilters({
 
   return (
     <div className="flex flex-col gap-3">
-      <div
-        role="group"
-        aria-label={t("printState")}
-        className="inline-flex w-fit gap-1 rounded-xl border border-border bg-card p-1"
-      >
-        {PRODUCT_PRINT_STATES.map((state) => (
-          <button
-            key={state}
-            type="button"
-            onClick={() => onPrintStateChange(state)}
-            aria-pressed={printState === state}
-            className={cn(
-              // The row is sized to its content, so each chip takes the width
-              // of its own label — flex-1 would give all three the same width
-              // and clip the longest ("غير مطبوعة"), which whitespace-nowrap
-              // then has nowhere to put. min-w keeps the shortest a full
-              // 44px target all the same.
-              "min-h-11 min-w-16 whitespace-nowrap rounded-lg px-3 text-sm font-medium transition-colors",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-              printState === state
-                ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-            )}
-          >
-            {t(state)}
-          </button>
-        ))}
-      </div>
+      {/* The row sizes each chip to its own label and scrolls rather than
+          wrapping — the shared control's doing, so "غير مطبوعة" can't end up
+          on two lines here again. */}
+      <SegmentedControl
+        label={t("printState")}
+        value={printState}
+        onChange={onPrintStateChange}
+        options={PRODUCT_PRINT_STATES.map((state) => ({ value: state, label: t(state) }))}
+      />
 
       <Select
         aria-label={t("category")}
