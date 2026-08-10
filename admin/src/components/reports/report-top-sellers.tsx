@@ -87,7 +87,7 @@ export function ReportTopSellers({ byRevenue, byQuantity }: ReportTopSellersProp
       </CardHeader>
       <CardContent className="pt-0">
         <Tabs defaultValue="revenue">
-          <TabsList className="inline-flex w-fit">
+          <TabsList>
             <TabsTrigger value="revenue">{t("byRevenue")}</TabsTrigger>
             <TabsTrigger value="quantity">{t("byQuantity")}</TabsTrigger>
           </TabsList>

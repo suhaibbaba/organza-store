@@ -125,11 +125,12 @@ export function ImagePointCanvas({
   return (
     <div
       className={cn(
-        "overflow-hidden rounded-xl border border-border",
-        // Reading the shawl (the detail page): the same white plate the
-        // ordinary gallery uses. Placing the points (the editor): the grey
-        // one, where the photo is the work surface and wants the contrast.
-        readOnly ? "flex justify-center bg-photo-surface" : "bg-muted"
+        // Reading the shawl (the detail page): the photo and its numbers,
+        // with nothing around them — the same as the ordinary gallery, which
+        // lost its card, its border and its plate for the same reason.
+        // Placing the points (the editor): the grey work surface, framed,
+        // because there the photo is a canvas being worked on.
+        readOnly ? "flex justify-center" : "overflow-hidden rounded-xl border border-border bg-muted"
       )}
     >
       <div
