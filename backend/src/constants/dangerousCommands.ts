@@ -6,6 +6,9 @@
 // (The test suite guards its own target the same way — see
 // tests/constants/targets.ts.)
 
+/** The banner every refusal and every command header is drawn with. */
+export const COMMAND_RULE = "═".repeat(74);
+
 /** "This database is disposable" — required by `seed:demo`. */
 export const DISPOSABLE_OVERRIDE_VALUE = "I-KNOW-THIS-IS-NOT-PRODUCTION";
 

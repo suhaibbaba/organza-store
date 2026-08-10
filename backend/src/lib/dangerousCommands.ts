@@ -1,5 +1,6 @@
 import "dotenv/config";
 import {
+  COMMAND_RULE,
   DANGEROUS_COMMAND_ENV,
   DESTRUCTIVE_CONFIRM_VALUE,
   DISPOSABLE_OVERRIDE_VALUE,
@@ -14,7 +15,7 @@ import { currentAppEnv, isAppEnvDeclared, isProductionAppEnv } from "@/lib/appEn
 // CLAUDE.md rule 12 (no hard-coded strings) does not reach here. Nothing in
 // this file is ever rendered to a member of staff.
 
-const RULE = "═".repeat(74);
+const RULE = COMMAND_RULE;
 
 /** Never prints the password. `postgres://user:pw@host:5432/db` -> `host:5432/db`. */
 export function describeDatabase(url = process.env.DATABASE_URL): string {
@@ -44,7 +45,13 @@ export function describeAppEnv(): string {
   return isAppEnvDeclared() ? appEnv : `${appEnv}  (APP_ENV is unset — assumed)`;
 }
 
-function refuse(lines: string[]): never {
+/**
+ * The shape every refusal in this codebase takes: a banner, the lines, a
+ * banner. Exported so the guards in front of `import:prod`
+ * (lib/productionImport/guards.ts) read identically to the two below rather
+ * than inventing a second house style for the same job.
+ */
+export function refuseCommand(lines: string[]): never {
   throw new Error(["", RULE, ...lines, RULE, ""].join("\n"));
 }
 
@@ -67,7 +74,7 @@ interface DisposableOptions {
  */
 export function assertDisposableDatabase(options: DisposableOptions): void {
   if (isProductionEnv()) {
-    refuse([
+    refuseCommand([
       `  ⛔  REFUSING TO RUN — ${options.command}`,
       RULE,
       `  Database : ${describeDatabase()}`,
@@ -83,7 +90,7 @@ export function assertDisposableDatabase(options: DisposableOptions): void {
   }
 
   if (process.env[options.overrideEnv] !== DISPOSABLE_OVERRIDE_VALUE) {
-    refuse([
+    refuseCommand([
       `  ⛔  REFUSING TO RUN — ${options.command}`,
       RULE,
       `  Database : ${describeDatabase()}`,
@@ -110,7 +117,7 @@ interface DestructiveOptions {
  */
 export function assertDestructiveConfirmed(options: DestructiveOptions): void {
   if (process.env[options.confirmEnv] !== DESTRUCTIVE_CONFIRM_VALUE) {
-    refuse([
+    refuseCommand([
       `  ⛔  REFUSING TO RUN — ${options.command}`,
       RULE,
       `  Database : ${describeDatabase()}`,
@@ -124,7 +131,7 @@ export function assertDestructiveConfirmed(options: DestructiveOptions): void {
   }
 
   if (isProductionEnv() && process.env[DANGEROUS_COMMAND_ENV.productionOverride] !== PRODUCTION_OVERRIDE_VALUE) {
-    refuse([
+    refuseCommand([
       `  ⛔  REFUSING TO RUN — ${options.command}`,
       RULE,
       `  Database : ${describeDatabase()}`,
