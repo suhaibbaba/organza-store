@@ -30,10 +30,17 @@ ARG NEXT_PUBLIC_API_URL
 ARG NEXT_PUBLIC_DEFAULT_LOCALE
 ARG NEXT_PUBLIC_SUPPORTED_LOCALES
 ARG NEXT_PUBLIC_PROJECT_NAME
+# Sandbox or production. Decides which public/app_icon/<env>/ folder every
+# icon path points at, whether the installed app is called "(SBX)", and
+# whether the SANDBOX chip appears in the top bar. A build arg rather than a
+# runtime variable because all three are baked into the bundle and the static
+# HTML — `next start` reading it later would be too late.
+ARG NEXT_PUBLIC_APP_ENV
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL \
     NEXT_PUBLIC_DEFAULT_LOCALE=$NEXT_PUBLIC_DEFAULT_LOCALE \
     NEXT_PUBLIC_SUPPORTED_LOCALES=$NEXT_PUBLIC_SUPPORTED_LOCALES \
-    NEXT_PUBLIC_PROJECT_NAME=$NEXT_PUBLIC_PROJECT_NAME
+    NEXT_PUBLIC_PROJECT_NAME=$NEXT_PUBLIC_PROJECT_NAME \
+    NEXT_PUBLIC_APP_ENV=$NEXT_PUBLIC_APP_ENV
 
 # The version staff read out when they report a problem, inlined into the
 # bundle by next.config.ts. Resolved by the deploy on the host and passed in

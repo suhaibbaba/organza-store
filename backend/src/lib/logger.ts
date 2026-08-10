@@ -1,5 +1,6 @@
 import "dotenv/config";
 import * as Sentry from "@sentry/node";
+import { APP_ENV } from "@/lib/appEnv";
 
 // Isolated error-tracking layer (CLAUDE.md rule 20). Nothing outside this
 // file imports @sentry/node, so swapping Sentry for a self-hosted,
@@ -16,7 +17,11 @@ const dsn = process.env.SENTRY_DSN?.trim();
 if (dsn) {
   Sentry.init({
     dsn,
-    environment: process.env.NODE_ENV ?? "development",
+    // Which deployment reported it (lib/appEnv.ts). NODE_ENV was useless
+    // here: it is "production" on the sandbox too, so both stacks filed their
+    // errors under the same tag and a sandbox experiment looked like a fault
+    // on the shop's live API.
+    environment: APP_ENV,
     // Errors only. Performance tracing would sample every request on a VPS
     // that is also serving the shop.
     tracesSampleRate: 0,

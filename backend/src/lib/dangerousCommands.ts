@@ -5,6 +5,7 @@ import {
   DISPOSABLE_OVERRIDE_VALUE,
   PRODUCTION_OVERRIDE_VALUE,
 } from "@/constants/dangerousCommands";
+import { currentAppEnv, isAppEnvDeclared, isProductionAppEnv } from "@/lib/appEnv";
 
 // The refusals in front of the two commands that can destroy a shop's data.
 //
@@ -26,8 +27,21 @@ export function describeDatabase(url = process.env.DATABASE_URL): string {
   }
 }
 
+/**
+ * Whether the database in front of this process is the shop's real one.
+ *
+ * Reads APP_ENV, not NODE_ENV (see lib/appEnv.ts): the sandbox is a
+ * production *build* too, and answering "yes" for it made both refusals below
+ * fire on the stack that exists to be thrown away.
+ */
 export function isProductionEnv(): boolean {
-  return (process.env.NODE_ENV ?? "").trim().toLowerCase() === "production";
+  return isProductionAppEnv();
+}
+
+/** The line the refusals print, honest about a value nobody actually set. */
+export function describeAppEnv(): string {
+  const appEnv = currentAppEnv();
+  return isAppEnvDeclared() ? appEnv : `${appEnv}  (APP_ENV is unset — assumed)`;
 }
 
 function refuse(lines: string[]): never {
@@ -57,7 +71,7 @@ export function assertDisposableDatabase(options: DisposableOptions): void {
       `  ⛔  REFUSING TO RUN — ${options.command}`,
       RULE,
       `  Database : ${describeDatabase()}`,
-      "  NODE_ENV : production",
+      `  APP_ENV  : ${describeAppEnv()}`,
       "",
       `  This command would ${options.what}.`,
       "  There is deliberately no override for a production environment.",
@@ -114,7 +128,7 @@ export function assertDestructiveConfirmed(options: DestructiveOptions): void {
       `  ⛔  REFUSING TO RUN — ${options.command}`,
       RULE,
       `  Database : ${describeDatabase()}`,
-      "  NODE_ENV : production",
+      `  APP_ENV  : ${describeAppEnv()}`,
       "",
       "  That is the LIVE SHOP. Wiping it destroys every order, every",
       "  product, every expense and the whole audit trail.",

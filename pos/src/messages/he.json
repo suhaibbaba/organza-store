@@ -1,7 +1,8 @@
 {
   "app": {
     "name": "אורגנזה",
-    "tagline": "מסך מכירה"
+    "tagline": "מסך מכירה",
+    "sandbox": "ניסיוני"
   },
   "common": {
     "loading": "טוען…",

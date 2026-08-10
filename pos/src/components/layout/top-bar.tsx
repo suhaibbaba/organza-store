@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { LanguageSwitcher } from "@/components/layout/language-switcher";
 import { AccountMenu } from "@/components/layout/account-menu";
+import { EnvironmentBadge } from "@/components/layout/environment-badge";
 
 // The POS is a single screen, so there is no navigation to speak of — this
 // bar exists to say who is signed in (every sale is attributed to them in
@@ -18,7 +19,13 @@ export function TopBar() {
     // device specifics").
     <header className="sticky top-0 z-30 border-b border-border bg-background pt-[var(--safe-top)]">
       <div className="flex h-[var(--top-bar-height)] items-center justify-between gap-2 px-3 md:px-6">
-        <span className="truncate text-base font-semibold md:text-lg">{t("app.name")}</span>
+        {/* The shop's name, and — on the sandbox only — the chip that says so.
+            gap rather than a margin on the chip, so nothing shifts on the
+            live shop where the chip renders nothing. */}
+        <div className="flex min-w-0 items-center gap-2">
+          <span className="truncate text-base font-semibold md:text-lg">{t("app.name")}</span>
+          <EnvironmentBadge />
+        </div>
 
         <div className="flex shrink-0 items-center gap-2">
           <LanguageSwitcher variant="dropdown" />

@@ -78,6 +78,51 @@ also written out in text, so nothing depends on reading a bar against an axis on
 Cost and profit are not hidden client-side: the API omits them entirely for roles without
 `product.viewCost`, and the components render whatever arrived.
 
+## App icons & which environment this is
+
+`NEXT_PUBLIC_APP_ENV` is either `sandbox` or `production`, and it is the only thing that
+tells the two deployments apart — both are built with `next build` and run with
+`NODE_ENV=production`, so nothing else can. It is read once, in `src/lib/env.ts`, and it
+decides three things:
+
+- **Which icons are served.** `public/app_icon/production/` and `public/app_icon/sandbox/`
+  hold the same file names; every icon path is built from the chosen folder in
+  `src/constants/pwa.ts`. The sandbox artwork carries an amber `SBX` band.
+- **What the installed app is called** — `Organza Admin` or `Organza Admin (SBX)`, so two tiles on the
+  same phone can be told apart without opening them.
+- **Whether the SANDBOX chip appears** next to the shop's name in the top bar and on the
+  login screen (`src/components/layout/environment-badge.tsx`). Production shows nothing.
+
+The value is **inlined at build time**, so changing it means rebuilding, not restarting.
+Unset, it means `production` — the safe way round: a live shop whose env file was missed
+keeps its own icons and stays unlabelled, rather than telling staff that real orders are
+practice data. The backend has the same variable without the prefix (`APP_ENV`), which is
+what its destructive-command guards read.
+
+### The files in each folder
+
+| File | Used for |
+|---|---|
+| `favicon.ico` | Legacy tab icon. A single 16×16. |
+| `icon-32.png` | The tab on any current screen, which draws it at 32 real pixels. **Derived.** |
+| `icon-180.png` | iOS home screen (`apple-touch-icon`). iOS ignores the manifest entirely. |
+| `icon-192.png` | Android launcher icon, and the icon on a pushed notification. |
+| `icon-512.png` | Chrome's install prompt and its generated splash. |
+| `icon-maskable-512.png` | Android adaptive icon — mark inside the safe zone, so a circular mask can't clip it. |
+| `icon-mark-512.png` | The mark on transparency, for the in-app boot splash. **Derived.** |
+
+The two marked **Derived** are generated from `icon-512.png` in the same folder. After
+replacing any artwork, regenerate them (needs `backend/`'s dependencies installed, for
+`sharp`):
+
+```bash
+node shared/scripts/derive-app-icons.js
+```
+
+> **Testing new icons on iPhone:** iOS caches a PWA's icon at install time and never
+> refetches it. The app has to be removed from the Home Screen and re-added before a new
+> icon shows up — a hard refresh in Safari is not enough.
+
 ## Project layout
 
 ```

@@ -6,13 +6,16 @@ import { LOCALE_COOKIE_NAME } from "@/constants/locale";
 import {
   OFFLINE_PATH,
   PUSH_MESSAGES_BASE_PATH,
+  PWA_NOTIFICATION_ICON_SIZE,
   SERVICE_WORKER_LOCALE_COOKIE_PARAM,
   SERVICE_WORKER_MESSAGES_PARAM,
+  SERVICE_WORKER_NOTIFICATION_ICON_PARAM,
   SERVICE_WORKER_OFFLINE_PARAM,
   SERVICE_WORKER_PATH,
   SERVICE_WORKER_SKIP_WAITING_MESSAGE,
   SERVICE_WORKER_VERSION_PARAM,
   UPDATE_RELOAD_FALLBACK_MS,
+  pwaIconPath,
 } from "@/constants/pwa";
 import { UpdatePrompt } from "@/components/pwa/update-prompt";
 
@@ -62,6 +65,10 @@ export function ServiceWorkerRegistrar() {
       // Where to read notification wording from — the worker can't import
       // the app's translations, so it is told where they live.
       [SERVICE_WORKER_MESSAGES_PARAM]: PUSH_MESSAGES_BASE_PATH,
+      // ...and which environment's icon to draw them with, for the same
+      // reason: the folder is chosen at build time (constants/pwa.ts) and the
+      // worker has no way to work it out for itself.
+      [SERVICE_WORKER_NOTIFICATION_ICON_PARAM]: pwaIconPath(PWA_NOTIFICATION_ICON_SIZE),
     });
 
     let registration: ServiceWorkerRegistration | undefined;

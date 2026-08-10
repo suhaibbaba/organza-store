@@ -12,7 +12,7 @@ import {
   PWA_APPLE_ICON_SIZE,
   PWA_DESCRIPTION,
   PWA_FAVICON_PATH,
-  PWA_ICON_SIZES,
+  PWA_FAVICON_PNG_SIZES,
   PWA_MANIFEST_PATH,
   PWA_NAME,
   PWA_SHORT_NAME,
@@ -36,9 +36,13 @@ export const metadata: Metadata = {
   description: PWA_DESCRIPTION,
   manifest: PWA_MANIFEST_PATH,
   icons: {
+    // The tab. Both entries point inside app_icon/<environment>/, so a
+    // sandbox tab is amber-banded even before anything on the page has
+    // rendered — the .ico for whatever still insists on one, the PNG for
+    // everything that can pick by size (see PWA_FAVICON_PNG_SIZES).
     icon: [
       { url: PWA_FAVICON_PATH, sizes: "any", type: "image/x-icon" },
-      ...PWA_ICON_SIZES.map((size) => ({
+      ...PWA_FAVICON_PNG_SIZES.map((size) => ({
         url: pwaIconPath(size),
         sizes: `${size}x${size}`,
         type: "image/png",

@@ -18,7 +18,12 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { prisma } from "@/lib/prisma";
 import { UPLOAD_DIR } from "@/lib/image";
-import { assertDestructiveConfirmed, describeDatabase, isProductionEnv } from "@/lib/dangerousCommands";
+import {
+  assertDestructiveConfirmed,
+  describeAppEnv,
+  describeDatabase,
+  isProductionEnv,
+} from "@/lib/dangerousCommands";
 import { DANGEROUS_COMMAND_ENV } from "@/constants";
 
 const RULE = "═".repeat(74);
@@ -77,7 +82,7 @@ async function main(): Promise<void> {
   console.log(RULE);
   console.log(`  Database : ${describeDatabase()}`);
   console.log(`  Uploads  : ${UPLOAD_DIR}`);
-  console.log(`  NODE_ENV : ${process.env.NODE_ENV ?? "(unset)"}${isProductionEnv() ? "  ← production, overridden" : ""}`);
+  console.log(`  APP_ENV  : ${describeAppEnv()}${isProductionEnv() ? "  ← the live shop, overridden" : ""}`);
   console.log(RULE);
 
   // Drop + re-apply every migration. --skip-seed is belt and braces: the demo
