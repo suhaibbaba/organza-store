@@ -1,11 +1,11 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
-import type { Product } from "@shared/types/product";
-import type { Variant } from "@shared/types/variant";
-import { ERROR_CODES } from "@shared/constants/errors";
-import { PRODUCT_LOOKUP_KIND } from "@shared/constants/product";
-import { toLatinDigits } from "@shared/lib/keyboard";
+import type { Product } from "@organza/shared/types/product";
+import type { Variant } from "@organza/shared/types/variant";
+import { ERROR_CODES } from "@organza/shared/constants/errors";
+import { PRODUCT_LOOKUP_KIND } from "@organza/shared/constants/product";
+import { toLatinDigits } from "@organza/shared/lib/keyboard";
 import { ApiError } from "@/lib/api/errors";
 import { lookupProductByCode } from "@/lib/api/products";
 import { SCAN_DEDUPE_MS } from "@/constants/pos";

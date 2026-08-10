@@ -1,5 +1,5 @@
 import { Prisma } from "@prisma/client";
-import { BARCODE_SOURCE } from "@shared/constants/barcode";
+import { BARCODE_SOURCE } from "@organza/shared/constants/barcode";
 import type { AnyRecord } from "@/types";
 
 // Does this product still owe us a printed label?

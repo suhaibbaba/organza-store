@@ -1,6 +1,6 @@
 import "dotenv/config";
-import { resolveAppEnv } from "@shared/constants/appEnv";
-import type { AppEnv } from "@shared/types";
+import { resolveAppEnv } from "@organza/shared/constants/appEnv";
+import type { AppEnv } from "@organza/shared/types";
 
 /*
  * Which deployment this process is: the sandbox stack, or the live shop.
@@ -12,7 +12,7 @@ import type { AppEnv } from "@shared/types";
  * refusal came to fire on the sandbox as well, on a database that exists to
  * be wiped. A refusal that is wrong half the time teaches people to type past
  * it, so the environment is now declared rather than guessed (APP_ENV, see
- * @shared/constants/appEnv for what an unset value means and why).
+ * @organza/shared/constants/appEnv for what an unset value means and why).
  *
  * The frontends read the same value under NEXT_PUBLIC_APP_ENV, which is also
  * what picks their icon set — so a deploy sets one thing per app and the

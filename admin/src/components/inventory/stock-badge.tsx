@@ -1,7 +1,7 @@
 import { useTranslations } from "next-intl";
 import { Ban, CircleCheck, TriangleAlert, type LucideIcon } from "lucide-react";
-import { resolveStockStatus } from "@shared/lib/stock";
-import type { StockStatus } from "@shared/types/inventory";
+import { resolveStockStatus } from "@organza/shared/lib/stock";
+import type { StockStatus } from "@organza/shared/types/inventory";
 import { cn } from "@/lib/utils";
 
 interface StockBadgeProps {

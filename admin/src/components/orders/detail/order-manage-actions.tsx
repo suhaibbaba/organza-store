@@ -3,10 +3,10 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { Trash2, Undo2 } from "lucide-react";
-import { can } from "@shared/lib/permissions";
-import { ERROR_CODES } from "@shared/constants/errors";
-import { RETURNABLE_ORDER_STATUSES } from "@shared/constants/order";
-import type { Order } from "@shared/types/order";
+import { can } from "@organza/shared/lib/permissions";
+import { ERROR_CODES } from "@organza/shared/constants/errors";
+import { RETURNABLE_ORDER_STATUSES } from "@organza/shared/constants/order";
+import type { Order } from "@organza/shared/types/order";
 import { useRouter } from "@/i18n/navigation";
 import { useSession } from "@/components/providers/session-provider";
 import { useDeleteOrderMutation } from "@/hooks/use-orders";

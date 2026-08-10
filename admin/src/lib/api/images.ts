@@ -1,4 +1,4 @@
-import type { ProductImageRef } from "@shared/types/variant";
+import type { ProductImageRef } from "@organza/shared/types/variant";
 import { apiFetch } from "@/lib/api/client";
 
 export type ImageOwner = { productId: string } | { variantId: string };

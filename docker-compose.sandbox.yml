@@ -29,9 +29,10 @@ services:
 
   backend:
     build:
-      # context is the repo root, not ./backend: postinstall builds the
-      # sibling ../shared package into backend/node_modules/@shared, so
-      # shared/ must be inside the build context too.
+      # context is the repo root, not ./backend: the repo is one npm
+      # workspace, so the install runs from the root package.json and the
+      # single root lockfile, and the shared/ package it links has to be
+      # inside the build context too.
       context: .
       dockerfile: backend/Dockerfile
       args:
@@ -109,7 +110,7 @@ services:
   pos:
     build:
       # context is the repo root for the same reason as backend/admin: the
-      # build needs the sibling shared/ package.
+      # install runs from the workspace root and needs the shared/ package.
       context: .
       dockerfile: pos/Dockerfile
       args:

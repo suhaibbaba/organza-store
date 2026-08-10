@@ -2,7 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { Clock } from "lucide-react";
-import type { ChangeRequest } from "@shared/types/changeRequest";
+import type { ChangeRequest } from "@organza/shared/types/changeRequest";
 import { ChangeValueText } from "@/components/change-requests/change-value";
 import { cn } from "@/lib/utils";
 

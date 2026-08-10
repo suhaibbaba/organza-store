@@ -1,10 +1,10 @@
 import { z } from "zod";
-import { ERROR_CODES } from "@shared/constants/errors";
-import { ROLES } from "@shared/constants/roles";
-import { PASSWORD_MIN_LENGTH } from "@shared/constants/validation";
-import { isValidE164 } from "@shared/lib/phone";
-import type { User } from "@shared/types/user";
-import type { CreateUserInput, UpdateUserInput } from "@shared/schemas/user";
+import { ERROR_CODES } from "@organza/shared/constants/errors";
+import { ROLES } from "@organza/shared/constants/roles";
+import { PASSWORD_MIN_LENGTH } from "@organza/shared/constants/validation";
+import { isValidE164 } from "@organza/shared/lib/phone";
+import type { User } from "@organza/shared/types/user";
+import type { CreateUserInput, UpdateUserInput } from "@organza/shared/schemas/user";
 
 // Field messages are backend error codes (CLAUDE.md rule 12), same as every
 // other form.

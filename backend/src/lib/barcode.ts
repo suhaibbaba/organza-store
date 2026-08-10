@@ -1,4 +1,4 @@
-import { BARCODE_SOURCE } from "@shared/constants/barcode";
+import { BARCODE_SOURCE } from "@organza/shared/constants/barcode";
 import { prisma } from "@/lib/prisma";
 import { AppError } from "@/lib/response";
 import { BARCODE_MAX_ATTEMPTS, BARCODE_PREFIX, BARCODE_RANDOM_DIGITS, ERROR_CODES } from "@/constants";

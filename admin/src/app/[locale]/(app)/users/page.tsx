@@ -3,8 +3,8 @@
 import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Plus } from "lucide-react";
-import type { User } from "@shared/types/user";
-import { DEFAULT_PAGE } from "@shared/constants/pagination";
+import type { User } from "@organza/shared/types/user";
+import { DEFAULT_PAGE } from "@organza/shared/constants/pagination";
 import { RoleGuard } from "@/components/auth/role-guard";
 import { PageContainer } from "@/components/layout/page-container";
 import { PageHeader } from "@/components/layout/page-header";

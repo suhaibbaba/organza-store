@@ -3,8 +3,8 @@
 import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { HandCoins, Plus } from "lucide-react";
-import { can } from "@shared/lib/permissions";
-import { DEFAULT_PAGE } from "@shared/constants/pagination";
+import { can } from "@organza/shared/lib/permissions";
+import { DEFAULT_PAGE } from "@organza/shared/constants/pagination";
 import { Link } from "@/i18n/navigation";
 import { useSession } from "@/components/providers/session-provider";
 import { DEFAULT_ORDER_FILTERS, ORDER_SEARCH_DEBOUNCE_MS } from "@/constants/orders";

@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { can } from "@shared/lib/permissions";
-import { DEFAULT_PAGE } from "@shared/constants/pagination";
-import type { ChangeRequestStatus } from "@shared/types/changeRequest";
+import { can } from "@organza/shared/lib/permissions";
+import { DEFAULT_PAGE } from "@organza/shared/constants/pagination";
+import type { ChangeRequestStatus } from "@organza/shared/types/changeRequest";
 import { RoleGuard } from "@/components/auth/role-guard";
 import { PageContainer } from "@/components/layout/page-container";
 import { PageHeader } from "@/components/layout/page-header";

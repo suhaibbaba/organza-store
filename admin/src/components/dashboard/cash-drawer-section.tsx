@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Calculator, Check } from "lucide-react";
-import type { CashSession, CurrentCashSession } from "@shared/types/cash";
+import type { CashSession, CurrentCashSession } from "@organza/shared/types/cash";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";

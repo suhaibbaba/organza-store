@@ -2,7 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { CheckCircle2, Plus } from "lucide-react";
-import type { Order } from "@shared/types/order";
+import type { Order } from "@organza/shared/types/order";
 import { Link } from "@/i18n/navigation";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
 import { Button } from "@/components/ui/button";

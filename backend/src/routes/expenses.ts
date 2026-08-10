@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { AuditAction, Prisma } from "@prisma/client";
-import { can } from "@shared/lib/permissions";
+import { can } from "@organza/shared/lib/permissions";
 import { prisma } from "@/lib/prisma";
 import { asyncHandler } from "@/middleware/asyncHandler";
 import { requireAuth, requirePermission } from "@/middleware/auth";

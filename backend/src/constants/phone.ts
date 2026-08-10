@@ -1,1 +1,1 @@
-export * from "@shared/constants/phone";
+export * from "@organza/shared/constants/phone";

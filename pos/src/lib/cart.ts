@@ -1,6 +1,6 @@
-import type { Product } from "@shared/types/product";
-import type { Variant } from "@shared/types/variant";
-import type { CreateOrderItemInput } from "@shared/schemas/order";
+import type { Product } from "@organza/shared/types/product";
+import type { Variant } from "@organza/shared/types/variant";
+import type { CreateOrderItemInput } from "@organza/shared/schemas/order";
 import { fromCents, multiplyCents, resolveDiscountCents, toCents } from "@/lib/money";
 import { MIN_CART_QUANTITY } from "@/constants/pos";
 import type { CartLine, CartTotals, DiscountState } from "@/types/cart";

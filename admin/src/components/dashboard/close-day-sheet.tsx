@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { EyeOff } from "lucide-react";
-import { ERROR_CODES } from "@shared/constants/errors";
-import type { CashSession } from "@shared/types/cash";
+import { ERROR_CODES } from "@organza/shared/constants/errors";
+import type { CashSession } from "@organza/shared/types/cash";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";

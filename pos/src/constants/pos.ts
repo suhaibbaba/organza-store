@@ -1,4 +1,4 @@
-import { DEFAULT_PAGE } from "@shared/constants/pagination";
+import { DEFAULT_PAGE } from "@organza/shared/constants/pagination";
 
 // The selling screen is used all day at the counter, so search has to feel
 // instant: a short debounce (the backend search is already fast) and a small
@@ -102,7 +102,7 @@ export const SCAN_PULSE_MS = 450;
 // with both hands full and no on-screen keyboard ever opens.
 //
 // Which keys it pressed is read off `event.code`, never off `event.key` —
-// see @shared/constants/keyboard, and the shop's Arabic keyboard layout, which
+// see @organza/shared/constants/keyboard, and the shop's Arabic keyboard layout, which
 // otherwise turns every scan into Arabic letters.
 //
 // The one thing that has to be got right is telling the machine apart from a

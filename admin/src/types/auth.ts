@@ -1,5 +1,5 @@
-import type { Role } from "@shared/types/role";
-import type { PasswordTokenPurpose } from "@shared/constants/passwordSetup";
+import type { Role } from "@organza/shared/types/role";
+import type { PasswordTokenPurpose } from "@organza/shared/constants/passwordSetup";
 
 export interface SessionUser {
   id: string;

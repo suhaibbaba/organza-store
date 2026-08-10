@@ -1,5 +1,5 @@
 import type { Prisma } from "@prisma/client";
-import { nationalPhoneDigits, phoneIdentityKey } from "@shared/lib/phone";
+import { nationalPhoneDigits, phoneIdentityKey } from "@organza/shared/lib/phone";
 import { prisma } from "@/lib/prisma";
 import { CUSTOMER_SUGGESTION_LIMIT, CUSTOMER_SUGGESTION_SCAN_LIMIT } from "@/constants";
 import type { CustomerSuggestion } from "@/types";

@@ -1,7 +1,7 @@
 import { useTranslations } from "next-intl";
 import { Gift } from "lucide-react";
-import { GIFT_ORDER_TYPE } from "@shared/constants/order";
-import type { OrderType } from "@shared/types/order";
+import { GIFT_ORDER_TYPE } from "@organza/shared/constants/order";
+import type { OrderType } from "@organza/shared/types/order";
 import { cn } from "@/lib/utils";
 
 // What the order IS, as opposed to where it came from (spec.md "Gifts"): a

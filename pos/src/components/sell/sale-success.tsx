@@ -3,8 +3,8 @@
 import { useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { CheckCircle2, Gift } from "lucide-react";
-import { GIFT_ORDER_TYPE } from "@shared/constants/order";
-import type { Order } from "@shared/types/order";
+import { GIFT_ORDER_TYPE } from "@organza/shared/constants/order";
+import type { Order } from "@organza/shared/types/order";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
 import { Button } from "@/components/ui/button";
 import { POS_ORDER_CHANNEL, SALE_SUCCESS_RESET_MS } from "@/constants/pos";

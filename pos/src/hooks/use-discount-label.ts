@@ -2,7 +2,7 @@
 
 import { useCallback } from "react";
 import { useLocale } from "next-intl";
-import type { DiscountType } from "@shared/types/order";
+import type { DiscountType } from "@organza/shared/types/order";
 import { formatPercent } from "@/lib/format";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
 

@@ -2,9 +2,9 @@
 
 import { useMemo } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { BARCODE_SOURCE } from "@shared/constants/barcode";
-import type { ProductVariantTypeRef } from "@shared/types/product";
-import type { Variant } from "@shared/types/variant";
+import { BARCODE_SOURCE } from "@organza/shared/constants/barcode";
+import type { ProductVariantTypeRef } from "@organza/shared/types/product";
+import type { Variant } from "@organza/shared/types/variant";
 import { localize } from "@/lib/i18n-content";
 import { formatMoney } from "@/lib/format";
 import { ProductImage } from "@/components/products/product-image";

@@ -1,10 +1,10 @@
 "use client";
 
 import { useCallback, useMemo, useRef, useState } from "react";
-import type { Product } from "@shared/types/product";
-import type { Variant } from "@shared/types/variant";
-import type { DiscountType } from "@shared/types/order";
-import { clampQuantity } from "@shared/constants/quantity";
+import type { Product } from "@organza/shared/types/product";
+import type { Variant } from "@organza/shared/types/variant";
+import type { DiscountType } from "@organza/shared/types/order";
+import { clampQuantity } from "@organza/shared/constants/quantity";
 import { cartLineKey, computeTotals, toCartLine } from "@/lib/cart";
 import { MIN_CART_QUANTITY } from "@/constants/pos";
 import type { CartLine, CartTotals, DiscountState } from "@/types/cart";

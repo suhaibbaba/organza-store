@@ -3,11 +3,11 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { Camera, ScanLine } from "lucide-react";
-import { BARCODE_SOURCE } from "@shared/constants/barcode";
-import { isValidBarcode, normalizeBarcode } from "@shared/lib/barcode";
-import type { BarcodeSource } from "@shared/types/product";
+import { BARCODE_SOURCE } from "@organza/shared/constants/barcode";
+import { isValidBarcode, normalizeBarcode } from "@organza/shared/lib/barcode";
+import type { BarcodeSource } from "@organza/shared/types/product";
 import { useTranslateError } from "@/hooks/use-translate-error";
-import { ERROR_CODES } from "@shared/constants/errors";
+import { ERROR_CODES } from "@organza/shared/constants/errors";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";

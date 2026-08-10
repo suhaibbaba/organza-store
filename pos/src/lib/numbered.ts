@@ -1,6 +1,6 @@
-import { NUMBER_VARIANT_TYPE_SLUG } from "@shared/constants/variantType";
-import type { Product } from "@shared/types/product";
-import type { Variant } from "@shared/types/variant";
+import { NUMBER_VARIANT_TYPE_SLUG } from "@organza/shared/constants/variantType";
+import type { Product } from "@organza/shared/types/product";
+import type { Variant } from "@organza/shared/types/variant";
 
 // Which variant type carries the numbers, so a variant's number can be read
 // off it below. Only ever consulted on a product that already says it is

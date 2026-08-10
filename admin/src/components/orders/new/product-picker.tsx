@@ -2,7 +2,7 @@
 
 import { useLocale, useTranslations } from "next-intl";
 import { Plus, Search, X } from "lucide-react";
-import type { ProductSummary } from "@shared/types/product";
+import type { ProductSummary } from "@organza/shared/types/product";
 import { localize } from "@/lib/i18n-content";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
 import { useProductSearch } from "@/hooks/use-product-search";

@@ -5,7 +5,7 @@ import { AppError, sendError } from "@/lib/response";
 import { captureException } from "@/lib/logger";
 import { ERROR_CODES, type ErrorCode } from "@/constants";
 
-// Schemas built from `@shared/schemas/*` are compiled against shared/'s own
+// Schemas built from `@organza/shared/schemas/*` are compiled against shared/'s own
 // zod install — a separate copy of the package from backend's own
 // node_modules/zod (each project here has its own package.json, CLAUDE.md's
 // "Repo structure"; nothing hoists them together). A ZodError thrown while

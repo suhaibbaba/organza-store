@@ -3,9 +3,9 @@
 import { useParams } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { ChevronLeft, PackageX, Pencil } from "lucide-react";
-import type { Product } from "@shared/types/product";
-import { BARCODE_SOURCE } from "@shared/constants/barcode";
-import { can } from "@shared/lib/permissions";
+import type { Product } from "@organza/shared/types/product";
+import { BARCODE_SOURCE } from "@organza/shared/constants/barcode";
+import { can } from "@organza/shared/lib/permissions";
 import { Link } from "@/i18n/navigation";
 import { useProductQuery } from "@/hooks/use-products";
 import { useSettingsQuery } from "@/hooks/use-settings";
@@ -25,7 +25,7 @@ import { StatusBadge } from "@/components/products/status-badge";
 import { VariantList } from "@/components/products/variant-list";
 import { ProductListError, ProductListLoading } from "@/components/products/product-list-states";
 import { PendingChangeBadge } from "@/components/change-requests/pending-change-badge";
-import { CHANGE_REQUEST_ENTITIES, CHANGE_REQUEST_FIELDS } from "@shared/constants/changeRequest";
+import { CHANGE_REQUEST_ENTITIES, CHANGE_REQUEST_FIELDS } from "@organza/shared/constants/changeRequest";
 import { ApiError } from "@/lib/api/errors";
 
 export default function ProductDetailPage() {

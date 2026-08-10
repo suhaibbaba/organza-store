@@ -1,5 +1,5 @@
 import { useLocale, useTranslations } from "next-intl";
-import type { Order } from "@shared/types/order";
+import type { Order } from "@organza/shared/types/order";
 import { formatDateTime } from "@/lib/format";
 import { Card, CardContent } from "@/components/ui/card";
 

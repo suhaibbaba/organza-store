@@ -1,5 +1,5 @@
-import type { Category, CategoryNode } from "@shared/types/category";
-import type { CreateCategoryInput, UpdateCategoryInput } from "@shared/schemas/category";
+import type { Category, CategoryNode } from "@organza/shared/types/category";
+import type { CreateCategoryInput, UpdateCategoryInput } from "@organza/shared/schemas/category";
 import { apiFetch } from "@/lib/api/client";
 
 export async function fetchCategoryTree(): Promise<CategoryNode[]> {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import type { InventoryItem } from "@shared/types/inventory";
+import type { InventoryItem } from "@organza/shared/types/inventory";
 import { subscribeToManualRefresh } from "@/lib/manual-refresh";
 import type { InventoryRow, StockEdit } from "@/types/inventory";
 

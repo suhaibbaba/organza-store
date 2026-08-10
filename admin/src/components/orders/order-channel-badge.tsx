@@ -1,7 +1,7 @@
 import { useTranslations } from "next-intl";
 import { Globe, MessageCircle, Store } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import type { OrderChannel } from "@shared/types/order";
+import type { OrderChannel } from "@organza/shared/types/order";
 import { cn } from "@/lib/utils";
 
 // Where the order came from (spec.md "Channel"). Icon as well as colour: at a

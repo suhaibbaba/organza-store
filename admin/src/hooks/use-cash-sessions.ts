@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { CloseCashSessionInput, OpenCashSessionInput } from "@shared/schemas/cash";
+import type { CloseCashSessionInput, OpenCashSessionInput } from "@organza/shared/schemas/cash";
 import { CASH_SESSION_CURRENT_QUERY_KEY, CASH_SESSION_STALE_TIME_MS } from "@/constants/dashboard";
 import { closeCashSession, fetchCurrentCashSession, openCashSession } from "@/lib/api/cash-sessions";
 

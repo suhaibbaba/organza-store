@@ -2,7 +2,7 @@ import { Router } from "express";
 import type { NextFunction, Request, Response } from "express";
 import multer, { MulterError } from "multer";
 import { AuditAction, type ProductImage } from "@prisma/client";
-import { can } from "@shared/lib/permissions";
+import { can } from "@organza/shared/lib/permissions";
 import { prisma } from "@/lib/prisma";
 import { asyncHandler } from "@/middleware/asyncHandler";
 import { requireAuth, requirePermission } from "@/middleware/auth";

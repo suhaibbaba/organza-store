@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { ERROR_CODES } from "@shared/constants/errors";
-import { PASSWORD_MIN_LENGTH } from "@shared/constants/validation";
+import { ERROR_CODES } from "@organza/shared/constants/errors";
+import { PASSWORD_MIN_LENGTH } from "@organza/shared/constants/validation";
 
 // Field messages are backend error codes (e.g. "error.validation.required"),
 // same as every other error in the app — see useTranslateError.

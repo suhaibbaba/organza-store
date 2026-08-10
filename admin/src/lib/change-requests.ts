@@ -3,8 +3,8 @@ import {
   CHANGE_REQUEST_FIELDS,
   CHANGE_REQUEST_VALUE_KINDS,
   PENDING_CHANGE_REQUEST_STATUS,
-} from "@shared/constants/changeRequest";
-import type { ChangeRequestStatus, ChangeRequestValue } from "@shared/types/changeRequest";
+} from "@organza/shared/constants/changeRequest";
+import type { ChangeRequestStatus, ChangeRequestValue } from "@organza/shared/types/changeRequest";
 
 // Which translation key describes a given gated change.
 //

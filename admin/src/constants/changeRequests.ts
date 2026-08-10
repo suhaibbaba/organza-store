@@ -1,4 +1,4 @@
-import { DEFAULT_PAGE, DEFAULT_PAGE_SIZE } from "@shared/constants/pagination";
+import { DEFAULT_PAGE, DEFAULT_PAGE_SIZE } from "@organza/shared/constants/pagination";
 import type { ChangeRequestListFilters } from "@/types/changeRequest";
 
 export const CHANGE_REQUEST_LIST_QUERY_KEY = "changeRequests" as const;

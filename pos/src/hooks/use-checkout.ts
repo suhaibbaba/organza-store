@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import type { CreateOrderInput } from "@shared/schemas/order";
-import { GIFT_ORDER_CHANNEL, GIFT_ORDER_TYPE, SALE_ORDER_TYPE } from "@shared/constants/order";
+import type { CreateOrderInput } from "@organza/shared/schemas/order";
+import { GIFT_ORDER_CHANNEL, GIFT_ORDER_TYPE, SALE_ORDER_TYPE } from "@organza/shared/constants/order";
 import {
   PRODUCT_BROWSE_QUERY_KEY,
   PRODUCT_DETAIL_QUERY_KEY,

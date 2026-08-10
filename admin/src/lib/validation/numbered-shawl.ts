@@ -1,6 +1,6 @@
-import type { Product } from "@shared/types/product";
-import type { Variant } from "@shared/types/variant";
-import type { UpdateVariantInput } from "@shared/schemas/product";
+import type { Product } from "@organza/shared/types/product";
+import type { Variant } from "@organza/shared/types/variant";
+import type { UpdateVariantInput } from "@organza/shared/schemas/product";
 import { isNonNegativeIntegerString } from "@/lib/validation/numeric";
 import { DEFAULT_POINT_STOCK } from "@/constants/numberedShawl";
 import type { ShawlPoint } from "@/types/numberedShawl";

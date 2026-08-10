@@ -1,6 +1,6 @@
-import type { User } from "@shared/types/user";
-import type { Pagination } from "@shared/types/common";
-import type { CreateUserInput, UpdateUserInput } from "@shared/schemas/user";
+import type { User } from "@organza/shared/types/user";
+import type { Pagination } from "@organza/shared/types/common";
+import type { CreateUserInput, UpdateUserInput } from "@organza/shared/schemas/user";
 import { apiFetch } from "@/lib/api/client";
 import type { UserListFilters } from "@/types/user";
 

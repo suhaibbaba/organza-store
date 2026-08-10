@@ -1,4 +1,4 @@
-import type { PasswordTokenPurpose } from "@shared/constants/passwordSetup";
+import type { PasswordTokenPurpose } from "@organza/shared/constants/passwordSetup";
 
 export type { PasswordTokenPurpose };
 

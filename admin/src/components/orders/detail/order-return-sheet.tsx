@@ -3,8 +3,8 @@
 import { useMemo, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Undo2 } from "lucide-react";
-import { ERROR_CODES } from "@shared/constants/errors";
-import type { Order } from "@shared/types/order";
+import { ERROR_CODES } from "@organza/shared/constants/errors";
+import type { Order } from "@organza/shared/types/order";
 import { useReturnOrderMutation } from "@/hooks/use-orders";
 import { useTranslateError } from "@/hooks/use-translate-error";
 import { localize } from "@/lib/i18n-content";

@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslations } from "next-intl";
 import { Send } from "lucide-react";
-import type { CustomerSuggestion } from "@shared/types/order";
+import type { CustomerSuggestion } from "@organza/shared/types/order";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
 import { useTranslateError } from "@/hooks/use-translate-error";
 import { suggestionToFormValues } from "@/lib/customer";

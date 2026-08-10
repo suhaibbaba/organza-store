@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { ChevronDown, Trash2, TriangleAlert } from "lucide-react";
-import type { Variant, VariantType } from "@shared/types/variant";
+import type { Variant, VariantType } from "@organza/shared/types/variant";
 import { localize } from "@/lib/i18n-content";
 import { formatMoney } from "@/lib/format";
 import { NumericInput } from "@/components/ui/numeric-input";

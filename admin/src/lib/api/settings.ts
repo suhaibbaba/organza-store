@@ -1,5 +1,5 @@
-import type { Setting } from "@shared/types/setting";
-import type { UpdateSettingInput } from "@shared/schemas/setting";
+import type { Setting } from "@organza/shared/types/setting";
+import type { UpdateSettingInput } from "@organza/shared/schemas/setting";
 import { apiFetch } from "@/lib/api/client";
 
 export async function fetchSettings(): Promise<Setting> {

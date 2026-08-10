@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslations } from "next-intl";
-import { PASSWORD_MIN_LENGTH } from "@shared/constants/validation";
+import { PASSWORD_MIN_LENGTH } from "@organza/shared/constants/validation";
 import { Link, useRouter } from "@/i18n/navigation";
 import { useSession } from "@/components/providers/session-provider";
 import { AuthError } from "@/lib/auth/client";

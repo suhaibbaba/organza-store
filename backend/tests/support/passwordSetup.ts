@@ -1,4 +1,4 @@
-import { PASSWORD_SETUP_TOKEN_PARAM } from "@shared/constants/passwordSetup";
+import { PASSWORD_SETUP_TOKEN_PARAM } from "@organza/shared/constants/passwordSetup";
 
 /**
  * Pulls the token out of a set-password link.

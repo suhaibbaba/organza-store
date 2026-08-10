@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { flexRender, getCoreRowModel, useReactTable, type ColumnDef } from "@tanstack/react-table";
-import type { ProductSummary } from "@shared/types/product";
+import type { ProductSummary } from "@organza/shared/types/product";
 import { Link } from "@/i18n/navigation";
 import { localize } from "@/lib/i18n-content";
 import { formatMoney } from "@/lib/format";

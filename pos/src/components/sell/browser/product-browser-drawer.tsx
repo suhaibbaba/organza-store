@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Search, X } from "lucide-react";
-import type { ProductSummary } from "@shared/types/product";
+import type { ProductSummary } from "@organza/shared/types/product";
 import { buildSidebarCategories } from "@/lib/categories";
 import { useCategoriesQuery } from "@/hooks/use-categories";
 import { useProductBrowse } from "@/hooks/use-product-browse";

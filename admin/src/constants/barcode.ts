@@ -8,7 +8,7 @@
  * The wedge's characters cannot be taken from `event.key`, because the shop's
  * keyboard layout is Arabic all day and `event.key` reports ٥ for the 5 key
  * and ش for A. They are read off the key's physical position instead, exactly
- * as the POS reads a scan off the whole screen (@shared/constants/keyboard).
+ * as the POS reads a scan off the whole screen (@organza/shared/constants/keyboard).
  * ------------------------------------------------------------------------ */
 
 // What a scanner presses when it has finished sending the code. Enter only:

@@ -19,9 +19,13 @@ Auth is [Better Auth](https://www.better-auth.com/), email + password only, admi
 
 ## Setup
 
+The repo is one npm workspace, so the install happens **once, at the repo root** — it wires up
+all four projects against a single lockfile and compiles `shared/` on the way:
+
 ```bash
-cd backend
+cd ..            # the repo root, if you are in backend/
 npm install
+cd backend
 cp .env.example .env
 # edit .env: set DATABASE_URL, BETTER_AUTH_SECRET, etc.
 ```
@@ -240,7 +244,7 @@ Any status before the courier handover may go to `CANCELLED` (which puts committ
 A parcel the customer refuses comes back as a return, not a cancellation, so stock and money
 move together.
 `RETURNED` is reachable only through the returns endpoint, so stock and `returnedQuantity`
-always move together. The legal-move table lives in `@shared/constants/order`
+always move together. The legal-move table lives in `@organza/shared/constants/order`
 (`ORDER_STATUS_TRANSITIONS`) so the backend gate and the frontends' buttons read one source.
 
 Orders are **soft-deleted** (`deletedAt`), like products — a sale is a financial record, so
@@ -751,7 +755,12 @@ backend/
 └── package.json
 ```
 
-Local modules are imported via the `@/` path alias (e.g. `@/lib/auth`), never relative paths;
-the shared cross-app package lives in `../shared` and is imported via `@shared/` (e.g.
-`@shared/schemas/product`). `npm install` here also installs and builds `shared/` automatically
-(see its `postinstall` script) — no separate setup step needed.
+Local modules are imported via the `@/` path alias (e.g. `@/lib/auth`), never relative paths.
+The shared cross-app package is a workspace dependency, imported by package name (e.g.
+`@organza/shared/schemas/product`), not through an alias.
+
+The repo is one npm workspace, so **install from the repo root, not from here**: a single
+`npm install` at the root wires up all four projects against one lockfile and compiles `shared/`
+on the way (its `prepare` script), with no separate setup step. Run this app's own scripts with
+`npm run <script> -w backend` from the root, or normally from inside this directory once the root
+install has happened.

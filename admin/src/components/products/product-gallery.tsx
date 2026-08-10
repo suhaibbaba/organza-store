@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { ProductImageRef } from "@shared/types/variant";
+import type { ProductImageRef } from "@organza/shared/types/variant";
 import { ProductImage } from "@/components/products/product-image";
 import { PRODUCT_DETAIL_IMAGE_SIZES, PRODUCT_DETAIL_THUMB_SIZES } from "@/constants/images";
 import { cn } from "@/lib/utils";

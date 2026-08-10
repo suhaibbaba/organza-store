@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { PASSWORD_TOKEN_TTL_HOURS } from "@shared/constants/passwordSetup";
+import { PASSWORD_TOKEN_TTL_HOURS } from "@organza/shared/constants/passwordSetup";
 import { createPasswordTokenService, hashToken, generateToken } from "@/lib/passwordTokens";
 import { createFakeClock, createInMemoryTokenStore } from "@tests/support/passwordTokens";
 

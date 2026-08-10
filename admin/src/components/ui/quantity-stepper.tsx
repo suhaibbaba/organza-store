@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Minus, Plus } from "lucide-react";
-import { QUANTITY_MAX, QUANTITY_MAX_LENGTH, QUANTITY_MIN, clampQuantity } from "@shared/constants/quantity";
+import { QUANTITY_MAX, QUANTITY_MAX_LENGTH, QUANTITY_MIN, clampQuantity } from "@organza/shared/constants/quantity";
 import { NumericInput } from "@/components/ui/numeric-input";
 import { isNonNegativeIntegerString } from "@/lib/validation/numeric";
 import { cn } from "@/lib/utils";

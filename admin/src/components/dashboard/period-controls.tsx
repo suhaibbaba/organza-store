@@ -2,8 +2,8 @@
 
 import { useTranslations } from "next-intl";
 import { Download } from "lucide-react";
-import { can } from "@shared/lib/permissions";
-import { REPORT_PERIODS } from "@shared/constants/report";
+import { can } from "@organza/shared/lib/permissions";
+import { REPORT_PERIODS } from "@organza/shared/constants/report";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useSession } from "@/components/providers/session-provider";

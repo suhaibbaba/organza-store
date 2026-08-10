@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { Role, type Setting } from "@prisma/client";
-import type { PushConfig } from "@shared/types/push";
+import type { PushConfig } from "@organza/shared/types/push";
 import { apiRequest, uniqueId } from "@tests/support/client";
 import { getSession, signIn } from "@tests/support/auth";
 import { createSellableProduct } from "@tests/support/orders";

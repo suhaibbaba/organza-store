@@ -1,4 +1,4 @@
-export * from "@shared/constants/passwordSetup";
+export * from "@organza/shared/constants/passwordSetup";
 
 // --- rate limiting (spec.md "Auth (details)") ---------------------------
 // The public "email me a link" endpoint is the one door into the system that

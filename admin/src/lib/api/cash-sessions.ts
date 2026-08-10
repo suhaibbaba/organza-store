@@ -1,5 +1,5 @@
-import type { CashSession, CurrentCashSession } from "@shared/types/cash";
-import type { CloseCashSessionInput, OpenCashSessionInput } from "@shared/schemas/cash";
+import type { CashSession, CurrentCashSession } from "@organza/shared/types/cash";
+import type { CloseCashSessionInput, OpenCashSessionInput } from "@organza/shared/schemas/cash";
 import { apiFetch } from "@/lib/api/client";
 
 // The cash drawer (spec.md "Cash drawer & expenses"). Admin/Manager only —

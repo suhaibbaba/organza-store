@@ -1,5 +1,5 @@
-import type { Product } from "@shared/types/product";
-import type { Variant } from "@shared/types/variant";
+import type { Product } from "@organza/shared/types/product";
+import type { Variant } from "@organza/shared/types/variant";
 
 // A resolved, purchasable thing: a simple product, or one variant of a
 // variant-bearing product. The selling screen only ever adds one of these

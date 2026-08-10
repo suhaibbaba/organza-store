@@ -1,5 +1,5 @@
-import type { PushConfig, PushSubscriptionDto } from "@shared/types/push";
-import type { PushSubscribeInput, PushUnsubscribeInput } from "@shared/schemas/push";
+import type { PushConfig, PushSubscriptionDto } from "@organza/shared/types/push";
+import type { PushSubscribeInput, PushUnsubscribeInput } from "@organza/shared/schemas/push";
 import { apiFetch } from "@/lib/api/client";
 
 // Web Push device registry — always the signed-in user's own devices.

@@ -1,1 +1,1 @@
-export * from "@shared/schemas/passwordSetup";
+export * from "@organza/shared/schemas/passwordSetup";

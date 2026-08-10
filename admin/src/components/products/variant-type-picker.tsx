@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Plus } from "lucide-react";
-import type { VariantType } from "@shared/types/variant";
+import type { VariantType } from "@organza/shared/types/variant";
 import { localize } from "@/lib/i18n-content";
 import { useTranslateError } from "@/hooks/use-translate-error";
 import { useAddOptionValueMutation, useCreateVariantTypeMutation } from "@/hooks/use-variant-types";

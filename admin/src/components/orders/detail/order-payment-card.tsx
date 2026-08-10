@@ -2,10 +2,10 @@
 
 import { useLocale, useTranslations } from "next-intl";
 import { Check, HandCoins } from "lucide-react";
-import { can } from "@shared/lib/permissions";
-import { isOrderCollectable } from "@shared/lib/orders";
-import { ERROR_CODES } from "@shared/constants/errors";
-import type { Order } from "@shared/types/order";
+import { can } from "@organza/shared/lib/permissions";
+import { isOrderCollectable } from "@organza/shared/lib/orders";
+import { ERROR_CODES } from "@organza/shared/constants/errors";
+import type { Order } from "@organza/shared/types/order";
 import { useSession } from "@/components/providers/session-provider";
 import { useCollectOrdersMutation } from "@/hooks/use-orders";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";

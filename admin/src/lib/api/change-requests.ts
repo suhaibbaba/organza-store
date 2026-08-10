@@ -2,8 +2,8 @@ import type {
   ChangeRequest,
   ChangeRequestCancelled,
   ChangeRequestCount,
-} from "@shared/types/changeRequest";
-import type { Pagination } from "@shared/types/common";
+} from "@organza/shared/types/changeRequest";
+import type { Pagination } from "@organza/shared/types/common";
 import { apiFetch } from "@/lib/api/client";
 import type { ChangeRequestListFilters } from "@/types/changeRequest";
 

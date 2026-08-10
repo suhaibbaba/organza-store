@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { ChevronDown, ChevronRight, Pencil, Star, Trash2 } from "lucide-react";
-import type { CategoryNode } from "@shared/types/category";
+import type { CategoryNode } from "@organza/shared/types/category";
 import { localize } from "@/lib/i18n-content";
 import { Spinner } from "@/components/ui/spinner";
 import { cn } from "@/lib/utils";

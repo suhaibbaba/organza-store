@@ -3,7 +3,7 @@
 import { useParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { ChevronLeft, PackageX } from "lucide-react";
-import { can } from "@shared/lib/permissions";
+import { can } from "@organza/shared/lib/permissions";
 import { Link } from "@/i18n/navigation";
 import { PageContainer } from "@/components/layout/page-container";
 import { PageHeader } from "@/components/layout/page-header";

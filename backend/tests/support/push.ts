@@ -12,7 +12,7 @@
 import { createECDH, randomBytes } from "node:crypto";
 import { apiRequest, uniqueId } from "@tests/support/client";
 import { PUSH_ATTEMPT_POLL_INTERVAL_MS, PUSH_ATTEMPT_TIMEOUT_MS } from "@tests/constants";
-import type { PushSubscriptionDto } from "@shared/types/push";
+import type { PushSubscriptionDto } from "@organza/shared/types/push";
 
 export interface FakeDevice {
   endpoint: string;

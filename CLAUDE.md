@@ -8,16 +8,21 @@ Custom e-commerce + POS system for a clothing shop. **Not** Medusa or any e-comm
 Build it from scratch with the stack below. If something is ambiguous, check `spec.md`;
 if it's still unclear, **ask before assuming** — do not invent product behavior.
 
-## Repo structure (4 separate projects + shared)
+## Repo structure (4 separate projects + shared, one npm workspace)
 ```
 organza-store/
+├── package.json      workspace root — declares the workspaces, holds the only lockfile
 ├── backend/     API — Node + Express + TypeScript + Prisma + PostgreSQL
 ├── admin/       Admin dashboard — Next.js
 ├── pos/         Point-of-sale — Next.js
 ├── frontend/    Customer storefront — Next.js (LATER, not this phase)
-└── shared/      Shared TypeScript types + Zod schemas
+└── shared/      Shared TypeScript types + Zod schemas — published as @organza/shared
 ```
-Each project has its own `package.json`. `shared/` is imported by the others.
+Each project has its own `package.json`, and the root one ties them together as **npm
+workspaces**. There is exactly one `package-lock.json`, at the root; per-project lockfiles must
+never come back. `shared/` is a real dependency of the others (`@organza/shared`), resolved
+through `node_modules` like any package — not copied, symlinked or aliased by hand. A new project
+(`frontend/`) has to be added to the root `workspaces` array to exist.
 
 ## Non-negotiable stack choices
 - **Language:** TypeScript everywhere.
@@ -170,15 +175,25 @@ from past orders — there is still no Customer table behind it.
 - Prefer small, reviewable changes over large sweeps.
 
 ## Commands (fill in real ones as they're set up)
+The repo is one npm workspace: install once at the root, then drive each project with `-w`
+(the flag takes the directory name). Running a script from inside a project directory works too
+— it is the same install either way.
 ```
+# once, at the repo root — installs all four projects and compiles shared/
+npm install
+
 # backend
-cd backend && npm run dev
-npx prisma migrate dev
-npx prisma studio
+npm run dev -w backend
+cd backend && npx prisma migrate dev
+cd backend && npx prisma studio
 
 # admin / pos
-cd admin && npm run dev
-cd pos && npm run dev
+npm run dev -w admin
+npm run dev -w pos
+
+# everything at once
+npm run build          # shared, then backend, admin, pos
+npm run typecheck
 ```
 
 ## Deployment
@@ -209,9 +224,14 @@ behavior — guessing is what broke the previous attempt.
 
 ## Code organization (apply everywhere, backend + frontends)
 - **Use path aliases, not relative paths.** Within a project, import local modules with `@/`
-  (e.g. `@/lib/auth`, `@/routes/products`) — never `../../lib/auth`. Import the cross-app shared
-  package with `@shared/` (e.g. `@shared/types`). Configure both aliases in each project's
-  `tsconfig.json` (and the bundler/runtime resolver) so they work at build and runtime.
+  (e.g. `@/lib/auth`, `@/routes/products`) — never `../../lib/auth`. Configure that alias in each
+  project's `tsconfig.json` (and the bundler/runtime resolver) so it works at build and runtime.
+  The cross-app shared package is **not** an alias: the repo is one npm workspace and `shared/` is
+  published into it as `@organza/shared`, so import it by package name
+  (e.g. `@organza/shared/types`, `@organza/shared/constants/errors`) and let node_modules resolve
+  it. Its subpaths come from the `exports` map in `shared/package.json` — add a new folder there
+  (and to the matching `typesVersions` block, which is what the backend's node10 resolver reads)
+  before importing it.
 - **No inline/ad-hoc types scattered across files.** Centralize types in a dedicated `types/`
   directory, split into focused files by domain (e.g. `types/product.ts`, `types/user.ts`,
   `types/common.ts`) and re-export from a barrel (`types/index.ts`). Shared cross-app types live in

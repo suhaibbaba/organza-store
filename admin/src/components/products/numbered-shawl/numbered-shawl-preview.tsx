@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import { useTranslations } from "next-intl";
-import type { Product } from "@shared/types/product";
+import type { Product } from "@organza/shared/types/product";
 import { initShawlPoints } from "@/lib/validation/numbered-shawl";
 import { ImagePointCanvas } from "@/components/products/numbered-shawl/image-point-canvas";
 

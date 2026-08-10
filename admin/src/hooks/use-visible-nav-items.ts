@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { can } from "@shared/lib/permissions";
+import { can } from "@organza/shared/lib/permissions";
 import { NAV_ITEMS } from "@/constants/nav";
 import { useSession } from "@/components/providers/session-provider";
 import type { NavItem } from "@/types/nav";

@@ -1,8 +1,8 @@
 "use client";
 
 import { useLocale, useTranslations } from "next-intl";
-import type { Product } from "@shared/types/product";
-import type { Variant } from "@shared/types/variant";
+import type { Product } from "@organza/shared/types/product";
+import type { Variant } from "@organza/shared/types/variant";
 import { localize } from "@/lib/i18n-content";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";

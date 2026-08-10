@@ -10,15 +10,20 @@ Same stack and visual language as `admin/`, tuned for speed on a phone held in o
 
 ## Setup
 
+The repo is one npm workspace, so the install happens **once, at the repo root** — it wires up
+all four projects against a single lockfile:
+
 ```bash
-cd pos
+cd ..            # the repo root, if you are in pos/
 npm install
+cd pos
 cp .env.example .env.local
 # edit .env.local: NEXT_PUBLIC_API_URL should point at a running backend/ instance
 ```
 
-`npm install` also builds `shared/` and symlinks it into `node_modules/@shared` (see the
-`postinstall` script) — no separate setup step needed, matching `backend/` and `admin/`.
+That root install also compiles `shared/` into the `@organza/shared` package this app imports
+(the shared package's own `prepare` script) — no separate setup step needed, matching `backend/`
+and `admin/`.
 
 The backend must be running (see `backend/README.md`) with at least the dev seed applied.
 Its `CORS_ORIGINS` must include this app's origin: the browser sends `Origin` on every
@@ -63,7 +68,7 @@ quantities and discounts, never a price or a total.
 ## Roles
 
 Every staff role can sell, Employee included (`spec.md` "Roles & Permissions"). The screen checks
-`can(user, "order.create")` from `@shared/` to explain itself when an account somehow lacks it —
+`can(user, "order.create")` from `@organza/shared` to explain itself when an account somehow lacks it —
 the real gate is the backend's, on every request (CLAUDE.md rule 5).
 
 ## i18n
@@ -153,8 +158,10 @@ pos/
 └── package.json
 ```
 
-Local modules are imported via the `@/` path alias (e.g. `@/lib/cart`), never relative paths; the
-shared cross-app package is imported via `@shared/` (e.g. `@shared/constants/order`).
+Local modules are imported via the `@/` path alias (e.g. `@/lib/cart`), never relative paths.
+The shared cross-app package is a workspace dependency, imported by package name (e.g.
+`@organza/shared/constants/order`), not through an alias — so install from the repo root
+(`npm install`) and run this app with `npm run dev -w pos`.
 
 ### A note on Next.js 16
 

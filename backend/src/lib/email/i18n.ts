@@ -1,4 +1,4 @@
-import { DEFAULT_LANGUAGE, SUPPORTED_LANGUAGES } from "@shared/constants/languages";
+import { DEFAULT_LANGUAGE, SUPPORTED_LANGUAGES } from "@organza/shared/constants/languages";
 import ar from "@/lib/email/messages/ar.json";
 import en from "@/lib/email/messages/en.json";
 import he from "@/lib/email/messages/he.json";

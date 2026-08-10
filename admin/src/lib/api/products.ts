@@ -1,13 +1,13 @@
-import type { MarkLabelsPrintedResult, Product, ProductSummary } from "@shared/types/product";
-import type { Variant } from "@shared/types/variant";
-import type { ChangeRequest } from "@shared/types/changeRequest";
-import type { Pagination } from "@shared/types/common";
+import type { MarkLabelsPrintedResult, Product, ProductSummary } from "@organza/shared/types/product";
+import type { Variant } from "@organza/shared/types/variant";
+import type { ChangeRequest } from "@organza/shared/types/changeRequest";
+import type { Pagination } from "@organza/shared/types/common";
 import type {
   CreateProductInput,
   UpdateProductInput,
   GenerateVariantsInput,
   UpdateVariantInput,
-} from "@shared/schemas/product";
+} from "@organza/shared/schemas/product";
 import { apiFetch } from "@/lib/api/client";
 import type { ProductListFilters } from "@/types/product";
 

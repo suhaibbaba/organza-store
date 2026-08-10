@@ -1,4 +1,4 @@
-import type { Category } from "@shared/types/category";
+import type { Category } from "@organza/shared/types/category";
 import { apiFetch } from "@/lib/api/client";
 
 // The shop's shelves, for the product browser's sidebar.

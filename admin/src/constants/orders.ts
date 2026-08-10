@@ -1,4 +1,4 @@
-import { DEFAULT_PAGE, DEFAULT_PAGE_SIZE } from "@shared/constants/pagination";
+import { DEFAULT_PAGE, DEFAULT_PAGE_SIZE } from "@organza/shared/constants/pagination";
 import type { OrderListFilters } from "@/types/order";
 
 export const ORDER_LIST_QUERY_KEY = "orders" as const;

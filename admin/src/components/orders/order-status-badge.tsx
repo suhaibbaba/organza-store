@@ -1,5 +1,5 @@
 import { useTranslations } from "next-intl";
-import type { OrderStatus } from "@shared/types/order";
+import type { OrderStatus } from "@organza/shared/types/order";
 import { cn } from "@/lib/utils";
 
 // Colour carries the same meaning on every screen: teal = still to do,

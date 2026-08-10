@@ -1,4 +1,4 @@
-import { resolveAppEnv } from "@shared/constants/appEnv";
+import { resolveAppEnv } from "@organza/shared/constants/appEnv";
 
 // NEXT_PUBLIC_* vars are inlined at build time and safe to read on the client.
 export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
@@ -9,7 +9,7 @@ export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost
 export const APP_VERSION = process.env.NEXT_PUBLIC_APP_VERSION ?? "0.0.0";
 
 // Which deployment this build belongs to — the sandbox stack or the live shop
-// (@shared/constants/appEnv). Stated rather than inferred: both stacks run
+// (@organza/shared/constants/appEnv). Stated rather than inferred: both stacks run
 // with NODE_ENV=production, so nothing else in the bundle can tell them apart.
 //
 // process.env.NEXT_PUBLIC_APP_ENV is written out in full because that is what

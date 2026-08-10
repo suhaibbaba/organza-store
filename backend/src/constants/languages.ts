@@ -1,1 +1,1 @@
-export * from "@shared/constants/languages";
+export * from "@organza/shared/constants/languages";

@@ -1,5 +1,5 @@
-import type { ListProductsQuery } from "@shared/schemas/product";
-import type { ProductPrintState } from "@shared/types/product";
+import type { ListProductsQuery } from "@organza/shared/schemas/product";
+import type { ProductPrintState } from "@organza/shared/types/product";
 
 // How a product photo meets the box it is drawn in: cropped to fill it
 // (thumbnails), shown whole inside it (a plate the photo is centred on), or

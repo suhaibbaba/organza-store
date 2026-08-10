@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
-import { ROLES } from "@shared/constants/roles";
-import { isValidE164, phoneIdentityKey } from "@shared/lib/phone";
+import { ROLES } from "@organza/shared/constants/roles";
+import { isValidE164, phoneIdentityKey } from "@organza/shared/lib/phone";
 import {
   DEFAULT_STAFF_FILE,
   INIT_FLAGS,
@@ -11,7 +11,7 @@ import {
   STAFF_FILE_ENV,
 } from "@/constants/init";
 import type { InitAccountDetails, StaffFileProblem, StaffOverrides } from "@/types/init";
-import type { Role } from "@shared/types/role";
+import type { Role } from "@organza/shared/types/role";
 
 // Reading and checking the staff roster.
 //

@@ -1,4 +1,4 @@
-import { MONEY_DECIMAL_PLACES } from "@shared/constants/order";
+import { MONEY_DECIMAL_PLACES } from "@organza/shared/constants/order";
 
 // Intl's percent style takes a ratio; a discount is stored as the percentage
 // itself ("2" meaning 2%).

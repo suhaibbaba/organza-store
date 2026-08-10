@@ -1,7 +1,7 @@
-import { BARCODE_SOURCE } from "@shared/constants/barcode";
-import { clampQuantity } from "@shared/constants/quantity";
-import type { Product } from "@shared/types/product";
-import type { Setting } from "@shared/types/setting";
+import { BARCODE_SOURCE } from "@organza/shared/constants/barcode";
+import { clampQuantity } from "@organza/shared/constants/quantity";
+import type { Product } from "@organza/shared/types/product";
+import type { Setting } from "@organza/shared/types/setting";
 import { localize } from "@/lib/i18n-content";
 import { isNonNegativeIntegerString } from "@/lib/validation/numeric";
 import {

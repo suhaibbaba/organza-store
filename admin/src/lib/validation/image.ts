@@ -1,4 +1,4 @@
-import { ERROR_CODES } from "@shared/constants/errors";
+import { ERROR_CODES } from "@organza/shared/constants/errors";
 import { CLIENT_ALLOWED_IMAGE_TYPES, CLIENT_MAX_IMAGE_SIZE_MB } from "@/constants/images";
 
 // Fast, local pre-check before hitting the network — returns a backend error

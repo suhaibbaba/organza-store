@@ -1,7 +1,7 @@
 "use client";
 
 import { useLocale, useTranslations } from "next-intl";
-import type { ProductSummary } from "@shared/types/product";
+import type { ProductSummary } from "@organza/shared/types/product";
 import { localize } from "@/lib/i18n-content";
 import { formatDate } from "@/lib/format";
 import { Checkbox } from "@/components/ui/checkbox";

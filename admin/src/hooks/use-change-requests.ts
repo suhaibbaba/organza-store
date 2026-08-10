@@ -1,7 +1,7 @@
 "use client";
 
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { can } from "@shared/lib/permissions";
+import { can } from "@organza/shared/lib/permissions";
 import {
   CHANGE_REQUEST_COUNT_QUERY_KEY,
   CHANGE_REQUEST_COUNT_REFETCH_MS,

@@ -1,4 +1,4 @@
-import type { DashboardSummary } from "@shared/types/dashboard";
+import type { DashboardSummary } from "@organza/shared/types/dashboard";
 import { apiFetch } from "@/lib/api/client";
 
 export async function fetchDashboardSummary(): Promise<DashboardSummary> {

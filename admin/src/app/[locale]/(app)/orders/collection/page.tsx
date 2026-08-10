@@ -3,8 +3,8 @@
 import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { ArrowLeft, Check, HandCoins } from "lucide-react";
-import { ERROR_CODES } from "@shared/constants/errors";
-import { DEFAULT_PAGE } from "@shared/constants/pagination";
+import { ERROR_CODES } from "@organza/shared/constants/errors";
+import { DEFAULT_PAGE } from "@organza/shared/constants/pagination";
 import { Link } from "@/i18n/navigation";
 import { RoleGuard } from "@/components/auth/role-guard";
 import { PageContainer } from "@/components/layout/page-container";

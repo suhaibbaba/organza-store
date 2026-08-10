@@ -6,7 +6,7 @@ import {
   HARDWARE_SCAN_MIN_LENGTH,
   HARDWARE_SCAN_TERMINATOR_CODES,
 } from "@/constants/pos";
-import { isModifierKey, physicalKeyChar } from "@shared/lib/keyboard";
+import { isModifierKey, physicalKeyChar } from "@organza/shared/lib/keyboard";
 
 interface UseHardwareScannerOptions {
   // Off while the screen is asking about something other than what is being
@@ -28,7 +28,7 @@ interface UseHardwareScannerOptions {
 // `event.key` the operating system produced. The shop's keyboard layout is
 // Arabic, all day, and under it `event.key` reports `٥` for the `5` key and
 // `ش` for `A`: every scan used to fail until the cashier switched the layout
-// to English and back. See @shared/constants/keyboard.
+// to English and back. See @organza/shared/constants/keyboard.
 //
 // Telling the scanner apart from a person is the whole job here, and it is
 // done on timing alone: characters arriving a few milliseconds apart are a

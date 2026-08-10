@@ -1,4 +1,4 @@
-import { NUMBER_VARIANT_TYPE_SLUG } from "@shared/constants/variantType";
+import { NUMBER_VARIANT_TYPE_SLUG } from "@organza/shared/constants/variantType";
 import { AppError } from "@/lib/response";
 import { ERROR_CODES } from "@/constants";
 import type { AnyRecord } from "@/types";

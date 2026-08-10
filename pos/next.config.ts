@@ -73,10 +73,10 @@ const nextConfig: NextConfig = {
     ],
     dangerouslyAllowLocalIP: isLocalApi,
   },
-  // @shared/* resolves to ../shared/dist (see scripts/build-shared.js),
-  // usually via a symlink/junction — Turbopack won't follow a symlink
-  // outside the project root otherwise. Falls back to a plain copy on
-  // platforms where symlinking isn't permitted, which this also covers.
+  // @organza/shared is a workspace package, so node_modules/@organza/shared
+  // is a symlink to ../shared — and Turbopack won't follow a symlink pointing
+  // outside the project root. Pointing the root at the workspace root (the
+  // repo root, one level up) is what lets it resolve the shared package.
   turbopack: {
     root: path.join(__dirname, ".."),
   },

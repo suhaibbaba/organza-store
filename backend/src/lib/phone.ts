@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { dualPrefixCandidates, isValidE164 } from "@shared/lib/phone";
+import { dualPrefixCandidates, isValidE164 } from "@organza/shared/lib/phone";
 
 export { isValidE164, dualPrefixCandidates };
 

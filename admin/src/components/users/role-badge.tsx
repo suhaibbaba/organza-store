@@ -1,5 +1,5 @@
 import { useTranslations } from "next-intl";
-import type { Role } from "@shared/types/role";
+import type { Role } from "@organza/shared/types/role";
 import { cn } from "@/lib/utils";
 
 const ROLE_BADGE_STYLES: Record<Role, string> = {

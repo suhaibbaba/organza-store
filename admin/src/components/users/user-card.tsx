@@ -2,7 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { Pencil, UserCheck, UserX } from "lucide-react";
-import type { User } from "@shared/types/user";
+import type { User } from "@organza/shared/types/user";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Spinner } from "@/components/ui/spinner";
 import { RoleBadge } from "@/components/users/role-badge";

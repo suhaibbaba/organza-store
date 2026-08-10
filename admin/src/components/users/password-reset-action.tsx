@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
-import type { User } from "@shared/types/user";
+import type { User } from "@organza/shared/types/user";
 import { useTranslateError } from "@/hooks/use-translate-error";
 import { resendUserInvite, sendUserPasswordReset } from "@/lib/api/password-setup";
 import { ApiError } from "@/lib/api/errors";

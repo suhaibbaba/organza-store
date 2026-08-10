@@ -7,8 +7,8 @@ import {
   CHANGE_REQUEST_VALUE_KINDS,
   PENDING_CHANGE_REQUEST_STATUS,
   REJECTED_CHANGE_REQUEST_STATUS,
-} from "@shared/constants/changeRequest";
-import type { ChangeRequestStatus, ChangeRequestValue } from "@shared/types/changeRequest";
+} from "@organza/shared/constants/changeRequest";
+import type { ChangeRequestStatus, ChangeRequestValue } from "@organza/shared/types/changeRequest";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
 import { localize } from "@/lib/i18n-content";
 import { resolveRequestedValue } from "@/lib/change-requests";

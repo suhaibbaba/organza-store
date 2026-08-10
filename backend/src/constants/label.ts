@@ -1,1 +1,1 @@
-export * from "@shared/constants/label";
+export * from "@organza/shared/constants/label";

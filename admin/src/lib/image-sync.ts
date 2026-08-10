@@ -1,5 +1,5 @@
-import type { ProductImageRef } from "@shared/types/variant";
-import { ERROR_CODES } from "@shared/constants/errors";
+import type { ProductImageRef } from "@organza/shared/types/variant";
+import { ERROR_CODES } from "@organza/shared/constants/errors";
 import { deleteImage, reorderImages, setPrimaryImage, uploadImage, type ImageOwner } from "@/lib/api/images";
 import { ApiError } from "@/lib/api/errors";
 import { pendingCount } from "@/lib/image-slots";

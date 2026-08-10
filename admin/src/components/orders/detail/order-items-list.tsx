@@ -1,6 +1,6 @@
 import { useLocale, useTranslations } from "next-intl";
 import { Undo2 } from "lucide-react";
-import type { OrderItem } from "@shared/types/order";
+import type { OrderItem } from "@organza/shared/types/order";
 import { localize } from "@/lib/i18n-content";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";

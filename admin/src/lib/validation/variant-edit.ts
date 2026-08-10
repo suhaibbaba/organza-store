@@ -1,7 +1,7 @@
-import type { Variant } from "@shared/types/variant";
-import type { UpdateVariantInput } from "@shared/schemas/product";
-import { BARCODE_SOURCE } from "@shared/constants/barcode";
-import { isValidBarcode, normalizeBarcode } from "@shared/lib/barcode";
+import type { Variant } from "@organza/shared/types/variant";
+import type { UpdateVariantInput } from "@organza/shared/schemas/product";
+import { BARCODE_SOURCE } from "@organza/shared/constants/barcode";
+import { isValidBarcode, normalizeBarcode } from "@organza/shared/lib/barcode";
 import { isNonNegativeIntegerString } from "@/lib/validation/numeric";
 import type { ProductEditAbilities, VariantEditValues } from "@/types/productForm";
 
