@@ -18,3 +18,4 @@ backups/
 staff.json
 staff.*.json
 !staff.example.json
+backend/tests/report.json
