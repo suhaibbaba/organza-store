@@ -51,6 +51,31 @@ jobs:
             export APP_VERSION
             echo "    APP_VERSION=$APP_VERSION"
 
+            echo "==> Making sure the uploads volume belongs to the app user"
+            # The containers stopped running as root: the API now runs as the
+            # base image's unprivileged `node` user (uid 1000). Docker seeds a
+            # NEW named volume from the image, ownership included, so a fresh
+            # sandbox_uploads comes out owned by uid 1000 and needs nothing
+            # here. A volume that ALREADY holds the shop's photographs is not
+            # re-seeded — it keeps the root ownership it was created with, and
+            # the API can then read those photographs but not write new ones.
+            #
+            # So hand it over, once. Guarded on the current owner rather than
+            # run unconditionally, because a recursive chown across every
+            # photograph the shop owns is not something to repeat on every
+            # deploy. Nothing here touches the file contents.
+            UPLOADS_VOLUME=organza-sandbox_sandbox_uploads
+            if docker volume inspect "$UPLOADS_VOLUME" >/dev/null 2>&1; then
+              CURRENT_UID="$(docker run --rm -v "$UPLOADS_VOLUME":/vol node:20-slim stat -c '%u' /vol)"
+              echo "    $UPLOADS_VOLUME is owned by uid $CURRENT_UID"
+              if [ "$CURRENT_UID" != "1000" ]; then
+                echo "    handing it to uid 1000 (the container's node user) — one time only"
+                docker run --rm --user 0:0 -v "$UPLOADS_VOLUME":/vol node:20-slim chown -R 1000:1000 /vol
+              fi
+            else
+              echo "    volume does not exist yet — Docker will create it owned by uid 1000"
+            fi
+
             echo "==> Building + starting containers"
             # All three images build from the repo root as their context and
             # install from the root package.json + the single package-lock.json
