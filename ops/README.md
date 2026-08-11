@@ -139,7 +139,25 @@ In order:
    relative path and resolved against the container's working directory — the bug this
    directory exists because of. `environment:` in the compose file is what pins it.
 4. `docker compose exec backend ls -la /app/uploads` — if the files are there but the app
-   cannot write, it is ownership: the container's user must own that directory. The image
-   currently runs as root, so this cannot bite today; it starts biting the moment a
-   `USER` line is added to `backend/Dockerfile`, and then the fix is `chown` on the mount
-   (an entrypoint that does it, or `docker compose exec -u root backend chown -R node /app/uploads`).
+   cannot write, it is ownership: the container's user must own that directory.
+
+   This one is live now. The API stopped running as root when the images went multi-stage:
+   `backend/Dockerfile` ends with `USER node`, so the process is uid 1000. Docker seeds a
+   **new** named volume from the image and carries ownership across, so a volume created
+   after that change comes out owned by uid 1000 and is fine. A volume that already held
+   photographs is **not** re-seeded — it keeps the root ownership it was created with, and
+   the API can read those photographs but not write new ones. `uploadsWritable` goes false
+   and the deploy fails on its own check rather than losing anything.
+
+   The deploy hands the volume over once, before starting the stack (see
+   `.github/workflows/deploy-sandbox.yml`), guarded on the current owner so a recursive
+   chown over every photograph the shop owns does not repeat on every push. To do it by
+   hand:
+
+   ```bash
+   docker run --rm --user 0:0 -v organza-sandbox_sandbox_uploads:/vol node:20-slim \
+     chown -R 1000:1000 /vol
+   ```
+
+   The volume name is the compose project name plus the volume key — renaming either
+   points this at a different, empty volume, so copy it exactly.

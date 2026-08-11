@@ -2,11 +2,11 @@
   "name": "@organza/backend",
   "version": "0.1.0",
   "private": true,
-  "description": "Organza Store API — Node + Express + TypeScript + Prisma + PostgreSQL",
+  "description": "Organza Store API \u2014 Node + Express + TypeScript + Prisma + PostgreSQL",
   "type": "commonjs",
   "main": "dist/index.js",
   "_comment_prisma_seed": "There is deliberately no `prisma.seed` entry. It used to point at the demo seed, which meant `prisma migrate dev` and `prisma migrate reset` could fill a database with fake products and test accounts on their own. Essential data is `npm run bootstrap`; the demo seed is quarantined under prisma/dev/ and has to be asked for by name.",
-  "_comment_postinstall": "Only `prisma generate` — the generated client is a build artefact of prisma/schema.prisma and nothing else can produce it. The old `build:shared &&` half of this hook (and the pre* hooks that repeated it on dev/build/typecheck/every script) existed only because shared/ was not a real dependency; it is one now, and npm builds it through the shared package's own `prepare` on install.",
+  "_comment_postinstall": "Only `prisma generate` \u2014 the generated client is a build artefact of prisma/schema.prisma and nothing else can produce it. The old `build:shared &&` half of this hook (and the pre* hooks that repeated it on dev/build/typecheck/every script) existed only because shared/ was not a real dependency; it is one now, and npm builds it through the shared package's own `prepare` on install.",
   "scripts": {
     "postinstall": "prisma generate",
     "dev": "tsx watch src/index.ts",
@@ -28,6 +28,7 @@
     "api-test": "cross-env API_URL=https://api.sandbox.organza-moda.com vitest run",
     "api-test:prod": "cross-env API_URL=https://api.organza-moda.com vitest run"
   },
+  "_comment_runtime_deps": "`prisma` and `tsx` are runtime dependencies, not dev tooling, because the deploy runs them INSIDE the running container: `npx prisma migrate deploy` applies migrations and `npm run bootstrap` (tsx scripts/bootstrap.ts) creates the essential data, both via `docker compose exec backend` (see .github/workflows/deploy-sandbox.yml). The production image is installed with `npm ci --omit=dev`, so anything the deploy needs at runtime has to be here \u2014 and `prisma` doubly so: it is what the postinstall `prisma generate` hook itself runs.",
   "dependencies": {
     "@organza/shared": "*",
     "@prisma/client": "^6.1.0",
@@ -39,8 +40,10 @@
     "helmet": "^8.0.0",
     "libphonenumber-js": "^1.11.14",
     "multer": "^2.0.0",
+    "prisma": "^6.1.0",
     "sharp": "^0.35.3",
     "slugify": "^1.6.6",
+    "tsx": "^4.19.2",
     "web-push": "^3.6.7",
     "zod": "^3.24.1"
   },
@@ -51,9 +54,7 @@
     "@types/node": "^22.10.2",
     "@types/web-push": "^3.6.4",
     "cross-env": "^7.0.3",
-    "prisma": "^6.1.0",
     "tsc-alias": "^1.9.1",
-    "tsx": "^4.19.2",
     "typescript": "^5.7.2",
     "vitest": "^2.1.8"
   }

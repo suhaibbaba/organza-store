@@ -80,6 +80,21 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: path.join(__dirname, ".."),
   },
+  // Emit a self-contained server bundle under .next/standalone: server.js plus
+  // only the node_modules files the app actually reaches, traced from the
+  // build. It is what the runtime stage of the Dockerfile copies, instead of
+  // the whole workspace and its ~1 GB of node_modules.
+  //
+  // outputFileTracingRoot has to be the workspace root for the same reason
+  // turbopack.root does: this app's dependencies live in the hoisted
+  // /app/node_modules one level up, and @organza/shared is a symlink out of
+  // the project directory. Left to infer it, the trace would be rooted at
+  // pos/ and miss both. It also fixes the layout inside .next/standalone —
+  // paths are emitted relative to this root, so the bundle contains
+  // node_modules/, pos/ and shared/, and the server entrypoint is
+  // pos/server.js.
+  output: "standalone",
+  outputFileTracingRoot: path.join(__dirname, ".."),
   // The dev-mode indicator badge sits bottom-corner, right where the POS
   // pins its checkout bar.
   devIndicators: false,

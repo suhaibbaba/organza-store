@@ -208,6 +208,18 @@ managed on the VPS and never committed. When updating CI, remember there are now
 never create accounts, and never run `init` or `db:reset`. Those three are manual, one-time
 commands (rule 11).
 
+**All three images are multi-stage, and only the last stage ships.** The build stage has the full
+workspace and toolchain; the runtime stage gets production dependencies and build output and
+nothing else — no TypeScript, no vitest, no source tree it does not need. admin and pos use Next's
+`output: "standalone"`, so their runtime is the traced server bundle plus `public/` and
+`.next/static`, not `node_modules`. Every runtime stage runs as the base image's unprivileged
+`node` user, which is why the uploads volume has to be owned by uid 1000 (see `ops/README.md`).
+Two things are easy to break here and are worth re-checking after any Dockerfile edit: the
+`NEXT_PUBLIC_*` build args must be set in the stage that runs `next build` — they are baked into
+the bundle there, and `NEXT_PUBLIC_APP_ENV` is what decides the environment's icons — and the
+backend's runtime needs `openssl` plus **all three** `node_modules` directories, because zod
+cannot hoist (backend and shared are on zod 3, better-auth on zod 4).
+
 **Persistent data lives on named volumes, at absolute paths the app is told explicitly.** The
 database (`sandbox_db_data` → `/var/lib/postgresql/data`) and the uploaded photographs
 (`sandbox_uploads` → `/app/uploads`, with `UPLOAD_DIR` set in the compose file's `environment:`,
