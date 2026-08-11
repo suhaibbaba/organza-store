@@ -2,7 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { ArrowLeft, ShoppingCart } from "lucide-react";
-import type { ProductSummary } from "@shared/types/product";
+import type { ProductSummary } from "@organza/shared/types/product";
 import { SearchResults } from "@/components/sell/search-results";
 
 interface SearchViewProps {

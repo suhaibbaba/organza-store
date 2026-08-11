@@ -1,7 +1,7 @@
 import { z } from "zod";
-import { ERROR_CODES } from "@shared/constants/errors";
-import type { CategoryNode } from "@shared/types/category";
-import type { CreateCategoryInput, UpdateCategoryInput } from "@shared/schemas/category";
+import { ERROR_CODES } from "@organza/shared/constants/errors";
+import type { CategoryNode } from "@organza/shared/types/category";
+import type { CreateCategoryInput, UpdateCategoryInput } from "@organza/shared/schemas/category";
 
 const i18nFormSchema = z.object({ ar: z.string(), en: z.string(), he: z.string() });
 

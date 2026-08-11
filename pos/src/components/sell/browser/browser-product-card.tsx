@@ -2,7 +2,7 @@
 
 import { useLocale } from "next-intl";
 import { ChevronRight, Plus } from "lucide-react";
-import type { ProductSummary } from "@shared/types/product";
+import type { ProductSummary } from "@organza/shared/types/product";
 import { BROWSE_CARD_STAGGER_MAX, BROWSE_CARD_STAGGER_STEP_MS } from "@/constants/pos";
 import { localize } from "@/lib/i18n-content";
 import { cn } from "@/lib/utils";

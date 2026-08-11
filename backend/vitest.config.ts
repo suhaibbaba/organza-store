@@ -18,10 +18,13 @@ import { VERIFY_RESULT_JSON } from "./tests/constants/areas";
 // file, which is what was tripping Better Auth's sign-in rate limit
 // (HTTP 429) before.
 export default defineConfig({
+  // Only the backend's own internal aliases. The shared package used to need
+  // one too, pointing at ../shared/dist; it is a workspace dependency now
+  // (@organza/shared), so vite resolves it through node_modules and its
+  // `exports` map like any other package.
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
-      "@shared": path.resolve(__dirname, "../shared/dist"),
       "@tests": path.resolve(__dirname, "./tests"),
     },
   },

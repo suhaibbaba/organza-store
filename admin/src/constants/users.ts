@@ -1,4 +1,4 @@
-import { DEFAULT_PAGE, DEFAULT_PAGE_SIZE } from "@shared/constants/pagination";
+import { DEFAULT_PAGE, DEFAULT_PAGE_SIZE } from "@organza/shared/constants/pagination";
 import type { UserListFilters } from "@/types/user";
 
 export const USER_SEARCH_DEBOUNCE_MS = 400;

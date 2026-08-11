@@ -1,4 +1,4 @@
-import { BRAND_COLORS } from "@shared/constants/brand";
+import { BRAND_COLORS } from "@organza/shared/constants/brand";
 import {
   EMAIL_BUTTON_RADIUS_PX,
   EMAIL_CARD_RADIUS_PX,

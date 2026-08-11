@@ -20,7 +20,7 @@
 //      response, nested objects and list rows included.
 // ============================================================================
 import { beforeAll, describe, expect, it } from "vitest";
-import { ROLE_PERMISSIONS } from "@shared/constants/permissions";
+import { ROLE_PERMISSIONS } from "@organza/shared/constants/permissions";
 import { apiRequest, uniqueId } from "@tests/support/client";
 import { getSession } from "@tests/support/auth";
 import { allocateDate } from "@tests/support/cash";

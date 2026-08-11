@@ -5,8 +5,8 @@ import {
   APPROVED_CHANGE_REQUEST_STATUS,
   PENDING_CHANGE_REQUEST_STATUS,
   REJECTED_CHANGE_REQUEST_STATUS,
-} from "@shared/constants/changeRequest";
-import type { ChangeRequestStatus } from "@shared/types/changeRequest";
+} from "@organza/shared/constants/changeRequest";
+import type { ChangeRequestStatus } from "@organza/shared/types/changeRequest";
 import { cn } from "@/lib/utils";
 
 // Where a request stands, drawn from the request's own status and from

@@ -3,9 +3,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { ArrowLeft, ArrowRight, Printer, TriangleAlert } from "lucide-react";
-import { can } from "@shared/lib/permissions";
-import { DEFAULT_PAGE } from "@shared/constants/pagination";
-import type { ProductPrintState } from "@shared/types/product";
+import { can } from "@organza/shared/lib/permissions";
+import { DEFAULT_PAGE } from "@organza/shared/constants/pagination";
+import type { ProductPrintState } from "@organza/shared/types/product";
 import { Link } from "@/i18n/navigation";
 import { RoleGuard } from "@/components/auth/role-guard";
 import { PageContainer } from "@/components/layout/page-container";

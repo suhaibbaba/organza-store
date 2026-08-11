@@ -5,7 +5,7 @@
 // names or icons would leave staff guessing which home-screen tile is which.
 // The admin keeps its own copy of this file.
 
-import { SANDBOX_NAME_SUFFIX, appIconBasePath } from "@shared/constants/appEnv";
+import { SANDBOX_NAME_SUFFIX, appIconBasePath } from "@organza/shared/constants/appEnv";
 import { APP_ENV, IS_SANDBOX } from "@/lib/env";
 import type { AppleSplashScreen } from "@/types";
 

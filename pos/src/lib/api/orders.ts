@@ -1,5 +1,5 @@
-import type { CustomerSuggestion, Order } from "@shared/types/order";
-import type { CreateOrderInput } from "@shared/schemas/order";
+import type { CustomerSuggestion, Order } from "@organza/shared/types/order";
+import type { CreateOrderInput } from "@organza/shared/schemas/order";
 import { apiFetch } from "@/lib/api/client";
 
 // The POS opens two kinds of order from the same cart (see constants/pos.ts):

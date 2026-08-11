@@ -1,5 +1,5 @@
-import { ERROR_CODES } from "@shared/constants/errors";
-import type { ApiEnvelope, Pagination } from "@shared/types/common";
+import { ERROR_CODES } from "@organza/shared/constants/errors";
+import type { ApiEnvelope, Pagination } from "@organza/shared/types/common";
 import { API_BASE_URL } from "@/lib/env";
 import { getStoredToken } from "@/lib/auth/session-storage";
 import { ApiError } from "@/lib/api/errors";

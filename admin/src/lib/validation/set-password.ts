@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { ERROR_CODES } from "@shared/constants/errors";
-import { PASSWORD_MIN_LENGTH } from "@shared/constants/validation";
+import { ERROR_CODES } from "@organza/shared/constants/errors";
+import { PASSWORD_MIN_LENGTH } from "@organza/shared/constants/validation";
 
 // Field messages are backend error codes (CLAUDE.md rule 12) so they render
 // through the same errors.* catalogue as every other form — except the

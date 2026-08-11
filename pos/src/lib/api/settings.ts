@@ -1,4 +1,4 @@
-import type { Setting } from "@shared/types/setting";
+import type { Setting } from "@organza/shared/types/setting";
 import { apiFetch } from "@/lib/api/client";
 
 // Read-only here: the currency every price on this screen is formatted with

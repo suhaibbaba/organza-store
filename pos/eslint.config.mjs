@@ -12,10 +12,6 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
-    // Plain CommonJS bootstrap script that builds @shared before the app's
-    // own tooling (including this linter) is guaranteed to be available —
-    // not part of the app bundle.
-    "scripts/**",
   ]),
 ]);
 

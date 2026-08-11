@@ -1,4 +1,4 @@
-import type { Category } from "@shared/types/category";
+import type { Category } from "@organza/shared/types/category";
 import type { SidebarCategories, SidebarCategory } from "@/types/category";
 
 // The flat category list the API returns, arranged the way the browser's

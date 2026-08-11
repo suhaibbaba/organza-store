@@ -1,4 +1,4 @@
-import type { Role } from "@shared/types/role";
+import type { Role } from "@organza/shared/types/role";
 
 /** One account the go-live command is about to create, once its details are known. */
 export interface InitAccountDetails {

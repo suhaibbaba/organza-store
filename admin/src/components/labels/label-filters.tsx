@@ -1,8 +1,8 @@
 "use client";
 
 import { useLocale, useTranslations } from "next-intl";
-import { PRODUCT_PRINT_STATES } from "@shared/constants/product";
-import type { ProductPrintState } from "@shared/types/product";
+import { PRODUCT_PRINT_STATES } from "@organza/shared/constants/product";
+import type { ProductPrintState } from "@organza/shared/types/product";
 import { useCategoriesQuery } from "@/hooks/use-categories";
 import { flattenCategoryTree } from "@/lib/api/categories";
 import { localize } from "@/lib/i18n-content";

@@ -1,5 +1,5 @@
-import type { ProductPrintState } from "@shared/types/product";
-import type { LabelPrintMode } from "@shared/types/setting";
+import type { ProductPrintState } from "@organza/shared/types/product";
+import type { LabelPrintMode } from "@organza/shared/types/setting";
 
 // Client-side filter state for the barcode-labels screen. Mirrors the
 // products list filters it reuses, minus the ones that make no sense when

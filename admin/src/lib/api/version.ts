@@ -1,4 +1,4 @@
-import type { AppVersionInfo } from "@shared/types/version";
+import type { AppVersionInfo } from "@organza/shared/types/version";
 import { apiFetch } from "@/lib/api/client";
 
 // Which build of the API is answering (GET /api/version). Shown beside this

@@ -1,5 +1,5 @@
-import type { I18n } from "@shared/types/common";
-import type { DiscountType } from "@shared/types/order";
+import type { I18n } from "@organza/shared/types/common";
+import type { DiscountType } from "@organza/shared/types/order";
 
 // One line in the open sale. Everything needed to render the line is copied
 // in when it is added, so scrolling the cart never re-fetches anything —

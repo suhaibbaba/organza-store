@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { SlidersHorizontal } from "lucide-react";
-import { ORDER_CHANNELS, ORDER_STATUSES, PAYMENT_STATUSES } from "@shared/constants/order";
+import { ORDER_CHANNELS, ORDER_STATUSES, PAYMENT_STATUSES } from "@organza/shared/constants/order";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Select } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";

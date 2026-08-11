@@ -1,4 +1,4 @@
-import type { PushConfig, PushPayloadType, PushSubscriptionDto, SaleNotificationMode, SaleNotificationPayload } from "@shared/types/push";
+import type { PushConfig, PushPayloadType, PushSubscriptionDto, SaleNotificationMode, SaleNotificationPayload } from "@organza/shared/types/push";
 
 export type { PushConfig, PushPayloadType, PushSubscriptionDto, SaleNotificationMode, SaleNotificationPayload };
 

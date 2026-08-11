@@ -1,4 +1,4 @@
-import type { CustomerSuggestion } from "@shared/types/order";
+import type { CustomerSuggestion } from "@organza/shared/types/order";
 import type { OrderCustomerDraft } from "@/types/customer";
 import type { OrderCustomerFormValues } from "@/lib/validation/customer";
 

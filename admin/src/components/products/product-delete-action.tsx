@@ -3,9 +3,9 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { Trash2 } from "lucide-react";
-import { can } from "@shared/lib/permissions";
-import { ERROR_CODES } from "@shared/constants/errors";
-import type { Product } from "@shared/types/product";
+import { can } from "@organza/shared/lib/permissions";
+import { ERROR_CODES } from "@organza/shared/constants/errors";
+import type { Product } from "@organza/shared/types/product";
 import { useRouter } from "@/i18n/navigation";
 import { useSession } from "@/components/providers/session-provider";
 import { useDeleteProductMutation } from "@/hooks/use-products";

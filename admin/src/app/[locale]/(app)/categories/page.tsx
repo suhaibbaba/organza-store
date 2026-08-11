@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { Plus } from "lucide-react";
-import type { CategoryNode } from "@shared/types/category";
-import { can } from "@shared/lib/permissions";
+import type { CategoryNode } from "@organza/shared/types/category";
+import { can } from "@organza/shared/lib/permissions";
 import { useSession } from "@/components/providers/session-provider";
 import {
   useCategoriesQuery,

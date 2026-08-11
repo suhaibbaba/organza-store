@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { ERROR_CODES } from "@shared/constants/errors";
+import { ERROR_CODES } from "@organza/shared/constants/errors";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";

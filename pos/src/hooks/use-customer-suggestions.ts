@@ -1,6 +1,6 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { CUSTOMER_SUGGESTION_MIN_DIGITS } from "@shared/constants/order";
-import { nationalPhoneDigits } from "@shared/lib/phone";
+import { CUSTOMER_SUGGESTION_MIN_DIGITS } from "@organza/shared/constants/order";
+import { nationalPhoneDigits } from "@organza/shared/lib/phone";
 import { CUSTOMER_SUGGESTION_QUERY_KEY } from "@/constants/api";
 import { CUSTOMER_SUGGESTION_DEBOUNCE_MS } from "@/constants/pos";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";

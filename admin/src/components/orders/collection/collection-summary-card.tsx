@@ -1,7 +1,7 @@
 "use client";
 
 import { useLocale, useTranslations } from "next-intl";
-import type { CollectionSummary } from "@shared/types/order";
+import type { CollectionSummary } from "@organza/shared/types/order";
 import { StatCard } from "@/components/layout/stat-card";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
 import { formatDate } from "@/lib/format";

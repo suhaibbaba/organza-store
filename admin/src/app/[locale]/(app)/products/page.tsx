@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Plus } from "lucide-react";
-import { DEFAULT_PAGE } from "@shared/constants/pagination";
+import { DEFAULT_PAGE } from "@organza/shared/constants/pagination";
 import { Link } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
 import { PageContainer } from "@/components/layout/page-container";

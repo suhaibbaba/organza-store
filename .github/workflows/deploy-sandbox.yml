@@ -52,6 +52,15 @@ jobs:
             echo "    APP_VERSION=$APP_VERSION"
 
             echo "==> Building + starting containers"
+            # All three images build from the repo root as their context and
+            # install from the root package.json + the single package-lock.json
+            # (the repo is one npm workspace), each narrowing the install to its
+            # own app with `npm ci -w <app>`. Nothing installs on the VPS itself
+            # — node here is only used to read the version number above.
+            #
+            # Consequence worth knowing when a build looks slower than expected:
+            # one lockfile means a dependency bump in ANY app invalidates the
+            # "npm ci" layer of all three, not just the app that changed.
             docker compose -f docker-compose.sandbox.yml --env-file .env.sandbox up -d --build
             echo "==> Applying database migrations"
             sleep 5

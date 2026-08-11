@@ -1,5 +1,5 @@
-import type { BarcodeSource } from "@shared/types/product";
-import type { ProductImageRef } from "@shared/types/variant";
+import type { BarcodeSource } from "@organza/shared/types/product";
+import type { ProductImageRef } from "@organza/shared/types/variant";
 
 // Raw <input> values for the translatable name/description fields — always
 // plain strings (never undefined) so controlled inputs never warn; sanitized

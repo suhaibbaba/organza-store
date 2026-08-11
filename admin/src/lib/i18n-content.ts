@@ -1,5 +1,5 @@
-import type { I18n } from "@shared/types/common";
-import { DEFAULT_LANGUAGE } from "@shared/constants/languages";
+import type { I18n } from "@organza/shared/types/common";
+import { DEFAULT_LANGUAGE } from "@organza/shared/constants/languages";
 
 // Resolves a translatable `{ ar, en, he }` field for display (CLAUDE.md rule
 // 9): current locale, falling back to the default language, then to

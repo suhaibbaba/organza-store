@@ -13,8 +13,8 @@
 import "dotenv/config";
 import fs from "node:fs/promises";
 import path from "node:path";
-import { SUPPORTED_LANGUAGES } from "@shared/constants/languages";
-import { PASSWORD_TOKEN_PURPOSES } from "@shared/constants/passwordSetup";
+import { SUPPORTED_LANGUAGES } from "@organza/shared/constants/languages";
+import { PASSWORD_TOKEN_PURPOSES } from "@organza/shared/constants/passwordSetup";
 import { renderPasswordSetupEmail } from "@/lib/email/templates/passwordSetup";
 import { emailConfig } from "@/lib/email";
 import { EMAIL_PREVIEW_DIR } from "@/constants";

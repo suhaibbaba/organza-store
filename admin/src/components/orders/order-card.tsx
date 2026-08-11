@@ -1,10 +1,10 @@
 import { useLocale, useTranslations } from "next-intl";
 import { ChevronRight } from "lucide-react";
-import type { OrderSummary } from "@shared/types/order";
+import type { OrderSummary } from "@organza/shared/types/order";
 import { Link } from "@/i18n/navigation";
 import { formatDate } from "@/lib/format";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
-import { isOrderCollectable } from "@shared/lib/orders";
+import { isOrderCollectable } from "@organza/shared/lib/orders";
 import { OrderChannelBadge } from "@/components/orders/order-channel-badge";
 import { OrderStatusBadge } from "@/components/orders/order-status-badge";
 import { OrderTypeBadge } from "@/components/orders/order-type-badge";

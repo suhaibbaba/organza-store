@@ -1,13 +1,13 @@
 import { useLocale, useTranslations } from "next-intl";
 import { ChevronRight } from "lucide-react";
-import { resolveStockStatus } from "@shared/lib/stock";
-import type { InventoryItem } from "@shared/types/inventory";
+import { resolveStockStatus } from "@organza/shared/lib/stock";
+import type { InventoryItem } from "@organza/shared/types/inventory";
 import { Link } from "@/i18n/navigation";
 import { localize } from "@/lib/i18n-content";
 import { StockBadge, STOCK_FIGURE_TONES } from "@/components/inventory/stock-badge";
 import { StockStepper } from "@/components/inventory/stock-stepper";
 import { PendingChangeBadge } from "@/components/change-requests/pending-change-badge";
-import { CHANGE_REQUEST_ENTITIES, CHANGE_REQUEST_FIELDS } from "@shared/constants/changeRequest";
+import { CHANGE_REQUEST_ENTITIES, CHANGE_REQUEST_FIELDS } from "@organza/shared/constants/changeRequest";
 import { cn } from "@/lib/utils";
 import type { InventoryRow } from "@/types/inventory";
 

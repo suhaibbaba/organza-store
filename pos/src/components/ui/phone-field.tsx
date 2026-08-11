@@ -1,8 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { PALESTINE_PHONE_PREFIXES } from "@shared/constants/phone";
-import { splitE164 } from "@shared/lib/phone";
+import { PALESTINE_PHONE_PREFIXES } from "@organza/shared/constants/phone";
+import { splitE164 } from "@organza/shared/lib/phone";
 import { NumericInput } from "@/components/ui/numeric-input";
 import { Select } from "@/components/ui/select";
 

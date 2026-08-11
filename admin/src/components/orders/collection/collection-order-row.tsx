@@ -1,7 +1,7 @@
 "use client";
 
 import { useLocale, useTranslations } from "next-intl";
-import type { OrderSummary } from "@shared/types/order";
+import type { OrderSummary } from "@organza/shared/types/order";
 import { Checkbox } from "@/components/ui/checkbox";
 import { formatDate } from "@/lib/format";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";

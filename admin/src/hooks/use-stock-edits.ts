@@ -1,9 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { InventoryItem } from "@shared/types/inventory";
-import { clampQuantity } from "@shared/constants/quantity";
-import { ERROR_CODES } from "@shared/constants/errors";
+import type { InventoryItem } from "@organza/shared/types/inventory";
+import { clampQuantity } from "@organza/shared/constants/quantity";
+import { ERROR_CODES } from "@organza/shared/constants/errors";
 import { STOCK_ERROR_FLASH_MS, STOCK_SAVE_DEBOUNCE_MS, STOCK_SAVED_FLASH_MS } from "@/constants/inventory";
 import { useAdjustStockMutation } from "@/hooks/use-inventory";
 import { ApiError } from "@/lib/api/errors";

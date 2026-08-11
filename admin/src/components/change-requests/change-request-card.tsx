@@ -3,12 +3,12 @@
 import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Check, Undo2, X } from "lucide-react";
-import { can } from "@shared/lib/permissions";
-import type { ChangeRequest } from "@shared/types/changeRequest";
+import { can } from "@organza/shared/lib/permissions";
+import type { ChangeRequest } from "@organza/shared/types/changeRequest";
 import {
   APPROVED_CHANGE_REQUEST_STATUS,
   PENDING_CHANGE_REQUEST_STATUS,
-} from "@shared/constants/changeRequest";
+} from "@organza/shared/constants/changeRequest";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";

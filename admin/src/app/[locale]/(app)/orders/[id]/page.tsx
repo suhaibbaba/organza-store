@@ -3,8 +3,8 @@
 import { use } from "react";
 import { useTranslations } from "next-intl";
 import { ArrowLeft, ReceiptText } from "lucide-react";
-import { can } from "@shared/lib/permissions";
-import { ONLINE_ORDER_CHANNELS } from "@shared/constants/order";
+import { can } from "@organza/shared/lib/permissions";
+import { ONLINE_ORDER_CHANNELS } from "@organza/shared/constants/order";
 import { Link } from "@/i18n/navigation";
 import { useSession } from "@/components/providers/session-provider";
 import { RoleGuard } from "@/components/auth/role-guard";

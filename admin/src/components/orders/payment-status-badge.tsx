@@ -1,6 +1,6 @@
 import { useTranslations } from "next-intl";
 import { BanknoteArrowDown, Wallet } from "lucide-react";
-import type { PaymentStatus } from "@shared/types/order";
+import type { PaymentStatus } from "@organza/shared/types/order";
 import { cn } from "@/lib/utils";
 
 // Has the money for this sale actually reached the shop? Kept visually

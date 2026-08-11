@@ -1,4 +1,4 @@
-import type { I18n } from "@shared/types/common";
+import type { I18n } from "@organza/shared/types/common";
 
 // One row of the product browser's sidebar: a category, plus how deep it sits
 // in the tree so the row can be indented under its parent.

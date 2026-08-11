@@ -1,5 +1,5 @@
 import { Role } from "@prisma/client";
-import { can } from "@shared/lib/permissions";
+import { can } from "@organza/shared/lib/permissions";
 import { needsLabel } from "@/lib/labelState";
 import { summarizeNumbers } from "@/lib/numberedProduct";
 import type { AnyRecord } from "@/types";

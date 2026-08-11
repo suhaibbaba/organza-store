@@ -1,4 +1,4 @@
-import { can, type PermissionSubject } from "@shared/lib/permissions";
+import { can, type PermissionSubject } from "@organza/shared/lib/permissions";
 import { NAV_ITEMS } from "@/constants/nav";
 
 // Where to send someone who lands on a screen they may not see. It used to be

@@ -1,13 +1,66 @@
 {
-  "name": "@organza-store/shared",
+  "name": "@organza/shared",
   "version": "0.1.0",
   "private": true,
-  "description": "Organza Store — shared TypeScript types + Zod schemas, imported by backend/admin/pos/frontend as @shared/*",
+  "description": "Organza Store — shared TypeScript types + Zod schemas, consumed by backend/admin/pos (and later frontend) as a workspace dependency.",
   "type": "commonjs",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "_comment_exports": "Subpath map for the way the apps actually import this package: the four barrels by name (@organza/shared/types), and any single module underneath them through the wildcard (@organza/shared/types/product -> dist/types/product.js). The explicit barrel keys have to come before './*' because that wildcard would otherwise resolve './types' to dist/types.js, which does not exist — Node prefers the most specific match, and these are it.",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./types": {
+      "types": "./dist/types/index.d.ts",
+      "default": "./dist/types/index.js"
+    },
+    "./constants": {
+      "types": "./dist/constants/index.d.ts",
+      "default": "./dist/constants/index.js"
+    },
+    "./lib": {
+      "types": "./dist/lib/index.d.ts",
+      "default": "./dist/lib/index.js"
+    },
+    "./schemas": {
+      "types": "./dist/schemas/index.d.ts",
+      "default": "./dist/schemas/index.js"
+    },
+    "./*": {
+      "types": "./dist/*.d.ts",
+      "default": "./dist/*.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "_comment_typesVersions": "The same map again, for TypeScript's node10 resolver. admin and pos are on moduleResolution 'bundler' and read `exports` directly, but the backend is a CommonJS Node service on moduleResolution 'node', which ignores `exports` entirely — without this it resolves @organza/shared/types/product to the package root and reports TS2307. Node itself still resolves the real thing at runtime through `exports` above; this only teaches tsc where the declarations are. Keep the two lists in step.",
+  "typesVersions": {
+    "*": {
+      "types": [
+        "dist/types/index.d.ts"
+      ],
+      "constants": [
+        "dist/constants/index.d.ts"
+      ],
+      "lib": [
+        "dist/lib/index.d.ts"
+      ],
+      "schemas": [
+        "dist/schemas/index.d.ts"
+      ],
+      "*": [
+        "dist/*"
+      ]
+    }
+  },
+  "_comment_prepare": "`prepare` is what replaced the old scripts/build-shared.js in each app. npm runs it for a workspace package on every `npm install` and `npm ci` at the root — including a scoped `npm ci -w admin`, because shared is a linked dependency of admin — so dist/ exists before anything tries to compile against it, with no copy step and no symlink to hand-manage.",
   "scripts": {
     "build": "tsc -p tsconfig.json && tsc-alias -p tsconfig.json",
+    "prepare": "npm run build",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

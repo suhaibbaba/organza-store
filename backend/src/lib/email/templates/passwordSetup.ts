@@ -3,7 +3,7 @@ import {
   PASSWORD_SETUP_TOKEN_PARAM,
   PASSWORD_TOKEN_TTL_HOURS,
   type PasswordTokenPurpose,
-} from "@shared/constants/passwordSetup";
+} from "@organza/shared/constants/passwordSetup";
 import { t } from "@/lib/email/i18n";
 import { logoUrlFor, renderLayout, renderText } from "@/lib/email/templates/layout";
 import type { EmailLayoutInput, RenderedEmail } from "@/types/email";

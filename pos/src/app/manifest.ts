@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { DEFAULT_LANGUAGE } from "@shared/constants/languages";
+import { DEFAULT_LANGUAGE } from "@organza/shared/constants/languages";
 import { getTextDirection } from "@/constants/locale";
 import {
   PWA_BACKGROUND_COLOR,

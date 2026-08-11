@@ -1,1 +1,1 @@
-export * from "@shared/constants/pagination";
+export * from "@organza/shared/constants/pagination";

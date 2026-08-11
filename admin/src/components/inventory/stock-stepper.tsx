@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { Check, CircleAlert, Minus, Plus } from "lucide-react";
-import type { InventoryItem } from "@shared/types/inventory";
-import { QUANTITY_MAX, QUANTITY_MAX_LENGTH, QUANTITY_MIN, clampQuantity } from "@shared/constants/quantity";
+import type { InventoryItem } from "@organza/shared/types/inventory";
+import { QUANTITY_MAX, QUANTITY_MAX_LENGTH, QUANTITY_MIN, clampQuantity } from "@organza/shared/constants/quantity";
 import { NumericInput } from "@/components/ui/numeric-input";
 import { Spinner } from "@/components/ui/spinner";
 import { isNonNegativeIntegerString } from "@/lib/validation/numeric";

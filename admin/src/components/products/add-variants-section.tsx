@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
-import type { VariantType } from "@shared/types/variant";
+import type { VariantType } from "@organza/shared/types/variant";
 import { useGenerateVariantsMutation } from "@/hooks/use-products";
 import { deleteVariant } from "@/lib/api/products";
 import { buildVariantPreview, toOptionSelections, comboKey } from "@/lib/variant-combo";

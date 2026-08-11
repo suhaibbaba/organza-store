@@ -1,5 +1,5 @@
-import { DEFAULT_PAGE, DEFAULT_PAGE_SIZE } from "@shared/constants/pagination";
-import { QUANTITY_MAX } from "@shared/constants/quantity";
+import { DEFAULT_PAGE, DEFAULT_PAGE_SIZE } from "@organza/shared/constants/pagination";
+import { QUANTITY_MAX } from "@organza/shared/constants/quantity";
 import type { LabelListFilters } from "@/types/label";
 
 export const LABEL_SEARCH_DEBOUNCE_MS = 400;

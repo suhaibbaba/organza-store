@@ -1,4 +1,4 @@
-import { ERROR_CODES } from "@shared/constants/errors";
+import { ERROR_CODES } from "@organza/shared/constants/errors";
 import { ApiError } from "@/lib/api/errors";
 
 // A rejected barcode says what it clashed with (backend lib/barcode.ts puts the

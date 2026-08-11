@@ -9,15 +9,19 @@ shadcn/ui-style components, talking to the `backend/` API.
 
 ## Setup
 
+The repo is one npm workspace, so the install happens **once, at the repo root** — it wires up
+all four projects against a single lockfile:
+
 ```bash
-cd admin
+cd ..            # the repo root, if you are in admin/
 npm install
+cd admin
 cp .env.example .env.local
 # edit .env.local: NEXT_PUBLIC_API_URL should point at a running backend/ instance
 ```
 
-`npm install` also builds `shared/` and symlinks it into `node_modules/@shared` (see the
-`postinstall` script) — no separate setup step needed, matching `backend/`.
+That root install also compiles `shared/` into the `@organza/shared` package this app imports
+(the shared package's own `prepare` script) — no separate setup step needed, matching `backend/`.
 
 The backend must be running (see `backend/README.md`) with at least the dev seed applied —
 this app has no functionality of its own without it.
@@ -142,7 +146,9 @@ admin/
 ```
 
 Local modules are imported via the `@/` path alias (e.g. `@/lib/api/client`), never relative
-paths; the shared cross-app package is imported via `@shared/` (e.g. `@shared/constants/errors`).
+paths. The shared cross-app package is a workspace dependency, imported by package name (e.g.
+`@organza/shared/constants/errors`), not through an alias — so install from the repo root
+(`npm install`) and run this app with `npm run dev -w admin`.
 
 ### A note on Next.js 16
 

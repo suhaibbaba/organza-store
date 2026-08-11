@@ -10,18 +10,37 @@ FROM node:22-slim
 WORKDIR /app
 
 # --- dependency layer -------------------------------------------------------
-# postinstall runs build:shared, so the sibling shared/ package and the script
-# that compiles it must exist before "npm ci". Nothing else does.
+# The repo is one npm workspace, so the install runs from /app — the workspace
+# root — against the single root lockfile, and "-w admin" narrows it to this
+# app's dependency tree. The backend's dependencies (prisma, sharp, ...) stay
+# out of this image.
+#
+# All four workspace manifests have to be present even though only one app is
+# installed: "npm ci" validates the root lockfile against every workspace
+# declared in the root package.json, and would refuse the install with any of
+# them missing. The trade-off is that bumping a dependency in backend/ or pos/
+# invalidates this layer too — the price of one lockfile, and still far cheaper
+# than reinstalling on every source edit.
+#
+# shared/ is up here because it is a real dependency now and its own "prepare"
+# script compiles it during the install; the app also reads
+# shared/scripts/app-version.js at build time from next.config.ts. Nothing else
+# belongs above the install.
+# (--ignore-scripts is not an option: it would skip that "prepare" and leave
+# shared/dist absent, so nothing the app imports would resolve.)
+COPY package.json package-lock.json ./
 COPY shared ./shared
-COPY admin/package.json admin/package-lock.json ./admin/
-COPY admin/scripts ./admin/scripts
+COPY backend/package.json ./backend/
+COPY admin/package.json ./admin/
+COPY pos/package.json ./pos/
 
-WORKDIR /app/admin
-RUN --mount=type=cache,target=/root/.npm npm ci
+RUN --mount=type=cache,target=/root/.npm npm ci -w admin
 
 # --- source layer -----------------------------------------------------------
 # node_modules is in .dockerignore, so this cannot clobber the install above.
 COPY admin /app/admin
+
+WORKDIR /app/admin
 
 # Inlined into the bundle by next build, so they belong to the build, not the
 # install — declared after "npm ci" so that editing e.g. the locale list

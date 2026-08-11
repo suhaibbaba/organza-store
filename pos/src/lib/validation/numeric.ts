@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { ERROR_CODES } from "@shared/constants/errors";
+import { ERROR_CODES } from "@organza/shared/constants/errors";
 import { DECIMAL_STRING_REGEX, INTEGER_STRING_REGEX } from "@/constants/numeric";
 
 // Stock/quantities: integers only — no decimals, negatives, or letters.

@@ -3,8 +3,8 @@
 import { useMemo, useState, type FormEvent } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Check } from "lucide-react";
-import type { Product } from "@shared/types/product";
-import type { Variant } from "@shared/types/variant";
+import type { Product } from "@organza/shared/types/product";
+import type { Variant } from "@organza/shared/types/variant";
 import { localize } from "@/lib/i18n-content";
 import { isNumberedProduct, variantsByNumber } from "@/lib/numbered";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";

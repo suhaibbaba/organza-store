@@ -1,5 +1,5 @@
-import type { Expense } from "@shared/types/expense";
-import { PENDING_EXPENSE_APPROVAL_STATUS } from "@shared/constants/expense";
+import type { Expense } from "@organza/shared/types/expense";
+import { PENDING_EXPENSE_APPROVAL_STATUS } from "@organza/shared/constants/expense";
 import { apiFetch } from "@/lib/api/client";
 
 // How many expenses are waiting for someone to sign them off (spec.md "Cash

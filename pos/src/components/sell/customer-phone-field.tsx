@@ -2,7 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { History } from "lucide-react";
-import type { CustomerSuggestion } from "@shared/types/order";
+import type { CustomerSuggestion } from "@organza/shared/types/order";
 import { useCustomerSuggestions } from "@/hooks/use-customer-suggestions";
 import { useSettingsQuery } from "@/hooks/use-settings";
 import { PhoneField } from "@/components/ui/phone-field";

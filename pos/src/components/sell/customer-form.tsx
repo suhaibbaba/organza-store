@@ -3,7 +3,7 @@
 import { Controller, type Control, type FieldErrors, type UseFormRegister, type UseFormSetValue } from "react-hook-form";
 import { useTranslations } from "next-intl";
 import { ChevronDown, MapPin } from "lucide-react";
-import type { CustomerSuggestion } from "@shared/types/order";
+import type { CustomerSuggestion } from "@organza/shared/types/order";
 import { SIGNED_DECIMAL_INPUT_PATTERN } from "@/constants/numeric";
 import { useSettingsQuery } from "@/hooks/use-settings";
 import { useTranslateError } from "@/hooks/use-translate-error";

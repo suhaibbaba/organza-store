@@ -1,6 +1,6 @@
 import "dotenv/config";
 import { DEFAULT_EMAIL_FROM } from "@/constants/email";
-import { DEFAULT_LANGUAGE, SUPPORTED_LANGUAGES } from "@shared/constants/languages";
+import { DEFAULT_LANGUAGE, SUPPORTED_LANGUAGES } from "@organza/shared/constants/languages";
 import type { EmailConfig, EmailTransportName } from "@/types/email";
 import type { SupportedLanguage } from "@/types/common";
 

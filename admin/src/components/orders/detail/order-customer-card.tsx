@@ -1,6 +1,6 @@
 import { useTranslations } from "next-intl";
 import { MapPin, MessageCircle, Phone } from "lucide-react";
-import type { Order } from "@shared/types/order";
+import type { Order } from "@organza/shared/types/order";
 import { COORDINATE_DECIMALS, MAP_LINK_TEMPLATE } from "@/constants/orders";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 

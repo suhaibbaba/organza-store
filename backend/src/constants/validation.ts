@@ -1,1 +1,1 @@
-export * from "@shared/constants/validation";
+export * from "@organza/shared/constants/validation";

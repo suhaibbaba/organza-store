@@ -1,4 +1,4 @@
-import { DEFAULT_LOW_STOCK_THRESHOLD } from "@shared/constants/inventory";
+import { DEFAULT_LOW_STOCK_THRESHOLD } from "@organza/shared/constants/inventory";
 import { useSettingsQuery } from "@/hooks/use-settings";
 
 // What counts as "nearly out", from the Setting singleton (CLAUDE.md rule 14

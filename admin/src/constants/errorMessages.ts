@@ -1,4 +1,4 @@
-import { ERROR_CODES } from "@shared/constants/errors";
+import { ERROR_CODES } from "@organza/shared/constants/errors";
 
 // Backend error codes (e.g. "error.validation.required") can't be used as
 // next-intl message paths directly — "error.validation" is both a leaf code

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { Minus, Plus } from "lucide-react";
-import { QUANTITY_MAX_LENGTH, clampQuantity } from "@shared/constants/quantity";
+import { QUANTITY_MAX_LENGTH, clampQuantity } from "@organza/shared/constants/quantity";
 import { NumericInput } from "@/components/ui/numeric-input";
 import { isNonNegativeIntegerString } from "@/lib/validation/numeric";
 import { MIN_CART_QUANTITY } from "@/constants/pos";

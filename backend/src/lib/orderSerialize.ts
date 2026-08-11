@@ -1,5 +1,5 @@
 import type { Role } from "@prisma/client";
-import { can } from "@shared/lib/permissions";
+import { can } from "@organza/shared/lib/permissions";
 import { formatMoney } from "@/lib/money";
 import type { AnyRecord } from "@/types";
 

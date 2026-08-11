@@ -1,9 +1,9 @@
 "use client";
 
 import * as React from "react";
-import { BARCODE_MAX_LENGTH } from "@shared/constants/barcode";
-import { normalizeBarcode } from "@shared/lib/barcode";
-import { isModifierKey, physicalKeyChar } from "@shared/lib/keyboard";
+import { BARCODE_MAX_LENGTH } from "@organza/shared/constants/barcode";
+import { normalizeBarcode } from "@organza/shared/lib/barcode";
+import { isModifierKey, physicalKeyChar } from "@organza/shared/lib/keyboard";
 import { BARCODE_TERMINATOR_CODES } from "@/constants/barcode";
 import { Input } from "@/components/ui/input";
 
@@ -26,7 +26,7 @@ interface BarcodeInputProps
 //   1. the characters have to come from the key's PHYSICAL position, not from
 //      `event.key`. Under the shop's Arabic layout a plain input fills with
 //      ٥٩٠١ and ش — a code nothing in the catalogue matches. Every character
-//      is therefore claimed here and re-derived (@shared/lib/keyboard), which
+//      is therefore claimed here and re-derived (@organza/shared/lib/keyboard), which
 //      also means a person typing on that same Arabic keyboard gets ASCII;
 //   2. the terminating Enter must NOT submit the form. A wedge scanner ends
 //      every code with it, and on a product form that would file the product

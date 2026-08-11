@@ -1,4 +1,4 @@
-import type { PushSubscribeInput } from "@shared/schemas/push";
+import type { PushSubscribeInput } from "@organza/shared/schemas/push";
 import { SERVICE_WORKER_READY_TIMEOUT_MS } from "@/constants/pwa";
 
 // Browser-side plumbing for Web Push. Kept out of the hook so the hook is

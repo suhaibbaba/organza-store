@@ -1,1 +1,1 @@
-export * from "@shared/schemas/common";
+export * from "@organza/shared/schemas/common";

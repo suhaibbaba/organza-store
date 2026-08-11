@@ -1,5 +1,5 @@
 import { useTranslations } from "next-intl";
-import type { Order } from "@shared/types/order";
+import type { Order } from "@organza/shared/types/order";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
 import { Card, CardContent } from "@/components/ui/card";
 

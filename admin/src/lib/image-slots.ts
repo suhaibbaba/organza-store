@@ -1,5 +1,5 @@
-import type { Product } from "@shared/types/product";
-import type { ProductImageRef } from "@shared/types/variant";
+import type { Product } from "@organza/shared/types/product";
+import type { ProductImageRef } from "@organza/shared/types/variant";
 import { PRODUCT_GALLERY_KEY, variantGalleryKey } from "@/constants/images";
 import { validateImageFile } from "@/lib/validation/image";
 import type { Gallery, GallerySlot } from "@/types/productForm";

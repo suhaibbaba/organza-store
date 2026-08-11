@@ -1,5 +1,5 @@
-import type { Pagination } from "@shared/types/common";
-import type { Product, ProductLookupResult, ProductSummary } from "@shared/types/product";
+import type { Pagination } from "@organza/shared/types/common";
+import type { Product, ProductLookupResult, ProductSummary } from "@organza/shared/types/product";
 import { apiFetch } from "@/lib/api/client";
 import { BROWSE_PAGE_SIZE, SEARCH_PAGE, SEARCH_PAGE_SIZE } from "@/constants/pos";
 

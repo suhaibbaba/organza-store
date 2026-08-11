@@ -1,4 +1,4 @@
-import type { CategoryNode } from "@shared/types/category";
+import type { CategoryNode } from "@organza/shared/types/category";
 import { CategoryTreeNode } from "@/components/categories/category-tree-node";
 
 interface CategoryTreeProps {

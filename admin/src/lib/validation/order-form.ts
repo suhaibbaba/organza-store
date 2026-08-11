@@ -1,7 +1,7 @@
 import { z } from "zod";
-import { ERROR_CODES } from "@shared/constants/errors";
-import { isValidE164 } from "@shared/lib/phone";
-import { LATITUDE_MAX, LATITUDE_MIN, LONGITUDE_MAX, LONGITUDE_MIN } from "@shared/constants/order";
+import { ERROR_CODES } from "@organza/shared/constants/errors";
+import { isValidE164 } from "@organza/shared/lib/phone";
+import { LATITUDE_MAX, LATITUDE_MIN, LONGITUDE_MAX, LONGITUDE_MIN } from "@organza/shared/constants/order";
 import { SIGNED_DECIMAL_REGEX } from "@/constants/numeric";
 import type { OrderCustomerDraft } from "@/types/order";
 

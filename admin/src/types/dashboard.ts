@@ -1,4 +1,4 @@
-import type { DashboardSummary } from "@shared/types/dashboard";
+import type { DashboardSummary } from "@organza/shared/types/dashboard";
 
 export type { DashboardSummary };
 

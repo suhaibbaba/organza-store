@@ -1,5 +1,5 @@
 import { defineRouting } from "next-intl/routing";
-import { SUPPORTED_LANGUAGES, DEFAULT_LANGUAGE } from "@shared/constants/languages";
+import { SUPPORTED_LANGUAGES, DEFAULT_LANGUAGE } from "@organza/shared/constants/languages";
 import { LOCALE_COOKIE_MAX_AGE_SECONDS, LOCALE_COOKIE_NAME, LOCALE_COOKIE_PATH } from "@/constants/locale";
 
 export const routing = defineRouting({

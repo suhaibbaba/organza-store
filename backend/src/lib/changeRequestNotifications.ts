@@ -11,7 +11,7 @@ import {
   SETTINGS_SINGLETON_ID,
 } from "@/constants";
 import type { AnyRecord, ChangeRequestActorRef, I18n, PushTarget } from "@/types";
-import type { ChangeRequestNotificationPayload } from "@shared/types/push";
+import type { ChangeRequestNotificationPayload } from "@organza/shared/types/push";
 
 // Telling the people who can decide that somebody is waiting on them.
 //

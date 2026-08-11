@@ -1,7 +1,7 @@
 // State of sale notifications on THIS device, as the settings screen needs
 // to show it. Everything here is about the browser in front of the user —
 // whether the shop sends notifications at all is a Setting (see
-// @shared/types/setting).
+// @organza/shared/types/setting).
 
 /**
  * Why notifications can't be switched on right now, or `null` when they can.

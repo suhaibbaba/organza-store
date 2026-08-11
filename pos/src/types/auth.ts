@@ -1,4 +1,4 @@
-import type { Role } from "@shared/types/role";
+import type { Role } from "@organza/shared/types/role";
 
 export interface SessionUser {
   id: string;

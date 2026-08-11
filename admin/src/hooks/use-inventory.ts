@@ -1,5 +1,5 @@
 import { keepPreviousData, useMutation, useQuery } from "@tanstack/react-query";
-import type { InventoryItem } from "@shared/types/inventory";
+import type { InventoryItem } from "@organza/shared/types/inventory";
 import { INVENTORY_LIST_PAGE_SIZE, INVENTORY_LIST_QUERY_KEY } from "@/constants/inventory";
 import { adjustProductStock, adjustVariantStock, fetchInventory } from "@/lib/api/inventory";
 import { useCacheInvalidation } from "@/hooks/use-cache-invalidation";

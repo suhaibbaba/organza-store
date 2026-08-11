@@ -1,8 +1,8 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { ROLES } from "@shared/constants/roles";
-import type { Role } from "@shared/types/role";
+import { ROLES } from "@organza/shared/constants/roles";
+import type { Role } from "@organza/shared/types/role";
 import { Select } from "@/components/ui/select";
 
 interface UserFiltersProps {

@@ -21,7 +21,7 @@ import {
 import { findUserByPhoneField } from "@/lib/phone";
 import { writeAudit } from "@/lib/audit";
 import { AUDIT_ENTITY, AUTH_PROVIDER_CREDENTIAL, ERROR_CODES } from "@/constants";
-import { PASSWORD_TOKEN_BYTES } from "@shared/constants/passwordSetup";
+import { PASSWORD_TOKEN_BYTES } from "@organza/shared/constants/passwordSetup";
 import type { SerializableUser } from "@/types";
 
 // Staff management — Admin only (CLAUDE.md rule 5). `idNumber` is Admin-only

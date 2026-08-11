@@ -1,6 +1,6 @@
-import type { I18n } from "@shared/types/common";
-import type { ListOrdersQuery } from "@shared/schemas/order";
-import type { DiscountType, OrderChannel, OrderStatus, PaymentStatus } from "@shared/types/order";
+import type { I18n } from "@organza/shared/types/common";
+import type { ListOrdersQuery } from "@organza/shared/schemas/order";
+import type { DiscountType, OrderChannel, OrderStatus, PaymentStatus } from "@organza/shared/types/order";
 
 // Client-side filter state for the orders list screen — mirrors
 // `ListOrdersQuery` (the API's validated query shape) but keeps "unset"

@@ -1,4 +1,4 @@
-import type { Role } from "@shared/types/role";
+import type { Role } from "@organza/shared/types/role";
 
 // Client-side filter state for the users list screen — kept separate from
 // the API's validated query shape so the UI can hold "unset" filters

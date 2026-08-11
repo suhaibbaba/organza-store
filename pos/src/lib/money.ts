@@ -1,5 +1,5 @@
-import { MONEY_DECIMAL_PLACES, PERCENT_MAX } from "@shared/constants/order";
-import type { DiscountType } from "@shared/types/order";
+import { MONEY_DECIMAL_PLACES, PERCENT_MAX } from "@organza/shared/constants/order";
+import type { DiscountType } from "@organza/shared/types/order";
 
 // Integer-cent arithmetic for the running total shown on the selling screen.
 //

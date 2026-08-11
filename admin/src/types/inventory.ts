@@ -1,5 +1,5 @@
-import type { InventoryItem } from "@shared/types/inventory";
-import type { ListInventoryQuery } from "@shared/schemas/inventory";
+import type { InventoryItem } from "@organza/shared/types/inventory";
+import type { ListInventoryQuery } from "@organza/shared/schemas/inventory";
 
 // Client-side filter state for the inventory list screen — mirrors
 // `ListInventoryQuery` (the API's validated query shape) but keeps

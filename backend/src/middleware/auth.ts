@@ -1,8 +1,8 @@
 import type { NextFunction, Request, Response } from "express";
 import { fromNodeHeaders } from "better-auth/node";
 import type { Role } from "@prisma/client";
-import { can } from "@shared/lib/permissions";
-import type { PermissionAction } from "@shared/types/permission";
+import { can } from "@organza/shared/lib/permissions";
+import type { PermissionAction } from "@organza/shared/types/permission";
 import { auth } from "@/lib/auth";
 import { AppError } from "@/lib/response";
 import { ERROR_CODES } from "@/constants";
@@ -28,7 +28,7 @@ export async function requireAuth(req: Request, _res: Response, next: NextFuncti
 }
 
 // Backend-enforced permission gate (CLAUDE.md rule 5) — never rely on the UI
-// hiding a button. The role->action rules live in @shared/ (`can`), this is
+// hiding a button. The role->action rules live in @organza/shared/ (`can`), this is
 // just the Express wiring around it. Must run after requireAuth.
 export function requirePermission(action: PermissionAction) {
   return (req: Request, _res: Response, next: NextFunction): void => {

@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import { useMutation, useQueries, useQueryClient, type UseQueryResult } from "@tanstack/react-query";
-import type { Product } from "@shared/types/product";
+import type { Product } from "@organza/shared/types/product";
 import { PRODUCT_LIST_QUERY_KEY } from "@/constants/products";
 import { fetchProduct, markLabelsPrinted } from "@/lib/api/products";
 import { useCacheInvalidation } from "@/hooks/use-cache-invalidation";

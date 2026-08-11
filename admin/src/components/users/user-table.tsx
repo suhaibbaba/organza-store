@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { flexRender, getCoreRowModel, useReactTable, type ColumnDef } from "@tanstack/react-table";
 import { Pencil, UserCheck, UserX } from "lucide-react";
-import type { User } from "@shared/types/user";
+import type { User } from "@organza/shared/types/user";
 import { Spinner } from "@/components/ui/spinner";
 import { RoleBadge } from "@/components/users/role-badge";
 import { UserStatusBadge } from "@/components/users/user-status-badge";
