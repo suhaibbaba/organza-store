@@ -1,0 +1,173 @@
+name: Deploy Production
+on:
+  push:
+    branches: [production]
+  workflow_dispatch:
+concurrency:
+  group: deploy-production
+  cancel-in-progress: true
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      # No actions/checkout here on purpose: the build happens on the VPS,
+      # from the VPS's own clone. The equivalent of checkout's `fetch-depth: 0`
+      # therefore lives in the script below — the app's version number is
+      # <major>.<minor> plus the repo's commit count, and a shallow clone would
+      # report a commit count of 1 forever (see shared/scripts/app-version.js).
+      - name: Deploy over SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          command_timeout: 15m
+          script: |
+            set -euo pipefail
+            cd /opt/organza/production
+            echo "==> Pulling latest 'production' branch"
+            git fetch origin production
+            git reset --hard origin/production
+
+            echo "==> Making sure the full history is here (the version is a commit count)"
+            if [ -f "$(git rev-parse --git-dir)/shallow" ]; then
+              echo "    shallow clone — unshallowing"
+              git fetch --unshallow origin production || git fetch --depth=2147483647 origin production
+            fi
+
+            echo "==> Resolving app version"
+            # One number for the whole deploy: the API reports it at
+            # /api/version and both frontends show it in their account menu, so
+            # a mismatch between them is exactly the stale-build symptom this
+            # is here to expose. shared/scripts/app-version.js is the reference
+            # implementation; the shell fallback below mirrors it for a VPS
+            # with no node installed.
+            if command -v node >/dev/null 2>&1; then
+              APP_VERSION="$(node shared/scripts/app-version.js backend)"
+            else
+              BASE="$(sed -n 's/^[[:space:]]*"version"[[:space:]]*:[[:space:]]*"\([0-9]\{1,\}\.[0-9]\{1,\}\).*/\1/p' backend/package.json | head -n 1)"
+              APP_VERSION="${BASE:-0.0}.$(git rev-list --count HEAD)"
+            fi
+            export APP_VERSION
+            echo "    APP_VERSION=$APP_VERSION"
+
+            echo "==> Making sure the uploads volume belongs to the app user"
+            # The containers stopped running as root: the API now runs as the
+            # base image's unprivileged `node` user (uid 1000). Docker seeds a
+            # NEW named volume from the image, ownership included, so a fresh
+            # prod_uploads comes out owned by uid 1000 and needs nothing
+            # here. A volume that ALREADY holds the shop's photographs is not
+            # re-seeded — it keeps the root ownership it was created with, and
+            # the API can then read those photographs but not write new ones.
+            #
+            # So hand it over, once. Guarded on the current owner rather than
+            # run unconditionally, because a recursive chown across every
+            # photograph the shop owns is not something to repeat on every
+            # deploy. Nothing here touches the file contents.
+            UPLOADS_VOLUME=organza-prod_prod_uploads
+            if docker volume inspect "$UPLOADS_VOLUME" >/dev/null 2>&1; then
+              CURRENT_UID="$(docker run --rm -v "$UPLOADS_VOLUME":/vol node:20-slim stat -c '%u' /vol)"
+              echo "    $UPLOADS_VOLUME is owned by uid $CURRENT_UID"
+              if [ "$CURRENT_UID" != "1000" ]; then
+                echo "    handing it to uid 1000 (the container's node user) — one time only"
+                docker run --rm --user 0:0 -v "$UPLOADS_VOLUME":/vol node:20-slim chown -R 1000:1000 /vol
+              fi
+            else
+              echo "    volume does not exist yet — Docker will create it owned by uid 1000"
+            fi
+
+            echo "==> Building + starting containers"
+            # All three images build from the repo root as their context and
+            # install from the root package.json + the single package-lock.json
+            # (the repo is one npm workspace), each narrowing the install to its
+            # own app with `npm ci -w <app>`. Nothing installs on the VPS itself
+            # — node here is only used to read the version number above.
+            #
+            # Consequence worth knowing when a build looks slower than expected:
+            # one lockfile means a dependency bump in ANY app invalidates the
+            # "npm ci" layer of all three, not just the app that changed.
+            docker compose -f docker-compose.prod.yml --env-file .env.production up -d --build
+            echo "==> Applying database migrations"
+            sleep 5
+            docker compose -f docker-compose.prod.yml --env-file .env.production exec -T backend npx prisma migrate deploy
+            echo "==> Creating essential data (settings, variant types, expense categories)"
+            # NOT a seed. This creates only the lists the app cannot run
+            # without, each exactly once in the life of the database (see
+            # backend/src/lib/bootstrap.ts) — so a colour or an expense
+            # category the shop retires stays retired instead of coming back
+            # on the next push.
+            #
+            # The demo seed (fake products, fake orders, admin@organza.test)
+            # is deliberately NOT here any more, and cannot be reached from a
+            # deploy at all: it is quarantined under backend/prisma/dev/ and
+            # refuses to run without being told the database is disposable.
+            docker compose -f docker-compose.prod.yml --env-file .env.production exec -T backend npm run bootstrap
+
+            echo "==> Checking the uploads volume is mounted and writable"
+            # The shop's photographs are the one thing a deploy can silently
+            # destroy: point UPLOAD_DIR one directory away from the mount and
+            # every upload lands in the container's own layer, to be thrown
+            # away by the NEXT deploy. Nothing errors — the files just stop
+            # existing, and nobody finds out for a week.
+            #
+            # So the deploy asks. The API reports the directory it is using on
+            # startup and answers /health with whether it can write there.
+            # Both come from the same resolved path the uploads themselves use
+            # (backend/src/lib/image.ts), so this cannot pass while uploads
+            # are broken.
+            docker compose -f docker-compose.prod.yml --env-file .env.production logs --tail 50 backend \
+              | grep -i "Uploads directory" || true
+            UPLOADS_OK="$(docker compose -f docker-compose.prod.yml --env-file .env.production exec -T backend \
+              node -e "fetch('http://localhost:4000/health').then(r=>r.json()).then(b=>console.log(b.data.uploadsWritable)).catch(()=>console.log('unreachable'))")"
+            echo "    uploadsWritable=$UPLOADS_OK"
+            if [ "$UPLOADS_OK" != "true" ]; then
+              echo "::error::The API cannot write uploaded images. The code is deployed, but every"
+              echo "::error::image upload will fail and any image uploaded since the last good deploy"
+              echo "::error::may already be lost. Check the uploads volume mount and UPLOAD_DIR in"
+              echo "::error::docker-compose.prod.yml — see ops/README.md."
+              exit 1
+            fi
+
+            echo "==> Checking both apps were built as PRODUCTION"
+            # NEXT_PUBLIC_APP_ENV is inlined at build time, so a wrong build
+            # arg cannot be noticed at runtime — the container comes up
+            # perfectly, serving the sandbox's amber SBX icons under the
+            # sandbox's name, on the stack that holds the shop's real orders.
+            # Nothing 404s and nothing logs.
+            #
+            # The manifest is where that choice surfaces: it names the app and
+            # lists the icon paths, both resolved from the same value. If it
+            # says production, the tiles, the tab, the boot splash and the
+            # absent SANDBOX chip all do too (src/constants/pwa.ts).
+            for APP in admin pos; do
+              MANIFEST="$(docker compose -f docker-compose.prod.yml --env-file .env.production exec -T "$APP" \
+                node -e "fetch('http://localhost:3000/manifest.webmanifest').then(r=>r.text()).then(t=>console.log(t)).catch(e=>console.log('unreachable: '+e.message))")"
+              if ! printf '%s' "$MANIFEST" | grep -q "/app_icon/production/"; then
+                echo "::error::The $APP app is not serving the production icons. It was built with"
+                echo "::error::NEXT_PUBLIC_APP_ENV=sandbox, so the LIVE SHOP is wearing the sandbox's"
+                echo "::error::icons and name — see docker-compose.prod.yml, service '$APP'."
+                printf '%s\n' "$MANIFEST" | head -c 500
+                exit 1
+              fi
+              echo "    $APP: production icons ✓"
+            done
+
+            echo "==> Pruning old images"
+            docker image prune -f
+
+            echo "==> Capping the build cache"
+            # `docker image prune` never touches build cache, which is what
+            # actually filled the disk (150 GB across 526 entries). Cap it
+            # rather than emptying it: the Dockerfiles are ordered so the
+            # "npm ci" layer survives between deploys, and an unbounded
+            # `docker builder prune -f` would throw that away and make every
+            # build cold. The flag was renamed --keep-storage ->
+            # --max-used-space, so ask this Docker which one it speaks.
+            if docker builder prune --help 2>&1 | grep -q -- '--max-used-space'; then
+              docker builder prune -f --max-used-space 10GB
+            else
+              docker builder prune -f --keep-storage 10GB
+            fi
+            docker system df
+
+            echo "==> Done."

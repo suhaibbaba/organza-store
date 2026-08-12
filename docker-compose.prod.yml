@@ -1,0 +1,159 @@
+# Organza — Production stack (the live shop)
+# Run:  docker compose -f docker-compose.prod.yml --env-file .env.production up -d --build
+name: organza-prod
+
+services:
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    volumes:
+      # postgres:16 keeps its cluster in /var/lib/postgresql/data, and this is
+      # that exact path — so the shop's orders live on the named volume below,
+      # not in the container, and a rebuild cannot touch them.
+      #
+      # If this image is ever bumped to postgres:18 or later, CHECK THIS PATH
+      # FIRST: 18 moved PGDATA to /var/lib/postgresql, and a mount left at the
+      # old path would leave the new cluster writing into the container layer.
+      # It would look like it worked, right up until the next deploy — the
+      # same failure the uploads mount had (see the backend service).
+      - prod_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 15
+
+  backend:
+    build:
+      # context is the repo root, not ./backend: the repo is one npm
+      # workspace, so the install runs from the root package.json and the
+      # single root lockfile, and the shared/ package it links has to be
+      # inside the build context too.
+      context: .
+      dockerfile: backend/Dockerfile
+      args:
+        # Resolved on the host by the deploy (see .github/workflows/
+        # deploy-production.yml) — the image has no git history to count from.
+        # Empty here means a locally-run compose still builds; the API then
+        # falls back to its package.json version.
+        APP_VERSION: ${APP_VERSION:-}
+    restart: unless-stopped
+    # Everything in backend/.env.example comes through here, including the
+    # transactional-email settings the password links need:
+    #   RESEND_API_KEY, EMAIL_FROM, EMAIL_REPLY_TO, ADMIN_URL, TRUST_PROXY
+    # The file lives on the VPS and is never committed.
+    env_file: .env.production
+    environment:
+      # assembled here so backend always points at the compose DB
+      DATABASE_URL: postgresql://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}?schema=public
+      # WHERE THE PHOTOS GO — the mount point below, spelled out, absolute.
+      #
+      # This has to be stated here rather than left to .env.production, and it has
+      # to be absolute, because of how it went wrong: `.env.example` ships
+      # UPLOAD_DIR=./uploads, the API resolves it against the process's working
+      # directory, and the Dockerfile's last WORKDIR is /app/backend. So every
+      # photo was written to /app/backend/uploads — the container's own
+      # writable layer — while the volume sat empty one directory up. Nothing
+      # errored; `up -d --build` simply threw the container away, and with it
+      # every image the shop had uploaded since the last deploy.
+      #
+      # `environment:` wins over `env_file:` in compose, which is the point:
+      # .env.production lives on the VPS and is not in this repo, so it cannot be
+      # trusted to hold the right value, and a stale UPLOAD_DIR=./uploads in it
+      # can no longer break this. The mount point and the app's idea of it are
+      # now the same two lines, in the same file, and change together.
+      UPLOAD_DIR: /app/uploads
+      # WHICH STACK THIS IS. Stated here for the same reason as UPLOAD_DIR
+      # above: `environment:` wins over `env_file:`, and .env.production lives on
+      # the VPS where this repo cannot see it. The compose file that IS the
+      # live shop is the honest place to say so.
+      #
+      # NODE_ENV cannot carry this — the sandbox runs with NODE_ENV=production
+      # as well, so it is this value, and only this value, that makes
+      # `db:reset` refuse the shop's real database (backend/src/lib/appEnv.ts).
+      APP_ENV: production
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      # Uploaded product photos (the WebP sizes sharp writes). Survives
+      # `up -d --build`, `docker compose down`, and a full image rebuild —
+      # everything except `down -v` and an explicit `docker volume rm`.
+      - prod_uploads:/app/uploads
+    ports:
+      - "127.0.0.1:4000:4000"           # production range (the sandbox sits on 14000/13001/13002)
+
+  admin:
+    build:
+      context: .
+      dockerfile: admin/Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: https://api.organza-moda.com
+        NEXT_PUBLIC_DEFAULT_LOCALE: ar
+        NEXT_PUBLIC_SUPPORTED_LOCALES: ar,en,he
+        NEXT_PUBLIC_PROJECT_NAME: organza-prod-admin
+        # The plain icons, "Organza Admin" under the tile, and no environment
+        # chip in the top bar. Baked in at build time, so this stack has to be
+        # rebuilt — not just restarted — to change it.
+        NEXT_PUBLIC_APP_ENV: production
+        # Same number as the backend's, resolved once by the deploy.
+        NEXT_PUBLIC_APP_VERSION: ${APP_VERSION:-}
+    restart: unless-stopped
+    depends_on: [backend]
+    ports:
+      - "127.0.0.1:3001:3000"
+
+  pos:
+    build:
+      # context is the repo root for the same reason as backend/admin: the
+      # install runs from the workspace root and needs the shared/ package.
+      context: .
+      dockerfile: pos/Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: https://api.organza-moda.com
+        NEXT_PUBLIC_DEFAULT_LOCALE: ar
+        NEXT_PUBLIC_SUPPORTED_LOCALES: ar,en,he
+        NEXT_PUBLIC_PROJECT_NAME: organza-prod-pos
+        # The plain icons, "Organza POS" under the tile, and no environment
+        # chip in the top bar. Baked in at build time, so this stack has to be
+        # rebuilt — not just restarted — to change it.
+        NEXT_PUBLIC_APP_ENV: production
+        # Same number as the backend's, resolved once by the deploy.
+        NEXT_PUBLIC_APP_VERSION: ${APP_VERSION:-}
+    restart: unless-stopped
+    depends_on: [backend]
+    # Camera scanning needs HTTPS (spec.md), so this port has to be served
+    # through the TLS-terminating reverse proxy in front of it, not hit
+    # directly over http://<vps>:3002.
+    ports:
+      - "127.0.0.1:3002:3000"
+
+# The two things in this stack that are not rebuildable: the shop's database
+# and the shop's photographs. Everything else here can be thrown away and made
+# again from git.
+#
+# DO NOT RENAME THESE KEYS, and do not change `name:` at the top of the file.
+# Compose derives the real volume name from both (`organza-prod` +
+# `prod_db_data` -> `organza-prod_prod_db_data`), so editing either
+# one points the stack at a DIFFERENT, empty volume. Postgres would come up on
+# an empty data directory and the shop would look like it had lost everything
+# — while the real data sat in the old volume nobody was looking at.
+#
+# They survive `up -d --build`, `docker compose down`, and image rebuilds.
+# They do NOT survive:
+#   docker compose down -v          <- deletes both. Never run this on the VPS.
+#   docker volume rm ...
+#   docker system prune --volumes   <- deletes any volume no container is
+#                                      using, so it is only dangerous AFTER a
+#                                      `down`. Use `docker image prune` /
+#                                      `docker builder prune` for disk space,
+#                                      which is what the deploy does.
+# And a volume is not a backup: it is on the same disk as everything else.
+# See ops/README.md.
+volumes:
+  prod_db_data:
+  prod_uploads:
