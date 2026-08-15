@@ -20,6 +20,7 @@ export * from "./passwordSetup";
 export * from "./phone";
 export * from "./product";
 export * from "./productionImport";
+export * from "./proxyTrust";
 export * from "./push";
 export * from "./report";
 export * from "./settings";

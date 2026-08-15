@@ -2,6 +2,8 @@ import path from "node:path";
 import fs from "node:fs/promises";
 import crypto from "node:crypto";
 import sharp from "sharp";
+import { AppError } from "@/lib/response";
+import { ERROR_CODES } from "@/constants";
 import {
   DEFAULT_ALLOWED_IMAGE_TYPES,
   DEFAULT_UPLOAD_DIR,
@@ -63,9 +65,39 @@ export async function checkUploadDirWritable(): Promise<{ ok: true } | { ok: fal
   }
 }
 
+/**
+ * Is this actually an image, whatever the upload claimed?
+ *
+ * The multer filter upstream checks `file.mimetype`, which is the Content-Type
+ * the CLIENT typed — a PHP script announced as `image/png` sails straight
+ * through it. The real check has always been sharp, which cannot decode
+ * something that is not an image; what was missing was ASKING it before the
+ * write, so the refusal came out as an unhandled throw: HTTP 500,
+ * `error.internal`, and a Sentry event, for what is a bad request.
+ *
+ * Nothing about the stored result changes — every upload was, and still is,
+ * decoded and re-encoded to WebP, so no byte the caller supplied is ever
+ * served back. This only changes what the caller is TOLD.
+ */
+async function assertDecodableImage(buffer: Buffer): Promise<void> {
+  try {
+    const metadata = await sharp(buffer).metadata();
+    // A format sharp cannot name is one it cannot decode.
+    if (!metadata.format) throw new Error("no decodable image format");
+  } catch {
+    throw new AppError(400, ERROR_CODES.IMAGE_INVALID_TYPE);
+  }
+}
+
 // Resizes into every size (max dimension, aspect preserved, never upscaled),
 // converts to WebP, and writes each under UPLOAD_DIR — served statically at /uploads.
+//
+// The stored name is a fresh UUID and the client's own filename is never
+// touched, which is what makes path traversal impossible here rather than
+// merely unlikely: there is no caller-supplied string anywhere in the path.
 export async function storeProductImage(buffer: Buffer): Promise<StoredImage> {
+  await assertDecodableImage(buffer);
+
   await fs.mkdir(UPLOAD_DIR, { recursive: true });
   const filename = crypto.randomUUID();
   const urls = {} as Record<ImageSize, string>;

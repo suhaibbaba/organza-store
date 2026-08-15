@@ -163,6 +163,11 @@ export const ERROR_CODES = {
   // reset — resetting a working password is a different decision, and it has
   // its own button.
   USER_ALREADY_ACTIVATED: "error.user.already_activated",
+  // Demoting or deactivating the only Admin left. Refused because it locks
+  // the door from the outside: afterwards nobody can approve a change,
+  // reach Settings, manage staff or see profit, and nothing in the app can
+  // put it back — it takes a terminal on the VPS.
+  USER_LAST_ADMIN: "error.user.last_admin",
 
   // --- password set / reset by email ---
   // ONE code for unknown, expired, already-used and revoked links, on

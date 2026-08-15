@@ -49,16 +49,41 @@ export async function signInWithEmail(email: string, password: string): Promise<
   return { token: body.token, user: body.user };
 }
 
-export async function signOut(): Promise<void> {
+/**
+ * Ends the session on the SERVER first, and only then forgets it here.
+ *
+ * The order matters, and it used to be the other way round: the token was
+ * cleared locally and the sign-out request was fired afterwards with its
+ * failure swallowed. Offline — on a phone in a shop with bad reception, which
+ * is most of them — the screen said "signed out" while the session stayed
+ * valid on the server for the full week it lives. On a handset shared between
+ * shifts that is a live login nobody can see and nobody can revoke, belonging
+ * to somebody who believes they logged out.
+ *
+ * So the request is awaited, and the caller is told whether it worked. The
+ * local token is cleared either way (in `finally`): refusing to clear it
+ * would strand somebody on a device they cannot sign out of, which is worse
+ * — but "we could not reach the server" is now something the screen can say
+ * rather than something nobody finds out.
+ */
+export async function signOut(): Promise<{ revoked: boolean }> {
   const token = getStoredToken();
-  clearStoredToken();
-  if (!token) return;
+  if (!token) return { revoked: true };
 
-  await fetch(`${API_BASE_URL}${AUTH_ENDPOINTS.SIGN_OUT}`, {
-    method: "POST",
-    headers: { Authorization: `Bearer ${token}` },
-    credentials: "include",
-  }).catch(() => undefined);
+  try {
+    const res = await fetch(`${API_BASE_URL}${AUTH_ENDPOINTS.SIGN_OUT}`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+      credentials: "include",
+    });
+    // A 401 means the server has no such session any more, which is the
+    // outcome asked for — it is revoked, not failed.
+    return { revoked: res.ok || res.status === 401 };
+  } catch {
+    return { revoked: false };
+  } finally {
+    clearStoredToken();
+  }
 }
 
 export async function fetchSession(): Promise<SessionUser | null> {

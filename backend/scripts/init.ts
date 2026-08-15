@@ -24,18 +24,16 @@
 //  populate an empty one.
 // ============================================================================
 import "dotenv/config";
-import crypto from "node:crypto";
 import path from "node:path";
 import { APIError } from "better-auth";
-import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { createStaffUser } from "@/lib/credentials";
 import { sendPasswordSetupEmail } from "@/lib/passwordSetup";
 import { emailConfig, isEmailConfigured } from "@/lib/email";
 import { describeDatabase } from "@/lib/dangerousCommands";
 import { createInitialStaff, InitRefusedError } from "@/lib/init";
 import { applyStaffOverrides, loadStaffAccounts, resolveStaffFilePath } from "@/lib/staffAccounts";
 import { INIT_FLAGS } from "@/constants/init";
-import { AUTH_PROVIDER_CREDENTIAL, PASSWORD_TOKEN_BYTES } from "@/constants";
 
 const RULE = "═".repeat(74);
 const REPO_ROOT = path.resolve(__dirname, "..", "..");
@@ -113,31 +111,28 @@ async function main(): Promise<void> {
     countUsers: () => prisma.user.count(),
 
     async createAccount(account) {
-      // Better Auth's sign-up insists on a password; this one is random, is
-      // never printed, and is deleted two lines later. What remains is an
-      // account with no usable credential until its owner sets one.
-      const throwaway = crypto.randomBytes(PASSWORD_TOKEN_BYTES).toString("base64url");
-
-      let userId: string;
+      // The same one path every staff account in the shop is born through
+      // (lib/credentials.ts), which is the point: Better Auth's public
+      // sign-up endpoint is disabled, and it had to be — it was reachable by
+      // anybody on the internet. This writes through Better Auth's own
+      // internal adapter instead.
+      //
+      // No password is minted at all, not even a throwaway to delete
+      // afterwards, so at no moment does a working credential for this
+      // account exist anywhere. Its owner sets one from the emailed link.
       try {
-        const result = await auth.api.signUpEmail({
-          body: { email: account.email, password: throwaway, name: account.name, phone: account.phone },
+        return await createStaffUser({
+          email: account.email,
+          name: account.name,
+          role: account.role,
+          phone: account.phone,
+          whatsapp: null,
+          idNumber: null,
         });
-        userId = result.user.id;
       } catch (error) {
         if (error instanceof APIError) throw new Error(`Could not create ${account.email}: ${error.message}`);
         throw error;
       }
-
-      const user = await prisma.user.update({
-        where: { id: userId },
-        data: { role: account.role, isActive: true },
-      });
-      await prisma.account.updateMany({
-        where: { userId: user.id, providerId: AUTH_PROVIDER_CREDENTIAL },
-        data: { password: null },
-      });
-      return user;
     },
 
     sendInvite: (user) => sendPasswordSetupEmail(user, "SET"),

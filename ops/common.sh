@@ -260,11 +260,31 @@ r2() {
   local work_mount=()
   [ -n "${OPS_WORK_DIR:-}" ] && work_mount=(-v "$(cd "$OPS_WORK_DIR" && pwd)":/work)
 
+  # The credentials go in through a FILE, not through `-e KEY=value`.
+  #
+  # An argument on a command line is not private: it lands in the `docker`
+  # client's own argv, where any local user can read it out of
+  # /proc/<pid>/cmdline for as long as the command runs, and it stays visible
+  # in `docker inspect` for the container's whole life. On a single-admin VPS
+  # that is a small exposure, but it is a free one to remove, and these are
+  # the keys to every backup the shop has.
+  #
+  # The temp file is created with a private umask, removed on the way out
+  # whatever happens, and never contains anything but these two lines.
+  local env_file
+  env_file="$(mktemp)"
+  # shellcheck disable=SC2064  # $env_file is expanded now, on purpose
+  trap "rm -f '$env_file'" RETURN
+  chmod 600 "$env_file"
+  {
+    printf 'AWS_ACCESS_KEY_ID=%s\n' "$R2_ACCESS_KEY_ID"
+    printf 'AWS_SECRET_ACCESS_KEY=%s\n' "$R2_SECRET_ACCESS_KEY"
+  } > "$env_file"
+
   docker run --rm \
     --volumes-from "$(ops_backend_container)" \
     "${work_mount[@]}" \
-    -e AWS_ACCESS_KEY_ID="$R2_ACCESS_KEY_ID" \
-    -e AWS_SECRET_ACCESS_KEY="$R2_SECRET_ACCESS_KEY" \
+    --env-file "$env_file" \
     -e AWS_REQUEST_CHECKSUM_CALCULATION=when_required \
     -e AWS_RESPONSE_CHECKSUM_VALIDATION=when_required \
     "$AWS_CLI_IMAGE" \

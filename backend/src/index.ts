@@ -25,6 +25,7 @@ import { errorHandler } from "@/middleware/errorHandler";
 import { AppError, sendError } from "@/lib/response";
 import { UPLOAD_DIR, checkUploadDirWritable } from "@/lib/image";
 import { getBackupHealth, startBackupStalenessWatch } from "@/lib/backups";
+import { TRUST_PROXY_SETTING, describeProxyTrust } from "@/lib/proxyTrust";
 import { captureException } from "@/lib/logger";
 import { ERROR_CODES } from "@/constants";
 
@@ -41,10 +42,10 @@ let uploadsWritable = true;
 // rate limit is only worth anything if it counts real callers rather than
 // counting nginx once. Off unless configured, because trusting
 // X-Forwarded-For with nothing in front of the app lets any caller claim any
-// address (see backend/.env.example).
-const trustProxy = process.env.TRUST_PROXY?.trim();
-if (trustProxy) {
-  app.set("trust proxy", /^\d+$/.test(trustProxy) ? Number(trustProxy) : trustProxy);
+// address. Parsed in lib/proxyTrust.ts, which owns both halves of this
+// question and says out loud what it decided (see the listen callback).
+if (TRUST_PROXY_SETTING !== null) {
+  app.set("trust proxy", TRUST_PROXY_SETTING);
 }
 
 const corsOrigins = (process.env.CORS_ORIGINS ?? "").split(",").filter(Boolean);
@@ -136,6 +137,25 @@ app.listen(port, async () => {
   // this is where the question gets asked (lib/backups.ts). Started before
   // the uploads check below, which returns early on the happy path.
   startBackupStalenessWatch();
+
+  // WHO THE CALLERS LOOK LIKE, said out loud on every start — next to the
+  // uploads path below, and for the same reason: it is a question that cannot
+  // be answered from outside the process, whose wrong answer breaks nothing
+  // visibly, and whose symptom arrives weeks later as "nobody can sign in".
+  //
+  // A deployed build that has been told nothing gets the paragraph and an
+  // entry in error tracking, because at that point every per-caller rate
+  // limit in the system is one shared bucket (lib/proxyTrust.ts).
+  const proxyTrust = describeProxyTrust();
+  if (proxyTrust.level === "warn") {
+    console.error(proxyTrust.lines.join("\n"));
+    captureException(new Error("Proxy trust is not configured on a deployed build"), {
+      trustProxy: TRUST_PROXY_SETTING,
+      hint: proxyTrust.lines.join(" "),
+    });
+  } else {
+    console.log(proxyTrust.lines.join("\n"));
+  }
 
   // Where the photographs go, said out loud on every start. One line in
   // `docker compose logs backend` that answers "is the volume actually

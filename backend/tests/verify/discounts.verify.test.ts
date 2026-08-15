@@ -9,7 +9,9 @@
 //    * rounding to 2 places, HALF UP, with no floating-point drift anywhere —
 //      3 x 0.10 is 0.30, not 0.30000000000000004;
 //    * the server recomputes every total from the catalogue: a client that
-//      sends its own unitPrice, lineTotal, subtotal or total is ignored;
+//      sends its own unitPrice, lineTotal, subtotal or total is REFUSED —
+//      it used to be silently ignored, which answered a body trying to name
+//      its own price with a receipt (middleware/validate.ts);
 //    * a discount is never negative, never more than 100%, and never larger
 //      than the thing it discounts.
 //
@@ -37,6 +39,7 @@ import {
   ORDER_PERCENT,
   UNIT_PRICE,
 } from "@tests/constants";
+import { ERROR_CODES } from "@/constants";
 import type { OrderDto, PricedProduct } from "@tests/types";
 
 describe("Verify · discounts, totals and rounding", () => {
@@ -185,7 +188,7 @@ describe("Verify · discounts, totals and rounding", () => {
   });
 
   describe("the client never gets to name the price", () => {
-    it("ignores a tampered unitPrice, lineTotal, subtotal, total and discountAmount on creation", async () => {
+    it("refuses a tampered unitPrice, lineTotal, subtotal, total and discountAmount on creation", async () => {
       const res = await sellRequest(
         admin,
         // Every money field a hostile client could think to send.
@@ -200,26 +203,40 @@ describe("Verify · discounts, totals and rounding", () => {
         }
       );
 
-      expect(res.status, "a tampered total must not break the sale, only be ignored").toBe(201);
-      const order = res.data!;
-      expectMoney(order.items[0].unitPrice, "100.00", "unit price (server's, not the client's 1.00)");
-      expectMoney(order.items[0].lineTotal, "200.00", "line total (server's, not the client's 1.00)");
-      expectMoney(order.subtotal, "200.00", "subtotal (server's)");
-      expectMoney(order.discountAmount, "0.00", "discount (the client's 199.00 must not be honoured)");
-      expectMoney(order.total, "200.00", "order total (server's, not the client's 1.00)");
+      // This used to be a 201 with every one of those fields quietly dropped.
+      // Dropping them was safe, but it answered a body that tried to name its
+      // own price with a receipt — so the client could not tell that its
+      // figures had been thrown away, and neither could anybody reading the
+      // logs. An unknown field is now a refusal (middleware/validate.ts).
+      expect(res.status, "a body naming its own price is refused, not humoured").toBe(400);
+      expect(res.error?.code).toBe(ERROR_CODES.VALIDATION);
+    });
+
+    it("prices from the catalogue, so there is nowhere for a client's figure to enter", async () => {
+      // The guarantee underneath the refusal above, stated on its own: the
+      // reason no tampered price can be honoured is not that the server
+      // notices and discards it, but that money is computed from the
+      // catalogue and the schema has no field for one.
+      const order = await sell(admin, [{ productId: product.id, quantity: 2 }]);
+
+      expectMoney(order.items[0].unitPrice, "100.00", "unit price (the catalogue's)");
+      expectMoney(order.items[0].lineTotal, "200.00", "line total");
+      expectMoney(order.subtotal, "200.00", "subtotal");
+      expectMoney(order.discountAmount, "0.00", "discount");
+      expectMoney(order.total, "200.00", "order total");
 
       // ...and it is the server's figure that was actually stored.
       const stored = await readOrder(admin, order.id);
       expectMoney(stored.total, "200.00", "stored order total");
     });
 
-    it("ignores a tampered total on an edit, and re-prices from the stored snapshot", async () => {
+    it("refuses a tampered total on an edit, and re-prices from the stored snapshot without one", async () => {
       const order = await sell(admin, [{ productId: product.id, quantity: 2 }], {
         channel: "WHATSAPP",
       });
       expectMoney(order.total, "200.00", "total before the edit");
 
-      const edited = await apiRequest<OrderDto>(`/api/orders/${order.id}`, {
+      const tampered = await apiRequest<OrderDto>(`/api/orders/${order.id}`, {
         method: "PATCH",
         token: admin,
         body: {
@@ -230,6 +247,18 @@ describe("Verify · discounts, totals and rounding", () => {
           total: "5.00",
           discountAmount: "195.00",
         },
+      });
+
+      expect(tampered.status, "an edit naming its own total is refused").toBe(400);
+      expect(tampered.error?.code).toBe(ERROR_CODES.VALIDATION);
+
+      // The same edit without the fiction: the discount is honoured, and
+      // every figure around it is recomputed from the stored line snapshots
+      // rather than from anything the client said.
+      const edited = await apiRequest<OrderDto>(`/api/orders/${order.id}`, {
+        method: "PATCH",
+        token: admin,
+        body: { discountType: "PERCENT", discountValue: ITEM_PERCENT },
       });
 
       expect(edited.status, "the edit itself must succeed").toBe(200);

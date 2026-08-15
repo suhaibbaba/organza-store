@@ -107,6 +107,7 @@ export const ERROR_MESSAGE_KEYS: Record<string, string> = {
   [ERROR_CODES.USER_NOT_FOUND]: "errors.userNotFound",
   [ERROR_CODES.AUTH_SIGNUP_FAILED]: "errors.authSignupFailed",
   [ERROR_CODES.USER_ALREADY_ACTIVATED]: "errors.userAlreadyActivated",
+  [ERROR_CODES.USER_LAST_ADMIN]: "errors.userLastAdmin",
 
   [ERROR_CODES.RATE_LIMITED]: "errors.rateLimited",
   [ERROR_CODES.PASSWORD_TOKEN_INVALID]: "errors.passwordTokenInvalid",
