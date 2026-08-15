@@ -472,6 +472,13 @@ docker compose -f docker-compose.sandbox.yml exec -T backend rm /tmp/staff.json
 | `npm run db:reset` | Drops every table, re-applies every migration, and deletes uploaded image files that no longer belong to any product. Seeds nothing. | **Yes** — the second run leaves an empty database empty. It refuses without `ORGANZA_DB_RESET_CONFIRM` typed out in full, every single time, and needs `ORGANZA_ALLOW_PRODUCTION=I-KNOW-THIS-IS-PRODUCTION` on top when `NODE_ENV=production`. |
 | `npm run import:prod` | Copies the **live shop's catalogue** into the **sandbox** — products, categories, variants, images — after wiping the sandbox's own. Staff accounts survive. See [Importing the production catalogue](#importing-the-production-catalogue-into-the-sandbox). | **Yes** — it wipes first, so two runs leave byte-identical data. It refuses unless the target says *sandbox* in both `APP_ENV` and its database name, and unless the run names that database. |
 | `npm run email:preview` | Renders every email in every language to `tmp/email-preview/` (git-ignored). Sends nothing, needs no API key, touches no database. | Yes. |
+| `npm run backup:status` | Prints when the off-site backup last actually worked, the last failure and the last five runs. **Exits non-zero when the last success is over 48h old**, so a monitor can call it directly; `-- --json` for machines. Reads only. | Yes — it changes nothing. |
+| `npm run backup:record` | Called **by `ops/backup.sh`**, never by hand. Reports a failed run to Sentry (through `lib/logger.ts`) and writes the outcome to `BackupRun`. | Yes, but each call appends a run to the record — do not use it to fake a success. |
+
+The backing up itself is **`ops/backup.sh`**, on the host rather than in here: it drives
+`docker compose`, and a container cannot dump the database it lives next to without one.
+`ops/restore.sh` puts a backup back and guards production with the same two phrases as
+`db:reset`. Both are documented in [`ops/README.md`](../ops/README.md).
 
 A single value can be corrected on the command line without editing the file — useful for a
 scripted run where the phone number comes from somewhere else. Overrides are matched by email
@@ -548,18 +555,40 @@ curl -s https://api.sandbox.organza-moda.com/health
 the container's user — the last of which is what a `USER` line in the Dockerfile would
 introduce (the image runs as root today, so the mount is writable by construction).
 
-### What is backed up: nothing, yet
+### Backups: nightly, off this server
 
 The volumes survive redeploys, `docker compose down`, and image rebuilds. They do **not**
 survive `docker compose down -v`, `docker volume rm`, `docker system prune --volumes` after
-a `down`, `npm run db:reset`, or the VPS's disk failing. **As of this commit there is no
-scheduled backup and no copy of the shop's data anywhere but the VPS's own disk.**
+a `down`, `npm run db:reset`, or the VPS's disk failing — and a copy kept on the same disk
+is destroyed by exactly the failure it exists for.
 
-`ops/backup.sh` takes one (a `pg_dump` of the database and a tar of the uploads volume,
-both read out of the running containers and both checked for readability afterwards);
-`ops/restore.sh` puts one back. Neither runs on its own. **[`ops/README.md`](../ops/README.md)**
-has the cron entry that would schedule it, the `rsync` that would get the copies off the
-box, and the restore rehearsal — read it before the shop starts entering real orders.
+So `ops/backup.sh` runs nightly from cron and puts both of them in a **Cloudflare R2**
+bucket: a `pg_dump -Fc` of the database, and an **incremental** `s3 sync` of the
+photographs (only what changed that day). It keeps the last ~30 dumps and prunes the rest,
+verifies every dump with `pg_restore --list` before trusting it, and checks the uploaded
+object's size against the local file. `ops/restore.sh` puts a backup back, and refuses
+production without `ORGANZA_ALLOW_PRODUCTION` on top of the usual confirmation — the same
+two phrases `db:reset` uses.
+
+Setting it up, the cron entry, the credentials and the **step-by-step restore procedure**
+are in **[`ops/README.md`](../ops/README.md)**. Read the restore section before you need
+it: a backup nobody has restored is a hope.
+
+The API's part is remembering that it happened, because the failure that actually kills a
+shop is not a backup that breaks — that one is loud — but a schedule that quietly stopped:
+
+| Command | What it does |
+|---|---|
+| `npm run backup:status` | When the backup last actually worked, the last failure, and the last five runs. **Exits non-zero when the last success is over 48h old**, so a monitor can use it directly. `-- --json` for machines. |
+| `npm run backup:record` | Called **by `ops/backup.sh`**, not by a person. Files a failed run to Sentry through `lib/logger.ts` and writes either outcome to the `BackupRun` table. |
+
+The same figures come out of `GET /health` as `backup: { lastSuccessAt, stale }`, and the
+API re-checks the age every six hours and reports staleness to Sentry — at most once a
+day, so an alert nobody believes never becomes the norm.
+
+**No secrets go in the bucket.** Not `.env.production`, not `staff.json`, not
+`BETTER_AUTH_SECRET`, the VAPID keys, the Resend key or the R2 token itself; those are kept
+by hand (ops/README.md, "What is NOT backed up").
 
 ## Importing the production catalogue into the sandbox
 
@@ -734,7 +763,9 @@ backend/
 │   ├── init.ts             # `npm run init` — the staff roster, once, by hand
 │   ├── db-reset.ts         # `npm run db:reset` — DESTRUCTIVE, manual only
 │   ├── import-from-production.ts  # `npm run import:prod` — production catalogue -> sandbox, one way
-│   └── email-preview.ts    # `npm run email:preview` — render every email without sending
+│   ├── email-preview.ts    # `npm run email:preview` — render every email without sending
+│   ├── backup-status.ts    # `npm run backup:status` — when did the off-site backup last work?
+│   └── backup-record.ts    # `npm run backup:record` — called BY ops/backup.sh, files the outcome
 ├── tests/
 │   ├── api/            # per-feature API suites (against a live API)
 │   ├── unit/           # pure logic — token rules, rate limiter, email templates, guards
