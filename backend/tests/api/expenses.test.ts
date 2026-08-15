@@ -97,13 +97,22 @@ describe("Expenses", () => {
       const categoryId = await expenseCategoryId(employee.token);
 
       // Asking to be approved is not a way of being approved — otherwise
-      // "record an expense" would be a way to approve one.
-      const res = await expense(employee.token, {
+      // "record an expense" would be a way to approve one. It used to be
+      // ignored; it is now refused outright (middleware/validate.ts), which
+      // says the same thing out loud.
+      const asking = await expense(employee.token, {
         categoryId,
         amount: "20",
         approvalStatus: "APPROVED",
         approvedById: employee.userId,
       });
+
+      expect(asking.status).toBe(400);
+      expect(asking.error?.code).toBe(ERROR_CODES.VALIDATION);
+
+      // ...and what the role actually decides is unchanged: an Employee's
+      // expense opens PENDING and has approved nothing.
+      const res = await expense(employee.token, { categoryId, amount: "20" });
 
       expect(res.status).toBe(201);
       expect(res.data!.approvalStatus).toBe("PENDING");
@@ -348,12 +357,24 @@ describe("Expenses", () => {
       openedCategoryIds.push(created.data!.id);
       expect(created.data!.key).toBe(key);
 
-      // A rename reaches every expense filed under it automatically, because
-      // nothing copies the name (CLAUDE.md rule 2/9).
-      const renamed = await apiRequest<ExpenseCategoryDto>(`/api/expense-categories/${created.data!.id}`, {
+      // The key is frozen, and trying to move it is now refused rather than
+      // ignored (middleware/validate.ts) — an unknown field is an answer, not
+      // something to swallow.
+      const reKeyed = await apiRequest(`/api/expense-categories/${created.data!.id}`, {
         method: "PATCH",
         token: manager.token,
         body: { name: { ar: "إيجار المحل", en: "Shop rent" }, key: "hacked" },
+      });
+      expect(reKeyed.status).toBe(400);
+      expect(reKeyed.error?.code).toBe(ERROR_CODES.VALIDATION);
+
+      // A rename reaches every expense filed under it automatically, because
+      // nothing copies the name (CLAUDE.md rule 2/9) — and the key it is
+      // identified by does not move.
+      const renamed = await apiRequest<ExpenseCategoryDto>(`/api/expense-categories/${created.data!.id}`, {
+        method: "PATCH",
+        token: manager.token,
+        body: { name: { ar: "إيجار المحل", en: "Shop rent" } },
       });
       expect(renamed.status).toBe(200);
       expect(renamed.data!.name.en).toBe("Shop rent");

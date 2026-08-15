@@ -518,7 +518,11 @@ into a failure; the failure goes to Sentry instead. With no `RESEND_API_KEY` set
 simply not sent and the API says so in the log.
 
 Configure in `.env` (see `.env.example`): `RESEND_API_KEY`, `EMAIL_FROM`, `EMAIL_REPLY_TO`,
-`ADMIN_URL`, and `TRUST_PROXY` when the API sits behind the reverse proxy.
+`ADMIN_URL`, and — when the API sits behind the reverse proxy — **both** `TRUST_PROXY`
+(the hop count, for express) and `TRUSTED_PROXY_IPS` (the proxies' addresses, for Better Auth,
+which parses the chain itself and never sees express's setting). Setting only one leaves half the
+rate limiting counting the proxy instead of the caller; the API prints what it believes on every
+start (`Proxy trust:` in the backend logs) so this can be checked from a deploy log.
 
 ## Data, volumes & backups
 

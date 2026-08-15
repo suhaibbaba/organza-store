@@ -23,10 +23,52 @@ async function getOrCreateSettings() {
   });
 }
 
+// Named field by field rather than spread, and that is the whole point.
+//
+// This used to be `{ ...setting }`, on a route every signed-in role can read.
+// Nothing on the model is sensitive today — currency, languages, the low-stock
+// threshold and the label geometry all have to be broadly readable (CLAUDE.md
+// rule 14) — but an allow-everything serializer on a table an Admin edits
+// means the NEXT column added here reaches every Employee by default, with no
+// code change and nobody deciding it should. That is the exact shape of the
+// leak this file's neighbours were audited for: a screen that quietly carried
+// a figure it was never meant to.
+//
+// Adding a field to `Setting` now requires adding it here too, which is the
+// moment to ask whether everyone may see it.
+//
 // Money leaves the API as a fixed-2dp string like it does everywhere else,
 // rather than as whatever Decimal's own JSON form happens to be.
 function serializeSetting(setting: Setting) {
-  return { ...setting, saleNotificationMinAmount: formatMoney(setting.saleNotificationMinAmount) };
+  return {
+    id: setting.id,
+    storeName: setting.storeName,
+    defaultLanguage: setting.defaultLanguage,
+    supportedLanguages: setting.supportedLanguages,
+    currency: setting.currency,
+    defaultCountryCode: setting.defaultCountryCode,
+    lowStockThreshold: setting.lowStockThreshold,
+
+    // Barcode-label geometry — read by every screen that prints a label.
+    labelPrintMode: setting.labelPrintMode,
+    labelWidthMm: setting.labelWidthMm,
+    labelHeightMm: setting.labelHeightMm,
+    labelColumns: setting.labelColumns,
+    labelRows: setting.labelRows,
+    labelPageMarginTopMm: setting.labelPageMarginTopMm,
+    labelPageMarginRightMm: setting.labelPageMarginRightMm,
+    labelPageMarginBottomMm: setting.labelPageMarginBottomMm,
+    labelPageMarginLeftMm: setting.labelPageMarginLeftMm,
+    labelGapXMm: setting.labelGapXMm,
+    labelGapYMm: setting.labelGapYMm,
+
+    // Sale notifications.
+    saleNotificationsEnabled: setting.saleNotificationsEnabled,
+    saleNotificationMode: setting.saleNotificationMode,
+    saleNotificationMinAmount: formatMoney(setting.saleNotificationMinAmount),
+
+    updatedAt: setting.updatedAt,
+  };
 }
 
 router.get(

@@ -1,14 +1,18 @@
-import crypto from "node:crypto";
 import { Router } from "express";
-import { AuditAction } from "@prisma/client";
+import { AuditAction, Role } from "@prisma/client";
 import { APIError } from "better-auth";
-import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { asyncHandler } from "@/middleware/asyncHandler";
 import { requireAuth, requirePermission } from "@/middleware/auth";
 import { validateBody, validateQuery } from "@/middleware/validate";
 import { AppError, sendOk } from "@/lib/response";
-import { hasUsablePassword, setUserPassword, usersWithPassword } from "@/lib/credentials";
+import {
+  createStaffUser,
+  hasUsablePassword,
+  normalizeEmail,
+  setUserPassword,
+  usersWithPassword,
+} from "@/lib/credentials";
 import { sendPasswordSetupEmail } from "@/lib/passwordSetup";
 import {
   createUserSchema,
@@ -20,8 +24,7 @@ import {
 } from "@/validation/user";
 import { findUserByPhoneField } from "@/lib/phone";
 import { writeAudit } from "@/lib/audit";
-import { AUDIT_ENTITY, AUTH_PROVIDER_CREDENTIAL, ERROR_CODES } from "@/constants";
-import { PASSWORD_TOKEN_BYTES } from "@organza/shared/constants/passwordSetup";
+import { AUDIT_ENTITY, ERROR_CODES } from "@/constants";
 import type { SerializableUser } from "@/types";
 
 // Staff management — Admin only (CLAUDE.md rule 5). `idNumber` is Admin-only
@@ -64,6 +67,36 @@ function serializeUser(user: SerializableUser) {
  */
 function serializeUserWithState(user: SerializableUser, hasPassword: boolean) {
   return { ...serializeUser(user), hasPassword };
+}
+
+/**
+ * Refuses the edit that would leave the shop with no Admin.
+ *
+ * Demoting or deactivating the last one is a door that locks from the
+ * outside: approving a change request, reaching Settings, managing staff and
+ * seeing cost or profit are all Admin-only, so afterwards nobody can do any of
+ * them and nothing in the app can undo it — it takes `npm run init` or a hand
+ * in the database.
+ *
+ * Counted over ACTIVE admins, because a deactivated one cannot sign in to
+ * rescue anything either. Deliberately not a permission check: an Admin is
+ * entitled to make this change, and would be entitled to make it if there
+ * were two of them. What is refused is the arithmetic.
+ */
+async function assertNotLastAdmin(
+  existing: { id: string; role: Role; isActive: boolean },
+  body: { role?: Role; isActive?: boolean }
+): Promise<void> {
+  const wasActiveAdmin = existing.role === Role.ADMIN && existing.isActive;
+  if (!wasActiveAdmin) return;
+
+  const stillActiveAdmin = (body.role ?? existing.role) === Role.ADMIN && (body.isActive ?? existing.isActive);
+  if (stillActiveAdmin) return;
+
+  const others = await prisma.user.count({
+    where: { role: Role.ADMIN, isActive: true, id: { not: existing.id } },
+  });
+  if (others === 0) throw new AppError(409, ERROR_CODES.USER_LAST_ADMIN);
 }
 
 async function assertPhonesAvailable(input: { phone?: string; whatsapp?: string | null }, excludeUserId?: string) {
@@ -142,49 +175,40 @@ router.post(
   asyncHandler(async (req, res) => {
     const body = req.body as CreateUserInput;
 
-    const emailTaken = await prisma.user.findUnique({ where: { email: body.email } });
+    // Checked against the SAME spelling the account will be stored under, and
+    // that sign-in will later look up by. Comparing the raw value let
+    // "Sara@..." past a stored "sara@...", and the collision then surfaced as
+    // a unique-constraint failure dressed up as error.auth.signup_failed.
+    const email = normalizeEmail(body.email);
+    const emailTaken = await prisma.user.findUnique({ where: { email } });
     if (emailTaken) throw new AppError(409, ERROR_CODES.EMAIL_DUPLICATE);
     await assertPhonesAvailable(body);
 
-    // Better Auth's sign-up always wants a password, so an account that is
-    // meant to have none is created with a throwaway one and then stripped of
-    // it below. Nobody ever sees this value — not the Admin creating the
-    // account, not the log, not the response.
-    const throwawayPassword = crypto.randomBytes(PASSWORD_TOKEN_BYTES).toString("base64url");
-
-    let userId: string;
+    // Through Better Auth's own internal adapter rather than through its
+    // public sign-up endpoint, which is now disabled outright: that endpoint
+    // was reachable by anybody on the internet, and an account created by
+    // "somebody filled in a form" is not a staff account (lib/auth.ts).
+    //
+    // No password given => no credential row at all, so there is no secret
+    // anywhere that would let anybody in. The person chooses one from the
+    // emailed link below (CLAUDE.md rule 17).
+    let created: Awaited<ReturnType<typeof createStaffUser>>;
     try {
-      const result = await auth.api.signUpEmail({
-        body: {
-          email: body.email,
-          password: body.password ?? throwawayPassword,
-          name: body.name,
-          phone: body.phone,
-        },
+      created = await createStaffUser({
+        email,
+        name: body.name,
+        role: body.role,
+        phone: body.phone,
+        whatsapp: body.whatsapp ?? null,
+        idNumber: body.idNumber ?? null,
       });
-      userId = result.user.id;
     } catch (err) {
       if (err instanceof APIError) throw new AppError(400, ERROR_CODES.AUTH_SIGNUP_FAILED);
       throw err;
     }
 
-    const created = await prisma.user.update({
-      where: { id: userId },
-      data: {
-        role: body.role,
-        whatsapp: body.whatsapp ?? null,
-        idNumber: body.idNumber ?? null,
-      },
-    });
-
-    // No password given => the account genuinely has none. The hash is
-    // cleared rather than left as the throwaway, so there is no secret in
-    // the database that would let anybody in if it ever leaked.
-    if (!body.password) {
-      await prisma.account.updateMany({
-        where: { userId: created.id, providerId: AUTH_PROVIDER_CREDENTIAL },
-        data: { password: null },
-      });
+    if (body.password) {
+      await setUserPassword(created.id, body.password);
     }
 
     await writeAudit({
@@ -296,6 +320,7 @@ router.patch(
 
     const body = req.body as UpdateUserInput;
     await assertPhonesAvailable(body, existing.id);
+    await assertNotLastAdmin(existing, body);
 
     const updated = await prisma.user.update({
       where: { id: existing.id },

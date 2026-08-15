@@ -259,20 +259,36 @@ describe("Orders", () => {
       expect(res.data!.total).toBe("119.98");
     });
 
-    it("ignores any total the client tries to supply", async () => {
+    it("refuses any total the client tries to supply, and prices from the catalogue", async () => {
       const admin = await getSession("ADMIN");
       const product = await sellableProduct(admin.token, { basePrice: "100", stock: 5 });
 
-      const res = await createOrder(admin.token, {
+      // This used to be answered with a 201 and the tampered fields quietly
+      // dropped. Dropping them was safe but silent, and silence is the wrong
+      // answer to a body that is trying to name its own price: an unknown
+      // field is now a refusal (middleware/validate.ts), so a client that
+      // sends one is told rather than humoured.
+      const tampered = await createOrder(admin.token, {
         channel: "STORE",
         items: [{ productId: product.id, quantity: 1, unitPrice: "1", lineTotal: "1" }],
         subtotal: "1",
         total: "1",
       });
 
-      expect(res.status).toBe(201);
-      expect(res.data!.total).toBe("100.00");
-      expect(res.data!.items[0].unitPrice).toBe("100.00");
+      expect(tampered.status).toBe(400);
+      expect(tampered.error?.code).toBe(ERROR_CODES.VALIDATION);
+
+      // ...and the price the shop actually charges is still the catalogue's,
+      // which is the guarantee underneath: the only reason the tampered body
+      // above could not set a price is that there is nowhere for one to enter.
+      const clean = await createOrder(admin.token, {
+        channel: "STORE",
+        items: [{ productId: product.id, quantity: 1 }],
+      });
+
+      expect(clean.status).toBe(201);
+      expect(clean.data!.total).toBe("100.00");
+      expect(clean.data!.items[0].unitPrice).toBe("100.00");
     });
 
     it("never lets a discount exceed what it discounts", async () => {

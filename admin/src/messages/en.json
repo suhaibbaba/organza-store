@@ -1282,7 +1282,8 @@
     "barcodeRequired": "Scan or type the supplier's barcode, or switch back to our own.",
     "rateLimited": "Too many attempts in a short time. Wait a moment and try again.",
     "passwordTokenInvalid": "This link has expired or has already been used. Ask for a new one.",
-    "userAlreadyActivated": "This account is already set up and has a password. Send a password reset instead."
+    "userAlreadyActivated": "This account is already set up and has a password. Send a password reset instead.",
+    "userLastAdmin": "This is the only admin left. Make somebody else an admin first — otherwise nobody could manage staff, settings or approvals."
   },
   "pwa": {
     "version": {
