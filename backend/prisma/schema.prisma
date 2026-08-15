@@ -1064,3 +1064,53 @@ model Setting {
 
   updatedAt DateTime @updatedAt
 }
+
+// ============================================================
+//  BACKUP RUNS (the off-site copy — ops/backup.sh)
+// ============================================================
+
+enum BackupRunStatus {
+  SUCCEEDED
+  FAILED
+}
+
+// One row per run of `ops/backup.sh`, written by `npm run backup:record`.
+//
+// The backup itself lives in Cloudflare R2 and needs nothing from this table
+// to be restored — this is the noticeboard, not the backup. It exists because
+// the way a backup actually kills a shop is not failing loudly, it is
+// stopping quietly: a cron entry dropped during a server move, a rotated key
+// nobody re-pasted, and then six weeks later somebody needs a dump that was
+// never taken. A failed run reports to Sentry AND lands here; a schedule that
+// stopped firing reports nothing at all, which is why /health serves the last
+// success and the API re-checks its age on a timer (src/lib/backups.ts).
+//
+// Kept to the last BACKUP_RUN_HISTORY_LIMIT rows, trimmed on write.
+model BackupRun {
+  id String @id @default(cuid())
+
+  status     BackupRunStatus
+  startedAt  DateTime
+  finishedAt DateTime        @default(now())
+
+  // Which bucket the copies went to, so a restore knows where to look and a
+  // run against the wrong destination is visible. Never a credential.
+  destination String?
+
+  // What the run produced, for the "is it still growing sensibly?" question.
+  // Bytes rather than a formatted size: formatting is the reader's job.
+  databaseBytes BigInt?
+  imageCount    Int?
+  imageBytes    BigInt?
+
+  // Failures only: which stage broke (BACKUP_STAGE) and what it said. The
+  // message is the script's own stderr, trimmed — operator text, never shown
+  // to staff, so it needs no translation.
+  failedStage String?
+  error       String?
+
+  // The dashboard question is always "when did it last work", so the index
+  // that answers it carries the status too.
+  @@index([status, finishedAt])
+  @@index([finishedAt])
+}
