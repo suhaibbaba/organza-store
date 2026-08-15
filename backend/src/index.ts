@@ -24,6 +24,7 @@ import versionRouter from "@/routes/version";
 import { errorHandler } from "@/middleware/errorHandler";
 import { AppError, sendError } from "@/lib/response";
 import { UPLOAD_DIR, checkUploadDirWritable } from "@/lib/image";
+import { getBackupHealth, startBackupStalenessWatch } from "@/lib/backups";
 import { captureException } from "@/lib/logger";
 import { ERROR_CODES } from "@/constants";
 
@@ -66,13 +67,33 @@ app.use(express.json());
 // directly off disk — CLAUDE.md: images stored locally on the VPS.
 app.use("/uploads", express.static(UPLOAD_DIR));
 
-app.get("/health", (_req, res) => {
+app.get("/health", async (_req, res) => {
   // `uploads` is the one piece of state a container cannot rebuild for
   // itself, so it is worth being able to ask after a deploy — from the
   // outside, without an upload and without shell access. A boolean and
   // nothing more: this route is public, and the absolute path on the VPS is
   // not the internet's business.
-  res.json({ success: true, data: { status: "ok", uploadsWritable }, meta: null });
+  //
+  // `backup` is here for the mirror-image reason. The uploads volume can be
+  // lost by a deploy; everything in the stack can be lost by the disk, and
+  // the only thing standing between the shop and that is a cron entry on the
+  // host that nothing in this codebase can see. A schedule that stopped
+  // firing raises no error anywhere — so the age of the last successful run
+  // is served next to the thing every uptime check already reads. Two fields,
+  // no figures from the shop's books, no path and no bucket.
+  //
+  // Read live rather than cached, and never allowed to fail the route: if the
+  // database is unreachable, that is a much louder problem than a backup
+  // question, and /health still has to answer it (see lib/backups.ts).
+  let backup: { lastSuccessAt: string | null; stale: boolean } | null = null;
+  try {
+    const health = await getBackupHealth();
+    backup = { lastSuccessAt: health.lastSuccessAt?.toISOString() ?? null, stale: health.stale };
+  } catch {
+    // Left null: "we could not tell you" rather than a reassuring false.
+  }
+
+  res.json({ success: true, data: { status: "ok", uploadsWritable, backup }, meta: null });
 });
 
 // Open, like /health above — see routes/version.ts for why.
@@ -107,6 +128,14 @@ app.use(errorHandler);
 const port = Number(process.env.PORT ?? 4000);
 app.listen(port, async () => {
   console.log(`Organza Store API listening on port ${port}`);
+
+  // The one alarm nothing else can raise. ops/backup.sh reports its own
+  // failures, but a backup that stopped being *run* — a cron entry lost in a
+  // server move, a host rebuilt without it — fails silently by definition,
+  // because nothing runs to fail. This is the process that is always up, so
+  // this is where the question gets asked (lib/backups.ts). Started before
+  // the uploads check below, which returns early on the happy path.
+  startBackupStalenessWatch();
 
   // Where the photographs go, said out loud on every start. One line in
   // `docker compose logs backend` that answers "is the volume actually

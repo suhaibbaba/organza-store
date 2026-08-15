@@ -1,5 +1,6 @@
 export * from "./audit";
 export * from "./auth";
+export * from "./backup";
 export * from "./barcode";
 export * from "./bootstrap";
 export * from "./cash";
