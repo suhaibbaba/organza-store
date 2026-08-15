@@ -3,8 +3,14 @@
 # Organza — back up the two things that cannot be rebuilt from git, TO ANOTHER
 # COMPANY'S DISK: the database, and the uploaded product photographs.
 #
-#   ./ops/backup.sh                 # the nightly run (cron calls this)
-#   ./ops/backup.sh --local-only    # dump to this disk and stop; no upload
+#   STACK=production ./ops/backup.sh              # the nightly run (cron calls this)
+#   STACK=sandbox    ./ops/backup.sh
+#   STACK=production ./ops/backup.sh --local-only # dump to this disk, no upload
+#
+# STACK is one word and picks BOTH the compose file and the env file, so they
+# can never disagree; it defaults to the sandbox. COMPOSE_FILE and ENV_FILE are
+# no longer settable — see ops/common.sh for the nightly backup of the wrong
+# stack that taught us why.
 #
 # Run it ON THE VPS, from the directory holding the compose file, with the
 # stack up. Everything that touches the shop's data goes through the RUNNING
@@ -63,10 +69,12 @@ STARTED_AT="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 START_SECONDS="$(date -u +%s)"
 
 LOCAL_ONLY=0
-for arg in "$@"; do
-  case "$arg" in
-    --local-only) LOCAL_ONLY=1 ;;
-    *) echo "usage: ./ops/backup.sh [--local-only]" >&2; exit 2 ;;
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --local-only) LOCAL_ONLY=1; shift ;;
+    --stack)      STACK="${2:?--stack needs production or sandbox}"; shift 2 ;;
+    --stack=*)    STACK="${1#*=}"; shift ;;
+    *) echo "usage: ./ops/backup.sh [--stack production|sandbox] [--local-only]" >&2; exit 2 ;;
   esac
 done
 
@@ -119,14 +127,13 @@ trap 'fail "$CURRENT_STAGE" "the script exited unexpectedly (see the output abov
 #  Where, and as whom
 # ---------------------------------------------------------------------------
 ops_load_env
-STACK="$(ops_resolve_stack)"
-DB_PREFIX="$(ops_db_prefix "$STACK")"
-UPLOADS_PREFIX="$(ops_uploads_prefix "$STACK")"
-# The stack name already carries the "organza-" prefix (it is the compose
-# project name), so it is not repeated here.
-DUMP_NAME="$STACK-$STAMP.dump"
+DB_PREFIX="$(ops_db_prefix "$STACK_PROJECT")"
+UPLOADS_PREFIX="$(ops_uploads_prefix "$STACK_PROJECT")"
+# The project name already carries the "organza-" prefix, so it is not
+# repeated here.
+DUMP_NAME="$STACK_PROJECT-$STAMP.dump"
 
-DEST="$DEST_ROOT/$STACK/$STAMP"
+DEST="$DEST_ROOT/$STACK_PROJECT/$STAMP"
 mkdir -p "$DEST"
 OPS_WORK_DIR="$DEST"
 
@@ -136,15 +143,22 @@ OPS_WORK_DIR="$DEST"
 [ "$LOCAL_ONLY" = "1" ] || ops_require_r2
 
 echo "$RULE"
-echo "  Organza backup"
-echo "  Stack : $STACK  ($COMPOSE_FILE)"
-echo "  Local : $DEST"
+echo "  Organza backup — $(date -u +%Y-%m-%d\ %H:%M:%SZ)"
+echo "$RULE"
+ops_print_target
+echo "  Local    : $DEST"
 if [ "$LOCAL_ONLY" = "1" ]; then
   echo "  Off-site : SKIPPED (--local-only)"
 else
-  echo "  Off-site : s3://$R2_BUCKET/$STACK/  via $R2_ENDPOINT"
+  echo "  Off-site : s3://$R2_BUCKET/$STACK_PROJECT/  via $R2_ENDPOINT"
 fi
 echo "$RULE"
+
+# The third guard: STACK and the env file agree (ops_load_env checked the
+# database name), and now the RUNNING deployment is asked whether it agrees
+# too. Warns rather than aborts when the container cannot answer.
+CURRENT_STAGE="stack-check"
+ops_assert_stack_matches_app_env
 
 # ---------------------------------------------------------------------------
 #  1. The database
@@ -163,10 +177,17 @@ compose exec -T db pg_dump -U "$DB_USER" -d "$DB_NAME" --clean --if-exists -Fc -
 mv "$DEST/db.dump.part" "$DEST/db.dump"
 rm -f "$DEST/dump.err"
 
-# A dump nobody has opened is a guess. pg_restore --list walks the whole
-# archive, so this catches the two ways a dump is silently rubbish: a stream
-# truncated by a full disk, and a file that is not an archive at all.
-compose exec -T db pg_restore --list /dev/stdin < "$DEST/db.dump" > /dev/null 2>&1 ||
+# A dump nobody has opened is a guess. ops_verify_dump reads its whole table of
+# contents with `pg_restore --list`, which catches the two ways a dump is
+# silently rubbish: a stream truncated by a full disk, and a file that is not
+# an archive at all.
+#
+# It copies the dump into the db container to do it, because a custom-format
+# archive has to be read as a seekable FILE and `compose exec -T` supplies a
+# pipe — see ops/common.sh. Getting that wrong does not weaken the check, it
+# inverts it: every dump fails, valid ones included, and the backup never
+# uploads anything at all.
+ops_verify_dump "$DEST/db.dump" ||
   fail dump "the dump is not readable by pg_restore — do not trust it. Nothing was uploaded."
 
 DB_BYTES="$(wc -c < "$DEST/db.dump" | tr -d ' ')"
@@ -259,8 +280,12 @@ echo "    bucket held $DUMP_TOTAL dump(s) before this run; keeping the newest $K
 
 # The VPS's own copies, trimmed for the opposite reason: none of them is the
 # archive, and a year of dumps is how the disk this all runs on fills up.
-find "$DEST_ROOT/$STACK" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | sort | head -n "-$KEEP_LOCAL_DUMPS" |
-  while IFS= read -r old; do [ -n "$old" ] && rm -rf "$old" && echo "    removed local $old"; done
+find "$DEST_ROOT/$STACK_PROJECT" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | sort | head -n "-$KEEP_LOCAL_DUMPS" |
+  while IFS= read -r old; do
+    [ -n "$old" ] || continue
+    rm -rf "$old"
+    echo "    removed local $old"
+  done
 
 # ---------------------------------------------------------------------------
 #  5. Say that it worked
@@ -271,7 +296,7 @@ find "$DEST_ROOT/$STACK" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | sort | he
 # quietly stopped visible without anybody logging in to look.
 CURRENT_STAGE="record"
 ELAPSED="$(( $(date -u +%s) - START_SECONDS ))"
-echo "$STAMP  stack=$STACK  db=$DB_NAME  dump=$DB_BYTES bytes  images=$IMAGE_COUNT  ${ELAPSED}s" \
+echo "$STAMP  stack=$STACK  project=$STACK_PROJECT  compose=$COMPOSE_FILE  env=$ENV_FILE  db=$DB_NAME  dump=$DB_BYTES bytes  images=$IMAGE_COUNT  ${ELAPSED}s" \
   >> "$DEST_ROOT/backup.log"
 printf '%s  s3://%s/%s/%s\n' "$STAMP" "$R2_BUCKET" "$DB_PREFIX" "$DUMP_NAME" \
   > "$DEST_ROOT/last-success.txt"
@@ -281,12 +306,12 @@ report_run SUCCEEDED \
   --database-bytes="$DB_BYTES" \
   --image-count="$IMAGE_COUNT" \
   --image-bytes="$IMAGE_BYTES" \
-  --destination="s3://$R2_BUCKET/$STACK"
+  --destination="s3://$R2_BUCKET/$STACK_PROJECT"
 
 trap - ERR
 echo ""
 echo "$RULE"
-echo "  ✔ Backed up in ${ELAPSED}s"
+echo "  ✔ Backed up STACK=$STACK ($DB_NAME, via $COMPOSE_FILE + $ENV_FILE) in ${ELAPSED}s"
 echo "    database : s3://$R2_BUCKET/$DB_PREFIX/$DUMP_NAME  ($DB_BYTES bytes)"
 echo "    images   : s3://$R2_BUCKET/$UPLOADS_PREFIX/  ($IMAGE_COUNT file(s))"
 echo "    restore  : ./ops/restore.sh --list — and rehearse it on the sandbox first."

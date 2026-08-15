@@ -37,11 +37,32 @@ Four rules hold on both, and a third stack would inherit them or inherit the bug
    container, and a value it cannot determine counts as production, so a missing env file
    can never be the reason a guard stands down.
 
-Both scripts here take `COMPOSE_FILE` and `ENV_FILE`, so one copy serves both stacks:
+The scripts here take **one** variable, `STACK`, and derive both files from it:
 
 ```bash
-COMPOSE_FILE=docker-compose.prod.yml ENV_FILE=.env.production ./ops/backup.sh
+STACK=production ./ops/backup.sh
+STACK=sandbox    ./ops/backup.sh      # the default, if STACK is unset
 ```
+
+`COMPOSE_FILE` and `ENV_FILE` used to be settable separately, and that was a
+data-loss bug waiting to happen: setting only one gave a working command pointed at a
+**mixture** of the two deployments — `ENV_FILE=.env.production` read the shop's
+credentials and its R2 bucket while still driving `docker-compose.sandbox.yml`, so the
+nightly cron filed a **sandbox** dump under production's name and nobody could tell.
+Setting either variable is now refused outright, so an old cron entry fails loudly
+tonight rather than quietly for a year.
+
+Three independent checks stand behind that one word, and any of them aborts the run:
+
+| Check | Catches |
+|---|---|
+| `STACK` derives both files | The compose file and the env file can no longer disagree at all. |
+| The database name must suit the stack | `STACK=production` refuses a `DB_NAME` containing `sandbox`, and vice versa — the name travels with the database, unlike a value typed into a file. |
+| The running container's `APP_ENV` must equal `STACK` | The files and the deployment that is actually up disagreeing. (Warns, rather than aborting, when the container cannot be asked.) |
+
+The resolved stack, compose file, env file and database name are printed in the header
+of every run and repeated in the summary line and in `backups/backup.log`, so a cron log
+says which environment was really backed up rather than leaving it to be inferred.
 
 ## What a volume does and does not protect against
 
@@ -78,7 +99,7 @@ s3://organza-production-backups/
 
 | | How | Why that way |
 |---|---|---|
-| Database | `pg_dump --clean --if-exists -Fc -Z 9`, run inside the `db` container | `-Fc` is a compressed archive `pg_restore` can be selective about. Inside the container so it uses the stack's own credentials — no password on a command line, and it cannot dump the wrong database. |
+| Database | `pg_dump --clean --if-exists -Fc -Z 9`, run inside the `db` container | `-Fc` is a compressed archive `pg_restore` can be selective about. Inside the container so it uses the stack's own credentials — no password on a command line, and it cannot dump the wrong database. Every dump is then **read all the way through** before it is trusted (below). |
 | Photographs | `aws s3 sync`, reading the backend container's own `/app/uploads` mount | **Incremental.** Only files whose size or timestamp differ are sent, so the nightly cost is the day's photographs rather than the whole shop. Verified: a re-sync of 27 unchanged images transfers nothing. |
 
 Two deliberate asymmetries:
@@ -89,6 +110,46 @@ Two deliberate asymmetries:
   is not a storage problem worth creating a data-loss problem to solve.
 - **The dumps are pruned to the last 30.** They are whole copies, not deltas, so without
   pruning the bucket grows by one full database every night forever.
+
+### Why the self-test exists
+
+`ops/selftest.sh` exists because the dump verification has been wrong twice, in opposite
+directions, and both times it looked fine.
+
+**It could only ever fail.** The check was written as
+
+```bash
+compose exec -T db pg_restore --list /dev/stdin < dump      # WRONG
+```
+
+A custom-format (`-Fc`) archive is read by seeking, and `docker compose exec -T` hands
+the container a **pipe**. So `pg_restore` answered *"did not find magic string in file
+header"* for every dump ever taken, valid ones included. The check fails closed, so the
+backup aborted nightly and uploaded **nothing** — while reporting what looked exactly
+like a corrupt dump. (A full restore is fine from a pipe; `pg_restore` only needs to seek
+for `--list`. That is why restoring worked while verifying could not.) The fix is to
+copy the dump into the `db` container and read it there as a real file — in that
+container on purpose, so the `pg_restore` reading it is exactly the version of the
+`pg_dump` that wrote it.
+
+**It could pass a dump that was half missing.** `pg_restore --list` only walks the table
+of contents, which sits at the *front* of the archive — so a dump truncated to half its
+length lists perfectly and passes. Truncation is the failure that actually happens (a
+full disk, a killed process), so that check was ceremony. It is now
+`pg_restore --file=/dev/null`, which converts the whole archive to SQL and throws it
+away, forcing every compressed data block to be read. It touches no database.
+
+So the check is pinned down from both ends:
+
+```bash
+STACK=production ./ops/selftest.sh
+#   ✔ a valid dump                          — accepted
+#   ✔ a dump truncated to half its length   — rejected
+#   ✔ a file that is not an archive         — rejected
+```
+
+Run it after any change to the verification. A check that can only fail and a check that
+can only pass are the same bug: neither is looking at anything.
 
 ### What is NOT backed up
 
@@ -129,9 +190,15 @@ Prove it works before trusting it:
 
 ```bash
 cd /opt/organza/production
-COMPOSE_FILE=docker-compose.prod.yml ENV_FILE=.env.production ./ops/backup.sh
-COMPOSE_FILE=docker-compose.prod.yml ENV_FILE=.env.production ./ops/restore.sh --list
+STACK=production ./ops/selftest.sh          # do the safety checks actually work?
+STACK=production ./ops/backup.sh
+STACK=production ./ops/restore.sh --list
 ```
+
+`ops/selftest.sh` is the one to run first, and again after any change to the
+verification. It takes a dump, checks it, then damages a **copy** and checks that too —
+proving the integrity check accepts a good dump *and* rejects a truncated one. It
+uploads nothing and touches nothing. See "Why the self-test exists" below.
 
 ### The schedule
 
@@ -139,7 +206,7 @@ COMPOSE_FILE=docker-compose.prod.yml ENV_FILE=.env.production ./ops/restore.sh -
 POS, so the dump is of a quiet database:
 
 ```cron
-30 2 * * * cd /opt/organza/production && COMPOSE_FILE=docker-compose.prod.yml ENV_FILE=.env.production ./ops/backup.sh >> /var/log/organza-backup.log 2>&1
+30 2 * * * cd /opt/organza/production && STACK=production ./ops/backup.sh >> /var/log/organza-backup.log 2>&1
 ```
 
 That is the whole entry. **Retention needs no second line** — the script prunes both the
@@ -151,8 +218,12 @@ Stagger the sandbox by an hour if it is backed up too, so the two runs never com
 the same CPU:
 
 ```cron
-30 3 * * * cd /opt/organza/sandbox && ./ops/backup.sh >> /var/log/organza-backup.log 2>&1
+30 3 * * * cd /opt/organza/sandbox && STACK=sandbox ./ops/backup.sh >> /var/log/organza-backup.log 2>&1
 ```
+
+**Spell `STACK` out in both entries**, even the sandbox one where it is the default. A
+cron entry is read years later by somebody deciding whether the shop is protected, and
+"it defaults to the sandbox" is not something they should have to know.
 
 ## When a backup fails — and when it just stops
 
@@ -178,6 +249,8 @@ gets discovered during an emergency, so it is watched from the other end:
 docker compose -f docker-compose.prod.yml --env-file .env.production exec -T backend npm run backup:status
 ```
 
+(`-- --json` after that for a monitor rather than a person.)
+
 ## Restoring
 
 **Read this before you need it.** A backup that has never been restored is a hope.
@@ -186,8 +259,7 @@ docker compose -f docker-compose.prod.yml --env-file .env.production exec -T bac
 
 ```bash
 cd /opt/organza/production
-export COMPOSE_FILE=docker-compose.prod.yml ENV_FILE=.env.production
-./ops/restore.sh --list
+STACK=production ./ops/restore.sh --list
 ```
 
 Prints every dump in the bucket for this stack, oldest first. Do this first in any
@@ -199,7 +271,7 @@ Even when you are sure. **Especially** when you are sure — the most common res
 mistake is restoring the wrong night and having nothing to go back to.
 
 ```bash
-./ops/backup.sh --local-only          # -> ./backups/<stack>/<timestamp>/db.dump
+STACK=production ./ops/backup.sh --local-only   # -> ./backups/<project>/<stamp>/db.dump
 ```
 
 ### 2. Rehearse it on the sandbox
@@ -210,12 +282,11 @@ the practice stack, where being wrong costs nothing:
 ```bash
 cd /opt/organza/sandbox
 ORGANZA_RESTORE_CONFIRM=I-KNOW-THIS-OVERWRITES-THE-DATABASE \
-  COMPOSE_FILE=docker-compose.sandbox.yml ENV_FILE=.env.sandbox \
-  ./ops/restore.sh --source-stack organza-prod --from-r2 latest
+  STACK=sandbox ./ops/restore.sh --from-stack production --from-r2 latest
 ```
 
-`--source-stack` is what reads another stack's backups; without it a restore reads its
-own, which is what putting the shop back needs. Note what this moves: **a dump is
+`STACK` is what is written **to**; `--from-stack` is only whose backups are **read**, and
+defaults to the same one — so putting the shop back needs neither flag. Note what this moves: **a dump is
 everything**, personal data included — customers' phone numbers, staff addresses and id
 numbers, every order and the whole audit trail — onto the less protected of the two
 deployments. The script says so before it starts. If what you actually want is the
@@ -234,15 +305,14 @@ container**, not from a file, because `docker-compose.prod.yml` sets it in
 cd /opt/organza/production
 ORGANZA_ALLOW_PRODUCTION=I-KNOW-THIS-IS-PRODUCTION \
 ORGANZA_RESTORE_CONFIRM=I-KNOW-THIS-OVERWRITES-THE-DATABASE \
-  COMPOSE_FILE=docker-compose.prod.yml ENV_FILE=.env.production \
-  ./ops/restore.sh --from-r2 latest
+  STACK=production ./ops/restore.sh --from-r2 latest
 ```
 
 A specific night instead of the newest — the timestamp is what `--list`, the log and the
 backup's own output all print:
 
 ```bash
-./ops/restore.sh --from-r2 20260815T023000Z
+STACK=production ./ops/restore.sh --from-r2 20260815T023000Z
 ```
 
 What it does, in order:
