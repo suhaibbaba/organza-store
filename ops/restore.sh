@@ -2,17 +2,20 @@
 #
 # Organza — put a backup back.
 #
-#   ./ops/restore.sh --list                  # what is in the bucket
-#   ./ops/restore.sh --from-r2 latest        # the most recent nightly dump
-#   ./ops/restore.sh --from-r2 20260815T023000Z
-#   ./ops/restore.sh ./backups/organza-prod/20260815T023000Z   # a local copy
+#   STACK=production ./ops/restore.sh --list          # what is in the bucket
+#   STACK=production ./ops/restore.sh --from-r2 latest
+#   STACK=production ./ops/restore.sh --from-r2 20260815T023000Z
+#   STACK=production ./ops/restore.sh ./backups/organza-prod/20260815T023000Z
 #
-# By default it reads the backups of the stack it is pointed at, so putting
-# the shop back the way it was needs no flag. --source-stack reads somebody
-# else's — which is how the live shop's dump is rehearsed on the sandbox:
+# STACK is one word and picks BOTH the compose file and the env file, so the
+# two can never disagree about which deployment is being written to; it
+# defaults to the sandbox, and COMPOSE_FILE / ENV_FILE are no longer settable.
 #
-#   COMPOSE_FILE=docker-compose.sandbox.yml ENV_FILE=.env.sandbox \\
-#     ./ops/restore.sh --source-stack organza-prod --from-r2 latest
+# It reads the backups of the stack it is writing to, so putting the shop back
+# needs nothing more. --from-stack reads the OTHER one's — which is how the
+# live shop's dump is rehearsed on the sandbox:
+#
+#   STACK=sandbox ./ops/restore.sh --from-stack production --from-r2 latest
 #
 # DESTRUCTIVE. It replaces the database in the running stack and puts the
 # archived photographs back into the uploads volume. Like `db:reset`, it
@@ -24,8 +27,7 @@
 #
 #   ORGANZA_ALLOW_PRODUCTION=I-KNOW-THIS-IS-PRODUCTION \
 #   ORGANZA_RESTORE_CONFIRM=I-KNOW-THIS-OVERWRITES-THE-DATABASE \
-#     COMPOSE_FILE=docker-compose.prod.yml ENV_FILE=.env.production \
-#     ./ops/restore.sh --from-r2 latest
+#     STACK=production ./ops/restore.sh --from-r2 latest
 #
 # A backup that has never been restored is a hope, not a backup. Rehearse this
 # on the sandbox — that is what the sandbox is for, and the rehearsal needs no
@@ -50,32 +52,33 @@ WORK_ROOT="${RESTORE_WORK_DIR:-./backups/.restore}"
 # ---------------------------------------------------------------------------
 SRC=""            # a local backup directory
 FROM_R2=""        # "latest" or a timestamp
-SOURCE_STACK=""   # whose backups to read; defaults to the target's own
+FROM_STACK=""     # whose backups to read; defaults to the stack being restored
 LIST_ONLY=0
 SKIP_IMAGES=0
 
 while [ $# -gt 0 ]; do
   case "$1" in
-    --list)             LIST_ONLY=1; shift ;;
-    --from-r2)          FROM_R2="${2:-latest}"; shift 2 ;;
-    --from-r2=*)        FROM_R2="${1#*=}"; shift ;;
-    --source-stack)     SOURCE_STACK="${2:?--source-stack needs a name}"; shift 2 ;;
-    --source-stack=*)   SOURCE_STACK="${1#*=}"; shift ;;
-    --skip-images)      SKIP_IMAGES=1; shift ;;
-    -*)                 die "unknown flag: $1 (see the header of this script)" ;;
-    *)                  SRC="$1"; shift ;;
+    --list)           LIST_ONLY=1; shift ;;
+    --from-r2)        FROM_R2="${2:-latest}"; shift 2 ;;
+    --from-r2=*)      FROM_R2="${1#*=}"; shift ;;
+    --stack)          STACK="${2:?--stack needs production or sandbox}"; shift 2 ;;
+    --stack=*)        STACK="${1#*=}"; shift ;;
+    --from-stack)     FROM_STACK="${2:?--from-stack needs production or sandbox}"; shift 2 ;;
+    --from-stack=*)   FROM_STACK="${1#*=}"; shift ;;
+    --skip-images)    SKIP_IMAGES=1; shift ;;
+    -*)               die "unknown flag: $1 (see the header of this script)" ;;
+    *)                SRC="$1"; shift ;;
   esac
 done
 
+# STACK is what is being WRITTEN TO — files, database, guards, all from the one
+# word. FROM_STACK is only whose backups are READ, and defaults to the same, so
+# the ordinary "put the shop back the way it was" needs no second flag.
 ops_load_env
-# Two stacks, not one. TARGET_STACK is what is being written to — it comes
-# from the compose file and cannot be chosen. SOURCE_STACK is whose backups
-# are read, and defaults to the same thing, so the ordinary "put the shop back
-# the way it was" needs no flag at all.
-TARGET_STACK="$(ops_resolve_stack)"
-STACK="${SOURCE_STACK:-$TARGET_STACK}"
-DB_PREFIX="$(ops_db_prefix "$STACK")"
-UPLOADS_PREFIX="$(ops_uploads_prefix "$STACK")"
+SOURCE_STACK="${FROM_STACK:-$STACK}"
+SOURCE_PROJECT="$(ops_stack_project "$SOURCE_STACK")"
+DB_PREFIX="$(ops_db_prefix "$SOURCE_PROJECT")"
+UPLOADS_PREFIX="$(ops_uploads_prefix "$SOURCE_PROJECT")"
 
 # ---------------------------------------------------------------------------
 #  --list: what is actually there
@@ -85,7 +88,7 @@ UPLOADS_PREFIX="$(ops_uploads_prefix "$STACK")"
 if [ "$LIST_ONLY" = "1" ]; then
   ops_require_r2
   echo "$RULE"
-  echo "  Dumps in s3://$R2_BUCKET/$DB_PREFIX/  (stack: $STACK)"
+  echo "  Dumps in s3://$R2_BUCKET/$DB_PREFIX/  (stack: $SOURCE_STACK, project $SOURCE_PROJECT)"
   echo "$RULE"
   DUMPS="$(ops_list_dumps "$DB_PREFIX")"
   if [ -z "$DUMPS" ]; then
@@ -115,12 +118,12 @@ fi
 # exists precisely because the usual reason to want production data on the
 # sandbox is the catalogue, and it carries nothing personal (CLAUDE.md
 # rule 11).
-if [ -n "$SOURCE_STACK" ] && [ "$SOURCE_STACK" != "$TARGET_STACK" ]; then
+if [ "$SOURCE_STACK" != "$STACK" ]; then
   cat >&2 <<EOF
 
   ⚠  CROSS-STACK RESTORE
-     from : $SOURCE_STACK's backups
-     onto : $TARGET_STACK  (database "$DB_NAME")
+     from : $SOURCE_STACK's backups (s3://$R2_BUCKET/$DB_PREFIX/)
+     onto : $STACK  (database "$DB_NAME", via $COMPOSE_FILE)
 
      A dump carries everything, personal data included — customers' phone
      numbers, staff addresses and id numbers, every order and the whole
@@ -151,7 +154,8 @@ $RULE
   ⛔  REFUSING TO RESTORE
 $RULE
   From     : ${FROM_R2:+s3://$R2_BUCKET/$DB_PREFIX/ ($FROM_R2)}${SRC}
-  Onto     : database "$DB_NAME" in $COMPOSE_FILE
+  Onto     : STACK=$STACK — database "$DB_NAME"
+             via $COMPOSE_FILE + $ENV_FILE
              and the uploads volume behind /app/uploads
   APP_ENV  : $APP_ENV_VALUE
 
@@ -162,7 +166,7 @@ $RULE
   If that is what you mean, say so in full:
 
       ORGANZA_RESTORE_CONFIRM=$CONFIRM_PHRASE \\
-        ./ops/restore.sh ${FROM_R2:+--from-r2 $FROM_R2}${SRC}
+        STACK=$STACK ./ops/restore.sh ${FROM_STACK:+--from-stack $FROM_STACK }${FROM_R2:+--from-r2 $FROM_R2}${SRC}
 
   Take a dump of what is there NOW first — even if you are sure.
   Especially if you are sure:
@@ -185,7 +189,8 @@ if [ "$IS_PRODUCTION" = "1" ] && [ "${ORGANZA_ALLOW_PRODUCTION:-}" != "$PRODUCTI
 $RULE
   ⛔  REFUSING TO RESTORE — that is the LIVE SHOP
 $RULE
-  Database : $DB_NAME  ($COMPOSE_FILE)
+  Stack    : $STACK
+  Database : $DB_NAME  ($COMPOSE_FILE + $ENV_FILE)
   APP_ENV  : $APP_ENV_VALUE
 
   Restoring here overwrites the real shop's real orders with whatever
@@ -195,12 +200,12 @@ $RULE
 
       ORGANZA_ALLOW_PRODUCTION=$PRODUCTION_PHRASE \\
       ORGANZA_RESTORE_CONFIRM=$CONFIRM_PHRASE \\
-        ./ops/restore.sh ${FROM_R2:+--from-r2 $FROM_R2}${SRC}
+        STACK=$STACK ./ops/restore.sh ${FROM_STACK:+--from-stack $FROM_STACK }${FROM_R2:+--from-r2 $FROM_R2}${SRC}
 
   If you are rehearsing rather than recovering, point this at the
   sandbox instead:
 
-      COMPOSE_FILE=docker-compose.sandbox.yml ENV_FILE=.env.sandbox \\
+      STACK=sandbox --from-stack production \\
         ./ops/restore.sh ${FROM_R2:+--from-r2 $FROM_R2}${SRC}
 $RULE
 
@@ -214,7 +219,7 @@ fi
 if [ -n "$FROM_R2" ]; then
   ops_require_r2
   mkdir -p "$WORK_ROOT"
-  SRC="$WORK_ROOT/$STACK"
+  SRC="$WORK_ROOT/$SOURCE_PROJECT"
   rm -rf "$SRC"; mkdir -p "$SRC"
   OPS_WORK_DIR="$SRC"
 
@@ -245,8 +250,28 @@ fi
 # truncated download or a half-written object is a thing that happens, and
 # discovering it after `--clean` has dropped every table is discovering it in
 # the worst order possible.
+echo "$RULE"
+echo "  Organza restore"
+echo "$RULE"
+ops_print_target
+if [ -n "$FROM_R2" ]; then
+  echo "  From     : s3://$R2_BUCKET/$KEY"
+else
+  echo "  From     : $SRC  (local copy)"
+fi
+echo "$RULE"
+
+# The files agree with each other (ops_load_env checked the database name);
+# now the RUNNING deployment is asked whether it agrees too.
+ops_assert_stack_matches_app_env
+
 echo "==> Checking the dump is readable before touching anything"
-compose exec -T db pg_restore --list /dev/stdin < "$SRC/db.dump" > /dev/null 2>&1 ||
+# Verified as a FILE inside the db container (ops/common.sh): a custom-format
+# archive keeps its table of contents at the end and has to seek back to it,
+# which `compose exec -T`'s pipe cannot do. The full restore below is fine from
+# a pipe — pg_restore only needs to seek for --list — which is exactly why this
+# check being wrong looked like universal corruption rather than a broken check.
+ops_verify_dump "$SRC/db.dump" ||
   die "that dump is not readable by pg_restore. The database has NOT been touched. Try another one (--list)."
 echo "    $(du -h "$SRC/db.dump" | cut -f1), readable ✓"
 
@@ -293,7 +318,12 @@ compose restart backend >/dev/null
 
 echo ""
 echo "$RULE"
-echo "  ✔ Restored onto $DB_NAME from ${FROM_R2:+s3://$R2_BUCKET/$KEY}${FROM_R2:+ }${SRC}"
+echo "  ✔ Restored STACK=$STACK ($DB_NAME, via $COMPOSE_FILE + $ENV_FILE)"
+if [ -n "$FROM_R2" ]; then
+  echo "    from s3://$R2_BUCKET/$KEY"
+else
+  echo "    from $SRC"
+fi
 echo ""
 echo "  The check that matters is not that this exited 0. Open the admin,"
 echo "  find a product with a photograph, and SEE the photograph. Then open"

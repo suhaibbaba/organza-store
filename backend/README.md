@@ -562,13 +562,20 @@ survive `docker compose down -v`, `docker volume rm`, `docker system prune --vol
 a `down`, `npm run db:reset`, or the VPS's disk failing — and a copy kept on the same disk
 is destroyed by exactly the failure it exists for.
 
-So `ops/backup.sh` runs nightly from cron and puts both of them in a **Cloudflare R2**
-bucket: a `pg_dump -Fc` of the database, and an **incremental** `s3 sync` of the
-photographs (only what changed that day). It keeps the last ~30 dumps and prunes the rest,
-verifies every dump with `pg_restore --list` before trusting it, and checks the uploaded
-object's size against the local file. `ops/restore.sh` puts a backup back, and refuses
-production without `ORGANZA_ALLOW_PRODUCTION` on top of the usual confirmation — the same
-two phrases `db:reset` uses.
+So `STACK=production ops/backup.sh` runs nightly from cron and puts both of them in a
+**Cloudflare R2** bucket: a `pg_dump -Fc` of the database, and an **incremental**
+`s3 sync` of the photographs (only what changed that day). It keeps the last ~30 dumps and
+prunes the rest, **reads every dump all the way through** before trusting it, and checks
+the uploaded object's size against the local file. `ops/restore.sh` puts a backup back,
+and refuses production without `ORGANZA_ALLOW_PRODUCTION` on top of the usual
+confirmation — the same two phrases `db:reset` uses.
+
+`STACK` is one word (`production` or `sandbox`) and derives both the compose file and the
+env file, so they cannot disagree about which deployment is being touched; the run also
+refuses if the database name or the running container's `APP_ENV` does not match. Every
+run prints the stack, both files and the database name. `ops/selftest.sh` proves the dump
+check accepts a good dump and rejects a truncated one — run it before trusting any of
+this.
 
 Setting it up, the cron entry, the credentials and the **step-by-step restore procedure**
 are in **[`ops/README.md`](../ops/README.md)**. Read the restore section before you need
