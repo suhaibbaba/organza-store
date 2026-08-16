@@ -490,6 +490,20 @@ enum AuditAction {
   // recorded so the value somebody first asked for is still in the trail
   // even though the request row itself now carries the newer one.
   SUPERSEDE
+  // Removing somebody from the shop, and putting them back.
+  //
+  // Their own actions rather than an UPDATE carrying an isActive flip, for
+  // the same reason PUBLISH/HIDE are not UPDATE on a product: "who removed
+  // whom, and when" is a question somebody will one day ask of the trail
+  // directly, and it should be answerable by filtering rather than by
+  // opening every staff edit and diffing two JSON blobs.
+  //
+  // Note which kind of removal these describe: DEACTIVATED is the ordinary
+  // one, where the person can no longer sign in and every record still names
+  // them. Erasing an account outright is a DELETE, and only ever possible for
+  // one that never did anything (see backend/src/lib/userHistory.ts).
+  USER_DEACTIVATED
+  USER_REACTIVATED
 }
 
 model AuditLog {

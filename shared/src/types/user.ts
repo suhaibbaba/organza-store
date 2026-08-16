@@ -16,6 +16,21 @@ export interface User {
   // different thing from `isActive` — which says whether the account is
   // allowed to sign in at all. Never the password itself, in any form.
   hasPassword: boolean;
+  // Has this account actually DONE anything in the shop — taken an order,
+  // recorded an expense, opened a drawer, asked for a change, or written a
+  // single audit entry?
+  //
+  // It is what decides whether "remove" can mean erase. An account with
+  // history can only ever be deactivated: its name is on records that exist
+  // to say who did what, and the database would either refuse the delete or
+  // silently null the authorship out of them. An account with none — a
+  // mistake, a duplicate, somebody who never started — can be deleted
+  // outright.
+  //
+  // Sent so the screen can offer the honest choice up front rather than
+  // discovering it from a refusal, but the API is still the authority: the
+  // delete endpoint re-checks this itself (CLAUDE.md rule 5).
+  hasHistory: boolean;
   createdAt: string;
   updatedAt: string;
 }

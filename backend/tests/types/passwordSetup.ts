@@ -11,6 +11,8 @@ import type { SerializableUser } from "@/types";
  */
 export interface StaffAccountView extends SerializableUser {
   hasPassword: boolean;
+  /** Whether this account has ever done anything — see lib/userHistory.ts. */
+  hasHistory: boolean;
 }
 
 /** POST /api/users/:id/password-reset */

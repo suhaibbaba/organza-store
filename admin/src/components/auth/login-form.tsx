@@ -9,6 +9,7 @@ import { Link, useRouter } from "@/i18n/navigation";
 import { useSession } from "@/components/providers/session-provider";
 import { AuthError } from "@/lib/auth/client";
 import { HTTP_TOO_MANY_REQUESTS } from "@/constants/api";
+import { ACCOUNT_INACTIVE_AUTH_CODE } from "@organza/shared/constants/auth";
 import { FORGOT_PASSWORD_PATH } from "@/constants/auth";
 import { useTranslateError } from "@/hooks/use-translate-error";
 import { loginSchema, type LoginInput } from "@/lib/validation/login";
@@ -19,9 +20,28 @@ import { Label } from "@/components/ui/label";
 import { Alert } from "@/components/ui/alert";
 import { Spinner } from "@/components/ui/spinner";
 
-// Which of the two failures to name. Anything that is not the rate limit is
-// reported as bad credentials, because that is all the endpoint tells us.
-type LoginErrorKind = "invalid" | "rateLimited";
+// Which failure to name. Bad credentials is the default, because that is all
+// the endpoint tells us about most of them — but two are distinguishable and
+// both matter enough to say out loud, since each sends the person somewhere
+// different: "wait a moment" rather than to the reset form, and "ask an
+// admin" rather than to either.
+type LoginErrorKind = "invalid" | "rateLimited" | "deactivated";
+
+// The message key for each, in one table rather than a chain of ternaries in
+// the JSX — so adding a third distinguishable failure is one line here.
+const LOGIN_ERROR_MESSAGE_KEYS: Record<LoginErrorKind, string> = {
+  invalid: "error",
+  rateLimited: "tooManyAttempts",
+  deactivated: "accountDeactivated",
+};
+
+function loginErrorKind(error: unknown): LoginErrorKind {
+  if (!(error instanceof AuthError)) return "invalid";
+  if (error.status === HTTP_TOO_MANY_REQUESTS) return "rateLimited";
+  if (error.code === ACCOUNT_INACTIVE_AUTH_CODE) return "deactivated";
+  return "invalid";
+}
+
 
 export function LoginForm() {
   const t = useTranslations("auth.login");
@@ -46,13 +66,16 @@ export function LoginForm() {
       router.replace("/dashboard");
     } catch (error) {
       // Better Auth's sign-in endpoint doesn't use our error-code envelope
-      // (see lib/auth/client.ts), so there is no code to translate — but the
-      // STATUS still tells the two failures that matter apart. A 429 is
-      // "you have tried too often", and saying "wrong password" to that is
-      // how a password somebody has just set appears not to work.
-      setFormError(
-        error instanceof AuthError && error.status === HTTP_TOO_MANY_REQUESTS ? "rateLimited" : "invalid"
-      );
+      // (see lib/auth/client.ts), so this reads its own status and code. Two
+      // failures are worth telling apart from "wrong password":
+      //
+      //   429 — you have tried too often. Saying "wrong password" to that is
+      //         how a password somebody has just set appears not to work.
+      //   ACCOUNT_INACTIVE — the account was deactivated (the backend refuses
+      //         to create the session at all). Their password is fine and no
+      //         amount of resetting it will help; somebody has to switch the
+      //         account back on.
+      setFormError(loginErrorKind(error));
     }
   };
 
@@ -66,7 +89,7 @@ export function LoginForm() {
       {/* method="post" is a fallback only: if this ever submits natively
           before React hydrates, credentials go in the request body instead
           of leaking into the URL/history the way a default GET would. */}
-      {formError && <Alert variant="destructive">{t(formError === "rateLimited" ? "tooManyAttempts" : "error")}</Alert>}
+      {formError && <Alert variant="destructive">{t(LOGIN_ERROR_MESSAGE_KEYS[formError])}</Alert>}
 
       <div className="flex flex-col gap-2">
         <Label htmlFor="email">{t("emailLabel")}</Label>

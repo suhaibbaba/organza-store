@@ -3,26 +3,16 @@
 import { useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { flexRender, getCoreRowModel, useReactTable, type ColumnDef } from "@tanstack/react-table";
-import { Pencil, UserCheck, UserX } from "lucide-react";
 import type { User } from "@organza/shared/types/user";
-import { Spinner } from "@/components/ui/spinner";
 import { RoleBadge } from "@/components/users/role-badge";
 import { UserStatusBadge } from "@/components/users/user-status-badge";
 import { AccountStateBadge } from "@/components/users/account-state-badge";
+import { UserRowActions, type UserRowActionsProps } from "@/components/users/user-row-actions";
 
-interface UserTableProps {
-  users: User[];
-  onEdit: (user: User) => void;
-  confirmToggleId: string | null;
-  onRequestToggle: (id: string) => void;
-  onCancelToggle: () => void;
-  onConfirmToggle: (user: User) => void;
-  togglingId: string | null;
-}
+type UserTableProps = Omit<UserRowActionsProps, "user" | "size"> & { users: User[] };
 
-export function UserTable({ users, onEdit, confirmToggleId, onRequestToggle, onCancelToggle, onConfirmToggle, togglingId }: UserTableProps) {
+export function UserTable({ users, ...actions }: UserTableProps) {
   const tTable = useTranslations("users.table");
-  const tCard = useTranslations("users.card");
 
   const columns = useMemo<ColumnDef<User>[]>(
     () => [
@@ -65,54 +55,10 @@ export function UserTable({ users, onEdit, confirmToggleId, onRequestToggle, onC
       {
         id: "actions",
         header: "",
-        cell: ({ row }) => {
-          const user = row.original;
-          const isConfirming = confirmToggleId === user.id;
-          const isToggling = togglingId === user.id;
-
-          if (isConfirming) {
-            return (
-              <div className="flex items-center justify-end gap-3">
-                <button
-                  type="button"
-                  onClick={() => onConfirmToggle(user)}
-                  disabled={isToggling}
-                  className={user.isActive ? "text-xs font-semibold text-destructive" : "text-xs font-semibold text-primary"}
-                >
-                  {user.isActive ? tCard("confirmDeactivate") : tCard("confirmActivate")}
-                </button>
-                <button type="button" onClick={onCancelToggle} className="text-xs text-muted-foreground">
-                  {tCard("cancelToggle")}
-                </button>
-              </div>
-            );
-          }
-
-          return (
-            <div className="flex items-center justify-end gap-1">
-              <button
-                type="button"
-                onClick={() => onEdit(user)}
-                aria-label={tCard("edit")}
-                className="inline-flex size-10 items-center justify-center rounded-lg text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-              >
-                <Pencil className="size-4" aria-hidden="true" />
-              </button>
-              <button
-                type="button"
-                onClick={() => onRequestToggle(user.id)}
-                aria-label={user.isActive ? tCard("deactivate") : tCard("activate")}
-                disabled={isToggling}
-                className="inline-flex size-10 items-center justify-center rounded-lg text-muted-foreground not-disabled:hover:bg-accent not-disabled:hover:text-accent-foreground disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                {isToggling ? <Spinner className="size-4" /> : user.isActive ? <UserX className="size-4" aria-hidden="true" /> : <UserCheck className="size-4" aria-hidden="true" />}
-              </button>
-            </div>
-          );
-        },
+        cell: ({ row }) => <UserRowActions user={row.original} size="table" {...actions} />,
       },
     ],
-    [tTable, tCard, confirmToggleId, togglingId, onEdit, onRequestToggle, onCancelToggle, onConfirmToggle]
+    [tTable, actions]
   );
 
   const table = useReactTable({ data: users, columns, getCoreRowModel: getCoreRowModel() });
