@@ -1,10 +1,11 @@
 import "dotenv/config";
-import { betterAuth } from "better-auth";
+import { APIError, betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { bearer } from "better-auth/plugins";
 import { prisma } from "@/lib/prisma";
 import { TRUSTED_PROXY_IPS } from "@/lib/proxyTrust";
 import {
+  ACCOUNT_INACTIVE_AUTH_CODE,
   DEFAULT_SESSION_EXPIRES_IN_DAYS,
   SIGN_IN_EMAIL_PATH,
   SIGN_IN_RATE_LIMIT_MAX,
@@ -133,6 +134,37 @@ export const auth = betterAuth({
         required: true,
         defaultValue: true,
         input: false,
+      },
+    },
+  },
+  databaseHooks: {
+    session: {
+      create: {
+        /**
+         * A deactivated account cannot start a session — which is what
+         * "they can no longer sign in" has to mean.
+         *
+         * Better Auth knows nothing about `isActive`; it is our column, and
+         * without this hook sign-in SUCCEEDS for somebody who was removed
+         * this morning. Every API route then refuses them (requireAuth checks
+         * the flag on each request, middleware/auth.ts), so nothing leaks —
+         * but what the person sees is a login that works followed by an app
+         * where every screen is broken, and what the shop sees is a session
+         * row for an account it believes is gone.
+         *
+         * Enforced here rather than on the sign-in endpoint because this is
+         * the choke point every session creation passes through, whatever
+         * route or plugin asked for one.
+         */
+        before: async (session) => {
+          const user = await prisma.user.findUnique({
+            where: { id: session.userId },
+            select: { isActive: true },
+          });
+          if (user && !user.isActive) {
+            throw new APIError("FORBIDDEN", { code: ACCOUNT_INACTIVE_AUTH_CODE });
+          }
+        },
       },
     },
   },

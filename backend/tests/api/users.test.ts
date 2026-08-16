@@ -13,10 +13,16 @@ describe("Users", () => {
 
   afterAll(async () => {
     const admin = await getSession("ADMIN");
-    // There is no delete endpoint for staff — deactivate instead so the test
-    // accounts this run created stop counting as active staff.
+    // Taken away properly now that staff CAN be deleted: these accounts never
+    // did anything, so nothing refuses it and the sandbox is left as it was
+    // found. Deactivation is the fallback for any that somehow picked up
+    // history mid-run — a leftover inactive row is untidy, a failed teardown
+    // that masks a real result is worse.
     for (const id of createdUserIds) {
-      await apiRequest(`/api/users/${id}`, { method: "PATCH", token: admin.token, body: { isActive: false } });
+      const deleted = await apiRequest(`/api/users/${id}`, { method: "DELETE", token: admin.token });
+      if (deleted.status !== 200) {
+        await apiRequest(`/api/users/${id}`, { method: "PATCH", token: admin.token, body: { isActive: false } });
+      }
     }
   });
 

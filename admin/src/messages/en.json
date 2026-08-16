@@ -64,7 +64,8 @@
       "submit": "Sign in",
       "submitting": "Signing in…",
       "error": "Incorrect email or password.",
-      "tooManyAttempts": "Too many attempts in a short time. Wait a minute and try again."
+      "tooManyAttempts": "Too many attempts in a short time. Wait a minute and try again.",
+      "accountDeactivated": "This account has been switched off. Ask an admin to turn it back on."
     },
     "setPassword": {
       "titleSet": "Choose your password",
@@ -1138,10 +1139,10 @@
     "card": {
       "edit": "Edit staff member",
       "activate": "Activate",
-      "deactivate": "Deactivate",
       "confirmActivate": "Activate",
-      "confirmDeactivate": "Deactivate",
-      "cancelToggle": "Cancel"
+      "cancelToggle": "Cancel",
+      "remove": "Remove staff member",
+      "actionsFor": "Actions for {name}"
     },
     "table": {
       "name": "Name",
@@ -1192,6 +1193,25 @@
       "resendInvite": "Resend the set-up link",
       "inviteSent": "A link to choose a password has been emailed to {email}.",
       "pendingHint": "This person hasn't chosen a password yet, so they can't sign in. Resend the link if it never arrived."
+    },
+    "remove": {
+      "title": "Remove {name}",
+      "selfHint": "You cannot remove your own account. Ask another admin to do it.",
+      "deactivate": {
+        "heading": "Deactivate — the usual choice",
+        "body": "They can no longer sign in, and any device they are signed in on is signed out straight away. Everything they did stays exactly as it is: their orders, expenses and drawer counts still show their name. You can switch them back on later.",
+        "action": "Deactivate this account",
+        "confirmQuestion": "Deactivate this account? They will not be able to sign in.",
+        "confirm": "Yes, deactivate {name}"
+      },
+      "delete": {
+        "heading": "Delete permanently",
+        "body": "This account has never been used, so it can be erased. The account, its password and its sign-in links are deleted for good. This cannot be undone.",
+        "unavailable": "This account cannot be deleted, because it has already been used in the shop — there are orders, expenses or other records with this person's name on them. Deactivate instead, so those records keep saying who did what.",
+        "action": "Delete permanently",
+        "confirmQuestion": "This erases the account {email} and its password for good. It cannot be undone.",
+        "confirm": "Yes, permanently delete {name}"
+      }
     }
   },
   "errors": {
@@ -1283,7 +1303,9 @@
     "rateLimited": "Too many attempts in a short time. Wait a moment and try again.",
     "passwordTokenInvalid": "This link has expired or has already been used. Ask for a new one.",
     "userAlreadyActivated": "This account is already set up and has a password. Send a password reset instead.",
-    "userLastAdmin": "This is the only admin left. Make somebody else an admin first — otherwise nobody could manage staff, settings or approvals."
+    "userLastAdmin": "This is the only admin left. Make somebody else an admin first — otherwise nobody could manage staff, settings or approvals.",
+    "userSelfRemoval": "You cannot remove your own account. Ask another admin to do it.",
+    "userHasHistory": "This account has already been used in the shop, so it cannot be deleted. Deactivate it instead — its orders and expenses keep the person's name."
   },
   "pwa": {
     "version": {

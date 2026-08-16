@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { AuditAction, Role } from "@prisma/client";
+import { AuditAction, Prisma, Role } from "@prisma/client";
 import { APIError } from "better-auth";
 import { prisma } from "@/lib/prisma";
 import { asyncHandler } from "@/middleware/asyncHandler";
@@ -10,9 +10,11 @@ import {
   createStaffUser,
   hasUsablePassword,
   normalizeEmail,
+  revokeAllSessions,
   setUserPassword,
   usersWithPassword,
 } from "@/lib/credentials";
+import { findUsersWithHistory, hasUserHistory } from "@/lib/userHistory";
 import { sendPasswordSetupEmail } from "@/lib/passwordSetup";
 import {
   createUserSchema,
@@ -61,12 +63,32 @@ function serializeUser(user: SerializableUser) {
  * the hash, the way it was set, or when: none of that is anybody's business,
  * including an Admin's.
  *
- * Kept out of `serializeUser` on purpose — that one feeds the audit trail
- * too, and an audit entry should record what an Admin CHANGED, not a fact
- * about the account that they did not touch.
+ * `hasHistory` is the other half of the same idea and answers the question
+ * the remove button has to ask before it offers anything: has this account
+ * ever taken an order, recorded an expense, counted a drawer or written a
+ * single audit entry? If it has, "remove" can only mean deactivate — its name
+ * is on records that exist to say who did what (lib/userHistory.ts).
+ *
+ * Both are kept out of `serializeUser` on purpose — that one feeds the audit
+ * trail too, and an audit entry should record what an Admin CHANGED, not
+ * facts about the account that they did not touch.
  */
-function serializeUserWithState(user: SerializableUser, hasPassword: boolean) {
-  return { ...serializeUser(user), hasPassword };
+function serializeUserWithState(user: SerializableUser, hasPassword: boolean, hasHistory: boolean) {
+  return { ...serializeUser(user), hasPassword, hasHistory };
+}
+
+/**
+ * The two extra lookups, for the routes that answer with a single account.
+ *
+ * The list endpoint does NOT use this — it asks both questions once for the
+ * whole page instead of twice per row (see below).
+ */
+async function serializeUserForResponse(user: SerializableUser) {
+  const [hasPassword, hasHistory] = await Promise.all([
+    hasUsablePassword(user.id),
+    hasUserHistory(user.id),
+  ]);
+  return serializeUserWithState(user, hasPassword, hasHistory);
 }
 
 /**
@@ -142,10 +164,13 @@ router.get(
       }),
     ]);
 
-    // One query for the whole page rather than one per row.
-    const activated = await usersWithPassword(users.map((user) => user.id));
+    // Both extra facts asked ONCE for the whole page rather than twice per
+    // row — `hasHistory` in particular spans ten tables, and doing it per row
+    // would be ten queries per member of staff on every list render.
+    const ids = users.map((user) => user.id);
+    const [activated, withHistory] = await Promise.all([usersWithPassword(ids), findUsersWithHistory(ids)]);
 
-    sendOk(res, users.map((user) => serializeUserWithState(user, activated.has(user.id))), {
+    sendOk(res, users.map((user) => serializeUserWithState(user, activated.has(user.id), withHistory.has(user.id))), {
       page: query.page,
       pageSize: query.pageSize,
       total,
@@ -162,7 +187,7 @@ router.get(
   asyncHandler(async (req, res) => {
     const user = await prisma.user.findUnique({ where: { id: req.params.id } });
     if (!user) throw new AppError(404, ERROR_CODES.USER_NOT_FOUND);
-    sendOk(res, serializeUserWithState(user, await hasUsablePassword(user.id)));
+    sendOk(res, await serializeUserForResponse(user));
   })
 );
 
@@ -228,7 +253,9 @@ router.post(
       await sendPasswordSetupEmail(created, "SET");
     }
 
-    sendOk(res, serializeUserWithState(created, Boolean(body.password)), null, 201);
+    // A brand-new account has no history by construction — it has not had
+    // the chance — so this is stated rather than looked up.
+    sendOk(res, serializeUserWithState(created, Boolean(body.password), false), null, 201);
   })
 );
 
@@ -320,6 +347,23 @@ router.patch(
 
     const body = req.body as UpdateUserInput;
     await assertPhonesAvailable(body, existing.id);
+
+    // Turning your own account off. Refused rather than merely discouraged:
+    // it ends the session making the request halfway through. Editing
+    // yourself is fine — a name, a phone number — so this is checked on the
+    // transition, not on the route.
+    //
+    // Checked BEFORE the last-Admin rule, because on a shop with one Admin
+    // both are true at once and this is the more useful of the two answers:
+    // "you cannot remove your own account" is what the person actually did,
+    // and it stays the reason however many Admins there are. Reaching for
+    // "there would be no Admin left" first would tell somebody with a
+    // colleague to promote that promoting them fixes it, which it does not.
+    const deactivating = body.isActive === false && existing.isActive;
+    if (deactivating && existing.id === req.user!.id) {
+      throw new AppError(409, ERROR_CODES.USER_SELF_REMOVAL);
+    }
+
     await assertNotLastAdmin(existing, body);
 
     const updated = await prisma.user.update({
@@ -334,6 +378,23 @@ router.patch(
       },
     });
 
+    // DEACTIVATION HAS TO REACH THE SESSIONS THEY ALREADY HAVE.
+    //
+    // `isActive: false` on its own only blocks the NEXT sign-in. Everyone
+    // signed in stays signed in — requireAuth reads the flag on every request
+    // (middleware/auth.ts), so it would refuse them, but the bearer token in
+    // their phone's localStorage is still a real token against a real session
+    // row, and anything that ever reads a session without that check would
+    // still let them through. Somebody walked out of the shop this morning;
+    // "they cannot sign in again" is not the same promise as "they are out".
+    //
+    // Same call the emailed password link makes for the same reason
+    // (routes/passwordSetup.ts): a reset that leaves the old session alive is
+    // decorative, and so is a deactivation.
+    if (deactivating) {
+      await revokeAllSessions(updated.id);
+    }
+
     // The admin-set fallback (CLAUDE.md rule 17), kept alongside the emailed
     // link for the member of staff whose mailbox is unreachable. Hashing and
     // the credential-account write live in lib/credentials.ts, shared with
@@ -342,16 +403,113 @@ router.patch(
       await setUserPassword(existing.id, body.password);
     }
 
+    // "Who removed whom, and which kind" has to be answerable from the trail
+    // on its own, so switching an account off is its own action rather than
+    // an UPDATE somebody has to open and diff. Exactly the reasoning (and the
+    // shape) of PUBLISH/HIDE on a product — see routes/products.ts.
+    const action =
+      body.isActive === undefined || body.isActive === existing.isActive
+        ? AuditAction.UPDATE
+        : body.isActive
+          ? AuditAction.USER_REACTIVATED
+          : AuditAction.USER_DEACTIVATED;
+
     await writeAudit({
       userId: req.user!.id,
-      action: AuditAction.UPDATE,
+      action,
       entityType: AUDIT_ENTITY.USER,
       entityId: updated.id,
       oldValue: serializeUser(existing),
       newValue: serializeUser(updated),
     });
 
-    sendOk(res, serializeUserWithState(updated, await hasUsablePassword(updated.id)));
+    sendOk(res, await serializeUserForResponse(updated));
+  })
+);
+
+// ---------------------------------------------------------------------------
+// DELETE /api/users/:id — erase an account that never did anything.
+//
+// The narrow half of "remove somebody". The broad half is deactivation above,
+// and that is the one for anybody who has actually worked here: their name is
+// on orders, expenses and drawer counts, and taking it off those records
+// would defeat the design that puts it there (spec.md "Security rationale").
+//
+// This is for the account that should not exist — a typo'd email, a duplicate,
+// somebody who was set up and never started. It removes the row and, by the
+// schema's own cascades, the account's plumbing with it: sessions, the
+// credential account holding the password hash, any unused password-setup
+// links, and push subscriptions. It never removes a business record; if one
+// exists the whole thing is refused (lib/userHistory.ts).
+//
+// Its own permission, `user.delete`, rather than the router's `user.manage`:
+// editing a phone number and destroying an account are different powers.
+// ---------------------------------------------------------------------------
+router.delete(
+  "/:id",
+  requirePermission("user.delete"),
+  asyncHandler(async (req, res) => {
+    const existing = await prisma.user.findUnique({ where: { id: req.params.id } });
+    if (!existing) throw new AppError(404, ERROR_CODES.USER_NOT_FOUND);
+
+    // Deleting the account you are signed in as. Same refusal as deactivating
+    // yourself, and for a sharper version of the same reason.
+    if (existing.id === req.user!.id) throw new AppError(409, ERROR_CODES.USER_SELF_REMOVAL);
+
+    // The lock-out guard, reused rather than restated — deleting the last
+    // Admin is the demotion case taken to its conclusion.
+    //
+    // Unreachable as the roles stand, and kept deliberately: `user.delete` is
+    // Admin-only, the caller must be active (requireAuth) and cannot be the
+    // target (checked above), so there is always at least one other active
+    // Admin left. It is here for the day that permission is widened — which
+    // is the whole reason it is its own action — because that is exactly the
+    // change that would otherwise open this hole quietly.
+    await assertNotLastAdmin(existing, { isActive: false });
+
+    // THE CHECK THAT MAKES THIS SAFE. Not left to the database: half these
+    // relations are optional, and Prisma's default for those is SetNull — so
+    // the delete would succeed and quietly blank the authorship out of every
+    // approved expense and closed drawer this person touched. See
+    // lib/userHistory.ts.
+    if (await hasUserHistory(existing.id)) {
+      throw new AppError(409, ERROR_CODES.USER_HAS_HISTORY);
+    }
+
+    // Written BEFORE the row goes, and deliberately carrying the whole
+    // account: once this returns there is nothing left to look up, so the
+    // trail is the only place this person is recorded as ever having existed.
+    // The entry belongs to the Admin who did it, so it survives the deletion
+    // it describes.
+    await writeAudit({
+      userId: req.user!.id,
+      action: AuditAction.DELETE,
+      entityType: AUDIT_ENTITY.USER,
+      entityId: existing.id,
+      oldValue: serializeUser(existing),
+      newValue: null,
+    });
+
+    // The check above and this delete are not one atomic operation, and the
+    // database is the backstop that makes that gap safe: if this account took
+    // an order in the moment between them, the required relations refuse the
+    // delete outright. Translated back into the same answer the check gives,
+    // so a caller who lost that race is told the true reason rather than
+    // "something went wrong".
+    //
+    // Only the required half of those relations raises this — the optional
+    // ones would silently SetNull — which is exactly why the check above is
+    // the real guard and this is only the backstop.
+    try {
+      await prisma.user.delete({ where: { id: existing.id } });
+    } catch (err) {
+      if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2003") {
+        throw new AppError(409, ERROR_CODES.USER_HAS_HISTORY);
+      }
+      throw err;
+    }
+
+    sendOk(res, { id: existing.id, deleted: true });
   })
 );
 

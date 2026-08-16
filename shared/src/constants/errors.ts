@@ -168,6 +168,22 @@ export const ERROR_CODES = {
   // reach Settings, manage staff or see profit, and nothing in the app can
   // put it back — it takes a terminal on the VPS.
   USER_LAST_ADMIN: "error.user.last_admin",
+  // Deactivating or deleting the account you are signed in as. Refused
+  // because it is never what somebody means: it ends your own session
+  // mid-action, and on the last Admin it would lock the shop out of its own
+  // system. Somebody leaving is removed BY somebody else, which is also the
+  // only version the audit trail can describe honestly.
+  USER_SELF_REMOVAL: "error.user.self_removal",
+  // Hard-deleting an account that has actually worked in the shop.
+  //
+  // Every order, expense, cash session, change request and audit entry names
+  // its author, and that is the whole anti-theft design (spec.md "Security
+  // rationale"). Deleting the row would either be refused by the database or
+  // — on the nullable halves of those relations — quietly blank out who did
+  // what, which is worse. So the answer is not "delete harder", it is
+  // deactivate: they can no longer sign in, and every record still says it
+  // was them.
+  USER_HAS_HISTORY: "error.user.has_history",
 
   // --- password set / reset by email ---
   // ONE code for unknown, expired, already-used and revoked links, on
