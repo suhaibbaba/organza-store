@@ -47,7 +47,7 @@
 // ============================================================
 
 import { PrismaClient, Role } from "@prisma/client";
-import { auth } from "@/lib/auth"; // Better Auth instance
+import { createStaffUser, setUserPassword } from "@/lib/credentials";
 // Reuse the real search normalizer + SKU generator so the seed can never
 // silently drift from the production logic (CLAUDE.md rule 11).
 import { buildSearchText } from "@/lib/search";
@@ -87,6 +87,12 @@ const SEEDED_LABELS_PRINTED_AT = new Date("2026-01-01T09:00:00.000Z");
 // re-seed keeps them, and picked from the published EAN example range so they
 // can never collide with one this system generates (those all start 200-299,
 // see src/constants/barcode.ts).
+// The demo accounts' shared password. Printed at the end of the run and hard
+// -coded in the API test suite (tests/constants/accounts.ts) — which is
+// exactly why this file is quarantined behind ORGANZA_ALLOW_DEMO_SEED: it is
+// a published login, and on a real database that is a stranger's way in.
+const DEMO_PASSWORD = "password123";
+
 const SEEDED_SUPPLIER_BARCODES = {
   simple: "5901234123457", // EAN-13 on a single piece
   sharedParent: "4006381333931", // one code for every size, on the parent
@@ -120,9 +126,9 @@ async function main() {
   });
 
   // --- Users: one per role ---
-  // Password is managed by Better Auth (hashed by it, stored in Account), so we
-  // create users through Better Auth's server API, then patch our custom fields.
-  // `auth` is the Better Auth instance (e.g. backend/src/lib/auth).
+  // Created through lib/credentials.ts — the one path a staff account comes
+  // into existence by anywhere in this system — and given their password
+  // through Better Auth's own context, so the hash is one sign-in accepts.
   const staff = [
     { email: "admin@organza.test",    name: "Admin",    role: Role.ADMIN,    phone: "+970599000001" },
     { email: "manager@organza.test",  name: "Manager",  role: Role.MANAGER,  phone: "+970599000002" },
@@ -131,11 +137,21 @@ async function main() {
   for (const s of staff) {
     const existing = await prisma.user.findUnique({ where: { email: s.email } });
     if (!existing) {
-      // create credentials via Better Auth so the password hash is compatible
-      // (phone is a required additional field on User, so it must be passed here)
-      await auth.api.signUpEmail({
-        body: { email: s.email, password: "password123", name: s.name, phone: s.phone },
+      // Through the same path the real shop creates staff with, for the same
+      // reason: Better Auth's public sign-up endpoint is disabled (it was
+      // reachable by anybody on the internet), so this seed cannot use it
+      // either — and should not, since it is not how accounts are made here.
+      // setUserPassword writes through Better Auth's own context, so the hash
+      // is one sign-in will accept.
+      const created = await createStaffUser({
+        email: s.email,
+        name: s.name,
+        role: s.role,
+        phone: s.phone,
+        whatsapp: null,
+        idNumber: null,
       });
+      await setUserPassword(created.id, DEMO_PASSWORD);
     }
     // set/refresh our custom fields (role, phone) — unique phone in E.164
     await prisma.user.update({
@@ -1093,7 +1109,7 @@ async function main() {
   }
 
   console.log("✅ Seed complete.");
-  console.log("   Users: admin@ / manager@ / employee@organza.test  (password: password123)");
+  console.log(`   Users: admin@ / manager@ / employee@organza.test  (password: ${DEMO_PASSWORD})`);
 }
 
 main()

@@ -1,3 +1,4 @@
+import type { Role, User } from "@prisma/client";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { AUTH_PROVIDER_CREDENTIAL } from "@/constants";
@@ -26,6 +27,58 @@ import { AUTH_PROVIDER_CREDENTIAL } from "@/constants";
 //     not be the same row: the password is set, and sign-in reads the other
 //     one and says it is wrong. `updatePassword` updates them ALL, so no
 //     stale row can shadow the new password.
+
+/**
+ * Creates a staff account — the ONLY way one comes into existence.
+ *
+ * This used to be `auth.api.signUpEmail`, which was the same endpoint the
+ * open internet could reach: the public door and the Admin's door were one
+ * door, so closing the first would have closed the second. Now sign-up is
+ * disabled outright (lib/auth.ts) and this writes through Better Auth's own
+ * internal adapter instead — the same adapter its sign-up handler uses, so
+ * the row is the row sign-in expects, field for field.
+ *
+ * The account is created with NO credential row at all when no password is
+ * given (CLAUDE.md rule 17: nobody is handed a password). That is a change
+ * for the better on top of the security fix — the old path had to invent a
+ * throwaway password, hash it, store it and then null it out, which meant a
+ * working secret existed in the database for the width of two writes. Now
+ * none is ever minted: `setUserPassword` links the credential row when the
+ * person chooses their own from the emailed link.
+ *
+ * The email is lower-cased because that is what Better Auth's sign-in does
+ * before it looks an account up (`email.toLowerCase()`); storing it any other
+ * way creates an account that cannot be signed in to.
+ */
+export async function createStaffUser(input: {
+  email: string;
+  name: string;
+  role: Role;
+  phone: string;
+  whatsapp: string | null;
+  idNumber: string | null;
+}): Promise<User> {
+  const ctx = await auth.$context;
+
+  const created = await ctx.internalAdapter.createUser({
+    email: normalizeEmail(input.email),
+    name: input.name,
+    emailVerified: false,
+    role: input.role,
+    phone: input.phone,
+    whatsapp: input.whatsapp,
+    idNumber: input.idNumber,
+    isActive: true,
+  });
+
+  if (!created) throw new Error("Better Auth's internal adapter did not return the created user");
+  return created as User;
+}
+
+/** The one spelling of an address the whole system agrees on — see above. */
+export function normalizeEmail(email: string): string {
+  return email.trim().toLowerCase();
+}
 
 /** Writes the password, creating the credential account if the user has none. */
 export async function setUserPassword(userId: string, password: string): Promise<void> {

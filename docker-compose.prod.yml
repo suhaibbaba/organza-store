@@ -44,7 +44,9 @@ services:
     restart: unless-stopped
     # Everything in backend/.env.example comes through here, including the
     # transactional-email settings the password links need:
-    #   RESEND_API_KEY, EMAIL_FROM, EMAIL_REPLY_TO, ADMIN_URL, TRUST_PROXY
+    #   RESEND_API_KEY, EMAIL_FROM, EMAIL_REPLY_TO, ADMIN_URL,
+    #   TRUST_PROXY and TRUSTED_PROXY_IPS (both — see .env.example; without them
+    #   every rate limit in the API counts one shared bucket for the internet)
     # The file lives on the VPS and is never committed.
     env_file: .env.production
     environment:
