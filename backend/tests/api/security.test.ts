@@ -359,15 +359,31 @@ describe("Security", () => {
       // the rule genuinely does not apply and there is nothing to assert.
       if ((admins.data ?? []).length !== 1) return;
 
-      for (const body of [{ role: "MANAGER" }, { isActive: false }]) {
-        const res = await apiRequest(`/api/users/${admin.userId}`, {
-          method: "PATCH",
-          token: admin.token,
-          body,
-        });
-        expect(res.status).toBe(409);
-        expect(res.error?.code).toBe(ERROR_CODES.USER_LAST_ADMIN);
-      }
+      // Two different guards, and which one answers depends on what was
+      // attempted — so both are named rather than asserting whichever fires:
+      //
+      //   demoting yourself   -> USER_LAST_ADMIN. Nothing stops an Admin
+      //     changing their own role in general; what stops this one is that
+      //     there would be no Admin left afterwards.
+      //   deactivating yourself -> USER_SELF_REMOVAL, checked first because it
+      //     is the more useful answer and stays true however many Admins
+      //     there are (routes/users.ts). The last-Admin rule is behind it and
+      //     would refuse this too.
+      const demoted = await apiRequest(`/api/users/${admin.userId}`, {
+        method: "PATCH",
+        token: admin.token,
+        body: { role: "MANAGER" },
+      });
+      expect(demoted.status).toBe(409);
+      expect(demoted.error?.code).toBe(ERROR_CODES.USER_LAST_ADMIN);
+
+      const switchedOff = await apiRequest(`/api/users/${admin.userId}`, {
+        method: "PATCH",
+        token: admin.token,
+        body: { isActive: false },
+      });
+      expect(switchedOff.status).toBe(409);
+      expect(switchedOff.error?.code).toBe(ERROR_CODES.USER_SELF_REMOVAL);
 
       // ...and the account is untouched, so the run that just tried has not
       // locked itself out.

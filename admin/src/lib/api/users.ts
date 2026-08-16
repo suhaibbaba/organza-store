@@ -32,3 +32,15 @@ export async function updateUser(id: string, input: UpdateUserInput): Promise<Us
   const { data } = await apiFetch<User>(`/api/users/${id}`, { method: "PATCH", body: input });
   return data;
 }
+
+/**
+ * Erase an account outright — only ever possible for one that never did
+ * anything (the API refuses the rest with `error.user.has_history`).
+ *
+ * Deliberately not called "removeUser": removing somebody from the shop
+ * normally means DEACTIVATING them, which is an ordinary `updateUser` above.
+ * The two must not be reachable through one word.
+ */
+export async function deleteUser(id: string): Promise<void> {
+  await apiFetch<{ id: string; deleted: boolean }>(`/api/users/${id}`, { method: "DELETE" });
+}

@@ -157,6 +157,20 @@ export const PERMISSION_ACTIONS = [
   "changeRequest.approve",
 
   "user.manage",
+  // ERASING a staff account, rather than editing or deactivating one.
+  //
+  // Its own action rather than part of user.manage, for the same reason
+  // changeRequest.approve is not part of changeRequest.view: the two are
+  // different powers that happen to sit on the same screen today. Editing
+  // somebody's phone number and destroying their account permanently should
+  // not be one permission, and widening who may do the first must not
+  // silently widen the second.
+  //
+  // It is only ever reachable for an account with NO history — one order,
+  // one expense or one audit entry and the API refuses and says to deactivate
+  // instead (routes/users.ts). So this is the permission to tidy up a
+  // mistake, not a permission to make somebody's work disappear.
+  "user.delete",
   "user.viewSensitive",
 
   "settings.manage",

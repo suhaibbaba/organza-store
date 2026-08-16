@@ -16,10 +16,22 @@ export class AuthError extends Error {
    */
   readonly status: number;
 
-  constructor(status = 0) {
+  /**
+   * Better Auth's own machine-readable reason, when it gives one.
+   *
+   * The status alone is not enough for every case that matters: a 403 from
+   * this endpoint is a DEACTIVATED account (backend lib/auth.ts refuses to
+   * create the session), and telling somebody whose account was switched off
+   * this morning that their password is wrong sends them to reset a password
+   * that was never the problem. Undefined when the response carried no code.
+   */
+  readonly code?: string;
+
+  constructor(status = 0, code?: string) {
     super("auth_error");
     this.name = "AuthError";
     this.status = status;
+    this.code = code;
   }
 }
 
@@ -37,7 +49,11 @@ export async function signInWithEmail(email: string, password: string): Promise<
   });
 
   if (!res.ok) {
-    throw new AuthError(res.status);
+    // Better Auth answers in its own shape, not our { success, error } one,
+    // so the reason is read straight off the body rather than through the
+    // envelope helpers.
+    const failure = (await res.json().catch(() => null)) as { code?: string } | null;
+    throw new AuthError(res.status, failure?.code);
   }
 
   const body = (await res.json().catch(() => null)) as SignInResponse | null;

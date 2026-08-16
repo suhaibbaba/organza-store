@@ -20,6 +20,7 @@ import { UserCard } from "@/components/users/user-card";
 import { UserTable } from "@/components/users/user-table";
 import { UserPagination } from "@/components/users/user-pagination";
 import { UserFormSheet } from "@/components/users/user-form-sheet";
+import { UserRemoveSheet } from "@/components/users/user-remove-sheet";
 import { UserListEmpty, UserListError, UserListLoading, UserListSpinnerOverlay } from "@/components/users/user-list-states";
 import { ApiError } from "@/lib/api/errors";
 import type { UserListFilters } from "@/types/user";
@@ -48,8 +49,13 @@ function UsersPageContent() {
   const [formOpen, setFormOpen] = useState(false);
   const [formMode, setFormMode] = useState<"create" | "edit">("create");
   const [editingUser, setEditingUser] = useState<User | undefined>(undefined);
-  const [confirmToggleId, setConfirmToggleId] = useState<string | null>(null);
-  const [toggleError, setToggleError] = useState<string | null>(null);
+  // Reactivation only. Switching somebody OFF goes through the removal sheet,
+  // which is where the difference between deactivating and erasing gets
+  // explained — a list row cannot say it, and the two must never be one tap
+  // apart (components/users/user-remove-sheet.tsx).
+  const [confirmActivateId, setConfirmActivateId] = useState<string | null>(null);
+  const [activateError, setActivateError] = useState<string | null>(null);
+  const [removingUser, setRemovingUser] = useState<User | null>(null);
 
   const hasAnyFilter = Boolean(filters.role) || filters.isActive !== null || debouncedSearch.trim().length > 0;
 
@@ -82,23 +88,38 @@ function UsersPageContent() {
     setFormOpen(true);
   }
 
-  function requestToggle(id: string) {
-    setToggleError(null);
-    setConfirmToggleId(id);
+  function requestActivate(id: string) {
+    setActivateError(null);
+    setConfirmActivateId(id);
   }
 
-  async function confirmToggle(user: User) {
-    setToggleError(null);
+  async function confirmActivate(user: User) {
+    setActivateError(null);
     try {
-      await toggleMutation.mutateAsync({ id: user.id, isActive: !user.isActive });
-      setConfirmToggleId(null);
+      await toggleMutation.mutateAsync({ id: user.id, isActive: true });
+      setConfirmActivateId(null);
     } catch (err) {
-      setConfirmToggleId(null);
-      setToggleError(translateError(err instanceof ApiError ? err.code : "error.internal"));
+      setConfirmActivateId(null);
+      setActivateError(translateError(err instanceof ApiError ? err.code : "error.internal"));
     }
   }
 
-  const togglingId = toggleMutation.isPending ? (toggleMutation.variables?.id ?? null) : null;
+  function openRemove(user: User) {
+    setActivateError(null);
+    setRemovingUser(user);
+  }
+
+  const activatingId = toggleMutation.isPending ? (toggleMutation.variables?.id ?? null) : null;
+
+  const rowActions = {
+    onEdit: openEditForm,
+    onRemove: openRemove,
+    confirmActivateId,
+    onRequestActivate: requestActivate,
+    onCancelActivate: () => setConfirmActivateId(null),
+    onConfirmActivate: (user: User) => void confirmActivate(user),
+    activatingId,
+  };
   const users = data?.users ?? [];
 
   return (
@@ -125,7 +146,7 @@ function UsersPageContent() {
           />
         </div>
 
-        {toggleError && <Alert variant="destructive">{toggleError}</Alert>}
+        {activateError && <Alert variant="destructive">{activateError}</Alert>}
 
         {isLoading ? (
           <UserListLoading />
@@ -139,29 +160,12 @@ function UsersPageContent() {
 
             <div className="flex flex-col gap-3 md:hidden">
               {users.map((user) => (
-                <UserCard
-                  key={user.id}
-                  user={user}
-                  onEdit={openEditForm}
-                  confirmToggleId={confirmToggleId}
-                  onRequestToggle={requestToggle}
-                  onCancelToggle={() => setConfirmToggleId(null)}
-                  onConfirmToggle={(u) => void confirmToggle(u)}
-                  togglingId={togglingId}
-                />
+                <UserCard key={user.id} user={user} {...rowActions} />
               ))}
             </div>
 
             <div className="hidden md:block">
-              <UserTable
-                users={users}
-                onEdit={openEditForm}
-                confirmToggleId={confirmToggleId}
-                onRequestToggle={requestToggle}
-                onCancelToggle={() => setConfirmToggleId(null)}
-                onConfirmToggle={(u) => void confirmToggle(u)}
-                togglingId={togglingId}
-              />
+              <UserTable users={users} {...rowActions} />
             </div>
 
             {data?.meta && <UserPagination meta={data.meta} onPageChange={updatePage} />}
@@ -169,6 +173,11 @@ function UsersPageContent() {
         )}
 
         <UserFormSheet open={formOpen} onOpenChange={setFormOpen} mode={formMode} user={editingUser} />
+        <UserRemoveSheet
+          user={removingUser}
+          open={removingUser !== null}
+          onOpenChange={(open) => !open && setRemovingUser(null)}
+        />
       </div>
     </PageContainer>
   );
