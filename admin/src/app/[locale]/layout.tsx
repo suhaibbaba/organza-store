@@ -22,6 +22,7 @@ import {
   pwaIconPath,
 } from "@/constants/pwa";
 import { AppProviders } from "@/components/providers/app-providers";
+import { BootFailure } from "@/components/pwa/boot-failure";
 import { BootSplash } from "@/components/pwa/boot-splash";
 import { ServiceWorkerRegistrar } from "@/components/pwa/service-worker-registrar";
 import "../globals.css";
@@ -121,6 +122,12 @@ export default async function LocaleLayout({
       className={`${geist.variable} ${cairo.variable} ${notoSansHebrew.variable}`}
     >
       <body className="min-h-dvh antialiased">
+        {/* Before the providers, and outside them: this is the screen for the
+            case where none of the app's own JavaScript ever runs, so it must
+            not be downstream of anything the bundle has to set up. It is a
+            server component and its watchdog is inline ES5 — the first script
+            in the document, and the only one that is certain to execute. */}
+        <BootFailure />
         <NextIntlClientProvider>
           <AppProviders>
             {/* First thing in the document, and inside the session provider

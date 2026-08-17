@@ -32,6 +32,17 @@
     "title": "No internet connection",
     "message": "The point of sale needs an internet connection to look up products and record sales. Check your connection and try again."
   },
+  "boot": {
+    "failed": {
+      "title": "The point of sale didn't start",
+      "message": "Something stopped it from loading on this phone. Try again, and if it keeps happening tell whoever looks after the shop's system.",
+      "retry": "Try again"
+    },
+    "unsupported": {
+      "title": "This phone is too old for the point of sale",
+      "message": "Its software can't run this app. Update the phone to the newest version it offers, and if there isn't one, use a newer phone."
+    }
+  },
   "auth": {
     "login": {
       "title": "Log in",

@@ -57,6 +57,12 @@ export function BootSplash() {
   const shownAt = useRef(0);
 
   useEffect(() => {
+    // React is mounted and running effects — which is the whole of what the
+    // boot watchdog is waiting to see. Set before anything else here, because
+    // from this line on the app is alive and the failure screen must not
+    // appear (components/pwa/boot-failure.tsx).
+    document.documentElement.setAttribute("data-boot", "ready");
+
     shownAt.current = performance.now();
     const timer = window.setTimeout(() => setHasWaitedLongEnough(true), BOOT_SPLASH_MAX_VISIBLE_MS);
     return () => window.clearTimeout(timer);
