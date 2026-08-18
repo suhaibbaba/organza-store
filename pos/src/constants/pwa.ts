@@ -208,6 +208,47 @@ export const BOOT_SPLASH_FADE_OUT_MS = 220;
  */
 export const BOOT_SPLASH_MAX_VISIBLE_MS = 3_000;
 
+/* ---------------------------------------------------------------------------
+ * When the app does not start at all
+ *
+ * Everything above assumes React eventually runs. When it does not — the
+ * bundle met syntax the phone cannot parse, a chunk never arrived — the boot
+ * splash is server-rendered HTML with nobody left to take it down, so it stays
+ * up forever and the app reads as merely slow. It is not slow, it is dead, and
+ * the person holding the phone deserves to be told which.
+ *
+ * See components/pwa/boot-failure.tsx, which puts a plain message up instead.
+ * ------------------------------------------------------------------------ */
+
+/**
+ * How long the splash may stand with no sign of React before the app is
+ * declared dead.
+ *
+ * Well above BOOT_SPLASH_MAX_VISIBLE_MS, which is a different measurement —
+ * that one times the *session request* on an app that is already running.
+ * This one times the app getting off the ground at all, over shop mobile data
+ * on a cold cache, and a false alarm here tells a working phone it is broken.
+ * Twelve seconds is far longer than a slow start and far shorter than the
+ * forever it replaces.
+ */
+export const BOOT_WATCHDOG_MS = 12_000;
+
+/**
+ * The syntax probe that decides *which* message goes up: whether this browser
+ * is simply too old for the app, or whether something else went wrong.
+ *
+ * It is a sample of the oldest-permitted output of our own build — private and
+ * static class fields, which is what the `browserslist` floor in package.json
+ * (Safari 15 / iOS 15) allows the compiler to emit. A browser that cannot
+ * compile this string cannot run the bundle either, whatever else may also be
+ * wrong. Fed to `new Function`, which is a parse and not a run: nothing here
+ * is executed.
+ *
+ * Raise the browserslist floor and this has to be raised with it, or the
+ * failure screen goes back to blaming the network for an unsupported phone.
+ */
+export const BOOT_SUPPORT_PROBE = "class P{static #n=0;#i;constructor(){this.#i=P.#n++}}";
+
 /** The small row of dots under the mark. */
 export const BOOT_SPLASH_DOT_COUNT = 3;
 /** One dot's full dim-bright-dim cycle. */

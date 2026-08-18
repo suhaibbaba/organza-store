@@ -317,6 +317,84 @@
   }
 }
 
+/* ============================================================
+   THE APP DID NOT START — see components/pwa/boot-failure.tsx
+   ------------------------------------------------------------
+   The splash above is taken down by React. When React never runs there is
+   nobody to take it down, so it pulses on forever and a dead app looks like a
+   slow one. The inline watchdog puts data-boot="failed" on <html>; these three
+   rules are what that attribute does.
+
+   Written in plain CSS with literal values on purpose. This is the screen for
+   a browser we already know is struggling, so it leans on nothing: no theme
+   custom properties, no colour functions, no Tailwind utilities. The two
+   brand colours arrive as inline styles from constants/pwa.ts, exactly as the
+   splash's do.
+   ============================================================ */
+
+.boot-failure {
+  display: none;
+}
+
+html[data-boot="failed"] .boot-splash {
+  display: none;
+}
+
+html[data-boot="failed"] .boot-failure {
+  position: fixed;
+  inset: 0;
+  /* Above the splash it replaces, which is itself above everything else. */
+  z-index: 101;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.25rem;
+  padding: calc(var(--safe-top) + 2rem) 1.5rem calc(var(--safe-bottom) + 2rem);
+  text-align: center;
+  overflow-y: auto;
+}
+
+.boot-failure-title {
+  max-width: 24rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.boot-failure-message {
+  max-width: 24rem;
+  font-size: 1rem;
+  line-height: 1.6;
+  /* The message is the long line and the title carries the point, so it sits
+     back a little without dropping to a contrast nobody can read. */
+  opacity: 0.85;
+}
+
+.boot-failure-retry {
+  /* 44px, the same floor every other touch target in the app is held to. */
+  min-height: 2.75rem;
+  min-width: 9rem;
+  padding: 0 1.5rem;
+  border: 0;
+  border-radius: 0.75rem;
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.boot-failure-detail {
+  font-size: 0.75rem;
+  line-height: 1.5;
+  /* The build number and whatever the browser said — there to be read down a
+     phone, not to be looked at. Wrapping matters more than size: a chunk URL
+     is long and must not push the panel sideways. */
+  opacity: 0.6;
+  max-width: 24rem;
+  word-break: break-word;
+}
+
 /* ------------------------------------------------------------------
    Scan acknowledgement — see hooks/use-scan-flash.ts. Both animations
    are told their duration by the component (from constants/pos.ts), so
