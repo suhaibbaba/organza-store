@@ -83,7 +83,7 @@ export function WhatsappOrderSheet({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" closeLabel={tCommon("close")} className="max-h-[92dvh]">
+      <SheetContent name="whatsapp-order" side="bottom" closeLabel={tCommon("close")} className="max-h-[92dvh]">
         <SheetHeader className="pb-0">
           <SheetTitle>{t("title")}</SheetTitle>
           <SheetDescription>{t("subtitle")}</SheetDescription>
@@ -110,7 +110,7 @@ export function WhatsappOrderSheet({
               <span className="tabular-nums">{formatMoney(total)}</span>
             </div>
 
-            <Button type="submit" disabled={isSubmitting} className="h-14 w-full text-base">
+            <Button type="submit" data-test-selector="pos-whatsapp-order-submit" disabled={isSubmitting} className="h-14 w-full text-base">
               {isSubmitting ? <Spinner /> : <Send aria-hidden="true" />}
               {isSubmitting ? t("saving") : t("save")}
             </Button>

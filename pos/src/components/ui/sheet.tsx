@@ -3,6 +3,7 @@
 import * as React from "react";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { X } from "lucide-react";
+import { testSelectorFor } from "@organza/shared/lib/testSelector";
 import { cn } from "@/lib/utils";
 
 const Sheet = DialogPrimitive.Root;
@@ -36,6 +37,10 @@ interface SheetContentProps extends React.ComponentProps<typeof DialogPrimitive.
   // becomes what it actually is: a small modal in the middle of the screen.
   compact?: boolean;
   closeLabel: string;
+  // What this sheet IS — "variant-picker", "discount". Rendered as
+  // `pos-sheet-<name>` (CLAUDE.md "Test selectors"): every sheet should pass
+  // one, since "the panel that came up" does not say which panel.
+  name?: string;
 }
 
 function SheetContent({
@@ -44,6 +49,7 @@ function SheetContent({
   side = "bottom",
   compact = false,
   closeLabel,
+  name,
   onOpenAutoFocus = focusPanelNotFirstField,
   ...props
 }: SheetContentProps) {
@@ -86,10 +92,12 @@ function SheetContent({
           className
         )}
         {...props}
+        data-test-selector={testSelectorFor("pos-sheet", name)}
       >
         {children}
         <DialogPrimitive.Close
           aria-label={closeLabel}
+          data-test-selector={testSelectorFor("pos-sheet-close", name)}
           className={cn(
             "absolute end-3 inline-flex size-11 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
             // A bottom sheet's top edge is somewhere in the middle of the

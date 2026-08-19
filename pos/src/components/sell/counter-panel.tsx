@@ -61,7 +61,14 @@ export function CounterPanel({ onScanClick }: CounterPanelProps) {
           wants to go hunting. Full width and thumb-height, because the
           counter is getting a touch monitor and this is the one thing in the
           panel anybody actually presses. */}
-      <Button type="button" variant="outline" size="sm" onClick={onScanClick} className="h-11 w-full">
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        onClick={onScanClick}
+        data-test-selector="pos-scan-button"
+        className="h-11 w-full"
+      >
         <Camera aria-hidden="true" />
         {t("camera")}
       </Button>

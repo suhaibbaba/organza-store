@@ -98,6 +98,7 @@ function OrderDetailPageContent({ params }: { params: Promise<{ id: string }> })
       </div>
 
       <PageHeader
+        name="order-detail"
         className="mb-3"
         title={tCard("orderNumber", { number: String(order.orderNumber) })}
         actions={<p className="text-xl font-bold tabular-nums">{formatMoney(order.total)}</p>}

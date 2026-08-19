@@ -79,10 +79,11 @@ export default function ProductsPage() {
   return (
     <PageContainer>
       <PageHeader
+        name="products"
         title={t("title")}
         description={t("subtitle")}
         actions={
-          <Button asChild size="sm" className="shrink-0">
+          <Button asChild size="sm" className="shrink-0" data-test-selector="add-product">
             <Link href="/products/new">
               <Plus className="size-4" aria-hidden="true" />
               {t("addProduct")}

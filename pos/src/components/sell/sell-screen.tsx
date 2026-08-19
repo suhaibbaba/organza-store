@@ -449,6 +449,7 @@ export function SellScreen() {
                 type="button"
                 variant="outline"
                 onClick={() => setBrowserOpen(true)}
+                data-test-selector="pos-browse-open"
                 className="mt-2 h-12 w-full"
               >
                 <LayoutGrid aria-hidden="true" />

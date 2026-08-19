@@ -51,7 +51,7 @@ function ChangeRequestsPageContent() {
 
   return (
     <PageContainer>
-      <PageHeader title={t("title")} description={canDecide ? t("subtitle") : t("subtitleOwn")} />
+      <PageHeader name="change-requests" title={t("title")} description={canDecide ? t("subtitle") : t("subtitleOwn")} />
 
       <div className="flex flex-col gap-4">
         <Tabs

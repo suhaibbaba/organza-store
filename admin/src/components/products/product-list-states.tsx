@@ -8,7 +8,7 @@ import { ApiError } from "@/lib/api/errors";
 
 export function ProductListLoading() {
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-3" data-test-selector="products-loading">
       {Array.from({ length: 6 }).map((_, i) => (
         <div key={i} className="h-20 animate-pulse rounded-xl bg-muted" />
       ))}
@@ -20,7 +20,9 @@ export function ProductListEmpty({ hasFilters }: { hasFilters: boolean }) {
   const t = useTranslations("products.empty");
 
   return (
-    <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-border py-16 text-center">
+    <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-border py-16 text-center"
+      data-test-selector="products-empty"
+    >
       <PackageSearch className="size-10 text-muted-foreground" aria-hidden="true" />
       <div>
         <p className="font-medium text-foreground">{hasFilters ? t("noMatchesTitle") : t("noProductsTitle")}</p>
@@ -38,7 +40,7 @@ export function ProductListError({ error, onRetry }: { error: unknown; onRetry: 
   const code = error instanceof ApiError ? error.code : undefined;
 
   return (
-    <Alert variant="destructive" className="flex-col items-center gap-3 text-center">
+    <Alert variant="destructive" className="flex-col items-center gap-3 text-center" data-test-selector="products-error">
       <p>{code ? translateError(code) : t("retry")}</p>
       <Button type="button" variant="outline" size="sm" onClick={onRetry}>
         {t("retry")}

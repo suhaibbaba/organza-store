@@ -96,6 +96,7 @@ function ProductDetail({ product, currency, locale }: { product: Product; curren
           one line under it — so the page header sits below the photographs
           rather than above them, which is where the name has always been. */}
       <PageHeader
+        name="product-detail"
         className="mb-0"
         title={name}
         description={product.category ? localize(product.category.name, locale) : undefined}
@@ -113,7 +114,7 @@ function ProductDetail({ product, currency, locale }: { product: Product; curren
               field={CHANGE_REQUEST_FIELDS.PRODUCT_IS_ACTIVE}
             />
             {canEditDetails && (
-              <Button asChild variant="outline" size="sm">
+              <Button asChild variant="outline" size="sm" data-test-selector="product-edit">
                 <Link href={`/products/${product.id}/edit`}>
                   <Pencil className="size-4" aria-hidden="true" />
                   {t("edit")}

@@ -13,6 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+import { testSelectorFor } from "@organza/shared/lib/testSelector";
 
 interface LanguageSwitcherProps {
   className?: string;
@@ -41,6 +42,7 @@ export function LanguageSwitcher({ className, variant = "list" }: LanguageSwitch
     return (
       <DropdownMenu>
         <DropdownMenuTrigger
+          data-test-selector="pos-language-switcher"
           className={cn(
             "flex min-h-11 items-center gap-2 rounded-md border border-input px-3 text-sm font-medium text-foreground",
             "transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
@@ -56,7 +58,11 @@ export function LanguageSwitcher({ className, variant = "list" }: LanguageSwitch
         <DropdownMenuContent align="end">
           <DropdownMenuRadioGroup value={locale} onValueChange={(value) => handleChange(value as AppLocale)}>
             {routing.locales.map((loc) => (
-              <DropdownMenuRadioItem key={loc} value={loc}>
+              <DropdownMenuRadioItem
+                key={loc}
+                value={loc}
+                data-test-selector={testSelectorFor("pos-language-option", loc)}
+              >
                 {LOCALE_LABELS[loc]}
               </DropdownMenuRadioItem>
             ))}
@@ -72,6 +78,7 @@ export function LanguageSwitcher({ className, variant = "list" }: LanguageSwitch
       <span className="sr-only">{t("language")}</span>
       {routing.locales.map((loc) => (
         <button
+          data-test-selector={testSelectorFor("pos-language-option", loc)}
           key={loc}
           type="button"
           onClick={() => handleChange(loc)}

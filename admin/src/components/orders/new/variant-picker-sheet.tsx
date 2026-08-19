@@ -25,7 +25,7 @@ export function VariantPickerSheet({ product, onOpenChange, onPick }: VariantPic
 
   return (
     <Sheet open={product !== null} onOpenChange={onOpenChange}>
-      <SheetContent side="end" closeLabel={tCommon("close")}>
+      <SheetContent name="variant-picker" side="end" closeLabel={tCommon("close")}>
         {product && (
           <>
             <SheetHeader>

@@ -20,7 +20,10 @@ export function CartPanel({ cart, scanFlash, onLineDiscountClick }: CartPanelPro
 
   if (cart.isEmpty) {
     return (
-      <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-border px-6 py-14 text-center">
+      <div
+        className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-border px-6 py-14 text-center"
+        data-test-selector="pos-cart-empty"
+      >
         <ScanLine className="size-8 text-muted-foreground" aria-hidden="true" />
         <p className="text-base font-medium">{t("emptyTitle")}</p>
         <p className="text-sm text-muted-foreground">{t("emptyHint")}</p>
@@ -29,7 +32,7 @@ export function CartPanel({ cart, scanFlash, onLineDiscountClick }: CartPanelPro
   }
 
   return (
-    <ul className="flex flex-col gap-2">
+    <ul className="flex flex-col gap-2" data-test-selector="pos-cart">
       {cart.lines.map((line) => (
         <CartLineRow
           key={line.key}

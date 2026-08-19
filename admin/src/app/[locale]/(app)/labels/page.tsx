@@ -186,6 +186,7 @@ function LabelsPageContent() {
         </div>
 
         <PageHeader
+          name="labels"
           title={t("prepare.title")}
           description={t("prepare.subtitle", { products: selectedIds.length, labels: totalLabels })}
         />
@@ -307,7 +308,7 @@ function LabelsPageContent() {
   // ---- Step 1: pick the products ------------------------------------------
   return (
     <PageContainer>
-      <PageHeader title={t("title")} description={t("subtitle")} />
+      <PageHeader name="labels" title={t("title")} description={t("subtitle")} />
 
       <div className="flex flex-col gap-4">
         {markPrinted.isSuccess && (

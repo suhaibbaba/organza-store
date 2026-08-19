@@ -30,7 +30,7 @@ export function NumberedShawlPreview({ product }: { product: Product }) {
   const colors = resolvePointColors(product, image.brightness);
 
   return (
-    <div className="flex w-full max-w-sm flex-col gap-2">
+    <div className="flex w-full max-w-sm flex-col gap-2" data-test-selector="numbered-shawl-preview">
       <ImagePointCanvas readOnly imageUrl={image.url} alt={t("numberedPointsAlt")} points={points} colors={colors} />
       <p className="text-sm text-muted-foreground">{t("numberedPointsHint", { count: points.length })}</p>
     </div>

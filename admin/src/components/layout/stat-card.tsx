@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { ExplainedLabel } from "@/components/figures/explained-label";
+import { testSelectorFor } from "@organza/shared/lib/testSelector";
 import { cn } from "@/lib/utils";
 import type { StatCardTone } from "@/types/layout";
 
@@ -16,6 +17,10 @@ interface StatCardProps {
   // does NOT mean. Omit it and no (?) is rendered.
   tooltip?: string;
   tone?: StatCardTone;
+  // Which figure this is — "sales-total", "orders-count". Rendered as
+  // `stat-card-<name>` with the figure itself under it, because "the third
+  // box" is not a description of a number somebody is querying.
+  name?: string;
   className?: string;
 }
 
@@ -36,11 +41,14 @@ const TONE_CLASS: Record<StatCardTone, string> = {
 //
 // No fixed height: an Arabic label that wraps to two lines makes the card
 // taller, it does not get clipped.
-export function StatCard({ label, value, hint, tooltip, tone = "default", className }: StatCardProps) {
+export function StatCard({ label, value, hint, tooltip, tone = "default", name, className }: StatCardProps) {
   const tFigures = useTranslations("figures");
 
   return (
-    <div className={cn("flex min-w-0 flex-col rounded-lg bg-muted/40 p-4", className)}>
+    <div
+      className={cn("flex min-w-0 flex-col rounded-lg bg-muted/40 p-4", className)}
+      data-test-selector={testSelectorFor("stat-card", name)}
+    >
       <ExplainedLabel
         label={label}
         description={tooltip}
@@ -53,7 +61,12 @@ export function StatCard({ label, value, hint, tooltip, tone = "default", classN
       {/* break-words, not truncate: a long figure in a narrow column has to
           wrap rather than be silently cut in half — a clipped amount is worse
           than an ugly one. tabular-nums keeps the digits in step. */}
-      <p className={cn("mt-1.5 break-words text-2xl font-medium tabular-nums", TONE_CLASS[tone])}>{value}</p>
+      <p
+        className={cn("mt-1.5 break-words text-2xl font-medium tabular-nums", TONE_CLASS[tone])}
+        data-test-selector={testSelectorFor("stat-card-value", name)}
+      >
+        {value}
+      </p>
 
       {hint && <p className="mt-0.5 text-xs text-muted-foreground">{hint}</p>}
     </div>

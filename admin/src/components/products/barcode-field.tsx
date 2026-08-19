@@ -8,6 +8,7 @@ import { isValidBarcode, normalizeBarcode } from "@organza/shared/lib/barcode";
 import type { BarcodeSource } from "@organza/shared/types/product";
 import { useTranslateError } from "@/hooks/use-translate-error";
 import { ERROR_CODES } from "@organza/shared/constants/errors";
+import { FieldError } from "@/components/ui/field-error";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -155,10 +156,10 @@ export function BarcodeField({
             {t("supplier.entryHint")}
           </p>
 
-          {invalid && <p className="text-sm text-destructive">{translateError(ERROR_CODES.BARCODE_INVALID)}</p>}
+          {invalid && <FieldError field={id}>{translateError(ERROR_CODES.BARCODE_INVALID)}</FieldError>}
 
           <Sheet open={cameraOpen} onOpenChange={setCameraOpen}>
-            <SheetContent side="end" closeLabel={t("camera.close")}>
+            <SheetContent name="barcode-camera" side="end" closeLabel={t("camera.close")}>
               <SheetHeader>
                 <SheetTitle>{t("camera.title")}</SheetTitle>
                 <p className="text-sm text-muted-foreground">{t("camera.subtitle")}</p>

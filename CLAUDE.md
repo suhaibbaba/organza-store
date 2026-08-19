@@ -319,6 +319,40 @@ Design for that reality:
   like iPhone Pro Max. Ensure the viewport meta includes `viewport-fit=cover` (required for safe
   areas to work). Apply the same to any fixed top bar with `safe-area-inset-top` where relevant.
 
+## Test selectors — naming what is on the screen
+Every element worth diagnosing carries **`data-test-selector`**, a stable name saying WHAT IT IS.
+"The button in the corner" is not a description on a screen that mirrors itself in Arabic, and a
+Tailwind class is not a name — it changes the next time the design does.
+
+- **`data-test-selector`, never an `id` or a class.** Ids are for `htmlFor`/`aria-*` and must stay
+  unique per document; classes are styling and are rewritten by every redesign.
+- **Lower case, hyphenated, purpose-first:** `product-card`, `pos-cart-total`, `checkout-button`,
+  `variant-picker`. Never appearance or position — no `left`, no `start-side`, no `first`: the
+  layout mirrors in RTL and the name would then be wrong in Arabic.
+- **Family + instance where a list repeats:** `product-card` for the family, `product-card-<id>`
+  for one of them. The instance half is an **id**, never a customer's name, a phone number or a
+  price — the attribute ships to production, and it identifies an element rather than describing
+  its contents.
+- **The POS prefixes everything with `pos-`;** the admin's names are unprefixed. Two apps, one
+  vocabulary, no collisions in a report that spans both.
+- **Names come from `@organza/shared/lib/testSelector`** (`testSelectorFor`, `fieldTestSelector`,
+  `fieldErrorTestSelector`, `toSelectorName`) rather than from hand-built strings, so both apps
+  spell the same idea the same way.
+- **Kept in production builds.** The deployed app is where problems appear; an attribute stripped
+  from the build is no use to whoever is describing one. They weigh nothing and expose nothing.
+
+**Applied at the shared-component level wherever possible, so new screens inherit it:**
+`Input`/`Textarea`/`Select`/`Checkbox`/`Switch` name themselves `field-<id>` from their own id;
+`FieldError` names the message under a field `field-<id>-error`; `Alert` names itself by kind;
+`SheetContent`, `StatCard`, `FigureCard`, `PageHeader`, `SegmentedControl` and `QuantityStepper`
+take a `name` prop and render `sheet-<name>`, `stat-card-<name>` and so on. Add the name to the
+shared component once; only reach for a literal attribute where the element is one of a kind.
+
+**What to cover:** cards and list rows, table rows, primary action buttons, form fields and their
+errors, sheets and dialogs, navigation items, empty and error states, and the numbered-shawl point
+markers (`shawl-point-<number>`). **Not** every wrapper `<div>` — a name on everything is a name on
+nothing.
+
 ## Admin layout conventions
 The admin app uses shared layout primitives (`admin/src/components/layout/`). Use them —
 don't hand-roll page chrome:

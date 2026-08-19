@@ -15,6 +15,7 @@ import { useUpdateSettingsMutation } from "@/hooks/use-settings";
 import { settingsFormSchema, settingsToFormValues, toUpdatePayload, type SettingsFormValues } from "@/lib/validation/settings-form";
 import { LOCALE_LABELS } from "@/constants/locale";
 import type { AppLocale } from "@/i18n/routing";
+import { FieldError } from "@/components/ui/field-error";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { NumericInput } from "@/components/ui/numeric-input";
@@ -76,7 +77,11 @@ function MeasureField({
         aria-invalid={!!error}
         {...registration}
       />
-      {error && <p className="text-sm text-destructive">{error}</p>}
+      {error && (
+        <p className="text-sm text-destructive" data-test-selector="settings-form-error">
+          {error}
+        </p>
+      )}
     </div>
   );
 }
@@ -172,7 +177,7 @@ export function SettingsForm({ setting }: { setting: Setting }) {
               ))}
             </Tabs>
             {errors.storeName?.ar && (
-              <p className="text-sm text-destructive">{translateError(errors.storeName.ar.message ?? "")}</p>
+              <FieldError field="storeName">{translateError(errors.storeName.ar.message ?? "")}</FieldError>
             )}
           </div>
         </CardContent>
@@ -246,7 +251,7 @@ export function SettingsForm({ setting }: { setting: Setting }) {
             {...register("lowStockThreshold")}
           />
           {errors.lowStockThreshold && (
-            <p className="text-sm text-destructive">{translateError(errors.lowStockThreshold.message ?? "")}</p>
+            <FieldError field="lowStockThreshold">{translateError(errors.lowStockThreshold.message ?? "")}</FieldError>
           )}
           <p className="text-sm text-muted-foreground">{t("lowStockThresholdHint")}</p>
         </CardContent>
@@ -459,7 +464,7 @@ export function SettingsForm({ setting }: { setting: Setting }) {
           )}
           {showSaved && <Alert variant="success">{t("saved")}</Alert>}
 
-          <Button type="submit" disabled={mutation.isPending} className="w-full sm:w-auto sm:self-start">
+          <Button type="submit" data-test-selector="settings-save" disabled={mutation.isPending} className="w-full sm:w-auto sm:self-start">
             {mutation.isPending ? (
               <>
                 <Spinner />

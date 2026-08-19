@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 import { useActiveSegmentInView } from "@/lib/segmented-scroll";
+import { testSelectorFor } from "@organza/shared/lib/testSelector";
 import { cn } from "@/lib/utils";
 
 export interface SegmentedControlOption<T extends string> {
@@ -19,6 +20,12 @@ interface SegmentedControlProps<T extends string> {
   /** "lg" for the counter-side controls in sheets, where taps are hurried. */
   size?: "default" | "lg";
   disabled?: boolean;
+  /**
+   * What this row of choices IS — "product-kind", "order-channel". Rendered
+   * as `pos-segmented-<name>`, with each choice under it
+   * (`pos-segmented-<name>-<value>`) — CLAUDE.md "Test selectors".
+   */
+  name?: string;
   className?: string;
 }
 
@@ -45,6 +52,7 @@ export function SegmentedControl<T extends string>({
   label,
   size = "default",
   disabled,
+  name,
   className,
 }: SegmentedControlProps<T>) {
   const rowRef = useActiveSegmentInView<HTMLDivElement>();
@@ -54,6 +62,7 @@ export function SegmentedControl<T extends string>({
       ref={rowRef}
       role="group"
       aria-label={label}
+      data-test-selector={testSelectorFor("pos-segmented", name)}
       className={cn(
         "inline-flex w-fit max-w-full items-center gap-1 overflow-x-auto overscroll-x-contain rounded-xl border border-border bg-card p-1",
         // No scrollbar across a 44px strip — it is scrolled by thumb.
@@ -69,6 +78,7 @@ export function SegmentedControl<T extends string>({
             type="button"
             disabled={disabled}
             aria-pressed={isSelected}
+            data-test-selector={testSelectorFor(testSelectorFor("pos-segmented", name), option.value)}
             onClick={() => onChange(option.value)}
             className={cn(
               "shrink-0 whitespace-nowrap rounded-lg px-3 font-medium transition-colors",

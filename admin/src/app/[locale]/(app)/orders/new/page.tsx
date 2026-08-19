@@ -27,7 +27,7 @@ export default function NewOrderPage() {
           </Link>
         </Button>
 
-        <PageHeader title={t("title")} description={t("subtitle")} />
+        <PageHeader name="order-new" title={t("title")} description={t("subtitle")} />
 
         <OrderBuilder />
       </PageContainer>

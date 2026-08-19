@@ -17,7 +17,10 @@ export function TopBar() {
     // so the bar occupies exactly --top-bar-inset and the notch is added to
     // its height rather than eating into it (CLAUDE.md "Mobile input &
     // device specifics").
-    <header className="sticky top-0 z-30 border-b border-border bg-background pt-[var(--safe-top)]">
+    <header
+      className="sticky top-0 z-30 border-b border-border bg-background pt-[var(--safe-top)]"
+      data-test-selector="pos-top-bar"
+    >
       <div className="flex h-[var(--top-bar-height)] items-center justify-between gap-2 px-3 md:px-6">
         {/* The shop's name, and — on the sandbox only — the chip that says so.
             gap rather than a margin on the chip, so nothing shifts on the

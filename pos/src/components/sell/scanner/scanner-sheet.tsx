@@ -55,7 +55,7 @@ export function ScannerSheet({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent closeLabel={tCommon("close")} className="max-h-[90dvh]">
+      <SheetContent name="scanner" closeLabel={tCommon("close")} className="max-h-[90dvh]">
         <SheetHeader>
           <SheetTitle>{t("title")}</SheetTitle>
           <SheetDescription>{t("subtitle")}</SheetDescription>

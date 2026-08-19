@@ -7,6 +7,7 @@ import { QUANTITY_MAX_LENGTH, clampQuantity } from "@organza/shared/constants/qu
 import { NumericInput } from "@/components/ui/numeric-input";
 import { isNonNegativeIntegerString } from "@/lib/validation/numeric";
 import { MIN_CART_QUANTITY } from "@/constants/pos";
+import { testSelectorFor } from "@organza/shared/lib/testSelector";
 import { cn } from "@/lib/utils";
 
 interface QuantityStepperProps {
@@ -21,6 +22,9 @@ interface QuantityStepperProps {
   // Names the line this stepper belongs to, so a screen reader announces
   // "more — Silk Scarf" rather than three identical "more" buttons.
   itemLabel: string;
+  // Which cart line this stepper belongs to, for its name in the DOM
+  // (`pos-quantity-stepper-<name>` — CLAUDE.md "Test selectors").
+  name?: string;
   className?: string;
 }
 
@@ -37,7 +41,7 @@ interface QuantityStepperProps {
 // straight back as a number would snap it to 1 under the cashier's finger.
 // Once the draft is dropped on blur the field shows the real quantity
 // again, so the +/- buttons need nothing kept in sync.
-export function QuantityStepper({ value, max, onChange, onBelowMin, itemLabel, className }: QuantityStepperProps) {
+export function QuantityStepper({ value, max, onChange, onBelowMin, itemLabel, name, className }: QuantityStepperProps) {
   const t = useTranslations("sell.cart");
   const [draft, setDraft] = useState<string | null>(null);
 
@@ -62,7 +66,7 @@ export function QuantityStepper({ value, max, onChange, onBelowMin, itemLabel, c
   }
 
   return (
-    <div className={cn("flex items-center gap-1", className)}>
+    <div className={cn("flex items-center gap-1", className)} data-test-selector={testSelectorFor("pos-quantity-stepper", name)}>
       <button
         type="button"
         onClick={() => step(value - 1)}
@@ -70,6 +74,7 @@ export function QuantityStepper({ value, max, onChange, onBelowMin, itemLabel, c
         // otherwise it is a button that would do nothing.
         disabled={value <= floor && !onBelowMin}
         aria-label={t("decrease", { name: itemLabel })}
+        data-test-selector={testSelectorFor("pos-quantity-decrease", name)}
         className="flex size-11 shrink-0 items-center justify-center rounded-lg border border-input text-foreground transition-colors not-disabled:hover:bg-accent disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
         <Minus className="size-5" aria-hidden="true" />
@@ -81,6 +86,7 @@ export function QuantityStepper({ value, max, onChange, onBelowMin, itemLabel, c
         onBlur={(event) => commit(event.target.value)}
         maxLength={QUANTITY_MAX_LENGTH}
         aria-label={t("quantity", { name: itemLabel })}
+        data-test-selector={testSelectorFor("pos-quantity-value", name)}
         className="h-11 w-14 px-0 text-center text-base font-semibold"
       />
 
@@ -89,6 +95,7 @@ export function QuantityStepper({ value, max, onChange, onBelowMin, itemLabel, c
         onClick={() => step(value + 1)}
         disabled={value >= ceiling}
         aria-label={t("increase", { name: itemLabel })}
+        data-test-selector={testSelectorFor("pos-quantity-increase", name)}
         className="flex size-11 shrink-0 items-center justify-center rounded-lg border border-input text-foreground transition-colors not-disabled:hover:bg-accent disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
         <Plus className="size-5" aria-hidden="true" />

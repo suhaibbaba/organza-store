@@ -27,6 +27,7 @@ export function OrderSearch({ value, onChange }: OrderSearchProps) {
         onChange={(e) => onChange(e.target.value)}
         placeholder={t("placeholder")}
         aria-label={t("label")}
+        data-test-selector="orders-search"
         className="ps-11 pe-11"
       />
       {value && (
@@ -34,6 +35,7 @@ export function OrderSearch({ value, onChange }: OrderSearchProps) {
           type="button"
           onClick={() => onChange("")}
           aria-label={t("clear")}
+          data-test-selector="orders-search-clear"
           className="absolute end-2 top-1/2 flex size-8 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-accent-foreground"
         >
           <X className="size-4" aria-hidden="true" />

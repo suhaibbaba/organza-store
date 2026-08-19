@@ -20,6 +20,7 @@ import {
   type UserFormValues,
 } from "@/lib/validation/user-form";
 import { PasswordResetAction } from "@/components/users/password-reset-action";
+import { FieldError } from "@/components/ui/field-error";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
@@ -87,7 +88,7 @@ export function UserFormSheet({ open, onOpenChange, mode, user }: UserFormSheetP
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="end" closeLabel={tCommon("close")}>
+      <SheetContent name="user-form" side="end" closeLabel={tCommon("close")}>
         <SheetHeader>
           <SheetTitle>{t(mode === "create" ? "createTitle" : "editTitle")}</SheetTitle>
         </SheetHeader>
@@ -96,7 +97,7 @@ export function UserFormSheet({ open, onOpenChange, mode, user }: UserFormSheetP
           <div className="flex flex-col gap-2">
             <Label htmlFor="name">{t("name")}</Label>
             <Input id="name" aria-invalid={!!errors.name} {...register("name")} />
-            {errors.name && <p className="text-sm text-destructive">{translateError(errors.name.message ?? "")}</p>}
+            {errors.name && <FieldError field="name">{translateError(errors.name.message ?? "")}</FieldError>}
           </div>
 
           <div className="flex flex-col gap-2">
@@ -110,7 +111,7 @@ export function UserFormSheet({ open, onOpenChange, mode, user }: UserFormSheetP
               <Input id="email" type="email" dir="ltr" value={user?.email ?? ""} disabled readOnly />
             )}
             {mode === "create" ? (
-              errors.email && <p className="text-sm text-destructive">{translateError(errors.email.message ?? "")}</p>
+              errors.email && <FieldError field="email">{translateError(errors.email.message ?? "")}</FieldError>
             ) : (
               <p className="text-sm text-muted-foreground">{t("emailHint")}</p>
             )}
@@ -126,7 +127,7 @@ export function UserFormSheet({ open, onOpenChange, mode, user }: UserFormSheetP
               {...register("password")}
             />
             {errors.password ? (
-              <p className="text-sm text-destructive">{translateError(errors.password.message ?? "")}</p>
+              <FieldError field="password">{translateError(errors.password.message ?? "")}</FieldError>
             ) : (
               <p className="text-sm text-muted-foreground">
                 {t(mode === "create" ? "passwordHintCreate" : "passwordHintEdit")}
@@ -173,7 +174,7 @@ export function UserFormSheet({ open, onOpenChange, mode, user }: UserFormSheetP
                 />
               )}
             />
-            {errors.phone && <p className="text-sm text-destructive">{translateError(errors.phone.message ?? "")}</p>}
+            {errors.phone && <FieldError field="phone">{translateError(errors.phone.message ?? "")}</FieldError>}
           </div>
 
           <div className="flex flex-col gap-2">
@@ -194,7 +195,7 @@ export function UserFormSheet({ open, onOpenChange, mode, user }: UserFormSheetP
               )}
             />
             {errors.whatsapp ? (
-              <p className="text-sm text-destructive">{translateError(errors.whatsapp.message ?? "")}</p>
+              <FieldError field="whatsapp">{translateError(errors.whatsapp.message ?? "")}</FieldError>
             ) : (
               <p className="text-sm text-muted-foreground">{t("whatsappHint")}</p>
             )}
@@ -213,7 +214,7 @@ export function UserFormSheet({ open, onOpenChange, mode, user }: UserFormSheetP
             </Alert>
           )}
 
-          <Button type="submit" disabled={mutation.isPending} className="mt-auto w-full">
+          <Button type="submit" data-test-selector="user-save" disabled={mutation.isPending} className="mt-auto w-full">
             {mutation.isPending ? (
               <>
                 <Spinner />

@@ -2,6 +2,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { ChevronRight } from "lucide-react";
 import type { OrderSummary } from "@organza/shared/types/order";
 import { Link } from "@/i18n/navigation";
+import { testSelectorFor } from "@organza/shared/lib/testSelector";
 import { formatDate } from "@/lib/format";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
 import { isOrderCollectable } from "@organza/shared/lib/orders";
@@ -22,7 +23,10 @@ export function OrderCard({ order }: { order: OrderSummary }) {
   const formatMoney = useMoneyFormatter();
 
   return (
-    <div className="relative flex flex-col gap-2 rounded-xl border border-border bg-card p-3 transition-colors has-[a:active]:bg-accent">
+    <div
+      className="relative flex flex-col gap-2 rounded-xl border border-border bg-card p-3 transition-colors has-[a:active]:bg-accent"
+      data-test-selector={testSelectorFor("order-card", order.id)}
+    >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <Link

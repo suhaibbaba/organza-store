@@ -46,7 +46,7 @@ export function OrderDiscountSheet({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="end" closeLabel={tCommon("close")}>
+      <SheetContent name="order-discount" side="end" closeLabel={tCommon("close")}>
         <SheetHeader>
           <SheetTitle>{t("title")}</SheetTitle>
           <p className="text-sm text-muted-foreground">

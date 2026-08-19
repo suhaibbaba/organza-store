@@ -25,7 +25,7 @@ function PermissionsPageContent() {
 
   return (
     <PageContainer>
-      <PageHeader title={t("title")} description={t("subtitle")} />
+      <PageHeader name="permissions" title={t("title")} description={t("subtitle")} />
       {matrix ? (
         <PermissionsEditor matrix={matrix} />
       ) : (

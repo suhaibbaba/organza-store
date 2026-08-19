@@ -32,14 +32,14 @@ export function PeriodSection({ summary, period }: { summary: SalesSummary; peri
       <h2 className="text-base font-semibold">{t(`periods.${period}`)}</h2>
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard
+        <StatCard name="sold"
           label={t("sold.label")}
           tooltip={tFigures("sold.help")}
           value={formatMoney(totals.revenue)}
           hint={t("sold.hint")}
         />
 
-        <StatCard
+        <StatCard name="received"
           tone="success"
           label={t("received.label")}
           tooltip={tFigures("received.help")}
@@ -47,7 +47,7 @@ export function PeriodSection({ summary, period }: { summary: SalesSummary; peri
           hint={t("received.hint")}
         />
 
-        <StatCard
+        <StatCard name="owed"
           tone="warning"
           label={tFigures("owed.label")}
           tooltip={tFigures("owed.help")}
@@ -57,14 +57,14 @@ export function PeriodSection({ summary, period }: { summary: SalesSummary; peri
 
         {profit && (
           <>
-            <StatCard
+            <StatCard name="cogs"
               label={t("cogs.label")}
               tooltip={t("cogs.help")}
               value={formatMoney(profit.cogs)}
               hint={t("cogs.hint")}
             />
 
-            <StatCard
+            <StatCard name="expenses"
               label={t("expenses.label")}
               tooltip={t("expenses.help")}
               value={formatMoney(profit.overheads)}
@@ -75,14 +75,14 @@ export function PeriodSection({ summary, period }: { summary: SalesSummary; peri
                 money the delivery company is still holding, and the other
                 does not. Showing either alone is what makes a "profit"
                 figure ambiguous. */}
-            <StatCard
+            <StatCard name="profit-all"
               label={t("profitAll.label")}
               tooltip={t("profitAll.help")}
               value={formatMoney(profit.netProfit)}
               hint={t("profitAll.hint")}
             />
 
-            <StatCard
+            <StatCard name="profit-received"
               tone="success"
               label={t("profitReceived.label")}
               tooltip={t("profitReceived.help")}
@@ -90,7 +90,7 @@ export function PeriodSection({ summary, period }: { summary: SalesSummary; peri
               hint={t("profitReceived.hint")}
             />
 
-            <StatCard
+            <StatCard name="margin"
               label={t("margin.label")}
               tooltip={t("margin.help")}
               // Null when nothing was sold — there is no margin on no sales,

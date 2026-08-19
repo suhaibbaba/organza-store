@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { flexRender, getCoreRowModel, useReactTable, type ColumnDef } from "@tanstack/react-table";
+import { testSelectorFor } from "@organza/shared/lib/testSelector";
 import type { User } from "@organza/shared/types/user";
 import { RoleBadge } from "@/components/users/role-badge";
 import { UserStatusBadge } from "@/components/users/user-status-badge";
@@ -64,7 +65,7 @@ export function UserTable({ users, ...actions }: UserTableProps) {
   const table = useReactTable({ data: users, columns, getCoreRowModel: getCoreRowModel() });
 
   return (
-    <div className="overflow-hidden rounded-xl border border-border">
+    <div className="overflow-hidden rounded-xl border border-border" data-test-selector="users-table">
       <table className="w-full text-sm">
         <thead className="bg-secondary text-secondary-foreground">
           {table.getHeaderGroups().map((headerGroup) => (
@@ -79,7 +80,11 @@ export function UserTable({ users, ...actions }: UserTableProps) {
         </thead>
         <tbody>
           {table.getRowModel().rows.map((row) => (
-            <tr key={row.id} className="border-t border-border">
+            <tr
+              key={row.id}
+              className="border-t border-border"
+              data-test-selector={testSelectorFor("users-row", row.original.id)}
+            >
               {row.getVisibleCells().map((cell) => (
                 <td key={cell.id} className="px-4 py-3">
                   {flexRender(cell.column.columnDef.cell, cell.getContext())}

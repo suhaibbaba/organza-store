@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { formatMoney } from "@/lib/format";
 import { parseQuantity } from "@/lib/validation/numeric";
 import type { ShawlPoint } from "@/types/numberedShawl";
+import { testSelectorFor } from "@organza/shared/lib/testSelector";
 
 interface PointDetailsListProps {
   points: ShawlPoint[];
@@ -40,12 +41,17 @@ export function PointDetailsList({ points, currency, locale, basePrice, onFieldC
         const pointName = t("pointLabel", { number: point.number });
 
         return (
-          <div key={point.id} className="flex flex-col gap-3 rounded-xl border border-border bg-card p-3">
+          <div
+            key={point.id}
+            className="flex flex-col gap-3 rounded-xl border border-border bg-card p-3"
+            data-test-selector={testSelectorFor("shawl-point-details", point.number)}
+          >
             <p className="text-sm font-semibold text-foreground">{pointName}</p>
 
             <div className="flex flex-col gap-1.5">
               <span className="text-sm font-medium">{t("stock")}</span>
               <QuantityStepper
+                name={`shawl-point-${point.number}`}
                 value={parseQuantity(point.stock)}
                 onChange={(stock) => onFieldChange(point.id, "stock", String(stock))}
                 decreaseLabel={tCommon("quantity.decrease", { name: pointName })}

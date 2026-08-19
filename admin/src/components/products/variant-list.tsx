@@ -5,6 +5,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { BARCODE_SOURCE } from "@organza/shared/constants/barcode";
 import type { ProductVariantTypeRef } from "@organza/shared/types/product";
 import type { Variant } from "@organza/shared/types/variant";
+import { testSelectorFor } from "@organza/shared/lib/testSelector";
 import { localize } from "@/lib/i18n-content";
 import { formatMoney } from "@/lib/format";
 import { ProductImage } from "@/components/products/product-image";
@@ -57,7 +58,11 @@ export function VariantList({ variants, variantTypes, currency }: VariantListPro
         }));
 
         return (
-          <div key={variant.id} className="flex items-center gap-3 rounded-xl border border-border bg-card p-3">
+          <div
+            key={variant.id}
+            className="flex items-center gap-3 rounded-xl border border-border bg-card p-3"
+            data-test-selector={testSelectorFor("variant-row", variant.id)}
+          >
             <ProductImage
               src={variant.images[0]?.thumbnailUrl}
               alt={name}

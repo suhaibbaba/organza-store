@@ -18,6 +18,7 @@ import {
   SET_PASSWORD_MISMATCH,
   type SetPasswordValues,
 } from "@/lib/validation/set-password";
+import { FieldError } from "@/components/ui/field-error";
 import { Button } from "@/components/ui/button";
 import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
@@ -123,9 +124,9 @@ export function SetPasswordForm() {
           {...register("password")}
         />
         {errors.password && (
-          <p className="text-sm text-destructive">
+          <FieldError field="password">
             {translateError(errors.password.message ?? "", { min: PASSWORD_MIN_LENGTH })}
-          </p>
+          </FieldError>
         )}
       </div>
 
@@ -139,15 +140,15 @@ export function SetPasswordForm() {
           {...register("confirm")}
         />
         {errors.confirm && (
-          <p className="text-sm text-destructive">
+          <FieldError field="confirm">
             {errors.confirm.message === SET_PASSWORD_MISMATCH
               ? t("mismatch")
               : translateError(errors.confirm.message ?? "", { min: PASSWORD_MIN_LENGTH })}
-          </p>
+          </FieldError>
         )}
       </div>
 
-      <Button type="submit" disabled={isSubmitting} className="mt-2 w-full sm:w-auto sm:self-start">
+      <Button type="submit" data-test-selector="set-password-submit" disabled={isSubmitting} className="mt-2 w-full sm:w-auto sm:self-start">
         {isSubmitting ? (
           <>
             <Spinner />

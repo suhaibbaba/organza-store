@@ -49,6 +49,7 @@ import { localize } from "@/lib/i18n-content";
 import { formatMoney } from "@/lib/format";
 import { LOCALE_LABELS } from "@/constants/locale";
 import { FormContainer } from "@/components/layout/form-container";
+import { FieldError } from "@/components/ui/field-error";
 import { Input } from "@/components/ui/input";
 import { NumericInput } from "@/components/ui/numeric-input";
 import { QuantityStepper } from "@/components/ui/quantity-stepper";
@@ -542,6 +543,7 @@ export function ProductForm({ mode, product }: ProductFormProps) {
                   {SUPPORTED_LANGUAGES.map((lang) => (
                     <TabsContent key={lang} value={lang}>
                       <Input
+                        data-test-selector={`field-name-${lang}`}
                         aria-label={`${t("name")} — ${LOCALE_LABELS[lang]}`}
                         placeholder={lang === DEFAULT_LANGUAGE ? t("required") : t("optional")}
                         aria-invalid={lang === DEFAULT_LANGUAGE && !!errors.name?.ar}
@@ -551,7 +553,7 @@ export function ProductForm({ mode, product }: ProductFormProps) {
                   ))}
                 </Tabs>
                 {errors.name?.ar && (
-                  <p className="text-sm text-destructive">{translateError(errors.name.ar.message ?? "")}</p>
+                  <FieldError field="name">{translateError(errors.name.ar.message ?? "")}</FieldError>
                 )}
               </div>
 
@@ -568,6 +570,7 @@ export function ProductForm({ mode, product }: ProductFormProps) {
                   {SUPPORTED_LANGUAGES.map((lang) => (
                     <TabsContent key={lang} value={lang}>
                       <Textarea
+                        data-test-selector={`field-description-${lang}`}
                         aria-label={`${t("description")} — ${LOCALE_LABELS[lang]}`}
                         placeholder={t("optional")}
                         rows={4}
@@ -600,7 +603,7 @@ export function ProductForm({ mode, product }: ProductFormProps) {
                   )}
                 />
                 {errors.categoryId && (
-                  <p className="text-sm text-destructive">{translateError(errors.categoryId.message ?? "")}</p>
+                  <FieldError field="categoryId">{translateError(errors.categoryId.message ?? "")}</FieldError>
                 )}
               </div>
             </CardContent>
@@ -622,7 +625,7 @@ export function ProductForm({ mode, product }: ProductFormProps) {
                       {...register("basePrice")}
                     />
                     {errors.basePrice && (
-                      <p className="text-sm text-destructive">{translateError(errors.basePrice.message ?? "")}</p>
+                      <FieldError field="basePrice">{translateError(errors.basePrice.message ?? "")}</FieldError>
                     )}
                   </div>
 
@@ -636,7 +639,7 @@ export function ProductForm({ mode, product }: ProductFormProps) {
                       {...register("compareAtPrice")}
                     />
                     {errors.compareAtPrice && (
-                      <p className="text-sm text-destructive">{translateError(errors.compareAtPrice.message ?? "")}</p>
+                      <FieldError field="compareAtPrice">{translateError(errors.compareAtPrice.message ?? "")}</FieldError>
                     )}
                   </div>
 
@@ -669,7 +672,7 @@ export function ProductForm({ mode, product }: ProductFormProps) {
                     aria-invalid={!!errors.cost}
                     {...register("cost")}
                   />
-                  {errors.cost && <p className="text-sm text-destructive">{translateError(errors.cost.message ?? "")}</p>}
+                  {errors.cost && <FieldError field="cost">{translateError(errors.cost.message ?? "")}</FieldError>}
                 </div>
               )}
             </CardContent>
@@ -746,7 +749,7 @@ export function ProductForm({ mode, product }: ProductFormProps) {
                         />
                       )}
                     />
-                    {errors.stock && <p className="text-sm text-destructive">{translateError(errors.stock.message ?? "")}</p>}
+                    {errors.stock && <FieldError field="stock">{translateError(errors.stock.message ?? "")}</FieldError>}
                     {stockNeedsApproval && (
                       <p className="text-sm text-muted-foreground">{t("needsApproval.stock")}</p>
                     )}
@@ -795,7 +798,7 @@ export function ProductForm({ mode, product }: ProductFormProps) {
                 )}
               />
               {errors.barcode && (
-                <p className="text-sm text-destructive">{translateError(errors.barcode.message ?? "")}</p>
+                <FieldError field="product-barcode">{translateError(errors.barcode.message ?? "")}</FieldError>
               )}
               {willHaveVariants && <p className="text-sm text-muted-foreground">{t("barcode.parentSharedHint")}</p>}
             </CardContent>
@@ -965,7 +968,7 @@ export function ProductForm({ mode, product }: ProductFormProps) {
           <>
             {/* One button, one progress line — the several calls behind it
                 are the app's problem, not the user's. */}
-            <Button type="submit" disabled={isBusy} className="w-full sm:w-auto sm:self-start">
+            <Button type="submit" data-test-selector="product-save" disabled={isBusy} className="w-full sm:w-auto sm:self-start">
               {isBusy ? (
                 <>
                   <Spinner />

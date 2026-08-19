@@ -99,7 +99,7 @@ export function UserRemoveSheet({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="end" closeLabel={tCommon("close")} className="overflow-y-auto">
+      <SheetContent name="user-remove" side="end" closeLabel={tCommon("close")} className="overflow-y-auto">
         <SheetHeader>
           <SheetTitle>{t("title", { name: user.name })}</SheetTitle>
           <p className="truncate text-sm text-muted-foreground" dir="ltr">

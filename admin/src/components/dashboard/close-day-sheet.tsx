@@ -49,7 +49,7 @@ export function CloseDaySheet({ session, open, onOpenChange }: CloseDaySheetProp
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="end" closeLabel={tCommon("close")}>
+      <SheetContent name="close-day" side="end" closeLabel={tCommon("close")}>
         <SheetHeader>
           <SheetTitle>{t("title")}</SheetTitle>
         </SheetHeader>

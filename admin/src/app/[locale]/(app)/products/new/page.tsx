@@ -22,7 +22,7 @@ export default function NewProductPage() {
         {t("back")}
       </Link>
 
-      <PageHeader title={t("createTitle")} />
+      <PageHeader name="product-new" title={t("createTitle")} />
 
       <ProductForm mode="create" />
     </PageContainer>

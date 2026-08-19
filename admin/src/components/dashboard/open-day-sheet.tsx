@@ -34,7 +34,7 @@ export function OpenDaySheet({ open, onOpenChange, suggestedOpeningFloat }: Open
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="end" closeLabel={tCommon("close")}>
+      <SheetContent name="open-day" side="end" closeLabel={tCommon("close")}>
         <SheetHeader>
           <SheetTitle>{t("title")}</SheetTitle>
         </SheetHeader>

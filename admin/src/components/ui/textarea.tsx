@@ -1,7 +1,11 @@
 import * as React from "react";
+import { fieldTestSelector } from "@organza/shared/lib/testSelector";
 import { cn } from "@/lib/utils";
 
-function Textarea({ className, ...props }: React.ComponentProps<"textarea">) {
+type TextareaProps = React.ComponentProps<"textarea"> & { "data-test-selector"?: string };
+
+// Named from its own id, like Input — see the note there.
+function Textarea({ className, "data-test-selector": testSelector, ...props }: TextareaProps) {
   return (
     <textarea
       data-slot="textarea"
@@ -13,6 +17,7 @@ function Textarea({ className, ...props }: React.ComponentProps<"textarea">) {
         className
       )}
       {...props}
+      data-test-selector={testSelector ?? fieldTestSelector(props.id)}
     />
   );
 }

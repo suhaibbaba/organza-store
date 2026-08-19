@@ -8,6 +8,7 @@ import { SIGNED_DECIMAL_INPUT_PATTERN } from "@/constants/numeric";
 import { useSettingsQuery } from "@/hooks/use-settings";
 import { useTranslateError } from "@/hooks/use-translate-error";
 import { splitCoordinatePair, type OrderCustomerFormValues } from "@/lib/validation/customer";
+import { FieldError } from "@/components/ui/field-error";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -55,7 +56,7 @@ export function CustomerForm({ register, control, setValue, errors, onPickSugges
           placeholder={t("namePlaceholder")}
           {...register("name")}
         />
-        {errors.name && <p className="text-sm text-destructive">{translateError(errors.name.message ?? "")}</p>}
+        {errors.name && <FieldError field="customer-name">{translateError(errors.name.message ?? "")}</FieldError>}
       </div>
 
       <div className="flex flex-col gap-2">
@@ -74,7 +75,7 @@ export function CustomerForm({ register, control, setValue, errors, onPickSugges
             />
           )}
         />
-        {errors.phone && <p className="text-sm text-destructive">{translateError(errors.phone.message ?? "")}</p>}
+        {errors.phone && <FieldError field="customer-phone">{translateError(errors.phone.message ?? "")}</FieldError>}
       </div>
 
       <div className="flex flex-col gap-2">
@@ -110,7 +111,7 @@ export function CustomerForm({ register, control, setValue, errors, onPickSugges
               )}
             />
             {errors.whatsapp ? (
-              <p className="text-sm text-destructive">{translateError(errors.whatsapp.message ?? "")}</p>
+              <FieldError field="customer-whatsapp">{translateError(errors.whatsapp.message ?? "")}</FieldError>
             ) : (
               <p className="text-xs text-muted-foreground">{t("whatsappHint")}</p>
             )}
@@ -130,6 +131,7 @@ export function CustomerForm({ register, control, setValue, errors, onPickSugges
               inputMode="decimal"
               pattern={SIGNED_DECIMAL_INPUT_PATTERN}
               dir="ltr"
+              data-test-selector="field-latitude"
               placeholder={t("latitude")}
               aria-label={t("latitude")}
               aria-invalid={!!errors.latitude}
@@ -140,15 +142,16 @@ export function CustomerForm({ register, control, setValue, errors, onPickSugges
               inputMode="decimal"
               pattern={SIGNED_DECIMAL_INPUT_PATTERN}
               dir="ltr"
+              data-test-selector="field-longitude"
               placeholder={t("longitude")}
               aria-label={t("longitude")}
               aria-invalid={!!errors.longitude}
               {...register("longitude")}
             />
             {(errors.latitude || errors.longitude) && (
-              <p className="text-sm text-destructive">
+              <FieldError field="coordinates">
                 {translateError(errors.latitude?.message ?? errors.longitude?.message ?? "")}
-              </p>
+              </FieldError>
             )}
           </div>
 

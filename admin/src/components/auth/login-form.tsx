@@ -13,6 +13,7 @@ import { ACCOUNT_INACTIVE_AUTH_CODE } from "@organza/shared/constants/auth";
 import { FORGOT_PASSWORD_PATH } from "@/constants/auth";
 import { useTranslateError } from "@/hooks/use-translate-error";
 import { loginSchema, type LoginInput } from "@/lib/validation/login";
+import { FieldError } from "@/components/ui/field-error";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
@@ -103,7 +104,7 @@ export function LoginForm() {
           {...register("email")}
         />
         {errors.email && (
-          <p className="text-sm text-destructive">{translateError(errors.email.message ?? "")}</p>
+          <FieldError field="email">{translateError(errors.email.message ?? "")}</FieldError>
         )}
       </div>
 
@@ -117,13 +118,13 @@ export function LoginForm() {
           {...register("password")}
         />
         {errors.password && (
-          <p className="text-sm text-destructive">
+          <FieldError field="password">
             {translateError(errors.password.message ?? "", { min: PASSWORD_MIN_LENGTH })}
-          </p>
+          </FieldError>
         )}
       </div>
 
-      <Button type="submit" disabled={isSubmitting} className="mt-2 w-full sm:w-auto sm:self-start">
+      <Button type="submit" data-test-selector="login-submit" disabled={isSubmitting} className="mt-2 w-full sm:w-auto sm:self-start">
         {isSubmitting ? (
           <>
             <Spinner />

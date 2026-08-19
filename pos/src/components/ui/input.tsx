@@ -1,7 +1,14 @@
 import * as React from "react";
+import { fieldTestSelector } from "@organza/shared/lib/testSelector";
 import { cn } from "@/lib/utils";
 
-function Input({ className, type, ...props }: React.ComponentProps<"input">) {
+// `data-test-selector` (CLAUDE.md "Test selectors") is declared rather than
+// left to the caller's JSX so that the DEFAULT below can exist: any field with
+// an id is nameable — `field-<id>` — without anybody writing the name twice,
+// and a screen added next year inherits it. An explicit one always wins.
+type InputProps = React.ComponentProps<"input"> & { "data-test-selector"?: string };
+
+function Input({ className, type, "data-test-selector": testSelector, ...props }: InputProps) {
   return (
     <input
       type={type}
@@ -15,6 +22,7 @@ function Input({ className, type, ...props }: React.ComponentProps<"input">) {
         className
       )}
       {...props}
+      data-test-selector={testSelector ?? fieldTestSelector(props.id)}
     />
   );
 }

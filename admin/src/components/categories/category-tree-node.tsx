@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { ChevronDown, ChevronRight, Pencil, Star, Trash2 } from "lucide-react";
 import type { CategoryNode } from "@organza/shared/types/category";
+import { testSelectorFor } from "@organza/shared/lib/testSelector";
 import { localize } from "@/lib/i18n-content";
 import { Spinner } from "@/components/ui/spinner";
 import { cn } from "@/lib/utils";
@@ -49,7 +50,10 @@ export function CategoryTreeNode(props: CategoryTreeNodeProps) {
 
   return (
     <div>
-      <div className="flex min-h-14 items-center gap-1 rounded-xl border border-border bg-card ps-1 pe-2">
+      <div
+        className="flex min-h-14 items-center gap-1 rounded-xl border border-border bg-card ps-1 pe-2"
+        data-test-selector={testSelectorFor("category-row", node.id)}
+      >
         <button
           type="button"
           onClick={() => setExpanded((e) => !e)}

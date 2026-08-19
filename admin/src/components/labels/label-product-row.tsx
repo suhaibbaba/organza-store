@@ -2,6 +2,7 @@
 
 import { useLocale, useTranslations } from "next-intl";
 import type { ProductSummary } from "@organza/shared/types/product";
+import { testSelectorFor } from "@organza/shared/lib/testSelector";
 import { localize } from "@/lib/i18n-content";
 import { formatDate } from "@/lib/format";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -23,7 +24,10 @@ export function LabelProductRow({ product, selected, onToggle }: LabelProductRow
   const printedAt = formatDate(product.labelsPrintedAt, locale);
 
   return (
-    <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-border bg-card p-3 transition-colors active:bg-accent has-[:checked]:border-primary">
+    <label
+      className="flex cursor-pointer items-center gap-3 rounded-xl border border-border bg-card p-3 transition-colors active:bg-accent has-[:checked]:border-primary"
+      data-test-selector={testSelectorFor("label-row", product.id)}
+    >
       <Checkbox
         checked={selected}
         onCheckedChange={(checked) => onToggle(product.id, checked === true)}

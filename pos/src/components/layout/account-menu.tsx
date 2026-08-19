@@ -33,6 +33,7 @@ export function AccountMenu({ className }: AccountMenuProps) {
     <DropdownMenu>
       <DropdownMenuTrigger
         aria-label={t("account")}
+        data-test-selector="pos-account-menu"
         className={cn(
           "group flex min-h-11 items-center gap-2 rounded-md border border-input px-2 text-sm font-medium text-foreground",
           "transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
