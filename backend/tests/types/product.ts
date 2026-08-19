@@ -18,7 +18,15 @@ export interface ProductVariantDto {
   // Null for ordinary (non-numbered) variants.
   imageX?: number | null;
   imageY?: number | null;
-  values: { id: string }[];
+  values: {
+    id: string;
+    variantTypeId: string;
+    key: string;
+    value: { ar: string; en?: string; he?: string };
+    // What this value means on THIS product (spec.md "Notes on a product's
+    // options"), or null — which is the usual case.
+    note: { ar?: string; en?: string; he?: string } | null;
+  }[];
   // Role-gated (CLAUDE.md rule 19): absent entirely for Employee responses.
   cost?: number | string | null;
   resolvedCost?: number | string | null;
@@ -50,6 +58,10 @@ export interface ProductDto {
   // brightness instead of a stored choice.
   pointTextColor: string | null;
   pointBackgroundColor: string | null;
+  // Every note the product carries on an option value, flat — what the
+  // product form edits. The same notes reach display through
+  // variants[].values[].note.
+  optionValueNotes: { optionValueId: string; note: { ar?: string; en?: string; he?: string } }[];
   // Whatever is still waiting for an Admin on this product, its variants or
   // its photos (spec.md "Employee change approvals"). Present on every
   // product response; empty when nothing is held.
@@ -93,6 +105,8 @@ export interface ProductNumberOptionDto {
   variantNumber: number;
   number: { ar: string; en?: string; he?: string };
   numberKey: string;
+  // The note written against this number on this shawl, or null.
+  note: { ar?: string; en?: string; he?: string } | null;
   sku: string;
   barcode: string | null;
   resolvedPrice: number | string;

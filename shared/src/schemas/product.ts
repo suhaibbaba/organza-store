@@ -5,6 +5,7 @@ import {
   hexColorSchema,
   i18nOptionalSchema,
   i18nSchema,
+  optionValueNoteSchema,
   imagePointCoordinateSchema,
   paginationSchema,
 } from "@/schemas/common";
@@ -79,6 +80,23 @@ export const pointColorFields = {
   pointBackgroundColor: hexColorSchema.optional().nullable(),
 };
 
+// A note written against ONE of this product's option values (spec.md "Notes
+// on a product's options"). Scoped to the product, never to the global value:
+// the same "S" on the next product keeps whatever it had.
+//
+// The note itself is nullable, and null is meaningful — it REMOVES the note.
+// Values not mentioned are left alone, so a caller can send one changed note
+// without having to resend every note the product carries.
+export const optionValueNoteInputSchema = z.object({
+  optionValueId: z.string().min(1, ERROR_CODES.VALIDATION_REQUIRED),
+  note: optionValueNoteSchema.nullable(),
+});
+export type OptionValueNoteInput = z.infer<typeof optionValueNoteInputSchema>;
+
+export const optionValueNotesField = {
+  optionValueNotes: z.array(optionValueNoteInputSchema).optional(),
+};
+
 export const createProductSchema = z.object({
   name: i18nSchema,
   description: i18nOptionalSchema.optional(),
@@ -109,6 +127,9 @@ export const createProductSchema = z.object({
   // Selected global option values to generate variants from (cartesian
   // product across each type's valueIds). Omit for a simple product.
   optionSelections: z.array(optionSelectionSchema).optional(),
+  // Optional short note per chosen value ("طول البنطلون ٩٥ سم" against this
+  // product's own S). Only values this product actually uses are accepted.
+  ...optionValueNotesField,
 }).refine(refineBarcodeFields, BARCODE_REFINEMENT);
 export type CreateProductInput = z.infer<typeof createProductSchema>;
 
@@ -133,6 +154,9 @@ export const updateProductSchema = z.object({
   stock: z.coerce.number().int().min(0).optional(),
   // Reversible in both directions, at any time (see barcodeFields).
   ...barcodeFields,
+  // Upserted one by one: a note of `null` removes that value's note, and a
+  // value left out of the list keeps whatever it had.
+  ...optionValueNotesField,
 }).refine(refineBarcodeFields, BARCODE_REFINEMENT);
 export type UpdateProductInput = z.infer<typeof updateProductSchema>;
 

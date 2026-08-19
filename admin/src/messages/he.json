@@ -801,6 +801,13 @@
         "hidden": "מוסתר",
         "barcodeIncomplete": "הברקוד חסר"
       },
+      "optionNotes": {
+        "title": "הערות על האפשרויות",
+        "subtitle": "אופציונלי — אפשר להסביר מה כל אפשרות אומרת במוצר הזה.",
+        "countWritten": "{count} הערות נכתבו",
+        "placeholder": "לדוגמה: אורך המכנסיים 95 ס\"מ",
+        "createHint": "ההערה שייכת למוצר הזה בלבד; אותה מידה במוצר אחר לא מושפעת."
+      },
       "images": {
         "productTitle": "תמונות המוצר",
         "manageTitle": "ניהול תמונות",
@@ -1264,6 +1271,7 @@
     "productNumberedOnlyNumbers": "זהו מוצר ממוספר, ולכן אפשר להוסיף לו רק מספרים — לא צבעים או מידות.",
     "productNumbersRequireNumbered": "מספרים אפשר להוסיף רק למוצר ממוספר. שנו קודם את סוג המוצר בראש הטופס.",
     "productNumberedSwitchHasVariants": "מחקו קודם את האפשרויות של המוצר, ואז תוכלו לשנות את סוגו. שום דבר לא נמחק.",
+    "productOptionNoteValueNotUsed": "אי אפשר לכתוב הערה על אפשרות שהמוצר הזה לא משתמש בה.",
     "variantTypeNotFound": "סוג האפשרות לא נמצא.",
     "variantTypeValueNotFound": "ערך האפשרות לא נמצא.",
     "variantTypeValueDuplicate": "ערך זה כבר קיים עבור סוג זה.",
@@ -1284,6 +1292,7 @@
     "userNotFound": "המשתמש לא נמצא.",
     "authSignupFailed": "יצירת החשבון נכשלה.",
     "validationImagePointOutOfRange": "הנקודה חייבת להיות בתוך גבולות התמונה.",
+    "validationTooLong": "הטקסט ארוך מהמותר.",
     "validationInvalidColor": "יש לבחור צבע תקין.",
     "orderNotFound": "ההזמנה לא נמצאה.",
     "orderItemNotFound": "פריט זה אינו חלק מההזמנה.",

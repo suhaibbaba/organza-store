@@ -10,6 +10,17 @@ export interface I18nFormValue {
   he: string;
 }
 
+// One block of the product form's notes editor (spec.md "Notes on a product's
+// options"): a variant type and the values of it this product uses, each row
+// keyed by a string the caller owns — the option value id for an ordinary
+// product, the point id for a number being placed in this same save, whose
+// global value does not exist yet.
+export interface OptionValueNoteGroup {
+  id: string;
+  typeName: string;
+  rows: { key: string; label: string }[];
+}
+
 // Selected global option values per variant type, keyed by variantTypeId —
 // the UI's working shape for the picker; converted to the API's
 // `optionSelections` array (CLAUDE.md rule 2: values are referenced by id).

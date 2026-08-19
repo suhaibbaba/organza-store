@@ -305,6 +305,11 @@ async function main() {
       // the parent's.
       supplierBarcode?: string;
     }[];
+    // What a chosen option value MEANS on this product (spec.md "Notes on a
+    // product's options"), keyed the same way a combo is: `${typeSlug}:${valueKey}`.
+    // Scoped to the product, so "size:m" here says nothing about "size:m" on
+    // the next product — which is exactly what the seed demonstrates.
+    optionNotes?: Record<string, I18n>;
   }) {
     const searchText = buildSearchText(opts.name, opts.description);
     // Barcode is generated once and frozen thereafter, same spirit as SKU —
@@ -387,6 +392,18 @@ async function main() {
         }
       }
 
+      // Upserted like everything else here, so a re-seed neither duplicates a
+      // note nor silently reverts one somebody edited in the admin.
+      for (const [comboKey, note] of Object.entries(opts.optionNotes ?? {})) {
+        const optionValueId = valueId[comboKey];
+        if (!optionValueId) continue;
+        await prisma.productOptionValueNote.upsert({
+          where: { productId_optionValueId: { productId: product.id, optionValueId } },
+          update: { note },
+          create: { productId: product.id, optionValueId, note },
+        });
+      }
+
       let n = 0;
       for (const v of opts.variants) {
         n++;
@@ -453,6 +470,13 @@ async function main() {
       { combo: ["size:l"], name: { ar: "L", en: "L", he: "L" }, stock: 3 },
       { combo: ["size:xl"], name: { ar: "XL", en: "XL", he: "XL" }, stock: 2 },
     ],
+    // What "M" and "L" mean on an abaya. The evening dress below writes
+    // something else against the very same global values — which is the whole
+    // point of scoping a note to the product (spec.md).
+    optionNotes: {
+      "size:m": { ar: "الطول ١٤٠ سم", en: "Length 140 cm", he: "אורך 140 ס\"מ" },
+      "size:l": { ar: "الطول ١٤٥ سم", en: "Length 145 cm", he: "אורך 145 ס\"מ" },
+    },
   });
 
   // 3) Two options (Color × Size) — cartesian; incl. price override + inherited
@@ -472,6 +496,15 @@ async function main() {
       { combo: ["color:blue", "size:m"], name: { ar: "أزرق / M", en: "Blue / M", he: "כחול / M" }, stock: 6 },
       { combo: ["color:blue", "size:l"], name: { ar: "أزرق / L", en: "Blue / L", he: "כחול / L" }, stock: 0 }, // out of stock
     ],
+    // The same "size:m" the abaya above annotated, saying something entirely
+    // different here — and a colour note beside it, so one variant carries a
+    // note from two option types at once (which is what the picker has to
+    // show clearly separated). The Arabic alone on the colour is deliberate:
+    // it exercises the fall-back to the default language.
+    optionNotes: {
+      "size:m": { ar: "يناسب مقاس ٣٨-٤٠", en: "Fits EU 38-40", he: "מתאים למידה 38-40" },
+      "color:red": { ar: "اللون أغمق قليلًا من الصورة" },
+    },
   });
 
   // 4) Hidden product (isActive = false) — should not appear in normal listings
@@ -519,6 +552,12 @@ async function main() {
       { combo: ["number:5"], name: { ar: "5", en: "5", he: "5" }, stock: 0, imageX: 50, imageY: 68 },
       { combo: ["number:6"], name: { ar: "6", en: "6", he: "6" }, stock: 1, imageX: 76, imageY: 64, priceOverride: 75 },
     ],
+    // A number is an option value like any other, so it takes a note like any
+    // other — read beside the number in the POS picker, and never drawn on
+    // the photograph.
+    optionNotes: {
+      "number:4": { ar: "حرير طبيعي", en: "Pure silk", he: "משי טבעי" },
+    },
   });
 
   // 7) A piece that arrived already barcoded (shared/constants/barcode.ts):

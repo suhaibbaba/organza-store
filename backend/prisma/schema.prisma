@@ -357,10 +357,11 @@ model Product {
   labelsPrintedAt DateTime?
 
   // --- relations ---
-  images       ProductImage[]
-  variants     Variant[]
-  variantTypes ProductVariantType[]
-  orderItems   OrderItem[]
+  images           ProductImage[]
+  variants         Variant[]
+  variantTypes     ProductVariantType[]
+  optionValueNotes ProductOptionValueNote[]
+  orderItems       OrderItem[]
 
   createdById String?
   createdBy   User?   @relation("ProductCreatedBy", fields: [createdById], references: [id])
@@ -449,6 +450,7 @@ model VariantOptionValue {
   sortOrder Int    @default(0)
 
   variantValues VariantValue[]
+  productNotes  ProductOptionValueNote[]
 
   createdAt DateTime @default(now())
 
@@ -467,6 +469,36 @@ model ProductVariantType {
   variantType VariantType @relation(fields: [variantTypeId], references: [id])
 
   @@id([productId, variantTypeId])
+}
+
+// --- join: what one option value MEANS on one product ---
+//
+// "S" is not the same garment measurement on a pair of trousers as on an
+// abaya, so the shop writes "طول البنطلون ٩٥ سم" against THAT product's own S
+// (spec.md "Notes on a product's options"). The note therefore hangs off the
+// product's USE of the value and never off the global value, which is shared
+// by the whole catalogue — writing one here can never change what another
+// product's S says.
+//
+// The value is still referenced by id (CLAUDE.md rule 2): renaming "S"
+// centrally renames it everywhere and leaves every note where it was.
+model ProductOptionValueNote {
+  productId     String
+  optionValueId String
+
+  product     Product            @relation(fields: [productId], references: [id], onDelete: Cascade)
+  optionValue VariantOptionValue @relation(fields: [optionValueId], references: [id], onDelete: Cascade)
+
+  // Translatable { ar, en, he } like all user-facing content (CLAUDE.md rule
+  // 9), missing languages falling back to the default. Never blank: an empty
+  // note is stored by deleting the row, so "has a note" is one question.
+  note Json
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@id([productId, optionValueId])
+  @@index([optionValueId])
 }
 
 // --- join: variant <-> option value (reference by ID, not copied text) ---

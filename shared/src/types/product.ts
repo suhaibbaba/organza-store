@@ -9,6 +9,14 @@ import type { PRODUCT_LOOKUP_KINDS, PRODUCT_PRINT_STATES } from "@/constants/pro
 // (see constants/barcode.ts). Stored, never inferred from the code itself.
 export type BarcodeSource = (typeof BARCODE_SOURCES)[number];
 
+// One note the product carries on one option value. Translatable like every
+// other piece of user-facing content (CLAUDE.md rule 9), falling back to the
+// default language.
+export interface ProductOptionValueNote {
+  optionValueId: string;
+  note: I18n;
+}
+
 export interface ProductVariantTypeRef {
   id: string;
   name: I18n;
@@ -59,6 +67,12 @@ export interface Product {
   labelsPrintedAt: string | null;
   deletedAt: string | null;
   hasVariants: boolean;
+  // Every note this product carries on an option value, keyed by the value
+  // (spec.md "Notes on a product's options"). The same notes reach the
+  // screens that DISPLAY a value through `variants[].values[].note`; this
+  // flat list is what the product form edits, since it needs them before any
+  // variant has been generated. Empty when the product has none.
+  optionValueNotes: ProductOptionValueNote[];
   images: ProductImageRef[];
   variantTypes: ProductVariantTypeRef[];
   variants: Variant[];
@@ -137,6 +151,11 @@ export interface ProductNumberOption {
   // copied — renaming it upstream shows through here).
   number: I18n;
   numberKey: string;
+  // What this number means on this shawl (spec.md "Notes on a product's
+  // options") — the same note the picker draws beside the number. Never drawn
+  // on the photograph: the markers are tight already and text over a
+  // photograph cannot be relied on to be readable.
+  note: I18n | null;
   sku: string;
   barcode: string | null;
   resolvedPrice: string;

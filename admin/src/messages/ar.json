@@ -801,6 +801,13 @@
         "hidden": "مخفي",
         "barcodeIncomplete": "الباركود ناقص"
       },
+      "optionNotes": {
+        "title": "ملاحظات على الخيارات",
+        "subtitle": "اختياري — اشرح ماذا يعني كل خيار في هذا المنتج.",
+        "countWritten": "{count} ملاحظة مكتوبة",
+        "placeholder": "مثال: طول البنطلون ٩٥ سم",
+        "createHint": "الملاحظة تخص هذا المنتج وحده؛ المقاس نفسه في منتج آخر لا يتأثر."
+      },
       "images": {
         "productTitle": "صور المنتج",
         "manageTitle": "إدارة الصور",
@@ -1264,6 +1271,7 @@
     "productNumberedOnlyNumbers": "هذا منتج مرقّم، لذلك لا يقبل إلا الأرقام — بدون ألوان أو مقاسات.",
     "productNumbersRequireNumbered": "الأرقام للمنتجات المرقّمة فقط. غيّر نوع المنتج في أعلى الصفحة أولاً.",
     "productNumberedSwitchHasVariants": "احذف خيارات هذا المنتج أولاً، بعدها يمكنك تغيير نوعه. لم يُحذف أي شيء.",
+    "productOptionNoteValueNotUsed": "لا يمكن كتابة ملاحظة على خيار لا يستخدمه هذا المنتج.",
     "variantTypeNotFound": "نوع الخيار غير موجود.",
     "variantTypeValueNotFound": "قيمة الخيار غير موجودة.",
     "variantTypeValueDuplicate": "هذه القيمة موجودة مسبقًا لهذا النوع.",
@@ -1284,6 +1292,7 @@
     "userNotFound": "المستخدم غير موجود.",
     "authSignupFailed": "تعذر إنشاء الحساب.",
     "validationImagePointOutOfRange": "يجب أن تكون النقطة داخل حدود الصورة.",
+    "validationTooLong": "النص أطول من المسموح.",
     "validationInvalidColor": "أدخل لونًا صالحًا.",
     "orderNotFound": "الطلب غير موجود.",
     "orderItemNotFound": "هذا العنصر غير موجود ضمن الطلب.",

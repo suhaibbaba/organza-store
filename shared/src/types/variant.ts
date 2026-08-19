@@ -45,6 +45,13 @@ export interface VariantOptionValueRef {
   variantTypeId: string;
   value: I18n;
   key: string;
+  // What this value means ON THIS PRODUCT (spec.md "Notes on a product's
+  // options") — "طول البنطلون ٩٥ سم" against a pair of trousers' own S. Null
+  // when nothing was written, which is the usual case. It travels with the
+  // value reference rather than in a list of its own so that every screen
+  // that already draws the value gets the note with it, and none of them can
+  // quietly show notes for colours but not for numbers.
+  note: I18n | null;
 }
 
 export interface Variant {

@@ -2,6 +2,7 @@ import { z } from "zod";
 import { DEFAULT_PAGE, DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE } from "@/constants/pagination";
 import { IMAGE_POINT_MAX, IMAGE_POINT_MIN } from "@/constants/validation";
 import { ERROR_CODES } from "@/constants/errors";
+import { OPTION_VALUE_NOTE_MAX_LENGTH } from "@/constants/optionValueNote";
 import { HEX_COLOR_PATTERN } from "@/constants/numberedShawl";
 
 // Translatable content { ar, en, he } — ar (default language) is required,
@@ -21,6 +22,22 @@ export const i18nOptionalSchema = z
     he: z.string().min(1).optional(),
   })
   .refine((v) => Object.values(v).some(Boolean), { message: ERROR_CODES.VALIDATION_REQUIRED });
+
+// A short note written against one of a product's option values (spec.md
+// "Notes on a product's options"). Same { ar, en, he } convention as every
+// other piece of translatable content, with every language optional — a shop
+// that works in Arabic writes the Arabic and nothing else — but bounded, so
+// what lands on a picker tile stays a note rather than a paragraph.
+//
+// A language sent BLANK is accepted and dropped later, by
+// normalizeOptionValueNote, rather than by a transform here: this API refuses
+// any key a schema strips (see backend middleware/validate.ts), and a form
+// naturally posts all three boxes whether or not they were filled in.
+export const optionValueNoteSchema = z.object({
+  ar: z.string().max(OPTION_VALUE_NOTE_MAX_LENGTH, ERROR_CODES.VALIDATION_TOO_LONG).optional(),
+  en: z.string().max(OPTION_VALUE_NOTE_MAX_LENGTH, ERROR_CODES.VALIDATION_TOO_LONG).optional(),
+  he: z.string().max(OPTION_VALUE_NOTE_MAX_LENGTH, ERROR_CODES.VALIDATION_TOO_LONG).optional(),
+});
 
 export const paginationSchema = z.object({
   page: z.coerce.number().int().min(1).default(DEFAULT_PAGE),

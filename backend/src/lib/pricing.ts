@@ -27,12 +27,23 @@ function serializeImage(image: AnyRecord) {
   };
 }
 
+// The product's notes on its option values (spec.md "Notes on a product's
+// options"), as a lookup. Built once per product and handed to every variant,
+// so a product with thirty variants does not scan the list thirty times.
+function noteByOptionValueId(product: AnyRecord): Map<string, AnyRecord> {
+  return new Map(
+    ((product.optionValueNotes ?? []) as AnyRecord[]).map((row) => [row.optionValueId as string, row.note])
+  );
+}
+
 export function serializeVariant(variant: AnyRecord, product: AnyRecord, role: Role) {
   const resolvedPrice = variant.priceOverride ?? product.basePrice;
   const resolvedCost = variant.cost ?? product.cost ?? null;
   // Fallback rule: a variant with no images of its own uses the parent
   // product's gallery, resolved at read time (never copied).
   const images: AnyRecord[] = variant.images?.length ? variant.images : product.images ?? [];
+
+  const notes = noteByOptionValueId(product);
 
   const dto: AnyRecord = {
     id: variant.id,
@@ -56,6 +67,10 @@ export function serializeVariant(variant: AnyRecord, product: AnyRecord, role: R
       variantTypeId: vv.optionValue.variantTypeId,
       value: vv.optionValue.value,
       key: vv.optionValue.key,
+      // What this value means on THIS product — travelling with the value
+      // reference, so every screen that draws the value can draw the note
+      // (spec.md "Notes on a product's options"). Null is the common case.
+      note: notes.get(vv.optionValue.id) ?? null,
     })),
     createdAt: variant.createdAt,
     updatedAt: variant.updatedAt,
@@ -102,6 +117,13 @@ export function serializeProduct(product: AnyRecord, role: Role) {
     labelsPrintedAt: product.labelsPrintedAt ?? null,
     deletedAt: product.deletedAt,
     hasVariants: variants.length > 0,
+    // The same notes the variants above carry on their values, flat: what the
+    // product form edits, since it has to show a note against a chosen value
+    // before any variant exists to hang it on.
+    optionValueNotes: ((product.optionValueNotes ?? []) as AnyRecord[]).map((row) => ({
+      optionValueId: row.optionValueId,
+      note: row.note,
+    })),
     images: (product.images ?? []).map(serializeImage),
     variantTypes: (product.variantTypes ?? []).map((pvt: AnyRecord) => ({
       id: pvt.variantType.id,

@@ -801,6 +801,13 @@
         "hidden": "Hidden",
         "barcodeIncomplete": "Barcode incomplete"
       },
+      "optionNotes": {
+        "title": "Notes on the options",
+        "subtitle": "Optional — say what each option means on this product.",
+        "countWritten": "{count} notes written",
+        "placeholder": "e.g. Trouser length 95 cm",
+        "createHint": "A note belongs to this product only; the same size on another product is untouched."
+      },
       "images": {
         "productTitle": "Product images",
         "manageTitle": "Manage images",
@@ -1264,6 +1271,7 @@
     "productNumberedOnlyNumbers": "This is a numbered product, so it can only have numbers — not colours or sizes.",
     "productNumbersRequireNumbered": "Only a numbered product can have numbers. Change the product kind at the top of the form first.",
     "productNumberedSwitchHasVariants": "Delete this product's options first, then you can change its kind. Nothing was deleted.",
+    "productOptionNoteValueNotUsed": "You can't write a note on an option this product doesn't use.",
     "variantTypeNotFound": "Variant type not found.",
     "variantTypeValueNotFound": "Variant value not found.",
     "variantTypeValueDuplicate": "This value already exists for this type.",
@@ -1284,6 +1292,7 @@
     "userNotFound": "User not found.",
     "authSignupFailed": "Couldn't create the account.",
     "validationImagePointOutOfRange": "The point must be within the image.",
+    "validationTooLong": "That text is longer than allowed.",
     "validationInvalidColor": "Choose a valid colour.",
     "orderNotFound": "Order not found.",
     "orderItemNotFound": "That item isn't part of this order.",

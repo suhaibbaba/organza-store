@@ -11,6 +11,7 @@ export * from "./keyboard";
 export * from "./label";
 export * from "./languages";
 export * from "./numberedShawl";
+export * from "./optionValueNote";
 export * from "./order";
 export * from "./pagination";
 export * from "./passwordSetup";
