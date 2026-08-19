@@ -1,10 +1,31 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import type { CSSProperties } from "react";
 import Image from "next/image";
+import {
+  POINT_MARKER_ASPECT_RATIO,
+  POINT_MARKER_BORDER_PERCENT,
+  POINT_MARKER_FONT_PERCENT,
+  POINT_MARKER_RADIUS_PERCENT,
+  POINT_MARKER_WIDTH_PERCENT,
+  type PointColors,
+} from "@organza/shared/constants/numberedShawl";
 import { PRODUCT_PLACEHOLDER_PATH } from "@/constants/images";
 import { hasImageFailed, markImageFailed, resolveImageUrl } from "@/lib/image-fallback";
-import { POINT_DRAG_THRESHOLD_PX, NUMBERED_SHAWL_IMAGE_SIZES } from "@/constants/numberedShawl";
+import {
+  NUMBERED_SHAWL_IMAGE_SIZES,
+  POINT_CANVAS_MAX_HEIGHT,
+  POINT_DRAG_THRESHOLD_PX,
+  POINT_MARKER_MAX_BORDER_PX,
+  POINT_MARKER_MAX_FONT_PX,
+  POINT_MARKER_MAX_WIDTH_PX,
+  POINT_MARKER_MIN_BORDER_PX,
+  POINT_MARKER_MIN_FONT_PX,
+  POINT_MARKER_MIN_WIDTH_PX,
+  POINT_MARKER_TOUCH_PADDING_PX,
+  POINT_PREVIEW_MAX_HEIGHT,
+} from "@/constants/numberedShawl";
 import { clampPercent } from "@/lib/validation/numbered-shawl";
 import { Spinner } from "@/components/ui/spinner";
 import { cn } from "@/lib/utils";
@@ -14,6 +35,11 @@ interface ImagePointCanvasProps {
   imageUrl: string;
   alt: string;
   points: ShawlPoint[];
+  // The colours the numbers are drawn in — one pair for the whole product,
+  // already resolved (chosen / suggested / made legible) by
+  // resolvePointColors. Passed in rather than resolved here so the editor can
+  // show a colour being picked before it is saved.
+  colors: PointColors;
   selectedId?: string | null;
   disabled?: boolean;
   // Display only (the product detail page): the same photo, the same pins,
@@ -28,13 +54,19 @@ interface ImagePointCanvasProps {
 }
 
 // Shared by the pin in both modes, so the read-only one can't drift from the
-// one the points were placed with.
+// one the points were placed with. Everything about its SIZE is inline and
+// computed from the rendered image (markerStyle below); this is only the
+// shape.
 const PIN_CLASS =
-  "absolute flex size-8 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-2 text-xs font-bold shadow-md";
+  "absolute flex -translate-x-1/2 -translate-y-1/2 items-center justify-center border-solid font-bold leading-none tabular-nums";
 
 // A placeholder aspect ratio shown only until the real photo has loaded and
 // reports its natural size (below) — most product photos are portrait.
 const PLACEHOLDER_ASPECT_RATIO = 4 / 5;
+
+function clamp(min: number, value: number, max: number): number {
+  return Math.min(max, Math.max(min, value));
+}
 
 // The click/drag math below needs the *rendered* image's own box, with no
 // letterboxing from object-fit — so once the photo loads, this sizes the
@@ -45,6 +77,7 @@ export function ImagePointCanvas({
   imageUrl,
   alt,
   points,
+  colors,
   selectedId = null,
   disabled,
   readOnly,
@@ -54,6 +87,12 @@ export function ImagePointCanvas({
 }: ImagePointCanvasProps) {
   const boxRef = useRef<HTMLDivElement>(null);
   const [ratio, setRatio] = useState<number | null>(null);
+  // How wide the photo is actually being drawn, in pixels. Every marker is a
+  // proportion of it (see markerStyle), so the numbers scale with the photo
+  // instead of crowding each other on a small one. Measured rather than
+  // expressed in `cqw`, because the oldest phone in the shop is an iPhone 7
+  // on iOS 15 and container queries are Safari 16 (see lib/compat).
+  const [boxWidth, setBoxWidth] = useState(0);
   // Tracks a possible "tap to add" gesture on the empty canvas.
   const addGestureRef = useRef<{ startX: number; startY: number; moved: boolean } | null>(null);
   // Tracks a possible drag/tap gesture on one pin.
@@ -67,6 +106,21 @@ export function ImagePointCanvas({
   // The placeholder can't report a natural size, so it stands in as "ready"
   // itself — otherwise the pins would never be drawn on top of it.
   const isReady = ratio !== null || imageFailed;
+
+  useEffect(() => {
+    const box = boxRef.current;
+    if (!box) return;
+    // Rotating the phone, the photo finally reporting its ratio, the window
+    // being dragged wider — all resize the box without a re-render of their
+    // own. The first delivery carries the box's current size, so there is no
+    // separate measurement to take here.
+    const observer = new ResizeObserver((entries) => {
+      const width = entries[0]?.contentRect.width;
+      if (width) setBoxWidth(width);
+    });
+    observer.observe(box);
+    return () => observer.disconnect();
+  }, []);
 
   function percentFromEvent(clientX: number, clientY: number) {
     const rect = boxRef.current?.getBoundingClientRect();
@@ -122,15 +176,57 @@ export function ImagePointCanvas({
     if (!wasDrag) onSelectPoint?.(selectedId === id ? null : id);
   }
 
+  // One marker, sized as a share of the photo as it is actually drawn — the
+  // whole point of measuring boxWidth. A rounded rectangle rather than a
+  // circle, because "10" and "12" do not sit comfortably inside a circle at a
+  // size anybody would want to tap.
+  //
+  // Legibility on a busy photograph is three things at once: the chosen
+  // background, an outline in the text's own colour (which the shared
+  // resolver guarantees contrasts with it), and a soft shadow that lifts the
+  // whole badge off whatever is behind it.
+  const markerWidth = clamp(
+    POINT_MARKER_MIN_WIDTH_PX,
+    (boxWidth * POINT_MARKER_WIDTH_PERCENT) / 100,
+    POINT_MARKER_MAX_WIDTH_PX
+  );
+  const markerHeight = markerWidth / POINT_MARKER_ASPECT_RATIO;
+  const borderWidth = clamp(
+    POINT_MARKER_MIN_BORDER_PX,
+    (boxWidth * POINT_MARKER_BORDER_PERCENT) / 100,
+    POINT_MARKER_MAX_BORDER_PX
+  );
+  const markerStyle: CSSProperties = {
+    width: `${markerWidth}px`,
+    height: `${markerHeight}px`,
+    borderRadius: `${(markerHeight * POINT_MARKER_RADIUS_PERCENT) / 100}px`,
+    fontSize: `${clamp(
+      POINT_MARKER_MIN_FONT_PX,
+      (boxWidth * POINT_MARKER_FONT_PERCENT) / 100,
+      POINT_MARKER_MAX_FONT_PX
+    )}px`,
+    borderWidth: `${borderWidth}px`,
+    color: colors.text,
+    backgroundColor: colors.background,
+    borderColor: colors.text,
+    boxShadow: "0 1px 4px rgba(0, 0, 0, 0.45)",
+  };
+
+  const maxHeight = readOnly ? POINT_PREVIEW_MAX_HEIGHT : POINT_CANVAS_MAX_HEIGHT;
+  const boxRatio = ratio ?? PLACEHOLDER_ASPECT_RATIO;
+
   return (
     <div
       className={cn(
+        // Centred in both modes, because the box is now narrower than its
+        // column whenever the height cap is what bounds the photo.
+        "flex justify-center",
         // Reading the shawl (the detail page): the photo and its numbers,
         // with nothing around them — the same as the ordinary gallery, which
         // lost its card, its border and its plate for the same reason.
         // Placing the points (the editor): the grey work surface, framed,
         // because there the photo is a canvas being worked on.
-        readOnly ? "flex justify-center" : "overflow-hidden rounded-xl border border-border bg-muted"
+        !readOnly && "overflow-hidden rounded-xl border border-border bg-muted"
       )}
     >
       <div
@@ -138,20 +234,16 @@ export function ImagePointCanvas({
         onPointerDown={readOnly ? undefined : handleBoxPointerDown}
         onPointerMove={readOnly ? undefined : handleBoxPointerMove}
         onPointerUp={readOnly ? undefined : handleBoxPointerUp}
-        style={{ aspectRatio: ratio ?? PLACEHOLDER_ASPECT_RATIO }}
-        className={cn(
-          "relative select-none",
-          // On the detail page the photo is capped by HEIGHT and takes its
-          // width from that — a portrait shawl at full column width stood
-          // taller than the phone and buried everything under it. The box
-          // still has exactly the photo's aspect ratio, which is what the
-          // points' percentages are measured against, so capping it moves
-          // the numbers with the photo instead of off it. In the editor the
-          // photo stays as large as the column allows: the points are placed
-          // by finger there, and a smaller target is a harder one.
-          readOnly ? "h-[min(18rem,45vh)] w-auto max-w-full md:h-[min(22rem,60vh)]" : "w-full",
-          !readOnly && "touch-none"
-        )}
+        style={{
+          aspectRatio: boxRatio,
+          // Capped by height AND width at once: a very tall photo can no
+          // longer push the rest of the screen below the fold, and a wide one
+          // still fills the column. The ratio is the photo's own, so the
+          // points — percentages of THIS box — stay exactly where they were
+          // put whichever of the two caps bites.
+          width: `min(100%, calc(${boxRatio} * ${maxHeight}))`,
+        }}
+        className={cn("relative select-none", !readOnly && "touch-none")}
       >
         {imageFailed ? (
           // The photo is gone. The pins still are not: they are stored as
@@ -191,11 +283,7 @@ export function ImagePointCanvas({
         {isReady &&
           points.map((point) =>
             readOnly ? (
-              <span
-                key={point.id}
-                style={{ left: `${point.x}%`, top: `${point.y}%` }}
-                className={cn(PIN_CLASS, "border-white bg-black/70 text-white")}
-              >
+              <span key={point.id} style={{ ...markerStyle, left: `${point.x}%`, top: `${point.y}%` }} className={PIN_CLASS}>
                 {point.number}
               </span>
             ) : (
@@ -207,15 +295,23 @@ export function ImagePointCanvas({
                 onPointerDown={(e) => handlePinPointerDown(e, point.id)}
                 onPointerMove={(e) => handlePinPointerMove(e, point.id)}
                 onPointerUp={(e) => handlePinPointerUp(e, point.id)}
-                style={{ left: `${point.x}%`, top: `${point.y}%` }}
-                className={cn(
-                  PIN_CLASS,
-                  "touch-none",
-                  selectedId === point.id
-                    ? "border-primary-foreground bg-primary text-primary-foreground ring-2 ring-primary"
-                    : "border-white bg-black/70 text-white"
-                )}
+                style={{
+                  ...markerStyle,
+                  left: `${point.x}%`,
+                  top: `${point.y}%`,
+                  // The selection ring is an OUTLINE, not a border or a
+                  // Tailwind ring: both of those are the badge's own edge,
+                  // which now belongs to the shop's colours.
+                  outline: selectedId === point.id ? `${borderWidth + 1}px solid var(--primary)` : undefined,
+                  outlineOffset: `${borderWidth}px`,
+                }}
+                className={cn(PIN_CLASS, "touch-none", selectedId === point.id && "z-10")}
               >
+                {/* The badge stays the size the photo says; the FINGER gets
+                    its 44px from this invisible pad around it. Growing the
+                    badge instead is what made the numbers crowd each other on
+                    a small rendering. */}
+                <span aria-hidden="true" className="absolute" style={{ inset: `-${POINT_MARKER_TOUCH_PADDING_PX}px` }} />
                 {point.number}
               </button>
             )

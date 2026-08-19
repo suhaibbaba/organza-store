@@ -2,6 +2,7 @@ import { z } from "zod";
 import {
   booleanInput,
   decimalInput,
+  hexColorSchema,
   i18nOptionalSchema,
   i18nSchema,
   imagePointCoordinateSchema,
@@ -69,6 +70,15 @@ export const optionSelectionSchema = z.object({
   imagePoints: z.record(z.string(), imagePointSchema).optional(),
 });
 
+// Numbered shawls (spec.md): the marker colours, stored on the product so a
+// choice survives the photograph being replaced. Explicit null means "go back
+// to following the photo" — which is why they are nullable rather than merely
+// optional (omitted = leave alone).
+export const pointColorFields = {
+  pointTextColor: hexColorSchema.optional().nullable(),
+  pointBackgroundColor: hexColorSchema.optional().nullable(),
+};
+
 export const createProductSchema = z.object({
   name: i18nSchema,
   description: i18nOptionalSchema.optional(),
@@ -86,6 +96,10 @@ export const createProductSchema = z.object({
   // the API accepts for this product is Number, and when off it accepts every
   // type except Number.
   isNumbered: z.boolean().optional(),
+  // The colour of the numbers drawn on the photo and of the badge behind them
+  // (spec.md "Numbered shawls"), one pair for the whole product. Omitted —
+  // the usual case — the numbers follow the photo's own brightness instead.
+  ...pointColorFields,
   sku: z.string().min(1).optional(),
   stock: z.coerce.number().int().min(0).optional(),
   // Auto-generation is the default (CLAUDE.md rule 13): omit these and the
@@ -112,6 +126,9 @@ export const updateProductSchema = z.object({
   // rather than throwing away numbers or colours (error.product.
   // numbered_switch_has_variants).
   isNumbered: z.boolean().optional(),
+  // Null puts either half back to "follow the photo"; a colour pins it, and
+  // it stays pinned when the photograph is replaced.
+  ...pointColorFields,
   sku: z.string().min(1).optional(),
   stock: z.coerce.number().int().min(0).optional(),
   // Reversible in both directions, at any time (see barcodeFields).

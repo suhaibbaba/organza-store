@@ -832,7 +832,16 @@
         "inherits": "Inherits {value}",
         "saving": "Saving…",
         "save": "Save points",
-        "saveSuccess": "Points saved."
+        "saveSuccess": "Points saved.",
+        "colors": {
+          "title": "Number colour",
+          "autoHint": "Chosen automatically from how light or dark the photo is. Change it if the numbers are hard to see.",
+          "chosenHint": "You chose these colours, and they stay even if the photo is replaced.",
+          "background": "Badge colour",
+          "text": "Number colour",
+          "useSuggestion": "Use the suggested colour",
+          "contrastAdjusted": "Those two colours were too close, so the number's colour was adjusted to keep it readable."
+        }
       },
       "kind": {
         "title": "What are you selling?",
@@ -1275,6 +1284,7 @@
     "userNotFound": "User not found.",
     "authSignupFailed": "Couldn't create the account.",
     "validationImagePointOutOfRange": "The point must be within the image.",
+    "validationInvalidColor": "Choose a valid colour.",
     "orderNotFound": "Order not found.",
     "orderItemNotFound": "That item isn't part of this order.",
     "orderItemsRequired": "Add at least one product to the order.",

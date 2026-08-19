@@ -30,6 +30,7 @@ export const ERROR_MESSAGE_KEYS: Record<string, string> = {
   [ERROR_CODES.VALIDATION_INVALID_EMAIL]: "errors.validationInvalidEmail",
   [ERROR_CODES.VALIDATION_PASSWORD_TOO_SHORT]: "errors.validationPasswordTooShort",
   [ERROR_CODES.VALIDATION_IMAGE_POINT_OUT_OF_RANGE]: "errors.validationImagePointOutOfRange",
+  [ERROR_CODES.VALIDATION_INVALID_COLOR]: "errors.validationInvalidColor",
 
   [ERROR_CODES.CATEGORY_NOT_FOUND]: "errors.categoryNotFound",
   [ERROR_CODES.CATEGORY_CIRCULAR_PARENT]: "errors.categoryCircularParent",

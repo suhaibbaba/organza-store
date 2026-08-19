@@ -2,6 +2,7 @@ import { z } from "zod";
 import { DEFAULT_PAGE, DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE } from "@/constants/pagination";
 import { IMAGE_POINT_MAX, IMAGE_POINT_MIN } from "@/constants/validation";
 import { ERROR_CODES } from "@/constants/errors";
+import { HEX_COLOR_PATTERN } from "@/constants/numberedShawl";
 
 // Translatable content { ar, en, he } — ar (default language) is required,
 // en/he fall back to it when missing (CLAUDE.md rule 9).
@@ -52,3 +53,11 @@ export const imagePointCoordinateSchema = z
   .number()
   .min(IMAGE_POINT_MIN, ERROR_CODES.VALIDATION_IMAGE_POINT_OUT_OF_RANGE)
   .max(IMAGE_POINT_MAX, ERROR_CODES.VALIDATION_IMAGE_POINT_OUT_OF_RANGE);
+
+// A colour chosen with a colour picker — `#RGB` or `#RRGGBB`, normalized to
+// upper case so the same colour is stored one way (numbered shawls, spec.md).
+export const hexColorSchema = z
+  .string()
+  .trim()
+  .regex(HEX_COLOR_PATTERN, ERROR_CODES.VALIDATION_INVALID_COLOR)
+  .transform((v) => v.toUpperCase());

@@ -835,8 +835,38 @@ stock/price. Send one numbered image on WhatsApp; the customer replies with a nu
   (not pixels) so points stay correct at any screen size.
 - Numbers are unique within a product (the variant set already guarantees this).
 
-**Display:** product image as background; numbers drawn on a separate transparent overlay (small
-circles) using each variant's `imageX/imageY`. Full image visible with numbers on top.
+**New fields on Product (marker colours):** `pointTextColor` and `pointBackgroundColor` (hex,
+nullable). ONE pair for all of a product's numbers, never one per number.
+
+**New field on ProductImage:** `brightness` (0-100, nullable) — how light or dark the photograph
+is, measured once by `sharp` at upload and read only to suggest a marker colour.
+
+**Display:** product image as background; numbers drawn on a separate transparent overlay using
+each variant's `imageX/imageY`. Full image visible with numbers on top. Three rules hold
+everywhere the numbers are drawn — the admin's placement canvas, the product detail page, and the
+WhatsApp export — because a shared image that does not match what the shop is looking at is worse
+than no image:
+
+- **The photo is capped by HEIGHT as well as width**, keeping its own aspect ratio and staying
+  centred. A portrait shawl given a whole desktop column stood taller than the window and pushed
+  everything else below the fold. The box always has exactly the photo's ratio, since the points
+  are percentages of it, so capping it moves the numbers with the photo rather than off it.
+- **A marker is a proportion of the rendered image, never a fixed pixel size** — clamped into a
+  readable range, and drawn as a rounded rectangle rather than a circle, because "10" and "12" do
+  not sit comfortably in a circle at a size anybody would want to tap. A fixed size is what made
+  the numbers crowd each other on a small rendering. The badge stays the size the photo says; a
+  finger gets its 44px from an invisible pad around it.
+- **The colour is the shop's to choose, and it usually does not have to.** Null on either field
+  means "follow the photo": the suggestion is read from the primary image's `brightness`, so a
+  black abaya gets white markers and a cream scarf dark ones. Choosing a colour pins it — and it
+  deliberately OUTLIVES the photograph, since replacing the image re-measures the suggestion but
+  never overwrites a choice. Whatever the pair, the number stays readable: below the minimum
+  contrast ratio the TEXT is swapped for black or white (the background is what was chosen to sit
+  against the photograph, so it is the half that is kept), and every marker carries an outline in
+  its text colour plus a soft shadow so it reads on a busy part of a photograph.
+
+All three live in `shared/` (`constants/numberedShawl.ts`, `lib/pointColors.ts`) rather than in one
+app's CSS, so the burned-in WhatsApp copy resolves exactly the same colours.
 
 **Admin input (two-step, to avoid mis-linking):**
 1. Place points on the image first — auto-numbered 1, 2, 3… (creates the Number values/variants).

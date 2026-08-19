@@ -11,3 +11,8 @@ export const IMAGE_SIZES = {
 } as const;
 
 export const IMAGE_WEBP_QUALITY = 82;
+
+// Rec. 709 luma weights — what the eye reads as brightness, which is mostly
+// the green channel. Used to measure an uploaded photograph so a numbered
+// shawl's numbers can suggest their own colour (spec.md "Numbered shawls").
+export const BRIGHTNESS_WEIGHTS = { r: 0.2126, g: 0.7152, b: 0.0722 } as const;

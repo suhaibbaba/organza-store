@@ -4,7 +4,9 @@ import crypto from "node:crypto";
 import sharp from "sharp";
 import { AppError } from "@/lib/response";
 import { ERROR_CODES } from "@/constants";
+import { IMAGE_BRIGHTNESS_MAX, IMAGE_BRIGHTNESS_MIN } from "@organza/shared/constants/numberedShawl";
 import {
+  BRIGHTNESS_WEIGHTS,
   DEFAULT_ALLOWED_IMAGE_TYPES,
   DEFAULT_UPLOAD_DIR,
   DEFAULT_UPLOAD_MAX_SIZE_MB,
@@ -89,6 +91,31 @@ async function assertDecodableImage(buffer: Buffer): Promise<void> {
   }
 }
 
+/**
+ * How light or dark this photograph is, 0 (black) to 100 (white).
+ *
+ * Read once, here, so that a numbered shawl's numbers can suggest their own
+ * colour — white on a black abaya, dark on a cream scarf (spec.md "Numbered
+ * shawls"). Measured over the WHOLE picture rather than under each number:
+ * the numbers move, the suggestion is only a starting point the shop can
+ * override, and one reading per photo is a great deal cheaper than one per
+ * point.
+ *
+ * Perceived (Rec. 709) rather than a plain channel average, because green
+ * carries most of what the eye reads as brightness — a saturated green
+ * background is far lighter to look at than its mean says.
+ *
+ * Never fatal: a photo whose statistics sharp cannot produce is still a
+ * perfectly good photo, and the caller falls back to the shipped marker.
+ */
+export async function measureBrightness(buffer: Buffer): Promise<number> {
+  const { channels } = await sharp(buffer).stats();
+  const [r, g, b] = channels;
+  if (!r || !g || !b) throw new Error("no channel statistics");
+  const luma = (BRIGHTNESS_WEIGHTS.r * r.mean + BRIGHTNESS_WEIGHTS.g * g.mean + BRIGHTNESS_WEIGHTS.b * b.mean) / 255;
+  return Math.min(IMAGE_BRIGHTNESS_MAX, Math.max(IMAGE_BRIGHTNESS_MIN, Math.round(luma * IMAGE_BRIGHTNESS_MAX)));
+}
+
 // Resizes into every size (max dimension, aspect preserved, never upscaled),
 // converts to WebP, and writes each under UPLOAD_DIR — served statically at /uploads.
 //
@@ -97,6 +124,10 @@ async function assertDecodableImage(buffer: Buffer): Promise<void> {
 // merely unlikely: there is no caller-supplied string anywhere in the path.
 export async function storeProductImage(buffer: Buffer): Promise<StoredImage> {
   await assertDecodableImage(buffer);
+
+  // Measured before anything is written, and never allowed to fail the
+  // upload: this only decides what colour a suggestion starts at.
+  const brightness = await measureBrightness(buffer).catch(() => null);
 
   await fs.mkdir(UPLOAD_DIR, { recursive: true });
   const filename = crypto.randomUUID();
@@ -111,7 +142,7 @@ export async function storeProductImage(buffer: Buffer): Promise<StoredImage> {
     urls[size] = `/uploads/${outputName}`;
   }
 
-  return { filename, urls };
+  return { filename, urls, brightness };
 }
 
 // Best-effort cleanup — a missing file (already removed, or never fully
