@@ -71,6 +71,8 @@ from past orders — there is still no Customer table behind it.
      and **no shop-wide money view at all** — no dashboard, no Reports, no outstanding total.
      They see the orders they take, never every order added up.
    Five Employee actions are neither applied nor refused but **held for approval** (rule 21).
+   That table is the shop's **starting point**: most of it is editable per shop from the admin's
+   Permissions screen, and a specific part of it can never be — see rule 22.
 6. **Every mutation writes an Audit Log entry** (userId, action, entityType, entityId, old/new).
 7. **stock default = 1** for products and variants.
 8. **Validate all inputs with Zod** (shared schemas where possible).
@@ -83,9 +85,9 @@ from past orders — there is still no Customer table behind it.
     Product's `searchText` in sync on every name/description change.
 11. **Essential data ≠ demo data.** `npm run bootstrap` (`backend/src/lib/bootstrap.ts`) creates
     the only things a real shop cannot run without — the Setting singleton, the global variant
-    types + their default values, the expense categories — each **once in the life of the
-    database**, recorded in `BootstrapRecord`. Never re-upsert them: a value the shop deleted
-    stays deleted. It runs on every deploy. The **demo seed** is
+    types + their default values, the expense categories, and the configurable role permissions
+    (rule 22) — each **once in the life of the database**, recorded in `BootstrapRecord`. Never
+    re-upsert them: a value the shop deleted stays deleted. It runs on every deploy. The **demo seed** is
     `backend/prisma/dev/demo-seed.ts` (`npm run seed:demo`): upsert-based, covers every rule
     (all roles, all product shapes, hidden + soft-deleted samples), its `normalize()` must stay
     in sync with the real search normalizer — and it is **quarantined**: not wired to
@@ -167,6 +169,23 @@ from past orders — there is still no Customer table behind it.
     both are audited alongside the request itself. Approval is `changeRequest.approve` (Admin
     only, widenable). Never add a second `approvalStatus` column to another table — add an entry
     to `CHANGE_REQUEST_FIELDS` and an applier in `backend/src/lib/changeRequestAppliers.ts`.
+22. **Every permission action is PROTECTED or CONFIGURABLE** — declared beside the action itself in
+    `shared/src/constants/permissions.ts`, exhaustive and disjoint, checked at module load (see
+    "Editable role permissions" in `spec.md`). **PROTECTED** is answered by `can()` from the shipped
+    table and nothing else: cost/profit and the reports, re-pricing, editing/cancelling/deleting/
+    returning an order, gifts, marking money collected, approving a change or an expense, managing
+    staff, reading an ID number, and managing permissions itself. Those are the anti-theft
+    guarantees the whole design rests on, plus the ones a locked-out Admin could never undo — so
+    there is deliberately no row, no endpoint and no screen that can move them, and the API refuses
+    a protected action **server-side**, not merely hides it. **CONFIGURABLE** grants live one row
+    per (role, action) in `RolePermission`, seeded from today's exact defaults by
+    `npm run bootstrap` (rule 11), with a MISSING row meaning "as shipped" rather than "no".
+    `can()` stays synchronous: each process holds the table in memory, refreshes immediately on its
+    own write, and picks up another process's write through a cheap digest probe
+    (`backend/src/lib/permissionConfig.ts`) — never a query per call. Adding an action means adding
+    it to one of the two lists, to `DEFAULT_ROLE_PERMISSIONS`, and to `PERMISSION_GROUPS` in the
+    admin; no call site changes. Editing is Admin-only, never your own role, and every flip is
+    audited.
 
 ## Workflow
 - Build **one stage at a time** (see the build order in `spec.md`). Test a stage before the next.

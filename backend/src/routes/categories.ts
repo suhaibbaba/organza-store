@@ -52,8 +52,13 @@ function wouldCreateCycle(categories: Category[], categoryId: string, candidateP
 // ---------------------------------------------------------------------------
 // GET /api/categories — list as a nested tree (default) or ?flat=true
 // ---------------------------------------------------------------------------
+// Gated on category.view for the same reason the product list is gated on
+// product.view: every role holds it as shipped, so nothing changes today —
+// but it is a CONFIGURABLE grant now, and a grant the API does not enforce is
+// a checkbox that lies (spec.md "Editable role permissions").
 router.get(
   "/",
+  requirePermission("category.view"),
   asyncHandler(async (req, res) => {
     const categories = await prisma.category.findMany({ orderBy: { createdAt: "asc" } });
     if (req.query.flat === "true") {

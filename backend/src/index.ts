@@ -18,6 +18,7 @@ import reportsRouter from "@/routes/reports";
 import usersRouter from "@/routes/users";
 import passwordSetupRouter from "@/routes/passwordSetup";
 import settingsRouter from "@/routes/settings";
+import permissionsRouter from "@/routes/permissions";
 import imagesRouter from "@/routes/images";
 import pushRouter from "@/routes/push";
 import versionRouter from "@/routes/version";
@@ -25,6 +26,7 @@ import { errorHandler } from "@/middleware/errorHandler";
 import { AppError, sendError } from "@/lib/response";
 import { UPLOAD_DIR, checkUploadDirWritable } from "@/lib/image";
 import { getBackupHealth, startBackupStalenessWatch } from "@/lib/backups";
+import { loadPermissionConfig } from "@/lib/permissionConfig";
 import { TRUST_PROXY_SETTING, describeProxyTrust } from "@/lib/proxyTrust";
 import { captureException } from "@/lib/logger";
 import { ERROR_CODES } from "@/constants";
@@ -117,6 +119,7 @@ app.use("/api/users", usersRouter);
 // that an account exists (see routes/passwordSetup.ts).
 app.use("/api/password-setup", passwordSetupRouter);
 app.use("/api/settings", settingsRouter);
+app.use("/api/permissions", permissionsRouter);
 app.use("/api/images", imagesRouter);
 app.use("/api/push", pushRouter);
 
@@ -129,6 +132,15 @@ app.use(errorHandler);
 const port = Number(process.env.PORT ?? 4000);
 app.listen(port, async () => {
   console.log(`Organza Store API listening on port ${port}`);
+
+  // WHO MAY DO WHAT, read into memory before the first request arrives
+  // (lib/permissionConfig.ts). Awaited rather than fired off: until it lands,
+  // `can()` answers from the shipped defaults, and a shop that has switched an
+  // Employee permission off should not get one request's worth of it back
+  // every time the API restarts. A failure here is reported and NOT fatal —
+  // the defaults are a working shop, and the next request's freshness check
+  // tries again.
+  await loadPermissionConfig();
 
   // The one alarm nothing else can raise. ops/backup.sh reports its own
   // failures, but a backup that stopped being *run* — a cron entry lost in a

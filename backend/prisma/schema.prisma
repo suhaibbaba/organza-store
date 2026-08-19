@@ -69,6 +69,12 @@ model User {
   requestedChanges ChangeRequest[] @relation("ChangeRequestRequestedBy")
   decidedChanges   ChangeRequest[] @relation("ChangeRequestDecidedBy")
 
+  // Permission grants this account last flipped. Nothing here blocks a hard
+  // delete that would otherwise be allowed: every one of these edits also
+  // writes an audit entry, and an account with audit history is refused
+  // deletion long before this relation is reached (lib/userHistory.ts).
+  updatedRolePermissions RolePermission[]
+
   openedCashSessions    CashSession[] @relation("CashSessionOpenedBy")
   closedCashSessions    CashSession[] @relation("CashSessionClosedBy")
   resolvedCashFollowUps CashSession[] @relation("CashSessionFollowUpBy")
@@ -186,6 +192,47 @@ model PasswordSetupToken {
 model BootstrapRecord {
   key       String   @id
   appliedAt DateTime @default(now())
+}
+
+// ============================================================
+//  ROLE PERMISSIONS (spec.md "Editable role permissions")
+// ============================================================
+//
+// The CONFIGURABLE half of the rules — which actions a role holds — moved out
+// of the code and into here, so the shop can decide for itself whether its
+// Employees handle stock or its Managers print the labels. The PROTECTED half
+// (cost and profit, undoing a sale, marking money collected, signing changes
+// off, managing staff, and editing this very table) is NOT here and never
+// will be: it lives in shared/src/constants/permissions.ts, `can()` answers it
+// from there alone, and there is deliberately no row anyone could write to
+// move it. A row for a protected action is refused by the API and ignored by
+// `can()` even if one is inserted by hand.
+//
+// One row per (role, action), toggled rather than deleted:
+//   - `granted` is the decision. A MISSING row is not "no" — it is "nobody has
+//     decided", and falls back to DEFAULT_ROLE_PERMISSIONS, which is what
+//     makes an action added in a later release behave as shipped on a database
+//     bootstrapped before it existed.
+//   - and a row that is toggled rather than deleted keeps the table small and
+//     fixed, which is what lets a second API process ask "have the rules
+//     changed?" with one cheap digest query instead of re-reading the whole
+//     table on every request (see backend/src/lib/permissionConfig.ts).
+model RolePermission {
+  role   Role
+  action String // a PermissionAction — shared/src/constants/permissions.ts
+
+  granted Boolean
+
+  // Who last flipped it. Nullable because the bootstrap seeds this table with
+  // the shipped defaults and no person did that; every later change names one,
+  // and is in the audit log besides (CLAUDE.md rule 6).
+  updatedById String?
+  updatedBy   User?   @relation(fields: [updatedById], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@id([role, action])
 }
 
 // ============================================================
@@ -504,6 +551,16 @@ enum AuditAction {
   // one that never did anything (see backend/src/lib/userHistory.ts).
   USER_DEACTIVATED
   USER_REACTIVATED
+  // Handing a role an action, or taking it back (spec.md "Editable role
+  // permissions"). Their own actions rather than an UPDATE on a settings-ish
+  // row, for the same reason the two above are not: "who let the Employees
+  // adjust stock, and when" is a question that has to be answerable by
+  // filtering the trail, not by opening every edit and diffing two blobs.
+  //
+  // Only ever written for a CONFIGURABLE action. A protected one cannot be
+  // granted or revoked at all, so there is nothing here to record.
+  PERMISSION_GRANTED
+  PERMISSION_REVOKED
 }
 
 model AuditLog {

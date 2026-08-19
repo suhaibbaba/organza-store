@@ -69,6 +69,12 @@ export const VERIFY_AREAS: readonly VerifyArea[] = [
     claim: "Every role against every sensitive action, and no cost or profit leaking anywhere.",
     files: [
       "permissions.verify.test.ts",
+      // The editable half of the same subject (spec.md "Editable role
+      // permissions"): what a shop may change, what it may never change, and
+      // that the cache behind `can()` never answers with yesterday's rules.
+      "permissions.test.ts",
+      "permissionCache.test.ts",
+      "permissionResolution.test.ts",
       "changeRequests.test.ts",
       "users.test.ts",
       "settings.test.ts",

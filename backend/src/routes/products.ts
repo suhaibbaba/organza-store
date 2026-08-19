@@ -95,8 +95,14 @@ function assertMayRequest(user: { role: string }): void {
 // ---------------------------------------------------------------------------
 // GET /api/products — list (pagination + filtering + sorting + search)
 // ---------------------------------------------------------------------------
+// Gated on product.view, which every role holds as shipped — so this changes
+// nothing about who can read the catalogue today. It is here because
+// product.view became CONFIGURABLE (spec.md "Editable role permissions"): an
+// Admin who unticks it for a role has to find that the API refuses them, not
+// merely that a nav item vanished while `curl` still worked.
 router.get(
   "/",
+  requirePermission("product.view"),
   validateQuery(listProductsQuerySchema),
   asyncHandler(async (req, res) => {
     const query = req.validatedQuery as ListProductsQuery;
@@ -210,6 +216,7 @@ router.get(
 // ---------------------------------------------------------------------------
 router.get(
   "/lookup",
+  requirePermission("product.view"),
   validateQuery(lookupProductQuerySchema),
   asyncHandler(async (req, res) => {
     const { code } = req.validatedQuery as LookupProductQuery;
@@ -318,6 +325,7 @@ router.post(
 // ---------------------------------------------------------------------------
 router.get(
   "/:id",
+  requirePermission("product.view"),
   asyncHandler(async (req, res) => {
     const product = await prisma.product.findFirst({
       where: { id: req.params.id, deletedAt: null },

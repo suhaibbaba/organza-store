@@ -17,6 +17,7 @@ export * from "./languages";
 export * from "./order";
 export * from "./pagination";
 export * from "./passwordSetup";
+export * from "./permissions";
 export * from "./phone";
 export * from "./product";
 export * from "./productionImport";

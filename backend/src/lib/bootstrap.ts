@@ -1,3 +1,5 @@
+import { CONFIGURABLE_ACTIONS, DEFAULT_ROLE_PERMISSIONS } from "@organza/shared/constants/permissions";
+import { ROLES } from "@organza/shared/constants/roles";
 import { prisma } from "@/lib/prisma";
 import {
   BOOTSTRAP_EXPENSE_CATEGORIES,
@@ -102,6 +104,32 @@ export async function runBootstrap(): Promise<BootstrapSummary> {
         });
       }
     );
+  }
+
+  // --- who may do what (spec.md "Editable role permissions") ---
+  //
+  // The CONFIGURABLE grants, copied out of DEFAULT_ROLE_PERMISSIONS exactly as
+  // they are declared, so a shop that has never opened the Permissions screen
+  // behaves on day one precisely as it did before the screen existed.
+  //
+  // PROTECTED actions are deliberately NOT written. `can()` answers those from
+  // the shipped table and never looks here, so a row for one would be a row
+  // that does nothing except suggest, to whoever reads the database later,
+  // that it does something.
+  for (const role of ROLES) {
+    const defaults = DEFAULT_ROLE_PERMISSIONS[role];
+    for (const action of CONFIGURABLE_ACTIONS) {
+      await once(
+        BOOTSTRAP_KEYS.rolePermission(role, action),
+        async () =>
+          (await prisma.rolePermission.findUnique({ where: { role_action: { role, action } } })) !== null,
+        async () => {
+          await prisma.rolePermission.create({
+            data: { role, action, granted: defaults.includes(action) },
+          });
+        }
+      );
+    }
   }
 
   return summary;

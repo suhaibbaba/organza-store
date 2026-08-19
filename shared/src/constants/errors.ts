@@ -185,6 +185,18 @@ export const ERROR_CODES = {
   // was them.
   USER_HAS_HISTORY: "error.user.has_history",
 
+  // --- role permissions (spec.md "Editable role permissions") ---
+  // Trying to grant or revoke an action that is PROTECTED. Refused on the
+  // server, not merely hidden on the screen — a protected action is the
+  // shop's anti-theft design, and a design that only holds while the client
+  // is polite is not a design.
+  PERMISSION_ACTION_PROTECTED: "error.permission.action_protected",
+  // Editing the permissions of the role you yourself hold. Refused because
+  // nobody adjusts their own authority: it is the one edit whose reviewer and
+  // subject are the same person, and on the Admin role it is also the edit
+  // that could lock the shop out of its own system.
+  PERMISSION_SELF_ROLE: "error.permission.self_role",
+
   // --- password set / reset by email ---
   // ONE code for unknown, expired, already-used and revoked links, on
   // purpose: telling the difference apart is telling whoever is holding a

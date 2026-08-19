@@ -62,7 +62,8 @@
     "users": "Users",
     "settings": "Settings",
     "more": "More",
-    "changeRequests": "Approvals"
+    "changeRequests": "Approvals",
+    "permissions": "Permissions"
   },
   "auth": {
     "login": {
@@ -1398,6 +1399,120 @@
       "previous": "Previous",
       "next": "Next",
       "pageOf": "Page {page} of {totalPages}"
+    }
+  },
+  "permissions": {
+    "title": "Permissions",
+    "subtitle": "Choose what each role is allowed to do. Some things stay locked.",
+    "rolePicker": "Choose a role",
+    "saving": "Saving…",
+    "unavailable": "The permissions could not be loaded. Please try again.",
+    "ownRole": "You cannot change your own role's permissions.",
+    "toggleLabel": "{action} — {role}",
+    "intro": {
+      "title": "Locked items protect the shop's records",
+      "body": "Money, costs and profit, undoing a sale, approvals, and staff accounts stay with the admin and cannot be changed here."
+    },
+    "locked": {
+      "label": "Locked",
+      "protected": "This protects the shop's records",
+      "ownRole": "This is your own role",
+      "on": "On",
+      "off": "Off"
+    },
+    "table": {
+      "action": "What it is"
+    },
+    "role": {
+      "ADMIN": "Admin",
+      "MANAGER": "Manager",
+      "EMPLOYEE": "Employee"
+    },
+    "groups": {
+      "products": "Products",
+      "catalogue": "Categories, options and photos",
+      "inventory": "Stock",
+      "orders": "Orders and sales",
+      "money": "Money",
+      "approvals": "Approvals",
+      "staff": "Staff and settings"
+    },
+    "actions": {
+      "dashboard": {
+        "view": "See the dashboard"
+      },
+      "product": {
+        "view": "See the products",
+        "create": "Add a product",
+        "edit": "Edit a product's details",
+        "editPrice": "Change a product's price",
+        "delete": "Delete a product",
+        "hide": "Hide or show a product",
+        "editVariantSet": "Change which variants a product has",
+        "viewCost": "See cost and profit",
+        "printLabels": "Print barcode labels"
+      },
+      "category": {
+        "view": "See the categories",
+        "manage": "Add, edit and delete categories"
+      },
+      "variantType": {
+        "create": "Add a new option or value",
+        "manage": "Rename or remove an option value"
+      },
+      "images": {
+        "edit": "Add and reorder photos",
+        "delete": "Delete a photo"
+      },
+      "inventory": {
+        "view": "See the stock levels",
+        "adjust": "Change a stock quantity by hand"
+      },
+      "order": {
+        "view": "See orders",
+        "create": "Make a sale",
+        "updateStatus": "Move an order along",
+        "edit": "Edit an order after the sale",
+        "cancel": "Cancel an order",
+        "delete": "Delete an order",
+        "return": "Take a sale back",
+        "markCollected": "Mark money as collected",
+        "createGift": "Give stock away as a gift"
+      },
+      "report": {
+        "view": "Open the reports"
+      },
+      "cashSession": {
+        "view": "See the cash drawer",
+        "manage": "Open and close the cash drawer"
+      },
+      "expense": {
+        "create": "Record an expense",
+        "view": "See the expenses",
+        "manage": "Edit and delete expenses",
+        "approve": "Approve an expense"
+      },
+      "expenseCategory": {
+        "view": "See the expense categories",
+        "manage": "Manage the expense categories"
+      },
+      "changeRequest": {
+        "create": "Ask for a change",
+        "view": "See change requests",
+        "cancel": "Withdraw your own request",
+        "approve": "Approve or refuse a change"
+      },
+      "user": {
+        "manage": "Manage staff accounts",
+        "delete": "Erase a staff account",
+        "viewSensitive": "See a staff ID number"
+      },
+      "settings": {
+        "manage": "Change the shop settings"
+      },
+      "permission": {
+        "manage": "Change these permissions"
+      }
     }
   }
 }

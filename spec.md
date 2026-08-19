@@ -461,6 +461,121 @@ response at all, so there is nothing to un-hide client-side.
 
 ---
 
+## Editable role permissions
+
+The table above is the shop's **starting point**, not its ceiling. Shops differ: one wants its
+Employees handling stock, another does not; one wants its Manager printing labels, another keeps
+that to the counter. So most of that table is editable from the admin — **and a specific part of
+it is not, ever.**
+
+Everything goes through one function, `can(user, action)` in `@organza/shared`, which every screen
+and every route already calls. Making the rules editable changed only where that function reads
+them from; no call site moved.
+
+### The split
+
+Every action is declared as exactly one of two kinds, next to the action itself in
+`shared/src/constants/permissions.ts`. The two lists are exhaustive and disjoint, checked when the
+module loads — an action in neither (or in both) is a crash on boot, not a permission that
+silently cannot be resolved.
+
+**PROTECTED — never editable, by anyone, through any UI or API.** Fifteen actions, and each of
+them is here for one of two reasons:
+
+| Action | Why it cannot move |
+|---|---|
+| `product.viewCost`, `report.view` | Cost, COGS, profit and margin are the owner's read of their own business (see "Sensitive fields"). |
+| `user.viewSensitive` | A staff ID number. |
+| `product.editPrice` | "Nothing can be sold cheap and pocketed" is only a guarantee while the re-pricing permission cannot be handed to whoever is at the counter. |
+| `order.edit`, `order.cancel`, `order.delete` | A sale, once rung up, cannot be quietly changed, voided or erased. |
+| `order.return` | Undoing a sale by another name, so it is protected with the ones above rather than left as the way round them. |
+| `order.createGift` | Re-pricing a sale to zero by another name. |
+| `order.markCollected` | The person who took the order must never be the person who says its money arrived. |
+| `changeRequest.approve` | The approval gate is the whole design; a grantable approval permission is a gate anybody can walk around. |
+| `expense.approve` | Self-approval by another name — granted to whoever spends the shop's cash, it takes money out of the drawer with nobody's agreement but their own. |
+| `user.manage`, `user.delete` | The keys to the building. |
+| `permission.manage` | A permission to hand out permissions that could itself be handed out is not a gate, it is a door with the key taped to it. |
+
+These are the **anti-theft guarantees** the "Security rationale" above is built on, plus the two
+things a shop cannot recover from on its own: somebody reading the owner's margin, and an Admin
+locked out of their own system. If they can be switched off, the whole design collapses.
+
+**CONFIGURABLE — everything else** (thirty actions): adding and editing products, categories,
+photos, option values, reading and adjusting stock, printing labels, taking and following orders,
+the cash drawer, recording and reading expenses, asking for and reading changes, the dashboard,
+and the settings screen. Real decisions a shop makes about itself, that cost nothing if they turn
+out wrong and are put back with one tap.
+
+### Where the rules live
+
+- **PROTECTED** actions are answered from the shipped table (`DEFAULT_ROLE_PERMISSIONS`) and from
+  nothing else. No stored row, no API call and no hand-edited database moves one.
+- **CONFIGURABLE** actions are answered from the `RolePermission` table — one row per
+  (role, action), holding an explicit on/off.
+
+A row that is **missing** means "nobody has decided", and falls back to the shipped default. That
+is what makes an action added in a later release behave as it was written on a database
+bootstrapped before it existed, rather than arriving switched off for everybody, silently.
+
+`npm run bootstrap` seeds the table from the shipped defaults, each grant **once in the life of
+the database** like every other bootstrapped default — so day one behaves exactly as it did before
+this screen existed, and a shop's own decision is never undone by a later deploy.
+
+### Why it is cached, and how it stays honest
+
+`can()` is called dozens of times per request and is synchronous — it is an `if`, everywhere.
+A database read per call is not an option, so each API process holds the table in memory
+(`backend/src/lib/permissionConfig.ts`):
+
+- the process that **makes** a change re-reads immediately, inside the request that made it, so
+  whoever just tapped the box is never shown the state they replaced;
+- every **other** process checks a *version* rather than the table — a digest of the whole
+  (role, action, granted) set, one row back, asked for at most once every few seconds on the way
+  through `requireAuth`. Unchanged (the normal case) it does nothing; moved, it re-reads once.
+  A digest rather than a timestamp, because a timestamp is only as precise as its column and two
+  edits inside one millisecond would leave a process convinced nothing had changed.
+
+If the database cannot be reached, the last good rules stay in force and the failure is reported.
+Permissions a few seconds old are a working shop; permissions that evaporate because a query timed
+out are a shop where nobody can sell anything.
+
+The admin and POS apps are handed the same rules from `GET /api/permissions` and push them into
+their own `can()`, so what a screen shows and what the API allows cannot disagree. That is
+convenience, not a boundary: the backend refuses the request whatever the browser believes.
+
+### The guards
+
+1. **Only an Admin may edit** — `PATCH /api/permissions` is gated on `permission.manage`, which is
+   PROTECTED and Admin-only, so it can never be granted to another role.
+2. **An Admin may not edit their own role.** The one edit whose author and subject are the same
+   person, refused outright (`error.permission.self_role`) — including for a change that would be
+   harmless, because the rule is about who is adjusting whose authority, not about what the edit
+   happens to amount to.
+3. **The last active Admin cannot be stripped.** Demoting or deactivating them is refused
+   (`error.user.last_admin`), and guard 2 closes the other road to the same place: no sequence of
+   permission edits can take anything away from the account holding the shop together.
+4. **A PROTECTED action is refused by the server** (`error.permission.action_protected`), not
+   merely hidden on the screen — a `curl` with an Admin's token is a client too. A batch naming
+   one is refused whole, so "refused" can never mean "half of it landed".
+
+Every change writes an audit entry of its own — who, which role, which action, on or off
+(`PERMISSION_GRANTED` / `PERMISSION_REVOKED`) — rather than one entry per request carrying a blob,
+because the question somebody will ask this trail is "when did Employees get this?".
+
+### The screen
+
+Admin → **Permissions**. On a phone: pick a role, then plain switches grouped by the part of the
+shop they belong to. On a desktop: the actual matrix, actions down and roles across.
+
+A protected row shows a **padlock and a short reason** — "this protects the shop's records" —
+never a greyed-out checkbox. A disabled control is the universal look of something broken; an
+untrained user taps it three times and concludes the app is faulty. The padlock says the opposite:
+this is working exactly as intended, and here is why it will not move. The Admin's own column is
+locked the same way, and still says whether the grant is on, because "what can an Admin do" is a
+question the screen exists to answer.
+
+---
+
 ## Employee change approvals
 
 Some changes are too consequential to hand to whoever happens to be at the counter, but refusing

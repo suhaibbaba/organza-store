@@ -2,6 +2,7 @@ export * from "./auth";
 export * from "./layout";
 export * from "./nav";
 export * from "./order";
+export * from "./permission";
 export * from "./product";
 export * from "./push";
 export * from "./pwa";
