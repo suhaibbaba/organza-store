@@ -45,6 +45,11 @@ export interface ProductDto {
   // The product's explicit "this sells numbers, nothing else" choice
   // (spec.md "Numbered shawls"). False unless it was asked for.
   isNumbered: boolean;
+  // The colour its numbers are drawn in (spec.md "Numbered shawls"), one pair
+  // for the whole product. Null means the numbers follow the photo's own
+  // brightness instead of a stored choice.
+  pointTextColor: string | null;
+  pointBackgroundColor: string | null;
   // Whatever is still waiting for an Admin on this product, its variants or
   // its photos (spec.md "Employee change approvals"). Present on every
   // product response; empty when nothing is held.
@@ -52,7 +57,15 @@ export interface ProductDto {
   // The gallery, lowest sortOrder first. Only the id is asserted against
   // today (the photo-deletion approval), so only the shape that needs
   // asserting is declared.
-  images: { id: string; url: string; thumbnailUrl: string; isPrimary: boolean }[];
+  images: {
+    id: string;
+    url: string;
+    thumbnailUrl: string;
+    isPrimary: boolean;
+    // How light or dark the photograph is, 0-100 (null when it was uploaded
+    // before this was measured) — what the marker-colour suggestion reads.
+    brightness: number | null;
+  }[];
   // Null until the product's barcode labels have been printed at least once.
   labelsPrintedAt: string | null;
   // Soft delete (CLAUDE.md rule 4) — a product is hidden, never destroyed.

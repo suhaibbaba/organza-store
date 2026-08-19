@@ -32,6 +32,10 @@ function serializeImage(image: ProductImage) {
     thumbnailUrl: image.thumbnailUrl,
     sortOrder: image.sortOrder,
     isPrimary: image.isPrimary,
+    // Same field the product endpoints return: what a numbered shawl's
+    // numbers read to suggest their own colour, so a photo just uploaded
+    // suggests one without waiting for a refetch.
+    brightness: image.brightness,
     productId: image.productId,
     variantId: image.variantId,
     createdAt: image.createdAt,
@@ -106,6 +110,9 @@ router.post(
         url: stored.urls.full,
         mediumUrl: stored.urls.medium,
         thumbnailUrl: stored.urls.thumbnail,
+        // Only ever read to suggest a colour for a numbered shawl's numbers
+        // (spec.md) — never to change the photograph itself.
+        brightness: stored.brightness,
         sortOrder: existingCount,
         isPrimary: existingCount === 0, // first image for this owner becomes primary
         productId: body.productId ?? null,

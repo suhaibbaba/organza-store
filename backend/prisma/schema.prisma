@@ -63,8 +63,8 @@ model User {
   auditLogs         AuditLog[]
   pushSubscriptions PushSubscription[]
 
-  createdExpenses       Expense[]     @relation("ExpenseCreatedBy")
-  approvedExpenses      Expense[]     @relation("ExpenseApprovedBy")
+  createdExpenses  Expense[] @relation("ExpenseCreatedBy")
+  approvedExpenses Expense[] @relation("ExpenseApprovedBy")
 
   requestedChanges ChangeRequest[] @relation("ChangeRequestRequestedBy")
   decidedChanges   ChangeRequest[] @relation("ChangeRequestDecidedBy")
@@ -307,11 +307,11 @@ model Product {
   // that on the parent instead of printing a label per variant. Scanning it in
   // the POS opens the variant picker rather than selling anything
   // (PRODUCT_LOOKUP_KIND.VARIANT_SELECTION).
-  barcode String? @unique
+  barcode          String?       @unique
   // Ours or the supplier's (CLAUDE.md rule 13 + shared/constants/barcode.ts).
   // Stored, never inferred from the code: a supplier's EAN-13 looks exactly
   // like one of ours, and this is what decides whether a label is owed.
-  barcodeSource BarcodeSource @default(GENERATED)
+  barcodeSource    BarcodeSource @default(GENERATED)
   // The EAN-13 we minted, parked here while a supplier code is in use so that
   // switching back restores the code any label already printed carries,
   // instead of minting a third one and stranding those labels. Not unique —
@@ -336,6 +336,19 @@ model Product {
   // shows and which variant types the API accepts: only Number when true,
   // never Number when false. Off by default.
   isNumbered Boolean @default(false)
+
+  // The colour of the numbers drawn on a numbered product's photo, and of the
+  // badge behind them (spec.md "Numbered shawls"). ONE pair for all of the
+  // product's points, never one per point. Hex, e.g. "#FFFFFF".
+  //
+  // Null means "follow the photo": the numbers take the automatic suggestion
+  // read from the primary image's brightness, so a black abaya gets white
+  // markers and a cream scarf dark ones without anybody choosing. A colour
+  // stored here is a choice the shop made, and it deliberately OUTLIVES the
+  // photograph — replacing the image re-measures the suggestion but never
+  // overwrites what was chosen.
+  pointTextColor       String?
+  pointBackgroundColor String?
 
   // When this product's barcode labels were last sent to the printer.
   // Null = never printed, which is what the "still to print" work queue
@@ -485,6 +498,12 @@ model ProductImage {
 
   sortOrder Int     @default(0) // drag-to-reorder; lowest = primary
   isPrimary Boolean @default(false)
+
+  // Perceived brightness of the photograph, 0-100, measured by sharp at
+  // upload. Read only to SUGGEST the colour of a numbered shawl's numbers
+  // (spec.md) — a dark photo gets light markers. Null for images uploaded
+  // before this was recorded; those simply keep the shipped marker.
+  brightness Float?
 
   productId String?
   product   Product? @relation(fields: [productId], references: [id], onDelete: Cascade)

@@ -45,6 +45,14 @@ export interface Product {
   // decides what the rest of the product form shows, and which variant types
   // the API accepts (numbers only when true, never when false).
   isNumbered: boolean;
+  // The colour of the numbers drawn on this product's photo, and of the badge
+  // behind them (spec.md "Numbered shawls") — one pair for all of its points,
+  // never one per point. Null means "follow the photo": the suggestion
+  // resolvePointColors() reads from the primary image's brightness. A chosen
+  // colour is kept even when the photograph is replaced, which is the whole
+  // reason it is stored rather than derived every time.
+  pointTextColor: string | null;
+  pointBackgroundColor: string | null;
   // When this product's barcode labels were last printed (CLAUDE.md rule 13).
   // Null means never printed; reprinting simply moves the timestamp forward,
   // it is never a lock.

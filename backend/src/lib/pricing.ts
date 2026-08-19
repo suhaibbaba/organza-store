@@ -19,6 +19,11 @@ function serializeImage(image: AnyRecord) {
     thumbnailUrl: image.thumbnailUrl,
     sortOrder: image.sortOrder,
     isPrimary: image.isPrimary,
+    // How light or dark the photo is, 0-100 (null for one uploaded before it
+    // was measured). Not sensitive and not about money: it is what the
+    // numbered-shawl markers read to suggest their own colour, on every
+    // screen that draws them (spec.md "Numbered shawls").
+    brightness: image.brightness ?? null,
   };
 }
 
@@ -88,6 +93,12 @@ export function serializeProduct(product: AnyRecord, role: Role) {
     // The product's own explicit "this sells numbers, nothing else" choice
     // (spec.md "Numbered shawls") — what every screen branches on.
     isNumbered: product.isNumbered ?? false,
+    // One pair of marker colours for all of this product's numbers. Null means
+    // the numbers follow the photo's brightness instead of a stored choice —
+    // resolved on the client by resolvePointColors(), so admin, POS and the
+    // shared WhatsApp copy can never disagree about what the shop sees.
+    pointTextColor: product.pointTextColor ?? null,
+    pointBackgroundColor: product.pointBackgroundColor ?? null,
     labelsPrintedAt: product.labelsPrintedAt ?? null,
     deletedAt: product.deletedAt,
     hasVariants: variants.length > 0,

@@ -30,6 +30,12 @@ export interface ProductImageRef {
   thumbnailUrl: string;
   sortOrder: number;
   isPrimary: boolean;
+  // How light or dark the photograph is, 0–100, measured by sharp when it was
+  // uploaded (spec.md "Numbered shawls"). What the automatic suggestion for
+  // the numbers' colour is read from — a dark photo gets light markers — so
+  // the shop is rarely asked to think about it. Null for a photo uploaded
+  // before this was recorded, which simply keeps the shipped marker.
+  brightness: number | null;
 }
 
 // A variant's resolved reference to a global option value (CLAUDE.md rule 2)

@@ -4,11 +4,17 @@ import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { NUMBER_VARIANT_TYPE_SLUG } from "@organza/shared/constants/variantType";
 import { ERROR_CODES } from "@organza/shared/constants/errors";
+import { resolvePointColors, suggestPointColors } from "@organza/shared/lib/pointColors";
 import type { UpdateVariantInput } from "@organza/shared/schemas/product";
 import type { Product } from "@organza/shared/types/product";
 import type { VariantType } from "@organza/shared/types/variant";
 import { useAddOptionValueMutation } from "@/hooks/use-variant-types";
-import { useDeleteVariantMutation, useGenerateVariantsMutation, useUpdateVariantMutation } from "@/hooks/use-products";
+import {
+  useDeleteVariantMutation,
+  useGenerateVariantsMutation,
+  useUpdateProductMutation,
+  useUpdateVariantMutation,
+} from "@/hooks/use-products";
 import { useTranslateError } from "@/hooks/use-translate-error";
 import {
   diffShawlPoint,
@@ -20,6 +26,7 @@ import {
 import { isNonNegativeIntegerString } from "@/lib/validation/numeric";
 import { ImagePointCanvas } from "@/components/products/numbered-shawl/image-point-canvas";
 import { PointDetailsList } from "@/components/products/numbered-shawl/point-details-list";
+import { PointColorControls } from "@/components/products/numbered-shawl/point-color-controls";
 import { Button } from "@/components/ui/button";
 import { Alert } from "@/components/ui/alert";
 import { SegmentedControl } from "@/components/ui/segmented-control";
@@ -49,6 +56,12 @@ export function NumberedShawlEditor({ product, variantTypes, currency }: Numbere
 
   const [step, setStep] = useState<Step>("place");
   const [points, setPoints] = useState<ShawlPoint[]>(() => initShawlPoints(product.variants));
+  // The marker colours, held as the product stores them: null means "follow
+  // the photo", so a product nobody has chosen for keeps tracking its image
+  // instead of being pinned to whatever it looked like the first time this
+  // screen was opened.
+  const [textColor, setTextColor] = useState<string | null>(product.pointTextColor);
+  const [backgroundColor, setBackgroundColor] = useState<string | null>(product.pointBackgroundColor);
   const [removedVariantIds, setRemovedVariantIds] = useState<Set<string>>(new Set());
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
@@ -59,14 +72,20 @@ export function NumberedShawlEditor({ product, variantTypes, currency }: Numbere
   const generateVariantsMutation = useGenerateVariantsMutation(product.id);
   const updateVariantMutation = useUpdateVariantMutation(product.id);
   const deleteVariantMutation = useDeleteVariantMutation(product.id);
+  const updateProductMutation = useUpdateProductMutation(product.id);
 
   const isSaving =
     addOptionValueMutation.isPending ||
     generateVariantsMutation.isPending ||
     updateVariantMutation.isPending ||
-    deleteVariantMutation.isPending;
+    deleteVariantMutation.isPending ||
+    updateProductMutation.isPending;
+
+  const colorsChanged =
+    textColor !== product.pointTextColor || backgroundColor !== product.pointBackgroundColor;
 
   const isDirty =
+    colorsChanged ||
     points.some((p) => !p.variantId) ||
     removedVariantIds.size > 0 ||
     points.some((p) => {
@@ -104,6 +123,20 @@ export function NumberedShawlEditor({ product, variantTypes, currency }: Numbere
     setPoints((prev) => prev.filter((p) => p.id !== id));
     setSelectedId(null);
     setConfirmDeleteId(null);
+  }
+
+  function handleColorChange(field: "textColor" | "backgroundColor", value: string) {
+    markDirty();
+    if (field === "textColor") setTextColor(value);
+    else setBackgroundColor(value);
+  }
+
+  // Back to following the photo — both halves at once, because "use the
+  // suggestion" is one decision, not two.
+  function handleUseSuggestedColors() {
+    markDirty();
+    setTextColor(null);
+    setBackgroundColor(null);
   }
 
   function handlePointField(id: string, field: "stock" | "priceOverride", value: string) {
@@ -165,6 +198,14 @@ export function NumberedShawlEditor({ product, variantTypes, currency }: Numbere
 
       const calls: Promise<unknown>[] = [];
 
+      // The colours live on the product, not on any point — one call, and
+      // only when they actually changed.
+      if (colorsChanged) {
+        calls.push(
+          updateProductMutation.mutateAsync({ pointTextColor: textColor, pointBackgroundColor: backgroundColor })
+        );
+      }
+
       for (const point of existingPoints) {
         const original = product.variants.find((v) => v.id === point.variantId);
         const patch = original ? diffShawlPoint(original, point) : null;
@@ -200,6 +241,15 @@ export function NumberedShawlEditor({ product, variantTypes, currency }: Numbere
 
   const selectedPoint = selectedId ? points.find((p) => p.id === selectedId) ?? null : null;
 
+  // What the numbers are drawn in right now, including a colour being picked
+  // that has not been saved yet — the canvas above is the preview, so there
+  // is no second little swatch to keep in step with it.
+  const suggestion = suggestPointColors(image.brightness);
+  const colors = resolvePointColors(
+    { pointTextColor: textColor, pointBackgroundColor: backgroundColor },
+    image.brightness
+  );
+
   return (
     <div className="flex flex-col gap-4">
       {/* Two steps, each as wide as its own name: the halves this used to be
@@ -223,10 +273,21 @@ export function NumberedShawlEditor({ product, variantTypes, currency }: Numbere
             alt={t("imageAlt")}
             points={points}
             selectedId={selectedId}
+            colors={colors}
             disabled={isSaving}
             onAddPoint={handleAddPoint}
             onMovePoint={handleMovePoint}
             onSelectPoint={handleSelectPoint}
+          />
+
+          <PointColorControls
+            textColor={textColor}
+            backgroundColor={backgroundColor}
+            suggestion={suggestion}
+            adjustedForContrast={colors.textAdjustedForContrast}
+            onChange={handleColorChange}
+            onUseSuggestion={handleUseSuggestedColors}
+            disabled={isSaving}
           />
 
           {selectedPoint && (

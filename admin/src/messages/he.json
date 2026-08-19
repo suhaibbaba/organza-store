@@ -832,7 +832,16 @@
         "inherits": "יורש {value}",
         "saving": "שומר…",
         "save": "שמירת נקודות",
-        "saveSuccess": "הנקודות נשמרו."
+        "saveSuccess": "הנקודות נשמרו.",
+        "colors": {
+          "title": "צבע המספרים",
+          "autoHint": "נבחר אוטומטית לפי בהירות התמונה. אפשר לשנות אם המספרים לא ברורים.",
+          "chosenHint": "בחרת את הצבעים האלה, והם יישמרו גם אם התמונה תוחלף.",
+          "background": "צבע הרקע",
+          "text": "צבע המספר",
+          "useSuggestion": "שימוש בצבע המוצע",
+          "contrastAdjusted": "שני הצבעים היו קרובים מדי, ולכן צבע המספר הותאם מעט כדי שיישאר קריא."
+        }
       },
       "kind": {
         "title": "מה אתם מוכרים?",
@@ -1275,6 +1284,7 @@
     "userNotFound": "המשתמש לא נמצא.",
     "authSignupFailed": "יצירת החשבון נכשלה.",
     "validationImagePointOutOfRange": "הנקודה חייבת להיות בתוך גבולות התמונה.",
+    "validationInvalidColor": "יש לבחור צבע תקין.",
     "orderNotFound": "ההזמנה לא נמצאה.",
     "orderItemNotFound": "פריט זה אינו חלק מההזמנה.",
     "orderItemsRequired": "יש להוסיף מוצר אחד לפחות להזמנה.",

@@ -401,6 +401,11 @@ router.post(
         isActive: body.isActive ?? true,
         trackLowStock: trackLowStock ?? false,
         isNumbered,
+        // Left null unless the form actually chose one: null is "follow the
+        // photo", which is what almost every product wants (spec.md
+        // "Numbered shawls").
+        pointTextColor: body.pointTextColor ?? null,
+        pointBackgroundColor: body.pointBackgroundColor ?? null,
         ...barcodeFields,
         stock: hasVariants ? DEFAULT_STOCK : body.stock ?? DEFAULT_STOCK,
         createdById: req.user!.id,
@@ -624,6 +629,13 @@ router.patch(
         isActive: canHide ? body.isActive : undefined,
         trackLowStock: canAdjustStock ? body.trackLowStock : undefined,
         isNumbered: body.isNumbered,
+        // How this product's numbers are drawn — presentation, like the name
+        // beside it, so it rides on product.edit and is never held for
+        // approval (CLAUDE.md rule 21 lists what is). Null is sent
+        // deliberately to hand a colour back to the photo, so `undefined`
+        // (field absent) is the only thing that leaves it alone.
+        pointTextColor: body.pointTextColor,
+        pointBackgroundColor: body.pointBackgroundColor,
         sku: body.sku,
         ...(barcodeUpdate?.data ?? {}),
         // A code nobody has printed yet puts the piece back in the label queue:

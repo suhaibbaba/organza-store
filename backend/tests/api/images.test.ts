@@ -2,9 +2,10 @@ import { describe, expect, it } from "vitest";
 import { API_BASE_URL, API_ORIGIN, apiRequest } from "@tests/support/client";
 import { getSession } from "@tests/support/auth";
 import { anyCategoryId } from "@tests/support/fixtures";
-import { TINY_PNG } from "@tests/constants";
+import { DARK_PNG, LIGHT_PNG, TINY_PNG } from "@tests/constants";
 import type { ErrorBody, ImageDto, ProductDto } from "@tests/types";
 import { ERROR_CODES } from "@/constants";
+import { IMAGE_BRIGHTNESS_LIGHT_THRESHOLD } from "@organza/shared/constants/numberedShawl";
 
 // Per the task scope, multipart upload is NOT exercised deeply here — just
 // that the endpoint exists, rejects bad input (missing auth, missing file),
@@ -54,6 +55,53 @@ describe("Images", () => {
         // in name only.
         expect((await fetched.arrayBuffer()).byteLength).toBeGreaterThan(0);
       }
+    } finally {
+      await apiRequest(`/api/products/${productId}`, { method: "DELETE", token: admin.token });
+    }
+  });
+
+  // A numbered shawl's numbers suggest their own colour from the photograph
+  // they sit on — white on a black abaya, dark on a cream scarf (spec.md
+  // "Numbered shawls"). That is decided by one reading taken here, at upload,
+  // so a wrong reading is a wrong suggestion on every screen afterwards.
+  it("measures how light or dark an uploaded photograph is", async () => {
+    const admin = await getSession("ADMIN");
+    const categoryId = await anyCategoryId(admin.token);
+    const product = await apiRequest<ProductDto>("/api/products", {
+      method: "POST",
+      token: admin.token,
+      body: { name: { ar: "اختبار إضاءة الصورة", en: "Vitest Image Brightness" }, categoryId, basePrice: "10" },
+    });
+    const productId = product.data!.id;
+
+    async function upload(bytes: Buffer): Promise<number | null> {
+      const form = new FormData();
+      form.append("productId", productId);
+      form.append("file", new Blob([new Uint8Array(bytes)], { type: "image/png" }), "photo.png");
+      const res = await fetch(`${API_BASE_URL}/api/images`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${admin.token}`, Origin: API_ORIGIN },
+        body: form,
+      });
+      expect(res.status).toBe(201);
+      return ((await res.json()) as { data: ImageDto }).data.brightness;
+    }
+
+    try {
+      const dark = await upload(DARK_PNG);
+      const light = await upload(LIGHT_PNG);
+
+      // On the 0-100 scale the suggestion reads, and on opposite sides of it
+      // — the assertion that actually matters is that they are not the same
+      // answer for a black photo and a white one.
+      expect(dark).not.toBeNull();
+      expect(light).not.toBeNull();
+      expect(dark!).toBeLessThan(IMAGE_BRIGHTNESS_LIGHT_THRESHOLD);
+      expect(light!).toBeGreaterThanOrEqual(IMAGE_BRIGHTNESS_LIGHT_THRESHOLD);
+
+      // And it survives to the product screens, which is where it is read.
+      const reloaded = await apiRequest<ProductDto>(`/api/products/${productId}`, { token: admin.token });
+      expect(reloaded.data!.images.every((image) => image.brightness !== null)).toBe(true);
     } finally {
       await apiRequest(`/api/products/${productId}`, { method: "DELETE", token: admin.token });
     }

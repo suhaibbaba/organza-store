@@ -260,4 +260,59 @@ describe("Numbered shawls", () => {
     expect(await readVariantStock(admin.token, product.id, chosen.id)).toBe(1);
     expect(await readVariantStock(admin.token, product.id, untouched.id)).toBe(3);
   });
+
+  // The numbers have to be readable on the photograph they are drawn on: a
+  // dark badge disappears on a black abaya, a white one on a cream scarf. The
+  // shop can pin both colours, and what it pins outlives the photograph
+  // (spec.md "Numbered shawls" — the marker colours).
+  it("stores the marker colours on the product, and keeps them when the photo changes", async () => {
+    const admin = await getSession("ADMIN");
+    const { product } = await createNumberedShawl(admin.token);
+    createdProductIds.push(product.id);
+
+    // Nothing chosen to begin with: the numbers follow the photo.
+    expect(product.pointTextColor).toBeNull();
+    expect(product.pointBackgroundColor).toBeNull();
+
+    const chosen = await apiRequest<ProductDto>(`/api/products/${product.id}`, {
+      method: "PATCH",
+      token: admin.token,
+      body: { pointTextColor: "#fff59d", pointBackgroundColor: "#c2185b" },
+    });
+    expect(chosen.status).toBe(200);
+    // Normalized on the way in, so one colour is stored one way.
+    expect(chosen.data!.pointTextColor).toBe("#FFF59D");
+    expect(chosen.data!.pointBackgroundColor).toBe("#C2185B");
+
+    // An unrelated edit must not quietly drop the choice.
+    const renamed = await apiRequest<ProductDto>(`/api/products/${product.id}`, {
+      method: "PATCH",
+      token: admin.token,
+      body: { basePrice: "70" },
+    });
+    expect(renamed.data!.pointTextColor).toBe("#FFF59D");
+
+    // Explicit null hands the colour back to the photograph.
+    const cleared = await apiRequest<ProductDto>(`/api/products/${product.id}`, {
+      method: "PATCH",
+      token: admin.token,
+      body: { pointTextColor: null, pointBackgroundColor: null },
+    });
+    expect(cleared.data!.pointTextColor).toBeNull();
+    expect(cleared.data!.pointBackgroundColor).toBeNull();
+  });
+
+  it("refuses a marker colour that is not a colour", async () => {
+    const admin = await getSession("ADMIN");
+    const { product } = await createNumberedShawl(admin.token);
+    createdProductIds.push(product.id);
+
+    const res = await apiRequest(`/api/products/${product.id}`, {
+      method: "PATCH",
+      token: admin.token,
+      body: { pointBackgroundColor: "rgb(1,2,3)" },
+    });
+    expect(res.status).toBe(400);
+    expect(res.error?.code).toBe(ERROR_CODES.VALIDATION);
+  });
 });
