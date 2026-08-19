@@ -20,6 +20,7 @@ export * from "./phone";
 export * from "./product";
 export * from "./push";
 export * from "./quantity";
+export * from "./quickSell";
 export * from "./report";
 export * from "./roles";
 export * from "./time";

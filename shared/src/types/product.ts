@@ -65,6 +65,22 @@ export interface Product {
   // Null means never printed; reprinting simply moves the timestamp forward,
   // it is never a lock.
   labelsPrintedAt: string | null;
+
+  // --- quick sell (spec.md "Quick sell") ---
+  // When this piece was rung up at the counter before it existed in the
+  // catalogue. Non-null is what makes the gaps below deliberate rather than
+  // broken: no category, no cost, no barcode anybody chose, no photographs.
+  quickSoldAt: string | null;
+  // When a reviewer filled the rest in, or ruled it a one-off that will not
+  // come back. Either way the SALE is untouched — the order lines are
+  // snapshots, and money changed hands before any of this.
+  completedAt: string | null;
+  oneOffAt: string | null;
+  // Sold, and still waiting for somebody to finish it off. Resolved on the
+  // backend from the three stamps above so that every screen asks the same
+  // question the same way — the products list marks these, and the "needs
+  // completing" filter lists exactly them.
+  needsCompleting: boolean;
   deletedAt: string | null;
   hasVariants: boolean;
   // Every note this product carries on an option value, keyed by the value
@@ -107,6 +123,23 @@ export interface ProductSummary {
   // Null until this product's labels have been printed at least once — what
   // the "not printed yet" list filter keys off.
   labelsPrintedAt: string | null;
+
+  // --- quick sell (spec.md "Quick sell") ---
+  // When this piece was rung up at the counter before it existed in the
+  // catalogue. Non-null is what makes the gaps below deliberate rather than
+  // broken: no category, no cost, no barcode anybody chose, no photographs.
+  quickSoldAt: string | null;
+  // When a reviewer filled the rest in, or ruled it a one-off that will not
+  // come back. Either way the SALE is untouched — the order lines are
+  // snapshots, and money changed hands before any of this.
+  completedAt: string | null;
+  oneOffAt: string | null;
+  // Sold, and still waiting for somebody to finish it off. Resolved on the
+  // backend from the three stamps above so that every screen asks the same
+  // question the same way — the products list marks these, and the "needs
+  // completing" filter lists exactly them.
+  needsCompleting: boolean;
+
   // Whether this product owes a label at all. False once every code it would
   // print is the supplier's own — the garment already carries a physical
   // barcode, so there is nothing to stick on it. Resolved on the backend

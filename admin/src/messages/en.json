@@ -294,7 +294,9 @@
       "dateFrom": "From date",
       "dateTo": "To date",
       "reset": "Reset",
-      "apply": "Apply"
+      "apply": "Apply",
+      "quickSale": "Quick sales only",
+      "quickSaleHint": "Pieces sold before they were entered into the system."
     },
     "status": {
       "NEW": "New",
@@ -382,7 +384,8 @@
         "quantity": "Qty: {count}",
         "unitPrice": "Unit price: {price}",
         "itemDiscount": "{label} off (−{amount})",
-        "returned": "{count} returned"
+        "returned": "{count} returned",
+        "quickSold": "Quick sale — no cost yet"
       },
       "totals": {
         "subtotal": "Subtotal",
@@ -541,6 +544,9 @@
         "clear": "Clear",
         "markCollected": "{count, plural, one {Payment received for 1} other {Payment received for #}}"
       }
+    },
+    "quickSale": {
+      "badge": "Quick sale"
     }
   },
   "reports": {
@@ -652,7 +658,8 @@
       "multipleSkus": "Multiple variants",
       "stock": "{count} in stock",
       "outOfStock": "Out of stock",
-      "numbered": "Numbered · {count}"
+      "numbered": "Numbered · {count}",
+      "incomplete": "Incomplete"
     },
     "table": {
       "product": "Product",
@@ -875,6 +882,22 @@
         "detail": "{count} of your changes need an admin's approval before they take effect. Nothing was lost.",
         "viewProduct": "View product"
       }
+    },
+    "completeness": {
+      "all": "All products",
+      "needsCompleting": "Needs completing ({count})",
+      "hint": "Pieces sold before they were entered — fill in the category, cost and photos to make them ordinary products."
+    },
+    "quickSold": {
+      "title": "This piece was sold before it was entered",
+      "sold": "It has already been sold — complete its details here.",
+      "soldOn": "Sold on {when} for {price}.",
+      "missing": "The blanks below are deliberate: category, cost price, barcode and photos.",
+      "categoryRequired": "Choose a category and save first, then you can complete the product.",
+      "complete": "Complete the product",
+      "oneOff": "It was a one-off",
+      "confirmOneOff": "Confirm: a one-off",
+      "oneOffWarning": "The piece won't join the catalogue. The sale stands and the order is untouched."
     }
   },
   "inventory": {
@@ -1336,7 +1359,9 @@
     "userAlreadyActivated": "This account is already set up and has a password. Send a password reset instead.",
     "userLastAdmin": "This is the only admin left. Make somebody else an admin first — otherwise nobody could manage staff, settings or approvals.",
     "userSelfRemoval": "You cannot remove your own account. Ask another admin to do it.",
-    "userHasHistory": "This account has already been used in the shop, so it cannot be deleted. Deactivate it instead — its orders and expenses keep the person's name."
+    "userHasHistory": "This account has already been used in the shop, so it cannot be deleted. Deactivate it instead — its orders and expenses keep the person's name.",
+    "productCompletionIncomplete": "Choose a category before completing this product — without one it won't appear in any category list.",
+    "orderItemSourceInvalid": "This line doesn't say clearly what is being sold."
   },
   "pwa": {
     "version": {
@@ -1372,7 +1397,8 @@
       "variantStock": "Option stock",
       "photoDeletion": "Delete photo",
       "expense": "Expense",
-      "other": "Change"
+      "other": "Change",
+      "completion": "Complete a product"
     },
     "values": {
       "none": "None",
@@ -1418,6 +1444,23 @@
       "previous": "Previous",
       "next": "Next",
       "pageOf": "Page {page} of {totalPages}"
+    },
+    "quickSold": {
+      "label": "Quick sell",
+      "unknownItem": "Unnamed item",
+      "sold": "This piece has already been sold.",
+      "soldFor": "Already sold for {price}.",
+      "saleDetail": "Order {orderNumber} · {count, plural, one {1 piece} other {# pieces}}",
+      "soldBy": "Sold by {name} · {when}",
+      "missing": "Still missing its category, cost price, barcode and photos.",
+      "complete": "Complete the details",
+      "oneOff": "It was a one-off",
+      "confirmOneOff": "Confirm: a one-off",
+      "oneOffWarning": "The piece won't join the catalogue. The sale stands and the order is untouched.",
+      "noteLabel": "Reason (optional)",
+      "notePlaceholder": "e.g. last piece of a discontinued sample",
+      "completedBy": "Completed by {name} · {when}",
+      "oneOffBy": "Marked a one-off by {name} · {when}"
     }
   },
   "permissions": {
@@ -1469,7 +1512,9 @@
         "hide": "Hide or show a product",
         "editVariantSet": "Change which variants a product has",
         "viewCost": "See cost and profit",
-        "printLabels": "Print barcode labels"
+        "printLabels": "Print barcode labels",
+        "quickSell": "Sell an item that isn't in the system",
+        "complete": "Complete a quick-sold item"
       },
       "category": {
         "view": "See the categories",

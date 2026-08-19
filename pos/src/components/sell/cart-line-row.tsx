@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { Tag, Trash2 } from "lucide-react";
+import { Tag, Trash2, Zap } from "lucide-react";
 import { localize } from "@/lib/i18n-content";
 import { lineDiscountCents, lineTotal } from "@/lib/cart";
 import { fromCents, toCents } from "@/lib/money";
@@ -90,7 +90,19 @@ export function CartLineRow({ line, flash, onQuantityChange, onRemove, onDiscoun
                 is exactly what somebody asking for a second one needs to
                 hear. The count is what the stepper is capped at, so the two
                 always agree. */}
-            <StockBadge stock={line.availableStock} trackLowStock={line.trackLowStock} showCount />
+            {/* A quick-sold line has no shelf figure to report — the piece
+                was never on a shelf the system knows about — so it says what
+                it IS instead (spec.md "Quick sell"). Marked here as well as
+                on the order afterwards, so the cashier can see at a glance
+                which lines were typed rather than scanned. */}
+            {line.quickSell ? (
+              <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+                <Zap className="size-3.5" aria-hidden="true" />
+                {t("quickSold")}
+              </span>
+            ) : (
+              <StockBadge stock={line.availableStock} trackLowStock={line.trackLowStock} showCount />
+            )}
           </span>
 
           {/* Right under the price, because that is the number it changes:

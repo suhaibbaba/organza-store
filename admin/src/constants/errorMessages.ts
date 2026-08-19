@@ -32,6 +32,7 @@ export const ERROR_MESSAGE_KEYS: Record<string, string> = {
   [ERROR_CODES.VALIDATION_IMAGE_POINT_OUT_OF_RANGE]: "errors.validationImagePointOutOfRange",
   [ERROR_CODES.VALIDATION_TOO_LONG]: "errors.validationTooLong",
   [ERROR_CODES.PRODUCT_OPTION_NOTE_VALUE_NOT_USED]: "errors.productOptionNoteValueNotUsed",
+  [ERROR_CODES.PRODUCT_COMPLETION_INCOMPLETE]: "errors.productCompletionIncomplete",
   [ERROR_CODES.VALIDATION_INVALID_COLOR]: "errors.validationInvalidColor",
 
   [ERROR_CODES.CATEGORY_NOT_FOUND]: "errors.categoryNotFound",
@@ -75,6 +76,7 @@ export const ERROR_MESSAGE_KEYS: Record<string, string> = {
   [ERROR_CODES.ORDER_VARIANT_REQUIRED]: "errors.orderVariantRequired",
   [ERROR_CODES.ORDER_NOT_COLLECTABLE]: "errors.orderNotCollectable",
   [ERROR_CODES.ORDER_GIFT_CHANNEL_INVALID]: "errors.orderGiftChannelInvalid",
+  [ERROR_CODES.ORDER_ITEM_SOURCE_INVALID]: "errors.orderItemSourceInvalid",
 
   [ERROR_CODES.CASH_SESSION_NOT_FOUND]: "errors.cashSessionNotFound",
   [ERROR_CODES.CASH_SESSION_DATE_TAKEN]: "errors.cashSessionDateTaken",

@@ -80,6 +80,13 @@ export interface ProductDto {
   }[];
   // Null until the product's barcode labels have been printed at least once.
   labelsPrintedAt: string | null;
+  // --- quick sell (spec.md "Quick sell") ---
+  // Sold before it existed in the catalogue, and what has since been decided
+  // about it. `needsCompleting` is the queue the Admin has to clear.
+  quickSoldAt: string | null;
+  completedAt: string | null;
+  oneOffAt: string | null;
+  needsCompleting: boolean;
   // Soft delete (CLAUDE.md rule 4) — a product is hidden, never destroyed.
   deletedAt: string | null;
   variants: ProductVariantDto[];
@@ -90,8 +97,18 @@ export interface ProductDto {
 // Lighter list-view shape (GET /api/products).
 export interface ProductSummaryDto {
   id: string;
+  name: { ar: string; en?: string; he?: string };
+  category: { id: string; name: Record<string, string>; slug: string } | null;
   basePrice: number | string;
   labelsPrintedAt: string | null;
+  // --- quick sell (spec.md "Quick sell") ---
+  // Sold before it existed in the catalogue, and what has since been decided
+  // about it. `needsCompleting` is the queue the Admin has to clear.
+  quickSoldAt: string | null;
+  completedAt: string | null;
+  oneOffAt: string | null;
+  needsCompleting: boolean;
+
   barcode: string | null;
   barcodeSource: "GENERATED" | "SUPPLIER";
   // Whether a label of ours is still owed — false once every code the product

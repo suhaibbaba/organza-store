@@ -1,9 +1,15 @@
 import type { Product } from "@organza/shared/types/product";
 import type { Variant } from "@organza/shared/types/variant";
-import type { CreateOrderItemInput } from "@organza/shared/schemas/order";
+import type { CreateOrderItemInput, QuickSellItemInput } from "@organza/shared/schemas/order";
+import type { I18n } from "@organza/shared/types/common";
+import { QUANTITY_MAX } from "@organza/shared/constants/quantity";
 import { fromCents, multiplyCents, resolveDiscountCents, toCents } from "@/lib/money";
 import { MIN_CART_QUANTITY } from "@/constants/pos";
 import type { CartLine, CartTotals, DiscountState } from "@/types/cart";
+
+// A quick-sold line has no shelf figure behind it, so the only ceiling on
+// what it may sell is the shared one every quantity stepper obeys.
+const QUICK_SELL_MAX_QUANTITY = QUANTITY_MAX;
 
 // Pure cart maths + shaping. Kept out of the React components so the
 // arithmetic behind the number the cashier reads out is testable and lives
@@ -13,6 +19,49 @@ import type { CartLine, CartTotals, DiscountState } from "@/types/cart";
 // quantity 2, not two lines.
 export function cartLineKey(productId: string, variantId: string | null): string {
   return variantId ? `${productId}:${variantId}` : productId;
+}
+
+// A quick-sold line's identity. Nothing in the catalogue backs it, so it
+// cannot be keyed by a product id — and it must NEVER merge with another:
+// typing "abaya" twice at the counter is two different pieces that happen to
+// share a name, and merging them would sell one and lose the other.
+let quickSellCounter = 0;
+
+export function quickSellCartLineKey(): string {
+  quickSellCounter += 1;
+  return `quick:${quickSellCounter}`;
+}
+
+// A piece typed at the counter because it is not in the system yet (spec.md
+// "Quick sell"). Same CartLine as everything else — it prices, discounts and
+// totals identically — with the catalogue half left empty and the typed name
+// and price standing in for it.
+export function toQuickSellCartLine(input: QuickSellItemInput, quantity: number): CartLine {
+  const detail = input.detail?.trim() || undefined;
+  const text = (value: string): I18n => ({ ar: value, en: value, he: value });
+
+  return {
+    key: quickSellCartLineKey(),
+    productId: null,
+    variantId: null,
+    quickSell: { name: input.name.trim(), price: input.price, ...(detail ? { detail } : {}) },
+    name: text(input.name.trim()),
+    // The typed "which one" reads exactly where a variant name would, so the
+    // cart line, the receipt and the order all say "Abaya — black" without
+    // anything having to know a variant was never built.
+    variantName: detail ? text(detail) : null,
+    sku: null,
+    imageUrl: null,
+    unitPrice: input.price,
+    // Whatever the cashier says is leaving the shop. There is no shelf figure
+    // to check it against — the piece was never on a shelf the system knows
+    // about — so the stepper's ceiling is the shared quantity maximum alone.
+    availableStock: QUICK_SELL_MAX_QUANTITY,
+    trackLowStock: false,
+    quantity,
+    discountType: null,
+    discountValue: null,
+  };
 }
 
 // Builds a line from whatever the catalogue returned. Price and stock follow
@@ -25,6 +74,7 @@ export function toCartLine(product: Product, variant: Variant | null): CartLine 
     key: cartLineKey(product.id, variant?.id ?? null),
     productId: product.id,
     variantId: variant?.id ?? null,
+    quickSell: null,
     name: product.name,
     variantName: variant?.name ?? null,
     sku: variant?.sku ?? product.sku,
@@ -83,10 +133,17 @@ export function computeTotals(lines: readonly CartLine[], orderDiscount: Discoun
 }
 
 // The order API is told what was sold and what was taken off — never what it
-// cost. Every price on the sale is read from the catalogue server-side.
+// cost. Every price on the sale is read from the catalogue server-side, with
+// ONE exception that proves the rule: a quick-sold line has no catalogue
+// entry to read a price from, so the figure typed at the counter travels with
+// it (spec.md "Quick sell"). Nothing is being overridden — that figure IS the
+// piece's first price, and the backend makes it the new product's basePrice
+// as well as the line's, so the two cannot disagree.
 export function toOrderItems(lines: readonly CartLine[]): CreateOrderItemInput[] {
   return lines.map((line) => ({
-    productId: line.productId,
+    // Either a catalogue product or a quick sale, never both and never
+    // neither — the create-order schema refuses anything else.
+    ...(line.quickSell ? { quickSell: line.quickSell } : { productId: line.productId! }),
     ...(line.variantId ? { variantId: line.variantId } : {}),
     quantity: line.quantity,
     ...(line.discountType && line.discountValue

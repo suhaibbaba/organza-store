@@ -170,7 +170,8 @@
       "discountFor": "خصم على {name}",
       "stockCap": "{count, plural, zero {لا يوجد مخزون} one {هذه آخر قطعة متوفرة} two {هذه آخر قطعتين متوفرتين} other {هذا كل المتوفر: # قطعة}}",
       "discountApplied": "خصم {value} · ‎−{amount}",
-      "discountValue": "خصم {value}"
+      "discountValue": "خصم {value}",
+      "quickSold": "بيع سريع"
     },
     "discount": {
       "title": "إضافة خصم",
@@ -262,6 +263,25 @@
       "cancel": "الرجوع إلى البيع",
       "confirm": "تأكيد الهدية",
       "saving": "جارٍ الحفظ…"
+    },
+    "quickSell": {
+      "open": "بيع سريع",
+      "title": "بيع سريع",
+      "subtitle": "قطعة غير مُدخلة في النظام بعد — اكتب اسمها وسعرها وأتمّ البيع.",
+      "nameLabel": "اسم القطعة",
+      "namePlaceholder": "مثال: عباية سوداء",
+      "priceLabel": "سعر البيع",
+      "priceLabelCurrency": "سعر البيع ({currency})",
+      "pricePlaceholder": "٠٫٠٠",
+      "priceInvalid": "أدخل سعرًا صحيحًا.",
+      "detailLabel": "اللون أو المقاس (اختياري)",
+      "detailPlaceholder": "مثال: أسود · M · ٧",
+      "detailHint": "يظهر بجانب الاسم في الفاتورة.",
+      "afterwards": "يتم البيع فورًا، ثم تُستكمل تفاصيل القطعة لاحقًا من لوحة التحكم.",
+      "add": "إضافة إلى البيع",
+      "added": "تمت إضافة {name} إلى البيع.",
+      "emptyPrompt": "القطعة ليست في النظام؟ بِعها الآن وأكمل تفاصيلها لاحقًا.",
+      "cancel": "إلغاء"
     }
   },
   "errors": {

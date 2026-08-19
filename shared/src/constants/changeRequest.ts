@@ -62,6 +62,24 @@ export const CHANGE_REQUEST_FIELDS = {
   IMAGE_DELETION: "deletion",
 
   EXPENSE_APPROVAL: "approvalStatus",
+
+  /**
+   * The one request that is NOT permission before the fact.
+   *
+   * A quick-sold product (spec.md "Quick sell") was already sold — money
+   * changed hands at the counter — and what waits here is its DETAILS:
+   * category, cost, barcode, photographs, all of which the cashier skipped so
+   * the queue could move. Approving completes the product; refusing rules it
+   * a one-off and leaves the sale exactly where it is.
+   *
+   * It rides the same mechanism as every other gated change (CLAUDE.md rule
+   * 21) rather than a second `status` column on Product, and it is the reason
+   * the approval screen has to be able to say "this was sold — complete it"
+   * instead of "approve this change": the two read as opposites to whoever is
+   * deciding, and getting that wrong would invite an Admin to think refusing
+   * undoes a sale.
+   */
+  PRODUCT_COMPLETION: "completion",
 } as const;
 
 /**
@@ -77,6 +95,12 @@ export const CHANGE_REQUEST_VALUE_KINDS = {
   VARIANT_SET: "variantSet",
   DELETION: "deletion",
   APPROVAL: "approval",
+  /**
+   * A sale that has already happened: how much it went for, and how many.
+   * Read as "sold for X" rather than as "from A to B" — there is no old
+   * value to move away from, because the product did not exist before.
+   */
+  QUICK_SELL: "quickSell",
 } as const;
 
 /** What a variantSet request asks for: combinations added, or one removed. */

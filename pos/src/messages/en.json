@@ -170,7 +170,8 @@
       "discountFor": "Discount on {name}",
       "stockCap": "{count, plural, one {That's the last one in stock} other {That's all # in stock}}",
       "discountApplied": "{value} discount · −{amount}",
-      "discountValue": "{value} discount"
+      "discountValue": "{value} discount",
+      "quickSold": "Quick sell"
     },
     "discount": {
       "title": "Add a discount",
@@ -262,6 +263,25 @@
       "cancel": "Back to the sale",
       "confirm": "Confirm the gift",
       "saving": "Saving…"
+    },
+    "quickSell": {
+      "open": "Quick sell",
+      "title": "Quick sell",
+      "subtitle": "A piece that isn't in the system yet — type its name and price and finish the sale.",
+      "nameLabel": "Item name",
+      "namePlaceholder": "e.g. Black abaya",
+      "priceLabel": "Selling price",
+      "priceLabelCurrency": "Selling price ({currency})",
+      "pricePlaceholder": "0.00",
+      "priceInvalid": "Enter a valid price.",
+      "detailLabel": "Colour or size (optional)",
+      "detailPlaceholder": "e.g. Black · M · 7",
+      "detailHint": "Shown beside the name on the receipt.",
+      "afterwards": "The sale completes right away; the item's details are filled in later from the admin.",
+      "add": "Add to sale",
+      "added": "{name} added to the sale.",
+      "emptyPrompt": "Not in the system? Sell it now and complete its details later.",
+      "cancel": "Cancel"
     }
   },
   "errors": {

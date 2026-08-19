@@ -2,7 +2,7 @@
 
 import { useCallback, useRef, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { LayoutGrid } from "lucide-react";
+import { LayoutGrid, Zap } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { can } from "@organza/shared/lib/permissions";
 import { ERROR_CODES } from "@organza/shared/constants/errors";
@@ -33,6 +33,7 @@ import { DiscountSheet } from "@/components/sell/discount-sheet";
 import { SaleSuccess } from "@/components/sell/sale-success";
 import { WhatsappOrderSheet } from "@/components/sell/whatsapp-order-sheet";
 import { GiftOrderSheet } from "@/components/sell/gift-order-sheet";
+import { QuickSellSheet } from "@/components/sell/quick-sell-sheet";
 import { ScannerSheet } from "@/components/sell/scanner/scanner-sheet";
 import { ProductBrowserDrawer } from "@/components/sell/browser/product-browser-drawer";
 import { VariantPickerSheet } from "@/components/sell/variant-picker-sheet";
@@ -98,6 +99,7 @@ export function SellScreen() {
   const [whatsappOpen, setWhatsappOpen] = useState(false);
   const [whatsappErrorCode, setWhatsappErrorCode] = useState<string | null>(null);
   const [giftOpen, setGiftOpen] = useState(false);
+  const [quickSellOpen, setQuickSellOpen] = useState(false);
   const [giftErrorCode, setGiftErrorCode] = useState<string | null>(null);
   const [completedOrder, setCompletedOrder] = useState<Order | null>(null);
   // Only ever focused by a deliberate keypress from the counter keyboard —
@@ -117,6 +119,12 @@ export function SellScreen() {
   // decides whether the action is drawn at all; the backend refuses the
   // request either way.
   const canGift = can(user, "order.createGift");
+  // Selling a piece that isn't in the catalogue yet (spec.md "Quick sell").
+  // Every role holds it as shipped — it happens when the shop is busiest, and
+  // that is exactly when an Employee is the one at the till — but the shop can
+  // switch it off per role, so the button is drawn from the permission rather
+  // than always. The backend refuses the request either way (rule 5).
+  const canQuickSell = can(user, "product.quickSell");
 
   // One item in the cart, however it got there. All four answers land at
   // once — the beep, the buzz, the toast naming it and its new quantity, and
@@ -445,16 +453,36 @@ export function SellScreen() {
                 so nothing about the way this screen was scanned yesterday
                 has moved. */}
             {!isSearching && (
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setBrowserOpen(true)}
-                data-test-selector="pos-browse-open"
-                className="mt-2 h-12 w-full"
-              >
-                <LayoutGrid aria-hidden="true" />
-                {t("browse.open")}
-              </Button>
+              // Two ways in for a piece with no readable tag, side by side:
+              // the browser for something that IS in the catalogue, quick
+              // sell for something that is not. Browsing is much the commoner
+              // of the two, so it keeps the width; quick sell sits beside it
+              // rather than under it, so the resting screen does not grow a
+              // third full-width button (spec.md "Quick sell").
+              <div className="mt-2 flex items-stretch gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setBrowserOpen(true)}
+                  data-test-selector="pos-browse-open"
+                  className={cn("h-12 min-w-0", canQuickSell ? "flex-[2]" : "w-full")}
+                >
+                  <LayoutGrid aria-hidden="true" />
+                  {t("browse.open")}
+                </Button>
+                {canQuickSell && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setQuickSellOpen(true)}
+                    data-test-selector="pos-quick-sell-open"
+                    className="h-12 min-w-0 flex-1"
+                  >
+                    <Zap aria-hidden="true" />
+                    {t("quickSell.open")}
+                  </Button>
+                )}
+              </div>
             )}
           </div>
 
@@ -468,6 +496,11 @@ export function SellScreen() {
               pendingId={pendingProductId}
               onSelect={(summary) => void selectSearchResult(summary)}
               onBack={() => setQuery("")}
+              // "We searched for it and it isn't there" is the exact moment
+              // quick sell is for, so the offer is made where the answer was
+              // (spec.md "Quick sell") instead of leaving the cashier to
+              // clear the box and hunt for a button.
+              onQuickSell={canQuickSell ? () => setQuickSellOpen(true) : undefined}
             />
           ) : (
             // Renders from `lg` only: on a phone this column IS the cart when
@@ -510,6 +543,25 @@ export function SellScreen() {
         onWhatsappOrder={() => setWhatsappOpen(true)}
         onGiftOrder={() => setGiftOpen(true)}
       />
+
+      {/* Only mounted for an account that may quick-sell, so there is nothing
+          behind the hidden button either. */}
+      {canQuickSell && (
+        <QuickSellSheet
+          open={quickSellOpen}
+          onOpenChange={setQuickSellOpen}
+          onAdd={(input) => {
+            const line = cart.addQuickSellItem(input, 1);
+            // The same feedback a scan gets: the cart is one tap away and the
+            // cashier has to know the piece landed in it.
+            scanFlash.markScanned(line.key);
+            toasts.show("success", t("quickSell.added", { name: input.name }));
+            // ...and back to the resting screen, since the search that found
+            // nothing has been answered.
+            setQuery("");
+          }}
+        />
+      )}
 
       <WhatsappOrderSheet
         open={whatsappOpen}

@@ -170,7 +170,8 @@
       "discountFor": "הנחה על {name}",
       "stockCap": "{count, plural, one {זה הפריט האחרון במלאי} two {אלה כל # הפריטים במלאי} other {אלה כל # הפריטים במלאי}}",
       "discountApplied": "הנחה {value} · ‎−{amount}",
-      "discountValue": "הנחה {value}"
+      "discountValue": "הנחה {value}",
+      "quickSold": "מכירה מהירה"
     },
     "discount": {
       "title": "הוספת הנחה",
@@ -262,6 +263,25 @@
       "cancel": "חזרה למכירה",
       "confirm": "אישור המתנה",
       "saving": "שומר…"
+    },
+    "quickSell": {
+      "open": "מכירה מהירה",
+      "title": "מכירה מהירה",
+      "subtitle": "פריט שעדיין לא הוזן למערכת — כתבו את שמו ומחירו וסיימו את המכירה.",
+      "nameLabel": "שם הפריט",
+      "namePlaceholder": "לדוגמה: עבאיה שחורה",
+      "priceLabel": "מחיר מכירה",
+      "priceLabelCurrency": "מחיר מכירה ({currency})",
+      "pricePlaceholder": "0.00",
+      "priceInvalid": "הזינו מחיר תקין.",
+      "detailLabel": "צבע או מידה (רשות)",
+      "detailPlaceholder": "לדוגמה: שחור · M · 7",
+      "detailHint": "מוצג לצד השם בקבלה.",
+      "afterwards": "המכירה מסתיימת מיד; פרטי הפריט מושלמים אחר כך מלוח הניהול.",
+      "add": "הוספה למכירה",
+      "added": "{name} נוסף למכירה.",
+      "emptyPrompt": "הפריט לא במערכת? מכרו אותו עכשיו והשלימו את פרטיו אחר כך.",
+      "cancel": "ביטול"
     }
   },
   "errors": {

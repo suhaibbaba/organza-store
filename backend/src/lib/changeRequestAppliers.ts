@@ -19,6 +19,7 @@ import type {
   DbClient,
 } from "@/types/changeRequest";
 import type { ExpenseApprovalStatus } from "@/types";
+import type { PermissionAction } from "@organza/shared/types/permission";
 
 // ============================================================================
 //  What "approve" actually DOES, per gated field.
@@ -62,6 +63,21 @@ export interface ChangeRequestApplier {
    * Everything else is discarded by doing precisely nothing.
    */
   reject?: (tx: DbClient, request: AppliedChangeRequestRow, ctx: ApplyContext) => Promise<ApplyOutcome>;
+  /**
+   * Optional: may the person who filed this request also decide it?
+   *
+   * NO for every gated change, and that is the whole design — a gate whose
+   * asker can sign their own ask off is decorative (routes/changeRequests.ts
+   * refuses it by default).
+   *
+   * YES for exactly one field, quick sell's `completion`, because it is not a
+   * gate at all: the sale already happened, and what waits is a piece of data
+   * entry. An Admin or a Manager who quick-sold something at the counter holds
+   * product.complete outright — they could edit that product directly — so
+   * refusing to let them finish their own would only strand it on the "needs
+   * completing" list with nobody able to clear it.
+   */
+  allowSelfDecision?: boolean;
 }
 
 function requestedValue(request: AppliedChangeRequestRow): ChangeRequestValue {
@@ -260,6 +276,92 @@ const variantStockApplier: ChangeRequestApplier = {
   },
 };
 
+// --- quick sell (spec.md "Quick sell") --------------------------------------
+
+// The request that reads backwards from every other one: the sale has already
+// happened, so this asks a reviewer to FINISH the product rather than to
+// permit anything. Approving completes it; refusing rules it a one-off. The
+// order is untouched by either — its lines are snapshots, and the money was
+// taken before the request existed.
+//
+// Both outcomes are `completedAt`/`oneOffAt` stamps rather than a status
+// column on Product (CLAUDE.md rule 21): what is WAITING lives on the request,
+// and these only record what has already been decided.
+const productCompletionApplier: ChangeRequestApplier = {
+  // See allowSelfDecision above: reviewing your own quick sale is data entry,
+  // not self-approval.
+  allowSelfDecision: true,
+
+  apply: async (tx, request, ctx) => {
+    const product = await liveProduct(tx, request.entityId);
+    if (!product.quickSoldAt || product.completedAt) {
+      throw new AppError(409, ERROR_CODES.CHANGE_REQUEST_NOT_APPLICABLE);
+    }
+    // The one thing completing cannot leave undone. Without a category the
+    // product is invisible to every category-filtered list in the shop, so
+    // signing it off as an ordinary catalogue item would quietly lose it —
+    // which is exactly what the "needs completing" queue exists to prevent.
+    // Cost, barcode and photographs are genuinely optional: plenty of real
+    // products have no photograph, and cost is Admin-only (CLAUDE.md rule 19),
+    // so a Manager completing a piece leaves it blank and the reports keep
+    // saying so.
+    if (!product.categoryId) throw new AppError(409, ERROR_CODES.PRODUCT_COMPLETION_INCOMPLETE);
+
+    await tx.product.update({
+      where: { id: product.id },
+      data: {
+        completedAt: ctx.decidedAt,
+        // Onto the shelf. A quick-sold product is created hidden — nothing
+        // should browse to a nameless, photoless piece — and completing it is
+        // what publishes it.
+        isActive: true,
+      },
+    });
+
+    return {
+      audits: [
+        {
+          action: AuditAction.UPDATE,
+          entityType: AUDIT_ENTITY.PRODUCT,
+          entityId: product.id,
+          oldValue: { quickSoldAt: product.quickSoldAt, completedAt: null, isActive: product.isActive },
+          newValue: { completedAt: ctx.decidedAt, isActive: true },
+        },
+      ],
+    };
+  },
+
+  // "It was a one-off." NOT an undo: the sale stays exactly where it is, with
+  // its own snapshots of the name and the price, and the money stays taken.
+  // What changes is the catalogue — a piece that will not come back has no
+  // business sitting in it — so the product is soft-deleted alongside the
+  // stamp (CLAUDE.md rule 4: soft delete only, never destroyed), which is also
+  // what takes it off the "needs completing" queue.
+  reject: async (tx, request, ctx) => {
+    const product = await liveProduct(tx, request.entityId);
+    if (!product.quickSoldAt || product.completedAt) {
+      throw new AppError(409, ERROR_CODES.CHANGE_REQUEST_NOT_APPLICABLE);
+    }
+
+    await tx.product.update({
+      where: { id: product.id },
+      data: { oneOffAt: ctx.decidedAt, deletedAt: ctx.decidedAt, isActive: false },
+    });
+
+    return {
+      audits: [
+        {
+          action: AuditAction.DELETE,
+          entityType: AUDIT_ENTITY.PRODUCT,
+          entityId: product.id,
+          oldValue: { quickSoldAt: product.quickSoldAt, oneOffAt: null, deletedAt: null },
+          newValue: { oneOffAt: ctx.decidedAt, deletedAt: ctx.decidedAt },
+        },
+      ],
+    };
+  },
+};
+
 // --- images ----------------------------------------------------------------
 
 const imageDeletionApplier: ChangeRequestApplier = {
@@ -346,6 +448,7 @@ const APPLIERS: Record<string, ChangeRequestApplier> = {
   [`${CHANGE_REQUEST_ENTITIES.PRODUCT}:${CHANGE_REQUEST_FIELDS.PRODUCT_STOCK}`]: productStockApplier,
   [`${CHANGE_REQUEST_ENTITIES.PRODUCT}:${CHANGE_REQUEST_FIELDS.PRODUCT_IS_ACTIVE}`]: productVisibilityApplier,
   [`${CHANGE_REQUEST_ENTITIES.PRODUCT}:${CHANGE_REQUEST_FIELDS.PRODUCT_VARIANT_SET}`]: productVariantSetApplier,
+  [`${CHANGE_REQUEST_ENTITIES.PRODUCT}:${CHANGE_REQUEST_FIELDS.PRODUCT_COMPLETION}`]: productCompletionApplier,
 
   [`${CHANGE_REQUEST_ENTITIES.VARIANT}:${CHANGE_REQUEST_FIELDS.VARIANT_PRICE_OVERRIDE}`]: variantPriceApplier,
   [`${CHANGE_REQUEST_ENTITIES.VARIANT}:${CHANGE_REQUEST_FIELDS.VARIANT_STOCK}`]: variantStockApplier,
@@ -368,4 +471,47 @@ export function applierFor(entityType: string, field: string): ChangeRequestAppl
 /** Is this (entity, field) pair gated at all? Used by the filing side. */
 export function isGatedField(entityType: string, field: string): boolean {
   return Boolean(APPLIERS[`${entityType}:${field}`]);
+}
+
+/**
+ * WHICH permission decides this request.
+ *
+ * `changeRequest.approve` for everything, and that is the rule the approval
+ * gate rests on: Admin only, PROTECTED, never grantable (CLAUDE.md rule 22).
+ *
+ * The single exception is quick sell's `completion` (spec.md "Quick sell"),
+ * which is not an approval in the same sense at all — the sale has already
+ * completed, and what is being decided is whether a piece of stock becomes a
+ * catalogue item. That is catalogue curation, so it answers to
+ * `product.complete` (Admin + Manager, CONFIGURABLE) instead. Kept as a lookup
+ * here rather than as a branch in the route so that the routes stay
+ * entity-agnostic and a future field can differ the same way in one line.
+ */
+const DECISION_PERMISSIONS: Record<string, PermissionAction> = {
+  [`${CHANGE_REQUEST_ENTITIES.PRODUCT}:${CHANGE_REQUEST_FIELDS.PRODUCT_COMPLETION}`]: "product.complete",
+};
+
+export function decisionPermissionFor(entityType: string, field: string): PermissionAction {
+  return DECISION_PERMISSIONS[`${entityType}:${field}`] ?? "changeRequest.approve";
+}
+
+/**
+ * Every action that can decide SOMETHING. What the list and count endpoints
+ * check to answer "may this person see requests other than their own" — an
+ * Admin sees all of them through changeRequest.approve, a Manager sees the
+ * quick-sold ones they are the reviewer for.
+ */
+export const DECIDER_PERMISSIONS: readonly PermissionAction[] = [
+  "changeRequest.approve",
+  ...Object.values(DECISION_PERMISSIONS),
+];
+
+/** The (entityType, field) pairs a given decider permission covers. */
+export function fieldsDecidableBy(action: PermissionAction): { entityType: string; field: string }[] {
+  return Object.entries(DECISION_PERMISSIONS)
+    .filter(([, permission]) => permission === action)
+    .map(([key]) => {
+      const [entityType, field] = key.split(":");
+      return { entityType, field };
+    });
 }

@@ -13,6 +13,7 @@ import { useMoneyFormatter } from "@/hooks/use-money-formatter";
 import { OrderChannelBadge } from "@/components/orders/order-channel-badge";
 import { OrderStatusBadge } from "@/components/orders/order-status-badge";
 import { OrderTypeBadge } from "@/components/orders/order-type-badge";
+import { QuickSaleBadge } from "@/components/orders/quick-sale-badge";
 import { PaymentStatusBadge } from "@/components/orders/payment-status-badge";
 
 // Desktop-only view of the same orders the cards show on a phone. Same data,
@@ -46,6 +47,10 @@ export function OrderTable({ orders }: { orders: OrderSummary[] }) {
                 what it changes is what the row's total means. Renders nothing
                 for an ordinary sale. */}
             <OrderTypeBadge type={row.original.type} />
+            {/* ...and for the same reason: something on this sale was typed
+                at the counter, so its cost may still be missing (spec.md
+                "Quick sell"). */}
+            {row.original.hasQuickSale && <QuickSaleBadge />}
           </div>
         ),
       },

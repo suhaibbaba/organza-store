@@ -1,6 +1,7 @@
 import { Role } from "@prisma/client";
 import { can } from "@organza/shared/lib/permissions";
 import { needsLabel } from "@/lib/labelState";
+import { needsCompleting } from "@/lib/quickSellState";
 import { summarizeNumbers } from "@/lib/numberedProduct";
 import type { AnyRecord } from "@/types";
 
@@ -115,6 +116,15 @@ export function serializeProduct(product: AnyRecord, role: Role) {
     pointTextColor: product.pointTextColor ?? null,
     pointBackgroundColor: product.pointBackgroundColor ?? null,
     labelsPrintedAt: product.labelsPrintedAt ?? null,
+    // --- quick sell (spec.md "Quick sell") ---
+    // Three facts about a piece that was sold before it was entered. Every
+    // screen that draws a product reads `needsCompleting` rather than
+    // re-deriving the rule, so the products list, the inventory and the label
+    // queue all agree on which pieces are deliberately incomplete.
+    quickSoldAt: product.quickSoldAt ?? null,
+    completedAt: product.completedAt ?? null,
+    oneOffAt: product.oneOffAt ?? null,
+    needsCompleting: needsCompleting(product),
     deletedAt: product.deletedAt,
     hasVariants: variants.length > 0,
     // The same notes the variants above carry on their values, flat: what the
@@ -168,6 +178,15 @@ export function serializeProductSummary(product: AnyRecord, role: Role) {
     isActive: product.isActive,
     trackLowStock: product.trackLowStock,
     labelsPrintedAt: product.labelsPrintedAt ?? null,
+    // --- quick sell (spec.md "Quick sell") ---
+    // Three facts about a piece that was sold before it was entered. Every
+    // screen that draws a product reads `needsCompleting` rather than
+    // re-deriving the rule, so the products list, the inventory and the label
+    // queue all agree on which pieces are deliberately incomplete.
+    quickSoldAt: product.quickSoldAt ?? null,
+    completedAt: product.completedAt ?? null,
+    oneOffAt: product.oneOffAt ?? null,
+    needsCompleting: needsCompleting(product),
     // Whether a label is still owed at all, which the list row cannot work
     // out for itself: it depends on the variants' own barcode sources, and a
     // summary carries no variants. Same rule as the "not printed yet" filter

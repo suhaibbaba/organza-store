@@ -41,6 +41,28 @@ export const PERMISSION_ACTIONS = [
   // but the print timestamp — no price, stock or visibility — so it stays
   // clear of the edit/delete/hide gates an Employee must not pass.
   "product.printLabels",
+  // Ringing up a piece that is not in the catalogue yet (spec.md "Quick
+  // sell"): a name, a price, and the sale completes. Held by EVERY role on
+  // purpose — that is the whole point of it. It happens when the shop is
+  // busiest, and a permission that stops the person at the till from taking
+  // money would only produce a sale written on paper.
+  //
+  // It is not product.create by another name: it creates a deliberately
+  // incomplete product (no category, no cost, no barcode of anybody's
+  // choosing, no photographs) and files it for review, so it grants none of
+  // what adding a product properly grants.
+  "product.quickSell",
+  // Finishing a quick-sold product off: choosing its category, its cost, its
+  // barcode and its photographs, or ruling that it was a one-off. Admin and
+  // Manager — this is catalogue curation and it decides what the shop is
+  // holding, which is not the job of whoever was at the counter.
+  //
+  // Its own action rather than a reuse of changeRequest.approve, which is
+  // Admin-only and PROTECTED for a different reason entirely: approving a
+  // gated change is permission BEFORE the fact and must never be widened,
+  // while completing a quick sale is review AFTER it, on money already taken.
+  // Widening one must not widen the other.
+  "product.complete",
 
   // The Reports screen and the endpoints behind it: sales by period, the
   // channel split, best sellers, returns, and — for whoever also holds
@@ -363,6 +385,12 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<Role, readonly Action[]> = {
     "product.delete",
     "product.hide",
     "product.editVariantSet",
+    "product.quickSell",
+    // Completing a quick-sold piece is catalogue curation, which is squarely
+    // the Manager's. Cost is NOT: they may finish everything else about the
+    // product and leave the cost blank, and the missing-cost warning on the
+    // reports keeps saying so until an Admin fills it in (CLAUDE.md rule 19).
+    "product.complete",
     // NOTE: no "product.viewCost" — cost and profit are Admin only.
     // NOTE: no "report.view" either — the Reports screen is Admin only. The
     // dashboard (dashboard.view, above) carries the sales figures a Manager
@@ -407,6 +435,10 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<Role, readonly Action[]> = {
     "product.create",
     "product.edit",
     "product.printLabels",
+    // The busiest hour is exactly when an Employee is the one at the till,
+    // so this is theirs (spec.md "Quick sell"). Completing the product
+    // afterwards is not — product.complete is absent below.
+    "product.quickSell",
     "category.view",
     "variantType.create",
     "images.edit",

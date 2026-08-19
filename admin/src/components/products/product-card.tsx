@@ -6,6 +6,7 @@ import { formatMoney } from "@/lib/format";
 import { ProductImage } from "@/components/products/product-image";
 import { StatusBadge } from "@/components/products/status-badge";
 import { NumberedBadge } from "@/components/products/numbered-badge";
+import { IncompleteBadge } from "@/components/products/incomplete-badge";
 import { testSelectorFor } from "@organza/shared/lib/testSelector";
 import { cn } from "@/lib/utils";
 
@@ -40,6 +41,7 @@ export function ProductCard({ product, currency }: ProductCardProps) {
         </div>
         <div className="mt-0.5 flex items-center gap-2">
           <p className="min-w-0 truncate text-xs text-muted-foreground">{product.sku ?? t("card.multipleSkus")}</p>
+          {product.needsCompleting && <IncompleteBadge />}
           {product.isNumbered && <NumberedBadge count={product.numberCount} />}
         </div>
         <div className="mt-1.5 flex items-center justify-between gap-2">

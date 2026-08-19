@@ -16,6 +16,7 @@ export const DEFAULT_ORDER_FILTERS: OrderListFilters = {
   channel: null,
   paymentStatus: null,
   collectableOnly: false,
+  hasQuickSale: false,
   dateFrom: "",
   dateTo: "",
   sortBy: "createdAt",
