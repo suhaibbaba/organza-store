@@ -16,7 +16,9 @@ function CardHeader({ className, ...props }: React.ComponentProps<"div">) {
 }
 
 function CardTitle({ className, ...props }: React.ComponentProps<"h3">) {
-  return <h3 data-slot="card-title" className={cn("text-lg font-semibold leading-none", className)} {...props} />;
+  // The type scale's line height, not `leading-none` — a card title is
+  // usually Arabic, and Arabic does not fit in a 1.0 line box (globals.css).
+  return <h3 data-slot="card-title" className={cn("text-lg font-semibold", className)} {...props} />;
 }
 
 function CardDescription({ className, ...props }: React.ComponentProps<"p">) {

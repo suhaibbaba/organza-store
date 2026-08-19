@@ -292,6 +292,16 @@ Design for that reality:
 - **RTL must be 100% correct**, not just `dir="rtl"`: the whole layout mirrors (nav, icons, arrows,
   padding/margins, alignment), Arabic uses a clear legible Arabic font, and numbers/dates render
   correctly. **Verify Arabic visually** — do not assume it works. Arabic is the default locale.
+- **Arabic needs more vertical room than Latin at the same size — the type scale already gives it.**
+  Cairo's ink runs from ~0.7em above the baseline to ~0.45em below it, so Tailwind's Latin line
+  heights (text-sm at 1.43, text-2xl at 1.33) leave the tails of ج ح خ ي outside the line box, where
+  the first `truncate` or `line-clamp` slices them off. Both apps therefore override every
+  `--text-*--line-height` (and the inherited `html` line height) in `globals.css` — around 1.8 at
+  interface sizes. **Do not put `leading-tight`, `leading-snug` or `leading-none` back on Arabic
+  text**: they undo it, and the damage only shows where something clips. `leading-none` is for
+  content that is digits or a single glyph by construction (a count badge, a numbered-shawl
+  marker) and nothing else. Any new fixed-height text box has to fit the line box the scale gives
+  it — prefer `min-h-*` with padding over `h-*`, and check with `ملاحظات على الخيارات جحخي`.
 - **Accessibility basics:** readable font sizes on mobile, sufficient contrast, labels on inputs.
 - **Every password field is a `PasswordInput`** (`components/ui/password-input.tsx`, one per app),
   never a bare `<Input type="password">`. Typing eight unseen characters on a phone keyboard and

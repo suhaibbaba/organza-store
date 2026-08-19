@@ -112,7 +112,7 @@ export function BrowserProductCard({ product, isPending, isBusy, onSelect, index
             down with the length of each name. break-words is for the name
             with no spaces in it: without it a long unbroken string pushes the
             card wider than its column instead of being clipped. */}
-        <span className="line-clamp-2 min-h-[2.4rem] w-full break-words text-sm font-medium leading-snug">
+        <span className="line-clamp-2 min-h-[3.15rem] w-full break-words text-sm font-medium">
           {name}
         </span>
 

@@ -37,7 +37,7 @@ export function VariantNotes({ variant, className }: VariantNotesProps) {
   return (
     <ul className={cn("flex w-full flex-col gap-0.5", className)}>
       {notes.map((entry) => (
-        <li key={entry.valueId} className="line-clamp-2 text-xs leading-tight text-muted-foreground">
+        <li key={entry.valueId} className="line-clamp-2 text-xs text-muted-foreground">
           {showValueLabels && (
             <span className="font-medium text-foreground/80">{localize(entry.value, locale)}: </span>
           )}

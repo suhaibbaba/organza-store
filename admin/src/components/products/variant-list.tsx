@@ -76,13 +76,13 @@ export function VariantList({ variants, variantTypes, currency }: VariantListPro
                     {groups.map((group) => (
                       <div key={group.id} className="min-w-0">
                         {group.typeName && (
-                          <p className="truncate text-[0.6875rem] leading-tight text-muted-foreground">
+                          <p className="truncate text-[0.6875rem]/[1.85] text-muted-foreground">
                             {group.typeName}
                           </p>
                         )}
                         <p className="truncate text-sm font-medium text-foreground">{group.value}</p>
                         {group.note && (
-                          <p className="line-clamp-2 text-xs leading-tight text-muted-foreground">{group.note}</p>
+                          <p className="line-clamp-2 text-xs text-muted-foreground">{group.note}</p>
                         )}
                       </div>
                     ))}
