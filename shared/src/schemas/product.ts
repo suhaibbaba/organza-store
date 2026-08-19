@@ -13,6 +13,10 @@ import { BARCODE_SOURCE, BARCODE_SOURCES } from "@/constants/barcode";
 import { isValidBarcode, normalizeBarcode } from "@/lib/barcode";
 import { ERROR_CODES } from "@/constants/errors";
 import { PRODUCT_PRINT_STATES, PRODUCT_SORT_FIELDS } from "@/constants/product";
+import {
+  DEFAULT_PRODUCT_COMPLETENESS_FILTER,
+  PRODUCT_COMPLETENESS_FILTERS,
+} from "@/constants/quickSell";
 import { MAX_LABEL_PRINT_BATCH } from "@/constants/label";
 
 // A supplier's own code, typed or scanned into a barcode field. Normalized
@@ -199,6 +203,12 @@ export const listProductsQuerySchema = paginationSchema.extend({
   // whole workflow of its own, so it filters the list rather than being
   // sifted out client-side. Defaults to every product.
   printState: z.enum(PRODUCT_PRINT_STATES).default("all"),
+  // Quick sell's own work queue (spec.md "Quick sell"). "needs_completing" is
+  // the list an Admin has to clear once the season ends: sold, still without
+  // a category, and therefore invisible to every category filter on this same
+  // screen — which is exactly why it needs a filter of its own rather than a
+  // note somebody is expected to remember.
+  completeness: z.enum(PRODUCT_COMPLETENESS_FILTERS).default(DEFAULT_PRODUCT_COMPLETENESS_FILTER),
   sortBy: z.enum(PRODUCT_SORT_FIELDS).default("createdAt"),
   sortDir: z.enum(["asc", "desc"]).default("desc"),
 });

@@ -43,6 +43,20 @@ export interface ChangeRequestValueDetail {
   optionSelections?: { variantTypeId: string; valueIds: string[] }[];
   /** variantSet + remove only: which variant goes. */
   variantId?: string;
+
+  /**
+   * quickSell only: the sale that has ALREADY happened, snapshotted when the
+   * request was filed (spec.md "Quick sell"). It is what turns the approval
+   * card from "approve this change" into "this was sold — complete its
+   * details": the order it went out on, how many, and what the customer paid.
+   */
+  sale?: {
+    orderId: string;
+    orderNumber: number;
+    quantity: number;
+    /** What the cashier typed beside the name — a colour, a size, a number. */
+    detail?: string | null;
+  };
 }
 
 /**

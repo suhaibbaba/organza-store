@@ -290,8 +290,20 @@ model Product {
   // cross-language + typo-tolerant search. Rebuilt whenever name/description change.
   searchText String @default("")
 
-  categoryId String
-  category   Category @relation(fields: [categoryId], references: [id])
+  // Nullable ONLY because of quick sell (spec.md "Quick sell"): a piece rung
+  // up at the counter before it was ever entered has no shelf chosen for it
+  // yet, and refusing the sale until somebody picks one is exactly what quick
+  // sell exists to avoid. Every product created the ordinary way still
+  // requires a category — the create/update schemas demand one — so a null
+  // here means "sold first, not filed yet" and nothing else. It is what
+  // `needsCompleting` is built from, and why such a product is listed on its
+  // own screen: a category filter cannot find it.
+  categoryId String?
+  // Restrict, explicitly: an optional relation defaults to SetNull in
+  // Prisma, and that would let deleting a category quietly turn filed
+  // products into unfiled ones. Deleting a category that still holds
+  // products stays refused (routes/categories.ts), exactly as before.
+  category   Category? @relation(fields: [categoryId], references: [id], onDelete: Restrict)
 
   // --- pricing (parent-level, variants may override) ---
   basePrice      Decimal  @db.Decimal(10, 2)
@@ -350,6 +362,26 @@ model Product {
   pointTextColor       String?
   pointBackgroundColor String?
 
+  // --- quick sell (spec.md "Quick sell") -------------------------------
+  // Three facts, never a status column (CLAUDE.md rule 21): what waits on
+  // this product is a ChangeRequest like any other gated change, and these
+  // only record what has already happened to it.
+  //
+  // When it was sold across the counter before it existed in the catalogue.
+  // Null on every ordinary product, and the thing that makes this one
+  // deliberately incomplete rather than broken: no category, no cost, no
+  // photographs, by design.
+  quickSoldAt DateTime?
+  // When a reviewer finished its details and it became an ordinary catalogue
+  // item. From here on nothing about it is special.
+  completedAt DateTime?
+  // ...or when a reviewer decided it never was a catalogue item — a one-off
+  // that will not come back. The SALE is untouched either way: money changed
+  // hands, and the order lines are snapshots (spec.md "Price & cost
+  // snapshots"). A one-off is soft-deleted alongside this stamp, so it leaves
+  // the catalogue without taking its sale with it.
+  oneOffAt DateTime?
+
   // When this product's barcode labels were last sent to the printer.
   // Null = never printed, which is what the "still to print" work queue
   // filters on. Reprinting only moves the timestamp forward — it is a record,
@@ -374,6 +406,9 @@ model Product {
   @@index([isActive])
   @@index([deletedAt])
   @@index([labelsPrintedAt])
+  // The "needs completing" screen: quick-sold, not yet completed, not yet
+  // ruled a one-off.
+  @@index([quickSoldAt])
   @@index([searchText(ops: raw("gin_trgm_ops"))], type: Gin)
 }
 
@@ -877,6 +912,13 @@ model Order {
   discountAmount Decimal       @default(0) @db.Decimal(10, 2)
   total          Decimal       @db.Decimal(10, 2)
 
+  // Does this sale contain something that was quick-sold — rung up before it
+  // existed in the catalogue (spec.md "Quick sell")? Stored rather than
+  // derived from the lines: it is a fact about the sale that must stay true
+  // once the product has been completed, ruled a one-off or removed, and the
+  // orders list filters on it without joining every line's product.
+  hasQuickSale Boolean @default(false)
+
   // Set the moment stock is taken off the shelf for this order (creation for
   // STORE, the move to PREPARING for online). Its presence is what makes
   // deduction idempotent — stock is never deducted twice for one order.
@@ -910,6 +952,8 @@ model Order {
   @@index([createdAt])
   @@index([createdById])
   @@index([deletedAt])
+  // "Which sales still need reviewing after the season" (spec.md "Quick sell").
+  @@index([hasQuickSale])
 }
 
 model OrderItem {
@@ -934,6 +978,12 @@ model OrderItem {
   unitCost    Decimal? @db.Decimal(10, 2) // resolved cost — SENSITIVE, Admin only
 
   quantity Int
+
+  // This line is a piece that was quick-sold: typed at the counter with a
+  // name and a price and nothing else (spec.md "Quick sell"). A snapshot like
+  // every other field here, so the line still says how it was sold after its
+  // product has been completed, ruled a one-off or removed.
+  quickSold Boolean @default(false)
 
   // Item-level discount, applied to this line before the order-level one.
   discountType   DiscountType?

@@ -705,6 +705,81 @@ configured it is silently off, exactly like sale notifications.
 
 ---
 
+## Quick sell
+
+At the height of the season, stock reaches the shop floor before it reaches the system. A customer
+is holding a piece that nobody has entered yet, there is a queue behind them, and the honest choice
+is between selling it and writing it on paper. So the POS sells it.
+
+**Sell first, tidy up later.** A cashier taps *Quick sell* and types what the sale genuinely needs:
+a **name**, a **selling price**, and optionally one short **colour / size / number**. No category,
+no cost, no barcode, no photograph, no variants. The line joins the cart like any other, discounts
+and totals the same way, and the sale completes **immediately** — nothing about it waits for
+approval, and stock behaves exactly as it does for any other sale.
+
+**What the sale creates.** In the same transaction as the order:
+
+* a **Product**, deliberately incomplete — `categoryId` null, `cost` null, no images, no variants,
+  `isActive` false (it has no business being browsed to yet), a barcode of ours so the piece can be
+  labelled the moment somebody shelves it, and `stock` equal to what is leaving, so the sale's own
+  deduction lands it at zero. `quickSoldAt` is stamped.
+* an **OrderItem** with `quickSold` true and `unitCost` **null** — nobody at the till knows what the
+  piece cost.
+* a **ChangeRequest** on `(Product, completion)`, through the same mechanism as every other gated
+  change (CLAUDE.md rule 21). No second `approvalStatus` column anywhere.
+
+Because all three commit together, an abandoned or failed checkout can never leave a nameless
+half-product behind.
+
+**The request reads the other way round.** Every other request on the approvals screen asks
+permission *before* the fact. This one is a review *after* it: the sale has happened and the money
+is in the till. So it gets a card of its own that says what happened first — "already sold for
+150 · order 412" — and offers *Complete the details* and *It was a one-off* rather than approve and
+reject. Getting that wrong would invite the conclusion that refusing undoes a sale.
+
+**Completing** is done on the product's own edit form, where the missing half actually lives: the
+approvals card links there, and a banner at the top of that form carries the two decisions. A
+category is required — a product without one is invisible to every category-filtered list, which is
+the one thing completing must not leave undone (`error.product.completion_incomplete`, refused
+server-side). Cost, barcode and photographs stay optional: plenty of real products have no
+photograph, and cost is Admin-only, so a Manager may complete a piece and leave it blank.
+Completing stamps `completedAt` and publishes the product.
+
+**One-off** stamps `oneOffAt` and soft-deletes the product: a piece that will not come back is not a
+catalogue item. **The sale is untouched either way** — the order lines are snapshots
+(see "Price & cost snapshots"), so the receipt, the totals and the reports keep saying exactly what
+was sold and for how much.
+
+**Profit is visibly overstated until the cost is filled in.** A quick-sold line's `unitCost` is
+null, which is precisely what the reports' existing missing-cost warning counts — so the figure
+says so out loud rather than quietly reporting the whole price as profit.
+
+**Finding them again.** The sale carries `hasQuickSale`, badged in the orders list and on the order
+itself (and per line, since an order of six may have one), with a filter for "quick sales only".
+The catalogue side has the **needs completing** queue: a tab on the products screen, carrying its
+own count, listing exactly the pieces that are quick-sold and not yet decided. It has to be a tab
+rather than a filter inside the sheet, because these products have no category — the filter
+somebody *would* reach for cannot see them. Rows carry an "incomplete" badge wherever they appear.
+
+**Permissions.** `product.quickSell` — every role as shipped, which is the point: it happens when
+the shop is busiest and that is exactly when an Employee is at the till. `product.complete` —
+Admin and Manager; curating the catalogue is not the job of whoever was at the counter. Both are
+CONFIGURABLE. Deciding a completion answers to `product.complete` rather than
+`changeRequest.approve`, which stays Admin-only and PROTECTED: the two are opposites and widening
+one must never widen the other. Quick sell is refused on a **gift** — giving away something the
+shop has no record of holding is a piece walking out with nothing behind it.
+
+**Self-review is allowed here, and only here.** An Admin or Manager who quick-sold something may
+complete it themselves: they hold `product.complete` outright and could edit that product directly,
+so refusing would only strand it on the queue. Every other gated field still refuses a self-decision
+— that is what makes the gate a gate.
+
+**The trail.** The order's own CREATE entry records who quick-sold what at what price (every line's
+name, price and `quickSold` flag), and the request, the completion and the one-off are audited like
+any other change.
+
+---
+
 ## Soft delete
 Products are never hard-deleted (they may be linked to past orders). Deleting sets `deletedAt`
 and hides the product from all normal views. Role-gated (Manager/Admin only).

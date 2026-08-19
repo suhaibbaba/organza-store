@@ -26,6 +26,7 @@ function buildProductListQuery(filters: ProductListFilters, pageSize: number): s
   // "all" is the backend's own default — left off the query string so the
   // products screen's URL stays as it was.
   if (filters.printState !== "all") params.set("printState", filters.printState);
+  if (filters.completeness !== "all") params.set("completeness", filters.completeness);
   return params.toString();
 }
 

@@ -32,6 +32,8 @@ export const PERMISSION_GROUPS: readonly PermissionGroup[] = [
       "product.editVariantSet",
       "product.viewCost",
       "product.printLabels",
+      "product.quickSell",
+      "product.complete",
     ],
   },
   {

@@ -14,6 +14,9 @@ export interface OrderItemDto {
   discountAmount: string;
   lineTotal: string;
   returnedQuantity: number;
+  // Typed at the counter rather than picked from the catalogue (spec.md
+  // "Quick sell").
+  quickSold: boolean;
   // Role-gated (CLAUDE.md rule 19): absent entirely for Employee responses.
   unitCost?: string | null;
 }
@@ -41,6 +44,8 @@ export interface OrderDto {
   discountValue: string | null;
   discountAmount: string;
   total: string;
+  // Whether anything on this sale was quick-sold (spec.md "Quick sell").
+  hasQuickSale: boolean;
   stockDeductedAt: string | null;
   deletedAt: string | null;
   items: OrderItemDto[];
@@ -57,6 +62,7 @@ export interface OrderSummaryDto {
   paymentStatus: OrderDto["paymentStatus"];
   collectedAt: string | null;
   total: string;
+  hasQuickSale: boolean;
   itemCount: number;
 }
 

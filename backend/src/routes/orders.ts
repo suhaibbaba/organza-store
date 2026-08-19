@@ -31,6 +31,12 @@ import {
   toStockMovements,
 } from "@/lib/orderPricing";
 import { deductStock, restoreStock } from "@/lib/orderStock";
+import { createQuickSoldProduct } from "@/lib/quickSell";
+import {
+  announceFiledChangeRequest,
+  fileChangeRequestInTransaction,
+  quickSellValue,
+} from "@/lib/changeRequests";
 import { serializeOrder, serializeOrderSummary } from "@/lib/orderSerialize";
 import { queryCollectionSummary, toCollectionSummary } from "@/lib/orderCollection";
 import { findCustomerSuggestions } from "@/lib/orderCustomers";
@@ -38,6 +44,8 @@ import { scheduleSaleNotification } from "@/lib/saleNotifications";
 import { writeAudit } from "@/lib/audit";
 import {
   AUDIT_ENTITY,
+  CHANGE_REQUEST_ENTITIES,
+  CHANGE_REQUEST_FIELDS,
   COLLECTABLE_ORDER_STATUSES,
   ERROR_CODES,
   GIFT_ORDER_TYPE,
@@ -52,7 +60,14 @@ import {
   STORE_ORDER_INITIAL_STATUS,
   UNEDITABLE_ORDER_STATUSES,
 } from "@/constants";
-import type { AnyRecord, CollectResult, OrderStatus, OrderType, PaymentStatus } from "@/types";
+import type {
+  AnyRecord,
+  CollectResult,
+  OrderStatus,
+  OrderType,
+  PaymentStatus,
+  PricedOrderItem,
+} from "@/types";
 
 // Orders (Phase 2). Two shapes of sale share one model:
 //   STORE    — rung up at the POS counter; opens COMPLETED with stock
@@ -122,6 +137,10 @@ router.get(
     // the shop, sold or given away.
     if (query.type) where.type = query.type;
     if (query.paymentStatus) where.paymentStatus = query.paymentStatus;
+    // "Which sales still need reviewing" (spec.md "Quick sell"). Unset lists
+    // everything: a quick sale is an ordinary sale in every other respect,
+    // and hiding it would be worse than marking it.
+    if (query.hasQuickSale) where.hasQuickSale = true;
 
     // The outstanding-money view asks for PENDING_COLLECTION + this: a
     // cancelled or fully returned sale is still technically "not collected",
@@ -311,17 +330,26 @@ router.post(
     const isGift = body.type === GIFT_ORDER_TYPE;
     if (isGift && !can(req.user!, "order.createGift")) throw new AppError(403, ERROR_CODES.FORBIDDEN);
 
+    // Quick sell (spec.md "Quick sell"): lines naming a piece that is not in
+    // the catalogue at all. Refused up front for anybody without the
+    // permission — the sale would otherwise create a product they may not
+    // create (CLAUDE.md rule 5) — and refused on a gift, because giving away
+    // something the shop has no record of buying is not a gift, it is a piece
+    // walking out with nothing to show it ever existed.
+    const quickSellCount = body.items.filter((item) => item.quickSell).length;
+    if (quickSellCount > 0) {
+      if (!can(req.user!, "product.quickSell")) throw new AppError(403, ERROR_CODES.FORBIDDEN);
+      if (isGift) throw new AppError(400, ERROR_CODES.ORDER_ITEM_SOURCE_INVALID);
+    }
+
     // Prices, names and costs are read from the catalogue here and frozen
-    // onto the lines — the caller only named products and quantities.
-    const catalogue = await priceRequestedItems(body.items);
-    // A gift charges nothing: every line is re-priced at zero, and only
-    // unitCost survives — that is what the shop actually lost.
-    const priced = isGift ? asGiftLines(catalogue) : catalogue;
-    const totals = computeOrderTotals(
-      priced.map((line) => line.lineTotal),
-      // A discount off nothing is nothing; a gift's order-level discount is
-      // dropped rather than applied to a zero subtotal.
-      isGift ? {} : body
+    // onto the lines — the caller only named products and quantities. Quick
+    // sold lines have no catalogue entry to read, so they are priced inside
+    // the transaction below, where their product is created.
+    const catalogue = await priceRequestedItems(
+      body.items
+        .filter((item) => item.productId)
+        .map((item) => ({ ...item, productId: item.productId! }))
     );
 
     // A counter sale differs from a remote one in three ways at once: it
@@ -331,7 +359,42 @@ router.post(
     const isCounterSale = body.channel === "STORE";
     const now = new Date();
 
-    const created = await prisma.$transaction(async (tx) => {
+    const { created, quickSellRequests } = await prisma.$transaction(async (tx) => {
+      // The lines, back in the order they were sent. Catalogue lines were
+      // priced above; a quick-sold line creates its product here, inside this
+      // transaction, so an abandoned or failed sale can never leave a
+      // half-made product behind (see lib/quickSell.ts).
+      const quickSold: { line: PricedOrderItem; input: NonNullable<CreateOrderInput["items"][number]["quickSell"]> }[] = [];
+      const lines: PricedOrderItem[] = [];
+      let nextCatalogueLine = 0;
+
+      for (const item of body.items) {
+        if (!item.quickSell) {
+          lines.push(catalogue[nextCatalogueLine]);
+          nextCatalogueLine += 1;
+          continue;
+        }
+        const product = await createQuickSoldProduct(
+          tx,
+          { quickSell: item.quickSell, quantity: item.quantity, discountType: item.discountType, discountValue: item.discountValue },
+          req.user!,
+          now
+        );
+        lines.push(product.line);
+        quickSold.push({ line: product.line, input: item.quickSell });
+      }
+
+      // A gift charges nothing: every line is re-priced at zero, and only
+      // unitCost survives — that is what the shop actually lost. (A gift can
+      // hold no quick-sold line; that was refused above.)
+      const priced = isGift ? asGiftLines(lines) : lines;
+      const totals = computeOrderTotals(
+        priced.map((line) => line.lineTotal),
+        // A discount off nothing is nothing; a gift's order-level discount is
+        // dropped rather than applied to a zero subtotal.
+        isGift ? {} : body
+      );
+
       const order = await tx.order.create({
         data: {
           channel: body.channel,
@@ -357,6 +420,10 @@ router.post(
           discountAmount: totals.discountAmount,
           total: totals.total,
           stockDeductedAt: isCounterSale ? now : null,
+          // A fact about the sale, kept on the sale: it stays true after the
+          // product has been completed, ruled a one-off or removed, and the
+          // orders list filters on it without reading every line.
+          hasQuickSale: quickSold.length > 0,
           createdById: req.user!.id,
           items: {
             create: priced.map((line) => ({
@@ -368,6 +435,7 @@ router.post(
               unitPrice: line.unitPrice,
               unitCost: line.unitCost,
               quantity: line.quantity,
+              quickSold: line.quickSold ?? false,
               discountType: line.discountType,
               discountValue: line.discountValue,
               discountAmount: line.discountAmount,
@@ -380,9 +448,45 @@ router.post(
 
       // A counter sale hands the goods over immediately, so stock moves with
       // the order. Online orders wait for PREPARING — see the status route.
+      // A quick-sold product was created holding exactly what is leaving, so
+      // this same deduction lands it at zero — quick sell adds no second path
+      // through stock.
       if (isCounterSale) await deductStock(tx, toStockMovements(priced));
 
-      return order;
+      // ...and the review that the sale owes: "this was sold, complete its
+      // details" (spec.md "Quick sell"). Filed in this transaction alongside
+      // the product and the order, so the three can never disagree about
+      // whether the sale happened. Nothing waits on it — the sale is already
+      // complete, which is exactly what makes this request read the opposite
+      // way round from every other one.
+      const quickSellRequests = [];
+      for (const { line, input } of quickSold) {
+        quickSellRequests.push(
+          await fileChangeRequestInTransaction(tx, req.user!, {
+            entityType: CHANGE_REQUEST_ENTITIES.PRODUCT,
+            entityId: line.productId!,
+            field: CHANGE_REQUEST_FIELDS.PRODUCT_COMPLETION,
+            // Nothing was there before. An empty old value is what makes the
+            // admin card read "sold for X" rather than "from A to B" — there
+            // is no previous state to move away from.
+            oldValue: quickSellValue(0, {}),
+            newValue: quickSellValue(line.unitPrice, {
+              sale: {
+                orderId: order.id,
+                orderNumber: order.orderNumber,
+                quantity: line.quantity,
+                detail: input.detail?.trim() || null,
+              },
+            }),
+            entityLabel: line.name,
+            productLabel: line.name,
+            entityDetail: line.sku,
+            productId: line.productId,
+          })
+        );
+      }
+
+      return { created: order, quickSellRequests };
     });
 
     await writeAudit({
@@ -392,6 +496,15 @@ router.post(
       entityId: created.id,
       newValue: serializeOrder(created, Role.ADMIN),
     });
+
+    // The request's own audit entry and push, once the sale has committed —
+    // the same pair fileChangeRequest() writes for itself. Deliberately after
+    // the transaction: a rolled-back sale must leave neither behind. The audit
+    // of WHO quick-sold WHAT at WHAT PRICE is the order's own CREATE entry
+    // above, which carries every line's name, price and quickSold flag.
+    for (const request of quickSellRequests) {
+      await announceFiledChangeRequest(request, req.user!);
+    }
 
     // The shop owner isn't at the counter all day, so a sale made by someone
     // else is pushed to whichever Admin devices have opted in. Deliberately

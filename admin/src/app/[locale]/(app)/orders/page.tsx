@@ -48,6 +48,7 @@ export default function OrdersPage() {
     status: filters.status,
     channel: filters.channel,
     paymentStatus: filters.paymentStatus,
+    hasQuickSale: filters.hasQuickSale,
     dateFrom: filters.dateFrom,
     dateTo: filters.dateTo,
   };
@@ -55,6 +56,7 @@ export default function OrdersPage() {
     filters.status,
     filters.channel,
     filters.paymentStatus,
+    filters.hasQuickSale,
     filters.dateFrom,
     filters.dateTo,
   ].filter(Boolean).length;

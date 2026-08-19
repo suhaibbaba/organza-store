@@ -15,6 +15,7 @@ export const DEFAULT_PRODUCT_FILTERS: ProductListFilters = {
   priceMin: "",
   priceMax: "",
   printState: "all",
+  completeness: "all",
   sortBy: "createdAt",
   sortDir: "desc",
   page: DEFAULT_PAGE,

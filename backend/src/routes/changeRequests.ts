@@ -8,7 +8,13 @@ import { validateBody, validateQuery } from "@/middleware/validate";
 import { AppError, sendOk } from "@/lib/response";
 import { writeAudit } from "@/lib/audit";
 import { changeRequestInclude, serializeChangeRequest } from "@/lib/changeRequests";
-import { applierFor, type ApplyOutcome } from "@/lib/changeRequestAppliers";
+import {
+  DECIDER_PERMISSIONS,
+  applierFor,
+  decisionPermissionFor,
+  fieldsDecidableBy,
+  type ApplyOutcome,
+} from "@/lib/changeRequestAppliers";
 import {
   decideChangeRequestSchema,
   listChangeRequestsQuerySchema,
@@ -36,6 +42,16 @@ import type { ChangeRequestStatus } from "@/types";
 //   * changeRequest.approve — ADMIN only. Deciding is the whole point of the
 //                             gate; modelled as a permission so widening it
 //                             later is one entry in ROLE_PERMISSIONS.
+//   * product.complete      — Admin/Manager, and ONE field's decision only:
+//                             finishing off a quick-sold piece (spec.md "Quick
+//                             sell"). Which permission decides which field is
+//                             decided by the appliers, not here
+//                             (decisionPermissionFor), so these routes stay
+//                             entity-agnostic. It is a separate action rather
+//                             than a widened changeRequest.approve because the
+//                             two are opposites: approving a gated change is
+//                             permission BEFORE the fact, completing a quick
+//                             sale is review AFTER money has changed hands.
 //
 // There is deliberately no POST: a request is born from the action it stands
 // in for (an Employee saving a new price), never asked for directly. That is
@@ -47,6 +63,42 @@ async function loadRequest(id: string) {
   const request = await prisma.changeRequest.findUnique({ where: { id }, include: changeRequestInclude });
   if (!request) throw new AppError(404, ERROR_CODES.CHANGE_REQUEST_NOT_FOUND);
   return request;
+}
+
+/**
+ * How much of the queue this caller may READ, as a where-clause.
+ *
+ * `null` means "no narrowing at all" — the Admin's view, and the only one
+ * that sees somebody else's price change.
+ *
+ * Everybody else gets their own requests, plus whichever fields they are
+ * themselves the decider for. That second half exists for quick sell (spec.md
+ * "Quick sell"): a Manager holds product.complete and has to be able to find
+ * the pieces waiting on them, without that turning into a licence to read the
+ * gated changes an Employee filed. Derived from the appliers' own table rather
+ * than hard-coded, so a future field that answers to another permission is
+ * scoped correctly for free.
+ */
+function visibleRequestScope(user: { id: string; role: string }): Prisma.ChangeRequestWhereInput | null {
+  if (can(user, "changeRequest.approve")) return null;
+
+  const decidable = DECIDER_PERMISSIONS.filter(
+    (action) => action !== "changeRequest.approve" && can(user, action)
+  ).flatMap(fieldsDecidableBy);
+
+  return {
+    OR: [
+      { requestedById: user.id },
+      ...decidable.map(({ entityType, field }) => ({ entityType, field })),
+    ],
+  };
+}
+
+/** ...and whether they may read this ONE request. Same rule, one row. */
+function mayReadRequest(user: { id: string; role: string }, request: { entityType: string; field: string; requestedById: string }): boolean {
+  if (can(user, "changeRequest.approve")) return true;
+  if (request.requestedById === user.id) return true;
+  return can(user, decisionPermissionFor(request.entityType, request.field));
 }
 
 // ---------------------------------------------------------------------------
@@ -65,9 +117,11 @@ router.get(
     if (query.entityId) where.entityId = query.entityId;
 
     // Enforced here, not in the UI: someone who cannot decide requests may
-    // only ever read their own, whatever they ask for.
-    const seesEveryone = can(req.user!, "changeRequest.approve");
-    if (!seesEveryone || query.mine) where.requestedById = req.user!.id;
+    // only ever read their own, whatever they ask for. `mine` narrows to your
+    // own regardless of what you hold, which is what the "my requests" view
+    // asks for.
+    const scope = query.mine ? { requestedById: req.user!.id } : visibleRequestScope(req.user!);
+    if (scope) Object.assign(where, scope);
 
     const orderBy: Prisma.ChangeRequestOrderByWithRelationInput =
       query.sortBy === "entityType"
@@ -113,7 +167,10 @@ router.get(
     const pending = await prisma.changeRequest.count({
       where: {
         status: PENDING_CHANGE_REQUEST_STATUS as ChangeRequestStatus,
-        ...(can(req.user!, "changeRequest.approve") ? {} : { requestedById: req.user!.id }),
+        // The badge counts exactly what the list would show, scoped the same
+        // way — a Manager's badge counts the quick-sold pieces waiting on
+        // them, an Employee's counts their own asks (spec.md "Quick sell").
+        ...(visibleRequestScope(req.user!) ?? {}),
       },
     });
     sendOk(res, { pending });
@@ -128,9 +185,7 @@ router.get(
   requirePermission("changeRequest.view"),
   asyncHandler(async (req, res) => {
     const request = await loadRequest(req.params.id);
-    if (!can(req.user!, "changeRequest.approve") && request.requestedById !== req.user!.id) {
-      throw new AppError(403, ERROR_CODES.FORBIDDEN);
-    }
+    if (!mayReadRequest(req.user!, request)) throw new AppError(403, ERROR_CODES.FORBIDDEN);
     sendOk(res, serializeChangeRequest(request));
   })
 );
@@ -147,19 +202,37 @@ async function decide(
 ) {
   const existing = await loadRequest(requestId);
 
+  // MAY THIS PERSON DECIDE THIS AT ALL — asked first, before anything about
+  // the request's state, so somebody who has no business here learns nothing
+  // about it beyond that they may not.
+  //
+  // WHICH permission it answers to depends on the field: changeRequest.approve
+  // for every gated change, product.complete for a quick sale's completion
+  // (see decisionPermissionFor). Checked here rather than on the route so that
+  // one endpoint pair keeps serving every field, and so the API refuses
+  // server-side rather than relying on a hidden button (CLAUDE.md rule 5).
+  if (!can(decider, decisionPermissionFor(existing.entityType, existing.field))) {
+    throw new AppError(403, ERROR_CODES.FORBIDDEN);
+  }
+
   // Deciding something already decided is not a no-op: it would overwrite who
   // decided what, which is the one thing this record exists to hold.
   if (existing.status !== PENDING_CHANGE_REQUEST_STATUS) {
     throw new AppError(409, ERROR_CODES.CHANGE_REQUEST_NOT_PENDING);
   }
+  const applier = applierFor(existing.entityType, existing.field);
+
   // Nobody signs off their own ask — that would make the gate decorative.
   // Reachable in principle by an Admin whose own action was gated; kept as a
   // rule of the flow rather than an accident of who holds what today.
-  if (existing.requestedById === decider.id) {
+  //
+  // The one field that opts out is quick sell's completion, which is not a
+  // gate: the sale already happened and finishing the product off is data
+  // entry (see ChangeRequestApplier.allowSelfDecision).
+  if (existing.requestedById === decider.id && !applier.allowSelfDecision) {
     throw new AppError(403, ERROR_CODES.CHANGE_REQUEST_SELF_DECISION);
   }
 
-  const applier = applierFor(existing.entityType, existing.field);
   const decidedAt = new Date();
 
   const { request, outcome } = await prisma.$transaction(async (tx) => {
@@ -225,7 +298,13 @@ async function decide(
 // ---------------------------------------------------------------------------
 router.post(
   "/:id/approve",
-  requirePermission("changeRequest.approve"),
+  // Deliberately the READ gate here, with the real one applied per field
+  // inside decide(): which permission may decide a request depends on WHICH
+  // request it is, and that is not knowable from the URL (see
+  // decisionPermissionFor). Nothing is loosened — a caller holding neither
+  // changeRequest.approve nor the field's own action is refused with 403
+  // before anything is touched.
+  requirePermission("changeRequest.view"),
   validateBody(decideChangeRequestSchema),
   asyncHandler(async (req, res) => {
     const body = req.body as DecideChangeRequestInput;
@@ -240,7 +319,8 @@ router.post(
 // ---------------------------------------------------------------------------
 router.post(
   "/:id/reject",
-  requirePermission("changeRequest.approve"),
+  // Same as approve above: gated per field inside decide().
+  requirePermission("changeRequest.view"),
   validateBody(decideChangeRequestSchema),
   asyncHandler(async (req, res) => {
     const body = req.body as DecideChangeRequestInput;

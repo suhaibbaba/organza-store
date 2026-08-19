@@ -10,6 +10,7 @@ import { PageHeader } from "@/components/layout/page-header";
 import { useSession } from "@/components/providers/session-provider";
 import { useProductQuery } from "@/hooks/use-products";
 import { ProductForm } from "@/components/products/product-form";
+import { QuickSoldBanner } from "@/components/products/quick-sold-banner";
 import { ProductListError, ProductListLoading } from "@/components/products/product-list-states";
 import { ApiError } from "@/lib/api/errors";
 
@@ -59,7 +60,14 @@ export default function EditProductPage() {
           // updatedAt: saving refetches the product, and remounting on that
           // would throw away the very thing the form is still holding — the
           // photos that failed to upload and the panel offering to retry them.
-          <ProductForm key={`${product.id}:${product.variants.length}`} mode="edit" product={product} />
+          <>
+            {/* Above the form, because it changes what the form MEANS: this
+                product was sold before it existed, so the blanks below are
+                deliberate and finishing them is the errand (spec.md "Quick
+                sell"). Renders nothing for an ordinary product. */}
+            <QuickSoldBanner product={product} />
+            <ProductForm key={`${product.id}:${product.variants.length}`} mode="edit" product={product} />
+          </>
         )}
       </div>
     </PageContainer>

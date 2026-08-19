@@ -27,6 +27,7 @@ import { generateUniqueSlug } from "@/lib/slug";
 import { productSku, variantSku } from "@/lib/sku";
 import { generateUniqueBarcode, resolveBarcodeChange, resolveNewBarcode } from "@/lib/barcode";
 import { NEEDS_LABEL_WHERE } from "@/lib/labelState";
+import { NEEDS_COMPLETING_WHERE, QUICK_SOLD_WHERE } from "@/lib/quickSellState";
 import { buildSearchText, searchProductIds } from "@/lib/search";
 import { cartesianProduct, buildComboName, buildImagePointMap, resolveComboImagePoint } from "@/lib/variantCombo";
 import { generateVariantsForProduct, previewComboNames, validateOptionSelections } from "@/lib/variants";
@@ -48,6 +49,7 @@ import {
 import {
   AUDIT_ENTITY,
   CHANGE_REQUEST_ENTITIES,
+  DEFAULT_PRODUCT_COMPLETENESS_FILTER,
   CHANGE_REQUEST_FIELDS,
   CHANGE_REQUEST_VARIANT_SET_ACTIONS,
   DEFAULT_STOCK,
@@ -157,6 +159,15 @@ router.get(
       where.AND = [NEEDS_LABEL_WHERE];
     } else if (query.printState === "printed") {
       where.labelsPrintedAt = { not: null };
+    }
+
+    // Quick sell's work queue (spec.md "Quick sell"). AND rather than a merge,
+    // for the same reason printState is: this clause has to survive alongside
+    // whatever the stock filter and the label queue already put on `where`.
+    if (query.completeness !== DEFAULT_PRODUCT_COMPLETENESS_FILTER) {
+      const clause =
+        query.completeness === "needs_completing" ? NEEDS_COMPLETING_WHERE : QUICK_SOLD_WHERE;
+      where.AND = [...(Array.isArray(where.AND) ? where.AND : where.AND ? [where.AND] : []), clause];
     }
 
     if (query.q) {

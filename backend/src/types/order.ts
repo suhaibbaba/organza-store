@@ -65,6 +65,18 @@ export interface PricedOrderItem {
   discountValue: string | null;
   discountAmount: string;
   lineTotal: string;
+  /**
+   * This line sells a piece that was typed at the counter rather than picked
+   * from the catalogue (spec.md "Quick sell"). Absent on every ordinary line.
+   */
+  quickSold?: boolean;
+}
+
+/** What the caller typed for a quick-sold line: a name, a price, a "which one". */
+export interface QuickSellRequestedItem {
+  name: string;
+  price: string;
+  detail?: string;
 }
 
 // The order-level half of the same computation.

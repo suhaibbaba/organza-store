@@ -46,6 +46,9 @@ expenses" in `spec.md`); their admin/POS screens are not built yet. The **generi
 system** is built end to end (backend + admin screen + nav badge + Web Push) — see rule 21 below
 and "Employee change approvals" in `spec.md`; the old per-expense `/approve` and `/reject`
 endpoints are gone, lifted into it.
+**Quick sell** is built end to end (POS + admin): a piece that isn't in the catalogue can be sold by
+typing a name and a price, and the deliberately-incomplete product it creates is reviewed
+afterwards through the same change-request mechanism — see "Quick sell" in `spec.md` and rule 23.
 The POS also has a **product browser** — a drawer over the sale with categories on the start side
 and a photo grid on the other, for pieces that can't carry a label (see "POS product browser" in
 `spec.md`); its favourite categories are flagged from the admin's category screen.
@@ -186,6 +189,21 @@ from past orders — there is still no Customer table behind it.
     it to one of the two lists, to `DEFAULT_ROLE_PERMISSIONS`, and to `PERMISSION_GROUPS` in the
     admin; no call site changes. Editing is Admin-only, never your own role, and every flip is
     audited.
+23. **Selling a piece that isn't in the catalogue creates an INCOMPLETE product on purpose**
+    (see "Quick sell" in `spec.md`). At the busiest hour a sale must never wait on a category, a
+    cost or a photograph, so the POS takes a name and a price and completes the sale immediately —
+    stock, discounts and totals behave exactly as for any other line, and nothing is held. The
+    product, the order and a `(Product, completion)` change request are written in ONE transaction,
+    so an abandoned checkout cannot leave a nameless half-product behind. That request is the one
+    that reads backwards — the sale has already happened, so it says "this was sold, complete its
+    details" and offers *complete* / *one-off*, never *approve* / *reject*: **rejecting must never
+    look like it undoes a sale**, and it never does (an order's lines are snapshots). Empty is a
+    supported state, not a broken record: `Product.categoryId` is nullable ONLY for this, `cost` is
+    absent rather than zero (which is what the reports' missing-cost warning counts), and every
+    screen that lists products must handle a categoryless one — which is why such a product is
+    badged incomplete and has a "needs completing" queue of its own, since no category filter can
+    find it. `product.quickSell` is every role's; `product.complete` is Admin/Manager and is what
+    decides a completion request, so `changeRequest.approve` stays Admin-only and PROTECTED.
 
 ## Workflow
 - Build **one stage at a time** (see the build order in `spec.md`). Test a stage before the next.

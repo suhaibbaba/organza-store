@@ -15,7 +15,12 @@ export interface InventoryItem {
   variantName?: I18n;
   sku: string | null;
   barcode: string | null;
-  categoryId: string;
+  // Null on a quick-sold piece that nobody has filed yet (spec.md "Quick
+  // sell"). Such a row still appears in the inventory list — it holds real
+  // stock — and simply drops out of a category-filtered view, which is why
+  // the products screen marks it as incomplete rather than leaving it to be
+  // noticed.
+  categoryId: string | null;
   stock: number;
   // The parent product's opt-in flag (Product.trackLowStock). Variant rows
   // inherit it from their product. A row with this false must never be shown

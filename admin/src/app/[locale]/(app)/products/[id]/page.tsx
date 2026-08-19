@@ -22,6 +22,7 @@ import {
   hasPlacedShawlPoints,
 } from "@/components/products/numbered-shawl/numbered-shawl-preview";
 import { StatusBadge } from "@/components/products/status-badge";
+import { IncompleteBadge } from "@/components/products/incomplete-badge";
 import { VariantList } from "@/components/products/variant-list";
 import { ProductListError, ProductListLoading } from "@/components/products/product-list-states";
 import { PendingChangeBadge } from "@/components/change-requests/pending-change-badge";
@@ -103,6 +104,12 @@ function ProductDetail({ product, currency, locale }: { product: Product; curren
         actions={
           <>
             <StatusBadge isActive={product.isActive} />
+            {/* Sold before it was entered, and still missing the half the
+                cashier skipped (spec.md "Quick sell"). Said here as well as
+                in the list, because this page is where somebody lands from a
+                search and its blanks — no category under the title, no cost,
+                no photograph — would otherwise read as a broken record. */}
+            {product.needsCompleting && <IncompleteBadge />}
             {/* Their edit did not vanish — it is waiting (spec.md "Employee
                 change approvals"). Shown to everybody, not just the person
                 who asked: an Admin looking at the product should see that

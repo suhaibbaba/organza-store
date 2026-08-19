@@ -68,6 +68,12 @@ export const ERROR_CODES = {
   // product's own use of the value, so there is nowhere to put one for a
   // value the product has nothing to do with.
   PRODUCT_OPTION_NOTE_VALUE_NOT_USED: "error.product.option_note_value_not_used",
+  // A quick-sold product (spec.md "Quick sell") cannot be signed off as a
+  // finished catalogue item while the thing that made it incomplete is still
+  // missing: it has no category, so no category-filtered list can find it.
+  // Refused server-side rather than merely greyed out, since completing is
+  // what takes it off the "needs completing" queue.
+  PRODUCT_COMPLETION_INCOMPLETE: "error.product.completion_incomplete",
 
   VARIANT_TYPE_NOT_FOUND: "error.variantType.not_found",
   VARIANT_TYPE_VALUE_NOT_FOUND: "error.variantType.value_not_found",
@@ -97,6 +103,11 @@ export const ERROR_CODES = {
   ORDER_RETURN_QUANTITY_EXCEEDED: "error.order.return_quantity_exceeded",
   ORDER_PRODUCT_UNAVAILABLE: "error.order.product_unavailable",
   ORDER_VARIANT_REQUIRED: "error.order.variant_required",
+  // A line named neither a catalogue product nor a quick sale, or named both
+  // (spec.md "Quick sell"). One line is one thing being sold, and which of
+  // the two it is has to be unambiguous — the second half of the schema's own
+  // refinement, kept as an error key so the POS can say which line is wrong.
+  ORDER_ITEM_SOURCE_INVALID: "error.order.item_source_invalid",
   // A cancelled or fully returned sale owes the shop nothing, so there is no
   // money on it to record as collected.
   ORDER_NOT_COLLECTABLE: "error.order.not_collectable",

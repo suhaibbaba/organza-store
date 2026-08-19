@@ -37,6 +37,11 @@ export interface OrderItem {
   discountAmount: string;
   lineTotal: string;
   returnedQuantity: number;
+  // This line was quick-sold: typed at the counter with a name and a price
+  // because the piece was not in the catalogue yet (spec.md "Quick sell").
+  // A snapshot like every other field here, so the line still says how it was
+  // sold long after its product has been completed or ruled a one-off.
+  quickSold: boolean;
   // SENSITIVE (CLAUDE.md rule 19): ADMIN ONLY — absent entirely from a
   // Manager's or an Employee's response, not merely null.
   unitCost?: string | null;
@@ -83,6 +88,12 @@ export interface Order {
   discountValue: string | null;
   discountAmount: string;
   total: string;
+  // Whether anything on this sale was quick-sold — rung up before the piece
+  // existed in the catalogue (spec.md "Quick sell"). Stored on the order
+  // rather than worked out from the lines, so it stays true once the product
+  // has been completed, ruled a one-off or removed, and so the list can
+  // filter on it without reading every line.
+  hasQuickSale: boolean;
   // Set the moment stock is taken off the shelf for this order, so it can
   // never be deducted twice.
   stockDeductedAt: string | null;
@@ -113,6 +124,12 @@ export interface OrderSummary {
   discountAmount: string;
   total: string;
   itemCount: number;
+  // Whether anything on this sale was quick-sold — rung up before the piece
+  // existed in the catalogue (spec.md "Quick sell"). Stored on the order
+  // rather than worked out from the lines, so it stays true once the product
+  // has been completed, ruled a one-off or removed, and so the list can
+  // filter on it without reading every line.
+  hasQuickSale: boolean;
   stockDeductedAt: string | null;
   createdById: string;
   createdAt: string;

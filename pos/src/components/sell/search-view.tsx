@@ -1,9 +1,10 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { ArrowLeft, ShoppingCart } from "lucide-react";
+import { ArrowLeft, ShoppingCart, Zap } from "lucide-react";
 import type { ProductSummary } from "@organza/shared/types/product";
 import { SearchResults } from "@/components/sell/search-results";
+import { Button } from "@/components/ui/button";
 
 interface SearchViewProps {
   query: string;
@@ -16,6 +17,11 @@ interface SearchViewProps {
   pendingId: string | null;
   onSelect: (product: ProductSummary) => void;
   onBack: () => void;
+  // Offered only when the search came back with nothing, and only to somebody
+  // who may quick-sell (spec.md "Quick sell"): "we looked and it isn't there"
+  // is the exact moment the piece in the cashier's hand needs selling anyway.
+  // Undefined leaves the empty state exactly as it was.
+  onQuickSell?: () => void;
 }
 
 // Searching is a place the cashier goes, not something that quietly happens
@@ -35,8 +41,12 @@ export function SearchView({
   pendingId,
   onSelect,
   onBack,
+  onQuickSell,
 }: SearchViewProps) {
   const t = useTranslations("sell.search");
+  const tQuickSell = useTranslations("sell.quickSell");
+  // Nothing matched — as opposed to still looking, or having failed to look.
+  const foundNothing = !isLoading && !isError && results?.length === 0;
 
   return (
     <section aria-labelledby="pos-search-heading" className="flex flex-col gap-3">
@@ -71,6 +81,25 @@ export function SearchView({
         pendingId={pendingId}
         onSelect={onSelect}
       />
+
+      {/* Under the "nothing found" line, where the cashier is already
+          looking, and phrased as the way forward rather than as a feature:
+          the piece is in their hand and the customer is waiting. */}
+      {foundNothing && onQuickSell && (
+        <div className="flex flex-col gap-2 rounded-xl border border-dashed border-border p-4 text-center">
+          <p className="text-sm text-muted-foreground">{tQuickSell("emptyPrompt")}</p>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onQuickSell}
+            data-test-selector="pos-quick-sell-from-search"
+            className="h-12 w-full"
+          >
+            <Zap aria-hidden="true" />
+            {tQuickSell("open")}
+          </Button>
+        </div>
+      )}
     </section>
   );
 }

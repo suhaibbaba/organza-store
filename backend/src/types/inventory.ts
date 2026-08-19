@@ -6,7 +6,7 @@ export type StockItem = {
   variantName?: unknown;
   sku: string | null;
   barcode: string | null;
-  categoryId: string;
+  categoryId: string | null;
   stock: number;
   // The parent product's opt-in flag (Product.trackLowStock). Carried on every
   // row — including variant rows, which inherit it — so the client can badge

@@ -10,6 +10,7 @@ import { OrderChannelBadge } from "@/components/orders/order-channel-badge";
 import { OrderStatusBadge } from "@/components/orders/order-status-badge";
 import { OrderTypeBadge } from "@/components/orders/order-type-badge";
 import { PaymentStatusBadge } from "@/components/orders/payment-status-badge";
+import { QuickSaleBadge } from "@/components/orders/quick-sale-badge";
 
 // One order, as a card. This is the primary (mobile) rendering — the table
 // below md is a convenience for desktop, not the other way round (CLAUDE.md
@@ -52,6 +53,10 @@ export function OrderCard({ order }: { order: OrderSummary }) {
           <OrderChannelBadge channel={order.channel} />
           {/* Renders nothing for an ordinary sale — see OrderTypeBadge. */}
           <OrderTypeBadge type={order.type} />
+          {/* Something on this sale was typed at the counter rather than
+              picked from the catalogue (spec.md "Quick sell") — so its cost,
+              and therefore its profit, may still be missing. */}
+          {order.hasQuickSale && <QuickSaleBadge />}
           {/* Money still with the delivery company is worth seeing from the
               list; money already in hand is the unremarkable case and would
               only add noise to every other row. A cancelled or returned sale

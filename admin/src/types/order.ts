@@ -17,6 +17,10 @@ export interface OrderListFilters {
   // or fully returned order owes nothing and must not pad the amount the shop
   // is waiting on.
   collectableOnly: boolean;
+  // "Only the sales that were rung up before the piece existed" (spec.md
+  // "Quick sell") — the after-the-season review list. False lists everything,
+  // since a quick sale is an ordinary sale in every other respect.
+  hasQuickSale: boolean;
   dateFrom: string;
   dateTo: string;
   sortBy: ListOrdersQuery["sortBy"];

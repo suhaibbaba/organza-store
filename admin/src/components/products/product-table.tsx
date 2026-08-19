@@ -10,6 +10,7 @@ import { formatMoney } from "@/lib/format";
 import { ProductImage } from "@/components/products/product-image";
 import { StatusBadge } from "@/components/products/status-badge";
 import { NumberedBadge } from "@/components/products/numbered-badge";
+import { IncompleteBadge } from "@/components/products/incomplete-badge";
 import { testSelectorFor } from "@organza/shared/lib/testSelector";
 import { cn } from "@/lib/utils";
 
@@ -35,6 +36,7 @@ export function ProductTable({ products, currency }: ProductTableProps) {
             <div className="flex items-center gap-3">
               <ProductImage src={product.image?.thumbnailUrl} alt={name} className="size-11 shrink-0 rounded-md" sizes="44px" />
               <span className="truncate font-medium text-foreground">{name}</span>
+              {product.needsCompleting && <IncompleteBadge />}
               {product.isNumbered && <NumberedBadge count={product.numberCount} />}
             </div>
           );

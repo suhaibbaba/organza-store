@@ -25,6 +25,9 @@ function serializeItem(item: AnyRecord, role: Role) {
     discountAmount: formatMoney(item.discountAmount?.toString()),
     lineTotal: formatMoney(item.lineTotal?.toString()),
     returnedQuantity: item.returnedQuantity,
+    // How this line was rung up: picked from the catalogue, or typed at the
+    // counter because the piece wasn't in it yet (spec.md "Quick sell").
+    quickSold: item.quickSold ?? false,
   };
 
   if (canSeeCost(role)) {
@@ -57,6 +60,7 @@ export function serializeOrder(order: AnyRecord, role: Role) {
     discountValue: formatMoney(order.discountValue?.toString()),
     discountAmount: formatMoney(order.discountAmount?.toString()),
     total: formatMoney(order.total?.toString()),
+    hasQuickSale: order.hasQuickSale ?? false,
     stockDeductedAt: order.stockDeductedAt,
     deletedAt: order.deletedAt,
     items: (order.items ?? []).map((item: AnyRecord) => serializeItem(item, role)),
@@ -85,6 +89,7 @@ export function serializeOrderSummary(order: AnyRecord) {
     discountAmount: formatMoney(order.discountAmount?.toString()),
     total: formatMoney(order.total?.toString()),
     itemCount: order._count?.items ?? (order.items?.length ?? 0),
+    hasQuickSale: order.hasQuickSale ?? false,
     stockDeductedAt: order.stockDeductedAt,
     createdById: order.createdById,
     createdAt: order.createdAt,
