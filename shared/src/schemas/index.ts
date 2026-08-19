@@ -6,6 +6,7 @@ export * from "./expense";
 export * from "./inventory";
 export * from "./order";
 export * from "./passwordSetup";
+export * from "./permission";
 export * from "./phone";
 export * from "./product";
 export * from "./push";

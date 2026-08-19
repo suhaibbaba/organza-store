@@ -21,6 +21,7 @@ export type NavKey =
   | "reports"
   | "changeRequests"
   | "users"
+  | "permissions"
   | "settings";
 
 export interface NavItem {

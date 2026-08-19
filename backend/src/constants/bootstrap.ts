@@ -19,6 +19,12 @@ export const BOOTSTRAP_KEYS = {
   variantType: (slug: string) => `variantType:${slug}`,
   variantValue: (typeSlug: string, key: string) => `variantValue:${typeSlug}:${key}`,
   expenseCategory: (key: string) => `expenseCategory:${key}`,
+  // One marker per (role, action), not one for the whole table. Same reason
+  // every other default here has its own: the shop switching an Employee's
+  // stock permission off is a DECISION, and a single "permissions seeded"
+  // marker would let the next release — which adds an action and therefore
+  // has rows to write — put every earlier decision back.
+  rolePermission: (role: string, action: string) => `rolePermission:${role}:${action}`,
 } as const;
 
 export const SETTING_SINGLETON_ID = "default";

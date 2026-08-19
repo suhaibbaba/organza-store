@@ -5,6 +5,7 @@ import { Role } from "@prisma/client";
 import { getSession } from "@tests/support/auth";
 import { assertSafeTarget } from "@tests/support/target";
 import { drainFixtures, warnAboutLeftovers } from "@tests/support/cleanup";
+import { applyDefaultPermissions } from "@tests/support/permissions";
 import { SEEDED_ACCOUNTS } from "@tests/constants";
 import type { SeededRole } from "@tests/types";
 
@@ -43,6 +44,25 @@ beforeAll(async () => {
   for (const role of Object.keys(SEEDED_ACCOUNTS) as SeededRole[]) {
     await getSession(role);
   }
+
+  // ...and then STATES the permission rules the whole suite is written
+  // against, rather than hoping the target still has them.
+  //
+  // Which actions a role holds is configurable per shop now (spec.md
+  // "Editable role permissions"), so "an Employee cannot delete a product"
+  // is no longer a fact about the code — it is a row in the target's
+  // database, which somebody may have changed from the admin this morning.
+  // A suite that assumed the shipped defaults would report that change as a
+  // failure of the code, which is exactly the wrong end of the telescope.
+  //
+  // So the baseline is written first, once, for the whole run. Individual
+  // cases that need a grant flipped do it explicitly and put it back
+  // (tests/support/permissions.ts, `withRolePermission`).
+  //
+  // Like the sign-ins above, this is registered per test file but performs
+  // its work once: the module-level flag in applyDefaultPermissionsOnce is a
+  // process-wide singleton thanks to vitest.config.ts's isolate:false.
+  await applyDefaultPermissionsOnce();
 });
 
 // ...and takes back everything the file created once it is done: orders,
@@ -57,3 +77,12 @@ beforeAll(async () => {
 afterAll(async () => {
   warnAboutLeftovers(await drainFixtures());
 });
+
+// The permission baseline, written at most once per run however many test
+// files register the hook above.
+let permissionBaseline: Promise<void> | null = null;
+
+function applyDefaultPermissionsOnce(): Promise<void> {
+  permissionBaseline ??= applyDefaultPermissions();
+  return permissionBaseline;
+}

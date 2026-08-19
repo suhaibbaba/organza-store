@@ -4,6 +4,7 @@ import { useEffect, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { useSession } from "@/components/providers/session-provider";
+import { usePermissionMatrix } from "@/components/providers/permissions-provider";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 
@@ -11,7 +12,15 @@ import { Spinner } from "@/components/ui/spinner";
 // on the cookie mirror); this verifies the token against the backend and
 // covers client-side navigations proxy doesn't re-run for.
 export function AuthGuard({ children }: { children: ReactNode }) {
-  const { user, isLoading, isError, refresh } = useSession();
+  const { user, isLoading: isSessionLoading, isError, refresh } = useSession();
+  // ...and the shop's own permission rules, which arrive a moment after the
+  // session does (spec.md "Editable role permissions"). Waited for here
+  // rather than in its own provider so the app is held back once, in the one
+  // component whose job that is: without it the first screen would draw with
+  // the shipped defaults and rearrange itself a beat later, which on a phone
+  // is a mis-tap waiting to happen.
+  const { isLoading: arePermissionsLoading } = usePermissionMatrix();
+  const isLoading = isSessionLoading || arePermissionsLoading;
   const router = useRouter();
   const t = useTranslations("common");
   const tOffline = useTranslations("offline");

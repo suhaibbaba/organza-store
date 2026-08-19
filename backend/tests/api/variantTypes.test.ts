@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { ROLE_PERMISSIONS } from "@organza/shared/constants/permissions";
 import { apiRequest, uniqueId } from "@tests/support/client";
+import { fetchPermissionMatrix } from "@tests/support/permissions";
 import { getSession } from "@tests/support/auth";
 import { anyCategoryId } from "@tests/support/fixtures";
 import type { ProductDto, VariantOptionValueDto, VariantTypeDto } from "@tests/types";
@@ -114,13 +114,20 @@ describe("Variant types", () => {
   // permission and not the destructive one, and whatever rename/delete route
   // is added later has to gate on variantType.manage — the same `can()` check
   // requirePermission runs — for it to be closed to them.
-  it("keeps renaming and removing existing types out of an Employee's reach", () => {
-    expect(ROLE_PERMISSIONS.EMPLOYEE).toContain("variantType.create");
-    expect(ROLE_PERMISSIONS.EMPLOYEE).not.toContain("variantType.manage");
+  //
+  // Asserted against the rules the API says are IN FORCE, not against the
+  // constant they are seeded from: both of these are configurable per shop
+  // now (spec.md "Editable role permissions"), and the state being asserted
+  // here is the baseline this suite writes for itself in tests/setup.ts.
+  it("keeps renaming and removing existing types out of an Employee's reach", async () => {
+    const matrix = await fetchPermissionMatrix();
+
+    expect(matrix.roles.EMPLOYEE).toContain("variantType.create");
+    expect(matrix.roles.EMPLOYEE).not.toContain("variantType.manage");
 
     for (const role of ["ADMIN", "MANAGER"] as const) {
-      expect(ROLE_PERMISSIONS[role]).toContain("variantType.create");
-      expect(ROLE_PERMISSIONS[role]).toContain("variantType.manage");
+      expect(matrix.roles[role]).toContain("variantType.create");
+      expect(matrix.roles[role]).toContain("variantType.manage");
     }
   });
 });

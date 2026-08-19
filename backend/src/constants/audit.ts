@@ -15,4 +15,8 @@ export const AUDIT_ENTITY = {
   // Requests themselves are audited too: "who asked for this price" and "who
   // agreed to it" are separate questions from "what did the price become".
   CHANGE_REQUEST: "ChangeRequest",
+  // One entry per grant flipped, so "who let the Employees adjust stock" is
+  // answerable by filtering rather than by reading a diff. entityId is the
+  // role the change was made to (spec.md "Editable role permissions").
+  ROLE_PERMISSION: "RolePermission",
 } as const;

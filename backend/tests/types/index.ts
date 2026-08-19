@@ -10,6 +10,7 @@ export * from "./variant";
 export * from "./inventory";
 export * from "./order";
 export * from "./passwordSetup";
+export * from "./permission";
 export * from "./report";
 export * from "./target";
 export * from "./verify";
