@@ -72,7 +72,7 @@ export function OrderStatusActions({ order }: { order: Order }) {
                   />
                   <span
                     className={cn(
-                      "truncate text-center text-[11px] leading-tight",
+                      "truncate text-center text-[11px]/[1.85]",
                       isCurrent ? "font-semibold text-primary" : "text-muted-foreground"
                     )}
                   >

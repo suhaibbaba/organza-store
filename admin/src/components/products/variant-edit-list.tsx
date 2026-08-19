@@ -280,11 +280,19 @@ export function VariantEditList({
                     )}
 
                     {/* Cost and price are the same kind of number about the
-                        same piece, so they share a row and each takes half of
-                        it — rather than one narrow box with a void beside it. */}
-                    <div className="grid grid-cols-2 gap-x-3 gap-y-2 px-3 py-2">
+                        same piece, so they share a row WHERE THERE IS ROOM
+                        for one. Two fixed columns meant ~150px each on a
+                        phone — narrower than the box's own placeholder, so
+                        "موروث: ٧٠٫٠٠ ₪" was cut off mid-figure, which is
+                        exactly the figure the placeholder exists to show.
+                        A wrapping row with a floor under each field is what
+                        fixes it at every width rather than at one breakpoint:
+                        this card is half a column wide on a desktop and the
+                        whole screen on a phone, and a viewport breakpoint
+                        cannot tell those apart. */}
+                    <div className="flex flex-wrap gap-x-5 gap-y-3 px-3 py-3">
                       {canSeeCost && (
-                        <div className="flex flex-col gap-1">
+                        <div className="flex min-w-44 flex-1 flex-col gap-1.5">
                           <Label htmlFor={`cost-${variant.id}`}>{t("cost")}</Label>
                           <NumericInput
                             id={`cost-${variant.id}`}
@@ -301,7 +309,7 @@ export function VariantEditList({
                       )}
 
                       {canEditPrice ? (
-                        <div className={cn("flex flex-col gap-1", !canSeeCost && "col-span-2")}>
+                        <div className="flex min-w-44 flex-1 flex-col gap-1.5">
                           <Label htmlFor={`price-${variant.id}`}>{t("priceOverride")}</Label>
                           <NumericInput
                             id={`price-${variant.id}`}
@@ -314,7 +322,7 @@ export function VariantEditList({
                       ) : (
                         // Read-only for a role that can fix the piece but not
                         // re-price it — the number still has to be visible.
-                        <div className={cn("flex flex-col gap-1", !canSeeCost && "col-span-2")}>
+                        <div className="flex min-w-44 flex-1 flex-col gap-1.5">
                           <Label>{t("priceOverride")}</Label>
                           <p className="text-sm font-semibold text-foreground">
                             {formatMoney(variant.resolvedPrice, currency, locale)}

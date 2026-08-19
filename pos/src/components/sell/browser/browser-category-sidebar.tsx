@@ -150,7 +150,7 @@ function CategoryRow({ categoryId, label, depth, isSelected, onSelect, showStar 
       // than replacing it.
       style={{ paddingInlineStart: `${0.75 + depth * 0.625}rem` }}
       className={cn(
-        "flex min-h-11 w-full items-center gap-1.5 rounded-lg pe-2 py-1.5 text-start text-xs leading-snug",
+        "flex min-h-11 w-full items-center gap-1.5 rounded-lg pe-2 py-1.5 text-start text-xs",
         "transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:text-sm",
         isSelected
           ? "bg-primary text-primary-foreground font-semibold"

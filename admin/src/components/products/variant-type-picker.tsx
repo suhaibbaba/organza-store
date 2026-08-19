@@ -127,7 +127,13 @@ function AddValueInline({ typeId, onAdded }: { typeId: string; onAdded: (valueId
 
   return (
     <div className="flex flex-col gap-1.5">
-      <div className="flex items-center gap-2">
+      {/* The box on its own line, the two buttons under it, until there is
+          room for one row. Squeezed onto a phone's width together, the field
+          was left ~120px — narrower than its own placeholder, which came out
+          as "اسم الة" — and a field you cannot read the prompt of is worse
+          than one extra line. From `sm` it is the single row it always was,
+          the box taking the space the buttons don't need. */}
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
         {/* No autoFocus: revealing the box is not the same as asking to
             type in it, and on a phone the keyboard covers the list of
             values being added to. */}
@@ -135,22 +141,31 @@ function AddValueInline({ typeId, onAdded }: { typeId: string; onAdded: (valueId
           value={text}
           onChange={(e) => setText(e.target.value)}
           placeholder={t("newValuePlaceholder")}
-          className="h-10 flex-1"
+          className="h-11 w-full min-w-0 sm:flex-1"
         />
-        <Button type="button" size="sm" onClick={() => void handleAdd()} disabled={mutation.isPending}>
-          {mutation.isPending ? <Spinner className="size-4" /> : t("add")}
-        </Button>
-        <Button
-          type="button"
-          size="sm"
-          variant="ghost"
-          onClick={() => {
-            setOpen(false);
-            setText("");
-          }}
-        >
-          {t("cancel")}
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            type="button"
+            size="sm"
+            onClick={() => void handleAdd()}
+            disabled={mutation.isPending}
+            className="flex-1 sm:flex-none"
+          >
+            {mutation.isPending ? <Spinner className="size-4" /> : t("add")}
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            variant="ghost"
+            onClick={() => {
+              setOpen(false);
+              setText("");
+            }}
+            className="flex-1 sm:flex-none"
+          >
+            {t("cancel")}
+          </Button>
+        </div>
       </div>
       {mutation.isError && (
         <p className="text-xs text-destructive">
@@ -196,28 +211,39 @@ function AddTypeInline({ onCreated }: { onCreated: (typeId: string) => void }) {
 
   return (
     <div className="flex flex-col gap-1.5 rounded-xl border border-dashed border-border p-3">
-      <div className="flex items-center gap-2">
+      {/* Stacked on a phone, one row from `sm` — the same shape as the value
+          box above, and for the same reason. */}
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
         {/* No autoFocus — same reason as the value box above. */}
         <Input
           value={text}
           onChange={(e) => setText(e.target.value)}
           placeholder={t("newTypePlaceholder")}
-          className="h-10 flex-1"
+          className="h-11 w-full min-w-0 sm:flex-1"
         />
-        <Button type="button" size="sm" onClick={() => void handleAdd()} disabled={mutation.isPending}>
-          {mutation.isPending ? <Spinner className="size-4" /> : t("add")}
-        </Button>
-        <Button
-          type="button"
-          size="sm"
-          variant="ghost"
-          onClick={() => {
-            setOpen(false);
-            setText("");
-          }}
-        >
-          {t("cancel")}
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            type="button"
+            size="sm"
+            onClick={() => void handleAdd()}
+            disabled={mutation.isPending}
+            className="flex-1 sm:flex-none"
+          >
+            {mutation.isPending ? <Spinner className="size-4" /> : t("add")}
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            variant="ghost"
+            onClick={() => {
+              setOpen(false);
+              setText("");
+            }}
+            className="flex-1 sm:flex-none"
+          >
+            {t("cancel")}
+          </Button>
+        </div>
       </div>
       {mutation.isError && (
         <p className="text-xs text-destructive">
