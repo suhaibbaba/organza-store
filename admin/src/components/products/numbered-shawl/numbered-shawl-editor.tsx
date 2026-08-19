@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { NUMBER_VARIANT_TYPE_SLUG } from "@organza/shared/constants/variantType";
 import { ERROR_CODES } from "@organza/shared/constants/errors";
@@ -18,20 +18,29 @@ import {
 import { useTranslateError } from "@/hooks/use-translate-error";
 import {
   diffShawlPoint,
+  initPointNotes,
   initShawlPoints,
   newShawlPoint,
   nextPointNumber,
   roundPercent,
 } from "@/lib/validation/numbered-shawl";
+import {
+  diffOptionValueNotes,
+  setNoteLanguage,
+  type OptionValueNoteMap,
+} from "@/lib/option-value-notes";
 import { isNonNegativeIntegerString } from "@/lib/validation/numeric";
 import { ImagePointCanvas } from "@/components/products/numbered-shawl/image-point-canvas";
 import { PointDetailsList } from "@/components/products/numbered-shawl/point-details-list";
 import { PointColorControls } from "@/components/products/numbered-shawl/point-color-controls";
+import { OptionValueNotesSection } from "@/components/products/option-value-notes-section";
 import { Button } from "@/components/ui/button";
 import { Alert } from "@/components/ui/alert";
 import { SegmentedControl } from "@/components/ui/segmented-control";
 import { Spinner } from "@/components/ui/spinner";
 import { ApiError } from "@/lib/api/errors";
+import { localize } from "@/lib/i18n-content";
+import type { I18nFormValue } from "@/types/productForm";
 import type { ShawlPoint } from "@/types/numberedShawl";
 
 interface NumberedShawlEditorProps {
@@ -62,6 +71,12 @@ export function NumberedShawlEditor({ product, variantTypes, currency }: Numbere
   // screen was opened.
   const [textColor, setTextColor] = useState<string | null>(product.pointTextColor);
   const [backgroundColor, setBackgroundColor] = useState<string | null>(product.pointBackgroundColor);
+  // What each number MEANS on this shawl (spec.md "Notes on a product's
+  // options") — "شال حرير" against number 4. Keyed by POINT rather than by
+  // option value, so a number placed a moment ago can be annotated before the
+  // save has given it a global value.
+  const initialNotes = useMemo(() => initPointNotes(product), [product]);
+  const [notes, setNotes] = useState<OptionValueNoteMap>(initialNotes);
   const [removedVariantIds, setRemovedVariantIds] = useState<Set<string>>(new Set());
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
@@ -83,9 +98,13 @@ export function NumberedShawlEditor({ product, variantTypes, currency }: Numbere
 
   const colorsChanged =
     textColor !== product.pointTextColor || backgroundColor !== product.pointBackgroundColor;
+  // Detected on the point keys alone: whether the notes changed is a question
+  // that must be answerable before any value id has been resolved.
+  const notesChanged = diffOptionValueNotes(initialNotes, notes).length > 0;
 
   const isDirty =
     colorsChanged ||
+    notesChanged ||
     points.some((p) => !p.variantId) ||
     removedVariantIds.size > 0 ||
     points.some((p) => {
@@ -137,6 +156,11 @@ export function NumberedShawlEditor({ product, variantTypes, currency }: Numbere
     markDirty();
     setTextColor(null);
     setBackgroundColor(null);
+  }
+
+  function handleNoteChange(pointId: string, language: keyof I18nFormValue, text: string) {
+    markDirty();
+    setNotes((previous) => setNoteLanguage(previous, pointId, language, text));
   }
 
   function handlePointField(id: string, field: "stock" | "priceOverride", value: string) {
@@ -198,11 +222,22 @@ export function NumberedShawlEditor({ product, variantTypes, currency }: Numbere
 
       const calls: Promise<unknown>[] = [];
 
-      // The colours live on the product, not on any point — one call, and
-      // only when they actually changed.
-      if (colorsChanged) {
+      // The colours and the notes both live on the PRODUCT, not on any point,
+      // so they travel together in one PATCH — and only what changed is in
+      // it. The notes are keyed by point up to this line; here each one
+      // finally learns which global value it belongs to.
+      const valueIdByPointId = new Map(resolved.map((point) => [point.id, point.valueId]));
+      const noteChanges = diffOptionValueNotes(
+        initialNotes,
+        notes,
+        (pointId) => valueIdByPointId.get(pointId) ?? null
+      );
+      if (colorsChanged || noteChanges.length > 0) {
         calls.push(
-          updateProductMutation.mutateAsync({ pointTextColor: textColor, pointBackgroundColor: backgroundColor })
+          updateProductMutation.mutateAsync({
+            ...(colorsChanged ? { pointTextColor: textColor, pointBackgroundColor: backgroundColor } : {}),
+            ...(noteChanges.length > 0 ? { optionValueNotes: noteChanges } : {}),
+          })
         );
       }
 
@@ -240,6 +275,19 @@ export function NumberedShawlEditor({ product, variantTypes, currency }: Numbere
   }
 
   const selectedPoint = selectedId ? points.find((p) => p.id === selectedId) ?? null : null;
+
+  // One block, one row per number placed — including a number placed a moment
+  // ago, which is keyed by its point until the save resolves its value.
+  const numberType = variantTypes.find((vt) => vt.slug === NUMBER_VARIANT_TYPE_SLUG);
+  const noteGroups = [
+    {
+      id: numberType?.id ?? NUMBER_VARIANT_TYPE_SLUG,
+      typeName: numberType ? localize(numberType.name, locale) : "",
+      rows: [...points]
+        .sort((a, b) => a.number - b.number)
+        .map((point) => ({ key: point.id, label: String(point.number) })),
+    },
+  ];
 
   // What the numbers are drawn in right now, including a colour being picked
   // that has not been saved yet — the canvas above is the preview, so there
@@ -311,13 +359,28 @@ export function NumberedShawlEditor({ product, variantTypes, currency }: Numbere
           )}
         </>
       ) : (
-        <PointDetailsList
-          points={points}
-          currency={currency}
-          locale={locale}
-          basePrice={product.basePrice}
-          onFieldChange={handlePointField}
-        />
+        <>
+          <PointDetailsList
+            points={points}
+            currency={currency}
+            locale={locale}
+            basePrice={product.basePrice}
+            onFieldChange={handlePointField}
+          />
+
+          {/* A note per number, in the same collapsed block an ordinary
+              product's sizes and colours use (spec.md "Notes on a product's
+              options"): a number is an option value like any other, and it
+              is annotated here rather than drawn on the photograph, where
+              the markers are already tight and text over a picture cannot be
+              relied on to be readable. */}
+          <OptionValueNotesSection
+            groups={noteGroups}
+            notes={notes}
+            onChange={handleNoteChange}
+            disabled={isSaving}
+          />
+        </>
       )}
 
       {saveError && <Alert variant="destructive">{saveError}</Alert>}

@@ -48,6 +48,12 @@ export function VariantList({ variants, variantTypes, currency }: VariantListPro
           id: value.id,
           typeName: typeNameById.get(value.variantTypeId) ?? "",
           value: localize(value.value, locale),
+          // What this value means on THIS product (spec.md "Notes on a
+          // product's options") — "طول البنطلون ٩٥ سم" under the S it
+          // explains, so a note is never separated from the value it belongs
+          // to. Empty for almost every value, and nothing is rendered then:
+          // no gap, no placeholder, no shift.
+          note: localize(value.note, locale),
         }));
 
         return (
@@ -70,6 +76,9 @@ export function VariantList({ variants, variantTypes, currency }: VariantListPro
                           </p>
                         )}
                         <p className="truncate text-sm font-medium text-foreground">{group.value}</p>
+                        {group.note && (
+                          <p className="line-clamp-2 text-xs leading-tight text-muted-foreground">{group.note}</p>
+                        )}
                       </div>
                     ))}
                   </div>

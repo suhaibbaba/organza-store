@@ -13,6 +13,7 @@ import { NumericInput } from "@/components/ui/numeric-input";
 import { Button } from "@/components/ui/button";
 import { Alert } from "@/components/ui/alert";
 import { StockBadge } from "@/components/ui/stock-badge";
+import { VariantNotes } from "@/components/sell/variant-notes";
 import { cn } from "@/lib/utils";
 
 interface VariantPickerSheetProps {
@@ -278,6 +279,11 @@ function VariantPicker({ product, isNumbered, onPick, onClose }: VariantPickerPr
                   >
                     {name}
                   </span>
+                  {/* What this piece's size/colour/number means on THIS
+                      product (spec.md "Notes on a product's options") —
+                      directly under the name it explains, and nothing at all
+                      when there is no note. */}
+                  <VariantNotes variant={variant} className={cn(isNumbered && "text-center")} />
                   {/* The price stays on a sold-out tile now that the badge
                       below says it is gone: the cashier is often being asked
                       "how much is that one?" about a piece that has just sold,

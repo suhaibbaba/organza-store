@@ -4,7 +4,7 @@ import { ERROR_CODES } from "@organza/shared/constants/errors";
 import { isValidBarcode, normalizeBarcode } from "@organza/shared/lib/barcode";
 import type { I18n } from "@organza/shared/types/common";
 import type { Product } from "@organza/shared/types/product";
-import type { CreateProductInput, UpdateProductInput } from "@organza/shared/schemas/product";
+import type { CreateProductInput, OptionValueNoteInput, UpdateProductInput } from "@organza/shared/schemas/product";
 import { optionalDecimalField, optionalIntegerField, requiredDecimalField } from "@/lib/validation/numeric";
 import type { I18nFormValue, ProductEditAbilities } from "@/types/productForm";
 
@@ -127,7 +127,11 @@ function barcodePayload(values: ProductBasicFormValues) {
 
 export function toCreatePayload(
   values: ProductBasicFormValues,
-  optionSelections: { variantTypeId: string; valueIds: string[] }[]
+  optionSelections: { variantTypeId: string; valueIds: string[] }[],
+  // What each chosen value means on this product (spec.md "Notes on a
+  // product's options") — omitted entirely when nothing was written, which is
+  // the usual case.
+  optionValueNotes: OptionValueNoteInput[] = []
 ): CreateProductInput {
   const hasVariants = optionSelections.length > 0;
   return {
@@ -145,6 +149,7 @@ export function toCreatePayload(
     // every size lives on the parent, and scanning it opens the picker.
     ...barcodePayload(values),
     optionSelections: hasVariants ? optionSelections : undefined,
+    optionValueNotes: optionValueNotes.length > 0 ? optionValueNotes : undefined,
   };
 }
 
@@ -155,7 +160,10 @@ export function toCreatePayload(
 export function toUpdatePayload(
   values: ProductBasicFormValues,
   hasVariants: boolean,
-  abilities: ProductEditAbilities
+  abilities: ProductEditAbilities,
+  // Only the notes this save changed. A value left out keeps whatever note it
+  // had, and a cleared one is sent as an explicit null.
+  optionValueNotes: OptionValueNoteInput[] = []
 ): UpdateProductInput {
   return {
     name: sanitizeName(values.name),
@@ -175,5 +183,6 @@ export function toUpdatePayload(
     // stored, so an unchanged answer writes nothing, and switching back to
     // GENERATED restores the code we had before rather than minting a new one.
     ...barcodePayload(values),
+    optionValueNotes: optionValueNotes.length > 0 ? optionValueNotes : undefined,
   };
 }

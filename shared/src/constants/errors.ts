@@ -40,6 +40,10 @@ export const ERROR_CODES = {
   VALIDATION_INVALID_EMAIL: "error.validation.invalid_email",
   VALIDATION_PASSWORD_TOO_SHORT: "error.validation.password_too_short",
   VALIDATION_IMAGE_POINT_OUT_OF_RANGE: "error.validation.image_point_out_of_range",
+  // Text past the length its field accepts — an option-value note, which is
+  // deliberately short (shared/constants/optionValueNote.ts). Separate from
+  // out_of_range, which is about numbers.
+  VALIDATION_TOO_LONG: "error.validation.too_long",
   // A marker colour that is not a hex colour (spec.md "Numbered shawls").
   VALIDATION_INVALID_COLOR: "error.validation.invalid_color",
 
@@ -59,6 +63,11 @@ export const ERROR_CODES = {
   // Flipping the choice on a product that already has variants would strand
   // (or destroy) them, so it is refused until they are removed.
   PRODUCT_NUMBERED_SWITCH_HAS_VARIANTS: "error.product.numbered_switch_has_variants",
+  // A note was written against an option value this product does not use
+  // (spec.md "Notes on a product's options"). The note is scoped to the
+  // product's own use of the value, so there is nowhere to put one for a
+  // value the product has nothing to do with.
+  PRODUCT_OPTION_NOTE_VALUE_NOT_USED: "error.product.option_note_value_not_used",
 
   VARIANT_TYPE_NOT_FOUND: "error.variantType.not_found",
   VARIANT_TYPE_VALUE_NOT_FOUND: "error.variantType.value_not_found",

@@ -86,6 +86,42 @@ appends, so nothing already on the shelf changes. Renaming or deleting an existi
 Admin/Manager only: it reaches every product using that value at once (see the reference rule
 above), which is exactly what makes it dangerous in the wrong hands.
 
+### Notes on a product's options
+A short, optional note written against **this product's use of** one option value.
+
+"S" means something different on a pair of trousers than on an abaya, so the shop writes
+"طول البنطلون ٩٥ سم" against the trousers' own S — and something else, or nothing at all, against
+the abaya's. The same applies to a colour ("أغمق قليلًا من الصورة") and to a numbered shawl's
+numbers ("حرير طبيعي" against number 4).
+
+- **Scoped to the product, never to the global value.** The note lives on the join
+  `ProductOptionValueNote (productId, optionValueId, note)`, so writing one can never change what
+  another product's S says. The value itself is still referenced by id (the reference rule above):
+  renaming "أحمر" centrally renames it everywhere and leaves every note where it was.
+- **Translatable `{ ar, en, he }`** like all user-facing content, falling back to the default
+  language. Blank in every language is not a note — the row is removed, so "does this value have a
+  note" is one question with one answer.
+- **Short by design** (`OPTION_VALUE_NOTE_MAX_LENGTH`): it is read on a picker tile between two
+  customers, not a second description.
+- **Edited in the product form**, beside the values themselves: one collapsed block under the
+  options, one language switch for the whole block, one line per value. A numbered shawl's numbers
+  are annotated the same way, in the numbers editor's quantities step — a number is an option value
+  like any other. It is a product DETAIL, so it rides on `product.edit` exactly like the name: an
+  Employee may write one, while their price change in the same save still waits for an Admin
+  (see "Employee change approvals"). A note may only be written against a value the product
+  actually uses; anything else is refused (`error.product.option_note_value_not_used`).
+- **Displayed wherever the value is chosen or shown**, identically for colours, sizes and numbers:
+  the POS variant picker, the product detail page, and the storefront's variant selector when that
+  is built. Always small and secondary, directly under the value it explains, at most two lines. A
+  variant carrying notes from two option types shows one line each, prefixed with the value it
+  belongs to so it is obvious which is which; a single note needs no prefix, because the tile is
+  already showing the value it explains. A value with no note renders nothing at all — no gap, no
+  placeholder, nothing that shifts.
+- **Deliberately absent from the crowded places:** cart lines and order lines carry none of this,
+  so the selling flow is not slowed by an explanation that belongs where the choice is made.
+- **Never drawn on a numbered shawl's photograph.** The markers are tight already, and text over a
+  photograph cannot be relied on to be readable — the note goes beside the number in the picker.
+
 ---
 
 ## SKU (auto-generated)
