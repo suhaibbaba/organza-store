@@ -26,6 +26,7 @@ import {
   POINT_MARKER_TOUCH_PADDING_PX,
   POINT_PREVIEW_MAX_HEIGHT,
 } from "@/constants/numberedShawl";
+import { testSelectorFor } from "@organza/shared/lib/testSelector";
 import { clampPercent } from "@/lib/validation/numbered-shawl";
 import { Spinner } from "@/components/ui/spinner";
 import { cn } from "@/lib/utils";
@@ -244,6 +245,10 @@ export function ImagePointCanvas({
           width: `min(100%, calc(${boxRatio} * ${maxHeight}))`,
         }}
         className={cn("relative select-none", !readOnly && "touch-none")}
+        // The photo and its numbers, named for diagnosis (CLAUDE.md "Test
+        // selectors"): the canvas the points are placed on, and the read-only
+        // twin on the product screen, are two states of one thing.
+        data-test-selector={readOnly ? "shawl-point-canvas-readonly" : "shawl-point-canvas"}
       >
         {imageFailed ? (
           // The photo is gone. The pins still are not: they are stored as
@@ -283,7 +288,12 @@ export function ImagePointCanvas({
         {isReady &&
           points.map((point) =>
             readOnly ? (
-              <span key={point.id} style={{ ...markerStyle, left: `${point.x}%`, top: `${point.y}%` }} className={PIN_CLASS}>
+              <span
+                key={point.id}
+                style={{ ...markerStyle, left: `${point.x}%`, top: `${point.y}%` }}
+                className={PIN_CLASS}
+                data-test-selector={testSelectorFor("shawl-point", point.number)}
+              >
                 {point.number}
               </span>
             ) : (
@@ -292,6 +302,10 @@ export function ImagePointCanvas({
                 type="button"
                 aria-label={String(point.number)}
                 aria-pressed={selectedId === point.id}
+                // By the NUMBER it carries, which is what anybody reporting a
+                // misplaced point will say ("number 4 is on the wrong shawl")
+                // — never by its position, which is the thing being moved.
+                data-test-selector={testSelectorFor("shawl-point", point.number)}
                 onPointerDown={(e) => handlePinPointerDown(e, point.id)}
                 onPointerMove={(e) => handlePinPointerMove(e, point.id)}
                 onPointerUp={(e) => handlePinPointerUp(e, point.id)}

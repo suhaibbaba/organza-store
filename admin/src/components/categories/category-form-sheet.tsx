@@ -19,6 +19,7 @@ import {
   toUpdatePayload,
   type CategoryFormValues,
 } from "@/lib/validation/category-form";
+import { FieldError } from "@/components/ui/field-error";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -97,7 +98,7 @@ export function CategoryFormSheet({ open, onOpenChange, mode, category, tree }: 
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="end" closeLabel={tCommon("close")}>
+      <SheetContent name="category-form" side="end" closeLabel={tCommon("close")}>
         <SheetHeader>
           <SheetTitle>{t(mode === "create" ? "createTitle" : "editTitle")}</SheetTitle>
         </SheetHeader>
@@ -124,7 +125,7 @@ export function CategoryFormSheet({ open, onOpenChange, mode, category, tree }: 
                 </TabsContent>
               ))}
             </Tabs>
-            {errors.name?.ar && <p className="text-sm text-destructive">{translateError(errors.name.ar.message ?? "")}</p>}
+            {errors.name?.ar && <FieldError field="name">{translateError(errors.name.ar.message ?? "")}</FieldError>}
           </div>
 
           <div className="flex flex-col gap-2">
@@ -152,7 +153,7 @@ export function CategoryFormSheet({ open, onOpenChange, mode, category, tree }: 
             </Alert>
           )}
 
-          <Button type="submit" disabled={mutation.isPending} className="mt-auto w-full">
+          <Button type="submit" data-test-selector="category-save" disabled={mutation.isPending} className="mt-auto w-full">
             {mutation.isPending ? (
               <>
                 <Spinner />

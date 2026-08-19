@@ -24,8 +24,8 @@ export function ReportReturnsCard({ returns }: { returns: ReturnsTotals }) {
         </p>
       ) : (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          <StatCard label={t("amount")} tooltip={t("amountHelp")} value={formatMoney(returns.amount)} />
-          <StatCard
+          <StatCard name="returns-amount" label={t("amount")} tooltip={t("amountHelp")} value={formatMoney(returns.amount)} />
+          <StatCard name="returns-items"
             label={t("items")}
             tooltip={t("itemsHelp")}
             value={returns.itemCount}

@@ -1,5 +1,6 @@
 import * as React from "react";
 import { ChevronDown } from "lucide-react";
+import { fieldTestSelector } from "@organza/shared/lib/testSelector";
 import { cn } from "@/lib/utils";
 
 // Native <select> — full mobile picker support (large touch target, OS
@@ -12,7 +13,10 @@ import { cn } from "@/lib/utils";
 // the right, away from the number, while an RTL select mirrors it to the
 // left. The wrapper inherits `dir` from the <select>, so pass dir on <Select>
 // and both the control and its chevron agree.
-function Select({ className, children, dir, ...props }: React.ComponentProps<"select">) {
+type SelectProps = React.ComponentProps<"select"> & { "data-test-selector"?: string };
+
+// Named from its own id, like Input — see the note there.
+function Select({ className, children, dir, "data-test-selector": testSelector, ...props }: SelectProps) {
   return (
     <div className="relative" dir={dir}>
       <select
@@ -25,6 +29,7 @@ function Select({ className, children, dir, ...props }: React.ComponentProps<"se
           className
         )}
         {...props}
+        data-test-selector={testSelector ?? fieldTestSelector(props.id)}
       >
         {children}
       </select>

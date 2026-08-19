@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import type { PermissionAction } from "@organza/shared/types/permission";
 import type { Role } from "@organza/shared/types/role";
+import { testSelectorFor } from "@organza/shared/lib/testSelector";
 import { Switch } from "@/components/ui/switch";
 import { Spinner } from "@/components/ui/spinner";
 
@@ -50,6 +51,7 @@ export function PermissionToggle({
       // Named for a screen reader in full, because "on" alone is meaningless
       // in a grid of thirty of these.
       aria-label={t("toggleLabel", { action: actionLabel, role: t(`role.${role}`) })}
+      data-test-selector={testSelectorFor("permission-toggle", `${role}-${action}`)}
       data-action={action}
     />
   );

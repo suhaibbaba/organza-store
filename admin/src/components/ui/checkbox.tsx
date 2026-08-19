@@ -3,9 +3,13 @@
 import * as React from "react";
 import * as CheckboxPrimitive from "@radix-ui/react-checkbox";
 import { Check } from "lucide-react";
+import { fieldTestSelector } from "@organza/shared/lib/testSelector";
 import { cn } from "@/lib/utils";
 
-function Checkbox({ className, ...props }: React.ComponentProps<typeof CheckboxPrimitive.Root>) {
+type CheckboxProps = React.ComponentProps<typeof CheckboxPrimitive.Root> & { "data-test-selector"?: string };
+
+// Named from its own id, like Input — see the note there.
+function Checkbox({ className, "data-test-selector": testSelector, ...props }: CheckboxProps) {
   return (
     <CheckboxPrimitive.Root
       data-slot="checkbox"
@@ -18,6 +22,7 @@ function Checkbox({ className, ...props }: React.ComponentProps<typeof CheckboxP
         className
       )}
       {...props}
+      data-test-selector={testSelector ?? fieldTestSelector(props.id)}
     >
       <CheckboxPrimitive.Indicator className="flex items-center justify-center text-current">
         <Check className="size-4" aria-hidden="true" />

@@ -17,6 +17,7 @@ export function ProductSortSelect({ sortBy, sortDir, onChange }: ProductSortSele
 
   return (
     <Select
+      data-test-selector="products-sort"
       aria-label={t("label")}
       value={value}
       onChange={(e) => {

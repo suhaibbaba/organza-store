@@ -5,6 +5,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { Check, Undo2, X } from "lucide-react";
 import { can } from "@organza/shared/lib/permissions";
 import type { ChangeRequest } from "@organza/shared/types/changeRequest";
+import { testSelectorFor } from "@organza/shared/lib/testSelector";
 import {
   APPROVED_CHANGE_REQUEST_STATUS,
   PENDING_CHANGE_REQUEST_STATUS,
@@ -79,7 +80,10 @@ export function ChangeRequestCard({ request, canDecide }: ChangeRequestCardProps
   }
 
   return (
-    <article className="flex flex-col gap-3 rounded-xl border border-border bg-card p-4">
+    <article
+      className="flex flex-col gap-3 rounded-xl border border-border bg-card p-4"
+      data-test-selector={testSelectorFor("change-request-card", request.id)}
+    >
       <div className="flex flex-col gap-1">
         {/* WHAT is changing, in plain words: "Price" / "Stock" / "Photo" —
             and, beside it, where the request stands. The badge is drawn from
@@ -118,7 +122,7 @@ export function ChangeRequestCard({ request, canDecide }: ChangeRequestCardProps
       )}
 
       {error && (
-        <p className="text-sm text-destructive">
+        <p className="text-sm text-destructive" data-test-selector="change-request-card-error">
           {error instanceof ApiError ? translateError(error.code) : tCommon("retry")}
         </p>
       )}

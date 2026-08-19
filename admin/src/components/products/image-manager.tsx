@@ -58,7 +58,7 @@ export function ImageManager({ slots, onChange, canDelete, isBusy = false, empty
   }
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-3" data-test-selector="image-manager">
       <label
         className={cn(
           "flex min-h-14 cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-dashed border-primary/40 bg-primary/5 px-4 text-sm font-medium text-primary transition-colors active:bg-primary/10",
@@ -68,6 +68,7 @@ export function ImageManager({ slots, onChange, canDelete, isBusy = false, empty
         <ImagePlus className="size-5" aria-hidden="true" />
         {t("addImages")}
         <input
+          data-test-selector="image-upload-input"
           ref={inputRef}
           type="file"
           accept="image/*"
@@ -78,12 +79,16 @@ export function ImageManager({ slots, onChange, canDelete, isBusy = false, empty
         />
       </label>
 
-      {rejected && <p className="text-sm text-destructive">{rejected}</p>}
+      {rejected && (
+        <p className="text-sm text-destructive" data-test-selector="image-upload-error">
+          {rejected}
+        </p>
+      )}
 
       {slots.length > 0 && (
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
           <SortableContext items={slots.map((s) => s.id)} strategy={rectSortingStrategy}>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-3 gap-2" data-test-selector="image-gallery">
               {slots.map((slot) => (
                 <SortableImageThumb
                   key={slot.id}

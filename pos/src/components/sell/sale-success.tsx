@@ -85,7 +85,7 @@ export function SaleSuccess({ order, onNewSale }: SaleSuccessProps) {
       {isGift && <p className="max-w-xs text-sm text-muted-foreground">{t("giftNextStep")}</p>}
       {!isGift && !isCounterSale && <p className="max-w-xs text-sm text-muted-foreground">{t("whatsappNextStep")}</p>}
 
-      <Button type="button" onClick={onNewSale} className="w-full max-w-xs">
+      <Button type="button" onClick={onNewSale} data-test-selector="pos-new-sale" className="w-full max-w-xs">
         {t("newSale")}
       </Button>
     </div>

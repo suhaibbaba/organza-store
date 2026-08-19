@@ -9,6 +9,7 @@ import { useVisibleNavItems } from "@/hooks/use-visible-nav-items";
 import { SOLID_NAV_ICONS } from "@/components/icons/nav-solid-icons";
 import { MoreSheet } from "@/components/layout/more-sheet";
 import { NavPendingBadge } from "@/components/change-requests/nav-pending-badge";
+import { testSelectorFor } from "@organza/shared/lib/testSelector";
 import { cn } from "@/lib/utils";
 import type { NavItem } from "@/types/nav";
 
@@ -34,6 +35,7 @@ export function BottomNav() {
     <nav
       className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background pb-[var(--safe-bottom)] md:hidden"
       aria-label={tCommon("mainNavigation")}
+      data-test-selector="bottom-nav"
     >
       <div className="flex h-[var(--bottom-nav-height)] items-stretch">
         {primaryItems.map((item) => {
@@ -47,6 +49,10 @@ export function BottomNav() {
             <Link
               key={item.key}
               href={item.href}
+              // Named by WHERE it goes, never by where it sits: the bar
+              // mirrors itself in Arabic, so "the second one from the left"
+              // is a different tab depending on the language.
+              data-test-selector={testSelectorFor("nav-item", item.key)}
               className={cn(
                 "flex flex-1 flex-col items-center justify-center gap-1 text-xs",
                 // Solid icon + brand colour + a heavier label for the tab you

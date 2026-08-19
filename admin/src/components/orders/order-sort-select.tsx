@@ -17,6 +17,7 @@ export function OrderSortSelect({ sortBy, sortDir, onChange }: OrderSortSelectPr
 
   return (
     <Select
+      data-test-selector="orders-sort"
       aria-label={t("label")}
       value={value}
       onChange={(e) => {

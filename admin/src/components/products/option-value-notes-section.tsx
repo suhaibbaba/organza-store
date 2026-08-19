@@ -5,6 +5,7 @@ import { ChevronDown } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { DEFAULT_LANGUAGE, SUPPORTED_LANGUAGES } from "@organza/shared/constants/languages";
 import { OPTION_VALUE_NOTE_MAX_LENGTH } from "@organza/shared/constants/optionValueNote";
+import { testSelectorFor } from "@organza/shared/lib/testSelector";
 import { LOCALE_LABELS } from "@/constants/locale";
 import { countNotes, noteFor, type OptionValueNoteMap } from "@/lib/option-value-notes";
 import { Input } from "@/components/ui/input";
@@ -55,6 +56,7 @@ export function OptionValueNotesSection({
       <button
         type="button"
         onClick={() => setOpen((previous) => !previous)}
+        data-test-selector="option-notes-toggle"
         aria-expanded={open}
         className="flex min-h-11 w-full items-center justify-between gap-3 p-3 text-start"
       >
@@ -93,7 +95,11 @@ export function OptionValueNotesSection({
                         // The value first and the note second, on a phone as
                         // a stacked pair and side by side once there is room:
                         // the note is the aside, never the heading.
-                        <div key={row.key} className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-3">
+                        <div
+                          key={row.key}
+                          className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-3"
+                          data-test-selector={testSelectorFor("option-note-row", row.key)}
+                        >
                           <label
                             htmlFor={id}
                             className="text-sm font-medium text-foreground sm:w-28 sm:shrink-0 sm:truncate"

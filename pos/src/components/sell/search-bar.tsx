@@ -46,7 +46,7 @@ export function SearchBar({ value, onChange, onScanClick, onSubmitCode, isLookin
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex items-center gap-2" role="search">
+    <form onSubmit={handleSubmit} className="flex items-center gap-2" role="search" data-test-selector="pos-search">
       <div className="relative min-w-0 flex-1">
         <Search
           className="pointer-events-none absolute start-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
@@ -59,6 +59,7 @@ export function SearchBar({ value, onChange, onScanClick, onSubmitCode, isLookin
           onChange={(event) => onChange(event.target.value)}
           placeholder={t("placeholder")}
           aria-label={t("label")}
+          data-test-selector="pos-search-input"
           autoComplete="off"
           // A wedge scanner's "Enter" is a form submit; on a phone keyboard
           // the same key reads as "search", which is also what it does.
@@ -80,6 +81,7 @@ export function SearchBar({ value, onChange, onScanClick, onSubmitCode, isLookin
               // keyboard belongs to whoever actually taps the field.
               onClick={() => onChange("")}
               aria-label={t("clear")}
+              data-test-selector="pos-search-clear"
               className="absolute end-1.5 top-1/2 flex size-9 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-accent-foreground"
             >
               <X className="size-5" aria-hidden="true" />

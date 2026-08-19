@@ -3,6 +3,7 @@
 import * as React from "react";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { X } from "lucide-react";
+import { testSelectorFor } from "@organza/shared/lib/testSelector";
 import { cn } from "@/lib/utils";
 
 const Sheet = DialogPrimitive.Root;
@@ -28,6 +29,10 @@ interface SheetContentProps extends React.ComponentProps<typeof DialogPrimitive.
   // matches where a hamburger trigger usually sits.
   side?: "start" | "end";
   closeLabel: string;
+  // What this sheet IS — "order-filters", "discount". Rendered as
+  // `sheet-<name>` (CLAUDE.md "Test selectors"): every sheet should pass one,
+  // since "the panel that slid in" does not say which panel.
+  name?: string;
 }
 
 function SheetContent({
@@ -35,6 +40,7 @@ function SheetContent({
   children,
   side = "start",
   closeLabel,
+  name,
   onOpenAutoFocus = focusPanelNotFirstField,
   ...props
 }: SheetContentProps) {
@@ -63,10 +69,12 @@ function SheetContent({
           className
         )}
         {...props}
+        data-test-selector={testSelectorFor("sheet", name)}
       >
         {children}
         <DialogPrimitive.Close
           aria-label={closeLabel}
+          data-test-selector={testSelectorFor("sheet-close", name)}
           className="absolute end-4 top-4 inline-flex size-10 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           <X className="size-5" />

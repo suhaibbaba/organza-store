@@ -38,7 +38,7 @@ export default function EditProductPage() {
         {t("back")}
       </Link>
 
-      <PageHeader title={canEditDetails ? t("editTitle") : t("images.manageTitle")} />
+      <PageHeader name="product-edit" title={canEditDetails ? t("editTitle") : t("images.manageTitle")} />
 
       <div className="flex flex-col gap-4">
         {isLoading ? (

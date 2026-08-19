@@ -23,7 +23,7 @@ export function ReportError({ error, onRetry }: { error: unknown; onRetry: () =>
   const code = error instanceof ApiError ? error.code : undefined;
 
   return (
-    <Alert variant="destructive" className="flex-col items-center gap-3 text-center">
+    <Alert variant="destructive" className="flex-col items-center gap-3 text-center" data-test-selector="reports-error">
       <p>{code ? translateError(code) : t("retry")}</p>
       <Button type="button" variant="outline" size="sm" onClick={onRetry}>
         {t("retry")}
@@ -38,7 +38,10 @@ export function ReportEmpty() {
   const t = useTranslations("reports.empty");
 
   return (
-    <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-border bg-card p-6 text-center">
+    <div
+      className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-border bg-card p-6 text-center"
+      data-test-selector="reports-empty"
+    >
       <TrendingUp className="size-8 text-muted-foreground" aria-hidden="true" />
       <p className="font-medium text-foreground">{t("title")}</p>
       <p className="text-sm text-muted-foreground">{t("description")}</p>

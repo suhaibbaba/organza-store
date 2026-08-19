@@ -70,6 +70,7 @@ function DashboardPageContent() {
   return (
     <PageContainer>
       <PageHeader
+        name="dashboard"
         title={user ? t("welcome", { name: user.name }) : t("title")}
         description={t("subtitle")}
         // Only once there are figures to switch between and to export —

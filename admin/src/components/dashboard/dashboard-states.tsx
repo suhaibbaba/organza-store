@@ -20,7 +20,7 @@ export function DashboardError({ error, onRetry }: { error: unknown; onRetry: ()
   const code = error instanceof ApiError ? error.code : undefined;
 
   return (
-    <Alert variant="destructive" className="flex-col items-center gap-3 text-center">
+    <Alert variant="destructive" className="flex-col items-center gap-3 text-center" data-test-selector="dashboard-error">
       <p>{code ? translateError(code) : t("retry")}</p>
       <Button type="button" variant="outline" size="sm" onClick={onRetry}>
         {t("retry")}

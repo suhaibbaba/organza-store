@@ -12,6 +12,7 @@ import { StockBadge, STOCK_FIGURE_TONES } from "@/components/inventory/stock-bad
 import { StockStepper } from "@/components/inventory/stock-stepper";
 import { PendingChangeBadge } from "@/components/change-requests/pending-change-badge";
 import { CHANGE_REQUEST_ENTITIES, CHANGE_REQUEST_FIELDS } from "@organza/shared/constants/changeRequest";
+import { testSelectorFor } from "@organza/shared/lib/testSelector";
 import { cn } from "@/lib/utils";
 import type { InventoryRow } from "@/types/inventory";
 
@@ -135,7 +136,7 @@ export function InventoryTable({ rows, threshold, canAdjust, onStockChange }: In
   const table = useReactTable({ data: rows, columns, getCoreRowModel: getCoreRowModel() });
 
   return (
-    <div className="overflow-hidden rounded-xl border border-border">
+    <div className="overflow-hidden rounded-xl border border-border" data-test-selector="inventory-table">
       <table className="w-full text-sm">
         <thead className="bg-secondary text-secondary-foreground">
           {table.getHeaderGroups().map((headerGroup) => (
@@ -150,7 +151,11 @@ export function InventoryTable({ rows, threshold, canAdjust, onStockChange }: In
         </thead>
         <tbody>
           {table.getRowModel().rows.map((row) => (
-            <tr key={row.id} className="border-t border-border">
+            <tr
+              key={row.id}
+              className="border-t border-border"
+              data-test-selector={testSelectorFor("inventory-row", row.original.item.id)}
+            >
               {/* `relative` scopes the item link's stretched ::after to its own
                   cell, so it never covers the stock stepper. */}
               {row.getVisibleCells().map((cell) => (

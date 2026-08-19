@@ -14,7 +14,10 @@ export function TopBar() {
     // its height rather than eating into it (CLAUDE.md "Mobile input &
     // device specifics"). Anything positioned below the bar offsets by that
     // same variable.
-    <header className="sticky top-0 z-30 border-b border-border bg-background pt-[var(--safe-top)]">
+    <header
+      className="sticky top-0 z-30 border-b border-border bg-background pt-[var(--safe-top)]"
+      data-test-selector="top-bar"
+    >
       <div className="flex h-[var(--top-bar-height)] items-center justify-between px-4 md:px-6">
         {/* The shop's name, and — on the sandbox only — the chip that says so.
             gap rather than a margin on the chip, so nothing shifts on the

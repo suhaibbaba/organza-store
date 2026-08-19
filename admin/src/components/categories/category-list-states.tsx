@@ -19,7 +19,9 @@ export function CategoryListEmpty() {
   const t = useTranslations("categories.empty");
 
   return (
-    <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-border py-16 text-center">
+    <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-border py-16 text-center"
+      data-test-selector="categories-empty"
+    >
       <FolderTree className="size-10 text-muted-foreground" aria-hidden="true" />
       <div>
         <p className="font-medium text-foreground">{t("title")}</p>
@@ -35,7 +37,7 @@ export function CategoryListError({ error, onRetry }: { error: unknown; onRetry:
   const code = error instanceof ApiError ? error.code : undefined;
 
   return (
-    <Alert variant="destructive" className="flex-col items-center gap-3 text-center">
+    <Alert variant="destructive" className="flex-col items-center gap-3 text-center" data-test-selector="categories-error">
       <p>{code ? translateError(code) : t("retry")}</p>
       <Button type="button" variant="outline" size="sm" onClick={onRetry}>
         {t("retry")}

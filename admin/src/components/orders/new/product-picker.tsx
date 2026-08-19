@@ -3,6 +3,7 @@
 import { useLocale, useTranslations } from "next-intl";
 import { Plus, Search, X } from "lucide-react";
 import type { ProductSummary } from "@organza/shared/types/product";
+import { testSelectorFor } from "@organza/shared/lib/testSelector";
 import { localize } from "@/lib/i18n-content";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
 import { useProductSearch } from "@/hooks/use-product-search";
@@ -74,7 +75,7 @@ export function ProductPicker({ query, onQueryChange, pendingId, onSelect }: Pro
       )}
 
       {!isLoading && products.length > 0 && (
-        <ul className="flex flex-col gap-2">
+        <ul className="flex flex-col gap-2" data-test-selector="order-product-results">
           {products.map((product) => {
             const name = localize(product.name, locale);
             const soldOut = product.stock <= 0;
@@ -82,6 +83,7 @@ export function ProductPicker({ query, onQueryChange, pendingId, onSelect }: Pro
             return (
               <li key={product.id}>
                 <button
+                  data-test-selector={testSelectorFor("order-product-result", product.id)}
                   type="button"
                   disabled={soldOut || pendingId !== null}
                   onClick={() => onSelect(product)}

@@ -4,6 +4,7 @@ import * as React from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Input } from "@/components/ui/input";
+import { fieldTestSelector } from "@organza/shared/lib/testSelector";
 import { cn } from "@/lib/utils";
 
 // A password box with an eye on it.
@@ -45,6 +46,7 @@ export const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputPro
         onClick={() => setRevealed((current) => !current)}
         aria-label={t(revealed ? "hide" : "show")}
         aria-pressed={revealed}
+        data-test-selector={`${fieldTestSelector(props.id) ?? "field-password"}-reveal`}
         className="absolute end-1 top-1/2 flex size-11 -translate-y-1/2 items-center justify-center rounded-lg text-muted-foreground hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
         {revealed ? <EyeOff className="size-5" aria-hidden="true" /> : <Eye className="size-5" aria-hidden="true" />}

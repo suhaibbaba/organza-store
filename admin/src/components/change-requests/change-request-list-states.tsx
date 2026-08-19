@@ -8,7 +8,7 @@ import { ApiError } from "@/lib/api/errors";
 
 export function ChangeRequestListLoading() {
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-3" data-test-selector="change-requests-loading">
       {Array.from({ length: 4 }).map((_, i) => (
         <div key={i} className="h-40 animate-pulse rounded-xl bg-muted" />
       ))}
@@ -20,7 +20,9 @@ export function ChangeRequestListEmpty({ status }: { status: string }) {
   const t = useTranslations("changeRequests.empty");
 
   return (
-    <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-border py-16 text-center">
+    <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-border py-16 text-center"
+      data-test-selector="change-requests-empty"
+    >
       <CheckCheck className="size-10 text-muted-foreground" aria-hidden="true" />
       <div>
         <p className="font-medium text-foreground">{t(status === "PENDING" ? "noneWaitingTitle" : "noneTitle")}</p>
@@ -38,7 +40,7 @@ export function ChangeRequestListError({ error, onRetry }: { error: unknown; onR
   const code = error instanceof ApiError ? error.code : undefined;
 
   return (
-    <Alert variant="destructive" className="flex-col items-center gap-3 text-center">
+    <Alert variant="destructive" className="flex-col items-center gap-3 text-center" data-test-selector="change-requests-error">
       <p>{code ? translateError(code) : t("retry")}</p>
       <Button type="button" variant="outline" size="sm" onClick={onRetry}>
         {t("retry")}

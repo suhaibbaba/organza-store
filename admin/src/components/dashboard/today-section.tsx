@@ -30,7 +30,7 @@ export function TodaySection({ summary }: { summary: PeriodSummary }) {
       <h2 className="text-base font-semibold">{t("title")}</h2>
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard
+        <StatCard name="sold"
           tone="success"
           label={tFigures("sold.label")}
           tooltip={tFigures("sold.help")}
@@ -38,7 +38,7 @@ export function TodaySection({ summary }: { summary: PeriodSummary }) {
           hint={t("orders", { count: totals.orderCount })}
         />
 
-        <StatCard
+        <StatCard name="received"
           tone="success"
           label={tFigures("received.label")}
           tooltip={tFigures("received.help")}
@@ -46,7 +46,7 @@ export function TodaySection({ summary }: { summary: PeriodSummary }) {
           hint={t("receivedHint")}
         />
 
-        <StatCard
+        <StatCard name="owed"
           tone="warning"
           label={tFigures("owed.label")}
           tooltip={tFigures("owed.help")}
@@ -55,7 +55,7 @@ export function TodaySection({ summary }: { summary: PeriodSummary }) {
         />
 
         {profit && (
-          <StatCard
+          <StatCard name="profit"
             label={t("profit.label")}
             tooltip={t("profit.help")}
             value={formatMoney(profit.netProfit)}

@@ -8,6 +8,7 @@ import { StockBadge, STOCK_FIGURE_TONES } from "@/components/inventory/stock-bad
 import { StockStepper } from "@/components/inventory/stock-stepper";
 import { PendingChangeBadge } from "@/components/change-requests/pending-change-badge";
 import { CHANGE_REQUEST_ENTITIES, CHANGE_REQUEST_FIELDS } from "@organza/shared/constants/changeRequest";
+import { testSelectorFor } from "@organza/shared/lib/testSelector";
 import { cn } from "@/lib/utils";
 import type { InventoryRow } from "@/types/inventory";
 
@@ -29,7 +30,10 @@ export function InventoryCard({ row, threshold, canAdjust, onStockChange }: Inve
   const status = resolveStockStatus({ stock, trackLowStock: item.trackLowStock, threshold });
 
   return (
-    <div className="relative flex flex-col gap-2 rounded-xl border border-border bg-card p-3 transition-colors has-[a:active]:bg-accent">
+    <div
+      className="relative flex flex-col gap-2 rounded-xl border border-border bg-card p-3 transition-colors has-[a:active]:bg-accent"
+      data-test-selector={testSelectorFor("inventory-card", item.id)}
+    >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           {/* The link's ::after covers the whole card, so the entire card is

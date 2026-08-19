@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { ChevronDown, Trash2, TriangleAlert } from "lucide-react";
 import type { Variant, VariantType } from "@organza/shared/types/variant";
+import { testSelectorFor } from "@organza/shared/lib/testSelector";
 import { localize } from "@/lib/i18n-content";
 import { formatMoney } from "@/lib/format";
 import { NumericInput } from "@/components/ui/numeric-input";
@@ -178,7 +179,11 @@ export function VariantEditList({
         ];
 
         return (
-          <div key={variant.id} className="rounded-xl border border-border bg-card">
+          <div
+            key={variant.id}
+            className="rounded-xl border border-border bg-card"
+            data-test-selector={testSelectorFor("variant-edit-row", variant.id)}
+          >
             {/* The whole line is the tap target — on a phone a chevron alone
                 is a poor one, and this list is worked through card by card. */}
             <button

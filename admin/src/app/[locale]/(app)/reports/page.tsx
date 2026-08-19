@@ -46,6 +46,7 @@ function ReportsPageContent() {
   return (
     <PageContainer>
       <PageHeader
+        name="reports"
         title={t("title")}
         description={t("subtitle")}
         actions={<ReportRangePicker value={range} onChange={setRange} />}

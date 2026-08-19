@@ -66,7 +66,13 @@ export function OrderFiltersSheet({ value, onApply, activeCount }: OrderFiltersS
 
   return (
     <>
-      <Button type="button" variant="outline" onClick={() => handleOpenChange(true)} className="relative shrink-0 px-4">
+      <Button
+        type="button"
+        variant="outline"
+        onClick={() => handleOpenChange(true)}
+        data-test-selector="order-filters-open"
+        className="relative shrink-0 px-4"
+      >
         <SlidersHorizontal className="size-5" aria-hidden="true" />
         {t("trigger")}
         {activeCount > 0 && (
@@ -77,7 +83,7 @@ export function OrderFiltersSheet({ value, onApply, activeCount }: OrderFiltersS
       </Button>
 
       <Sheet open={open} onOpenChange={handleOpenChange}>
-        <SheetContent side="end" closeLabel={tCommon("close")}>
+        <SheetContent name="order-filters" side="end" closeLabel={tCommon("close")}>
           <SheetHeader>
             <SheetTitle>{t("title")}</SheetTitle>
           </SheetHeader>
@@ -190,10 +196,10 @@ export function OrderFiltersSheet({ value, onApply, activeCount }: OrderFiltersS
           </div>
 
           <div className="flex gap-3 p-5 pt-2">
-            <Button type="button" variant="outline" className="flex-1" onClick={handleReset}>
+            <Button type="button" variant="outline" className="flex-1" onClick={handleReset} data-test-selector="order-filters-reset">
               {t("reset")}
             </Button>
-            <Button type="button" className="flex-1" onClick={handleApply}>
+            <Button type="button" className="flex-1" onClick={handleApply} data-test-selector="order-filters-apply">
               {t("apply")}
             </Button>
           </div>

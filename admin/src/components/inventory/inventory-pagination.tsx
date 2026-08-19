@@ -18,6 +18,7 @@ export function InventoryPagination({ meta, onPageChange }: InventoryPaginationP
   return (
     <div className="flex items-center justify-between gap-3 pt-2">
       <Button
+        data-test-selector="inventory-page-previous"
         type="button"
         variant="outline"
         size="sm"
@@ -33,6 +34,7 @@ export function InventoryPagination({ meta, onPageChange }: InventoryPaginationP
       </span>
 
       <Button
+        data-test-selector="inventory-page-next"
         type="button"
         variant="outline"
         size="sm"

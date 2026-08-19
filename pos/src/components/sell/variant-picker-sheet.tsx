@@ -5,6 +5,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { Check } from "lucide-react";
 import type { Product } from "@organza/shared/types/product";
 import type { Variant } from "@organza/shared/types/variant";
+import { testSelectorFor } from "@organza/shared/lib/testSelector";
 import { localize } from "@/lib/i18n-content";
 import { isNumberedProduct, variantsByNumber } from "@/lib/numbered";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
@@ -42,7 +43,7 @@ export function VariantPickerSheet({ product, onOpenChange, onPick }: VariantPic
           a row of size tiles marooned at one end and the cashier's eye
           travelling a foot to read it. On a phone the cap is above the
           viewport width, so nothing there changes at all. */}
-      <SheetContent closeLabel={tCommon("close")} className="mx-auto max-w-4xl">
+      <SheetContent name="variant-picker" closeLabel={tCommon("close")} className="mx-auto max-w-4xl">
         {product && (
           <>
             <SheetHeader>
@@ -201,6 +202,7 @@ function VariantPicker({ product, isNumbered, onPick, onClose }: VariantPickerPr
             </label>
             <NumericInput
               id="pos-number-entry"
+              data-test-selector="pos-number-entry"
               value={numberQuery}
               onChange={(event) => {
                 setNumberQuery(event.target.value);
@@ -224,6 +226,7 @@ function VariantPicker({ product, isNumbered, onPick, onClose }: VariantPickerPr
             always have, and they simply get more columns where there is room.
             Every tile keeps its min-h-16 floor either way. */}
         <ul
+          data-test-selector="pos-variant-picker"
           className={cn(
             "grid gap-2",
             isNumbered
@@ -243,6 +246,10 @@ function VariantPicker({ product, isNumbered, onPick, onClose }: VariantPickerPr
                   disabled={soldOut}
                   aria-pressed={isChosen}
                   onClick={() => toggle(variant)}
+                  // One choice in the picker, named by the variant it sells:
+                  // "the third tile" is a different piece in Arabic, where
+                  // the grid runs the other way (CLAUDE.md "Test selectors").
+                  data-test-selector={testSelectorFor("pos-variant-option", variant.id)}
                   className={cn(
                     "relative flex w-full flex-col items-start justify-center gap-1 rounded-xl border p-3 text-start transition-colors",
                     "min-h-16 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
@@ -335,6 +342,7 @@ function VariantPicker({ product, isNumbered, onPick, onClose }: VariantPickerPr
             type="button"
             onClick={addChosen}
             disabled={chosen.length === 0}
+            data-test-selector="pos-variant-picker-add"
             className="min-w-0 flex-1"
           >
             {/* One chosen variant is named outright — it is the common case
