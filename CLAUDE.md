@@ -321,6 +321,14 @@ Design for that reality:
   marker) and nothing else. Any new fixed-height text box has to fit the line box the scale gives
   it — prefer `min-h-*` with padding over `h-*`, and check with `ملاحظات على الخيارات جحخي`.
 - **Accessibility basics:** readable font sizes on mobile, sufficient contrast, labels on inputs.
+- **A person is named through `lib/user-display.ts`, never by rendering `user.name` raw.**
+  One rule for both apps (`shared/src/lib/userDisplay.ts`): their name, then the local part of
+  their email, then their translated role — and **never an internal id**. An id is meaningless to
+  staff, unbounded in length so it stretches whatever is drawn around it, and a top bar reading
+  "Admin mt0grbxoqx7nbf" looks broken rather than informative. Id-shaped words are stripped from a
+  stored name (the test suite once renamed the sandbox's Admin and never put it back), and the
+  avatar's letter comes from the same source as the name so the two can never disagree. Long names
+  truncate with an ellipsis; they never widen the header.
 - **Every password field is a `PasswordInput`** (`components/ui/password-input.tsx`, one per app),
   never a bare `<Input type="password">`. Typing eight unseen characters on a phone keyboard and
   being told only that they were wrong is not something to ask of anyone. It starts hidden always,

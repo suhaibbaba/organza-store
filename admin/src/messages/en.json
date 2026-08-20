@@ -1428,7 +1428,8 @@
       "notePlaceholder": "Why not? (optional)",
       "cancelRequest": "Withdraw request",
       "confirmCancelRequest": "Confirm withdrawal",
-      "cancelConfirmPrompt": "The request will be removed and won't reach the manager. Sure?"
+      "cancelConfirmPrompt": "The request will be removed and won't reach the manager. Sure?",
+      "unknownStaff": "Unknown staff member"
     },
     "pending": {
       "waiting": "Waiting for approval",

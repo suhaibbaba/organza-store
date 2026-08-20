@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
+import { useUserDisplay } from "@/lib/user-display";
 import { AlertTriangle, Trash2, UserX } from "lucide-react";
 import type { User } from "@organza/shared/types/user";
 import { useSession } from "@/components/providers/session-provider";
@@ -55,6 +56,10 @@ export function UserRemoveSheet({
   onOpenChange: (open: boolean) => void;
 }) {
   const t = useTranslations("users.remove");
+  // Named the way every other screen names them (lib/user-display.ts) — a
+  // confirmation that asks you to delete "Admin mt0grbxoqx7nbf" is a
+  // confirmation nobody can check.
+  const { name } = useUserDisplay()(user);
   const tCommon = useTranslations("common");
   const translateError = useTranslateError();
   const { user: currentUser } = useSession();
@@ -101,7 +106,7 @@ export function UserRemoveSheet({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent name="user-remove" side="end" closeLabel={tCommon("close")} className="overflow-y-auto">
         <SheetHeader>
-          <SheetTitle>{t("title", { name: user.name })}</SheetTitle>
+          <SheetTitle>{t("title", { name })}</SheetTitle>
           <p className="truncate text-sm text-muted-foreground" dir="ltr">
             {user.email}
           </p>
@@ -138,7 +143,7 @@ export function UserRemoveSheet({
                         onClick={() => void run("deactivate")}
                       >
                         {pending ? <Spinner /> : null}
-                        {t("deactivate.confirm", { name: user.name })}
+                        {t("deactivate.confirm", { name })}
                       </Button>
                       <Button
                         type="button"
@@ -193,7 +198,7 @@ export function UserRemoveSheet({
                           onClick={() => void run("delete")}
                         >
                           {pending ? <Spinner /> : null}
-                          {t("delete.confirm", { name: user.name })}
+                          {t("delete.confirm", { name })}
                         </Button>
                         <Button
                           type="button"

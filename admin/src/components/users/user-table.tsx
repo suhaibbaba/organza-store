@@ -6,6 +6,7 @@ import { flexRender, getCoreRowModel, useReactTable, type ColumnDef } from "@tan
 import { testSelectorFor } from "@organza/shared/lib/testSelector";
 import type { User } from "@organza/shared/types/user";
 import { RoleBadge } from "@/components/users/role-badge";
+import { useUserDisplay } from "@/lib/user-display";
 import { UserStatusBadge } from "@/components/users/user-status-badge";
 import { AccountStateBadge } from "@/components/users/account-state-badge";
 import { UserRowActions, type UserRowActionsProps } from "@/components/users/user-row-actions";
@@ -14,6 +15,9 @@ type UserTableProps = Omit<UserRowActionsProps, "user" | "size"> & { users: User
 
 export function UserTable({ users, ...actions }: UserTableProps) {
   const tTable = useTranslations("users.table");
+  // Same rule as the card view of this list (lib/user-display.ts): the row
+  // reads as a name, never as an internal id.
+  const display = useUserDisplay();
 
   const columns = useMemo<ColumnDef<User>[]>(
     () => [
@@ -22,7 +26,7 @@ export function UserTable({ users, ...actions }: UserTableProps) {
         header: tTable("name"),
         cell: ({ row }) => (
           <div>
-            <p className="font-medium text-foreground">{row.original.name}</p>
+            <p className="font-medium text-foreground">{display(row.original).name}</p>
             <p className="text-xs text-muted-foreground" dir="ltr">
               {row.original.email}
             </p>
@@ -59,7 +63,7 @@ export function UserTable({ users, ...actions }: UserTableProps) {
         cell: ({ row }) => <UserRowActions user={row.original} size="table" {...actions} />,
       },
     ],
-    [tTable, actions]
+    [tTable, actions, display]
   );
 
   const table = useReactTable({ data: users, columns, getCoreRowModel: getCoreRowModel() });

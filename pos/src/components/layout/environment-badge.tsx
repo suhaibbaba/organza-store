@@ -27,6 +27,7 @@ export function EnvironmentBadge({ className }: { className?: string }) {
 
   return (
     <span
+      data-test-selector="pos-environment-badge"
       className={cn(
         // No uppercase and no letter-spacing: both are meaningless in Arabic
         // and Hebrew, and spacing pulls Arabic letters out of their joins.
