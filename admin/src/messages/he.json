@@ -826,7 +826,22 @@
         "setPrimary": "הגדרה כתמונה ראשית",
         "clearPrimary": "ביטול תמונה ראשית",
         "primaryBadge": "ראשית",
-        "delete": "מחיקת תמונה"
+        "delete": "מחיקת תמונה",
+        "edit": "חיתוך התמונה",
+        "editor": {
+          "title": "חיתוך התמונה",
+          "step": "תמונה {index} מתוך {total}",
+          "cancel": "ביטול",
+          "save": "שמירת החיתוך",
+          "saveAndNext": "שמירה ומעבר לבאה",
+          "saveAndClose": "שמירה",
+          "zoom": "מרחק מתצוגה",
+          "rotate": "סיבוב",
+          "flipHorizontal": "היפוך אופקי",
+          "flipVertical": "היפוך אנכי",
+          "aspectCatalogue": "{width}:{height}",
+          "aspectWhole": "התמונה המלאה"
+        }
       },
       "numberedShawl": {
         "title": "נקודות ממוספרות",
@@ -1306,6 +1321,7 @@
     "imageOwnerRequired": "יש לבחור מוצר או וריאציה עבור תמונה זו.",
     "imageReorderDuplicate": "לא ניתן לכלול את אותה תמונה פעמיים בסדר.",
     "imageReorderMismatch": "סדר התמונות אינו תואם לתמונות הקיימות.",
+    "imageOriginalMissing": "התמונה המקורית אינה שמורה עוד, ולכן לא ניתן לחתוך אותה מחדש. הוסיפו תמונה חדשה במקומה.",
     "inventoryParentHasVariants": "מלאי מוצר זה מנוהל לפי וריאציות.",
     "settingDefaultLanguageNotSupported": "שפה זו עדיין אינה נתמכת.",
     "settingSaleNotificationModeUnsupported": "האפשרות הזו עדיין לא זמינה.",

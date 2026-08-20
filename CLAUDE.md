@@ -32,7 +32,10 @@ through `node_modules` like any package — not copied, symlinked or aliased by 
 - **Auth:** Better Auth (central backend); login by email + password (phone is contact-only).
 - **Money fields:** Prisma `Decimal`, never `Float`.
 - **Images:** stored locally on the VPS; optimized with `sharp` (WebP + multi-size) on upload;
-  displayed with `next/image`.
+  displayed with `next/image`. The shop frames the garment itself in the admin's editor
+  (`react-easy-crop`, 2:3 by default) and what travels is the **crop rectangle, turn and mirror** —
+  never a canvas re-encode — so sharp cuts every size from the **original**, which is kept so a
+  different crop can be made later. See "Editing a photograph on upload" in `spec.md`.
 - **Barcode/QR:** `html5-qrcode` in the POS, inside an isolated scanner component.
 - **i18n:** UI via `next-intl`; product content translated via JSON fields. Languages: ar (default), en, he.
 
@@ -298,6 +301,15 @@ Design for that reality:
 
 - **Mobile-first, not merely responsive.** Design and build for a phone screen FIRST, then scale
   up to desktop. Single-column layouts by default; never a desktop layout crammed onto a phone.
+- **Nothing zooms, so nothing may depend on zooming.** Page zoom is off in both apps — viewport
+  (`maximumScale: 1`, `userScalable: false`), `touch-action: manipulation`, and the gesture guards
+  in `components/pwa/native-gesture-guard.tsx` for iOS, which ignores the viewport. So: **every
+  form field is at least 16px** (Safari zooms the page in on focus below that, and there is now no
+  way back out), 44px stays the floor for anything a thumb hits, and **no interface text goes below
+  12px**. Anything that genuinely wants two fingers marks itself `data-allow-zoom="true"`.
+- **A long press must not raise the system sheet.** Text selection and the iOS callout are off
+  app-wide and opted back in with `data-selectable="true"` — for a barcode, a SKU, an order number,
+  a phone number, an address: things somebody copies. Not for cards, rows or buttons.
 - **Big, easy touch targets.** Large tappable buttons (min ~44px), generous spacing, no tiny links
   or dense toolbars. Primary action on each screen should be obvious and reachable by thumb.
 - **Few, clear steps.** Minimize taps to complete any task. Avoid multi-step wizards where one

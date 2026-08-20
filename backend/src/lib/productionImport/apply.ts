@@ -197,7 +197,12 @@ export async function applyCatalogue(snapshot: CatalogueSnapshot): Promise<Appli
       );
 
       const productImages = await insertAll(snapshot.productImages, (chunk) =>
-        tx.productImage.createMany({ data: chunk })
+        // `edit` is the crop the shop drew on this photograph (shared's
+        // ImageEdit) and comes across with it, so the sandbox's catalogue
+        // shows the same framing production does — and Prisma wants a
+        // missing one spelled DbNull rather than null, like every other
+        // nullable Json column here.
+        tx.productImage.createMany({ data: chunk.map((row) => ({ ...row, edit: nullableJson(row.edit) })) })
       );
 
       await realignSequences(tx);

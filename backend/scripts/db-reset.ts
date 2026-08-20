@@ -17,7 +17,7 @@ import { spawnSync } from "node:child_process";
 import path from "node:path";
 import { prisma } from "@/lib/prisma";
 import { UPLOAD_DIR } from "@/lib/image";
-import { deleteOrphanedUploads } from "@/lib/uploads";
+import { claimedImageBases, deleteOrphanedUploads } from "@/lib/uploads";
 import {
   assertDestructiveConfirmed,
   describeAppEnv,
@@ -37,8 +37,8 @@ const RULE = "═".repeat(74);
  * leaves the folder out of step with the database for the same reason.
  */
 async function deleteUploadsBelongingToNothing(): Promise<{ deleted: number; kept: number }> {
-  const claimed = new Set(
-    (await prisma.productImage.findMany({ select: { filename: true } })).map((row) => row.filename)
+  const claimed = claimedImageBases(
+    await prisma.productImage.findMany({ select: { filename: true, originalFilename: true } })
   );
   return deleteOrphanedUploads(claimed);
 }

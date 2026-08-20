@@ -1,5 +1,6 @@
 import type { Product } from "@organza/shared/types/product";
 import type { ProductImageRef } from "@organza/shared/types/variant";
+import type { ImageEdit } from "@organza/shared/lib/imageEdit";
 import { PRODUCT_GALLERY_KEY, variantGalleryKey } from "@/constants/images";
 import { validateImageFile } from "@/lib/validation/image";
 import type { Gallery, GallerySlot } from "@/types/productForm";
@@ -51,8 +52,13 @@ function savedSignature(images: ProductImageRef[]): string {
     .join("|");
 }
 
+// A re-framing chosen but not sent counts as a change, so the form's Save
+// lights up for it exactly as it does for a reorder — otherwise somebody
+// crops a photograph, sees the new preview, and finds nothing to press.
 function workingSignature(slots: GallerySlot[]): string {
-  return slots.map((s) => `${s.kind === "existing" ? s.id : "new"}:${s.isPrimary ? 1 : 0}`).join("|");
+  return slots
+    .map((s) => `${s.kind === "existing" ? s.id : "new"}:${s.isPrimary ? 1 : 0}:${s.edit ? "edited" : ""}`)
+    .join("|");
 }
 
 export function galleryChanged(gallery: Gallery): boolean {
@@ -87,12 +93,20 @@ export function appendFiles(
       rejectedCode ??= invalidCode;
       continue;
     }
+    // One object URL, used twice to begin with: `sourceUrl` is the picked
+    // file and stays that way — it is what the editor re-opens on, so a
+    // second pass at the crop starts from the whole photograph — while
+    // `previewUrl` is whatever the tile should show, and is replaced by the
+    // cropped preview once the editor has been through it.
+    const objectUrl = URL.createObjectURL(file);
     added.push({
       kind: "new",
       id: `new-${crypto.randomUUID()}`,
       file,
-      previewUrl: URL.createObjectURL(file),
+      previewUrl: objectUrl,
+      sourceUrl: objectUrl,
       isPrimary: false,
+      edit: null,
     });
   }
 
@@ -101,8 +115,54 @@ export function appendFiles(
 
 export function removeSlot(slots: GallerySlot[], id: string): GallerySlot[] {
   const removed = slots.find((s) => s.id === id);
-  if (removed?.kind === "new") URL.revokeObjectURL(removed.previewUrl);
+  if (removed) revokeSlotUrls(removed);
   return withOnePrimary(slots.filter((s) => s.id !== id));
+}
+
+/**
+ * Hands back the memory a slot is holding.
+ *
+ * Every preview is an object URL, and a cropped one is a second URL on top of
+ * the picked file's. They are only reclaimed when revoked — a form where
+ * somebody adds, crops and removes a dozen photographs while looking for the
+ * right one would otherwise hold every one of them until the page reloads.
+ */
+function revokeSlotUrls(slot: GallerySlot): void {
+  if (slot.kind === "new") {
+    if (slot.previewUrl !== slot.sourceUrl) URL.revokeObjectURL(slot.previewUrl);
+    URL.revokeObjectURL(slot.sourceUrl);
+    return;
+  }
+  if (slot.previewUrl) URL.revokeObjectURL(slot.previewUrl);
+}
+
+/**
+ * Record what the editor framed for one photo, with the preview it drew.
+ *
+ * Nothing is sent here either: an edit is part of the gallery's working copy
+ * and goes to the server with everything else when the form is saved (see
+ * lib/image-sync.ts). `preview` is null when the browser could not draw one,
+ * and the tile then keeps the picture it had.
+ */
+export function applyEditToSlot(
+  slots: GallerySlot[],
+  id: string,
+  // Null when the editor was opened and left as it was: nothing to store, and
+  // nothing for the save to send.
+  edit: ImageEdit | null,
+  preview: string | null
+): GallerySlot[] {
+  return slots.map((slot) => {
+    if (slot.id !== id) return slot;
+    // The previous preview is this slot's alone and nothing else can be
+    // pointing at it; a second crop would otherwise leak the first.
+    if (slot.kind === "new") {
+      if (slot.previewUrl !== slot.sourceUrl) URL.revokeObjectURL(slot.previewUrl);
+      return { ...slot, edit, previewUrl: preview ?? slot.sourceUrl };
+    }
+    if (slot.previewUrl) URL.revokeObjectURL(slot.previewUrl);
+    return { ...slot, edit, previewUrl: preview };
+  });
 }
 
 // A tap always *sets* this slot as the main photo; tapping the current main

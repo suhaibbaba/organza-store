@@ -381,7 +381,7 @@ const imageDeletionApplier: ChangeRequestApplier = {
       ],
       // The files go only once the row is committed — a rolled-back approval
       // must never leave a product pointing at photos that no longer exist.
-      afterCommit: () => deleteProductImageFiles(image.filename),
+      afterCommit: () => deleteProductImageFiles(image.filename, image.originalFilename),
     };
   },
 };

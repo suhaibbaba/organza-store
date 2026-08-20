@@ -826,7 +826,22 @@
         "setPrimary": "تعيين كصورة رئيسية",
         "clearPrimary": "إلغاء الصورة الرئيسية",
         "primaryBadge": "رئيسية",
-        "delete": "حذف الصورة"
+        "delete": "حذف الصورة",
+        "edit": "قص الصورة",
+        "editor": {
+          "title": "قص الصورة",
+          "step": "الصورة {index} من {total}",
+          "cancel": "إلغاء",
+          "save": "حفظ القص",
+          "saveAndNext": "حفظ والانتقال للتالية",
+          "saveAndClose": "حفظ",
+          "zoom": "التكبير",
+          "rotate": "تدوير",
+          "flipHorizontal": "قلب أفقي",
+          "flipVertical": "قلب رأسي",
+          "aspectCatalogue": "{width}:{height}",
+          "aspectWhole": "الصورة كاملة"
+        }
       },
       "numberedShawl": {
         "title": "نقاط الأرقام",
@@ -1306,6 +1321,7 @@
     "imageOwnerRequired": "اختر منتجًا أو متغيرًا لهذه الصورة.",
     "imageReorderDuplicate": "لا يمكن تكرار الصورة نفسها في الترتيب.",
     "imageReorderMismatch": "ترتيب الصور لا يطابق الصور الحالية.",
+    "imageOriginalMissing": "لم تعد الصورة الأصلية موجودة، لذلك لا يمكن قصّها من جديد. أضف صورة جديدة بدلاً منها.",
     "inventoryParentHasVariants": "مخزون هذا المنتج يُدار عبر المتغيرات.",
     "settingDefaultLanguageNotSupported": "هذه اللغة غير مدعومة بعد.",
     "settingSaleNotificationModeUnsupported": "هذا الخيار غير متاح بعد.",

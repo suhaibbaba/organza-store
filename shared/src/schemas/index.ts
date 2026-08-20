@@ -3,6 +3,7 @@ export * from "./category";
 export * from "./changeRequest";
 export * from "./common";
 export * from "./expense";
+export * from "./image";
 export * from "./inventory";
 export * from "./order";
 export * from "./passwordSetup";

@@ -1,6 +1,7 @@
 import type { I18n } from "@/types/common";
 import type { ChangeRequest } from "@/types/changeRequest";
 import type { BarcodeSource } from "@/types/product";
+import type { ImageEdit } from "@/lib/imageEdit";
 
 // Global option value (e.g. Color -> "أحمر"), GET /api/variant-types.
 export interface VariantOptionValue {
@@ -28,6 +29,14 @@ export interface ProductImageRef {
   url: string;
   mediumUrl: string;
   thumbnailUrl: string;
+  // The photograph as it was uploaded, kept so the shop can frame it
+  // differently later, and the framing it currently carries (spec.md
+  // "Editing a photograph on upload"). Both null for a photo stored before
+  // the editor existed: it displays exactly as it always has, it just cannot
+  // be re-cropped, and the gallery hides the option rather than offering
+  // something that would fail.
+  originalUrl?: string | null;
+  edit?: ImageEdit | null;
   sortOrder: number;
   isPrimary: boolean;
   // How light or dark the photograph is, 0–100, measured by sharp when it was

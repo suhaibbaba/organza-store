@@ -390,6 +390,81 @@ translations live in the DB. No paid search or translation services.
 
 ---
 
+## Editing a photograph on upload
+
+A phone photograph of stock is a room with a dress in it. The shop frames the
+garment itself, in the admin, at the moment the photo is added — otherwise the
+catalogue is a grid of dresses at different sizes with different amounts of
+shop around each of them.
+
+**The editor** (`react-easy-crop`, touch-first) opens by itself the moment
+photographs are chosen, one after another for a batch, without going back to
+the form in between. It does four things and no more: drag to move, pinch or
+drag the slider to zoom, turn in quarter steps, mirror. It works by touch and
+by mouse — the counter screen has no pinch, so the zoom slider is not
+decoration.
+
+**The shape is the catalogue's 2:3 by default**, so every product photo comes
+out the same shape. The other choice is the photograph's own shape, for the
+piece that genuinely does not fit — a display, a fabric detail. **Skipping the
+editor is still a supported way to add a photo:** it is stored whole, exactly
+as before, and the screens that draw it letterbox it on the photo plate.
+
+**The edit is DATA, never a picture.** What the browser sends is the file as
+it was picked plus a rectangle (fractions of the framed view), a quarter turn
+and two mirrors; `sharp` cuts the three stored sizes out of the **original**,
+at full quality. A canvas re-encode in the browser would hand the server a
+photograph already decoded, scaled to fit a phone screen and re-compressed,
+and no care afterwards puts that detail back. The preview drawn on the tile is
+a canvas — a preview is all it is.
+
+**The original is kept** beside the three sizes (`<uuid>-original.<ext>`,
+untouched bytes), so a framing chosen in a hurry can be reconsidered: a stored
+photo carries a **crop** button that re-cuts it from the original, and the new
+sizes get new file names so nothing cached anywhere goes on showing the old
+framing. A photo uploaded before the editor existed has no original and is not
+offered the button.
+
+**Orientation is honoured.** A phone held sideways records an EXIF tag rather
+than turning the pixels, and every browser turns it back before drawing —
+including the one the crop was drawn in — so the server auto-orients before
+cutting. Without that pair, a crop drawn on a portrait photo would be cut out
+of a landscape one.
+
+**Nothing about a gallery changes otherwise:** photos are still picked,
+reordered, made primary and removed in the form's working copy, and written by
+its single Save (an Employee's deletion still becomes a change request).
+
+---
+
+## An installed app, not a page in a browser
+
+The admin and the POS are used on a shop counter — a phone in one hand and a
+garment in the other — so the browser's default reflexes are wrong for them:
+
+- **Nothing zooms.** An accidental pinch that leaves the screen askew at 1.4×
+  mid-sale is not something a cashier with a customer waiting will stop and
+  undo. Three things together: `maximum-scale=1, user-scalable=no` in the
+  viewport (honoured by Chrome and the Android WebView), `touch-action:
+  manipulation` (drops double-tap-to-zoom without touching taps or fast
+  repeated taps), and cancelling Safari's `gesture*` events plus any
+  multi-touch `touchmove`, because iOS has ignored `user-scalable=no` since
+  iOS 10. In the **installed** app that holds; in plain Safari the same
+  listeners stop the pinch, but the address bar's own Zoom control is beyond
+  any page's reach. The photo editor opts out (`data-allow-zoom`) — pinching
+  into a garment is the one place two fingers mean something.
+- **Nothing may depend on zooming**, therefore: every label is legible and
+  every control tappable at 1× — 16px form fields (below that Safari zooms the
+  page on focus, which would strand the layout), a 44px floor on anything a
+  thumb hits, and no interface text below 12px.
+- **No long-press sheet.** Holding a product card or a button raises iOS's
+  Copy / Look Up / Share sheet over the interface, which means nothing here.
+  Selection and the callout are off, and back on for the handful of things
+  worth copying — a barcode, a SKU, an order number, a customer's phone number
+  or address — marked `data-selectable`.
+
+---
+
 ## Barcode / QR scanning (POS)
 - Library: **`html5-qrcode`** — broad browser support incl. **mobile** (iOS Safari + Android Chrome),
   rear-camera support, reads both 1D barcodes and QR.
@@ -834,6 +909,7 @@ request **superseded** an earlier one, and who **approved** or **rejected** it.
 - `@tanstack/react-query` — API data fetching & caching
 - `react-hook-form` + `zod` + `@hookform/resolvers` — forms & validation
 - `@dnd-kit/core` — drag-to-reorder images
+- `react-easy-crop` — the photo editor (crop / zoom / turn / mirror), touch-first
 - `lucide-react` — icons
 - `zustand` — light state management (if needed)
 - `next/image` — image display/optimization

@@ -87,6 +87,11 @@ export const ERROR_CODES = {
   IMAGE_OWNER_REQUIRED: "error.image.owner_required",
   IMAGE_REORDER_DUPLICATE: "error.image.reorder_duplicate",
   IMAGE_REORDER_MISMATCH: "error.image.reorder_mismatch",
+  // Asked to cut a different crop from a photo whose ORIGINAL is not on disk:
+  // one uploaded before originals were kept, or one whose file the disk lost.
+  // The three stored sizes are still perfectly good — only re-cropping is
+  // impossible, which is why this is its own key rather than "not found".
+  IMAGE_ORIGINAL_MISSING: "error.image.original_missing",
 
   INVENTORY_PARENT_HAS_VARIANTS: "error.inventory.parent_has_variants",
 

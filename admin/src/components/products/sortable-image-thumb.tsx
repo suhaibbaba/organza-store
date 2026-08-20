@@ -3,7 +3,7 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useTranslations } from "next-intl";
-import { GripVertical, Star, Trash2 } from "lucide-react";
+import { Crop, GripVertical, Star, Trash2 } from "lucide-react";
 import { ProductImage } from "@/components/products/product-image";
 import { Spinner } from "@/components/ui/spinner";
 import { IMAGE_GRID_THUMB_SIZES } from "@/constants/images";
@@ -15,10 +15,17 @@ interface SortableImageThumbProps {
   isPrimary: boolean;
   isBusy: boolean;
   canDelete: boolean;
-  // A staged, not-yet-uploaded pick: its preview is a local blob: URL, which
-  // next/image can't resolve against the API origin, so it renders as a plain
+  // Drawn from a local blob: URL — a staged pick, or a photo whose new
+  // framing has been previewed here but not saved yet. next/image cannot
+  // resolve either against the API origin, so it renders as a plain
   // background instead.
   isNew?: boolean;
+  // Whether this photograph can be framed at all: a picked file always can, a
+  // stored one only if the API kept its original.
+  canEdit?: boolean;
+  // Carrying a re-framing that has not been saved yet.
+  isEdited?: boolean;
+  onEdit?: (id: string) => void;
   onTogglePrimary: (id: string) => void;
   onRemove: (id: string) => void;
 }
@@ -30,6 +37,9 @@ export function SortableImageThumb({
   isBusy,
   canDelete,
   isNew = false,
+  canEdit = false,
+  isEdited = false,
+  onEdit,
   onTogglePrimary,
   onRemove,
 }: SortableImageThumbProps) {
@@ -43,12 +53,17 @@ export function SortableImageThumb({
       ref={setNodeRef}
       style={style}
       className={cn(
-        "relative aspect-square touch-none overflow-hidden rounded-xl border border-border bg-muted",
+        // 2:3, the shape a product photo is framed to (shared's
+        // PRODUCT_IMAGE_ASPECT). A square tile would show every crop
+        // letterboxed and make the one thing this gallery is now for — did
+        // this photograph come out the right shape? — the one thing it could
+        // not answer.
+        "relative aspect-[2/3] touch-none overflow-hidden rounded-xl border border-border bg-muted",
         isDragging && "z-10 opacity-60"
       )}
     >
       {isNew ? (
-        <div className="size-full bg-cover bg-center" style={{ backgroundImage: `url(${thumbnailUrl})` }} />
+        <div className="size-full bg-contain bg-center bg-no-repeat" style={{ backgroundImage: `url(${thumbnailUrl})` }} />
       ) : (
         <ProductImage src={thumbnailUrl} alt="" className="size-full" sizes={IMAGE_GRID_THUMB_SIZES} />
       )}
@@ -62,6 +77,25 @@ export function SortableImageThumb({
       >
         <GripVertical className="size-4" aria-hidden="true" />
       </button>
+
+      {canEdit && onEdit && (
+        <button
+          type="button"
+          onClick={() => onEdit(id)}
+          disabled={isBusy}
+          aria-label={t("edit")}
+          data-test-selector={`image-edit-${id}`}
+          className={cn(
+            "absolute end-1 bottom-10 z-10 inline-flex size-9 items-center justify-center rounded-full text-white disabled:cursor-not-allowed disabled:opacity-50",
+            // A photo carrying an unsaved re-framing says so on the tile
+            // itself: the gallery is the only place that difference is
+            // visible until the form is saved.
+            isEdited ? "bg-primary" : "bg-black/50"
+          )}
+        >
+          <Crop className="size-4" aria-hidden="true" />
+        </button>
+      )}
 
       <button
         type="button"
@@ -81,7 +115,7 @@ export function SortableImageThumb({
           sits above everything via z-index. */}
       <div className="absolute inset-x-0 bottom-0 z-10 flex items-end justify-between gap-2 p-1">
         {isPrimary ? (
-          <span className="min-w-0 truncate rounded-full bg-primary px-2 py-0.5 text-[10px] font-medium text-primary-foreground">
+          <span className="min-w-0 truncate rounded-full bg-primary px-2 py-0.5 text-xs font-medium text-primary-foreground">
             {t("primaryBadge")}
           </span>
         ) : (
