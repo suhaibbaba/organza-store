@@ -54,7 +54,27 @@ describe("Images", () => {
         // Served off disk, so a zero-length body would mean the file is there
         // in name only.
         expect((await fetched.arrayBuffer()).byteLength).toBeGreaterThan(0);
+
+        // A 200 is not enough: `Cross-Origin-Resource-Policy: same-origin` —
+        // helmet's default, and what this mount used to inherit — makes the
+        // BROWSER discard a perfectly good response because the page asking
+        // for it is on another origin, which every page in this system is.
+        // It stayed hidden for as long as it did because product photos are
+        // drawn with next/image, which fetches them server-side where the
+        // header means nothing; the admin's photo editor puts one straight
+        // into an <img> and got a blank screen for it.
+        expect(fetched.headers.get("cross-origin-resource-policy")).not.toBe("same-origin");
       }
+      // The photograph as it was uploaded, kept beside the three sizes so a
+      // different crop can be cut from it later (spec.md "Editing a
+      // photograph on upload"). The editor loads THIS one directly in the
+      // browser, so it has to be fetchable and embeddable like the rest.
+      const originalUrl = uploaded.data.originalUrl;
+      expect(originalUrl).toBeTruthy();
+      const original = await fetch(`${API_BASE_URL}${originalUrl}`);
+      expect(original.status).toBe(200);
+      expect(original.headers.get("cross-origin-resource-policy")).not.toBe("same-origin");
+      expect((await original.arrayBuffer()).byteLength).toBeGreaterThan(0);
     } finally {
       await apiRequest(`/api/products/${productId}`, { method: "DELETE", token: admin.token });
     }

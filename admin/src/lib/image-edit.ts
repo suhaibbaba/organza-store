@@ -5,7 +5,7 @@ import {
   resolveImageEditOps,
   type ImageEdit,
 } from "@organza/shared/lib/imageEdit";
-import { CROP_PREVIEW_MAX_PX } from "@/constants/images";
+import { CROP_PREVIEW_MAX_PX, EDITOR_SOURCE_MAX_PX } from "@/constants/images";
 
 // The editor's browser-side helpers. The arithmetic itself is shared with the
 // backend (@organza/shared/lib/imageEdit), so the crop drawn here and the crop
@@ -106,4 +106,78 @@ export function editToSend(edit: ImageEdit | null): ImageEdit | null {
 /** Where the editor opens: the stored edit, or an untouched photograph. */
 export function editOrIdentity(edit: ImageEdit | null | undefined): ImageEdit {
   return edit ?? IDENTITY_IMAGE_EDIT;
+}
+
+/** What the editor should actually draw, and whether it owns that URL. */
+export interface EditorSource {
+  url: string;
+  /** True for a URL created here, which the caller has to revoke. */
+  owned: boolean;
+}
+
+/**
+ * THE PICTURE THE EDITOR DRAWS — small enough that a phone will draw it.
+ *
+ * A photograph from a phone camera is around twelve megapixels. iOS keeps a
+ * budget for decoded images and will refuse one over it without saying so:
+ * the `<img>` reports an error, the cropper never learns the media's size, and
+ * the editor sits there black with a broken-image glyph — on the one screen
+ * in the app where there is nothing else to look at, and no way to tell that
+ * the photograph itself is perfectly fine.
+ *
+ * So the editor is handed a scaled-down copy. It costs nothing in quality:
+ * the crop is stored as fractions of the frame, so the same rectangle drawn
+ * on a 1600px copy cuts the same region of the 12-megapixel original, which
+ * is where sharp cuts it from.
+ *
+ * Every step degrades rather than fails, because the worst outcome here is a
+ * screen that cannot show a photograph at all:
+ *   - a photo already small enough is used as it is;
+ *   - a cross-origin photo the API will not share with a canvas (no CORS) is
+ *     used as it is, full size, exactly as it was before this existed;
+ *   - a canvas that will not produce a blob is likewise skipped.
+ * Null is returned only when the picture could not be LOADED at all, which is
+ * the one case the editor has to tell the shop about.
+ */
+export async function loadEditorSource(
+  src: string,
+  { crossOrigin = false }: { crossOrigin?: boolean } = {}
+): Promise<EditorSource | null> {
+  let image: HTMLImageElement | null = null;
+  try {
+    image = await loadImage(src, crossOrigin);
+  } catch {
+    // A cross-origin photo the API refuses to share with a canvas fails the
+    // request above but is perfectly displayable — so ask again the ordinary
+    // way before giving up on it.
+    if (crossOrigin) {
+      try {
+        image = await loadImage(src, false);
+        return { url: src, owned: false };
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  }
+
+  const longest = Math.max(image.naturalWidth, image.naturalHeight);
+  if (!longest) return null;
+  if (longest <= EDITOR_SOURCE_MAX_PX) return { url: src, owned: false };
+
+  try {
+    const scale = EDITOR_SOURCE_MAX_PX / longest;
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
+    canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
+    const context = canvas.getContext("2d");
+    if (!context) return { url: src, owned: false };
+    context.drawImage(image, 0, 0, canvas.width, canvas.height);
+    const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.9));
+    return blob ? { url: URL.createObjectURL(blob), owned: true } : { url: src, owned: false };
+  } catch {
+    // A tainted canvas, or a device out of memory for one. The full-size
+    // picture is still the picture.
+    return { url: src, owned: false };
+  }
 }

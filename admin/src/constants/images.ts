@@ -27,6 +27,23 @@ export const IMAGE_GRID_THUMB_SIZES = "(min-width: 768px) 120px, 30vw";
 export const CROP_PREVIEW_MAX_PX = 600;
 
 /**
+ * The longest side of the picture the EDITOR is given to draw, in pixels.
+ *
+ * Not the picture that gets stored — that is cut by sharp from the full
+ * original and never touches a browser. This is only what the cropper puts on
+ * screen, and a phone camera's 12-megapixel photograph is a poor thing to
+ * hand it: iOS keeps a budget for decoded images and is entitled to refuse
+ * one, which it does silently — the editor comes up black with a broken-image
+ * glyph in the middle of it, on the one screen where there is nothing else to
+ * look at.
+ *
+ * A crop is stored as FRACTIONS of the frame (shared's ImageCrop), so cutting
+ * it on a scaled-down picture is exactly the same crop. 1600 is the largest
+ * size we store, which is far more than any phone screen shows.
+ */
+export const EDITOR_SOURCE_MAX_PX = 1600;
+
+/**
  * How far the zoom slider moves per press of an arrow key, as a fraction of
  * its range. A slider a mouse can nudge is the counter screen's answer to a
  * pinch, which it has no way of making.

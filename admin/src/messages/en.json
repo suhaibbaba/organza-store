@@ -840,7 +840,10 @@
           "flipHorizontal": "Flip horizontally",
           "flipVertical": "Flip vertically",
           "aspectCatalogue": "{width}:{height}",
-          "aspectWhole": "Whole photo"
+          "aspectWhole": "Whole photo",
+          "failed": "This photo could not be opened",
+          "failedHint": "The photo itself is fine — save it as it is, or take it again.",
+          "skip": "Skip this photo"
         }
       },
       "numberedShawl": {

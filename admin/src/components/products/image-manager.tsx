@@ -191,6 +191,7 @@ export function ImageManager({ slots, onChange, canDelete, isBusy = false, empty
           // or crop can survive from the last.
           key={target.id}
           src={target.src}
+          crossOrigin={target.crossOrigin}
           edit={target.edit}
           step={{ index: queueIndex + 1, total: queue.length }}
           // Leaves this photograph exactly as it is — kept whole if it was

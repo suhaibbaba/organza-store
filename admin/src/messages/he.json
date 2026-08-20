@@ -840,7 +840,10 @@
           "flipHorizontal": "היפוך אופקי",
           "flipVertical": "היפוך אנכי",
           "aspectCatalogue": "{width}:{height}",
-          "aspectWhole": "התמונה המלאה"
+          "aspectWhole": "התמונה המלאה",
+          "failed": "לא ניתן לפתוח את התמונה הזו",
+          "failedHint": "התמונה עצמה תקינה — אפשר לשמור אותה כמו שהיא או לצלם מחדש.",
+          "skip": "דילוג על התמונה"
         }
       },
       "numberedShawl": {

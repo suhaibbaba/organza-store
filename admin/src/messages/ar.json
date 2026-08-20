@@ -840,7 +840,10 @@
           "flipHorizontal": "قلب أفقي",
           "flipVertical": "قلب رأسي",
           "aspectCatalogue": "{width}:{height}",
-          "aspectWhole": "الصورة كاملة"
+          "aspectWhole": "الصورة كاملة",
+          "failed": "تعذّر فتح هذه الصورة",
+          "failedHint": "الصورة نفسها بخير — يمكن حفظها كما هي أو تصويرها من جديد.",
+          "skip": "تخطّي هذه الصورة"
         }
       },
       "numberedShawl": {
