@@ -12,6 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useSession } from "@/components/providers/session-provider";
+import { useUserDisplay } from "@/lib/user-display";
 import { AppVersion } from "@/components/pwa/app-version";
 import { cn } from "@/lib/utils";
 
@@ -27,7 +28,10 @@ export function AccountMenu({ className }: AccountMenuProps) {
   const t = useTranslations("common");
   const { user, logout } = useSession();
 
-  const initials = user?.name ? user.name.trim().slice(0, 1).toUpperCase() : "?";
+  // Their name, or their address, or their role — never an internal id
+  // (lib/user-display.ts). The letter comes from the same source as the name,
+  // so the circle and the word beside it always agree.
+  const { name, initial } = useUserDisplay()(user);
 
   return (
     <DropdownMenu>
@@ -35,16 +39,21 @@ export function AccountMenu({ className }: AccountMenuProps) {
         aria-label={t("account")}
         data-test-selector="pos-account-menu"
         className={cn(
-          "group flex min-h-11 items-center gap-2 rounded-md border border-input px-2 text-sm font-medium text-foreground",
+          "group flex min-h-11 min-w-0 items-center gap-2 rounded-md border border-input px-2 text-sm font-medium text-foreground",
           "transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
           "data-[state=open]:bg-accent",
           className
         )}
       >
-        <Avatar className="size-8">
-          <AvatarFallback>{initials}</AvatarFallback>
+        <Avatar className="size-8 shrink-0">
+          <AvatarFallback>{initial}</AvatarFallback>
         </Avatar>
-        <span className="max-w-40 truncate">{user?.name}</span>
+        {/* Capped AND truncating, both on purpose. The cap keeps a long name
+            from stretching the header out of shape; the truncation is what
+            stops the bar overflowing when even the cap is too much for the
+            width, which is how the sandbox chip ended up painted over the
+            language switcher. */}
+        <span className="min-w-0 max-w-24 truncate sm:max-w-40">{name}</span>
         {/* data-state lives on the trigger, so the arrow flips via the group. */}
         <ChevronDown
           className="size-4 shrink-0 text-muted-foreground transition-transform duration-200 group-data-[state=open]:rotate-180"
@@ -53,7 +62,14 @@ export function AccountMenu({ className }: AccountMenuProps) {
       </DropdownMenuTrigger>
 
       <DropdownMenuContent align="end" className="min-w-52">
-        <DropdownMenuLabel>{user?.email}</DropdownMenuLabel>
+        {/* The whole identity, where there is room for it: the name the
+            trigger may have had to truncate, and the address underneath. */}
+        <DropdownMenuLabel className="flex flex-col gap-0.5">
+          <span className="truncate">{name}</span>
+          {user?.email && (
+            <span className="truncate text-xs font-normal text-muted-foreground">{user.email}</span>
+          )}
+        </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem
           onSelect={() => void logout()}

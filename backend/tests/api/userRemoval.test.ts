@@ -289,12 +289,34 @@ describe("Staff account removal", () => {
 
       // Editing yourself is still perfectly fine — it is REMOVAL that is
       // refused, not every self-edit.
+      //
+      // Put back afterwards, which is not politeness: this account is the one
+      // every screen of the sandbox signs in as, and the suite runs against a
+      // LIVE deployment. A rename left behind is a rename somebody reads in
+      // the account button for the rest of the year — and this test used to
+      // leave `Admin <nonce>` there, which is exactly how a raw id came to be
+      // sitting in the top bar. The new name is a readable one for the same
+      // reason: even the window where it IS applied should look like a name.
+      const before = await apiRequest<StaffAccountView>(`/api/users/${admin.userId}`, {
+        token: admin.token,
+      });
+      expect(before.status).toBe(200);
+
       const renamed = await apiRequest<StaffAccountView>(`/api/users/${admin.userId}`, {
         method: "PATCH",
         token: admin.token,
-        body: { name: `Admin ${uniqueId()}` },
+        body: { name: "Vitest Self Edit" },
       });
       expect(renamed.status).toBe(200);
+      expect(renamed.data?.name).toBe("Vitest Self Edit");
+
+      const restored = await apiRequest<StaffAccountView>(`/api/users/${admin.userId}`, {
+        method: "PATCH",
+        token: admin.token,
+        body: { name: before.data!.name },
+      });
+      expect(restored.status).toBe(200);
+      expect(restored.data?.name).toBe(before.data!.name);
     });
 
     it("protects the last active Admin from being demoted away", async () => {

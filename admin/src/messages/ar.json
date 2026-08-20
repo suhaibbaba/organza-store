@@ -1428,7 +1428,8 @@
       "notePlaceholder": "لماذا؟ (اختياري)",
       "cancelRequest": "سحب الطلب",
       "confirmCancelRequest": "تأكيد السحب",
-      "cancelConfirmPrompt": "سيُحذف الطلب ولن يصل إلى المدير. متأكد؟"
+      "cancelConfirmPrompt": "سيُحذف الطلب ولن يصل إلى المدير. متأكد؟",
+      "unknownStaff": "موظف غير معروف"
     },
     "pending": {
       "waiting": "بانتظار الموافقة",

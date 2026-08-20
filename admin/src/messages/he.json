@@ -1428,7 +1428,8 @@
       "notePlaceholder": "למה? (רשות)",
       "cancelRequest": "ביטול הבקשה",
       "confirmCancelRequest": "אישור הביטול",
-      "cancelConfirmPrompt": "הבקשה תימחק ולא תגיע למנהל. בטוח?"
+      "cancelConfirmPrompt": "הבקשה תימחק ולא תגיע למנהל. בטוח?",
+      "unknownStaff": "עובד לא ידוע"
     },
     "pending": {
       "waiting": "ממתין לאישור",

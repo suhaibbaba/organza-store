@@ -8,3 +8,4 @@ export * from "./optionValueNotes";
 export * from "./orders";
 export * from "./stock";
 export * from "./testSelector";
+export * from "./userDisplay";

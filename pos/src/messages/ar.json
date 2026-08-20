@@ -19,6 +19,11 @@
       "pull": "اسحب للتحديث",
       "release": "أفلت للتحديث",
       "refreshing": "جارٍ التحديث…"
+    },
+    "role": {
+      "ADMIN": "مسؤول",
+      "MANAGER": "مدير",
+      "EMPLOYEE": "موظف"
     }
   },
   "stock": {

@@ -17,6 +17,7 @@ import { ChangeRequestStatusBadge } from "@/components/change-requests/change-re
 import { useDecideChangeRequestMutation } from "@/hooks/use-change-requests";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
 import { useTranslateError } from "@/hooks/use-translate-error";
+import { useActorName } from "@/lib/user-display";
 import { ApiError } from "@/lib/api/errors";
 import { formatDateTime } from "@/lib/format";
 import { localize } from "@/lib/i18n-content";
@@ -46,9 +47,14 @@ interface QuickSoldCardProps {
 export function QuickSoldCard({ request, canDecide }: QuickSoldCardProps) {
   const t = useTranslations("changeRequests.quickSold");
   const tCommon = useTranslations("common");
+  const tCard = useTranslations("changeRequests.card");
   const locale = useLocale();
   const money = useMoneyFormatter();
   const translateError = useTranslateError();
+  const actorName = useActorName();
+  // Only a name reaches these cards — no address, no role — so the last
+  // resort is the word for a member of staff we cannot name.
+  const tUnknown = tCard("unknownStaff");
   const decide = useDecideChangeRequestMutation();
 
   const [rejecting, setRejecting] = useState(false);
@@ -94,7 +100,7 @@ export function QuickSoldCard({ request, canDecide }: QuickSoldCardProps) {
         )}
         <p className="text-xs text-muted-foreground">
           {t("soldBy", {
-            name: request.requestedBy?.name ?? "",
+            name: actorName(request.requestedBy, tUnknown),
             when: formatDateTime(request.requestedAt, locale),
           })}
         </p>
@@ -107,7 +113,7 @@ export function QuickSoldCard({ request, canDecide }: QuickSoldCardProps) {
       {!isPending && (
         <p className="text-xs text-muted-foreground">
           {t(request.status === APPROVED_CHANGE_REQUEST_STATUS ? "completedBy" : "oneOffBy", {
-            name: request.decidedBy?.name ?? "",
+            name: actorName(request.decidedBy, tUnknown),
             when: formatDateTime(request.decidedAt, locale),
           })}
           {request.decisionNote ? ` — ${request.decisionNote}` : ""}

@@ -21,16 +21,34 @@ export function TopBar() {
       className="sticky top-0 z-30 border-b border-border bg-background pt-[var(--safe-top)]"
       data-test-selector="pos-top-bar"
     >
-      <div className="flex h-[var(--top-bar-height)] items-center justify-between gap-2 px-3 md:px-6">
+      {/* Three things share this row and none of them may ever be drawn over
+          another: which shop, which copy of it, and who is signed in.
+
+          It used to be `justify-between` with a `shrink-0` control group,
+          which is fine until the content is wider than the phone — and then
+          the free space goes NEGATIVE and the two groups are laid out on top
+          of each other, which is how the sandbox chip ended up sitting over
+          the language switcher's icon. So nothing here is unshrinkable: the
+          identity gives way first (its name truncates), and if that is not
+          enough the controls give way too (their labels truncate), instead of
+          the row overflowing and colliding. */}
+      <div className="flex h-[var(--top-bar-height)] items-center gap-2 px-3 md:px-6">
         {/* The shop's name, and — on the sandbox only — the chip that says so.
+            `flex-1` so this is what yields when the row is tight, and the chip
+            is `shrink-0` inside it: the NAME is what gives way, never the
+            warning that says which database you are about to sell from.
             gap rather than a margin on the chip, so nothing shifts on the
             live shop where the chip renders nothing. */}
-        <div className="flex min-w-0 items-center gap-2">
+        <div className="flex min-w-0 flex-1 items-center gap-2">
           <span className="truncate text-base font-semibold md:text-lg">{t("app.name")}</span>
           <EnvironmentBadge />
         </div>
 
-        <div className="flex shrink-0 items-center gap-2">
+        {/* min-w-0 rather than shrink-0: these keep their place in the row and
+            compress themselves (see the account menu's truncating label and
+            the switcher's label, which drops below `sm`) rather than pushing
+            the row wider than the screen. */}
+        <div className="flex min-w-0 items-center gap-2">
           <LanguageSwitcher variant="dropdown" />
           <AccountMenu />
         </div>
