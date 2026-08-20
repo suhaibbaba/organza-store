@@ -37,18 +37,23 @@ export function RoleGuard({
   const { user, isLoading } = useSession();
   const router = useRouter();
   const allowed = Boolean(user) && can(user, action);
+  // Their own first allowed screen, not a fixed one: the dashboard is no
+  // longer visible to every role, so redirecting there unconditionally would
+  // send an Employee to another screen they'd be bounced off again.
+  const target = landingHref(user);
 
   useEffect(() => {
     if (onDenied !== "redirect" || isLoading || !user || allowed) return;
-    // Their own first allowed screen, not a fixed one: the dashboard is no
-    // longer visible to every role, so redirecting there unconditionally
-    // would send an Employee to another screen they'd be bounced off again.
-    const target = landingHref(user);
     if (target) router.replace(target);
-  }, [onDenied, isLoading, user, allowed, router]);
+  }, [onDenied, isLoading, user, allowed, target, router]);
 
   if (!allowed) {
-    return onDenied === "redirect" ? null : <ForbiddenScreen />;
+    // Nothing on screen while the redirect happens — but only when there IS
+    // one. Somebody whose role opens no screen at all has nowhere to be sent,
+    // and returning null would leave them looking at an empty shell with no
+    // word of explanation, which is the failure this whole component exists
+    // to avoid.
+    return onDenied === "redirect" && target ? null : <ForbiddenScreen />;
   }
 
   return <>{children}</>;

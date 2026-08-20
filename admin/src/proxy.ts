@@ -6,6 +6,7 @@ import { LOCALE_COOKIE_NAME } from "@/constants/locale";
 import { SESSION_TOKEN_KEY } from "@/constants/storage";
 import { OFFLINE_PATH } from "@/constants/pwa";
 import { FORGOT_PASSWORD_PATH, PASSWORD_SETUP_PATH } from "@/constants/auth";
+import { DEFAULT_LANDING_HREF } from "@/constants/routes";
 
 const handleIntl = createMiddleware(routing);
 
@@ -64,9 +65,14 @@ export function proxy(request: NextRequest): NextResponse {
 
   // Only the login screen bounces a signed-in user onwards; /offline has to
   // keep rendering for them too, since that's exactly who sees it.
+  //
+  // Sent to the same place the root path sends an unknown role, and for the
+  // same reason: a cookie says somebody is signed in, but not who — the role
+  // lives behind a request this runtime does not make. RoleGuard forwards
+  // whoever may not open it (an Employee lands on Orders).
   if (rest === LOGIN_PATH && hasToken) {
-    const dashboardUrl = new URL(`/${locale}/dashboard`, request.url);
-    return NextResponse.redirect(dashboardUrl);
+    const landingUrl = new URL(`/${locale}${DEFAULT_LANDING_HREF}`, request.url);
+    return NextResponse.redirect(landingUrl);
   }
 
   return intlResponse;

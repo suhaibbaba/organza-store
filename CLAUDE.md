@@ -231,6 +231,10 @@ cd backend && npx prisma studio
 npm run dev -w admin
 npm run dev -w pos
 
+# the admin's own suite (admin/tests): what a signed-in person can see and do in
+# the SHELL, for every role. jsdom, no server needed — unlike backend/tests.
+npm run test -w admin
+
 # everything at once
 npm run build          # shared, then backend, admin, pos
 npm run typecheck
@@ -333,6 +337,15 @@ Design for that reality:
   marker) and nothing else. Any new fixed-height text box has to fit the line box the scale gives
   it — prefer `min-h-*` with padding over `h-*`, and check with `ملاحظات على الخيارات جحخي`.
 - **Accessibility basics:** readable font sizes on mobile, sufficient contrast, labels on inputs.
+- **Whoever is signed in is named IN THE SHELL, never on a page.** The header carries the
+  account — name, role, sign-out, the app version — at every width and for every role, sourced
+  from the session (`components/layout/account-menu.tsx`, mirroring the POS's). It may never be
+  hidden below a breakpoint, and it may never be the dashboard's job: the dashboard is
+  Admin/Manager only, so tying identity to it takes their own name away from the one role that
+  spends all day filing orders under it. The same holds for anything a person always needs — the
+  language switcher, the sandbox badge, the way out. Nothing that must always be reachable may
+  live behind a permission-gated page, and nothing may live *only* in the bottom nav's "More"
+  sheet either: that sheet exists only when a role has more nav entries than the four tabs hold.
 - **A person is named through `lib/user-display.ts`, never by rendering `user.name` raw.**
   One rule for both apps (`shared/src/lib/userDisplay.ts`): their name, then the local part of
   their email, then their translated role — and **never an internal id**. An id is meaningless to
