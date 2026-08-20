@@ -40,6 +40,12 @@ export const ERROR_CODES = {
   VALIDATION_INVALID_EMAIL: "error.validation.invalid_email",
   VALIDATION_PASSWORD_TOO_SHORT: "error.validation.password_too_short",
   VALIDATION_IMAGE_POINT_OUT_OF_RANGE: "error.validation.image_point_out_of_range",
+  // Text past the length its field accepts — an option-value note, which is
+  // deliberately short (shared/constants/optionValueNote.ts). Separate from
+  // out_of_range, which is about numbers.
+  VALIDATION_TOO_LONG: "error.validation.too_long",
+  // A marker colour that is not a hex colour (spec.md "Numbered shawls").
+  VALIDATION_INVALID_COLOR: "error.validation.invalid_color",
 
   CATEGORY_NOT_FOUND: "error.category.not_found",
   CATEGORY_CIRCULAR_PARENT: "error.category.circular_parent",
@@ -57,6 +63,17 @@ export const ERROR_CODES = {
   // Flipping the choice on a product that already has variants would strand
   // (or destroy) them, so it is refused until they are removed.
   PRODUCT_NUMBERED_SWITCH_HAS_VARIANTS: "error.product.numbered_switch_has_variants",
+  // A note was written against an option value this product does not use
+  // (spec.md "Notes on a product's options"). The note is scoped to the
+  // product's own use of the value, so there is nowhere to put one for a
+  // value the product has nothing to do with.
+  PRODUCT_OPTION_NOTE_VALUE_NOT_USED: "error.product.option_note_value_not_used",
+  // A quick-sold product (spec.md "Quick sell") cannot be signed off as a
+  // finished catalogue item while the thing that made it incomplete is still
+  // missing: it has no category, so no category-filtered list can find it.
+  // Refused server-side rather than merely greyed out, since completing is
+  // what takes it off the "needs completing" queue.
+  PRODUCT_COMPLETION_INCOMPLETE: "error.product.completion_incomplete",
 
   VARIANT_TYPE_NOT_FOUND: "error.variantType.not_found",
   VARIANT_TYPE_VALUE_NOT_FOUND: "error.variantType.value_not_found",
@@ -70,6 +87,11 @@ export const ERROR_CODES = {
   IMAGE_OWNER_REQUIRED: "error.image.owner_required",
   IMAGE_REORDER_DUPLICATE: "error.image.reorder_duplicate",
   IMAGE_REORDER_MISMATCH: "error.image.reorder_mismatch",
+  // Asked to cut a different crop from a photo whose ORIGINAL is not on disk:
+  // one uploaded before originals were kept, or one whose file the disk lost.
+  // The three stored sizes are still perfectly good — only re-cropping is
+  // impossible, which is why this is its own key rather than "not found".
+  IMAGE_ORIGINAL_MISSING: "error.image.original_missing",
 
   INVENTORY_PARENT_HAS_VARIANTS: "error.inventory.parent_has_variants",
 
@@ -86,6 +108,11 @@ export const ERROR_CODES = {
   ORDER_RETURN_QUANTITY_EXCEEDED: "error.order.return_quantity_exceeded",
   ORDER_PRODUCT_UNAVAILABLE: "error.order.product_unavailable",
   ORDER_VARIANT_REQUIRED: "error.order.variant_required",
+  // A line named neither a catalogue product nor a quick sale, or named both
+  // (spec.md "Quick sell"). One line is one thing being sold, and which of
+  // the two it is has to be unambiguous — the second half of the schema's own
+  // refinement, kept as an error key so the POS can say which line is wrong.
+  ORDER_ITEM_SOURCE_INVALID: "error.order.item_source_invalid",
   // A cancelled or fully returned sale owes the shop nothing, so there is no
   // money on it to record as collected.
   ORDER_NOT_COLLECTABLE: "error.order.not_collectable",
@@ -184,6 +211,18 @@ export const ERROR_CODES = {
   // deactivate: they can no longer sign in, and every record still says it
   // was them.
   USER_HAS_HISTORY: "error.user.has_history",
+
+  // --- role permissions (spec.md "Editable role permissions") ---
+  // Trying to grant or revoke an action that is PROTECTED. Refused on the
+  // server, not merely hidden on the screen — a protected action is the
+  // shop's anti-theft design, and a design that only holds while the client
+  // is polite is not a design.
+  PERMISSION_ACTION_PROTECTED: "error.permission.action_protected",
+  // Editing the permissions of the role you yourself hold. Refused because
+  // nobody adjusts their own authority: it is the one edit whose reviewer and
+  // subject are the same person, and on the Admin role it is also the edit
+  // that could lock the shop out of its own system.
+  PERMISSION_SELF_ROLE: "error.permission.self_role",
 
   // --- password set / reset by email ---
   // ONE code for unknown, expired, already-used and revoked links, on

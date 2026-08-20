@@ -34,14 +34,14 @@ export function ReportHeadline({ totals }: { totals: SalesTotals }) {
           four across on a desktop — the amounts stay scannable side by side
           without a single figure stretching a 2560px monitor. */}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard
+        <StatCard name="sold"
           label={tFigures("sold.label")}
           tooltip={tFigures("sold.help")}
           value={formatMoney(totals.revenue)}
           hint={t("soldHint", { orders: totals.orderCount, items: totals.itemCount })}
         />
 
-        <StatCard
+        <StatCard name="received"
           tone="success"
           label={tFigures("received.label")}
           tooltip={tFigures("received.help")}
@@ -50,7 +50,7 @@ export function ReportHeadline({ totals }: { totals: SalesTotals }) {
 
         {/* Amber, because "still owed" is the figure to chase and must never
             look like takings. Never colour alone — the label says it too. */}
-        <StatCard
+        <StatCard name="owed"
           tone="warning"
           label={tFigures("owed.label")}
           tooltip={tFigures("owed.help")}
@@ -62,13 +62,13 @@ export function ReportHeadline({ totals }: { totals: SalesTotals }) {
           }
         />
 
-        <StatCard
+        <StatCard name="average-order"
           label={t("averageOrder.label")}
           tooltip={t("averageOrder.help")}
           value={formatMoney(totals.averageOrderValue)}
         />
 
-        <StatCard
+        <StatCard name="discounts"
           label={t("discounts.label")}
           tooltip={t("discounts.help")}
           value={formatMoney(totals.discountAmount)}
@@ -76,9 +76,9 @@ export function ReportHeadline({ totals }: { totals: SalesTotals }) {
 
         {showProfit && (
           <>
-            <StatCard label={t("cost.label")} tooltip={t("cost.help")} value={formatMoney(totals.cost!)} />
+            <StatCard name="cost" label={t("cost.label")} tooltip={t("cost.help")} value={formatMoney(totals.cost!)} />
 
-            <StatCard
+            <StatCard name="profit"
               label={t("profit.label")}
               tooltip={t("profit.help")}
               value={formatMoney(totals.profit!)}

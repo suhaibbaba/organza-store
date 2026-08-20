@@ -3,6 +3,7 @@ import type { Variant } from "@organza/shared/types/variant";
 import type { UpdateVariantInput } from "@organza/shared/schemas/product";
 import { isNonNegativeIntegerString } from "@/lib/validation/numeric";
 import { DEFAULT_POINT_STOCK } from "@/constants/numberedShawl";
+import { initOptionValueNotes, type OptionValueNoteMap } from "@/lib/option-value-notes";
 import type { ShawlPoint } from "@/types/numberedShawl";
 
 // Whether to surface the numbered-point placement tool at all. It is the
@@ -41,6 +42,20 @@ export function initShawlPoints(variants: Variant[]): ShawlPoint[] {
       valueId: v.values[0]?.id ?? null,
     }))
     .sort((a, b) => a.number - b.number);
+}
+
+// The notes this shawl's numbers already carry, keyed the way the editor
+// keys its rows — by POINT, not by option value (spec.md "Notes on a
+// product's options"). A number placed in the current session has no global
+// value yet, so the editor cannot key by value until the save resolves one.
+export function initPointNotes(product: Product): OptionValueNoteMap {
+  const byValueId = initOptionValueNotes(product);
+  const notes: OptionValueNoteMap = {};
+  for (const point of initShawlPoints(product.variants)) {
+    const note = point.valueId ? byValueId[point.valueId] : undefined;
+    if (note) notes[point.id] = note;
+  }
+  return notes;
 }
 
 export function nextPointNumber(points: ShawlPoint[]): number {

@@ -19,7 +19,7 @@ export function CollectionSummaryCard({ summary }: { summary: CollectionSummary 
   const formatMoney = useMoneyFormatter();
 
   return (
-    <StatCard
+    <StatCard name="outstanding-total"
       tone="warning"
       label={t("label")}
       value={formatMoney(summary.amount)}

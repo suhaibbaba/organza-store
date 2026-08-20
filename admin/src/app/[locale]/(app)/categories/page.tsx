@@ -84,11 +84,12 @@ export default function CategoriesPage() {
   return (
     <PageContainer>
       <PageHeader
+        name="categories"
         title={t("title")}
         description={t("subtitle")}
         actions={
           canManage && (
-            <Button size="sm" className="shrink-0" onClick={openCreateForm}>
+            <Button size="sm" className="shrink-0" onClick={openCreateForm} data-test-selector="add-category">
               <Plus className="size-4" aria-hidden="true" />
               {t("addCategory")}
             </Button>

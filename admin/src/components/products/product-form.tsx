@@ -36,11 +36,20 @@ import {
   variantIdFromGalleryKey,
 } from "@/constants/images";
 import { showNumberedShawlEditor } from "@/lib/validation/numbered-shawl";
+import {
+  diffOptionValueNotes,
+  initOptionValueNotes,
+  noteGroupsFromProduct,
+  noteGroupsFromSelections,
+  setNoteLanguage,
+  type OptionValueNoteMap,
+} from "@/lib/option-value-notes";
 import { buildVariantPreview, toOptionSelections, comboKey } from "@/lib/variant-combo";
 import { localize } from "@/lib/i18n-content";
 import { formatMoney } from "@/lib/format";
 import { LOCALE_LABELS } from "@/constants/locale";
 import { FormContainer } from "@/components/layout/form-container";
+import { FieldError } from "@/components/ui/field-error";
 import { Input } from "@/components/ui/input";
 import { NumericInput } from "@/components/ui/numeric-input";
 import { QuantityStepper } from "@/components/ui/quantity-stepper";
@@ -54,6 +63,7 @@ import { Button } from "@/components/ui/button";
 import { Alert } from "@/components/ui/alert";
 import { Spinner } from "@/components/ui/spinner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { OptionValueNotesSection } from "@/components/products/option-value-notes-section";
 import { VariantTypePicker } from "@/components/products/variant-type-picker";
 import { VariantPreviewList } from "@/components/products/variant-preview-list";
 import { VariantEditList } from "@/components/products/variant-edit-list";
@@ -67,6 +77,7 @@ import { barcodeConflictSku } from "@/lib/barcode-conflict";
 import type {
   Gallery,
   GallerySlot,
+  I18nFormValue,
   SaveStep,
   ProductEditAbilities,
   VariantSelectionMap,
@@ -142,6 +153,10 @@ export function ProductForm({ mode, product }: ProductFormProps) {
     product ? initVariantEdits(product.variants) : {}
   );
   const [removedVariantIds, setRemovedVariantIds] = useState<Set<string>>(new Set());
+  // What each chosen option value MEANS on this product (spec.md "Notes on a
+  // product's options"), keyed by option value id — a detail of the product,
+  // saved with the rest of the form rather than through a screen of its own.
+  const [optionNotes, setOptionNotes] = useState<OptionValueNoteMap>(() => initOptionValueNotes(product));
   const [submitError, setSubmitError] = useState<string | null>(null);
   // How many of the things this save asked for are now waiting for an Admin
   // (spec.md "Employee change approvals") — a price, a stock figure, the
@@ -212,6 +227,34 @@ export function ProductForm({ mode, product }: ProductFormProps) {
     () => (variantTypes ?? []).filter((type) => type.slug !== NUMBER_VARIANT_TYPE_SLUG),
     [variantTypes]
   );
+
+  // Which values a note may be written against: the ones just ticked while
+  // creating, or the ones the product's variants already use.
+  const noteGroups = useMemo(
+    () =>
+      mode === "create"
+        ? noteGroupsFromSelections(variantTypes ?? [], selections, locale)
+        : product
+          ? noteGroupsFromProduct(product, locale)
+          : [],
+    [mode, variantTypes, selections, product, locale]
+  );
+
+  // A note typed against a value that has since been UNTICKED goes nowhere:
+  // the API refuses a note on a value the product does not use, and quietly
+  // dropping it here is better than failing the whole save over a line the
+  // user has already taken back. It stays in local state, so re-ticking the
+  // value brings the note back with it.
+  const noteRowKeys = useMemo(
+    () => new Set(noteGroups.flatMap((group) => group.rows.map((row) => row.key))),
+    [noteGroups]
+  );
+  const chosenValueNotes = (initial: OptionValueNoteMap) =>
+    diffOptionValueNotes(initial, optionNotes, (key) => (noteRowKeys.has(key) ? key : null));
+
+  function handleNoteChange(key: string, language: keyof I18nFormValue, text: string) {
+    setOptionNotes((previous) => setNoteLanguage(previous, key, language, text));
+  }
 
   const previewRows = useMemo(
     () => (mode === "create" ? buildVariantPreview(ordinaryVariantTypes, selections) : []),
@@ -352,7 +395,7 @@ export function ProductForm({ mode, product }: ProductFormProps) {
       // variants, then the photos themselves.
       if (mode === "create") {
         setSaveStep({ kind: "product" });
-        const payload = toCreatePayload(values, newOptionSelections);
+        const payload = toCreatePayload(values, newOptionSelections, chosenValueNotes({}));
         const created = await createMutation.mutateAsync(payload);
 
         if (created.hasVariants && excludedCombos.size > 0) {
@@ -378,7 +421,16 @@ export function ProductForm({ mode, product }: ProductFormProps) {
 
       if (canEditDetails) {
         setSaveStep({ kind: "product" });
-        const saved = await updateMutation.mutateAsync(toUpdatePayload(values, willHaveVariants, abilities));
+        const saved = await updateMutation.mutateAsync(
+          toUpdatePayload(
+            values,
+            willHaveVariants,
+            abilities,
+            // Only the notes that actually changed, so a save can never
+            // overwrite one written on another screen since this one loaded.
+            chosenValueNotes(initOptionValueNotes(product))
+          )
+        );
         for (const change of saved.pendingChanges ?? []) filedRequests.add(change.id);
 
         const patches = Object.entries(variantEdits)
@@ -491,6 +543,7 @@ export function ProductForm({ mode, product }: ProductFormProps) {
                   {SUPPORTED_LANGUAGES.map((lang) => (
                     <TabsContent key={lang} value={lang}>
                       <Input
+                        data-test-selector={`field-name-${lang}`}
                         aria-label={`${t("name")} — ${LOCALE_LABELS[lang]}`}
                         placeholder={lang === DEFAULT_LANGUAGE ? t("required") : t("optional")}
                         aria-invalid={lang === DEFAULT_LANGUAGE && !!errors.name?.ar}
@@ -500,7 +553,7 @@ export function ProductForm({ mode, product }: ProductFormProps) {
                   ))}
                 </Tabs>
                 {errors.name?.ar && (
-                  <p className="text-sm text-destructive">{translateError(errors.name.ar.message ?? "")}</p>
+                  <FieldError field="name">{translateError(errors.name.ar.message ?? "")}</FieldError>
                 )}
               </div>
 
@@ -517,6 +570,7 @@ export function ProductForm({ mode, product }: ProductFormProps) {
                   {SUPPORTED_LANGUAGES.map((lang) => (
                     <TabsContent key={lang} value={lang}>
                       <Textarea
+                        data-test-selector={`field-description-${lang}`}
                         aria-label={`${t("description")} — ${LOCALE_LABELS[lang]}`}
                         placeholder={t("optional")}
                         rows={4}
@@ -549,7 +603,7 @@ export function ProductForm({ mode, product }: ProductFormProps) {
                   )}
                 />
                 {errors.categoryId && (
-                  <p className="text-sm text-destructive">{translateError(errors.categoryId.message ?? "")}</p>
+                  <FieldError field="categoryId">{translateError(errors.categoryId.message ?? "")}</FieldError>
                 )}
               </div>
             </CardContent>
@@ -571,7 +625,7 @@ export function ProductForm({ mode, product }: ProductFormProps) {
                       {...register("basePrice")}
                     />
                     {errors.basePrice && (
-                      <p className="text-sm text-destructive">{translateError(errors.basePrice.message ?? "")}</p>
+                      <FieldError field="basePrice">{translateError(errors.basePrice.message ?? "")}</FieldError>
                     )}
                   </div>
 
@@ -585,7 +639,7 @@ export function ProductForm({ mode, product }: ProductFormProps) {
                       {...register("compareAtPrice")}
                     />
                     {errors.compareAtPrice && (
-                      <p className="text-sm text-destructive">{translateError(errors.compareAtPrice.message ?? "")}</p>
+                      <FieldError field="compareAtPrice">{translateError(errors.compareAtPrice.message ?? "")}</FieldError>
                     )}
                   </div>
 
@@ -618,7 +672,7 @@ export function ProductForm({ mode, product }: ProductFormProps) {
                     aria-invalid={!!errors.cost}
                     {...register("cost")}
                   />
-                  {errors.cost && <p className="text-sm text-destructive">{translateError(errors.cost.message ?? "")}</p>}
+                  {errors.cost && <FieldError field="cost">{translateError(errors.cost.message ?? "")}</FieldError>}
                 </div>
               )}
             </CardContent>
@@ -695,7 +749,7 @@ export function ProductForm({ mode, product }: ProductFormProps) {
                         />
                       )}
                     />
-                    {errors.stock && <p className="text-sm text-destructive">{translateError(errors.stock.message ?? "")}</p>}
+                    {errors.stock && <FieldError field="stock">{translateError(errors.stock.message ?? "")}</FieldError>}
                     {stockNeedsApproval && (
                       <p className="text-sm text-muted-foreground">{t("needsApproval.stock")}</p>
                     )}
@@ -744,7 +798,7 @@ export function ProductForm({ mode, product }: ProductFormProps) {
                 )}
               />
               {errors.barcode && (
-                <p className="text-sm text-destructive">{translateError(errors.barcode.message ?? "")}</p>
+                <FieldError field="product-barcode">{translateError(errors.barcode.message ?? "")}</FieldError>
               )}
               {willHaveVariants && <p className="text-sm text-muted-foreground">{t("barcode.parentSharedHint")}</p>}
             </CardContent>
@@ -798,6 +852,22 @@ export function ProductForm({ mode, product }: ProductFormProps) {
 
             {mode === "edit" && product && variantTypes && canEditDetails && (
               <AddVariantsSection productId={product.id} variantTypes={ordinaryVariantTypes} />
+            )}
+
+            {/* What a chosen value MEANS on this product (spec.md "Notes on a
+                product's options") — "S" is a different measurement on
+                trousers than on an abaya. Under the options themselves, and
+                collapsed until there is something to read, so a form that
+                already carries several variant types does not grow a third
+                block of inputs per size. */}
+            {canEditDetails && (
+              <OptionValueNotesSection
+                groups={noteGroups}
+                notes={optionNotes}
+                onChange={handleNoteChange}
+                disabled={isBusy}
+                hint={mode === "create" ? t("optionNotes.createHint") : undefined}
+              />
             )}
           </CardContent>
         </Card>
@@ -898,7 +968,7 @@ export function ProductForm({ mode, product }: ProductFormProps) {
           <>
             {/* One button, one progress line — the several calls behind it
                 are the app's problem, not the user's. */}
-            <Button type="submit" disabled={isBusy} className="w-full sm:w-auto sm:self-start">
+            <Button type="submit" data-test-selector="product-save" disabled={isBusy} className="w-full sm:w-auto sm:self-start">
               {isBusy ? (
                 <>
                   <Spinner />

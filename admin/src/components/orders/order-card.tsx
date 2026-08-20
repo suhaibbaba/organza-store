@@ -2,6 +2,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { ChevronRight } from "lucide-react";
 import type { OrderSummary } from "@organza/shared/types/order";
 import { Link } from "@/i18n/navigation";
+import { testSelectorFor } from "@organza/shared/lib/testSelector";
 import { formatDate } from "@/lib/format";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
 import { isOrderCollectable } from "@organza/shared/lib/orders";
@@ -9,6 +10,7 @@ import { OrderChannelBadge } from "@/components/orders/order-channel-badge";
 import { OrderStatusBadge } from "@/components/orders/order-status-badge";
 import { OrderTypeBadge } from "@/components/orders/order-type-badge";
 import { PaymentStatusBadge } from "@/components/orders/payment-status-badge";
+import { QuickSaleBadge } from "@/components/orders/quick-sale-badge";
 
 // One order, as a card. This is the primary (mobile) rendering — the table
 // below md is a convenience for desktop, not the other way round (CLAUDE.md
@@ -22,7 +24,10 @@ export function OrderCard({ order }: { order: OrderSummary }) {
   const formatMoney = useMoneyFormatter();
 
   return (
-    <div className="relative flex flex-col gap-2 rounded-xl border border-border bg-card p-3 transition-colors has-[a:active]:bg-accent">
+    <div
+      className="relative flex flex-col gap-2 rounded-xl border border-border bg-card p-3 transition-colors has-[a:active]:bg-accent"
+      data-test-selector={testSelectorFor("order-card", order.id)}
+    >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <Link
@@ -48,6 +53,10 @@ export function OrderCard({ order }: { order: OrderSummary }) {
           <OrderChannelBadge channel={order.channel} />
           {/* Renders nothing for an ordinary sale — see OrderTypeBadge. */}
           <OrderTypeBadge type={order.type} />
+          {/* Something on this sale was typed at the counter rather than
+              picked from the catalogue (spec.md "Quick sell") — so its cost,
+              and therefore its profit, may still be missing. */}
+          {order.hasQuickSale && <QuickSaleBadge />}
           {/* Money still with the delivery company is worth seeing from the
               list; money already in hand is the unremarkable case and would
               only add noise to every other row. A cancelled or returned sale

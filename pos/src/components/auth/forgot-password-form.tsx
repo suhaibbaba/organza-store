@@ -9,6 +9,7 @@ import { useTranslateError } from "@/hooks/use-translate-error";
 import { requestPasswordReset } from "@/lib/api/password-setup";
 import { ApiError } from "@/lib/api/errors";
 import { forgotPasswordSchema, type ForgotPasswordValues } from "@/lib/validation/login";
+import { FieldError } from "@/components/ui/field-error";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -70,10 +71,10 @@ export function ForgotPasswordForm() {
           aria-invalid={!!errors.email}
           {...register("email")}
         />
-        {errors.email && <p className="text-sm text-destructive">{translateError(errors.email.message ?? "")}</p>}
+        {errors.email && <FieldError field="email">{translateError(errors.email.message ?? "")}</FieldError>}
       </div>
 
-      <Button type="submit" disabled={isSubmitting} className="mt-2 w-full">
+      <Button type="submit" data-test-selector="pos-forgot-password-submit" disabled={isSubmitting} className="mt-2 w-full">
         {isSubmitting ? (
           <>
             <Spinner />

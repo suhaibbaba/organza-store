@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { UPLOAD_DIR } from "@/lib/image";
-import { deleteOrphanedUploads, imageFileNames } from "@/lib/uploads";
+import { claimedImageBases, deleteOrphanedUploads, imageFileNames, type ImageFileRef } from "@/lib/uploads";
 import { MISSING_IMAGE_EXAMPLES } from "@/constants";
 import type { ImageSyncSummary } from "@/types";
 
@@ -20,15 +20,20 @@ import type { ImageSyncSummary } from "@/types";
 // ============================================================================
 
 /**
+ * The originals come across with the three sizes (spec.md "Editing a
+ * photograph on upload"): without them the sandbox's catalogue would look
+ * right and refuse to re-crop anything, which is a worse kind of copy than an
+ * obviously incomplete one.
+ *
  * @param sourceDir production's uploads directory as this machine sees it, or
  *                  null when the run was told to leave the files alone.
- * @param filenames the base names the imported rows claim.
+ * @param images    the imported image rows, which name the files they claim.
  */
 export async function syncImageFiles(
   sourceDir: string | null,
-  filenames: string[]
+  images: ImageFileRef[]
 ): Promise<ImageSyncSummary> {
-  const claimed = new Set(filenames);
+  const claimed = claimedImageBases(images);
 
   if (sourceDir === null) {
     // Still worth clearing up after the catalogue that was just wiped: those
@@ -50,8 +55,8 @@ export async function syncImageFiles(
   let missing = 0;
   const missingExamples: string[] = [];
 
-  for (const filename of claimed) {
-    for (const file of imageFileNames(filename)) {
+  for (const image of images) {
+    for (const file of imageFileNames(image)) {
       try {
         await fs.copyFile(path.join(sourceDir, file), path.join(UPLOAD_DIR, file));
         copied += 1;

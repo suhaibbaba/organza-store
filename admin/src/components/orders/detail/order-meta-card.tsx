@@ -1,6 +1,7 @@
 import { useLocale, useTranslations } from "next-intl";
 import type { Order } from "@organza/shared/types/order";
 import { formatDateTime } from "@/lib/format";
+import { useActorName } from "@/lib/user-display";
 import { Card, CardContent } from "@/components/ui/card";
 
 // Who took the order and when things happened to it. `stockDeductedAt` is
@@ -9,9 +10,10 @@ import { Card, CardContent } from "@/components/ui/card";
 export function OrderMetaCard({ order }: { order: Order }) {
   const t = useTranslations("orders.detail.meta");
   const locale = useLocale();
+  const actorName = useActorName();
 
   const rows: { key: string; label: string; value: string }[] = [
-    { key: "createdBy", label: t("createdBy"), value: order.createdBy?.name ?? t("unknownStaff") },
+    { key: "createdBy", label: t("createdBy"), value: actorName(order.createdBy, t("unknownStaff")) },
     { key: "createdAt", label: t("createdAt"), value: formatDateTime(order.createdAt, locale) },
     { key: "updatedAt", label: t("updatedAt"), value: formatDateTime(order.updatedAt, locale) },
     {

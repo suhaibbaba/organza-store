@@ -26,7 +26,7 @@ export function MoreSheet({ open, onOpenChange, items }: MoreSheetProps) {
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="end" closeLabel={tCommon("close")}>
+      <SheetContent name="more-menu" side="end" closeLabel={tCommon("close")}>
         <SheetHeader>
           <SheetTitle>{t("more")}</SheetTitle>
         </SheetHeader>

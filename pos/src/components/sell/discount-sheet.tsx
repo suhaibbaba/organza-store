@@ -41,7 +41,7 @@ export function DiscountSheet({ open, onOpenChange, title, baseAmount, current, 
     <Sheet open={open} onOpenChange={onOpenChange}>
       {/* Two options and one number: a small modal on a laptop, and the
           same full-width bottom sheet as ever on a phone. */}
-      <SheetContent compact closeLabel={tCommon("close")}>
+      <SheetContent name="discount" compact closeLabel={tCommon("close")}>
         <SheetHeader>
           <SheetTitle>{t("title")}</SheetTitle>
           <SheetDescription>{t("subtitle", { name: title, amount: formatMoney(baseAmount) })}</SheetDescription>
@@ -147,6 +147,7 @@ function DiscountForm({ baseAmount, current, onApply }: DiscountFormProps) {
             type="button"
             variant="destructive"
             onClick={() => onApply(null, null)}
+            data-test-selector="pos-discount-remove"
             className="w-full sm:w-auto"
           >
             {t("remove")}
@@ -159,6 +160,7 @@ function DiscountForm({ baseAmount, current, onApply }: DiscountFormProps) {
         <Button
           type="button"
           onClick={() => isValid && onApply(type, trimmed)}
+          data-test-selector="pos-discount-apply"
           disabled={!isValid}
           className="w-full sm:w-auto"
         >

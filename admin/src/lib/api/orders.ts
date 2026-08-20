@@ -33,6 +33,7 @@ function buildOrderListQuery(filters: OrderListFilters, pageSize: number): strin
   if (filters.channel) params.set("channel", filters.channel);
   if (filters.paymentStatus) params.set("paymentStatus", filters.paymentStatus);
   if (filters.collectableOnly) params.set("collectableOnly", "true");
+  if (filters.hasQuickSale) params.set("hasQuickSale", "true");
   if (filters.dateFrom) params.set("dateFrom", startOfDayIso(filters.dateFrom));
   if (filters.dateTo) params.set("dateTo", endOfDayIso(filters.dateTo));
   return params.toString();

@@ -18,6 +18,7 @@ import reportsRouter from "@/routes/reports";
 import usersRouter from "@/routes/users";
 import passwordSetupRouter from "@/routes/passwordSetup";
 import settingsRouter from "@/routes/settings";
+import permissionsRouter from "@/routes/permissions";
 import imagesRouter from "@/routes/images";
 import pushRouter from "@/routes/push";
 import versionRouter from "@/routes/version";
@@ -25,6 +26,7 @@ import { errorHandler } from "@/middleware/errorHandler";
 import { AppError, sendError } from "@/lib/response";
 import { UPLOAD_DIR, checkUploadDirWritable } from "@/lib/image";
 import { getBackupHealth, startBackupStalenessWatch } from "@/lib/backups";
+import { loadPermissionConfig } from "@/lib/permissionConfig";
 import { TRUST_PROXY_SETTING, describeProxyTrust } from "@/lib/proxyTrust";
 import { captureException } from "@/lib/logger";
 import { ERROR_CODES } from "@/constants";
@@ -64,9 +66,34 @@ app.all("/api/auth/*", toNodeHandler(auth));
 
 app.use(express.json());
 
-// Processed product/variant images (thumbnail/medium/full WebP), served
-// directly off disk — CLAUDE.md: images stored locally on the VPS.
-app.use("/uploads", express.static(UPLOAD_DIR));
+// Processed product/variant images (thumbnail/medium/full WebP) and the
+// originals they were cut from, served directly off disk — CLAUDE.md: images
+// stored locally on the VPS.
+//
+// Cross-Origin-Resource-Policy is set back to `cross-origin` for this mount
+// and this mount only. helmet's default is `same-origin`, which tells a
+// BROWSER to refuse the bytes when the page asking for them is on another
+// origin — and every page in this system is: the admin, the POS and (later)
+// the storefront all live somewhere else.
+//
+// It went unnoticed for as long as it did because nothing loaded these URLs
+// directly. Product photos are drawn with next/image, which fetches them
+// SERVER-side, where CORP does not apply. The admin's photo editor is the
+// first thing to put one in an <img> in the browser (spec.md "Editing a
+// photograph on upload") — and what CORP does there is not an error message
+// but a blank picture, which is exactly how it was reported: the editor comes
+// up black.
+//
+// Safe to relax here: these files are public product photographs, already
+// served without authentication, and there is nothing else under this path.
+app.use(
+  "/uploads",
+  (_req, res, next) => {
+    res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
+    next();
+  },
+  express.static(UPLOAD_DIR)
+);
 
 app.get("/health", async (_req, res) => {
   // `uploads` is the one piece of state a container cannot rebuild for
@@ -117,6 +144,7 @@ app.use("/api/users", usersRouter);
 // that an account exists (see routes/passwordSetup.ts).
 app.use("/api/password-setup", passwordSetupRouter);
 app.use("/api/settings", settingsRouter);
+app.use("/api/permissions", permissionsRouter);
 app.use("/api/images", imagesRouter);
 app.use("/api/push", pushRouter);
 
@@ -129,6 +157,15 @@ app.use(errorHandler);
 const port = Number(process.env.PORT ?? 4000);
 app.listen(port, async () => {
   console.log(`Organza Store API listening on port ${port}`);
+
+  // WHO MAY DO WHAT, read into memory before the first request arrives
+  // (lib/permissionConfig.ts). Awaited rather than fired off: until it lands,
+  // `can()` answers from the shipped defaults, and a shop that has switched an
+  // Employee permission off should not get one request's worth of it back
+  // every time the API restarts. A failure here is reported and NOT fatal —
+  // the defaults are a working shop, and the next request's freshness check
+  // tries again.
+  await loadPermissionConfig();
 
   // The one alarm nothing else can raise. ops/backup.sh reports its own
   // failures, but a backup that stopped being *run* — a cron entry lost in a

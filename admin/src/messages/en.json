@@ -39,6 +39,17 @@
     "title": "No internet connection",
     "message": "This app needs an internet connection to show products, stock and orders. Check your connection and try again."
   },
+  "boot": {
+    "failed": {
+      "title": "The app didn't start",
+      "message": "Something stopped it from loading on this phone. Try again, and if it keeps happening tell whoever looks after the shop's system.",
+      "retry": "Try again"
+    },
+    "unsupported": {
+      "title": "This phone is too old for the app",
+      "message": "Its software can't run this app. Update the phone to the newest version it offers, and if there isn't one, use a newer phone."
+    }
+  },
   "nav": {
     "dashboard": "Dashboard",
     "orders": "Orders",
@@ -51,7 +62,8 @@
     "users": "Users",
     "settings": "Settings",
     "more": "More",
-    "changeRequests": "Approvals"
+    "changeRequests": "Approvals",
+    "permissions": "Permissions"
   },
   "auth": {
     "login": {
@@ -282,7 +294,9 @@
       "dateFrom": "From date",
       "dateTo": "To date",
       "reset": "Reset",
-      "apply": "Apply"
+      "apply": "Apply",
+      "quickSale": "Quick sales only",
+      "quickSaleHint": "Pieces sold before they were entered into the system."
     },
     "status": {
       "NEW": "New",
@@ -370,7 +384,8 @@
         "quantity": "Qty: {count}",
         "unitPrice": "Unit price: {price}",
         "itemDiscount": "{label} off (−{amount})",
-        "returned": "{count} returned"
+        "returned": "{count} returned",
+        "quickSold": "Quick sale — no cost yet"
       },
       "totals": {
         "subtotal": "Subtotal",
@@ -529,6 +544,9 @@
         "clear": "Clear",
         "markCollected": "{count, plural, one {Payment received for 1} other {Payment received for #}}"
       }
+    },
+    "quickSale": {
+      "badge": "Quick sale"
     }
   },
   "reports": {
@@ -640,7 +658,8 @@
       "multipleSkus": "Multiple variants",
       "stock": "{count} in stock",
       "outOfStock": "Out of stock",
-      "numbered": "Numbered · {count}"
+      "numbered": "Numbered · {count}",
+      "incomplete": "Incomplete"
     },
     "table": {
       "product": "Product",
@@ -789,6 +808,13 @@
         "hidden": "Hidden",
         "barcodeIncomplete": "Barcode incomplete"
       },
+      "optionNotes": {
+        "title": "Notes on the options",
+        "subtitle": "Optional — say what each option means on this product.",
+        "countWritten": "{count} notes written",
+        "placeholder": "e.g. Trouser length 95 cm",
+        "createHint": "A note belongs to this product only; the same size on another product is untouched."
+      },
       "images": {
         "productTitle": "Product images",
         "manageTitle": "Manage images",
@@ -800,7 +826,25 @@
         "setPrimary": "Set as main photo",
         "clearPrimary": "Unset as main photo",
         "primaryBadge": "Main",
-        "delete": "Delete photo"
+        "delete": "Delete photo",
+        "edit": "Crop photo",
+        "editor": {
+          "title": "Crop photo",
+          "step": "Photo {index} of {total}",
+          "cancel": "Cancel",
+          "save": "Save crop",
+          "saveAndNext": "Save and next",
+          "saveAndClose": "Save",
+          "zoom": "Zoom",
+          "rotate": "Rotate",
+          "flipHorizontal": "Flip horizontally",
+          "flipVertical": "Flip vertically",
+          "aspectCatalogue": "{width}:{height}",
+          "aspectWhole": "Whole photo",
+          "failed": "This photo could not be opened",
+          "failedHint": "The photo itself is fine — save it as it is, or take it again.",
+          "skip": "Skip this photo"
+        }
       },
       "numberedShawl": {
         "title": "Numbered points",
@@ -820,7 +864,16 @@
         "inherits": "Inherits {value}",
         "saving": "Saving…",
         "save": "Save points",
-        "saveSuccess": "Points saved."
+        "saveSuccess": "Points saved.",
+        "colors": {
+          "title": "Number colour",
+          "autoHint": "Chosen automatically from how light or dark the photo is. Change it if the numbers are hard to see.",
+          "chosenHint": "You chose these colours, and they stay even if the photo is replaced.",
+          "background": "Badge colour",
+          "text": "Number colour",
+          "useSuggestion": "Use the suggested colour",
+          "contrastAdjusted": "Those two colours were too close, so the number's colour was adjusted to keep it readable."
+        }
       },
       "kind": {
         "title": "What are you selling?",
@@ -847,6 +900,22 @@
         "detail": "{count} of your changes need an admin's approval before they take effect. Nothing was lost.",
         "viewProduct": "View product"
       }
+    },
+    "completeness": {
+      "all": "All products",
+      "needsCompleting": "Needs completing ({count})",
+      "hint": "Pieces sold before they were entered — fill in the category, cost and photos to make them ordinary products."
+    },
+    "quickSold": {
+      "title": "This piece was sold before it was entered",
+      "sold": "It has already been sold — complete its details here.",
+      "soldOn": "Sold on {when} for {price}.",
+      "missing": "The blanks below are deliberate: category, cost price, barcode and photos.",
+      "categoryRequired": "Choose a category and save first, then you can complete the product.",
+      "complete": "Complete the product",
+      "oneOff": "It was a one-off",
+      "confirmOneOff": "Confirm: a one-off",
+      "oneOffWarning": "The piece won't join the catalogue. The sale stands and the order is untouched."
     }
   },
   "inventory": {
@@ -1243,6 +1312,7 @@
     "productNumberedOnlyNumbers": "This is a numbered product, so it can only have numbers — not colours or sizes.",
     "productNumbersRequireNumbered": "Only a numbered product can have numbers. Change the product kind at the top of the form first.",
     "productNumberedSwitchHasVariants": "Delete this product's options first, then you can change its kind. Nothing was deleted.",
+    "productOptionNoteValueNotUsed": "You can't write a note on an option this product doesn't use.",
     "variantTypeNotFound": "Variant type not found.",
     "variantTypeValueNotFound": "Variant value not found.",
     "variantTypeValueDuplicate": "This value already exists for this type.",
@@ -1254,6 +1324,7 @@
     "imageOwnerRequired": "Choose a product or variant for this image.",
     "imageReorderDuplicate": "Each image can only appear once in the order.",
     "imageReorderMismatch": "The image order doesn't match the current images.",
+    "imageOriginalMissing": "The original photo is no longer stored, so it cannot be cropped again. Add a new photo instead.",
     "inventoryParentHasVariants": "This product's stock is managed per variant.",
     "settingDefaultLanguageNotSupported": "That language isn't supported yet.",
     "settingSaleNotificationModeUnsupported": "That option isn't available yet.",
@@ -1263,6 +1334,8 @@
     "userNotFound": "User not found.",
     "authSignupFailed": "Couldn't create the account.",
     "validationImagePointOutOfRange": "The point must be within the image.",
+    "validationTooLong": "That text is longer than allowed.",
+    "validationInvalidColor": "Choose a valid colour.",
     "orderNotFound": "Order not found.",
     "orderItemNotFound": "That item isn't part of this order.",
     "orderItemsRequired": "Add at least one product to the order.",
@@ -1305,7 +1378,9 @@
     "userAlreadyActivated": "This account is already set up and has a password. Send a password reset instead.",
     "userLastAdmin": "This is the only admin left. Make somebody else an admin first — otherwise nobody could manage staff, settings or approvals.",
     "userSelfRemoval": "You cannot remove your own account. Ask another admin to do it.",
-    "userHasHistory": "This account has already been used in the shop, so it cannot be deleted. Deactivate it instead — its orders and expenses keep the person's name."
+    "userHasHistory": "This account has already been used in the shop, so it cannot be deleted. Deactivate it instead — its orders and expenses keep the person's name.",
+    "productCompletionIncomplete": "Choose a category before completing this product — without one it won't appear in any category list.",
+    "orderItemSourceInvalid": "This line doesn't say clearly what is being sold."
   },
   "pwa": {
     "version": {
@@ -1341,7 +1416,8 @@
       "variantStock": "Option stock",
       "photoDeletion": "Delete photo",
       "expense": "Expense",
-      "other": "Change"
+      "other": "Change",
+      "completion": "Complete a product"
     },
     "values": {
       "none": "None",
@@ -1371,7 +1447,8 @@
       "notePlaceholder": "Why not? (optional)",
       "cancelRequest": "Withdraw request",
       "confirmCancelRequest": "Confirm withdrawal",
-      "cancelConfirmPrompt": "The request will be removed and won't reach the manager. Sure?"
+      "cancelConfirmPrompt": "The request will be removed and won't reach the manager. Sure?",
+      "unknownStaff": "Unknown staff member"
     },
     "pending": {
       "waiting": "Waiting for approval",
@@ -1387,6 +1464,139 @@
       "previous": "Previous",
       "next": "Next",
       "pageOf": "Page {page} of {totalPages}"
+    },
+    "quickSold": {
+      "label": "Quick sell",
+      "unknownItem": "Unnamed item",
+      "sold": "This piece has already been sold.",
+      "soldFor": "Already sold for {price}.",
+      "saleDetail": "Order {orderNumber} · {count, plural, one {1 piece} other {# pieces}}",
+      "soldBy": "Sold by {name} · {when}",
+      "missing": "Still missing its category, cost price, barcode and photos.",
+      "complete": "Complete the details",
+      "oneOff": "It was a one-off",
+      "confirmOneOff": "Confirm: a one-off",
+      "oneOffWarning": "The piece won't join the catalogue. The sale stands and the order is untouched.",
+      "noteLabel": "Reason (optional)",
+      "notePlaceholder": "e.g. last piece of a discontinued sample",
+      "completedBy": "Completed by {name} · {when}",
+      "oneOffBy": "Marked a one-off by {name} · {when}"
+    }
+  },
+  "permissions": {
+    "title": "Permissions",
+    "subtitle": "Choose what each role is allowed to do. Some things stay locked.",
+    "rolePicker": "Choose a role",
+    "saving": "Saving…",
+    "unavailable": "The permissions could not be loaded. Please try again.",
+    "ownRole": "You cannot change your own role's permissions.",
+    "toggleLabel": "{action} — {role}",
+    "intro": {
+      "title": "Locked items protect the shop's records",
+      "body": "Money, costs and profit, undoing a sale, approvals, and staff accounts stay with the admin and cannot be changed here."
+    },
+    "locked": {
+      "label": "Locked",
+      "protected": "This protects the shop's records",
+      "ownRole": "This is your own role",
+      "on": "On",
+      "off": "Off"
+    },
+    "table": {
+      "action": "What it is"
+    },
+    "role": {
+      "ADMIN": "Admin",
+      "MANAGER": "Manager",
+      "EMPLOYEE": "Employee"
+    },
+    "groups": {
+      "products": "Products",
+      "catalogue": "Categories, options and photos",
+      "inventory": "Stock",
+      "orders": "Orders and sales",
+      "money": "Money",
+      "approvals": "Approvals",
+      "staff": "Staff and settings"
+    },
+    "actions": {
+      "dashboard": {
+        "view": "See the dashboard"
+      },
+      "product": {
+        "view": "See the products",
+        "create": "Add a product",
+        "edit": "Edit a product's details",
+        "editPrice": "Change a product's price",
+        "delete": "Delete a product",
+        "hide": "Hide or show a product",
+        "editVariantSet": "Change which variants a product has",
+        "viewCost": "See cost and profit",
+        "printLabels": "Print barcode labels",
+        "quickSell": "Sell an item that isn't in the system",
+        "complete": "Complete a quick-sold item"
+      },
+      "category": {
+        "view": "See the categories",
+        "manage": "Add, edit and delete categories"
+      },
+      "variantType": {
+        "create": "Add a new option or value",
+        "manage": "Rename or remove an option value"
+      },
+      "images": {
+        "edit": "Add and reorder photos",
+        "delete": "Delete a photo"
+      },
+      "inventory": {
+        "view": "See the stock levels",
+        "adjust": "Change a stock quantity by hand"
+      },
+      "order": {
+        "view": "See orders",
+        "create": "Make a sale",
+        "updateStatus": "Move an order along",
+        "edit": "Edit an order after the sale",
+        "cancel": "Cancel an order",
+        "delete": "Delete an order",
+        "return": "Take a sale back",
+        "markCollected": "Mark money as collected",
+        "createGift": "Give stock away as a gift"
+      },
+      "report": {
+        "view": "Open the reports"
+      },
+      "cashSession": {
+        "view": "See the cash drawer",
+        "manage": "Open and close the cash drawer"
+      },
+      "expense": {
+        "create": "Record an expense",
+        "view": "See the expenses",
+        "manage": "Edit and delete expenses",
+        "approve": "Approve an expense"
+      },
+      "expenseCategory": {
+        "view": "See the expense categories",
+        "manage": "Manage the expense categories"
+      },
+      "changeRequest": {
+        "create": "Ask for a change",
+        "view": "See change requests",
+        "cancel": "Withdraw your own request",
+        "approve": "Approve or refuse a change"
+      },
+      "user": {
+        "manage": "Manage staff accounts",
+        "delete": "Erase a staff account",
+        "viewSensitive": "See a staff ID number"
+      },
+      "settings": {
+        "manage": "Change the shop settings"
+      },
+      "permission": {
+        "manage": "Change these permissions"
+      }
     }
   }
 }

@@ -40,6 +40,7 @@ export const ERROR_MESSAGE_KEYS: Record<string, string> = {
   [ERROR_CODES.ORDER_INSUFFICIENT_STOCK]: "errors.orderInsufficientStock",
   [ERROR_CODES.ORDER_PRODUCT_UNAVAILABLE]: "errors.orderProductUnavailable",
   [ERROR_CODES.ORDER_VARIANT_REQUIRED]: "errors.orderVariantRequired",
+  [ERROR_CODES.ORDER_ITEM_SOURCE_INVALID]: "errors.orderItemSourceInvalid",
 };
 
 export const FALLBACK_ERROR_MESSAGE_KEY = "errors.internal";

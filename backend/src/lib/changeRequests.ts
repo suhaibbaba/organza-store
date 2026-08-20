@@ -70,6 +70,18 @@ export function variantSetValue(count: number, detail: ChangeRequestValueDetail)
   return { kind: CHANGE_REQUEST_VALUE_KINDS.VARIANT_SET, value: count, detail };
 }
 
+/**
+ * A sale that has ALREADY happened (spec.md "Quick sell"): the price it went
+ * for, plus which order it was on. Read as "sold for X", never as "from A to
+ * B" — there is no old value, because the product did not exist before.
+ */
+export function quickSellValue(
+  price: Prisma.Decimal | string | number,
+  detail: ChangeRequestValueDetail
+): ChangeRequestValue {
+  return { kind: CHANGE_REQUEST_VALUE_KINDS.QUICK_SELL, value: formatMoney(price), detail };
+}
+
 // --- filing ----------------------------------------------------------------
 
 function pendingKeyFor(draft: Pick<ChangeRequestDraft, "entityType" | "entityId" | "field">): string {
@@ -173,6 +185,82 @@ export async function fileChangeRequest(
   scheduleChangeRequestNotification(request, actor);
 
   return request;
+}
+
+/**
+ * The same filing, INSIDE somebody else's transaction.
+ *
+ * Quick sell needs it (spec.md "Quick sell"): the product, the sale and the
+ * request that asks a reviewer to finish the product all have to commit or
+ * roll back together, or an abandoned checkout could leave a nameless product
+ * with nobody asked to look at it. Everything else still files through
+ * `fileChangeRequest` above, which owns its own writes.
+ *
+ * Superseding is not a concern here and deliberately not attempted: the entity
+ * is a product created moments ago in this same transaction, so no pending row
+ * for it can exist. The audit entry and the push notification are the caller's
+ * to make once the transaction has committed — a rolled-back sale must not
+ * leave either behind.
+ */
+export async function fileChangeRequestInTransaction(
+  tx: DbClient,
+  actor: ChangeRequestActorRef,
+  draft: ChangeRequestDraft
+): Promise<AnyRecord> {
+  if (!isGatedField(draft.entityType, draft.field)) {
+    throw new Error(`No change-request applier registered for ${draft.entityType}.${draft.field}`);
+  }
+
+  return tx.changeRequest.create({
+    data: {
+      entityType: draft.entityType,
+      entityId: draft.entityId,
+      field: draft.field,
+      oldValue: draft.oldValue as never,
+      newValue: draft.newValue as never,
+      entityLabel: (draft.entityLabel ?? null) as never,
+      productLabel: (draft.productLabel ?? null) as never,
+      entityDetail: draft.entityDetail ?? null,
+      productId: draft.productId ?? null,
+      requestedById: actor.id,
+      requestedAt: new Date(),
+      pendingKey: pendingKeyFor(draft),
+      status: PENDING_CHANGE_REQUEST_STATUS as never,
+    },
+    include: changeRequestInclude,
+  });
+}
+
+/**
+ * The audit entry and the push a request filed inside a transaction still
+ * owes, once that transaction has committed. Same shape as the one
+ * `fileChangeRequest` writes for itself, so the two read identically in the
+ * trail (CLAUDE.md rule 6).
+ */
+export async function announceFiledChangeRequest(
+  request: AnyRecord,
+  actor: ChangeRequestActorRef
+): Promise<void> {
+  await writeAudit({
+    userId: actor.id,
+    action: AuditAction.REQUEST,
+    entityType: AUDIT_ENTITY.CHANGE_REQUEST,
+    entityId: request.id,
+    oldValue: {
+      entityType: request.entityType,
+      entityId: request.entityId,
+      field: request.field,
+      value: request.oldValue,
+    },
+    newValue: {
+      entityType: request.entityType,
+      entityId: request.entityId,
+      field: request.field,
+      value: request.newValue,
+    },
+  });
+
+  scheduleChangeRequestNotification(request, actor);
 }
 
 /** Files several drafts at once — one save that touched a price AND the visibility. */

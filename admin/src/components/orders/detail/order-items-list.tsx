@@ -1,6 +1,7 @@
 import { useLocale, useTranslations } from "next-intl";
-import { Undo2 } from "lucide-react";
+import { Undo2, Zap } from "lucide-react";
 import type { OrderItem } from "@organza/shared/types/order";
+import { testSelectorFor } from "@organza/shared/lib/testSelector";
 import { localize } from "@/lib/i18n-content";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -30,10 +31,25 @@ export function OrderItemsList({ items }: { items: OrderItem[] }) {
           const hasDiscount = item.discountType !== null && Number(item.discountAmount) > 0;
 
           return (
-            <div key={item.id} className="flex flex-col gap-1.5 rounded-lg border border-border p-3">
+            <div
+              key={item.id}
+              className="flex flex-col gap-1.5 rounded-lg border border-border p-3"
+              data-test-selector={testSelectorFor("order-item", item.id)}
+            >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <p className="truncate text-sm font-medium text-foreground">{name}</p>
+                  {/* Typed at the counter, not picked from the catalogue
+                      (spec.md "Quick sell") — so this line's cost, and the
+                      profit on it, may still be missing. Marked on the line
+                      itself as well as on the order, because an order of six
+                      lines may have one. */}
+                  {item.quickSold && (
+                    <p className="mt-0.5 inline-flex items-center gap-1 text-xs font-medium text-primary">
+                      <Zap className="size-3.5 shrink-0" aria-hidden="true" />
+                      {t("quickSold")}
+                    </p>
+                  )}
                   {variantName && <p className="truncate text-xs text-muted-foreground">{variantName}</p>}
                   {/* SKU is Latin text (ORG-00042) — pinned LTR so it reads
                       correctly inside an RTL page. */}

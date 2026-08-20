@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { RoleGuard } from "@/components/auth/role-guard";
 import { useSession } from "@/components/providers/session-provider";
+import { useUserDisplay } from "@/lib/user-display";
 import { useDashboardSummaryQuery } from "@/hooks/use-dashboard";
 import { useCurrentCashSessionQuery } from "@/hooks/use-cash-sessions";
 import { useSalesSummaryQuery } from "@/hooks/use-reports";
@@ -45,6 +46,9 @@ export default function DashboardPage() {
 function DashboardPageContent() {
   const t = useTranslations("dashboard");
   const { user } = useSession();
+  // "Welcome back, Suhaib" — the same name the account button shows, never a
+  // raw id (lib/user-display.ts).
+  const { name: displayName } = useUserDisplay()(user);
 
   const summaryQuery = useDashboardSummaryQuery();
   const salesQuery = useSalesSummaryQuery();
@@ -70,7 +74,8 @@ function DashboardPageContent() {
   return (
     <PageContainer>
       <PageHeader
-        title={user ? t("welcome", { name: user.name }) : t("title")}
+        name="dashboard"
+        title={user ? t("welcome", { name: displayName }) : t("title")}
         description={t("subtitle")}
         // Only once there are figures to switch between and to export —
         // the same condition the figures block itself is rendered under.

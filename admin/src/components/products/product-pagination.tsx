@@ -18,6 +18,7 @@ export function ProductPagination({ meta, onPageChange }: ProductPaginationProps
   return (
     <div className="flex items-center justify-between gap-3 pt-2">
       <Button
+        data-test-selector="products-page-previous"
         type="button"
         variant="outline"
         size="sm"
@@ -33,6 +34,7 @@ export function ProductPagination({ meta, onPageChange }: ProductPaginationProps
       </span>
 
       <Button
+        data-test-selector="products-page-next"
         type="button"
         variant="outline"
         size="sm"

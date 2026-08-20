@@ -4,8 +4,9 @@ import { useCallback, useMemo, useRef, useState } from "react";
 import type { Product } from "@organza/shared/types/product";
 import type { Variant } from "@organza/shared/types/variant";
 import type { DiscountType } from "@organza/shared/types/order";
+import type { QuickSellItemInput } from "@organza/shared/schemas/order";
 import { clampQuantity } from "@organza/shared/constants/quantity";
-import { cartLineKey, computeTotals, toCartLine } from "@/lib/cart";
+import { cartLineKey, computeTotals, toCartLine, toQuickSellCartLine } from "@/lib/cart";
 import { MIN_CART_QUANTITY } from "@/constants/pos";
 import type { CartLine, CartTotals, DiscountState } from "@/types/cart";
 
@@ -19,6 +20,10 @@ export interface Cart {
   // Returns the resulting line so the caller can tell the cashier what just
   // landed in the cart — a scan gives no other feedback that it worked.
   addItem: (product: Product, variant: Variant | null) => CartLine;
+  // A piece that isn't in the catalogue, typed at the counter (spec.md "Quick
+  // sell"). Always a NEW line — two pieces typed under the same name are two
+  // pieces, never one scanned twice — so unlike addItem it never merges.
+  addQuickSellItem: (input: QuickSellItemInput, quantity: number) => CartLine;
   setQuantity: (key: string, quantity: number) => void;
   incrementQuantity: (key: string) => void;
   decrementQuantity: (key: string) => void;
@@ -92,6 +97,15 @@ export function useCart(): Cart {
     [commit]
   );
 
+  const addQuickSellItem = useCallback(
+    (input: QuickSellItemInput, quantity: number): CartLine => {
+      const line = toQuickSellCartLine(input, clampQuantity(quantity, MIN_CART_QUANTITY));
+      commit([line, ...linesRef.current]);
+      return line;
+    },
+    [commit]
+  );
+
   const setQuantity = useCallback(
     (key: string, quantity: number) => {
       updateLine(key, (line) => ({ ...line, quantity: clampLineQuantity(quantity, line) }));
@@ -147,6 +161,7 @@ export function useCart(): Cart {
     totals,
     isEmpty: lines.length === 0,
     addItem,
+    addQuickSellItem,
     setQuantity,
     incrementQuantity,
     decrementQuantity,

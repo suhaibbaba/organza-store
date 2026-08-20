@@ -9,6 +9,47 @@ export const CLIENT_ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/web
 
 export const IMAGE_GRID_THUMB_SIZES = "(min-width: 768px) 120px, 30vw";
 
+// ---------------------------------------------------------------------------
+// The photo editor (components/products/image-editor-sheet.tsx)
+// ---------------------------------------------------------------------------
+// The catalogue's 2:3 and the zoom range are shared with the backend
+// (@organza/shared/constants/image) — they decide what is actually stored.
+// What lives here is only how the editor is drawn.
+
+/**
+ * The longest side of the preview tile drawn after an edit, in pixels.
+ *
+ * A preview is a thumbnail in a grid three across on a phone, and the stored
+ * photograph is cut by sharp on the server regardless — so there is nothing
+ * to gain from a canvas the size of a 12-megapixel original, and a phone that
+ * runs out of memory building one loses the whole form.
+ */
+export const CROP_PREVIEW_MAX_PX = 600;
+
+/**
+ * The longest side of the picture the EDITOR is given to draw, in pixels.
+ *
+ * Not the picture that gets stored — that is cut by sharp from the full
+ * original and never touches a browser. This is only what the cropper puts on
+ * screen, and a phone camera's 12-megapixel photograph is a poor thing to
+ * hand it: iOS keeps a budget for decoded images and is entitled to refuse
+ * one, which it does silently — the editor comes up black with a broken-image
+ * glyph in the middle of it, on the one screen where there is nothing else to
+ * look at.
+ *
+ * A crop is stored as FRACTIONS of the frame (shared's ImageCrop), so cutting
+ * it on a scaled-down picture is exactly the same crop. 1600 is the largest
+ * size we store, which is far more than any phone screen shows.
+ */
+export const EDITOR_SOURCE_MAX_PX = 1600;
+
+/**
+ * How far the zoom slider moves per press of an arrow key, as a fraction of
+ * its range. A slider a mouse can nudge is the counter screen's answer to a
+ * pinch, which it has no way of making.
+ */
+export const CROP_ZOOM_KEY_STEP = 0.05;
+
 // The one big photo on the product detail page. Its box is capped at
 // max-w-sm (24rem = 384px), so there is never a reason to fetch more than
 // that; below md it is the page width minus the screen padding.

@@ -111,7 +111,7 @@ function InventoryPageContent() {
 
   return (
     <PageContainer>
-      <PageHeader title={t("title")} description={t("subtitle")} />
+      <PageHeader name="inventory" title={t("title")} description={t("subtitle")} />
 
       <div className="flex flex-col gap-4">
         {!canAdjust && <p className="text-sm text-muted-foreground">{t("readOnlyHint")}</p>}

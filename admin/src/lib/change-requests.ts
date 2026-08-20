@@ -23,10 +23,30 @@ const FIELD_LABEL_KEYS: Record<string, string> = {
   [`${CHANGE_REQUEST_ENTITIES.VARIANT}:${CHANGE_REQUEST_FIELDS.VARIANT_STOCK}`]: "fields.variantStock",
   [`${CHANGE_REQUEST_ENTITIES.PRODUCT_IMAGE}:${CHANGE_REQUEST_FIELDS.IMAGE_DELETION}`]: "fields.photoDeletion",
   [`${CHANGE_REQUEST_ENTITIES.EXPENSE}:${CHANGE_REQUEST_FIELDS.EXPENSE_APPROVAL}`]: "fields.expense",
+  [`${CHANGE_REQUEST_ENTITIES.PRODUCT}:${CHANGE_REQUEST_FIELDS.PRODUCT_COMPLETION}`]: "fields.completion",
 };
 
 export function changeRequestLabelKey(entityType: string, field: string): string {
   return FIELD_LABEL_KEYS[`${entityType}:${field}`] ?? "fields.other";
+}
+
+/**
+ * Is this the one request that is a review AFTER the fact rather than
+ * permission before it (spec.md "Quick sell")?
+ *
+ * Named here rather than compared inline, because the answer decides which
+ * card the approvals screen draws and the two must never be confused: the
+ * sale behind a quick-sold request has already completed, and a screen that
+ * called it "approve this change" would imply refusing undoes it.
+ */
+export function isQuickSoldRequest(request: {
+  entityType: string;
+  field: string;
+}): boolean {
+  return (
+    request.entityType === CHANGE_REQUEST_ENTITIES.PRODUCT &&
+    request.field === CHANGE_REQUEST_FIELDS.PRODUCT_COMPLETION
+  );
 }
 
 /**

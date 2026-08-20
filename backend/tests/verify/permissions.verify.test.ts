@@ -20,8 +20,8 @@
 //      response, nested objects and list rows included.
 // ============================================================================
 import { beforeAll, describe, expect, it } from "vitest";
-import { ROLE_PERMISSIONS } from "@organza/shared/constants/permissions";
 import { apiRequest, uniqueId } from "@tests/support/client";
+import { fetchPermissionMatrix } from "@tests/support/permissions";
 import { getSession } from "@tests/support/auth";
 import { allocateDate } from "@tests/support/cash";
 import { pendingChangeFor, approveChange, rejectChange } from "@tests/support/changeRequests";
@@ -124,10 +124,16 @@ describe("Verify · permissions and data exposure", () => {
       // pinned here is the layer that exists: an Employee may append to the
       // global lists and may not touch what is already on them, and the
       // routes really are absent rather than merely unlisted.
-      expect(ROLE_PERMISSIONS.EMPLOYEE, "an Employee may add an option value").toContain("variantType.create");
-      expect(ROLE_PERMISSIONS.EMPLOYEE, "and may not rename or remove one").not.toContain("variantType.manage");
+      //
+      // Read from the API rather than from the constant it is seeded with:
+      // both of these are configurable per shop now (spec.md "Editable role
+      // permissions"), so what has to hold is what is IN FORCE — which is the
+      // baseline this suite writes for itself in tests/setup.ts.
+      const matrix = await fetchPermissionMatrix();
+      expect(matrix.roles.EMPLOYEE, "an Employee may add an option value").toContain("variantType.create");
+      expect(matrix.roles.EMPLOYEE, "and may not rename or remove one").not.toContain("variantType.manage");
       for (const role of ["ADMIN", "MANAGER"] as const) {
-        expect(ROLE_PERMISSIONS[role], `a ${role} may`).toContain("variantType.manage");
+        expect(matrix.roles[role], `a ${role} may`).toContain("variantType.manage");
       }
 
       const types = await apiRequest<{ id: string }[]>("/api/variant-types", { token: employee });
@@ -336,17 +342,25 @@ describe("Verify · permissions and data exposure", () => {
       }
     });
 
-    it("keeps the Reports screen on the owner's side of the permission table", () => {
-      expect(ROLE_PERMISSIONS.ADMIN, "an Admin reads the reports").toContain("report.view");
+    it("keeps the Reports screen on the owner's side of the permission table", async () => {
+      // The rules IN FORCE on the target, not the constant they are seeded
+      // from — and for report.view and product.viewCost the two can never
+      // differ anyway: both are PROTECTED, so no shop can move them at all.
+      // dashboard.view is configurable, and what is asserted about it is the
+      // baseline this suite writes in tests/setup.ts.
+      const matrix = await fetchPermissionMatrix();
+
+      expect(matrix.roles.ADMIN, "an Admin reads the reports").toContain("report.view");
+      expect(matrix.protectedActions, "and no shop may hand that out").toContain("report.view");
+      expect(matrix.protectedActions, "nor cost and profit").toContain("product.viewCost");
+
       for (const role of ["MANAGER", "EMPLOYEE"] as const) {
         // Its own action, deliberately: it used to ride on order.view, which
         // an Employee holds so they can follow the orders they take.
-        expect(ROLE_PERMISSIONS[role], `a ${role} must not hold report.view`).not.toContain("report.view");
-        expect(ROLE_PERMISSIONS[role], `a ${role} must not hold product.viewCost`).not.toContain("product.viewCost");
+        expect(matrix.roles[role], `a ${role} must not hold report.view`).not.toContain("report.view");
+        expect(matrix.roles[role], `a ${role} must not hold product.viewCost`).not.toContain("product.viewCost");
       }
-      expect(ROLE_PERMISSIONS.EMPLOYEE, "an Employee has no shop-wide overview at all").not.toContain(
-        "dashboard.view"
-      );
+      expect(matrix.roles.EMPLOYEE, "an Employee has no shop-wide overview at all").not.toContain("dashboard.view");
     });
 
     it("returns them all to an Admin, so the absence above is a gate and not a gap", async () => {

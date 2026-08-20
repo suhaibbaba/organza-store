@@ -2,9 +2,13 @@
 
 import * as React from "react";
 import * as SwitchPrimitive from "@radix-ui/react-switch";
+import { fieldTestSelector } from "@organza/shared/lib/testSelector";
 import { cn } from "@/lib/utils";
 
-function Switch({ className, ...props }: React.ComponentProps<typeof SwitchPrimitive.Root>) {
+type SwitchProps = React.ComponentProps<typeof SwitchPrimitive.Root> & { "data-test-selector"?: string };
+
+// Named from its own id, like Input — see the note there.
+function Switch({ className, "data-test-selector": testSelector, ...props }: SwitchProps) {
   return (
     <SwitchPrimitive.Root
       data-slot="switch"
@@ -16,6 +20,7 @@ function Switch({ className, ...props }: React.ComponentProps<typeof SwitchPrimi
         className
       )}
       {...props}
+      data-test-selector={testSelector ?? fieldTestSelector(props.id)}
     >
       <SwitchPrimitive.Thumb
         className={cn(

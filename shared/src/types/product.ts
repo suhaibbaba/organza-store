@@ -9,6 +9,14 @@ import type { PRODUCT_LOOKUP_KINDS, PRODUCT_PRINT_STATES } from "@/constants/pro
 // (see constants/barcode.ts). Stored, never inferred from the code itself.
 export type BarcodeSource = (typeof BARCODE_SOURCES)[number];
 
+// One note the product carries on one option value. Translatable like every
+// other piece of user-facing content (CLAUDE.md rule 9), falling back to the
+// default language.
+export interface ProductOptionValueNote {
+  optionValueId: string;
+  note: I18n;
+}
+
 export interface ProductVariantTypeRef {
   id: string;
   name: I18n;
@@ -45,12 +53,42 @@ export interface Product {
   // decides what the rest of the product form shows, and which variant types
   // the API accepts (numbers only when true, never when false).
   isNumbered: boolean;
+  // The colour of the numbers drawn on this product's photo, and of the badge
+  // behind them (spec.md "Numbered shawls") — one pair for all of its points,
+  // never one per point. Null means "follow the photo": the suggestion
+  // resolvePointColors() reads from the primary image's brightness. A chosen
+  // colour is kept even when the photograph is replaced, which is the whole
+  // reason it is stored rather than derived every time.
+  pointTextColor: string | null;
+  pointBackgroundColor: string | null;
   // When this product's barcode labels were last printed (CLAUDE.md rule 13).
   // Null means never printed; reprinting simply moves the timestamp forward,
   // it is never a lock.
   labelsPrintedAt: string | null;
+
+  // --- quick sell (spec.md "Quick sell") ---
+  // When this piece was rung up at the counter before it existed in the
+  // catalogue. Non-null is what makes the gaps below deliberate rather than
+  // broken: no category, no cost, no barcode anybody chose, no photographs.
+  quickSoldAt: string | null;
+  // When a reviewer filled the rest in, or ruled it a one-off that will not
+  // come back. Either way the SALE is untouched — the order lines are
+  // snapshots, and money changed hands before any of this.
+  completedAt: string | null;
+  oneOffAt: string | null;
+  // Sold, and still waiting for somebody to finish it off. Resolved on the
+  // backend from the three stamps above so that every screen asks the same
+  // question the same way — the products list marks these, and the "needs
+  // completing" filter lists exactly them.
+  needsCompleting: boolean;
   deletedAt: string | null;
   hasVariants: boolean;
+  // Every note this product carries on an option value, keyed by the value
+  // (spec.md "Notes on a product's options"). The same notes reach the
+  // screens that DISPLAY a value through `variants[].values[].note`; this
+  // flat list is what the product form edits, since it needs them before any
+  // variant has been generated. Empty when the product has none.
+  optionValueNotes: ProductOptionValueNote[];
   images: ProductImageRef[];
   variantTypes: ProductVariantTypeRef[];
   variants: Variant[];
@@ -85,6 +123,23 @@ export interface ProductSummary {
   // Null until this product's labels have been printed at least once — what
   // the "not printed yet" list filter keys off.
   labelsPrintedAt: string | null;
+
+  // --- quick sell (spec.md "Quick sell") ---
+  // When this piece was rung up at the counter before it existed in the
+  // catalogue. Non-null is what makes the gaps below deliberate rather than
+  // broken: no category, no cost, no barcode anybody chose, no photographs.
+  quickSoldAt: string | null;
+  // When a reviewer filled the rest in, or ruled it a one-off that will not
+  // come back. Either way the SALE is untouched — the order lines are
+  // snapshots, and money changed hands before any of this.
+  completedAt: string | null;
+  oneOffAt: string | null;
+  // Sold, and still waiting for somebody to finish it off. Resolved on the
+  // backend from the three stamps above so that every screen asks the same
+  // question the same way — the products list marks these, and the "needs
+  // completing" filter lists exactly them.
+  needsCompleting: boolean;
+
   // Whether this product owes a label at all. False once every code it would
   // print is the supplier's own — the garment already carries a physical
   // barcode, so there is nothing to stick on it. Resolved on the backend
@@ -129,6 +184,11 @@ export interface ProductNumberOption {
   // copied — renaming it upstream shows through here).
   number: I18n;
   numberKey: string;
+  // What this number means on this shawl (spec.md "Notes on a product's
+  // options") — the same note the picker draws beside the number. Never drawn
+  // on the photograph: the markers are tight already and text over a
+  // photograph cannot be relied on to be readable.
+  note: I18n | null;
   sku: string;
   barcode: string | null;
   resolvedPrice: string;

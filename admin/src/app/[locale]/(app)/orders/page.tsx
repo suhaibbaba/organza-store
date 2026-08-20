@@ -48,6 +48,7 @@ export default function OrdersPage() {
     status: filters.status,
     channel: filters.channel,
     paymentStatus: filters.paymentStatus,
+    hasQuickSale: filters.hasQuickSale,
     dateFrom: filters.dateFrom,
     dateTo: filters.dateTo,
   };
@@ -55,6 +56,7 @@ export default function OrdersPage() {
     filters.status,
     filters.channel,
     filters.paymentStatus,
+    filters.hasQuickSale,
     filters.dateFrom,
     filters.dateTo,
   ].filter(Boolean).length;
@@ -84,6 +86,7 @@ export default function OrdersPage() {
   return (
     <PageContainer>
       <PageHeader
+        name="orders"
         title={t("title")}
         description={t("subtitle")}
         actions={
@@ -91,7 +94,7 @@ export default function OrdersPage() {
             {/* Employees may take an order, just not undo one (spec.md "Roles &
                 Permissions") — the backend is the real gate (CLAUDE.md rule 5). */}
             {canCreate && (
-              <Button asChild size="sm" className="shrink-0">
+              <Button asChild size="sm" className="shrink-0" data-test-selector="add-order">
                 <Link href="/orders/new">
                   <Plus className="size-4" aria-hidden="true" />
                   {t("newOrder")}

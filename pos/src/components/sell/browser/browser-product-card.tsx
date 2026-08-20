@@ -3,6 +3,7 @@
 import { useLocale } from "next-intl";
 import { ChevronRight, Plus } from "lucide-react";
 import type { ProductSummary } from "@organza/shared/types/product";
+import { testSelectorFor } from "@organza/shared/lib/testSelector";
 import { BROWSE_CARD_STAGGER_MAX, BROWSE_CARD_STAGGER_STEP_MS } from "@/constants/pos";
 import { localize } from "@/lib/i18n-content";
 import { cn } from "@/lib/utils";
@@ -51,6 +52,7 @@ export function BrowserProductCard({ product, isPending, isBusy, onSelect, index
       type="button"
       disabled={soldOut || isBusy}
       onClick={() => onSelect(product)}
+      data-test-selector={testSelectorFor("pos-browse-card", product.id)}
       // The stagger is capped: past the first screenful the delay would be
       // longer than the scroll that revealed the card, so late cards arrive
       // at once instead of trickling in.
@@ -110,7 +112,7 @@ export function BrowserProductCard({ product, isPending, isBusy, onSelect, index
             down with the length of each name. break-words is for the name
             with no spaces in it: without it a long unbroken string pushes the
             card wider than its column instead of being clipped. */}
-        <span className="line-clamp-2 min-h-[2.4rem] w-full break-words text-sm font-medium leading-snug">
+        <span className="line-clamp-2 min-h-[3.15rem] w-full break-words text-sm font-medium">
           {name}
         </span>
 

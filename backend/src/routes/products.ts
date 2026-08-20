@@ -27,10 +27,12 @@ import { generateUniqueSlug } from "@/lib/slug";
 import { productSku, variantSku } from "@/lib/sku";
 import { generateUniqueBarcode, resolveBarcodeChange, resolveNewBarcode } from "@/lib/barcode";
 import { NEEDS_LABEL_WHERE } from "@/lib/labelState";
+import { NEEDS_COMPLETING_WHERE, QUICK_SOLD_WHERE } from "@/lib/quickSellState";
 import { buildSearchText, searchProductIds } from "@/lib/search";
 import { cartesianProduct, buildComboName, buildImagePointMap, resolveComboImagePoint } from "@/lib/variantCombo";
 import { generateVariantsForProduct, previewComboNames, validateOptionSelections } from "@/lib/variants";
 import { serializeProduct, serializeProductSummary, serializeVariant } from "@/lib/pricing";
+import { applyOptionValueNotes, assertOptionValueNotesUsable } from "@/lib/optionValueNotes";
 import { moneyChanged } from "@/lib/money";
 import { buildNumberOptions, isNumberedProduct } from "@/lib/numberedProduct";
 import { writeAudit } from "@/lib/audit";
@@ -47,6 +49,7 @@ import {
 import {
   AUDIT_ENTITY,
   CHANGE_REQUEST_ENTITIES,
+  DEFAULT_PRODUCT_COMPLETENESS_FILTER,
   CHANGE_REQUEST_FIELDS,
   CHANGE_REQUEST_VARIANT_SET_ACTIONS,
   DEFAULT_STOCK,
@@ -61,6 +64,11 @@ router.use(requireAuth);
 const productInclude = {
   category: true,
   variantTypes: { include: { variantType: true } },
+  // What each option value means on this product (spec.md "Notes on a
+  // product's options"). Loaded with the product rather than per variant:
+  // serializeVariant hangs each note on the value it belongs to, so every
+  // screen that draws a value draws its note too.
+  optionValueNotes: true,
   images: { orderBy: { sortOrder: "asc" as const } },
   variants: {
     orderBy: { variantNumber: "asc" as const },
@@ -95,8 +103,14 @@ function assertMayRequest(user: { role: string }): void {
 // ---------------------------------------------------------------------------
 // GET /api/products — list (pagination + filtering + sorting + search)
 // ---------------------------------------------------------------------------
+// Gated on product.view, which every role holds as shipped — so this changes
+// nothing about who can read the catalogue today. It is here because
+// product.view became CONFIGURABLE (spec.md "Editable role permissions"): an
+// Admin who unticks it for a role has to find that the API refuses them, not
+// merely that a nav item vanished while `curl` still worked.
 router.get(
   "/",
+  requirePermission("product.view"),
   validateQuery(listProductsQuerySchema),
   asyncHandler(async (req, res) => {
     const query = req.validatedQuery as ListProductsQuery;
@@ -145,6 +159,15 @@ router.get(
       where.AND = [NEEDS_LABEL_WHERE];
     } else if (query.printState === "printed") {
       where.labelsPrintedAt = { not: null };
+    }
+
+    // Quick sell's work queue (spec.md "Quick sell"). AND rather than a merge,
+    // for the same reason printState is: this clause has to survive alongside
+    // whatever the stock filter and the label queue already put on `where`.
+    if (query.completeness !== DEFAULT_PRODUCT_COMPLETENESS_FILTER) {
+      const clause =
+        query.completeness === "needs_completing" ? NEEDS_COMPLETING_WHERE : QUICK_SOLD_WHERE;
+      where.AND = [...(Array.isArray(where.AND) ? where.AND : where.AND ? [where.AND] : []), clause];
     }
 
     if (query.q) {
@@ -210,6 +233,7 @@ router.get(
 // ---------------------------------------------------------------------------
 router.get(
   "/lookup",
+  requirePermission("product.view"),
   validateQuery(lookupProductQuerySchema),
   asyncHandler(async (req, res) => {
     const { code } = req.validatedQuery as LookupProductQuery;
@@ -318,6 +342,7 @@ router.post(
 // ---------------------------------------------------------------------------
 router.get(
   "/:id",
+  requirePermission("product.view"),
   asyncHandler(async (req, res) => {
     const product = await prisma.product.findFirst({
       where: { id: req.params.id, deletedAt: null },
@@ -357,6 +382,12 @@ router.post(
       if (dupe) throw new AppError(409, ERROR_CODES.SKU_DUPLICATE);
     }
 
+    // A note against a value this product will not use is refused here, with
+    // nothing yet created — the alternative is a 400 handed back for a
+    // product that exists anyway (spec.md "Notes on a product's options").
+    const selectedTypeIds = [...new Set((body.optionSelections ?? []).map((sel) => sel.variantTypeId))];
+    await assertOptionValueNotesUsable(body.optionValueNotes, selectedTypeIds);
+
     // `cost` is ADMIN-ONLY (CLAUDE.md rule 19) — silently dropped for a
     // Manager or an Employee rather than erroring, since they simply can't
     // set what they can't see.
@@ -393,6 +424,11 @@ router.post(
         isActive: body.isActive ?? true,
         trackLowStock: trackLowStock ?? false,
         isNumbered,
+        // Left null unless the form actually chose one: null is "follow the
+        // photo", which is what almost every product wants (spec.md
+        // "Numbered shawls").
+        pointTextColor: body.pointTextColor ?? null,
+        pointBackgroundColor: body.pointBackgroundColor ?? null,
         ...barcodeFields,
         stock: hasVariants ? DEFAULT_STOCK : body.stock ?? DEFAULT_STOCK,
         createdById: req.user!.id,
@@ -434,6 +470,12 @@ router.post(
         });
       }
     }
+
+    // What each chosen value MEANS on this product — written once the variant
+    // types exist, since the types the product uses are what a note may be
+    // written against. Scoped to this product: the same "S" on the next one
+    // keeps whatever it had.
+    await applyOptionValueNotes(created.id, body.optionValueNotes, selectedTypeIds);
 
     const full = await fetchFullProduct(created.id);
 
@@ -595,37 +637,62 @@ router.patch(
       action = body.isActive ? AuditAction.PUBLISH : AuditAction.HIDE;
     }
 
-    const updated = await prisma.product.update({
-      where: { id: existing.id },
-      data: {
-        name: body.name,
-        description:
-          body.description === undefined ? undefined : body.description === null ? Prisma.JsonNull : body.description,
-        slug,
-        searchText,
-        categoryId: body.categoryId,
-        // Everything gated above is written only by a caller who holds the
-        // permission for it. The checks already rejected an actual change,
-        // so this just keeps a resent-but-unchanged value from being written
-        // back by someone who may not set it — `cost` in particular, which
-        // nobody below Admin even receives (CLAUDE.md rule 19) and would
-        // otherwise be blanked out by echoing the form's empty field.
-        basePrice: canEditPrice ? body.basePrice : undefined,
-        compareAtPrice: canEditPrice && body.compareAtPrice !== undefined ? body.compareAtPrice : undefined,
-        cost: can(req.user!, "product.viewCost") && body.cost !== undefined ? body.cost : undefined,
-        isActive: canHide ? body.isActive : undefined,
-        trackLowStock: canAdjustStock ? body.trackLowStock : undefined,
-        isNumbered: body.isNumbered,
-        sku: body.sku,
-        ...(barcodeUpdate?.data ?? {}),
-        // A code nobody has printed yet puts the piece back in the label queue:
-        // whatever sticker is on it now carries a different number. Restoring
-        // the code we parked leaves the timestamp alone, because that label is
-        // still correct.
-        labelsPrintedAt: barcodeUpdate?.mintedFresh ? null : undefined,
-        stock: existing.variants.length || !canAdjustStock ? undefined : body.stock,
-      },
-      include: productInclude,
+    // The notes and the product row move together, in one transaction: a save
+    // is one thing, so either the details and the notes both landed or
+    // neither did (spec.md "Notes on a product's options").
+    //
+    // Gated on product.edit, like the name and the description beside it: a
+    // note is what a product SAYS, not what it costs, how many there are or
+    // whether it is on the shelf — so it is not one of the five actions held
+    // for approval (CLAUDE.md rule 21), and an Employee's note applies while
+    // their price change in the same save still waits for an Admin.
+    const updated = await prisma.$transaction(async (tx) => {
+      await applyOptionValueNotes(
+        existing.id,
+        body.optionValueNotes,
+        existing.variantTypes.map((pvt) => pvt.variantTypeId),
+        tx
+      );
+
+      return tx.product.update({
+        where: { id: existing.id },
+        data: {
+          name: body.name,
+          description:
+            body.description === undefined ? undefined : body.description === null ? Prisma.JsonNull : body.description,
+          slug,
+          searchText,
+          categoryId: body.categoryId,
+          // Everything gated above is written only by a caller who holds the
+          // permission for it. The checks already rejected an actual change,
+          // so this just keeps a resent-but-unchanged value from being written
+          // back by someone who may not set it — `cost` in particular, which
+          // nobody below Admin even receives (CLAUDE.md rule 19) and would
+          // otherwise be blanked out by echoing the form's empty field.
+          basePrice: canEditPrice ? body.basePrice : undefined,
+          compareAtPrice: canEditPrice && body.compareAtPrice !== undefined ? body.compareAtPrice : undefined,
+          cost: can(req.user!, "product.viewCost") && body.cost !== undefined ? body.cost : undefined,
+          isActive: canHide ? body.isActive : undefined,
+          trackLowStock: canAdjustStock ? body.trackLowStock : undefined,
+          isNumbered: body.isNumbered,
+          // How this product's numbers are drawn — presentation, like the name
+          // beside it, so it rides on product.edit and is never held for
+          // approval (CLAUDE.md rule 21 lists what is). Null is sent
+          // deliberately to hand a colour back to the photo, so `undefined`
+          // (field absent) is the only thing that leaves it alone.
+          pointTextColor: body.pointTextColor,
+          pointBackgroundColor: body.pointBackgroundColor,
+          sku: body.sku,
+          ...(barcodeUpdate?.data ?? {}),
+          // A code nobody has printed yet puts the piece back in the label queue:
+          // whatever sticker is on it now carries a different number. Restoring
+          // the code we parked leaves the timestamp alone, because that label is
+          // still correct.
+          labelsPrintedAt: barcodeUpdate?.mintedFresh ? null : undefined,
+          stock: existing.variants.length || !canAdjustStock ? undefined : body.stock,
+        },
+        include: productInclude,
+      });
     });
 
     await writeAudit({

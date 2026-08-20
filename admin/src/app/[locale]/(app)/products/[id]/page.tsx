@@ -22,10 +22,12 @@ import {
   hasPlacedShawlPoints,
 } from "@/components/products/numbered-shawl/numbered-shawl-preview";
 import { StatusBadge } from "@/components/products/status-badge";
+import { IncompleteBadge } from "@/components/products/incomplete-badge";
 import { VariantList } from "@/components/products/variant-list";
 import { ProductListError, ProductListLoading } from "@/components/products/product-list-states";
 import { PendingChangeBadge } from "@/components/change-requests/pending-change-badge";
 import { CHANGE_REQUEST_ENTITIES, CHANGE_REQUEST_FIELDS } from "@organza/shared/constants/changeRequest";
+import { SELECTABLE } from "@organza/shared/lib/nativeGestures";
 import { ApiError } from "@/lib/api/errors";
 
 export default function ProductDetailPage() {
@@ -96,12 +98,19 @@ function ProductDetail({ product, currency, locale }: { product: Product; curren
           one line under it — so the page header sits below the photographs
           rather than above them, which is where the name has always been. */}
       <PageHeader
+        name="product-detail"
         className="mb-0"
         title={name}
         description={product.category ? localize(product.category.name, locale) : undefined}
         actions={
           <>
             <StatusBadge isActive={product.isActive} />
+            {/* Sold before it was entered, and still missing the half the
+                cashier skipped (spec.md "Quick sell"). Said here as well as
+                in the list, because this page is where somebody lands from a
+                search and its blanks — no category under the title, no cost,
+                no photograph — would otherwise read as a broken record. */}
+            {product.needsCompleting && <IncompleteBadge />}
             {/* Their edit did not vanish — it is waiting (spec.md "Employee
                 change approvals"). Shown to everybody, not just the person
                 who asked: an Admin looking at the product should see that
@@ -113,7 +122,7 @@ function ProductDetail({ product, currency, locale }: { product: Product; curren
               field={CHANGE_REQUEST_FIELDS.PRODUCT_IS_ACTIVE}
             />
             {canEditDetails && (
-              <Button asChild variant="outline" size="sm">
+              <Button asChild variant="outline" size="sm" data-test-selector="product-edit">
                 <Link href={`/products/${product.id}/edit`}>
                   <Pencil className="size-4" aria-hidden="true" />
                   {t("edit")}
@@ -153,7 +162,9 @@ function ProductDetail({ product, currency, locale }: { product: Product; curren
       <dl className="grid grid-cols-2 gap-3 rounded-xl border border-border bg-card p-4 text-sm">
         <div>
           <dt className="text-muted-foreground">{t("barcode")}</dt>
-          <dd className="font-medium text-foreground" dir="ltr">
+          {/* Long-pressable on purpose (globals.css "An app, not a page"):
+              a barcode is one of the few strings here worth copying out. */}
+          <dd className="font-medium text-foreground" dir="ltr" {...SELECTABLE}>
             {product.barcode ?? "—"}
           </dd>
         </div>
@@ -169,7 +180,9 @@ function ProductDetail({ product, currency, locale }: { product: Product; curren
         <dl className="grid grid-cols-2 gap-3 rounded-xl border border-border bg-card p-4 text-sm">
           <div>
             <dt className="text-muted-foreground">{t("sku")}</dt>
-            <dd className="font-medium text-foreground">{product.sku ?? "—"}</dd>
+            <dd className="font-medium text-foreground" {...SELECTABLE}>
+              {product.sku ?? "—"}
+            </dd>
           </div>
           <div>
             <dt className="text-muted-foreground">{t("stock")}</dt>

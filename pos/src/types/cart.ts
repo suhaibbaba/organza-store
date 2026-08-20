@@ -1,5 +1,6 @@
 import type { I18n } from "@organza/shared/types/common";
 import type { DiscountType } from "@organza/shared/types/order";
+import type { QuickSellItemInput } from "@organza/shared/schemas/order";
 
 // One line in the open sale. Everything needed to render the line is copied
 // in when it is added, so scrolling the cart never re-fetches anything —
@@ -13,9 +14,18 @@ export interface CartLine {
   // productId, or productId + variantId — the identity of a sellable thing.
   // Scanning the same item twice bumps the existing line rather than adding
   // a second one, which is what a cashier expects when re-scanning.
+  //
+  // A QUICK-SOLD line (spec.md "Quick sell") has neither: the piece is not in
+  // the catalogue, so its key is a counter of its own and two of them never
+  // merge — typing "abaya" twice at the counter is two different pieces, not
+  // one piece scanned twice.
   key: string;
-  productId: string;
+  productId: string | null;
   variantId: string | null;
+  // What the cashier typed for a piece the catalogue has never heard of, or
+  // null for every ordinary line. The one place the POS names a price: there
+  // is no catalogue entry to read one from (see quickSellItemSchema).
+  quickSell: QuickSellItemInput | null;
   name: I18n;
   variantName: I18n | null;
   sku: string | null;

@@ -34,7 +34,7 @@ export function OrderReturnSheet({ order, open, onOpenChange }: OrderReturnSheet
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="end" closeLabel={tCommon("close")}>
+      <SheetContent name="order-return" side="end" closeLabel={tCommon("close")}>
         <SheetHeader>
           <SheetTitle>{t("title")}</SheetTitle>
         </SheetHeader>

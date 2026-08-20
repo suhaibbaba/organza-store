@@ -18,6 +18,7 @@ export function ChangeRequestPagination({ meta, onPageChange }: ChangeRequestPag
   return (
     <div className="flex items-center justify-between gap-3 pt-2">
       <Button
+        data-test-selector="change-requests-page-previous"
         type="button"
         variant="outline"
         size="sm"
@@ -33,6 +34,7 @@ export function ChangeRequestPagination({ meta, onPageChange }: ChangeRequestPag
       </span>
 
       <Button
+        data-test-selector="change-requests-page-next"
         type="button"
         variant="outline"
         size="sm"

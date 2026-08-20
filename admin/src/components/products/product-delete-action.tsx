@@ -66,17 +66,30 @@ export function ProductDeleteAction({ product }: { product: Product }) {
                 className="flex-1"
                 disabled={deleteMutation.isPending}
                 onClick={handleDelete}
+                data-test-selector="product-delete-confirm"
               >
                 {deleteMutation.isPending && <Spinner />}
                 {t("confirmAction")}
               </Button>
-              <Button type="button" variant="outline" className="flex-1" onClick={() => setConfirming(false)}>
+              <Button
+                type="button"
+                variant="outline"
+                className="flex-1"
+                onClick={() => setConfirming(false)}
+                data-test-selector="product-delete-abort"
+              >
                 {t("keep")}
               </Button>
             </div>
           </div>
         ) : (
-          <Button type="button" variant="ghost" className="w-full text-destructive sm:w-auto sm:self-start" onClick={() => setConfirming(true)}>
+          <Button
+            type="button"
+            variant="ghost"
+            className="w-full text-destructive sm:w-auto sm:self-start"
+            onClick={() => setConfirming(true)}
+            data-test-selector="product-delete"
+          >
             <Trash2 className="size-5" aria-hidden="true" />
             {t("action")}
           </Button>

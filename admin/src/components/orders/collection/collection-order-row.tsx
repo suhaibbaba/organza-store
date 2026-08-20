@@ -2,6 +2,7 @@
 
 import { useLocale, useTranslations } from "next-intl";
 import type { OrderSummary } from "@organza/shared/types/order";
+import { testSelectorFor } from "@organza/shared/lib/testSelector";
 import { Checkbox } from "@/components/ui/checkbox";
 import { formatDate } from "@/lib/format";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
@@ -29,6 +30,7 @@ export function CollectionOrderRow({ order, selected, onToggle }: CollectionOrde
   return (
     <label
       className="flex cursor-pointer items-center gap-3 rounded-xl border border-border bg-card p-3 transition-colors has-[button[data-state=checked]]:border-primary has-[button[data-state=checked]]:bg-primary/5"
+      data-test-selector={testSelectorFor("collection-order-row", order.id)}
       // Names the row for a screen reader, since the visible text is split
       // across several lines rather than one label.
       aria-label={tCollection("selectOrder", {

@@ -8,6 +8,10 @@ export const AUTH_ENDPOINTS = {
 
 export const SESSION_QUERY_KEY = ["session"] as const;
 export const SETTINGS_QUERY_KEY = ["settings"] as const;
+// Which actions each role holds (spec.md "Editable role permissions"). Loaded
+// with the session and pushed into `can()` — see PermissionsProvider. Held
+// for the shift: a shop changes this from the admin, not from the till.
+export const PERMISSIONS_QUERY_KEY = ["permissions"] as const;
 export const PRODUCT_SEARCH_QUERY_KEY = ["products", "search"] as const;
 // The product browser's grid — a page of a category (optionally narrowed by
 // its own search box), kept apart from the search box's key so opening the

@@ -1,5 +1,6 @@
 import type { BarcodeSource } from "@organza/shared/types/product";
 import type { ProductImageRef } from "@organza/shared/types/variant";
+import type { ImageEdit } from "@organza/shared/lib/imageEdit";
 
 // Raw <input> values for the translatable name/description fields — always
 // plain strings (never undefined) so controlled inputs never warn; sanitized
@@ -8,6 +9,17 @@ export interface I18nFormValue {
   ar: string;
   en: string;
   he: string;
+}
+
+// One block of the product form's notes editor (spec.md "Notes on a product's
+// options"): a variant type and the values of it this product uses, each row
+// keyed by a string the caller owns — the option value id for an ordinary
+// product, the point id for a number being placed in this same save, whose
+// global value does not exist yet.
+export interface OptionValueNoteGroup {
+  id: string;
+  typeName: string;
+  rows: { key: string; label: string }[];
 }
 
 // Selected global option values per variant type, keyed by variantTypeId —
@@ -33,8 +45,36 @@ export interface ProductEditAbilities {
 // primary flag can point at either kind. Nothing is uploaded until the
 // product form's single Save runs.
 export type GallerySlot =
-  | { kind: "existing"; id: string; image: ProductImageRef; isPrimary: boolean }
-  | { kind: "new"; id: string; file: File; previewUrl: string; isPrimary: boolean };
+  | {
+      kind: "existing";
+      id: string;
+      image: ProductImageRef;
+      isPrimary: boolean;
+      // A re-framing chosen here but not sent yet. The photograph on the
+      // server is untouched until the form's Save runs, exactly like every
+      // other change in this gallery — and null means "leave it as it is",
+      // which is not the same as the identity edit (that would re-cut the
+      // photo to say nothing had changed).
+      edit?: ImageEdit | null;
+      // What that re-framing looks like, drawn locally so the tile shows it
+      // straight away. Null when the browser could not produce one; the tile
+      // then keeps the stored thumbnail until the save comes back.
+      previewUrl?: string | null;
+    }
+  | {
+      kind: "new";
+      id: string;
+      file: File;
+      // The tile's picture: the file as picked, or the cropped preview once
+      // it has been through the editor.
+      previewUrl: string;
+      // The file as picked, always — what the editor re-opens on, so a second
+      // pass at the crop starts from the whole photograph rather than from
+      // the last cut.
+      sourceUrl: string;
+      isPrimary: boolean;
+      edit: ImageEdit | null;
+    };
 
 // One gallery being edited — the product's own, or one variant's — as the
 // working copy plus the server state it is diffed against.

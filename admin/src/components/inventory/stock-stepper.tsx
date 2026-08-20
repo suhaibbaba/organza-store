@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { Check, CircleAlert, Minus, Plus } from "lucide-react";
 import type { InventoryItem } from "@organza/shared/types/inventory";
 import { QUANTITY_MAX, QUANTITY_MAX_LENGTH, QUANTITY_MIN, clampQuantity } from "@organza/shared/constants/quantity";
+import { testSelectorFor } from "@organza/shared/lib/testSelector";
 import { NumericInput } from "@/components/ui/numeric-input";
 import { Spinner } from "@/components/ui/spinner";
 import { isNonNegativeIntegerString } from "@/lib/validation/numeric";
@@ -52,11 +53,13 @@ export function StockStepper({ item, stock, edit, onChange }: StockStepperProps)
           maxLength={QUANTITY_MAX_LENGTH}
           className="h-11 w-20 px-2 text-center"
           aria-label={t("quantity")}
+          data-test-selector={testSelectorFor("stock-input", item.id)}
         />
         <button
           type="button"
           onClick={saveEdit}
           aria-label={t("save")}
+          data-test-selector={testSelectorFor("stock-save", item.id)}
           className="inline-flex size-11 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground"
         >
           <Check className="size-5" aria-hidden="true" />
@@ -80,6 +83,7 @@ export function StockStepper({ item, stock, edit, onChange }: StockStepperProps)
           onClick={() => onChange(item, stock - 1)}
           disabled={stock <= QUANTITY_MIN}
           aria-label={t("decrease")}
+          data-test-selector={testSelectorFor("stock-decrease", item.id)}
           className="inline-flex size-11 shrink-0 items-center justify-center rounded-lg border border-input text-foreground disabled:cursor-not-allowed disabled:opacity-40"
         >
           <Minus className="size-4" aria-hidden="true" />
@@ -89,6 +93,7 @@ export function StockStepper({ item, stock, edit, onChange }: StockStepperProps)
           type="button"
           onClick={() => setEditValue(String(stock))}
           aria-label={t("edit")}
+          data-test-selector={testSelectorFor("stock-value", item.id)}
           className="flex min-w-11 shrink-0 items-center justify-center rounded-lg px-1 text-base font-semibold text-foreground"
         >
           {stock}
@@ -99,6 +104,7 @@ export function StockStepper({ item, stock, edit, onChange }: StockStepperProps)
           onClick={() => onChange(item, stock + 1)}
           disabled={stock >= QUANTITY_MAX}
           aria-label={t("increase")}
+          data-test-selector={testSelectorFor("stock-increase", item.id)}
           className="inline-flex size-11 shrink-0 items-center justify-center rounded-lg border border-input text-foreground disabled:cursor-not-allowed disabled:opacity-40"
         >
           <Plus className="size-4" aria-hidden="true" />

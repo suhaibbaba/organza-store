@@ -32,7 +32,10 @@ through `node_modules` like any package — not copied, symlinked or aliased by 
 - **Auth:** Better Auth (central backend); login by email + password (phone is contact-only).
 - **Money fields:** Prisma `Decimal`, never `Float`.
 - **Images:** stored locally on the VPS; optimized with `sharp` (WebP + multi-size) on upload;
-  displayed with `next/image`.
+  displayed with `next/image`. The shop frames the garment itself in the admin's editor
+  (`react-easy-crop`, 2:3 by default) and what travels is the **crop rectangle, turn and mirror** —
+  never a canvas re-encode — so sharp cuts every size from the **original**, which is kept so a
+  different crop can be made later. See "Editing a photograph on upload" in `spec.md`.
 - **Barcode/QR:** `html5-qrcode` in the POS, inside an isolated scanner component.
 - **i18n:** UI via `next-intl`; product content translated via JSON fields. Languages: ar (default), en, he.
 
@@ -46,6 +49,9 @@ expenses" in `spec.md`); their admin/POS screens are not built yet. The **generi
 system** is built end to end (backend + admin screen + nav badge + Web Push) — see rule 21 below
 and "Employee change approvals" in `spec.md`; the old per-expense `/approve` and `/reject`
 endpoints are gone, lifted into it.
+**Quick sell** is built end to end (POS + admin): a piece that isn't in the catalogue can be sold by
+typing a name and a price, and the deliberately-incomplete product it creates is reviewed
+afterwards through the same change-request mechanism — see "Quick sell" in `spec.md` and rule 23.
 The POS also has a **product browser** — a drawer over the sale with categories on the start side
 and a photo grid on the other, for pieces that can't carry a label (see "POS product browser" in
 `spec.md`); its favourite categories are flagged from the admin's category screen.
@@ -71,6 +77,8 @@ from past orders — there is still no Customer table behind it.
      and **no shop-wide money view at all** — no dashboard, no Reports, no outstanding total.
      They see the orders they take, never every order added up.
    Five Employee actions are neither applied nor refused but **held for approval** (rule 21).
+   That table is the shop's **starting point**: most of it is editable per shop from the admin's
+   Permissions screen, and a specific part of it can never be — see rule 22.
 6. **Every mutation writes an Audit Log entry** (userId, action, entityType, entityId, old/new).
 7. **stock default = 1** for products and variants.
 8. **Validate all inputs with Zod** (shared schemas where possible).
@@ -83,9 +91,9 @@ from past orders — there is still no Customer table behind it.
     Product's `searchText` in sync on every name/description change.
 11. **Essential data ≠ demo data.** `npm run bootstrap` (`backend/src/lib/bootstrap.ts`) creates
     the only things a real shop cannot run without — the Setting singleton, the global variant
-    types + their default values, the expense categories — each **once in the life of the
-    database**, recorded in `BootstrapRecord`. Never re-upsert them: a value the shop deleted
-    stays deleted. It runs on every deploy. The **demo seed** is
+    types + their default values, the expense categories, and the configurable role permissions
+    (rule 22) — each **once in the life of the database**, recorded in `BootstrapRecord`. Never
+    re-upsert them: a value the shop deleted stays deleted. It runs on every deploy. The **demo seed** is
     `backend/prisma/dev/demo-seed.ts` (`npm run seed:demo`): upsert-based, covers every rule
     (all roles, all product shapes, hidden + soft-deleted samples), its `normalize()` must stay
     in sync with the real search normalizer — and it is **quarantined**: not wired to
@@ -167,6 +175,38 @@ from past orders — there is still no Customer table behind it.
     both are audited alongside the request itself. Approval is `changeRequest.approve` (Admin
     only, widenable). Never add a second `approvalStatus` column to another table — add an entry
     to `CHANGE_REQUEST_FIELDS` and an applier in `backend/src/lib/changeRequestAppliers.ts`.
+22. **Every permission action is PROTECTED or CONFIGURABLE** — declared beside the action itself in
+    `shared/src/constants/permissions.ts`, exhaustive and disjoint, checked at module load (see
+    "Editable role permissions" in `spec.md`). **PROTECTED** is answered by `can()` from the shipped
+    table and nothing else: cost/profit and the reports, re-pricing, editing/cancelling/deleting/
+    returning an order, gifts, marking money collected, approving a change or an expense, managing
+    staff, reading an ID number, and managing permissions itself. Those are the anti-theft
+    guarantees the whole design rests on, plus the ones a locked-out Admin could never undo — so
+    there is deliberately no row, no endpoint and no screen that can move them, and the API refuses
+    a protected action **server-side**, not merely hides it. **CONFIGURABLE** grants live one row
+    per (role, action) in `RolePermission`, seeded from today's exact defaults by
+    `npm run bootstrap` (rule 11), with a MISSING row meaning "as shipped" rather than "no".
+    `can()` stays synchronous: each process holds the table in memory, refreshes immediately on its
+    own write, and picks up another process's write through a cheap digest probe
+    (`backend/src/lib/permissionConfig.ts`) — never a query per call. Adding an action means adding
+    it to one of the two lists, to `DEFAULT_ROLE_PERMISSIONS`, and to `PERMISSION_GROUPS` in the
+    admin; no call site changes. Editing is Admin-only, never your own role, and every flip is
+    audited.
+23. **Selling a piece that isn't in the catalogue creates an INCOMPLETE product on purpose**
+    (see "Quick sell" in `spec.md`). At the busiest hour a sale must never wait on a category, a
+    cost or a photograph, so the POS takes a name and a price and completes the sale immediately —
+    stock, discounts and totals behave exactly as for any other line, and nothing is held. The
+    product, the order and a `(Product, completion)` change request are written in ONE transaction,
+    so an abandoned checkout cannot leave a nameless half-product behind. That request is the one
+    that reads backwards — the sale has already happened, so it says "this was sold, complete its
+    details" and offers *complete* / *one-off*, never *approve* / *reject*: **rejecting must never
+    look like it undoes a sale**, and it never does (an order's lines are snapshots). Empty is a
+    supported state, not a broken record: `Product.categoryId` is nullable ONLY for this, `cost` is
+    absent rather than zero (which is what the reports' missing-cost warning counts), and every
+    screen that lists products must handle a categoryless one — which is why such a product is
+    badged incomplete and has a "needs completing" queue of its own, since no category filter can
+    find it. `product.quickSell` is every role's; `product.complete` is Admin/Manager and is what
+    decides a completion request, so `changeRequest.approve` stays Admin-only and PROTECTED.
 
 ## Workflow
 - Build **one stage at a time** (see the build order in `spec.md`). Test a stage before the next.
@@ -261,6 +301,15 @@ Design for that reality:
 
 - **Mobile-first, not merely responsive.** Design and build for a phone screen FIRST, then scale
   up to desktop. Single-column layouts by default; never a desktop layout crammed onto a phone.
+- **Nothing zooms, so nothing may depend on zooming.** Page zoom is off in both apps — viewport
+  (`maximumScale: 1`, `userScalable: false`), `touch-action: manipulation`, and the gesture guards
+  in `components/pwa/native-gesture-guard.tsx` for iOS, which ignores the viewport. So: **every
+  form field is at least 16px** (Safari zooms the page in on focus below that, and there is now no
+  way back out), 44px stays the floor for anything a thumb hits, and **no interface text goes below
+  12px**. Anything that genuinely wants two fingers marks itself `data-allow-zoom="true"`.
+- **A long press must not raise the system sheet.** Text selection and the iOS callout are off
+  app-wide and opted back in with `data-selectable="true"` — for a barcode, a SKU, an order number,
+  a phone number, an address: things somebody copies. Not for cards, rows or buttons.
 - **Big, easy touch targets.** Large tappable buttons (min ~44px), generous spacing, no tiny links
   or dense toolbars. Primary action on each screen should be obvious and reachable by thumb.
 - **Few, clear steps.** Minimize taps to complete any task. Avoid multi-step wizards where one
@@ -273,7 +322,25 @@ Design for that reality:
 - **RTL must be 100% correct**, not just `dir="rtl"`: the whole layout mirrors (nav, icons, arrows,
   padding/margins, alignment), Arabic uses a clear legible Arabic font, and numbers/dates render
   correctly. **Verify Arabic visually** — do not assume it works. Arabic is the default locale.
+- **Arabic needs more vertical room than Latin at the same size — the type scale already gives it.**
+  Cairo's ink runs from ~0.7em above the baseline to ~0.45em below it, so Tailwind's Latin line
+  heights (text-sm at 1.43, text-2xl at 1.33) leave the tails of ج ح خ ي outside the line box, where
+  the first `truncate` or `line-clamp` slices them off. Both apps therefore override every
+  `--text-*--line-height` (and the inherited `html` line height) in `globals.css` — around 1.8 at
+  interface sizes. **Do not put `leading-tight`, `leading-snug` or `leading-none` back on Arabic
+  text**: they undo it, and the damage only shows where something clips. `leading-none` is for
+  content that is digits or a single glyph by construction (a count badge, a numbered-shawl
+  marker) and nothing else. Any new fixed-height text box has to fit the line box the scale gives
+  it — prefer `min-h-*` with padding over `h-*`, and check with `ملاحظات على الخيارات جحخي`.
 - **Accessibility basics:** readable font sizes on mobile, sufficient contrast, labels on inputs.
+- **A person is named through `lib/user-display.ts`, never by rendering `user.name` raw.**
+  One rule for both apps (`shared/src/lib/userDisplay.ts`): their name, then the local part of
+  their email, then their translated role — and **never an internal id**. An id is meaningless to
+  staff, unbounded in length so it stretches whatever is drawn around it, and a top bar reading
+  "Admin mt0grbxoqx7nbf" looks broken rather than informative. Id-shaped words are stripped from a
+  stored name (the test suite once renamed the sandbox's Admin and never put it back), and the
+  avatar's letter comes from the same source as the name so the two can never disagree. Long names
+  truncate with an ellipsis; they never widen the header.
 - **Every password field is a `PasswordInput`** (`components/ui/password-input.tsx`, one per app),
   never a bare `<Input type="password">`. Typing eight unseen characters on a phone keyboard and
   being told only that they were wrong is not something to ask of anyone. It starts hidden always,
@@ -299,6 +366,40 @@ Design for that reality:
   `pb-[env(safe-area-inset-bottom)]`) so its last part isn't hidden under the indicator on devices
   like iPhone Pro Max. Ensure the viewport meta includes `viewport-fit=cover` (required for safe
   areas to work). Apply the same to any fixed top bar with `safe-area-inset-top` where relevant.
+
+## Test selectors — naming what is on the screen
+Every element worth diagnosing carries **`data-test-selector`**, a stable name saying WHAT IT IS.
+"The button in the corner" is not a description on a screen that mirrors itself in Arabic, and a
+Tailwind class is not a name — it changes the next time the design does.
+
+- **`data-test-selector`, never an `id` or a class.** Ids are for `htmlFor`/`aria-*` and must stay
+  unique per document; classes are styling and are rewritten by every redesign.
+- **Lower case, hyphenated, purpose-first:** `product-card`, `pos-cart-total`, `checkout-button`,
+  `variant-picker`. Never appearance or position — no `left`, no `start-side`, no `first`: the
+  layout mirrors in RTL and the name would then be wrong in Arabic.
+- **Family + instance where a list repeats:** `product-card` for the family, `product-card-<id>`
+  for one of them. The instance half is an **id**, never a customer's name, a phone number or a
+  price — the attribute ships to production, and it identifies an element rather than describing
+  its contents.
+- **The POS prefixes everything with `pos-`;** the admin's names are unprefixed. Two apps, one
+  vocabulary, no collisions in a report that spans both.
+- **Names come from `@organza/shared/lib/testSelector`** (`testSelectorFor`, `fieldTestSelector`,
+  `fieldErrorTestSelector`, `toSelectorName`) rather than from hand-built strings, so both apps
+  spell the same idea the same way.
+- **Kept in production builds.** The deployed app is where problems appear; an attribute stripped
+  from the build is no use to whoever is describing one. They weigh nothing and expose nothing.
+
+**Applied at the shared-component level wherever possible, so new screens inherit it:**
+`Input`/`Textarea`/`Select`/`Checkbox`/`Switch` name themselves `field-<id>` from their own id;
+`FieldError` names the message under a field `field-<id>-error`; `Alert` names itself by kind;
+`SheetContent`, `StatCard`, `FigureCard`, `PageHeader`, `SegmentedControl` and `QuantityStepper`
+take a `name` prop and render `sheet-<name>`, `stat-card-<name>` and so on. Add the name to the
+shared component once; only reach for a literal attribute where the element is one of a kind.
+
+**What to cover:** cards and list rows, table rows, primary action buttons, form fields and their
+errors, sheets and dialogs, navigation items, empty and error states, and the numbered-shawl point
+markers (`shawl-point-<number>`). **Not** every wrapper `<div>` — a name on everything is a name on
+nothing.
 
 ## Admin layout conventions
 The admin app uses shared layout primitives (`admin/src/components/layout/`). Use them —

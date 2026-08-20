@@ -102,7 +102,7 @@ function OrderCollectionPageContent() {
         </Link>
       </Button>
 
-      <PageHeader title={t("title")} description={t("subtitle")} />
+      <PageHeader name="collection" title={t("title")} description={t("subtitle")} />
 
       <div className="flex flex-col gap-4">
         {summaryQuery.data && <CollectionSummaryCard summary={summaryQuery.data} />}

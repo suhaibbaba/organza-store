@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import { useTranslations } from "next-intl";
+import { resolvePointColors } from "@organza/shared/lib/pointColors";
 import type { Product } from "@organza/shared/types/product";
 import { initShawlPoints } from "@/lib/validation/numbered-shawl";
 import { ImagePointCanvas } from "@/components/products/numbered-shawl/image-point-canvas";
@@ -22,9 +23,15 @@ export function NumberedShawlPreview({ product }: { product: Product }) {
 
   if (!image || points.length === 0) return null;
 
+  // The shop's own choice where it made one, and a suggestion read from this
+  // photo's brightness where it did not — the same call the editor and (once
+  // built) the WhatsApp copy make, so what the customer is sent looks like
+  // what the shop is looking at.
+  const colors = resolvePointColors(product, image.brightness);
+
   return (
-    <div className="flex w-full max-w-sm flex-col gap-2">
-      <ImagePointCanvas readOnly imageUrl={image.url} alt={t("numberedPointsAlt")} points={points} />
+    <div className="flex w-full max-w-sm flex-col gap-2" data-test-selector="numbered-shawl-preview">
+      <ImagePointCanvas readOnly imageUrl={image.url} alt={t("numberedPointsAlt")} points={points} colors={colors} />
       <p className="text-sm text-muted-foreground">{t("numberedPointsHint", { count: points.length })}</p>
     </div>
   );

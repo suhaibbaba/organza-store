@@ -84,6 +84,11 @@ export function buildNumberOptions(product: AnyRecord, serializedVariants: AnyRe
       name: dto.name,
       number: numberValue.optionValue.value,
       numberKey: numberValue.optionValue.key,
+      // What this number means on this shawl (spec.md "Notes on a product's
+      // options"), read off the same serialized value the rest of the app
+      // reads it from — never drawn on the photograph, only beside the number
+      // in the picker.
+      note: (dto.values as AnyRecord[] | undefined)?.find((v) => v.id === numberValue.optionValue.id)?.note ?? null,
       sku: dto.sku,
       barcode: dto.barcode,
       resolvedPrice: dto.resolvedPrice,

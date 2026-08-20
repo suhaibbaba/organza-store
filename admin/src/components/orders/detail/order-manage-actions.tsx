@@ -61,7 +61,13 @@ export function OrderManageActions({ order }: { order: Order }) {
           )}
 
           {canReturn && (
-            <Button type="button" variant="outline" className="w-full sm:w-auto sm:self-start" onClick={() => setReturnOpen(true)}>
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full sm:w-auto sm:self-start"
+              onClick={() => setReturnOpen(true)}
+              data-test-selector="order-return"
+            >
               <Undo2 className="size-5 rtl:-scale-x-100" aria-hidden="true" />
               {t("returnItems")}
             </Button>
@@ -83,6 +89,7 @@ export function OrderManageActions({ order }: { order: Order }) {
                     className="flex-1"
                     disabled={deleteMutation.isPending}
                     onClick={handleDelete}
+                    data-test-selector="order-delete-confirm"
                   >
                     {deleteMutation.isPending && <Spinner />}
                     {t("confirmDeleteAction")}
@@ -92,6 +99,7 @@ export function OrderManageActions({ order }: { order: Order }) {
                     variant="outline"
                     className="flex-1"
                     onClick={() => setConfirmingDelete(false)}
+                    data-test-selector="order-delete-abort"
                   >
                     {t("keepOrder")}
                   </Button>
@@ -103,6 +111,7 @@ export function OrderManageActions({ order }: { order: Order }) {
                 variant="ghost"
                 className="w-full text-destructive sm:w-auto sm:self-start"
                 onClick={() => setConfirmingDelete(true)}
+                data-test-selector="order-delete"
               >
                 <Trash2 className="size-5" aria-hidden="true" />
                 {t("deleteOrder")}

@@ -1,6 +1,7 @@
 import type { I18n } from "@/types/common";
 import type { ChangeRequest } from "@/types/changeRequest";
 import type { BarcodeSource } from "@/types/product";
+import type { ImageEdit } from "@/lib/imageEdit";
 
 // Global option value (e.g. Color -> "أحمر"), GET /api/variant-types.
 export interface VariantOptionValue {
@@ -28,8 +29,21 @@ export interface ProductImageRef {
   url: string;
   mediumUrl: string;
   thumbnailUrl: string;
+  // The photograph as it was uploaded, kept so the shop can frame it
+  // differently later, and the framing it currently carries (spec.md
+  // "Editing a photograph on upload"). Both null for a photo stored before
+  // the editor existed — which is still re-framable: the API cuts that one
+  // from the largest size it has and keeps THAT as its original from then on.
+  originalUrl?: string | null;
+  edit?: ImageEdit | null;
   sortOrder: number;
   isPrimary: boolean;
+  // How light or dark the photograph is, 0–100, measured by sharp when it was
+  // uploaded (spec.md "Numbered shawls"). What the automatic suggestion for
+  // the numbers' colour is read from — a dark photo gets light markers — so
+  // the shop is rarely asked to think about it. Null for a photo uploaded
+  // before this was recorded, which simply keeps the shipped marker.
+  brightness: number | null;
 }
 
 // A variant's resolved reference to a global option value (CLAUDE.md rule 2)
@@ -39,6 +53,13 @@ export interface VariantOptionValueRef {
   variantTypeId: string;
   value: I18n;
   key: string;
+  // What this value means ON THIS PRODUCT (spec.md "Notes on a product's
+  // options") — "طول البنطلون ٩٥ سم" against a pair of trousers' own S. Null
+  // when nothing was written, which is the usual case. It travels with the
+  // value reference rather than in a list of its own so that every screen
+  // that already draws the value gets the note with it, and none of them can
+  // quietly show notes for colours but not for numbers.
+  note: I18n | null;
 }
 
 export interface Variant {

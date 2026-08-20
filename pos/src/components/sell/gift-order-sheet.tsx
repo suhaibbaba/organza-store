@@ -70,7 +70,7 @@ export function GiftOrderSheet({
         onOpenChange(next);
       }}
     >
-      <SheetContent side="bottom" closeLabel={tCommon("close")} className="max-h-[92dvh]">
+      <SheetContent name="gift-order" side="bottom" closeLabel={tCommon("close")} className="max-h-[92dvh]">
         <SheetHeader className="pb-0">
           <SheetTitle className="flex items-center gap-2 text-gift">
             <Gift className="size-5 shrink-0" aria-hidden="true" />
@@ -152,6 +152,7 @@ export function GiftOrderSheet({
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
+              data-test-selector="pos-gift-cancel"
               disabled={isSubmitting}
               className="min-w-28 flex-1"
             >
@@ -162,6 +163,7 @@ export function GiftOrderSheet({
               type="button"
               variant="gift"
               onClick={() => onConfirm(note)}
+              data-test-selector="pos-gift-confirm"
               disabled={isSubmitting}
               className="min-w-0 flex-1"
             >

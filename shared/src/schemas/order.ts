@@ -3,6 +3,7 @@ import { booleanInput, decimalInput, paginationSchema } from "@/schemas/common";
 import { phoneSchema } from "@/schemas/phone";
 import { phoneDigits } from "@/lib/phone";
 import { ERROR_CODES } from "@/constants/errors";
+import { QUICK_SELL_DETAIL_MAX_LENGTH, QUICK_SELL_NAME_MAX_LENGTH } from "@/constants/quickSell";
 import {
   CUSTOMER_SUGGESTION_MIN_DIGITS,
   DISCOUNT_TYPES,
@@ -82,16 +83,56 @@ const LOCATION_REFINEMENT = { message: ERROR_CODES.ORDER_LOCATION_INVALID } as c
 // Note what is deliberately absent from every input schema below: unitPrice,
 // lineTotal, subtotal and total. Money is derived server-side from the
 // catalogue and these discounts, never accepted from the caller.
+/**
+ * A piece being sold that is not in the catalogue at all (spec.md "Quick
+ * sell") — stock that reached the shop floor before it reached the system.
+ *
+ * This is the ONE place a price is accepted from the caller, and it is worth
+ * being blunt about why the rule above does not apply here: there is no
+ * catalogue entry to read a price from. Nothing is being overridden — the
+ * figure typed at the counter IS the piece's first price, and it becomes the
+ * new product's basePrice as well as the line's unitPrice, so the two cannot
+ * disagree. Cost is deliberately absent: nobody at the till knows it, and the
+ * reports' missing-cost warning is what carries that forward (CLAUDE.md rule
+ * 19 keeps cost Admin-only anyway).
+ */
+export const quickSellItemSchema = z.object({
+  name: z.string().trim().min(1, ERROR_CODES.VALIDATION_REQUIRED).max(QUICK_SELL_NAME_MAX_LENGTH),
+  price: decimalInput,
+  /** A colour, a size, a number — whatever distinguishes this one piece. */
+  detail: z.string().trim().max(QUICK_SELL_DETAIL_MAX_LENGTH).optional(),
+});
+export type QuickSellItemInput = z.infer<typeof quickSellItemSchema>;
+
+/**
+ * One line names EITHER something in the catalogue or a quick sale, never
+ * both and never neither. Checked here rather than left to the backend so the
+ * POS can say which line is wrong before the customer is waiting on a
+ * refused checkout.
+ */
+export function isOrderItemSourceValid(value: {
+  productId?: string;
+  quickSell?: unknown;
+}): boolean {
+  return Boolean(value.productId) !== Boolean(value.quickSell);
+}
+
+const ITEM_SOURCE_REFINEMENT = { message: ERROR_CODES.ORDER_ITEM_SOURCE_INVALID } as const;
+
 export const createOrderItemSchema = z
   .object({
-    productId: z.string().min(1, ERROR_CODES.VALIDATION_REQUIRED),
+    // Optional ONLY because of quick sell below: an ordinary line still names
+    // a product, and the refinement refuses a line that names neither.
+    productId: z.string().min(1, ERROR_CODES.VALIDATION_REQUIRED).optional(),
     // Required when the product has variants — the variant is the thing
     // actually sold, and it owns the price and the stock.
     variantId: z.string().min(1).optional(),
+    quickSell: quickSellItemSchema.optional(),
     quantity: z.coerce.number().int().min(1, ERROR_CODES.VALIDATION_INVALID_NUMBER),
     ...discountShape,
   })
-  .refine(isDiscountConsistent, DISCOUNT_REFINEMENT);
+  .refine(isDiscountConsistent, DISCOUNT_REFINEMENT)
+  .refine(isOrderItemSourceValid, ITEM_SOURCE_REFINEMENT);
 export type CreateOrderItemInput = z.infer<typeof createOrderItemSchema>;
 
 export const createOrderSchema = z
@@ -213,6 +254,11 @@ export const listOrdersQuerySchema = paginationSchema.extend({
   // a cancelled or fully returned order owes nothing, so it must not sit in
   // the outstanding list looking like money on its way.
   collectableOnly: booleanInput.optional(),
+  // "Show me the sales that were rung up before the piece existed" (spec.md
+  // "Quick sell") — the after-the-season review list. True narrows to them;
+  // unset lists everything, since a quick sale is an ordinary sale in every
+  // other respect.
+  hasQuickSale: booleanInput.optional(),
   // Inclusive date range over createdAt.
   dateFrom: z.coerce.date().optional(),
   dateTo: z.coerce.date().optional(),

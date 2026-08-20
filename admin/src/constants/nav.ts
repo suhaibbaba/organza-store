@@ -9,6 +9,7 @@ import {
   ChartColumn,
   ClipboardCheck,
   Users,
+  ShieldCheck,
   Settings,
 } from "lucide-react";
 import type { NavItem } from "@/types/nav";
@@ -42,6 +43,12 @@ export const NAV_ITEMS: readonly NavItem[] = [
   // whichever of those two the reader actually has.
   { key: "changeRequests", href: "/change-requests", icon: ClipboardCheck, action: "changeRequest.view" },
   { key: "users", href: "/users", icon: Users, action: "user.manage" },
+  // Who may do what (spec.md "Editable role permissions"). Gated on the
+  // permission to edit the table rather than on user.manage: the two live
+  // next to each other on the nav and are different powers, and whoever may
+  // add a member of staff is not automatically whoever may decide what a
+  // whole role is allowed to do.
+  { key: "permissions", href: "/permissions", icon: ShieldCheck, action: "permission.manage" },
   { key: "settings", href: "/settings", icon: Settings, action: "settings.manage" },
 ] as const;
 

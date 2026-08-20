@@ -57,7 +57,7 @@ export function ProductBrowserDrawer({ open, onOpenChange, pendingId, onSelect }
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent
+      <SheetContent name="product-browser"
         side="start"
         closeLabel={tCommon("close")}
         // Nearly the whole screen on a phone, a wide panel on the counter's

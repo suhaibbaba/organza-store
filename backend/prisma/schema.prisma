@@ -63,11 +63,17 @@ model User {
   auditLogs         AuditLog[]
   pushSubscriptions PushSubscription[]
 
-  createdExpenses       Expense[]     @relation("ExpenseCreatedBy")
-  approvedExpenses      Expense[]     @relation("ExpenseApprovedBy")
+  createdExpenses  Expense[] @relation("ExpenseCreatedBy")
+  approvedExpenses Expense[] @relation("ExpenseApprovedBy")
 
   requestedChanges ChangeRequest[] @relation("ChangeRequestRequestedBy")
   decidedChanges   ChangeRequest[] @relation("ChangeRequestDecidedBy")
+
+  // Permission grants this account last flipped. Nothing here blocks a hard
+  // delete that would otherwise be allowed: every one of these edits also
+  // writes an audit entry, and an account with audit history is refused
+  // deletion long before this relation is reached (lib/userHistory.ts).
+  updatedRolePermissions RolePermission[]
 
   openedCashSessions    CashSession[] @relation("CashSessionOpenedBy")
   closedCashSessions    CashSession[] @relation("CashSessionClosedBy")
@@ -189,6 +195,47 @@ model BootstrapRecord {
 }
 
 // ============================================================
+//  ROLE PERMISSIONS (spec.md "Editable role permissions")
+// ============================================================
+//
+// The CONFIGURABLE half of the rules — which actions a role holds — moved out
+// of the code and into here, so the shop can decide for itself whether its
+// Employees handle stock or its Managers print the labels. The PROTECTED half
+// (cost and profit, undoing a sale, marking money collected, signing changes
+// off, managing staff, and editing this very table) is NOT here and never
+// will be: it lives in shared/src/constants/permissions.ts, `can()` answers it
+// from there alone, and there is deliberately no row anyone could write to
+// move it. A row for a protected action is refused by the API and ignored by
+// `can()` even if one is inserted by hand.
+//
+// One row per (role, action), toggled rather than deleted:
+//   - `granted` is the decision. A MISSING row is not "no" — it is "nobody has
+//     decided", and falls back to DEFAULT_ROLE_PERMISSIONS, which is what
+//     makes an action added in a later release behave as shipped on a database
+//     bootstrapped before it existed.
+//   - and a row that is toggled rather than deleted keeps the table small and
+//     fixed, which is what lets a second API process ask "have the rules
+//     changed?" with one cheap digest query instead of re-reading the whole
+//     table on every request (see backend/src/lib/permissionConfig.ts).
+model RolePermission {
+  role   Role
+  action String // a PermissionAction — shared/src/constants/permissions.ts
+
+  granted Boolean
+
+  // Who last flipped it. Nullable because the bootstrap seeds this table with
+  // the shipped defaults and no person did that; every later change names one,
+  // and is in the audit log besides (CLAUDE.md rule 6).
+  updatedById String?
+  updatedBy   User?   @relation(fields: [updatedById], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@id([role, action])
+}
+
+// ============================================================
 //  CATEGORIES (self-nested: parent > child)
 // ============================================================
 
@@ -243,8 +290,20 @@ model Product {
   // cross-language + typo-tolerant search. Rebuilt whenever name/description change.
   searchText String @default("")
 
-  categoryId String
-  category   Category @relation(fields: [categoryId], references: [id])
+  // Nullable ONLY because of quick sell (spec.md "Quick sell"): a piece rung
+  // up at the counter before it was ever entered has no shelf chosen for it
+  // yet, and refusing the sale until somebody picks one is exactly what quick
+  // sell exists to avoid. Every product created the ordinary way still
+  // requires a category — the create/update schemas demand one — so a null
+  // here means "sold first, not filed yet" and nothing else. It is what
+  // `needsCompleting` is built from, and why such a product is listed on its
+  // own screen: a category filter cannot find it.
+  categoryId String?
+  // Restrict, explicitly: an optional relation defaults to SetNull in
+  // Prisma, and that would let deleting a category quietly turn filed
+  // products into unfiled ones. Deleting a category that still holds
+  // products stays refused (routes/categories.ts), exactly as before.
+  category   Category? @relation(fields: [categoryId], references: [id], onDelete: Restrict)
 
   // --- pricing (parent-level, variants may override) ---
   basePrice      Decimal  @db.Decimal(10, 2)
@@ -260,11 +319,11 @@ model Product {
   // that on the parent instead of printing a label per variant. Scanning it in
   // the POS opens the variant picker rather than selling anything
   // (PRODUCT_LOOKUP_KIND.VARIANT_SELECTION).
-  barcode String? @unique
+  barcode          String?       @unique
   // Ours or the supplier's (CLAUDE.md rule 13 + shared/constants/barcode.ts).
   // Stored, never inferred from the code: a supplier's EAN-13 looks exactly
   // like one of ours, and this is what decides whether a label is owed.
-  barcodeSource BarcodeSource @default(GENERATED)
+  barcodeSource    BarcodeSource @default(GENERATED)
   // The EAN-13 we minted, parked here while a supplier code is in use so that
   // switching back restores the code any label already printed carries,
   // instead of minting a third one and stranding those labels. Not unique —
@@ -290,6 +349,39 @@ model Product {
   // never Number when false. Off by default.
   isNumbered Boolean @default(false)
 
+  // The colour of the numbers drawn on a numbered product's photo, and of the
+  // badge behind them (spec.md "Numbered shawls"). ONE pair for all of the
+  // product's points, never one per point. Hex, e.g. "#FFFFFF".
+  //
+  // Null means "follow the photo": the numbers take the automatic suggestion
+  // read from the primary image's brightness, so a black abaya gets white
+  // markers and a cream scarf dark ones without anybody choosing. A colour
+  // stored here is a choice the shop made, and it deliberately OUTLIVES the
+  // photograph — replacing the image re-measures the suggestion but never
+  // overwrites what was chosen.
+  pointTextColor       String?
+  pointBackgroundColor String?
+
+  // --- quick sell (spec.md "Quick sell") -------------------------------
+  // Three facts, never a status column (CLAUDE.md rule 21): what waits on
+  // this product is a ChangeRequest like any other gated change, and these
+  // only record what has already happened to it.
+  //
+  // When it was sold across the counter before it existed in the catalogue.
+  // Null on every ordinary product, and the thing that makes this one
+  // deliberately incomplete rather than broken: no category, no cost, no
+  // photographs, by design.
+  quickSoldAt DateTime?
+  // When a reviewer finished its details and it became an ordinary catalogue
+  // item. From here on nothing about it is special.
+  completedAt DateTime?
+  // ...or when a reviewer decided it never was a catalogue item — a one-off
+  // that will not come back. The SALE is untouched either way: money changed
+  // hands, and the order lines are snapshots (spec.md "Price & cost
+  // snapshots"). A one-off is soft-deleted alongside this stamp, so it leaves
+  // the catalogue without taking its sale with it.
+  oneOffAt DateTime?
+
   // When this product's barcode labels were last sent to the printer.
   // Null = never printed, which is what the "still to print" work queue
   // filters on. Reprinting only moves the timestamp forward — it is a record,
@@ -297,10 +389,11 @@ model Product {
   labelsPrintedAt DateTime?
 
   // --- relations ---
-  images       ProductImage[]
-  variants     Variant[]
-  variantTypes ProductVariantType[]
-  orderItems   OrderItem[]
+  images           ProductImage[]
+  variants         Variant[]
+  variantTypes     ProductVariantType[]
+  optionValueNotes ProductOptionValueNote[]
+  orderItems       OrderItem[]
 
   createdById String?
   createdBy   User?   @relation("ProductCreatedBy", fields: [createdById], references: [id])
@@ -313,6 +406,9 @@ model Product {
   @@index([isActive])
   @@index([deletedAt])
   @@index([labelsPrintedAt])
+  // The "needs completing" screen: quick-sold, not yet completed, not yet
+  // ruled a one-off.
+  @@index([quickSoldAt])
   @@index([searchText(ops: raw("gin_trgm_ops"))], type: Gin)
 }
 
@@ -389,6 +485,7 @@ model VariantOptionValue {
   sortOrder Int    @default(0)
 
   variantValues VariantValue[]
+  productNotes  ProductOptionValueNote[]
 
   createdAt DateTime @default(now())
 
@@ -407,6 +504,36 @@ model ProductVariantType {
   variantType VariantType @relation(fields: [variantTypeId], references: [id])
 
   @@id([productId, variantTypeId])
+}
+
+// --- join: what one option value MEANS on one product ---
+//
+// "S" is not the same garment measurement on a pair of trousers as on an
+// abaya, so the shop writes "طول البنطلون ٩٥ سم" against THAT product's own S
+// (spec.md "Notes on a product's options"). The note therefore hangs off the
+// product's USE of the value and never off the global value, which is shared
+// by the whole catalogue — writing one here can never change what another
+// product's S says.
+//
+// The value is still referenced by id (CLAUDE.md rule 2): renaming "S"
+// centrally renames it everywhere and leaves every note where it was.
+model ProductOptionValueNote {
+  productId     String
+  optionValueId String
+
+  product     Product            @relation(fields: [productId], references: [id], onDelete: Cascade)
+  optionValue VariantOptionValue @relation(fields: [optionValueId], references: [id], onDelete: Cascade)
+
+  // Translatable { ar, en, he } like all user-facing content (CLAUDE.md rule
+  // 9), missing languages falling back to the default. Never blank: an empty
+  // note is stored by deleting the row, so "has a note" is one question.
+  note Json
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@id([productId, optionValueId])
+  @@index([optionValueId])
 }
 
 // --- join: variant <-> option value (reference by ID, not copied text) ---
@@ -436,8 +563,30 @@ model ProductImage {
   mediumUrl    String // medium — POS
   thumbnailUrl String // thumbnail — list views
 
+  // The photograph EXACTLY as it was uploaded, untouched — same bytes, same
+  // format (see IMAGE_ORIGINAL_SUFFIX). Kept so a crop can be reconsidered
+  // months later without asking the shop to photograph the piece again: the
+  // three sizes above are cut from this, never from each other. Null for
+  // every image stored before the editor existed; those can still be
+  // reordered, made primary and deleted, they simply cannot be re-cropped.
+  originalFilename String?
+  originalUrl      String?
+
+  // What the shop chose in the editor — the crop rectangle as fractions of
+  // the turned frame, the quarter turn, the mirrors (shared's ImageEdit).
+  // Null when the photo was uploaded without opening the editor, which is
+  // a supported way to add one. Stored so re-opening the editor starts where
+  // the last person left off rather than from the whole frame again.
+  edit Json?
+
   sortOrder Int     @default(0) // drag-to-reorder; lowest = primary
   isPrimary Boolean @default(false)
+
+  // Perceived brightness of the photograph, 0-100, measured by sharp at
+  // upload. Read only to SUGGEST the colour of a numbered shawl's numbers
+  // (spec.md) — a dark photo gets light markers. Null for images uploaded
+  // before this was recorded; those simply keep the shipped marker.
+  brightness Float?
 
   productId String?
   product   Product? @relation(fields: [productId], references: [id], onDelete: Cascade)
@@ -504,6 +653,16 @@ enum AuditAction {
   // one that never did anything (see backend/src/lib/userHistory.ts).
   USER_DEACTIVATED
   USER_REACTIVATED
+  // Handing a role an action, or taking it back (spec.md "Editable role
+  // permissions"). Their own actions rather than an UPDATE on a settings-ish
+  // row, for the same reason the two above are not: "who let the Employees
+  // adjust stock, and when" is a question that has to be answerable by
+  // filtering the trail, not by opening every edit and diffing two blobs.
+  //
+  // Only ever written for a CONFIGURABLE action. A protected one cannot be
+  // granted or revoked at all, so there is nothing here to record.
+  PERMISSION_GRANTED
+  PERMISSION_REVOKED
 }
 
 model AuditLog {
@@ -769,6 +928,13 @@ model Order {
   discountAmount Decimal       @default(0) @db.Decimal(10, 2)
   total          Decimal       @db.Decimal(10, 2)
 
+  // Does this sale contain something that was quick-sold — rung up before it
+  // existed in the catalogue (spec.md "Quick sell")? Stored rather than
+  // derived from the lines: it is a fact about the sale that must stay true
+  // once the product has been completed, ruled a one-off or removed, and the
+  // orders list filters on it without joining every line's product.
+  hasQuickSale Boolean @default(false)
+
   // Set the moment stock is taken off the shelf for this order (creation for
   // STORE, the move to PREPARING for online). Its presence is what makes
   // deduction idempotent — stock is never deducted twice for one order.
@@ -802,6 +968,8 @@ model Order {
   @@index([createdAt])
   @@index([createdById])
   @@index([deletedAt])
+  // "Which sales still need reviewing after the season" (spec.md "Quick sell").
+  @@index([hasQuickSale])
 }
 
 model OrderItem {
@@ -826,6 +994,12 @@ model OrderItem {
   unitCost    Decimal? @db.Decimal(10, 2) // resolved cost — SENSITIVE, Admin only
 
   quantity Int
+
+  // This line is a piece that was quick-sold: typed at the counter with a
+  // name and a price and nothing else (spec.md "Quick sell"). A snapshot like
+  // every other field here, so the line still says how it was sold after its
+  // product has been completed, ruled a one-off or removed.
+  quickSold Boolean @default(false)
 
   // Item-level discount, applied to this line before the order-level one.
   discountType   DiscountType?

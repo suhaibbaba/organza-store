@@ -6,6 +6,7 @@ import { localize } from "@/lib/i18n-content";
 import { cn } from "@/lib/utils";
 import { Spinner } from "@/components/ui/spinner";
 import type { SidebarCategories, SidebarCategory } from "@/types/category";
+import { testSelectorFor } from "@organza/shared/lib/testSelector";
 
 interface BrowserCategorySidebarProps {
   categories: SidebarCategories;
@@ -39,13 +40,20 @@ export function BrowserCategorySidebar({
   return (
     <nav
       aria-label={t("categories")}
+      data-test-selector="pos-browse-categories"
       // A narrow rail on a phone and a proper column from `sm`. Its own
       // scroll, so a long category list never scrolls the grid away with it.
       className="w-28 shrink-0 overflow-y-auto border-e border-border bg-secondary/30 py-2 sm:w-48 lg:w-56"
     >
       <ul className="flex flex-col gap-0.5 px-1.5">
         <li>
-          <CategoryRow label={t("all")} depth={0} isSelected={selectedId === null} onSelect={() => onSelect(null)} />
+          <CategoryRow
+            categoryId={null}
+            label={t("all")}
+            depth={0}
+            isSelected={selectedId === null}
+            onSelect={() => onSelect(null)}
+          />
         </li>
       </ul>
 
@@ -91,13 +99,16 @@ function CategoryGroup({ title, rows, selectedId, onSelect, showStar = false }: 
 
   return (
     <>
-      <h3 className="px-3 pb-1 pt-4 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+      {/* 12px, not 11: with page zoom gone a heading has to be legible as
+          drawn, and uppercase Latin at 11px on a phone is not. */}
+      <h3 className="px-3 pb-1 pt-4 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
         {title}
       </h3>
       <ul className="flex flex-col gap-0.5 px-1.5">
         {rows.map((row) => (
           <li key={row.id}>
             <CategoryRow
+              categoryId={row.id}
               label={localize(row.name, locale)}
               depth={row.depth}
               isSelected={selectedId === row.id}
@@ -112,6 +123,10 @@ function CategoryGroup({ title, rows, selectedId, onSelect, showStar = false }: 
 }
 
 interface CategoryRowProps {
+  // The category this row filters to, or null for "everything" — the row's
+  // name in the DOM comes from this and never from the label, which is
+  // translated and would read differently in each language.
+  categoryId: string | null;
   label: string;
   depth: number;
   isSelected: boolean;
@@ -123,7 +138,7 @@ interface CategoryRowProps {
 // lines rather than being cut off — an Arabic category name is longer than the
 // English these rails are usually drawn for, and a cashier picking by eye
 // needs to read the whole word.
-function CategoryRow({ label, depth, isSelected, onSelect, showStar = false }: CategoryRowProps) {
+function CategoryRow({ categoryId, label, depth, isSelected, onSelect, showStar = false }: CategoryRowProps) {
   return (
     <button
       type="button"
@@ -131,12 +146,13 @@ function CategoryRow({ label, depth, isSelected, onSelect, showStar = false }: C
       // Not aria-pressed: this is a filter with one answer at a time, so the
       // selected row is the current one rather than a switch that is on.
       aria-current={isSelected ? "true" : undefined}
+      data-test-selector={testSelectorFor("pos-browse-category", categoryId ?? "all")}
       // Indentation is a logical inset, so a child sits under its parent in
       // Arabic and English alike. It is added to the row's own padding rather
       // than replacing it.
       style={{ paddingInlineStart: `${0.75 + depth * 0.625}rem` }}
       className={cn(
-        "flex min-h-11 w-full items-center gap-1.5 rounded-lg pe-2 py-1.5 text-start text-xs leading-snug",
+        "flex min-h-11 w-full items-center gap-1.5 rounded-lg pe-2 py-1.5 text-start text-xs",
         "transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:text-sm",
         isSelected
           ? "bg-primary text-primary-foreground font-semibold"

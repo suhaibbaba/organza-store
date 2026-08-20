@@ -6,6 +6,7 @@ import { useLocale } from "next-intl";
 import { getTextDirection } from "@/constants/locale";
 import type { AppLocale } from "@/i18n/routing";
 import { useActiveSegmentInView } from "@/lib/segmented-scroll";
+import { testSelectorFor } from "@organza/shared/lib/testSelector";
 import { cn } from "@/lib/utils";
 
 // Radix's Tabs.Root defaults `dir` to "ltr" and writes it onto the DOM node,
@@ -52,6 +53,9 @@ function TabsTrigger({ className, ...props }: React.ComponentProps<typeof TabsPr
   return (
     <TabsPrimitive.Trigger
       data-slot="tabs-trigger"
+      // Named by what the tab SELECTS ("tab-ar", "tab-pending"), which is the
+      // one thing about it that does not change when the design does.
+      data-test-selector={testSelectorFor("tab", props.value)}
       className={cn(
         "inline-flex h-9 min-w-11 shrink-0 items-center justify-center whitespace-nowrap rounded-md px-2.5 text-sm font-medium text-muted-foreground transition-colors",
         "data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm",
@@ -66,7 +70,14 @@ function TabsTrigger({ className, ...props }: React.ComponentProps<typeof TabsPr
 }
 
 function TabsContent({ className, ...props }: React.ComponentProps<typeof TabsPrimitive.Content>) {
-  return <TabsPrimitive.Content data-slot="tabs-content" className={cn("mt-3", className)} {...props} />;
+  return (
+    <TabsPrimitive.Content
+      data-slot="tabs-content"
+      data-test-selector={testSelectorFor("tab-panel", props.value)}
+      className={cn("mt-3", className)}
+      {...props}
+    />
+  );
 }
 
 export { Tabs, TabsList, TabsTrigger, TabsContent };

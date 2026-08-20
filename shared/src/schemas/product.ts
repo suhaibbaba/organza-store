@@ -2,8 +2,10 @@ import { z } from "zod";
 import {
   booleanInput,
   decimalInput,
+  hexColorSchema,
   i18nOptionalSchema,
   i18nSchema,
+  optionValueNoteSchema,
   imagePointCoordinateSchema,
   paginationSchema,
 } from "@/schemas/common";
@@ -11,6 +13,10 @@ import { BARCODE_SOURCE, BARCODE_SOURCES } from "@/constants/barcode";
 import { isValidBarcode, normalizeBarcode } from "@/lib/barcode";
 import { ERROR_CODES } from "@/constants/errors";
 import { PRODUCT_PRINT_STATES, PRODUCT_SORT_FIELDS } from "@/constants/product";
+import {
+  DEFAULT_PRODUCT_COMPLETENESS_FILTER,
+  PRODUCT_COMPLETENESS_FILTERS,
+} from "@/constants/quickSell";
 import { MAX_LABEL_PRINT_BATCH } from "@/constants/label";
 
 // A supplier's own code, typed or scanned into a barcode field. Normalized
@@ -69,6 +75,32 @@ export const optionSelectionSchema = z.object({
   imagePoints: z.record(z.string(), imagePointSchema).optional(),
 });
 
+// Numbered shawls (spec.md): the marker colours, stored on the product so a
+// choice survives the photograph being replaced. Explicit null means "go back
+// to following the photo" — which is why they are nullable rather than merely
+// optional (omitted = leave alone).
+export const pointColorFields = {
+  pointTextColor: hexColorSchema.optional().nullable(),
+  pointBackgroundColor: hexColorSchema.optional().nullable(),
+};
+
+// A note written against ONE of this product's option values (spec.md "Notes
+// on a product's options"). Scoped to the product, never to the global value:
+// the same "S" on the next product keeps whatever it had.
+//
+// The note itself is nullable, and null is meaningful — it REMOVES the note.
+// Values not mentioned are left alone, so a caller can send one changed note
+// without having to resend every note the product carries.
+export const optionValueNoteInputSchema = z.object({
+  optionValueId: z.string().min(1, ERROR_CODES.VALIDATION_REQUIRED),
+  note: optionValueNoteSchema.nullable(),
+});
+export type OptionValueNoteInput = z.infer<typeof optionValueNoteInputSchema>;
+
+export const optionValueNotesField = {
+  optionValueNotes: z.array(optionValueNoteInputSchema).optional(),
+};
+
 export const createProductSchema = z.object({
   name: i18nSchema,
   description: i18nOptionalSchema.optional(),
@@ -86,6 +118,10 @@ export const createProductSchema = z.object({
   // the API accepts for this product is Number, and when off it accepts every
   // type except Number.
   isNumbered: z.boolean().optional(),
+  // The colour of the numbers drawn on the photo and of the badge behind them
+  // (spec.md "Numbered shawls"), one pair for the whole product. Omitted —
+  // the usual case — the numbers follow the photo's own brightness instead.
+  ...pointColorFields,
   sku: z.string().min(1).optional(),
   stock: z.coerce.number().int().min(0).optional(),
   // Auto-generation is the default (CLAUDE.md rule 13): omit these and the
@@ -95,6 +131,9 @@ export const createProductSchema = z.object({
   // Selected global option values to generate variants from (cartesian
   // product across each type's valueIds). Omit for a simple product.
   optionSelections: z.array(optionSelectionSchema).optional(),
+  // Optional short note per chosen value ("طول البنطلون ٩٥ سم" against this
+  // product's own S). Only values this product actually uses are accepted.
+  ...optionValueNotesField,
 }).refine(refineBarcodeFields, BARCODE_REFINEMENT);
 export type CreateProductInput = z.infer<typeof createProductSchema>;
 
@@ -112,10 +151,16 @@ export const updateProductSchema = z.object({
   // rather than throwing away numbers or colours (error.product.
   // numbered_switch_has_variants).
   isNumbered: z.boolean().optional(),
+  // Null puts either half back to "follow the photo"; a colour pins it, and
+  // it stays pinned when the photograph is replaced.
+  ...pointColorFields,
   sku: z.string().min(1).optional(),
   stock: z.coerce.number().int().min(0).optional(),
   // Reversible in both directions, at any time (see barcodeFields).
   ...barcodeFields,
+  // Upserted one by one: a note of `null` removes that value's note, and a
+  // value left out of the list keeps whatever it had.
+  ...optionValueNotesField,
 }).refine(refineBarcodeFields, BARCODE_REFINEMENT);
 export type UpdateProductInput = z.infer<typeof updateProductSchema>;
 
@@ -158,6 +203,12 @@ export const listProductsQuerySchema = paginationSchema.extend({
   // whole workflow of its own, so it filters the list rather than being
   // sifted out client-side. Defaults to every product.
   printState: z.enum(PRODUCT_PRINT_STATES).default("all"),
+  // Quick sell's own work queue (spec.md "Quick sell"). "needs_completing" is
+  // the list an Admin has to clear once the season ends: sold, still without
+  // a category, and therefore invisible to every category filter on this same
+  // screen — which is exactly why it needs a filter of its own rather than a
+  // note somebody is expected to remember.
+  completeness: z.enum(PRODUCT_COMPLETENESS_FILTERS).default(DEFAULT_PRODUCT_COMPLETENESS_FILTER),
   sortBy: z.enum(PRODUCT_SORT_FIELDS).default("createdAt"),
   sortDir: z.enum(["asc", "desc"]).default("desc"),
 });

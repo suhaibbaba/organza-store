@@ -73,6 +73,7 @@ export function CheckoutBar({
     <div
       ref={ref}
       className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 pb-[var(--safe-bottom)] backdrop-blur"
+      data-test-selector="pos-checkout-bar"
     >
       {/* Three stacked rows on a phone, where vertical room is the thing
           there is most of and the thumb wants full-width targets. One row
@@ -117,7 +118,11 @@ export function CheckoutBar({
 
           <div className="flex items-center justify-between pt-1 text-2xl font-bold lg:justify-start lg:gap-3 lg:pt-0">
             <span>{t("total")}</span>
-            <span className="tabular-nums">{formatMoney(totals.total)}</span>
+            {/* What the customer is about to pay: the one figure on this
+                screen anybody queries by name. */}
+            <span className="tabular-nums" data-test-selector="pos-cart-total">
+              {formatMoney(totals.total)}
+            </span>
           </div>
         </div>
 
@@ -127,6 +132,7 @@ export function CheckoutBar({
             variant="outline"
             onClick={onOrderDiscountClick}
             disabled={!canCheckout}
+            data-test-selector="pos-order-discount-button"
             className="shrink-0"
           >
             {/* Type-neutral: this discount may be a percentage or a flat
@@ -137,7 +143,13 @@ export function CheckoutBar({
             </span>
           </Button>
 
-          <Button type="button" onClick={onCheckout} disabled={!canCheckout || isSubmitting} className="flex-1 text-lg">
+          <Button
+            type="button"
+            onClick={onCheckout}
+            disabled={!canCheckout || isSubmitting}
+            data-test-selector="pos-checkout-button"
+            className="flex-1 text-lg"
+          >
             {isSubmitting ? (
               <>
                 <Spinner />
@@ -165,6 +177,7 @@ export function CheckoutBar({
             variant="outline"
             onClick={onWhatsappOrder}
             disabled={!canCheckout || isSubmitting}
+            data-test-selector="pos-whatsapp-order-button"
             className="flex-1 lg:w-auto lg:flex-none lg:shrink-0"
           >
             <MessageCircle aria-hidden="true" />
@@ -178,6 +191,7 @@ export function CheckoutBar({
               variant="outline"
               onClick={onGiftOrder}
               disabled={!canCheckout || isSubmitting}
+              data-test-selector="pos-gift-order-button"
               // The way IN to giving stock away, so it is an outline: the
               // solid violet is spent on the button inside the sheet that
               // actually commits it. It still carries the colour, because

@@ -5,6 +5,8 @@ import { useLocale, useTranslations } from "next-intl";
 import { BARCODE_SOURCE } from "@organza/shared/constants/barcode";
 import type { ProductVariantTypeRef } from "@organza/shared/types/product";
 import type { Variant } from "@organza/shared/types/variant";
+import { testSelectorFor } from "@organza/shared/lib/testSelector";
+import { SELECTABLE } from "@organza/shared/lib/nativeGestures";
 import { localize } from "@/lib/i18n-content";
 import { formatMoney } from "@/lib/format";
 import { ProductImage } from "@/components/products/product-image";
@@ -48,10 +50,20 @@ export function VariantList({ variants, variantTypes, currency }: VariantListPro
           id: value.id,
           typeName: typeNameById.get(value.variantTypeId) ?? "",
           value: localize(value.value, locale),
+          // What this value means on THIS product (spec.md "Notes on a
+          // product's options") — "طول البنطلون ٩٥ سم" under the S it
+          // explains, so a note is never separated from the value it belongs
+          // to. Empty for almost every value, and nothing is rendered then:
+          // no gap, no placeholder, no shift.
+          note: localize(value.note, locale),
         }));
 
         return (
-          <div key={variant.id} className="flex items-center gap-3 rounded-xl border border-border bg-card p-3">
+          <div
+            key={variant.id}
+            className="flex items-center gap-3 rounded-xl border border-border bg-card p-3"
+            data-test-selector={testSelectorFor("variant-row", variant.id)}
+          >
             <ProductImage
               src={variant.images[0]?.thumbnailUrl}
               alt={name}
@@ -65,11 +77,14 @@ export function VariantList({ variants, variantTypes, currency }: VariantListPro
                     {groups.map((group) => (
                       <div key={group.id} className="min-w-0">
                         {group.typeName && (
-                          <p className="truncate text-[0.6875rem] leading-tight text-muted-foreground">
+                          <p className="truncate text-xs text-muted-foreground">
                             {group.typeName}
                           </p>
                         )}
                         <p className="truncate text-sm font-medium text-foreground">{group.value}</p>
+                        {group.note && (
+                          <p className="line-clamp-2 text-xs text-muted-foreground">{group.note}</p>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -78,11 +93,13 @@ export function VariantList({ variants, variantTypes, currency }: VariantListPro
                 )}
                 <StatusBadge isActive={variant.isActive} />
               </div>
-              <p className="mt-0.5 truncate text-xs text-muted-foreground">{variant.sku}</p>
+              <p className="mt-0.5 truncate text-xs text-muted-foreground" {...SELECTABLE}>
+                {variant.sku}
+              </p>
               {/* The code a scan at the counter matches, and whose it is: a
                   size carrying the supplier's own tag needs no label of ours. */}
               {variant.barcode && (
-                <p className="truncate text-xs text-muted-foreground" dir="ltr">
+                <p className="truncate text-xs text-muted-foreground" dir="ltr" {...SELECTABLE}>
                   {variant.barcode}
                   {variant.barcodeSource === BARCODE_SOURCE.SUPPLIER && (
                     <span dir="auto" className="ms-2 font-medium">

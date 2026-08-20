@@ -10,6 +10,7 @@ import { useMoneyFormatter } from "@/hooks/use-money-formatter";
 import { QuantityStepper } from "@/components/ui/quantity-stepper";
 import { ProductImage } from "@/components/products/product-image";
 import type { OrderDraft } from "@/hooks/use-order-draft";
+import { testSelectorFor } from "@organza/shared/lib/testSelector";
 
 interface DraftLinesListProps {
   draft: OrderDraft;
@@ -33,7 +34,7 @@ export function DraftLinesList({ draft, onLineDiscountClick }: DraftLinesListPro
   }
 
   return (
-    <ul className="flex flex-col gap-2">
+    <ul className="flex flex-col gap-2" data-test-selector="order-draft-lines">
       {draft.lines.map((line) => {
         const name = localize(line.name, locale);
         const variantName = line.variantName ? localize(line.variantName, locale) : null;
@@ -58,7 +59,11 @@ export function DraftLinesList({ draft, onLineDiscountClick }: DraftLinesListPro
           (line.discountType === "PERCENT" || discountCents !== toCents(line.discountValue));
 
         return (
-          <li key={line.key} className="flex flex-col gap-2 rounded-xl border border-border bg-card p-3">
+          <li
+            key={line.key}
+            className="flex flex-col gap-2 rounded-xl border border-border bg-card p-3"
+            data-test-selector={testSelectorFor("order-draft-line", line.key)}
+          >
             <div className="flex items-start gap-3">
               <ProductImage src={line.imageUrl} alt={name} className="size-14 shrink-0 rounded-lg" sizes="56px" />
 

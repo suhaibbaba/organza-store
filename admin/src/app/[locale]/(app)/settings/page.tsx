@@ -22,7 +22,7 @@ function SettingsPageContent() {
 
   return (
     <PageContainer>
-      <PageHeader title={t("title")} description={t("subtitle")} />
+      <PageHeader name="settings" title={t("title")} description={t("subtitle")} />
 
       {/* A form screen, not a table one: the whole column — the device
           card as well as the form under it — is held to a readable width so

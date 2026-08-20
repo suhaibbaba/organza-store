@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { Tag, Trash2 } from "lucide-react";
+import { Tag, Trash2, Zap } from "lucide-react";
 import { localize } from "@/lib/i18n-content";
 import { lineDiscountCents, lineTotal } from "@/lib/cart";
 import { fromCents, toCents } from "@/lib/money";
@@ -15,6 +15,7 @@ import { StockBadge } from "@/components/ui/stock-badge";
 import { cn } from "@/lib/utils";
 import type { CartLine } from "@/types/cart";
 import type { ScanFlash } from "@/types/feedback";
+import { testSelectorFor } from "@organza/shared/lib/testSelector";
 
 interface CartLineRowProps {
   line: CartLine;
@@ -67,6 +68,10 @@ export function CartLineRow({ line, flash, onQuantityChange, onRemove, onDiscoun
         "relative flex flex-col gap-3 overflow-hidden rounded-xl border bg-card p-3 transition-colors",
         flash ? "border-primary bg-primary/5 ring-2 ring-primary" : "border-border"
       )}
+      // One line of the sale, named by the piece it is selling — a cart of
+      // eight lines is otherwise eight identical descriptions (CLAUDE.md
+      // "Test selectors").
+      data-test-selector={testSelectorFor("pos-cart-line", line.key)}
     >
       <div className="flex items-start gap-3">
         <ProductThumb src={line.imageUrl} alt={name} className="size-14 rounded-lg" />
@@ -85,7 +90,19 @@ export function CartLineRow({ line, flash, onQuantityChange, onRemove, onDiscoun
                 is exactly what somebody asking for a second one needs to
                 hear. The count is what the stepper is capped at, so the two
                 always agree. */}
-            <StockBadge stock={line.availableStock} trackLowStock={line.trackLowStock} showCount />
+            {/* A quick-sold line has no shelf figure to report — the piece
+                was never on a shelf the system knows about — so it says what
+                it IS instead (spec.md "Quick sell"). Marked here as well as
+                on the order afterwards, so the cashier can see at a glance
+                which lines were typed rather than scanned. */}
+            {line.quickSell ? (
+              <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+                <Zap className="size-3.5" aria-hidden="true" />
+                {t("quickSold")}
+              </span>
+            ) : (
+              <StockBadge stock={line.availableStock} trackLowStock={line.trackLowStock} showCount />
+            )}
           </span>
 
           {/* Right under the price, because that is the number it changes:
@@ -112,6 +129,7 @@ export function CartLineRow({ line, flash, onQuantityChange, onRemove, onDiscoun
           type="button"
           onClick={() => setConfirmingAt(line.quantity)}
           aria-label={t("remove", { name: fullName })}
+          data-test-selector={testSelectorFor("pos-cart-line-remove", line.key)}
           className="flex size-11 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           <Trash2 className="size-5" aria-hidden="true" />
@@ -120,6 +138,7 @@ export function CartLineRow({ line, flash, onQuantityChange, onRemove, onDiscoun
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <QuantityStepper
+          name={line.key}
           value={line.quantity}
           max={line.availableStock}
           onChange={handleQuantityChange}
@@ -135,6 +154,7 @@ export function CartLineRow({ line, flash, onQuantityChange, onRemove, onDiscoun
             type="button"
             onClick={onDiscountClick}
             aria-label={t("discountFor", { name: fullName })}
+            data-test-selector={testSelectorFor("pos-cart-line-discount", line.key)}
             className="flex h-11 items-center gap-1.5 rounded-lg border border-input px-3 text-sm font-medium transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             {/* A price tag, not a percent sign. The glyph names the
@@ -163,6 +183,7 @@ export function CartLineRow({ line, flash, onQuantityChange, onRemove, onDiscoun
         <div
           role="group"
           aria-label={t("removeConfirmTitle")}
+          data-test-selector={testSelectorFor("pos-cart-line-remove-confirm", line.key)}
           className="flex flex-wrap items-center gap-2 rounded-lg border border-destructive/40 bg-destructive/5 p-2"
         >
           <p className="min-w-0 flex-1 text-sm font-medium">{t("removeConfirmTitle")}</p>

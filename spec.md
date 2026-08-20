@@ -86,6 +86,42 @@ appends, so nothing already on the shelf changes. Renaming or deleting an existi
 Admin/Manager only: it reaches every product using that value at once (see the reference rule
 above), which is exactly what makes it dangerous in the wrong hands.
 
+### Notes on a product's options
+A short, optional note written against **this product's use of** one option value.
+
+"S" means something different on a pair of trousers than on an abaya, so the shop writes
+"طول البنطلون ٩٥ سم" against the trousers' own S — and something else, or nothing at all, against
+the abaya's. The same applies to a colour ("أغمق قليلًا من الصورة") and to a numbered shawl's
+numbers ("حرير طبيعي" against number 4).
+
+- **Scoped to the product, never to the global value.** The note lives on the join
+  `ProductOptionValueNote (productId, optionValueId, note)`, so writing one can never change what
+  another product's S says. The value itself is still referenced by id (the reference rule above):
+  renaming "أحمر" centrally renames it everywhere and leaves every note where it was.
+- **Translatable `{ ar, en, he }`** like all user-facing content, falling back to the default
+  language. Blank in every language is not a note — the row is removed, so "does this value have a
+  note" is one question with one answer.
+- **Short by design** (`OPTION_VALUE_NOTE_MAX_LENGTH`): it is read on a picker tile between two
+  customers, not a second description.
+- **Edited in the product form**, beside the values themselves: one collapsed block under the
+  options, one language switch for the whole block, one line per value. A numbered shawl's numbers
+  are annotated the same way, in the numbers editor's quantities step — a number is an option value
+  like any other. It is a product DETAIL, so it rides on `product.edit` exactly like the name: an
+  Employee may write one, while their price change in the same save still waits for an Admin
+  (see "Employee change approvals"). A note may only be written against a value the product
+  actually uses; anything else is refused (`error.product.option_note_value_not_used`).
+- **Displayed wherever the value is chosen or shown**, identically for colours, sizes and numbers:
+  the POS variant picker, the product detail page, and the storefront's variant selector when that
+  is built. Always small and secondary, directly under the value it explains, at most two lines. A
+  variant carrying notes from two option types shows one line each, prefixed with the value it
+  belongs to so it is obvious which is which; a single note needs no prefix, because the tile is
+  already showing the value it explains. A value with no note renders nothing at all — no gap, no
+  placeholder, nothing that shifts.
+- **Deliberately absent from the crowded places:** cart lines and order lines carry none of this,
+  so the selling flow is not slowed by an explanation that belongs where the choice is made.
+- **Never drawn on a numbered shawl's photograph.** The markers are tight already, and text over a
+  photograph cannot be relied on to be readable — the note goes beside the number in the picker.
+
 ---
 
 ## SKU (auto-generated)
@@ -354,6 +390,88 @@ translations live in the DB. No paid search or translation services.
 
 ---
 
+## Editing a photograph on upload
+
+A phone photograph of stock is a room with a dress in it. The shop frames the
+garment itself, in the admin, at the moment the photo is added — otherwise the
+catalogue is a grid of dresses at different sizes with different amounts of
+shop around each of them.
+
+**The editor** (`react-easy-crop`, touch-first) opens by itself the moment
+photographs are chosen, one after another for a batch, without going back to
+the form in between. It does four things and no more: drag to move, pinch or
+drag the slider to zoom, turn in quarter steps, mirror. It works by touch and
+by mouse — the counter screen has no pinch, so the zoom slider is not
+decoration.
+
+**The shape is the catalogue's 2:3 by default**, so every product photo comes
+out the same shape. The other choice is the photograph's own shape, for the
+piece that genuinely does not fit — a display, a fabric detail. **Skipping the
+editor is still a supported way to add a photo:** it is stored whole, exactly
+as before, and the screens that draw it letterbox it on the photo plate.
+
+**The edit is DATA, never a picture.** What the browser sends is the file as
+it was picked plus a rectangle (fractions of the framed view), a quarter turn
+and two mirrors; `sharp` cuts the three stored sizes out of the **original**,
+at full quality. A canvas re-encode in the browser would hand the server a
+photograph already decoded, scaled to fit a phone screen and re-compressed,
+and no care afterwards puts that detail back. The preview drawn on the tile is
+a canvas — a preview is all it is.
+
+**The original is kept** beside the three sizes (`<uuid>-original.<ext>`,
+untouched bytes), so a framing chosen in a hurry can be reconsidered: a stored
+photo carries a **crop** button that re-cuts it from the original, and the new
+sizes get new file names so nothing cached anywhere goes on showing the old
+framing.
+
+**A photo from before the editor existed can be re-framed too.** It has no
+original, so the largest size it does have is used — and then **promoted** to
+be that photo's original as the crop is cut. One step down in quality, once,
+from a picture that had already been through sharp; from then on it behaves
+like any other photo and never loses anything again. The alternative — telling
+the shop to photograph its existing catalogue again, or cutting each new crop
+out of the last one — is worse in both directions.
+
+**Orientation is honoured.** A phone held sideways records an EXIF tag rather
+than turning the pixels, and every browser turns it back before drawing —
+including the one the crop was drawn in — so the server auto-orients before
+cutting. Without that pair, a crop drawn on a portrait photo would be cut out
+of a landscape one.
+
+**Nothing about a gallery changes otherwise:** photos are still picked,
+reordered, made primary and removed in the form's working copy, and written by
+its single Save (an Employee's deletion still becomes a change request).
+
+---
+
+## An installed app, not a page in a browser
+
+The admin and the POS are used on a shop counter — a phone in one hand and a
+garment in the other — so the browser's default reflexes are wrong for them:
+
+- **Nothing zooms.** An accidental pinch that leaves the screen askew at 1.4×
+  mid-sale is not something a cashier with a customer waiting will stop and
+  undo. Three things together: `maximum-scale=1, user-scalable=no` in the
+  viewport (honoured by Chrome and the Android WebView), `touch-action:
+  manipulation` (drops double-tap-to-zoom without touching taps or fast
+  repeated taps), and cancelling Safari's `gesture*` events plus any
+  multi-touch `touchmove`, because iOS has ignored `user-scalable=no` since
+  iOS 10. In the **installed** app that holds; in plain Safari the same
+  listeners stop the pinch, but the address bar's own Zoom control is beyond
+  any page's reach. The photo editor opts out (`data-allow-zoom`) — pinching
+  into a garment is the one place two fingers mean something.
+- **Nothing may depend on zooming**, therefore: every label is legible and
+  every control tappable at 1× — 16px form fields (below that Safari zooms the
+  page on focus, which would strand the layout), a 44px floor on anything a
+  thumb hits, and no interface text below 12px.
+- **No long-press sheet.** Holding a product card or a button raises iOS's
+  Copy / Look Up / Share sheet over the interface, which means nothing here.
+  Selection and the callout are off, and back on for the handful of things
+  worth copying — a barcode, a SKU, an order number, a customer's phone number
+  or address — marked `data-selectable`.
+
+---
+
 ## Barcode / QR scanning (POS)
 - Library: **`html5-qrcode`** — broad browser support incl. **mobile** (iOS Safari + Android Chrome),
   rear-camera support, reads both 1D barcodes and QR.
@@ -461,6 +579,121 @@ response at all, so there is nothing to un-hide client-side.
 
 ---
 
+## Editable role permissions
+
+The table above is the shop's **starting point**, not its ceiling. Shops differ: one wants its
+Employees handling stock, another does not; one wants its Manager printing labels, another keeps
+that to the counter. So most of that table is editable from the admin — **and a specific part of
+it is not, ever.**
+
+Everything goes through one function, `can(user, action)` in `@organza/shared`, which every screen
+and every route already calls. Making the rules editable changed only where that function reads
+them from; no call site moved.
+
+### The split
+
+Every action is declared as exactly one of two kinds, next to the action itself in
+`shared/src/constants/permissions.ts`. The two lists are exhaustive and disjoint, checked when the
+module loads — an action in neither (or in both) is a crash on boot, not a permission that
+silently cannot be resolved.
+
+**PROTECTED — never editable, by anyone, through any UI or API.** Fifteen actions, and each of
+them is here for one of two reasons:
+
+| Action | Why it cannot move |
+|---|---|
+| `product.viewCost`, `report.view` | Cost, COGS, profit and margin are the owner's read of their own business (see "Sensitive fields"). |
+| `user.viewSensitive` | A staff ID number. |
+| `product.editPrice` | "Nothing can be sold cheap and pocketed" is only a guarantee while the re-pricing permission cannot be handed to whoever is at the counter. |
+| `order.edit`, `order.cancel`, `order.delete` | A sale, once rung up, cannot be quietly changed, voided or erased. |
+| `order.return` | Undoing a sale by another name, so it is protected with the ones above rather than left as the way round them. |
+| `order.createGift` | Re-pricing a sale to zero by another name. |
+| `order.markCollected` | The person who took the order must never be the person who says its money arrived. |
+| `changeRequest.approve` | The approval gate is the whole design; a grantable approval permission is a gate anybody can walk around. |
+| `expense.approve` | Self-approval by another name — granted to whoever spends the shop's cash, it takes money out of the drawer with nobody's agreement but their own. |
+| `user.manage`, `user.delete` | The keys to the building. |
+| `permission.manage` | A permission to hand out permissions that could itself be handed out is not a gate, it is a door with the key taped to it. |
+
+These are the **anti-theft guarantees** the "Security rationale" above is built on, plus the two
+things a shop cannot recover from on its own: somebody reading the owner's margin, and an Admin
+locked out of their own system. If they can be switched off, the whole design collapses.
+
+**CONFIGURABLE — everything else** (thirty actions): adding and editing products, categories,
+photos, option values, reading and adjusting stock, printing labels, taking and following orders,
+the cash drawer, recording and reading expenses, asking for and reading changes, the dashboard,
+and the settings screen. Real decisions a shop makes about itself, that cost nothing if they turn
+out wrong and are put back with one tap.
+
+### Where the rules live
+
+- **PROTECTED** actions are answered from the shipped table (`DEFAULT_ROLE_PERMISSIONS`) and from
+  nothing else. No stored row, no API call and no hand-edited database moves one.
+- **CONFIGURABLE** actions are answered from the `RolePermission` table — one row per
+  (role, action), holding an explicit on/off.
+
+A row that is **missing** means "nobody has decided", and falls back to the shipped default. That
+is what makes an action added in a later release behave as it was written on a database
+bootstrapped before it existed, rather than arriving switched off for everybody, silently.
+
+`npm run bootstrap` seeds the table from the shipped defaults, each grant **once in the life of
+the database** like every other bootstrapped default — so day one behaves exactly as it did before
+this screen existed, and a shop's own decision is never undone by a later deploy.
+
+### Why it is cached, and how it stays honest
+
+`can()` is called dozens of times per request and is synchronous — it is an `if`, everywhere.
+A database read per call is not an option, so each API process holds the table in memory
+(`backend/src/lib/permissionConfig.ts`):
+
+- the process that **makes** a change re-reads immediately, inside the request that made it, so
+  whoever just tapped the box is never shown the state they replaced;
+- every **other** process checks a *version* rather than the table — a digest of the whole
+  (role, action, granted) set, one row back, asked for at most once every few seconds on the way
+  through `requireAuth`. Unchanged (the normal case) it does nothing; moved, it re-reads once.
+  A digest rather than a timestamp, because a timestamp is only as precise as its column and two
+  edits inside one millisecond would leave a process convinced nothing had changed.
+
+If the database cannot be reached, the last good rules stay in force and the failure is reported.
+Permissions a few seconds old are a working shop; permissions that evaporate because a query timed
+out are a shop where nobody can sell anything.
+
+The admin and POS apps are handed the same rules from `GET /api/permissions` and push them into
+their own `can()`, so what a screen shows and what the API allows cannot disagree. That is
+convenience, not a boundary: the backend refuses the request whatever the browser believes.
+
+### The guards
+
+1. **Only an Admin may edit** — `PATCH /api/permissions` is gated on `permission.manage`, which is
+   PROTECTED and Admin-only, so it can never be granted to another role.
+2. **An Admin may not edit their own role.** The one edit whose author and subject are the same
+   person, refused outright (`error.permission.self_role`) — including for a change that would be
+   harmless, because the rule is about who is adjusting whose authority, not about what the edit
+   happens to amount to.
+3. **The last active Admin cannot be stripped.** Demoting or deactivating them is refused
+   (`error.user.last_admin`), and guard 2 closes the other road to the same place: no sequence of
+   permission edits can take anything away from the account holding the shop together.
+4. **A PROTECTED action is refused by the server** (`error.permission.action_protected`), not
+   merely hidden on the screen — a `curl` with an Admin's token is a client too. A batch naming
+   one is refused whole, so "refused" can never mean "half of it landed".
+
+Every change writes an audit entry of its own — who, which role, which action, on or off
+(`PERMISSION_GRANTED` / `PERMISSION_REVOKED`) — rather than one entry per request carrying a blob,
+because the question somebody will ask this trail is "when did Employees get this?".
+
+### The screen
+
+Admin → **Permissions**. On a phone: pick a role, then plain switches grouped by the part of the
+shop they belong to. On a desktop: the actual matrix, actions down and roles across.
+
+A protected row shows a **padlock and a short reason** — "this protects the shop's records" —
+never a greyed-out checkbox. A disabled control is the universal look of something broken; an
+untrained user taps it three times and concludes the app is faulty. The padlock says the opposite:
+this is working exactly as intended, and here is why it will not move. The Admin's own column is
+locked the same way, and still says whether the grant is on, because "what can an Admin do" is a
+question the screen exists to answer.
+
+---
+
 ## Employee change approvals
 
 Some changes are too consequential to hand to whoever happens to be at the counter, but refusing
@@ -554,6 +787,81 @@ configured it is silently off, exactly like sale notifications.
 
 ---
 
+## Quick sell
+
+At the height of the season, stock reaches the shop floor before it reaches the system. A customer
+is holding a piece that nobody has entered yet, there is a queue behind them, and the honest choice
+is between selling it and writing it on paper. So the POS sells it.
+
+**Sell first, tidy up later.** A cashier taps *Quick sell* and types what the sale genuinely needs:
+a **name**, a **selling price**, and optionally one short **colour / size / number**. No category,
+no cost, no barcode, no photograph, no variants. The line joins the cart like any other, discounts
+and totals the same way, and the sale completes **immediately** — nothing about it waits for
+approval, and stock behaves exactly as it does for any other sale.
+
+**What the sale creates.** In the same transaction as the order:
+
+* a **Product**, deliberately incomplete — `categoryId` null, `cost` null, no images, no variants,
+  `isActive` false (it has no business being browsed to yet), a barcode of ours so the piece can be
+  labelled the moment somebody shelves it, and `stock` equal to what is leaving, so the sale's own
+  deduction lands it at zero. `quickSoldAt` is stamped.
+* an **OrderItem** with `quickSold` true and `unitCost` **null** — nobody at the till knows what the
+  piece cost.
+* a **ChangeRequest** on `(Product, completion)`, through the same mechanism as every other gated
+  change (CLAUDE.md rule 21). No second `approvalStatus` column anywhere.
+
+Because all three commit together, an abandoned or failed checkout can never leave a nameless
+half-product behind.
+
+**The request reads the other way round.** Every other request on the approvals screen asks
+permission *before* the fact. This one is a review *after* it: the sale has happened and the money
+is in the till. So it gets a card of its own that says what happened first — "already sold for
+150 · order 412" — and offers *Complete the details* and *It was a one-off* rather than approve and
+reject. Getting that wrong would invite the conclusion that refusing undoes a sale.
+
+**Completing** is done on the product's own edit form, where the missing half actually lives: the
+approvals card links there, and a banner at the top of that form carries the two decisions. A
+category is required — a product without one is invisible to every category-filtered list, which is
+the one thing completing must not leave undone (`error.product.completion_incomplete`, refused
+server-side). Cost, barcode and photographs stay optional: plenty of real products have no
+photograph, and cost is Admin-only, so a Manager may complete a piece and leave it blank.
+Completing stamps `completedAt` and publishes the product.
+
+**One-off** stamps `oneOffAt` and soft-deletes the product: a piece that will not come back is not a
+catalogue item. **The sale is untouched either way** — the order lines are snapshots
+(see "Price & cost snapshots"), so the receipt, the totals and the reports keep saying exactly what
+was sold and for how much.
+
+**Profit is visibly overstated until the cost is filled in.** A quick-sold line's `unitCost` is
+null, which is precisely what the reports' existing missing-cost warning counts — so the figure
+says so out loud rather than quietly reporting the whole price as profit.
+
+**Finding them again.** The sale carries `hasQuickSale`, badged in the orders list and on the order
+itself (and per line, since an order of six may have one), with a filter for "quick sales only".
+The catalogue side has the **needs completing** queue: a tab on the products screen, carrying its
+own count, listing exactly the pieces that are quick-sold and not yet decided. It has to be a tab
+rather than a filter inside the sheet, because these products have no category — the filter
+somebody *would* reach for cannot see them. Rows carry an "incomplete" badge wherever they appear.
+
+**Permissions.** `product.quickSell` — every role as shipped, which is the point: it happens when
+the shop is busiest and that is exactly when an Employee is at the till. `product.complete` —
+Admin and Manager; curating the catalogue is not the job of whoever was at the counter. Both are
+CONFIGURABLE. Deciding a completion answers to `product.complete` rather than
+`changeRequest.approve`, which stays Admin-only and PROTECTED: the two are opposites and widening
+one must never widen the other. Quick sell is refused on a **gift** — giving away something the
+shop has no record of holding is a piece walking out with nothing behind it.
+
+**Self-review is allowed here, and only here.** An Admin or Manager who quick-sold something may
+complete it themselves: they hold `product.complete` outright and could edit that product directly,
+so refusing would only strand it on the queue. Every other gated field still refuses a self-decision
+— that is what makes the gate a gate.
+
+**The trail.** The order's own CREATE entry records who quick-sold what at what price (every line's
+name, price and `quickSold` flag), and the request, the completion and the one-off are audited like
+any other change.
+
+---
+
 ## Soft delete
 Products are never hard-deleted (they may be linked to past orders). Deleting sets `deletedAt`
 and hides the product from all normal views. Role-gated (Manager/Admin only).
@@ -608,6 +916,7 @@ request **superseded** an earlier one, and who **approved** or **rejected** it.
 - `@tanstack/react-query` — API data fetching & caching
 - `react-hook-form` + `zod` + `@hookform/resolvers` — forms & validation
 - `@dnd-kit/core` — drag-to-reorder images
+- `react-easy-crop` — the photo editor (crop / zoom / turn / mirror), touch-first
 - `lucide-react` — icons
 - `zustand` — light state management (if needed)
 - `next/image` — image display/optimization
@@ -720,8 +1029,38 @@ stock/price. Send one numbered image on WhatsApp; the customer replies with a nu
   (not pixels) so points stay correct at any screen size.
 - Numbers are unique within a product (the variant set already guarantees this).
 
-**Display:** product image as background; numbers drawn on a separate transparent overlay (small
-circles) using each variant's `imageX/imageY`. Full image visible with numbers on top.
+**New fields on Product (marker colours):** `pointTextColor` and `pointBackgroundColor` (hex,
+nullable). ONE pair for all of a product's numbers, never one per number.
+
+**New field on ProductImage:** `brightness` (0-100, nullable) — how light or dark the photograph
+is, measured once by `sharp` at upload and read only to suggest a marker colour.
+
+**Display:** product image as background; numbers drawn on a separate transparent overlay using
+each variant's `imageX/imageY`. Full image visible with numbers on top. Three rules hold
+everywhere the numbers are drawn — the admin's placement canvas, the product detail page, and the
+WhatsApp export — because a shared image that does not match what the shop is looking at is worse
+than no image:
+
+- **The photo is capped by HEIGHT as well as width**, keeping its own aspect ratio and staying
+  centred. A portrait shawl given a whole desktop column stood taller than the window and pushed
+  everything else below the fold. The box always has exactly the photo's ratio, since the points
+  are percentages of it, so capping it moves the numbers with the photo rather than off it.
+- **A marker is a proportion of the rendered image, never a fixed pixel size** — clamped into a
+  readable range, and drawn as a rounded rectangle rather than a circle, because "10" and "12" do
+  not sit comfortably in a circle at a size anybody would want to tap. A fixed size is what made
+  the numbers crowd each other on a small rendering. The badge stays the size the photo says; a
+  finger gets its 44px from an invisible pad around it.
+- **The colour is the shop's to choose, and it usually does not have to.** Null on either field
+  means "follow the photo": the suggestion is read from the primary image's `brightness`, so a
+  black abaya gets white markers and a cream scarf dark ones. Choosing a colour pins it — and it
+  deliberately OUTLIVES the photograph, since replacing the image re-measures the suggestion but
+  never overwrites a choice. Whatever the pair, the number stays readable: below the minimum
+  contrast ratio the TEXT is swapped for black or white (the background is what was chosen to sit
+  against the photograph, so it is the half that is kept), and every marker carries an outline in
+  its text colour plus a soft shadow so it reads on a busy part of a photograph.
+
+All three live in `shared/` (`constants/numberedShawl.ts`, `lib/pointColors.ts`) rather than in one
+app's CSS, so the burned-in WhatsApp copy resolves exactly the same colours.
 
 **Admin input (two-step, to avoid mis-linking):**
 1. Place points on the image first — auto-numbered 1, 2, 3… (creates the Number values/variants).

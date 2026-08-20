@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { flexRender, getCoreRowModel, useReactTable, type ColumnDef } from "@tanstack/react-table";
+import { testSelectorFor } from "@organza/shared/lib/testSelector";
 import { ChevronRight } from "lucide-react";
 import type { OrderSummary } from "@organza/shared/types/order";
 import { isOrderCollectable } from "@organza/shared/lib/orders";
@@ -12,6 +13,7 @@ import { useMoneyFormatter } from "@/hooks/use-money-formatter";
 import { OrderChannelBadge } from "@/components/orders/order-channel-badge";
 import { OrderStatusBadge } from "@/components/orders/order-status-badge";
 import { OrderTypeBadge } from "@/components/orders/order-type-badge";
+import { QuickSaleBadge } from "@/components/orders/quick-sale-badge";
 import { PaymentStatusBadge } from "@/components/orders/payment-status-badge";
 
 // Desktop-only view of the same orders the cards show on a phone. Same data,
@@ -45,6 +47,10 @@ export function OrderTable({ orders }: { orders: OrderSummary[] }) {
                 what it changes is what the row's total means. Renders nothing
                 for an ordinary sale. */}
             <OrderTypeBadge type={row.original.type} />
+            {/* ...and for the same reason: something on this sale was typed
+                at the counter, so its cost may still be missing (spec.md
+                "Quick sell"). */}
+            {row.original.hasQuickSale && <QuickSaleBadge />}
           </div>
         ),
       },
@@ -100,7 +106,7 @@ export function OrderTable({ orders }: { orders: OrderSummary[] }) {
   const table = useReactTable({ data: orders, columns, getCoreRowModel: getCoreRowModel() });
 
   return (
-    <div className="overflow-hidden rounded-xl border border-border">
+    <div className="overflow-hidden rounded-xl border border-border" data-test-selector="orders-table">
       <table className="w-full text-sm">
         <thead className="bg-secondary text-secondary-foreground">
           {table.getHeaderGroups().map((headerGroup) => (
@@ -115,7 +121,11 @@ export function OrderTable({ orders }: { orders: OrderSummary[] }) {
         </thead>
         <tbody>
           {table.getRowModel().rows.map((row) => (
-            <tr key={row.id} className="border-t border-border">
+            <tr
+              key={row.id}
+              className="border-t border-border"
+              data-test-selector={testSelectorFor("orders-row", row.original.id)}
+            >
               {/* `relative` scopes the number link's stretched ::after to its
                   own cell. */}
               {row.getVisibleCells().map((cell) => (

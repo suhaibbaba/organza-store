@@ -18,7 +18,15 @@ export interface ProductVariantDto {
   // Null for ordinary (non-numbered) variants.
   imageX?: number | null;
   imageY?: number | null;
-  values: { id: string }[];
+  values: {
+    id: string;
+    variantTypeId: string;
+    key: string;
+    value: { ar: string; en?: string; he?: string };
+    // What this value means on THIS product (spec.md "Notes on a product's
+    // options"), or null — which is the usual case.
+    note: { ar?: string; en?: string; he?: string } | null;
+  }[];
   // Role-gated (CLAUDE.md rule 19): absent entirely for Employee responses.
   cost?: number | string | null;
   resolvedCost?: number | string | null;
@@ -45,6 +53,15 @@ export interface ProductDto {
   // The product's explicit "this sells numbers, nothing else" choice
   // (spec.md "Numbered shawls"). False unless it was asked for.
   isNumbered: boolean;
+  // The colour its numbers are drawn in (spec.md "Numbered shawls"), one pair
+  // for the whole product. Null means the numbers follow the photo's own
+  // brightness instead of a stored choice.
+  pointTextColor: string | null;
+  pointBackgroundColor: string | null;
+  // Every note the product carries on an option value, flat — what the
+  // product form edits. The same notes reach display through
+  // variants[].values[].note.
+  optionValueNotes: { optionValueId: string; note: { ar?: string; en?: string; he?: string } }[];
   // Whatever is still waiting for an Admin on this product, its variants or
   // its photos (spec.md "Employee change approvals"). Present on every
   // product response; empty when nothing is held.
@@ -52,9 +69,24 @@ export interface ProductDto {
   // The gallery, lowest sortOrder first. Only the id is asserted against
   // today (the photo-deletion approval), so only the shape that needs
   // asserting is declared.
-  images: { id: string; url: string; thumbnailUrl: string; isPrimary: boolean }[];
+  images: {
+    id: string;
+    url: string;
+    thumbnailUrl: string;
+    isPrimary: boolean;
+    // How light or dark the photograph is, 0-100 (null when it was uploaded
+    // before this was measured) — what the marker-colour suggestion reads.
+    brightness: number | null;
+  }[];
   // Null until the product's barcode labels have been printed at least once.
   labelsPrintedAt: string | null;
+  // --- quick sell (spec.md "Quick sell") ---
+  // Sold before it existed in the catalogue, and what has since been decided
+  // about it. `needsCompleting` is the queue the Admin has to clear.
+  quickSoldAt: string | null;
+  completedAt: string | null;
+  oneOffAt: string | null;
+  needsCompleting: boolean;
   // Soft delete (CLAUDE.md rule 4) — a product is hidden, never destroyed.
   deletedAt: string | null;
   variants: ProductVariantDto[];
@@ -65,8 +97,18 @@ export interface ProductDto {
 // Lighter list-view shape (GET /api/products).
 export interface ProductSummaryDto {
   id: string;
+  name: { ar: string; en?: string; he?: string };
+  category: { id: string; name: Record<string, string>; slug: string } | null;
   basePrice: number | string;
   labelsPrintedAt: string | null;
+  // --- quick sell (spec.md "Quick sell") ---
+  // Sold before it existed in the catalogue, and what has since been decided
+  // about it. `needsCompleting` is the queue the Admin has to clear.
+  quickSoldAt: string | null;
+  completedAt: string | null;
+  oneOffAt: string | null;
+  needsCompleting: boolean;
+
   barcode: string | null;
   barcodeSource: "GENERATED" | "SUPPLIER";
   // Whether a label of ours is still owed — false once every code the product
@@ -80,6 +122,8 @@ export interface ProductNumberOptionDto {
   variantNumber: number;
   number: { ar: string; en?: string; he?: string };
   numberKey: string;
+  // The note written against this number on this shawl, or null.
+  note: { ar?: string; en?: string; he?: string } | null;
   sku: string;
   barcode: string | null;
   resolvedPrice: number | string;

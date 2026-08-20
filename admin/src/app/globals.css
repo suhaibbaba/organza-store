@@ -31,6 +31,42 @@
   --font-arabic: var(--font-cairo);
   --font-hebrew: var(--font-noto-hebrew);
 
+  /* ------------------------------------------------------------------
+     LINE HEIGHTS — sized for Arabic, which is the script this app is
+     written in.
+
+     Tailwind pairs each font size with a line height meant for Latin
+     (text-sm is 14/20, text-2xl is 24/32). Cairo does not fit in those
+     boxes: measured in the browser, its ink runs from ~0.7em above the
+     baseline to ~0.45em below it, and the font's own content area is
+     ~1.9em tall. A 1.33 line box therefore puts the tails of ج ح خ ي
+     OUTSIDE the element — invisible until something clips, and then the
+     descenders are simply sliced off. Every `truncate`, `line-clamp` and
+     `overflow-hidden` in the app was doing exactly that, and stacked lines
+     were colliding besides.
+
+     So the scale below is the measured minimum plus a pixel of slack: 1.8
+     at the small sizes an interface is mostly built from, easing to 1.5 at
+     display sizes, where the same ratio would look loose. Latin gets the
+     same numbers rather than a locale switch, because Arabic product names
+     appear on the English and Hebrew screens too (translatable content
+     falls back to the default language, CLAUDE.md rule 9) — a row that
+     fits its text in one language and clips it in another is worse than a
+     roomier line everywhere.
+
+     Change these with a screenshot in hand, not by taste: `ملاحظات على
+     الخيارات جحخي` inside a `truncate` box is the test.
+     ------------------------------------------------------------------ */
+  --text-xs--line-height: 1.85;
+  --text-sm--line-height: 1.8;
+  --text-base--line-height: 1.8;
+  --text-lg--line-height: 1.75;
+  --text-xl--line-height: 1.7;
+  --text-2xl--line-height: 1.7;
+  --text-3xl--line-height: 1.65;
+  --text-4xl--line-height: 1.55;
+  --text-5xl--line-height: 1.5;
+
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -195,6 +231,11 @@
 
   html {
     -webkit-text-size-adjust: 100%;
+    /* Tailwind's preflight sets 1.5 here, and every element that carries no
+       `text-*` utility inherits it — which put a 16px Arabic line in a 24px
+       box and let `truncate` slice its descenders. Same reasoning, and the
+       same number, as the type scale above. */
+    line-height: 1.8;
   }
 
   body {
@@ -209,6 +250,104 @@
 
   html[lang="he"] body {
     font-family: var(--font-hebrew);
+  }
+
+  /* ==================================================================
+     AN APP, NOT A PAGE IN A BROWSER
+     ------------------------------------------------------------------
+     Everything in this block exists because these two apps are used on a
+     shop counter — a phone held in one hand, a garment in the other, a
+     customer waiting — where a browser's default reflexes are all wrong.
+     The JavaScript half is components/pwa/native-gesture-guard.tsx and the
+     viewport half is in app/[locale]/layout.tsx; this is the rest.
+     ================================================================== */
+
+  html {
+    /* No double-tap-to-zoom, and no 300ms wait to find out whether a tap was
+       going to become one — so a fast run through a sale registers every tap
+       the moment it lands. `manipulation` keeps ordinary scrolling and
+       panning untouched: it removes the double-tap gesture and nothing else.
+
+       On <html> rather than on each control, because the gesture belongs to
+       the page: a double tap that starts on a button and finishes a pixel
+       outside it would otherwise still zoom. */
+    touch-action: manipulation;
+  }
+
+  /* ------------------------------------------------------------------
+     No long-press sheet.
+     ------------------------------------------------------------------
+     Holding a finger on anything with text in it — a product card, a cart
+     line, a button's label — brings up iOS's "Copy / Look Up / Share" sheet
+     and the blue selection handles with it. Over a till that is pure
+     obstruction: it covers the interface, it takes a tap to dismiss, and
+     nobody selling a dress wanted to look up its name in a dictionary.
+
+     Off by default and back ON where it earns its place, rather than a list
+     of every interactive component: an interface is mostly controls, and the
+     handful of places where text is genuinely worth lifting out — a barcode,
+     an order number, a phone number, the diagnostic detail on a failure
+     screen — are countable and known. They say so with data-selectable
+     (@organza/shared/constants/gestures.ts).
+     ------------------------------------------------------------------ */
+  body {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  /* Typing into a field means putting a caret in it, moving that caret, and
+     correcting a word halfway along — every one of which is text selection.
+     These are never the thing being long-pressed by accident. */
+  input,
+  textarea,
+  [contenteditable="true"] {
+    -webkit-touch-callout: default;
+    -webkit-user-select: text;
+    user-select: text;
+  }
+
+  /* Opted back in, and its children with it: a barcode is usually a <span>
+     inside the element that carries the attribute. */
+  [data-selectable="true"],
+  [data-selectable="true"] * {
+    -webkit-touch-callout: default;
+    -webkit-user-select: text;
+    user-select: text;
+  }
+
+  /* A long press on a photo offers "Save Image" / "Copy" of its own, and a
+     slow drag lifts it out as a draggable ghost. Neither means anything in a
+     catalogue screen, and both fire while somebody is simply scrolling. */
+  img {
+    -webkit-touch-callout: none;
+    -webkit-user-drag: none;
+    user-select: none;
+  }
+
+  /* ------------------------------------------------------------------
+     16px is a floor, not a preference.
+     ------------------------------------------------------------------
+     Safari zooms the page in when a field smaller than 16px takes focus, and
+     since this app has just taken zooming away it would have no way back
+     out: the layout would sit shifted for the rest of the sale.
+
+     Tailwind's preflight gives a field `font: inherit`, which fixes the
+     browser's own 13.3px default and introduces a subtler one — a field
+     inside a text-sm block quietly inherits 14px and zooms on focus. A
+     declared size here ends that: inheritance never reaches it.
+
+     This is a floor, not a ceiling. It sits in the base layer, so a field
+     that deliberately wants to be BIGGER still says so with a utility class
+     and wins. A utility asking for something SMALLER would win too — CSS
+     cannot express "at least this much" against a class it cannot see — so
+     that half is held by the field components themselves (every one of them
+     is text-base) rather than by this rule pretending to catch it.
+     ------------------------------------------------------------------ */
+  input,
+  select,
+  textarea {
+    font-size: 1rem;
   }
 
   /* Native search-input decorations (magnifier/clear) don't respect our
@@ -336,6 +475,84 @@ main:has([data-page-container]) {
 }
 
 /* ============================================================
+   THE APP DID NOT START — see components/pwa/boot-failure.tsx
+   ------------------------------------------------------------
+   The splash above is taken down by React. When React never runs there is
+   nobody to take it down, so it pulses on forever and a dead app looks like a
+   slow one. The inline watchdog puts data-boot="failed" on <html>; these three
+   rules are what that attribute does.
+
+   Written in plain CSS with literal values on purpose. This is the screen for
+   a browser we already know is struggling, so it leans on nothing: no theme
+   custom properties, no colour functions, no Tailwind utilities. The two
+   brand colours arrive as inline styles from constants/pwa.ts, exactly as the
+   splash's do.
+   ============================================================ */
+
+.boot-failure {
+  display: none;
+}
+
+html[data-boot="failed"] .boot-splash {
+  display: none;
+}
+
+html[data-boot="failed"] .boot-failure {
+  position: fixed;
+  inset: 0;
+  /* Above the splash it replaces, which is itself above everything else. */
+  z-index: 101;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.25rem;
+  padding: calc(var(--safe-top) + 2rem) 1.5rem calc(var(--safe-bottom) + 2rem);
+  text-align: center;
+  overflow-y: auto;
+}
+
+.boot-failure-title {
+  max-width: 24rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.boot-failure-message {
+  max-width: 24rem;
+  font-size: 1rem;
+  line-height: 1.6;
+  /* The message is the long line and the title carries the point, so it sits
+     back a little without dropping to a contrast nobody can read. */
+  opacity: 0.85;
+}
+
+.boot-failure-retry {
+  /* 44px, the same floor every other touch target in the app is held to. */
+  min-height: 2.75rem;
+  min-width: 9rem;
+  padding: 0 1.5rem;
+  border: 0;
+  border-radius: 0.75rem;
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.boot-failure-detail {
+  font-size: 0.75rem;
+  line-height: 1.5;
+  /* The build number and whatever the browser said — there to be read down a
+     phone, not to be looked at. Wrapping matters more than size: a chunk URL
+     is long and must not push the panel sideways. */
+  opacity: 0.6;
+  max-width: 24rem;
+  word-break: break-word;
+}
+
+/* ============================================================
    BARCODE LABELS — the printed sheet
    ------------------------------------------------------------
    These rules are shared by the on-screen preview and the copy the browser
@@ -413,14 +630,24 @@ main:has([data-page-container]) {
   overflow: hidden;
   font-size: 2.6mm;
   font-weight: 600;
-  line-height: 1.15;
+  /* Roomier than the 1.15 this shipped with, because the names on these
+     stickers are Arabic and 1.15 printed them with the tails of ج ح خ ي
+     sliced off — `overflow: hidden` above clips whatever the line box does
+     not contain. Not the full 1.8 the screen uses: a sticker is 15mm tall
+     and the barcode takes what the text leaves, so the line box is kept as
+     tight as it can be and the last line's descender is caught by the
+     padding instead (the clip box is the padding box). */
+  line-height: 1.5;
+  padding-block-end: 0.5mm;
 }
 
 .label-variant {
   max-width: 100%;
   overflow: hidden;
   font-size: 2.2mm;
-  line-height: 1.15;
+  /* Same reason as .label-name — this one is a single line ("أحمر / M"). */
+  line-height: 1.5;
+  padding-block-end: 0.4mm;
   text-overflow: ellipsis;
   white-space: nowrap;
 }

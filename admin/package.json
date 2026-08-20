@@ -2,9 +2,19 @@
   "name": "@organza/admin",
   "version": "0.1.0",
   "private": true,
+  "_comment_browserslist": "The oldest phone the shop actually uses is an iPhone 7, which stops at iOS 15 — and every browser on iOS is Safari underneath, so ios_saf is the binding constraint. Left unset, Next compiles for its own default of Safari 16.4 and emits class static initialization blocks, which iOS 15 cannot even parse: the chunk dies with a SyntaxError before React mounts and the boot splash never comes down. The other four entries are that era's evergreen releases, so the target set is one coherent generation rather than Safari 15 next to Chrome 111.",
+  "browserslist": [
+    "chrome >= 96",
+    "edge >= 96",
+    "firefox >= 95",
+    "safari >= 15",
+    "ios_saf >= 15"
+  ],
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "_comment_build": "The check is part of the build, not a separate step somebody has to remember: syntax the oldest phone cannot parse is a broken app, and it should fail the image build rather than the till.",
+    "build": "next build && npm run check:browser-target",
+    "check:browser-target": "node ../shared/scripts/check-browser-target.js .next/static/chunks",
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit"
@@ -35,16 +45,19 @@
     "next-intl": "^4.13.4",
     "react": "19.2.4",
     "react-dom": "19.2.4",
+    "react-easy-crop": "^6.2.3",
     "react-hook-form": "^7.84.0",
     "tailwind-merge": "^3.6.0",
     "zod": "^4.4.3"
   },
+  "_comment_devDependencies": "acorn is here for shared/scripts/check-browser-target.js, which parses the built chunks after next build to prove the oldest phone in the shop can still read them. Declared rather than borrowed from Next's own tree, so the check cannot break when a dependency is hoisted differently.",
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@types/jsbarcode": "^3.11.4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "acorn": "^8.15.0",
     "eslint": "^9",
     "eslint-config-next": "16.2.12",
     "tailwindcss": "^4",

@@ -16,6 +16,9 @@ export interface OrderFiltersValue {
   status: OrderListFilters["status"];
   channel: OrderListFilters["channel"];
   paymentStatus: OrderListFilters["paymentStatus"];
+  // Quick sell's review list (spec.md "Quick sell"): the sales rung up before
+  // the piece existed, which are the ones whose profit is still incomplete.
+  hasQuickSale: boolean;
   dateFrom: string;
   dateTo: string;
 }
@@ -56,6 +59,7 @@ export function OrderFiltersSheet({ value, onApply, activeCount }: OrderFiltersS
       status: null,
       channel: null,
       paymentStatus: null,
+      hasQuickSale: false,
       dateFrom: DEFAULT_ORDER_FILTERS.dateFrom,
       dateTo: DEFAULT_ORDER_FILTERS.dateTo,
     };
@@ -66,7 +70,13 @@ export function OrderFiltersSheet({ value, onApply, activeCount }: OrderFiltersS
 
   return (
     <>
-      <Button type="button" variant="outline" onClick={() => handleOpenChange(true)} className="relative shrink-0 px-4">
+      <Button
+        type="button"
+        variant="outline"
+        onClick={() => handleOpenChange(true)}
+        data-test-selector="order-filters-open"
+        className="relative shrink-0 px-4"
+      >
         <SlidersHorizontal className="size-5" aria-hidden="true" />
         {t("trigger")}
         {activeCount > 0 && (
@@ -77,7 +87,7 @@ export function OrderFiltersSheet({ value, onApply, activeCount }: OrderFiltersS
       </Button>
 
       <Sheet open={open} onOpenChange={handleOpenChange}>
-        <SheetContent side="end" closeLabel={tCommon("close")}>
+        <SheetContent name="order-filters" side="end" closeLabel={tCommon("close")}>
           <SheetHeader>
             <SheetTitle>{t("title")}</SheetTitle>
           </SheetHeader>
@@ -142,6 +152,30 @@ export function OrderFiltersSheet({ value, onApply, activeCount }: OrderFiltersS
               </Select>
             </div>
 
+            {/* One question rather than a list to pick from, because it has
+                only one interesting answer: a quick sale is an ordinary sale
+                in every other respect, so "all sales" is what the screen is
+                already showing (spec.md "Quick sell"). A plain checkbox with
+                a 44px target, not a two-option select that would read as a
+                choice between two halves of the list. */}
+            <label
+              htmlFor="order-filter-quick-sale"
+              className="flex min-h-11 items-center gap-3 rounded-lg border border-border px-3"
+            >
+              <input
+                id="order-filter-quick-sale"
+                type="checkbox"
+                checked={draft.hasQuickSale}
+                onChange={(e) => setDraft((d) => ({ ...d, hasQuickSale: e.target.checked }))}
+                data-test-selector="field-order-filter-quick-sale"
+                className="size-5 shrink-0 accent-primary"
+              />
+              <span className="flex min-w-0 flex-col">
+                <span className="text-sm font-medium text-foreground">{t("quickSale")}</span>
+                <span className="text-xs text-muted-foreground">{t("quickSaleHint")}</span>
+              </span>
+            </label>
+
             {/* Two dates, each with its OWN visible label. An empty date
                 input renders as an empty box on a phone — no "yyyy-mm-dd"
                 hint, nothing — so two of them stacked were two identical
@@ -190,10 +224,10 @@ export function OrderFiltersSheet({ value, onApply, activeCount }: OrderFiltersS
           </div>
 
           <div className="flex gap-3 p-5 pt-2">
-            <Button type="button" variant="outline" className="flex-1" onClick={handleReset}>
+            <Button type="button" variant="outline" className="flex-1" onClick={handleReset} data-test-selector="order-filters-reset">
               {t("reset")}
             </Button>
-            <Button type="button" className="flex-1" onClick={handleApply}>
+            <Button type="button" className="flex-1" onClick={handleApply} data-test-selector="order-filters-apply">
               {t("apply")}
             </Button>
           </div>

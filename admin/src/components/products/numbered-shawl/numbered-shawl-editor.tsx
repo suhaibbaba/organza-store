@@ -1,30 +1,46 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { NUMBER_VARIANT_TYPE_SLUG } from "@organza/shared/constants/variantType";
 import { ERROR_CODES } from "@organza/shared/constants/errors";
+import { resolvePointColors, suggestPointColors } from "@organza/shared/lib/pointColors";
 import type { UpdateVariantInput } from "@organza/shared/schemas/product";
 import type { Product } from "@organza/shared/types/product";
 import type { VariantType } from "@organza/shared/types/variant";
 import { useAddOptionValueMutation } from "@/hooks/use-variant-types";
-import { useDeleteVariantMutation, useGenerateVariantsMutation, useUpdateVariantMutation } from "@/hooks/use-products";
+import {
+  useDeleteVariantMutation,
+  useGenerateVariantsMutation,
+  useUpdateProductMutation,
+  useUpdateVariantMutation,
+} from "@/hooks/use-products";
 import { useTranslateError } from "@/hooks/use-translate-error";
 import {
   diffShawlPoint,
+  initPointNotes,
   initShawlPoints,
   newShawlPoint,
   nextPointNumber,
   roundPercent,
 } from "@/lib/validation/numbered-shawl";
+import {
+  diffOptionValueNotes,
+  setNoteLanguage,
+  type OptionValueNoteMap,
+} from "@/lib/option-value-notes";
 import { isNonNegativeIntegerString } from "@/lib/validation/numeric";
 import { ImagePointCanvas } from "@/components/products/numbered-shawl/image-point-canvas";
 import { PointDetailsList } from "@/components/products/numbered-shawl/point-details-list";
+import { PointColorControls } from "@/components/products/numbered-shawl/point-color-controls";
+import { OptionValueNotesSection } from "@/components/products/option-value-notes-section";
 import { Button } from "@/components/ui/button";
 import { Alert } from "@/components/ui/alert";
 import { SegmentedControl } from "@/components/ui/segmented-control";
 import { Spinner } from "@/components/ui/spinner";
 import { ApiError } from "@/lib/api/errors";
+import { localize } from "@/lib/i18n-content";
+import type { I18nFormValue } from "@/types/productForm";
 import type { ShawlPoint } from "@/types/numberedShawl";
 
 interface NumberedShawlEditorProps {
@@ -49,6 +65,18 @@ export function NumberedShawlEditor({ product, variantTypes, currency }: Numbere
 
   const [step, setStep] = useState<Step>("place");
   const [points, setPoints] = useState<ShawlPoint[]>(() => initShawlPoints(product.variants));
+  // The marker colours, held as the product stores them: null means "follow
+  // the photo", so a product nobody has chosen for keeps tracking its image
+  // instead of being pinned to whatever it looked like the first time this
+  // screen was opened.
+  const [textColor, setTextColor] = useState<string | null>(product.pointTextColor);
+  const [backgroundColor, setBackgroundColor] = useState<string | null>(product.pointBackgroundColor);
+  // What each number MEANS on this shawl (spec.md "Notes on a product's
+  // options") — "شال حرير" against number 4. Keyed by POINT rather than by
+  // option value, so a number placed a moment ago can be annotated before the
+  // save has given it a global value.
+  const initialNotes = useMemo(() => initPointNotes(product), [product]);
+  const [notes, setNotes] = useState<OptionValueNoteMap>(initialNotes);
   const [removedVariantIds, setRemovedVariantIds] = useState<Set<string>>(new Set());
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
@@ -59,14 +87,24 @@ export function NumberedShawlEditor({ product, variantTypes, currency }: Numbere
   const generateVariantsMutation = useGenerateVariantsMutation(product.id);
   const updateVariantMutation = useUpdateVariantMutation(product.id);
   const deleteVariantMutation = useDeleteVariantMutation(product.id);
+  const updateProductMutation = useUpdateProductMutation(product.id);
 
   const isSaving =
     addOptionValueMutation.isPending ||
     generateVariantsMutation.isPending ||
     updateVariantMutation.isPending ||
-    deleteVariantMutation.isPending;
+    deleteVariantMutation.isPending ||
+    updateProductMutation.isPending;
+
+  const colorsChanged =
+    textColor !== product.pointTextColor || backgroundColor !== product.pointBackgroundColor;
+  // Detected on the point keys alone: whether the notes changed is a question
+  // that must be answerable before any value id has been resolved.
+  const notesChanged = diffOptionValueNotes(initialNotes, notes).length > 0;
 
   const isDirty =
+    colorsChanged ||
+    notesChanged ||
     points.some((p) => !p.variantId) ||
     removedVariantIds.size > 0 ||
     points.some((p) => {
@@ -104,6 +142,25 @@ export function NumberedShawlEditor({ product, variantTypes, currency }: Numbere
     setPoints((prev) => prev.filter((p) => p.id !== id));
     setSelectedId(null);
     setConfirmDeleteId(null);
+  }
+
+  function handleColorChange(field: "textColor" | "backgroundColor", value: string) {
+    markDirty();
+    if (field === "textColor") setTextColor(value);
+    else setBackgroundColor(value);
+  }
+
+  // Back to following the photo — both halves at once, because "use the
+  // suggestion" is one decision, not two.
+  function handleUseSuggestedColors() {
+    markDirty();
+    setTextColor(null);
+    setBackgroundColor(null);
+  }
+
+  function handleNoteChange(pointId: string, language: keyof I18nFormValue, text: string) {
+    markDirty();
+    setNotes((previous) => setNoteLanguage(previous, pointId, language, text));
   }
 
   function handlePointField(id: string, field: "stock" | "priceOverride", value: string) {
@@ -165,6 +222,25 @@ export function NumberedShawlEditor({ product, variantTypes, currency }: Numbere
 
       const calls: Promise<unknown>[] = [];
 
+      // The colours and the notes both live on the PRODUCT, not on any point,
+      // so they travel together in one PATCH — and only what changed is in
+      // it. The notes are keyed by point up to this line; here each one
+      // finally learns which global value it belongs to.
+      const valueIdByPointId = new Map(resolved.map((point) => [point.id, point.valueId]));
+      const noteChanges = diffOptionValueNotes(
+        initialNotes,
+        notes,
+        (pointId) => valueIdByPointId.get(pointId) ?? null
+      );
+      if (colorsChanged || noteChanges.length > 0) {
+        calls.push(
+          updateProductMutation.mutateAsync({
+            ...(colorsChanged ? { pointTextColor: textColor, pointBackgroundColor: backgroundColor } : {}),
+            ...(noteChanges.length > 0 ? { optionValueNotes: noteChanges } : {}),
+          })
+        );
+      }
+
       for (const point of existingPoints) {
         const original = product.variants.find((v) => v.id === point.variantId);
         const patch = original ? diffShawlPoint(original, point) : null;
@@ -200,6 +276,28 @@ export function NumberedShawlEditor({ product, variantTypes, currency }: Numbere
 
   const selectedPoint = selectedId ? points.find((p) => p.id === selectedId) ?? null : null;
 
+  // One block, one row per number placed — including a number placed a moment
+  // ago, which is keyed by its point until the save resolves its value.
+  const numberType = variantTypes.find((vt) => vt.slug === NUMBER_VARIANT_TYPE_SLUG);
+  const noteGroups = [
+    {
+      id: numberType?.id ?? NUMBER_VARIANT_TYPE_SLUG,
+      typeName: numberType ? localize(numberType.name, locale) : "",
+      rows: [...points]
+        .sort((a, b) => a.number - b.number)
+        .map((point) => ({ key: point.id, label: String(point.number) })),
+    },
+  ];
+
+  // What the numbers are drawn in right now, including a colour being picked
+  // that has not been saved yet — the canvas above is the preview, so there
+  // is no second little swatch to keep in step with it.
+  const suggestion = suggestPointColors(image.brightness);
+  const colors = resolvePointColors(
+    { pointTextColor: textColor, pointBackgroundColor: backgroundColor },
+    image.brightness
+  );
+
   return (
     <div className="flex flex-col gap-4">
       {/* Two steps, each as wide as its own name: the halves this used to be
@@ -223,10 +321,21 @@ export function NumberedShawlEditor({ product, variantTypes, currency }: Numbere
             alt={t("imageAlt")}
             points={points}
             selectedId={selectedId}
+            colors={colors}
             disabled={isSaving}
             onAddPoint={handleAddPoint}
             onMovePoint={handleMovePoint}
             onSelectPoint={handleSelectPoint}
+          />
+
+          <PointColorControls
+            textColor={textColor}
+            backgroundColor={backgroundColor}
+            suggestion={suggestion}
+            adjustedForContrast={colors.textAdjustedForContrast}
+            onChange={handleColorChange}
+            onUseSuggestion={handleUseSuggestedColors}
+            disabled={isSaving}
           />
 
           {selectedPoint && (
@@ -250,13 +359,28 @@ export function NumberedShawlEditor({ product, variantTypes, currency }: Numbere
           )}
         </>
       ) : (
-        <PointDetailsList
-          points={points}
-          currency={currency}
-          locale={locale}
-          basePrice={product.basePrice}
-          onFieldChange={handlePointField}
-        />
+        <>
+          <PointDetailsList
+            points={points}
+            currency={currency}
+            locale={locale}
+            basePrice={product.basePrice}
+            onFieldChange={handlePointField}
+          />
+
+          {/* A note per number, in the same collapsed block an ordinary
+              product's sizes and colours use (spec.md "Notes on a product's
+              options"): a number is an option value like any other, and it
+              is annotated here rather than drawn on the photograph, where
+              the markers are already tight and text over a picture cannot be
+              relied on to be readable. */}
+          <OptionValueNotesSection
+            groups={noteGroups}
+            notes={notes}
+            onChange={handleNoteChange}
+            disabled={isSaving}
+          />
+        </>
       )}
 
       {saveError && <Alert variant="destructive">{saveError}</Alert>}

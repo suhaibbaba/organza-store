@@ -1,5 +1,9 @@
 import { keepPreviousData, useMutation, useQuery } from "@tanstack/react-query";
-import { PRODUCT_LIST_PAGE_SIZE, PRODUCT_LIST_QUERY_KEY } from "@/constants/products";
+import {
+  DEFAULT_PRODUCT_FILTERS,
+  PRODUCT_LIST_PAGE_SIZE,
+  PRODUCT_LIST_QUERY_KEY,
+} from "@/constants/products";
 import {
   fetchProducts,
   fetchProduct,
@@ -20,6 +24,32 @@ export function useProductsQuery(filters: ProductListFilters) {
     // Keeps the current page's rows on screen while the next page/filter
     // loads, instead of flashing back to a loading state.
     placeholderData: keepPreviousData,
+  });
+}
+
+/**
+ * How many quick-sold pieces are still waiting to be finished off (spec.md
+ * "Quick sell").
+ *
+ * A count rather than a list: it rides on the products screen's own tab so
+ * that a season's worth of "sell now, tidy up later" cannot quietly turn into
+ * a pile nobody remembers. One row is fetched and thrown away — the figure
+ * that matters is `meta.total`.
+ *
+ * Only ever asked for by somebody who may act on it; the tab is not drawn for
+ * anybody else, so the query is not made either.
+ */
+export function useNeedsCompletingCountQuery(enabled: boolean) {
+  return useQuery({
+    queryKey: [PRODUCT_LIST_QUERY_KEY, "needsCompletingCount"],
+    queryFn: async () => {
+      const { meta } = await fetchProducts(
+        { ...DEFAULT_PRODUCT_FILTERS, completeness: "needs_completing" },
+        1
+      );
+      return meta?.total ?? 0;
+    },
+    enabled,
   });
 }
 

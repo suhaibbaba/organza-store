@@ -3,6 +3,7 @@
 import { useLocale, useTranslations } from "next-intl";
 import { ChevronRight, Plus } from "lucide-react";
 import type { ProductSummary } from "@organza/shared/types/product";
+import { testSelectorFor } from "@organza/shared/lib/testSelector";
 import { localize } from "@/lib/i18n-content";
 import { cn } from "@/lib/utils";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
@@ -62,11 +63,15 @@ export function SearchResults({ results, isLoading, isError, pendingId, onSelect
   }
 
   if (results && results.length === 0) {
-    return <p className="py-10 text-center text-sm text-muted-foreground">{t("empty")}</p>;
+    return (
+      <p className="py-10 text-center text-sm text-muted-foreground" data-test-selector="pos-search-empty">
+        {t("empty")}
+      </p>
+    );
   }
 
   return (
-    <ul className="flex flex-col gap-2">
+    <ul className="flex flex-col gap-2" data-test-selector="pos-search-results">
       {(results ?? []).map((product) => {
         const name = localize(product.name, locale);
         const soldOut = product.stock <= 0;
@@ -77,6 +82,9 @@ export function SearchResults({ results, isLoading, isError, pendingId, onSelect
               type="button"
               disabled={soldOut || pendingId !== null}
               onClick={() => onSelect(product)}
+              // One result, named by the product behind it — an id, never
+              // the name the customer is being shown.
+              data-test-selector={testSelectorFor("pos-search-result", product.id)}
               className={cn(
                 "flex w-full items-center gap-3 rounded-xl border border-border p-3 text-start transition-colors",
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",

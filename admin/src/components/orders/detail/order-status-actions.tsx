@@ -7,6 +7,7 @@ import { can } from "@organza/shared/lib/permissions";
 import { ERROR_CODES } from "@organza/shared/constants/errors";
 import { ONLINE_STOCK_DEDUCTION_STATUS, ORDER_STATUS_TRANSITIONS } from "@organza/shared/constants/order";
 import type { Order, OrderStatus } from "@organza/shared/types/order";
+import { testSelectorFor } from "@organza/shared/lib/testSelector";
 import { ONLINE_ORDER_FLOW } from "@/constants/orders";
 import { useSession } from "@/components/providers/session-provider";
 import { useUpdateOrderStatusMutation } from "@/hooks/use-orders";
@@ -71,7 +72,9 @@ export function OrderStatusActions({ order }: { order: Order }) {
                   />
                   <span
                     className={cn(
-                      "truncate text-center text-[11px] leading-tight",
+                      // 12px: the step names under the progress bar are read at a glance,
+                      // and there is no zooming in to check one now.
+                      "truncate text-center text-xs",
                       isCurrent ? "font-semibold text-primary" : "text-muted-foreground"
                     )}
                   >
@@ -109,6 +112,7 @@ export function OrderStatusActions({ order }: { order: Order }) {
                 className="h-14 w-full text-base sm:w-auto sm:self-start"
                 disabled={mutation.isPending}
                 onClick={() => move(status)}
+                data-test-selector={testSelectorFor("order-status-advance", status)}
               >
                 {mutation.isPending ? (
                   <Spinner />
@@ -140,6 +144,7 @@ export function OrderStatusActions({ order }: { order: Order }) {
                   className="flex-1"
                   disabled={mutation.isPending}
                   onClick={() => move("CANCELLED")}
+                  data-test-selector="order-cancel-confirm"
                 >
                   {mutation.isPending && <Spinner />}
                   {t("confirmCancelAction")}
@@ -149,6 +154,7 @@ export function OrderStatusActions({ order }: { order: Order }) {
                   variant="outline"
                   className="flex-1"
                   onClick={() => setConfirmingCancel(false)}
+                  data-test-selector="order-cancel-abort"
                 >
                   {t("keepOrder")}
                 </Button>
@@ -160,6 +166,7 @@ export function OrderStatusActions({ order }: { order: Order }) {
               variant="outline"
               className="w-full text-destructive sm:w-auto sm:self-start"
               onClick={() => setConfirmingCancel(true)}
+              data-test-selector="order-cancel"
             >
               <XCircle className="size-5" aria-hidden="true" />
               {t("cancelOrder")}

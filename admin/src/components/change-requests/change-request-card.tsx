@@ -5,6 +5,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { Check, Undo2, X } from "lucide-react";
 import { can } from "@organza/shared/lib/permissions";
 import type { ChangeRequest } from "@organza/shared/types/changeRequest";
+import { testSelectorFor } from "@organza/shared/lib/testSelector";
 import {
   APPROVED_CHANGE_REQUEST_STATUS,
   PENDING_CHANGE_REQUEST_STATUS,
@@ -20,6 +21,7 @@ import {
   useDecideChangeRequestMutation,
 } from "@/hooks/use-change-requests";
 import { useTranslateError } from "@/hooks/use-translate-error";
+import { useActorName } from "@/lib/user-display";
 import { ApiError } from "@/lib/api/errors";
 import { formatDateTime } from "@/lib/format";
 import { localize } from "@/lib/i18n-content";
@@ -46,6 +48,10 @@ export function ChangeRequestCard({ request, canDecide }: ChangeRequestCardProps
   const locale = useLocale();
   const { user } = useSession();
   const translateError = useTranslateError();
+  const actorName = useActorName();
+  // Only a name reaches these cards — no address, no role — so the last
+  // resort is the word for a member of staff we cannot name.
+  const tUnknown = t("card.unknownStaff");
   const decide = useDecideChangeRequestMutation();
   const cancel = useCancelChangeRequestMutation();
 
@@ -79,7 +85,10 @@ export function ChangeRequestCard({ request, canDecide }: ChangeRequestCardProps
   }
 
   return (
-    <article className="flex flex-col gap-3 rounded-xl border border-border bg-card p-4">
+    <article
+      className="flex flex-col gap-3 rounded-xl border border-border bg-card p-4"
+      data-test-selector={testSelectorFor("change-request-card", request.id)}
+    >
       <div className="flex flex-col gap-1">
         {/* WHAT is changing, in plain words: "Price" / "Stock" / "Photo" —
             and, beside it, where the request stands. The badge is drawn from
@@ -102,7 +111,7 @@ export function ChangeRequestCard({ request, canDecide }: ChangeRequestCardProps
 
       <p className="text-xs text-muted-foreground">
         {t("card.askedBy", {
-          name: request.requestedBy?.name ?? "",
+          name: actorName(request.requestedBy, tUnknown),
           when: formatDateTime(request.requestedAt, locale),
         })}
       </p>
@@ -110,7 +119,7 @@ export function ChangeRequestCard({ request, canDecide }: ChangeRequestCardProps
       {!isPending && (
         <p className="text-xs text-muted-foreground">
           {t(request.status === APPROVED_CHANGE_REQUEST_STATUS ? "card.approvedBy" : "card.rejectedBy", {
-            name: request.decidedBy?.name ?? "",
+            name: actorName(request.decidedBy, tUnknown),
             when: formatDateTime(request.decidedAt, locale),
           })}
           {request.decisionNote ? ` — ${request.decisionNote}` : ""}
@@ -118,7 +127,7 @@ export function ChangeRequestCard({ request, canDecide }: ChangeRequestCardProps
       )}
 
       {error && (
-        <p className="text-sm text-destructive">
+        <p className="text-sm text-destructive" data-test-selector="change-request-card-error">
           {error instanceof ApiError ? translateError(error.code) : tCommon("retry")}
         </p>
       )}
