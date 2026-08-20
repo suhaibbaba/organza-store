@@ -13,6 +13,8 @@ import { ACCOUNT_INACTIVE_AUTH_CODE } from "@organza/shared/constants/auth";
 import { FORGOT_PASSWORD_PATH } from "@/constants/auth";
 import { useTranslateError } from "@/hooks/use-translate-error";
 import { loginSchema, type LoginInput } from "@/lib/validation/login";
+import { DEFAULT_LANDING_HREF } from "@/constants/routes";
+import { landingHref } from "@/lib/nav";
 import { FieldError } from "@/components/ui/field-error";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -63,8 +65,15 @@ export function LoginForm() {
   const onSubmit = async (values: LoginInput) => {
     setFormError(null);
     try {
-      await login(values.email, values.password);
-      router.replace("/dashboard");
+      // Where they land is decided HERE, from the account that just signed
+      // in, rather than by sending everybody to /dashboard and letting the
+      // guard bounce whoever may not see it. An Employee bounced that way
+      // still arrives at Orders, but their morning starts with a blank frame
+      // and a URL they were never allowed to open — and it puts a screen they
+      // will be refused into their history, one Back button away from being
+      // returned to.
+      const user = await login(values.email, values.password);
+      router.replace(landingHref(user) ?? DEFAULT_LANDING_HREF);
     } catch (error) {
       // Better Auth's sign-in endpoint doesn't use our error-code envelope
       // (see lib/auth/client.ts), so this reads its own status and code. Two

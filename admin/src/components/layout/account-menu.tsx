@@ -20,8 +20,22 @@ interface AccountMenuProps {
   className?: string;
 }
 
-// Desktop header only — on mobile the same actions live in the bottom nav's
-// "More" sheet, where a nested popup inside an open sheet would be awkward.
+// WHO IS SIGNED IN — in the app shell's header, at every width, for every
+// role. Not desktop-only, and not on any page: an Employee cannot open the
+// dashboard, and the dashboard's greeting was the only other place a name
+// appeared (see the note in top-bar.tsx for the whole of that bug).
+//
+// A deliberate mirror of the POS's own components/layout/account-menu.tsx —
+// same shape, same behaviour, same words — because the same person moves
+// between the two apps on the same phone within the same minute. The half
+// that must never drift is the naming RULE, and that one is genuinely shared:
+// both apps resolve a person's name through @organza/shared/lib/userDisplay
+// (via each app's lib/user-display.ts, which adds the translated role). The
+// markup is duplicated because it is built entirely from per-app pieces — the
+// Radix wrappers, the session provider, the message catalogue — and a shared
+// component taking all of those as parameters would be more indirection than
+// the twenty lines it saved.
+//
 // Mirrors LanguageSwitcher's dropdown variant (same trigger shape, same
 // animated Radix content) so the two sit together consistently in the header.
 export function AccountMenu({ className }: AccountMenuProps) {
@@ -31,7 +45,12 @@ export function AccountMenu({ className }: AccountMenuProps) {
   // Their name, or their address, or their role — never an internal id
   // (lib/user-display.ts). The letter comes from the same source as the name,
   // so the circle and the word beside it always agree.
-  const { name, initial } = useUserDisplay()(user);
+  const { name, initial, roleLabel } = useUserDisplay()(user);
+
+  // The role is worth saying out loud, but not twice: for somebody with
+  // neither a name nor an address it IS the name above, and a menu reading
+  // "Employee / Employee" says less than one that reads it once.
+  const showRole = Boolean(roleLabel) && roleLabel !== name;
 
   return (
     <DropdownMenu>
@@ -63,9 +82,18 @@ export function AccountMenu({ className }: AccountMenuProps) {
 
       <DropdownMenuContent align="end" className="min-w-52">
         {/* The whole identity, where there is room for it: the name the
-            trigger may have had to truncate, and the address underneath. */}
+            trigger may have had to truncate, then what this account IS in the
+            shop, then the address it signs in with.
+
+            The role is here because the app looks different depending on it —
+            an Employee has no dashboard, no reports and no totals — and
+            "where has the money gone" is answered far faster by a line saying
+            which account is signed in than by anybody guessing. */}
         <DropdownMenuLabel className="flex flex-col gap-0.5">
           <span className="truncate">{name}</span>
+          {showRole && (
+            <span className="truncate text-xs font-normal text-muted-foreground">{roleLabel}</span>
+          )}
           {user?.email && (
             <span className="truncate text-xs font-normal text-muted-foreground">{user.email}</span>
           )}
