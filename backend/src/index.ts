@@ -66,9 +66,34 @@ app.all("/api/auth/*", toNodeHandler(auth));
 
 app.use(express.json());
 
-// Processed product/variant images (thumbnail/medium/full WebP), served
-// directly off disk — CLAUDE.md: images stored locally on the VPS.
-app.use("/uploads", express.static(UPLOAD_DIR));
+// Processed product/variant images (thumbnail/medium/full WebP) and the
+// originals they were cut from, served directly off disk — CLAUDE.md: images
+// stored locally on the VPS.
+//
+// Cross-Origin-Resource-Policy is set back to `cross-origin` for this mount
+// and this mount only. helmet's default is `same-origin`, which tells a
+// BROWSER to refuse the bytes when the page asking for them is on another
+// origin — and every page in this system is: the admin, the POS and (later)
+// the storefront all live somewhere else.
+//
+// It went unnoticed for as long as it did because nothing loaded these URLs
+// directly. Product photos are drawn with next/image, which fetches them
+// SERVER-side, where CORP does not apply. The admin's photo editor is the
+// first thing to put one in an <img> in the browser (spec.md "Editing a
+// photograph on upload") — and what CORP does there is not an error message
+// but a blank picture, which is exactly how it was reported: the editor comes
+// up black.
+//
+// Safe to relax here: these files are public product photographs, already
+// served without authentication, and there is nothing else under this path.
+app.use(
+  "/uploads",
+  (_req, res, next) => {
+    res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
+    next();
+  },
+  express.static(UPLOAD_DIR)
+);
 
 app.get("/health", async (_req, res) => {
   // `uploads` is the one piece of state a container cannot rebuild for

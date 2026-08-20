@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import Cropper, { type Area, type MediaSize } from "react-easy-crop";
 import { Check, FlipHorizontal2, FlipVertical2, RotateCw, X } from "lucide-react";
@@ -17,12 +17,16 @@ import {
   type ImageEdit,
 } from "@organza/shared/lib/imageEdit";
 import { CROP_ZOOM_KEY_STEP } from "@/constants/images";
+import { loadEditorSource } from "@/lib/image-edit";
+import { Spinner } from "@/components/ui/spinner";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 interface ImageEditorSheetProps {
   /** The photograph to frame: a picked file's blob URL, or a stored original. */
   src: string;
+  /** Whether `src` is on the API host — it decides how it can be read. */
+  crossOrigin?: boolean;
   /** Where to open — the edit this photo already carries, or an untouched one. */
   edit: ImageEdit;
   /** "2 of 3" while working through a batch; absent for a single photo. */
@@ -54,7 +58,7 @@ interface ImageEditorSheetProps {
  * it — and skipping the editor entirely still works exactly as it always did,
  * with the picture kept whole and the plate filling in behind it.
  */
-export function ImageEditorSheet({ src, edit, step, onCancel, onSave }: ImageEditorSheetProps) {
+export function ImageEditorSheet({ src, crossOrigin = false, edit, step, onCancel, onSave }: ImageEditorSheetProps) {
   const t = useTranslations("products.form.images.editor");
 
   // The cropper's own working state. `crop` is a pixel offset it owns; what
@@ -71,6 +75,34 @@ export function ImageEditorSheet({ src, edit, step, onCancel, onSave }: ImageEdi
   // the crop box has to take, and the zoom at which the box covers all of it.
   const [drawnSize, setDrawnSize] = useState<{ width: number; height: number } | null>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
+  // The picture the cropper is actually given: `src` scaled down to something
+  // a phone will reliably decode (lib/image-edit.ts explains why at length).
+  // Null while that is being prepared; "failed" when the photograph could not
+  // be loaded at all, which is the one thing this screen must not swallow.
+  const [source, setSource] = useState<{ url: string } | "failed" | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    let owned: string | null = null;
+
+    void loadEditorSource(src, { crossOrigin }).then((result) => {
+      if (cancelled) {
+        if (result?.owned) URL.revokeObjectURL(result.url);
+        return;
+      }
+      if (!result) {
+        setSource("failed");
+        return;
+      }
+      if (result.owned) owned = result.url;
+      setSource({ url: result.url });
+    });
+
+    return () => {
+      cancelled = true;
+      if (owned) URL.revokeObjectURL(owned);
+    };
+  }, [src, crossOrigin]);
 
   // No effect resets any of this when the photograph changes, because the
   // photograph never changes: the gallery mounts one editor per photo
@@ -155,10 +187,15 @@ export function ImageEditorSheet({ src, edit, step, onCancel, onSave }: ImageEdi
           the two ends, so either thumb reaches one without crossing the
           picture — and they mirror with the language like everything else. */}
       <div className="flex items-center justify-between gap-2 px-2 pt-[calc(var(--safe-top)+0.5rem)] text-white">
+        {/* In a batch this LEAVES THIS PHOTO AS IT IS and moves to the next
+            one — it does not throw the photograph away, and it does not
+            abandon the rest of the batch. Saying "skip" rather than "cancel"
+            is the difference between somebody pressing it once and somebody
+            wondering whether they have just lost their work. */}
         <button
           type="button"
           onClick={onCancel}
-          aria-label={t("cancel")}
+          aria-label={step && step.total > 1 ? t("skip") : t("cancel")}
           data-test-selector="image-editor-cancel"
           className="inline-flex size-11 items-center justify-center rounded-full text-white/90 transition-colors hover:bg-white/10"
         >
@@ -174,7 +211,8 @@ export function ImageEditorSheet({ src, edit, step, onCancel, onSave }: ImageEdi
           onClick={() => onSave({ ...working, crop: area })}
           aria-label={t("save")}
           data-test-selector="image-editor-save"
-          className="inline-flex size-11 items-center justify-center rounded-full text-white transition-colors hover:bg-white/10"
+          disabled={source === null || source === "failed"}
+          className="inline-flex size-11 items-center justify-center rounded-full text-white transition-colors hover:bg-white/10 disabled:opacity-40"
         >
           <Check className="size-6" aria-hidden="true" />
         </button>
@@ -183,8 +221,30 @@ export function ImageEditorSheet({ src, edit, step, onCancel, onSave }: ImageEdi
       {/* The picture. `flex-1` with `relative`, because the cropper positions
           itself absolutely and would otherwise fill the page. */}
       <div ref={canvasRef} className="relative min-h-0 flex-1" data-test-selector="image-editor-canvas">
+        {source === null && (
+          <div className="absolute inset-0 flex items-center justify-center" data-test-selector="image-editor-loading">
+            <Spinner className="size-8 text-white" />
+          </div>
+        )}
+
+        {/* A photograph the browser will not open. Said plainly, in the
+            middle of the screen, instead of the black rectangle and the
+            broken-image glyph that used to stand for it — the shop can then
+            leave this one alone and carry on rather than wondering whether
+            the app is broken. */}
+        {source === "failed" && (
+          <div
+            className="absolute inset-0 flex flex-col items-center justify-center gap-2 px-6 text-center"
+            data-test-selector="image-editor-failed"
+          >
+            <p className="text-base font-medium text-white">{t("failed")}</p>
+            <p className="text-sm text-white/70">{t("failedHint")}</p>
+          </div>
+        )}
+
+        {source !== null && source !== "failed" && (
         <Cropper
-          image={src}
+          image={source.url}
           crop={offset}
           zoom={zoom}
           rotation={working.rotation}
@@ -223,11 +283,20 @@ export function ImageEditorSheet({ src, edit, step, onCancel, onSave }: ImageEdi
             `scale(${zoom})`,
           ].join(" ")}
         />
+        )}
       </div>
 
       {/* Controls. Below the picture on every screen: a phone is held at the
           bottom, and this is a screen for thumbs. */}
-      <div className="flex flex-col gap-4 px-4 pb-[calc(var(--safe-bottom)+1rem)] pt-4 text-white">
+      <div
+        className={cn(
+          "flex flex-col gap-4 px-4 pb-[calc(var(--safe-bottom)+1rem)] pt-4 text-white",
+          // Nothing to turn, mirror or frame until there is a picture on
+          // screen — and a Save that stores a crop of a photograph nobody
+          // could see is worse than a wait.
+          source === null || source === "failed" ? "pointer-events-none opacity-40" : ""
+        )}
+      >
         {/* The zoom, for a mouse and for anybody who would rather not pinch.
             Pinching still works — this is the same value, said twice. */}
         <label className="flex items-center gap-3">
