@@ -1,18 +1,27 @@
 import { Router } from "express";
 import type { NextFunction, Request, Response } from "express";
 import multer, { MulterError } from "multer";
-import { AuditAction, type ProductImage } from "@prisma/client";
+import { AuditAction, Prisma, type ProductImage } from "@prisma/client";
 import { can } from "@organza/shared/lib/permissions";
 import { prisma } from "@/lib/prisma";
 import { asyncHandler } from "@/middleware/asyncHandler";
 import { requireAuth, requirePermission } from "@/middleware/auth";
 import { validateBody } from "@/middleware/validate";
 import { AppError, sendOk } from "@/lib/response";
-import { ALLOWED_IMAGE_TYPES, UPLOAD_MAX_SIZE_MB, deleteProductImageFiles, storeProductImage } from "@/lib/image";
 import {
+  ALLOWED_IMAGE_TYPES,
+  UPLOAD_MAX_SIZE_MB,
+  deleteProductImageFiles,
+  recropProductImage,
+  storeProductImage,
+} from "@/lib/image";
+import type { ImageEdit } from "@organza/shared/lib/imageEdit";
+import {
+  editImageSchema,
   reorderImagesSchema,
   setPrimaryImageSchema,
   uploadImageSchema,
+  type EditImageInput,
   type ReorderImagesInput,
   type SetPrimaryImageInput,
   type UploadImageInput,
@@ -30,6 +39,13 @@ function serializeImage(image: ProductImage) {
     url: image.url,
     mediumUrl: image.mediumUrl,
     thumbnailUrl: image.thumbnailUrl,
+    // The photograph as it was uploaded, and what was done to it. Both are
+    // what the admin's editor needs to re-open on a photo already stored —
+    // the original is the picture it draws, the edit is where the crop box
+    // starts. Null on anything uploaded before the editor existed, which is
+    // exactly how a screen knows not to offer to re-crop it.
+    originalUrl: image.originalUrl,
+    edit: (image.edit as ImageEdit | null) ?? null,
     sortOrder: image.sortOrder,
     isPrimary: image.isPrimary,
     // Same field the product endpoints return: what a numbered shawl's
@@ -102,7 +118,11 @@ router.post(
 
     const where = ownerWhere(body);
     const existingCount = await prisma.productImage.count({ where });
-    const stored = await storeProductImage(req.file.buffer);
+    // The FILE is untouched and the framing travels beside it as numbers —
+    // never a canvas re-encode from the browser, which would hand us a
+    // picture already decoded, scaled to a phone screen and re-compressed
+    // (spec.md "Editing a photograph on upload").
+    const stored = await storeProductImage(req.file.buffer, body.edit ?? null);
 
     const created = await prisma.productImage.create({
       data: {
@@ -113,6 +133,9 @@ router.post(
         // Only ever read to suggest a colour for a numbered shawl's numbers
         // (spec.md) — never to change the photograph itself.
         brightness: stored.brightness,
+        originalFilename: stored.originalFilename,
+        originalUrl: stored.originalUrl,
+        edit: body.edit ?? Prisma.DbNull,
         sortOrder: existingCount,
         isPrimary: existingCount === 0, // first image for this owner becomes primary
         productId: body.productId ?? null,
@@ -210,6 +233,63 @@ router.patch(
 );
 
 // ---------------------------------------------------------------------------
+// PATCH /api/images/:id/edit — frame the same photograph differently.
+//
+// No file is uploaded: the original was kept when the photo was first stored,
+// and the three sizes are cut from it again at full quality. That is the
+// whole reason for keeping it — a crop chosen in a hurry at the counter can
+// be reconsidered later without asking anybody to photograph the piece again.
+//
+// images.edit, the same permission that adds a photo and reorders a gallery.
+// Deliberately NOT a gated action (CLAUDE.md rule 21, which lists the five):
+// nothing is destroyed here — the original stays, the row keeps its place in
+// the gallery, and any framing can be drawn again tomorrow.
+// ---------------------------------------------------------------------------
+router.patch(
+  "/:id/edit",
+  requirePermission("images.edit"),
+  validateBody(editImageSchema),
+  asyncHandler(async (req, res) => {
+    const image = await prisma.productImage.findUnique({ where: { id: req.params.id } });
+    if (!image) throw new AppError(404, ERROR_CODES.IMAGE_NOT_FOUND);
+    // A photo from before originals were kept. The sizes it already has are
+    // perfectly good; there is simply nothing left to cut a new crop out of.
+    if (!image.originalFilename) throw new AppError(404, ERROR_CODES.IMAGE_ORIGINAL_MISSING);
+
+    const { edit } = req.body as EditImageInput;
+    const stored = await recropProductImage(image.originalFilename, edit);
+
+    const updated = await prisma.productImage.update({
+      where: { id: image.id },
+      data: {
+        filename: stored.filename,
+        url: stored.urls.full,
+        mediumUrl: stored.urls.medium,
+        thumbnailUrl: stored.urls.thumbnail,
+        brightness: stored.brightness,
+        edit,
+      },
+    });
+
+    // Only once the row points at the new files: a failed update must never
+    // leave a gallery whose photographs have been deleted from under it. The
+    // ORIGINAL is not among these — it belongs to the image, not to the crop.
+    await deleteProductImageFiles(image.filename);
+
+    await writeAudit({
+      userId: req.user!.id,
+      action: AuditAction.UPDATE,
+      entityType: AUDIT_ENTITY.PRODUCT_IMAGE,
+      entityId: image.id,
+      oldValue: { url: image.url, edit: image.edit },
+      newValue: { url: updated.url, edit },
+    });
+
+    sendOk(res, serializeImage(updated));
+  })
+);
+
+// ---------------------------------------------------------------------------
 // DELETE /api/images/:id — Admin/Manager delete the photo there and then.
 //
 // An Employee may add and reorder photos but not destroy one, so their delete
@@ -268,7 +348,7 @@ router.delete(
       ]);
     });
     // Only once the row is gone: file deletion cannot be rolled back.
-    await deleteProductImageFiles(image.filename);
+    await deleteProductImageFiles(image.filename, image.originalFilename);
 
     await writeAudit({
       userId: req.user!.id,

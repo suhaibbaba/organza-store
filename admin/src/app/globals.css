@@ -252,6 +252,104 @@
     font-family: var(--font-hebrew);
   }
 
+  /* ==================================================================
+     AN APP, NOT A PAGE IN A BROWSER
+     ------------------------------------------------------------------
+     Everything in this block exists because these two apps are used on a
+     shop counter — a phone held in one hand, a garment in the other, a
+     customer waiting — where a browser's default reflexes are all wrong.
+     The JavaScript half is components/pwa/native-gesture-guard.tsx and the
+     viewport half is in app/[locale]/layout.tsx; this is the rest.
+     ================================================================== */
+
+  html {
+    /* No double-tap-to-zoom, and no 300ms wait to find out whether a tap was
+       going to become one — so a fast run through a sale registers every tap
+       the moment it lands. `manipulation` keeps ordinary scrolling and
+       panning untouched: it removes the double-tap gesture and nothing else.
+
+       On <html> rather than on each control, because the gesture belongs to
+       the page: a double tap that starts on a button and finishes a pixel
+       outside it would otherwise still zoom. */
+    touch-action: manipulation;
+  }
+
+  /* ------------------------------------------------------------------
+     No long-press sheet.
+     ------------------------------------------------------------------
+     Holding a finger on anything with text in it — a product card, a cart
+     line, a button's label — brings up iOS's "Copy / Look Up / Share" sheet
+     and the blue selection handles with it. Over a till that is pure
+     obstruction: it covers the interface, it takes a tap to dismiss, and
+     nobody selling a dress wanted to look up its name in a dictionary.
+
+     Off by default and back ON where it earns its place, rather than a list
+     of every interactive component: an interface is mostly controls, and the
+     handful of places where text is genuinely worth lifting out — a barcode,
+     an order number, a phone number, the diagnostic detail on a failure
+     screen — are countable and known. They say so with data-selectable
+     (@organza/shared/constants/gestures.ts).
+     ------------------------------------------------------------------ */
+  body {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  /* Typing into a field means putting a caret in it, moving that caret, and
+     correcting a word halfway along — every one of which is text selection.
+     These are never the thing being long-pressed by accident. */
+  input,
+  textarea,
+  [contenteditable="true"] {
+    -webkit-touch-callout: default;
+    -webkit-user-select: text;
+    user-select: text;
+  }
+
+  /* Opted back in, and its children with it: a barcode is usually a <span>
+     inside the element that carries the attribute. */
+  [data-selectable="true"],
+  [data-selectable="true"] * {
+    -webkit-touch-callout: default;
+    -webkit-user-select: text;
+    user-select: text;
+  }
+
+  /* A long press on a photo offers "Save Image" / "Copy" of its own, and a
+     slow drag lifts it out as a draggable ghost. Neither means anything in a
+     catalogue screen, and both fire while somebody is simply scrolling. */
+  img {
+    -webkit-touch-callout: none;
+    -webkit-user-drag: none;
+    user-select: none;
+  }
+
+  /* ------------------------------------------------------------------
+     16px is a floor, not a preference.
+     ------------------------------------------------------------------
+     Safari zooms the page in when a field smaller than 16px takes focus, and
+     since this app has just taken zooming away it would have no way back
+     out: the layout would sit shifted for the rest of the sale.
+
+     Tailwind's preflight gives a field `font: inherit`, which fixes the
+     browser's own 13.3px default and introduces a subtler one — a field
+     inside a text-sm block quietly inherits 14px and zooms on focus. A
+     declared size here ends that: inheritance never reaches it.
+
+     This is a floor, not a ceiling. It sits in the base layer, so a field
+     that deliberately wants to be BIGGER still says so with a utility class
+     and wins. A utility asking for something SMALLER would win too — CSS
+     cannot express "at least this much" against a class it cannot see — so
+     that half is held by the field components themselves (every one of them
+     is text-base) rather than by this rule pretending to catch it.
+     ------------------------------------------------------------------ */
+  input,
+  select,
+  textarea {
+    font-size: 1rem;
+  }
+
   /* Native search-input decorations (magnifier/clear) don't respect our
      RTL layout and collide with the custom icons we render instead. */
   input[type="search"]::-webkit-search-cancel-button,

@@ -27,6 +27,7 @@ import { VariantList } from "@/components/products/variant-list";
 import { ProductListError, ProductListLoading } from "@/components/products/product-list-states";
 import { PendingChangeBadge } from "@/components/change-requests/pending-change-badge";
 import { CHANGE_REQUEST_ENTITIES, CHANGE_REQUEST_FIELDS } from "@organza/shared/constants/changeRequest";
+import { SELECTABLE } from "@organza/shared/lib/nativeGestures";
 import { ApiError } from "@/lib/api/errors";
 
 export default function ProductDetailPage() {
@@ -161,7 +162,9 @@ function ProductDetail({ product, currency, locale }: { product: Product; curren
       <dl className="grid grid-cols-2 gap-3 rounded-xl border border-border bg-card p-4 text-sm">
         <div>
           <dt className="text-muted-foreground">{t("barcode")}</dt>
-          <dd className="font-medium text-foreground" dir="ltr">
+          {/* Long-pressable on purpose (globals.css "An app, not a page"):
+              a barcode is one of the few strings here worth copying out. */}
+          <dd className="font-medium text-foreground" dir="ltr" {...SELECTABLE}>
             {product.barcode ?? "—"}
           </dd>
         </div>
@@ -177,7 +180,9 @@ function ProductDetail({ product, currency, locale }: { product: Product; curren
         <dl className="grid grid-cols-2 gap-3 rounded-xl border border-border bg-card p-4 text-sm">
           <div>
             <dt className="text-muted-foreground">{t("sku")}</dt>
-            <dd className="font-medium text-foreground">{product.sku ?? "—"}</dd>
+            <dd className="font-medium text-foreground" {...SELECTABLE}>
+              {product.sku ?? "—"}
+            </dd>
           </div>
           <div>
             <dt className="text-muted-foreground">{t("stock")}</dt>

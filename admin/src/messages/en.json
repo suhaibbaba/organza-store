@@ -826,7 +826,22 @@
         "setPrimary": "Set as main photo",
         "clearPrimary": "Unset as main photo",
         "primaryBadge": "Main",
-        "delete": "Delete photo"
+        "delete": "Delete photo",
+        "edit": "Crop photo",
+        "editor": {
+          "title": "Crop photo",
+          "step": "Photo {index} of {total}",
+          "cancel": "Cancel",
+          "save": "Save crop",
+          "saveAndNext": "Save and next",
+          "saveAndClose": "Save",
+          "zoom": "Zoom",
+          "rotate": "Rotate",
+          "flipHorizontal": "Flip horizontally",
+          "flipVertical": "Flip vertically",
+          "aspectCatalogue": "{width}:{height}",
+          "aspectWhole": "Whole photo"
+        }
       },
       "numberedShawl": {
         "title": "Numbered points",
@@ -1306,6 +1321,7 @@
     "imageOwnerRequired": "Choose a product or variant for this image.",
     "imageReorderDuplicate": "Each image can only appear once in the order.",
     "imageReorderMismatch": "The image order doesn't match the current images.",
+    "imageOriginalMissing": "The original photo is no longer stored, so it cannot be cropped again. Add a new photo instead.",
     "inventoryParentHasVariants": "This product's stock is managed per variant.",
     "settingDefaultLanguageNotSupported": "That language isn't supported yet.",
     "settingSaleNotificationModeUnsupported": "That option isn't available yet.",

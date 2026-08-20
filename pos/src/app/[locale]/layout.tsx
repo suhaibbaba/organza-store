@@ -23,6 +23,7 @@ import {
 } from "@/constants/pwa";
 import { AppProviders } from "@/components/providers/app-providers";
 import { BootFailure } from "@/components/pwa/boot-failure";
+import { NativeGestureGuard } from "@/components/pwa/native-gesture-guard";
 import { BootSplash } from "@/components/pwa/boot-splash";
 import { ServiceWorkerRegistrar } from "@/components/pwa/service-worker-registrar";
 import "../globals.css";
@@ -87,14 +88,26 @@ export const metadata: Metadata = {
 };
 
 // viewport-fit=cover is required for env(safe-area-inset-*) to resolve to
-// anything other than 0 — without it, the fixed checkout bar stays padded
-// for nothing and gets covered by the iOS home indicator on notched
-// iPhones. maximumScale is deliberately left alone: pinch-zoom is an
-// accessibility feature, and the 16px inputs already stop iOS auto-zooming
-// on focus.
+// anything other than 0 — without it, fixed bars stay padded for nothing
+// and get covered by the iOS home indicator on notched iPhones.
+//
+// maximumScale/userScalable turn page zoom OFF. This is a till: the app is
+// held in one hand over a counter, and a pinch nobody meant to make leaves
+// the screen sitting askew at 1.4× in the middle of a sale, with a customer
+// waiting and nobody free to pinch it back. Two things make that decision
+// binding rather than advisory — `touch-action: manipulation` in globals.css,
+// which removes double-tap-to-zoom without touching taps, and the gesture
+// guards in components/pwa/native-gesture-guard.tsx, because iOS has ignored
+// user-scalable=no since iOS 10. See that file for what holds where.
+//
+// Nothing may now depend on zooming: every label has to be legible and every
+// control tappable at 1×, which is what the 16px form fields and the 44px
+// minimum touch target are for.
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
   viewportFit: "cover",
   // Tints the Android status bar once installed, and the address bar before
   // that. Matches the manifest's theme_color.
@@ -131,6 +144,11 @@ export default async function LocaleLayout({
             server component and its watchdog is inline ES5 — the first script
             in the document, and the only one that is certain to execute. */}
         <BootFailure />
+        {/* Outside the providers, like the watchdog above: cancelling a pinch
+            is not a feature of any one screen, and it has to be listening
+            from the first frame — including on the login screen, which is
+            not inside the app shell. */}
+        <NativeGestureGuard />
         <NextIntlClientProvider>
           <AppProviders>
             {/* First thing in the document, and inside the session provider

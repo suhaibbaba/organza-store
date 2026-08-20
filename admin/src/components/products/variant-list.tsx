@@ -6,6 +6,7 @@ import { BARCODE_SOURCE } from "@organza/shared/constants/barcode";
 import type { ProductVariantTypeRef } from "@organza/shared/types/product";
 import type { Variant } from "@organza/shared/types/variant";
 import { testSelectorFor } from "@organza/shared/lib/testSelector";
+import { SELECTABLE } from "@organza/shared/lib/nativeGestures";
 import { localize } from "@/lib/i18n-content";
 import { formatMoney } from "@/lib/format";
 import { ProductImage } from "@/components/products/product-image";
@@ -76,7 +77,7 @@ export function VariantList({ variants, variantTypes, currency }: VariantListPro
                     {groups.map((group) => (
                       <div key={group.id} className="min-w-0">
                         {group.typeName && (
-                          <p className="truncate text-[0.6875rem]/[1.85] text-muted-foreground">
+                          <p className="truncate text-xs text-muted-foreground">
                             {group.typeName}
                           </p>
                         )}
@@ -92,11 +93,13 @@ export function VariantList({ variants, variantTypes, currency }: VariantListPro
                 )}
                 <StatusBadge isActive={variant.isActive} />
               </div>
-              <p className="mt-0.5 truncate text-xs text-muted-foreground">{variant.sku}</p>
+              <p className="mt-0.5 truncate text-xs text-muted-foreground" {...SELECTABLE}>
+                {variant.sku}
+              </p>
               {/* The code a scan at the counter matches, and whose it is: a
                   size carrying the supplier's own tag needs no label of ours. */}
               {variant.barcode && (
-                <p className="truncate text-xs text-muted-foreground" dir="ltr">
+                <p className="truncate text-xs text-muted-foreground" dir="ltr" {...SELECTABLE}>
                   {variant.barcode}
                   {variant.barcodeSource === BARCODE_SOURCE.SUPPLIER && (
                     <span dir="auto" className="ms-2 font-medium">

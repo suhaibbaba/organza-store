@@ -99,7 +99,9 @@ function CategoryGroup({ title, rows, selectedId, onSelect, showStar = false }: 
 
   return (
     <>
-      <h3 className="px-3 pb-1 pt-4 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+      {/* 12px, not 11: with page zoom gone a heading has to be legible as
+          drawn, and uppercase Latin at 11px on a phone is not. */}
+      <h3 className="px-3 pb-1 pt-4 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
         {title}
       </h3>
       <ul className="flex flex-col gap-0.5 px-1.5">

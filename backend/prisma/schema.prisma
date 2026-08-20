@@ -563,6 +563,22 @@ model ProductImage {
   mediumUrl    String // medium — POS
   thumbnailUrl String // thumbnail — list views
 
+  // The photograph EXACTLY as it was uploaded, untouched — same bytes, same
+  // format (see IMAGE_ORIGINAL_SUFFIX). Kept so a crop can be reconsidered
+  // months later without asking the shop to photograph the piece again: the
+  // three sizes above are cut from this, never from each other. Null for
+  // every image stored before the editor existed; those can still be
+  // reordered, made primary and deleted, they simply cannot be re-cropped.
+  originalFilename String?
+  originalUrl      String?
+
+  // What the shop chose in the editor — the crop rectangle as fractions of
+  // the turned frame, the quarter turn, the mirrors (shared's ImageEdit).
+  // Null when the photo was uploaded without opening the editor, which is
+  // a supported way to add one. Stored so re-opening the editor starts where
+  // the last person left off rather than from the whole frame again.
+  edit Json?
+
   sortOrder Int     @default(0) // drag-to-reorder; lowest = primary
   isPrimary Boolean @default(false)
 

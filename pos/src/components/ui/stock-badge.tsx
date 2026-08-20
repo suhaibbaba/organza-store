@@ -60,7 +60,10 @@ export function StockBadge({ stock, trackLowStock, showCount = false, size = "md
     <span
       className={cn(
         "inline-flex max-w-full items-center rounded-full font-medium",
-        size === "sm" ? "gap-0.5 px-1.5 py-0.5 text-[11px]" : "gap-1 px-2 py-0.5 text-xs",
+        // 12px even at "sm". Zoom is off (see globals.css "An app, not a page"),
+        // so a label that needs pinching to read cannot be read at all — and
+        // "nearly out" is exactly the word somebody has to catch mid-sale.
+        size === "sm" ? "gap-0.5 px-1.5 py-0.5 text-xs" : "gap-1 px-2 py-0.5 text-xs",
         tone,
         className
       )}

@@ -1,6 +1,7 @@
 import { useTranslations } from "next-intl";
 import { MapPin, MessageCircle, Phone } from "lucide-react";
 import type { Order } from "@organza/shared/types/order";
+import { SELECTABLE } from "@organza/shared/lib/nativeGestures";
 import { COORDINATE_DECIMALS, MAP_LINK_TEMPLATE } from "@/constants/orders";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -31,7 +32,9 @@ export function OrderCustomerCard({ order }: { order: Order }) {
             className="flex min-h-11 items-center gap-2 text-sm text-primary hover:underline"
           >
             <Phone className="size-4 shrink-0" aria-hidden="true" />
-            <span dir="ltr">{order.customerPhone}</span>
+            <span dir="ltr" {...SELECTABLE}>
+              {order.customerPhone}
+            </span>
           </a>
         )}
 
@@ -41,7 +44,9 @@ export function OrderCustomerCard({ order }: { order: Order }) {
             className="flex min-h-11 items-center gap-2 text-sm text-primary hover:underline"
           >
             <MessageCircle className="size-4 shrink-0" aria-hidden="true" />
-            <span dir="ltr">{order.customerWhatsapp}</span>
+            <span dir="ltr" {...SELECTABLE}>
+              {order.customerWhatsapp}
+            </span>
             <span className="text-xs text-muted-foreground">{t("whatsappLabel")}</span>
           </a>
         )}
@@ -49,7 +54,9 @@ export function OrderCustomerCard({ order }: { order: Order }) {
         {order.customerAddress && (
           <p className="flex items-start gap-2 text-sm text-muted-foreground">
             <MapPin className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
-            <span className="min-w-0 whitespace-pre-line">{order.customerAddress}</span>
+            <span className="min-w-0 whitespace-pre-line" {...SELECTABLE}>
+              {order.customerAddress}
+            </span>
           </p>
         )}
 
@@ -64,7 +71,7 @@ export function OrderCustomerCard({ order }: { order: Order }) {
             {t("openMap")}
             {/* The raw pair is shown too — a driver reading it out over the
                 phone needs the numbers, not just a link. */}
-            <span className="text-xs tabular-nums text-muted-foreground" dir="ltr">
+            <span className="text-xs tabular-nums text-muted-foreground" dir="ltr" {...SELECTABLE}>
               {order.customerLatitude?.toFixed(COORDINATE_DECIMALS)}, {order.customerLongitude?.toFixed(COORDINATE_DECIMALS)}
             </span>
           </a>

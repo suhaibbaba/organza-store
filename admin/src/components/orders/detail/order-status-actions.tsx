@@ -72,7 +72,9 @@ export function OrderStatusActions({ order }: { order: Order }) {
                   />
                   <span
                     className={cn(
-                      "truncate text-center text-[11px]/[1.85]",
+                      // 12px: the step names under the progress bar are read at a glance,
+                      // and there is no zooming in to check one now.
+                      "truncate text-center text-xs",
                       isCurrent ? "font-semibold text-primary" : "text-muted-foreground"
                     )}
                   >

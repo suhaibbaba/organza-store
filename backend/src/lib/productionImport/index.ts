@@ -53,10 +53,7 @@ export async function runProductionImport(
   const applied = await applyCatalogue(snapshot);
 
   options.onProgress?.(options.productionUploadDir ? "Copying photographs" : "Skipping photographs");
-  const images = await syncImageFiles(
-    options.productionUploadDir,
-    snapshot.productImages.map((image) => image.filename)
-  );
+  const images = await syncImageFiles(options.productionUploadDir, snapshot.productImages);
 
   return {
     endpoints,

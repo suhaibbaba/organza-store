@@ -18,6 +18,13 @@ function serializeImage(image: AnyRecord) {
     url: image.url,
     mediumUrl: image.mediumUrl,
     thumbnailUrl: image.thumbnailUrl,
+    // What a re-crop is cut from, and where the last crop was drawn (spec.md
+    // "Editing a photograph on upload"). Both null on a photo stored before
+    // the editor existed — which is how the gallery knows to offer re-framing
+    // on some photos and not on others. Neither is sensitive: a crop
+    // rectangle says nothing about money or about anybody.
+    originalUrl: image.originalUrl ?? null,
+    edit: image.edit ?? null,
     sortOrder: image.sortOrder,
     isPrimary: image.isPrimary,
     // How light or dark the photo is, 0-100 (null for one uploaded before it

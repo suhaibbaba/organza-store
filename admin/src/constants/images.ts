@@ -9,6 +9,30 @@ export const CLIENT_ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/web
 
 export const IMAGE_GRID_THUMB_SIZES = "(min-width: 768px) 120px, 30vw";
 
+// ---------------------------------------------------------------------------
+// The photo editor (components/products/image-editor-sheet.tsx)
+// ---------------------------------------------------------------------------
+// The catalogue's 2:3 and the zoom range are shared with the backend
+// (@organza/shared/constants/image) — they decide what is actually stored.
+// What lives here is only how the editor is drawn.
+
+/**
+ * The longest side of the preview tile drawn after an edit, in pixels.
+ *
+ * A preview is a thumbnail in a grid three across on a phone, and the stored
+ * photograph is cut by sharp on the server regardless — so there is nothing
+ * to gain from a canvas the size of a 12-megapixel original, and a phone that
+ * runs out of memory building one loses the whole form.
+ */
+export const CROP_PREVIEW_MAX_PX = 600;
+
+/**
+ * How far the zoom slider moves per press of an arrow key, as a fraction of
+ * its range. A slider a mouse can nudge is the counter screen's answer to a
+ * pinch, which it has no way of making.
+ */
+export const CROP_ZOOM_KEY_STEP = 0.05;
+
 // The one big photo on the product detail page. Its box is capped at
 // max-w-sm (24rem = 384px), so there is never a reason to fetch more than
 // that; below md it is the page width minus the screen padding.

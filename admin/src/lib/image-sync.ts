@@ -1,16 +1,16 @@
 import type { ProductImageRef } from "@organza/shared/types/variant";
 import { ERROR_CODES } from "@organza/shared/constants/errors";
-import { deleteImage, reorderImages, setPrimaryImage, uploadImage, type ImageOwner } from "@/lib/api/images";
+import { deleteImage, editImage, reorderImages, setPrimaryImage, uploadImage, type ImageOwner } from "@/lib/api/images";
 import { ApiError } from "@/lib/api/errors";
 import { pendingCount } from "@/lib/image-slots";
 import type { Gallery, GallerySlot, ImageSyncOutcome } from "@/types/productForm";
 
 // Writes one gallery to the server as part of the product form's single Save.
-// Internally that is several calls — upload each new file (multipart), delete
-// what was removed, reorder what remains, then set the main photo — and they
-// have to run in that order: the reorder endpoint checks the id set matches
-// the owner's images exactly, so it can only run once uploads and deletions
-// have settled.
+// Internally that is several calls — upload each new file (multipart), re-cut
+// any photo that was re-framed, delete what was removed, reorder what
+// remains, then set the main photo — and they have to run in that order: the
+// reorder endpoint checks the id set matches the owner's images exactly, so
+// it can only run once uploads and deletions have settled.
 //
 // Nothing here throws for a failed photo. On a weak connection one upload can
 // die while the product itself saved perfectly, and blowing the whole save up
@@ -46,8 +46,9 @@ export async function syncGallery(
       continue;
     }
     try {
-      const created = await uploadImage(owner, slot.file);
+      const created = await uploadImage(owner, slot.file, slot.edit);
       URL.revokeObjectURL(slot.previewUrl);
+      if (slot.sourceUrl !== slot.previewUrl) URL.revokeObjectURL(slot.sourceUrl);
       onServer.set(created.id, created);
       working.push({ kind: "existing", id: created.id, image: created, isPrimary: slot.isPrimary });
     } catch (err) {
@@ -58,7 +59,25 @@ export async function syncGallery(
     onUploadSettled?.();
   }
 
-  // 2. Deletions. One that fails is still on the server, so it goes back into
+  // 2. Re-framings of photos that were already there. A failure leaves the
+  //    photo exactly as it was — the crop is still pending in the slot, so a
+  //    retry sends it again — and never blocks the rest of the save: an
+  //    unsaved crop is a smaller loss than a reorder that did not happen.
+  for (const [index, slot] of working.entries()) {
+    if (slot.kind !== "existing" || !slot.edit) continue;
+    try {
+      const updated = await editImage(slot.id, slot.edit);
+      onServer.set(updated.id, updated);
+      // The locally drawn preview has done its job; from here the tile shows
+      // what the server actually produced.
+      if (slot.previewUrl) URL.revokeObjectURL(slot.previewUrl);
+      working[index] = { ...slot, image: updated, edit: null, previewUrl: null };
+    } catch (err) {
+      errorCode ??= errorCodeOf(err);
+    }
+  }
+
+  // 3. Deletions. One that fails is still on the server, so it goes back into
   //    the gallery rather than being quietly dropped from the user's view —
   //    and stays in the set the reorder call below has to account for.
   //
@@ -85,7 +104,7 @@ export async function syncGallery(
     }
   }
 
-  // 3. Order + main photo, over what is genuinely on the server now.
+  // 4. Order + main photo, over what is genuinely on the server now.
   const orderedIds = working.filter((s) => s.kind === "existing").map((s) => s.id);
   let images: ProductImageRef[] = orderedIds.map((id) => onServer.get(id)).filter(Boolean) as ProductImageRef[];
 

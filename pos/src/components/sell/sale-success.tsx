@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { CheckCircle2, Gift } from "lucide-react";
 import { GIFT_ORDER_TYPE } from "@organza/shared/constants/order";
 import type { Order } from "@organza/shared/types/order";
+import { SELECTABLE } from "@organza/shared/lib/nativeGestures";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
 import { Button } from "@/components/ui/button";
 import { POS_ORDER_CHANNEL, SALE_SUCCESS_RESET_MS } from "@/constants/pos";
@@ -65,7 +66,7 @@ export function SaleSuccess({ order, onNewSale }: SaleSuccessProps) {
         {/* A counter sale hands over a receipt; a WhatsApp order is quoted
             back to the customer in the chat as an order number. A gift keeps
             a number too — it is the record of what left the shop. */}
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm text-muted-foreground" {...SELECTABLE}>
           {isCounterSale
             ? t("orderNumber", { number: order.orderNumber })
             : t("whatsappOrderNumber", { number: order.orderNumber })}

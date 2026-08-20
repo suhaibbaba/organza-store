@@ -58,6 +58,7 @@ export const ERROR_MESSAGE_KEYS: Record<string, string> = {
   [ERROR_CODES.IMAGE_OWNER_REQUIRED]: "errors.imageOwnerRequired",
   [ERROR_CODES.IMAGE_REORDER_DUPLICATE]: "errors.imageReorderDuplicate",
   [ERROR_CODES.IMAGE_REORDER_MISMATCH]: "errors.imageReorderMismatch",
+  [ERROR_CODES.IMAGE_ORIGINAL_MISSING]: "errors.imageOriginalMissing",
 
   [ERROR_CODES.INVENTORY_PARENT_HAS_VARIANTS]: "errors.inventoryParentHasVariants",
 
