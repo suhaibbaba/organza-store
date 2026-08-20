@@ -157,10 +157,10 @@ export function ImageManager({ slots, onChange, canDelete, isBusy = false, empty
                   // out — nothing on the server is being deleted.
                   canDelete={slot.kind === "new" || canDelete}
                   isNew={slot.kind === "new" || Boolean(slot.previewUrl)}
-                  // Framing needs a whole photograph to cut from: the picked
-                  // file, or the original kept at upload. A photo stored
-                  // before originals were kept has neither, so it is not
-                  // offered something that would fail.
+                  // Every photograph can be re-framed: a picked file from the
+                  // file itself, a stored one from its original — or, for a
+                  // photo older than the editor, from the largest size the
+                  // API kept (see editTargetFor).
                   canEdit={Boolean(editTargetFor(slots, slot.id))}
                   isEdited={Boolean(slot.edit)}
                   onEdit={(id) => {
@@ -213,10 +213,15 @@ function thumbnailFor(slot: GallerySlot): string {
 /**
  * Can this photo be framed, and from what?
  *
- * A picked file always can — the browser is holding it. A stored one can only
- * if the API kept its original, which it has done since the editor existed;
- * anything older is left alone rather than offered a button that would answer
- * "there is nothing to cut from".
+ * A picked file always can — the browser is holding it. A stored one is
+ * framed from the original the API kept at upload; a photo from before the
+ * editor existed has none, and is framed from the largest size it does have
+ * instead. The server does the same on its side, and promotes that size to be
+ * the photo's original as it cuts, so an older photograph steps down once and
+ * never again.
+ *
+ * Every photo can therefore be re-framed. A shop told "not these ones, they
+ * are too old" would have to photograph its own catalogue again.
  */
 function editTargetFor(slots: GallerySlot[], id: string | undefined): EditTarget | null {
   if (!id) return null;
@@ -225,12 +230,12 @@ function editTargetFor(slots: GallerySlot[], id: string | undefined): EditTarget
   if (slot.kind === "new") {
     return { id: slot.id, src: slot.sourceUrl, edit: editOrIdentity(slot.edit), crossOrigin: false };
   }
-  const original = slot.image.originalUrl;
-  if (!original) return null;
+  const source = slot.image.originalUrl ?? slot.image.url;
+  if (!source) return null;
   return {
     id: slot.id,
     // Stored paths are API-relative; the admin is on its own origin.
-    src: resolveImageUrl(original),
+    src: resolveImageUrl(source),
     // Whatever crop it is carrying — a pending one first, then whatever the
     // server has recorded, so re-opening never starts from scratch.
     edit: editOrIdentity(slot.edit ?? slot.image.edit),

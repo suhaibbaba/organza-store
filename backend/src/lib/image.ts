@@ -283,19 +283,38 @@ export async function storeProductImage(buffer: Buffer, edit: ImageEdit | null =
 /**
  * Cut the same photograph again, differently.
  *
- * Reads the kept original off disk and produces a whole new set of sizes from
- * it — a new base name, so the URL changes and no browser, service worker or
- * image optimizer anywhere can go on showing yesterday's framing. The
- * original itself is left where it is and keeps its own name: it belongs to
- * the image, not to this crop, and the next re-crop starts from it too.
+ * The source is the file the crop is measured against, and there are two
+ * kinds:
  *
- * A missing original is a plain 404 rather than a 500: it means a photo from
- * before originals were kept (or one whose file the disk lost), and the
- * screen's answer is "photograph it again", not "something broke".
+ *   - **The kept original** (`isOriginal`), for anything uploaded since the
+ *     editor existed. It is left exactly where it is and keeps its own name:
+ *     it belongs to the image rather than to any one crop, so every later
+ *     re-framing starts from the same full-quality picture and a photo can be
+ *     re-cut a hundred times without softening once.
+ *
+ *   - **The largest stored size**, for a photo from before originals were
+ *     kept. The shop's answer to "I cannot re-frame my older photographs" is
+ *     otherwise "photograph the garment again", which is not an answer at a
+ *     counter. So the 1600px WebP is used — and then PROMOTED to be that
+ *     image's original, written out under the new name. That costs one step
+ *     down in quality, once, from a picture that had already been through
+ *     sharp; from then on the photo behaves like any other and never loses
+ *     anything again. Cutting each time from whatever the last crop produced
+ *     is the alternative, and it degrades without limit.
+ *
+ * Either way the sizes are written under a NEW base name, so the URL changes
+ * and no browser, service worker or image optimizer anywhere can go on
+ * showing yesterday's framing.
+ *
+ * A source that is not on disk is a plain 404 rather than a 500: it means a
+ * file the disk lost, and the screen's answer is "photograph it again", not
+ * "something broke".
  */
-export async function recropProductImage(originalFilename: string, edit: ImageEdit): Promise<StoredImage> {
-  const originalPath = path.join(UPLOAD_DIR, originalFilename);
-  const buffer = await fs.readFile(originalPath).catch(() => null);
+export async function recropProductImage(
+  source: { filename: string; isOriginal: boolean },
+  edit: ImageEdit
+): Promise<StoredImage> {
+  const buffer = await fs.readFile(path.join(UPLOAD_DIR, source.filename)).catch(() => null);
   if (!buffer) throw new AppError(404, ERROR_CODES.IMAGE_ORIGINAL_MISSING);
 
   const metadata = await readImageMetadata(buffer);
@@ -304,6 +323,13 @@ export async function recropProductImage(originalFilename: string, edit: ImageEd
   await fs.mkdir(UPLOAD_DIR, { recursive: true });
   const filename = crypto.randomUUID();
   const brightness = await measureBrightness(unturned(buffer, ops)).catch(() => null);
+
+  // Promotion, for a photo that had no original: the bytes this crop was
+  // measured against become the original, before anything is cut from them.
+  const originalFilename = source.isOriginal
+    ? source.filename
+    : (await writeOriginal(buffer, filename, metadata.format)) ?? source.filename;
+
   const urls = await writeSizes(buffer, filename, ops);
 
   return {
@@ -313,6 +339,12 @@ export async function recropProductImage(originalFilename: string, edit: ImageEd
     originalFilename,
     originalUrl: `/uploads/${originalFilename}`,
   };
+}
+
+/** The largest size stored for an image — what a photo with no original is re-cut from. */
+export function largestStoredFileName(filename: string): string {
+  const largest = (Object.entries(IMAGE_SIZES) as [ImageSize, number][]).sort((a, b) => b[1] - a[1])[0][0];
+  return `${filename}-${largest}.webp`;
 }
 
 // Best-effort cleanup — a missing file (already removed, or never fully

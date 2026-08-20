@@ -32,9 +32,8 @@ export interface ProductImageRef {
   // The photograph as it was uploaded, kept so the shop can frame it
   // differently later, and the framing it currently carries (spec.md
   // "Editing a photograph on upload"). Both null for a photo stored before
-  // the editor existed: it displays exactly as it always has, it just cannot
-  // be re-cropped, and the gallery hides the option rather than offering
-  // something that would fail.
+  // the editor existed — which is still re-framable: the API cuts that one
+  // from the largest size it has and keeps THAT as its original from then on.
   originalUrl?: string | null;
   edit?: ImageEdit | null;
   sortOrder: number;
