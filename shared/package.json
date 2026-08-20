@@ -8,7 +8,8 @@
   "types": "dist/index.d.ts",
   "files": [
     "dist",
-    "scripts/prepare.js"
+    "scripts/prepare.js",
+    "scripts/postcss-ios15.cjs"
   ],
   "_comment_exports": "Subpath map for the way the apps actually import this package: the four barrels by name (@organza/shared/types), and any single module underneath them through the wildcard (@organza/shared/types/product -> dist/types/product.js). The explicit barrel keys have to come before './*' because that wildcard would otherwise resolve './types' to dist/types.js, which does not exist \u2014 Node prefers the most specific match, and these are it.",
   "exports": {
@@ -32,6 +33,7 @@
       "types": "./dist/schemas/index.d.ts",
       "default": "./dist/schemas/index.js"
     },
+    "./postcss-ios15": "./scripts/postcss-ios15.cjs",
     "./*": {
       "types": "./dist/*.d.ts",
       "default": "./dist/*.js"
@@ -71,5 +73,6 @@
   "devDependencies": {
     "tsc-alias": "^1.9.1",
     "typescript": "^5.7.2"
-  }
+  },
+  "_comment_postcss_plugin": "./postcss-ios15 is build tooling, not app code: a PostCSS plugin each app names in its postcss.config.mjs. It is exported by subpath rather than referenced by a relative path because Next resolves a plugin key with require(), which reads this map."
 }

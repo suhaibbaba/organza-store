@@ -30,8 +30,8 @@
     "out": "אזל מהמלאי",
     "low": "מלאי נמוך",
     "in": "במלאי",
-    "lowCount": "מלאי נמוך · {count, plural, one {נותר פריט אחד} two {נותרו שני פריטים} other {נותרו # פריטים}}",
-    "inCount": "במלאי · {count, plural, one {נותר פריט אחד} two {נותרו שני פריטים} other {נותרו # פריטים}}"
+    "lowCount": "מלאי נמוך · {count, plural, one {נותר פריט אחד} two {נותרו שני פריטים} other {נותרו {count, number, plain} פריטים}}",
+    "inCount": "במלאי · {count, plural, one {נותר פריט אחד} two {נותרו שני פריטים} other {נותרו {count, number, plain} פריטים}}"
   },
   "offline": {
     "title": "אין חיבור לאינטרנט",
@@ -78,8 +78,8 @@
   "sell": {
     "noPermission": "החשבון שלך אינו מורשה לבצע מכירות. פנה למנהל.",
     "feedback": {
-      "added": "{name} × {quantity, number}",
-      "addedMany": "{name} — {count, plural, one {נוסף פריט אחד} two {נוספו # פריטים} other {נוספו # פריטים}}"
+      "added": "{name} × {quantity, number, plain}",
+      "addedMany": "{name} — {count, plural, one {נוסף פריט אחד} two {נוספו {count, number, plain} פריטים} other {נוספו {count, number, plain} פריטים}}"
     },
     "search": {
       "label": "חיפוש מוצר או סריקת ברקוד",
@@ -90,14 +90,14 @@
       "searching": "מחפש…",
       "empty": "לא נמצאו תוצאות.",
       "error": "לא ניתן לטעון את תוצאות החיפוש. נסה שוב.",
-      "variantCount": "{count, plural, one {אפשרות אחת} two {# אפשרויות} other {# אפשרויות}}",
+      "variantCount": "{count, plural, one {אפשרות אחת} two {{count, number, plain} אפשרויות} other {{count, number, plain} אפשרויות}}",
       "kind": {
         "numbered": "ממוספר · {count}",
         "named": "{type} · {count}",
         "mixed": "אפשרויות · {count}"
       },
       "backToCart": "חזרה לסל",
-      "cartCount": "{count, plural, =0 {הסל ריק} one {פריט אחד} two {# פריטים} other {# פריטים}}",
+      "cartCount": "{count, plural, =0 {הסל ריק} one {פריט אחד} two {{count, number, plain} פריטים} other {{count, number, plain} פריטים}}",
       "resultsTitle": "תוצאות חיפוש עבור «{query}»"
     },
     "browse": {
@@ -134,7 +134,7 @@
       "unmute": "הפעלת הצפצוף",
       "vibrateOff": "כיבוי הרטט",
       "vibrateOn": "הפעלת הרטט",
-      "cartSummary": "{count, plural, =0 {הסל ריק} one {פריט אחד} two {# פריטים} other {# פריטים}}"
+      "cartSummary": "{count, plural, =0 {הסל ריק} one {פריט אחד} two {{count, number, plain} פריטים} other {{count, number, plain} פריטים}}"
     },
     "counter": {
       "title": "מוכן לסריקה",
@@ -156,8 +156,8 @@
       "done": "סיום",
       "add": "הוספה לסל",
       "addNamed": "הוספת {name}",
-      "addCount": "הוספת {count, plural, one {פריט אחד} two {# פריטים} other {# פריטים}} לסל",
-      "selectedCount": "{count, plural, one {נבחר פריט אחד} two {נבחרו # פריטים} other {נבחרו # פריטים}}"
+      "addCount": "הוספת {count, plural, one {פריט אחד} two {{count, number, plain} פריטים} other {{count, number, plain} פריטים}} לסל",
+      "selectedCount": "{count, plural, one {נבחר פריט אחד} two {נבחרו {count, number, plain} פריטים} other {נבחרו {count, number, plain} פריטים}}"
     },
     "cart": {
       "title": "המכירה הנוכחית",
@@ -173,7 +173,7 @@
       "removeConfirmKeep": "השארה",
       "addDiscount": "הנחה",
       "discountFor": "הנחה על {name}",
-      "stockCap": "{count, plural, one {זה הפריט האחרון במלאי} two {אלה כל # הפריטים במלאי} other {אלה כל # הפריטים במלאי}}",
+      "stockCap": "{count, plural, one {זה הפריט האחרון במלאי} two {אלה כל {count, number, plain} הפריטים במלאי} other {אלה כל {count, number, plain} הפריטים במלאי}}",
       "discountApplied": "הנחה {value} · ‎−{amount}",
       "discountValue": "הנחה {value}",
       "quickSold": "מכירה מהירה"
@@ -205,7 +205,7 @@
     },
     "checkout": {
       "wholeSale": "המכירה כולה",
-      "subtotal": "{count, plural, one {פריט אחד} two {# פריטים} other {# פריטים}}",
+      "subtotal": "{count, plural, one {פריט אחד} two {{count, number, plain} פריטים} other {{count, number, plain} פריטים}}",
       "itemDiscounts": "הנחות על פריטים",
       "orderDiscount": "הנחה על המכירה",
       "total": "סה\"כ",
@@ -226,7 +226,7 @@
       "whatsappNextStep": "ההזמנה בסטטוס חדשה. המלאי מנוכה כשמתחילים בהכנה.",
       "whatsappOrderNumber": "הזמנה {number}",
       "giftTitle": "המתנה נרשמה",
-      "giftCount": "{count, plural, one {פריט אחד} two {שני פריטים} other {# פריטים}}",
+      "giftCount": "{count, plural, one {פריט אחד} two {שני פריטים} other {{count, number, plain} פריטים}}",
       "giftNextStep": "הפריטים ירדו מהמלאי ולא נגבה שום תשלום."
     },
     "whatsapp": {
@@ -260,8 +260,8 @@
       "title": "מסירה כמתנה",
       "subtitle": "בדוק/י את הפריטים לפני האישור — הם יֵצאו מהמלאי ללא כל תשלום.",
       "warning": "הפריטים האלה יירדו מהמלאי ולא ייגבה שום תשלום.",
-      "itemsTitle": "פריטים שיימסרו ({count, plural, one {פריט אחד} two {שני פריטים} other {# פריטים}})",
-      "quantity": "כמות: {count, number}",
+      "itemsTitle": "פריטים שיימסרו ({count, plural, one {פריט אחד} two {שני פריטים} other {{count, number, plain} פריטים}})",
+      "quantity": "כמות: {count, number, plain}",
       "noteLabel": "הערה (רשות)",
       "notePlaceholder": "לדוגמה: מתנה לאם הכלה",
       "noteHint": "למי המתנה או מדוע — נשמר יחד עם ההזמנה.",

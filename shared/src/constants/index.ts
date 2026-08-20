@@ -6,6 +6,7 @@ export * from "./cash";
 export * from "./changeRequest";
 export * from "./errors";
 export * from "./expense";
+export * from "./formatting";
 export * from "./gestures";
 export * from "./image";
 export * from "./inventory";

@@ -1,4 +1,10 @@
+import { NUMBER_FORMAT_BASE } from "@organza/shared/constants/formatting";
 import { MONEY_DECIMAL_PLACES } from "@organza/shared/constants/order";
+
+// Every figure in this app is written through one of the functions below, and
+// each of them starts from the shared base
+// (@organza/shared/constants/formatting) — so the digits on the counter screen
+// are the same digits as on the phone and on the printed label.
 
 // Intl's percent style takes a ratio; a discount is stored as the percentage
 // itself ("2" meaning 2%).
@@ -9,7 +15,7 @@ const PERCENT_RATIO_DIVISOR = 100;
 export function formatMoney(amount: string | number, currency: string, locale: string): string {
   const value = typeof amount === "string" ? Number(amount) : amount;
   try {
-    return new Intl.NumberFormat(locale, { style: "currency", currency }).format(value);
+    return new Intl.NumberFormat(locale, { ...NUMBER_FORMAT_BASE, style: "currency", currency }).format(value);
   } catch {
     return `${value} ${currency}`;
   }
@@ -21,7 +27,7 @@ export function formatMoney(amount: string | number, currency: string, locale: s
 // back to the code, which is still true, just less pretty.
 export function currencySymbol(currency: string, locale: string): string {
   try {
-    const parts = new Intl.NumberFormat(locale, { style: "currency", currency }).formatToParts(0);
+    const parts = new Intl.NumberFormat(locale, { ...NUMBER_FORMAT_BASE, style: "currency", currency }).formatToParts(0);
     return parts.find((part) => part.type === "currency")?.value ?? currency;
   } catch {
     return currency;
@@ -37,6 +43,7 @@ export function formatPercent(value: string | number, locale: string): string {
   if (!Number.isFinite(parsed)) return "";
   try {
     return new Intl.NumberFormat(locale, {
+      ...NUMBER_FORMAT_BASE,
       style: "percent",
       maximumFractionDigits: MONEY_DECIMAL_PLACES,
     }).format(parsed / PERCENT_RATIO_DIVISOR);

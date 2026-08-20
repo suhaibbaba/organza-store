@@ -299,6 +299,38 @@ behavior — guessing is what broke the previous attempt.
 - These are **structural rules**: when refactoring to satisfy them, move/rename only — never change
   behavior — and keep `tsc` type-check and the build passing.
 
+## The oldest phone on the floor decides (admin + pos)
+The shop's main device runs **iOS 15**, and both apps declare it in their browserslist
+(`ios_saf >= 15`). CSS fails silently there — no build error, no console message, every desktop
+browser perfect — so this is enforced by the build rather than by review.
+
+- **Every colour and every length ships a value iOS 15 can read.** The palette is written in
+  `oklch()` and stays that way; the build emits a plain sRGB fallback in front of each one. That
+  only works for a colour the compiler can EVALUATE, so **never put a `var()` inside a colour
+  function** — `oklch(0.44 0.06 var(--brand-hue))` is emitted raw, with nothing behind it, and
+  that is exactly what left every button in both apps with no background and every badge a blank
+  coloured pill. The brand hues are literals in `globals.css`; the note at the top of the palette
+  says why.
+- **Three build guards, one per failure mode**, wired into `npm run build` in both apps:
+  `shared/scripts/check-messages.js` (source messages), then `next build`, then
+  `check-browser-target.js` (JS parses) and `check-css-target.js` (CSS is usable). The CSS one
+  separates FATAL — a colour or length with nothing behind it, or an at-rule that takes its whole
+  block with it — from DEGRADED, which it names and allows: `:has()`, `:focus-visible`,
+  `::backdrop`, `accent-color`, `backdrop-filter`, `@property`. Losing an effect is fine; losing a
+  stylesheet is not.
+- **`shared/scripts/postcss-ios15.cjs` runs after Tailwind and repairs what the framework cannot.**
+  It flattens `@layer` (an unknown at-rule is dropped WITH its block, so one `@layer` discards the
+  whole sheet on 15.0–15.3), rewrites Tailwind's `color-mix()` opacity modifiers to
+  `rgb(var(--token-rgb) / N%)` so `bg-primary/10` is a tint rather than the solid colour, and puts
+  a `vh` fallback before every `dvh`. Its own header explains each pass.
+- **Numbers and dates are stated, never inherited.** `Intl` takes its numbering system from the
+  device: recent ICU writes `ar` in western digits, iOS 15's writes it in Arabic-Indic ones, so
+  the same price reads two ways on two devices in one shop. Every `Intl` call in both apps spreads
+  `NUMBER_FORMAT_BASE` / `DATE_FORMAT_BASE` from `@organza/shared/constants/formatting` (western
+  digits, Gregorian calendar), and a figure inside a sentence is written `{count, number, plain}` —
+  never ICU's `#`, which is formatted with the bare locale. `check-messages.js` refuses `#`, a
+  bare `{arg, number}`, and Arabic-Indic digits typed into the copy.
+
 ## Frontend UX — mobile-first, simple, RTL (admin + pos)
 The people using the admin and POS are **not tech-savvy**, and ~**95% of use is on mobile phones**.
 Design for that reality:
