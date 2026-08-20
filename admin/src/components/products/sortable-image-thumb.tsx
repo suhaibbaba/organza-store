@@ -78,25 +78,6 @@ export function SortableImageThumb({
         <GripVertical className="size-4" aria-hidden="true" />
       </button>
 
-      {canEdit && onEdit && (
-        <button
-          type="button"
-          onClick={() => onEdit(id)}
-          disabled={isBusy}
-          aria-label={t("edit")}
-          data-test-selector={`image-edit-${id}`}
-          className={cn(
-            "absolute end-1 bottom-10 z-10 inline-flex size-9 items-center justify-center rounded-full text-white disabled:cursor-not-allowed disabled:opacity-50",
-            // A photo carrying an unsaved re-framing says so on the tile
-            // itself: the gallery is the only place that difference is
-            // visible until the form is saved.
-            isEdited ? "bg-primary" : "bg-black/50"
-          )}
-        >
-          <Crop className="size-4" aria-hidden="true" />
-        </button>
-      )}
-
       <button
         type="button"
         onClick={() => onTogglePrimary(id)}
@@ -108,29 +89,53 @@ export function SortableImageThumb({
         <Star className={cn("size-4", isPrimary && "fill-amber-400 text-amber-400")} aria-hidden="true" />
       </button>
 
-      {/* Bottom bar: the "primary" badge and the remove control share one flex
-          row (badge at the start, remove at the end) so they can never overlap
-          however narrow the thumbnail gets on a phone — the badge truncates
-          while the remove button keeps its full 36px hit area (shrink-0) and
-          sits above everything via z-index. */}
-      <div className="absolute inset-x-0 bottom-0 z-10 flex items-end justify-between gap-2 p-1">
-        {isPrimary ? (
-          <span className="min-w-0 truncate rounded-full bg-primary px-2 py-0.5 text-xs font-medium text-primary-foreground">
+      {/* The bottom of the tile, as TWO rows rather than one.
+          
+          The controls share the upper row, at opposite ends, where a 36px hit
+          area each fits comfortably. The word "رئيسية" gets a row of its own,
+          the full width of the tile — because it did not fit beside them: a
+          tile is about a third of a phone's width, and once the photo shape
+          became 2:3 the label was left with forty pixels and was reported
+          from the shop floor as "مقصوصة". A label that has to be guessed at
+          is worse than no label, and truncating it was the bug. */}
+      <div className="absolute inset-x-0 bottom-0 z-10 flex flex-col gap-1 p-1">
+        <div className="flex items-end justify-between gap-1">
+          {canEdit && onEdit ? (
+            <button
+              type="button"
+              onClick={() => onEdit(id)}
+              disabled={isBusy}
+              aria-label={t("edit")}
+              data-test-selector={`image-edit-${id}`}
+              className={cn(
+                "inline-flex size-9 shrink-0 items-center justify-center rounded-full text-white shadow-sm ring-1 ring-white/20 disabled:cursor-not-allowed disabled:opacity-50",
+                // A photo carrying an unsaved re-framing says so on the tile
+                // itself: the gallery is the only place that difference is
+                // visible until the form is saved.
+                isEdited ? "bg-primary" : "bg-black/60"
+              )}
+            >
+              <Crop className="size-4" aria-hidden="true" />
+            </button>
+          ) : (
+            <span aria-hidden="true" />
+          )}
+          {canDelete && (
+            <button
+              type="button"
+              onClick={() => onRemove(id)}
+              disabled={isBusy}
+              aria-label={t("delete")}
+              className="inline-flex size-9 shrink-0 items-center justify-center rounded-full bg-black/60 text-white shadow-sm ring-1 ring-white/20 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <Trash2 className="size-4" aria-hidden="true" />
+            </button>
+          )}
+        </div>
+        {isPrimary && (
+          <span className="rounded-full bg-primary px-2 py-0.5 text-center text-xs font-medium text-primary-foreground">
             {t("primaryBadge")}
           </span>
-        ) : (
-          <span aria-hidden="true" />
-        )}
-        {canDelete && (
-          <button
-            type="button"
-            onClick={() => onRemove(id)}
-            disabled={isBusy}
-            aria-label={t("delete")}
-            className="z-20 inline-flex size-9 shrink-0 items-center justify-center rounded-full bg-black/60 text-white shadow-sm ring-1 ring-white/20 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            <Trash2 className="size-4" aria-hidden="true" />
-          </button>
         )}
       </div>
 

@@ -12,6 +12,7 @@ import {
   ALLOWED_IMAGE_TYPES,
   UPLOAD_MAX_SIZE_MB,
   deleteProductImageFiles,
+  largestStoredFileName,
   recropProductImage,
   storeProductImage,
 } from "@/lib/image";
@@ -252,12 +253,18 @@ router.patch(
   asyncHandler(async (req, res) => {
     const image = await prisma.productImage.findUnique({ where: { id: req.params.id } });
     if (!image) throw new AppError(404, ERROR_CODES.IMAGE_NOT_FOUND);
-    // A photo from before originals were kept. The sizes it already has are
-    // perfectly good; there is simply nothing left to cut a new crop out of.
-    if (!image.originalFilename) throw new AppError(404, ERROR_CODES.IMAGE_ORIGINAL_MISSING);
+
+    // A photo from before the editor existed has no original — and is
+    // re-framed anyway, from the largest size it does have, which then
+    // becomes its original (see recropProductImage). "You cannot re-frame the
+    // photographs you already had" is not something to tell a shop about its
+    // own catalogue.
+    const source = image.originalFilename
+      ? { filename: image.originalFilename, isOriginal: true }
+      : { filename: largestStoredFileName(image.filename), isOriginal: false };
 
     const { edit } = req.body as EditImageInput;
-    const stored = await recropProductImage(image.originalFilename, edit);
+    const stored = await recropProductImage(source, edit);
 
     const updated = await prisma.productImage.update({
       where: { id: image.id },
@@ -267,13 +274,20 @@ router.patch(
         mediumUrl: stored.urls.medium,
         thumbnailUrl: stored.urls.thumbnail,
         brightness: stored.brightness,
+        originalFilename: stored.originalFilename,
+        originalUrl: stored.originalUrl,
         edit,
       },
     });
 
     // Only once the row points at the new files: a failed update must never
-    // leave a gallery whose photographs have been deleted from under it. The
-    // ORIGINAL is not among these — it belongs to the image, not to the crop.
+    // leave a gallery whose photographs have been deleted from under it.
+    //
+    // The original is not among these — it belongs to the image, not to this
+    // crop. That matters most in the promotion case above, where the file
+    // being kept was WRITTEN from one of the sizes about to be deleted: it
+    // was copied under the new base name first, so what goes here is only the
+    // old copy.
     await deleteProductImageFiles(image.filename);
 
     await writeAudit({

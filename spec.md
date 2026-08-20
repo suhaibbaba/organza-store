@@ -422,8 +422,15 @@ a canvas — a preview is all it is.
 untouched bytes), so a framing chosen in a hurry can be reconsidered: a stored
 photo carries a **crop** button that re-cuts it from the original, and the new
 sizes get new file names so nothing cached anywhere goes on showing the old
-framing. A photo uploaded before the editor existed has no original and is not
-offered the button.
+framing.
+
+**A photo from before the editor existed can be re-framed too.** It has no
+original, so the largest size it does have is used — and then **promoted** to
+be that photo's original as the crop is cut. One step down in quality, once,
+from a picture that had already been through sharp; from then on it behaves
+like any other photo and never loses anything again. The alternative — telling
+the shop to photograph its existing catalogue again, or cutting each new crop
+out of the last one — is worse in both directions.
 
 **Orientation is honoured.** A phone held sideways records an EXIF tag rather
 than turning the pixels, and every browser turns it back before drawing —
