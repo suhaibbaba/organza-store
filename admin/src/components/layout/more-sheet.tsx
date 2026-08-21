@@ -55,13 +55,15 @@ export function MoreSheet({ open, onOpenChange, items }: MoreSheetProps) {
 
         {/* The language and the way out, a second time.
 
-            Both now live in the header as well, at every width (top-bar.tsx),
-            because identity and sign-out cannot depend on this sheet: it only
-            exists when a role has more nav items than the four bottom tabs
-            hold. Kept here anyway — this is where somebody on a phone already
-            comes for everything else, and a full-width row is a better target
-            for a thumb than a dropdown in the corner. Duplication a tap apart,
-            not a second implementation: both call the same `logout`. */}
+            Both also live in the shell's account menu, at every width and for
+            every role (components/layout/account-menu.tsx) — they cannot
+            depend on this sheet, which only exists when a role has more nav
+            items than the four bottom tabs hold. Kept here anyway: this is
+            where somebody on a phone already comes for everything else, and a
+            full-width row is a better target for a thumb than a menu in the
+            corner. Duplication a tap apart, not a second implementation —
+            both call the same `logout`, and the language is the same
+            LanguageSwitcher in its other variant. */}
         <div className="mt-auto flex flex-col gap-3 p-3">
           <Separator />
           <LanguageSwitcher className="px-1" />

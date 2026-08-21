@@ -1,28 +1,47 @@
 "use client";
 
 import { useLocale, useTranslations } from "next-intl";
-import { ChevronDown, Languages } from "lucide-react";
+import { Languages } from "lucide-react";
 import { usePathname, useRouter } from "@/i18n/navigation";
 import { routing, type AppLocale } from "@/i18n/routing";
 import { LOCALE_LABELS } from "@/constants/locale";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
+  DropdownMenuLabel,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
-  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { testSelectorFor } from "@organza/shared/lib/testSelector";
 
 interface LanguageSwitcherProps {
   className?: string;
-  // "dropdown": a single trigger + menu (desktop header). "list": all
-  // locales laid out as buttons (mobile "More" sheet, where a nested
-  // popup would be awkward inside an already-open sheet).
-  variant?: "dropdown" | "list";
+  // "menu": the language section OF AN OPEN DROPDOWN — a heading and the
+  // locales as radio items, composed inside somebody else's
+  // DropdownMenuContent (the account menu). Deliberately not its own popup:
+  // a submenu would put the shop's own language two levels down, and the
+  // whole point of moving this here was to make it fewer things on screen,
+  // not more taps.
+  //
+  // "list": every locale as a button in a row — the signed-out pages and the
+  // "More" sheet, where there is no menu to sit inside and a nested popup in
+  // an already-open sheet would be awkward.
+  variant?: "menu" | "list";
 }
 
+// HOW THE LANGUAGE IS CHOSEN — one component, wherever the choosing happens.
+//
+// It used to have a `dropdown` variant of its own, and that control sat in
+// the top bar beside the account menu. Four things then shared that row —
+// the shop's name, the sandbox chip, the language and the account — and on a
+// phone the language had already given up its label and collapsed to a bare
+// icon to make room. An unlabelled icon is the wrong thing to leave for staff
+// who are not tech-savvy (CLAUDE.md "Frontend UX"), and it was the fourth
+// thing in a row that only had space for three.
+//
+// So it moved INTO the account menu, next to sign-out, which is where a
+// person's own preferences belong and where the "More" sheet had been putting
+// it all along. The header is down to the shop, the chip and the account, and
+// the language is still two taps away with its name written out in full.
 export function LanguageSwitcher({ className, variant = "list" }: LanguageSwitcherProps) {
   const locale = useLocale() as AppLocale;
   const pathname = usePathname();
@@ -38,49 +57,45 @@ export function LanguageSwitcher({ className, variant = "list" }: LanguageSwitch
     router.replace(pathname, { locale: loc });
   }
 
-  if (variant === "dropdown") {
+  if (variant === "menu") {
     return (
-      <DropdownMenu>
-        <DropdownMenuTrigger
-          data-test-selector="pos-language-switcher"
-          className={cn(
-            "flex min-h-11 min-w-0 shrink-0 items-center gap-2 rounded-md border border-input px-2 text-sm font-medium text-foreground sm:px-3",
-            "transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-            "data-[state=open]:bg-accent",
-            className
-          )}
+      // A fragment, not a wrapper: these are the menu's own children, and
+      // Radix walks the content's descendants to work out arrow-key order and
+      // typeahead. A div between them is a div the keyboard has to guess at.
+      <>
+        <DropdownMenuLabel id={LANGUAGE_GROUP_LABEL_ID} className="flex items-center gap-2">
+          <Languages className="size-4 shrink-0" aria-hidden="true" />
+          {t("language")}
+        </DropdownMenuLabel>
+        {/* Which one is on is answered here, in the menu itself, rather than
+            behind another tap: the group ticks the current locale and prints
+            it darker than the rest. Every language is written in its OWN
+            script — العربية, English, עברית — so it is legible to whoever
+            wants it even when the interface around it is not in a language
+            they read, which is the whole reason somebody opens this. */}
+        <DropdownMenuRadioGroup
+          aria-labelledby={LANGUAGE_GROUP_LABEL_ID}
+          value={locale}
+          onValueChange={(value) => handleChange(value as AppLocale)}
+          className={className}
         >
-          <Languages className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-          <span className="sr-only">{t("language")}</span>
-          {/* The current language's own name, dropped on a narrow phone.
-              Nothing is lost by that: the whole interface is already written
-              in it, so the icon alone says "change language" — and the menu
-              this opens ticks the one in use. What it buys is the ~60px that
-              keeps the sandbox chip and the account button from having to
-              fight for the same row. The sr-only label above is unconditional,
-              so a screen reader is unaffected either way. */}
-          <span className="hidden truncate sm:inline">{LOCALE_LABELS[locale]}</span>
-          <ChevronDown className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuRadioGroup value={locale} onValueChange={(value) => handleChange(value as AppLocale)}>
-            {routing.locales.map((loc) => (
-              <DropdownMenuRadioItem
-                key={loc}
-                value={loc}
-                data-test-selector={testSelectorFor("pos-language-option", loc)}
-              >
-                {LOCALE_LABELS[loc]}
-              </DropdownMenuRadioItem>
-            ))}
-          </DropdownMenuRadioGroup>
-        </DropdownMenuContent>
-      </DropdownMenu>
+          {routing.locales.map((loc) => (
+            <DropdownMenuRadioItem
+              key={loc}
+              value={loc}
+              data-test-selector={testSelectorFor("pos-language-option", loc)}
+              className="data-[state=checked]:font-semibold data-[state=checked]:text-foreground"
+            >
+              {LOCALE_LABELS[loc]}
+            </DropdownMenuRadioItem>
+          ))}
+        </DropdownMenuRadioGroup>
+      </>
     );
   }
 
   return (
-    <div className={cn("flex items-center gap-1", className)}>
+    <div className={cn("flex items-center gap-1", className)} data-test-selector="pos-language-switcher">
       <Languages className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
       <span className="sr-only">{t("language")}</span>
       {routing.locales.map((loc) => (
@@ -101,3 +116,9 @@ export function LanguageSwitcher({ className, variant = "list" }: LanguageSwitch
     </div>
   );
 }
+
+// The heading the radio group points at, so a screen reader announces "Language,
+// three options" rather than three unexplained items in the middle of an
+// account menu. A constant because the two have to agree and there is exactly
+// one of this group on screen at a time.
+const LANGUAGE_GROUP_LABEL_ID = "pos-language-group-label";

@@ -11,6 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { LanguageSwitcher } from "@/components/layout/language-switcher";
 import { useSession } from "@/components/providers/session-provider";
 import { useUserDisplay } from "@/lib/user-display";
 import { AppVersion } from "@/components/pwa/app-version";
@@ -36,8 +37,17 @@ interface AccountMenuProps {
 // component taking all of those as parameters would be more indirection than
 // the twenty lines it saved.
 //
-// Mirrors LanguageSwitcher's dropdown variant (same trigger shape, same
-// animated Radix content) so the two sit together consistently in the header.
+// It is also where the LANGUAGE lives, since the header had four things in a
+// row and space for three (see the note in language-switcher.tsx). A person's
+// own name, their way out and the language they read the app in are the same
+// kind of thing — this account, these preferences — so they belong behind the
+// same button rather than beside each other in a bar that keeps running out
+// of width.
+//
+// The menu is built in GROUPS for that reason: identity, then preferences,
+// then the way out, then the build. Anything added later joins one of those
+// or starts a fourth WITH A HEADING — a menu that grows by appending loose
+// items is how it stops being readable.
 export function AccountMenu({ className }: AccountMenuProps) {
   const t = useTranslations("common");
   const { user, logout } = useSession();
@@ -70,9 +80,12 @@ export function AccountMenu({ className }: AccountMenuProps) {
         {/* Capped AND truncating, both on purpose. The cap keeps a long name
             from stretching the header out of shape; the truncation is what
             stops the bar overflowing when even the cap is too much for the
-            width, which is how the sandbox chip ended up painted over the
-            language switcher. */}
-        <span className="min-w-0 max-w-24 truncate sm:max-w-40">{name}</span>
+            width, which is how the sandbox chip once ended up painted over
+            the control beside it.
+            Wider than it was: this is the only control left in the row now
+            that the language has moved inside the menu, so the ~110px that
+            control used to take goes to the name it was crowding. */}
+        <span className="min-w-0 max-w-32 truncate sm:max-w-48">{name}</span>
         {/* data-state lives on the trigger, so the arrow flips via the group. */}
         <ChevronDown
           className="size-4 shrink-0 text-muted-foreground transition-transform duration-200 group-data-[state=open]:rotate-180"
@@ -80,7 +93,7 @@ export function AccountMenu({ className }: AccountMenuProps) {
         />
       </DropdownMenuTrigger>
 
-      <DropdownMenuContent align="end" className="min-w-52">
+      <DropdownMenuContent align="end" className="min-w-56">
         {/* The whole identity, where there is room for it: the name the
             trigger may have had to truncate, then what this account IS in the
             shop, then the address it signs in with.
@@ -98,6 +111,19 @@ export function AccountMenu({ className }: AccountMenuProps) {
             <span className="truncate text-xs font-normal text-muted-foreground">{user.email}</span>
           )}
         </DropdownMenuLabel>
+        <DropdownMenuSeparator />
+
+        {/* PREFERENCES. One entry today, and it is here rather than in the
+            header because a bar with the shop's name, the sandbox chip, the
+            language and the account in it had already squeezed the language
+            down to an unlabelled icon.
+
+            Laid out flat rather than behind a submenu: this is two taps from
+            anywhere — open the menu, pick the language — and the one in use is
+            ticked, so "which language am I in" is answered by looking rather
+            than by opening something. */}
+        <LanguageSwitcher variant="menu" />
+
         <DropdownMenuSeparator />
         <DropdownMenuItem
           onSelect={() => void logout()}

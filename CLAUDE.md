@@ -389,14 +389,27 @@ Design for that reality:
   it — prefer `min-h-*` with padding over `h-*`, and check with `ملاحظات على الخيارات جحخي`.
 - **Accessibility basics:** readable font sizes on mobile, sufficient contrast, labels on inputs.
 - **Whoever is signed in is named IN THE SHELL, never on a page.** The header carries the
-  account — name, role, sign-out, the app version — at every width and for every role, sourced
-  from the session (`components/layout/account-menu.tsx`, mirroring the POS's). It may never be
-  hidden below a breakpoint, and it may never be the dashboard's job: the dashboard is
-  Admin/Manager only, so tying identity to it takes their own name away from the one role that
+  account — name, role, sign-out, the language, the app version — at every width and for every
+  role, sourced from the session (`components/layout/account-menu.tsx`, mirroring the POS's). It
+  may never be hidden below a breakpoint, and it may never be the dashboard's job: the dashboard
+  is Admin/Manager only, so tying identity to it takes their own name away from the one role that
   spends all day filing orders under it. The same holds for anything a person always needs — the
-  language switcher, the sandbox badge, the way out. Nothing that must always be reachable may
-  live behind a permission-gated page, and nothing may live *only* in the bottom nav's "More"
-  sheet either: that sheet exists only when a role has more nav entries than the four tabs hold.
+  sandbox badge, the way out. Nothing that must always be reachable may live behind a
+  permission-gated page, and nothing may live *only* in the bottom nav's "More" sheet either: that
+  sheet exists only when a role has more nav entries than the four tabs hold.
+- **The top bar carries three things: the shop's name, the sandbox badge, the account.** Nothing
+  else — a bar with a fourth control in it had already squeezed the language down to an unlabelled
+  icon below `sm` and clipped "أورجانزا" to "أ…" at 320px. A person's own settings go INSIDE the
+  account menu, which is where the language now lives; that menu is built in named groups
+  (identity, preferences, the way out, the build) and anything added later joins one or starts a
+  fifth **with a heading**. Two rules keep it usable: never a submenu (a preference stays two taps
+  — open the menu, choose) and never a bare icon (every control keeps a word).
+- **Radix menus must be told which way round they are.** `DropdownMenu` portals its content to
+  `document.body` and stamps its own `dir="ltr"` unless given one, so `dir="rtl"` on `<html>` is
+  overridden rather than inherited and every logical property inside resolves backwards — `ps-*`
+  became padding-LEFT and the tick beside the chosen language sat on the wrong side in Arabic.
+  Both apps' `components/ui/dropdown-menu.tsx` pass `dir` from the locale in the wrapper, so no
+  call site has to remember. Check any other portalled Radix primitive the same way.
 - **A person is named through `lib/user-display.ts`, never by rendering `user.name` raw.**
   One rule for both apps (`shared/src/lib/userDisplay.ts`): their name, then the local part of
   their email, then their translated role — and **never an internal id**. An id is meaningless to
