@@ -20,12 +20,16 @@ import type { Role } from "@organza/shared/types/role";
 import messages from "@/messages/ar.json";
 import type { SessionUser } from "@/types/auth";
 
-// The language switcher navigates, and next-intl's navigation needs a Next
-// router this test has no use for. Nothing being asserted here depends on it.
+// Changing the language navigates — next-intl's `router.replace(pathname,
+// { locale })` is what both moves the page and writes the cookie that
+// remembers the choice (i18n/routing.ts). There is no Next router here, so it
+// is a spy, and the language test below asserts on what it was asked to do.
+const replace = vi.hoisted(() => vi.fn());
+
 vi.mock("@/i18n/navigation", () => ({
   Link: ({ children }: { children: ReactNode }) => children,
   usePathname: () => "/orders",
-  useRouter: () => ({ replace: vi.fn(), push: vi.fn() }),
+  useRouter: () => ({ replace, push: vi.fn() }),
   redirect: vi.fn(),
 }));
 
@@ -157,5 +161,96 @@ describe("The app shell names whoever is signed in", () => {
 
     expect(screen.getByTestId("account-menu")).toHaveTextContent(messages.users.role.EMPLOYEE);
     expect(screen.getByTestId("account-menu")).not.toHaveTextContent("usr_4");
+  });
+});
+
+
+// THE HEADER HOLDS THREE THINGS, AND THE LANGUAGE IS NOT ONE OF THEM.
+//
+// It was: the shop's name, the sandbox chip, the language and the account all
+// shared one row, and the language was the one that gave way — its label
+// dropped below `sm` and it became an unlabelled icon on exactly the devices
+// 95% of the shop uses. It lives in the account menu now, beside sign-out,
+// which is a person's own settings rather than a fourth thing in a bar.
+//
+// What these hold is the BARGAIN of that move: nothing became harder to
+// reach. Two taps, still, and which language is on is answered by looking.
+describe("The language lives in the account menu", () => {
+  const LOCALES = [
+    { locale: "ar", label: "العربية" },
+    { locale: "en", label: "English" },
+    { locale: "he", label: "עברית" },
+  ] as const;
+
+  it("is not a control of its own in the header", () => {
+    signedInAs(ACCOUNTS[0].user);
+    renderShellHeader();
+
+    // The header is the shop, the chip and the account. Anything else in it
+    // is the crowding this change removed.
+    expect(screen.queryByTestId("language-switcher")).not.toBeInTheDocument();
+    for (const { locale } of LOCALES) {
+      expect(screen.queryByTestId(`language-option-${locale}`)).not.toBeInTheDocument();
+    }
+  });
+
+  it("offers every language the shop runs in, one tap after the menu opens", async () => {
+    signedInAs(ACCOUNTS[0].user);
+    renderShellHeader();
+
+    // Tap one.
+    await userEvent.click(screen.getByTestId("account-menu"));
+    const menu = await screen.findByRole("menu");
+
+    // Under a heading that says what they are — not three unexplained words
+    // in the middle of somebody's account.
+    expect(menu).toHaveTextContent(messages.common.language);
+    for (const { locale, label } of LOCALES) {
+      // Each language written in its own script, so it is legible to whoever
+      // wants it even when the interface is not in a language they read.
+      expect(within(menu).getByTestId(`language-option-${locale}`)).toHaveTextContent(label);
+    }
+  });
+
+  it("says which language is on without opening anything further", async () => {
+    signedInAs(ACCOUNTS[0].user);
+    renderShellHeader();
+
+    await userEvent.click(screen.getByTestId("account-menu"));
+    const menu = await screen.findByRole("menu");
+
+    // Rendered in Arabic, so Arabic is the one checked — and it is the ONLY
+    // one, or "which is on" would be no clearer than before.
+    const checked = within(menu).getAllByRole("menuitemradio", { checked: true });
+    expect(checked).toHaveLength(1);
+    expect(checked[0]).toHaveTextContent("العربية");
+  });
+
+  it("switches in two taps, and remembers the choice by navigating", async () => {
+    signedInAs(ACCOUNTS[0].user);
+    renderShellHeader();
+
+    await userEvent.click(screen.getByTestId("account-menu"));
+    const menu = await screen.findByRole("menu");
+    await userEvent.click(within(menu).getByTestId("language-option-en"));
+
+    // The same screen in the other language. `replace` rather than `push` so
+    // the language switch does not become a step in the back history, and
+    // next-intl writes the year-long locale cookie as it goes — which is what
+    // makes the choice survive the app being closed.
+    expect(replace).toHaveBeenCalledWith("/orders", { locale: "en" });
+  });
+
+  it("is reachable for every role, since every role has the account menu", async () => {
+    for (const { role, user } of ACCOUNTS) {
+      signedInAs(user);
+      const view = renderShellHeader();
+
+      await userEvent.click(screen.getAllByTestId("account-menu")[0]);
+      const menu = await screen.findByRole("menu");
+      expect(within(menu).getByTestId("language-option-en"), `${role} can reach the language`).toBeInTheDocument();
+
+      view.unmount();
+    }
   });
 });

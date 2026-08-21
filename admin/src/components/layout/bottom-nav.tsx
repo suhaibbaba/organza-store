@@ -73,6 +73,10 @@ export function BottomNav() {
           <button
             type="button"
             onClick={() => setMoreOpen(true)}
+            // Named like every other nav entry (CLAUDE.md "Test selectors"):
+            // it is the way into the sheet that carries the language and the
+            // way out on a phone, so it is worth being able to describe.
+            data-test-selector="nav-more"
             className="relative flex flex-1 flex-col items-center justify-center gap-1 text-xs font-medium text-muted-foreground"
           >
             {/* "More" opens a sheet rather than being a page, so it is never

@@ -1,7 +1,6 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { LanguageSwitcher } from "@/components/layout/language-switcher";
 import { AccountMenu } from "@/components/layout/account-menu";
 import { EnvironmentBadge } from "@/components/layout/environment-badge";
 
@@ -18,12 +17,19 @@ export function TopBar() {
       className="sticky top-0 z-30 border-b border-border bg-background pt-[var(--safe-top)]"
       data-test-selector="top-bar"
     >
-      {/* Laid out the same way as the POS's bar, and for the same reason:
-          nothing in this row is unshrinkable, so the sandbox chip can never
-          be drawn over the language switcher when the content outgrows the
-          width. The admin reaches that point later than the POS — its
-          controls are hidden below `md` — but "later" is not "never", and one
-          narrow desktop window would have found it. */}
+      {/* THREE THINGS, and the row is sized for three.
+
+          It carried four — the shop, the sandbox chip, the language and the
+          account — and on a phone that was already one too many: the language
+          control had given up its label and collapsed to a bare icon to make
+          the width work, which is not something to leave in front of staff
+          who are not tech-savvy. The language now lives inside the account
+          menu, where a person's own settings belong (account-menu.tsx).
+
+          Nothing here is unshrinkable even so. The name yields first (it
+          truncates), then the account's label; the sandbox chip never does,
+          because the warning about which database you are looking at is the
+          one thing that must survive a narrow window. */}
       <div className="flex h-[var(--top-bar-height)] items-center gap-2 px-4 md:px-6">
         {/* The shop's name, and — on the sandbox only — the chip that says so.
             `flex-1` so the name is what yields when the row is tight, and the
@@ -58,10 +64,7 @@ export function TopBar() {
             happens to hold.
 
             Laid out exactly as the POS's bar, which has always done this. */}
-        <div className="flex min-w-0 items-center gap-2 md:gap-3">
-          <LanguageSwitcher variant="dropdown" />
-          <AccountMenu />
-        </div>
+        <AccountMenu />
       </div>
     </header>
   );

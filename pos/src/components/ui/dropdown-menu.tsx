@@ -3,9 +3,28 @@
 import * as React from "react";
 import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu";
 import { Check } from "lucide-react";
+import { useLocale } from "next-intl";
+import { getTextDirection } from "@/constants/locale";
+import type { AppLocale } from "@/i18n/routing";
 import { cn } from "@/lib/utils";
 
-const DropdownMenu = DropdownMenuPrimitive.Root;
+// WHICH WAY ROUND THE MENU IS, said out loud.
+//
+// Radix stamps `dir="ltr"` on its own content unless it is told otherwise —
+// it does not read the document's direction, and its content is PORTALLED to
+// document.body, so the `dir="rtl"` on <html> is overridden rather than
+// inherited. Every logical property inside then resolves the wrong way:
+// `ps-9` becomes padding-LEFT, and the tick beside the chosen language sat on
+// the left of the row in Arabic with the text pushed away from the edge it
+// should start at.
+//
+// Passed here, once, rather than at each call site, so no menu added later can
+// forget it. Overridable — an explicit `dir` still wins — but nothing needs to.
+function DropdownMenu({ dir, ...props }: React.ComponentProps<typeof DropdownMenuPrimitive.Root>) {
+  const locale = useLocale() as AppLocale;
+  return <DropdownMenuPrimitive.Root dir={dir ?? getTextDirection(locale)} {...props} />;
+}
+
 const DropdownMenuTrigger = DropdownMenuPrimitive.Trigger;
 const DropdownMenuRadioGroup = DropdownMenuPrimitive.RadioGroup;
 
