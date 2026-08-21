@@ -117,24 +117,37 @@
 
      That one line cost the shop every button.
 
-     The build downlevels this file for the oldest phone on the floor (the
-     browserslist in package.json says ios_saf >= 15): each oklch() is emitted
-     with a plain sRGB fallback in front of it, so a browser that does not know
-     the function still gets a colour. A fallback can only be computed from a
-     colour the compiler can evaluate — and it cannot evaluate one whose hue
-     arrives through a custom property, because those are substituted in the
-     browser, long after the build has finished. Those six tokens per theme
-     were therefore the ONLY ones shipped with no fallback at all: primary,
-     secondary, accent and the focus ring. On a phone without oklch() they
-     resolve to nothing, `background-color: var(--primary)` computes to
-     transparent, and every button in both apps loses its background while its
-     near-white label stays near-white.
+     Every colour below is written ONCE, in oklch(). The sRGB copy the older
+     phones read is DERIVED from it at build time by
+     @csstools/postcss-oklab-function (see postcss.config.mjs), which puts the
+     plain colour in front and keeps this one inside an @supports — so the two
+     can never say different things, and nobody has to remember to update a
+     second palette. Never type a fallback by hand here; there is one colour
+     per token and this is it.
+
+     What that plugin cannot do is evaluate a colour whose hue arrives through
+     a custom property, because those are substituted in the browser, long
+     after the build has finished. It leaves such a colour exactly as it found
+     it — no fallback, no warning. Those six tokens per theme were therefore
+     the ONLY ones that ever shipped bare: primary, secondary, accent and the
+     focus ring. On a phone without oklch() they resolve to nothing,
+     `background-color: var(--primary)` computes to transparent, and every
+     button in both apps loses its background while its near-white label stays
+     near-white.
 
      So the hue is a literal here. Re-hueing is a find-and-replace of one
      number rather than an edit of one line, which is a small price for a
      palette that cannot silently stop existing — and
-     shared/scripts/check-css-target.js now fails the build if any token ever
+     shared/scripts/check-css-target.js fails the build if any token ever
      ships without its fallback again.
+
+     One more thing that guard watches, because 15.4 is not the end of it:
+     Safari has known oklch() since 15.4, but 15.x reads the LIGHTNESS as a
+     percentage and throws the whole declaration away when it is a decimal —
+     oklch(44% .06 206.4) paints, oklch(0.44 .06 206.4) does not (it is why
+     Tailwind rewrote its own default theme). Decimals are fine to write here,
+     since the build normalises them to percentages on the way out; the guard
+     is what makes sure it still does.
      ------------------------------------------------------------------ */
 
   --background: oklch(0.99 0 0);

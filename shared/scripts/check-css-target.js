@@ -60,6 +60,32 @@ const COLOR_FUNCTIONS = [
 /** Viewport units that answer to the keyboard and the toolbar. Safari 15.4. */
 const VIEWPORT_UNITS = /\b\d*\.?\d+(dvh|svh|lvh|dvw|svw|lvw|dvmin|dvmax)\b/;
 
+/**
+ * SUPPORTED IS NOT THE SAME AS ACCEPTED.
+ *
+ * Safari has known `oklch()` since 15.4, so from 15.4 up the modern
+ * declaration is the one that paints — but only if it is written the way that
+ * implementation reads. Safari 15.x takes the lightness as a PERCENTAGE and
+ * drops the whole declaration when it is a decimal: `oklch(70% 0.15 162)`
+ * paints, `oklch(0.70 0.15 162)` does not. Tailwind rewrote its entire default
+ * theme for this (tailwindlabs/tailwindcss#17435, reported again in #18081
+ * against Safari 15.8).
+ *
+ * That is the nastiest shape this whole file exists for: the browser reports
+ * support, the `@supports` guard therefore lets it in, the declaration is
+ * thrown away anyway, and the fallback in front of it has already been
+ * overwritten — so on 15.4-15.8 the element gets nothing at all, which is the
+ * same blank button the shop started with.
+ *
+ * Today every lightness in the output is a percentage, because Lightning CSS
+ * normalises it there. That is a side effect of a minifier, not a promise, so
+ * it is asserted here.
+ *
+ * Note the hue is NOT part of this: a bare number is what the spec calls for
+ * and what Safari 15 accepts, and it is what Tailwind itself ships.
+ */
+const DECIMAL_LIGHTNESS = /\b(oklch|oklab|lch|lab)\(\s*(?:\+|-)?(?:\d+\.\d+|\.\d+|[01])(?![\d.%])/i;
+
 /** At-rules that take their whole block with them when they are not understood. */
 const BLOCKING_AT_RULES = {
   layer: "Safari 15.4",
@@ -187,6 +213,14 @@ function main() {
     });
 
     root.walkDecls((decl) => {
+      // Asked before anything else: a colour in this shape is thrown away by
+      // the very browsers that pass the @supports guard in front of it.
+      if (DECIMAL_LIGHTNESS.test(decl.value)) {
+        fatal.push(
+          `${where}: ${decl.prop}: ${decl.value.slice(0, 60)} — Safari 15.x drops a lab/lch lightness written as a decimal; it has to be a percentage`
+        );
+        return;
+      }
       const color = unsupportedColor(decl.value);
       if (color) {
         if (insideSupports(decl)) note(color.name.replace("(", "()"), `${color.since} — guarded by @supports`);
