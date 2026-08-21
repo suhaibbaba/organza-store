@@ -120,9 +120,9 @@
     "subtitle": "כסף שהתקבל וכסף שעדיין חייבים לך לעולם לא מעורבבים כאן.",
     "today": {
       "title": "היום",
-      "orders": "{count, plural, =0 {אין הזמנות} one {הזמנה אחת} two {שתי הזמנות} other {# הזמנות}}",
+      "orders": "{count, plural, =0 {אין הזמנות} one {הזמנה אחת} two {שתי הזמנות} other {{count, number, plain} הזמנות}}",
       "receivedHint": "מזומן ביד",
-      "owedOrders": "{count, plural, =0 {אין חוב} one {הזמנת משלוח אחת} two {שתי הזמנות משלוח} other {# הזמנות משלוח}}",
+      "owedOrders": "{count, plural, =0 {אין חוב} one {הזמנת משלוח אחת} two {שתי הזמנות משלוח} other {{count, number, plain} הזמנות משלוח}}",
       "profit": {
         "label": "רווח על מכירות היום",
         "help": "מכירות היום פחות עלות הסחורה וההוצאות. כולל כל מכירה, גם כזו שחברת המשלוחים עדיין לא שילמה עליה.",
@@ -350,7 +350,7 @@
     },
     "card": {
       "orderNumber": "הזמנה {number}",
-      "itemCount": "{count, plural, one {פריט אחד} two {שני פריטים} other {# פריטים}}"
+      "itemCount": "{count, plural, one {פריט אחד} two {שני פריטים} other {{count, number, plain} פריטים}}"
     },
     "table": {
       "orderNumber": "הזמנה",
@@ -379,7 +379,7 @@
       "notFoundTitle": "ההזמנה לא נמצאה",
       "notFoundDescription": "ייתכן שההזמנה נמחקה.",
       "items": {
-        "title": "{count, plural, one {פריט אחד} two {שני פריטים} other {# פריטים}}",
+        "title": "{count, plural, one {פריט אחד} two {שני פריטים} other {{count, number, plain} פריטים}}",
         "noSku": "ללא מק\"ט",
         "quantity": "כמות: {count}",
         "unitPrice": "מחיר ליחידה: {price}",
@@ -439,7 +439,7 @@
         "decrease": "פחות — {name}",
         "increase": "עוד — {name}",
         "quantityFor": "כמות להחזרה — {name}",
-        "returnSelected": "{count, plural, =0 {החזרת הנבחרים} one {החזרת פריט אחד} two {החזרת שני פריטים} other {החזרת # פריטים}}",
+        "returnSelected": "{count, plural, =0 {החזרת הנבחרים} one {החזרת פריט אחד} two {החזרת שני פריטים} other {החזרת {count, number, plain} פריטים}}",
         "nothingLeft": "לא נותרו פריטים להחזרה בהזמנה זו."
       },
       "manage": {
@@ -468,7 +468,7 @@
         "searching": "מחפש…",
         "empty": "לא נמצאו מוצרים מתאימים.",
         "error": "החיפוש נכשל. נסה/י שוב.",
-        "variantCount": "{count, plural, one {וריאציה אחת} two {שתי וריאציות} other {# וריאציות}}",
+        "variantCount": "{count, plural, one {וריאציה אחת} two {שתי וריאציות} other {{count, number, plain} וריאציות}}",
         "inStock": "{count} במלאי",
         "soldOut": "אזל"
       },
@@ -488,7 +488,7 @@
         "percentValue": "{value}%",
         "discountApplied": "הנחה {value} · ‎−{amount}",
         "discountValue": "הנחה {value}",
-        "stockCap": "{count, plural, one {זה הפריט האחרון במלאי} two {אלה כל # הפריטים במלאי} other {אלה כל # הפריטים במלאי}}"
+        "stockCap": "{count, plural, one {זה הפריט האחרון במלאי} two {אלה כל {count, number, plain} הפריטים במלאי} other {אלה כל {count, number, plain} הפריטים במלאי}}"
       },
       "totals": {
         "subtotal": "סכום ביניים ({count})",
@@ -528,10 +528,10 @@
       "subtitle": "הזמנות שטרם שולמו. סמן את מה שהתקבל.",
       "listLabel": "הזמנות הממתינות לתשלום",
       "selectOrder": "בחירת הזמנה {number} — {amount}",
-      "marked": "{count, plural, one {נרשם תשלום עבור הזמנה אחת.} two {נרשם תשלום עבור שתי הזמנות.} other {נרשם תשלום עבור # הזמנות.}}",
+      "marked": "{count, plural, one {נרשם תשלום עבור הזמנה אחת.} two {נרשם תשלום עבור שתי הזמנות.} other {נרשם תשלום עבור {count, number, plain} הזמנות.}}",
       "summary": {
         "label": "חייבים לך",
-        "orders": "{count, plural, =0 {אין הזמנות} one {הזמנה אחת} two {שתי הזמנות} other {# הזמנות}}",
+        "orders": "{count, plural, =0 {אין הזמנות} one {הזמנה אחת} two {שתי הזמנות} other {{count, number, plain} הזמנות}}",
         "oldest": "ההזמנה הוותיקה שטרם שולמה: {date}"
       },
       "empty": {
@@ -539,10 +539,10 @@
         "description": "כל ההזמנות שולמו."
       },
       "actions": {
-        "selected": "{count, plural, one {הזמנה אחת נבחרה} two {שתי הזמנות נבחרו} other {# הזמנות נבחרו}}",
+        "selected": "{count, plural, one {הזמנה אחת נבחרה} two {שתי הזמנות נבחרו} other {{count, number, plain} הזמנות נבחרו}}",
         "selectAll": "בחר הכל",
         "clear": "ניקוי",
-        "markCollected": "{count, plural, one {התקבל תשלום עבור הזמנה} two {התקבל תשלום עבור שתיים} other {התקבל תשלום עבור #}}"
+        "markCollected": "{count, plural, one {התקבל תשלום עבור הזמנה} two {התקבל תשלום עבור שתיים} other {התקבל תשלום עבור {count, number, plain}}}"
       }
     },
     "quickSale": {
@@ -565,7 +565,7 @@
     "totals": {
       "title": "מכירות בתקופה זו",
       "soldHint": "{orders} הזמנות, {items} פריטים",
-      "owedOrders": "{count, plural, one {הזמנה אחת} two {שתי הזמנות} other {# הזמנות}}",
+      "owedOrders": "{count, plural, one {הזמנה אחת} two {שתי הזמנות} other {{count, number, plain} הזמנות}}",
       "averageOrder": {
         "label": "הזמנה ממוצעת",
         "help": "המכירות חלקי מספר ההזמנות — כמה הייתה שווה הזמנה טיפוסית בתקופה זו."
@@ -968,7 +968,7 @@
       "next": "הבא",
       "pageOf": "עמוד {page} מתוך {totalPages}"
     },
-    "outsideFilterNotice": "{count, plural, one {פריט אחד כבר לא תואם את הסינון — נשאר כאן כדי שלא ייעלם תוך כדי עבודה} two {# פריטים כבר לא תואמים את הסינון — נשארו כאן כדי שלא ייעלמו תוך כדי עבודה} other {# פריטים כבר לא תואמים את הסינון — נשארו כאן כדי שלא ייעלמו תוך כדי עבודה}}",
+    "outsideFilterNotice": "{count, plural, one {פריט אחד כבר לא תואם את הסינון — נשאר כאן כדי שלא ייעלם תוך כדי עבודה} two {{count, number, plain} פריטים כבר לא תואמים את הסינון — נשארו כאן כדי שלא ייעלמו תוך כדי עבודה} other {{count, number, plain} פריטים כבר לא תואמים את הסינון — נשארו כאן כדי שלא ייעלמו תוך כדי עבודה}}",
     "refreshList": "רענון הרשימה"
   },
   "labels": {
@@ -1470,7 +1470,7 @@
       "unknownItem": "פריט ללא שם",
       "sold": "הפריט הזה כבר נמכר.",
       "soldFor": "כבר נמכר ב-{price}.",
-      "saleDetail": "הזמנה {orderNumber} · {count, plural, one {פריט אחד} two {שני פריטים} other {# פריטים}}",
+      "saleDetail": "הזמנה {orderNumber} · {count, plural, one {פריט אחד} two {שני פריטים} other {{count, number, plain} פריטים}}",
       "soldBy": "נמכר על ידי {name} · {when}",
       "missing": "חסרים לו קטגוריה, מחיר עלות, ברקוד ותמונות.",
       "complete": "השלמת הפרטים",

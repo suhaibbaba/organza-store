@@ -13,8 +13,12 @@
   "scripts": {
     "dev": "next dev -p 3001",
     "_comment_build": "The check is part of the build, not a separate step somebody has to remember: syntax the oldest phone cannot parse is a broken app, and it should fail the image build rather than the till.",
-    "build": "next build && npm run check:browser-target",
+    "build": "npm run check:messages && next build && npm run check:browser-target && npm run check:css-target",
+    "_comment_check_messages": "Asked BEFORE the build, because it reads the source messages rather than the output: a figure written with ICU's `#` takes its digits from whatever the device thinks Arabic looks like, so the same sentence reads differently on the counter screen and on the phone beside it. See shared/scripts/check-messages.js.",
+    "check:messages": "node ../shared/scripts/check-messages.js src/messages",
     "check:browser-target": "node ../shared/scripts/check-browser-target.js .next/static/chunks",
+    "_comment_check_css_target": "The same question asked of the STYLESHEET: a colour or a length the shop's phones cannot read is not a broken build anywhere else — every desktop browser draws it perfectly — so the only place it can be caught is here, on the emitted CSS. It is what stands between the shop and another morning of buttons with no background.",
+    "check:css-target": "node ../shared/scripts/check-css-target.js .next/static/chunks",
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit"
@@ -42,11 +46,11 @@
   },
   "_comment_devDependencies": "acorn is here for shared/scripts/check-browser-target.js, which parses the built chunks after next build to prove the oldest phone in the shop can still read them. Declared rather than borrowed from Next's own tree, so the check cannot break when a dependency is hoisted differently.",
   "devDependencies": {
+    "@csstools/postcss-oklab-function": "^5.0.8",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "acorn": "^8.15.0",
     "eslint": "^9",
     "eslint-config-next": "16.2.12",
     "tailwindcss": "^4",

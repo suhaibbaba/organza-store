@@ -299,6 +299,57 @@ behavior — guessing is what broke the previous attempt.
 - These are **structural rules**: when refactoring to satisfy them, move/rename only — never change
   behavior — and keep `tsc` type-check and the build passing.
 
+## The oldest phone on the floor decides (admin + pos)
+The shop's main device runs **iOS 15**, and both apps declare it in their browserslist
+(`ios_saf >= 15`). CSS fails silently there — no build error, no console message, every desktop
+browser perfect — so this is enforced by the build rather than by review.
+
+- **Every colour is written ONCE, in `oklch()`; the fallback is generated, never typed.**
+  `@csstools/postcss-oklab-function` (`preserve: true`, in both `postcss.config.mjs`) derives the
+  plain sRGB copy from each colour and keeps the original inside an `@supports`, so the two cannot
+  drift when a colour changes. **Never hand-write a second palette.** It only works for a colour
+  the plugin can EVALUATE, so **never put a `var()` inside a colour function** —
+  `oklch(0.44 0.06 var(--brand-hue))` is passed through untouched, with nothing behind it, and
+  that is exactly what left every button in both apps with no background and every badge a blank
+  coloured pill. The brand hues are literals in `globals.css`; the note at the top of the palette
+  says why.
+- **Supported is not the same as accepted.** Safari has known `oklch()` since 15.4, but 15.x reads
+  the lightness as a PERCENTAGE and drops the whole declaration when it is a decimal —
+  `oklch(44% .06 206.4)` paints, `oklch(0.44 .06 206.4)` does not, which is why Tailwind rewrote
+  its own default theme. That is the worst shape of all: the `@supports` guard lets the modern
+  declaration in, the browser discards it anyway, and the fallback in front of it has already been
+  overwritten. `check-css-target.js` fails the build on a decimal lightness. (The HUE is a plain
+  number — that is what the spec says and what Safari 15 accepts; the build normalises away a
+  `deg` unit anyway, so do not add one expecting it to ship.)
+- **Three build guards, one per failure mode**, wired into `npm run build` in both apps:
+  `shared/scripts/check-messages.js` (source messages), then `next build`, then
+  `check-browser-target.js` (JS parses) and `check-css-target.js` (CSS is usable). The CSS one
+  separates FATAL — a colour or length with nothing behind it, or an at-rule that takes its whole
+  block with it, or a colour Safari 15.x discards — from DEGRADED, which it names and allows:
+  `:has()`, `:focus-visible`, `::backdrop`, `accent-color`, `backdrop-filter`, `@property`.
+  Losing an effect is fine; losing a stylesheet is not.
+- **Both ranges are checked, not just the old one.** `shared/scripts` has no simulator, so the
+  sweep renders the built stylesheet twice — once filtered as iOS 15.0–15.3 parses it (the
+  derived sRGB fallback paints) and once as 15.4–15.8 does (the native `oklch()` paints, and the
+  percentage-lightness bug is reproduced). The two must agree with each other and with a modern
+  engine, down to the painted RGB of every token.
+- **`shared/scripts/postcss-ios15.cjs` runs last and repairs what the framework cannot.**
+  It flattens `@layer` (an unknown at-rule is dropped WITH its block, so one `@layer` discards the
+  whole sheet on 15.0–15.3 — without this pass 15% of the stylesheet survives, not 72%), rewrites
+  Tailwind's `color-mix()` opacity modifiers to `rgb(var(--token-rgb) / N%)` so `bg-primary/10` is
+  a tint rather than the solid colour (`color-mix` is Safari 16.2, so this one reaches 16.1 too),
+  and puts a `vh` fallback before every `dvh`. It has no dependencies: the plain sRGB it needs is
+  what the oklab plugin already wrote in front of each colour, so it reads that instead of
+  computing a second opinion — which is also why removing that plugin makes this one **throw**
+  rather than quietly go back to solid badges. Its own header explains each pass.
+- **Numbers and dates are stated, never inherited.** `Intl` takes its numbering system from the
+  device: recent ICU writes `ar` in western digits, iOS 15's writes it in Arabic-Indic ones, so
+  the same price reads two ways on two devices in one shop. Every `Intl` call in both apps spreads
+  `NUMBER_FORMAT_BASE` / `DATE_FORMAT_BASE` from `@organza/shared/constants/formatting` (western
+  digits, Gregorian calendar), and a figure inside a sentence is written `{count, number, plain}` —
+  never ICU's `#`, which is formatted with the bare locale. `check-messages.js` refuses `#`, a
+  bare `{arg, number}`, and Arabic-Indic digits typed into the copy.
+
 ## Frontend UX — mobile-first, simple, RTL (admin + pos)
 The people using the admin and POS are **not tech-savvy**, and ~**95% of use is on mobile phones**.
 Design for that reality:

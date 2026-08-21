@@ -120,9 +120,9 @@
     "subtitle": "المبالغ المقبوضة والمبالغ المستحقة لا تُخلط أبدًا هنا.",
     "today": {
       "title": "اليوم",
-      "orders": "{count, plural, =0 {لا توجد طلبات} one {طلب واحد} two {طلبان} few {# طلبات} other {# طلبًا}}",
+      "orders": "{count, plural, =0 {لا توجد طلبات} one {طلب واحد} two {طلبان} few {{count, number, plain} طلبات} other {{count, number, plain} طلبًا}}",
       "receivedHint": "نقد في اليد",
-      "owedOrders": "{count, plural, =0 {لا شيء مستحق} one {طلب توصيل واحد} two {طلبا توصيل} few {# طلبات توصيل} other {# طلب توصيل}}",
+      "owedOrders": "{count, plural, =0 {لا شيء مستحق} one {طلب توصيل واحد} two {طلبا توصيل} few {{count, number, plain} طلبات توصيل} other {{count, number, plain} طلب توصيل}}",
       "profit": {
         "label": "ربح مبيعات اليوم",
         "help": "مبيعات اليوم ناقص تكلفة البضاعة ومصاريف اليوم. يشمل كل عملية بيع، حتى التي لم تدفع شركة التوصيل ثمنها بعد.",
@@ -350,7 +350,7 @@
     },
     "card": {
       "orderNumber": "طلب رقم {number}",
-      "itemCount": "{count, plural, one {منتج واحد} two {منتجان} few {# منتجات} other {# منتجًا}}"
+      "itemCount": "{count, plural, one {منتج واحد} two {منتجان} few {{count, number, plain} منتجات} other {{count, number, plain} منتجًا}}"
     },
     "table": {
       "orderNumber": "رقم الطلب",
@@ -379,7 +379,7 @@
       "notFoundTitle": "الطلب غير موجود",
       "notFoundDescription": "قد يكون هذا الطلب محذوفًا.",
       "items": {
-        "title": "{count, plural, one {منتج واحد} two {منتجان} few {# منتجات} other {# منتجًا}}",
+        "title": "{count, plural, one {منتج واحد} two {منتجان} few {{count, number, plain} منتجات} other {{count, number, plain} منتجًا}}",
         "noSku": "بدون SKU",
         "quantity": "الكمية: {count}",
         "unitPrice": "سعر القطعة: {price}",
@@ -439,7 +439,7 @@
         "decrease": "إنقاص الكمية — {name}",
         "increase": "زيادة الكمية — {name}",
         "quantityFor": "الكمية المُرجعة — {name}",
-        "returnSelected": "{count, plural, =0 {إرجاع المحدد} one {إرجاع قطعة واحدة} two {إرجاع قطعتين} few {إرجاع # قطع} other {إرجاع # قطعة}}",
+        "returnSelected": "{count, plural, =0 {إرجاع المحدد} one {إرجاع قطعة واحدة} two {إرجاع قطعتين} few {إرجاع {count, number, plain} قطع} other {إرجاع {count, number, plain} قطعة}}",
         "nothingLeft": "لا توجد كميات متبقية للإرجاع في هذا الطلب."
       },
       "manage": {
@@ -468,7 +468,7 @@
         "searching": "جارٍ البحث…",
         "empty": "لا توجد منتجات مطابقة.",
         "error": "تعذّر البحث. حاول مرة أخرى.",
-        "variantCount": "{count, plural, one {متغير واحد} two {متغيران} few {# متغيرات} other {# متغيرًا}}",
+        "variantCount": "{count, plural, one {متغير واحد} two {متغيران} few {{count, number, plain} متغيرات} other {{count, number, plain} متغيرًا}}",
         "inStock": "متوفر: {count}",
         "soldOut": "غير متوفر"
       },
@@ -488,7 +488,7 @@
         "percentValue": "{value}%",
         "discountApplied": "خصم {value} · ‎−{amount}",
         "discountValue": "خصم {value}",
-        "stockCap": "{count, plural, zero {لا يوجد مخزون} one {هذه آخر قطعة متوفرة} two {هاتان آخر قطعتين متوفرتين} other {هذا كل المتوفر: # قطعة}}"
+        "stockCap": "{count, plural, zero {لا يوجد مخزون} one {هذه آخر قطعة متوفرة} two {هاتان آخر قطعتين متوفرتين} other {هذا كل المتوفر: {count, number, plain} قطعة}}"
       },
       "totals": {
         "subtotal": "المجموع الفرعي ({count})",
@@ -528,10 +528,10 @@
       "subtitle": "الطلبات التي لم يصل مبلغها بعد. حدّد ما تم استلامه.",
       "listLabel": "طلبات بانتظار التحصيل",
       "selectOrder": "تحديد طلب رقم {number} — {amount}",
-      "marked": "{count, plural, one {تم تسجيل استلام مبلغ طلب واحد.} two {تم تسجيل استلام مبلغ طلبين.} few {تم تسجيل استلام مبالغ # طلبات.} other {تم تسجيل استلام مبالغ # طلبًا.}}",
+      "marked": "{count, plural, one {تم تسجيل استلام مبلغ طلب واحد.} two {تم تسجيل استلام مبلغ طلبين.} few {تم تسجيل استلام مبالغ {count, number, plain} طلبات.} other {تم تسجيل استلام مبالغ {count, number, plain} طلبًا.}}",
       "summary": {
         "label": "المبلغ المستحق لك",
-        "orders": "{count, plural, =0 {لا توجد طلبات} one {طلب واحد} two {طلبان} few {# طلبات} other {# طلبًا}}",
+        "orders": "{count, plural, =0 {لا توجد طلبات} one {طلب واحد} two {طلبان} few {{count, number, plain} طلبات} other {{count, number, plain} طلبًا}}",
         "oldest": "أقدم طلب بانتظار التحصيل: {date}"
       },
       "empty": {
@@ -539,10 +539,10 @@
         "description": "كل الطلبات تم استلام مبالغها."
       },
       "actions": {
-        "selected": "{count, plural, one {طلب واحد محدد} two {طلبان محددان} few {# طلبات محددة} other {# طلبًا محددًا}}",
+        "selected": "{count, plural, one {طلب واحد محدد} two {طلبان محددان} few {{count, number, plain} طلبات محددة} other {{count, number, plain} طلبًا محددًا}}",
         "selectAll": "تحديد الكل",
         "clear": "إلغاء التحديد",
-        "markCollected": "{count, plural, one {استلمت مبلغ طلب واحد} two {استلمت مبلغ طلبين} few {استلمت مبالغ # طلبات} other {استلمت مبالغ # طلبًا}}"
+        "markCollected": "{count, plural, one {استلمت مبلغ طلب واحد} two {استلمت مبلغ طلبين} few {استلمت مبالغ {count, number, plain} طلبات} other {استلمت مبالغ {count, number, plain} طلبًا}}"
       }
     },
     "quickSale": {
@@ -555,8 +555,8 @@
     "updating": "جارٍ التحديث…",
     "range": {
       "today": "اليوم",
-      "last7Days": "آخر ٧ أيام",
-      "last30Days": "آخر ٣٠ يومًا",
+      "last7Days": "آخر 7 أيام",
+      "last30Days": "آخر 30 يومًا",
       "thisMonth": "هذا الشهر",
       "custom": "فترة أخرى",
       "from": "من تاريخ",
@@ -565,7 +565,7 @@
     "totals": {
       "title": "مبيعات هذه الفترة",
       "soldHint": "{orders} طلب، {items} قطعة",
-      "owedOrders": "{count, plural, one {طلب واحد} two {طلبان} few {# طلبات} other {# طلبًا}}",
+      "owedOrders": "{count, plural, one {طلب واحد} two {طلبان} few {{count, number, plain} طلبات} other {{count, number, plain} طلبًا}}",
       "averageOrder": {
         "label": "متوسط الطلب",
         "help": "المبيعات مقسومة على عدد الطلبات — أي كم كانت قيمة الطلب الواحد في هذه الفترة."
@@ -812,7 +812,7 @@
         "title": "ملاحظات على الخيارات",
         "subtitle": "اختياري — اشرح ماذا يعني كل خيار في هذا المنتج.",
         "countWritten": "{count} ملاحظة مكتوبة",
-        "placeholder": "مثال: طول البنطلون ٩٥ سم",
+        "placeholder": "مثال: طول البنطلون 95 سم",
         "createHint": "الملاحظة تخص هذا المنتج وحده؛ المقاس نفسه في منتج آخر لا يتأثر."
       },
       "images": {
@@ -968,7 +968,7 @@
       "next": "التالي",
       "pageOf": "صفحة {page} من {totalPages}"
     },
-    "outsideFilterNotice": "{count, plural, zero {لا شيء} one {صنف واحد لم يعد ضمن التصفية، وبقي هنا حتى لا يختفي أثناء العمل} two {صنفان لم يعودا ضمن التصفية، وبقيا هنا حتى لا يختفيا أثناء العمل} other {# أصناف لم تعد ضمن التصفية، وبقيت هنا حتى لا تختفي أثناء العمل}}",
+    "outsideFilterNotice": "{count, plural, zero {لا شيء} one {صنف واحد لم يعد ضمن التصفية، وبقي هنا حتى لا يختفي أثناء العمل} two {صنفان لم يعودا ضمن التصفية، وبقيا هنا حتى لا يختفيا أثناء العمل} other {{count, number, plain} أصناف لم تعد ضمن التصفية، وبقيت هنا حتى لا تختفي أثناء العمل}}",
     "refreshList": "تحديث القائمة"
   },
   "labels": {
@@ -1470,7 +1470,7 @@
       "unknownItem": "قطعة بدون اسم",
       "sold": "تم بيع هذه القطعة بالفعل.",
       "soldFor": "تم بيعها بالفعل بسعر {price}.",
-      "saleDetail": "طلب رقم {orderNumber} · {count, plural, one {قطعة واحدة} two {قطعتان} few {# قطع} many {# قطعة} other {# قطعة}}",
+      "saleDetail": "طلب رقم {orderNumber} · {count, plural, one {قطعة واحدة} two {قطعتان} few {{count, number, plain} قطع} many {{count, number, plain} قطعة} other {{count, number, plain} قطعة}}",
       "soldBy": "باعها {name} · {when}",
       "missing": "ينقصها القسم وسعر التكلفة والباركود والصور.",
       "complete": "استكمال التفاصيل",
