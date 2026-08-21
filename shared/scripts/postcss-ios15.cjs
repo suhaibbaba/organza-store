@@ -1,16 +1,19 @@
 "use strict";
 
-const { transform } = require("lightningcss");
-
 /**
  * WHAT THE SHOP'S PHONES CANNOT READ, AND WHAT TO GIVE THEM INSTEAD.
  *
  * Both apps are built for the oldest phone on the floor — `ios_saf >= 15` in
- * each package.json — and most of that is handled without us: Next compiles
- * the stylesheet against that browserslist, so every `oklch()` colour ships
- * with a plain sRGB fallback in front of it. Three things get through that
- * pass, and each one of them was visible in the shop rather than in a build
- * log. This plugin runs after @tailwindcss/postcss and fixes all three.
+ * each package.json — and the colours are handled before this runs:
+ * @csstools/postcss-oklab-function derives a plain sRGB copy of every oklch()
+ * and puts it in front. Three things get through that pass, and each one of
+ * them was visible in the shop rather than in a build log. This plugin runs
+ * last, on the finished stylesheet, and fixes all three.
+ *
+ * It has no dependencies of its own, deliberately: the one thing it needs to
+ * know — what each colour is in plain sRGB — is already written in the sheet
+ * by the pass in front of it, so it reads that rather than computing a second
+ * opinion.
  *
  * ── 1. Cascade layers take the whole stylesheet with them ──────────────
  * `@layer` is Safari 15.4, and an at-rule a browser does not know is dropped
@@ -55,13 +58,19 @@ const DYNAMIC_VIEWPORT_UNIT = /(\d)(dvh|svh|lvh|dvmin|lvmin|svmin|dvmax|lvmax|sv
 /** Tailwind's opacity modifier, exactly as it emits it. */
 const TOKEN_ALPHA_MIX = /^color-mix\(in oklab, var\((--[\w-]+)\) ([\d.]+)%, transparent\)$/;
 
-/** A custom property holding a colour we can turn into channels. */
-const RESOLVABLE_COLOR = /^(#[0-9a-f]{3,8}|(rgb|rgba|hsl|hsla|oklch|oklab|lch|lab|color)\()/i;
 
 const CHANNEL_SUFFIX = "-rgb";
 
 function toStaticViewportUnits(value) {
   return value.replace(DYNAMIC_VIEWPORT_UNIT, (_m, digit, unit) => `${digit}v${unit.slice(1)}`);
+}
+
+/** Is this declaration inside an `@supports`? Those hold the wider-gamut copies. */
+function insideSupports(node) {
+  for (let parent = node.parent; parent; parent = parent.parent) {
+    if (parent.type === "atrule" && parent.name === "supports") return true;
+  }
+  return false;
 }
 
 /** Has an earlier declaration of the same property already given a usable value? */
@@ -75,47 +84,22 @@ function alreadyHasFallback(decl, isUnusable) {
 }
 
 /**
- * Colour values → sRGB channels ("34 92 99"), resolved by the same compiler
- * that writes the rest of this stylesheet's fallbacks.
+ * Colour values → sRGB channels ("34 92 99").
  *
- * Lightning CSS is asked rather than a hand-rolled oklch→sRGB conversion on
- * purpose: it is already the thing that decides what `--primary` is on an old
- * phone, so this cannot disagree with the rest of the file by a shade. One
- * call for the whole palette, not one per token.
+ * Nothing is CONVERTED here, which is the point. By the time this plugin runs,
+ * @csstools/postcss-oklab-function has already written a plain sRGB copy of
+ * every colour in front of the oklch() it derived it from (postcss.config.mjs
+ * explains the order), so the channels are sitting in the stylesheet waiting
+ * to be read. This used to call Lightning CSS to work them out for itself —
+ * a second opinion about what `--primary` is on an old phone, and one more
+ * chance for the two to disagree by a shade. Reading the answer that is
+ * already there cannot disagree with it, and takes a 10 MB native binary out
+ * of the CSS build.
+ *
+ * A value it cannot read is simply left out of the map, and the token that
+ * held it is not softened — see `isSoftenable` below.
  */
-function resolveToChannels(values) {
-  const unique = [...new Set(values)];
-  if (unique.length === 0) return new Map();
-
-  const probe = `:root{${unique.map((value, i) => `--probe-${i}:${value}`).join(";")}}`;
-  let output;
-  try {
-    output = transform({
-      filename: "palette-probe.css",
-      code: Buffer.from(probe),
-      minify: true,
-      // Deliberately older than the apps' own floor. Asked for Safari 15
-      // alone, Lightning answers in `lab()` — correct, and still unreadable
-      // on iOS 15.0. Naming a browser that has no lab() either is what makes
-      // it come back down to plain sRGB, which is the only thing every
-      // browser in the shop can read.
-      targets: { safari: 15 << 16, chrome: 96 << 16, firefox: 95 << 16 },
-    }).code.toString();
-  } catch {
-    return new Map();
-  }
-
-  const channels = new Map();
-  for (const [index, value] of unique.entries()) {
-    // The first answer only: Lightning writes the sRGB fallback first and any
-    // wider-gamut version after it, inside @supports.
-    const match = output.match(new RegExp(`--probe-${index}:\\s*(#[0-9a-f]{3,8}|rgba?\\([^)]*\\))`, "i"));
-    if (!match) continue;
-    const rgb = parseColor(match[1]);
-    if (rgb) channels.set(value, rgb);
-  }
-  return channels;
-}
+const PLAIN_SRGB = /^(#[0-9a-f]{3,8}|rgba?\()/i;
 
 /** "#225c63" or "rgb(34, 92, 99)" → "34 92 99". Alpha is dropped: the utility supplies its own. */
 function parseColor(value) {
@@ -135,7 +119,7 @@ function parseColor(value) {
 module.exports = () => ({
   postcssPlugin: "organza-ios15",
 
-  OnceExit(root) {
+  OnceExit(root, { result }) {
     // ---- 1. Cascade layers ------------------------------------------------
     // Done first: hoisting moves declarations, and the passes below read a
     // declaration's siblings to decide what it already has.
@@ -206,24 +190,36 @@ module.exports = () => ({
       });
     });
 
-    // Every value each token is ever given — a palette declares each of them
-    // at least twice, once for the light theme and once for the dark, and a
-    // rewrite is only safe if BOTH resolve. Softening a token whose dark value
-    // could not be resolved would leave `rgb(var(--x-rgb) / 10%)` pointing at
-    // a property that does not exist in the dark theme, and an undefined var()
-    // paints nothing at all — worse than the solid colour this replaces.
+    // Every value each token is given OUTSIDE an @supports — which is exactly
+    // the plain sRGB layer, since that is where the oklab plugin puts the copy
+    // it derived and where Tailwind puts the sRGB half of its own palette. The
+    // wider-gamut restatements inside an @supports are the same colour again
+    // for a browser that will never need these channels, so they are not read.
+    //
+    // A palette declares each token at least twice, once for the light theme
+    // and once for the dark, and a rewrite is only safe if EVERY one of them
+    // can be read. Softening a token whose dark value could not be would leave
+    // `rgb(var(--x-rgb) / 10%)` pointing at a property that does not exist in
+    // the dark theme, and an undefined var() paints nothing at all — worse
+    // than the solid colour this replaces.
     const tokenValues = new Map();
     if (alphaUses.length > 0) {
       const wanted = new Set(alphaUses.map((use) => use.token));
       root.walkDecls((decl) => {
-        if (!wanted.has(decl.prop)) return;
+        if (!wanted.has(decl.prop) || insideSupports(decl)) return;
         if (!tokenValues.has(decl.prop)) tokenValues.set(decl.prop, new Set());
         tokenValues.get(decl.prop).add(decl.value.trim());
       });
     }
 
-    const colorValues = [...tokenValues.values()].flatMap((values) => [...values]).filter((value) => RESOLVABLE_COLOR.test(value));
-    const channels = resolveToChannels(colorValues);
+    const channels = new Map();
+    for (const values of tokenValues.values()) {
+      for (const value of values) {
+        if (channels.has(value) || !PLAIN_SRGB.test(value)) continue;
+        const rgb = parseColor(value);
+        if (rgb) channels.set(value, rgb);
+      }
+    }
     const isSoftenable = (token) => {
       const values = tokenValues.get(token);
       return Boolean(values) && values.size > 0 && [...values].every((value) => channels.has(value));
@@ -242,6 +238,31 @@ module.exports = () => ({
         rule.after(rule.clone({ selectors: [selector], nodes: [decl.clone({ value: softened })] }));
       }
       rewritten += 1;
+    }
+
+    // Nothing softened, but something to soften: the plain sRGB copies this
+    // pass reads are not in the stylesheet, which in practice means
+    // @csstools/postcss-oklab-function is no longer running in front of this
+    // plugin (see postcss.config.mjs). Left alone it is a SILENT regression —
+    // every tinted badge quietly goes back to painting at full strength, and
+    // check-css-target.js does not object because a color-mix() with a
+    // fallback behind it is not "nothing to read", just the wrong thing. So it
+    // is caught here, where the count is known.
+    if (alphaUses.length > 0 && rewritten === 0) {
+      throw new Error(
+        `organza-ios15: found ${alphaUses.length} opacity-modifier fallback(s) and could soften none of them. ` +
+          "This pass reads the plain sRGB colours that @csstools/postcss-oklab-function writes — check it still runs " +
+          "before this plugin in postcss.config.mjs."
+      );
+    }
+    // One token that could not be read is not a misconfiguration, but it does
+    // mean those badges paint solid, so it is said out loud rather than
+    // absorbed.
+    for (const token of new Set(alphaUses.map((use) => use.token))) {
+      if (isSoftenable(token)) continue;
+      result.warn(
+        `organza-ios15: ${token} has no plain sRGB value to read, so its tinted backgrounds keep Tailwind's solid fallback on Safari < 16.2.`
+      );
     }
 
     // ---- 3. Channel triplets beside every token that needs one ------------

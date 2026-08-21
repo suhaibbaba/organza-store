@@ -70,7 +70,10 @@
     "libphonenumber-js": "^1.11.14",
     "zod": "^3.24.1"
   },
+  "_comment_devDependencies": "acorn and postcss are here rather than in admin/pos because scripts/ is what requires them: check-browser-target.js parses the emitted JS with acorn, check-css-target.js parses the emitted CSS with postcss. Declared rather than left to hoisting \u2014 both used to resolve only because Next and Tailwind happened to put a copy at the workspace root, which is not a promise either of them makes.",
   "devDependencies": {
+    "acorn": "^8.15.0",
+    "postcss": "^8.5.6",
     "tsc-alias": "^1.9.1",
     "typescript": "^5.7.2"
   },

@@ -333,11 +333,15 @@ browser perfect — so this is enforced by the build rather than by review.
   derived sRGB fallback paints) and once as 15.4–15.8 does (the native `oklch()` paints, and the
   percentage-lightness bug is reproduced). The two must agree with each other and with a modern
   engine, down to the painted RGB of every token.
-- **`shared/scripts/postcss-ios15.cjs` runs after Tailwind and repairs what the framework cannot.**
+- **`shared/scripts/postcss-ios15.cjs` runs last and repairs what the framework cannot.**
   It flattens `@layer` (an unknown at-rule is dropped WITH its block, so one `@layer` discards the
-  whole sheet on 15.0–15.3), rewrites Tailwind's `color-mix()` opacity modifiers to
-  `rgb(var(--token-rgb) / N%)` so `bg-primary/10` is a tint rather than the solid colour, and puts
-  a `vh` fallback before every `dvh`. Its own header explains each pass.
+  whole sheet on 15.0–15.3 — without this pass 15% of the stylesheet survives, not 72%), rewrites
+  Tailwind's `color-mix()` opacity modifiers to `rgb(var(--token-rgb) / N%)` so `bg-primary/10` is
+  a tint rather than the solid colour (`color-mix` is Safari 16.2, so this one reaches 16.1 too),
+  and puts a `vh` fallback before every `dvh`. It has no dependencies: the plain sRGB it needs is
+  what the oklab plugin already wrote in front of each colour, so it reads that instead of
+  computing a second opinion — which is also why removing that plugin makes this one **throw**
+  rather than quietly go back to solid badges. Its own header explains each pass.
 - **Numbers and dates are stated, never inherited.** `Intl` takes its numbering system from the
   device: recent ICU writes `ar` in western digits, iOS 15's writes it in Arabic-Indic ones, so
   the same price reads two ways on two devices in one shop. Every `Intl` call in both apps spreads
