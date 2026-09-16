@@ -1,14 +1,14 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { LanguageSwitcher } from "@/components/layout/language-switcher";
 import { AccountMenu } from "@/components/layout/account-menu";
 import { EnvironmentBadge } from "@/components/layout/environment-badge";
 
 // The POS is a single screen, so there is no navigation to speak of — this
 // bar exists to say who is signed in (every sale is attributed to them in
-// the audit log) and to hold the language switch. Both stay reachable on a
-// phone, since the bottom of the screen belongs to the checkout bar.
+// the audit log) and to give a way into that account's own settings, the
+// language among them. It stays reachable on a phone, since the bottom of
+// the screen belongs to the checkout bar.
 export function TopBar() {
   const t = useTranslations();
 
@@ -24,14 +24,20 @@ export function TopBar() {
       {/* Three things share this row and none of them may ever be drawn over
           another: which shop, which copy of it, and who is signed in.
 
-          It used to be `justify-between` with a `shrink-0` control group,
-          which is fine until the content is wider than the phone — and then
-          the free space goes NEGATIVE and the two groups are laid out on top
-          of each other, which is how the sandbox chip ended up sitting over
-          the language switcher's icon. So nothing here is unshrinkable: the
-          identity gives way first (its name truncates), and if that is not
-          enough the controls give way too (their labels truncate), instead of
-          the row overflowing and colliding. */}
+          There were four, and on a phone the fourth had already cost the
+          language control its label — a bare icon in the corner of a till
+          used by people who are not tech-savvy. The language moved into the
+          account menu (account-menu.tsx), which is where a cashier's own
+          settings belong and which had the room.
+
+          Nothing here is unshrinkable even so. This row used to be
+          `justify-between` with a `shrink-0` control group, which is fine
+          until the content is wider than the phone — and then the free space
+          goes NEGATIVE and the two groups are laid out on top of each other,
+          which is how the sandbox chip ended up sitting over the switcher's
+          icon. So the identity gives way first (its name truncates), and if
+          that is not enough the account's own label does too, instead of the
+          row overflowing and colliding. */}
       <div className="flex h-[var(--top-bar-height)] items-center gap-2 px-3 md:px-6">
         {/* The shop's name, and — on the sandbox only — the chip that says so.
             `flex-1` so this is what yields when the row is tight, and the chip
@@ -44,14 +50,7 @@ export function TopBar() {
           <EnvironmentBadge />
         </div>
 
-        {/* min-w-0 rather than shrink-0: these keep their place in the row and
-            compress themselves (see the account menu's truncating label and
-            the switcher's label, which drops below `sm`) rather than pushing
-            the row wider than the screen. */}
-        <div className="flex min-w-0 items-center gap-2">
-          <LanguageSwitcher variant="dropdown" />
-          <AccountMenu />
-        </div>
+        <AccountMenu />
       </div>
     </header>
   );

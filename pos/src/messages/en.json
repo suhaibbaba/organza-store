@@ -30,8 +30,8 @@
     "out": "Out of stock",
     "low": "Low stock",
     "in": "In stock",
-    "lowCount": "Low stock · {count, plural, one {# left} other {# left}}",
-    "inCount": "In stock · {count, plural, one {# left} other {# left}}"
+    "lowCount": "Low stock · {count, plural, one {{count, number, plain} left} other {{count, number, plain} left}}",
+    "inCount": "In stock · {count, plural, one {{count, number, plain} left} other {{count, number, plain} left}}"
   },
   "offline": {
     "title": "No internet connection",
@@ -78,8 +78,8 @@
   "sell": {
     "noPermission": "Your account can't complete sales. Ask your manager.",
     "feedback": {
-      "added": "{name} × {quantity, number}",
-      "addedMany": "{name} — {count, plural, one {# item} other {# items}} added"
+      "added": "{name} × {quantity, number, plain}",
+      "addedMany": "{name} — {count, plural, one {{count, number, plain} item} other {{count, number, plain} items}} added"
     },
     "search": {
       "label": "Search for a product or scan a barcode",
@@ -90,14 +90,14 @@
       "searching": "Searching…",
       "empty": "Nothing matched.",
       "error": "Couldn't load search results. Try again.",
-      "variantCount": "{count, plural, one {# option} other {# options}}",
+      "variantCount": "{count, plural, one {{count, number, plain} option} other {{count, number, plain} options}}",
       "kind": {
         "numbered": "Numbered · {count}",
         "named": "{type} · {count}",
         "mixed": "Options · {count}"
       },
       "backToCart": "Back to the sale",
-      "cartCount": "{count, plural, =0 {Empty} one {# item} other {# items}}",
+      "cartCount": "{count, plural, =0 {Empty} one {{count, number, plain} item} other {{count, number, plain} items}}",
       "resultsTitle": "Search results for “{query}”"
     },
     "browse": {
@@ -134,7 +134,7 @@
       "unmute": "Turn the beep on",
       "vibrateOff": "Stop the buzz",
       "vibrateOn": "Turn the buzz on",
-      "cartSummary": "{count, plural, =0 {Empty} one {# item} other {# items}}"
+      "cartSummary": "{count, plural, =0 {Empty} one {{count, number, plain} item} other {{count, number, plain} items}}"
     },
     "counter": {
       "title": "Ready to scan",
@@ -156,8 +156,8 @@
       "done": "Done",
       "add": "Add to the sale",
       "addNamed": "Add {name}",
-      "addCount": "Add {count, plural, one {# item} other {# items}} to the sale",
-      "selectedCount": "{count, plural, one {# chosen} other {# chosen}}"
+      "addCount": "Add {count, plural, one {{count, number, plain} item} other {{count, number, plain} items}} to the sale",
+      "selectedCount": "{count, plural, one {{count, number, plain} chosen} other {{count, number, plain} chosen}}"
     },
     "cart": {
       "title": "Current sale",
@@ -173,7 +173,7 @@
       "removeConfirmKeep": "Keep",
       "addDiscount": "Discount",
       "discountFor": "Discount on {name}",
-      "stockCap": "{count, plural, one {That's the last one in stock} other {That's all # in stock}}",
+      "stockCap": "{count, plural, one {That's the last one in stock} other {That's all {count, number, plain} in stock}}",
       "discountApplied": "{value} discount · −{amount}",
       "discountValue": "{value} discount",
       "quickSold": "Quick sell"
@@ -205,7 +205,7 @@
     },
     "checkout": {
       "wholeSale": "the whole sale",
-      "subtotal": "{count, plural, one {# item} other {# items}}",
+      "subtotal": "{count, plural, one {{count, number, plain} item} other {{count, number, plain} items}}",
       "itemDiscounts": "Item discounts",
       "orderDiscount": "Sale discount",
       "total": "Total",
@@ -226,7 +226,7 @@
       "whatsappNextStep": "The order is New. Stock comes off the shelf when preparation starts.",
       "whatsappOrderNumber": "Order {number}",
       "giftTitle": "Gift recorded",
-      "giftCount": "{count, plural, one {# piece} other {# pieces}}",
+      "giftCount": "{count, plural, one {{count, number, plain} piece} other {{count, number, plain} pieces}}",
       "giftNextStep": "The stock has been deducted and no money was taken."
     },
     "whatsapp": {
@@ -260,8 +260,8 @@
       "title": "Give as a gift",
       "subtitle": "Check the pieces before you confirm — they leave the stock and nothing is charged.",
       "warning": "These pieces will be taken off the stock and no money will be collected.",
-      "itemsTitle": "Being given away ({count, plural, one {# piece} other {# pieces}})",
-      "quantity": "Qty {count, number}",
+      "itemsTitle": "Being given away ({count, plural, one {{count, number, plain} piece} other {{count, number, plain} pieces}})",
+      "quantity": "Qty {count, number, plain}",
       "noteLabel": "Note (optional)",
       "notePlaceholder": "e.g. for the bride's mother",
       "noteHint": "Who it is for, or why — saved with the order.",

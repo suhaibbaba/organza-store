@@ -22,9 +22,12 @@ type NamedUser = DisplayableUser & { role?: Role | null };
  * "Suhaib", or "suhaib" from the address, or "Admin" — in that order, and
  * never an internal id.
  *
- * Returns a pair rather than a string: the avatar's letter has to come from
+ * Returns a trio rather than a string. The avatar's letter has to come from
  * the same source as the name, or a circle reading "M" ends up beside a name
- * reading "Admin".
+ * reading "Admin" — and `roleLabel` is handed back because the caller that
+ * shows a person's role beside their name (the account menu) would otherwise
+ * translate the same word a second time, from the same namespace, and be free
+ * to translate it differently.
  */
 export function useUserDisplay() {
   // Role words already live under the users screen's namespace. Reused rather
@@ -36,7 +39,7 @@ export function useUserDisplay() {
   return (user: NamedUser | null | undefined) => {
     const roleLabel = user?.role ? tRole(user.role) : "";
     const name = userDisplayName(user) ?? roleLabel;
-    return { name, initial: userInitial(user, roleLabel) };
+    return { name, initial: userInitial(user, roleLabel), roleLabel };
   };
 }
 

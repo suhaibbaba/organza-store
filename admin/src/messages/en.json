@@ -120,9 +120,9 @@
     "subtitle": "Money received and money still owed are never mixed together here.",
     "today": {
       "title": "Today",
-      "orders": "{count, plural, =0 {No orders} one {1 order} other {# orders}}",
+      "orders": "{count, plural, =0 {No orders} one {1 order} other {{count, number, plain} orders}}",
       "receivedHint": "cash in hand",
-      "owedOrders": "{count, plural, =0 {Nothing outstanding} one {1 delivery order} other {# delivery orders}}",
+      "owedOrders": "{count, plural, =0 {Nothing outstanding} one {1 delivery order} other {{count, number, plain} delivery orders}}",
       "profit": {
         "label": "Profit on today's sales",
         "help": "Today's sales less what the stock cost and what the shop spent today. It counts every sale, including ones the delivery company hasn't paid for yet.",
@@ -350,7 +350,7 @@
     },
     "card": {
       "orderNumber": "Order {number}",
-      "itemCount": "{count, plural, one {# item} other {# items}}"
+      "itemCount": "{count, plural, one {{count, number, plain} item} other {{count, number, plain} items}}"
     },
     "table": {
       "orderNumber": "Order",
@@ -379,7 +379,7 @@
       "notFoundTitle": "Order not found",
       "notFoundDescription": "This order may have been deleted.",
       "items": {
-        "title": "{count, plural, one {# item} other {# items}}",
+        "title": "{count, plural, one {{count, number, plain} item} other {{count, number, plain} items}}",
         "noSku": "No SKU",
         "quantity": "Qty: {count}",
         "unitPrice": "Unit price: {price}",
@@ -439,7 +439,7 @@
         "decrease": "Fewer — {name}",
         "increase": "More — {name}",
         "quantityFor": "Quantity to return — {name}",
-        "returnSelected": "{count, plural, =0 {Return selected} one {Return # item} other {Return # items}}",
+        "returnSelected": "{count, plural, =0 {Return selected} one {Return {count, number, plain} item} other {Return {count, number, plain} items}}",
         "nothingLeft": "Nothing left to return on this order."
       },
       "manage": {
@@ -468,7 +468,7 @@
         "searching": "Searching…",
         "empty": "No matching products.",
         "error": "Search failed. Please try again.",
-        "variantCount": "{count, plural, one {# variant} other {# variants}}",
+        "variantCount": "{count, plural, one {{count, number, plain} variant} other {{count, number, plain} variants}}",
         "inStock": "{count} in stock",
         "soldOut": "Sold out"
       },
@@ -488,7 +488,7 @@
         "percentValue": "{value}%",
         "discountApplied": "{value} discount · −{amount}",
         "discountValue": "{value} discount",
-        "stockCap": "{count, plural, one {That's the last one in stock} other {That's all # in stock}}"
+        "stockCap": "{count, plural, one {That's the last one in stock} other {That's all {count, number, plain} in stock}}"
       },
       "totals": {
         "subtotal": "Subtotal ({count})",
@@ -528,10 +528,10 @@
       "subtitle": "Orders you have not been paid for yet. Tick off what has come in.",
       "listLabel": "Orders awaiting payment",
       "selectOrder": "Select order {number} — {amount}",
-      "marked": "{count, plural, one {Payment recorded for 1 order.} other {Payment recorded for # orders.}}",
+      "marked": "{count, plural, one {Payment recorded for 1 order.} other {Payment recorded for {count, number, plain} orders.}}",
       "summary": {
         "label": "Owed to you",
-        "orders": "{count, plural, =0 {No orders} one {1 order} other {# orders}}",
+        "orders": "{count, plural, =0 {No orders} one {1 order} other {{count, number, plain} orders}}",
         "oldest": "Oldest unpaid order: {date}"
       },
       "empty": {
@@ -539,10 +539,10 @@
         "description": "Every order has been paid for."
       },
       "actions": {
-        "selected": "{count, plural, one {1 order selected} other {# orders selected}}",
+        "selected": "{count, plural, one {1 order selected} other {{count, number, plain} orders selected}}",
         "selectAll": "Select all",
         "clear": "Clear",
-        "markCollected": "{count, plural, one {Payment received for 1} other {Payment received for #}}"
+        "markCollected": "{count, plural, one {Payment received for 1} other {Payment received for {count, number, plain}}}"
       }
     },
     "quickSale": {
@@ -565,7 +565,7 @@
     "totals": {
       "title": "Sales in this period",
       "soldHint": "{orders} orders · {items} items",
-      "owedOrders": "{count, plural, one {1 order} other {# orders}}",
+      "owedOrders": "{count, plural, one {1 order} other {{count, number, plain} orders}}",
       "averageOrder": {
         "label": "Average order",
         "help": "Sales divided by the number of orders — what a typical order in this period was worth."
@@ -968,7 +968,7 @@
       "next": "Next",
       "pageOf": "Page {page} of {totalPages}"
     },
-    "outsideFilterNotice": "{count, plural, one {1 item no longer matches the filter — kept here so it doesn't vanish while you work} other {# items no longer match the filter — kept here so they don't vanish while you work}}",
+    "outsideFilterNotice": "{count, plural, one {1 item no longer matches the filter — kept here so it doesn't vanish while you work} other {{count, number, plain} items no longer match the filter — kept here so they don't vanish while you work}}",
     "refreshList": "Refresh the list"
   },
   "labels": {
@@ -1470,7 +1470,7 @@
       "unknownItem": "Unnamed item",
       "sold": "This piece has already been sold.",
       "soldFor": "Already sold for {price}.",
-      "saleDetail": "Order {orderNumber} · {count, plural, one {1 piece} other {# pieces}}",
+      "saleDetail": "Order {orderNumber} · {count, plural, one {1 piece} other {{count, number, plain} pieces}}",
       "soldBy": "Sold by {name} · {when}",
       "missing": "Still missing its category, cost price, barcode and photos.",
       "complete": "Complete the details",

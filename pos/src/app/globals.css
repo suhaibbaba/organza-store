@@ -109,10 +109,48 @@
      last cart line is a smaller sin than a line trapped under the bar. */
   --checkout-bar-height: 18rem;
 
-  /* Organza logo hues. Every brand tint below is derived from these two, so the
-     whole theme can be re-hued from here instead of per-token. */
-  --brand-hue: 206.4; /* dark teal  #235C63 */
-  --brand-accent-hue: 177.6; /* light mint #B5D3CB */
+  /* ------------------------------------------------------------------
+     THE BRAND HUES ARE WRITTEN OUT IN FULL BELOW, on purpose.
+
+     Organza's two hues are 206.4 (dark teal, #235C63) and 177.6 (light mint,
+     #B5D3CB), and every brand tint in this file carries one of those two
+     numbers literally. They used to arrive through a custom property, so that
+     the whole theme could be re-hued from one line.
+
+     That one line cost the shop every button.
+
+     Every colour below is written ONCE, in oklch(). The sRGB copy the older
+     phones read is DERIVED from it at build time by
+     @csstools/postcss-oklab-function (see postcss.config.mjs), which puts the
+     plain colour in front and keeps this one inside an @supports — so the two
+     can never say different things, and nobody has to remember to update a
+     second palette. Never type a fallback by hand here; there is one colour
+     per token and this is it.
+
+     What that plugin cannot do is evaluate a colour whose hue arrives through
+     a custom property, because those are substituted in the browser, long
+     after the build has finished. It leaves such a colour exactly as it found
+     it — no fallback, no warning. Those six tokens per theme were therefore
+     the ONLY ones that ever shipped bare: primary, secondary, accent and the
+     focus ring. On a phone without oklch() they resolve to nothing,
+     `background-color: var(--primary)` computes to transparent, and every
+     button in both apps loses its background while its near-white label stays
+     near-white.
+
+     So the hue is a literal here. Re-hueing is a find-and-replace of one
+     number rather than an edit of one line, which is a small price for a
+     palette that cannot silently stop existing — and
+     shared/scripts/check-css-target.js fails the build if any token ever
+     ships without its fallback again.
+
+     One more thing that guard watches, because 15.4 is not the end of it:
+     Safari has known oklch() since 15.4, but 15.x reads the LIGHTNESS as a
+     percentage and throws the whole declaration away when it is a decimal —
+     oklch(44% .06 206.4) paints, oklch(0.44 .06 206.4) does not (it is why
+     Tailwind rewrote its own default theme). Decimals are fine to write here,
+     since the build normalises them to percentages on the way out; the guard
+     is what makes sure it still does.
+     ------------------------------------------------------------------ */
 
   --background: oklch(0.99 0 0);
   --foreground: oklch(0.18 0 0);
@@ -122,18 +160,18 @@
   --popover-foreground: oklch(0.18 0 0);
 
   /* Organza teal — brand primary (#235C63) */
-  --primary: oklch(0.44 0.06 var(--brand-hue));
+  --primary: oklch(0.44 0.06 206.4);
   --primary-foreground: oklch(0.98 0 0);
 
-  --secondary: oklch(0.96 0.012 var(--brand-hue));
-  --secondary-foreground: oklch(0.28 0.03 var(--brand-hue));
+  --secondary: oklch(0.96 0.012 206.4);
+  --secondary-foreground: oklch(0.28 0.03 206.4);
 
   --muted: oklch(0.96 0 0);
   --muted-foreground: oklch(0.48 0 0);
 
   /* Organza mint — brand light accent (#B5D3CB) */
-  --accent: oklch(0.843 0.034 var(--brand-accent-hue));
-  --accent-foreground: oklch(0.28 0.03 var(--brand-hue));
+  --accent: oklch(0.843 0.034 177.6);
+  --accent-foreground: oklch(0.28 0.03 206.4);
 
   --destructive: oklch(0.55 0.22 27);
   --destructive-foreground: oklch(0.98 0 0);
@@ -174,7 +212,7 @@
   --border: oklch(0.9 0 0);
   --input: oklch(0.9 0 0);
   /* 0.65 alpha keeps the focus ring at >=3:1 against the page background. */
-  --ring: oklch(0.44 0.06 var(--brand-hue) / 0.65);
+  --ring: oklch(0.44 0.06 206.4 / 0.65);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -187,17 +225,17 @@
     --popover-foreground: oklch(0.96 0 0);
 
     /* Same brand hue, lightened so it reads on a dark surface. */
-    --primary: oklch(0.74 0.07 var(--brand-hue));
+    --primary: oklch(0.74 0.07 206.4);
     --primary-foreground: oklch(0.16 0 0);
 
-    --secondary: oklch(0.28 0.03 var(--brand-hue));
-    --secondary-foreground: oklch(0.94 0.015 var(--brand-accent-hue));
+    --secondary: oklch(0.28 0.03 206.4);
+    --secondary-foreground: oklch(0.94 0.015 177.6);
 
     --muted: oklch(0.27 0 0);
     --muted-foreground: oklch(0.68 0 0);
 
-    --accent: oklch(0.32 0.04 var(--brand-hue));
-    --accent-foreground: oklch(0.94 0.015 var(--brand-accent-hue));
+    --accent: oklch(0.32 0.04 206.4);
+    --accent-foreground: oklch(0.94 0.015 177.6);
 
     --destructive: oklch(0.62 0.2 27);
     --destructive-foreground: oklch(0.16 0 0);
@@ -211,7 +249,7 @@
 
     --border: oklch(1 0 0 / 12%);
     --input: oklch(1 0 0 / 18%);
-    --ring: oklch(0.74 0.07 var(--brand-hue) / 0.6);
+    --ring: oklch(0.74 0.07 206.4 / 0.6);
   }
 }
 

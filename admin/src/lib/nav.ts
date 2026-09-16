@@ -12,3 +12,4 @@ import { NAV_ITEMS } from "@/constants/nav";
 export function landingHref(user: PermissionSubject | null | undefined): string | null {
   return NAV_ITEMS.find((item) => can(user, item.action))?.href ?? null;
 }
+

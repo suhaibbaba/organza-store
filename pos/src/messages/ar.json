@@ -30,8 +30,8 @@
     "out": "غير متوفر",
     "low": "كمية قليلة",
     "in": "متوفر",
-    "lowCount": "كمية قليلة · {count, plural, one {قطعة واحدة} two {قطعتان} few {# قطع} many {# قطعة} other {# قطعة}}",
-    "inCount": "متوفر · {count, plural, one {قطعة واحدة} two {قطعتان} few {# قطع} many {# قطعة} other {# قطعة}}"
+    "lowCount": "كمية قليلة · {count, plural, one {قطعة واحدة} two {قطعتان} few {{count, number, plain} قطع} many {{count, number, plain} قطعة} other {{count, number, plain} قطعة}}",
+    "inCount": "متوفر · {count, plural, one {قطعة واحدة} two {قطعتان} few {{count, number, plain} قطع} many {{count, number, plain} قطعة} other {{count, number, plain} قطعة}}"
   },
   "offline": {
     "title": "لا يوجد اتصال بالإنترنت",
@@ -78,8 +78,8 @@
   "sell": {
     "noPermission": "حسابك لا يسمح بإتمام عمليات البيع. راجع المدير.",
     "feedback": {
-      "added": "{name} × {quantity, number}",
-      "addedMany": "{name} — أُضيفت {count, plural, one {قطعة واحدة} two {قطعتان} few {# قطع} many {# قطعة} other {# قطعة}}"
+      "added": "{name} × {quantity, number, plain}",
+      "addedMany": "{name} — أُضيفت {count, plural, one {قطعة واحدة} two {قطعتان} few {{count, number, plain} قطع} many {{count, number, plain} قطعة} other {{count, number, plain} قطعة}}"
     },
     "search": {
       "label": "البحث عن منتج أو مسح باركود",
@@ -90,14 +90,14 @@
       "searching": "جارٍ البحث…",
       "empty": "لا توجد نتائج مطابقة.",
       "error": "تعذّر تحميل نتائج البحث. حاول مرة أخرى.",
-      "variantCount": "{count, plural, zero {لا خيارات} one {خيار واحد} two {خياران} few {# خيارات} many {# خيارًا} other {# خيار}}",
+      "variantCount": "{count, plural, zero {لا خيارات} one {خيار واحد} two {خياران} few {{count, number, plain} خيارات} many {{count, number, plain} خيارًا} other {{count, number, plain} خيار}}",
       "kind": {
         "numbered": "مرقّم · {count}",
         "named": "{type} · {count}",
         "mixed": "خيارات · {count}"
       },
       "backToCart": "الرجوع إلى السلة",
-      "cartCount": "{count, plural, zero {السلة فارغة} one {قطعة واحدة} two {قطعتان} few {# قطع} many {# قطعة} other {# قطعة}}",
+      "cartCount": "{count, plural, zero {السلة فارغة} one {قطعة واحدة} two {قطعتان} few {{count, number, plain} قطع} many {{count, number, plain} قطعة} other {{count, number, plain} قطعة}}",
       "resultsTitle": "نتائج البحث عن «{query}»"
     },
     "browse": {
@@ -134,7 +134,7 @@
       "unmute": "تشغيل الصوت",
       "vibrateOff": "إيقاف الاهتزاز",
       "vibrateOn": "تشغيل الاهتزاز",
-      "cartSummary": "{count, plural, zero {السلة فارغة} one {قطعة واحدة} two {قطعتان} few {# قطع} many {# قطعة} other {# قطعة}}"
+      "cartSummary": "{count, plural, zero {السلة فارغة} one {قطعة واحدة} two {قطعتان} few {{count, number, plain} قطع} many {{count, number, plain} قطعة} other {{count, number, plain} قطعة}}"
     },
     "counter": {
       "title": "جاهز للمسح",
@@ -156,8 +156,8 @@
       "done": "تم",
       "add": "إضافة إلى السلة",
       "addNamed": "إضافة {name}",
-      "addCount": "إضافة {count, plural, one {قطعة واحدة} two {قطعتين} few {# قطع} many {# قطعة} other {# قطعة}} إلى السلة",
-      "selectedCount": "{count, plural, one {تم اختيار قطعة واحدة} two {تم اختيار قطعتين} few {تم اختيار # قطع} many {تم اختيار # قطعة} other {تم اختيار # قطعة}}"
+      "addCount": "إضافة {count, plural, one {قطعة واحدة} two {قطعتين} few {{count, number, plain} قطع} many {{count, number, plain} قطعة} other {{count, number, plain} قطعة}} إلى السلة",
+      "selectedCount": "{count, plural, one {تم اختيار قطعة واحدة} two {تم اختيار قطعتين} few {تم اختيار {count, number, plain} قطع} many {تم اختيار {count, number, plain} قطعة} other {تم اختيار {count, number, plain} قطعة}}"
     },
     "cart": {
       "title": "البيع الحالي",
@@ -173,7 +173,7 @@
       "removeConfirmKeep": "إبقاء",
       "addDiscount": "خصم",
       "discountFor": "خصم على {name}",
-      "stockCap": "{count, plural, zero {لا يوجد مخزون} one {هذه آخر قطعة متوفرة} two {هذه آخر قطعتين متوفرتين} other {هذا كل المتوفر: # قطعة}}",
+      "stockCap": "{count, plural, zero {لا يوجد مخزون} one {هذه آخر قطعة متوفرة} two {هذه آخر قطعتين متوفرتين} other {هذا كل المتوفر: {count, number, plain} قطعة}}",
       "discountApplied": "خصم {value} · ‎−{amount}",
       "discountValue": "خصم {value}",
       "quickSold": "بيع سريع"
@@ -205,7 +205,7 @@
     },
     "checkout": {
       "wholeSale": "الفاتورة كاملة",
-      "subtotal": "{count, plural, zero {المجموع} one {قطعة واحدة} two {قطعتان} few {# قطع} many {# قطعة} other {# قطعة}}",
+      "subtotal": "{count, plural, zero {المجموع} one {قطعة واحدة} two {قطعتان} few {{count, number, plain} قطع} many {{count, number, plain} قطعة} other {{count, number, plain} قطعة}}",
       "itemDiscounts": "خصومات القطع",
       "orderDiscount": "خصم الفاتورة",
       "total": "الإجمالي",
@@ -226,7 +226,7 @@
       "whatsappNextStep": "الطلب الآن بحالة «جديد». يُخصم المخزون عند بدء التحضير.",
       "whatsappOrderNumber": "طلب رقم {number}",
       "giftTitle": "تم تسجيل الهدية",
-      "giftCount": "{count, plural, one {قطعة واحدة} two {قطعتان} few {# قطع} many {# قطعة} other {# قطعة}}",
+      "giftCount": "{count, plural, one {قطعة واحدة} two {قطعتان} few {{count, number, plain} قطع} many {{count, number, plain} قطعة} other {{count, number, plain} قطعة}}",
       "giftNextStep": "خرجت القطع من المخزون ولم يتم تحصيل أي مبلغ."
     },
     "whatsapp": {
@@ -260,8 +260,8 @@
       "title": "إعطاء كهدية",
       "subtitle": "راجع القطع قبل التأكيد — ستخرج من المخزون بدون أي مبلغ.",
       "warning": "سيتم خصم هذه القطع من المخزون ولن يتم تحصيل أي مبلغ.",
-      "itemsTitle": "القطع التي ستُهدى ({count, plural, one {قطعة واحدة} two {قطعتان} few {# قطع} many {# قطعة} other {# قطعة}})",
-      "quantity": "الكمية: {count, number}",
+      "itemsTitle": "القطع التي ستُهدى ({count, plural, one {قطعة واحدة} two {قطعتان} few {{count, number, plain} قطع} many {{count, number, plain} قطعة} other {{count, number, plain} قطعة}})",
+      "quantity": "الكمية: {count, number, plain}",
       "noteLabel": "ملاحظة (اختياري)",
       "notePlaceholder": "مثال: هدية لأم العروس",
       "noteHint": "لمن الهدية أو سبب إعطائها — تُحفظ مع الطلب.",
@@ -277,10 +277,10 @@
       "namePlaceholder": "مثال: عباية سوداء",
       "priceLabel": "سعر البيع",
       "priceLabelCurrency": "سعر البيع ({currency})",
-      "pricePlaceholder": "٠٫٠٠",
+      "pricePlaceholder": "0.00",
       "priceInvalid": "أدخل سعرًا صحيحًا.",
       "detailLabel": "اللون أو المقاس (اختياري)",
-      "detailPlaceholder": "مثال: أسود · M · ٧",
+      "detailPlaceholder": "مثال: أسود · M · 7",
       "detailHint": "يظهر بجانب الاسم في الفاتورة.",
       "afterwards": "يتم البيع فورًا، ثم تُستكمل تفاصيل القطعة لاحقًا من لوحة التحكم.",
       "add": "إضافة إلى البيع",

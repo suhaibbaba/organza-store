@@ -12,7 +12,12 @@ interface SessionContextValue {
   /** The check itself failed (server unreachable) — NOT the same as signed out. */
   isError: boolean;
   refresh: () => Promise<void>;
-  login: (email: string, password: string) => Promise<void>;
+  /**
+   * Signs in and RETURNS the account, because the caller's next act is to
+   * decide where to send them — and that depends on their role. Reading the
+   * context's `user` instead would read the render before this one.
+   */
+  login: (email: string, password: string) => Promise<SessionUser>;
   logout: () => Promise<void>;
 }
 
@@ -44,6 +49,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     async (email: string, password: string) => {
       const session = await signInWithEmail(email, password);
       queryClient.setQueryData(SESSION_QUERY_KEY, session.user);
+      return session.user;
     },
     [queryClient]
   );

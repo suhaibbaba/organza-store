@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { useLocale } from "next-intl";
 import { useChangeRequestCountQuery } from "@/hooks/use-change-requests";
+import { formatNumber } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 // How many changes are waiting, on the navigation entry itself.
@@ -30,7 +31,7 @@ export function NavPendingBadge({ className }: { className?: string }) {
       )}
       aria-label={t("badgeLabel", { count })}
     >
-      {new Intl.NumberFormat(locale).format(count)}
+      {formatNumber(count, locale)}
     </span>
   );
 }
