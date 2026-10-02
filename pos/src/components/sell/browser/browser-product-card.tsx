@@ -5,6 +5,7 @@ import { ChevronRight, Plus } from "lucide-react";
 import type { ProductSummary } from "@organza/shared/types/product";
 import { testSelectorFor } from "@organza/shared/lib/testSelector";
 import { BROWSE_CARD_STAGGER_MAX, BROWSE_CARD_STAGGER_STEP_MS } from "@/constants/pos";
+import { BROWSER_CARD_THUMB_SIZES } from "@/constants/images";
 import { localize } from "@/lib/i18n-content";
 import { cn } from "@/lib/utils";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
@@ -78,10 +79,7 @@ export function BrowserProductCard({ product, isPending, isBusy, onSelect, index
         src={product.image?.thumbnailUrl}
         alt={name}
         className="aspect-square w-full"
-        // The grid sizes its columns from the panel's width now, not the
-        // viewport's, and a column settles between about 8.5rem and 12rem —
-        // so ask for that rather than for a 220px image the card never uses.
-        sizes="(max-width: 640px) 45vw, 200px"
+        sizes={BROWSER_CARD_THUMB_SIZES}
       />
 
       {/* The same 44px-circle marks the search results use, in the same two

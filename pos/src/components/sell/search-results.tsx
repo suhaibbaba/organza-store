@@ -7,6 +7,7 @@ import { testSelectorFor } from "@organza/shared/lib/testSelector";
 import { localize } from "@/lib/i18n-content";
 import { cn } from "@/lib/utils";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
+import { SEARCH_RESULT_THUMB_SIZES } from "@/constants/images";
 import { ProductThumb } from "@/components/sell/product-thumb";
 import { VariantKindBadge } from "@/components/sell/variant-kind-badge";
 import { Alert } from "@/components/ui/alert";
@@ -100,7 +101,12 @@ export function SearchResults({ results, isLoading, isError, pendingId, onSelect
                   : "border-s-transparent bg-card not-disabled:hover:bg-accent/60"
               )}
             >
-              <ProductThumb src={product.image?.thumbnailUrl} alt={name} className="size-16 rounded-lg" />
+              <ProductThumb
+                src={product.image?.thumbnailUrl}
+                alt={name}
+                className="size-16 rounded-lg"
+                sizes={SEARCH_RESULT_THUMB_SIZES}
+              />
 
               <span className="flex min-w-0 flex-1 flex-col items-start gap-1">
                 <span className="w-full truncate text-base font-medium">{name}</span>

@@ -24,14 +24,23 @@ export function ProductGallery({ images, alt }: ProductGalleryProps) {
           Capped by height, not given one: 16rem (18 from md up), and never
           more than 45vh on a short screen — a phone held sideways — so the
           photo can't push the price, the stock and the Edit button off the
-          first screenful. Width is bounded by the max-w-sm column. */}
-      <div className="flex justify-center">
+          first screenful. Width is bounded by the max-w-sm column.
+
+          The row itself is GIVEN that height, though the photo is not: a
+          photo with no known size is 0×0 until it arrives, so everything
+          under it — price, stock, the Edit button — used to jump down by a
+          quarter of the screen once it did, on a slow phone well after the
+          shop had started reading. Nearly every photo fills the height
+          anyway (only one wider than 3:2 is stopped by the width first), so
+          reserving it costs nothing visible. */}
+      <div className="flex h-[min(16rem,45vh)] items-center justify-center md:h-[min(18rem,45vh)]">
         <ProductImage
           src={active?.url}
           alt={alt}
           fit="natural"
-          className="max-h-[min(16rem,45vh)] md:max-h-[min(18rem,45vh)]"
+          className="max-h-full"
           sizes={PRODUCT_DETAIL_IMAGE_SIZES}
+          eager
         />
       </div>
       {/* The strip keeps its small even squares — they are an index of the

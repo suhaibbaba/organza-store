@@ -1,3 +1,4 @@
+import { NEXT_IMAGE_OPTIMIZER_PATH, NEXT_IMAGE_QUALITY } from "@/constants/images";
 import { API_BASE_URL } from "@/lib/env";
 
 /**
@@ -28,6 +29,17 @@ const failedImageUrls = new Set<string>();
  */
 export function resolveImageUrl(src: string): string {
   return src.startsWith("http") ? src : `${API_BASE_URL}${src}`;
+}
+
+/**
+ * The same picture at `width`, cut by next/image's optimizer — what <Image>
+ * would request, for the one place that needs a URL rather than an element
+ * (the photo editor). Same-origin, so a canvas may read it without CORS.
+ * `width` must be one of next/image's configured widths.
+ */
+export function optimizedImageUrl(url: string, width: number): string {
+  const params = new URLSearchParams({ url, w: String(width), q: String(NEXT_IMAGE_QUALITY) });
+  return `${NEXT_IMAGE_OPTIMIZER_PATH}?${params.toString()}`;
 }
 
 export function hasImageFailed(url: string): boolean {

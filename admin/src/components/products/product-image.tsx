@@ -29,6 +29,15 @@ interface ProductImageProps {
    * (a max-h-*), never a height.
    */
   fit?: ProductImageFit;
+  /**
+   * The photo a screen is FOR — the detail page's one large picture — rather
+   * than one of a list. next/image lazy-loads by default, which is right for
+   * a list (nothing below the fold is fetched until it is scrolled to) and
+   * wrong for this: a lazy image is only requested once layout has proved it
+   * on screen, and on a slow phone that is a visible wait on the one thing
+   * the page exists to show. Fetched eagerly and at high priority instead.
+   */
+  eager?: boolean;
 }
 
 // The photo sizing itself: its own width and height, scaled down — never up,
@@ -52,7 +61,7 @@ const NATURAL_IMAGE_CLASS = "h-auto w-auto max-w-full object-contain";
  * order pickers, the label queue — so the fallback is one behaviour in one
  * place rather than a habit each screen has to remember.
  */
-export function ProductImage({ src, alt, className, sizes, fit = "cover" }: ProductImageProps) {
+export function ProductImage({ src, alt, className, sizes, fit = "cover", eager = false }: ProductImageProps) {
   const resolved = src ? resolveImageUrl(src) : null;
   const contain = fit === "contain";
 
@@ -62,6 +71,10 @@ export function ProductImage({ src, alt, className, sizes, fit = "cover" }: Prod
   const [failed, setFailed] = useState<string | null>(null);
 
   const usePlaceholder = !resolved || failed === resolved || hasImageFailed(resolved);
+  // Left to next/image otherwise: loading="lazy" and decoding="async" on
+  // every list photo, so nothing off screen is fetched and no decode blocks a
+  // tap.
+  const loading = eager ? { loading: "eager" as const, fetchPriority: "high" as const } : {};
 
   // No wrapper at all in this mode — a div would be the box this exists to
   // get rid of. `width`/`height` of 0 alongside `h-auto w-auto` is how
@@ -78,6 +91,7 @@ export function ProductImage({ src, alt, className, sizes, fit = "cover" }: Prod
         width={0}
         height={0}
         sizes={sizes ?? "96px"}
+        {...loading}
         className={cn(NATURAL_IMAGE_CLASS, className)}
         onError={() => {
           markImageFailed(resolved);
@@ -111,6 +125,7 @@ export function ProductImage({ src, alt, className, sizes, fit = "cover" }: Prod
           alt={alt}
           fill
           sizes={sizes ?? "96px"}
+          {...loading}
           className={contain ? "object-contain" : "object-cover"}
           onError={() => {
             markImageFailed(resolved);

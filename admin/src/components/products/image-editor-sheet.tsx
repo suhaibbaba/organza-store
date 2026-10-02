@@ -27,6 +27,12 @@ interface ImageEditorSheetProps {
   src: string;
   /** Whether `src` is on the API host — it decides how it can be read. */
   crossOrigin?: boolean;
+  /**
+   * The stored original on the API host, tried only if `src` (the
+   * optimizer's copy of it) cannot be loaded — so a misconfigured optimizer
+   * makes the editor slow again rather than unable to open.
+   */
+  fallbackSrc?: string;
   /** Where to open — the edit this photo already carries, or an untouched one. */
   edit: ImageEdit;
   /** "2 of 3" while working through a batch; absent for a single photo. */
@@ -58,7 +64,15 @@ interface ImageEditorSheetProps {
  * it — and skipping the editor entirely still works exactly as it always did,
  * with the picture kept whole and the plate filling in behind it.
  */
-export function ImageEditorSheet({ src, crossOrigin = false, edit, step, onCancel, onSave }: ImageEditorSheetProps) {
+export function ImageEditorSheet({
+  src,
+  crossOrigin = false,
+  fallbackSrc,
+  edit,
+  step,
+  onCancel,
+  onSave,
+}: ImageEditorSheetProps) {
   const t = useTranslations("products.form.images.editor");
 
   // The cropper's own working state. `crop` is a pixel offset it owns; what
@@ -85,24 +99,26 @@ export function ImageEditorSheet({ src, crossOrigin = false, edit, step, onCance
     let cancelled = false;
     let owned: string | null = null;
 
-    void loadEditorSource(src, { crossOrigin }).then((result) => {
-      if (cancelled) {
-        if (result?.owned) URL.revokeObjectURL(result.url);
-        return;
-      }
-      if (!result) {
-        setSource("failed");
-        return;
-      }
-      if (result.owned) owned = result.url;
-      setSource({ url: result.url });
-    });
+    void loadEditorSource(src, { crossOrigin })
+      .then((result) => result ?? (fallbackSrc ? loadEditorSource(fallbackSrc, { crossOrigin: true }) : null))
+      .then((result) => {
+        if (cancelled) {
+          if (result?.owned) URL.revokeObjectURL(result.url);
+          return;
+        }
+        if (!result) {
+          setSource("failed");
+          return;
+        }
+        if (result.owned) owned = result.url;
+        setSource({ url: result.url });
+      });
 
     return () => {
       cancelled = true;
       if (owned) URL.revokeObjectURL(owned);
     };
-  }, [src, crossOrigin]);
+  }, [src, crossOrigin, fallbackSrc]);
 
   // No effect resets any of this when the photograph changes, because the
   // photograph never changes: the gallery mounts one editor per photo

@@ -9,6 +9,7 @@ import { fromCents, toCents } from "@/lib/money";
 import { useDiscountLabel } from "@/hooks/use-discount-label";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
 import { SCAN_FLASH_MS } from "@/constants/pos";
+import { CART_LINE_THUMB_SIZES } from "@/constants/images";
 import { ProductThumb } from "@/components/sell/product-thumb";
 import { QuantityStepper } from "@/components/ui/quantity-stepper";
 import { StockBadge } from "@/components/ui/stock-badge";
@@ -74,7 +75,7 @@ export function CartLineRow({ line, flash, onQuantityChange, onRemove, onDiscoun
       data-test-selector={testSelectorFor("pos-cart-line", line.key)}
     >
       <div className="flex items-start gap-3">
-        <ProductThumb src={line.imageUrl} alt={name} className="size-14 rounded-lg" />
+        <ProductThumb src={line.imageUrl} alt={name} className="size-14 rounded-lg" sizes={CART_LINE_THUMB_SIZES} />
 
         <div className="flex min-w-0 flex-1 flex-col gap-0.5">
           <span className="truncate text-base font-medium">{name}</span>
