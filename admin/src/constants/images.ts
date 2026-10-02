@@ -44,16 +44,45 @@ export const CROP_PREVIEW_MAX_PX = 600;
 export const EDITOR_SOURCE_MAX_PX = 1600;
 
 /**
+ * The width a STORED photograph is fetched at when it is re-framed.
+ *
+ * Re-framing used to load the untouched original straight off the API — a
+ * phone camera's 4–5 MB, 12-megapixel JPEG — and shrink it on a canvas in the
+ * browser, on the main thread, then load and decode it a second time to draw
+ * the preview on Save. A modern phone hides that; the shop's iPhone 7 froze on
+ * it. The original is now asked of next/image's optimizer instead, which cuts
+ * it to this width with sharp on the server (orientation applied, whole frame
+ * kept — never the 2:3 crop) and sends a WebP of a few hundred KB.
+ *
+ * It must be one of next/image's widths (its default `deviceSizes`), or the
+ * optimizer refuses the request; the editor then falls back to the original.
+ * 1200 keeps a portrait photo's long side at exactly EDITOR_SOURCE_MAX_PX, so
+ * the canvas step in lib/image-edit.ts has nothing left to do.
+ */
+export const EDITOR_SOURCE_WIDTH = 1200;
+
+// next/image's optimizer, and the quality it is configured to serve (Next's
+// default `qualities` is [75]; any other value is refused). Only needed where
+// a URL is built by hand rather than by <Image> — the editor above.
+export const NEXT_IMAGE_OPTIMIZER_PATH = "/_next/image";
+export const NEXT_IMAGE_QUALITY = 75;
+
+/**
  * How far the zoom slider moves per press of an arrow key, as a fraction of
  * its range. A slider a mouse can nudge is the counter screen's answer to a
  * pinch, which it has no way of making.
  */
 export const CROP_ZOOM_KEY_STEP = 0.05;
 
-// The one big photo on the product detail page. Its box is capped at
-// max-w-sm (24rem = 384px), so there is never a reason to fetch more than
-// that; below md it is the page width minus the screen padding.
-export const PRODUCT_DETAIL_IMAGE_SIZES = "(min-width: 768px) 384px, 92vw";
+// The one big photo on the product detail page. It is capped by HEIGHT
+// (16rem, 18rem from md up), so a photo framed 2:3 — the editor's default,
+// and nearly every photo in the shop — is drawn about 171px wide, 192px from
+// md up. It used to say "92vw", which on a phone asked for a 750px-wide copy
+// (over 200 KB) to fill a box 192px wide; a `vw` in `sizes` also makes
+// next/image drop every candidate under 640px from the srcset. In pixels it
+// fetches 384px at 2x — a landscape photo, drawn wider, is the one that comes
+// out a little soft, and that is the trade.
+export const PRODUCT_DETAIL_IMAGE_SIZES = "192px";
 
 // Its thumbnail strip — small fixed squares at every screen size.
 export const PRODUCT_DETAIL_THUMB_SIZES = "56px";

@@ -44,6 +44,16 @@ const apiUrl = new URL(process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000
 // a public hostname, so this only ever relaxes the check in local dev.
 const isLocalApi = apiUrl.hostname === "localhost" || apiUrl.hostname === "127.0.0.1";
 
+// How long a phone may keep an optimized product photo without asking again,
+// in seconds — 30 days rather than next/image's 4 hours. Safe because a
+// stored photo's URL never changes what it points at: every upload and every
+// re-framing writes files under a new name (backend lib/image.ts), and the
+// old name is deleted rather than overwritten. At 4 hours the shop's phone
+// re-asked for every thumbnail on a list each morning — one round trip per
+// photo, which on an old phone over the shop's connection is the list
+// filling in one picture at a time.
+const PRODUCT_IMAGE_CACHE_TTL_SECONDS = 60 * 60 * 24 * 30;
+
 const nextConfig: NextConfig = {
   env: {
     NEXT_PUBLIC_BUILD_ID: buildId,
@@ -72,6 +82,7 @@ const nextConfig: NextConfig = {
       },
     ],
     dangerouslyAllowLocalIP: isLocalApi,
+    minimumCacheTTL: PRODUCT_IMAGE_CACHE_TTL_SECONDS,
   },
   // @organza/shared is a workspace package, so node_modules/@organza/shared
   // is a symlink to ../shared — and Turbopack won't follow a symlink pointing
