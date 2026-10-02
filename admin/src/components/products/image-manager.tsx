@@ -16,7 +16,8 @@ import type { ImageEdit } from "@organza/shared/lib/imageEdit";
 import { useTranslateError } from "@/hooks/use-translate-error";
 import { appendFiles, applyEditToSlot, moveSlot, removeSlot, setPrimarySlot } from "@/lib/image-slots";
 import { editOrIdentity, editToSend, renderCropPreview } from "@/lib/image-edit";
-import { resolveImageUrl } from "@/lib/image-fallback";
+import { optimizedImageUrl, resolveImageUrl } from "@/lib/image-fallback";
+import { EDITOR_SOURCE_WIDTH } from "@/constants/images";
 import { ImageEditorSheet } from "@/components/products/image-editor-sheet";
 import { SortableImageThumb } from "@/components/products/sortable-image-thumb";
 import { cn } from "@/lib/utils";
@@ -40,6 +41,9 @@ interface EditTarget {
   // A photo already on the API host, which the preview canvas has to ask for
   // with CORS or it comes back tainted and refuses to draw.
   crossOrigin: boolean;
+  // Where the editor goes if `src` cannot be loaded: the stored original
+  // itself, on the API host. Only set when `src` is the optimizer's copy.
+  fallbackSrc?: string;
 }
 
 // Picks, removes, reorders, frames and chooses the main photo — all in local
@@ -192,6 +196,7 @@ export function ImageManager({ slots, onChange, canDelete, isBusy = false, empty
           key={target.id}
           src={target.src}
           crossOrigin={target.crossOrigin}
+          fallbackSrc={target.fallbackSrc}
           edit={target.edit}
           step={{ index: queueIndex + 1, total: queue.length }}
           // Leaves this photograph exactly as it is — kept whole if it was
@@ -232,13 +237,19 @@ function editTargetFor(slots: GallerySlot[], id: string | undefined): EditTarget
   }
   const source = slot.image.originalUrl ?? slot.image.url;
   if (!source) return null;
+  // Stored paths are API-relative; the admin is on its own origin.
+  const original = resolveImageUrl(source);
   return {
     id: slot.id,
-    // Stored paths are API-relative; the admin is on its own origin.
-    src: resolveImageUrl(source),
+    // Not the original itself: a 1200px copy cut from it by the optimizer,
+    // on the admin's own origin (constants/images.ts EDITOR_SOURCE_WIDTH says
+    // why). The crop is stored as fractions of the frame, so framing the copy
+    // frames the original exactly — and sharp still cuts from the original.
+    src: optimizedImageUrl(original, EDITOR_SOURCE_WIDTH),
     // Whatever crop it is carrying — a pending one first, then whatever the
     // server has recorded, so re-opening never starts from scratch.
     edit: editOrIdentity(slot.edit ?? slot.image.edit),
-    crossOrigin: true,
+    crossOrigin: false,
+    fallbackSrc: original,
   };
 }
