@@ -27,34 +27,42 @@ export function initVariantEdits(variants: Variant[]): Record<string, VariantEdi
 // being resent (both accept `null` to explicitly clear back to the parent's
 // fallback, CLAUDE.md rule 3) — and only the fields this user may write at
 // all (see ProductEditAbilities; the backend gates each one).
+//
+// `baseline` is what the form showed when it opened. A field the person never
+// touched is left out even when the variant has moved on since — the numbered
+// shawl editor, on the same page, saves a number's quantity on its own, and
+// comparing the form's stale copy against the refreshed variant sent the old
+// quantity straight back over it.
 export function diffVariantEdit(
   original: Variant,
   edits: VariantEditValues,
-  abilities: ProductEditAbilities
+  abilities: ProductEditAbilities,
+  baseline?: VariantEditValues
 ): UpdateVariantInput | null {
   const patch: UpdateVariantInput = {};
   let changed = false;
+  const touched = (field: keyof VariantEditValues) => !baseline || edits[field] !== baseline[field];
 
   // Stock is an integer, never a decimal (CLAUDE.md "Mobile input" rules).
   const stock = Number(edits.stock);
-  if (abilities.canEditStock && isNonNegativeIntegerString(edits.stock) && stock !== original.stock) {
+  if (abilities.canEditStock && touched("stock") && isNonNegativeIntegerString(edits.stock) && stock !== original.stock) {
     patch.stock = stock;
     changed = true;
   }
 
   const priceOverride = edits.priceOverride.trim() === "" ? null : edits.priceOverride.trim();
-  if (abilities.canEditPrice && priceOverride !== (original.priceOverride ?? null)) {
+  if (abilities.canEditPrice && touched("priceOverride") && priceOverride !== (original.priceOverride ?? null)) {
     patch.priceOverride = priceOverride;
     changed = true;
   }
 
   const cost = edits.cost.trim() === "" ? null : edits.cost.trim();
-  if (abilities.canEditCost && cost !== (original.cost ?? null)) {
+  if (abilities.canEditCost && touched("cost") && cost !== (original.cost ?? null)) {
     patch.cost = cost;
     changed = true;
   }
 
-  if (abilities.canHide && edits.isActive !== original.isActive) {
+  if (abilities.canHide && touched("isActive") && edits.isActive !== original.isActive) {
     patch.isActive = edits.isActive;
     changed = true;
   }
@@ -63,7 +71,7 @@ export function diffVariantEdit(
   // supplier's code) actually changed: resending SUPPLIER with the same code is
   // harmless but resending GENERATED on every save would be noise in the audit
   // trail of every unrelated edit.
-  const barcode = barcodeChange(original, edits);
+  const barcode = touched("barcodeSource") || touched("barcode") ? barcodeChange(original, edits) : null;
   if (barcode) {
     Object.assign(patch, barcode);
     changed = true;
