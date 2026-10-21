@@ -4,7 +4,7 @@ import type { UpdateVariantInput } from "@organza/shared/schemas/product";
 import { isNonNegativeIntegerString } from "@/lib/validation/numeric";
 import { DEFAULT_POINT_STOCK } from "@/constants/numberedShawl";
 import { initOptionValueNotes, type OptionValueNoteMap } from "@/lib/option-value-notes";
-import type { ShawlPoint } from "@/types/numberedShawl";
+import type { PlacedShawlPoint, ShawlPoint } from "@/types/numberedShawl";
 
 // Whether to surface the numbered-point placement tool at all. It is the
 // product's own explicit choice (spec.md "Numbered shawls" — Product
@@ -25,17 +25,19 @@ export function roundPercent(value: number): number {
   return Math.round(clampPercent(value) * 100) / 100;
 }
 
-// Only variants that already carry a placed point (imageX/imageY set) seed
-// the canvas — a Number variant without coordinates isn't part of this tool
-// (CLAUDE.md rule 2/3 aside, spec.md ties numbered shawls to placed points).
+// Every number the product has, placed on the photo or not. A number
+// without coordinates (made before it was put on the photo, or copied in
+// from elsewhere) used to be left out here — and since a numbered product
+// has no other variant list, its quantity could then be changed nowhere.
+// Only the canvas narrows this to the placed ones (placedShawlPoints).
 export function initShawlPoints(variants: Variant[]): ShawlPoint[] {
   return variants
-    .filter((v) => v.imageX != null && v.imageY != null)
+    .filter((v) => v.values.length > 0)
     .map((v) => ({
       id: v.id,
       number: Number(v.values[0]?.key ?? 0),
-      x: v.imageX as number,
-      y: v.imageY as number,
+      x: v.imageX ?? null,
+      y: v.imageY ?? null,
       stock: String(v.stock),
       priceOverride: v.priceOverride ?? "",
       variantId: v.id,
@@ -56,6 +58,22 @@ export function initPointNotes(product: Product): OptionValueNoteMap {
     if (note) notes[point.id] = note;
   }
   return notes;
+}
+
+export function isPlacedShawlPoint(point: ShawlPoint): point is PlacedShawlPoint {
+  return point.x !== null && point.y !== null;
+}
+
+export function placedShawlPoints(points: ShawlPoint[]): PlacedShawlPoint[] {
+  return points.filter(isPlacedShawlPoint);
+}
+
+// The number a tap on the photo should place: the lowest one that exists but
+// is not on the photo yet, before any new number is made. Placing "1" again
+// as a brand-new point would collide with the existing 1 — the save leaves an
+// existing number untouched, so its position was silently thrown away.
+export function firstUnplacedPoint(points: ShawlPoint[]): ShawlPoint | null {
+  return points.filter((p) => !isPlacedShawlPoint(p)).sort((a, b) => a.number - b.number)[0] ?? null;
 }
 
 export function nextPointNumber(points: ShawlPoint[]): number {
@@ -81,12 +99,16 @@ export function diffShawlPoint(original: Variant, point: ShawlPoint): UpdateVari
   const patch: UpdateVariantInput = {};
   let changed = false;
 
-  const x = roundPercent(point.x);
-  const y = roundPercent(point.y);
-  if (x !== original.imageX || y !== original.imageY) {
-    patch.imageX = x;
-    patch.imageY = y;
-    changed = true;
+  // An unplaced number has no position to send; once placed, it is sent
+  // like any move.
+  if (isPlacedShawlPoint(point)) {
+    const x = roundPercent(point.x);
+    const y = roundPercent(point.y);
+    if (x !== original.imageX || y !== original.imageY) {
+      patch.imageX = x;
+      patch.imageY = y;
+      changed = true;
+    }
   }
 
   const stock = Number(point.stock);

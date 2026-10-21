@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { resolvePointColors } from "@organza/shared/lib/pointColors";
 import type { Product } from "@organza/shared/types/product";
-import { initShawlPoints } from "@/lib/validation/numbered-shawl";
+import { initShawlPoints, placedShawlPoints } from "@/lib/validation/numbered-shawl";
 import { ImagePointCanvas } from "@/components/products/numbered-shawl/image-point-canvas";
 
 // The product screen's read-only twin of the placement tool: a numbered
@@ -16,7 +16,7 @@ import { ImagePointCanvas } from "@/components/products/numbered-shawl/image-poi
 export function NumberedShawlPreview({ product }: { product: Product }) {
   const t = useTranslations("products.detail");
 
-  const points = useMemo(() => initShawlPoints(product.variants), [product.variants]);
+  const points = useMemo(() => placedShawlPoints(initShawlPoints(product.variants)), [product.variants]);
   // Placed against the primary photo (the same one the editor opens), so a
   // later gallery reorder can't move the numbers onto a different picture.
   const image = product.images.find((img) => img.isPrimary) ?? product.images[0] ?? null;

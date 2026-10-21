@@ -11,11 +11,15 @@ export interface ShawlPoint {
   number: number;
   // Percentage of the image's rendered width/height (never pixels, so
   // points stay correct at any screen size — spec.md "Critical technical
-  // note").
-  x: number;
-  y: number;
+  // note"). Null for a number that exists but has never been put on the
+  // photo — it still has a quantity and a price of its own to edit.
+  x: number | null;
+  y: number | null;
   stock: string;
   priceOverride: string;
   variantId: string | null;
   valueId: string | null;
 }
+
+// A point that is actually on the photo — the only kind the canvas draws.
+export type PlacedShawlPoint = ShawlPoint & { x: number; y: number };

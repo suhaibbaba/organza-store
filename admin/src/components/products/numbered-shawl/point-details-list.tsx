@@ -6,6 +6,7 @@ import { QuantityStepper } from "@/components/ui/quantity-stepper";
 import { Label } from "@/components/ui/label";
 import { formatMoney } from "@/lib/format";
 import { parseQuantity } from "@/lib/validation/numeric";
+import { isPlacedShawlPoint } from "@/lib/validation/numbered-shawl";
 import type { ShawlPoint } from "@/types/numberedShawl";
 import { testSelectorFor } from "@organza/shared/lib/testSelector";
 
@@ -46,7 +47,12 @@ export function PointDetailsList({ points, currency, locale, basePrice, onFieldC
             className="flex flex-col gap-3 rounded-xl border border-border bg-card p-3"
             data-test-selector={testSelectorFor("shawl-point-details", point.number)}
           >
-            <p className="text-sm font-semibold text-foreground">{pointName}</p>
+            <div className="flex flex-col">
+              <p className="text-sm font-semibold text-foreground">{pointName}</p>
+              {/* Still editable — it just has no marker yet. Said, so a
+                  number missing from the photo is not taken for a mistake. */}
+              {!isPlacedShawlPoint(point) && <p className="text-sm text-muted-foreground">{t("notPlaced")}</p>}
+            </div>
 
             <div className="flex flex-col gap-1.5">
               <span className="text-sm font-medium">{t("stock")}</span>

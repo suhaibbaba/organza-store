@@ -30,12 +30,12 @@ import { testSelectorFor } from "@organza/shared/lib/testSelector";
 import { clampPercent } from "@/lib/validation/numbered-shawl";
 import { Spinner } from "@/components/ui/spinner";
 import { cn } from "@/lib/utils";
-import type { ShawlPoint } from "@/types/numberedShawl";
+import type { PlacedShawlPoint } from "@/types/numberedShawl";
 
 interface ImagePointCanvasProps {
   imageUrl: string;
   alt: string;
-  points: ShawlPoint[];
+  points: PlacedShawlPoint[];
   // The colours the numbers are drawn in — one pair for the whole product,
   // already resolved (chosen / suggested / made legible) by
   // resolvePointColors. Passed in rather than resolved here so the editor can
