@@ -152,6 +152,11 @@ export function ProductForm({ mode, product }: ProductFormProps) {
   const [variantEdits, setVariantEdits] = useState<Record<string, VariantEditValues>>(() =>
     product ? initVariantEdits(product.variants) : {}
   );
+  // What those rows held when the form opened — the line between a field
+  // the person changed and one that changed elsewhere since (diffVariantEdit).
+  const [variantBaseline, setVariantBaseline] = useState<Record<string, VariantEditValues>>(() =>
+    product ? initVariantEdits(product.variants) : {}
+  );
   const [removedVariantIds, setRemovedVariantIds] = useState<Set<string>>(new Set());
   // What each chosen option value MEANS on this product (spec.md "Notes on a
   // product's options"), keyed by option value id — a detail of the product,
@@ -438,7 +443,7 @@ export function ProductForm({ mode, product }: ProductFormProps) {
           .flatMap(([variantId, edits]) => {
             const original = product.variants.find((v) => v.id === variantId);
             if (!original) return [];
-            const patch = diffVariantEdit(original, edits, abilities);
+            const patch = diffVariantEdit(original, edits, abilities, variantBaseline[variantId]);
             return patch ? [{ variantId, patch }] : [];
           });
 
@@ -450,6 +455,9 @@ export function ProductForm({ mode, product }: ProductFormProps) {
           for (const variant of patched) {
             for (const change of variant.pendingChanges ?? []) filedRequests.add(change.id);
           }
+          // Saved: these values are now the starting point, so a second save
+          // from the same screen does not resend them over a later change.
+          setVariantBaseline(variantEdits);
           const removals = await Promise.all(
             [...removedVariantIds].map((variantId) => deleteVariantMutation.mutateAsync(variantId))
           );
