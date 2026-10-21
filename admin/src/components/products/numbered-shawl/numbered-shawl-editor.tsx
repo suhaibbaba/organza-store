@@ -19,9 +19,11 @@ import { useTranslateError } from "@/hooks/use-translate-error";
 import {
   diffShawlPoint,
   initPointNotes,
+  firstUnplacedPoint,
   initShawlPoints,
   newShawlPoint,
   nextPointNumber,
+  placedShawlPoints,
   roundPercent,
 } from "@/lib/validation/numbered-shawl";
 import {
@@ -120,6 +122,14 @@ export function NumberedShawlEditor({ product, variantTypes, currency }: Numbere
 
   function handleAddPoint(x: number, y: number) {
     markDirty();
+    // A number that already exists but is not on the photo gets placed
+    // first; only when every number is placed does a tap make a new one.
+    const unplaced = firstUnplacedPoint(points);
+    if (unplaced) {
+      setPoints((prev) => prev.map((p) => (p.id === unplaced.id ? { ...p, x: roundPercent(x), y: roundPercent(y) } : p)));
+      setSelectedId(unplaced.id);
+      return;
+    }
     const point = newShawlPoint(nextPointNumber(points), x, y);
     setPoints((prev) => [...prev, point]);
     setSelectedId(point.id);
@@ -208,8 +218,9 @@ export function NumberedShawlEditor({ product, variantTypes, currency }: Numbere
             {
               variantTypeId: numberType.id,
               valueIds: newPoints.map((p) => p.valueId as string),
+              // A new point is only ever made by a tap, so it is always placed.
               imagePoints: Object.fromEntries(
-                newPoints.map((p) => [p.valueId as string, { imageX: p.x, imageY: p.y }])
+                placedShawlPoints(newPoints).map((p) => [p.valueId as string, { imageX: p.x, imageY: p.y }])
               ),
             },
           ],
@@ -319,7 +330,7 @@ export function NumberedShawlEditor({ product, variantTypes, currency }: Numbere
           <ImagePointCanvas
             imageUrl={image.url}
             alt={t("imageAlt")}
-            points={points}
+            points={placedShawlPoints(points)}
             selectedId={selectedId}
             colors={colors}
             disabled={isSaving}

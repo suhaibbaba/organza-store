@@ -1,7 +1,10 @@
 "use client";
 
+import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { StatCard } from "@/components/layout/stat-card";
+import { PeriodControls } from "@/components/dashboard/period-controls";
+import { DEFAULT_DASHBOARD_PERIOD } from "@/constants/dashboard";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
 import type { ReportPeriod, SalesSummary } from "@/types/report";
 
@@ -12,13 +15,16 @@ import type { ReportPeriod, SalesSummary } from "@/types/report";
 // today, this week and this month together), so switching period is instant
 // and can never show two periods' figures side by side mid-fetch.
 //
-// Which period is on screen is chosen in the page header
-// (dashboard/period-controls.tsx) — the heading below still names it, so the
-// figures can never be read as belonging to some other window.
+// Which period is on screen is chosen at the top of THIS block
+// (dashboard/period-controls.tsx), not in the page header. Up there the tabs
+// sat directly over the Today block — which never changes — while the figures
+// they switched were two phone screens further down: a tap looked like it did
+// nothing, and "This month" read as labelling today's numbers.
 //
 // The cost and profit cards are ADMIN ONLY: `profit` is simply missing from a
 // Manager's payload, so there is nothing to render and no empty placeholder.
-export function PeriodSection({ summary, period }: { summary: SalesSummary; period: ReportPeriod }) {
+export function PeriodSection({ summary }: { summary: SalesSummary }) {
+  const [period, setPeriod] = useState<ReportPeriod>(DEFAULT_DASHBOARD_PERIOD);
   const t = useTranslations("dashboard.period");
   const tFigures = useTranslations("figures");
   const formatMoney = useMoneyFormatter();
@@ -28,8 +34,14 @@ export function PeriodSection({ summary, period }: { summary: SalesSummary; peri
   return (
     <section className="flex flex-col gap-3">
       {/* The heading names the period being shown, so the figures below can
-          never be read as belonging to some other window. */}
-      <h2 className="text-base font-semibold">{t(`periods.${period}`)}</h2>
+          never be read as belonging to some other window; the control that
+          changes it sits right beside it. */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h2 className="text-base font-semibold">{t(`periods.${period}`)}</h2>
+        <div className="flex max-w-full flex-wrap items-center gap-2">
+          <PeriodControls period={period} onPeriodChange={setPeriod} summary={summary} />
+        </div>
+      </div>
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard name="sold"

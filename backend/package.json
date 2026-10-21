@@ -26,6 +26,7 @@
     "import:prod": "tsx scripts/import-from-production.ts",
     "email:preview": "tsx scripts/email-preview.ts",
     "seed:demo": "tsx prisma/dev/demo-seed.ts",
+    "seed:demo-sales": "tsx prisma/dev/demo-sales-seed.ts",
     "auth:generate": "npx @better-auth/cli generate --config src/lib/auth.ts --output prisma/schema.prisma -y",
     "verify": "tsx scripts/verify.ts",
     "api-test": "cross-env API_URL=https://api.sandbox.organza-moda.com vitest run",

@@ -18,10 +18,9 @@ interface PeriodControlsProps {
 }
 
 // Which window the figures block is showing, and the button that takes it
-// away as a spreadsheet. They sit in the page header rather than above the
-// block itself so the desktop layout has one row of controls instead of one
-// per section — the state still belongs to the figures block, and the block's
-// own heading goes on naming the period being shown.
+// away as a spreadsheet. Rendered at the top of that block
+// (dashboard/period-section.tsx), beside the heading naming the period — a
+// control has to sit next to what it changes, or a tap looks like nothing.
 export function PeriodControls({ period, onPeriodChange, summary }: PeriodControlsProps) {
   const t = useTranslations("dashboard.period");
   const tFigures = useTranslations("figures");

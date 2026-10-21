@@ -859,6 +859,7 @@
         "confirmDelete": "Delete",
         "cancelDelete": "Cancel",
         "noPointsYet": "No points placed yet — go to \"Place points\" and tap the photo.",
+        "notPlaced": "Not on the photo yet — tap the photo in \"Place points\" to put it there.",
         "stock": "Quantity",
         "priceOverride": "Price override",
         "inherits": "Inherits {value}",
