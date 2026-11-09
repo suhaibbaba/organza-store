@@ -1486,20 +1486,22 @@
   },
   "permissions": {
     "title": "Permissions",
-    "subtitle": "Choose what each role is allowed to do. Some things stay locked.",
+    "subtitle": "Choose what each role is allowed to do.",
     "rolePicker": "Choose a role",
     "saving": "Saving…",
     "unavailable": "The permissions could not be loaded. Please try again.",
     "ownRole": "You cannot change your own role's permissions.",
+    "adminRole": "The Admin always has every permission, so it cannot be changed here.",
     "toggleLabel": "{action} — {role}",
     "intro": {
-      "title": "Locked items protect the shop's records",
-      "body": "Money, costs and profit, undoing a sale, approvals, and staff accounts stay with the admin and cannot be changed here."
+      "title": "Every permission can be changed",
+      "body": "Turn on or off anything a manager or an employee may do — including costs and profit, reports, cancelling a sale, approvals and staff accounts. The Admin always keeps every permission."
     },
     "locked": {
       "label": "Locked",
       "protected": "This protects the shop's records",
       "ownRole": "This is your own role",
+      "adminRole": "The Admin always has this",
       "on": "On",
       "off": "Off"
     },

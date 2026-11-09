@@ -223,6 +223,11 @@ export const ERROR_CODES = {
   // subject are the same person, and on the Admin role it is also the edit
   // that could lock the shop out of its own system.
   PERMISSION_SELF_ROLE: "error.permission.self_role",
+  // Editing the ADMIN role's permissions, by anybody. An Admin holds every
+  // action, always — that is what keeps a fully configurable table from ever
+  // locking the shop out (a Manager handed permission.manage could otherwise
+  // strip it from the Admins).
+  PERMISSION_ADMIN_ROLE: "error.permission.admin_role",
 
   // --- password set / reset by email ---
   // ONE code for unknown, expired, already-used and revoked links, on

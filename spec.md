@@ -583,8 +583,8 @@ response at all, so there is nothing to un-hide client-side.
 
 The table above is the shop's **starting point**, not its ceiling. Shops differ: one wants its
 Employees handling stock, another does not; one wants its Manager printing labels, another keeps
-that to the counter. So most of that table is editable from the admin — **and a specific part of
-it is not, ever.**
+that to the counter. So **every action** in that table is editable from the admin for the Manager
+and the Employee — **and the Admin role is not, ever**: an Admin always holds everything.
 
 Everything goes through one function, `can(user, action)` in `@organza/shared`, which every screen
 and every route already calls. Making the rules editable changed only where that function reads
@@ -597,39 +597,29 @@ Every action is declared as exactly one of two kinds, next to the action itself 
 module loads — an action in neither (or in both) is a crash on boot, not a permission that
 silently cannot be resolved.
 
-**PROTECTED — never editable, by anyone, through any UI or API.** Fifteen actions, and each of
-them is here for one of two reasons:
+**PROTECTED — never editable, by anyone, through any UI or API. Empty today.** It used to hold the
+anti-theft actions (cost and profit, the reports, re-pricing, editing/cancelling/deleting/returning
+an order, gifts, marking money collected, approving a change or an expense, managing staff,
+reading an ID number, and managing permissions). The owner chose to make all of them the shop's
+own decision. The mechanism stays, so re-locking an action later is one entry in that list — the
+resolver, the API and the screen already honour it.
 
-| Action | Why it cannot move |
-|---|---|
-| `product.viewCost`, `report.view` | Cost, COGS, profit and margin are the owner's read of their own business (see "Sensitive fields"). |
-| `user.viewSensitive` | A staff ID number. |
-| `product.editPrice` | "Nothing can be sold cheap and pocketed" is only a guarantee while the re-pricing permission cannot be handed to whoever is at the counter. |
-| `order.edit`, `order.cancel`, `order.delete` | A sale, once rung up, cannot be quietly changed, voided or erased. |
-| `order.return` | Undoing a sale by another name, so it is protected with the ones above rather than left as the way round them. |
-| `order.createGift` | Re-pricing a sale to zero by another name. |
-| `order.markCollected` | The person who took the order must never be the person who says its money arrived. |
-| `changeRequest.approve` | The approval gate is the whole design; a grantable approval permission is a gate anybody can walk around. |
-| `expense.approve` | Self-approval by another name — granted to whoever spends the shop's cash, it takes money out of the drawer with nobody's agreement but their own. |
-| `user.manage`, `user.delete` | The keys to the building. |
-| `permission.manage` | A permission to hand out permissions that could itself be handed out is not a gate, it is a door with the key taped to it. |
+**CONFIGURABLE — every action.** Each one can be granted to or taken from the Manager and the
+Employee with one tap, and put back the same way. Handing out the money powers is now a decision
+the Admin makes deliberately, and every flip is audited.
 
-These are the **anti-theft guarantees** the "Security rationale" above is built on, plus the two
-things a shop cannot recover from on its own: somebody reading the owner's margin, and an Admin
-locked out of their own system. If they can be switched off, the whole design collapses.
-
-**CONFIGURABLE — everything else** (thirty actions): adding and editing products, categories,
-photos, option values, reading and adjusting stock, printing labels, taking and following orders,
-the cash drawer, recording and reading expenses, asking for and reading changes, the dashboard,
-and the settings screen. Real decisions a shop makes about itself, that cost nothing if they turn
-out wrong and are put back with one tap.
+**What keeps it safe is the ADMIN role, not a list of actions.** An Admin holds every action,
+always: `can()` answers the ADMIN role from the shipped table and ignores any stored row for it,
+and the API refuses any edit to the ADMIN row by anybody (`error.permission.admin_role`). So even a
+Manager who has been handed `permission.manage` can never take anything away from the Admins.
 
 ### Where the rules live
 
-- **PROTECTED** actions are answered from the shipped table (`DEFAULT_ROLE_PERMISSIONS`) and from
-  nothing else. No stored row, no API call and no hand-edited database moves one.
-- **CONFIGURABLE** actions are answered from the `RolePermission` table — one row per
-  (role, action), holding an explicit on/off.
+- The **ADMIN role** (and any PROTECTED action) is answered from the shipped table
+  (`DEFAULT_ROLE_PERMISSIONS`) and from nothing else. No stored row, no API call and no
+  hand-edited database moves it.
+- Everything else is answered from the `RolePermission` table — one row per (role, action),
+  holding an explicit on/off. Bootstrap writes rows for the Manager and the Employee only.
 
 A row that is **missing** means "nobody has decided", and falls back to the shipped default. That
 is what makes an action added in a later release behave as it was written on a database
@@ -663,18 +653,19 @@ convenience, not a boundary: the backend refuses the request whatever the browse
 
 ### The guards
 
-1. **Only an Admin may edit** — `PATCH /api/permissions` is gated on `permission.manage`, which is
-   PROTECTED and Admin-only, so it can never be granted to another role.
-2. **An Admin may not edit their own role.** The one edit whose author and subject are the same
+1. **Only a holder of `permission.manage` may edit** — `PATCH /api/permissions` is gated on it.
+   As shipped that is the Admin alone; it can be granted to the Manager like any other action.
+2. **Nobody may edit their own role.** The one edit whose author and subject are the same
    person, refused outright (`error.permission.self_role`) — including for a change that would be
    harmless, because the rule is about who is adjusting whose authority, not about what the edit
    happens to amount to.
-3. **The last active Admin cannot be stripped.** Demoting or deactivating them is refused
-   (`error.user.last_admin`), and guard 2 closes the other road to the same place: no sequence of
+3. **Nobody may edit the ADMIN role** (`error.permission.admin_role`) — not an Admin (guard 2),
+   and not a Manager holding `permission.manage` either.
+4. **The last active Admin cannot be stripped.** Demoting or deactivating them is refused
+   (`error.user.last_admin`), and guard 3 closes the other road to the same place: no sequence of
    permission edits can take anything away from the account holding the shop together.
-4. **A PROTECTED action is refused by the server** (`error.permission.action_protected`), not
-   merely hidden on the screen — a `curl` with an Admin's token is a client too. A batch naming
-   one is refused whole, so "refused" can never mean "half of it landed".
+5. **A PROTECTED action is refused by the server** (`error.permission.action_protected`), not
+   merely hidden on the screen. The list is empty today; the check stays for when it is not.
 
 Every change writes an audit entry of its own — who, which role, which action, on or off
 (`PERMISSION_GRANTED` / `PERMISSION_REVOKED`) — rather than one entry per request carrying a blob,
@@ -685,12 +676,11 @@ because the question somebody will ask this trail is "when did Employees get thi
 Admin → **Permissions**. On a phone: pick a role, then plain switches grouped by the part of the
 shop they belong to. On a desktop: the actual matrix, actions down and roles across.
 
-A protected row shows a **padlock and a short reason** — "this protects the shop's records" —
-never a greyed-out checkbox. A disabled control is the universal look of something broken; an
+Every row is a switch for the Manager and the Employee. A cell that cannot move — the Admin's
+column, and your own role's — shows a **padlock** and whether the grant is on, never a
+greyed-out checkbox. A disabled control is the universal look of something broken; an
 untrained user taps it three times and concludes the app is faulty. The padlock says the opposite:
-this is working exactly as intended, and here is why it will not move. The Admin's own column is
-locked the same way, and still says whether the grant is on, because "what can an Admin do" is a
-question the screen exists to answer.
+this is working exactly as intended, and here is why it will not move.
 
 ---
 
