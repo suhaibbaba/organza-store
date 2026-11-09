@@ -1,9 +1,9 @@
 // How `can()` decides, now that half the rules live in a database.
 //
 // The API suite proves the endpoints behave; this proves the RESOLVER does,
-// including the cases an HTTP test cannot reach — a stored row for a
-// protected action, a row for an action that does not exist, a role with no
-// stored config at all.
+// including the cases an HTTP test cannot reach — a stored row for the
+// ADMIN role, a row for an action that does not exist, a role with no stored
+// config at all.
 import { afterEach, describe, expect, it } from "vitest";
 import {
   can,
@@ -33,8 +33,13 @@ describe("the protected / configurable split", () => {
     expect(PROTECTED_ACTIONS.length + CONFIGURABLE_ACTIONS.length).toBe(PERMISSION_ACTIONS.length);
   });
 
+  it("locks nothing — every action is configurable", () => {
+    expect(PROTECTED_ACTIONS).toEqual([]);
+    expect([...CONFIGURABLE_ACTIONS]).toEqual([...PERMISSION_ACTIONS]);
+  });
+
   it("names nothing that is not an action", () => {
-    for (const action of PROTECTED_ACTIONS) {
+    for (const action of PROTECTED_ACTIONS as readonly string[]) {
       expect(PERMISSION_ACTIONS as readonly string[]).toContain(action);
     }
   });
@@ -46,24 +51,27 @@ describe("the protected / configurable split", () => {
 });
 
 describe("can()", () => {
-  it("answers a protected action from the shipped table, whatever is stored", () => {
-    // The strongest form of the guarantee: a row that should not exist, does,
-    // and says yes. It changes nothing.
+  it("lets the shop hand out what used to be locked", () => {
+    // Every action is configurable now — the money ones included.
     setConfigurablePermissions({
-      EMPLOYEE: { "order.cancel": true, "product.viewCost": true, "permission.manage": true } as never,
+      EMPLOYEE: { "order.cancel": true, "product.viewCost": true, "permission.manage": true },
     });
 
-    expect(can({ role: "EMPLOYEE" }, "order.cancel")).toBe(false);
-    expect(can({ role: "EMPLOYEE" }, "product.viewCost")).toBe(false);
-    expect(can({ role: "EMPLOYEE" }, "permission.manage")).toBe(false);
-    expect(can({ role: "ADMIN" }, "order.cancel")).toBe(true);
+    expect(can({ role: "EMPLOYEE" }, "order.cancel")).toBe(true);
+    expect(can({ role: "EMPLOYEE" }, "product.viewCost")).toBe(true);
+    expect(can({ role: "EMPLOYEE" }, "permission.manage")).toBe(true);
   });
 
-  it("cannot have a protected action taken away either", () => {
-    setConfigurablePermissions({ ADMIN: { "order.cancel": false, "user.manage": false } as never });
+  it("answers the ADMIN role from the shipped table, whatever is stored", () => {
+    // A row that should not exist, does, and says no. It changes nothing: an
+    // Admin holds everything, always.
+    setConfigurablePermissions({
+      ADMIN: { "order.cancel": false, "user.manage": false, "permission.manage": false },
+    });
 
-    expect(can({ role: "ADMIN" }, "order.cancel")).toBe(true);
-    expect(can({ role: "ADMIN" }, "user.manage")).toBe(true);
+    for (const action of PERMISSION_ACTIONS) {
+      expect(can({ role: "ADMIN" }, action), action).toBe(true);
+    }
   });
 
   it("answers a configurable action from what is stored", () => {
@@ -116,19 +124,25 @@ describe("can()", () => {
 });
 
 describe("sanitizeConfigurableMatrix", () => {
-  it("drops protected actions, unknown actions and unknown roles", () => {
+  it("drops the ADMIN row, unknown actions and unknown roles", () => {
     const cleaned = sanitizeConfigurableMatrix({
+      ADMIN: { "inventory.adjust": false },
       EMPLOYEE: { "inventory.adjust": true, "order.cancel": true, "not.an.action": true } as never,
       OWNER: { "inventory.adjust": true },
     } as never);
 
-    expect(cleaned.EMPLOYEE).toEqual({ "inventory.adjust": true });
+    expect(cleaned.EMPLOYEE).toEqual({ "inventory.adjust": true, "order.cancel": true });
+    expect(cleaned.ADMIN).toBeUndefined();
     expect((cleaned as Record<string, unknown>).OWNER).toBeUndefined();
   });
 
   it("is what setConfigurablePermissions stores, so nothing unsanitized is ever in force", () => {
-    setConfigurablePermissions({ EMPLOYEE: { "order.delete": true, "images.delete": true } as never });
+    setConfigurablePermissions({
+      ADMIN: { "images.delete": false },
+      EMPLOYEE: { "order.delete": true, "not.an.action": true } as never,
+    });
 
-    expect(getConfigurablePermissions()?.EMPLOYEE).toEqual({ "images.delete": true });
+    expect(getConfigurablePermissions()?.EMPLOYEE).toEqual({ "order.delete": true });
+    expect(getConfigurablePermissions()?.ADMIN).toBeUndefined();
   });
 });

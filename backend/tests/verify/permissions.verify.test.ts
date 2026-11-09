@@ -344,15 +344,11 @@ describe("Verify · permissions and data exposure", () => {
 
     it("keeps the Reports screen on the owner's side of the permission table", async () => {
       // The rules IN FORCE on the target, not the constant they are seeded
-      // from — and for report.view and product.viewCost the two can never
-      // differ anyway: both are PROTECTED, so no shop can move them at all.
-      // dashboard.view is configurable, and what is asserted about it is the
+      // from. Every action is configurable, so what is asserted here is the
       // baseline this suite writes in tests/setup.ts.
       const matrix = await fetchPermissionMatrix();
 
       expect(matrix.roles.ADMIN, "an Admin reads the reports").toContain("report.view");
-      expect(matrix.protectedActions, "and no shop may hand that out").toContain("report.view");
-      expect(matrix.protectedActions, "nor cost and profit").toContain("product.viewCost");
 
       for (const role of ["MANAGER", "EMPLOYEE"] as const) {
         // Its own action, deliberately: it used to ride on order.view, which

@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Lock, ShieldCheck } from "lucide-react";
-import { isProtectedAction } from "@organza/shared/lib/permissions";
+import { isFixedRole, isProtectedAction } from "@organza/shared/lib/permissions";
 import type { PermissionAction, PermissionMatrixPayload } from "@organza/shared/types/permission";
 import type { Role } from "@organza/shared/types/role";
 import { PERMISSION_GROUPS, PERMISSION_MATRIX_ROLES } from "@/constants/permissions";
@@ -68,6 +68,8 @@ export function PermissionsEditor({ matrix }: PermissionsEditorProps) {
   function lockedReason(role: Role, action: PermissionAction): PermissionLockReason | null {
     if (isProtectedAction(action)) return "protected";
     if (role === ownRole) return "ownRole";
+    // An Admin holds everything, always — whoever is looking at the screen.
+    if (isFixedRole(role)) return "adminRole";
     return null;
   }
 
@@ -102,11 +104,18 @@ export function PermissionsEditor({ matrix }: PermissionsEditorProps) {
           options={PERMISSION_MATRIX_ROLES.map((role) => ({ value: role, label: t(`role.${role}`) }))}
         />
 
-        {selectedRole === ownRole && (
+        {selectedRole === ownRole ? (
           <Alert>
             <Lock className="mt-0.5 size-5 shrink-0" aria-hidden="true" />
             <p>{t("ownRole")}</p>
           </Alert>
+        ) : (
+          isFixedRole(selectedRole) && (
+            <Alert>
+              <Lock className="mt-0.5 size-5 shrink-0" aria-hidden="true" />
+              <p>{t("adminRole")}</p>
+            </Alert>
+          )
         )}
 
         {PERMISSION_GROUPS.map((group) => (
@@ -130,7 +139,7 @@ export function PermissionsEditor({ matrix }: PermissionsEditorProps) {
                     {reason ? (
                       <PermissionLock
                         reason={reason}
-                        granted={reason === "ownRole" ? held[selectedRole].has(action) : undefined}
+                        granted={reason === "protected" ? undefined : held[selectedRole].has(action)}
                         className="shrink-0"
                         compact
                       />
@@ -222,7 +231,9 @@ export function PermissionsEditor({ matrix }: PermissionsEditorProps) {
           </Card>
         ))}
 
-        <p className="text-sm text-muted-foreground">{t("ownRole")}</p>
+        <p className="text-sm text-muted-foreground">
+          {ownRole && isFixedRole(ownRole) ? t("adminRole") : `${t("ownRole")} ${t("adminRole")}`}
+        </p>
       </div>
     </div>
   );

@@ -12,9 +12,9 @@
 // case that depends on a grant being on or off says so out loud, through
 // `withRolePermission`, which puts it back afterwards.
 //
-// PROTECTED actions are deliberately absent from all of this. They cannot be
-// set by anybody — that is the point of them — so a test about one asserts on
-// the refusal instead.
+// Every action is configurable; the ADMIN row is the one thing nobody may set
+// (it always holds everything), which is why only MANAGER and EMPLOYEE are
+// settable here.
 import { apiRequest } from "@tests/support/client";
 import { getSession } from "@tests/support/auth";
 import { CONFIGURABLE_ACTIONS, DEFAULT_ROLE_PERMISSIONS } from "@organza/shared/constants/permissions";
