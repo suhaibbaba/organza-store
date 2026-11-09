@@ -6,14 +6,15 @@
 //
 //    * a CONFIGURABLE grant can be revoked and the refusal is immediate;
 //    * ...and granted, and the new power is immediately real;
-//    * a PROTECTED action cannot be moved by anybody, by any route into the
-//      API, on any role — refused by the server, not hidden by a screen;
-//    * only an Admin may edit at all, and never their own role;
+//    * every action is configurable — the money ones included;
+//    * the ADMIN role cannot be edited by anybody, so an Admin always holds
+//      everything — refused by the server, not hidden by a screen;
+//    * only a holder of permission.manage may edit, and never their own role;
 //    * the last active Admin cannot be stripped of the role either way;
 //    * and the cache behind `can()` never serves a stale answer.
 // ============================================================================
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { CONFIGURABLE_ACTIONS, PERMISSION_ACTIONS, PROTECTED_ACTIONS } from "@organza/shared/constants/permissions";
+import { CONFIGURABLE_ACTIONS, PERMISSION_ACTIONS } from "@organza/shared/constants/permissions";
 import { apiRequest, uniqueId } from "@tests/support/client";
 import { getSession } from "@tests/support/auth";
 import {
@@ -63,30 +64,10 @@ describe("Role permissions", () => {
       expect(matrix.protectedActions.length + matrix.configurableActions.length).toBe(PERMISSION_ACTIONS.length);
     });
 
-    it("protects the shop's anti-theft guarantees and nothing less", async () => {
+    it("locks nothing — every action is configurable", async () => {
       const matrix = await fetchPermissionMatrix();
-
-      // The list spec.md's "Security rationale" is built on. If any of these
-      // ever becomes configurable, the guarantee it encodes stops being one.
-      for (const action of [
-        "product.viewCost",
-        "report.view",
-        "user.viewSensitive",
-        "product.editPrice",
-        "order.edit",
-        "order.cancel",
-        "order.delete",
-        "order.return",
-        "order.createGift",
-        "order.markCollected",
-        "changeRequest.approve",
-        "expense.approve",
-        "user.manage",
-        "user.delete",
-        "permission.manage",
-      ]) {
-        expect(matrix.protectedActions, `${action} must never be editable`).toContain(action);
-      }
+      expect(matrix.protectedActions).toEqual([]);
+      expect([...matrix.configurableActions].sort()).toEqual([...PERMISSION_ACTIONS].sort());
     });
 
     it("is readable by every role, so a client's can() agrees with the server's", async () => {
@@ -191,60 +172,33 @@ describe("Role permissions", () => {
   });
 
   // -------------------------------------------------------------------------
-  // PROTECTED — refused, whatever the request looks like
+  // What used to be locked — now the shop's to decide
   // -------------------------------------------------------------------------
-  describe("a protected action", () => {
-    it("cannot be granted to any role, one by one, all of them", async () => {
-      for (const action of PROTECTED_ACTIONS) {
-        for (const role of ["MANAGER", "EMPLOYEE"] as const) {
-          const res = await patchRolePermissions(role, [{ action, granted: true }]);
-          expect(res.status, `granting ${action} to ${role}`).toBe(403);
-          expect(res.error?.code).toBe(ERROR_CODES.PERMISSION_ACTION_PROTECTED);
-        }
-      }
+  describe("a formerly locked action", () => {
+    it("can be granted, and the gate follows on the very next request", async () => {
+      const before = await apiRequest("/api/orders/collection-summary", { token: employeeToken });
+      expect(before.status, "an Employee does not see the outstanding total as shipped").toBe(403);
+
+      await withRolePermission("EMPLOYEE", "order.markCollected", true, async () => {
+        const during = await apiRequest("/api/orders/collection-summary", { token: employeeToken });
+        expect(during.status).toBe(200);
+      });
+
+      const after = await apiRequest("/api/orders/collection-summary", { token: employeeToken });
+      expect(after.status, "and it closes again when the grant goes").toBe(403);
     });
 
-    it("cannot be revoked either — not even from a role that does not hold it", async () => {
-      for (const action of ["order.cancel", "product.viewCost", "changeRequest.approve"]) {
-        const res = await patchRolePermissions("EMPLOYEE", [{ action, granted: false }]);
-        expect(res.status).toBe(403);
-        expect(res.error?.code).toBe(ERROR_CODES.PERMISSION_ACTION_PROTECTED);
-      }
-    });
-
-    it("is refused even when smuggled in beside a legitimate change", async () => {
-      const res = await patchRolePermissions("EMPLOYEE", [
-        { action: "category.manage", granted: true },
-        { action: "order.cancel", granted: true },
-      ]);
-      expect(res.status).toBe(403);
-      expect(res.error?.code).toBe(ERROR_CODES.PERMISSION_ACTION_PROTECTED);
-
-      // ...and the legitimate half did not land either. A batch that is
-      // refused is refused whole, or "refused" would be a way to write half a
-      // change and be told it failed.
-      const matrix = await fetchPermissionMatrix();
-      expect(matrix.roles.EMPLOYEE).not.toContain("category.manage");
-      expect(matrix.roles.EMPLOYEE).not.toContain("order.cancel");
-    });
-
-    it("stays exactly where it was afterwards", async () => {
-      await patchRolePermissions("EMPLOYEE", [{ action: "order.markCollected", granted: true }]);
+    it("can be taken from a Manager too", async () => {
+      await withRolePermission("MANAGER", "order.cancel", false, async () => {
+        const matrix = await fetchPermissionMatrix();
+        expect(matrix.roles.MANAGER).not.toContain("order.cancel");
+      });
 
       const matrix = await fetchPermissionMatrix();
-      expect(matrix.roles.EMPLOYEE).not.toContain("order.markCollected");
-
-      // And the gate itself is unmoved — the state that actually matters.
-      const attempt = await apiRequest("/api/orders/collection-summary", { token: employeeToken });
-      expect(attempt.status).toBe(403);
+      expect(matrix.roles.MANAGER).toContain("order.cancel");
     });
 
-    it("is refused with the reason, not with a validation error", async () => {
-      const protectedAttempt = await patchRolePermissions("EMPLOYEE", [{ action: "order.delete", granted: true }]);
-      expect(protectedAttempt.error?.code).toBe(ERROR_CODES.PERMISSION_ACTION_PROTECTED);
-
-      // Whereas a string that is not an action at all is a bad request, which
-      // is a different thing and says so.
+    it("a string that is not an action at all is still a bad request", async () => {
       const nonsense = await patchRolePermissions("EMPLOYEE", [{ action: "not.an.action", granted: true }]);
       expect(nonsense.status).toBe(400);
       expect(nonsense.error?.code).toBe(ERROR_CODES.VALIDATION);
@@ -323,36 +277,43 @@ describe("Role permissions", () => {
       expect(settings.status).toBe(200);
     });
 
-    it("keeps every protected power with the Admin no matter what is configured", async () => {
-      // The worst case the screen can produce: every configurable action
-      // granted to everybody. The Admin-only powers must be untouched.
-      await patchRolePermissions(
-        "MANAGER",
-        CONFIGURABLE_ACTIONS.map((action) => ({ action, granted: true }))
-      );
-      await patchRolePermissions(
-        "EMPLOYEE",
-        CONFIGURABLE_ACTIONS.map((action) => ({ action, granted: true }))
-      );
+    it("keeps every power with the Admin no matter what is configured", async () => {
+      // The worst case the screen can produce: every action granted to
+      // everybody, permission.manage included. The Admin row is still out of
+      // everybody's reach.
+      await patchRolePermissions("MANAGER", CONFIGURABLE_ACTIONS.map((action) => ({ action, granted: true })));
+      await patchRolePermissions("EMPLOYEE", CONFIGURABLE_ACTIONS.map((action) => ({ action, granted: true })));
 
       try {
-        const matrix = await fetchPermissionMatrix();
-        for (const role of ["MANAGER", "EMPLOYEE"] as const) {
-          expect(matrix.roles[role], `${role} must not reach the permissions table`).not.toContain("permission.manage");
-          expect(matrix.roles[role], `${role} must not reach cost`).not.toContain("product.viewCost");
-          expect(matrix.roles[role], `${role} must not reach the reports`).not.toContain("report.view");
-          expect(matrix.roles[role], `${role} must not approve changes`).not.toContain("changeRequest.approve");
-          expect(matrix.roles[role], `${role} must not manage staff`).not.toContain("user.manage");
+        // A Manager holding permission.manage may edit the Employee's row...
+        const managerEdit = await patchRolePermissions(
+          "EMPLOYEE",
+          [{ action: "inventory.view", granted: false }],
+          { token: managerToken }
+        );
+        expect(managerEdit.status).toBe(200);
+
+        // ...never their own...
+        const managerSelf = await patchRolePermissions(
+          "MANAGER",
+          [{ action: "inventory.view", granted: false }],
+          { token: managerToken }
+        );
+        expect(managerSelf.status).toBe(409);
+        expect(managerSelf.error?.code).toBe(ERROR_CODES.PERMISSION_SELF_ROLE);
+
+        // ...and never the Admin's.
+        for (const token of [managerToken, employeeToken]) {
+          const strip = await patchRolePermissions("ADMIN", [{ action: "permission.manage", granted: false }], {
+            token,
+          });
+          expect(strip.status).toBe(409);
+          expect(strip.error?.code).toBe(ERROR_CODES.PERMISSION_ADMIN_ROLE);
         }
 
-        // ...and the gates agree with the matrix.
-        for (const token of [managerToken, employeeToken]) {
-          expect((await apiRequest("/api/reports/sales", { token })).status).toBe(403);
-          expect((await apiRequest("/api/users", { token })).status).toBe(403);
-          expect(
-            (await patchRolePermissions("EMPLOYEE", [{ action: "inventory.view", granted: true }], { token })).status
-          ).toBe(403);
-        }
+        const matrix = await fetchPermissionMatrix();
+        expect([...matrix.roles.ADMIN].sort()).toEqual([...PERMISSION_ACTIONS].sort());
+        expect((await apiRequest("/api/users", { token: adminToken })).status).toBe(200);
       } finally {
         await applyDefaultPermissions();
       }
@@ -443,13 +404,6 @@ describe("Role permissions", () => {
       for (const action of CONFIGURABLE_ACTIONS) {
         expect(matrix.roles.MANAGER, `${action} granted to a Manager`).toContain(action);
       }
-      // ...and not one protected action came with it.
-      for (const action of PROTECTED_ACTIONS) {
-        if (action === "permission.manage" || action === "product.viewCost" || action === "report.view") {
-          expect(matrix.roles.MANAGER, `${action} is still the Admin's`).not.toContain(action);
-        }
-      }
-
       await applyDefaultPermissions();
     });
   });

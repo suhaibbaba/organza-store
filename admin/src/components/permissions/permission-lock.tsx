@@ -17,7 +17,8 @@ import type { PermissionLockReason } from "@/types/permission";
  *
  * Two reasons, two sentences:
  *   "protected" — the shop's anti-theft rules, which no shop may switch off;
- *   "ownRole"   — you are editing your own role, which nobody may do.
+ *   "ownRole"   — you are editing your own role, which nobody may do;
+ *   "adminRole" — the Admin holds everything, always, so nobody may edit it.
  */
 export function PermissionLock({
   reason,
@@ -29,7 +30,7 @@ export function PermissionLock({
   /**
    * Whether the role holds it, when that is still worth saying.
    *
-   * For "ownRole" it very much is: the Admin column would otherwise be a
+   * For "ownRole" and "adminRole" it very much is: the Admin column would otherwise be a
    * column of padlocks saying nothing about what an Admin can actually do,
    * which is the question this screen exists to answer. For "protected" it is
    * omitted — there the reason is the point.

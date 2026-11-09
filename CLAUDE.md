@@ -77,8 +77,8 @@ from past orders — there is still no Customer table behind it.
      and **no shop-wide money view at all** — no dashboard, no Reports, no outstanding total.
      They see the orders they take, never every order added up.
    Five Employee actions are neither applied nor refused but **held for approval** (rule 21).
-   That table is the shop's **starting point**: most of it is editable per shop from the admin's
-   Permissions screen, and a specific part of it can never be — see rule 22.
+   That table is the shop's **starting point**: every Manager/Employee grant is editable per shop
+   from the admin's Permissions screen; the Admin role never is — see rule 22.
 6. **Every mutation writes an Audit Log entry** (userId, action, entityType, entityId, old/new).
 7. **stock default = 1** for products and variants.
 8. **Validate all inputs with Zod** (shared schemas where possible).
@@ -173,25 +173,25 @@ from past orders — there is still no Customer table behind it.
     field on the same entity **replaces** the pending one (enforced by the unique `pendingKey`
     column, never by a sweep). Approving applies the change atomically; rejecting discards it;
     both are audited alongside the request itself. Approval is `changeRequest.approve` (Admin
-    only, widenable). Never add a second `approvalStatus` column to another table — add an entry
+    only as shipped, configurable). Never add a second `approvalStatus` column to another table — add an entry
     to `CHANGE_REQUEST_FIELDS` and an applier in `backend/src/lib/changeRequestAppliers.ts`.
-22. **Every permission action is PROTECTED or CONFIGURABLE** — declared beside the action itself in
-    `shared/src/constants/permissions.ts`, exhaustive and disjoint, checked at module load (see
-    "Editable role permissions" in `spec.md`). **PROTECTED** is answered by `can()` from the shipped
-    table and nothing else: cost/profit and the reports, re-pricing, editing/cancelling/deleting/
-    returning an order, gifts, marking money collected, approving a change or an expense, managing
-    staff, reading an ID number, and managing permissions itself. Those are the anti-theft
-    guarantees the whole design rests on, plus the ones a locked-out Admin could never undo — so
-    there is deliberately no row, no endpoint and no screen that can move them, and the API refuses
-    a protected action **server-side**, not merely hides it. **CONFIGURABLE** grants live one row
-    per (role, action) in `RolePermission`, seeded from today's exact defaults by
-    `npm run bootstrap` (rule 11), with a MISSING row meaning "as shipped" rather than "no".
+22. **Every permission action is CONFIGURABLE for the Manager and the Employee; the ADMIN role
+    never is** (see "Editable role permissions" in `spec.md`). The actions are declared in
+    `shared/src/constants/permissions.ts`, split into `PROTECTED_ACTIONS` (answered by `can()` from
+    the shipped table only — **empty today**, kept so an action can be re-locked with one entry) and
+    `CONFIGURABLE_ACTIONS` (the rest — today, all of them, cost/profit, reports, re-pricing, order
+    edit/cancel/delete/return, gifts, collecting money, approvals, staff and permissions
+    included). What keeps the shop from being locked out is the **Admin role** (`FIXED_ROLE`):
+    an Admin holds every action always, `can()` ignores any stored row for it, and the API refuses
+    any edit to the ADMIN row by anybody (`error.permission.admin_role`) — even a Manager handed
+    `permission.manage`. Nobody edits their own role, and the last active Admin cannot be demoted.
+    Grants live one row per (role, action) in `RolePermission`, seeded from today's exact defaults
+    by `npm run bootstrap` (rule 11), with a MISSING row meaning "as shipped" rather than "no".
     `can()` stays synchronous: each process holds the table in memory, refreshes immediately on its
     own write, and picks up another process's write through a cheap digest probe
     (`backend/src/lib/permissionConfig.ts`) — never a query per call. Adding an action means adding
-    it to one of the two lists, to `DEFAULT_ROLE_PERMISSIONS`, and to `PERMISSION_GROUPS` in the
-    admin; no call site changes. Editing is Admin-only, never your own role, and every flip is
-    audited.
+    it to `PERMISSION_ACTIONS`, to `DEFAULT_ROLE_PERMISSIONS`, and to `PERMISSION_GROUPS` in the
+    admin; no call site changes. Every flip is audited.
 23. **Selling a piece that isn't in the catalogue creates an INCOMPLETE product on purpose**
     (see "Quick sell" in `spec.md`). At the busiest hour a sale must never wait on a category, a
     cost or a photograph, so the POS takes a name and a price and completes the sale immediately —
@@ -206,7 +206,8 @@ from past orders — there is still no Customer table behind it.
     screen that lists products must handle a categoryless one — which is why such a product is
     badged incomplete and has a "needs completing" queue of its own, since no category filter can
     find it. `product.quickSell` is every role's; `product.complete` is Admin/Manager and is what
-    decides a completion request, so `changeRequest.approve` stays Admin-only and PROTECTED.
+    decides a completion request, so `changeRequest.approve` stays a separate action (Admin-only as
+    shipped).
 
 ## Workflow
 - Build **one stage at a time** (see the build order in `spec.md`). Test a stage before the next.

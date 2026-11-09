@@ -3,6 +3,7 @@ import { AuditAction, type Role } from "@prisma/client";
 import {
   buildPermissionMatrixPayload,
   isConfigurableAction,
+  isFixedRole,
   isProtectedAction,
 } from "@organza/shared/lib/permissions";
 import { DEFAULT_ROLE_PERMISSIONS } from "@organza/shared/constants/permissions";
@@ -64,11 +65,24 @@ router.patch(
       throw new AppError(409, ERROR_CODES.PERMISSION_SELF_ROLE);
     }
 
+    // GUARD 1b — nobody adjusts the Admin's authority either.
+    //
+    // Every action is configurable, permission.manage included, so a Manager
+    // can be handed this screen. What they must never be able to do with it
+    // is take something away from the Admins — that is the one edit nothing
+    // in the app could give back. An Admin holds everything, always, and
+    // `can()` ignores any stored row for the role; this refuses writing one.
+    if (isFixedRole(role)) {
+      throw new AppError(409, ERROR_CODES.PERMISSION_ADMIN_ROLE);
+    }
+
     // GUARD 2 — a PROTECTED action is refused by the SERVER.
     //
-    // This is the refusal that matters. The screen never draws a checkbox for
-    // a protected action, but the anti-theft design cannot depend on a client
-    // behaving — a curl with an Admin's token is a client too. The schema
+    // The list is empty today (every action is configurable), but the check
+    // stays so re-locking one later is a single entry in shared. The screen
+    // never draws a checkbox for a protected action, and the rule cannot
+    // depend on a client behaving — a curl with an Admin's token is a client
+    // too. The schema
     // deliberately does NOT do this job (it accepts any real action, so that
     // "not an action" and "not yours to change" are told apart), which leaves
     // exactly one place where the rule lives, and it is this one.

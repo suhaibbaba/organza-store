@@ -11,7 +11,7 @@ import {
   PERMISSION_ACTIONS,
   PROTECTED_ACTIONS,
 } from "@/constants/permissions";
-import { ROLES } from "@/constants/roles";
+import { FIXED_ROLE, ROLES } from "@/constants/roles";
 
 // Loose on purpose: backend passes a Prisma `Role` enum member (structurally
 // a string), admin/pos pass the plain `Role` string union — both satisfy
@@ -70,10 +70,23 @@ export function getConfigurablePermissions(): ConfigurablePermissionMatrix | nul
   return storedConfig;
 }
 
-/** Drops anything that is not a configurable action, and any unknown role. */
+/**
+ * True for the one role whose grants are never configurable: an Admin holds
+ * everything, always (CLAUDE.md rule 5). This — not a list of locked actions —
+ * is what keeps an editable table from ever locking the shop out of itself.
+ */
+export function isFixedRole(role: string): boolean {
+  return role === FIXED_ROLE;
+}
+
+/**
+ * Drops anything that is not a configurable action, any unknown role, and
+ * the ADMIN row, which `can()` never reads from the stored config.
+ */
 export function sanitizeConfigurableMatrix(matrix: ConfigurablePermissionMatrix): ConfigurablePermissionMatrix {
   const clean: ConfigurablePermissionMatrix = {};
   for (const role of ROLES) {
+    if (isFixedRole(role)) continue;
     const grants = matrix[role];
     if (!grants) continue;
     const kept: Partial<Record<ConfigurableAction, boolean>> = {};
@@ -95,15 +108,15 @@ function holdsByDefault(role: string, action: PermissionAction): boolean {
  * real gate (403 when false); admin/pos call it only to decide what to show.
  *
  * Two sources, one answer:
- *   - a PROTECTED action is answered from DEFAULT_ROLE_PERMISSIONS and
- *     nothing else, so no stored row, no API call and no hand-edited database
- *     can move it;
+ *   - the ADMIN role, and any PROTECTED action, are answered from
+ *     DEFAULT_ROLE_PERMISSIONS and nothing else, so no stored row, no API
+ *     call and no hand-edited database can move them;
  *   - a CONFIGURABLE action is answered from the stored config, falling back
  *     to the same defaults wherever the config has nothing to say.
  */
 export function can(user: PermissionSubject | null | undefined, action: PermissionAction): boolean {
   if (!user) return false;
-  if (isProtectedAction(action)) return holdsByDefault(user.role, action);
+  if (isFixedRole(user.role) || isProtectedAction(action)) return holdsByDefault(user.role, action);
 
   const stored = storedConfig?.[user.role as Role]?.[action as ConfigurableAction];
   return stored ?? holdsByDefault(user.role, action);

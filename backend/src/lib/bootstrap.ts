@@ -1,4 +1,5 @@
 import { CONFIGURABLE_ACTIONS, DEFAULT_ROLE_PERMISSIONS } from "@organza/shared/constants/permissions";
+import { isFixedRole } from "@organza/shared/lib/permissions";
 import { ROLES } from "@organza/shared/constants/roles";
 import { prisma } from "@/lib/prisma";
 import {
@@ -112,11 +113,12 @@ export async function runBootstrap(): Promise<BootstrapSummary> {
   // they are declared, so a shop that has never opened the Permissions screen
   // behaves on day one precisely as it did before the screen existed.
   //
-  // PROTECTED actions are deliberately NOT written. `can()` answers those from
-  // the shipped table and never looks here, so a row for one would be a row
-  // that does nothing except suggest, to whoever reads the database later,
-  // that it does something.
+  // The ADMIN role is deliberately NOT written: `can()` answers it from the
+  // shipped table (an Admin holds everything) and never looks here, so a row
+  // for it would do nothing except suggest, to whoever reads the database
+  // later, that it does something.
   for (const role of ROLES) {
+    if (isFixedRole(role)) continue;
     const defaults = DEFAULT_ROLE_PERMISSIONS[role];
     for (const action of CONFIGURABLE_ACTIONS) {
       await once(

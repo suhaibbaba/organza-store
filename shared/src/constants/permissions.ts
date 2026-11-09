@@ -58,10 +58,10 @@ export const PERMISSION_ACTIONS = [
   // holding, which is not the job of whoever was at the counter.
   //
   // Its own action rather than a reuse of changeRequest.approve, which is
-  // Admin-only and PROTECTED for a different reason entirely: approving a
-  // gated change is permission BEFORE the fact and must never be widened,
-  // while completing a quick sale is review AFTER it, on money already taken.
-  // Widening one must not widen the other.
+  // Admin-only as shipped for a different reason entirely: approving a gated
+  // change is permission BEFORE the fact, while completing a quick sale is
+  // review AFTER it, on money already taken. Widening one must not widen the
+  // other.
   "product.complete",
 
   // The Reports screen and the endpoints behind it: sales by period, the
@@ -199,13 +199,11 @@ export const PERMISSION_ACTIONS = [
 
   "settings.manage",
 
-  // Editing this very table: which CONFIGURABLE actions each role holds
-  // (spec.md "Editable role permissions"). ADMIN ONLY and PROTECTED, which
-  // is not a detail — a permission to hand out permissions that could itself
-  // be handed out is not a gate, it is a door with the key taped to it. It
-  // can never be granted to another role, and an Admin can never take it
-  // from their own, so there is no sequence of edits that ends with nobody
-  // able to administer the shop.
+  // Editing this very table: which actions the Manager and the Employee hold
+  // (spec.md "Editable role permissions"). Admin only as shipped, and
+  // grantable like everything else — but whoever holds it can still never
+  // touch their own role or the ADMIN role (routes/permissions.ts), so
+  // handing it out can never take it, or anything else, away from an Admin.
   "permission.manage",
 ] as const;
 
@@ -215,96 +213,33 @@ type Action = (typeof PERMISSION_ACTIONS)[number];
 //  PROTECTED vs CONFIGURABLE (spec.md "Editable role permissions")
 // ===========================================================================
 //
-// Which role holds which action is editable from the admin — but not all of
-// it, and the split is declared here, next to the actions themselves, so that
-// adding an action forces the question "may the shop switch this off?" at the
-// moment it is written rather than the first time somebody tries.
+// Every action is CONFIGURABLE: the shop decides, from the admin's
+// Permissions screen, which of the Manager's and the Employee's powers they
+// hold — including the money ones (cost and profit, the reports, re-pricing,
+// cancelling or returning a sale, gifts, marking money collected, approvals,
+// staff and this table itself). That was the owner's call to make, and they
+// made it.
 //
-// PROTECTED is the smaller list on purpose. It is not "the important ones" —
-// it is the ones whose whole reason for existing is that somebody who works
-// here cannot turn them off. Two kinds:
+// What stops that from becoming a way to lock the shop out is not this list
+// but the ADMIN role, which is never configurable: an Admin always holds
+// everything (CLAUDE.md rule 5), `can()` answers it from the shipped table
+// alone, and the API refuses any edit to the ADMIN row — from an Admin
+// (nobody edits their own role) and equally from a Manager who has been
+// handed permission.manage. Together with routes/users.ts refusing to demote
+// or deactivate the last active Admin, there is still no sequence of edits
+// that ends with nobody able to administer the shop.
 //
-//   1. The anti-theft guarantees spec.md "Security rationale" is built on.
-//      A sale cannot be erased, re-priced, given away or declared paid by the
-//      person who rang it up, and nobody signs off their own spending. Every
-//      one of those is only true while it CANNOT be granted away, because the
-//      first thing an insider with an editable permission table would do is
-//      grant themselves the one that hides what they did.
-//   2. The keys to the building: who may read the owner's cost and profit,
-//      who may manage staff, and who may edit this table. A locked-out Admin
-//      is not recoverable from inside the app — it takes a terminal on the
-//      VPS — so the path to locking one out is closed rather than warned
-//      about.
-//
-// Everything else is CONFIGURABLE: real, useful decisions a shop makes about
-// itself ("our Employees do handle stock", "our Manager prints the labels")
-// that cost nothing if they are wrong and are put back with one tap.
-//
-// The two lists are exhaustive and disjoint over PERMISSION_ACTIONS, checked
-// at module load below — a new action that lands in neither (or in both) is a
-// crash on boot, not a permission that silently cannot be resolved.
+// The PROTECTED mechanism itself is kept, empty: re-locking an action later
+// is one entry here, and the resolver, the API and the screen already honour
+// it.
 
 /**
- * Never editable, by anyone, through any UI or API.
+ * Never editable, by anyone, through any UI or API. Empty today — see above.
  *
  * `can()` resolves these from DEFAULT_ROLE_PERMISSIONS alone and never looks
- * at the stored config, so an action that reaches this list is beyond the
- * reach of the permissions screen, the API behind it, and a hand-written row
- * in the database alike.
+ * at the stored config.
  */
-export const PROTECTED_ACTIONS = [
-  // --- the owner's own figures (CLAUDE.md rule 19) ---
-  // What each piece cost and therefore what the shop earns on it. Admin only,
-  // and the one gate over cost, COGS, gross/net profit, margin and the
-  // inventory valuation at cost wherever any of them appear.
-  "product.viewCost",
-  // The Reports screen: every order the shop has ever taken, added up. Admin
-  // only, and separately from product.viewCost so that widening one can never
-  // widen the other.
-  "report.view",
-  // A staff member's ID number.
-  "user.viewSensitive",
-
-  // --- a sale, after the fact (spec.md "Security rationale") ---
-  // Re-pricing. "Nothing can be sold cheap and pocketed" is only a guarantee
-  // while the re-pricing permission cannot be handed to whoever is at the
-  // counter.
-  "product.editPrice",
-  // Changing, voiding or erasing a sale that has already been rung up.
-  "order.edit",
-  "order.cancel",
-  "order.delete",
-  // Taking one back, in whole or in part — the same power as cancelling,
-  // under a different name, so it is protected with it rather than left as
-  // the way round.
-  "order.return",
-  // Filing a sale as a gift: the same as re-pricing it to zero, so it is
-  // protected for the same reason.
-  "order.createGift",
-  // Declaring that the delivery company's money arrived. The person who took
-  // the order must never be the person who says it was paid for.
-  "order.markCollected",
-
-  // --- signing things off ---
-  // Deciding somebody else's gated change (spec.md "Employee change
-  // approvals"). The gate is the whole design; a grantable approval
-  // permission is a gate anybody can walk around.
-  "changeRequest.approve",
-  // Whether your OWN expense is approved as you write it (routes/expenses.ts).
-  // Held here rather than among the configurable expense actions because it
-  // is self-approval by another name: granted to whoever spends the money, it
-  // takes cash out of the drawer with nobody's agreement but their own.
-  "expense.approve",
-
-  // --- the keys to the building ---
-  // Creating staff, changing their role, deactivating them.
-  "user.manage",
-  // Erasing an account outright (only ever possible for one with no history).
-  "user.delete",
-  // Editing this table. Never grantable, never removable — see the note on
-  // the action itself above.
-  "permission.manage",
-] as const satisfies readonly Action[];
+export const PROTECTED_ACTIONS = [] as const satisfies readonly Action[];
 
 /**
  * Editable per role from the admin's Permissions screen, stored in the
@@ -322,10 +257,8 @@ export const CONFIGURABLE_ACTIONS = PERMISSION_ACTIONS.filter(
 // so the only way to break it is to protect something that is not an action
 // at all — a typo, or an action deleted from the list above while its entry
 // here stayed. `satisfies` catches that at compile time; this catches it at
-// runtime too, because the apps ship compiled JavaScript and a stale build is
-// exactly when a typo would otherwise become "that permission is silently
-// configurable".
-for (const action of PROTECTED_ACTIONS) {
+// runtime too, because the apps ship compiled JavaScript.
+for (const action of PROTECTED_ACTIONS as readonly string[]) {
   if (!(PERMISSION_ACTIONS as readonly string[]).includes(action)) {
     throw new Error(`PROTECTED_ACTIONS names "${action}", which is not a permission action.`);
   }
@@ -365,9 +298,9 @@ for (const action of PROTECTED_ACTIONS) {
  * actions for ever.
  *
  * Two different jobs, which is worth being explicit about:
- *   - the PROTECTED half is the live rule. `can()` reads it directly and
- *     nothing can override it.
- *   - the CONFIGURABLE half is the SEED. `npm run bootstrap` copies it into
+ *   - the ADMIN row (and any PROTECTED action) is the live rule. `can()`
+ *     reads it directly and nothing can override it.
+ *   - everything else is the SEED. `npm run bootstrap` copies it into
  *     the RolePermission table once in the life of a database (CLAUDE.md rule
  *     11), and it is also the fallback `can()` uses for any grant the stored
  *     config has no row for — a permission added in a later release, on a
