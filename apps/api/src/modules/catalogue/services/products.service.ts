@@ -3,6 +3,7 @@ import {
   buildSearchText,
   type createProductSchema,
   type ImageView,
+  type LabelData,
   type ItemView,
   normalizeBarcode,
   normalizeSearch,
@@ -683,6 +684,70 @@ export class ProductsService {
       });
     });
     return this.get(id, actor);
+  }
+
+  /** Label rows for products or single items; the item's own code, else a shared one. */
+  async labels(productIds: string[], itemIds: string[]): Promise<LabelData[]> {
+    if (productIds.length === 0 && itemIds.length === 0) return [];
+    const rows = await this.db
+      .select({ item: items, product: products, onHand: itemBalances.onHand })
+      .from(items)
+      .innerJoin(products, eq(products.id, items.productId))
+      .leftJoin(itemBalances, eq(itemBalances.itemId, items.id))
+      .where(
+        and(
+          isNull(items.archivedAt),
+          or(
+            productIds.length ? inArray(items.productId, productIds) : undefined,
+            itemIds.length ? inArray(items.id, itemIds) : undefined,
+          ),
+        ),
+      )
+      .orderBy(asc(products.number), asc(items.number));
+    const ids = rows.map((r) => r.item.id);
+    const pids = [...new Set(rows.map((r) => r.product.id))];
+    const codes = pids.length
+      ? await this.db
+          .select()
+          .from(barcodes)
+          .where(inArray(barcodes.productId, pids))
+          .orderBy(asc(barcodes.createdAt))
+      : [];
+    const opts = ids.length
+      ? await this.db
+          .select({
+            itemId: itemOptionValues.itemId,
+            value: optionValues.value,
+            typeOrder: productOptionTypes.sortOrder,
+          })
+          .from(itemOptionValues)
+          .innerJoin(optionValues, eq(optionValues.id, itemOptionValues.valueId))
+          .innerJoin(items, eq(items.id, itemOptionValues.itemId))
+          .leftJoin(
+            productOptionTypes,
+            and(
+              eq(productOptionTypes.productId, items.productId),
+              eq(productOptionTypes.typeId, optionValues.typeId),
+            ),
+          )
+          .where(inArray(itemOptionValues.itemId, ids))
+      : [];
+    return rows.map((r) => ({
+      itemId: r.item.id,
+      productId: r.product.id,
+      sku: r.item.sku,
+      barcode:
+        codes.find((c) => c.itemId === r.item.id)?.code ??
+        codes.find((c) => c.productId === r.product.id && c.itemId === null)?.code ??
+        r.item.sku,
+      name: r.product.name,
+      options: opts
+        .filter((o) => o.itemId === r.item.id)
+        .sort((a, b) => (a.typeOrder ?? 0) - (b.typeOrder ?? 0))
+        .map((o) => o.value),
+      price: r.item.price ?? r.product.price,
+      onHand: r.onHand ?? 0,
+    }));
   }
 
   /** Effective price of an item right now (server price always wins at checkout). */

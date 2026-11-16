@@ -260,3 +260,28 @@ export interface ProductSummary {
   needsCompletion: boolean;
   labelsPrintedAt: string | null;
 }
+
+export const labelsQuerySchema = z.object({
+  productIds: z
+    .string()
+    .optional()
+    .transform((v) => (v ? v.split(',').filter(Boolean) : []))
+    .pipe(z.array(z.uuid()).max(500)),
+  itemIds: z
+    .string()
+    .optional()
+    .transform((v) => (v ? v.split(',').filter(Boolean) : []))
+    .pipe(z.array(z.uuid()).max(500)),
+});
+
+/** One printable label: the code to encode, what to show and how many copies (pieces on hand). */
+export interface LabelData {
+  itemId: string;
+  productId: string;
+  sku: string;
+  barcode: string;
+  name: T3;
+  options: T3[];
+  price: string;
+  onHand: number;
+}

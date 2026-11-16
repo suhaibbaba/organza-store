@@ -286,3 +286,59 @@ describe('catalogue', () => {
     expect(again.json().code).toBe('COST_ALREADY_KNOWN');
   });
 });
+
+describe('labels', () => {
+  let ctx: TestContext;
+  beforeAll(async () => {
+    ctx = await createTestContext();
+  });
+  afterAll(() => ctx.close());
+
+  it('returns one row per item with its code, options and price, and marks printed', async () => {
+    const admin = await signedIn(ctx, 'ADMIN');
+    const categoryId = (await createCategory(ctx, admin.headers)).id;
+    const sizes = await optionValues(ctx, admin.headers, 'size', ['S', 'M']);
+    const p = await createProduct(ctx, admin.headers, {
+      type: 'VARIANT',
+      name: { ar: 'بلوزة' },
+      categoryId,
+      optionTypeIds: [sizes.typeId],
+      items: [
+        { valueIds: [sizes.ids[0]], stock: 2 },
+        { valueIds: [sizes.ids[1]], stock: 1, price: '90.00' },
+      ],
+    });
+    const res = await ctx.app.inject({
+      method: 'GET',
+      url: `/labels?productIds=${p.id}`,
+      headers: admin.headers,
+    });
+    const rows = res.json();
+    expect(rows).toHaveLength(2);
+    expect(rows[0]).toMatchObject({
+      sku: p.items[0]!.sku,
+      barcode: p.items[0]!.barcodes[0]!.code,
+      onHand: 2,
+      price: '100.00',
+    });
+    expect(rows[1].options[0].en).toBe('M');
+    const listBefore = await ctx.app.inject({
+      method: 'GET',
+      url: '/products?labelsPending=true&pageSize=100',
+      headers: admin.headers,
+    });
+    expect(listBefore.json().items.some((i: { id: string }) => i.id === p.id)).toBe(true);
+    await ctx.app.inject({
+      method: 'POST',
+      url: '/labels/printed',
+      headers: admin.headers,
+      payload: { productIds: [p.id] },
+    });
+    const listAfter = await ctx.app.inject({
+      method: 'GET',
+      url: '/products?labelsPending=true&pageSize=100',
+      headers: admin.headers,
+    });
+    expect(listAfter.json().items.some((i: { id: string }) => i.id === p.id)).toBe(false);
+  });
+});

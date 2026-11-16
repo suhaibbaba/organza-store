@@ -19,7 +19,10 @@ export default defineConfig({
   build: { target: BROWSER_TARGETS, cssTarget: BROWSER_TARGETS, sourcemap: true },
   server: {
     port: 5173,
-    proxy: { '/api': { target: 'http://localhost:3000', rewrite: (p) => p.replace(/^\/api/, '') } },
+    proxy: {
+      '/api': { target: 'http://localhost:3000', rewrite: (p) => p.replace(/^\/api/, '') },
+      '/uploads': 'http://localhost:3000',
+    },
   },
   test: {
     environment: 'jsdom',

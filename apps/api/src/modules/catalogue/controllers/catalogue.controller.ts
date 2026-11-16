@@ -4,6 +4,7 @@ import {
   addItemsSchema,
   archiveProductSchema,
   categoryInputSchema,
+  labelsQuerySchema,
   createProductSchema,
   optionTypeInputSchema,
   optionValueInputSchema,
@@ -191,6 +192,12 @@ export class CatalogueController {
     @Body(zod(setItemCostSchema)) body: z.output<typeof setItemCostSchema>,
   ) {
     return this.itemsService.setCost(actor, id, body.cost);
+  }
+
+  @Can('labels.print')
+  @Get('labels')
+  labels(@Query(zod(labelsQuerySchema)) query: z.output<typeof labelsQuerySchema>) {
+    return this.products.labels(query.productIds, query.itemIds);
   }
 
   @Can('labels.print')
