@@ -1,5 +1,6 @@
 import { sql } from 'drizzle-orm';
 import {
+  bigserial,
   boolean,
   date,
   index,
@@ -38,6 +39,8 @@ export const journalEntries = pgTable(
   'journal_entries',
   {
     id: uuid('id').primaryKey().defaultRandom(),
+    /** Insertion order: entries posted in one transaction share `posted_at`. */
+    seq: bigserial('seq', { mode: 'number' }).notNull(),
     /** The business date the entry belongs to (the shop's day). */
     entryDate: date('entry_date').notNull(),
     postedAt: timestamp('posted_at', { withTimezone: true }).notNull().defaultNow(),

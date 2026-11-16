@@ -1,7 +1,7 @@
 # Progress
 
 **Current phase:** 2. Sales, payments, POS
-**Next:** phase 2: customers (phone identity, debts), then the sale document and payment postings
+**Next:** phase 2 web: POS workspace, payment panel, receipts, customers and statement, shifts and close; then the orders/customers/cash import
 
 ## Finished steps
 
@@ -18,3 +18,4 @@
 | 2026-11-16 | 1 | Image pipeline ported (sharp: orient, crop from full pixels, resize 300/800/1600, mirror, turn; WebP 82; original kept for re-crop; brightness for marker colours; decode as type check; startup write probe), upload before or after the product exists, re-crop, reorder, remove, served at /uploads with long caching; label data endpoint and labels-printed flag | see git log |
 | 2026-11-16 | 1 | Catalogue import from the old system: one transaction, rehearsal by default, legacy ID map, opening stock at cost, self-checks (stock per item, balances = movements, inventory = stock at cost, product count); tested against a fixture database built from the old Prisma schema. Running it on a production copy is in blocked.md | see git log |
 | 2026-11-16 | 1 | Web screens: products list (search, scanner lookup, filters, phone cards / desktop table), three create forms (single piece; variants with option chips, inline new values and a combination grid where only ticked rows become items; numbered with tap-to-place points and marker colours), 2:3 photo framing editor, product detail (photos, items, codes, hide/archive, add items, costs), categories and options, stock levels with history, adjustments with reversal, counts (scan adds one, post, cancel), labels (50×30 thermal or A4 grid, dependency-free EAN-13/Code 128 SVG, mark printed), settings, currencies; hardware scanner hook ported; route error screen. Checked in Arabic at 1440 px and 375 px. Phase 1 complete | see git log |
+| 2026-11-16 | 2 | API: customers (phone identity across +970/+972, search, statement from the ledger, admin merge), tills and shifts (one open per till, left-open handling, blind count per currency, recount, close with drops and over/short, sign-off, paid-in/drop/expense), checkout (server prices, price-change and rate-change refusal, line and cart discounts with manager limit, split and foreign-currency payments, change or credit, debt, store credit, duplicate warning, idempotent replay), repayments (oldest first or picked, rest to credit), held goods (reserve, deposit, partial hand-over with owed confirmation, cancel with refund/credit/keep deposit). Append-only guards and allocation bounds in the database. 21 new tests incl. parallel last item, crash replay and blind count | see git log |

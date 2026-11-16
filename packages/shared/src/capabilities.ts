@@ -29,6 +29,33 @@ export const CAPABILITIES = {
   'stock.adjust': MANAGERS,
   'stock.count': MANAGERS,
   'stock.history': MANAGERS,
+  // Customers
+  'customers.view': ALL,
+  'customers.edit': ALL,
+  'customers.merge': ADMIN,
+  // Sales and payments
+  'sales.create': ALL,
+  'sales.view': ALL,
+  /** Any employee may sell on debt, with no limit (proposal C5). */
+  'sales.onDebt': ALL,
+  'sales.handover': ALL,
+  'sales.cancelHeld': ALL,
+  /** Keeping a deposit when a held sale is cancelled (proposal C5). */
+  'sales.keepDeposit': MANAGERS,
+  /** Discounts above the employee limit in Settings. */
+  'sales.bigDiscount': MANAGERS,
+  'payments.receive': ALL,
+  /** Refunds above the employee limit in Settings (decision H6). */
+  'refunds.aboveLimit': MANAGERS,
+  // Tills and shifts
+  'shifts.operate': ALL,
+  'shifts.viewAll': MANAGERS,
+  'shifts.recount': MANAGERS,
+  'shifts.signOff': MANAGERS,
+  'shifts.closeOthers': MANAGERS,
+  'cash.paidInOut': ALL,
+  'cash.expense': ALL,
+  'registers.manage': ADMIN,
   // Ledger
   'ledger.view': ADMIN,
   'ledger.manualEntry': ADMIN,

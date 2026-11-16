@@ -6,6 +6,7 @@ import { CatalogueModule } from './modules/catalogue/catalogue.module.js';
 import { HealthModule } from './modules/health/health.module.js';
 import { JobsModule } from './modules/jobs/jobs.module.js';
 import { LedgerModule } from './modules/ledger/ledger.module.js';
+import { SalesModule } from './modules/sales/sales.module.js';
 import { SettingsModule } from './modules/settings/settings.module.js';
 import { StockModule } from './modules/stock/stock.module.js';
 import { UsersModule } from './modules/users/users.module.js';
@@ -22,6 +23,7 @@ import { UsersModule } from './modules/users/users.module.js';
     LedgerModule,
     StockModule,
     CatalogueModule,
+    SalesModule,
   ],
 })
 export class AppModule {}

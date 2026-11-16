@@ -64,6 +64,20 @@
       "when": 1794836723516,
       "tag": "0008_legacy_ids",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1794838862429,
+      "tag": "0009_sales_payments_shifts",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1794838862775,
+      "tag": "0010_sales_payments_shifts_guards",
+      "breakpoints": true
     }
   ]
 }

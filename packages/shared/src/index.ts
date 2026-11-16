@@ -12,3 +12,5 @@ export * from './schemas/catalogue.js';
 export * from './schemas/stock.js';
 export * from './image-edit.js';
 export * from './barcode-render.js';
+export * from './phone.js';
+export * from './schemas/sales.js';
