@@ -1,5 +1,6 @@
 import { Controller, Get } from '@nestjs/common';
 import { sql } from 'drizzle-orm';
+import { Public } from '../../../common/decorators/auth.decorators.js';
 import { InjectDb } from '../../../database/database.module.js';
 import type { Database } from '../../../database/unit-of-work.js';
 
@@ -7,6 +8,7 @@ import type { Database } from '../../../database/unit-of-work.js';
 export class HealthController {
   constructor(@InjectDb() private readonly db: Database) {}
 
+  @Public()
   @Get()
   async check(): Promise<{ status: 'ok'; database: 'up' | 'down' }> {
     const database = await this.db
