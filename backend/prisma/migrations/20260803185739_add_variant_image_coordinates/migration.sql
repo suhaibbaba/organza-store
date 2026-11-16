@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "Variant" ADD COLUMN     "imageX" DOUBLE PRECISION,
+ADD COLUMN     "imageY" DOUBLE PRECISION;

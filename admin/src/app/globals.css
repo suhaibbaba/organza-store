@@ -1,0 +1,781 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-gift: var(--gift);
+  --color-gift-foreground: var(--gift-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-photo-surface: var(--photo-surface);
+
+  --font-sans: var(--font-geist-sans);
+  --font-arabic: var(--font-cairo);
+  --font-hebrew: var(--font-noto-hebrew);
+
+  /* ------------------------------------------------------------------
+     LINE HEIGHTS — sized for Arabic, which is the script this app is
+     written in.
+
+     Tailwind pairs each font size with a line height meant for Latin
+     (text-sm is 14/20, text-2xl is 24/32). Cairo does not fit in those
+     boxes: measured in the browser, its ink runs from ~0.7em above the
+     baseline to ~0.45em below it, and the font's own content area is
+     ~1.9em tall. A 1.33 line box therefore puts the tails of ج ح خ ي
+     OUTSIDE the element — invisible until something clips, and then the
+     descenders are simply sliced off. Every `truncate`, `line-clamp` and
+     `overflow-hidden` in the app was doing exactly that, and stacked lines
+     were colliding besides.
+
+     So the scale below is the measured minimum plus a pixel of slack: 1.8
+     at the small sizes an interface is mostly built from, easing to 1.5 at
+     display sizes, where the same ratio would look loose. Latin gets the
+     same numbers rather than a locale switch, because Arabic product names
+     appear on the English and Hebrew screens too (translatable content
+     falls back to the default language, CLAUDE.md rule 9) — a row that
+     fits its text in one language and clips it in another is worse than a
+     roomier line everywhere.
+
+     Change these with a screenshot in hand, not by taste: `ملاحظات على
+     الخيارات جحخي` inside a `truncate` box is the test.
+     ------------------------------------------------------------------ */
+  --text-xs--line-height: 1.85;
+  --text-sm--line-height: 1.8;
+  --text-base--line-height: 1.8;
+  --text-lg--line-height: 1.75;
+  --text-xl--line-height: 1.7;
+  --text-2xl--line-height: 1.7;
+  --text-3xl--line-height: 1.65;
+  --text-4xl--line-height: 1.55;
+  --text-5xl--line-height: 1.5;
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+:root {
+  --radius: 0.75rem;
+
+  /* ------------------------------------------------------------------
+     Fixed chrome — the one place that says how much of the viewport the
+     app's own bars occupy. The bars size themselves from these, and the
+     scrolling page reserves space with the same values, so a bar and the
+     room kept clear for it can never drift apart.
+     ------------------------------------------------------------------ */
+
+  /* iOS notch / home indicator. Named once so every bar reads the same
+     value (and so it can be forced to a non-zero number when checking the
+     layout on a desktop browser, where env() is always 0). */
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+
+  /* The top bar's own row of content — the header sizes itself from this and
+     nothing else, so the bar and anything positioned under it (the
+     pull-to-refresh indicator) can never drift apart. */
+  --top-bar-height: 3.5rem;
+
+  /* What is spoken for at the top of the viewport: the bar plus the notch
+     strip it pads itself with. */
+  --top-bar-inset: calc(var(--top-bar-height) + var(--safe-top));
+
+  /* The bottom nav's row of buttons — see bottom-nav.tsx, which is sized
+     from this and nothing else. */
+  --bottom-nav-height: 4rem;
+
+  /* What is actually spoken for at the bottom of the viewport: the nav plus
+     the home-indicator strip it pads itself with. Scrollable content pads by
+     this, and anything anchored above the nav is offset by it. */
+  --bottom-bar-inset: calc(var(--bottom-nav-height) + var(--safe-bottom));
+
+  /* ------------------------------------------------------------------
+     THE BRAND HUES ARE WRITTEN OUT IN FULL BELOW, on purpose.
+
+     Organza's two hues are 206.4 (dark teal, #235C63) and 177.6 (light mint,
+     #B5D3CB), and every brand tint in this file carries one of those two
+     numbers literally. They used to arrive through a custom property, so that
+     the whole theme could be re-hued from one line.
+
+     That one line cost the shop every button.
+
+     Every colour below is written ONCE, in oklch(). The sRGB copy the older
+     phones read is DERIVED from it at build time by
+     @csstools/postcss-oklab-function (see postcss.config.mjs), which puts the
+     plain colour in front and keeps this one inside an @supports — so the two
+     can never say different things, and nobody has to remember to update a
+     second palette. Never type a fallback by hand here; there is one colour
+     per token and this is it.
+
+     What that plugin cannot do is evaluate a colour whose hue arrives through
+     a custom property, because those are substituted in the browser, long
+     after the build has finished. It leaves such a colour exactly as it found
+     it — no fallback, no warning. Those six tokens per theme were therefore
+     the ONLY ones that ever shipped bare: primary, secondary, accent and the
+     focus ring. On a phone without oklch() they resolve to nothing,
+     `background-color: var(--primary)` computes to transparent, and every
+     button in both apps loses its background while its near-white label stays
+     near-white.
+
+     So the hue is a literal here. Re-hueing is a find-and-replace of one
+     number rather than an edit of one line, which is a small price for a
+     palette that cannot silently stop existing — and
+     shared/scripts/check-css-target.js fails the build if any token ever
+     ships without its fallback again.
+
+     One more thing that guard watches, because 15.4 is not the end of it:
+     Safari has known oklch() since 15.4, but 15.x reads the LIGHTNESS as a
+     percentage and throws the whole declaration away when it is a decimal —
+     oklch(44% .06 206.4) paints, oklch(0.44 .06 206.4) does not (it is why
+     Tailwind rewrote its own default theme). Decimals are fine to write here,
+     since the build normalises them to percentages on the way out; the guard
+     is what makes sure it still does.
+     ------------------------------------------------------------------ */
+
+  --background: oklch(0.99 0 0);
+  --foreground: oklch(0.18 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.18 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.18 0 0);
+
+  /* Organza teal — brand primary (#235C63) */
+  --primary: oklch(0.44 0.06 206.4);
+  --primary-foreground: oklch(0.98 0 0);
+
+  --secondary: oklch(0.96 0.012 206.4);
+  --secondary-foreground: oklch(0.28 0.03 206.4);
+
+  --muted: oklch(0.96 0 0);
+  --muted-foreground: oklch(0.48 0 0);
+
+  /* Organza mint — brand light accent (#B5D3CB) */
+  --accent: oklch(0.843 0.034 177.6);
+  --accent-foreground: oklch(0.28 0.03 206.4);
+
+  --destructive: oklch(0.55 0.22 27);
+  --destructive-foreground: oklch(0.98 0 0);
+
+  /* ------------------------------------------------------------------
+     Stock status — red / amber / green, and only ever these three.
+
+     The same two values as pos/src/app/globals.css, on purpose: a quantity
+     that is "nearly out" in the POS has to be the same amber here in the
+     inventory, or the colour stops meaning anything. They replace the
+     tailwind `amber-500/amber-600` literals that used to be written into
+     the inventory table and card by hand.
+
+     Both are lightnesses that carry text on the page background at >=4.5:1,
+     because that is what they are mostly used as — a word in colour, on a
+     10% wash of the same colour. The label is always spelled out next to
+     them, so nothing here is the only thing saying what the status is.
+     ------------------------------------------------------------------ */
+  --success: oklch(0.52 0.13 152);
+  --warning: oklch(0.56 0.13 70);
+
+  /* Giving stock away — an order of type GIFT (spec.md "Gifts"). The same
+     violet the POS gives the action itself, so the badge on an order in this
+     list is the colour of the button that created it. Deliberately none of
+     the colours already spoken for: not the brand teal a sale is drawn in,
+     not destructive red, and not the amber or green that now mean something
+     specific about stock. */
+  --gift: oklch(0.5 0.16 300);
+  --gift-foreground: oklch(0.99 0 0);
+
+  --border: oklch(0.9 0 0);
+  --input: oklch(0.9 0 0);
+  /* 0.65 alpha keeps the focus ring at >=3:1 against the page background. */
+  --ring: oklch(0.44 0.06 206.4 / 0.65);
+
+  /* The plate a whole product photo is shown on (the detail page), as opposed
+     to a thumbnail cropped to fill its box. White, because the shop's photos
+     are shot on white: on the old grey plate every photo carried a visible
+     white rectangle around the garment. Deliberately NOT re-stated in the
+     dark block below — a dark plate would bring that rectangle straight back. */
+  --photo-surface: oklch(1 0 0);
+}
+
+/* From md up the bottom nav is gone (the sidebar takes over), so the only
+   thing left to clear at the bottom is the home indicator — which an iPad in
+   landscape still has. Keep this breakpoint in step with the nav's md:hidden. */
+@media (min-width: 48rem) {
+  :root {
+    --bottom-bar-inset: var(--safe-bottom);
+    --top-bar-height: 4rem;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: oklch(0.16 0 0);
+    --foreground: oklch(0.96 0 0);
+    --card: oklch(0.2 0 0);
+    --card-foreground: oklch(0.96 0 0);
+    --popover: oklch(0.2 0 0);
+    --popover-foreground: oklch(0.96 0 0);
+
+    /* Same brand hue, lightened so it reads on a dark surface. */
+    --primary: oklch(0.74 0.07 206.4);
+    --primary-foreground: oklch(0.16 0 0);
+
+    --secondary: oklch(0.28 0.03 206.4);
+    --secondary-foreground: oklch(0.94 0.015 177.6);
+
+    --muted: oklch(0.27 0 0);
+    --muted-foreground: oklch(0.68 0 0);
+
+    --accent: oklch(0.32 0.04 206.4);
+    --accent-foreground: oklch(0.94 0.015 177.6);
+
+    --destructive: oklch(0.62 0.2 27);
+    --destructive-foreground: oklch(0.16 0 0);
+
+    /* Same two hues, re-stepped for a dark surface — lightened rather than
+       flipped, so amber is still amber and green still green. */
+    --success: oklch(0.76 0.15 152);
+    --warning: oklch(0.8 0.14 75);
+    --gift: oklch(0.75 0.14 300);
+    --gift-foreground: oklch(0.16 0 0);
+
+    --border: oklch(1 0 0 / 12%);
+    --input: oklch(1 0 0 / 18%);
+    --ring: oklch(0.74 0.07 206.4 / 0.6);
+  }
+}
+
+@layer base {
+  * {
+    border-color: var(--border);
+    outline-color: var(--ring);
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    /* Tailwind's preflight sets 1.5 here, and every element that carries no
+       `text-*` utility inherits it — which put a 16px Arabic line in a 24px
+       box and let `truncate` slice its descenders. Same reasoning, and the
+       same number, as the type scale above. */
+    line-height: 1.8;
+  }
+
+  body {
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+  }
+
+  html[lang="ar"] body {
+    font-family: var(--font-arabic);
+  }
+
+  html[lang="he"] body {
+    font-family: var(--font-hebrew);
+  }
+
+  /* ==================================================================
+     AN APP, NOT A PAGE IN A BROWSER
+     ------------------------------------------------------------------
+     Everything in this block exists because these two apps are used on a
+     shop counter — a phone held in one hand, a garment in the other, a
+     customer waiting — where a browser's default reflexes are all wrong.
+     The JavaScript half is components/pwa/native-gesture-guard.tsx and the
+     viewport half is in app/[locale]/layout.tsx; this is the rest.
+     ================================================================== */
+
+  html {
+    /* No double-tap-to-zoom, and no 300ms wait to find out whether a tap was
+       going to become one — so a fast run through a sale registers every tap
+       the moment it lands. `manipulation` keeps ordinary scrolling and
+       panning untouched: it removes the double-tap gesture and nothing else.
+
+       On <html> rather than on each control, because the gesture belongs to
+       the page: a double tap that starts on a button and finishes a pixel
+       outside it would otherwise still zoom. */
+    touch-action: manipulation;
+  }
+
+  /* ------------------------------------------------------------------
+     No long-press sheet.
+     ------------------------------------------------------------------
+     Holding a finger on anything with text in it — a product card, a cart
+     line, a button's label — brings up iOS's "Copy / Look Up / Share" sheet
+     and the blue selection handles with it. Over a till that is pure
+     obstruction: it covers the interface, it takes a tap to dismiss, and
+     nobody selling a dress wanted to look up its name in a dictionary.
+
+     Off by default and back ON where it earns its place, rather than a list
+     of every interactive component: an interface is mostly controls, and the
+     handful of places where text is genuinely worth lifting out — a barcode,
+     an order number, a phone number, the diagnostic detail on a failure
+     screen — are countable and known. They say so with data-selectable
+     (@organza/shared/constants/gestures.ts).
+     ------------------------------------------------------------------ */
+  body {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  /* Typing into a field means putting a caret in it, moving that caret, and
+     correcting a word halfway along — every one of which is text selection.
+     These are never the thing being long-pressed by accident. */
+  input,
+  textarea,
+  [contenteditable="true"] {
+    -webkit-touch-callout: default;
+    -webkit-user-select: text;
+    user-select: text;
+  }
+
+  /* Opted back in, and its children with it: a barcode is usually a <span>
+     inside the element that carries the attribute. */
+  [data-selectable="true"],
+  [data-selectable="true"] * {
+    -webkit-touch-callout: default;
+    -webkit-user-select: text;
+    user-select: text;
+  }
+
+  /* A long press on a photo offers "Save Image" / "Copy" of its own, and a
+     slow drag lifts it out as a draggable ghost. Neither means anything in a
+     catalogue screen, and both fire while somebody is simply scrolling. */
+  img {
+    -webkit-touch-callout: none;
+    -webkit-user-drag: none;
+    user-select: none;
+  }
+
+  /* ------------------------------------------------------------------
+     16px is a floor, not a preference.
+     ------------------------------------------------------------------
+     Safari zooms the page in when a field smaller than 16px takes focus, and
+     since this app has just taken zooming away it would have no way back
+     out: the layout would sit shifted for the rest of the sale.
+
+     Tailwind's preflight gives a field `font: inherit`, which fixes the
+     browser's own 13.3px default and introduces a subtler one — a field
+     inside a text-sm block quietly inherits 14px and zooms on focus. A
+     declared size here ends that: inheritance never reaches it.
+
+     This is a floor, not a ceiling. It sits in the base layer, so a field
+     that deliberately wants to be BIGGER still says so with a utility class
+     and wins. A utility asking for something SMALLER would win too — CSS
+     cannot express "at least this much" against a class it cannot see — so
+     that half is held by the field components themselves (every one of them
+     is text-base) rather than by this rule pretending to catch it.
+     ------------------------------------------------------------------ */
+  input,
+  select,
+  textarea {
+    font-size: 1rem;
+  }
+
+  /* Native search-input decorations (magnifier/clear) don't respect our
+     RTL layout and collide with the custom icons we render instead. */
+  input[type="search"]::-webkit-search-cancel-button,
+  input[type="search"]::-webkit-search-decoration {
+    appearance: none;
+  }
+}
+
+/* ============================================================
+   PAGE CONTAINER — one page-level gutter, not two
+   ------------------------------------------------------------
+   The shell's <main> pads every page (components/layout/app-shell.tsx),
+   because most pages have no container of their own. A page that DOES use
+   components/layout/page-container.tsx brings its own gutter and its own
+   max width, so the shell steps out of the way for that page only —
+   otherwise a phone gets 2rem of margin down each side and less room for the
+   thing being read.
+
+   The bottom padding is not the shell's breathing room, it is the height of
+   the fixed bottom nav plus the home indicator: the container has no idea
+   about either, so that part stays exactly as it was and only the 1.5rem of
+   air on top of it is handed over (the container's own py-6 replaces it).
+
+   Unlayered on purpose — this has to win over the utilities on <main>
+   regardless of which breakpoint they came from.
+   ============================================================ */
+
+main:has([data-page-container]) {
+  padding-inline: 0;
+  padding-top: 0;
+  padding-bottom: var(--bottom-bar-inset);
+}
+
+/* ============================================================
+   BOOT SPLASH — the hand-off from the phone's launch screen
+   ------------------------------------------------------------
+   See components/pwa/boot-splash.tsx, which owns when this is on screen.
+   Every duration is passed in from there (constants/pwa.ts), so the numbers
+   stay in one place and only the shapes live here.
+   ============================================================ */
+
+.boot-splash {
+  position: fixed;
+  inset: 0;
+  /* Above every layer the app itself puts up — the highest of those is the
+     toast at z-[70] — because until this comes down there is nothing
+     underneath worth looking at or tapping. */
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2.5rem;
+  /* The flat backdrop runs edge to edge, under the notch and the home
+     indicator alike (it is one colour, so there is nothing to misalign). The
+     padding is what keeps the mark and the dots clear of both. */
+  padding: calc(var(--safe-top) + 2rem) 1.5rem calc(var(--safe-bottom) + 2rem);
+  opacity: 1;
+  transition-property: opacity;
+  transition-timing-function: ease-out;
+}
+
+/* The app is ready: fade out, and stop taking taps from the first frame of
+   the fade rather than the last — the screen underneath is live from here on,
+   and a launch screen that swallows the first tap is worse than one that
+   lingers. */
+.boot-splash[data-phase="leaving"] {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* The mark arrives rather than appearing: up from nothing and out from very
+   slightly small, which is the whole of the motion in the launch sequence. */
+@keyframes boot-splash-mark {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.boot-splash-mark {
+  animation: boot-splash-mark ease-out both;
+}
+
+/* The dots underneath, each offset from the last so the row ripples. Opacity
+   only — nothing moves, so it reads as "still working" without competing with
+   the mark for attention. */
+@keyframes boot-splash-dot {
+  0%,
+  100% {
+    opacity: 0.25;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.boot-splash-dot {
+  animation: boot-splash-dot ease-in-out infinite;
+}
+
+/* With motion turned down the screen still does its job — it covers the
+   launch, says the app is starting, and goes away — it just does all of it
+   without moving. `transition-property: none` is what drops the fade: the
+   duration itself is an inline style and can't be overridden from here. */
+@media (prefers-reduced-motion: reduce) {
+  .boot-splash {
+    transition-property: none;
+  }
+
+  .boot-splash-mark {
+    animation: none;
+  }
+
+  .boot-splash-dot {
+    animation: none;
+    opacity: 0.6;
+  }
+}
+
+/* ============================================================
+   THE APP DID NOT START — see components/pwa/boot-failure.tsx
+   ------------------------------------------------------------
+   The splash above is taken down by React. When React never runs there is
+   nobody to take it down, so it pulses on forever and a dead app looks like a
+   slow one. The inline watchdog puts data-boot="failed" on <html>; these three
+   rules are what that attribute does.
+
+   Written in plain CSS with literal values on purpose. This is the screen for
+   a browser we already know is struggling, so it leans on nothing: no theme
+   custom properties, no colour functions, no Tailwind utilities. The two
+   brand colours arrive as inline styles from constants/pwa.ts, exactly as the
+   splash's do.
+   ============================================================ */
+
+.boot-failure {
+  display: none;
+}
+
+html[data-boot="failed"] .boot-splash {
+  display: none;
+}
+
+html[data-boot="failed"] .boot-failure {
+  position: fixed;
+  inset: 0;
+  /* Above the splash it replaces, which is itself above everything else. */
+  z-index: 101;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.25rem;
+  padding: calc(var(--safe-top) + 2rem) 1.5rem calc(var(--safe-bottom) + 2rem);
+  text-align: center;
+  overflow-y: auto;
+}
+
+.boot-failure-title {
+  max-width: 24rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.boot-failure-message {
+  max-width: 24rem;
+  font-size: 1rem;
+  line-height: 1.6;
+  /* The message is the long line and the title carries the point, so it sits
+     back a little without dropping to a contrast nobody can read. */
+  opacity: 0.85;
+}
+
+.boot-failure-retry {
+  /* 44px, the same floor every other touch target in the app is held to. */
+  min-height: 2.75rem;
+  min-width: 9rem;
+  padding: 0 1.5rem;
+  border: 0;
+  border-radius: 0.75rem;
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.boot-failure-detail {
+  font-size: 0.75rem;
+  line-height: 1.5;
+  /* The build number and whatever the browser said — there to be read down a
+     phone, not to be looked at. Wrapping matters more than size: a chunk URL
+     is long and must not push the panel sideways. */
+  opacity: 0.6;
+  max-width: 24rem;
+  word-break: break-word;
+}
+
+/* ============================================================
+   BARCODE LABELS — the printed sheet
+   ------------------------------------------------------------
+   These rules are shared by the on-screen preview and the copy the browser
+   prints, because both render the same <LabelSheet>. Everything is sized in
+   millimetres so a label lands on paper at exactly the size configured in
+   Settings, and the colours are pinned to black-on-white: this is paper, and
+   it must not follow the app's dark theme.
+   ============================================================ */
+
+.label-sheet {
+  background: #fff;
+  color: #000;
+  /* Latin digits under the barcode, and a layout that reads the same in
+     Arabic and English (see label-sheet.tsx). */
+  font-family: var(--font-sans);
+}
+
+.label-page {
+  box-sizing: border-box;
+  background: #fff;
+  overflow: hidden;
+  /* One page per label (thermal) or per sheet (A4). The last one must not
+     force a trailing blank page out of the printer. */
+  break-after: page;
+  page-break-after: always;
+}
+
+.label-page:last-child {
+  break-after: auto;
+  page-break-after: auto;
+}
+
+.label-page--a4 {
+  width: 210mm;
+  height: 297mm;
+}
+
+.label-grid {
+  display: grid;
+  /* Labels keep their configured size; a grid that would overflow the sheet
+     is caught and warned about before printing, never silently squeezed. */
+  justify-content: start;
+  align-content: start;
+}
+
+.label-box {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5mm;
+  padding: 1mm;
+  overflow: hidden;
+  background: #fff;
+  color: #000;
+}
+
+.label-text {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3mm;
+  overflow: hidden;
+  text-align: center;
+}
+
+/* Two lines at most, then ellipsis: a long name must never push the barcode
+   off the sticker. */
+.label-name {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-size: 2.6mm;
+  font-weight: 600;
+  /* Roomier than the 1.15 this shipped with, because the names on these
+     stickers are Arabic and 1.15 printed them with the tails of ج ح خ ي
+     sliced off — `overflow: hidden` above clips whatever the line box does
+     not contain. Not the full 1.8 the screen uses: a sticker is 15mm tall
+     and the barcode takes what the text leaves, so the line box is kept as
+     tight as it can be and the last line's descender is caught by the
+     padding instead (the clip box is the padding box). */
+  line-height: 1.5;
+  padding-block-end: 0.5mm;
+}
+
+.label-variant {
+  max-width: 100%;
+  overflow: hidden;
+  font-size: 2.2mm;
+  /* Same reason as .label-name — this one is a single line ("أحمر / M"). */
+  line-height: 1.5;
+  padding-block-end: 0.4mm;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* The barcode takes whatever height the text leaves. min-height: 0 is what
+   lets it actually shrink inside the flex column instead of overflowing. */
+.label-code {
+  display: flex;
+  min-height: 0;
+  width: 100%;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+}
+
+.label-code-svg {
+  display: flex;
+  height: 100%;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+}
+
+.label-code-svg svg {
+  height: 100%;
+  width: 100%;
+}
+
+/* No scannable code to draw — print the digits so the piece can still be
+   found by typing them in. */
+.label-code-fallback {
+  font-size: 2.4mm;
+  letter-spacing: 0.05em;
+}
+
+@media screen {
+  /* Preview only: a hairline so the edges of each sticker and each page are
+     visible on screen. Never printed — it isn't on the label stock. */
+  .label-preview .label-box {
+    outline: 1px dashed #cbcbcb;
+  }
+
+  .label-preview .label-page {
+    outline: 1px solid #d8d8d8;
+  }
+}
+
+@media print {
+  /* The sheet is portalled to a direct child of <body> (see
+     label-print-portal.tsx), so one selector hides the entire app around it —
+     no chance of a wrapper's padding or a scroll container shifting or
+     clipping a label. Scoped to the body class the labels screen sets, so
+     Ctrl+P anywhere else in the admin still prints that screen. */
+  body.is-printing-labels > *:not(#label-print-root) {
+    display: none !important;
+  }
+
+  /* The app shell stretches <body> to the viewport height (min-h-dvh). Left
+     alone, that pads the print job out to a screenful of blank pages when the
+     labels themselves are only a few centimetres tall. */
+  body.is-printing-labels {
+    min-height: 0;
+    height: auto;
+    margin: 0;
+    background: #fff;
+  }
+
+  body.is-printing-labels #label-print-root {
+    display: block !important;
+  }
+
+  /* Keep the bars solid black even when the browser is "saving ink". */
+  .label-sheet {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+/* Off-screen at all times: the page shows its own preview of the same
+   component, so this copy exists purely for the printer. */
+#label-print-root {
+  display: none;
+}
+
+/* Installed from the home screen the app supplies its own pull-to-refresh
+   (components/pwa/pull-to-refresh.tsx). Containing the overscroll keeps the
+   page from rubber-banding behind the pull, which is what makes the gesture
+   feel like the phone's own rather than like the page coming loose. */
+@media (display-mode: standalone) {
+  html {
+    overscroll-behavior-y: contain;
+  }
+}

@@ -1,0 +1,331 @@
+{
+  "app": {
+    "name": "Organza",
+    "tagline": "Point of sale",
+    "sandbox": "SANDBOX"
+  },
+  "common": {
+    "loading": "Loading…",
+    "retry": "Try again",
+    "logout": "Log out",
+    "language": "Language",
+    "close": "Close",
+    "password": {
+      "show": "Show password",
+      "hide": "Hide password"
+    },
+    "account": "Account",
+    "pullToRefresh": {
+      "pull": "Pull to refresh",
+      "release": "Release to refresh",
+      "refreshing": "Refreshing…"
+    },
+    "role": {
+      "ADMIN": "Admin",
+      "MANAGER": "Manager",
+      "EMPLOYEE": "Employee"
+    }
+  },
+  "stock": {
+    "out": "Out of stock",
+    "low": "Low stock",
+    "in": "In stock",
+    "lowCount": "Low stock · {count, plural, one {{count, number, plain} left} other {{count, number, plain} left}}",
+    "inCount": "In stock · {count, plural, one {{count, number, plain} left} other {{count, number, plain} left}}"
+  },
+  "offline": {
+    "title": "No internet connection",
+    "message": "The point of sale needs an internet connection to look up products and record sales. Check your connection and try again."
+  },
+  "boot": {
+    "failed": {
+      "title": "The point of sale didn't start",
+      "message": "Something stopped it from loading on this phone. Try again, and if it keeps happening tell whoever looks after the shop's system.",
+      "retry": "Try again"
+    },
+    "unsupported": {
+      "title": "This phone is too old for the point of sale",
+      "message": "Its software can't run this app. Update the phone to the newest version it offers, and if there isn't one, use a newer phone."
+    }
+  },
+  "auth": {
+    "login": {
+      "title": "Log in",
+      "subtitle": "Enter your email and password to continue.",
+      "emailLabel": "Email",
+      "emailPlaceholder": "you@organza.test",
+      "passwordLabel": "Password",
+      "passwordPlaceholder": "Enter your password",
+      "submit": "Log in",
+      "submitting": "Logging in…",
+      "error": "Wrong email or password.",
+      "tooManyAttempts": "Too many attempts in a short time. Wait a minute and try again.",
+      "accountDeactivated": "This account has been switched off. Ask an admin to turn it back on."
+    },
+    "forgotPassword": {
+      "link": "Forgot your password?",
+      "title": "Forgot password",
+      "subtitle": "Enter your email and we will send you a link to choose a new password.",
+      "emailLabel": "Email",
+      "emailPlaceholder": "you@example.com",
+      "submit": "Send the link",
+      "submitting": "Sending…",
+      "sentTitle": "Check your email",
+      "sentBody": "If that address belongs to an account, a link to choose a new password is on its way. Check the spam folder too.",
+      "back": "Back to sign in"
+    }
+  },
+  "sell": {
+    "noPermission": "Your account can't complete sales. Ask your manager.",
+    "feedback": {
+      "added": "{name} × {quantity, number, plain}",
+      "addedMany": "{name} — {count, plural, one {{count, number, plain} item} other {{count, number, plain} items}} added"
+    },
+    "search": {
+      "label": "Search for a product or scan a barcode",
+      "placeholder": "Search by name, or enter a barcode",
+      "clear": "Clear search",
+      "scan": "Scan a barcode with the camera",
+      "looking": "Looking up the barcode…",
+      "searching": "Searching…",
+      "empty": "Nothing matched.",
+      "error": "Couldn't load search results. Try again.",
+      "variantCount": "{count, plural, one {{count, number, plain} option} other {{count, number, plain} options}}",
+      "kind": {
+        "numbered": "Numbered · {count}",
+        "named": "{type} · {count}",
+        "mixed": "Options · {count}"
+      },
+      "backToCart": "Back to the sale",
+      "cartCount": "{count, plural, =0 {Empty} one {{count, number, plain} item} other {{count, number, plain} items}}",
+      "resultsTitle": "Search results for “{query}”"
+    },
+    "browse": {
+      "open": "Browse products",
+      "title": "Products",
+      "categories": "Categories",
+      "categoriesLoading": "Loading categories…",
+      "categoriesError": "Couldn't load the categories.",
+      "all": "All",
+      "favorites": "Favourites",
+      "allCategories": "All categories",
+      "searchLabel": "Search within the products",
+      "searchPlaceholder": "Search by name",
+      "clearSearch": "Clear search",
+      "loading": "Loading…",
+      "error": "Couldn't load the products. Try again.",
+      "empty": "No products in this category.",
+      "emptySearch": "Nothing matched.",
+      "clearFilters": "Show all products",
+      "showMore": "Show more"
+    },
+    "scanner": {
+      "title": "Scan a barcode",
+      "subtitle": "Point the camera at the barcode on the tag.",
+      "starting": "Starting the camera…",
+      "hint": "Scan one item after another — the camera stays on until you press Finish scanning.",
+      "fault": {
+        "insecureContext": "The camera needs a secure (HTTPS) connection. Open this screen over a secure link, or type the barcode in instead.",
+        "permission": "Camera access was blocked. Allow it in your browser settings, or type the barcode in instead.",
+        "unavailable": "The camera couldn't start on this device. Type the barcode into the search box instead."
+      },
+      "done": "Finish scanning",
+      "mute": "Mute the beep",
+      "unmute": "Turn the beep on",
+      "vibrateOff": "Stop the buzz",
+      "vibrateOn": "Turn the buzz on",
+      "cartSummary": "{count, plural, =0 {Empty} one {{count, number, plain} item} other {{count, number, plain} items}}"
+    },
+    "counter": {
+      "title": "Ready to scan",
+      "hint": "Pull the trigger on the scanner and the item goes straight into the sale. Nothing has to be clicked first.",
+      "camera": "Use the camera instead",
+      "shortcuts": {
+        "focusSearch": "Search by name",
+        "scan": "Open the camera",
+        "checkout": "Complete the sale",
+        "clear": "Clear the search"
+      }
+    },
+    "picker": {
+      "subtitle": "Choose one or more, then add them to the sale.",
+      "numberedSubtitle": "Type a number and press Done, or pick several from the list.",
+      "numberLabel": "Number",
+      "numberPlaceholder": "e.g. 4",
+      "numberNotFound": "No such number, or it's sold out.",
+      "done": "Done",
+      "add": "Add to the sale",
+      "addNamed": "Add {name}",
+      "addCount": "Add {count, plural, one {{count, number, plain} item} other {{count, number, plain} items}} to the sale",
+      "selectedCount": "{count, plural, one {{count, number, plain} chosen} other {{count, number, plain} chosen}}"
+    },
+    "cart": {
+      "title": "Current sale",
+      "emptyTitle": "Nothing in the sale yet",
+      "emptyHint": "Scan the tag, or search by name, to add an item.",
+      "unitPrice": "Each: {price}",
+      "quantity": "Quantity — {name}",
+      "increase": "Increase quantity — {name}",
+      "decrease": "Decrease quantity — {name}",
+      "remove": "Remove {name} from the sale",
+      "removeConfirmTitle": "Remove this item from the sale?",
+      "removeConfirmYes": "Remove",
+      "removeConfirmKeep": "Keep",
+      "addDiscount": "Discount",
+      "discountFor": "Discount on {name}",
+      "stockCap": "{count, plural, one {That's the last one in stock} other {That's all {count, number, plain} in stock}}",
+      "discountApplied": "{value} discount · −{amount}",
+      "discountValue": "{value} discount",
+      "quickSold": "Quick sell"
+    },
+    "discount": {
+      "title": "Add a discount",
+      "subtitle": "Discount on {name} — {amount} before the discount",
+      "typeLabel": "Discount type",
+      "type": {
+        "PERCENT": "Percent %",
+        "AMOUNT": "Amount",
+        "AMOUNT_currency": "Amount {currency}"
+      },
+      "valueLabel": {
+        "PERCENT": "Discount (%)",
+        "AMOUNT": "Discount amount",
+        "AMOUNT_currency": "Discount amount ({currency})"
+      },
+      "valuePlaceholder": {
+        "PERCENT": "e.g. 10",
+        "AMOUNT": "e.g. 20"
+      },
+      "invalid": {
+        "PERCENT": "Enter a whole number between 0 and {max}.",
+        "AMOUNT": "Enter a whole number, up to {max}."
+      },
+      "apply": "Apply discount",
+      "remove": "Remove discount"
+    },
+    "checkout": {
+      "wholeSale": "the whole sale",
+      "subtotal": "{count, plural, one {{count, number, plain} item} other {{count, number, plain} items}}",
+      "itemDiscounts": "Item discounts",
+      "orderDiscount": "Sale discount",
+      "total": "Total",
+      "addOrderDiscount": "Discount the sale",
+      "editOrderDiscount": "Edit sale discount",
+      "submit": "Complete sale",
+      "submitting": "Saving…",
+      "whatsappOrder": "WhatsApp order",
+      "orderDiscountApplied": "Sale discount ({value})",
+      "giftOrder": "Give as gift"
+    },
+    "success": {
+      "title": "Sale completed",
+      "orderNumber": "Order number {number}",
+      "newSale": "New sale",
+      "whatsappTitle": "WhatsApp order saved",
+      "customer": "Customer: {name}",
+      "whatsappNextStep": "The order is New. Stock comes off the shelf when preparation starts.",
+      "whatsappOrderNumber": "Order {number}",
+      "giftTitle": "Gift recorded",
+      "giftCount": "{count, plural, one {{count, number, plain} piece} other {{count, number, plain} pieces}}",
+      "giftNextStep": "The stock has been deducted and no money was taken."
+    },
+    "whatsapp": {
+      "title": "WhatsApp order",
+      "subtitle": "Save this cart as an order to be delivered to the customer.",
+      "total": "Total",
+      "save": "Save order",
+      "saving": "Saving…",
+      "customer": {
+        "name": "Customer name",
+        "namePlaceholder": "e.g. Suad Ahmad",
+        "phone": "Phone number",
+        "phonePrefixLabel": "Country code",
+        "searching": "Looking for earlier orders…",
+        "suggestionsHint": "Customers who ordered from this number before — tap to fill their details in.",
+        "unnamedCustomer": "No name",
+        "address": "Address",
+        "addressPlaceholder": "City, street, nearest landmark…",
+        "moreDetails": "More details (optional)",
+        "whatsapp": "WhatsApp number",
+        "whatsappHint": "Leave empty if it's the same as the phone number.",
+        "location": "Map location (optional)",
+        "locationHint": "Paste the coordinates from WhatsApp into the latitude box and both fields fill in.",
+        "latitude": "Latitude",
+        "longitude": "Longitude",
+        "note": "Note (optional)",
+        "notePlaceholder": "Anything else about this order…"
+      }
+    },
+    "gift": {
+      "title": "Give as a gift",
+      "subtitle": "Check the pieces before you confirm — they leave the stock and nothing is charged.",
+      "warning": "These pieces will be taken off the stock and no money will be collected.",
+      "itemsTitle": "Being given away ({count, plural, one {{count, number, plain} piece} other {{count, number, plain} pieces}})",
+      "quantity": "Qty {count, number, plain}",
+      "noteLabel": "Note (optional)",
+      "notePlaceholder": "e.g. for the bride's mother",
+      "noteHint": "Who it is for, or why — saved with the order.",
+      "cancel": "Back to the sale",
+      "confirm": "Confirm the gift",
+      "saving": "Saving…"
+    },
+    "quickSell": {
+      "open": "Quick sell",
+      "title": "Quick sell",
+      "subtitle": "A piece that isn't in the system yet — type its name and price and finish the sale.",
+      "nameLabel": "Item name",
+      "namePlaceholder": "e.g. Black abaya",
+      "priceLabel": "Selling price",
+      "priceLabelCurrency": "Selling price ({currency})",
+      "pricePlaceholder": "0.00",
+      "priceInvalid": "Enter a valid price.",
+      "detailLabel": "Colour or size (optional)",
+      "detailPlaceholder": "e.g. Black · M · 7",
+      "detailHint": "Shown beside the name on the receipt.",
+      "afterwards": "The sale completes right away; the item's details are filled in later from the admin.",
+      "add": "Add to sale",
+      "added": "{name} added to the sale.",
+      "emptyPrompt": "Not in the system? Sell it now and complete its details later.",
+      "cancel": "Cancel"
+    }
+  },
+  "errors": {
+    "notFound": "Not found.",
+    "validation": "Check what you entered.",
+    "internal": "Something went wrong. Try again.",
+    "unauthorized": "Your session ended. Log in again.",
+    "forbidden": "You don't have permission to do that.",
+    "accountInactive": "This account is not active.",
+    "validationRequired": "This field is required.",
+    "validationInvalidNumber": "Enter a valid number.",
+    "validationOutOfRange": "That number is outside the allowed range.",
+    "validationInvalidEmail": "Enter a valid email address.",
+    "validationPasswordTooShort": "The password must be at least {min} characters.",
+    "productNotFound": "No product has that barcode or code.",
+    "variantNotFound": "That option no longer exists.",
+    "orderNotFound": "Order not found.",
+    "orderItemsRequired": "Add at least one item before completing the sale.",
+    "orderDiscountInvalid": "That discount value isn't valid.",
+    "orderInsufficientStock": "There isn't enough stock for that quantity.",
+    "orderProductUnavailable": "One of the products is no longer available to sell.",
+    "orderVariantRequired": "Choose which option you're selling first.",
+    "validationInvalidPhone": "Enter a valid phone number.",
+    "orderCustomerRequired": "Enter the customer's name and phone number.",
+    "orderLocationInvalid": "That location isn't valid. Enter both latitude and longitude.",
+    "rateLimited": "Too many attempts in a short time. Wait a moment and try again."
+  },
+  "pwa": {
+    "version": {
+      "app": "App v{version}",
+      "api": "API v{version}",
+      "copy": "Copy the version numbers",
+      "copied": "Copied"
+    },
+    "update": {
+      "title": "A new version is ready",
+      "description": "Tap to get the newest version. It takes a moment, and nothing you have saved is lost.",
+      "action": "Update now",
+      "updating": "Updating…"
+    }
+  }
+}

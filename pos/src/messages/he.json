@@ -1,0 +1,331 @@
+{
+  "app": {
+    "name": "אורגנזה",
+    "tagline": "מסך מכירה",
+    "sandbox": "ניסיוני"
+  },
+  "common": {
+    "loading": "טוען…",
+    "retry": "נסה שוב",
+    "logout": "התנתקות",
+    "language": "שפה",
+    "close": "סגירה",
+    "password": {
+      "show": "הצגת הסיסמה",
+      "hide": "הסתרת הסיסמה"
+    },
+    "account": "חשבון",
+    "pullToRefresh": {
+      "pull": "משכו לרענון",
+      "release": "שחררו לרענון",
+      "refreshing": "מרענן…"
+    },
+    "role": {
+      "ADMIN": "מנהל מערכת",
+      "MANAGER": "מנהל",
+      "EMPLOYEE": "עובד"
+    }
+  },
+  "stock": {
+    "out": "אזל מהמלאי",
+    "low": "מלאי נמוך",
+    "in": "במלאי",
+    "lowCount": "מלאי נמוך · {count, plural, one {נותר פריט אחד} two {נותרו שני פריטים} other {נותרו {count, number, plain} פריטים}}",
+    "inCount": "במלאי · {count, plural, one {נותר פריט אחד} two {נותרו שני פריטים} other {נותרו {count, number, plain} פריטים}}"
+  },
+  "offline": {
+    "title": "אין חיבור לאינטרנט",
+    "message": "מסך המכירה צריך חיבור לאינטרנט כדי לחפש מוצרים ולרשום מכירות. בדקו את החיבור ונסו שוב."
+  },
+  "boot": {
+    "failed": {
+      "title": "מסך המכירה לא נפתח",
+      "message": "משהו מנע ממנו להיטען בטלפון הזה. נסו שוב, ואם זה חוזר על עצמו ספרו לאחראי על המערכת של החנות.",
+      "retry": "נסו שוב"
+    },
+    "unsupported": {
+      "title": "הטלפון הזה ישן מדי למסך המכירה",
+      "message": "התוכנה שלו לא יכולה להריץ את האפליקציה הזו. עדכנו את הטלפון לגרסה החדשה ביותר שיש לו, ואם אין כזו השתמשו בטלפון חדש יותר."
+    }
+  },
+  "auth": {
+    "login": {
+      "title": "התחברות",
+      "subtitle": "הזן דוא\"ל וסיסמה כדי להמשיך.",
+      "emailLabel": "דוא\"ל",
+      "emailPlaceholder": "you@organza.test",
+      "passwordLabel": "סיסמה",
+      "passwordPlaceholder": "הזן את הסיסמה",
+      "submit": "התחברות",
+      "submitting": "מתחבר…",
+      "error": "דוא\"ל או סיסמה שגויים.",
+      "tooManyAttempts": "יותר מדי ניסיונות בזמן קצר. המתן דקה ונסה שוב.",
+      "accountDeactivated": "החשבון הזה הושבת. בקש ממנהל להפעיל אותו מחדש."
+    },
+    "forgotPassword": {
+      "link": "שכחת סיסמה?",
+      "title": "שכחתי סיסמה",
+      "subtitle": "הזן/י את האימייל ונשלח קישור לבחירת סיסמה חדשה.",
+      "emailLabel": "אימייל",
+      "emailPlaceholder": "you@example.com",
+      "submit": "שליחת הקישור",
+      "submitting": "שולח…",
+      "sentTitle": "בדוק/בדקי את המייל",
+      "sentBody": "אם הכתובת שייכת לחשבון, קישור לבחירת סיסמה חדשה בדרך. כדאי לבדוק גם בתיקיית הספאם.",
+      "back": "חזרה להתחברות"
+    }
+  },
+  "sell": {
+    "noPermission": "החשבון שלך אינו מורשה לבצע מכירות. פנה למנהל.",
+    "feedback": {
+      "added": "{name} × {quantity, number, plain}",
+      "addedMany": "{name} — {count, plural, one {נוסף פריט אחד} two {נוספו {count, number, plain} פריטים} other {נוספו {count, number, plain} פריטים}}"
+    },
+    "search": {
+      "label": "חיפוש מוצר או סריקת ברקוד",
+      "placeholder": "חפש לפי שם, או הזן ברקוד",
+      "clear": "ניקוי החיפוש",
+      "scan": "סריקת ברקוד במצלמה",
+      "looking": "מחפש את הברקוד…",
+      "searching": "מחפש…",
+      "empty": "לא נמצאו תוצאות.",
+      "error": "לא ניתן לטעון את תוצאות החיפוש. נסה שוב.",
+      "variantCount": "{count, plural, one {אפשרות אחת} two {{count, number, plain} אפשרויות} other {{count, number, plain} אפשרויות}}",
+      "kind": {
+        "numbered": "ממוספר · {count}",
+        "named": "{type} · {count}",
+        "mixed": "אפשרויות · {count}"
+      },
+      "backToCart": "חזרה לסל",
+      "cartCount": "{count, plural, =0 {הסל ריק} one {פריט אחד} two {{count, number, plain} פריטים} other {{count, number, plain} פריטים}}",
+      "resultsTitle": "תוצאות חיפוש עבור «{query}»"
+    },
+    "browse": {
+      "open": "עיון במוצרים",
+      "title": "מוצרים",
+      "categories": "קטגוריות",
+      "categoriesLoading": "טוען קטגוריות…",
+      "categoriesError": "לא ניתן לטעון את הקטגוריות.",
+      "all": "הכול",
+      "favorites": "מועדפים",
+      "allCategories": "כל הקטגוריות",
+      "searchLabel": "חיפוש בתוך המוצרים",
+      "searchPlaceholder": "חיפוש לפי שם",
+      "clearSearch": "ניקוי החיפוש",
+      "loading": "טוען…",
+      "error": "לא ניתן לטעון את המוצרים. נסו שוב.",
+      "empty": "אין מוצרים בקטגוריה הזו.",
+      "emptySearch": "אין תוצאות מתאימות.",
+      "clearFilters": "הצגת כל המוצרים",
+      "showMore": "הצגת עוד"
+    },
+    "scanner": {
+      "title": "סריקת ברקוד",
+      "subtitle": "כוון את המצלמה לברקוד שעל התווית.",
+      "starting": "מפעיל את המצלמה…",
+      "hint": "סרוק פריט אחר פריט — המצלמה נשארת פועלת עד שתלחץ «סיום הסריקה».",
+      "fault": {
+        "insecureContext": "המצלמה דורשת חיבור מאובטח (HTTPS). פתח את המסך בקישור מאובטח, או הזן את הברקוד ידנית.",
+        "permission": "הגישה למצלמה נחסמה. אפשר אותה בהגדרות הדפדפן, או הזן את הברקוד ידנית.",
+        "unavailable": "לא ניתן להפעיל את המצלמה במכשיר הזה. הזן את הברקוד בתיבת החיפוש."
+      },
+      "done": "סיום הסריקה",
+      "mute": "השתקת הצפצוף",
+      "unmute": "הפעלת הצפצוף",
+      "vibrateOff": "כיבוי הרטט",
+      "vibrateOn": "הפעלת הרטט",
+      "cartSummary": "{count, plural, =0 {הסל ריק} one {פריט אחד} two {{count, number, plain} פריטים} other {{count, number, plain} פריטים}}"
+    },
+    "counter": {
+      "title": "מוכן לסריקה",
+      "hint": "לחצו על הדק הסורק והפריט ייכנס ישירות למכירה. אין צורך ללחוץ על שום דבר לפני כן.",
+      "camera": "השתמשו במצלמה במקום",
+      "shortcuts": {
+        "focusSearch": "חיפוש לפי שם",
+        "scan": "פתיחת המצלמה",
+        "checkout": "השלמת המכירה",
+        "clear": "ניקוי החיפוש"
+      }
+    },
+    "picker": {
+      "subtitle": "בחר אפשרות אחת או יותר, ואז הוסף לסל.",
+      "numberedSubtitle": "הקלד מספר ולחץ «סיום», או בחר כמה מהרשימה.",
+      "numberLabel": "מספר",
+      "numberPlaceholder": "לדוגמה: 4",
+      "numberNotFound": "אין מספר כזה, או שהוא אזל מהמלאי.",
+      "done": "סיום",
+      "add": "הוספה לסל",
+      "addNamed": "הוספת {name}",
+      "addCount": "הוספת {count, plural, one {פריט אחד} two {{count, number, plain} פריטים} other {{count, number, plain} פריטים}} לסל",
+      "selectedCount": "{count, plural, one {נבחר פריט אחד} two {נבחרו {count, number, plain} פריטים} other {נבחרו {count, number, plain} פריטים}}"
+    },
+    "cart": {
+      "title": "המכירה הנוכחית",
+      "emptyTitle": "אין עדיין פריטים במכירה",
+      "emptyHint": "סרוק את התווית, או חפש לפי שם, כדי להוסיף פריט.",
+      "unitPrice": "ליחידה: {price}",
+      "quantity": "כמות — {name}",
+      "increase": "הגדלת הכמות — {name}",
+      "decrease": "הקטנת הכמות — {name}",
+      "remove": "הסרת {name} מהמכירה",
+      "removeConfirmTitle": "להסיר את הפריט הזה מהמכירה?",
+      "removeConfirmYes": "הסרה",
+      "removeConfirmKeep": "השארה",
+      "addDiscount": "הנחה",
+      "discountFor": "הנחה על {name}",
+      "stockCap": "{count, plural, one {זה הפריט האחרון במלאי} two {אלה כל {count, number, plain} הפריטים במלאי} other {אלה כל {count, number, plain} הפריטים במלאי}}",
+      "discountApplied": "הנחה {value} · ‎−{amount}",
+      "discountValue": "הנחה {value}",
+      "quickSold": "מכירה מהירה"
+    },
+    "discount": {
+      "title": "הוספת הנחה",
+      "subtitle": "הנחה על {name} — {amount} לפני ההנחה",
+      "typeLabel": "סוג ההנחה",
+      "type": {
+        "PERCENT": "אחוז %",
+        "AMOUNT": "סכום",
+        "AMOUNT_currency": "סכום {currency}"
+      },
+      "valueLabel": {
+        "PERCENT": "הנחה (%)",
+        "AMOUNT": "סכום ההנחה",
+        "AMOUNT_currency": "סכום ההנחה ({currency})"
+      },
+      "valuePlaceholder": {
+        "PERCENT": "לדוגמה: 10",
+        "AMOUNT": "לדוגמה: 20"
+      },
+      "invalid": {
+        "PERCENT": "הזינו מספר שלם בין 0 ל-{max}.",
+        "AMOUNT": "הזינו מספר שלם, עד {max}."
+      },
+      "apply": "החלת ההנחה",
+      "remove": "הסרת ההנחה"
+    },
+    "checkout": {
+      "wholeSale": "המכירה כולה",
+      "subtotal": "{count, plural, one {פריט אחד} two {{count, number, plain} פריטים} other {{count, number, plain} פריטים}}",
+      "itemDiscounts": "הנחות על פריטים",
+      "orderDiscount": "הנחה על המכירה",
+      "total": "סה\"כ",
+      "addOrderDiscount": "הנחה על המכירה",
+      "editOrderDiscount": "עריכת ההנחה על המכירה",
+      "submit": "סיום המכירה",
+      "submitting": "שומר…",
+      "whatsappOrder": "הזמנת וואטסאפ",
+      "orderDiscountApplied": "הנחה על המכירה ({value})",
+      "giftOrder": "מסירה כמתנה"
+    },
+    "success": {
+      "title": "המכירה הושלמה",
+      "orderNumber": "מספר הזמנה {number}",
+      "newSale": "מכירה חדשה",
+      "whatsappTitle": "הזמנת הוואטסאפ נשמרה",
+      "customer": "לקוח: {name}",
+      "whatsappNextStep": "ההזמנה בסטטוס חדשה. המלאי מנוכה כשמתחילים בהכנה.",
+      "whatsappOrderNumber": "הזמנה {number}",
+      "giftTitle": "המתנה נרשמה",
+      "giftCount": "{count, plural, one {פריט אחד} two {שני פריטים} other {{count, number, plain} פריטים}}",
+      "giftNextStep": "הפריטים ירדו מהמלאי ולא נגבה שום תשלום."
+    },
+    "whatsapp": {
+      "title": "הזמנת וואטסאפ",
+      "subtitle": "שמירת העגלה כהזמנה שתישלח ללקוח עם חברת המשלוחים.",
+      "total": "סה\"כ",
+      "save": "שמירת ההזמנה",
+      "saving": "שומר…",
+      "customer": {
+        "name": "שם הלקוח",
+        "namePlaceholder": "לדוגמה: סועאד אחמד",
+        "phone": "מספר טלפון",
+        "phonePrefixLabel": "קידומת מדינה",
+        "searching": "מחפש הזמנות קודמות…",
+        "suggestionsHint": "לקוחות שהזמינו כבר מהמספר הזה — יש להקיש כדי למלא את הפרטים.",
+        "unnamedCustomer": "ללא שם",
+        "address": "כתובת",
+        "addressPlaceholder": "עיר, רחוב, ציון דרך…",
+        "moreDetails": "פרטים נוספים (רשות)",
+        "whatsapp": "מספר וואטסאפ",
+        "whatsappHint": "אפשר להשאיר ריק אם זהה לטלפון.",
+        "location": "מיקום במפה (רשות)",
+        "locationHint": "הדבקת הקואורדינטות מוואטסאפ בשדה קו הרוחב תמלא את שני השדות.",
+        "latitude": "קו רוחב",
+        "longitude": "קו אורך",
+        "note": "הערה (רשות)",
+        "notePlaceholder": "פרטים נוספים על ההזמנה…"
+      }
+    },
+    "gift": {
+      "title": "מסירה כמתנה",
+      "subtitle": "בדוק/י את הפריטים לפני האישור — הם יֵצאו מהמלאי ללא כל תשלום.",
+      "warning": "הפריטים האלה יירדו מהמלאי ולא ייגבה שום תשלום.",
+      "itemsTitle": "פריטים שיימסרו ({count, plural, one {פריט אחד} two {שני פריטים} other {{count, number, plain} פריטים}})",
+      "quantity": "כמות: {count, number, plain}",
+      "noteLabel": "הערה (רשות)",
+      "notePlaceholder": "לדוגמה: מתנה לאם הכלה",
+      "noteHint": "למי המתנה או מדוע — נשמר יחד עם ההזמנה.",
+      "cancel": "חזרה למכירה",
+      "confirm": "אישור המתנה",
+      "saving": "שומר…"
+    },
+    "quickSell": {
+      "open": "מכירה מהירה",
+      "title": "מכירה מהירה",
+      "subtitle": "פריט שעדיין לא הוזן למערכת — כתבו את שמו ומחירו וסיימו את המכירה.",
+      "nameLabel": "שם הפריט",
+      "namePlaceholder": "לדוגמה: עבאיה שחורה",
+      "priceLabel": "מחיר מכירה",
+      "priceLabelCurrency": "מחיר מכירה ({currency})",
+      "pricePlaceholder": "0.00",
+      "priceInvalid": "הזינו מחיר תקין.",
+      "detailLabel": "צבע או מידה (רשות)",
+      "detailPlaceholder": "לדוגמה: שחור · M · 7",
+      "detailHint": "מוצג לצד השם בקבלה.",
+      "afterwards": "המכירה מסתיימת מיד; פרטי הפריט מושלמים אחר כך מלוח הניהול.",
+      "add": "הוספה למכירה",
+      "added": "{name} נוסף למכירה.",
+      "emptyPrompt": "הפריט לא במערכת? מכרו אותו עכשיו והשלימו את פרטיו אחר כך.",
+      "cancel": "ביטול"
+    }
+  },
+  "errors": {
+    "notFound": "לא נמצא.",
+    "validation": "בדוק את הנתונים שהוזנו.",
+    "internal": "אירעה שגיאה. נסה שוב.",
+    "unauthorized": "ההתחברות פגה. התחבר מחדש.",
+    "forbidden": "אין לך הרשאה לבצע פעולה זו.",
+    "accountInactive": "החשבון אינו פעיל.",
+    "validationRequired": "שדה חובה.",
+    "validationInvalidNumber": "הזן מספר תקין.",
+    "validationOutOfRange": "המספר מחוץ לטווח המותר.",
+    "validationInvalidEmail": "הזן כתובת דוא\"ל תקינה.",
+    "validationPasswordTooShort": "הסיסמה חייבת להכיל לפחות {min} תווים.",
+    "productNotFound": "אין מוצר עם ברקוד או קוד כזה.",
+    "variantNotFound": "האפשרות הזו כבר לא קיימת.",
+    "orderNotFound": "ההזמנה לא נמצאה.",
+    "orderItemsRequired": "הוסף לפחות פריט אחד לפני סיום המכירה.",
+    "orderDiscountInvalid": "ערך ההנחה אינו תקין.",
+    "orderInsufficientStock": "אין מספיק מלאי לכמות המבוקשת.",
+    "orderProductUnavailable": "אחד המוצרים אינו זמין יותר למכירה.",
+    "orderVariantRequired": "בחר תחילה איזו אפשרות נמכרת.",
+    "validationInvalidPhone": "יש להזין מספר טלפון תקין.",
+    "orderCustomerRequired": "יש להזין את שם הלקוח ומספר הטלפון.",
+    "orderLocationInvalid": "המיקום אינו תקין. יש להזין קו רוחב וקו אורך יחד.",
+    "rateLimited": "יותר מדי ניסיונות בזמן קצר. המתן/י רגע ונסה/י שוב."
+  },
+  "pwa": {
+    "version": {
+      "app": "האפליקציה v{version}",
+      "api": "השרת v{version}",
+      "copy": "העתקת מספרי הגרסה",
+      "copied": "הועתק"
+    },
+    "update": {
+      "title": "גרסה חדשה מוכנה",
+      "description": "הקישו כדי לקבל את הגרסה החדשה. זה לוקח רגע, ושום דבר שנשמר לא הולך לאיבוד.",
+      "action": "עדכון עכשיו",
+      "updating": "מעדכן…"
+    }
+  }
+}

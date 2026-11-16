@@ -1,0 +1,1605 @@
+{
+  "app": {
+    "name": "Organza Store",
+    "sandbox": "SANDBOX"
+  },
+  "common": {
+    "loading": "Loading…",
+    "retry": "Try again",
+    "logout": "Log out",
+    "language": "Language",
+    "menu": "Menu",
+    "comingSoon": "This screen isn't built yet — check back soon.",
+    "close": "Close",
+    "password": {
+      "show": "Show password",
+      "hide": "Hide password"
+    },
+    "mainNavigation": "Main navigation",
+    "account": "Account",
+    "pullToRefresh": {
+      "pull": "Pull to refresh",
+      "release": "Release to refresh",
+      "refreshing": "Refreshing…"
+    },
+    "cancel": "Cancel",
+    "backToStart": "Back to the main screen",
+    "quantity": {
+      "value": "Quantity — {name}",
+      "increase": "Increase quantity — {name}",
+      "decrease": "Decrease quantity — {name}"
+    }
+  },
+  "stock": {
+    "out": "Out of stock",
+    "low": "Low stock",
+    "in": "In stock"
+  },
+  "offline": {
+    "title": "No internet connection",
+    "message": "This app needs an internet connection to show products, stock and orders. Check your connection and try again."
+  },
+  "boot": {
+    "failed": {
+      "title": "The app didn't start",
+      "message": "Something stopped it from loading on this phone. Try again, and if it keeps happening tell whoever looks after the shop's system.",
+      "retry": "Try again"
+    },
+    "unsupported": {
+      "title": "This phone is too old for the app",
+      "message": "Its software can't run this app. Update the phone to the newest version it offers, and if there isn't one, use a newer phone."
+    }
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "orders": "Orders",
+    "collection": "Collection",
+    "products": "Products",
+    "inventory": "Inventory",
+    "labels": "Labels",
+    "categories": "Categories",
+    "reports": "Reports",
+    "users": "Users",
+    "settings": "Settings",
+    "more": "More",
+    "changeRequests": "Approvals",
+    "permissions": "Permissions"
+  },
+  "auth": {
+    "login": {
+      "title": "Sign in",
+      "subtitle": "Enter your email and password to continue.",
+      "emailLabel": "Email",
+      "emailPlaceholder": "you@organza.test",
+      "passwordLabel": "Password",
+      "passwordPlaceholder": "Enter your password",
+      "submit": "Sign in",
+      "submitting": "Signing in…",
+      "error": "Incorrect email or password.",
+      "tooManyAttempts": "Too many attempts in a short time. Wait a minute and try again.",
+      "accountDeactivated": "This account has been switched off. Ask an admin to turn it back on."
+    },
+    "setPassword": {
+      "titleSet": "Choose your password",
+      "titleReset": "New password",
+      "subtitleSet": "Choose a password for your account — nobody else will know it.",
+      "subtitleReset": "Choose a new password for your account.",
+      "forAccount": "Account: {email}",
+      "passwordLabel": "New password",
+      "passwordPlaceholder": "Enter a password",
+      "confirmLabel": "Repeat the password",
+      "confirmPlaceholder": "Repeat the password",
+      "mismatch": "The two passwords do not match.",
+      "submit": "Save password",
+      "submitting": "Saving…",
+      "checking": "Checking the link…",
+      "invalidTitle": "This link no longer works",
+      "invalidBody": "The link has expired or has already been used. Ask the shop for a new one, or request one from the sign-in page.",
+      "missingToken": "The link is incomplete. Open the full link exactly as it arrived in your email.",
+      "successTitle": "Password saved",
+      "successBody": "You can now sign in with your email and your new password.",
+      "goToLogin": "Go to sign in",
+      "requestNewLink": "Request a new link"
+    },
+    "forgotPassword": {
+      "link": "Forgot your password?",
+      "title": "Forgot password",
+      "subtitle": "Enter your email and we will send you a link to choose a new password.",
+      "emailLabel": "Email",
+      "emailPlaceholder": "you@example.com",
+      "submit": "Send the link",
+      "submitting": "Sending…",
+      "sentTitle": "Check your email",
+      "sentBody": "If that address belongs to an account, a link to choose a new password is on its way. Check the spam folder too.",
+      "back": "Back to sign in"
+    }
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Welcome, {name}",
+    "subtitle": "Money received and money still owed are never mixed together here.",
+    "today": {
+      "title": "Today",
+      "orders": "{count, plural, =0 {No orders} one {1 order} other {{count, number, plain} orders}}",
+      "receivedHint": "cash in hand",
+      "owedOrders": "{count, plural, =0 {Nothing outstanding} one {1 delivery order} other {{count, number, plain} delivery orders}}",
+      "profit": {
+        "label": "Profit on today's sales",
+        "help": "Today's sales less what the stock cost and what the shop spent today. It counts every sale, including ones the delivery company hasn't paid for yet.",
+        "hint": "after cost + expenses"
+      }
+    },
+    "drawer": {
+      "title": "Cash drawer",
+      "subtitle": "Where the end-of-day count is entered",
+      "staleDay": "This drawer is still open from {date}. Count it before starting a new day.",
+      "openingFloat": {
+        "label": "Cash at open (this morning)",
+        "help": "What was in the drawer when the day started — last night's remainder after any cash was taken out. It is a starting figure, not what is in there now."
+      },
+      "cashSales": "Cash sales today",
+      "cashExpenses": "Cash expenses today",
+      "expected": {
+        "label": "Expected in drawer now",
+        "help": "The morning float plus today's cash sales, less cash spent from the till. This is what should be there right now, before you count."
+      },
+      "notClosed": {
+        "title": "Day not closed yet",
+        "body": "Count the drawer, record any cash you take out",
+        "action": "Close the day / count"
+      },
+      "notStarted": {
+        "title": "Day not started",
+        "body": "Last night left {amount} in the drawer. Open the day to start recording cash.",
+        "action": "Open the drawer"
+      },
+      "openDay": {
+        "title": "Open the drawer",
+        "description": "The drawer starts with what was left in it last night: {amount}. Change it only if you put a different amount in.",
+        "openingFloat": "Cash in the drawer now",
+        "note": "Note (optional)",
+        "notePlaceholder": "Anything worth remembering about this morning",
+        "submit": "Open the day"
+      },
+      "closeDay": {
+        "title": "Close the day",
+        "blindHint": "Count the drawer first. What should be in it is hidden on purpose — you'll see it, and any difference, as soon as you save.",
+        "counted": "Cash counted in the drawer",
+        "withdrawn": "Cash taken out",
+        "withdrawnHint": "What you are removing now. The rest stays in for tomorrow.",
+        "note": "Note (optional)",
+        "noteRequired": "What happened? (required)",
+        "noteRequiredHint": "The count doesn't match. Write down what you think happened — it is saved either way.",
+        "notePlaceholder": "e.g. paid the driver from the till",
+        "expected": "Expected",
+        "short": "Short by",
+        "over": "Over by",
+        "balanced": "Difference",
+        "carry": "Follow this up tomorrow",
+        "carryHint": "Keeps the day on the follow-up list until someone works out what happened.",
+        "submit": "Save the count",
+        "saveWithNote": "Save anyway",
+        "saved": "The day is closed and the count is saved.",
+        "done": "Done",
+        "countedShort": "Counted"
+      },
+      "closed": {
+        "title": "Day closed",
+        "body": "Counted {counted}. {carried} stays in the drawer for tomorrow.",
+        "short": "Came up {amount} short",
+        "over": "Came up {amount} over"
+      }
+    },
+    "period": {
+      "export": "Export Excel",
+      "periods": {
+        "today": "Today",
+        "week": "This week",
+        "month": "This month"
+      },
+      "exportColumns": {
+        "figure": "Figure",
+        "amount": "Amount ({currency})"
+      },
+      "sold": {
+        "label": "Total sold",
+        "hint": "all orders"
+      },
+      "received": {
+        "label": "Total received",
+        "hint": "money actually in"
+      },
+      "owed": {
+        "hint": "from delivery company"
+      },
+      "cogs": {
+        "label": "Cost of goods sold",
+        "help": "What the pieces you sold had cost the shop to buy — the price you paid, not the price you sold them for.",
+        "hint": "what stock cost us"
+      },
+      "expenses": {
+        "label": "Operating expenses",
+        "help": "Approved spending in this period — bills, salaries, supplies — plus what any stock you gave away had cost. Expenses still waiting for approval are not counted.",
+        "hint": "bills, salaries, gifts"
+      },
+      "profitAll": {
+        "label": "Profit (all sales)",
+        "help": "Everything sold, less stock cost and expenses. It includes sales the delivery company hasn't paid you for yet.",
+        "hint": "incl. money not yet received"
+      },
+      "profitReceived": {
+        "label": "Profit (received only)",
+        "help": "The same sum counting only sales you have actually been paid for. Expenses come off in full, because a bill is owed either way.",
+        "hint": "money truly in hand"
+      },
+      "margin": {
+        "label": "Profit margin",
+        "help": "Profit on all sales divided by what you sold — what the shop keeps out of every shekel that goes through it.",
+        "hint": "profit ÷ sold",
+        "value": "{value, number, percent}",
+        "none": "—"
+      }
+    },
+    "attention": {
+      "title": "Needs attention",
+      "lowStock": "Low stock items",
+      "pendingApprovals": "Waiting for your approval",
+      "uncollected": "Uncollected from delivery"
+    }
+  },
+  "figures": {
+    "explain": "What does “{label}” mean?",
+    "sold": {
+      "label": "Sold",
+      "help": "Everything that left the shop, after discounts and returns. It is not money in hand — part of it is still with the delivery company."
+    },
+    "received": {
+      "label": "Received",
+      "help": "The part of what you sold that has actually been paid for: counter sales, plus delivery orders the company has settled up for."
+    },
+    "owed": {
+      "label": "Still owed to us",
+      "help": "What the delivery company is still holding for orders it has taken. Sold minus received — money on its way, not money you have."
+    }
+  },
+  "orders": {
+    "title": "Orders",
+    "subtitle": "Store, WhatsApp and website orders.",
+    "newOrder": "New order",
+    "collectionLink": "Money with the delivery company",
+    "search": {
+      "placeholder": "Search by order number, customer name or phone",
+      "label": "Search orders",
+      "clear": "Clear search"
+    },
+    "sort": {
+      "label": "Sort",
+      "newest": "Newest first",
+      "oldest": "Oldest first",
+      "totalHighToLow": "Total: high to low",
+      "totalLowToHigh": "Total: low to high",
+      "numberDesc": "Order number: high to low",
+      "numberAsc": "Order number: low to high"
+    },
+    "filters": {
+      "trigger": "Filter",
+      "title": "Filter orders",
+      "status": "Status",
+      "statusAll": "All statuses",
+      "channel": "Channel",
+      "channelAll": "All channels",
+      "paymentStatus": "Payment",
+      "paymentStatusAll": "All payments",
+      "dateRange": "Date range",
+      "dateFrom": "From date",
+      "dateTo": "To date",
+      "reset": "Reset",
+      "apply": "Apply",
+      "quickSale": "Quick sales only",
+      "quickSaleHint": "Pieces sold before they were entered into the system."
+    },
+    "status": {
+      "NEW": "New",
+      "PREPARING": "Preparing",
+      "HANDED_TO_COURIER": "Handed to the delivery company",
+      "COMPLETED": "Completed",
+      "CANCELLED": "Cancelled",
+      "RETURNED": "Returned"
+    },
+    "channel": {
+      "STORE": "Store",
+      "WHATSAPP": "WhatsApp",
+      "WEBSITE": "Website"
+    },
+    "type": {
+      "SALE": "Sale",
+      "GIFT": "Gift"
+    },
+    "payment": {
+      "CASH": "Cash"
+    },
+    "paymentStatus": {
+      "PENDING_COLLECTION": "Awaiting payment",
+      "COLLECTED": "Paid"
+    },
+    "discount": {
+      "title": "Discount",
+      "subtitle": "On {name} — {amount}",
+      "typeLabel": "Discount type",
+      "type": {
+        "PERCENT": "Percentage",
+        "AMOUNT": "Fixed amount",
+        "AMOUNT_currency": "Fixed amount {currency}"
+      },
+      "valueLabel": {
+        "PERCENT": "Percentage",
+        "AMOUNT": "Amount",
+        "AMOUNT_currency": "Amount ({currency})"
+      },
+      "valuePlaceholder": {
+        "PERCENT": "e.g. 10",
+        "AMOUNT": "e.g. 20"
+      },
+      "invalid": {
+        "PERCENT": "Enter a whole number between 0 and {max}.",
+        "AMOUNT": "Enter a whole number, up to {max}."
+      },
+      "apply": "Apply discount",
+      "remove": "Remove discount",
+      "percentValue": "{value}%"
+    },
+    "card": {
+      "orderNumber": "Order {number}",
+      "itemCount": "{count, plural, one {{count, number, plain} item} other {{count, number, plain} items}}"
+    },
+    "table": {
+      "orderNumber": "Order",
+      "channel": "Channel",
+      "status": "Status",
+      "payment": "Payment",
+      "noPayment": "—",
+      "customer": "Customer",
+      "noCustomer": "—",
+      "date": "Date",
+      "total": "Total"
+    },
+    "empty": {
+      "noOrdersTitle": "No orders yet",
+      "noOrdersDescription": "Orders will appear here as soon as they're taken.",
+      "noMatchesTitle": "No matching orders",
+      "noMatchesDescription": "Try a different search or filter."
+    },
+    "pagination": {
+      "previous": "Previous",
+      "next": "Next",
+      "pageOf": "Page {page} of {totalPages}"
+    },
+    "detail": {
+      "back": "Orders",
+      "notFoundTitle": "Order not found",
+      "notFoundDescription": "This order may have been deleted.",
+      "items": {
+        "title": "{count, plural, one {{count, number, plain} item} other {{count, number, plain} items}}",
+        "noSku": "No SKU",
+        "quantity": "Qty: {count}",
+        "unitPrice": "Unit price: {price}",
+        "itemDiscount": "{label} off (−{amount})",
+        "returned": "{count} returned",
+        "quickSold": "Quick sale — no cost yet"
+      },
+      "totals": {
+        "subtotal": "Subtotal",
+        "orderDiscount": "Order discount ({label})",
+        "total": "Total",
+        "paymentMethod": "Payment method"
+      },
+      "customer": {
+        "title": "Customer",
+        "whatsappLabel": "WhatsApp",
+        "openMap": "Open location on map",
+        "note": "Note"
+      },
+      "payment": {
+        "title": "Payment",
+        "pendingExplainer": "{amount} is still with the delivery company.",
+        "nothingToCollect": "This order is cancelled or returned, so there is nothing to collect.",
+        "collectedOn": "Payment received on {date}.",
+        "markCollected": "Payment received",
+        "markedCollected": "Payment recorded as received."
+      },
+      "meta": {
+        "createdBy": "Created by",
+        "unknownStaff": "Unknown",
+        "createdAt": "Created",
+        "updatedAt": "Last updated",
+        "stockDeducted": "Stock deducted",
+        "stockNotDeducted": "Not deducted yet"
+      },
+      "statusActions": {
+        "progressLabel": "Order progress",
+        "moved": "Status updated to: {status}",
+        "advanceTo": {
+          "PREPARING": "Start preparing",
+          "HANDED_TO_COURIER": "Hand to the delivery company"
+        },
+        "stockDeductionNotice": "Starting preparation deducts these items from stock.",
+        "cancelOrder": "Cancel order",
+        "confirmCancel": "Cancel this order?",
+        "confirmCancelWithStock": "Cancel this order? The items go back into stock.",
+        "confirmCancelAction": "Yes, cancel it",
+        "keepOrder": "Keep it"
+      },
+      "returns": {
+        "title": "Return",
+        "description": "Return the whole order, or set a quantity per item. Stock is restored either way.",
+        "returnWholeOrder": "Return the whole order",
+        "or": "or",
+        "pickItems": "Return specific items",
+        "outstanding": "{count} left",
+        "decrease": "Fewer — {name}",
+        "increase": "More — {name}",
+        "quantityFor": "Quantity to return — {name}",
+        "returnSelected": "{count, plural, =0 {Return selected} one {Return {count, number, plain} item} other {Return {count, number, plain} items}}",
+        "nothingLeft": "Nothing left to return on this order."
+      },
+      "manage": {
+        "returnItems": "Return items",
+        "deleteOrder": "Delete order",
+        "confirmDelete": "Delete this order? It will be hidden from every screen.",
+        "confirmDeleteWithStock": "Delete this order? It will be hidden from every screen and the items go back into stock.",
+        "confirmDeleteAction": "Yes, delete it",
+        "keepOrder": "Keep it",
+        "noPermission": "You can update the order status only. Cancelling, returning and deleting need a manager."
+      }
+    },
+    "new": {
+      "back": "Orders",
+      "title": "New WhatsApp order",
+      "subtitle": "Write down an order that came in over WhatsApp.",
+      "itemsTitle": "Products",
+      "needItems": "Add at least one product before saving.",
+      "save": "Save order",
+      "saving": "Saving…",
+      "wholeOrder": "the whole order",
+      "search": {
+        "placeholder": "Search products by name or SKU",
+        "label": "Search products",
+        "clear": "Clear search",
+        "searching": "Searching…",
+        "empty": "No matching products.",
+        "error": "Search failed. Please try again.",
+        "variantCount": "{count, plural, one {{count, number, plain} variant} other {{count, number, plain} variants}}",
+        "inStock": "{count} in stock",
+        "soldOut": "Sold out"
+      },
+      "picker": {
+        "subtitle": "Choose which one.",
+        "soldOut": "Sold out"
+      },
+      "lines": {
+        "empty": "No products added yet.",
+        "unitPrice": "Unit price: {price}",
+        "remove": "Remove {name}",
+        "decrease": "Fewer — {name}",
+        "increase": "More — {name}",
+        "quantityFor": "Quantity — {name}",
+        "discountFor": "Discount on {name}",
+        "addDiscount": "Discount",
+        "percentValue": "{value}%",
+        "discountApplied": "{value} discount · −{amount}",
+        "discountValue": "{value} discount",
+        "stockCap": "{count, plural, one {That's the last one in stock} other {That's all {count, number, plain} in stock}}"
+      },
+      "totals": {
+        "subtotal": "Subtotal ({count})",
+        "itemDiscounts": "Item discounts",
+        "orderDiscount": "Order discount ({label})",
+        "addOrderDiscount": "Discount the whole order",
+        "editOrderDiscount": "Edit order discount",
+        "total": "Total"
+      },
+      "customer": {
+        "title": "Customer",
+        "name": "Customer name",
+        "phone": "Phone number",
+        "phonePrefixLabel": "Country code",
+        "whatsapp": "WhatsApp number",
+        "whatsappHint": "Leave empty if it's the same as the phone number.",
+        "address": "Address",
+        "addressPlaceholder": "City, street, nearest landmark…",
+        "location": "Map location (optional)",
+        "locationHint": "Paste the coordinates from WhatsApp into the latitude box and both fields fill in.",
+        "latitude": "Latitude",
+        "longitude": "Longitude",
+        "note": "Note (optional)",
+        "notePlaceholder": "Anything else about this order…"
+      },
+      "success": {
+        "title": "Order saved",
+        "orderNumber": "Order {number}",
+        "nextStep": "The order is New. Stock is deducted when preparation starts.",
+        "openOrder": "Open the order",
+        "newOrder": "New order"
+      }
+    },
+    "collection": {
+      "back": "Orders",
+      "title": "Money with the delivery company",
+      "subtitle": "Orders you have not been paid for yet. Tick off what has come in.",
+      "listLabel": "Orders awaiting payment",
+      "selectOrder": "Select order {number} — {amount}",
+      "marked": "{count, plural, one {Payment recorded for 1 order.} other {Payment recorded for {count, number, plain} orders.}}",
+      "summary": {
+        "label": "Owed to you",
+        "orders": "{count, plural, =0 {No orders} one {1 order} other {{count, number, plain} orders}}",
+        "oldest": "Oldest unpaid order: {date}"
+      },
+      "empty": {
+        "title": "Nothing outstanding",
+        "description": "Every order has been paid for."
+      },
+      "actions": {
+        "selected": "{count, plural, one {1 order selected} other {{count, number, plain} orders selected}}",
+        "selectAll": "Select all",
+        "clear": "Clear",
+        "markCollected": "{count, plural, one {Payment received for 1} other {Payment received for {count, number, plain}}}"
+      }
+    },
+    "quickSale": {
+      "badge": "Quick sale"
+    }
+  },
+  "reports": {
+    "title": "Reports",
+    "subtitle": "Sales and profit for the period you pick.",
+    "updating": "Updating…",
+    "range": {
+      "today": "Today",
+      "last7Days": "Last 7 days",
+      "last30Days": "Last 30 days",
+      "thisMonth": "This month",
+      "custom": "Custom",
+      "from": "From",
+      "to": "To"
+    },
+    "totals": {
+      "title": "Sales in this period",
+      "soldHint": "{orders} orders · {items} items",
+      "owedOrders": "{count, plural, one {1 order} other {{count, number, plain} orders}}",
+      "averageOrder": {
+        "label": "Average order",
+        "help": "Sales divided by the number of orders — what a typical order in this period was worth."
+      },
+      "discounts": {
+        "label": "Discounts",
+        "help": "How much came off the full price in this period, counting both discounts on an item and discounts on a whole order."
+      },
+      "cost": {
+        "label": "Cost of goods",
+        "help": "What the items sold in this period had cost the shop to buy."
+      },
+      "profit": {
+        "label": "Gross profit",
+        "help": "Sales minus what those goods cost. Rent, salaries and other expenses are not taken off it."
+      },
+      "margin": "{value, number, percent} margin",
+      "missingCost": "{count} sold items have no cost price, so the profit shown is higher than the real one."
+    },
+    "channels": {
+      "title": "By sales channel",
+      "orders": "{count} orders",
+      "empty": "No sales in this period.",
+      "help": "Where the sales came from: the shop counter, WhatsApp, or the website."
+    },
+    "topSellers": {
+      "title": "Best sellers",
+      "byRevenue": "By sales",
+      "byQuantity": "By quantity",
+      "revenue": "Sales: {amount}",
+      "quantity": "Quantity: {count}",
+      "profit": "Profit: {amount}",
+      "empty": "No sales in this period."
+    },
+    "returns": {
+      "title": "Returns",
+      "amount": "Returned value",
+      "items": "Returned items",
+      "orders": "Across {count} orders",
+      "empty": "No returns in this period.",
+      "amountHelp": "The value of what customers handed back in this period. The sales figures above already have it taken off.",
+      "itemsHelp": "How many items came back, and how many orders they came from."
+    },
+    "empty": {
+      "title": "No sales in this period",
+      "description": "Try another period, or record your first order."
+    }
+  },
+  "products": {
+    "title": "Products",
+    "subtitle": "Browse your catalog.",
+    "addProduct": "Add product",
+    "search": {
+      "placeholder": "Search products…",
+      "label": "Search products",
+      "clear": "Clear search"
+    },
+    "sort": {
+      "label": "Sort by",
+      "newest": "Newest",
+      "priceLowToHigh": "Price: low to high",
+      "priceHighToLow": "Price: high to low",
+      "nameAToZ": "Name: A to Z",
+      "nameZToA": "Name: Z to A"
+    },
+    "filters": {
+      "trigger": "Filters",
+      "title": "Filter products",
+      "category": "Category",
+      "allCategories": "All categories",
+      "status": "Status",
+      "statusAll": "All",
+      "statusActive": "Active",
+      "statusHidden": "Hidden",
+      "stock": "Stock",
+      "stockAll": "All",
+      "stockInStock": "In stock",
+      "stockOutOfStock": "Out of stock",
+      "priceRange": "Price range",
+      "priceMin": "Min",
+      "priceMax": "Max",
+      "reset": "Reset",
+      "apply": "Apply"
+    },
+    "status": {
+      "active": "Active",
+      "hidden": "Hidden"
+    },
+    "card": {
+      "multipleSkus": "Multiple variants",
+      "stock": "{count} in stock",
+      "outOfStock": "Out of stock",
+      "numbered": "Numbered · {count}",
+      "incomplete": "Incomplete"
+    },
+    "table": {
+      "product": "Product",
+      "sku": "SKU",
+      "price": "Price",
+      "stock": "Stock",
+      "status": "Status"
+    },
+    "empty": {
+      "noProductsTitle": "No products yet",
+      "noProductsDescription": "Products you add will show up here.",
+      "noMatchesTitle": "No matching products",
+      "noMatchesDescription": "Try a different search or clear your filters."
+    },
+    "pagination": {
+      "previous": "Previous",
+      "next": "Next",
+      "pageOf": "Page {page} of {totalPages}"
+    },
+    "detail": {
+      "back": "Back to products",
+      "notFoundTitle": "Product not found",
+      "notFoundDescription": "This product may have been removed.",
+      "sku": "SKU",
+      "barcode": "Barcode",
+      "stock": "Stock",
+      "cost": "Cost",
+      "wasPrice": "Was {price}",
+      "descriptionTitle": "Description",
+      "numberedPointsAlt": "Product photo with its numbered points",
+      "numberedPointsHint": "{count} numbers placed on this photo.",
+      "variantsTitle": "Variants",
+      "variantsCount": "{count} variants",
+      "variantSku": "SKU",
+      "variantStock": "Stock",
+      "variantPrice": "Price",
+      "variantStatus": "Status",
+      "edit": "Edit",
+      "delete": {
+        "action": "Delete product",
+        "confirm": "Delete this product? It disappears from the products list, the POS and the storefront. Past orders keep it.",
+        "confirmAction": "Yes, delete it",
+        "keep": "Keep it",
+        "success": "Product deleted."
+      },
+      "barcodeSource": "Barcode source",
+      "barcodeGenerated": "Ours (label printed)",
+      "barcodeSupplier": "Supplier's (no label needed)",
+      "barcodeSupplierShort": "supplier's code"
+    },
+    "form": {
+      "back": "Back",
+      "createTitle": "Add product",
+      "editTitle": "Edit product",
+      "notFoundTitle": "Product not found",
+      "employeeReadOnlyHint": "You can add and reorder images below. To change the price or details, ask an admin or manager.",
+      "basicInfo": "Basic info",
+      "name": "Name",
+      "description": "Description",
+      "required": "Required",
+      "optional": "Optional",
+      "category": "Category",
+      "selectCategory": "Select a category",
+      "pricing": "Pricing",
+      "basePrice": "Price",
+      "compareAtPrice": "Compare-at price",
+      "priceReadOnlyHint": "Only an admin or manager can change the price.",
+      "cost": "Cost",
+      "isActive": "Visible to customers",
+      "isActiveHint": "Hidden products aren't shown in the store.",
+      "inventory": "Inventory",
+      "stock": "Stock",
+      "sku": "SKU",
+      "barcode": {
+        "title": "Barcode",
+        "label": "Barcode",
+        "placeholder": "Scan or type the code",
+        "parentSharedHint": "One code for every variant? Put it here, on the product itself — scanning it at the till asks which variant sold.",
+        "duplicateConflict": "Already used by: {sku}.",
+        "generated": {
+          "title": "Our barcode",
+          "hint": "We generate it and print the label",
+          "pending": "Generated on save",
+          "printHint": "Print this piece's label from the Labels screen.",
+          "pendingHint": "A barcode is created as soon as you save."
+        },
+        "supplier": {
+          "title": "Supplier's barcode",
+          "hint": "Already printed on the piece",
+          "entryHint": "Scan it with the camera or the counter scanner, or type it. No label is needed for this piece."
+        },
+        "camera": {
+          "open": "Scan with the camera",
+          "close": "Close",
+          "title": "Scan the barcode",
+          "subtitle": "Point the camera at the code printed on the piece.",
+          "starting": "Starting the camera…",
+          "hint": "Hold the code inside the frame.",
+          "fault": {
+            "insecureContext": "The camera needs a secure (https) connection.",
+            "permission": "Camera access was refused. Allow it in your browser settings, then try again.",
+            "unavailable": "No camera is available on this device."
+          }
+        }
+      },
+      "autoGenerated": "Auto-generated",
+      "creating": "Creating…",
+      "saving": "Saving…",
+      "create": "Create product",
+      "save": "Save changes",
+      "progress": {
+        "product": "Saving the product…",
+        "variants": "Saving the options…",
+        "images": "Uploading photos ({done} of {total})…"
+      },
+      "partial": {
+        "title": "The product is saved. Its photos didn't all go through.",
+        "detail": "{count} photos are still waiting — this usually means the connection dropped.",
+        "retry": "Send the photos again",
+        "retrying": "Sending…",
+        "continue": "Continue without them"
+      },
+      "variants": {
+        "title": "Variants",
+        "addValue": "Add a value",
+        "newValuePlaceholder": "New value name",
+        "add": "Add",
+        "cancel": "Cancel",
+        "addType": "Add a new option type",
+        "newTypePlaceholder": "e.g. Material",
+        "noTypesYet": "No option types yet — add one below.",
+        "previewCount": "{count} variants will be created",
+        "removeCombo": "Remove",
+        "restoreCombo": "Restore",
+        "undo": "Undo",
+        "stock": "Stock",
+        "priceOverride": "Price override",
+        "inherits": "Inherits {value}",
+        "cost": "Cost",
+        "active": "Visible",
+        "addMoreTitle": "Add more combinations",
+        "addMoreSuccess": "Variants added.",
+        "generate": "Generate variants",
+        "toggleDetails": "Details — {name}",
+        "summaryStock": "Stock: {count}",
+        "hidden": "Hidden",
+        "barcodeIncomplete": "Barcode incomplete"
+      },
+      "optionNotes": {
+        "title": "Notes on the options",
+        "subtitle": "Optional — say what each option means on this product.",
+        "countWritten": "{count} notes written",
+        "placeholder": "e.g. Trouser length 95 cm",
+        "createHint": "A note belongs to this product only; the same size on another product is untouched."
+      },
+      "images": {
+        "productTitle": "Product images",
+        "manageTitle": "Manage images",
+        "variantSectionTitle": "Images",
+        "variantFallbackHint": "No images yet — the product's images are shown instead.",
+        "addImages": "Add photos",
+        "pendingHint": "Photos will be uploaded when you save.",
+        "dragHandle": "Drag to reorder",
+        "setPrimary": "Set as main photo",
+        "clearPrimary": "Unset as main photo",
+        "primaryBadge": "Main",
+        "delete": "Delete photo",
+        "edit": "Crop photo",
+        "editor": {
+          "title": "Crop photo",
+          "step": "Photo {index} of {total}",
+          "cancel": "Cancel",
+          "save": "Save crop",
+          "saveAndNext": "Save and next",
+          "saveAndClose": "Save",
+          "zoom": "Zoom",
+          "rotate": "Rotate",
+          "flipHorizontal": "Flip horizontally",
+          "flipVertical": "Flip vertically",
+          "aspectCatalogue": "{width}:{height}",
+          "aspectWhole": "Whole photo",
+          "failed": "This photo could not be opened",
+          "failedHint": "The photo itself is fine — save it as it is, or take it again.",
+          "skip": "Skip this photo"
+        }
+      },
+      "numberedShawl": {
+        "title": "Numbered points",
+        "needsImage": "Add a product photo above first, then come back here to place the numbers.",
+        "stepsLabel": "Numbering steps",
+        "stepPlace": "Place points",
+        "stepDetails": "Quantities",
+        "placeHint": "Tap the photo to add a numbered point. Drag a point to move it, or tap it to select and delete it.",
+        "imageAlt": "Product photo with numbered points",
+        "pointLabel": "Point #{number}",
+        "deletePoint": "Delete this point",
+        "confirmDelete": "Delete",
+        "cancelDelete": "Cancel",
+        "noPointsYet": "No points placed yet — go to \"Place points\" and tap the photo.",
+        "notPlaced": "Not on the photo yet — tap the photo in \"Place points\" to put it there.",
+        "stock": "Quantity",
+        "priceOverride": "Price override",
+        "inherits": "Inherits {value}",
+        "saving": "Saving…",
+        "save": "Save points",
+        "saveSuccess": "Points saved.",
+        "colors": {
+          "title": "Number colour",
+          "autoHint": "Chosen automatically from how light or dark the photo is. Change it if the numbers are hard to see.",
+          "chosenHint": "You chose these colours, and they stay even if the photo is replaced.",
+          "background": "Badge colour",
+          "text": "Number colour",
+          "useSuggestion": "Use the suggested colour",
+          "contrastAdjusted": "Those two colours were too close, so the number's colour was adjusted to keep it readable."
+        }
+      },
+      "kind": {
+        "title": "What are you selling?",
+        "legend": "Product kind",
+        "hint": "Pick one — it changes what you fill in below.",
+        "ordinaryTitle": "A normal product",
+        "ordinaryDescription": "One piece, or several in different colours and sizes.",
+        "numberedTitle": "Numbered pieces",
+        "numberedDescription": "One photo with numbers on it. Each number is its own piece with its own quantity.",
+        "lockedByOptions": "This product already has colours or sizes. Remove them all and save first — then you can change this. Nothing has been deleted.",
+        "lockedByNumbers": "This product already has numbers on its photo. Remove them all and save first — then you can change this. Nothing has been deleted.",
+        "stockPerNumber": "Each number keeps its own quantity, so there's nothing to set here.",
+        "placeNumbersAfterSave": "Save the product first. Then come back here to put the numbers on its photo."
+      },
+      "trackLowStock": "Low-stock alert",
+      "trackLowStockHint": "Off by default. Turn it on only for products you restock, so alerts aren't buried by one-off pieces.",
+      "needsApproval": {
+        "price": "A new price needs an admin's approval. Type it and save — it will be applied once approved.",
+        "stock": "A new quantity needs an admin's approval. Type it and save — it will be applied once approved.",
+        "visibility": "Hiding or showing a product needs an admin's approval."
+      },
+      "awaitingApproval": {
+        "title": "Saved — some changes are waiting",
+        "detail": "{count} of your changes need an admin's approval before they take effect. Nothing was lost.",
+        "viewProduct": "View product"
+      }
+    },
+    "completeness": {
+      "all": "All products",
+      "needsCompleting": "Needs completing ({count})",
+      "hint": "Pieces sold before they were entered — fill in the category, cost and photos to make them ordinary products."
+    },
+    "quickSold": {
+      "title": "This piece was sold before it was entered",
+      "sold": "It has already been sold — complete its details here.",
+      "soldOn": "Sold on {when} for {price}.",
+      "missing": "The blanks below are deliberate: category, cost price, barcode and photos.",
+      "categoryRequired": "Choose a category and save first, then you can complete the product.",
+      "complete": "Complete the product",
+      "oneOff": "It was a one-off",
+      "confirmOneOff": "Confirm: a one-off",
+      "oneOffWarning": "The piece won't join the catalogue. The sale stands and the order is untouched."
+    }
+  },
+  "inventory": {
+    "title": "Inventory",
+    "subtitle": "Track stock quantities and low-stock alerts.",
+    "readOnlyHint": "You can view inventory only. To change quantities, ask an admin or manager.",
+    "search": {
+      "placeholder": "Search by name or SKU…",
+      "label": "Search inventory",
+      "clear": "Clear search"
+    },
+    "filters": {
+      "category": "Category",
+      "allCategories": "All categories",
+      "lowStockOnly": "Show low stock only",
+      "lowStockCount": "{count} items need restocking"
+    },
+    "card": {
+      "noSku": "No SKU",
+      "stockLabel": "Stock",
+      "outsideFilter": "No longer matches the current filter"
+    },
+    "table": {
+      "item": "Item",
+      "sku": "SKU",
+      "status": "Status",
+      "stock": "Stock"
+    },
+    "stepper": {
+      "decrease": "Decrease quantity",
+      "increase": "Increase quantity",
+      "edit": "Edit quantity",
+      "quantity": "Quantity",
+      "save": "Save",
+      "cancel": "Cancel",
+      "saved": "Saved",
+      "unsaved": "Not saved yet",
+      "saving": "Saving…",
+      "savedValue": "Saved: {count}",
+      "revertedTo": "Put back to {count}."
+    },
+    "empty": {
+      "noItemsTitle": "No inventory yet",
+      "noItemsDescription": "Products you add will show up here.",
+      "noMatchesTitle": "No matching items",
+      "noMatchesDescription": "Try a different search or clear your filters."
+    },
+    "pagination": {
+      "previous": "Previous",
+      "next": "Next",
+      "pageOf": "Page {page} of {totalPages}"
+    },
+    "outsideFilterNotice": "{count, plural, one {1 item no longer matches the filter — kept here so it doesn't vanish while you work} other {{count, number, plain} items no longer match the filter — kept here so they don't vanish while you work}}",
+    "refreshList": "Refresh the list"
+  },
+  "labels": {
+    "title": "Barcode labels",
+    "subtitle": "Print labels for the pieces that still need one.",
+    "selectAll": "Select all on this page",
+    "clearSelection": "Clear",
+    "selectedCount": "{count} selected",
+    "next": "Next",
+    "filters": {
+      "printState": "Print state",
+      "all": "All",
+      "printed": "Printed",
+      "not_printed": "Not printed",
+      "category": "Category",
+      "allCategories": "All categories"
+    },
+    "row": {
+      "select": "Select {name}",
+      "variants": "{count} variants",
+      "printedOn": "Last printed {date}",
+      "neverPrinted": "Not printed yet",
+      "supplierBarcode": "Supplier barcode — no label needed"
+    },
+    "empty": {
+      "allPrintedTitle": "Every label is printed",
+      "allPrintedDescription": "New products show up here until their labels have been printed.",
+      "noMatchesTitle": "No matching products",
+      "noMatchesDescription": "Try a different search, category, or print state."
+    },
+    "copies": {
+      "total": "{count} labels",
+      "wholeProduct": "Whole product",
+      "noBarcode": "No barcode",
+      "simpleHint": "One label per piece in stock.",
+      "perVariantHint": "One label per variant ({count}), from each variant's stock.",
+      "numberedHint": "Numbered shawl — one label for the whole product. Type how many you need.",
+      "supplierBarcode": "Supplier barcode — no label needed. Set a count to print one anyway.",
+      "copiesLabel": "Copies",
+      "copiesFor": "Copies — {name}",
+      "increase": "More copies — {name}",
+      "decrease": "Fewer copies — {name}",
+      "stockAboveMax": "Stock is {stock}, and {max} labels is the most that can be set at once. Print the rest in a second batch."
+    },
+    "prepare": {
+      "back": "Back to products",
+      "title": "Copies and preview",
+      "subtitle": "{products} products · {labels} labels",
+      "totalLabels": "{count} labels",
+      "print": "Print"
+    },
+    "preview": {
+      "pageCount": "Preview — {count} pages",
+      "truncated": "Showing the first {shown} of {total} pages — all of them will print."
+    },
+    "sheet": {
+      "title": "Label sheet",
+      "thermal": "{width}×{height} mm — one label per page",
+      "a4": "{width}×{height} mm — A4 sheet, {columns} across × {rows} down",
+      "change": "Change in Settings"
+    },
+    "warnings": {
+      "smallLabel": "This label is narrower than {width} mm, so the barcode may be hard to scan. Print one and try it first.",
+      "gridOverflow": "These labels don't fit on an A4 sheet with the current settings, so some will be cut off. Reduce the columns, rows, or margins in Settings.",
+      "tooManyLabels": "That's more than {max} labels at once. Print them in smaller batches.",
+      "noLabels": "Set how many copies to print for at least one label."
+    },
+    "print": {
+      "confirmTitle": "Did the labels print?",
+      "confirmDescription": "If they came out right, we'll mark these products as printed. You can always print them again later.",
+      "confirmYes": "Yes, mark as printed",
+      "confirmNo": "Not yet",
+      "marked": "Marked as printed."
+    }
+  },
+  "categories": {
+    "title": "Categories",
+    "subtitle": "Organize your products into nested categories.",
+    "addCategory": "Add category",
+    "readOnlyHint": "You can view categories only. To make changes, contact an admin or manager.",
+    "empty": {
+      "title": "No categories yet",
+      "description": "Categories you add will show up here."
+    },
+    "tree": {
+      "expand": "Expand",
+      "collapse": "Collapse",
+      "edit": "Edit category",
+      "delete": "Delete category",
+      "confirmDelete": "Delete",
+      "cancelDelete": "Cancel",
+      "pinned": "Pinned",
+      "pin": "Pin {name} to the till's product browser",
+      "unpin": "Unpin {name} from the till's product browser"
+    },
+    "form": {
+      "createTitle": "Add category",
+      "editTitle": "Edit category",
+      "name": "Name",
+      "required": "Required",
+      "optional": "Optional",
+      "parent": "Parent category",
+      "noParent": "No parent (top level)",
+      "creating": "Creating…",
+      "saving": "Saving…",
+      "create": "Create category",
+      "save": "Save changes"
+    },
+    "favoritesHint": "Star the ones your cashiers reach for most — they come first in the till's product browser."
+  },
+  "settings": {
+    "title": "Settings",
+    "subtitle": "Store name, currency, stock levels, notifications, and barcode labels.",
+    "form": {
+      "readOnlyHint": "You can view settings only. Ask an admin to make changes.",
+      "storeInfoTitle": "Store info",
+      "storeName": "Store name",
+      "required": "Required",
+      "optional": "Optional",
+      "regionalTitle": "Regional",
+      "defaultLanguage": "Default language",
+      "currency": "Currency",
+      "currencyHint": "Currency is fixed for now and can't be changed here yet.",
+      "defaultCountryCode": "Default phone code",
+      "defaultCountryCodeHint": "Used to prefill new phone numbers.",
+      "inventoryTitle": "Inventory",
+      "lowStockThreshold": "Low-stock alert level",
+      "lowStockThresholdHint": "Products at or below this quantity are flagged as low stock.",
+      "saleNotificationsTitle": "Sale notifications",
+      "saleNotificationsIntro": "Every sale made by a manager or an employee sends a notification to the admins' phones. Nobody is notified of their own sale.",
+      "saleNotificationsEnabled": "Send a notification for sales",
+      "saleNotificationMode": "When to notify",
+      "saleNotificationModeOption": {
+        "EVERY_SALE": "On every sale"
+      },
+      "saleNotificationModeHint": "More options are coming later, such as sales above a set amount or a periodic summary.",
+      "labelsTitle": "Barcode labels",
+      "labelsIntro": "How barcode labels come out of your printer. The Labels screen uses these numbers every time it prints.",
+      "labelPrintMode": "Printer type",
+      "labelPrintModeOption": {
+        "THERMAL": "Label printer (roll)",
+        "A4_GRID": "A4 sheet of stickers"
+      },
+      "labelPrintModeHintThermal": "Each label prints on its own page, so the page is the label. Choose this for a label (roll) printer.",
+      "labelPrintModeHintA4Grid": "Labels print in rows and columns on one A4 page. Fill in the sheet layout below so it matches your sticker paper.",
+      "labelSizeTitle": "Size of one label (mm)",
+      "labelWidth": "Width",
+      "labelHeight": "Height",
+      "labelSizeHint": "Measure one sticker in millimetres. Between {min} and {max}.",
+      "labelSheetTitle": "A4 sheet layout",
+      "labelSheetIntro": "Measure your sticker sheet once, then these numbers are used for every print.",
+      "labelGridTitle": "Labels on the sheet",
+      "labelColumns": "Across",
+      "labelRows": "Down",
+      "labelGridHint": "How many stickers the sheet has across and down. Between {min} and {max}.",
+      "labelMarginsTitle": "Empty edge of the page (mm)",
+      "labelMarginTop": "Top",
+      "labelMarginBottom": "Bottom",
+      "labelMarginLeft": "Left",
+      "labelMarginRight": "Right",
+      "labelMarginsHint": "The blank space between the edge of the paper and the first sticker. Type 0 if the stickers start right at the edge.",
+      "labelGapsTitle": "Space between labels (mm)",
+      "labelGapX": "Across",
+      "labelGapY": "Down",
+      "labelGapsHint": "The gap between one sticker and the next. Type 0 if they touch each other.",
+      "labelSheetErrorHint": "Some A4 sheet numbers aren't valid. Switch the printer type back to the A4 sheet to fix them.",
+      "saving": "Saving…",
+      "save": "Save changes",
+      "saved": "Settings saved."
+    },
+    "notifications": {
+      "title": "Notifications on this device",
+      "intro": "Turn notifications on to hear about sales on this phone as they happen. This setting applies to this device only.",
+      "state": {
+        "on": "Notifications are on for this device.",
+        "off": "Notifications are off for this device."
+      },
+      "turnOn": "Turn on notifications",
+      "turnOff": "Turn off notifications",
+      "permissionLabel": "Browser notification permission",
+      "permission": {
+        "default": "Not asked yet",
+        "granted": "Allowed",
+        "denied": "Blocked"
+      },
+      "blocked": {
+        "unsupported": "This browser can't show notifications. Try another browser or another phone.",
+        "needs-install": "On iPhone and iPad, add the app to the Home Screen first: tap the share button, choose “Add to Home Screen”, then open the app from its icon and turn notifications on here.",
+        "not-configured": "Notifications aren't set up on the server yet. Ask whoever runs the server.",
+        "denied": "Notifications are blocked for this site. Allow them in your browser or phone settings, then try again."
+      },
+      "failed": "Couldn't change the notification setting. Please try again.",
+      "iosHint": "iPhone and iPad note: notifications only arrive once the app has been added to the Home Screen and opened from its icon."
+    }
+  },
+  "push": {
+    "sale": {
+      "title": "New sale",
+      "body": "{items} — {total} — {staff}",
+      "itemSeparator": ", ",
+      "moreItems": "+{count} more"
+    },
+    "changeRequest": {
+      "title": "Approval needed",
+      "body": "{staff} asked to change {field} on {item} — {count} waiting"
+    }
+  },
+  "users": {
+    "title": "Users",
+    "subtitle": "Manage staff accounts, roles, and access.",
+    "addUser": "Add staff",
+    "search": {
+      "placeholder": "Search by name, email, or phone…",
+      "label": "Search staff",
+      "clear": "Clear search"
+    },
+    "filters": {
+      "role": "Role",
+      "allRoles": "All roles",
+      "status": "Status",
+      "statusAll": "All",
+      "statusActive": "Active",
+      "statusInactive": "Inactive"
+    },
+    "role": {
+      "ADMIN": "Admin",
+      "MANAGER": "Manager",
+      "EMPLOYEE": "Employee"
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "accountState": {
+      "pending": "Password not set"
+    },
+    "card": {
+      "edit": "Edit staff member",
+      "activate": "Activate",
+      "confirmActivate": "Activate",
+      "cancelToggle": "Cancel",
+      "remove": "Remove staff member",
+      "actionsFor": "Actions for {name}"
+    },
+    "table": {
+      "name": "Name",
+      "role": "Role",
+      "phone": "Phone",
+      "status": "Status"
+    },
+    "empty": {
+      "noUsersTitle": "No staff yet",
+      "noUsersDescription": "Staff accounts you add will show up here.",
+      "noMatchesTitle": "No matching staff",
+      "noMatchesDescription": "Try a different search or clear your filters."
+    },
+    "pagination": {
+      "previous": "Previous",
+      "next": "Next",
+      "pageOf": "Page {page} of {totalPages}"
+    },
+    "form": {
+      "createTitle": "Add staff",
+      "editTitle": "Edit staff",
+      "name": "Name",
+      "email": "Email",
+      "emailHint": "Email can't be changed after the account is created.",
+      "password": "Password",
+      "passwordPlaceholderCreate": "Leave blank so they choose their own",
+      "passwordPlaceholderEdit": "Leave blank to keep current password",
+      "passwordHintEdit": "Leave blank to keep the current password.",
+      "role": "Role",
+      "phone": "Phone",
+      "phonePrefixLabel": "Country code",
+      "whatsapp": "WhatsApp",
+      "whatsappHint": "Optional — used to reach this staff member on WhatsApp.",
+      "idNumber": "ID number",
+      "creating": "Creating…",
+      "saving": "Saving…",
+      "create": "Add staff",
+      "save": "Save changes",
+      "passwordHintCreate": "Leave this blank (recommended): they get a link by email and choose their own password, so nobody else ever knows it."
+    },
+    "passwordReset": {
+      "action": "Send password link",
+      "sending": "Sending…",
+      "sent": "A set-password link has been emailed to {email}.",
+      "copyLink": "Copy link",
+      "copied": "Link copied.",
+      "linkHint": "If the email doesn't arrive, you can pass this link on yourself. It works only once.",
+      "resendInvite": "Resend the set-up link",
+      "inviteSent": "A link to choose a password has been emailed to {email}.",
+      "pendingHint": "This person hasn't chosen a password yet, so they can't sign in. Resend the link if it never arrived."
+    },
+    "remove": {
+      "title": "Remove {name}",
+      "selfHint": "You cannot remove your own account. Ask another admin to do it.",
+      "deactivate": {
+        "heading": "Deactivate — the usual choice",
+        "body": "They can no longer sign in, and any device they are signed in on is signed out straight away. Everything they did stays exactly as it is: their orders, expenses and drawer counts still show their name. You can switch them back on later.",
+        "action": "Deactivate this account",
+        "confirmQuestion": "Deactivate this account? They will not be able to sign in.",
+        "confirm": "Yes, deactivate {name}"
+      },
+      "delete": {
+        "heading": "Delete permanently",
+        "body": "This account has never been used, so it can be erased. The account, its password and its sign-in links are deleted for good. This cannot be undone.",
+        "unavailable": "This account cannot be deleted, because it has already been used in the shop — there are orders, expenses or other records with this person's name on them. Deactivate instead, so those records keep saying who did what.",
+        "action": "Delete permanently",
+        "confirmQuestion": "This erases the account {email} and its password for good. It cannot be undone.",
+        "confirm": "Yes, permanently delete {name}"
+      }
+    }
+  },
+  "errors": {
+    "notFound": "Not found.",
+    "validation": "Please check the highlighted fields.",
+    "internal": "Something went wrong. Please try again.",
+    "unauthorized": "Please sign in to continue.",
+    "forbidden": "You don't have permission to do that.",
+    "accountInactive": "Your account has been deactivated. Contact an admin.",
+    "duplicate": "This already exists.",
+    "skuDuplicate": "This SKU is already in use.",
+    "barcodeDuplicate": "This barcode is already used by another piece. Either put one shared code on the parent product, or keep our own barcode and print a label.",
+    "slugDuplicate": "This name is already in use.",
+    "emailDuplicate": "This email is already in use.",
+    "phoneDuplicate": "This phone number is already in use.",
+    "whatsappDuplicate": "This WhatsApp number is already in use.",
+    "validationRequired": "This field is required.",
+    "validationInvalidNumber": "Enter a valid number.",
+    "validationOutOfRange": "That number is outside the allowed range.",
+    "validationInvalidPhone": "Enter a valid phone number.",
+    "validationInvalidEmail": "Enter a valid email address.",
+    "validationPasswordTooShort": "Password must be at least {min} characters.",
+    "categoryNotFound": "Category not found.",
+    "categoryCircularParent": "A category can't be its own ancestor.",
+    "categoryHasChildren": "This category still has subcategories.",
+    "categoryHasProducts": "This category still has products.",
+    "productNotFound": "Product not found.",
+    "variantNotFound": "Variant not found.",
+    "productNumberedOnlyNumbers": "This is a numbered product, so it can only have numbers — not colours or sizes.",
+    "productNumbersRequireNumbered": "Only a numbered product can have numbers. Change the product kind at the top of the form first.",
+    "productNumberedSwitchHasVariants": "Delete this product's options first, then you can change its kind. Nothing was deleted.",
+    "productOptionNoteValueNotUsed": "You can't write a note on an option this product doesn't use.",
+    "variantTypeNotFound": "Variant type not found.",
+    "variantTypeValueNotFound": "Variant value not found.",
+    "variantTypeValueDuplicate": "This value already exists for this type.",
+    "imageInvalidType": "This image type isn't supported.",
+    "imageTooLarge": "This image is too large.",
+    "imageUploadFailed": "The image upload failed.",
+    "imageFileRequired": "Please choose an image.",
+    "imageNotFound": "Image not found.",
+    "imageOwnerRequired": "Choose a product or variant for this image.",
+    "imageReorderDuplicate": "Each image can only appear once in the order.",
+    "imageReorderMismatch": "The image order doesn't match the current images.",
+    "imageOriginalMissing": "The original photo is no longer stored, so it cannot be cropped again. Add a new photo instead.",
+    "inventoryParentHasVariants": "This product's stock is managed per variant.",
+    "settingDefaultLanguageNotSupported": "That language isn't supported yet.",
+    "settingSaleNotificationModeUnsupported": "That option isn't available yet.",
+    "pushEndpointInvalid": "This device couldn't be registered for notifications.",
+    "pushNotConfigured": "Notifications aren't set up on the server yet.",
+    "pushSubscriptionNotFound": "This device isn't registered for notifications.",
+    "userNotFound": "User not found.",
+    "authSignupFailed": "Couldn't create the account.",
+    "validationImagePointOutOfRange": "The point must be within the image.",
+    "validationTooLong": "That text is longer than allowed.",
+    "validationInvalidColor": "Choose a valid colour.",
+    "orderNotFound": "Order not found.",
+    "orderItemNotFound": "That item isn't part of this order.",
+    "orderItemsRequired": "Add at least one product to the order.",
+    "orderCustomerRequired": "Enter the customer's name and phone number.",
+    "orderLocationInvalid": "That location isn't valid. Enter both latitude and longitude.",
+    "orderDiscountInvalid": "That discount value isn't valid.",
+    "orderInvalidStatusTransition": "The order can't move to that status.",
+    "orderInsufficientStock": "There isn't enough stock for that.",
+    "orderNotEditable": "This order can no longer be edited.",
+    "orderNotReturnable": "This order can't be returned.",
+    "orderReturnQuantityExceeded": "That's more than was sold.",
+    "orderProductUnavailable": "This product is no longer available to sell.",
+    "orderVariantRequired": "Choose which variant of this product.",
+    "orderNotCollectable": "This order is cancelled or returned, so there is no payment to record.",
+    "reportRangeInvalid": "That period isn't valid. Check the start and end dates.",
+    "reportRangeTooLong": "That period is too long. Pick a year at most.",
+    "orderGiftChannelInvalid": "A gift can only be given at the counter.",
+    "cashSessionNotFound": "That day's drawer could not be found.",
+    "cashSessionDateTaken": "This day already has a drawer.",
+    "cashSessionAlreadyClosed": "This day has already been counted and closed.",
+    "cashSessionDifferenceNoteRequired": "The count doesn't match — please write down what happened.",
+    "cashSessionWithdrawalExceedsCount": "You can't take out more than was counted in the drawer.",
+    "cashSessionNoOpenFollowUp": "There is nothing left to follow up on this day.",
+    "expenseNotFound": "That expense could not be found.",
+    "expenseCategoryNotFound": "That expense category could not be found.",
+    "expenseCategoryKeyDuplicate": "An expense category with this key already exists.",
+    "expenseCategoryKeyInvalid": "Use lowercase letters, numbers and dashes only.",
+    "expenseCategoryHasExpenses": "Expenses are filed under this category, so it can't be deleted. Turn it off instead.",
+    "changeRequestNotFound": "That request no longer exists.",
+    "changeRequestNotPending": "That request has already been decided.",
+    "changeRequestSelfDecision": "You can't approve your own request.",
+    "changeRequestNotRequester": "You can't withdraw someone else's request.",
+    "changeRequestTargetMissing": "The item this request was about is no longer there.",
+    "changeRequestNotApplicable": "This request can no longer be applied — things have changed since it was made.",
+    "forbiddenHint": "This screen is only for certain roles. If you need it, ask an admin.",
+    "barcodeInvalid": "That doesn't look like a barcode. Scan it again, or check the digits.",
+    "barcodeRequired": "Scan or type the supplier's barcode, or switch back to our own.",
+    "rateLimited": "Too many attempts in a short time. Wait a moment and try again.",
+    "passwordTokenInvalid": "This link has expired or has already been used. Ask for a new one.",
+    "userAlreadyActivated": "This account is already set up and has a password. Send a password reset instead.",
+    "userLastAdmin": "This is the only admin left. Make somebody else an admin first — otherwise nobody could manage staff, settings or approvals.",
+    "userSelfRemoval": "You cannot remove your own account. Ask another admin to do it.",
+    "userHasHistory": "This account has already been used in the shop, so it cannot be deleted. Deactivate it instead — its orders and expenses keep the person's name.",
+    "productCompletionIncomplete": "Choose a category before completing this product — without one it won't appear in any category list.",
+    "orderItemSourceInvalid": "This line doesn't say clearly what is being sold."
+  },
+  "pwa": {
+    "version": {
+      "app": "App v{version}",
+      "api": "API v{version}",
+      "copy": "Copy the version numbers",
+      "copied": "Copied"
+    },
+    "update": {
+      "title": "A new version is ready",
+      "description": "Tap to get the newest version. It takes a moment, and nothing you have saved is lost.",
+      "action": "Update now",
+      "updating": "Updating…"
+    }
+  },
+  "changeRequests": {
+    "title": "Approvals",
+    "subtitle": "Changes staff have asked for. Approve to apply them, or reject to discard them.",
+    "subtitleOwn": "Changes you asked for. They take effect once an admin approves them.",
+    "badgeLabel": "{count} changes waiting",
+    "status": {
+      "PENDING": "Waiting",
+      "APPROVED": "Approved",
+      "REJECTED": "Rejected"
+    },
+    "fields": {
+      "price": "Price",
+      "comparePrice": "Compare-at price",
+      "stock": "Stock",
+      "visibility": "Visible to customers",
+      "variantSet": "Options",
+      "variantPrice": "Option price",
+      "variantStock": "Option stock",
+      "photoDeletion": "Delete photo",
+      "expense": "Expense",
+      "other": "Change",
+      "completion": "Complete a product"
+    },
+    "values": {
+      "none": "None",
+      "visible": "Visible",
+      "hidden": "Hidden",
+      "deleted": "Deleted",
+      "kept": "Kept",
+      "approved": "Approved",
+      "awaiting": "Waiting",
+      "rejected": "Rejected",
+      "from": "From",
+      "to": "To",
+      "variantCount": "{count} options",
+      "adding": "Adding:",
+      "removing": "Removing:",
+      "listSeparator": ", "
+    },
+    "card": {
+      "unknownItem": "Item",
+      "askedBy": "Asked by {name} · {when}",
+      "approvedBy": "Approved by {name} · {when}",
+      "rejectedBy": "Rejected by {name} · {when}",
+      "approve": "Approve",
+      "reject": "Reject",
+      "confirmReject": "Confirm reject",
+      "noteLabel": "Reason",
+      "notePlaceholder": "Why not? (optional)",
+      "cancelRequest": "Withdraw request",
+      "confirmCancelRequest": "Confirm withdrawal",
+      "cancelConfirmPrompt": "The request will be removed and won't reach the manager. Sure?",
+      "unknownStaff": "Unknown staff member"
+    },
+    "pending": {
+      "waiting": "Waiting for approval",
+      "waitingWithValue": "Waiting for approval:"
+    },
+    "empty": {
+      "noneWaitingTitle": "Nothing waiting",
+      "noneWaitingDescription": "Everything staff have asked for has been dealt with.",
+      "noneTitle": "Nothing here",
+      "noneDescription": "No changes with this status yet."
+    },
+    "pagination": {
+      "previous": "Previous",
+      "next": "Next",
+      "pageOf": "Page {page} of {totalPages}"
+    },
+    "quickSold": {
+      "label": "Quick sell",
+      "unknownItem": "Unnamed item",
+      "sold": "This piece has already been sold.",
+      "soldFor": "Already sold for {price}.",
+      "saleDetail": "Order {orderNumber} · {count, plural, one {1 piece} other {{count, number, plain} pieces}}",
+      "soldBy": "Sold by {name} · {when}",
+      "missing": "Still missing its category, cost price, barcode and photos.",
+      "complete": "Complete the details",
+      "oneOff": "It was a one-off",
+      "confirmOneOff": "Confirm: a one-off",
+      "oneOffWarning": "The piece won't join the catalogue. The sale stands and the order is untouched.",
+      "noteLabel": "Reason (optional)",
+      "notePlaceholder": "e.g. last piece of a discontinued sample",
+      "completedBy": "Completed by {name} · {when}",
+      "oneOffBy": "Marked a one-off by {name} · {when}"
+    }
+  },
+  "permissions": {
+    "title": "Permissions",
+    "subtitle": "Choose what each role is allowed to do.",
+    "rolePicker": "Choose a role",
+    "saving": "Saving…",
+    "unavailable": "The permissions could not be loaded. Please try again.",
+    "ownRole": "You cannot change your own role's permissions.",
+    "adminRole": "The Admin always has every permission, so it cannot be changed here.",
+    "toggleLabel": "{action} — {role}",
+    "intro": {
+      "title": "Every permission can be changed",
+      "body": "Turn on or off anything a manager or an employee may do — including costs and profit, reports, cancelling a sale, approvals and staff accounts. The Admin always keeps every permission."
+    },
+    "locked": {
+      "label": "Locked",
+      "protected": "This protects the shop's records",
+      "ownRole": "This is your own role",
+      "adminRole": "The Admin always has this",
+      "on": "On",
+      "off": "Off"
+    },
+    "table": {
+      "action": "What it is"
+    },
+    "role": {
+      "ADMIN": "Admin",
+      "MANAGER": "Manager",
+      "EMPLOYEE": "Employee"
+    },
+    "groups": {
+      "products": "Products",
+      "catalogue": "Categories, options and photos",
+      "inventory": "Stock",
+      "orders": "Orders and sales",
+      "money": "Money",
+      "approvals": "Approvals",
+      "staff": "Staff and settings"
+    },
+    "actions": {
+      "dashboard": {
+        "view": "See the dashboard"
+      },
+      "product": {
+        "view": "See the products",
+        "create": "Add a product",
+        "edit": "Edit a product's details",
+        "editPrice": "Change a product's price",
+        "delete": "Delete a product",
+        "hide": "Hide or show a product",
+        "editVariantSet": "Change which variants a product has",
+        "viewCost": "See cost and profit",
+        "printLabels": "Print barcode labels",
+        "quickSell": "Sell an item that isn't in the system",
+        "complete": "Complete a quick-sold item"
+      },
+      "category": {
+        "view": "See the categories",
+        "manage": "Add, edit and delete categories"
+      },
+      "variantType": {
+        "create": "Add a new option or value",
+        "manage": "Rename or remove an option value"
+      },
+      "images": {
+        "edit": "Add and reorder photos",
+        "delete": "Delete a photo"
+      },
+      "inventory": {
+        "view": "See the stock levels",
+        "adjust": "Change a stock quantity by hand"
+      },
+      "order": {
+        "view": "See orders",
+        "create": "Make a sale",
+        "updateStatus": "Move an order along",
+        "edit": "Edit an order after the sale",
+        "cancel": "Cancel an order",
+        "delete": "Delete an order",
+        "return": "Take a sale back",
+        "markCollected": "Mark money as collected",
+        "createGift": "Give stock away as a gift"
+      },
+      "report": {
+        "view": "Open the reports"
+      },
+      "cashSession": {
+        "view": "See the cash drawer",
+        "manage": "Open and close the cash drawer"
+      },
+      "expense": {
+        "create": "Record an expense",
+        "view": "See the expenses",
+        "manage": "Edit and delete expenses",
+        "approve": "Approve an expense"
+      },
+      "expenseCategory": {
+        "view": "See the expense categories",
+        "manage": "Manage the expense categories"
+      },
+      "changeRequest": {
+        "create": "Ask for a change",
+        "view": "See change requests",
+        "cancel": "Withdraw your own request",
+        "approve": "Approve or refuse a change"
+      },
+      "user": {
+        "manage": "Manage staff accounts",
+        "delete": "Erase a staff account",
+        "viewSensitive": "See a staff ID number"
+      },
+      "settings": {
+        "manage": "Change the shop settings"
+      },
+      "permission": {
+        "manage": "Change these permissions"
+      }
+    }
+  }
+}

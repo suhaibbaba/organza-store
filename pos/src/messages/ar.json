@@ -1,0 +1,331 @@
+{
+  "app": {
+    "name": "أورجانزا",
+    "tagline": "شاشة البيع",
+    "sandbox": "تجريبي"
+  },
+  "common": {
+    "loading": "جارٍ التحميل…",
+    "retry": "إعادة المحاولة",
+    "logout": "تسجيل الخروج",
+    "language": "اللغة",
+    "close": "إغلاق",
+    "password": {
+      "show": "إظهار كلمة المرور",
+      "hide": "إخفاء كلمة المرور"
+    },
+    "account": "الحساب",
+    "pullToRefresh": {
+      "pull": "اسحب للتحديث",
+      "release": "أفلت للتحديث",
+      "refreshing": "جارٍ التحديث…"
+    },
+    "role": {
+      "ADMIN": "مسؤول",
+      "MANAGER": "مدير",
+      "EMPLOYEE": "موظف"
+    }
+  },
+  "stock": {
+    "out": "غير متوفر",
+    "low": "كمية قليلة",
+    "in": "متوفر",
+    "lowCount": "كمية قليلة · {count, plural, one {قطعة واحدة} two {قطعتان} few {{count, number, plain} قطع} many {{count, number, plain} قطعة} other {{count, number, plain} قطعة}}",
+    "inCount": "متوفر · {count, plural, one {قطعة واحدة} two {قطعتان} few {{count, number, plain} قطع} many {{count, number, plain} قطعة} other {{count, number, plain} قطعة}}"
+  },
+  "offline": {
+    "title": "لا يوجد اتصال بالإنترنت",
+    "message": "تحتاج شاشة البيع إلى اتصال بالإنترنت للبحث عن المنتجات وتسجيل المبيعات. تحقّق من الاتصال ثم أعد المحاولة."
+  },
+  "boot": {
+    "failed": {
+      "title": "لم تبدأ شاشة البيع",
+      "message": "حدث ما منع تحميلها على هذا الهاتف. أعد المحاولة، وإن تكرّر الأمر أخبر المسؤول عن نظام المحل.",
+      "retry": "أعد المحاولة"
+    },
+    "unsupported": {
+      "title": "هذا الهاتف أقدم من أن يشغّل شاشة البيع",
+      "message": "نظام الهاتف لا يستطيع تشغيل هذا التطبيق. حدّث الهاتف إلى أحدث إصدار متاح له، وإن لم يتوفّر تحديث فاستخدم هاتفًا أحدث."
+    }
+  },
+  "auth": {
+    "login": {
+      "title": "تسجيل الدخول",
+      "subtitle": "أدخل بريدك الإلكتروني وكلمة المرور للمتابعة.",
+      "emailLabel": "البريد الإلكتروني",
+      "emailPlaceholder": "you@organza.test",
+      "passwordLabel": "كلمة المرور",
+      "passwordPlaceholder": "أدخل كلمة المرور",
+      "submit": "تسجيل الدخول",
+      "submitting": "جارٍ تسجيل الدخول…",
+      "error": "البريد الإلكتروني أو كلمة المرور غير صحيحة.",
+      "tooManyAttempts": "محاولات كثيرة خلال وقت قصير. انتظر دقيقة ثم حاول مرة أخرى.",
+      "accountDeactivated": "هذا الحساب مُعطَّل. اطلب من المدير إعادة تفعيله."
+    },
+    "forgotPassword": {
+      "link": "نسيت كلمة المرور؟",
+      "title": "نسيت كلمة المرور",
+      "subtitle": "أدخل بريدك الإلكتروني وسنرسل لك رابطاً لاختيار كلمة مرور جديدة.",
+      "emailLabel": "البريد الإلكتروني",
+      "emailPlaceholder": "you@example.com",
+      "submit": "أرسل الرابط",
+      "submitting": "جارٍ الإرسال…",
+      "sentTitle": "تحقق من بريدك",
+      "sentBody": "إذا كان هذا البريد الإلكتروني مسجّلاً لدينا، فسيصلك رابط لاختيار كلمة مرور جديدة خلال دقائق. تفقّد مجلد الرسائل غير المرغوب فيها أيضاً.",
+      "back": "العودة إلى تسجيل الدخول"
+    }
+  },
+  "sell": {
+    "noPermission": "حسابك لا يسمح بإتمام عمليات البيع. راجع المدير.",
+    "feedback": {
+      "added": "{name} × {quantity, number, plain}",
+      "addedMany": "{name} — أُضيفت {count, plural, one {قطعة واحدة} two {قطعتان} few {{count, number, plain} قطع} many {{count, number, plain} قطعة} other {{count, number, plain} قطعة}}"
+    },
+    "search": {
+      "label": "البحث عن منتج أو مسح باركود",
+      "placeholder": "ابحث بالاسم أو أدخل الباركود",
+      "clear": "مسح البحث",
+      "scan": "مسح الباركود بالكاميرا",
+      "looking": "جارٍ البحث عن الباركود…",
+      "searching": "جارٍ البحث…",
+      "empty": "لا توجد نتائج مطابقة.",
+      "error": "تعذّر تحميل نتائج البحث. حاول مرة أخرى.",
+      "variantCount": "{count, plural, zero {لا خيارات} one {خيار واحد} two {خياران} few {{count, number, plain} خيارات} many {{count, number, plain} خيارًا} other {{count, number, plain} خيار}}",
+      "kind": {
+        "numbered": "مرقّم · {count}",
+        "named": "{type} · {count}",
+        "mixed": "خيارات · {count}"
+      },
+      "backToCart": "الرجوع إلى السلة",
+      "cartCount": "{count, plural, zero {السلة فارغة} one {قطعة واحدة} two {قطعتان} few {{count, number, plain} قطع} many {{count, number, plain} قطعة} other {{count, number, plain} قطعة}}",
+      "resultsTitle": "نتائج البحث عن «{query}»"
+    },
+    "browse": {
+      "open": "تصفّح المنتجات",
+      "title": "المنتجات",
+      "categories": "الأقسام",
+      "categoriesLoading": "جارٍ تحميل الأقسام…",
+      "categoriesError": "تعذّر تحميل الأقسام.",
+      "all": "الكل",
+      "favorites": "المفضّلة",
+      "allCategories": "كل الأقسام",
+      "searchLabel": "ابحث داخل المنتجات",
+      "searchPlaceholder": "ابحث بالاسم",
+      "clearSearch": "مسح البحث",
+      "loading": "جارٍ التحميل…",
+      "error": "تعذّر تحميل المنتجات. حاول مرة أخرى.",
+      "empty": "لا توجد منتجات في هذا القسم.",
+      "emptySearch": "لا يوجد ما يطابق البحث.",
+      "clearFilters": "عرض كل المنتجات",
+      "showMore": "عرض المزيد"
+    },
+    "scanner": {
+      "title": "مسح الباركود",
+      "subtitle": "وجّه الكاميرا نحو الباركود الموجود على القطعة.",
+      "starting": "جارٍ تشغيل الكاميرا…",
+      "hint": "امسح القطع واحدة تلو الأخرى — تبقى الكاميرا تعمل حتى تضغط «إنهاء المسح».",
+      "fault": {
+        "insecureContext": "الكاميرا تحتاج إلى اتصال آمن (HTTPS). افتح الشاشة عبر رابط آمن أو أدخل الباركود يدويًا.",
+        "permission": "لم يُسمح باستخدام الكاميرا. اسمح بالوصول من إعدادات المتصفح، أو أدخل الباركود يدويًا.",
+        "unavailable": "تعذّر تشغيل الكاميرا على هذا الجهاز. أدخل الباركود يدويًا في خانة البحث."
+      },
+      "done": "إنهاء المسح",
+      "mute": "كتم الصوت",
+      "unmute": "تشغيل الصوت",
+      "vibrateOff": "إيقاف الاهتزاز",
+      "vibrateOn": "تشغيل الاهتزاز",
+      "cartSummary": "{count, plural, zero {السلة فارغة} one {قطعة واحدة} two {قطعتان} few {{count, number, plain} قطع} many {{count, number, plain} قطعة} other {{count, number, plain} قطعة}}"
+    },
+    "counter": {
+      "title": "جاهز للمسح",
+      "hint": "اضغط زر الماسح وستُضاف القطعة إلى البيع مباشرة. لا حاجة للضغط على أي شيء قبل ذلك.",
+      "camera": "استخدم الكاميرا بدلاً من ذلك",
+      "shortcuts": {
+        "focusSearch": "البحث بالاسم",
+        "scan": "فتح الكاميرا",
+        "checkout": "إتمام البيع",
+        "clear": "مسح البحث"
+      }
+    },
+    "picker": {
+      "subtitle": "اختر خيارًا واحدًا أو أكثر، ثم اضغط «إضافة إلى السلة».",
+      "numberedSubtitle": "اكتب الرقم واضغط «تم» على لوحة الأرقام، أو اختر أكثر من رقم من القائمة.",
+      "numberLabel": "الرقم",
+      "numberPlaceholder": "مثال: 4",
+      "numberNotFound": "لا يوجد هذا الرقم، أو أنه غير متوفر حاليًا.",
+      "done": "تم",
+      "add": "إضافة إلى السلة",
+      "addNamed": "إضافة {name}",
+      "addCount": "إضافة {count, plural, one {قطعة واحدة} two {قطعتين} few {{count, number, plain} قطع} many {{count, number, plain} قطعة} other {{count, number, plain} قطعة}} إلى السلة",
+      "selectedCount": "{count, plural, one {تم اختيار قطعة واحدة} two {تم اختيار قطعتين} few {تم اختيار {count, number, plain} قطع} many {تم اختيار {count, number, plain} قطعة} other {تم اختيار {count, number, plain} قطعة}}"
+    },
+    "cart": {
+      "title": "البيع الحالي",
+      "emptyTitle": "لا توجد قطع بعد",
+      "emptyHint": "امسح باركود القطعة أو ابحث عنها بالاسم لإضافتها.",
+      "unitPrice": "سعر القطعة: {price}",
+      "quantity": "الكمية — {name}",
+      "increase": "زيادة الكمية — {name}",
+      "decrease": "إنقاص الكمية — {name}",
+      "remove": "حذف {name} من السلة",
+      "removeConfirmTitle": "حذف هذه القطعة من البيع؟",
+      "removeConfirmYes": "حذف",
+      "removeConfirmKeep": "إبقاء",
+      "addDiscount": "خصم",
+      "discountFor": "خصم على {name}",
+      "stockCap": "{count, plural, zero {لا يوجد مخزون} one {هذه آخر قطعة متوفرة} two {هذه آخر قطعتين متوفرتين} other {هذا كل المتوفر: {count, number, plain} قطعة}}",
+      "discountApplied": "خصم {value} · ‎−{amount}",
+      "discountValue": "خصم {value}",
+      "quickSold": "بيع سريع"
+    },
+    "discount": {
+      "title": "إضافة خصم",
+      "subtitle": "خصم على {name} — المبلغ قبل الخصم {amount}",
+      "typeLabel": "نوع الخصم",
+      "type": {
+        "PERCENT": "نسبة ٪",
+        "AMOUNT": "مبلغ",
+        "AMOUNT_currency": "مبلغ {currency}"
+      },
+      "valueLabel": {
+        "PERCENT": "نسبة الخصم (٪)",
+        "AMOUNT": "قيمة الخصم",
+        "AMOUNT_currency": "قيمة الخصم ({currency})"
+      },
+      "valuePlaceholder": {
+        "PERCENT": "مثال: 10",
+        "AMOUNT": "مثال: 20"
+      },
+      "invalid": {
+        "PERCENT": "أدخل رقماً صحيحاً بين 0 و{max}.",
+        "AMOUNT": "أدخل رقماً صحيحاً، بحد أقصى {max}."
+      },
+      "apply": "تطبيق الخصم",
+      "remove": "إزالة الخصم"
+    },
+    "checkout": {
+      "wholeSale": "الفاتورة كاملة",
+      "subtotal": "{count, plural, zero {المجموع} one {قطعة واحدة} two {قطعتان} few {{count, number, plain} قطع} many {{count, number, plain} قطعة} other {{count, number, plain} قطعة}}",
+      "itemDiscounts": "خصومات القطع",
+      "orderDiscount": "خصم الفاتورة",
+      "total": "الإجمالي",
+      "addOrderDiscount": "خصم على الفاتورة",
+      "editOrderDiscount": "تعديل خصم الفاتورة",
+      "submit": "إتمام البيع",
+      "submitting": "جارٍ الحفظ…",
+      "whatsappOrder": "طلب واتساب",
+      "orderDiscountApplied": "خصم الفاتورة ({value})",
+      "giftOrder": "إعطاء كهدية"
+    },
+    "success": {
+      "title": "تم البيع بنجاح",
+      "orderNumber": "رقم الفاتورة {number}",
+      "newSale": "بيع جديد",
+      "whatsappTitle": "تم حفظ طلب الواتساب",
+      "customer": "الزبون: {name}",
+      "whatsappNextStep": "الطلب الآن بحالة «جديد». يُخصم المخزون عند بدء التحضير.",
+      "whatsappOrderNumber": "طلب رقم {number}",
+      "giftTitle": "تم تسجيل الهدية",
+      "giftCount": "{count, plural, one {قطعة واحدة} two {قطعتان} few {{count, number, plain} قطع} many {{count, number, plain} قطعة} other {{count, number, plain} قطعة}}",
+      "giftNextStep": "خرجت القطع من المخزون ولم يتم تحصيل أي مبلغ."
+    },
+    "whatsapp": {
+      "title": "طلب واتساب",
+      "subtitle": "سجّل الطلب باسم الزبون ليخرج مع شركة التوصيل.",
+      "total": "الإجمالي",
+      "save": "حفظ الطلب",
+      "saving": "جارٍ الحفظ…",
+      "customer": {
+        "name": "اسم الزبون",
+        "namePlaceholder": "مثال: سعاد أحمد",
+        "phone": "رقم الهاتف",
+        "phonePrefixLabel": "مفتاح الدولة",
+        "searching": "جارٍ البحث عن طلبات سابقة…",
+        "suggestionsHint": "زبائن طلبوا سابقًا بهذا الرقم — اضغط لتعبئة بياناتهم.",
+        "unnamedCustomer": "بدون اسم",
+        "address": "العنوان",
+        "addressPlaceholder": "المدينة، الشارع، أقرب معلم…",
+        "moreDetails": "تفاصيل إضافية (اختياري)",
+        "whatsapp": "رقم الواتساب",
+        "whatsappHint": "اتركه فارغًا إذا كان نفس رقم الهاتف.",
+        "location": "موقع على الخريطة (اختياري)",
+        "locationHint": "الصق الإحداثيات من الواتساب في خانة خط العرض وسيتم تعبئة الخانتين.",
+        "latitude": "خط العرض",
+        "longitude": "خط الطول",
+        "note": "ملاحظة (اختياري)",
+        "notePlaceholder": "أي تفاصيل إضافية عن الطلب…"
+      }
+    },
+    "gift": {
+      "title": "إعطاء كهدية",
+      "subtitle": "راجع القطع قبل التأكيد — ستخرج من المخزون بدون أي مبلغ.",
+      "warning": "سيتم خصم هذه القطع من المخزون ولن يتم تحصيل أي مبلغ.",
+      "itemsTitle": "القطع التي ستُهدى ({count, plural, one {قطعة واحدة} two {قطعتان} few {{count, number, plain} قطع} many {{count, number, plain} قطعة} other {{count, number, plain} قطعة}})",
+      "quantity": "الكمية: {count, number, plain}",
+      "noteLabel": "ملاحظة (اختياري)",
+      "notePlaceholder": "مثال: هدية لأم العروس",
+      "noteHint": "لمن الهدية أو سبب إعطائها — تُحفظ مع الطلب.",
+      "cancel": "الرجوع إلى البيع",
+      "confirm": "تأكيد الهدية",
+      "saving": "جارٍ الحفظ…"
+    },
+    "quickSell": {
+      "open": "بيع سريع",
+      "title": "بيع سريع",
+      "subtitle": "قطعة غير مُدخلة في النظام بعد — اكتب اسمها وسعرها وأتمّ البيع.",
+      "nameLabel": "اسم القطعة",
+      "namePlaceholder": "مثال: عباية سوداء",
+      "priceLabel": "سعر البيع",
+      "priceLabelCurrency": "سعر البيع ({currency})",
+      "pricePlaceholder": "0.00",
+      "priceInvalid": "أدخل سعرًا صحيحًا.",
+      "detailLabel": "اللون أو المقاس (اختياري)",
+      "detailPlaceholder": "مثال: أسود · M · 7",
+      "detailHint": "يظهر بجانب الاسم في الفاتورة.",
+      "afterwards": "يتم البيع فورًا، ثم تُستكمل تفاصيل القطعة لاحقًا من لوحة التحكم.",
+      "add": "إضافة إلى البيع",
+      "added": "تمت إضافة {name} إلى البيع.",
+      "emptyPrompt": "القطعة ليست في النظام؟ بِعها الآن وأكمل تفاصيلها لاحقًا.",
+      "cancel": "إلغاء"
+    }
+  },
+  "errors": {
+    "notFound": "العنصر غير موجود.",
+    "validation": "تحقّق من البيانات المدخلة.",
+    "internal": "حدث خطأ غير متوقع. حاول مرة أخرى.",
+    "unauthorized": "انتهت الجلسة. سجّل الدخول من جديد.",
+    "forbidden": "لا تملك صلاحية تنفيذ هذا الإجراء.",
+    "accountInactive": "هذا الحساب غير مفعّل.",
+    "validationRequired": "هذا الحقل مطلوب.",
+    "validationInvalidNumber": "أدخل رقمًا صحيحًا.",
+    "validationOutOfRange": "هذا الرقم خارج النطاق المسموح به.",
+    "validationInvalidEmail": "أدخل بريدًا إلكترونيًا صحيحًا.",
+    "validationPasswordTooShort": "كلمة المرور يجب ألا تقل عن {min} أحرف.",
+    "productNotFound": "لا يوجد منتج بهذا الباركود أو الرمز.",
+    "variantNotFound": "هذا الخيار لم يعد موجودًا.",
+    "orderNotFound": "الفاتورة غير موجودة.",
+    "orderItemsRequired": "أضف قطعة واحدة على الأقل قبل إتمام البيع.",
+    "orderDiscountInvalid": "قيمة الخصم غير صحيحة.",
+    "orderInsufficientStock": "الكمية المطلوبة غير متوفرة في المخزون.",
+    "orderProductUnavailable": "أحد المنتجات لم يعد متاحًا للبيع.",
+    "orderVariantRequired": "اختر الخيار المطلوب قبل الإضافة.",
+    "validationInvalidPhone": "أدخل رقم هاتف صحيحًا.",
+    "orderCustomerRequired": "أدخل اسم الزبون ورقم هاتفه.",
+    "orderLocationInvalid": "الموقع غير صحيح. أدخل خط العرض وخط الطول معًا.",
+    "rateLimited": "حاولت عدة مرات خلال وقت قصير. انتظر قليلاً ثم أعد المحاولة."
+  },
+  "pwa": {
+    "version": {
+      "app": "التطبيق v{version}",
+      "api": "الخادم v{version}",
+      "copy": "نسخ رقمَي الإصدار",
+      "copied": "تم النسخ"
+    },
+    "update": {
+      "title": "يوجد إصدار جديد جاهز",
+      "description": "اضغط للحصول على أحدث إصدار. لن يستغرق الأمر سوى لحظة، ولن يضيع أي شيء محفوظ.",
+      "action": "التحديث الآن",
+      "updating": "جارٍ التحديث…"
+    }
+  }
+}

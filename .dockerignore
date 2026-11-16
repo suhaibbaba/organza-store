@@ -1,0 +1,12 @@
+# repo-root .dockerignore — build context now spans the whole repo (backend
+# needs the sibling shared/ package), so keep it from ballooning with junk
+# that no Dockerfile actually needs.
+.git
+**/node_modules
+**/dist
+**/.next
+**/uploads
+**/*.log
+.env
+.env.*
+!.env.example

@@ -1,7 +1,9 @@
 // ============================================================
-//  Organza Store — Prisma Schema (Phase 1: Products & Users)
+//  Organza Store — Prisma Schema
 //  Stack: PostgreSQL + Prisma + Node/Express + TypeScript
-//  Orders are intentionally NOT in this phase.
+//  Phase 1: Products, Variants, Categories, Users/Roles, Audit Log.
+//  Phase 2: Orders (see the ORDERS section at the bottom).
+//  The customer storefront is still a later phase.
 //
 //  i18n: translatable fields are stored as JSON with the shape
 //        { "ar": "...", "en": "...", "he": "..." }
@@ -11,13 +13,15 @@
 
 generator client {
   provider        = "prisma-client-js"
-  previewFeatures = ["postgresqlExtensions"]   // needed for pg_trgm fuzzy search
+  previewFeatures = ["postgresqlExtensions"]
+  // needed for pg_trgm fuzzy search
 }
 
 datasource db {
   provider   = "postgresql"
   url        = env("DATABASE_URL")
-  extensions = [pg_trgm]                        // fuzzy / typo-tolerant search (free, built into Postgres)
+  extensions = [pg_trgm]
+  // fuzzy / typo-tolerant search (free, built into Postgres)
 }
 
 // ============================================================
@@ -25,9 +29,9 @@ datasource db {
 // ============================================================
 
 enum Role {
-  ADMIN      // full access to everything
-  MANAGER    // products, stock, orders — no users/settings
-  EMPLOYEE   // POS, add products, edit images, create+deliver orders only
+  ADMIN // full access to everything
+  MANAGER // products, stock, orders — no users/settings
+  EMPLOYEE // POS, add products, edit images, create+deliver orders only
 }
 
 // Auth is handled by Better Auth (separate central backend, serves admin/pos/
@@ -37,29 +41,49 @@ enum Role {
 // Password is NOT stored on User; Better Auth keeps it in Account.
 
 model User {
-  id            String   @id @default(cuid())
+  id            String  @id @default(cuid())
   name          String
-  email         String   @unique
-  emailVerified Boolean  @default(false)
+  email         String  @unique
+  emailVerified Boolean @default(false)
   image         String?
 
   // --- custom fields ---
-  role          Role     @default(EMPLOYEE)
-  phone         String   @unique            // E.164 as entered (+970/+972 NOT rewritten); required; contact-only, not login
-  whatsapp      String?  @unique             // E.164 as entered; optional
-  idNumber      String?                      // SENSITIVE: Admin-only; never returned by API to others
-  isActive      Boolean  @default(true)
+  role     Role    @default(EMPLOYEE)
+  phone    String  @unique // E.164 as entered (+970/+972 NOT rewritten); required; contact-only, not login
+  whatsapp String? @unique // E.164 as entered; optional
+  idNumber String? // SENSITIVE: Admin-only; never returned by API to others
+  isActive Boolean @default(true)
 
-  accounts  Account[]
-  sessions  Session[]
+  accounts            Account[]
+  sessions            Session[]
+  passwordSetupTokens PasswordSetupToken[]
 
-  createdProducts Product[]  @relation("ProductCreatedBy")
-  auditLogs       AuditLog[]
+  createdProducts   Product[]          @relation("ProductCreatedBy")
+  createdOrders     Order[]            @relation("OrderCreatedBy")
+  auditLogs         AuditLog[]
+  pushSubscriptions PushSubscription[]
+
+  createdExpenses  Expense[] @relation("ExpenseCreatedBy")
+  approvedExpenses Expense[] @relation("ExpenseApprovedBy")
+
+  requestedChanges ChangeRequest[] @relation("ChangeRequestRequestedBy")
+  decidedChanges   ChangeRequest[] @relation("ChangeRequestDecidedBy")
+
+  // Permission grants this account last flipped. Nothing here blocks a hard
+  // delete that would otherwise be allowed: every one of these edits also
+  // writes an audit entry, and an account with audit history is refused
+  // deletion long before this relation is reached (lib/userHistory.ts).
+  updatedRolePermissions RolePermission[]
+
+  openedCashSessions    CashSession[] @relation("CashSessionOpenedBy")
+  closedCashSessions    CashSession[] @relation("CashSessionClosedBy")
+  resolvedCashFollowUps CashSession[] @relation("CashSessionFollowUpBy")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([role])
+  @@map("user")
 }
 
 // --- Better Auth companion tables (generated/verified via its CLI) ---
@@ -76,6 +100,7 @@ model Session {
   updatedAt DateTime @updatedAt
 
   @@index([userId])
+  @@map("session")
 }
 
 model Account {
@@ -83,18 +108,19 @@ model Account {
   userId                String
   user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   accountId             String
-  providerId            String              // "credential" for email/phone + password
-  password              String?             // hashed by Better Auth (not bcrypt in seed)
+  providerId            String // "credential" for email/phone + password
+  password              String? // hashed by Better Auth (not bcrypt in seed)
   accessToken           String?
   refreshToken          String?
   idToken               String?
   accessTokenExpiresAt  DateTime?
   refreshTokenExpiresAt DateTime?
   scope                 String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
 
   @@index([userId])
+  @@map("account")
 }
 
 model Verification {
@@ -106,6 +132,107 @@ model Verification {
   updatedAt  DateTime @updatedAt
 
   @@index([identifier])
+  @@map("verification")
+}
+
+// --- Password set / reset by email ---
+//
+// A staff account is created with no password; the person who owns the
+// mailbox picks one from a single-use, time-limited link. The same row type
+// serves a forgotten password, so the two differ only in what the email says.
+//
+// Deliberately OUR table rather than Better Auth's `verification`: the flow
+// is admin-provisioned (no public sign-up, no self-service email change), and
+// keeping it here means the audit trail, the purpose and the revocation rules
+// are ours to state rather than a plugin's to imply.
+
+enum PasswordSetupPurpose {
+  SET // a brand-new account choosing its first password
+  RESET // an existing account replacing a forgotten one
+}
+
+model PasswordSetupToken {
+  id String @id @default(cuid())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // SHA-256 of the token that was emailed. The token itself is never stored
+  // and never logged: a database dump (or a stray log line) must not hand
+  // anybody a working link. Unique so a lookup is one indexed read.
+  tokenHash String @unique
+
+  purpose PasswordSetupPurpose
+
+  expiresAt DateTime
+  // Set the moment the link is redeemed — the single-use gate. Written by a
+  // conditional update (usedAt IS NULL), so two simultaneous redemptions can
+  // never both succeed.
+  usedAt    DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+// ============================================================
+//  BOOTSTRAP RECORD
+// ============================================================
+// What the essential-data bootstrap has already created, one row per item
+// (`variantValue:color:red`, `expenseCategory:utilities`, ...).
+//
+// This is what makes `npm run bootstrap` safe to run on every deploy without
+// it becoming a resurrection machine: the shop deleting a default colour, or
+// retiring a default expense category, is a decision — and a bootstrap that
+// simply upserts "what should exist" would undo that decision on the next
+// push. A marker is written when an item is first created and never removed,
+// so each default is created exactly once in the life of the database, while
+// a NEW default added in a later release still lands.
+model BootstrapRecord {
+  key       String   @id
+  appliedAt DateTime @default(now())
+}
+
+// ============================================================
+//  ROLE PERMISSIONS (spec.md "Editable role permissions")
+// ============================================================
+//
+// The CONFIGURABLE half of the rules — which actions a role holds — moved out
+// of the code and into here, so the shop can decide for itself whether its
+// Employees handle stock or its Managers print the labels. The PROTECTED half
+// (cost and profit, undoing a sale, marking money collected, signing changes
+// off, managing staff, and editing this very table) is NOT here and never
+// will be: it lives in shared/src/constants/permissions.ts, `can()` answers it
+// from there alone, and there is deliberately no row anyone could write to
+// move it. A row for a protected action is refused by the API and ignored by
+// `can()` even if one is inserted by hand.
+//
+// One row per (role, action), toggled rather than deleted:
+//   - `granted` is the decision. A MISSING row is not "no" — it is "nobody has
+//     decided", and falls back to DEFAULT_ROLE_PERMISSIONS, which is what
+//     makes an action added in a later release behave as shipped on a database
+//     bootstrapped before it existed.
+//   - and a row that is toggled rather than deleted keeps the table small and
+//     fixed, which is what lets a second API process ask "have the rules
+//     changed?" with one cheap digest query instead of re-reading the whole
+//     table on every request (see backend/src/lib/permissionConfig.ts).
+model RolePermission {
+  role   Role
+  action String // a PermissionAction — shared/src/constants/permissions.ts
+
+  granted Boolean
+
+  // Who last flipped it. Nullable because the bootstrap seeds this table with
+  // the shipped defaults and no person did that; every later change names one,
+  // and is in the audit log besides (CLAUDE.md rule 6).
+  updatedById String?
+  updatedBy   User?   @relation(fields: [updatedById], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@id([role, action])
 }
 
 // ============================================================
@@ -113,20 +240,36 @@ model Verification {
 // ============================================================
 
 model Category {
-  id        String   @id @default(cuid())
-  name      Json                          // translatable { ar, en, he }
-  slug      String   @unique              // from default-language name
+  id   String @id @default(cuid())
+  name Json // translatable { ar, en, he }
+  slug String @unique // from default-language name
 
-  parentId  String?
-  parent    Category?  @relation("CategoryTree", fields: [parentId], references: [id])
-  children  Category[] @relation("CategoryTree")
+  parentId String?
+  parent   Category?  @relation("CategoryTree", fields: [parentId], references: [id])
+  children Category[] @relation("CategoryTree")
 
-  products  Product[]
+  products Product[]
+
+  // Pinned to the top of the POS product browser's sidebar (spec.md "POS
+  // product browser"). Flagged by hand from the admin's category screen and
+  // kept here rather than in each till's local storage, so the shelves a
+  // cashier reaches for first are the same on the counter laptop and on
+  // every phone.
+  isFavorite Boolean @default(false)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([parentId])
+  @@index([isFavorite])
+}
+
+// Where a piece's barcode came from. GENERATED = the EAN-13 this system
+// minted and prints on a label; SUPPLIER = the code the garment already
+// arrived carrying, typed or scanned in (shared/constants/barcode.ts).
+enum BarcodeSource {
+  GENERATED
+  SUPPLIER
 }
 
 // ============================================================
@@ -134,51 +277,138 @@ model Category {
 // ============================================================
 
 model Product {
-  id            String   @id @default(cuid())
+  id String @id @default(cuid())
 
   // stable sequential number used to build the SKU (ORG-00042)
-  productNumber Int      @unique @default(autoincrement())
+  productNumber Int @unique @default(autoincrement())
 
-  name          Json                        // translatable { ar, en, he }
-  slug          String   @unique            // auto-generated from default-language name
-  description   Json?                        // translatable, optional
+  name        Json // translatable { ar, en, he }
+  slug        String @unique // auto-generated from default-language name
+  description Json? // translatable, optional
 
   // Normalized concatenation of ALL language names+descriptions, used for
   // cross-language + typo-tolerant search. Rebuilt whenever name/description change.
-  searchText    String   @default("")
+  searchText String @default("")
 
-  categoryId    String
-  category      Category @relation(fields: [categoryId], references: [id])
+  // Nullable ONLY because of quick sell (spec.md "Quick sell"): a piece rung
+  // up at the counter before it was ever entered has no shelf chosen for it
+  // yet, and refusing the sale until somebody picks one is exactly what quick
+  // sell exists to avoid. Every product created the ordinary way still
+  // requires a category — the create/update schemas demand one — so a null
+  // here means "sold first, not filed yet" and nothing else. It is what
+  // `needsCompleting` is built from, and why such a product is listed on its
+  // own screen: a category filter cannot find it.
+  categoryId String?
+  // Restrict, explicitly: an optional relation defaults to SetNull in
+  // Prisma, and that would let deleting a category quietly turn filed
+  // products into unfiled ones. Deleting a category that still holds
+  // products stays refused (routes/categories.ts), exactly as before.
+  category   Category? @relation(fields: [categoryId], references: [id], onDelete: Restrict)
 
   // --- pricing (parent-level, variants may override) ---
   basePrice      Decimal  @db.Decimal(10, 2)
-  compareAtPrice Decimal? @db.Decimal(10, 2)   // "was" price for discounts
-  cost           Decimal? @db.Decimal(10, 2)   // purchase cost (for profit calc)
+  compareAtPrice Decimal? @db.Decimal(10, 2) // "was" price for discounts
+  cost           Decimal? @db.Decimal(10, 2) // purchase cost (for profit calc)
 
   // --- fields used ONLY when the product has NO variants (simple product) ---
-  sku      String? @unique       // frozen at creation; editable; ORG-00042
-  barcode  String? @unique
-  stock    Int     @default(1)
+  sku   String? @unique // frozen at creation; editable; ORG-00042
+  stock Int     @default(1)
+
+  // The barcode, which — unlike sku/stock — a product WITH variants may also
+  // carry: many suppliers print ONE code for every size, and the shop sticks
+  // that on the parent instead of printing a label per variant. Scanning it in
+  // the POS opens the variant picker rather than selling anything
+  // (PRODUCT_LOOKUP_KIND.VARIANT_SELECTION).
+  barcode          String?       @unique
+  // Ours or the supplier's (CLAUDE.md rule 13 + shared/constants/barcode.ts).
+  // Stored, never inferred from the code: a supplier's EAN-13 looks exactly
+  // like one of ours, and this is what decides whether a label is owed.
+  barcodeSource    BarcodeSource @default(GENERATED)
+  // The EAN-13 we minted, parked here while a supplier code is in use so that
+  // switching back restores the code any label already printed carries,
+  // instead of minting a third one and stranding those labels. Not unique —
+  // it is a memory, not an identity — so it is re-checked for availability
+  // before it goes back into `barcode`.
+  generatedBarcode String?
 
   // --- status & soft delete ---
-  isActive  Boolean   @default(true)   // published / hidden  (role-gated)
-  deletedAt DateTime?                  // soft delete         (role-gated)
+  isActive  Boolean   @default(true) // published / hidden  (role-gated)
+  deletedAt DateTime? // soft delete         (role-gated)
+
+  // Opt-in low-stock alerts. Most products are one-off pieces with stock = 1,
+  // so alerting on all of them is pure noise — only products flagged here are
+  // measured against Setting.lowStockThreshold (inventory low-stock filter +
+  // dashboard count). Off by default.
+  trackLowStock Boolean @default(false)
+
+  // Numbered product (spec.md "Numbered shawls"): one photo with numbers drawn
+  // on it, each number a purchasable piece with its own stock/price. An
+  // explicit choice made when the product is added — never inferred from the
+  // variant types it happens to use — because it decides what the product form
+  // shows and which variant types the API accepts: only Number when true,
+  // never Number when false. Off by default.
+  isNumbered Boolean @default(false)
+
+  // The colour of the numbers drawn on a numbered product's photo, and of the
+  // badge behind them (spec.md "Numbered shawls"). ONE pair for all of the
+  // product's points, never one per point. Hex, e.g. "#FFFFFF".
+  //
+  // Null means "follow the photo": the numbers take the automatic suggestion
+  // read from the primary image's brightness, so a black abaya gets white
+  // markers and a cream scarf dark ones without anybody choosing. A colour
+  // stored here is a choice the shop made, and it deliberately OUTLIVES the
+  // photograph — replacing the image re-measures the suggestion but never
+  // overwrites what was chosen.
+  pointTextColor       String?
+  pointBackgroundColor String?
+
+  // --- quick sell (spec.md "Quick sell") -------------------------------
+  // Three facts, never a status column (CLAUDE.md rule 21): what waits on
+  // this product is a ChangeRequest like any other gated change, and these
+  // only record what has already happened to it.
+  //
+  // When it was sold across the counter before it existed in the catalogue.
+  // Null on every ordinary product, and the thing that makes this one
+  // deliberately incomplete rather than broken: no category, no cost, no
+  // photographs, by design.
+  quickSoldAt DateTime?
+  // When a reviewer finished its details and it became an ordinary catalogue
+  // item. From here on nothing about it is special.
+  completedAt DateTime?
+  // ...or when a reviewer decided it never was a catalogue item — a one-off
+  // that will not come back. The SALE is untouched either way: money changed
+  // hands, and the order lines are snapshots (spec.md "Price & cost
+  // snapshots"). A one-off is soft-deleted alongside this stamp, so it leaves
+  // the catalogue without taking its sale with it.
+  oneOffAt DateTime?
+
+  // When this product's barcode labels were last sent to the printer.
+  // Null = never printed, which is what the "still to print" work queue
+  // filters on. Reprinting only moves the timestamp forward — it is a record,
+  // never a lock (a label falls off, a piece comes back, the roll jams).
+  labelsPrintedAt DateTime?
 
   // --- relations ---
-  images       ProductImage[]
-  variants     Variant[]
-  variantTypes ProductVariantType[]
+  images           ProductImage[]
+  variants         Variant[]
+  variantTypes     ProductVariantType[]
+  optionValueNotes ProductOptionValueNote[]
+  orderItems       OrderItem[]
 
   createdById String?
-  createdBy   User?    @relation("ProductCreatedBy", fields: [createdById], references: [id])
+  createdBy   User?   @relation("ProductCreatedBy", fields: [createdById], references: [id])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  // GIN trigram index powering fuzzy / typo-tolerant search on searchText
   @@index([categoryId])
   @@index([isActive])
   @@index([deletedAt])
-  // GIN trigram index powering fuzzy / typo-tolerant search on searchText
+  @@index([labelsPrintedAt])
+  // The "needs completing" screen: quick-sold, not yet completed, not yet
+  // ruled a one-off.
+  @@index([quickSoldAt])
   @@index([searchText(ops: raw("gin_trgm_ops"))], type: Gin)
 }
 
@@ -187,26 +417,37 @@ model Product {
 // ============================================================
 
 model Variant {
-  id            String  @id @default(cuid())
+  id String @id @default(cuid())
 
-  productId     String
-  product       Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   // sequential number within the product, used for SKU suffix (ORG-00042-1)
   variantNumber Int
 
-  name          Json                         // translatable; auto-suggested, editable
-  sku           String  @unique              // frozen at creation; editable
-  barcode       String? @unique
+  name Json // translatable; auto-suggested, editable
+  sku  String @unique // frozen at creation; editable
 
-  priceOverride Decimal? @db.Decimal(10, 2)  // null => falls back to product.basePrice
-  cost          Decimal? @db.Decimal(10, 2)  // null => falls back to product.cost
+  // Per variant, and independent of the parent's: one size can carry the
+  // supplier's own tag while the next still uses ours. See Product.barcode.
+  barcode          String?       @unique
+  barcodeSource    BarcodeSource @default(GENERATED)
+  generatedBarcode String?
+
+  priceOverride Decimal? @db.Decimal(10, 2) // null => falls back to product.basePrice
+  cost          Decimal? @db.Decimal(10, 2) // null => falls back to product.cost
   stock         Int      @default(1)
 
-  isActive      Boolean  @default(true)
+  // Numbered shawls (spec.md): point on the product image, percentage 0-100.
+  // Null for ordinary (non-numbered) variants.
+  imageX Float?
+  imageY Float?
 
-  images ProductImage[]                       // optional; empty => falls back to product images
-  values VariantValue[]                       // references to global option values
+  isActive Boolean @default(true)
+
+  images     ProductImage[] // optional; empty => falls back to product images
+  values     VariantValue[] // references to global option values
+  orderItems OrderItem[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -223,52 +464,86 @@ model Variant {
 // ============================================================
 
 model VariantType {
-  id        String   @id @default(cuid())
-  name      Json                            // translatable display { ar, en, he }
-  slug      String   @unique                // stable identifier: "color", "size", "number"
+  id   String @id @default(cuid())
+  name Json // translatable display { ar, en, he }
+  slug String @unique // stable identifier: "color", "size", "number"
 
-  values    VariantOptionValue[]
-  products  ProductVariantType[]
+  values   VariantOptionValue[]
+  products ProductVariantType[]
 
   createdAt DateTime @default(now())
 }
 
 model VariantOptionValue {
-  id            String      @id @default(cuid())
+  id String @id @default(cuid())
 
   variantTypeId String
   variantType   VariantType @relation(fields: [variantTypeId], references: [id], onDelete: Cascade)
 
-  value         Json                         // translatable display { ar, en, he }
-  key           String                       // stable normalized identifier (default-lang, normalized)
-  sortOrder     Int         @default(0)
+  value     Json // translatable display { ar, en, he }
+  key       String // stable normalized identifier (default-lang, normalized)
+  sortOrder Int    @default(0)
 
   variantValues VariantValue[]
+  productNotes  ProductOptionValueNote[]
 
-  createdAt     DateTime @default(now())
+  createdAt DateTime @default(now())
 
-  @@unique([variantTypeId, key])   // no duplicate value within a type (by stable key)
+  // no duplicate value within a type (by stable key)
+  @@unique([variantTypeId, key])
   @@index([variantTypeId])
 }
 
 // --- join: which variant types a product uses ---
+
 model ProductVariantType {
   productId     String
   variantTypeId String
 
-  product       Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
-  variantType   VariantType @relation(fields: [variantTypeId], references: [id])
+  product     Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
+  variantType VariantType @relation(fields: [variantTypeId], references: [id])
 
   @@id([productId, variantTypeId])
 }
 
+// --- join: what one option value MEANS on one product ---
+//
+// "S" is not the same garment measurement on a pair of trousers as on an
+// abaya, so the shop writes "طول البنطلون ٩٥ سم" against THAT product's own S
+// (spec.md "Notes on a product's options"). The note therefore hangs off the
+// product's USE of the value and never off the global value, which is shared
+// by the whole catalogue — writing one here can never change what another
+// product's S says.
+//
+// The value is still referenced by id (CLAUDE.md rule 2): renaming "S"
+// centrally renames it everywhere and leaves every note where it was.
+model ProductOptionValueNote {
+  productId     String
+  optionValueId String
+
+  product     Product            @relation(fields: [productId], references: [id], onDelete: Cascade)
+  optionValue VariantOptionValue @relation(fields: [optionValueId], references: [id], onDelete: Cascade)
+
+  // Translatable { ar, en, he } like all user-facing content (CLAUDE.md rule
+  // 9), missing languages falling back to the default. Never blank: an empty
+  // note is stored by deleting the row, so "has a note" is one question.
+  note Json
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@id([productId, optionValueId])
+  @@index([optionValueId])
+}
+
 // --- join: variant <-> option value (reference by ID, not copied text) ---
+
 model VariantValue {
   variantId     String
   optionValueId String
 
-  variant       Variant            @relation(fields: [variantId], references: [id], onDelete: Cascade)
-  optionValue   VariantOptionValue @relation(fields: [optionValueId], references: [id])
+  variant     Variant            @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  optionValue VariantOptionValue @relation(fields: [optionValueId], references: [id])
 
   @@id([variantId, optionValueId])
   @@index([optionValueId])
@@ -279,10 +554,39 @@ model VariantValue {
 // ============================================================
 
 model ProductImage {
-  id        String   @id @default(cuid())
-  url       String
-  sortOrder Int      @default(0)     // drag-to-reorder; lowest = primary
-  isPrimary Boolean  @default(false)
+  id String @id @default(cuid())
+
+  // shared base name on disk for all size variants (<filename>-thumbnail/-medium/-full.webp);
+  // kept so the files can be removed together on delete
+  filename     String
+  url          String // full size — product page
+  mediumUrl    String // medium — POS
+  thumbnailUrl String // thumbnail — list views
+
+  // The photograph EXACTLY as it was uploaded, untouched — same bytes, same
+  // format (see IMAGE_ORIGINAL_SUFFIX). Kept so a crop can be reconsidered
+  // months later without asking the shop to photograph the piece again: the
+  // three sizes above are cut from this, never from each other. Null for
+  // every image stored before the editor existed; those can still be
+  // reordered, made primary and deleted, they simply cannot be re-cropped.
+  originalFilename String?
+  originalUrl      String?
+
+  // What the shop chose in the editor — the crop rectangle as fractions of
+  // the turned frame, the quarter turn, the mirrors (shared's ImageEdit).
+  // Null when the photo was uploaded without opening the editor, which is
+  // a supported way to add one. Stored so re-opening the editor starts where
+  // the last person left off rather than from the whole frame again.
+  edit Json?
+
+  sortOrder Int     @default(0) // drag-to-reorder; lowest = primary
+  isPrimary Boolean @default(false)
+
+  // Perceived brightness of the photograph, 0-100, measured by sharp at
+  // upload. Read only to SUGGEST the colour of a numbered shawl's numbers
+  // (spec.md) — a dark photo gets light markers. Null for images uploaded
+  // before this was recorded; those simply keep the shipped marker.
+  brightness Float?
 
   productId String?
   product   Product? @relation(fields: [productId], references: [id], onDelete: Cascade)
@@ -308,25 +612,577 @@ enum AuditAction {
   HIDE
   STOCK_CHANGE
   PRICE_CHANGE
+  // Orders: kept distinct from UPDATE because "who cancelled this sale" and
+  // "who took it back" are exactly the questions the audit log exists to
+  // answer (spec.md "Security rationale").
+  STATUS_CHANGE
+  CANCEL
+  RETURN
+  // Recording that the delivery company has paid for an order. Distinct from
+  // STATUS_CHANGE because "who said this money arrived" is its own question.
+  PAYMENT_COLLECTED
+  // The cash drawer. "Who counted the till, and what did they say was in it"
+  // is the single most audit-worthy action in the shop, so opening and
+  // closing a session are their own actions rather than CREATE/UPDATE.
+  CASH_SESSION_OPENED
+  CASH_SESSION_CLOSED
+  // Signing off (or turning down) a change somebody asked for — an expense
+  // they recorded, a price they want changed, a photo they want gone.
+  APPROVE
+  REJECT
+  // Asking for a change you may not make yourself (spec.md "Employee change
+  // approvals"). Its own action rather than CREATE: "who wanted this price"
+  // and "who agreed to it" are two different questions, and both have to be
+  // answerable from the trail.
+  REQUEST
+  // A newer request replacing an older pending one for the same field —
+  // recorded so the value somebody first asked for is still in the trail
+  // even though the request row itself now carries the newer one.
+  SUPERSEDE
+  // Removing somebody from the shop, and putting them back.
+  //
+  // Their own actions rather than an UPDATE carrying an isActive flip, for
+  // the same reason PUBLISH/HIDE are not UPDATE on a product: "who removed
+  // whom, and when" is a question somebody will one day ask of the trail
+  // directly, and it should be answerable by filtering rather than by
+  // opening every staff edit and diffing two JSON blobs.
+  //
+  // Note which kind of removal these describe: DEACTIVATED is the ordinary
+  // one, where the person can no longer sign in and every record still names
+  // them. Erasing an account outright is a DELETE, and only ever possible for
+  // one that never did anything (see backend/src/lib/userHistory.ts).
+  USER_DEACTIVATED
+  USER_REACTIVATED
+  // Handing a role an action, or taking it back (spec.md "Editable role
+  // permissions"). Their own actions rather than an UPDATE on a settings-ish
+  // row, for the same reason the two above are not: "who let the Employees
+  // adjust stock, and when" is a question that has to be answerable by
+  // filtering the trail, not by opening every edit and diffing two blobs.
+  //
+  // Only ever written for a CONFIGURABLE action. A protected one cannot be
+  // granted or revoked at all, so there is nothing here to record.
+  PERMISSION_GRANTED
+  PERMISSION_REVOKED
 }
 
 model AuditLog {
-  id         String      @id @default(cuid())
+  id String @id @default(cuid())
 
-  userId     String
-  user       User        @relation(fields: [userId], references: [id])
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
 
   action     AuditAction
-  entityType String                       // "Product", "Variant", "Stock", ...
+  entityType String // "Product", "Variant", "Stock", ...
   entityId   String
   oldValue   Json?
   newValue   Json?
 
-  createdAt  DateTime    @default(now())
+  createdAt DateTime @default(now())
 
   @@index([userId])
   @@index([entityType, entityId])
   @@index([createdAt])
+}
+
+// ============================================================
+//  CHANGE REQUESTS (spec.md "Employee change approvals")
+//
+//  One table for every gated change in the shop. A request is
+//  (entityType, entityId, field, old value, requested value) plus who asked
+//  and who decided — it names no product, no expense and no image, which is
+//  what lets a new entity be gated later by adding an applier on the backend
+//  instead of another approvalStatus column on another table.
+//
+//  The expense approval that used to live on Expense.approvalStatus /
+//  approvedBy is one of these now (field = "approvalStatus"); the columns
+//  over there survive as the APPLIED state, written by the approval, exactly
+//  like Product.basePrice is the applied state of a price request.
+// ============================================================
+
+enum ChangeRequestStatus {
+  PENDING // waiting on an Admin
+  APPROVED // applied, atomically, at the moment of approval
+  REJECTED // discarded; the entity was never touched
+}
+
+model ChangeRequest {
+  id String @id @default(cuid())
+
+  // What is being changed. entityType matches the AUDIT_ENTITY vocabulary
+  // (backend/src/constants/audit.ts) so "what was this about" reads the same
+  // whether you are looking at a request or at the audit trail. `field` is
+  // usually a column name, but not always: "variantSet" means which variants
+  // a product has, and "deletion" means the image itself.
+  entityType String
+  entityId   String
+  field      String
+
+  // "<entityType>:<entityId>:<field>" WHILE PENDING, null once decided.
+  //
+  // This is superseding, enforced by the database rather than by convention:
+  // Postgres treats nulls as distinct in a unique index, so any number of
+  // decided rows may share a target while at most one pending row ever can.
+  // A newer request for the same field therefore cannot queue up behind the
+  // old one — it replaces it in place (see lib/changeRequests.ts).
+  pendingKey String? @unique
+
+  // What is stored now, and what is being asked for. Both are
+  // { kind, value, detail? } — data with a rendering hint, never a sentence
+  // (CLAUDE.md rule 12); the frontends do the wording through t().
+  oldValue Json?
+  newValue Json?
+
+  // Snapshots taken when the request is filed, so the approval screen can say
+  // WHICH piece is being re-priced without a second round trip — and so a
+  // request still reads correctly if its subject has since been deleted.
+  // Never what the change is applied to: that is always the triple above.
+  entityLabel  Json? // translatable name { ar, en, he }
+  entityDetail String? // a SKU, an amount — data, not prose
+  // The owning PRODUCT's name, snapshotted the same way.
+  //
+  // Not a duplicate of entityLabel: on a variant they are different things.
+  // The ENTITY is the combination ("1", "أحمر / M"), which on its own told an
+  // Admin nothing about which piece they were being asked to re-price — the
+  // card read "كمية الخيار · 1 · ORG-00089-1" and the only way to know what
+  // that was was to decode the SKU. So the piece is named here and the
+  // combination stays beneath it. Null where there is no product behind the
+  // request at all, which today means an expense.
+  productLabel Json?
+  // Stored alongside rather than looked up: a name is what the requester was
+  // looking at when they asked, the product may since have been renamed or
+  // soft-deleted, and an approvals screen must not need a second query per
+  // card to say what it is about.
+  //
+  // Deep-link target for the admin screen. A plain column, not a relation:
+  // the product may be soft-deleted by the time anyone looks.
+  productId    String?
+
+  status ChangeRequestStatus @default(PENDING)
+
+  requestedById String
+  requestedBy   User     @relation("ChangeRequestRequestedBy", fields: [requestedById], references: [id])
+  // Moves forward when a newer request supersedes this row in place, so
+  // "asked for 40 minutes ago" always describes the value actually shown.
+  requestedAt   DateTime @default(now())
+
+  decidedById  String?
+  decidedBy    User?     @relation("ChangeRequestDecidedBy", fields: [decidedById], references: [id])
+  decidedAt    DateTime?
+  decisionNote String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // The approval screen: pending first, newest first.
+  @@index([status, requestedAt])
+  // "What is waiting on this product/variant/image", which is what every
+  // product response attaches so an Employee sees their edit waiting.
+  @@index([entityType, entityId, status])
+  @@index([productId, status])
+  @@index([requestedById])
+}
+
+// ============================================================
+//  WEB PUSH SUBSCRIPTIONS
+//  One row per device an Admin has opted in on (the Web Push standard —
+//  free, no paid service). The three fields the standard defines (endpoint +
+//  the two keys) are exactly what the browser hands us; nothing is invented
+//  here. A subscription is a device, not a person: the same phone can be
+//  handed to another member of staff, so the endpoint is unique on its own
+//  and re-subscribing moves it to whoever is signed in now.
+// ============================================================
+
+model PushSubscription {
+  id String @id @default(cuid())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // The push service's URL for this device. Globally unique — it IS the
+  // device's identity as far as the standard is concerned.
+  endpoint String @unique
+  // Public key + auth secret from the browser, used to encrypt the payload
+  // so the push service can carry it without being able to read it.
+  p256dh   String
+  auth     String
+
+  // Language this device asked for, so the notification is rendered in the
+  // language its owner actually reads (null => the store default). Only a
+  // preference, never an identity.
+  locale    String?
+  // Whatever the browser reported at opt-in, purely so a stale device can be
+  // recognised in the list ("iPhone", "Chrome on Android").
+  userAgent String?
+
+  // When a notification was last pushed at this device, and when the push
+  // service last accepted one. Kept apart because a device that is being
+  // written to but never accepting is exactly what a broken subscription
+  // looks like — and because a push that fails must stay invisible to the
+  // sale that triggered it (see lib/saleNotifications.ts).
+  lastAttemptAt DateTime?
+  lastSuccessAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+// ============================================================
+//  ORDERS (Phase 2)
+//  A sale, from either the POS counter or a remote channel.
+//  Money is ALWAYS computed on the server from the line snapshots below —
+//  no total is ever accepted from a client.
+// ============================================================
+
+enum OrderChannel {
+  STORE // POS sale at the counter — completes immediately
+  WHATSAPP // taken over WhatsApp
+  WEBSITE // placed on the storefront (Phase 3)
+}
+
+// What the order IS, as opposed to where it came from. A GIFT moves stock
+// through exactly the same machinery as a sale — same lines, same deduction,
+// same audit trail — but every line is priced at zero, because nothing was
+// charged. Deliberately NOT a fourth channel: a gift is still handed over at
+// the counter, so it already has one, and keeping the two axes apart is what
+// lets reporting drop gifts out of sales without also dropping the STORE
+// channel. See spec.md "Cash drawer & expenses" -> Gifts.
+enum OrderType {
+  SALE
+  GIFT
+}
+
+enum OrderStatus {
+  NEW // online order just taken; nothing committed yet
+  PREPARING // being picked/packed — stock is deducted on entering this state
+  HANDED_TO_COURIER // given to the delivery company — the shop's last step
+  COMPLETED // finished (STORE orders open here)
+  CANCELLED // voided; any deducted stock is put back
+  RETURNED // fully returned; stock restored (see OrderItem.returnedQuantity)
+}
+
+enum PaymentMethod {
+  CASH // only method for now; an enum so card/transfer slot in later
+}
+
+// Whether the money for a sale is in the shop's hands yet. A counter sale is
+// cash on the spot; a parcel handed to the delivery company is only paid for
+// when that company settles up, which can be weeks later. Keeping this apart
+// from OrderStatus is what makes the profit figures honest — see the
+// "Payment collection" section of spec.md.
+enum PaymentStatus {
+  PENDING_COLLECTION // sold, but the money is still with the delivery company
+  COLLECTED // the shop holds the money
+}
+
+enum DiscountType {
+  PERCENT // discountValue is 0-100
+  AMOUNT // discountValue is a fixed sum in the store currency
+}
+
+model Order {
+  id String @id @default(cuid())
+
+  // human-facing sequential number (receipts, phone conversations)
+  orderNumber Int @unique @default(autoincrement())
+
+  channel       OrderChannel
+  // SALE (money in) or GIFT (stock out, nothing charged). Defaults to SALE so
+  // every order written before gifts existed reads back as what it was.
+  type          OrderType     @default(SALE)
+  status        OrderStatus   @default(NEW)
+  paymentMethod PaymentMethod @default(CASH)
+
+  // --- payment collection (separate from the delivery flow above) ---
+  // Selling and being paid are two different moments here: a STORE sale is
+  // COLLECTED the instant it is rung up, while an online order stays
+  // PENDING_COLLECTION until an Admin/Manager records that the delivery
+  // company has handed the money over. collectedAt is when that happened.
+  paymentStatus PaymentStatus @default(PENDING_COLLECTION)
+  collectedAt   DateTime?
+
+  // --- customer snapshot (required for WHATSAPP/WEBSITE, unused for STORE) ---
+  // Copied onto the order rather than referenced: a delivery address or a
+  // phone number that changes later must not rewrite a past sale. Phone
+  // numbers are stored exactly as entered in E.164 (CLAUDE.md rule 18).
+  customerName      String?
+  customerPhone     String?
+  customerWhatsapp  String?
+  customerAddress   String?
+  // Optional map pin dropped alongside the written address (WGS84 degrees),
+  // so a driver can navigate to a place that has no street address. Float
+  // rather than Decimal — these aren't money; same convention as
+  // Variant.imageX/imageY.
+  customerLatitude  Float?
+  customerLongitude Float?
+  note              String?
+
+  // --- money (all server-computed) ---
+  // subtotal       = sum of the item lineTotals (item discounts already applied)
+  // discountAmount = the order-level discount resolved against that subtotal
+  // total          = subtotal - discountAmount
+  subtotal       Decimal       @db.Decimal(10, 2)
+  discountType   DiscountType?
+  discountValue  Decimal?      @db.Decimal(10, 2)
+  discountAmount Decimal       @default(0) @db.Decimal(10, 2)
+  total          Decimal       @db.Decimal(10, 2)
+
+  // Does this sale contain something that was quick-sold — rung up before it
+  // existed in the catalogue (spec.md "Quick sell")? Stored rather than
+  // derived from the lines: it is a fact about the sale that must stay true
+  // once the product has been completed, ruled a one-off or removed, and the
+  // orders list filters on it without joining every line's product.
+  hasQuickSale Boolean @default(false)
+
+  // Set the moment stock is taken off the shelf for this order (creation for
+  // STORE, the move to PREPARING for online). Its presence is what makes
+  // deduction idempotent — stock is never deducted twice for one order.
+  stockDeductedAt DateTime?
+
+  // Soft delete (role-gated, Admin/Manager). A sale is a financial record, so
+  // deleting one hides it everywhere rather than destroying it — the row, its
+  // lines and the audit trail all survive. Any stock still committed goes back
+  // on the shelf at the same time.
+  deletedAt DateTime?
+
+  items OrderItem[]
+
+  createdById String
+  createdBy   User   @relation("OrderCreatedBy", fields: [createdById], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([channel])
+  // Every sales figure filters on this (gifts are excluded from all of them),
+  // and the gift-cost aggregate selects on it.
+  @@index([type])
+  // The cash drawer asks "what cash reached the till on this day", which is
+  // a window over collectedAt rather than over createdAt.
+  @@index([collectedAt])
+  // Powers the outstanding-money view, which is a list of every order the
+  // delivery company still owes for.
+  @@index([paymentStatus])
+  @@index([createdAt])
+  @@index([createdById])
+  @@index([deletedAt])
+  // "Which sales still need reviewing after the season" (spec.md "Quick sell").
+  @@index([hasQuickSale])
+}
+
+model OrderItem {
+  id String @id @default(cuid())
+
+  orderId String
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  // Link back to the live catalogue, kept nullable on purpose: the snapshot
+  // fields below are the record of what was sold, so a variant that is later
+  // removed leaves the sale intact.
+  productId String?
+  product   Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  variantId String?
+  variant   Variant? @relation(fields: [variantId], references: [id], onDelete: SetNull)
+
+  // --- snapshots frozen at creation ---
+  name        Json // product name, translatable { ar, en, he }
+  variantName Json? // variant label ("أحمر / M"), null for simple products
+  sku         String?
+  unitPrice   Decimal  @db.Decimal(10, 2) // resolved price (variant override or parent base)
+  unitCost    Decimal? @db.Decimal(10, 2) // resolved cost — SENSITIVE, Admin only
+
+  quantity Int
+
+  // This line is a piece that was quick-sold: typed at the counter with a
+  // name and a price and nothing else (spec.md "Quick sell"). A snapshot like
+  // every other field here, so the line still says how it was sold after its
+  // product has been completed, ruled a one-off or removed.
+  quickSold Boolean @default(false)
+
+  // Item-level discount, applied to this line before the order-level one.
+  discountType   DiscountType?
+  discountValue  Decimal?      @db.Decimal(10, 2)
+  discountAmount Decimal       @default(0) @db.Decimal(10, 2)
+  lineTotal      Decimal       @db.Decimal(10, 2) // unitPrice * quantity - discountAmount
+
+  // How much of this line has come back. Partial returns leave the order's
+  // status alone; once every line is fully returned the order becomes RETURNED.
+  returnedQuantity Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([orderId])
+  @@index([productId])
+  @@index([variantId])
+}
+
+// ============================================================
+//  EXPENSES (what the shop spends)
+//  The other half of the profit sum: orders say what came in, these say
+//  what went out. See spec.md "Cash drawer & expenses".
+// ============================================================
+
+// Anyone may RECORD an expense — whoever pays the electricity bill should be
+// able to write it down there and then — but an Employee's record is a
+// request, not a payout: it opens PENDING and buys nothing until an
+// Admin/Manager signs it off. Only APPROVED expenses move the cash drawer or
+// the profit figures. Same anti-theft reasoning as cancel/delete and
+// "mark collected".
+enum ExpenseApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+// The shop's own list, seeded with utilities/salaries/supplies/maintenance/
+// delivery and extendable from the admin. A row rather than an enum
+// precisely because it is the shop's to change — and identity is the stable
+// `key`, never the translated name (CLAUDE.md rule 9), so renaming
+// "Supplies" in three languages can never orphan an expense.
+model ExpenseCategory {
+  id   String @id @default(cuid())
+  key  String @unique // stable identifier: "utilities", "salaries", ...
+  name Json // translatable { ar, en, he }
+
+  // Retired rather than deleted once expenses reference it: the past has to
+  // keep making sense, so it drops out of the picker and stays on the record.
+  isActive  Boolean @default(true)
+  sortOrder Int     @default(0)
+
+  expenses Expense[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isActive])
+}
+
+model Expense {
+  id String @id @default(cuid())
+
+  categoryId String
+  category   ExpenseCategory @relation(fields: [categoryId], references: [id])
+
+  amount Decimal @db.Decimal(10, 2) // money — never a Float (CLAUDE.md)
+
+  // When the money was actually spent, NOT when the row was written: a bill
+  // paid on the 30th and entered on the 2nd belongs to the 30th, both for
+  // the drawer and for the month's figures.
+  date DateTime @default(now())
+
+  note String?
+
+  // Did it come out of the till? Only a cash expense moves the drawer; a
+  // transfer is just as real a cost, but the drawer never held that money.
+  paidInCash Boolean @default(true)
+
+  // A standing cost (rent, salaries, the internet) as opposed to a one-off
+  // (a new mannequin). A label only — nothing is generated automatically —
+  // so that "what do we pay every month" is answerable at all.
+  isRecurring Boolean @default(false)
+
+  approvalStatus ExpenseApprovalStatus @default(APPROVED)
+  approvedById   String?
+  approvedBy     User?                 @relation("ExpenseApprovedBy", fields: [approvedById], references: [id])
+  approvedAt     DateTime?
+
+  createdById String
+  createdBy   User   @relation("ExpenseCreatedBy", fields: [createdById], references: [id])
+
+  // Soft delete, like an order: an expense is a financial record, so it is
+  // hidden rather than destroyed.
+  deletedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([categoryId])
+  @@index([date])
+  @@index([approvalStatus])
+  @@index([createdById])
+  @@index([deletedAt])
+  // The drawer's "cash out today" query: approved, in cash, dated in the day.
+  @@index([paidInCash, approvalStatus, date])
+}
+
+// ============================================================
+//  CASH DRAWER (one session per trading day)
+//
+//    expected   = openingFloat + cashSales - cashExpenses
+//    difference = countedAmount - expected
+//    next day's openingFloat = countedAmount - withdrawnAmount
+//
+//  A difference NEVER blocks the close. The money in the drawer is a fact,
+//  and a system that refuses to record it only teaches people to fudge the
+//  count — so it is always saved, always needs a note, and can be carried
+//  to the next day as a follow-up. See spec.md "Cash drawer & expenses".
+// ============================================================
+
+enum CashSessionStatus {
+  OPEN // the day is running; the figures below move with every sale
+  CLOSED // counted and signed off; the figures are frozen as they stood
+}
+
+model CashSession {
+  id String @id @default(cuid())
+
+  // The trading day, as a local calendar date. One drawer per day.
+  date DateTime @unique @db.Date
+
+  // Minutes to ADD to UTC that turn `date` into the window this session
+  // actually covers. Frozen at open, so every later read of that day
+  // resolves the same boundaries no matter who asks or from where — the same
+  // offset convention the reports use, but stored rather than re-supplied.
+  tzOffset Int @default(0)
+
+  status CashSessionStatus @default(OPEN)
+
+  // What was in the drawer when the day started — normally the previous
+  // day's remainder, carried over automatically.
+  openingFloat Decimal @db.Decimal(10, 2)
+
+  // Computed live while the session is OPEN and frozen onto the row at
+  // close, so a past day always reads back exactly as it was signed off: a
+  // later return, or an expense backdated into that day, can never quietly
+  // rewrite yesterday's count.
+  cashSales      Decimal? @db.Decimal(10, 2)
+  cashExpenses   Decimal? @db.Decimal(10, 2)
+  expectedAmount Decimal? @db.Decimal(10, 2)
+
+  // --- the close ---
+  countedAmount   Decimal? @db.Decimal(10, 2) // what was physically counted
+  withdrawnAmount Decimal  @default(0) @db.Decimal(10, 2) // banked / handed over
+  difference      Decimal? @db.Decimal(10, 2) // counted - expected (negative = short)
+  closingBalance  Decimal? @db.Decimal(10, 2) // counted - withdrawn => tomorrow's float
+  note            String?
+
+  // A difference the shop chose to keep on the list until someone works out
+  // what happened. The money itself needs no moving — the next day opens on
+  // what was COUNTED, so the drawer already tells the truth — this is purely
+  // the reminder that a day did not add up.
+  differenceCarried    Boolean   @default(false)
+  followUpResolvedAt   DateTime?
+  followUpResolvedById String?
+  followUpResolvedBy   User?     @relation("CashSessionFollowUpBy", fields: [followUpResolvedById], references: [id])
+
+  openedById String
+  openedBy   User    @relation("CashSessionOpenedBy", fields: [openedById], references: [id])
+  closedById String?
+  closedBy   User?   @relation("CashSessionClosedBy", fields: [closedById], references: [id])
+
+  openedAt DateTime  @default(now())
+  closedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([date])
+  // The follow-up list: carried differences nobody has signed off yet.
+  @@index([differenceCarried, followUpResolvedAt])
 }
 
 // ============================================================
@@ -335,14 +1191,114 @@ model AuditLog {
 //  so multi-currency can be added later without restructuring.
 // ============================================================
 
+// How barcode labels come out of the printer. THERMAL = one label per page,
+// the page IS the label (roll printers). A4_GRID = a grid of labels on an
+// ordinary sheet of sticker paper.
+enum LabelPrintMode {
+  THERMAL
+  A4_GRID
+}
+
+// When the Admins are told about a sale someone else made. Only EVERY_SALE
+// is implemented today; the other two are declared now so that adding them
+// later is a new branch in lib/saleNotifications.ts rather than a migration
+// plus a settings redesign. shared/src/constants/push.ts is the single list
+// of which of these the API currently accepts.
+enum SaleNotificationMode {
+  EVERY_SALE // one notification per sale
+  ABOVE_AMOUNT // only sales worth at least saleNotificationMinAmount (later)
+  PERIODIC_SUMMARY // one digest every so often instead of per sale (later)
+}
+
 model Setting {
-  id                 String   @id @default("default")   // singleton row
-  storeName          Json                                // translatable { ar, en, he }
-  defaultLanguage    String   @default("ar")             // configurable
+  id                 String   @id @default("default") // singleton row
+  storeName          Json // translatable { ar, en, he }
+  defaultLanguage    String   @default("ar") // configurable
   supportedLanguages String[] @default(["ar", "en", "he"])
-  currency           String   @default("ILS")            // room for multi-currency later
-  defaultCountryCode String   @default("+970")           // default phone prefix (المقدمة)
+  currency           String   @default("ILS") // room for multi-currency later
+  defaultCountryCode String   @default("+970") // default phone prefix (المقدمة)
   lowStockThreshold  Int      @default(3)
 
-  updatedAt          DateTime @updatedAt
+  // --- barcode-label printing (Admin-only to edit, readable by all staff) ---
+  // The shop buys whatever label printer it can get, so the sheet is
+  // described here rather than assumed anywhere in code. All dimensions are
+  // in millimetres; Float rather than Decimal because these are measurements,
+  // not money (CLAUDE.md: Decimal is for money). The defaults mirror
+  // shared/src/constants/label.ts — keep the two in step.
+  labelPrintMode          LabelPrintMode @default(THERMAL)
+  labelWidthMm            Float          @default(50)
+  labelHeightMm           Float          @default(30)
+  // Grid + page geometry, read in A4_GRID mode only but kept in either so
+  // switching modes doesn't lose the sheet the shop actually owns.
+  labelColumns            Int            @default(3)
+  labelRows               Int            @default(8)
+  labelPageMarginTopMm    Float          @default(10)
+  labelPageMarginRightMm  Float          @default(8)
+  labelPageMarginBottomMm Float          @default(10)
+  labelPageMarginLeftMm   Float          @default(8)
+  labelGapXMm             Float          @default(3)
+  labelGapYMm             Float          @default(3)
+
+  // --- sale notifications (Web Push to the Admins; Admin-only to edit) ---
+  // The shop owner is not at the counter all day, so a sale rung up by a
+  // Manager or an Employee is pushed to whichever Admin devices have opted
+  // in. The toggle is the master switch; the mode says *which* sales are
+  // worth a notification. minAmount is only read by ABOVE_AMOUNT, but is
+  // stored in either mode so switching back and forth doesn't lose the
+  // figure the shop chose. Decimal because it is money (CLAUDE.md).
+  saleNotificationsEnabled  Boolean              @default(true)
+  saleNotificationMode      SaleNotificationMode @default(EVERY_SALE)
+  saleNotificationMinAmount Decimal              @default(0) @db.Decimal(10, 2)
+
+  updatedAt DateTime @updatedAt
+}
+
+// ============================================================
+//  BACKUP RUNS (the off-site copy — ops/backup.sh)
+// ============================================================
+
+enum BackupRunStatus {
+  SUCCEEDED
+  FAILED
+}
+
+// One row per run of `ops/backup.sh`, written by `npm run backup:record`.
+//
+// The backup itself lives in Cloudflare R2 and needs nothing from this table
+// to be restored — this is the noticeboard, not the backup. It exists because
+// the way a backup actually kills a shop is not failing loudly, it is
+// stopping quietly: a cron entry dropped during a server move, a rotated key
+// nobody re-pasted, and then six weeks later somebody needs a dump that was
+// never taken. A failed run reports to Sentry AND lands here; a schedule that
+// stopped firing reports nothing at all, which is why /health serves the last
+// success and the API re-checks its age on a timer (src/lib/backups.ts).
+//
+// Kept to the last BACKUP_RUN_HISTORY_LIMIT rows, trimmed on write.
+model BackupRun {
+  id String @id @default(cuid())
+
+  status     BackupRunStatus
+  startedAt  DateTime
+  finishedAt DateTime        @default(now())
+
+  // Which bucket the copies went to, so a restore knows where to look and a
+  // run against the wrong destination is visible. Never a credential.
+  destination String?
+
+  // What the run produced, for the "is it still growing sensibly?" question.
+  // Bytes rather than a formatted size: formatting is the reader's job.
+  databaseBytes BigInt?
+  imageCount    Int?
+  imageBytes    BigInt?
+
+  // Failures only: which stage broke (BACKUP_STAGE) and what it said. The
+  // message is the script's own stderr, trimmed — operator text, never shown
+  // to staff, so it needs no translation.
+  failedStage String?
+  error       String?
+
+  // The dashboard question is always "when did it last work", so the index
+  // that answers it carries the status too.
+  @@index([status, finishedAt])
+  @@index([finishedAt])
 }
