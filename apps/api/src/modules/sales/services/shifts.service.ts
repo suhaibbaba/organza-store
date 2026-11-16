@@ -637,7 +637,12 @@ export class ShiftsService {
       signedOffAt: s.signedOffAt?.toISOString() ?? null,
       signOffNote: s.signOffNote,
       float,
-      reconciliation: counted ? await this.reconcile(this.db, id) : null,
+      reconciliation: s.imported
+        ? legacyReconciliation(s.legacy as LegacyCashSession | null)
+        : counted
+          ? await this.reconcile(this.db, id)
+          : null,
+      imported: s.imported,
       totals: {
         sales: saleTotals?.count ?? 0,
         salesTotal: counted ? addMoney(saleTotals?.total ?? '0') : null,
@@ -798,4 +803,35 @@ export class ShiftsService {
     if (shift.openedBy !== actor.id && !roleCan(actor.role, capability))
       throw forbidden(SALES_ERRORS.SHIFT_NOT_YOURS, 'Only the person who opened it or a manager');
   }
+}
+
+/** The old system's cash session figures, kept on an imported shift. */
+export interface LegacyCashSession {
+  currency: string;
+  openingFloat: string;
+  cashSales: string | null;
+  cashExpenses: string | null;
+  expected: string | null;
+  counted: string | null;
+  withdrawn: string;
+  difference: string | null;
+}
+
+/** An imported shift shows the figures the old system froze, not a recalculation. */
+function legacyReconciliation(legacy: LegacyCashSession | null): CurrencyReconciliation[] | null {
+  if (!legacy) return null;
+  const lines: ExpectedLine[] = [{ kind: 'OPENING_FLOAT', amount: legacy.openingFloat, count: 1 }];
+  if (legacy.cashSales !== null)
+    lines.push({ kind: 'CASH_SALES', amount: legacy.cashSales, count: 0 });
+  if (legacy.cashExpenses !== null && Number(legacy.cashExpenses) !== 0)
+    lines.push({ kind: 'EXPENSES', amount: legacy.cashExpenses, count: 0 });
+  return [
+    {
+      currency: legacy.currency,
+      expected: legacy.expected ?? legacy.openingFloat,
+      counted: legacy.counted,
+      difference: legacy.difference,
+      lines,
+    },
+  ];
 }

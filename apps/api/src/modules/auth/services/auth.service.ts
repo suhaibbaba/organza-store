@@ -63,20 +63,40 @@ export class AuthService {
       await this.throttle.recordFailure(key);
       throw invalidLogin();
     }
-    if (!(await this.passwords.verify(user.passwordHash, password)) || !user.isActive) {
+    const legacy = user.legacyPasswordHash
+      ? await this.passwords.verifyLegacy(user.legacyPasswordHash, password)
+      : false;
+
+    if (!(legacy || (await this.passwords.verify(user.passwordHash, password))) || !user.isActive) {
       await this.throttle.recordFailure(key);
       throw invalidLogin();
     }
+
     await this.throttle.clear(key);
-    await inTransaction(this.db, (tx) =>
-      this.audit.record(tx, {
+
+    const rehashed = legacy ? await this.passwords.hash(password) : null;
+    await inTransaction(this.db, async (tx) => {
+      if (rehashed) {
+        // The old system's hash is used once, then replaced: nobody has to reset a password.
+        await tx
+          .update(users)
+          .set({ passwordHash: rehashed, legacyPasswordHash: null })
+          .where(eq(users.id, user.id));
+        await this.audit.record(tx, {
+          userId: user.id,
+          action: 'PASSWORD_REHASHED',
+          entity: 'user',
+          entityId: user.id,
+        });
+      }
+      await this.audit.record(tx, {
         userId: user.id,
         action: 'LOGIN',
         entity: 'user',
         entityId: user.id,
         newValue: { client },
-      }),
-    );
+      });
+    });
     return this.startSession(user, persistent, client);
   }
 

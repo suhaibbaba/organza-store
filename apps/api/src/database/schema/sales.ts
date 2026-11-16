@@ -94,6 +94,10 @@ export const shifts = pgTable(
     signedOffBy: uuid('signed_off_by').references(() => users.id),
     signedOffAt: timestamp('signed_off_at', { withTimezone: true }),
     signOffNote: text('sign_off_note'),
+    /** Imported from the old system: read-only history, figures as the old system froze them. */
+    imported: boolean('imported').notNull().default(false),
+    /** The old cash session's own figures (opening, cash sales, expenses, counted, withdrawn). */
+    legacy: jsonb('legacy'),
   },
   (t) => [
     uniqueIndex('shifts_one_open_per_register')
@@ -301,6 +305,8 @@ export const payments = pgTable(
     takenAt: timestamp('taken_at', { withTimezone: true }).notNull().defaultNow(),
     reversesId: uuid('reverses_id').references((): AnyPgColumn => payments.id),
     reversedAt: timestamp('reversed_at', { withTimezone: true }),
+    /** Imported from the old system: history only, never posted to the ledger. */
+    imported: boolean('imported').notNull().default(false),
   },
   (t) => [
     index('payments_customer_idx').on(t.customerId, t.takenAt),

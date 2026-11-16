@@ -226,6 +226,8 @@ export interface ShiftView {
     byMethod: { method: PaymentMethod; amount: string }[];
   };
   movements: CashMovementView[];
+  /** History from the old system: read-only, figures as the old system froze them. */
+  imported: boolean;
 }
 
 export interface CashMovementView {

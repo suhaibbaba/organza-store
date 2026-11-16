@@ -87,6 +87,11 @@ export function ShiftPanel({ shift }: { shift: Shift }) {
                   {t('shifts.difference')}
                 </Badge>
               )}
+              {shift.imported && (
+                <Badge color="gray" variant="outline">
+                  {t('sales.imported')}
+                </Badge>
+              )}
               {shift.signedOffAt && (
                 <Badge color="teal" variant="light">
                   {t('shifts.signedOff')}
@@ -129,15 +134,18 @@ export function ShiftPanel({ shift }: { shift: Shift }) {
                 {t('shifts.close')}
               </Button>
             )}
-            {shift.status === 'CLOSED' && !shift.signedOffAt && can('shifts.signOff') && (
-              <Button
-                variant="light"
-                leftSection={<IconSignature size={16} />}
-                onClick={() => setDialog('signOff')}
-              >
-                {t('shifts.signOff')}
-              </Button>
-            )}
+            {shift.status === 'CLOSED' &&
+              !shift.signedOffAt &&
+              !shift.imported &&
+              can('shifts.signOff') && (
+                <Button
+                  variant="light"
+                  leftSection={<IconSignature size={16} />}
+                  onClick={() => setDialog('signOff')}
+                >
+                  {t('shifts.signOff')}
+                </Button>
+              )}
           </Group>
         </Group>
       </Card>

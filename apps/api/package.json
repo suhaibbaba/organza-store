@@ -11,7 +11,8 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "eslint src test",
     "test": "vitest run",
-    "import:catalogue": "node --env-file-if-exists=../../.env dist/migration/import-catalogue-cli.js"
+    "import:catalogue": "node --env-file-if-exists=../../.env dist/migration/import-catalogue-cli.js",
+    "import:history": "node --env-file-if-exists=../../.env dist/migration/import-history-cli.js"
   },
   "dependencies": {
     "@fastify/cookie": "^11.1.5",

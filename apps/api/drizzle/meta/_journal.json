@@ -78,6 +78,20 @@
       "when": 1794838862775,
       "tag": "0010_sales_payments_shifts_guards",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1794840365709,
+      "tag": "0011_imported_history",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1794840366082,
+      "tag": "0012_imported_history_guards",
+      "breakpoints": true
     }
   ]
 }
