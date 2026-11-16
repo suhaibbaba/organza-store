@@ -7,7 +7,8 @@ import classes from './sales.module.css';
  * The printed (or shared) receipt, 80 mm wide. Plain markup so it prints the same from every
  * browser; the Windows app sends the same data to the receipt printer as ESC/POS (phase 7).
  */
-export function Receipt({ data }: { data: ReceiptData }) {
+/** `gift`: the gift receipt, without prices or payments (proposal C11). */
+export function Receipt({ data, gift = false }: { data: ReceiptData; gift?: boolean }) {
   const { t, i18n } = useTranslation();
   const lang = i18n.language;
   const money = (v: string) => formatMoney(v, data.currency, lang);
@@ -25,7 +26,8 @@ export function Receipt({ data }: { data: ReceiptData }) {
         <span>{sale.number}</span>
         <span>{formatDateTime(sale.createdAt, lang)}</span>
       </div>
-      {sale.customer && <div>{sale.customer.name}</div>}
+      {gift && <div className={classes.receiptNote}>{t('sales.giftReceipt')}</div>}
+      {sale.customer && !gift && <div>{sale.customer.name}</div>}
       {sale.mode === 'HELD' && <div className={classes.receiptNote}>{t('sales.heldReceipt')}</div>}
       <table className={classes.receiptLines}>
         <tbody>
@@ -36,52 +38,64 @@ export function Receipt({ data }: { data: ReceiptData }) {
                 {l.variantLabel && (
                   <div className={classes.receiptSmall}>{localize(l.variantLabel, lang)}</div>
                 )}
-                {l.quantity > 1 && (
+                {gift && l.quantity > 1 && (
+                  <div className={classes.receiptSmall}>× {l.quantity}</div>
+                )}
+                {l.quantity > 1 && !gift && !l.giveaway && (
                   <div className={classes.receiptSmall}>
                     {l.quantity} × {money(l.unitPrice)}
                   </div>
                 )}
-                {Number(l.discount) > 0 && (
+                {Number(l.discount) > 0 && !gift && (
                   <div className={classes.receiptSmall}>
                     {t('sales.discount')} −{money(l.discount)}
                   </div>
                 )}
               </td>
-              <td className={classes.receiptAmount}>{money(l.lineTotal)}</td>
+              <td className={classes.receiptAmount}>
+                {gift ? '' : l.giveaway ? t('pos.giveaway') : money(l.lineTotal)}
+              </td>
             </tr>
           ))}
         </tbody>
       </table>
-      <div className={classes.receiptTotals}>
-        {Number(sale.discountTotal) > 0 && (
-          <Row label={t('sales.discount')} value={`−${money(sale.discountTotal)}`} />
-        )}
-        <Row label={t('sales.total')} value={money(sale.total)} strong />
-        {sale.payments
-          .filter((p) => p.purpose !== 'CHANGE')
-          .map((p) => (
+      {gift ? (
+        <div className={classes.receiptNote}>{t('sales.giftReceiptNote')}</div>
+      ) : (
+        <div className={classes.receiptTotals}>
+          {Number(sale.discountTotal) > 0 && (
+            <Row label={t('sales.discount')} value={`−${money(sale.discountTotal)}`} />
+          )}
+          <Row label={t('sales.total')} value={money(sale.total)} strong />
+          {sale.payments
+            .filter((p) => p.purpose !== 'CHANGE')
+            .map((p) => (
+              <Row
+                key={p.id}
+                label={t(`sales.method.${p.method}`)}
+                value={
+                  p.currency === data.currency
+                    ? money(p.amount)
+                    : `${formatMoney(p.amount, p.currency, lang)} (${money(p.amountDefault)})`
+                }
+              />
+            ))}
+          {Number(sale.change) > 0 && <Row label={t('sales.change')} value={money(sale.change)} />}
+          {Number(sale.creditKept) > 0 && (
+            <Row label={t('sales.creditKept')} value={money(sale.creditKept)} />
+          )}
+          {owes && <Row label={t('sales.remaining')} value={money(sale.owed)} strong />}
+          {balance !== null && balance !== 0 && (
             <Row
-              key={p.id}
-              label={t(`sales.method.${p.method}`)}
-              value={
-                p.currency === data.currency
-                  ? money(p.amount)
-                  : `${formatMoney(p.amount, p.currency, lang)} (${money(p.amountDefault)})`
-              }
+              label={balance > 0 ? t('sales.balanceOwed') : t('sales.balanceCredit')}
+              value={money(String(Math.abs(balance)))}
             />
-          ))}
-        {Number(sale.change) > 0 && <Row label={t('sales.change')} value={money(sale.change)} />}
-        {Number(sale.creditKept) > 0 && (
-          <Row label={t('sales.creditKept')} value={money(sale.creditKept)} />
-        )}
-        {owes && <Row label={t('sales.remaining')} value={money(sale.owed)} strong />}
-        {balance !== null && balance !== 0 && (
-          <Row
-            label={balance > 0 ? t('sales.balanceOwed') : t('sales.balanceCredit')}
-            value={money(String(Math.abs(balance)))}
-          />
-        )}
-      </div>
+          )}
+          {Number(sale.returnedTotal) > 0 && (
+            <Row label={t('sales.returnedTotal')} value={`−${money(sale.returnedTotal)}`} />
+          )}
+        </div>
+      )}
       {localize(shop.footer, lang) && (
         <div className={classes.receiptFoot}>{localize(shop.footer, lang)}</div>
       )}

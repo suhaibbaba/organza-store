@@ -1,5 +1,6 @@
 import {
   ActionIcon,
+  Alert,
   Anchor,
   Badge,
   Button,
@@ -30,7 +31,8 @@ import { Link, useNavigate, useParams } from 'react-router';
 import { useSession } from '@web/modules/auth/session';
 import { ErrorState, FullScreenLoader } from '@web/shared/components/StatusScreens';
 import { useErrorMessage } from '@web/shared/hooks/use-error-message';
-import { useProduct, useUpdateProduct } from './api';
+import { AskApprovalDialog } from '@web/modules/sales/AskApprovalDialog';
+import { useProduct, useReviewQuickSell, useUpdateProduct } from './api';
 import { StatusBadge, useLocalized, useMoney } from './components';
 import {
   AddBarcodeDialog,
@@ -50,6 +52,7 @@ type Dialog =
   | { kind: 'barcode'; item: ItemView | null }
   | { kind: 'item'; item: ItemView }
   | { kind: 'cost'; item: ItemView }
+  | { kind: 'askHide' }
   | null;
 
 export function ProductDetailPage() {
@@ -63,6 +66,7 @@ export function ProductDetailPage() {
   const phone = useMediaQuery('(max-width: 48em)');
   const query = useProduct(id);
   const update = useUpdateProduct();
+  const review = useReviewQuickSell();
   const [dialog, setDialog] = useState<Dialog>(null);
 
   if (query.isPending) return <FullScreenLoader />;
@@ -182,7 +186,7 @@ export function ProductDetailPage() {
               {t('labels.print')}
             </Button>
           )}
-          {!archived && (can('products.hide') || can('products.archive')) && (
+          {!archived && (can('products.hide') || can('products.archive') || editable) && (
             <Menu position="bottom-end">
               <Menu.Target>
                 <ActionIcon variant="default" size="lg" aria-label={t('common.more')}>
@@ -190,12 +194,14 @@ export function ProductDetailPage() {
                 </ActionIcon>
               </Menu.Target>
               <Menu.Dropdown>
-                {can('products.hide') && (
+                {(can('products.hide') || editable) && (
                   <Menu.Item
                     leftSection={
                       p.status === 'HIDDEN' ? <IconEye size={14} /> : <IconEyeOff size={14} />
                     }
-                    onClick={toggleHidden}
+                    onClick={() =>
+                      can('products.hide') ? toggleHidden() : setDialog({ kind: 'askHide' })
+                    }
                   >
                     {p.status === 'HIDDEN' ? t('catalogue.show') : t('catalogue.hide')}
                   </Menu.Item>
@@ -216,6 +222,49 @@ export function ProductDetailPage() {
       </Group>
 
       <Stack gap="md">
+        {p.quickSoldAt && !p.completedAt && !p.oneOffAt && (
+          <Alert color="orange" variant="light" title={t('catalogue.needsCompletion')}>
+            <Stack gap="xs">
+              <Text size="sm">{t('catalogue.quickSoldHint')}</Text>
+              {can('products.reviewQuickSell') && (
+                <Group gap="xs">
+                  <Button
+                    size="xs"
+                    disabled={!p.categoryId}
+                    loading={review.isPending}
+                    onClick={() =>
+                      review.mutate(
+                        { id: p.id, version: p.version, outcome: 'COMPLETED' },
+                        {
+                          onError: (e) =>
+                            notifications.show({ color: 'red', message: errorMessage(e) }),
+                        },
+                      )
+                    }
+                  >
+                    {t('catalogue.markCompleted')}
+                  </Button>
+                  <Button
+                    size="xs"
+                    variant="default"
+                    loading={review.isPending}
+                    onClick={() =>
+                      review.mutate(
+                        { id: p.id, version: p.version, outcome: 'ONE_OFF' },
+                        {
+                          onError: (e) =>
+                            notifications.show({ color: 'red', message: errorMessage(e) }),
+                        },
+                      )
+                    }
+                  >
+                    {t('catalogue.markOneOff')}
+                  </Button>
+                </Group>
+              )}
+            </Stack>
+          </Alert>
+        )}
         <Card withBorder>
           <ProductImages productId={p.id} images={p.images} />
           {p.type === 'NUMBERED' && p.images[0] && (
@@ -371,6 +420,16 @@ export function ProductDetailPage() {
           onClose={() => setDialog(null)}
         />
       )}
+      <AskApprovalDialog
+        opened={dialog?.kind === 'askHide'}
+        title={p.status === 'HIDDEN' ? t('catalogue.show') : t('catalogue.hide')}
+        request={{
+          kind: 'PRODUCT_HIDE',
+          productId: p.id,
+          status: p.status === 'HIDDEN' ? 'ACTIVE' : 'HIDDEN',
+        }}
+        onClose={() => setDialog(null)}
+      />
       {dialog?.kind === 'cost' && (
         <SetCostDialog product={p} item={dialog.item} onClose={() => setDialog(null)} />
       )}

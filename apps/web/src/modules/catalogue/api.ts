@@ -131,6 +131,16 @@ export const useCreateProduct = () =>
     (_i, o) => o.id,
   );
 
+export const useReviewQuickSell = () =>
+  useCatalogueMutation(
+    (input: { id: string; version: number; outcome: 'COMPLETED' | 'ONE_OFF' }) =>
+      api.post<ProductView>(`/products/${input.id}/quick-sell-review`, {
+        version: input.version,
+        outcome: input.outcome,
+      }),
+    (i) => i.id,
+  );
+
 export const useUpdateProduct = () =>
   useCatalogueMutation(
     (input: { id: string; body: UpdateProductInput }) =>

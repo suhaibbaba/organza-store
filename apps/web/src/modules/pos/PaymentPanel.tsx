@@ -170,7 +170,9 @@ export function PaymentPanel({
           quantity: l.quantity,
           unitPrice: l.unitPrice,
           discount: l.discount,
+          giveaway: l.giveaway ?? false,
         })),
+        giftReceipt: cart.cart.giftReceipt ?? false,
         cartDiscount: cart.cart.cartDiscount,
         payments: tenders.map((p) => ({
           method: p.method,

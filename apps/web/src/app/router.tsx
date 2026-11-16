@@ -15,7 +15,9 @@ import { CountDetailPage } from '@web/modules/stock/CountDetailPage';
 import { CountsPage } from '@web/modules/stock/CountsPage';
 import { StockPage } from '@web/modules/stock/StockPage';
 import { PosPage } from '@web/modules/pos/PosPage';
+import { ApprovalsPage } from '@web/modules/sales/ApprovalsPage';
 import { CustomerDetailPage } from '@web/modules/sales/CustomerDetailPage';
+import { ReturnPage } from '@web/modules/sales/ReturnPage';
 import { CustomersPage } from '@web/modules/sales/CustomersPage';
 import { SaleDetailPage } from '@web/modules/sales/SaleDetailPage';
 import { SalesPage } from '@web/modules/sales/SalesPage';
@@ -64,6 +66,8 @@ export const routes = [
           guarded('pos', 'sales.create', <PosPage />),
           guarded('sales', 'sales.view', <SalesPage />),
           guarded('sales/:id', 'sales.view', <SaleDetailPage />),
+          guarded('sales/:id/return', 'sales.return', <ReturnPage />),
+          guarded('approvals', 'approvals.request', <ApprovalsPage />),
           guarded('shift', 'shifts.operate', <MyShiftPage />),
           guarded('shifts', 'shifts.viewAll', <ShiftsPage />),
           guarded('shifts/:id', 'shifts.operate', <ShiftDetailPage />),

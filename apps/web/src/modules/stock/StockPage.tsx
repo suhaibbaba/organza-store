@@ -21,6 +21,7 @@ import { PageHeader } from '@web/shared/components/PageHeader';
 import { EmptyState, ErrorState, FullScreenLoader } from '@web/shared/components/StatusScreens';
 import { formatDateTime } from '@web/shared/lib/format';
 import { type StockFilters, useItemHistory, useStock } from './api';
+import { AskCorrectionDialog } from './AskCorrectionDialog';
 
 const PAGE_SIZE = 50;
 
@@ -34,7 +35,16 @@ export function StockPage() {
   const [filters, setFilters] = useState<StockFilters>({ page: 1 });
   const query = useStock({ ...filters, q: debounced, pageSize: PAGE_SIZE });
   const historyItem = params.get('item');
-  const openHistory = (itemId: string) => can('stock.history') && setParams({ item: itemId });
+  const [correcting, setCorrecting] = useState<{
+    itemId: string;
+    name: string;
+    onHand: number;
+  } | null>(null);
+  const openRow = (r: { itemId: string; onHand: number } & Parameters<typeof name>[0]) => {
+    if (can('stock.history')) setParams({ item: r.itemId });
+    else if (can('approvals.request'))
+      setCorrecting({ itemId: r.itemId, name: name(r), onHand: r.onHand });
+  };
   const name = (r: { name: Record<string, string | undefined>; options: string[] }) =>
     [localize(r.name, i18n.language), ...r.options].join(' · ');
 
@@ -69,7 +79,7 @@ export function StockPage() {
       {query.data && query.data.items.length > 0 && phone && (
         <Stack gap="xs">
           {query.data.items.map((r) => (
-            <Card key={r.itemId} withBorder padding="xs" onClick={() => openHistory(r.itemId)}>
+            <Card key={r.itemId} withBorder padding="xs" onClick={() => openRow(r)}>
               <Group justify="space-between" wrap="nowrap">
                 <Stack gap={0} style={{ minWidth: 0 }}>
                   <Text size="sm" fw={600} truncate>
@@ -105,11 +115,7 @@ export function StockPage() {
           </Table.Thead>
           <Table.Tbody>
             {query.data.items.map((r) => (
-              <Table.Tr
-                key={r.itemId}
-                onClick={() => openHistory(r.itemId)}
-                style={{ cursor: can('stock.history') ? 'pointer' : undefined }}
-              >
+              <Table.Tr key={r.itemId} onClick={() => openRow(r)} style={{ cursor: 'pointer' }}>
                 <Table.Td>{name(r)}</Table.Td>
                 <Table.Td dir="ltr" style={{ textAlign: 'start' }}>
                   {r.sku}
@@ -142,6 +148,11 @@ export function StockPage() {
         </Group>
       )}
       <HistoryDrawer itemId={historyItem} onClose={() => setParams({})} language={i18n.language} />
+      <AskCorrectionDialog
+        key={correcting?.itemId ?? 'none'}
+        item={correcting}
+        onClose={() => setCorrecting(null)}
+      />
     </>
   );
 }

@@ -10,6 +10,7 @@ import {
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import type { ProductView } from '@organza/shared';
+import { AskApprovalDialog } from '@web/modules/sales/AskApprovalDialog';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSession } from '@web/modules/auth/session';
@@ -43,6 +44,11 @@ export function ProductEditDrawer({
   const [textColor, setTextColor] = useState(product.pointTextColor ?? '#ffffff');
   const [bgColor, setBgColor] = useState(product.pointBackgroundColor ?? '#5b2a4d');
 
+  const [asking, setAsking] = useState(false);
+  // An employee may type a new price; it goes to a manager instead of being saved.
+  const priceNeedsApproval =
+    !can('products.editPrice') && isMoney(price) && price !== product.price;
+
   const save = () => {
     if (!name.ar?.trim() || !isMoney(price) || (compareAt && !isMoney(compareAt))) {
       notifications.show({ color: 'red', message: t('errors.VALIDATION') });
@@ -68,7 +74,8 @@ export function ProductEditDrawer({
       {
         onSuccess: () => {
           notifications.show({ color: 'green', message: t('common.saved') });
-          onClose();
+          if (priceNeedsApproval) setAsking(true);
+          else onClose();
         },
         onError: (e) => notifications.show({ color: 'red', message: errorMessage(e) }),
       },
@@ -97,7 +104,7 @@ export function ProductEditDrawer({
             label={t('catalogue.price')}
             value={price}
             onChange={setPrice}
-            disabled={!can('products.editPrice')}
+            description={priceNeedsApproval ? t('approvals.priceGoesToManager') : undefined}
           />
           <MoneyInput label={t('catalogue.compareAt')} value={compareAt} onChange={setCompareAt} />
         </SimpleGrid>
@@ -141,6 +148,15 @@ export function ProductEditDrawer({
           </Button>
         </Group>
       </Stack>
+      <AskApprovalDialog
+        opened={asking}
+        title={t('approvals.kind.PRICE_CHANGE')}
+        request={{ kind: 'PRICE_CHANGE', target: 'product', id: product.id, price }}
+        onClose={() => {
+          setAsking(false);
+          onClose();
+        }}
+      />
     </Drawer>
   );
 }

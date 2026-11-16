@@ -1,5 +1,10 @@
 import type {
+  ApprovalRequestInput,
+  ApprovalView,
   CheckoutInput,
+  CreateReturnInput,
+  ReturnView,
+  VoidSaleInput,
   CustomerInput,
   CustomerView,
   PaymentInput,
@@ -193,6 +198,8 @@ function useMoneyInvalidation() {
       'stock',
       'products',
       'product',
+      'approvals',
+      'return',
     ])
       void client.invalidateQueries({ queryKey: [key] });
   };
@@ -309,6 +316,72 @@ export function useSaleActions() {
           idempotencyKey: newIdempotencyKey(),
         });
       },
+      onSuccess: refresh,
+    }),
+  };
+}
+
+export const useReturn = (id: string | null | undefined) =>
+  useQuery({
+    queryKey: ['return', id],
+    queryFn: () => api.get<ReturnView>(`/sales/returns/${id}`),
+    enabled: Boolean(id),
+  });
+
+/** Returns, exchanges and voids; each call carries its own idempotency key from the caller. */
+export function useReturnActions() {
+  const refresh = useMoneyInvalidation();
+  return {
+    create: useMutation({
+      mutationFn: (body: CreateReturnInput) => api.post<ReturnView>('/sales/returns', body),
+      onSuccess: refresh,
+    }),
+    voidSale: useMutation({
+      mutationFn: ({ saleId, ...body }: VoidSaleInput & { saleId: string }) =>
+        api.post<ReturnView>(`/sales/${saleId}/void`, body),
+      onSuccess: refresh,
+    }),
+  };
+}
+
+export interface ApprovalPage {
+  items: ApprovalView[];
+  total: number;
+  page: number;
+  pageSize: number;
+  pending: number;
+}
+
+export const useApprovals = (f: { status?: string; page?: number }, poll = false) =>
+  useQuery({
+    queryKey: ['approvals', f],
+    queryFn: () => {
+      const q = new URLSearchParams({ page: String(f.page ?? 1), pageSize: '30' });
+      if (f.status) q.set('status', f.status);
+      return api.get<ApprovalPage>(`/approvals?${q.toString()}`);
+    },
+    refetchInterval: poll ? 60_000 : false,
+  });
+
+export function useApprovalActions() {
+  const refresh = useMoneyInvalidation();
+  return {
+    request: useMutation({
+      mutationFn: (body: ApprovalRequestInput) => api.post<ApprovalView>('/approvals', body),
+      onSuccess: refresh,
+    }),
+    approve: useMutation({
+      mutationFn: ({ id, note }: { id: string; note?: string }) =>
+        api.post<ApprovalView>(`/approvals/${id}/approve`, { note }),
+      onSuccess: refresh,
+    }),
+    reject: useMutation({
+      mutationFn: ({ id, note }: { id: string; note: string }) =>
+        api.post<ApprovalView>(`/approvals/${id}/reject`, { note }),
+      onSuccess: refresh,
+    }),
+    cancel: useMutation({
+      mutationFn: (id: string) => api.post<ApprovalView>(`/approvals/${id}/cancel`, {}),
       onSuccess: refresh,
     }),
   };

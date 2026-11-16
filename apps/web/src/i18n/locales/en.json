@@ -46,7 +46,8 @@
     "sales": "Sales",
     "shift": "My shift",
     "shifts": "Shifts",
-    "pos": "Point of sale"
+    "pos": "Point of sale",
+    "approvals": "Approvals"
   },
   "roles": {
     "ADMIN": "Admin",
@@ -163,7 +164,23 @@
     "REFUND_METHOD_REQUIRED": "Choose how to refund",
     "REFUND_NEEDS_MANAGER": "A refund this large needs a manager",
     "KEEP_DEPOSIT_NEEDS_MANAGER": "Only a manager can keep a deposit",
-    "EXPENSE_NEEDS_APPROVAL": "An expense this large needs a manager"
+    "EXPENSE_NEEDS_APPROVAL": "An expense this large needs a manager",
+    "SALE_NOT_RETURNABLE": "Nothing can be returned on this sale",
+    "RETURN_TOO_MANY": "More than is left to return",
+    "RETURN_LINE_UNKNOWN": "That item is not on this sale",
+    "NOTHING_TO_RETURN": "Nothing left to return",
+    "IMPORTED_SALE_UNPAID": "This old-system sale is not settled yet",
+    "VOID_NEEDS_MANAGER": "Voiding a sale needs a manager",
+    "GIVEAWAY_NEEDS_MANAGER": "Giveaways need a manager",
+    "GIVEAWAY_NOT_HELD": "A giveaway is handed over at once, not held",
+    "APPROVAL_NOT_PENDING": "This request was already decided",
+    "APPROVAL_OWN_REQUEST": "You cannot decide your own request",
+    "APPROVAL_NOT_YOURS": "Only the person who asked can withdraw it",
+    "APPROVAL_ALREADY_PENDING": "A request for this is already waiting",
+    "APPROVAL_STALE": "Things changed since this was asked; reject it and ask again",
+    "APPROVAL_NOTHING_TO_ASK": "Nothing would change",
+    "PRODUCT_NOT_AWAITING_REVIEW": "This product is not waiting for review",
+    "CATEGORY_REQUIRED": "Choose a category first"
   },
   "languages": {
     "ar": "العربية",
@@ -284,7 +301,10 @@
     "optionTypes": "Options",
     "newOptionType": "New option",
     "optionKey": "Key (English letters)",
-    "numberTypeHint": "Numbers are set on numbered products."
+    "numberTypeHint": "Numbers are set on numbered products.",
+    "quickSoldHint": "Sold at the till as a quick sell. Add a category (and cost and photo if you have them), then mark it complete, or keep it as a one-off.",
+    "markCompleted": "Mark complete",
+    "markOneOff": "Keep as one-off"
   },
   "labels": {
     "title": "Labels",
@@ -365,7 +385,12 @@
       "MOVE_TO_DAMAGED": "Moved to damaged",
       "WRITE_OFF_DAMAGED": "Damaged thrown away",
       "REVERSAL": "Reversal"
-    }
+    },
+    "askCorrection": "Ask for a stock correction",
+    "reasonLabel": "Reason",
+    "countedOnShelf": "Counted on the shelf",
+    "howMany": "How many?",
+    "recorded": "Recorded: {{count}}"
   },
   "settings": {
     "title": "Settings",
@@ -462,7 +487,11 @@
       "PRICE": "The price changed; check it",
       "NOT_SELLABLE": "Cannot be sold"
     },
-    "closeCountedFirst": "Close the counted shift on this till before opening a new one."
+    "closeCountedFirst": "Close the counted shift on this till before opening a new one.",
+    "giveaway": "Giveaway",
+    "quickSell": "Quick sell",
+    "quickSellName": "What is it?",
+    "addToCart": "Add to cart"
   },
   "sales": {
     "acknowledgeOwed": "Hand over anyway; the customer still owes",
@@ -528,7 +557,12 @@
       "REPAYMENT": "Repayment",
       "CHANGE": "Change given",
       "REFUND": "Refund"
-    }
+    },
+    "giftReceipt": "Gift receipt",
+    "giftReceiptNote": "This gift can be exchanged with this receipt.",
+    "returnedTotal": "Returned",
+    "giftPurchase": "Gift purchase",
+    "appliedHere": "{{amount}} on this sale"
   },
   "customers": {
     "address": "Address",
@@ -653,5 +687,75 @@
       "DROPS": "Cash out",
       "EXPENSES": "Expenses"
     }
+  },
+  "returns": {
+    "title": "Return or exchange {{number}}",
+    "whatComesBack": "What is coming back?",
+    "leftToReturn": "{{count}} left to return",
+    "condition": {
+      "SHELF": "Back to shelf",
+      "DAMAGED": "Damaged"
+    },
+    "exchangeFor": "Exchange for new items",
+    "addItems": "Add items",
+    "value": "Value returned",
+    "debtCleared": "Taken off the debt",
+    "newGoods": "New items",
+    "customerPays": "Customer pays the difference",
+    "addToDebt": "Add to debt",
+    "backToCustomer": "Back to the customer",
+    "storeCredit": "Store credit",
+    "defaultMethodHint": "By default it goes back the way the sale was paid",
+    "completeExchange": "Complete exchange",
+    "complete": "Complete return",
+    "done": "{{number}} done",
+    "returnOrExchange": "Return / exchange",
+    "void": "Void sale",
+    "voidHint": "Everything not yet returned goes back on the shelf; what was paid is refunded or kept as credit.",
+    "voided": "Sale voided",
+    "paidBack": "Paid: {{amount}}",
+    "exchangeOf": "Exchanged from",
+    "returnedCount": "{{count}} returned",
+    "list": "Returns",
+    "kind": {
+      "RETURN": "Return",
+      "EXCHANGE": "Exchange",
+      "VOID": "Void"
+    },
+    "approvedBy": "approved by {{name}}",
+    "toExchange": "Towards sale {{number}}",
+    "refunded": "Refunded"
+  },
+  "approvals": {
+    "sent": "Sent to a manager",
+    "askHint": "Send it as it is; it happens when a manager approves.",
+    "ask": "Ask a manager",
+    "needsManager": "This needs a manager’s approval.",
+    "managerHint": "Requests from staff waiting for you. You cannot approve your own.",
+    "mineHint": "Your requests and what a manager decided.",
+    "status": {
+      "PENDING": "Waiting",
+      "APPROVED": "Approved",
+      "REJECTED": "Rejected",
+      "CANCELLED": "Withdrawn"
+    },
+    "kind": {
+      "PRICE_CHANGE": "Price change",
+      "STOCK_ADJUSTMENT": "Stock correction",
+      "PRODUCT_HIDE": "Hide or show a product",
+      "IMAGE_DELETE": "Delete a photo",
+      "REFUND": "Large refund",
+      "VOID": "Void a sale"
+    },
+    "approve": "Approve",
+    "reject": "Reject",
+    "cancel": "Withdraw",
+    "approved": "Approved and done",
+    "rejected": "Request rejected",
+    "cancelled": "Request withdrawn",
+    "rejectNote": "Why? The person who asked will see it",
+    "productPrice": "product price",
+    "reasonForManager": "Reason (the manager reads it)",
+    "priceGoesToManager": "The new price goes to a manager for approval"
   }
 }

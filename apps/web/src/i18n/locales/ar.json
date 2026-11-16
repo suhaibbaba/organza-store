@@ -46,7 +46,8 @@
     "sales": "المبيعات",
     "shift": "ورديتي",
     "shifts": "الورديات",
-    "pos": "نقطة البيع"
+    "pos": "نقطة البيع",
+    "approvals": "الموافقات"
   },
   "roles": {
     "ADMIN": "مدير النظام",
@@ -163,7 +164,23 @@
     "REFUND_METHOD_REQUIRED": "اختر طريقة الاسترجاع",
     "REFUND_NEEDS_MANAGER": "استرجاع بهذا الحجم يحتاج إلى مدير",
     "KEEP_DEPOSIT_NEEDS_MANAGER": "فقط المدير يحتفظ بالعربون",
-    "EXPENSE_NEEDS_APPROVAL": "مصروف بهذا الحجم يحتاج إلى مدير"
+    "EXPENSE_NEEDS_APPROVAL": "مصروف بهذا الحجم يحتاج إلى مدير",
+    "SALE_NOT_RETURNABLE": "لا يمكن الإرجاع على هذا البيع",
+    "RETURN_TOO_MANY": "أكثر مما بقي للإرجاع",
+    "RETURN_LINE_UNKNOWN": "هذه القطعة ليست من هذا البيع",
+    "NOTHING_TO_RETURN": "لم يبق شيء للإرجاع",
+    "IMPORTED_SALE_UNPAID": "هذا البيع من النظام القديم غير مسدد بعد",
+    "VOID_NEEDS_MANAGER": "إلغاء البيع يحتاج مديرًا",
+    "GIVEAWAY_NEEDS_MANAGER": "الهدايا المجانية للمدير فقط",
+    "GIVEAWAY_NOT_HELD": "الهدية المجانية تُسلَّم فورًا ولا تُحجز",
+    "APPROVAL_NOT_PENDING": "هذا الطلب حُسم مسبقًا",
+    "APPROVAL_OWN_REQUEST": "لا يمكنك الموافقة على طلبك",
+    "APPROVAL_NOT_YOURS": "فقط صاحب الطلب يمكنه سحبه",
+    "APPROVAL_ALREADY_PENDING": "يوجد طلب ينتظر لهذا مسبقًا",
+    "APPROVAL_STALE": "تغيّر الوضع منذ الطلب؛ ارفضه واطلب من جديد",
+    "APPROVAL_NOTHING_TO_ASK": "لا شيء يتغير",
+    "PRODUCT_NOT_AWAITING_REVIEW": "هذا المنتج لا ينتظر المراجعة",
+    "CATEGORY_REQUIRED": "اختر فئة أولًا"
   },
   "languages": {
     "ar": "العربية",
@@ -284,7 +301,10 @@
     "optionTypes": "الخيارات",
     "newOptionType": "خيار جديد",
     "optionKey": "المفتاح (أحرف إنجليزية)",
-    "numberTypeHint": "تُحدد الأرقام في المنتجات المرقّمة."
+    "numberTypeHint": "تُحدد الأرقام في المنتجات المرقّمة.",
+    "quickSoldHint": "بيعت هذه القطعة بسرعة من الصندوق. أضف الفئة (والتكلفة والصورة إن وجدت) ثم أكملها، أو اتركها قطعة لمرة واحدة.",
+    "markCompleted": "اكتملت",
+    "markOneOff": "قطعة لمرة واحدة"
   },
   "labels": {
     "title": "الملصقات",
@@ -365,7 +385,12 @@
       "MOVE_TO_DAMAGED": "نقل إلى التالف",
       "WRITE_OFF_DAMAGED": "التخلص من تالف",
       "REVERSAL": "عكس"
-    }
+    },
+    "askCorrection": "طلب تصحيح المخزون",
+    "reasonLabel": "السبب",
+    "countedOnShelf": "العدد على الرف",
+    "howMany": "كم قطعة؟",
+    "recorded": "المسجّل: {{count}}"
   },
   "settings": {
     "title": "الإعدادات",
@@ -462,7 +487,11 @@
       "PRICE": "تغيّر السعر، راجعه",
       "NOT_SELLABLE": "غير قابل للبيع"
     },
-    "closeCountedFirst": "أغلق الوردية المعدودة على هذا الصندوق قبل فتح وردية جديدة."
+    "closeCountedFirst": "أغلق الوردية المعدودة على هذا الصندوق قبل فتح وردية جديدة.",
+    "giveaway": "هدية مجانية",
+    "quickSell": "بيع سريع",
+    "quickSellName": "ما هذه القطعة؟",
+    "addToCart": "أضف إلى السلة"
   },
   "sales": {
     "acknowledgeOwed": "سلّم على أي حال، ويبقى المبلغ على الزبون",
@@ -528,7 +557,12 @@
       "REPAYMENT": "سداد",
       "CHANGE": "باقٍ مُعاد",
       "REFUND": "استرجاع"
-    }
+    },
+    "giftReceipt": "إيصال هدية",
+    "giftReceiptNote": "يمكن استبدال هذه الهدية بإبراز هذا الإيصال.",
+    "returnedTotal": "مرتجع",
+    "giftPurchase": "شراء هدية",
+    "appliedHere": "{{amount}} على هذا البيع"
   },
   "customers": {
     "address": "العنوان",
@@ -653,5 +687,75 @@
       "DROPS": "إخراج نقد",
       "EXPENSES": "مصروفات"
     }
+  },
+  "returns": {
+    "title": "إرجاع أو استبدال {{number}}",
+    "whatComesBack": "ما الذي يعود؟",
+    "leftToReturn": "بقي {{count}} للإرجاع",
+    "condition": {
+      "SHELF": "إلى الرف",
+      "DAMAGED": "تالف"
+    },
+    "exchangeFor": "استبدال بقطع جديدة",
+    "addItems": "إضافة قطع",
+    "value": "قيمة المرتجع",
+    "debtCleared": "يُخصم من الدين",
+    "newGoods": "القطع الجديدة",
+    "customerPays": "تدفع الزبونة الفرق",
+    "addToDebt": "على الحساب",
+    "backToCustomer": "يُعاد للزبونة",
+    "storeCredit": "رصيد في المحل",
+    "defaultMethodHint": "افتراضيًا يُعاد بنفس طريقة الدفع الأصلية",
+    "completeExchange": "إتمام الاستبدال",
+    "complete": "إتمام الإرجاع",
+    "done": "تم {{number}}",
+    "returnOrExchange": "إرجاع / استبدال",
+    "void": "إلغاء البيع",
+    "voidHint": "كل القطع غير المرتجعة تعود إلى الرف والمبلغ المدفوع يُعاد أو يصبح رصيدًا.",
+    "voided": "أُلغي البيع",
+    "paidBack": "مدفوع: {{amount}}",
+    "exchangeOf": "استبدال من",
+    "returnedCount": "أُرجع {{count}}",
+    "list": "المرتجعات",
+    "kind": {
+      "RETURN": "إرجاع",
+      "EXCHANGE": "استبدال",
+      "VOID": "إلغاء"
+    },
+    "approvedBy": "بموافقة {{name}}",
+    "toExchange": "إلى البيع {{number}}",
+    "refunded": "أُعيد"
+  },
+  "approvals": {
+    "sent": "أُرسل الطلب إلى المدير",
+    "askHint": "أرسل الطلب كما هو؛ يُنفَّذ عند موافقة المدير.",
+    "ask": "اطلب موافقة",
+    "needsManager": "هذا يحتاج موافقة مدير.",
+    "managerHint": "طلبات الموظفين التي تنتظرك. لا يمكنك الموافقة على طلباتك.",
+    "mineHint": "طلباتك وما قرره المدير.",
+    "status": {
+      "PENDING": "بانتظار الموافقة",
+      "APPROVED": "موافق عليه",
+      "REJECTED": "مرفوض",
+      "CANCELLED": "مسحوب"
+    },
+    "kind": {
+      "PRICE_CHANGE": "تغيير سعر",
+      "STOCK_ADJUSTMENT": "تصحيح مخزون",
+      "PRODUCT_HIDE": "إخفاء أو إظهار منتج",
+      "IMAGE_DELETE": "حذف صورة",
+      "REFUND": "إرجاع مبلغ كبير",
+      "VOID": "إلغاء بيع"
+    },
+    "approve": "موافقة",
+    "reject": "رفض",
+    "cancel": "سحب الطلب",
+    "approved": "تمت الموافقة وتنفيذ الطلب",
+    "rejected": "رُفض الطلب",
+    "cancelled": "سُحب الطلب",
+    "rejectNote": "لماذا؟ سيراه الموظف",
+    "productPrice": "سعر المنتج",
+    "reasonForManager": "السبب (يقرؤه المدير)",
+    "priceGoesToManager": "السعر الجديد يُرسل إلى المدير للموافقة"
   }
 }

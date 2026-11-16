@@ -1,6 +1,7 @@
 import type { Capability, Role } from '@organza/shared';
 import {
   IconAdjustments,
+  IconChecklist,
   IconCashRegister,
   IconClock,
   IconListCheck,
@@ -44,6 +45,13 @@ export const NAV_GROUPS: NavGroup[] = [
     label: 'nav.home',
     items: [
       { key: 'today', label: 'nav.today', path: '/', icon: IconHome, capability: 'account.self' },
+      {
+        key: 'approvals',
+        label: 'nav.approvals',
+        path: '/approvals',
+        icon: IconChecklist,
+        capability: 'approvals.request',
+      },
     ],
   },
   {

@@ -46,7 +46,8 @@
     "sales": "מכירות",
     "shift": "המשמרת שלי",
     "shifts": "משמרות",
-    "pos": "קופה"
+    "pos": "קופה",
+    "approvals": "אישורים"
   },
   "roles": {
     "ADMIN": "מנהל מערכת",
@@ -163,7 +164,23 @@
     "REFUND_METHOD_REQUIRED": "בחרו אופן החזר",
     "REFUND_NEEDS_MANAGER": "החזר כזה דורש מנהל",
     "KEEP_DEPOSIT_NEEDS_MANAGER": "רק מנהל יכול לשמור מקדמה",
-    "EXPENSE_NEEDS_APPROVAL": "הוצאה כזו דורשת מנהל"
+    "EXPENSE_NEEDS_APPROVAL": "הוצאה כזו דורשת מנהל",
+    "SALE_NOT_RETURNABLE": "אי אפשר להחזיר במכירה הזו",
+    "RETURN_TOO_MANY": "יותר ממה שנותר להחזרה",
+    "RETURN_LINE_UNKNOWN": "הפריט אינו במכירה הזו",
+    "NOTHING_TO_RETURN": "לא נשאר מה להחזיר",
+    "IMPORTED_SALE_UNPAID": "מכירה זו מהמערכת הישנה עדיין לא סולקה",
+    "VOID_NEEDS_MANAGER": "ביטול מכירה דורש מנהל",
+    "GIVEAWAY_NEEDS_MANAGER": "מתנות חינם דורשות מנהל",
+    "GIVEAWAY_NOT_HELD": "מתנה חינם נמסרת מיד, לא נשמרת",
+    "APPROVAL_NOT_PENDING": "הבקשה כבר הוכרעה",
+    "APPROVAL_OWN_REQUEST": "אי אפשר להכריע בבקשה של עצמך",
+    "APPROVAL_NOT_YOURS": "רק מי שביקש יכול לבטל",
+    "APPROVAL_ALREADY_PENDING": "כבר ממתינה בקשה לזה",
+    "APPROVAL_STALE": "המצב השתנה מאז הבקשה; דחו ובקשו שוב",
+    "APPROVAL_NOTHING_TO_ASK": "שום דבר לא ישתנה",
+    "PRODUCT_NOT_AWAITING_REVIEW": "מוצר זה אינו ממתין לבדיקה",
+    "CATEGORY_REQUIRED": "בחרו קטגוריה קודם"
   },
   "languages": {
     "ar": "العربية",
@@ -284,7 +301,10 @@
     "optionTypes": "אפשרויות",
     "newOptionType": "אפשרות חדשה",
     "optionKey": "מפתח (אותיות באנגלית)",
-    "numberTypeHint": "המספרים נקבעים במוצרים ממוספרים."
+    "numberTypeHint": "המספרים נקבעים במוצרים ממוספרים.",
+    "quickSoldHint": "נמכר בקופה במכירה מהירה. הוסיפו קטגוריה (ועלות ותמונה אם יש) וסמנו כהושלם, או השאירו כפריט חד-פעמי.",
+    "markCompleted": "סימון כהושלם",
+    "markOneOff": "פריט חד-פעמי"
   },
   "labels": {
     "title": "מדבקות",
@@ -365,7 +385,12 @@
       "MOVE_TO_DAMAGED": "הועבר לפגומים",
       "WRITE_OFF_DAMAGED": "פגום הושמד",
       "REVERSAL": "ביטול"
-    }
+    },
+    "askCorrection": "בקשת תיקון מלאי",
+    "reasonLabel": "סיבה",
+    "countedOnShelf": "נספר על המדף",
+    "howMany": "כמה?",
+    "recorded": "רשום: {{count}}"
   },
   "settings": {
     "title": "הגדרות",
@@ -462,7 +487,11 @@
       "PRICE": "המחיר השתנה; בדקו",
       "NOT_SELLABLE": "לא ניתן למכירה"
     },
-    "closeCountedFirst": "סגרו את המשמרת שנספרה בקופה זו לפני פתיחת משמרת חדשה."
+    "closeCountedFirst": "סגרו את המשמרת שנספרה בקופה זו לפני פתיחת משמרת חדשה.",
+    "giveaway": "מתנה חינם",
+    "quickSell": "מכירה מהירה",
+    "quickSellName": "מה הפריט?",
+    "addToCart": "הוספה לסל"
   },
   "sales": {
     "acknowledgeOwed": "למסור בכל זאת; הלקוח עדיין חייב",
@@ -528,7 +557,12 @@
       "REPAYMENT": "החזר חוב",
       "CHANGE": "עודף",
       "REFUND": "החזר"
-    }
+    },
+    "giftReceipt": "קבלת מתנה",
+    "giftReceiptNote": "ניתן להחליף את המתנה עם קבלה זו.",
+    "returnedTotal": "הוחזר",
+    "giftPurchase": "קניית מתנה",
+    "appliedHere": "{{amount}} על מכירה זו"
   },
   "customers": {
     "address": "כתובת",
@@ -653,5 +687,75 @@
       "DROPS": "הוצאת מזומן",
       "EXPENSES": "הוצאות"
     }
+  },
+  "returns": {
+    "title": "החזרה או החלפה {{number}}",
+    "whatComesBack": "מה חוזר?",
+    "leftToReturn": "נותרו {{count}} להחזרה",
+    "condition": {
+      "SHELF": "חזרה למדף",
+      "DAMAGED": "פגום"
+    },
+    "exchangeFor": "החלפה בפריטים חדשים",
+    "addItems": "הוספת פריטים",
+    "value": "ערך ההחזרה",
+    "debtCleared": "יורד מהחוב",
+    "newGoods": "פריטים חדשים",
+    "customerPays": "הלקוחה משלמת את ההפרש",
+    "addToDebt": "להוסיף לחוב",
+    "backToCustomer": "חוזר ללקוחה",
+    "storeCredit": "זיכוי בחנות",
+    "defaultMethodHint": "כברירת מחדל מוחזר באותו אמצעי תשלום",
+    "completeExchange": "השלמת החלפה",
+    "complete": "השלמת החזרה",
+    "done": "{{number}} בוצע",
+    "returnOrExchange": "החזרה / החלפה",
+    "void": "ביטול מכירה",
+    "voidHint": "כל מה שלא הוחזר חוזר למדף; מה ששולם מוחזר או נשמר כזיכוי.",
+    "voided": "המכירה בוטלה",
+    "paidBack": "שולם: {{amount}}",
+    "exchangeOf": "הוחלף מתוך",
+    "returnedCount": "הוחזרו {{count}}",
+    "list": "החזרות",
+    "kind": {
+      "RETURN": "החזרה",
+      "EXCHANGE": "החלפה",
+      "VOID": "ביטול"
+    },
+    "approvedBy": "באישור {{name}}",
+    "toExchange": "למכירה {{number}}",
+    "refunded": "הוחזר"
+  },
+  "approvals": {
+    "sent": "נשלח למנהל",
+    "askHint": "שלחו כמו שהוא; זה יתבצע כשמנהל יאשר.",
+    "ask": "בקשת אישור",
+    "needsManager": "זה דורש אישור מנהל.",
+    "managerHint": "בקשות של העובדים שממתינות לך. אי אפשר לאשר בקשה של עצמך.",
+    "mineHint": "הבקשות שלך ומה שהמנהל החליט.",
+    "status": {
+      "PENDING": "ממתין",
+      "APPROVED": "אושר",
+      "REJECTED": "נדחה",
+      "CANCELLED": "בוטל"
+    },
+    "kind": {
+      "PRICE_CHANGE": "שינוי מחיר",
+      "STOCK_ADJUSTMENT": "תיקון מלאי",
+      "PRODUCT_HIDE": "הסתרה או הצגה של מוצר",
+      "IMAGE_DELETE": "מחיקת תמונה",
+      "REFUND": "החזר כספי גדול",
+      "VOID": "ביטול מכירה"
+    },
+    "approve": "אישור",
+    "reject": "דחייה",
+    "cancel": "ביטול הבקשה",
+    "approved": "אושר ובוצע",
+    "rejected": "הבקשה נדחתה",
+    "cancelled": "הבקשה בוטלה",
+    "rejectNote": "למה? מי שביקש יראה את זה",
+    "productPrice": "מחיר המוצר",
+    "reasonForManager": "סיבה (המנהל יקרא)",
+    "priceGoesToManager": "המחיר החדש יישלח למנהל לאישור"
   }
 }

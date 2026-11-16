@@ -1,4 +1,14 @@
-import { Alert, Button, Center, Group, Loader, Modal, Stack } from '@mantine/core';
+import {
+  Alert,
+  Button,
+  Center,
+  Group,
+  Loader,
+  Modal,
+  SegmentedControl,
+  Stack,
+} from '@mantine/core';
+import { useState } from 'react';
 import { IconPrinter } from '@tabler/icons-react';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -21,6 +31,7 @@ export function ReceiptDialog({
   closeLabel?: string;
 }) {
   const { t } = useTranslation();
+  const [gift, setGift] = useState(false);
   const receipt = useQuery({
     queryKey: ['receipt', saleId],
     queryFn: () => fetchReceipt(saleId!),
@@ -34,9 +45,17 @@ export function ReceiptDialog({
             {t('pos.alreadySaved')}
           </Alert>
         )}
+        <SegmentedControl
+          value={gift ? 'gift' : 'full'}
+          onChange={(v) => setGift(v === 'gift')}
+          data={[
+            { value: 'full', label: t('sales.receipt') },
+            { value: 'gift', label: t('sales.giftReceipt') },
+          ]}
+        />
         {receipt.data ? (
           <div className={classes.receiptPreview}>
-            <Receipt data={receipt.data} />
+            <Receipt data={receipt.data} gift={gift} />
           </div>
         ) : (
           <Center py="xl">
@@ -59,7 +78,7 @@ export function ReceiptDialog({
       </Stack>
       {receipt.data && (
         <PrintPortal>
-          <Receipt data={receipt.data} />
+          <Receipt data={receipt.data} gift={gift} />
         </PrintPortal>
       )}
     </Modal>

@@ -15,18 +15,32 @@ import {
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { localize, type SaleView } from '@organza/shared';
-import { IconPackageExport, IconReceipt, IconX } from '@tabler/icons-react';
+import {
+  IconArrowBackUp,
+  IconBan,
+  IconPackageExport,
+  IconReceipt,
+  IconX,
+} from '@tabler/icons-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link, useParams } from 'react-router';
+import { Link, useNavigate, useParams } from 'react-router';
 import { useSession } from '@web/modules/auth/session';
 import { useMoney } from '@web/modules/catalogue/components';
 import { PageHeader } from '@web/shared/components/PageHeader';
 import { ErrorState, FullScreenLoader } from '@web/shared/components/StatusScreens';
 import { useErrorMessage } from '@web/shared/hooks/use-error-message';
-import { ApiError } from '@web/shared/lib/api-client';
+import { ApiError, newIdempotencyKey } from '@web/shared/lib/api-client';
 import { formatDateTime } from '@web/shared/lib/format';
-import { deviceRegister, useRegisters, useSale, useSaleActions } from './api';
+import {
+  deviceRegister,
+  useApprovalActions,
+  useRegisters,
+  useReturn,
+  useReturnActions,
+  useSale,
+  useSaleActions,
+} from './api';
 import { ReceiptDialog } from './ReceiptDialog';
 import { PAYMENT_STATE_COLORS } from './SalesPage';
 
@@ -39,11 +53,18 @@ export function SaleDetailPage() {
   const [receipt, setReceipt] = useState(false);
   const [handing, setHanding] = useState(false);
   const [cancelling, setCancelling] = useState(false);
+  const [voiding, setVoiding] = useState(false);
+  const [shownReturn, setShownReturn] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   if (query.isPending) return <FullScreenLoader />;
   if (query.isError) return <ErrorState error={query.error} onRetry={() => void query.refetch()} />;
   const sale = query.data;
   const held = sale.status === 'COMPLETED' && sale.fulfilment !== 'FULFILLED';
+  const returnable =
+    sale.status === 'COMPLETED' &&
+    sale.fulfilment === 'FULFILLED' &&
+    sale.lines.some((l) => l.quantity > l.returned);
 
   return (
     <>
@@ -67,6 +88,25 @@ export function SaleDetailPage() {
                 onClick={() => setCancelling(true)}
               >
                 {t('sales.cancelHeld')}
+              </Button>
+            )}
+            {returnable && can('sales.return') && (
+              <Button
+                variant="light"
+                leftSection={<IconArrowBackUp size={16} />}
+                onClick={() => navigate(`/sales/${sale.id}/return`)}
+              >
+                {t('returns.returnOrExchange')}
+              </Button>
+            )}
+            {returnable && can('sales.return') && (
+              <Button
+                variant="subtle"
+                color="red"
+                leftSection={<IconBan size={16} />}
+                onClick={() => setVoiding(true)}
+              >
+                {t('returns.void')}
               </Button>
             )}
             <Button
@@ -105,7 +145,20 @@ export function SaleDetailPage() {
                   </Badge>
                 )}
                 {sale.imported && <Badge variant="outline">{t('sales.imported')}</Badge>}
+                {sale.giftReceipt && (
+                  <Badge color="pink" variant="light">
+                    {t('sales.giftPurchase')}
+                  </Badge>
+                )}
               </Group>
+              {sale.exchangeOf && (
+                <Text size="sm">
+                  {t('returns.exchangeOf')}{' '}
+                  <Text component={Link} to={`/sales/${sale.exchangeOf.saleId}`} c="plum.7" span>
+                    {sale.exchangeOf.saleNumber}
+                  </Text>
+                </Text>
+              )}
               {sale.cancelReason && (
                 <Text size="sm">
                   {t(`sales.outcome.${sale.cancelOutcome ?? 'CREDIT'}`)} · {sale.cancelReason}
@@ -117,6 +170,11 @@ export function SaleDetailPage() {
               <Text size="xl" fw={800}>
                 {money(sale.total)}
               </Text>
+              {Number(sale.returnedTotal) > 0 && (
+                <Text size="sm" c="red.7">
+                  {t('sales.returnedTotal')} −{money(sale.returnedTotal)}
+                </Text>
+              )}
               {sale.status === 'COMPLETED' && (
                 <Badge color={PAYMENT_STATE_COLORS[sale.paymentState]} variant="light">
                   {sale.paymentState === 'PAID'
@@ -151,6 +209,18 @@ export function SaleDetailPage() {
                           .filter(Boolean)
                           .join(' · ')}
                       </Text>
+                      <Group gap={4}>
+                        {l.giveaway && (
+                          <Badge size="xs" color="pink" variant="light">
+                            {t('pos.giveaway')}
+                          </Badge>
+                        )}
+                        {l.returned > 0 && (
+                          <Badge size="xs" color="red" variant="light">
+                            {t('returns.returnedCount', { count: l.returned })}
+                          </Badge>
+                        )}
+                      </Group>
                     </Table.Td>
                     <Table.Td ta="center">
                       {l.quantity} × {money(l.unitPrice)}
@@ -188,17 +258,53 @@ export function SaleDetailPage() {
                   {p.purpose !== 'SALE' ? ` · ${t(`sales.purpose.${p.purpose}`)}` : ''} ·{' '}
                   {formatDateTime(p.takenAt, i18n.language)}
                 </Text>
-                <Text size="sm" fw={600} c={p.direction === 'OUT' ? 'red.7' : undefined}>
-                  {p.direction === 'OUT' ? '−' : ''}
-                  {money(p.allocated ?? p.amountDefault)}
-                </Text>
+                <Stack gap={0} align="flex-end">
+                  <Text size="sm" fw={600} c={p.direction === 'OUT' ? 'red.7' : undefined}>
+                    {p.direction === 'OUT' ? '−' : ''}
+                    {money(p.amountDefault)}
+                  </Text>
+                  {p.allocated !== null &&
+                    p.allocated !== undefined &&
+                    p.allocated !== p.amountDefault && (
+                      <Text size="xs" c="dimmed">
+                        {t('sales.appliedHere', { amount: money(p.allocated) })}
+                      </Text>
+                    )}
+                </Stack>
               </Group>
             ))}
           </Stack>
         </Card>
+        {sale.returns.length > 0 && (
+          <Card withBorder>
+            <Text fw={600} mb="xs">
+              {t('returns.list')}
+            </Text>
+            <Stack gap={4}>
+              {sale.returns.map((r) => (
+                <Group
+                  key={r.id}
+                  justify="space-between"
+                  style={{ cursor: 'pointer' }}
+                  onClick={() => setShownReturn(r.id)}
+                >
+                  <Text size="sm">
+                    <span dir="ltr">{r.number}</span> · {t(`returns.kind.${r.kind}`)} ·{' '}
+                    {formatDateTime(r.createdAt, i18n.language)}
+                  </Text>
+                  <Text size="sm" fw={600}>
+                    {money(r.value)}
+                  </Text>
+                </Group>
+              ))}
+            </Stack>
+          </Card>
+        )}
       </Stack>
 
       <ReceiptDialog saleId={receipt ? sale.id : null} onClose={() => setReceipt(false)} />
+      {voiding && <VoidDialog sale={sale} onClose={() => setVoiding(false)} />}
+      <ReturnDialog id={shownReturn} onClose={() => setShownReturn(null)} />
       {handing && <HandoverDialog sale={sale} onClose={() => setHanding(false)} />}
       {cancelling && <CancelHeldDialog sale={sale} onClose={() => setCancelling(false)} />}
     </>
@@ -372,6 +478,169 @@ function CancelHeldDialog({ sale, onClose }: { sale: SaleView; onClose: () => vo
           </Button>
         </Group>
       </Stack>
+    </Modal>
+  );
+}
+
+/** Managers void at once; anyone else sends the same request to the approvals inbox. */
+function VoidDialog({ sale, onClose }: { sale: SaleView; onClose: () => void }) {
+  const { t } = useTranslation();
+  const money = useMoney();
+  const { can } = useSession();
+  const errorMessage = useErrorMessage();
+  const registers = useRegisters();
+  const { voidSale } = useReturnActions();
+  const { request } = useApprovalActions();
+  const [method, setMethod] = useState<'CASH' | 'CARD' | 'BANK_TRANSFER' | 'CREDIT'>('CASH');
+  const [reason, setReason] = useState('');
+  const [key] = useState(newIdempotencyKey);
+  const direct = can('sales.void');
+  const paid = Number(sale.paid) > 0;
+  const deviceId = deviceRegister.get();
+  const shiftId =
+    (registers.data ?? []).find((r) => r.id === deviceId)?.openShift?.id ??
+    (registers.data ?? []).find((r) => r.openShift)?.openShift?.id;
+  const body = {
+    idempotencyKey: key,
+    shiftId: shiftId ?? undefined,
+    settlement: method === 'CREDIT' ? ('CREDIT' as const) : ('REFUND' as const),
+    refundMethod: method === 'CREDIT' ? undefined : method,
+    reason: reason.trim(),
+  };
+
+  const submit = async () => {
+    try {
+      if (direct) {
+        await voidSale.mutateAsync({ saleId: sale.id, ...body });
+        notifications.show({ color: 'green', message: t('returns.voided') });
+      } else {
+        await request.mutateAsync({
+          kind: 'VOID',
+          saleId: sale.id,
+          reason: reason.trim(),
+          request: body,
+        });
+        notifications.show({ color: 'green', message: t('approvals.sent') });
+      }
+      onClose();
+    } catch (e) {
+      notifications.show({ color: 'red', message: errorMessage(e) });
+    }
+  };
+
+  return (
+    <Modal opened onClose={onClose} title={t('returns.void')} centered>
+      <Stack>
+        <Text size="sm">{t('returns.voidHint')}</Text>
+        {!direct && (
+          <Alert color="blue" variant="light">
+            {t('approvals.needsManager')}
+          </Alert>
+        )}
+        {paid && (
+          <>
+            <Text size="sm" fw={600}>
+              {t('returns.paidBack', { amount: money(sale.paid) })}
+            </Text>
+            <SegmentedControl
+              value={method}
+              onChange={(v) => setMethod(v as typeof method)}
+              data={(['CASH', 'CARD', 'BANK_TRANSFER', 'CREDIT'] as const).map((m) => ({
+                value: m,
+                label: m === 'CREDIT' ? t('returns.storeCredit') : t(`sales.method.${m}`),
+                disabled: m === 'CREDIT' && !sale.customer,
+              }))}
+            />
+            {method === 'CASH' && !shiftId && (
+              <Alert color="orange" variant="light">
+                {t('errors.SHIFT_REQUIRED')}
+              </Alert>
+            )}
+          </>
+        )}
+        <Textarea
+          label={t('sales.reason')}
+          required
+          value={reason}
+          onChange={(e) => setReason(e.currentTarget.value)}
+        />
+        <Group justify="flex-end">
+          <Button variant="default" onClick={onClose}>
+            {t('common.back')}
+          </Button>
+          <Button
+            color="red"
+            onClick={() => void submit()}
+            loading={voidSale.isPending || request.isPending}
+            disabled={reason.trim().length < 3}
+          >
+            {direct ? t('returns.void') : t('approvals.ask')}
+          </Button>
+        </Group>
+      </Stack>
+    </Modal>
+  );
+}
+
+function ReturnDialog({ id, onClose }: { id: string | null; onClose: () => void }) {
+  const { t, i18n } = useTranslation();
+  const money = useMoney();
+  const query = useReturn(id);
+  const r = query.data;
+  return (
+    <Modal opened={Boolean(id)} onClose={onClose} title={r?.number ?? ''} centered>
+      {r && (
+        <Stack gap="xs">
+          <Text size="sm" c="dimmed">
+            {t(`returns.kind.${r.kind}`)} · {formatDateTime(r.createdAt, i18n.language)} ·{' '}
+            {r.createdBy}
+            {r.approvedBy ? ` · ${t('returns.approvedBy', { name: r.approvedBy })}` : ''}
+          </Text>
+          {r.lines.map((l) => (
+            <Group key={l.id} justify="space-between" wrap="nowrap">
+              <Text size="sm">
+                {l.quantity} × {localize(l.name, i18n.language)}
+                {l.variantLabel ? ` · ${localize(l.variantLabel, i18n.language)}` : ''}{' '}
+                <Badge size="xs" variant="light" color={l.condition === 'DAMAGED' ? 'red' : 'teal'}>
+                  {t(`returns.condition.${l.condition}`)}
+                </Badge>
+              </Text>
+              <Text size="sm">{money(l.value)}</Text>
+            </Group>
+          ))}
+          <Stack gap={2} mt="xs">
+            {Number(r.debtReduced) > 0 && (
+              <Group justify="space-between">
+                <Text size="sm">{t('returns.debtCleared')}</Text>
+                <Text size="sm">{money(r.debtReduced)}</Text>
+              </Group>
+            )}
+            {Number(r.toExchange) > 0 && r.exchangeSale && (
+              <Group justify="space-between">
+                <Text size="sm" component={Link} to={`/sales/${r.exchangeSale.id}`} c="plum.7">
+                  {t('returns.toExchange', { number: r.exchangeSale.number })}
+                </Text>
+                <Text size="sm">{money(r.toExchange)}</Text>
+              </Group>
+            )}
+            {Number(r.refunded) > 0 && (
+              <Group justify="space-between">
+                <Text size="sm">
+                  {t('returns.refunded')} · {t(`sales.method.${r.refundMethod ?? 'CASH'}`)}
+                </Text>
+                <Text size="sm">{money(r.refunded)}</Text>
+              </Group>
+            )}
+            {Number(r.toCredit) > 0 && (
+              <Group justify="space-between">
+                <Text size="sm">{t('returns.storeCredit')}</Text>
+                <Text size="sm">{money(r.toCredit)}</Text>
+              </Group>
+            )}
+          </Stack>
+          <Text size="sm">{r.reason}</Text>
+        </Stack>
+      )}
     </Modal>
   );
 }

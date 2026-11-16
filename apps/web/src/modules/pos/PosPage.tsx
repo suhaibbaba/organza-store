@@ -16,14 +16,19 @@ import {
   Text,
   Textarea,
   Title,
+  Tooltip,
   UnstyledButton,
 } from '@mantine/core';
 import { useHotkeys } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
 import { localize, multiplyMoney, type SaleView } from '@organza/shared';
 import {
+  IconBolt,
   IconCashRegister,
+  IconCheck,
+  IconGift,
   IconDiscount2,
+  IconDotsVertical,
   IconLayoutGrid,
   IconMinus,
   IconPhoto,
@@ -36,6 +41,7 @@ import {
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
+import { useSession } from '@web/modules/auth/session';
 import { useMoney } from '@web/modules/catalogue/components';
 import { deviceRegister, useRegisters, useShiftMutations } from '@web/modules/sales/api';
 import { CustomerPicker } from '@web/modules/sales/CustomerPicker';
@@ -48,6 +54,7 @@ import { formatDateTime } from '@web/shared/lib/format';
 import { type CartApi, cartTotals, MAX_PARKED, useCart } from './cart';
 import { PaymentPanel } from './PaymentPanel';
 import { useItemChooser } from './picking';
+import { QuickSellDialog } from './QuickSellDialog';
 import { ProductBrowser } from './ProductBrowser';
 import classes from '../sales/sales.module.css';
 
@@ -191,6 +198,7 @@ function Till({
   const [picking, setPicking] = useState(false);
   const [browsing, setBrowsing] = useState(false);
   const [discounting, setDiscounting] = useState(false);
+  const [quickSelling, setQuickSelling] = useState(false);
   const [done, setDone] = useState<SaleView | null>(null);
 
   const chooser = useItemChooser((line) => {
@@ -215,7 +223,7 @@ function Till({
     },
     [chooser, errorMessage, t],
   );
-  const modalOpen = paying || picking || discounting || Boolean(done);
+  const modalOpen = paying || picking || discounting || quickSelling || Boolean(done);
   useBarcodeScanner((code) => void onCode(code), !modalOpen);
 
   const focusSearch = () => searchRef.current?.focus();
@@ -257,6 +265,15 @@ function Till({
         onCustomer={() => setPicking(true)}
         onDiscount={() => setDiscounting(true)}
         onBrowse={() => setBrowsing(true)}
+        onQuickSell={() => setQuickSelling(true)}
+      />
+      <QuickSellDialog
+        opened={quickSelling}
+        onClose={() => setQuickSelling(false)}
+        onReady={(line) => {
+          cart.add(line);
+          setQuickSelling(false);
+        }}
       />
       {chooser.picker}
       <Drawer
@@ -314,6 +331,7 @@ function CartPanel({
   onCustomer,
   onDiscount,
   onBrowse,
+  onQuickSell,
 }: {
   cart: CartApi;
   registerName: string;
@@ -322,8 +340,10 @@ function CartPanel({
   onCustomer: () => void;
   onDiscount: () => void;
   onBrowse: () => void;
+  onQuickSell: () => void;
 }) {
   const { t, i18n } = useTranslation();
+  const { can } = useSession();
   const money = useMoney();
   const totals = cartTotals(cart.cart);
   const customer = cart.cart.customer;
@@ -335,6 +355,11 @@ function CartPanel({
             <Badge variant="light" component={Link} to="/shift" style={{ cursor: 'pointer' }}>
               {registerName} · {shiftNumber}
             </Badge>
+            {cart.cart.giftReceipt && (
+              <Badge color="pink" variant="light" leftSection={<IconGift size={12} />}>
+                {t('sales.giftPurchase')}
+              </Badge>
+            )}
           </Group>
           <Group gap={4} wrap="nowrap">
             <Button
@@ -349,8 +374,8 @@ function CartPanel({
             <Menu position="bottom-end" width={260}>
               <Menu.Target>
                 <Indicator label={cart.parked.length} size={16} disabled={cart.parked.length === 0}>
-                  <ActionIcon variant="default" aria-label={t('pos.parked')}>
-                    <IconPlayerPause size={16} />
+                  <ActionIcon variant="default" aria-label={t('common.more')}>
+                    <IconDotsVertical size={16} />
                   </ActionIcon>
                 </Indicator>
               </Menu.Target>
@@ -361,6 +386,18 @@ function CartPanel({
                   leftSection={<IconPlayerPause size={14} />}
                 >
                   {t('pos.park')} (F9)
+                </Menu.Item>
+                {can('products.quickSell') && (
+                  <Menu.Item leftSection={<IconBolt size={14} />} onClick={onQuickSell}>
+                    {t('pos.quickSell')}
+                  </Menu.Item>
+                )}
+                <Menu.Item
+                  leftSection={<IconGift size={14} />}
+                  rightSection={cart.cart.giftReceipt ? <IconCheck size={14} /> : undefined}
+                  onClick={() => cart.setGiftReceipt(!cart.cart.giftReceipt)}
+                >
+                  {t('sales.giftPurchase')}
                 </Menu.Item>
                 {cart.parked.length > 0 && <Menu.Divider />}
                 {cart.parked.map((p, i) => (
@@ -473,18 +510,40 @@ function CartPanel({
                 >
                   <IconPlus size={12} />
                 </ActionIcon>
-                <LineDiscount
-                  cart={cart}
-                  lineKey={l.key}
-                  gross={multiplyMoney(l.unitPrice, l.quantity)}
-                  value={l.discount}
-                />
+                {!l.giveaway && (
+                  <LineDiscount
+                    cart={cart}
+                    lineKey={l.key}
+                    gross={multiplyMoney(l.unitPrice, l.quantity)}
+                    value={l.discount}
+                  />
+                )}
+                {can('sales.giveaway') && (
+                  <Tooltip label={t('pos.giveaway')}>
+                    <ActionIcon
+                      size="sm"
+                      variant={l.giveaway ? 'filled' : 'default'}
+                      color="pink"
+                      aria-label={t('pos.giveaway')}
+                      aria-pressed={Boolean(l.giveaway)}
+                      onClick={() => cart.toggleGiveaway(l.key)}
+                    >
+                      <IconGift size={12} />
+                    </ActionIcon>
+                  </Tooltip>
+                )}
               </Group>
             </div>
             <Stack gap={0} align="flex-end">
-              <Text size="sm" fw={600}>
-                {money(multiplyMoney(l.unitPrice, l.quantity))}
-              </Text>
+              {l.giveaway ? (
+                <Badge size="sm" color="pink" variant="light">
+                  {t('pos.giveaway')}
+                </Badge>
+              ) : (
+                <Text size="sm" fw={600}>
+                  {money(multiplyMoney(l.unitPrice, l.quantity))}
+                </Text>
+              )}
               {Number(l.discount) > 0 && (
                 <Text size="xs" c="green.8">
                   −{money(l.discount)}

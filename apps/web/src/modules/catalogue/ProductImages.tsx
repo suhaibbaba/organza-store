@@ -5,6 +5,7 @@ import { IconCrop, IconPhotoPlus, IconStar, IconStarFilled, IconTrash } from '@t
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSession } from '@web/modules/auth/session';
+import { AskApprovalDialog } from '@web/modules/sales/AskApprovalDialog';
 import { useErrorMessage } from '@web/shared/hooks/use-error-message';
 import { useImageMutations } from './api';
 import { PhotoEditor } from './PhotoEditor';
@@ -16,6 +17,7 @@ export function ProductImages({ productId, images }: { productId: string; images
   const { can } = useSession();
   const errorMessage = useErrorMessage();
   const m = useImageMutations(productId);
+  const [askingDelete, setAskingDelete] = useState<string | null>(null);
   const [editing, setEditing] = useState<{ src: string; file?: File; imageId?: string } | null>(
     null,
   );
@@ -60,13 +62,17 @@ export function ProductImages({ productId, images }: { productId: string; images
                   <IconCrop size={12} />
                 </ActionIcon>
               )}
-              {can('images.delete') && (
+              {(can('images.delete') || can('images.upload')) && (
                 <ActionIcon
                   size="sm"
                   variant="white"
                   color="red"
                   aria-label={t('common.remove')}
-                  onClick={() => m.remove.mutate(img.id, { onError: fail })}
+                  onClick={() =>
+                    can('images.delete')
+                      ? m.remove.mutate(img.id, { onError: fail })
+                      : setAskingDelete(img.id)
+                  }
                 >
                   <IconTrash size={12} />
                 </ActionIcon>
@@ -96,6 +102,12 @@ export function ProductImages({ productId, images }: { productId: string; images
         </FileButton>
       )}
       <PhotoEditor src={editing?.src ?? null} onCancel={() => setEditing(null)} onDone={done} />
+      <AskApprovalDialog
+        opened={Boolean(askingDelete)}
+        title={t('approvals.kind.IMAGE_DELETE')}
+        request={{ kind: 'IMAGE_DELETE', imageId: askingDelete ?? '' }}
+        onClose={() => setAskingDelete(null)}
+      />
     </div>
   );
 }

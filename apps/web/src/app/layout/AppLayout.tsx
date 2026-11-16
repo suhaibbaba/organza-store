@@ -1,4 +1,14 @@
-import { ActionIcon, Group, Menu, NavLink, Text, Title, UnstyledButton } from '@mantine/core';
+import {
+  ActionIcon,
+  Badge,
+  Group,
+  Menu,
+  NavLink,
+  Text,
+  Title,
+  UnstyledButton,
+} from '@mantine/core';
+import { useApprovals } from '@web/modules/sales/api';
 import { useLocalStorage } from '@mantine/hooks';
 import { Spotlight, spotlight, type SpotlightActionData } from '@mantine/spotlight';
 import { LANGUAGES, type Language } from '@organza/shared';
@@ -31,6 +41,8 @@ export function AppLayout() {
     defaultValue: false,
   });
   const groups = useMemo(() => visibleGroups(can), [can]);
+  const approvals = useApprovals({ status: 'PENDING' }, true);
+  const waiting = can('approvals.request') ? (approvals.data?.pending ?? 0) : 0;
   const tabs = useMemo(() => (user ? bottomTabs(user.role, can) : []), [user, can]);
   const actions = useMemo<SpotlightActionData[]>(
     () =>
@@ -120,6 +132,13 @@ export function AppLayout() {
                 label={collapsed ? undefined : t(item.label)}
                 aria-label={t(item.label)}
                 leftSection={<item.icon size={20} />}
+                rightSection={
+                  item.key === 'approvals' && waiting > 0 && !collapsed ? (
+                    <Badge size="sm" color="red" circle>
+                      {waiting}
+                    </Badge>
+                  ) : undefined
+                }
                 active={isActive(item.path)}
               />
             ))}

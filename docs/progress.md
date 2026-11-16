@@ -1,7 +1,7 @@
 # Progress
 
-**Current phase:** 3. Returns, exchanges, approvals, gifts
-**Next:** phase 3: returns, exchanges, approvals, gifts, quick sell
+**Current phase:** 4
+**Next:** phase 4 (see the roadmap in the proposal)
 
 ## Finished steps
 
@@ -24,3 +24,4 @@
 | 2026-11-16 | 3 | Returns, exchanges and voids (API): one append-only return document per event against sale lines (shelf or damaged), stock back at the cost it left with, revenue reversed, the value clearing debt first then paying the exchange then refunded or kept as credit; payments follow the money; refunds above the limit need a manager; managers void. Giveaway lines (promotion expense) and gift-receipt flag at checkout. Database guards: returned never exceeds sold and never shrinks, allocations never exceed what is due after returns | see git log |
 | 2026-11-16 | 3 | Approvals inbox (API): employees ask for price changes (product or item), stock adjustments, hiding a product, deleting a photo, refunds above the limit and voids; managers approve (never their own) or reject with a note; approving runs the action in the same transaction; stale price changes refused; decided requests are frozen by the database | see git log |
 | 2026-11-16 | 3 | Quick sell (API): a product from a name and a price at the till, sold through the normal checkout, then reviewed by a manager as completed or one-off. Boolean query filters now read "false" as false | see git log |
+| 2026-11-16 | 3 | Web: return and exchange screen (quantities, shelf or damaged, exchange items from the product browser, debt cleared first, refund method or store credit, ask a manager above the refund limit), void (direct for managers, a request otherwise), returns on the sale page, gift receipt without prices, approvals inbox with a pending badge in the menu, giveaway lines and gift purchase at the till, quick-sell dialog, quick-sell review on the product page, price, hide, photo-delete and stock-correction requests for employees | see git log |

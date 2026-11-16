@@ -24,6 +24,8 @@ export interface CartLine {
   /** Discount on the whole line. */
   discount: string;
   available: number;
+  /** A giveaway (managers): free to the customer; the price is still sent to detect changes. */
+  giveaway?: boolean;
   /** Set when the server refused this line (sold just now, price changed). */
   problem?: 'STOCK' | 'PRICE' | 'NOT_SELLABLE';
 }
@@ -43,6 +45,8 @@ export interface Cart {
   customer: CartCustomer | null;
   cartDiscount: string;
   note: string;
+  /** A gift purchase: offer the gift receipt without prices. */
+  giftReceipt?: boolean;
   parkedAt?: string;
 }
 
@@ -76,11 +80,13 @@ function load(registerId: string): Stored {
 }
 
 /** Totals exactly as the server computes them (cart discount spread over lines by value). */
+export const linePrice = (l: CartLine) => (l.giveaway ? '0.00' : l.unitPrice);
+
 export function cartTotals(cart: Cart) {
   const nets = cart.lines.map((l) =>
-    addMoney(multiplyMoney(l.unitPrice, l.quantity), fromMinor(-toMinor(l.discount))),
+    addMoney(multiplyMoney(linePrice(l), l.quantity), fromMinor(-toMinor(l.discount))),
   );
-  const subtotal = addMoney('0', ...cart.lines.map((l) => multiplyMoney(l.unitPrice, l.quantity)));
+  const subtotal = addMoney('0', ...cart.lines.map((l) => multiplyMoney(linePrice(l), l.quantity)));
   const netTotal = addMoney('0', ...nets);
   const cartDiscount = compareMoney(cart.cartDiscount, netTotal) > 0 ? netTotal : cart.cartDiscount;
   const shares = allocateMoney(
@@ -109,7 +115,7 @@ export function useCart(registerId: string) {
   const add = useCallback(
     (line: Omit<CartLine, 'key' | 'quantity' | 'discount'>) =>
       update((cart) => {
-        const existing = cart.lines.find((l) => l.itemId === line.itemId);
+        const existing = cart.lines.find((l) => l.itemId === line.itemId && !l.giveaway);
         if (existing)
           return {
             ...cart,
@@ -147,6 +153,14 @@ export function useCart(registerId: string) {
         ...cart,
         lines: cart.lines.map((l) => (l.key === lineKey ? { ...l, discount } : l)),
       })),
+    toggleGiveaway: (lineKey: string) =>
+      update((cart) => ({
+        ...cart,
+        lines: cart.lines.map((l) =>
+          l.key === lineKey ? { ...l, giveaway: !l.giveaway, discount: '0.00' } : l,
+        ),
+      })),
+    setGiftReceipt: (giftReceipt: boolean) => update((cart) => ({ ...cart, giftReceipt })),
     remove: (lineKey: string) =>
       update((cart) => ({ ...cart, lines: cart.lines.filter((l) => l.key !== lineKey) })),
     setCustomer: (customer: CartCustomer | null) => update((cart) => ({ ...cart, customer })),
