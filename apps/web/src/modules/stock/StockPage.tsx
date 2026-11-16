@@ -22,6 +22,7 @@ import { EmptyState, ErrorState, FullScreenLoader } from '@web/shared/components
 import { formatDateTime } from '@web/shared/lib/format';
 import { type StockFilters, useItemHistory, useStock } from './api';
 import { AskCorrectionDialog } from './AskCorrectionDialog';
+import classes from './stock.module.css';
 
 const PAGE_SIZE = 50;
 
@@ -51,13 +52,13 @@ export function StockPage() {
   return (
     <>
       <PageHeader title={t('stock.title')} />
-      <Group mb="md" gap="md" wrap="wrap">
+      <Group gap="md" wrap="wrap" className="ds-mb-md">
         <TextInput
           leftSection={<IconSearch size={16} />}
           placeholder={t('catalogue.searchHint')}
           value={q}
           onChange={(e) => setQ(e.currentTarget.value)}
-          style={{ flex: '1 1 240px' }}
+          className={classes.search}
           type="search"
         />
         <Checkbox
@@ -79,13 +80,19 @@ export function StockPage() {
       {query.data && query.data.items.length > 0 && phone && (
         <Stack gap="xs" className="o-list">
           {query.data.items.map((r) => (
-            <Card key={r.itemId} withBorder padding="xs" onClick={() => openRow(r)}>
+            <Card
+              key={r.itemId}
+              withBorder
+              padding="xs"
+              onClick={() => openRow(r)}
+              className="ds-clickable"
+            >
               <Group justify="space-between" wrap="nowrap">
-                <Stack gap={0} style={{ minWidth: 0 }}>
-                  <Text size="sm" fw={600} truncate>
+                <Stack gap={0} className="ds-min-0">
+                  <Text size="sm" className="ds-bold" truncate>
                     {name(r)}
                   </Text>
-                  <Text size="xs" c="dimmed" dir="ltr" ta="start">
+                  <Text size="xs" className="ds-muted ds-ltr">
                     {r.sku}
                   </Text>
                 </Stack>
@@ -101,9 +108,9 @@ export function StockPage() {
         </Stack>
       )}
       {query.data && query.data.items.length > 0 && !phone && (
-        <Card p={0}>
+        <Card padding={0}>
           <Table.ScrollContainer minWidth={640}>
-            <Table highlightOnHover verticalSpacing={6} fz="sm">
+            <Table highlightOnHover verticalSpacing={6}>
               <Table.Thead>
                 <Table.Tr>
                   <Table.Th>{t('catalogue.name')}</Table.Th>
@@ -117,11 +124,9 @@ export function StockPage() {
               </Table.Thead>
               <Table.Tbody>
                 {query.data.items.map((r) => (
-                  <Table.Tr key={r.itemId} onClick={() => openRow(r)} style={{ cursor: 'pointer' }}>
-                    <Table.Td>{name(r)}</Table.Td>
-                    <Table.Td dir="ltr" style={{ textAlign: 'start' }}>
-                      {r.sku}
-                    </Table.Td>
+                  <Table.Tr key={r.itemId} onClick={() => openRow(r)} className="ds-clickable">
+                    <Table.Td className="ds-medium">{name(r)}</Table.Td>
+                    <Table.Td className="ds-ltr">{r.sku}</Table.Td>
                     <Table.Td>{r.onHand}</Table.Td>
                     <Table.Td>{r.reserved || ''}</Table.Td>
                     <Table.Td>
@@ -142,7 +147,7 @@ export function StockPage() {
         </Card>
       )}
       {(query.data?.total ?? 0) > PAGE_SIZE && (
-        <Group justify="center" mt="md">
+        <Group justify="center" className="ds-mt-md">
           <Pagination
             size="sm"
             total={Math.ceil((query.data?.total ?? 0) / PAGE_SIZE)}
@@ -188,19 +193,19 @@ function HistoryDrawer({
             key={m.id}
             justify="space-between"
             wrap="nowrap"
-            style={{ opacity: m.reversed ? 0.5 : 1 }}
+            className={m.reversed ? 'ds-dimmed' : undefined}
           >
             <Stack gap={0}>
               <Text size="sm">
                 {t(`stock.reason.${m.reason}`)}
                 {m.bucket === 'DAMAGED' && ` · ${t('stock.damaged')}`}
               </Text>
-              <Text size="xs" c="dimmed">
+              <Text size="xs" className="ds-muted">
                 {formatDateTime(m.occurredAt, language)}
                 {m.note && ` · ${m.note}`}
               </Text>
             </Stack>
-            <Text fw={600} c={m.quantity > 0 ? 'green' : 'red'} dir="ltr">
+            <Text className={`ds-bold ${m.quantity > 0 ? 'ds-success' : 'ds-danger'}`} dir="ltr">
               {m.quantity > 0 ? `+${m.quantity}` : m.quantity}
             </Text>
           </Group>

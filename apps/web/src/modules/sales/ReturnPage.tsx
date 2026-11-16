@@ -38,6 +38,7 @@ import { ErrorState, FullScreenLoader } from '@web/shared/components/StatusScree
 import { useErrorMessage } from '@web/shared/hooks/use-error-message';
 import { ApiError, newIdempotencyKey } from '@web/shared/lib/api-client';
 import { deviceRegister, useApprovalActions, useRegisters, useReturnActions, useSale } from './api';
+import c from './pages.module.css';
 
 type Refund = 'CASH' | 'CARD' | 'BANK_TRANSFER' | 'CREDIT';
 type Tender = 'CASH' | 'CARD' | 'BANK_TRANSFER' | 'DEBT';
@@ -175,113 +176,113 @@ export function ReturnPage() {
         title={t('returns.title', { number: sale.number })}
         back={{ to: `/sales/${sale.id}`, label: sale.number }}
       />
-      <Stack gap="md" maw={760}>
-        <Card withBorder>
-          <Text fw={600} mb="xs">
-            {t('returns.whatComesBack')}
-          </Text>
-          <Stack gap="sm">
-            {returnable.map((l) => {
-              const left = l.quantity - l.returned;
-              const n = qty[l.id] ?? 0;
-              return (
-                <Stack key={l.id} gap={6}>
-                  <Group justify="space-between" wrap="nowrap" align="flex-start">
-                    <Stack gap={0} style={{ minWidth: 0 }}>
-                      <Text size="sm" fw={600} truncate>
-                        {localize(l.name, i18n.language)}
-                        {l.variantLabel ? ` · ${localize(l.variantLabel, i18n.language)}` : ''}
-                      </Text>
-                      <Text size="xs" c="dimmed">
-                        {t('returns.leftToReturn', { count: left })} · {money(partValue(l, 1))}
-                        {l.giveaway ? ` · ${t('pos.giveaway')}` : ''}
-                      </Text>
-                    </Stack>
+      <Stack gap="md" className="ds-w-xl">
+        <div className={c.pair}>
+          <Card withBorder>
+            <h2 className="ds-heading ds-mb-sm">{t('returns.whatComesBack')}</h2>
+            <Stack gap="sm">
+              {returnable.map((l) => {
+                const left = l.quantity - l.returned;
+                const n = qty[l.id] ?? 0;
+                return (
+                  <Stack key={l.id} gap={6}>
+                    <Group justify="space-between" wrap="nowrap" align="flex-start">
+                      <Stack gap={0} className="ds-min-0">
+                        <Text size="sm" className="ds-medium" truncate>
+                          {localize(l.name, i18n.language)}
+                          {l.variantLabel ? ` · ${localize(l.variantLabel, i18n.language)}` : ''}
+                        </Text>
+                        <Text size="xs" className="ds-muted">
+                          {t('returns.leftToReturn', { count: left })} · {money(partValue(l, 1))}
+                          {l.giveaway ? ` · ${t('pos.giveaway')}` : ''}
+                        </Text>
+                      </Stack>
+                      <NumberInput
+                        className={c.qty}
+                        min={0}
+                        max={left}
+                        value={n}
+                        aria-label={t('sales.quantity')}
+                        onChange={(v) =>
+                          setQty((q) => ({
+                            ...q,
+                            [l.id]: Math.min(left, Math.max(0, Number(v) || 0)),
+                          }))
+                        }
+                      />
+                    </Group>
+                    {n > 0 && (
+                      <SegmentedControl
+                        size="xs"
+                        value={condition[l.id] ?? 'SHELF'}
+                        onChange={(v) =>
+                          setCondition((c) => ({ ...c, [l.id]: v as ReturnCondition }))
+                        }
+                        data={[
+                          { value: 'SHELF', label: t('returns.condition.SHELF') },
+                          { value: 'DAMAGED', label: t('returns.condition.DAMAGED') },
+                        ]}
+                      />
+                    )}
+                  </Stack>
+                );
+              })}
+            </Stack>
+          </Card>
+
+          <Card withBorder>
+            <Group justify="space-between" className={newLines.length ? 'ds-mb-sm' : undefined}>
+              <h2 className="ds-heading">{t('returns.exchangeFor')}</h2>
+              {can('sales.create') && (
+                <Button
+                  size="xs"
+                  variant="light"
+                  leftSection={<IconPlus size={14} />}
+                  onClick={() => setBrowsing(true)}
+                >
+                  {t('returns.addItems')}
+                </Button>
+              )}
+            </Group>
+            <Stack gap={6}>
+              {newLines.map((l) => (
+                <Group key={l.itemId} justify="space-between" wrap="nowrap">
+                  <Text size="sm" truncate className="ds-min-0">
+                    {localize(l.name, i18n.language)}
+                    {l.variantLabel ? ` · ${l.variantLabel}` : ''}
+                  </Text>
+                  <Group gap={6} wrap="nowrap">
                     <NumberInput
-                      w={96}
-                      min={0}
-                      max={left}
-                      value={n}
+                      className={c.qtySm}
+                      min={1}
+                      max={Math.max(1, l.available)}
+                      value={l.quantity}
                       aria-label={t('sales.quantity')}
                       onChange={(v) =>
-                        setQty((q) => ({
-                          ...q,
-                          [l.id]: Math.min(left, Math.max(0, Number(v) || 0)),
-                        }))
+                        setNewLines((ls) =>
+                          ls.map((x) =>
+                            x === l ? { ...x, quantity: Math.max(1, Number(v) || 1) } : x,
+                          ),
+                        )
                       }
                     />
+                    <Text size="sm" className={`${c.amount} ds-end ds-nowrap`}>
+                      {money(multiplyMoney(l.unitPrice, l.quantity))}
+                    </Text>
+                    <ActionIcon
+                      variant="subtle"
+                      color="red"
+                      aria-label={t('common.remove')}
+                      onClick={() => setNewLines((ls) => ls.filter((x) => x !== l))}
+                    >
+                      <IconTrash size={16} />
+                    </ActionIcon>
                   </Group>
-                  {n > 0 && (
-                    <SegmentedControl
-                      size="xs"
-                      value={condition[l.id] ?? 'SHELF'}
-                      onChange={(v) =>
-                        setCondition((c) => ({ ...c, [l.id]: v as ReturnCondition }))
-                      }
-                      data={[
-                        { value: 'SHELF', label: t('returns.condition.SHELF') },
-                        { value: 'DAMAGED', label: t('returns.condition.DAMAGED') },
-                      ]}
-                    />
-                  )}
-                </Stack>
-              );
-            })}
-          </Stack>
-        </Card>
-
-        <Card withBorder>
-          <Group justify="space-between" mb={newLines.length ? 'xs' : 0}>
-            <Text fw={600}>{t('returns.exchangeFor')}</Text>
-            {can('sales.create') && (
-              <Button
-                size="xs"
-                variant="light"
-                leftSection={<IconPlus size={14} />}
-                onClick={() => setBrowsing(true)}
-              >
-                {t('returns.addItems')}
-              </Button>
-            )}
-          </Group>
-          <Stack gap={6}>
-            {newLines.map((l) => (
-              <Group key={l.itemId} justify="space-between" wrap="nowrap">
-                <Text size="sm" truncate style={{ minWidth: 0 }}>
-                  {localize(l.name, i18n.language)}
-                  {l.variantLabel ? ` · ${l.variantLabel}` : ''}
-                </Text>
-                <Group gap={6} wrap="nowrap">
-                  <NumberInput
-                    w={80}
-                    min={1}
-                    max={Math.max(1, l.available)}
-                    value={l.quantity}
-                    aria-label={t('sales.quantity')}
-                    onChange={(v) =>
-                      setNewLines((ls) =>
-                        ls.map((x) =>
-                          x === l ? { ...x, quantity: Math.max(1, Number(v) || 1) } : x,
-                        ),
-                      )
-                    }
-                  />
-                  <Text size="sm" w={90} ta="end">
-                    {money(multiplyMoney(l.unitPrice, l.quantity))}
-                  </Text>
-                  <ActionIcon
-                    variant="subtle"
-                    color="red"
-                    aria-label={t('common.remove')}
-                    onClick={() => setNewLines((ls) => ls.filter((x) => x !== l))}
-                  >
-                    <IconTrash size={16} />
-                  </ActionIcon>
                 </Group>
-              </Group>
-            ))}
-          </Stack>
-        </Card>
+              ))}
+            </Stack>
+          </Card>
+        </div>
 
         <Card withBorder>
           <Stack gap={6}>
@@ -317,7 +318,7 @@ export function ReturnPage() {
                   }))}
                 />
                 {refund === null && (
-                  <Text size="xs" c="dimmed">
+                  <Text size="xs" className="ds-muted">
                     {t('returns.defaultMethodHint')}
                   </Text>
                 )}
@@ -391,13 +392,9 @@ export function ReturnPage() {
 
 function Row({ label, amount, strong }: { label: string; amount: string; strong?: boolean }) {
   return (
-    <Group justify="space-between">
-      <Text size="sm" fw={strong ? 700 : 400}>
-        {label}
-      </Text>
-      <Text size="sm" fw={strong ? 700 : 400}>
-        {amount}
-      </Text>
-    </Group>
+    <div className={strong ? `${c.sumRow} ${c.sumStrong}` : c.sumRow}>
+      <span>{label}</span>
+      <span>{amount}</span>
+    </div>
   );
 }

@@ -6,7 +6,6 @@ import {
   Badge,
   Button,
   Card,
-  Center,
   Group,
   Menu,
   Modal,
@@ -17,7 +16,6 @@ import {
   Text,
   Textarea,
   Timeline,
-  Title,
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import {
@@ -109,18 +107,18 @@ export function OrderDetailPage() {
   return (
     <>
       <BackLink to="/orders" label={t('nav.orders')} />
-      <Group justify="space-between" mb="md" wrap="wrap" gap="xs">
-        <Stack gap={2}>
+      <div className={classes.head}>
+        <Stack gap={4}>
           <Group gap="xs">
-            <Title order={1} size="h2" dir="ltr">
+            <h1 className={classes.title} dir="ltr">
               {o.number}
-            </Title>
+            </h1>
             <Badge color={ORDER_STATUS_COLORS[o.status]}>{t(`orders.status.${o.status}`)}</Badge>
             <Badge variant="light" color={SOURCE_COLORS[o.source]}>
               {t(`orders.source.${o.source}`)}
             </Badge>
           </Group>
-          <Text size="xs" c="dimmed">
+          <Text size="sm" className="ds-muted">
             {formatDateTime(o.createdAt, i18n.language)} · {t(`orders.delivery.${o.delivery}`)}
             {o.courier ? ` · ${o.courier.name}` : ''}
           </Text>
@@ -146,7 +144,7 @@ export function OrderDetailPage() {
           {!finished && (
             <Menu position="bottom-end">
               <Menu.Target>
-                <ActionIcon variant="default" size="lg" aria-label={t('common.more')}>
+                <ActionIcon variant="default" size="input-sm" aria-label={t('common.more')}>
                   <IconDots size={16} />
                 </ActionIcon>
               </Menu.Target>
@@ -178,139 +176,144 @@ export function OrderDetailPage() {
             </Menu>
           )}
         </Group>
-      </Group>
+      </div>
 
       {o.short > 0 && (
-        <Alert color="red" mb="md">
+        <Alert color="red" className="ds-mb-md">
           {t('orders.shortHint', { count: o.short })}
         </Alert>
       )}
 
-      <SimpleGrid cols={{ base: 1, md: 3 }} spacing="md">
-        <Stack gap="md" style={{ gridColumn: 'span 2' }}>
-          <Card withBorder>
-            <Text fw={600} mb="xs">
-              {t('orders.lines')}
-            </Text>
-            <Stack gap={6}>
-              {o.lines.map((l) => (
-                <Group
-                  key={l.id}
-                  wrap="nowrap"
-                  gap="sm"
-                  p={4}
-                  className={
-                    l.reserved < l.quantity && HOLDING.includes(o.status)
-                      ? classes.lineShort
-                      : undefined
-                  }
-                >
-                  {l.imageUrl ? (
-                    <img
-                      src={l.imageUrl}
-                      alt=""
-                      width={48}
-                      height={64}
-                      style={{ objectFit: 'cover', borderRadius: 4 }}
-                    />
-                  ) : (
-                    <Center w={48} h={64} bg="gray.1" style={{ borderRadius: 4 }}>
-                      <IconPhoto size={16} />
-                    </Center>
-                  )}
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <Anchor component={Link} to={`/products/${l.productId}`} size="sm" fw={600}>
-                      {localize(l.name, i18n.language)}
-                    </Anchor>
-                    <Text size="xs" c="dimmed">
-                      {[
-                        l.variantLabel ? localize(l.variantLabel, i18n.language) : null,
-                        l.sku,
-                        l.location,
-                      ]
-                        .filter(Boolean)
-                        .join(' · ')}
+      <div className={classes.detail}>
+        <Stack gap="md" className="ds-min-0">
+          <Card>
+            <Stack gap="sm">
+              <h2 className="ds-heading">{t('orders.lines')}</h2>
+              <Stack gap={6}>
+                {o.lines.map((l) => (
+                  <div
+                    key={l.id}
+                    className={`${classes.line} ${
+                      l.reserved < l.quantity && HOLDING.includes(o.status) ? classes.lineShort : ''
+                    }`}
+                  >
+                    {l.imageUrl ? (
+                      <img
+                        src={l.imageUrl}
+                        alt=""
+                        width={48}
+                        height={64}
+                        className={`${classes.thumb} ${classes.thumbLg}`}
+                      />
+                    ) : (
+                      <div className={`${classes.thumb} ${classes.thumbLg}`}>
+                        <IconPhoto size={16} />
+                      </div>
+                    )}
+                    <div className="ds-grow">
+                      <Anchor
+                        component={Link}
+                        to={`/products/${l.productId}`}
+                        size="sm"
+                        className="ds-bold"
+                      >
+                        {localize(l.name, i18n.language)}
+                      </Anchor>
+                      <Text size="xs" className="ds-muted">
+                        {[
+                          l.variantLabel ? localize(l.variantLabel, i18n.language) : null,
+                          l.sku,
+                          l.location,
+                        ]
+                          .filter(Boolean)
+                          .join(' · ')}
+                      </Text>
+                      {['CONFIRMED', 'PREPARING', 'READY'].includes(o.status) && (
+                        <Text
+                          size="xs"
+                          className={l.reserved < l.quantity ? 'ds-danger' : 'ds-success'}
+                        >
+                          {t('orders.reservedOf', { reserved: l.reserved, quantity: l.quantity })}
+                        </Text>
+                      )}
+                      {Number(l.currentPrice) > Number(l.unitPrice) && !finished && (
+                        <Text size="xs" className="ds-warning">
+                          {t('orders.quoteKept', { price: money(l.currentPrice) })}
+                        </Text>
+                      )}
+                    </div>
+                    <Text size="sm" className="ds-num ds-nowrap">
+                      × {l.quantity}
                     </Text>
-                    {['CONFIRMED', 'PREPARING', 'READY'].includes(o.status) && (
-                      <Text size="xs" c={l.reserved < l.quantity ? 'red' : 'green.8'}>
-                        {t('orders.reservedOf', { reserved: l.reserved, quantity: l.quantity })}
-                      </Text>
-                    )}
-                    {Number(l.currentPrice) > Number(l.unitPrice) && !finished && (
-                      <Text size="xs" c="orange.8">
-                        {t('orders.quoteKept', { price: money(l.currentPrice) })}
-                      </Text>
-                    )}
+                    <Text size="sm" className={`${classes.lineAmount} ds-bold ds-end ds-num`}>
+                      {money(l.lineTotal)}
+                    </Text>
                   </div>
-                  <Text size="sm">× {l.quantity}</Text>
-                  <Text size="sm" fw={600} w={90} ta="end">
-                    {money(l.lineTotal)}
-                  </Text>
-                </Group>
-              ))}
+                ))}
+              </Stack>
             </Stack>
           </Card>
-          <Card withBorder>
-            <Text fw={600} mb="xs">
-              {t('orders.timeline')}
-            </Text>
-            <Timeline bulletSize={14} lineWidth={2} active={o.events.length}>
-              {o.events.map((e) => (
-                <Timeline.Item key={e.id} title={t(`orders.status.${e.to}`)}>
-                  <Text size="xs" c="dimmed">
-                    {e.by} · {formatDateTime(e.at, i18n.language)}
-                  </Text>
-                  {e.note && <Text size="sm">{e.note}</Text>}
-                </Timeline.Item>
-              ))}
-            </Timeline>
+          <Card>
+            <Stack gap="sm">
+              <h2 className="ds-heading">{t('orders.timeline')}</h2>
+              <Timeline bulletSize={14} lineWidth={2} active={o.events.length}>
+                {o.events.map((e) => (
+                  <Timeline.Item key={e.id} title={t(`orders.status.${e.to}`)}>
+                    <Text size="xs" className="ds-muted">
+                      {e.by} · {formatDateTime(e.at, i18n.language)}
+                    </Text>
+                    {e.note && <Text size="sm">{e.note}</Text>}
+                  </Timeline.Item>
+                ))}
+              </Timeline>
+            </Stack>
           </Card>
         </Stack>
 
         <Stack gap="md">
-          <Card withBorder>
-            <Text fw={600}>{o.customer.name}</Text>
-            {o.customer.phone && (
-              <Group gap="xs" mt={4}>
-                <Text size="sm" dir="ltr">
-                  {o.customer.phone}
+          <Card>
+            <Stack gap={6}>
+              <h2 className="ds-heading">{o.customer.name}</h2>
+              {o.customer.phone && (
+                <Group gap="xs">
+                  <Text size="sm" dir="ltr" className="ds-num">
+                    {o.customer.phone}
+                  </Text>
+                  <ActionIcon
+                    component="a"
+                    href={`tel:${o.customer.phone}`}
+                    variant="light"
+                    aria-label={t('orders.call')}
+                  >
+                    <IconPhone size={16} />
+                  </ActionIcon>
+                  <ActionIcon
+                    component="a"
+                    href={`https://wa.me/${whatsappNumber(o.customer.phone)}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    variant="light"
+                    color="green"
+                    aria-label="WhatsApp"
+                  >
+                    <IconBrandWhatsapp size={16} />
+                  </ActionIcon>
+                </Group>
+              )}
+              {(o.city || o.address) && (
+                <Text size="sm">{[o.city, o.address].filter(Boolean).join(' · ')}</Text>
+              )}
+              {o.note && (
+                <Text size="sm" className="ds-muted ds-pre-line">
+                  {o.note}
                 </Text>
-                <ActionIcon
-                  component="a"
-                  href={`tel:${o.customer.phone}`}
-                  variant="light"
-                  aria-label={t('orders.call')}
-                >
-                  <IconPhone size={16} />
-                </ActionIcon>
-                <ActionIcon
-                  component="a"
-                  href={`https://wa.me/${whatsappNumber(o.customer.phone)}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  variant="light"
-                  color="green"
-                  aria-label="WhatsApp"
-                >
-                  <IconBrandWhatsapp size={16} />
-                </ActionIcon>
-              </Group>
-            )}
-            {(o.city || o.address) && (
-              <Text size="sm" mt={4}>
-                {[o.city, o.address].filter(Boolean).join(' · ')}
-              </Text>
-            )}
-            {o.note && (
-              <Text size="sm" c="dimmed" mt={4}>
-                {o.note}
-              </Text>
-            )}
-            <Anchor component={Link} to={`/customers/${o.customer.id}`} size="xs">
-              {t('orders.customerPage')}
-            </Anchor>
+              )}
+              <Anchor component={Link} to={`/customers/${o.customer.id}`} size="sm">
+                {t('orders.customerPage')}
+              </Anchor>
+            </Stack>
           </Card>
-          <Card withBorder>
+          <Card>
             <Stack gap={4}>
               <Row label={t('sales.total')} value={money(o.total)} strong />
               {Number(o.deposit) > 0 && (
@@ -325,15 +328,15 @@ export function OrderDetailPage() {
                 </Anchor>
               )}
               {o.cancelReason && (
-                <Text size="sm" c="red">
+                <Text size="sm" className="ds-danger">
                   {o.cancelReason}
                 </Text>
               )}
             </Stack>
             {o.deposits.length > 0 && (
-              <Stack gap={2} mt="sm">
+              <Stack gap={2} className="ds-mt-sm ds-divider-top">
                 {o.deposits.map((p) => (
-                  <Text key={p.id} size="xs" c="dimmed">
+                  <Text key={p.id} size="xs" className="ds-muted ds-mt-xs">
                     <span dir="ltr">{p.number}</span> · {t(`sales.method.${p.method}`)} ·{' '}
                     {money(p.amountDefault)}
                   </Text>
@@ -342,7 +345,7 @@ export function OrderDetailPage() {
             )}
           </Card>
         </Stack>
-      </SimpleGrid>
+      </div>
 
       {dialog === 'ship' && <ShipDialog order={o} onClose={() => setDialog(null)} />}
       {dialog === 'collect' && <CollectDialog order={o} onClose={() => setDialog(null)} />}
@@ -356,12 +359,10 @@ export function OrderDetailPage() {
 
 function Row({ label, value, strong }: { label: string; value: string; strong?: boolean }) {
   return (
-    <Group justify="space-between">
-      <Text size="sm">{label}</Text>
-      <Text size="sm" fw={strong ? 700 : 500}>
-        {value}
-      </Text>
-    </Group>
+    <div className={`${classes.sumRow} ${strong ? classes.sumTotal : ''}`}>
+      <span>{label}</span>
+      <span className={`ds-num ${strong ? 'ds-bold' : 'ds-medium ds-ink'}`}>{value}</span>
+    </div>
   );
 }
 
@@ -606,7 +607,7 @@ function DepositDialog({ order: o, onClose }: { order: OrderView; onClose: () =>
   return (
     <Modal opened onClose={onClose} title={t('orders.do.deposit')} centered>
       <Stack>
-        <Text size="sm" c="dimmed">
+        <Text size="sm" className="ds-muted">
           {t('orders.depositHint')}
         </Text>
         <SegmentedControl
@@ -696,7 +697,7 @@ function EditDialog({ order: o, onClose }: { order: OrderView; onClose: () => vo
         {linesEditable ? (
           <OrderLinesEditor lines={lines} onChange={setLines} />
         ) : (
-          <Text size="sm" c="dimmed">
+          <Text size="sm" className="ds-muted">
             {t('orders.linesFixed')}
           </Text>
         )}

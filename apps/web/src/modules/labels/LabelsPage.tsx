@@ -1,14 +1,4 @@
-import {
-  Alert,
-  Button,
-  Card,
-  Checkbox,
-  Group,
-  NumberInput,
-  Stack,
-  Table,
-  Text,
-} from '@mantine/core';
+import { Alert, Button, Card, Checkbox, Group, NumberInput, Stack, Table } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { type LabelData, labelSettingsSchema, localize } from '@organza/shared';
 import { IconPrinter } from '@tabler/icons-react';
@@ -133,82 +123,89 @@ export function LabelsPage() {
             </Group>
           </Alert>
         )}
-        <Card withBorder>
-          <Text fw={600} mb="xs">
-            {t('labels.pending')}
-          </Text>
-          {pending.isPending && <FullScreenLoader />}
-          {pending.data?.items.length === 0 && selected.length === 0 && <EmptyState />}
-          <Stack gap={4}>
-            {pending.data?.items.map((p) => (
-              <Checkbox
-                key={p.id}
-                label={`#${p.number} ${localized(p.name)}`}
-                checked={selected.includes(p.id)}
-                onChange={(e) => toggle(p.id, e.currentTarget.checked)}
-              />
-            ))}
-            {selected
-              .filter((id) => !pending.data?.items.some((p) => p.id === id))
-              .map((id) => {
-                const any = labels.data?.find((l) => l.productId === id);
-                return (
-                  <Checkbox
-                    key={id}
-                    label={any ? localize(any.name, i18n.language) : id}
-                    checked
-                    onChange={() => toggle(id, false)}
-                  />
-                );
-              })}
+        <div className={classes.layout}>
+          <Stack gap="md" className="ds-min-0">
+            <Card withBorder>
+              <Stack gap="sm">
+                <h2 className="ds-heading">{t('labels.pending')}</h2>
+                {pending.isPending && <FullScreenLoader />}
+                {pending.data?.items.length === 0 && selected.length === 0 && <EmptyState />}
+                <Stack gap={4}>
+                  {pending.data?.items.map((p) => (
+                    <Checkbox
+                      key={p.id}
+                      label={`#${p.number} ${localized(p.name)}`}
+                      checked={selected.includes(p.id)}
+                      onChange={(e) => toggle(p.id, e.currentTarget.checked)}
+                    />
+                  ))}
+                  {selected
+                    .filter((id) => !pending.data?.items.some((p) => p.id === id))
+                    .map((id) => {
+                      const any = labels.data?.find((l) => l.productId === id);
+                      return (
+                        <Checkbox
+                          key={id}
+                          label={any ? localize(any.name, i18n.language) : id}
+                          checked
+                          onChange={() => toggle(id, false)}
+                        />
+                      );
+                    })}
+                </Stack>
+              </Stack>
+            </Card>
+            {(labels.data?.length ?? 0) > 0 && (
+              <Card padding={0}>
+                <Table verticalSpacing={4}>
+                  <Table.Thead>
+                    <Table.Tr>
+                      <Table.Th>{t('catalogue.name')}</Table.Th>
+                      <Table.Th>{t('catalogue.barcode')}</Table.Th>
+                      <Table.Th className={classes.colCopies}>{t('labels.copies')}</Table.Th>
+                    </Table.Tr>
+                  </Table.Thead>
+                  <Table.Tbody>
+                    {labels.data?.map((l) => (
+                      <Table.Tr key={l.itemId}>
+                        <Table.Td>{rowName(l)}</Table.Td>
+                        <Table.Td className="ds-ltr">{l.barcode}</Table.Td>
+                        <Table.Td>
+                          <NumberInput
+                            size="xs"
+                            min={0}
+                            max={MAX_COPIES}
+                            allowDecimal={false}
+                            value={copies[l.itemId] ?? 1}
+                            onChange={(v) => setCopies((c) => ({ ...c, [l.itemId]: v }))}
+                          />
+                        </Table.Td>
+                      </Table.Tr>
+                    ))}
+                  </Table.Tbody>
+                </Table>
+              </Card>
+            )}
           </Stack>
-        </Card>
-        {(labels.data?.length ?? 0) > 0 && (
-          <Card p={0}>
-            <Table verticalSpacing={4} fz="sm">
-              <Table.Thead>
-                <Table.Tr>
-                  <Table.Th>{t('catalogue.name')}</Table.Th>
-                  <Table.Th>{t('catalogue.barcode')}</Table.Th>
-                  <Table.Th w={110}>{t('labels.copies')}</Table.Th>
-                </Table.Tr>
-              </Table.Thead>
-              <Table.Tbody>
-                {labels.data?.map((l) => (
-                  <Table.Tr key={l.itemId}>
-                    <Table.Td>{rowName(l)}</Table.Td>
-                    <Table.Td dir="ltr" style={{ textAlign: 'start' }}>
-                      {l.barcode}
-                    </Table.Td>
-                    <Table.Td>
-                      <NumberInput
-                        size="xs"
-                        min={0}
-                        max={MAX_COPIES}
-                        allowDecimal={false}
-                        value={copies[l.itemId] ?? 1}
-                        onChange={(v) => setCopies((c) => ({ ...c, [l.itemId]: v }))}
-                      />
-                    </Table.Td>
-                  </Table.Tr>
-                ))}
-              </Table.Tbody>
-            </Table>
-          </Card>
-        )}
-        {runs.length > 0 && (
-          <div className={classes.preview}>
-            <LabelSheets
-              copies={runs.slice(0, layout.mode === 'THERMAL' ? 6 : layout.columns * layout.rows)}
-              layout={layout}
-              language={i18n.language}
-              money={money}
-            />
-            <Text size="xs" c="dimmed" ta="center">
-              {t('labels.previewNote')}
-            </Text>
-          </div>
-        )}
+          {runs.length > 0 && (
+            <Card withBorder className="ds-min-0">
+              <Stack gap="sm">
+                <h2 className="ds-heading">{t('labels.previewNote')}</h2>
+                <div className={classes.preview}>
+                  <LabelSheets
+                    copies={runs.slice(
+                      0,
+                      layout.mode === 'THERMAL' ? 6 : layout.columns * layout.rows,
+                    )}
+                    layout={layout}
+                    language={i18n.language}
+                    money={money}
+                  />
+                </div>
+              </Stack>
+            </Card>
+          )}
+        </div>
       </Stack>
       {createPortal(
         <div className="label-print-root">

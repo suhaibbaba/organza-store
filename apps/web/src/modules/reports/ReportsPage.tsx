@@ -20,13 +20,24 @@ import {
   SALES_GROUPS,
   type SalesGroup,
 } from '@organza/shared';
-import { IconDownload } from '@tabler/icons-react';
+import {
+  IconAlertTriangle,
+  IconCalculator,
+  IconCash,
+  IconCoins,
+  IconDownload,
+  IconHanger,
+  IconReceipt,
+  IconTag,
+  IconTrendingUp,
+} from '@tabler/icons-react';
 import { type ReactNode, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useSearchParams } from 'react-router';
 import { useSession } from '@web/modules/auth/session';
 import { useMoney } from '@web/modules/catalogue/components';
 import { PageHeader } from '@web/shared/components/PageHeader';
+import { StatCard, StatGrid } from '@web/shared/components/Widgets';
 import { EmptyState, ErrorState, FullScreenLoader } from '@web/shared/components/StatusScreens';
 import { downloadCsv } from '@web/shared/lib/csv';
 import { formatDate } from '@web/shared/lib/format';
@@ -40,6 +51,7 @@ import {
   useSalesReport,
   useSupplierDebts,
 } from './api';
+import classes from './reports.module.css';
 
 const iso = (d: Date) =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -96,7 +108,7 @@ export function ReportsPage() {
         onChange={(v) => setParams(v ? { tab: v } : {}, { replace: true })}
         keepMounted={false}
       >
-        <Tabs.List mb="sm" style={{ overflowX: 'auto', flexWrap: 'nowrap' }}>
+        <Tabs.List className={classes.tabs}>
           {tabs.map((x) => (
             <Tabs.Tab key={x} value={x}>
               {t(`reports.tab.${x}`)}
@@ -104,7 +116,7 @@ export function ReportsPage() {
           ))}
         </Tabs.List>
         {RANGED.includes(tab) && (
-          <Group mb="md" gap="xs" wrap="wrap" align="flex-end">
+          <Group className="ds-mb-md" gap="xs" wrap="wrap" align="flex-end">
             <TextInput
               type="date"
               label={t('reports.from')}
@@ -132,8 +144,7 @@ export function ReportsPage() {
         {tab === 'daily' && (
           <TextInput
             type="date"
-            mb="md"
-            maw={200}
+            className={`${classes.dateField} ds-mb-md`}
             label={t('common.date')}
             value={day}
             onChange={(e) => setDay(e.currentTarget.value)}
@@ -198,11 +209,11 @@ function Line({
   muted?: boolean;
 }) {
   return (
-    <Group justify="space-between" py={2}>
-      <Text size="sm" c={muted ? 'dimmed' : undefined} fw={strong ? 700 : undefined}>
+    <Group justify="space-between" className={classes.line}>
+      <Text size="sm" className={muted ? 'ds-muted' : strong ? 'ds-bold' : undefined}>
         {label}
       </Text>
-      <Text size="sm" fw={strong ? 700 : 500}>
+      <Text size="sm" className={strong ? 'ds-bold' : 'ds-medium'}>
         {value}
       </Text>
     </Group>
@@ -245,10 +256,37 @@ function Summary({ range }: { range: ReportRange }) {
     [t('reports.netProfit'), p.netProfit ?? ''],
   ];
   return (
-    <SimpleGrid cols={{ base: 1, md: 2 }}>
-      <Card withBorder>
-        <Group justify="space-between" mb="xs">
-          <Text fw={600}>{t('reports.profitAndLoss')}</Text>
+    <Stack gap="md">
+      <StatGrid>
+        <StatCard icon={IconCash} label={t('reports.netSales')} value={money(p.netSales)} />
+        <StatCard
+          icon={IconReceipt}
+          label={t('reports.salesCount')}
+          value={p.sales.count}
+          foot={`${t('reports.pieces')}: ${p.sales.pieces}`}
+        />
+        <StatCard
+          icon={IconCalculator}
+          label={t('reports.average')}
+          value={money(p.sales.average)}
+        />
+        {p.netProfit !== null && (
+          <StatCard
+            icon={IconTrendingUp}
+            label={t('reports.netProfit')}
+            value={money(p.netProfit)}
+            tone={Number(p.netProfit) < 0 ? 'danger' : 'success'}
+          />
+        )}
+      </StatGrid>
+      {p.imported.count > 0 && (
+        <Alert color="gray">
+          {t('reports.importedHint', { count: p.imported.count, total: money(p.imported.total) })}
+        </Alert>
+      )}
+      <Card className="ds-w-lg">
+        <Group justify="space-between" className="ds-mb-sm">
+          <h2 className="ds-heading">{t('reports.profitAndLoss')}</h2>
           <Export name={`profit-and-loss-${p.from}-${p.to}`} rows={rows} />
         </Group>
         <Line label={t('reports.revenue')} value={money(p.revenue)} />
@@ -285,36 +323,13 @@ function Summary({ range }: { range: ReportRange }) {
         {p.netProfit !== null && (
           <Line label={t('reports.netProfit')} value={money(p.netProfit)} strong />
         )}
-      </Card>
-      <Stack>
-        <SimpleGrid cols={3}>
-          <Stat label={t('reports.salesCount')} value={String(p.sales.count)} />
-          <Stat label={t('reports.pieces')} value={String(p.sales.pieces)} />
-          <Stat label={t('reports.average')} value={money(p.sales.average)} />
-        </SimpleGrid>
-        {p.imported.count > 0 && (
-          <Alert color="gray">
-            {t('reports.importedHint', { count: p.imported.count, total: money(p.imported.total) })}
-          </Alert>
-        )}
         {p.cogs === null && (
-          <Text size="xs" c="dimmed">
+          <Text size="xs" className="ds-muted ds-mt-sm">
             {t('reports.costHidden')}
           </Text>
         )}
-      </Stack>
-    </SimpleGrid>
-  );
-}
-
-function Stat({ label, value }: { label: string; value: string }) {
-  return (
-    <Card withBorder padding="sm">
-      <Text size="xs" c="dimmed">
-        {label}
-      </Text>
-      <Text fw={700}>{value}</Text>
-    </Card>
+      </Card>
+    </Stack>
   );
 }
 
@@ -339,7 +354,7 @@ function SalesBreakdown({ range }: { range: ReportRange }) {
     <Stack>
       <Group justify="space-between">
         <Select
-          w={200}
+          className={classes.groupSelect}
           allowDeselect={false}
           value={groupBy}
           onChange={(v) => setGroupBy((v as SalesGroup) ?? 'day')}
@@ -370,16 +385,16 @@ function SalesBreakdown({ range }: { range: ReportRange }) {
       ) : rows.length === 0 ? (
         <EmptyState />
       ) : (
-        <Card withBorder p={0}>
+        <Card padding={0}>
           <Table.ScrollContainer minWidth={520}>
             <Table striped>
               <Table.Thead>
                 <Table.Tr>
                   <Table.Th>{t(`reports.groupBy.${groupBy}`)}</Table.Th>
-                  <Table.Th ta="end">{t('reports.salesCount')}</Table.Th>
-                  <Table.Th ta="end">{t('reports.pieces')}</Table.Th>
-                  <Table.Th ta="end">{t('reports.revenue')}</Table.Th>
-                  {cost && <Table.Th ta="end">{t('reports.grossProfit')}</Table.Th>}
+                  <Table.Th className="ds-end">{t('reports.salesCount')}</Table.Th>
+                  <Table.Th className="ds-end">{t('reports.pieces')}</Table.Th>
+                  <Table.Th className="ds-end">{t('reports.revenue')}</Table.Th>
+                  {cost && <Table.Th className="ds-end">{t('reports.grossProfit')}</Table.Th>}
                 </Table.Tr>
               </Table.Thead>
               <Table.Tbody>
@@ -394,10 +409,10 @@ function SalesBreakdown({ range }: { range: ReportRange }) {
                         label(r.label)
                       )}
                     </Table.Td>
-                    <Table.Td ta="end">{r.sales}</Table.Td>
-                    <Table.Td ta="end">{r.pieces}</Table.Td>
-                    <Table.Td ta="end">{money(r.revenue)}</Table.Td>
-                    {cost && <Table.Td ta="end">{money(r.profit ?? '0')}</Table.Td>}
+                    <Table.Td className="ds-end">{r.sales}</Table.Td>
+                    <Table.Td className="ds-end">{r.pieces}</Table.Td>
+                    <Table.Td className="ds-end">{money(r.revenue)}</Table.Td>
+                    {cost && <Table.Td className="ds-end">{money(r.profit ?? '0')}</Table.Td>}
                   </Table.Tr>
                 ))}
               </Table.Tbody>
@@ -442,10 +457,8 @@ function Cash({ range }: { range: ReportRange }) {
       </Group>
       <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }}>
         {c.accounts.map((a) => (
-          <Card key={a.account} withBorder>
-            <Text fw={600} mb={4}>
-              {t(`reports.accountName.${a.account}`)}
-            </Text>
+          <Card key={a.account}>
+            <h2 className="ds-heading ds-mb-xs">{t(`reports.accountName.${a.account}`)}</h2>
             <Line label={t('reports.opening')} value={money(a.opening)} muted />
             <Line label={t('reports.in')} value={`+${money(a.in)}`} />
             <Line label={t('reports.out')} value={`−${money(a.out)}`} />
@@ -454,25 +467,27 @@ function Cash({ range }: { range: ReportRange }) {
         ))}
       </SimpleGrid>
       {c.flows.length > 0 && (
-        <Card withBorder p={0}>
-          <Table striped>
-            <Table.Thead>
-              <Table.Tr>
-                <Table.Th>{t('reports.flow')}</Table.Th>
-                <Table.Th ta="end">{t('reports.in')}</Table.Th>
-                <Table.Th ta="end">{t('reports.out')}</Table.Th>
-              </Table.Tr>
-            </Table.Thead>
-            <Table.Tbody>
-              {c.flows.map((f) => (
-                <Table.Tr key={f.event}>
-                  <Table.Td>{t(`reports.event.${f.event}`, { defaultValue: f.event })}</Table.Td>
-                  <Table.Td ta="end">{Number(f.in) ? money(f.in) : ''}</Table.Td>
-                  <Table.Td ta="end">{Number(f.out) ? money(f.out) : ''}</Table.Td>
+        <Card padding={0}>
+          <Table.ScrollContainer minWidth={420}>
+            <Table striped>
+              <Table.Thead>
+                <Table.Tr>
+                  <Table.Th>{t('reports.flow')}</Table.Th>
+                  <Table.Th className="ds-end">{t('reports.in')}</Table.Th>
+                  <Table.Th className="ds-end">{t('reports.out')}</Table.Th>
                 </Table.Tr>
-              ))}
-            </Table.Tbody>
-          </Table>
+              </Table.Thead>
+              <Table.Tbody>
+                {c.flows.map((f) => (
+                  <Table.Tr key={f.event}>
+                    <Table.Td>{t(`reports.event.${f.event}`, { defaultValue: f.event })}</Table.Td>
+                    <Table.Td className="ds-end">{Number(f.in) ? money(f.in) : ''}</Table.Td>
+                    <Table.Td className="ds-end">{Number(f.out) ? money(f.out) : ''}</Table.Td>
+                  </Table.Tr>
+                ))}
+              </Table.Tbody>
+            </Table>
+          </Table.ScrollContainer>
         </Card>
       )}
     </Stack>
@@ -509,15 +524,15 @@ function Methods({ range }: { range: ReportRange }) {
           ]}
         />
       </Group>
-      <Card withBorder p={0}>
+      <Card padding={0}>
         <Table.ScrollContainer minWidth={480}>
           <Table striped>
             <Table.Thead>
               <Table.Tr>
                 <Table.Th>{t('suppliers.method')}</Table.Th>
                 <Table.Th>{t('reports.purpose')}</Table.Th>
-                <Table.Th ta="end">{t('reports.count')}</Table.Th>
-                <Table.Th ta="end">{t('sales.amount')}</Table.Th>
+                <Table.Th className="ds-end">{t('reports.count')}</Table.Th>
+                <Table.Th className="ds-end">{t('sales.amount')}</Table.Th>
               </Table.Tr>
             </Table.Thead>
             <Table.Tbody>
@@ -525,8 +540,8 @@ function Methods({ range }: { range: ReportRange }) {
                 <Table.Tr key={`${r.method}-${r.purpose}-${r.direction}`}>
                   <Table.Td>{t(`sales.method.${r.method}`)}</Table.Td>
                   <Table.Td>{purpose(r.purpose)}</Table.Td>
-                  <Table.Td ta="end">{r.count}</Table.Td>
-                  <Table.Td ta="end" c={r.direction === 'OUT' ? 'red' : undefined}>
+                  <Table.Td className="ds-end">{r.count}</Table.Td>
+                  <Table.Td className={r.direction === 'OUT' ? 'ds-end ds-danger' : 'ds-end'}>
                     {r.direction === 'OUT' ? '−' : ''}
                     {money(r.amount)}
                   </Table.Td>
@@ -546,10 +561,10 @@ function AgingHead() {
   const { t } = useTranslation();
   return (
     <>
-      <Table.Th ta="end">{t('reports.aging.current')}</Table.Th>
-      <Table.Th ta="end">{t('reports.aging.days30')}</Table.Th>
-      <Table.Th ta="end">{t('reports.aging.days60')}</Table.Th>
-      <Table.Th ta="end">{t('reports.aging.days90')}</Table.Th>
+      <Table.Th className="ds-end">{t('reports.aging.current')}</Table.Th>
+      <Table.Th className="ds-end">{t('reports.aging.days30')}</Table.Th>
+      <Table.Th className="ds-end">{t('reports.aging.days60')}</Table.Th>
+      <Table.Th className="ds-end">{t('reports.aging.days90')}</Table.Th>
     </>
   );
 }
@@ -557,7 +572,7 @@ function AgingHead() {
 function AgingCells({ a }: { a: AgingBuckets }) {
   const money = useMoney();
   const cell = (v: string, late = false) => (
-    <Table.Td ta="end" c={late && Number(v) > 0 ? 'red' : undefined}>
+    <Table.Td className={late && Number(v) > 0 ? 'ds-end ds-danger' : 'ds-end'}>
       {Number(v) ? money(v) : ''}
     </Table.Td>
   );
@@ -605,13 +620,13 @@ function Debts() {
       {d.customers.length === 0 ? (
         <EmptyState />
       ) : (
-        <Card withBorder p={0}>
+        <Card padding={0}>
           <Table.ScrollContainer minWidth={640}>
             <Table striped>
               <Table.Thead>
                 <Table.Tr>
                   <Table.Th>{t('customers.name')}</Table.Th>
-                  <Table.Th ta="end">{t('reports.owed')}</Table.Th>
+                  <Table.Th className="ds-end">{t('reports.owed')}</Table.Th>
                   <AgingHead />
                 </Table.Tr>
               </Table.Thead>
@@ -623,22 +638,18 @@ function Debts() {
                         {c.name}
                       </Anchor>
                       {c.phone && (
-                        <Text size="xs" c="dimmed" dir="ltr" ta="start">
+                        <Text size="xs" className="ds-muted ds-ltr">
                           {c.phone}
                         </Text>
                       )}
                     </Table.Td>
-                    <Table.Td ta="end" fw={600}>
-                      {money(c.owed)}
-                    </Table.Td>
+                    <Table.Td className="ds-end ds-bold">{money(c.owed)}</Table.Td>
                     <AgingCells a={c.aging} />
                   </Table.Tr>
                 ))}
                 <Table.Tr>
-                  <Table.Td fw={700}>{t('reports.total')}</Table.Td>
-                  <Table.Td ta="end" fw={700}>
-                    {money(d.totals.owed)}
-                  </Table.Td>
+                  <Table.Td className="ds-bold">{t('reports.total')}</Table.Td>
+                  <Table.Td className="ds-end ds-bold">{money(d.totals.owed)}</Table.Td>
                   <AgingCells a={d.totals.aging} />
                 </Table.Tr>
               </Table.Tbody>
@@ -676,13 +687,13 @@ function SupplierDebts() {
           ]}
         />
       </Group>
-      <Card withBorder p={0}>
+      <Card padding={0}>
         <Table.ScrollContainer minWidth={640}>
           <Table striped>
             <Table.Thead>
               <Table.Tr>
                 <Table.Th>{t('purchasing.supplier')}</Table.Th>
-                <Table.Th ta="end">{t('reports.owed')}</Table.Th>
+                <Table.Th className="ds-end">{t('reports.owed')}</Table.Th>
                 <AgingHead />
               </Table.Tr>
             </Table.Thead>
@@ -694,17 +705,13 @@ function SupplierDebts() {
                       {s.name}
                     </Anchor>
                   </Table.Td>
-                  <Table.Td ta="end" fw={600}>
-                    {money(s.owed)}
-                  </Table.Td>
+                  <Table.Td className="ds-end ds-bold">{money(s.owed)}</Table.Td>
                   <AgingCells a={s.aging} />
                 </Table.Tr>
               ))}
               <Table.Tr>
-                <Table.Td fw={700}>{t('reports.total')}</Table.Td>
-                <Table.Td ta="end" fw={700}>
-                  {money(d.totals.owed)}
-                </Table.Td>
+                <Table.Td className="ds-bold">{t('reports.total')}</Table.Td>
+                <Table.Td className="ds-end ds-bold">{money(d.totals.owed)}</Table.Td>
                 <AgingCells a={d.totals.aging} />
               </Table.Tr>
             </Table.Tbody>
@@ -728,12 +735,17 @@ function Inventory() {
   const reconciled = v.totals.value === v.totals.ledger;
   return (
     <Stack>
-      <SimpleGrid cols={{ base: 2, md: 4 }}>
-        <Stat label={t('reports.pieces')} value={String(v.totals.pieces)} />
-        <Stat label={t('reports.atCost')} value={money(v.totals.value)} />
-        <Stat label={t('reports.atPrice')} value={money(v.totals.retail)} />
-        <Stat label={t('reports.damagedPieces')} value={String(v.totals.damaged)} />
-      </SimpleGrid>
+      <StatGrid>
+        <StatCard icon={IconHanger} label={t('reports.pieces')} value={v.totals.pieces} />
+        <StatCard icon={IconCoins} label={t('reports.atCost')} value={money(v.totals.value)} />
+        <StatCard icon={IconTag} label={t('reports.atPrice')} value={money(v.totals.retail)} />
+        <StatCard
+          icon={IconAlertTriangle}
+          label={t('reports.damagedPieces')}
+          value={v.totals.damaged}
+          tone={v.totals.damaged > 0 ? 'warning' : 'neutral'}
+        />
+      </StatGrid>
       <Alert color={reconciled ? 'green' : 'orange'}>
         {reconciled
           ? t('reports.reconciled')
@@ -755,27 +767,29 @@ function Inventory() {
           ]}
         />
       </Group>
-      <Card withBorder p={0}>
-        <Table striped>
-          <Table.Thead>
-            <Table.Tr>
-              <Table.Th>{t('catalogue.category')}</Table.Th>
-              <Table.Th ta="end">{t('reports.pieces')}</Table.Th>
-              <Table.Th ta="end">{t('reports.atCost')}</Table.Th>
-              <Table.Th ta="end">{t('reports.atPrice')}</Table.Th>
-            </Table.Tr>
-          </Table.Thead>
-          <Table.Tbody>
-            {v.categories.map((c) => (
-              <Table.Tr key={c.id ?? 'none'}>
-                <Table.Td>{name(c.name)}</Table.Td>
-                <Table.Td ta="end">{c.pieces}</Table.Td>
-                <Table.Td ta="end">{money(c.value)}</Table.Td>
-                <Table.Td ta="end">{money(c.retail)}</Table.Td>
+      <Card padding={0}>
+        <Table.ScrollContainer minWidth={480}>
+          <Table striped>
+            <Table.Thead>
+              <Table.Tr>
+                <Table.Th>{t('catalogue.category')}</Table.Th>
+                <Table.Th className="ds-end">{t('reports.pieces')}</Table.Th>
+                <Table.Th className="ds-end">{t('reports.atCost')}</Table.Th>
+                <Table.Th className="ds-end">{t('reports.atPrice')}</Table.Th>
               </Table.Tr>
-            ))}
-          </Table.Tbody>
-        </Table>
+            </Table.Thead>
+            <Table.Tbody>
+              {v.categories.map((c) => (
+                <Table.Tr key={c.id ?? 'none'}>
+                  <Table.Td>{name(c.name)}</Table.Td>
+                  <Table.Td className="ds-end">{c.pieces}</Table.Td>
+                  <Table.Td className="ds-end">{money(c.value)}</Table.Td>
+                  <Table.Td className="ds-end">{money(c.retail)}</Table.Td>
+                </Table.Tr>
+              ))}
+            </Table.Tbody>
+          </Table>
+        </Table.ScrollContainer>
       </Card>
     </Stack>
   );
@@ -795,7 +809,7 @@ function Daily({ date }: { date: string }) {
   const d = query.data;
   return (
     <SimpleGrid cols={{ base: 1, md: 2 }}>
-      <Card withBorder>
+      <Card>
         <Line label={t('reports.salesCount')} value={String(d.sales.count)} />
         <Line label={t('reports.pieces')} value={String(d.sales.pieces)} />
         <Line label={t('reports.salesTotal')} value={money(d.sales.total)} strong />
@@ -807,17 +821,13 @@ function Daily({ date }: { date: string }) {
         {d.grossProfit !== null && (
           <Line label={t('reports.grossProfit')} value={money(d.grossProfit)} strong />
         )}
-        <Text fw={600} mt="sm" mb={4}>
-          {t('today.byMethod')}
-        </Text>
+        <h3 className="ds-heading ds-mt-sm ds-mb-xs">{t('today.byMethod')}</h3>
         {methods.map(([m, v]) => (
           <Line key={m} label={t(`sales.method.${m}`)} value={money(v.toFixed(2))} />
         ))}
         {d.expenses.length > 0 && (
           <>
-            <Text fw={600} mt="sm" mb={4}>
-              {t('reports.expenses')}
-            </Text>
+            <h3 className="ds-heading ds-mt-sm ds-mb-xs">{t('reports.expenses')}</h3>
             {d.expenses.map((e) => (
               <Line
                 key={e.category}
@@ -828,10 +838,8 @@ function Daily({ date }: { date: string }) {
           </>
         )}
       </Card>
-      <Card withBorder>
-        <Text fw={600} mb="xs">
-          {t('nav.shifts')}
-        </Text>
+      <Card>
+        <h2 className="ds-heading ds-mb-sm">{t('nav.shifts')}</h2>
         {d.shifts.length === 0 && <EmptyState />}
         <Stack gap={4}>
           {d.shifts.map((s) => (
@@ -839,7 +847,10 @@ function Daily({ date }: { date: string }) {
               <Anchor component={Link} to={`/shifts/${s.id}`} size="sm">
                 <span dir="ltr">{s.number}</span> · {s.register} · {s.openedBy}
               </Anchor>
-              <Text size="sm" c={s.difference && Number(s.difference) !== 0 ? 'red' : 'dimmed'}>
+              <Text
+                size="sm"
+                className={s.difference && Number(s.difference) !== 0 ? 'ds-danger' : 'ds-muted'}
+              >
                 {s.difference !== null ? money(s.difference) : t(`shifts.status.${s.status}`)}
               </Text>
             </Group>

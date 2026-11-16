@@ -32,7 +32,7 @@ import { useErrorMessage } from '@web/shared/hooks/use-error-message';
 import { ApiError } from '@web/shared/lib/api-client';
 import { formatMoney } from '@web/shared/lib/format';
 import { type CartApi, cartTotals } from './cart';
-import classes from '../sales/sales.module.css';
+import classes from './pos.module.css';
 
 interface Tender {
   method: TillPaymentMethod;
@@ -236,13 +236,16 @@ export function PaymentPanel({
       fullScreen={phone}
     >
       <Stack gap="md">
-        <div>
-          <div className={classes.payTotal}>{money(total)}</div>
-          {Number(cart.cart.cartDiscount) > 0 && (
-            <Text ta="center" size="sm" c="dimmed">
-              {t('pos.afterDiscount')}
-            </Text>
-          )}
+        <div className={classes.due}>
+          <Stack gap={0}>
+            <span className="ds-text-md ds-medium ds-ink">{t('sales.total')}</span>
+            {Number(cart.cart.cartDiscount) > 0 && (
+              <Text size="xs" className="ds-muted">
+                {t('pos.afterDiscount')}
+              </Text>
+            )}
+          </Stack>
+          <span className={classes.payTotal}>{money(total)}</span>
         </div>
         <SegmentedControl
           fullWidth
@@ -258,8 +261,7 @@ export function PaymentPanel({
             label={t('pos.amount')}
             value={amount}
             onChange={setAmount}
-            style={{ flex: 1 }}
-            size="md"
+            className="ds-grow"
             onKeyDown={(e) => {
               if (e.key === 'Enter') {
                 e.preventDefault();
@@ -271,8 +273,7 @@ export function PaymentPanel({
           {active.length > 1 && (
             <Select
               aria-label={t('pos.currency')}
-              w={100}
-              size="md"
+              className={classes.currency}
               value={currency}
               onChange={(v) => v && setCurrency(v)}
               data={active.map((c) => c.code)}
@@ -281,19 +282,19 @@ export function PaymentPanel({
           )}
         </Group>
         {currency !== defaultCurrency && (
-          <Text size="xs" c="dimmed">
+          <Text size="xs" className="ds-muted">
             {t('pos.rateNote', { code: currency, rate: rateOf(currency), base: defaultCurrency })}
           </Text>
         )}
         <div className={classes.quick}>
           {dueIn && (
-            <Button variant="light" onClick={() => add('CASH', dueIn)}>
+            <Button size="xs" variant="light" onClick={() => add('CASH', dueIn)}>
               {t('pos.exact')}
             </Button>
           )}
           {currency === defaultCurrency &&
             quickAmounts(owes).map((q) => (
-              <Button key={q} variant="default" onClick={() => add('CASH', q)}>
+              <Button key={q} size="xs" variant="default" onClick={() => add('CASH', q)}>
                 {formatMoney(q, currency, i18n.language)}
               </Button>
             ))}
@@ -302,7 +303,7 @@ export function PaymentPanel({
           {methods.map((m) => (
             <Button
               key={m.key}
-              size="md"
+              radius="xl"
               variant={m.key === 'CASH' ? 'filled' : 'light'}
               disabled={m.disabled || !amount}
               onClick={() =>
@@ -324,15 +325,17 @@ export function PaymentPanel({
           onChange={(e) => setReference(e.currentTarget.value)}
         />
         {tenders.length > 0 && (
-          <Stack gap={4}>
+          <Stack gap={6}>
             {tenders.map((p, i) => (
-              <Group key={i} justify="space-between">
-                <Text>
+              <div key={i} className={classes.tender}>
+                <span className="ds-truncate">
                   {t(`sales.method.${p.method}`)}
                   {p.reference ? ` · ${p.reference}` : ''}
-                </Text>
-                <Group gap={6}>
-                  <Text fw={600}>{formatMoney(p.amount, p.currency, i18n.language)}</Text>
+                </span>
+                <Group gap={6} wrap="nowrap">
+                  <span className="ds-bold ds-num">
+                    {formatMoney(p.amount, p.currency, i18n.language)}
+                  </span>
                   <ActionIcon
                     variant="subtle"
                     color="red"
@@ -342,12 +345,12 @@ export function PaymentPanel({
                     <IconTrash size={16} />
                   </ActionIcon>
                 </Group>
-              </Group>
+              </div>
             ))}
           </Stack>
         )}
         {compareMoney(owes, 0) > 0 && (
-          <div className={classes.owes} style={{ color: 'var(--mantine-color-red-7)' }}>
+          <div className={classes.owesDue}>
             {tenders.length === 0 && mode === 'TAKEN'
               ? t('pos.nothingPaid', { amount: money(owes) })
               : mode === 'HELD'
@@ -357,7 +360,7 @@ export function PaymentPanel({
         )}
         {compareMoney(over, 0) > 0 && (
           <Stack gap={6}>
-            <div className={classes.owes} style={{ color: 'var(--mantine-color-green-8)' }}>
+            <div className={classes.owesBack}>
               {overpayment === 'CHANGE'
                 ? t('pos.giveChange', { amount: money(over) })
                 : t('pos.keepCredit', { amount: money(over) })}
@@ -381,7 +384,7 @@ export function PaymentPanel({
           </Alert>
         )}
         <Button
-          size="lg"
+          fullWidth
           onClick={() => void submit()}
           loading={checkout.isPending}
           disabled={Boolean(problems)}

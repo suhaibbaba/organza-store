@@ -340,7 +340,8 @@
     "numberTypeHint": "تُحدد الأرقام في المنتجات المرقّمة.",
     "quickSoldHint": "بيعت هذه القطعة بسرعة من الصندوق. أضف الفئة (والتكلفة والصورة إن وجدت) ثم أكملها، أو اتركها قطعة لمرة واحدة.",
     "markCompleted": "اكتملت",
-    "markOneOff": "قطعة لمرة واحدة"
+    "markOneOff": "قطعة لمرة واحدة",
+    "basics": "الأساسيات"
   },
   "labels": {
     "title": "الملصقات",
@@ -605,7 +606,8 @@
     "giftPurchase": "شراء هدية",
     "appliedHere": "{{amount}} على هذا البيع",
     "amount": "المبلغ",
-    "reference": "المرجع"
+    "reference": "المرجع",
+    "summary": "الملخص"
   },
   "customers": {
     "address": "العنوان",

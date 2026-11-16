@@ -1,4 +1,4 @@
-import { ActionIcon, Button, FileButton, Image, Loader, Stack, Text } from '@mantine/core';
+import { ActionIcon, Button, FileButton, Image, Loader, Stack } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import type { ImageEdit, ImageView } from '@organza/shared';
 import { IconPhotoPlus, IconStar, IconStarFilled, IconX } from '@tabler/icons-react';
@@ -49,14 +49,18 @@ export function PhotosField({ value, onChange, label, max = 20 }: Props) {
   };
 
   return (
-    <Stack gap={6}>
-      <Text size="sm" fw={500}>
-        {label ?? t('catalogue.photos')}
-      </Text>
+    <Stack gap="sm">
+      <h2 className="ds-heading">{label ?? t('catalogue.photos')}</h2>
       <div className={classes.imageStrip}>
         {value.map((img, i) => (
           <div key={img.id} className={classes.imageTile}>
-            <Image src={img.thumbnailUrl} w={72} h={108} radius="sm" fit="cover" alt="" />
+            <Image
+              src={img.thumbnailUrl}
+              className={classes.tileSm}
+              radius="sm"
+              fit="cover"
+              alt=""
+            />
             <div className={classes.imageTileActions}>
               <ActionIcon
                 size="sm"
@@ -87,9 +91,7 @@ export function PhotosField({ value, onChange, label, max = 20 }: Props) {
               <Button
                 {...props}
                 variant="default"
-                h={108}
-                w={72}
-                p={0}
+                className={`${classes.addTile} ${classes.tileSm}`}
                 disabled={busy}
                 aria-label={t('catalogue.photo.add')}
               >

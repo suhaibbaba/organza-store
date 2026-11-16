@@ -4,7 +4,7 @@ import { useErrorMessage } from '@web/shared/hooks/use-error-message';
 
 export function FullScreenLoader() {
   return (
-    <Center h="100%">
+    <Center className="ds-fill">
       <Loader />
     </Center>
   );
@@ -18,7 +18,7 @@ export function ErrorState({ error, onRetry }: { error: unknown; onRetry?: () =>
       <Stack gap="xs">
         <Text size="sm">{message(error)}</Text>
         {onRetry && (
-          <Button size="xs" variant="light" color="red" onClick={onRetry} w="fit-content">
+          <Button size="xs" variant="light" color="red" onClick={onRetry} className="ds-fit">
             {t('common.retry')}
           </Button>
         )}
@@ -30,8 +30,8 @@ export function ErrorState({ error, onRetry }: { error: unknown; onRetry?: () =>
 export function EmptyState({ text }: { text?: string }) {
   const { t } = useTranslation();
   return (
-    <Center py="xl">
-      <Text c="dimmed">{text ?? t('common.empty')}</Text>
+    <Center className="ds-py-xl">
+      <Text className="ds-muted">{text ?? t('common.empty')}</Text>
     </Center>
   );
 }

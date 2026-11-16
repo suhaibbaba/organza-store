@@ -1,0 +1,363 @@
+/*
+ * The till, as in the clinic sketches: a white product-browser card and a white cart card side
+ * by side. The page never scrolls (/pos is full-bleed); the grid and the cart lines scroll inside.
+ */
+
+/* ---------------------------------------------------------------- workspace */
+
+.pos {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 380px);
+  gap: 16px;
+  height: 100%;
+  min-height: 0;
+}
+
+.browser,
+.cart {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: #ffffff;
+  border: 1px solid var(--o-line);
+  border-radius: 20px;
+  box-shadow: var(--o-shadow-card);
+}
+
+.browser {
+  padding: 14px 16px;
+  gap: 10px;
+}
+
+/* The browser inside a bottom drawer (phones, order lines, returns, receiving). */
+.drawerBody {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  height: 70vh;
+  min-height: 0;
+}
+
+/* The shift gate and the first load: centred in the full-bleed column. */
+.gate {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 16px;
+}
+
+/* ---------------------------------------------------------------- product browser */
+
+.categories {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+  flex-shrink: 0;
+  -webkit-overflow-scrolling: touch;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 10px;
+  overflow-y: auto;
+  min-height: 0;
+  align-content: start;
+  padding-bottom: 4px;
+}
+
+.empty {
+  grid-column: 1 / -1;
+  padding-block: 28px;
+}
+
+.tile {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px;
+  border: 1px solid var(--o-line);
+  border-radius: 14px;
+  background: #ffffff;
+  text-align: start;
+  font: inherit;
+  color: var(--o-ink);
+  cursor: pointer;
+  transition:
+    border-color 150ms,
+    box-shadow 150ms;
+}
+
+.tile:hover:not(:disabled) {
+  border-color: var(--o-primary-300);
+  box-shadow: var(--o-shadow-card-hover);
+}
+
+.tile:focus-visible {
+  outline: 2px solid var(--o-primary-600);
+  outline-offset: 2px;
+}
+
+.tile:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.tileImage {
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+  border-radius: 10px;
+  background: var(--o-sunken);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--o-ink-faint);
+}
+
+.tileBody {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 0 2px 2px;
+}
+
+/* ---------------------------------------------------------------- cart */
+
+.cart {
+  overflow: hidden;
+}
+
+.cartHead {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px 12px;
+  border-bottom: 1px solid var(--o-line);
+}
+
+/* The customer slot reads as a field, as in the sketch. */
+.cartHead .customer {
+  display: flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 4px 12px;
+  border: 1px solid var(--o-line-strong);
+  border-radius: 10px;
+  background: #ffffff;
+  color: var(--o-ink-muted);
+  transition: border-color 150ms;
+}
+
+.cartHead .customer:hover {
+  border-color: #a3bac6;
+}
+
+.cartLines {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+}
+
+.cartLine {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  padding: 8px 10px;
+  border: 1px solid var(--o-line);
+  border-radius: 14px;
+  background: #ffffff;
+}
+
+.cartLineError {
+  background: var(--o-danger-100);
+  border-color: var(--o-danger-600);
+}
+
+.lineEnd {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.thumb {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 8px;
+  background: var(--o-sunken);
+  color: var(--o-ink-faint);
+}
+
+.qty {
+  width: 24px;
+}
+
+.lineDiscount {
+  width: 200px;
+}
+
+.cartFoot {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 16px calc(14px + var(--organza-safe-bottom));
+  border-top: 1px solid var(--o-line);
+}
+
+/* ---------------------------------------------------------------- summary rows (cart and payment) */
+
+.sum {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sumRow,
+.sumTotal {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--o-ink-muted);
+}
+
+.sumTotal {
+  padding-top: 6px;
+  border-top: 1px solid var(--o-line);
+  color: var(--o-ink);
+}
+
+.bigTotal {
+  font-size: 22px;
+  line-height: 30px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--o-title);
+}
+
+.cartHead .browseButton {
+  display: none;
+}
+
+/* ---------------------------------------------------------------- payment */
+
+.due {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  padding: 12px 16px;
+  border-radius: 14px;
+  background: var(--o-inset);
+}
+
+.payTotal {
+  font-size: 28px;
+  line-height: 36px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--o-title);
+}
+
+.methods {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.quick {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.currency {
+  width: 100px;
+}
+
+.tender {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  padding-block: 4px;
+  padding-inline: 12px 4px;
+  border: 1px solid var(--o-line);
+  border-radius: 14px;
+  font-size: 14px;
+}
+
+.owesDue,
+.owesBack {
+  padding: 8px 12px;
+  border-radius: 14px;
+  text-align: center;
+  font-size: 15px;
+  line-height: 24px;
+  font-weight: 700;
+}
+
+.owesDue {
+  background: var(--o-danger-100);
+  color: var(--o-danger-700);
+}
+
+.owesBack {
+  background: var(--o-success-100);
+  color: var(--o-success-900);
+}
+
+/* ---------------------------------------------------------------- item chooser */
+
+.photo {
+  max-height: 260px;
+}
+
+.options .option {
+  padding: 10px;
+  border: 1px solid var(--o-line);
+  border-radius: 14px;
+  background: #ffffff;
+  transition:
+    border-color 150ms,
+    background-color 150ms;
+}
+
+.options .option:hover:not(:disabled) {
+  border-color: var(--o-primary-300);
+  background: var(--o-row-hover);
+}
+
+.options .option:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* ---------------------------------------------------------------- phones */
+
+@media (max-width: $mantine-breakpoint-sm) {
+  .pos {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
+  }
+  .pos > .browser {
+    display: none;
+  }
+  .cartHead .browseButton {
+    display: inline-flex;
+  }
+}

@@ -1,4 +1,5 @@
 import {
+  Anchor,
   Badge,
   Button,
   Card,
@@ -8,6 +9,7 @@ import {
   SimpleGrid,
   Stack,
   Switch,
+  Table,
   Text,
   Textarea,
   TextInput,
@@ -17,18 +19,20 @@ import type { SupplierView } from '@organza/shared';
 import { IconPlus, IconSearch } from '@tabler/icons-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import { useSession } from '@web/modules/auth/session';
 import { useMoney } from '@web/modules/catalogue/components';
 import { PageHeader } from '@web/shared/components/PageHeader';
 import { EmptyState, ErrorState, FullScreenLoader } from '@web/shared/components/StatusScreens';
 import { useErrorMessage } from '@web/shared/hooks/use-error-message';
 import { usePurchasingActions, useSuppliers } from './api';
+import classes from './purchasing.module.css';
 
 /** Suppliers with what the shop owes each. */
 export function SuppliersPage() {
   const { t } = useTranslation();
   const { can } = useSession();
+  const navigate = useNavigate();
   const money = useMoney();
   const [q, setQ] = useState('');
   const [filter, setFilter] = useState<'all' | 'owed'>('all');
@@ -48,9 +52,9 @@ export function SuppliersPage() {
           )
         }
       />
-      <Group mb="md" gap="sm" wrap="wrap">
+      <Group className="ds-mb-md" gap="sm" wrap="wrap">
         <TextInput
-          style={{ flex: '1 1 220px' }}
+          className={classes.search}
           leftSection={<IconSearch size={16} />}
           placeholder={t('suppliers.searchHint')}
           value={q}
@@ -71,34 +75,74 @@ export function SuppliersPage() {
       {query.isPending && <FullScreenLoader />}
       {query.isError && <ErrorState error={query.error} onRetry={() => void query.refetch()} />}
       {query.data?.length === 0 && <EmptyState />}
-      <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }}>
-        {query.data?.map((s) => (
-          <Card key={s.id} withBorder component={Link} to={`/suppliers/${s.id}`}>
-            <Group justify="space-between" wrap="nowrap">
-              <Text fw={700} truncate>
-                {s.name}
-              </Text>
-              {!s.isActive && <Badge color="gray">{t('common.inactive')}</Badge>}
-            </Group>
-            {(s.contactName || s.phone) && (
-              <Text size="sm" c="dimmed" truncate>
-                {[s.contactName, s.phone].filter(Boolean).join(' · ')}
-              </Text>
-            )}
-            <Group justify="space-between" mt="sm">
-              <Text size="sm">
-                {Number(s.owed) < 0 ? t('suppliers.paidAhead') : t('suppliers.owed')}
-              </Text>
-              <Text fw={700} c={Number(s.owed) > 0 ? 'orange.8' : undefined}>
-                {money(Math.abs(Number(s.owed)).toFixed(2))}
-              </Text>
-            </Group>
-            <Text size="xs" c="dimmed">
-              {t('suppliers.openCounts', { receipts: s.openReceipts, orders: s.openOrders })}
-            </Text>
-          </Card>
-        ))}
-      </SimpleGrid>
+      {query.data && query.data.length > 0 && (
+        <Card padding={0}>
+          <Table.ScrollContainer minWidth={640}>
+            <Table highlightOnHover>
+              <Table.Thead>
+                <Table.Tr>
+                  <Table.Th>{t('suppliers.name')}</Table.Th>
+                  <Table.Th>{t('suppliers.contact')}</Table.Th>
+                  <Table.Th>{t('customers.phone')}</Table.Th>
+                  <Table.Th className="ds-end">{t('suppliers.owed')}</Table.Th>
+                </Table.Tr>
+              </Table.Thead>
+              <Table.Tbody>
+                {query.data.map((s) => {
+                  const owed = Number(s.owed);
+                  return (
+                    <Table.Tr
+                      key={s.id}
+                      className="ds-clickable"
+                      onClick={() => navigate(`/suppliers/${s.id}`)}
+                    >
+                      <Table.Td>
+                        <Group gap="xs" wrap="nowrap">
+                          <Anchor
+                            component={Link}
+                            to={`/suppliers/${s.id}`}
+                            className="ds-bold"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            {s.name}
+                          </Anchor>
+                          {!s.isActive && (
+                            <Badge size="sm" color="gray">
+                              {t('common.inactive')}
+                            </Badge>
+                          )}
+                        </Group>
+                        <Text size="xs" className="ds-muted">
+                          {t('suppliers.openCounts', {
+                            receipts: s.openReceipts,
+                            orders: s.openOrders,
+                          })}
+                        </Text>
+                      </Table.Td>
+                      <Table.Td>{s.contactName}</Table.Td>
+                      <Table.Td>
+                        <span className="ds-ltr">{s.phone}</span>
+                      </Table.Td>
+                      <Table.Td className="ds-end">
+                        {owed > 0 ? (
+                          <Badge color="orange" variant="light">
+                            {money(owed.toFixed(2))}
+                          </Badge>
+                        ) : (
+                          <Text size="sm" className="ds-muted">
+                            {owed < 0 ? `${t('suppliers.paidAhead')} ` : ''}
+                            {money(Math.abs(owed).toFixed(2))}
+                          </Text>
+                        )}
+                      </Table.Td>
+                    </Table.Tr>
+                  );
+                })}
+              </Table.Tbody>
+            </Table>
+          </Table.ScrollContainer>
+        </Card>
+      )}
       {adding && <SupplierForm supplier={null} onClose={() => setAdding(false)} />}
     </>
   );

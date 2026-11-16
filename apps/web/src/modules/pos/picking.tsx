@@ -17,6 +17,7 @@ import { catalogueKeys, lookupCode } from '@web/modules/catalogue/api';
 import { useMoney } from '@web/modules/catalogue/components';
 import { api } from '@web/shared/lib/api-client';
 import type { CartLine } from './cart';
+import classes from './pos.module.css';
 
 type Pickable = Omit<CartLine, 'key' | 'quantity' | 'discount'>;
 
@@ -135,11 +136,18 @@ function ChooseItem({
       zIndex={400}
     >
       {p?.type === 'NUMBERED' && photo && (
-        <Image src={photo.mediumUrl} radius="md" mah={260} fit="contain" mb="sm" alt="" />
+        <Image
+          src={photo.mediumUrl}
+          radius="md"
+          fit="contain"
+          alt=""
+          className={`${classes.photo} ds-mb-sm`}
+        />
       )}
       <SimpleGrid
         cols={{ base: p?.type === 'NUMBERED' ? 4 : 2, sm: p?.type === 'NUMBERED' ? 6 : 3 }}
         spacing="xs"
+        className={classes.options}
       >
         {items.map((item) => {
           const out = !anyStock && item.stock.available <= 0;
@@ -152,16 +160,13 @@ function ChooseItem({
               key={item.id}
               disabled={out}
               onClick={() => onPick(p!, item.id)}
-              style={{
-                border: '1px solid var(--mantine-color-default-border)',
-                borderRadius: 8,
-                padding: 10,
-                opacity: out ? 0.45 : 1,
-              }}
+              className={classes.option}
             >
               <Stack gap={2} align="center">
-                <Text fw={700}>{label}</Text>
-                <Text size="xs">{money(item.effectivePrice)}</Text>
+                <Text className="ds-bold">{label}</Text>
+                <Text size="xs" className="ds-muted ds-num">
+                  {money(item.effectivePrice)}
+                </Text>
                 <Badge size="xs" variant="light" color={out ? 'red' : 'gray'}>
                   {t('catalogue.available', { count: item.stock.available })}
                 </Badge>
@@ -170,7 +175,7 @@ function ChooseItem({
           );
         })}
       </SimpleGrid>
-      <Group justify="flex-end" mt="md">
+      <Group justify="flex-end" className="ds-mt-md">
         <Button variant="default" onClick={onClose}>
           {t('common.cancel')}
         </Button>

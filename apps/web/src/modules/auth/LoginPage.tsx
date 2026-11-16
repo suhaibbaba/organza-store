@@ -45,8 +45,14 @@ export function LoginPage() {
   }
 
   return (
-    <Center h="100%" p="md" className={`organza-scroll ${classes.page}`}>
-      <Paper withBorder shadow="xl" p="xl" w="100%" maw={400} component="form" onSubmit={submit}>
+    <Center className={`organza-scroll ds-fill ds-pad-md ${classes.page}`}>
+      <Paper
+        withBorder
+        shadow="xl"
+        className="ds-w-sm ds-pad-xl"
+        component="form"
+        onSubmit={submit}
+      >
         <Stack>
           <div className={classes.brand} aria-label={t('app.name')}>
             <img src="/brand/mark.png" alt="" width={56} height={56} />

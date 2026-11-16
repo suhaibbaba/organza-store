@@ -10,7 +10,6 @@ import {
   Stack,
   Table,
   Text,
-  Title,
 } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
@@ -25,7 +24,7 @@ import {
   IconPrinter,
   IconArchive,
 } from '@tabler/icons-react';
-import { useState } from 'react';
+import { type CSSProperties, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate, useParams } from 'react-router';
 import { useSession } from '@web/modules/auth/session';
@@ -94,7 +93,7 @@ export function ProductDetailPage() {
 
   const stockCell = (item: ItemView) => (
     <Group gap={4} wrap="nowrap">
-      <Text size="sm" fw={600}>
+      <Text size="sm" className="ds-bold">
         {item.stock.available}
       </Text>
       {item.stock.reserved > 0 && (
@@ -145,23 +144,22 @@ export function ProductDetailPage() {
       </Menu>
     );
 
+  const showShared = p.sharedBarcodes.length > 0 || (editable && p.type !== 'REGULAR');
+  const points = p.items.filter((i) => i.photoX !== null && i.photoY !== null);
+
   return (
     <>
       <BackLink to="/products" label={t('catalogue.products')} />
-      <Group justify="space-between" mb="md" wrap="wrap" gap="xs">
-        <Stack gap={2}>
+      <Group justify="space-between" wrap="wrap" gap="xs" className="ds-mb-lg">
+        <Stack gap={2} className="ds-min-0">
           <Group gap="xs">
-            <Title order={1} size="h2">
-              {localized(p.name)}
-            </Title>
+            <h1 className={classes.detailTitle}>{localized(p.name)}</h1>
             <StatusBadge status={p.status} />
           </Group>
-          <Text size="sm" c="dimmed">
+          <Text size="sm" className="ds-muted">
             #{p.number} · {t(`catalogue.type.${p.type}`)} · {money(p.price)}
             {p.compareAtPrice && (
-              <Text span td="line-through" ms={6} size="sm">
-                {money(p.compareAtPrice)}
-              </Text>
+              <span className={`ds-strike ${classes.was}`}>{money(p.compareAtPrice)}</span>
             )}
           </Text>
         </Stack>
@@ -219,107 +217,80 @@ export function ProductDetailPage() {
         </Group>
       </Group>
 
-      <Stack gap="md">
-        {p.quickSoldAt && !p.completedAt && !p.oneOffAt && (
-          <Alert color="orange" variant="light" title={t('catalogue.needsCompletion')}>
-            <Stack gap="xs">
-              <Text size="sm">{t('catalogue.quickSoldHint')}</Text>
-              {can('products.reviewQuickSell') && (
-                <Group gap="xs">
-                  <Button
-                    size="xs"
-                    disabled={!p.categoryId}
-                    loading={review.isPending}
-                    onClick={() =>
-                      review.mutate(
-                        { id: p.id, version: p.version, outcome: 'COMPLETED' },
-                        {
-                          onError: (e) =>
-                            notifications.show({ color: 'red', message: errorMessage(e) }),
-                        },
-                      )
-                    }
-                  >
-                    {t('catalogue.markCompleted')}
-                  </Button>
-                  <Button
-                    size="xs"
-                    variant="default"
-                    loading={review.isPending}
-                    onClick={() =>
-                      review.mutate(
-                        { id: p.id, version: p.version, outcome: 'ONE_OFF' },
-                        {
-                          onError: (e) =>
-                            notifications.show({ color: 'red', message: errorMessage(e) }),
-                        },
-                      )
-                    }
-                  >
-                    {t('catalogue.markOneOff')}
-                  </Button>
-                </Group>
-              )}
-            </Stack>
-          </Alert>
-        )}
-        <Card withBorder>
-          <ProductImages productId={p.id} images={p.images} />
-          {p.type === 'NUMBERED' && p.images[0] && (
-            <div className={classes.pointCanvas} style={{ cursor: 'default', marginTop: 12 }}>
-              <img src={p.images[0].mediumUrl} alt="" />
-              {p.items
-                .filter((i) => i.photoX !== null && i.photoY !== null)
-                .map((i) => (
-                  <span
-                    key={i.id}
-                    className={classes.point}
-                    style={{
-                      left: `${i.photoX}%`,
-                      top: `${i.photoY}%`,
-                      color: p.pointTextColor ?? '#fff',
-                      background: p.pointBackgroundColor ?? '#5b2a4d',
-                      opacity: i.stock.available > 0 ? 1 : 0.4,
-                    }}
-                  >
-                    {i.number}
-                  </span>
-                ))}
-            </div>
+      <div className={classes.detail}>
+        <Stack gap="md" className="ds-min-0">
+          {p.quickSoldAt && !p.completedAt && !p.oneOffAt && (
+            <Alert color="orange" variant="light" title={t('catalogue.needsCompletion')}>
+              <Stack gap="xs">
+                <Text size="sm">{t('catalogue.quickSoldHint')}</Text>
+                {can('products.reviewQuickSell') && (
+                  <Group gap="xs">
+                    <Button
+                      size="xs"
+                      disabled={!p.categoryId}
+                      loading={review.isPending}
+                      onClick={() =>
+                        review.mutate(
+                          { id: p.id, version: p.version, outcome: 'COMPLETED' },
+                          {
+                            onError: (e) =>
+                              notifications.show({ color: 'red', message: errorMessage(e) }),
+                          },
+                        )
+                      }
+                    >
+                      {t('catalogue.markCompleted')}
+                    </Button>
+                    <Button
+                      size="xs"
+                      variant="default"
+                      loading={review.isPending}
+                      onClick={() =>
+                        review.mutate(
+                          { id: p.id, version: p.version, outcome: 'ONE_OFF' },
+                          {
+                            onError: (e) =>
+                              notifications.show({ color: 'red', message: errorMessage(e) }),
+                          },
+                        )
+                      }
+                    >
+                      {t('catalogue.markOneOff')}
+                    </Button>
+                  </Group>
+                )}
+              </Stack>
+            </Alert>
           )}
-        </Card>
 
-        <Card withBorder>
-          <Group justify="space-between" mb="sm">
-            <Title order={4} size="h5">
-              {t('catalogue.items', { count: p.items.length })}
-            </Title>
-            {editable && p.type !== 'REGULAR' && can('products.create') && (
-              <Button
-                size="xs"
-                variant="light"
-                leftSection={<IconPlus size={14} />}
-                onClick={() => setDialog({ kind: 'addItem' })}
-              >
-                {t('catalogue.addItem')}
-              </Button>
-            )}
-          </Group>
-          {phone ? (
-            <Stack gap="xs" className="o-list">
-              {p.items.map((item) => (
-                <Card
-                  key={item.id}
-                  withBorder
-                  padding="xs"
-                  style={{ opacity: item.isActive ? 1 : 0.5 }}
+          <Card withBorder padding={0}>
+            <Group justify="space-between" className={classes.cardHead}>
+              <h2 className="ds-heading">{t('catalogue.items', { count: p.items.length })}</h2>
+              {editable && p.type !== 'REGULAR' && can('products.create') && (
+                <Button
+                  size="xs"
+                  variant="light"
+                  leftSection={<IconPlus size={14} />}
+                  onClick={() => setDialog({ kind: 'addItem' })}
                 >
-                  <Group justify="space-between" wrap="nowrap">
-                    <Stack gap={2}>
-                      <Text fw={600} size="sm">
+                  {t('catalogue.addItem')}
+                </Button>
+              )}
+            </Group>
+            {phone ? (
+              <div className={classes.rows}>
+                {p.items.map((item) => (
+                  <Group
+                    key={item.id}
+                    justify="space-between"
+                    wrap="nowrap"
+                    className={item.isActive ? undefined : 'ds-dimmed'}
+                  >
+                    <Stack gap={2} className="ds-min-0">
+                      <Text size="sm" className="ds-bold">
                         {label(item)}
                       </Text>
-                      <Text size="xs" c="dimmed" dir="ltr" ta="start">
+                      <Text size="xs" className="ds-muted ds-ltr">
                         {item.sku} · {item.barcodes.map((b) => b.code).join(', ')}
                       </Text>
                       <Group gap={6}>
@@ -329,78 +300,124 @@ export function ProductDetailPage() {
                     </Stack>
                     {itemActions(item)}
                   </Group>
-                </Card>
-              ))}
-            </Stack>
-          ) : (
-            <Table verticalSpacing={6} fz="sm">
-              <Table.Thead>
-                <Table.Tr>
-                  <Table.Th>
-                    {p.type === 'NUMBERED'
-                      ? t('catalogue.number')
-                      : t('catalogue.variants.combination')}
-                  </Table.Th>
-                  <Table.Th>{t('catalogue.sku')}</Table.Th>
-                  <Table.Th>{t('catalogue.barcode')}</Table.Th>
-                  <Table.Th>{t('catalogue.price')}</Table.Th>
-                  <Table.Th>{t('stock.available')}</Table.Th>
-                  {isAdmin && <Table.Th>{t('catalogue.avgCost')}</Table.Th>}
-                  <Table.Th w={40} />
-                </Table.Tr>
-              </Table.Thead>
-              <Table.Tbody>
-                {p.items.map((item) => (
-                  <Table.Tr key={item.id} style={{ opacity: item.isActive ? 1 : 0.5 }}>
-                    <Table.Td>{label(item)}</Table.Td>
-                    <Table.Td dir="ltr" style={{ textAlign: 'start' }}>
-                      {item.sku}
-                    </Table.Td>
-                    <Table.Td dir="ltr" style={{ textAlign: 'start' }}>
-                      {item.barcodes.map((b) => b.code).join(', ')}
-                    </Table.Td>
-                    <Table.Td>{money(item.effectivePrice)}</Table.Td>
-                    <Table.Td>{stockCell(item)}</Table.Td>
-                    {isAdmin && (
-                      <Table.Td>
-                        {item.avgCost === null || item.avgCost === undefined ? (
-                          <Badge color="orange" variant="light" size="sm">
-                            {t('catalogue.costUnknown')}
-                          </Badge>
-                        ) : (
-                          money(item.avgCost)
-                        )}
-                      </Table.Td>
-                    )}
-                    <Table.Td>{itemActions(item)}</Table.Td>
-                  </Table.Tr>
                 ))}
-              </Table.Tbody>
-            </Table>
+              </div>
+            ) : (
+              <Table.ScrollContainer minWidth={560}>
+                <Table verticalSpacing={6}>
+                  <Table.Thead>
+                    <Table.Tr>
+                      <Table.Th>
+                        {p.type === 'NUMBERED'
+                          ? t('catalogue.number')
+                          : t('catalogue.variants.combination')}
+                      </Table.Th>
+                      <Table.Th>{t('catalogue.sku')}</Table.Th>
+                      <Table.Th>{t('catalogue.barcode')}</Table.Th>
+                      <Table.Th>{t('catalogue.price')}</Table.Th>
+                      <Table.Th>{t('stock.available')}</Table.Th>
+                      {isAdmin && <Table.Th>{t('catalogue.avgCost')}</Table.Th>}
+                      <Table.Th className="ds-col-actions" />
+                    </Table.Tr>
+                  </Table.Thead>
+                  <Table.Tbody>
+                    {p.items.map((item) => (
+                      <Table.Tr key={item.id} className={item.isActive ? undefined : 'ds-dimmed'}>
+                        <Table.Td>{label(item)}</Table.Td>
+                        <Table.Td className="ds-ltr">{item.sku}</Table.Td>
+                        <Table.Td className="ds-ltr">
+                          {item.barcodes.map((b) => b.code).join(', ')}
+                        </Table.Td>
+                        <Table.Td className="ds-nowrap">{money(item.effectivePrice)}</Table.Td>
+                        <Table.Td>{stockCell(item)}</Table.Td>
+                        {isAdmin && (
+                          <Table.Td>
+                            {item.avgCost === null || item.avgCost === undefined ? (
+                              <Badge color="orange" variant="light" size="sm">
+                                {t('catalogue.costUnknown')}
+                              </Badge>
+                            ) : (
+                              money(item.avgCost)
+                            )}
+                          </Table.Td>
+                        )}
+                        <Table.Td>{itemActions(item)}</Table.Td>
+                      </Table.Tr>
+                    ))}
+                  </Table.Tbody>
+                </Table>
+              </Table.ScrollContainer>
+            )}
+          </Card>
+
+          {p.type === 'NUMBERED' && p.images[0] && (
+            <Card withBorder>
+              <Stack gap="sm">
+                <h2 className="ds-heading">{t('catalogue.numbered.photo')}</h2>
+                <div className={`${classes.pointCanvas} ${classes.pointCanvasStatic}`}>
+                  <img src={p.images[0].mediumUrl} alt="" />
+                  {points.map((i) => (
+                    <span
+                      key={i.id}
+                      className={
+                        i.stock.available > 0
+                          ? classes.point
+                          : `${classes.point} ${classes.pointOut}`
+                      }
+                      style={
+                        {
+                          '--x': `${i.photoX}%`,
+                          '--y': `${i.photoY}%`,
+                          '--fg': p.pointTextColor ?? '#fff',
+                          '--bg': p.pointBackgroundColor ?? '#5b2a4d',
+                        } as CSSProperties
+                      }
+                    >
+                      {i.number}
+                    </span>
+                  ))}
+                </div>
+              </Stack>
+            </Card>
           )}
-          {(p.sharedBarcodes.length > 0 || (editable && p.type !== 'REGULAR')) && (
-            <Group gap="xs" mt="sm">
-              <Text size="sm" c="dimmed">
-                {t('catalogue.variants.sharedBarcode')}:
-              </Text>
-              {p.sharedBarcodes.map((c) => (
-                <Badge key={c} variant="outline" style={{ direction: 'ltr' }}>
-                  {c}
-                </Badge>
-              ))}
-              {editable && p.type !== 'REGULAR' && (
-                <Button
-                  size="compact-xs"
-                  variant="subtle"
-                  onClick={() => setDialog({ kind: 'barcode', item: null })}
-                >
-                  {t('common.add')}
-                </Button>
-              )}
-            </Group>
+        </Stack>
+
+        <Stack gap="md" className="ds-min-0">
+          <Card withBorder>
+            <Stack gap="sm">
+              <h2 className="ds-heading">{t('catalogue.photos')}</h2>
+              <ProductImages productId={p.id} images={p.images} />
+            </Stack>
+          </Card>
+          {showShared && (
+            <Card withBorder>
+              <Stack gap="sm">
+                <Group justify="space-between" wrap="nowrap">
+                  <h2 className="ds-heading">{t('catalogue.variants.sharedBarcode')}</h2>
+                  {editable && p.type !== 'REGULAR' && (
+                    <Button
+                      size="compact-xs"
+                      variant="subtle"
+                      onClick={() => setDialog({ kind: 'barcode', item: null })}
+                    >
+                      {t('common.add')}
+                    </Button>
+                  )}
+                </Group>
+                {p.sharedBarcodes.length > 0 && (
+                  <Group gap="xs">
+                    {p.sharedBarcodes.map((c) => (
+                      <Badge key={c} variant="outline" className="ds-ltr">
+                        {c}
+                      </Badge>
+                    ))}
+                  </Group>
+                )}
+              </Stack>
+            </Card>
           )}
-        </Card>
-      </Stack>
+        </Stack>
+      </div>
 
       {dialog?.kind === 'edit' && (
         <ProductEditDrawer product={p} opened onClose={() => setDialog(null)} />

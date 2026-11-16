@@ -19,6 +19,7 @@ import { ProductBrowser } from '@web/modules/pos/ProductBrowser';
 import { useBarcodeScanner } from '@web/shared/hooks/use-barcode-scanner';
 import { useErrorMessage } from '@web/shared/hooks/use-error-message';
 import { toLatinDigits } from '@web/shared/lib/format';
+import classes from './purchasing.module.css';
 
 export interface CostLine {
   key: string;
@@ -92,23 +93,23 @@ export function PurchaseLinesEditor({
   return (
     <Stack gap="xs">
       {lines.length === 0 && (
-        <Text c="dimmed" size="sm">
+        <Text size="sm" className="ds-muted">
           {t('purchasing.scanHint')}
         </Text>
       )}
       {lines.map((l) => (
         <Group key={l.key} wrap="wrap" gap="sm" align="flex-end">
-          <div style={{ flex: '1 1 180px', minWidth: 0 }}>
-            <Text size="sm" fw={600} truncate>
+          <div className={classes.lineName}>
+            <Text size="sm" className="ds-bold" truncate>
               {localize(l.name, i18n.language)}
             </Text>
-            <Text size="xs" c="dimmed" truncate>
+            <Text size="xs" className="ds-muted" truncate>
               {[label(l.variantLabel, i18n.language), l.sku].filter(Boolean).join(' · ')}
               {l.open !== undefined ? ` · ${t('purchasing.stillOpen', { count: l.open })}` : ''}
             </Text>
           </div>
           <NumberInput
-            w={84}
+            className={classes.qty}
             size="xs"
             label={t('sales.quantity')}
             min={1}
@@ -118,7 +119,7 @@ export function PurchaseLinesEditor({
             onChange={(v) => set(l.key, { quantity: Math.max(1, Number(v) || 1) })}
           />
           <TextInput
-            w={100}
+            className={classes.cost}
             size="xs"
             dir="ltr"
             inputMode="decimal"
@@ -133,13 +134,13 @@ export function PurchaseLinesEditor({
               })
             }
           />
-          <Text size="sm" fw={600} w={80} ta="end" pb={6}>
+          <Text size="sm" className={`${classes.lineTotal} ds-bold ds-end`}>
             {money(lineValue(l).toFixed(2))}
           </Text>
           <ActionIcon
             variant="subtle"
             color="red"
-            mb={4}
+            className={classes.remove}
             aria-label={t('common.remove')}
             onClick={() => onChange(lines.filter((x) => x.key !== l.key))}
           >
@@ -165,7 +166,7 @@ export function PurchaseLinesEditor({
         size="90%"
         title={t('returns.addItems')}
       >
-        <Stack gap="sm" h="70vh">
+        <Stack gap="sm" className={classes.browser}>
           {browsing && (
             <ProductBrowser
               onProduct={(id) =>

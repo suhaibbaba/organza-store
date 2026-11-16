@@ -1,5 +1,6 @@
 import { BackLink } from '@web/shared/components/PageHeader';
 import {
+  ActionIcon,
   Alert,
   Anchor,
   Badge,
@@ -19,7 +20,6 @@ import {
   Text,
   Textarea,
   TextInput,
-  Title,
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import {
@@ -53,6 +53,7 @@ import {
 } from './api';
 import { type CostLine, isCost, lineValue, PurchaseLinesEditor } from './PurchaseLinesEditor';
 import { SupplierForm } from './SuppliersPage';
+import classes from './purchasing.module.css';
 
 /** One supplier: balance, statement, receipts, orders, payments and credit notes. */
 export function SupplierDetailPage() {
@@ -72,18 +73,11 @@ export function SupplierDetailPage() {
   return (
     <>
       <BackLink to="/suppliers" label={t('nav.suppliers')} />
-      <Group justify="space-between" mb="md" wrap="wrap" gap="xs">
-        <Stack gap={2}>
-          <Group gap="xs">
-            <Title order={1} size="h2">
-              {s.name}
-            </Title>
-            {!s.isActive && <Badge color="gray">{t('common.inactive')}</Badge>}
-          </Group>
-          <Text size="sm" c="dimmed">
-            {[s.contactName, s.phone, s.address].filter(Boolean).join(' · ')}
-          </Text>
-        </Stack>
+      <Group justify="space-between" wrap="wrap" gap="xs" className={classes.head}>
+        <Group gap="xs">
+          <h1 className={classes.title}>{s.name}</h1>
+          {!s.isActive && <Badge color="gray">{t('common.inactive')}</Badge>}
+        </Group>
         <Group gap="xs">
           {can('purchasing.receive') && (
             <Button
@@ -100,9 +94,9 @@ export function SupplierDetailPage() {
           )}
           <Menu position="bottom-end">
             <Menu.Target>
-              <Button variant="default" px="xs" aria-label={t('common.more')}>
+              <ActionIcon variant="default" size="lg" aria-label={t('common.more')}>
                 <IconDots size={16} />
-              </Button>
+              </ActionIcon>
             </Menu.Target>
             <Menu.Dropdown>
               {can('purchasing.order') && (
@@ -123,42 +117,73 @@ export function SupplierDetailPage() {
         </Group>
       </Group>
 
-      <Card withBorder mb="md">
-        <Group justify="space-between">
-          <Text>{owed < 0 ? t('suppliers.paidAhead') : t('suppliers.owed')}</Text>
-          <Text fw={700} size="xl" c={owed > 0 ? 'orange.8' : undefined}>
-            {money(Math.abs(owed).toFixed(2))}
-          </Text>
-        </Group>
-        <Text size="xs" c="dimmed">
-          {t('suppliers.openCounts', { receipts: s.openReceipts, orders: s.openOrders })}
-        </Text>
-      </Card>
-
-      <Tabs defaultValue="statement" keepMounted={false}>
-        <Tabs.List mb="sm">
-          <Tabs.Tab value="statement">{t('suppliers.statement')}</Tabs.Tab>
-          <Tabs.Tab value="receipts">{t('purchasing.receipts')}</Tabs.Tab>
-          <Tabs.Tab value="orders">{t('purchasing.orders')}</Tabs.Tab>
-          <Tabs.Tab value="payments">{t('suppliers.payments')}</Tabs.Tab>
-          <Tabs.Tab value="credits">{t('purchasing.creditNotes')}</Tabs.Tab>
-        </Tabs.List>
-        <Tabs.Panel value="statement">
-          <Statement supplierId={s.id} />
-        </Tabs.Panel>
-        <Tabs.Panel value="receipts">
-          <ReceiptsTable supplierId={s.id} />
-        </Tabs.Panel>
-        <Tabs.Panel value="orders">
-          <OrdersTable supplierId={s.id} />
-        </Tabs.Panel>
-        <Tabs.Panel value="payments">
-          <Payments supplierId={s.id} />
-        </Tabs.Panel>
-        <Tabs.Panel value="credits">
-          <CreditNotes supplierId={s.id} />
-        </Tabs.Panel>
-      </Tabs>
+      <div className={classes.grid}>
+        <div className={classes.main}>
+          <Tabs defaultValue="statement" keepMounted={false}>
+            <Tabs.List>
+              <Tabs.Tab value="statement">{t('suppliers.statement')}</Tabs.Tab>
+              <Tabs.Tab value="receipts">{t('purchasing.receipts')}</Tabs.Tab>
+              <Tabs.Tab value="orders">{t('purchasing.orders')}</Tabs.Tab>
+              <Tabs.Tab value="payments">{t('suppliers.payments')}</Tabs.Tab>
+              <Tabs.Tab value="credits">{t('purchasing.creditNotes')}</Tabs.Tab>
+            </Tabs.List>
+            <Tabs.Panel value="statement">
+              <Statement supplierId={s.id} />
+            </Tabs.Panel>
+            <Tabs.Panel value="receipts">
+              <ReceiptsTable supplierId={s.id} />
+            </Tabs.Panel>
+            <Tabs.Panel value="orders">
+              <OrdersTable supplierId={s.id} />
+            </Tabs.Panel>
+            <Tabs.Panel value="payments">
+              <Payments supplierId={s.id} />
+            </Tabs.Panel>
+            <Tabs.Panel value="credits">
+              <CreditNotes supplierId={s.id} />
+            </Tabs.Panel>
+          </Tabs>
+        </div>
+        <div className={classes.side}>
+          <Card>
+            <span className="ds-eyebrow">
+              {owed < 0 ? t('suppliers.paidAhead') : t('suppliers.owed')}
+            </span>
+            <div className={owed > 0 ? 'ds-figure ds-warning' : 'ds-figure'}>
+              {money(Math.abs(owed).toFixed(2))}
+            </div>
+            <Text size="xs" className="ds-muted">
+              {t('suppliers.openCounts', { receipts: s.openReceipts, orders: s.openOrders })}
+            </Text>
+          </Card>
+          {(s.contactName || s.phone || s.address) && (
+            <Card>
+              <Stack gap="sm">
+                {s.contactName && (
+                  <div>
+                    <div className="ds-eyebrow">{t('suppliers.contact')}</div>
+                    <Text size="sm">{s.contactName}</Text>
+                  </div>
+                )}
+                {s.phone && (
+                  <div>
+                    <div className="ds-eyebrow">{t('customers.phone')}</div>
+                    <Text size="sm" className="ds-ltr">
+                      {s.phone}
+                    </Text>
+                  </div>
+                )}
+                {s.address && (
+                  <div>
+                    <div className="ds-eyebrow">{t('orders.address')}</div>
+                    <Text size="sm">{s.address}</Text>
+                  </div>
+                )}
+              </Stack>
+            </Card>
+          )}
+        </div>
+      </div>
 
       {dialog === 'pay' && <PayDialog supplier={s} onClose={() => setDialog(null)} />}
       {dialog === 'credit' && <CreditNoteDialog supplier={s} onClose={() => setDialog(null)} />}
@@ -182,16 +207,16 @@ function Statement({ supplierId }: { supplierId: string }) {
   if (query.isPending) return <FullScreenLoader />;
   if (!query.data?.length) return <EmptyState />;
   return (
-    <Card withBorder p={0}>
+    <Card padding={0}>
       <Table.ScrollContainer minWidth={560}>
         <Table striped>
           <Table.Thead>
             <Table.Tr>
               <Table.Th>{t('common.date')}</Table.Th>
               <Table.Th>{t('suppliers.document')}</Table.Th>
-              <Table.Th ta="end">{t('suppliers.debit')}</Table.Th>
-              <Table.Th ta="end">{t('suppliers.credit')}</Table.Th>
-              <Table.Th ta="end">{t('suppliers.balance')}</Table.Th>
+              <Table.Th className="ds-end">{t('suppliers.debit')}</Table.Th>
+              <Table.Th className="ds-end">{t('suppliers.credit')}</Table.Th>
+              <Table.Th className="ds-end">{t('suppliers.balance')}</Table.Th>
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
@@ -210,11 +235,9 @@ function Statement({ supplierId }: { supplierId: string }) {
                       <span dir="ltr">{r.number}</span>
                     )}
                   </Table.Td>
-                  <Table.Td ta="end">{Number(r.debit) ? money(r.debit) : ''}</Table.Td>
-                  <Table.Td ta="end">{Number(r.credit) ? money(r.credit) : ''}</Table.Td>
-                  <Table.Td ta="end" fw={600}>
-                    {money(r.balance)}
-                  </Table.Td>
+                  <Table.Td className="ds-end">{Number(r.debit) ? money(r.debit) : ''}</Table.Td>
+                  <Table.Td className="ds-end">{Number(r.credit) ? money(r.credit) : ''}</Table.Td>
+                  <Table.Td className="ds-end ds-bold">{money(r.balance)}</Table.Td>
                 </Table.Tr>
               );
             })}
@@ -232,7 +255,7 @@ export function ReceiptsTable({ supplierId, open }: { supplierId?: string; open?
   if (query.isPending) return <FullScreenLoader />;
   if (!query.data?.items.length) return <EmptyState />;
   return (
-    <Card withBorder p={0}>
+    <Card padding={0}>
       <Table.ScrollContainer minWidth={560}>
         <Table striped highlightOnHover>
           <Table.Thead>
@@ -240,8 +263,8 @@ export function ReceiptsTable({ supplierId, open }: { supplierId?: string; open?
               <Table.Th>{t('purchasing.receipt')}</Table.Th>
               {!supplierId && <Table.Th>{t('purchasing.supplier')}</Table.Th>}
               <Table.Th>{t('common.date')}</Table.Th>
-              <Table.Th ta="end">{t('sales.total')}</Table.Th>
-              <Table.Th ta="end">{t('purchasing.open')}</Table.Th>
+              <Table.Th className="ds-end">{t('sales.total')}</Table.Th>
+              <Table.Th className="ds-end">{t('purchasing.open')}</Table.Th>
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
@@ -252,7 +275,7 @@ export function ReceiptsTable({ supplierId, open }: { supplierId?: string; open?
                     {r.number}
                   </Anchor>
                   {r.supplierRef && (
-                    <Text span size="xs" c="dimmed">
+                    <Text span size="xs" className="ds-muted">
                       {' '}
                       ({r.supplierRef})
                     </Text>
@@ -260,8 +283,10 @@ export function ReceiptsTable({ supplierId, open }: { supplierId?: string; open?
                 </Table.Td>
                 {!supplierId && <Table.Td>{r.supplier.name}</Table.Td>}
                 <Table.Td>{formatDate(r.createdAt, i18n.language)}</Table.Td>
-                <Table.Td ta="end">{money(r.total)}</Table.Td>
-                <Table.Td ta="end" c={Number(r.open) > 0 ? 'orange.8' : 'green.8'}>
+                <Table.Td className="ds-end">{money(r.total)}</Table.Td>
+                <Table.Td
+                  className={Number(r.open) > 0 ? 'ds-end ds-warning' : 'ds-end ds-success'}
+                >
                   {Number(r.open) > 0 ? money(r.open) : t('sales.paymentState.PAID')}
                 </Table.Td>
               </Table.Tr>
@@ -280,7 +305,7 @@ export function OrdersTable({ supplierId, open }: { supplierId?: string; open?: 
   if (query.isPending) return <FullScreenLoader />;
   if (!query.data?.items.length) return <EmptyState />;
   return (
-    <Card withBorder p={0}>
+    <Card padding={0}>
       <Table.ScrollContainer minWidth={560}>
         <Table striped highlightOnHover>
           <Table.Thead>
@@ -289,7 +314,7 @@ export function OrdersTable({ supplierId, open }: { supplierId?: string; open?: 
               {!supplierId && <Table.Th>{t('purchasing.supplier')}</Table.Th>}
               <Table.Th>{t('purchasing.expected')}</Table.Th>
               <Table.Th>{t('purchasing.arrived')}</Table.Th>
-              <Table.Th ta="end">{t('sales.total')}</Table.Th>
+              <Table.Th className="ds-end">{t('sales.total')}</Table.Th>
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
@@ -308,7 +333,7 @@ export function OrdersTable({ supplierId, open }: { supplierId?: string; open?: 
                 <Table.Td>
                   {o.received} / {o.ordered}
                 </Table.Td>
-                <Table.Td ta="end">{money(o.total)}</Table.Td>
+                <Table.Td className="ds-end">{money(o.total)}</Table.Td>
               </Table.Tr>
             ))}
           </Table.Tbody>
@@ -329,19 +354,19 @@ function Payments({ supplierId }: { supplierId: string }) {
   return (
     <Stack gap="xs" className="o-list">
       {query.data.map((p) => (
-        <Card key={p.id} withBorder padding="sm">
+        <Card key={p.id} padding="sm">
           <Group justify="space-between">
-            <Text fw={600}>
+            <Text className="ds-bold">
               <span dir="ltr">{p.number}</span> ·{' '}
               {p.direction === 'IN' ? t('suppliers.kind.REFUND') : t('suppliers.kind.PAYMENT')} ·{' '}
               {t(`sales.method.${p.method}`)}
             </Text>
-            <Text fw={700}>
+            <Text className="ds-bold">
               {p.currency !== 'ILS' ? `${p.amount} ${p.currency} · ` : ''}
               {money(p.amountDefault)}
             </Text>
           </Group>
-          <Text size="xs" c="dimmed">
+          <Text size="xs" className="ds-muted">
             {formatDateTime(p.takenAt, i18n.language)} · {p.takenBy}
             {p.reference ? ` · ${p.reference}` : ''}
           </Text>
@@ -365,9 +390,9 @@ function CreditNotes({ supplierId }: { supplierId: string }) {
   return (
     <Stack gap="xs" className="o-list">
       {query.data.map((c) => (
-        <Card key={c.id} withBorder padding="sm">
+        <Card key={c.id} padding="sm">
           <Group justify="space-between">
-            <Text fw={600}>
+            <Text className="ds-bold">
               <span dir="ltr">{c.number}</span> · {t(`purchasing.creditKind.${c.kind}`)}
               {c.receipt ? (
                 <>
@@ -378,9 +403,9 @@ function CreditNotes({ supplierId }: { supplierId: string }) {
                 </>
               ) : null}
             </Text>
-            <Text fw={700}>{money(c.amount)}</Text>
+            <Text className="ds-bold">{money(c.amount)}</Text>
           </Group>
-          <Text size="xs" c="dimmed">
+          <Text size="xs" className="ds-muted">
             {formatDateTime(c.createdAt, i18n.language)} · {c.createdBy} · {c.reason}
           </Text>
           {c.lines.length > 0 && (
@@ -504,18 +529,16 @@ export function PayDialog({
         {blocked && <Alert color="red">{t('shifts.noOpenShift')}</Alert>}
         {direction === 'OUT' && (
           <>
-            <Text size="sm" fw={600}>
-              {t('suppliers.covers')}
-            </Text>
+            <h3 className="ds-heading">{t('suppliers.covers')}</h3>
             <Stack gap={2}>
               {preview.length === 0 && (
-                <Text size="sm" c="dimmed">
+                <Text size="sm" className="ds-muted">
                   {t('suppliers.noOpen')}
                 </Text>
               )}
               {preview.map(({ r, take }) => (
                 <Group key={r.id} justify="space-between">
-                  <Text size="sm" c={take > 0 ? undefined : 'dimmed'} dir="ltr">
+                  <Text size="sm" className={take > 0 ? undefined : 'ds-muted'} dir="ltr">
                     {r.number}
                   </Text>
                   <Text size="sm">
@@ -650,17 +673,17 @@ export function CreditNoteDialog({
               const left = l.quantity - l.returned;
               return (
                 <Group key={l.id} justify="space-between" wrap="nowrap">
-                  <div style={{ minWidth: 0 }}>
+                  <div className="ds-min-0">
                     <Text size="sm" truncate>
                       {localize(l.name, i18n.language)}
                       {l.variantLabel ? ` · ${localize(l.variantLabel, i18n.language)}` : ''}
                     </Text>
-                    <Text size="xs" c="dimmed">
+                    <Text size="xs" className="ds-muted">
                       {money(l.landedCost)} · {t('purchasing.canReturn', { count: left })}
                     </Text>
                   </div>
                   <NumberInput
-                    w={80}
+                    className={classes.qtyNarrow}
                     size="xs"
                     min={0}
                     max={left}
@@ -704,7 +727,7 @@ export function CreditNoteDialog({
           onChange={(e) => setReason(e.currentTarget.value)}
         />
         <Group justify="space-between">
-          <Text fw={700}>{money(total.toFixed(2))}</Text>
+          <Text className="ds-bold">{money(total.toFixed(2))}</Text>
           <Group>
             <Button variant="default" onClick={onClose}>
               {t('common.back')}

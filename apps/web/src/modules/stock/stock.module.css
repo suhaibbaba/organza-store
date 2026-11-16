@@ -1,0 +1,18 @@
+/* The search field of a filter row grows and wraps below 240px. */
+.search {
+  flex: 1 1 240px;
+}
+
+/* A detail page title laid out by the page itself (matches PageHeader). */
+.detailTitle {
+  margin: 0;
+  font-size: 22px;
+  line-height: 30px;
+  font-weight: 500;
+  color: var(--o-title);
+  overflow-wrap: anywhere;
+}
+
+.colQty {
+  width: 110px;
+}

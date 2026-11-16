@@ -340,7 +340,8 @@
     "numberTypeHint": "Numbers are set on numbered products.",
     "quickSoldHint": "Sold at the till as a quick sell. Add a category (and cost and photo if you have them), then mark it complete, or keep it as a one-off.",
     "markCompleted": "Mark complete",
-    "markOneOff": "Keep as one-off"
+    "markOneOff": "Keep as one-off",
+    "basics": "Basics"
   },
   "labels": {
     "title": "Labels",
@@ -605,7 +606,8 @@
     "giftPurchase": "Gift purchase",
     "appliedHere": "{{amount}} on this sale",
     "amount": "Amount",
-    "reference": "Reference"
+    "reference": "Reference",
+    "summary": "Summary"
   },
   "customers": {
     "address": "Address",

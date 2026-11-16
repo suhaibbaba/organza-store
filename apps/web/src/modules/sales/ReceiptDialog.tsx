@@ -116,7 +116,7 @@ export function ReceiptDialog({
             <Receipt data={receipt.data} gift={gift} />
           </div>
         ) : (
-          <Center py="xl">
+          <Center className="ds-py-xl">
             <Loader />
           </Center>
         )}

@@ -78,10 +78,10 @@ export function ProductsPage() {
                     key={type}
                     onClick={() => navigate(`/products/new/${type.toLowerCase()}`)}
                   >
-                    <Text size="sm" fw={600}>
+                    <Text size="sm" className="ds-bold">
                       {t(`catalogue.type.${type}`)}
                     </Text>
-                    <Text size="xs" c="dimmed">
+                    <Text size="xs" className="ds-muted">
                       {t(`catalogue.typeHint.${type}`)}
                     </Text>
                   </Menu.Item>
@@ -101,7 +101,7 @@ export function ProductsPage() {
           type="search"
         />
         <Select
-          w={180}
+          className={classes.filterMd}
           clearable
           placeholder={t('catalogue.category')}
           data={(categories.data ?? []).map((c) => ({ value: c.id, label: localized(c.name) }))}
@@ -109,7 +109,7 @@ export function ProductsPage() {
           onChange={(v) => set({ categoryId: v })}
         />
         <Select
-          w={150}
+          className={classes.filterSm}
           clearable
           placeholder={t('catalogue.productType')}
           data={(['REGULAR', 'VARIANT', 'NUMBERED'] as const).map((v) => ({
@@ -120,7 +120,7 @@ export function ProductsPage() {
           onChange={(v) => set({ type: v as ProductFilters['type'] })}
         />
       </div>
-      <Group gap="md" mb="md" wrap="wrap">
+      <Group gap="md" wrap="wrap" className="ds-mb-md">
         {can('products.hide') && (
           <SegmentedControl
             size="xs"
@@ -167,11 +167,11 @@ export function ProductsPage() {
             >
               <Group wrap="nowrap" align="flex-start">
                 <ProductThumb url={p.thumbnailUrl} />
-                <Stack gap={2} style={{ flex: 1, minWidth: 0 }}>
-                  <Text fw={600} truncate>
+                <Stack gap={2} className="ds-grow">
+                  <Text className="ds-bold" truncate>
                     {localized(p.name)}
                   </Text>
-                  <Text size="xs" c="dimmed">
+                  <Text size="xs" className="ds-muted">
                     #{p.number} · {t(`catalogue.type.${p.type}`)}
                   </Text>
                   <Group gap={6}>
@@ -186,12 +186,12 @@ export function ProductsPage() {
         </Stack>
       )}
       {query.data && query.data.items.length > 0 && !phone && (
-        <Card p={0}>
+        <Card padding={0}>
           <Table.ScrollContainer minWidth={720}>
-            <Table highlightOnHover verticalSpacing={6} fz="sm">
+            <Table highlightOnHover verticalSpacing={6}>
               <Table.Thead>
                 <Table.Tr>
-                  <Table.Th w={60} />
+                  <Table.Th className="ds-col-thumb" />
                   <Table.Th>{t('catalogue.name')}</Table.Th>
                   <Table.Th>{t('catalogue.number')}</Table.Th>
                   <Table.Th>{t('catalogue.productType')}</Table.Th>
@@ -207,18 +207,18 @@ export function ProductsPage() {
                       <ProductThumb url={p.thumbnailUrl} size={32} />
                     </Table.Td>
                     <Table.Td>
-                      <Text size="sm" fw={500}>
+                      <Text size="sm" className="ds-medium">
                         {localized(p.name)}
                       </Text>
                       {p.needsCompletion && (
-                        <Text size="xs" c="orange">
+                        <Text size="xs" className="ds-warning">
                           {t('catalogue.needsCompletion')}
                         </Text>
                       )}
                     </Table.Td>
-                    <Table.Td>#{p.number}</Table.Td>
+                    <Table.Td className="ds-num">#{p.number}</Table.Td>
                     <Table.Td>{t(`catalogue.type.${p.type}`)}</Table.Td>
-                    <Table.Td>{price(p)}</Table.Td>
+                    <Table.Td className="ds-num ds-nowrap">{price(p)}</Table.Td>
                     <Table.Td>
                       <StockBadge available={p.available} low={p.lowStock} />
                     </Table.Td>
@@ -233,7 +233,7 @@ export function ProductsPage() {
         </Card>
       )}
       {total > PAGE_SIZE && (
-        <Group justify="center" mt="md">
+        <Group justify="center" className="ds-mt-md">
           <Pagination
             total={Math.ceil(total / PAGE_SIZE)}
             value={filters.page ?? 1}

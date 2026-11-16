@@ -1,58 +1,91 @@
+/* ---------------------------------------------------------------- board (/orders, full-bleed) */
+
+/* The page never scrolls; each column scrolls inside. */
 .board {
   display: flex;
   flex-direction: column;
   height: 100%;
   min-height: 0;
-  padding: var(--mantine-spacing-md);
-  gap: var(--mantine-spacing-sm);
+  gap: 12px;
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.search {
+  flex: 1 1 220px;
+  min-width: 180px;
+}
+
+.sourceFilter {
+  width: 180px;
 }
 
 .columns {
   flex: 1;
   min-height: 0;
   display: grid;
-  grid-template-columns: repeat(5, minmax(220px, 1fr));
-  gap: var(--mantine-spacing-sm);
+  grid-template-columns: repeat(5, minmax(200px, 1fr));
+  gap: 12px;
   overflow-x: auto;
+  padding-bottom: 2px;
 }
 
 .column {
   display: flex;
   flex-direction: column;
   min-height: 0;
-  background: var(--mantine-color-gray-0);
-  border-radius: var(--mantine-radius-md);
-  border: 1px solid var(--mantine-color-gray-2);
+  background: var(--o-sunken);
+  border: 1px solid var(--o-line);
+  border-radius: 20px;
 }
 
 .columnHead {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--mantine-spacing-xs) var(--mantine-spacing-sm);
-  border-bottom: 1px solid var(--mantine-color-gray-2);
+  gap: 8px;
+  padding: 12px 14px 8px;
 }
 
 .columnBody {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  padding: var(--mantine-spacing-xs);
   display: flex;
   flex-direction: column;
-  gap: var(--mantine-spacing-xs);
+  gap: 8px;
+  padding: 4px 10px 10px;
+}
+
+.columnEmpty {
+  padding-block: 16px;
 }
 
 .tabs {
   display: none;
+  flex-shrink: 0;
 }
 
+/* An order on the board: a white card that lifts on hover. */
 .card {
   cursor: pointer;
+  transition:
+    border-color 150ms,
+    box-shadow 150ms;
 }
 
-.cardShort {
-  border-color: var(--mantine-color-red-4);
+.card:hover {
+  border-color: var(--o-primary-300);
+  box-shadow: var(--o-shadow-card-hover);
+}
+
+.card.cardShort {
+  border-color: var(--o-danger-600);
 }
 
 .strip {
@@ -65,12 +98,154 @@
   width: 36px;
   height: 48px;
   object-fit: cover;
-  border-radius: 4px;
+  border-radius: 8px;
   flex: none;
 }
 
+/* ---------------------------------------------------------------- detail page */
+
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.title {
+  margin: 0;
+  font-size: 22px;
+  line-height: 30px;
+  font-weight: 500;
+  color: var(--o-title);
+}
+
+.detail {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 16px;
+  align-items: start;
+}
+
+.line {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 10px;
+  border: 1px solid var(--o-line);
+  border-radius: 14px;
+}
+
 .lineShort {
-  background: var(--mantine-color-red-0);
+  background: var(--o-danger-100);
+  border-color: var(--o-danger-600);
+}
+
+.lineAmount {
+  width: 90px;
+}
+
+/* Product photos in order lines, pick lists and the lines editor. */
+.thumb {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 40px;
+  height: 56px;
+  object-fit: cover;
+  border-radius: 8px;
+  background: var(--o-sunken);
+  color: var(--o-ink-faint);
+}
+
+.thumbLg {
+  width: 48px;
+  height: 64px;
+}
+
+.sumRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--o-ink-muted);
+}
+
+.sumTotal {
+  font-size: 15px;
+  line-height: 24px;
+  font-weight: 700;
+  color: var(--o-ink);
+}
+
+/* ---------------------------------------------------------------- new order */
+
+.form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+/* The customer slot reads as a field. */
+.form .customer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 36px;
+  padding: 4px 12px;
+  border: 1px solid var(--o-line-strong);
+  border-radius: 10px;
+  background: #ffffff;
+  color: var(--o-ink-muted);
+  transition: border-color 150ms;
+}
+
+.form .customer:hover {
+  border-color: #a3bac6;
+}
+
+.qty {
+  width: 24px;
+}
+
+.amount {
+  width: 80px;
+}
+
+.drawerBody {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  height: 70vh;
+  min-height: 0;
+}
+
+.total {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  padding-top: 10px;
+  font-size: 15px;
+  line-height: 24px;
+  font-weight: 700;
+  color: var(--o-ink);
+}
+
+/* ---------------------------------------------------------------- pick list */
+
+.colCheck {
+  width: 40px;
+}
+
+.picked {
+  opacity: 0.5;
 }
 
 .slip {
@@ -78,10 +253,31 @@
   page-break-inside: avoid;
 }
 
-@media (max-width: 48em) {
-  .board {
-    padding: var(--mantine-spacing-sm);
+/* ---------------------------------------------------------------- couriers */
+
+.kpi {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: var(--o-inset);
+}
+
+.kpi .owed {
+  color: var(--o-warning-700);
+}
+
+/* ---------------------------------------------------------------- responsive and print */
+
+@media (max-width: 64em) {
+  .detail,
+  .form {
+    grid-template-columns: minmax(0, 1fr);
   }
+}
+
+@media (max-width: 48em) {
   .columns {
     display: flex;
     flex-direction: column;
@@ -96,6 +292,9 @@
   }
   .columnHead {
     display: none;
+  }
+  .columnBody {
+    padding-top: 10px;
   }
   .tabs {
     display: block;

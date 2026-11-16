@@ -28,6 +28,7 @@ import { useErrorMessage } from '@web/shared/hooks/use-error-message';
 import { newIdempotencyKey } from '@web/shared/lib/api-client';
 import { formatDateTime } from '@web/shared/lib/format';
 import { useCourierActions, useCouriers, useOpenShiftId, useOrders, useSettlements } from './api';
+import classes from './orders.module.css';
 
 /** Delivery companies: what each owes, its open parcels, and its settlements. */
 export function CouriersPage() {
@@ -56,40 +57,44 @@ export function CouriersPage() {
       {query.data?.length === 0 && <EmptyState />}
       <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }}>
         {query.data?.map((c) => (
-          <Card key={c.id} withBorder>
-            <Group justify="space-between" wrap="nowrap">
-              <Text fw={700}>{c.name}</Text>
-              {!c.isActive && <Badge color="gray">{t('common.inactive')}</Badge>}
-            </Group>
-            {c.phone && (
-              <Text size="sm" dir="ltr" ta="start">
-                {c.phone}
-              </Text>
-            )}
-            <Group justify="space-between" mt="sm">
-              <Text size="sm">{t('couriers.owes')}</Text>
-              <Text fw={700} c={Number(c.balance) > 0 ? 'orange.8' : undefined}>
-                {money(c.balance)}
-              </Text>
-            </Group>
-            <Text size="xs" c="dimmed">
-              {t('couriers.openOrders', { count: c.openOrders })}
-            </Text>
-            <Group gap="xs" mt="sm">
-              {can('couriers.settle') && (
-                <Button size="xs" onClick={() => setSettling(c)}>
-                  {t('couriers.settle')}
+          <Card key={c.id}>
+            <Stack gap="sm">
+              <Group justify="space-between" wrap="nowrap" gap="xs">
+                <Stack gap={0} className="ds-min-0">
+                  <h2 className="ds-heading ds-truncate">{c.name}</h2>
+                  {c.phone && (
+                    <Text size="sm" className="ds-ltr ds-muted ds-num">
+                      {c.phone}
+                    </Text>
+                  )}
+                </Stack>
+                {!c.isActive && <Badge color="gray">{t('common.inactive')}</Badge>}
+              </Group>
+              <div className={classes.kpi}>
+                <span className="ds-eyebrow">{t('couriers.owes')}</span>
+                <span className={`ds-figure ${Number(c.balance) > 0 ? classes.owed : ''}`}>
+                  {money(c.balance)}
+                </span>
+                <Text size="xs" className="ds-muted">
+                  {t('couriers.openOrders', { count: c.openOrders })}
+                </Text>
+              </div>
+              <Group gap="xs">
+                {can('couriers.settle') && (
+                  <Button size="xs" className="ds-grow" onClick={() => setSettling(c)}>
+                    {t('couriers.settle')}
+                  </Button>
+                )}
+                <Button size="xs" variant="default" onClick={() => setHistory(c)}>
+                  {t('couriers.history')}
                 </Button>
-              )}
-              <Button size="xs" variant="default" onClick={() => setHistory(c)}>
-                {t('couriers.history')}
-              </Button>
-              {can('couriers.manage') && (
-                <Button size="xs" variant="subtle" onClick={() => setEditing(c)}>
-                  {t('common.edit')}
-                </Button>
-              )}
-            </Group>
+                {can('couriers.manage') && (
+                  <Button size="xs" variant="subtle" onClick={() => setEditing(c)}>
+                    {t('common.edit')}
+                  </Button>
+                )}
+              </Group>
+            </Stack>
           </Card>
         ))}
       </SimpleGrid>
@@ -250,24 +255,22 @@ function SettleDialog({ courier, onClose }: { courier: CourierView; onClose: () 
           />
         )}
         {blocked && <Alert color="red">{t('shifts.noOpenShift')}</Alert>}
-        <Text size="sm" fw={600}>
-          {t('couriers.covers')}
-        </Text>
+        <h3 className="ds-heading">{t('couriers.covers')}</h3>
         <Stack gap={2}>
           {preview.length === 0 && (
-            <Text size="sm" c="dimmed">
+            <Text size="sm" className="ds-muted">
               {t('couriers.noOpen')}
             </Text>
           )}
           {preview.map(({ o, lacking, take }) => (
             <Group key={o.id} justify="space-between">
-              <Text size="sm" c={take > 0 ? undefined : 'dimmed'}>
+              <Text size="sm" className={take > 0 ? undefined : 'ds-muted'}>
                 <Link to={`/orders/${o.id}`}>
                   <span dir="ltr">{o.number}</span>
                 </Link>{' '}
                 · {o.customer.name}
               </Text>
-              <Text size="sm">
+              <Text size="sm" className="ds-num">
                 {money(take.toFixed(2))} / {money(lacking.toFixed(2))}
               </Text>
             </Group>
@@ -304,12 +307,12 @@ function History({ courierId }: { courierId: string }) {
   return (
     <Stack gap="sm">
       {query.data.map((s) => (
-        <Card key={s.id} withBorder padding="sm">
+        <Card key={s.id} padding="sm">
           <Group justify="space-between">
-            <Text fw={600} dir="ltr">
+            <Text dir="ltr" className="ds-bold">
               {s.number}
             </Text>
-            <Text size="xs" c="dimmed">
+            <Text size="xs" className="ds-muted">
               {formatDateTime(s.createdAt, i18n.language)}
             </Text>
           </Group>
@@ -317,7 +320,7 @@ function History({ courierId }: { courierId: string }) {
             {t(`sales.method.${s.method}`)} · {money(s.received)}
             {Number(s.fee) > 0 ? ` · ${t('couriers.fee')} ${money(s.fee)}` : ''}
           </Text>
-          <Text size="xs" c="dimmed">
+          <Text size="xs" className="ds-muted">
             {s.orders.map((o) => `${o.number} ${money(o.amount)}`).join(' · ')}
           </Text>
         </Card>

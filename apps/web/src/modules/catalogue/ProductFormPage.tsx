@@ -7,7 +7,6 @@ import {
   SimpleGrid,
   Stack,
   TextInput,
-  Title,
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import type { CreateProductInput, ImageView } from '@organza/shared';
@@ -183,9 +182,10 @@ function ProductForm({ type }: { type: ProductType }) {
         title={t(`catalogue.new.${type}`)}
         back={{ to: '/products', label: t('catalogue.products') }}
       />
-      <Stack gap="md" maw={960}>
+      <Stack gap="md" className="ds-w-xl">
         <Card withBorder>
           <Stack gap="sm">
+            <h2 className="ds-heading">{t('catalogue.basics')}</h2>
             <TranslatableInput
               label={t('catalogue.name')}
               value={name}
@@ -260,10 +260,10 @@ function ProductForm({ type }: { type: ProductType }) {
         )}
         {type === 'VARIANT' && (
           <Card withBorder>
-            <Title order={4} size="h5" mb="sm">
-              {t('catalogue.variants.title')}
-            </Title>
-            <VariantSection value={variant} onChange={setVariant} error={errors['variants']} />
+            <Stack gap="md">
+              <h2 className="ds-heading">{t('catalogue.variants.title')}</h2>
+              <VariantSection value={variant} onChange={setVariant} error={errors['variants']} />
+            </Stack>
           </Card>
         )}
         {type === 'NUMBERED' && (

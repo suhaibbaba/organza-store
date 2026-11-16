@@ -13,7 +13,7 @@ export function RequireAuth({ children }: { children: ReactNode }) {
   if (status === 'restoring') return <FullScreenLoader />;
   if (status === 'unreachable') {
     return (
-      <Center h="100%">
+      <Center className="ds-fill">
         <Stack align="center">
           <Text>{t('errors.offline')}</Text>
           <Button onClick={retry}>{t('common.retry')}</Button>

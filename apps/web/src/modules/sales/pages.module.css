@@ -1,0 +1,292 @@
+/*
+ * Sales, customers, shifts and approvals screens (docs/design-system.md): list filters, the
+ * detail layout (a main column and a 320px side column of cards), label/value money rows.
+ * Values come from the clinic tokens in styles/clinic.css.
+ */
+
+/* ---------------------------------------------------------------- list pages */
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: flex-end;
+  margin-bottom: 16px;
+}
+
+.search {
+  flex: 1 1 240px;
+}
+
+/* The phone layout of a list: row cards replace the table. */
+.phoneOnly {
+  display: none;
+}
+@media (max-width: 767px) {
+  .wideOnly {
+    display: none;
+  }
+  .phoneOnly {
+    display: block;
+  }
+}
+
+.pager {
+  display: flex;
+  justify-content: center;
+  margin-top: 16px;
+}
+
+/* A person's name beside their initials in a table cell or a row card. */
+.person {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+/* ---------------------------------------------------------------- detail pages */
+.detail {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+@media (min-width: 1025px) {
+  .detail {
+    grid-template-columns: minmax(0, 1fr) 320px;
+  }
+}
+
+.main,
+.side {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+/* The header card of a detail page: the title, its badges and the actions. */
+.headTop {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.headTitle {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.title {
+  margin: 0;
+  font-size: 22px;
+  line-height: 30px;
+  font-weight: 500;
+  color: var(--o-title);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+/* The field list under a detail header: a small label over a value, in columns. */
+.fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 14px 20px;
+  margin: 16px 0 0;
+  padding-top: 16px;
+  border-top: 1px solid var(--o-line);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  margin: 0;
+}
+
+.fieldLabel {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--o-ink-subtle);
+}
+
+.fieldValue {
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  color: var(--o-ink);
+  overflow-wrap: anywhere;
+}
+
+.link {
+  color: var(--o-primary-600);
+  font-weight: 500;
+  text-decoration: none;
+}
+.link:hover {
+  color: var(--o-primary-700);
+  text-decoration: underline;
+}
+
+/* ---------------------------------------------------------------- money summaries */
+.sum {
+  display: flex;
+  flex-direction: column;
+}
+
+.sumRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  padding: 6px 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--o-ink-muted);
+}
+
+.sumRow > :last-child {
+  color: var(--o-ink);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.sumTotal {
+  margin-top: 4px;
+  padding-top: 10px;
+  border-top: 1px solid var(--o-line);
+  font-weight: 700;
+  color: var(--o-ink);
+}
+
+.sumStrong {
+  font-weight: 700;
+  color: var(--o-ink);
+}
+
+/* A row inside a side card (a payment, a return, a cash movement). */
+.entry {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--o-line);
+}
+.entry:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+.entry:first-child {
+  padding-top: 0;
+}
+
+.entryEnd {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  flex-shrink: 0;
+}
+
+.entryButton {
+  width: 100%;
+  border-inline: 0;
+  border-top: 0;
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+.entryButton:hover .entryLabel {
+  color: var(--o-primary-700);
+}
+
+.entryLabel {
+  min-width: 0;
+}
+
+/* ---------------------------------------------------------------- form bits */
+.qty {
+  width: 90px;
+  flex-shrink: 0;
+}
+
+.currency {
+  width: 100px;
+  flex-shrink: 0;
+}
+
+.registerSelect {
+  width: 180px;
+}
+
+.amount {
+  width: 90px;
+  flex-shrink: 0;
+}
+
+/* ---------------------------------------------------------------- customer picker */
+.pickList {
+  max-height: 360px;
+}
+
+.pickRow {
+  display: block;
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--o-line);
+  border-radius: 12px;
+  transition: background-color 150ms;
+}
+.pickRow:hover {
+  background: var(--o-row-hover);
+}
+
+/* ---------------------------------------------------------------- shifts */
+.notice,
+.notice[data-with-border] {
+  background: var(--o-warning-100);
+}
+
+.thumb {
+  width: 56px;
+  height: 56px;
+  flex-shrink: 0;
+}
+
+.iconLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.qtySm {
+  width: 80px;
+  flex-shrink: 0;
+}
+
+/* Two cards side by side on wide screens (what comes back, what goes out). */
+.pair {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+@media (min-width: 900px) {
+  .pair {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

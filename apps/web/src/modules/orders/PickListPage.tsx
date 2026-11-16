@@ -1,4 +1,4 @@
-import { Button, Card, Center, Checkbox, Group, Stack, Table, Text, Title } from '@mantine/core';
+import { Badge, Button, Card, Checkbox, Group, Stack, Table, Text } from '@mantine/core';
 import { addMoney, fromMinor, localize, toMinor } from '@organza/shared';
 import { IconPhoto, IconPrinter } from '@tabler/icons-react';
 import { useQueries } from '@tanstack/react-query';
@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router';
 import { useMoney } from '@web/modules/catalogue/components';
+import { PageHeader } from '@web/shared/components/PageHeader';
 import { ErrorState, FullScreenLoader } from '@web/shared/components/StatusScreens';
 import { api } from '@web/shared/lib/api-client';
 import type { OrderView } from '@organza/shared';
@@ -37,25 +38,28 @@ export function PickListPage() {
 
   return (
     <Stack gap="md">
-      <Group justify="space-between" className={classes.noPrint}>
-        <Title order={2} size="h3">
-          {t('orders.pickList')}
-        </Title>
-        <Group gap="xs">
-          <Text size="sm" c="dimmed">
-            {t('orders.picked', { done, total: lines.length })}
-          </Text>
-          <Button leftSection={<IconPrinter size={16} />} onClick={() => window.print()}>
-            {t('labels.print')}
-          </Button>
-        </Group>
-      </Group>
-      <Card p={0}>
-        <Table verticalSpacing={6}>
+      <div className={classes.noPrint}>
+        <PageHeader
+          title={t('orders.pickList')}
+          back={{ to: '/orders', label: t('nav.orders') }}
+          actions={
+            <>
+              <Badge size="lg" variant="light" color={done === lines.length ? 'teal' : 'gray'}>
+                {t('orders.picked', { done, total: lines.length })}
+              </Badge>
+              <Button leftSection={<IconPrinter size={16} />} onClick={() => window.print()}>
+                {t('labels.print')}
+              </Button>
+            </>
+          }
+        />
+      </div>
+      <Card padding={0}>
+        <Table verticalSpacing={8}>
           <Table.Thead>
             <Table.Tr>
-              <Table.Th w={32} />
-              <Table.Th w={56} />
+              <Table.Th className={classes.colCheck} />
+              <Table.Th className="ds-col-thumb" />
               <Table.Th>{t('catalogue.name')}</Table.Th>
               <Table.Th>{t('catalogue.location')}</Table.Th>
               <Table.Th>{t('sales.quantity')}</Table.Th>
@@ -64,7 +68,7 @@ export function PickListPage() {
           </Table.Thead>
           <Table.Tbody>
             {lines.map((l) => (
-              <Table.Tr key={l.id} style={{ opacity: ticked[l.id] ? 0.5 : 1 }}>
+              <Table.Tr key={l.id} className={ticked[l.id] ? classes.picked : undefined}>
                 <Table.Td>
                   <Checkbox
                     aria-label={t('orders.pickedOne')}
@@ -74,24 +78,18 @@ export function PickListPage() {
                 </Table.Td>
                 <Table.Td>
                   {l.imageUrl ? (
-                    <img
-                      src={l.imageUrl}
-                      alt=""
-                      width={40}
-                      height={56}
-                      style={{ objectFit: 'cover', borderRadius: 4 }}
-                    />
+                    <img src={l.imageUrl} alt="" width={40} height={56} className={classes.thumb} />
                   ) : (
-                    <Center w={40} h={56} bg="gray.1">
+                    <div className={classes.thumb}>
                       <IconPhoto size={14} />
-                    </Center>
+                    </div>
                   )}
                 </Table.Td>
                 <Table.Td>
-                  <Text size="sm" fw={600}>
+                  <Text size="sm" className="ds-bold">
                     {localize(l.name, i18n.language)}
                   </Text>
-                  <Text size="xs" c="dimmed">
+                  <Text size="xs" className="ds-muted">
                     {[l.variantLabel ? localize(l.variantLabel, i18n.language) : null, l.sku]
                       .filter(Boolean)
                       .join(' · ')}
@@ -99,10 +97,10 @@ export function PickListPage() {
                 </Table.Td>
                 <Table.Td>{l.location ?? '—'}</Table.Td>
                 <Table.Td>
-                  <Text fw={700}>{l.quantity}</Text>
+                  <Text className="ds-bold ds-num">{l.quantity}</Text>
                 </Table.Td>
-                <Table.Td dir="ltr" style={{ textAlign: 'start' }}>
-                  {l.orderNumber}
+                <Table.Td>
+                  <span className="ds-ltr ds-num">{l.orderNumber}</span>
                 </Table.Td>
               </Table.Tr>
             ))}
@@ -111,10 +109,10 @@ export function PickListPage() {
       </Card>
       {orders.map((q) =>
         q.data ? (
-          <Card key={q.data.id} withBorder className={classes.slip}>
+          <Card key={q.data.id} className={classes.slip}>
             <Group justify="space-between" align="flex-start">
               <Stack gap={2}>
-                <Text fw={700} dir="ltr">
+                <Text dir="ltr" className="ds-heading">
                   {q.data.number}
                 </Text>
                 <Text size="sm">{q.data.customer.name}</Text>
@@ -128,7 +126,7 @@ export function PickListPage() {
               <Stack gap={2} align="flex-end">
                 <Text size="sm">{t(`orders.delivery.${q.data.delivery}`)}</Text>
                 {q.data.courier && <Text size="sm">{q.data.courier.name}</Text>}
-                <Text fw={700}>
+                <Text className="ds-bold">
                   {t('orders.toCollect', {
                     amount: money(
                       Number(q.data.cod) > 0
@@ -139,7 +137,7 @@ export function PickListPage() {
                 </Text>
               </Stack>
             </Group>
-            <Table mt="xs" fz="sm">
+            <Table className="ds-mt-sm ds-text-sm">
               <Table.Tbody>
                 {q.data.lines.map((l) => (
                   <Table.Tr key={l.id}>
@@ -148,13 +146,13 @@ export function PickListPage() {
                       {l.variantLabel ? ` · ${localize(l.variantLabel, i18n.language)}` : ''}
                     </Table.Td>
                     <Table.Td>× {l.quantity}</Table.Td>
-                    <Table.Td style={{ textAlign: 'end' }}>{money(l.lineTotal)}</Table.Td>
+                    <Table.Td className="ds-end ds-num">{money(l.lineTotal)}</Table.Td>
                   </Table.Tr>
                 ))}
               </Table.Tbody>
             </Table>
             {q.data.note && (
-              <Text size="sm" mt="xs">
+              <Text size="sm" className="ds-mt-sm ds-pre-line">
                 {q.data.note}
               </Text>
             )}

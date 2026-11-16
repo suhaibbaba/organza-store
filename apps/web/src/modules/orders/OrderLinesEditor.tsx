@@ -1,4 +1,4 @@
-import { ActionIcon, Button, Center, Drawer, Group, Stack, Text } from '@mantine/core';
+import { ActionIcon, Button, Drawer, Group, Stack, Text } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { localize, multiplyMoney, type Translatable } from '@organza/shared';
 import { IconMinus, IconPhoto, IconPlus, IconTrash } from '@tabler/icons-react';
@@ -9,6 +9,7 @@ import { useItemChooser } from '@web/modules/pos/picking';
 import { ProductBrowser } from '@web/modules/pos/ProductBrowser';
 import { useBarcodeScanner } from '@web/shared/hooks/use-barcode-scanner';
 import { useErrorMessage } from '@web/shared/hooks/use-error-message';
+import classes from './orders.module.css';
 
 export interface DraftLine {
   itemId: string;
@@ -82,34 +83,28 @@ export function OrderLinesEditor({
   return (
     <Stack gap="xs">
       {lines.length === 0 && (
-        <Text c="dimmed" size="sm">
+        <Text size="sm" className="ds-muted">
           {t('orders.noLines')}
         </Text>
       )}
       {lines.map((l) => (
-        <Group key={l.itemId} wrap="nowrap" gap="sm">
+        <div key={l.itemId} className={classes.line}>
           {l.imageUrl ? (
-            <img
-              src={l.imageUrl}
-              alt=""
-              width={40}
-              height={56}
-              style={{ objectFit: 'cover', borderRadius: 4 }}
-            />
+            <img src={l.imageUrl} alt="" width={40} height={56} className={classes.thumb} />
           ) : (
-            <Center w={40} h={56} bg="gray.1" style={{ borderRadius: 4 }}>
+            <div className={classes.thumb}>
               <IconPhoto size={16} />
-            </Center>
+            </div>
           )}
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <Text size="sm" fw={600} truncate>
+          <div className="ds-grow">
+            <Text size="sm" truncate className="ds-bold">
               {localize(l.name, i18n.language)}
             </Text>
-            <Text size="xs" c="dimmed" truncate>
+            <Text size="xs" truncate className="ds-muted">
               {[label(l.variantLabel, i18n.language), l.sku].filter(Boolean).join(' · ')}
             </Text>
             {l.reserved !== undefined && l.reserved < l.quantity && (
-              <Text size="xs" c="red">
+              <Text size="xs" className="ds-danger">
                 {t('orders.reservedOf', { reserved: l.reserved, quantity: l.quantity })}
               </Text>
             )}
@@ -123,7 +118,7 @@ export function OrderLinesEditor({
             >
               <IconMinus size={12} />
             </ActionIcon>
-            <Text size="sm" w={24} ta="center">
+            <Text size="sm" className={`${classes.qty} ds-center ds-num`}>
               {l.quantity}
             </Text>
             <ActionIcon
@@ -135,7 +130,7 @@ export function OrderLinesEditor({
               <IconPlus size={12} />
             </ActionIcon>
           </Group>
-          <Text size="sm" fw={600} w={80} ta="end">
+          <Text size="sm" className={`${classes.amount} ds-bold ds-end ds-num`}>
             {money(multiplyMoney(l.unitPrice, l.quantity))}
           </Text>
           <ActionIcon
@@ -147,7 +142,7 @@ export function OrderLinesEditor({
           >
             <IconTrash size={14} />
           </ActionIcon>
-        </Group>
+        </div>
       ))}
       <Group>
         <Button
@@ -167,7 +162,7 @@ export function OrderLinesEditor({
         size="90%"
         title={t('returns.addItems')}
       >
-        <Stack gap="sm" h="70vh">
+        <div className={classes.drawerBody}>
           {browsing && (
             <ProductBrowser
               onProduct={(id) =>
@@ -180,7 +175,7 @@ export function OrderLinesEditor({
               onCode={onCode}
             />
           )}
-        </Stack>
+        </div>
       </Drawer>
     </Stack>
   );

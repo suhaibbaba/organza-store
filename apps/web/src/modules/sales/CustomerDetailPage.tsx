@@ -8,7 +8,6 @@ import {
   Modal,
   SegmentedControl,
   Select,
-  SimpleGrid,
   Stack,
   Table,
   Tabs,
@@ -33,7 +32,8 @@ import { useSession } from '@web/modules/auth/session';
 import { useMoney } from '@web/modules/catalogue/components';
 import { useCurrencies } from '@web/modules/settings/api';
 import { isMoney, MoneyInput } from '@web/shared/components/MoneyInput';
-import { PageHeader } from '@web/shared/components/PageHeader';
+import { BackLink } from '@web/shared/components/PageHeader';
+import { Initials, StatCard, StatGrid } from '@web/shared/components/Widgets';
 import { EmptyState, ErrorState, FullScreenLoader } from '@web/shared/components/StatusScreens';
 import { useErrorMessage } from '@web/shared/hooks/use-error-message';
 import { newIdempotencyKey } from '@web/shared/lib/api-client';
@@ -48,6 +48,7 @@ import {
   useStatement,
 } from './api';
 import { CustomerForm } from './CustomerForm';
+import c from './pages.module.css';
 import { SaleList } from './SalesPage';
 
 export function CustomerDetailPage() {
@@ -61,111 +62,126 @@ export function CustomerDetailPage() {
 
   if (query.isPending) return <FullScreenLoader />;
   if (query.isError) return <ErrorState error={query.error} onRetry={() => void query.refetch()} />;
-  const c = query.data;
-  const wa = (c.whatsapp ?? c.phone)?.replace(/\D/g, '');
+  const cu = query.data;
+  const wa = (cu.whatsapp ?? cu.phone)?.replace(/\D/g, '');
 
   return (
     <>
-      <PageHeader
-        title={c.name}
-        back={{ to: '/customers', label: t('nav.customers') }}
-        actions={
-          <>
-            {can('payments.receive') && (
-              <Button leftSection={<IconCash size={16} />} onClick={() => setPaying(true)}>
-                {t('customers.receivePayment')}
-              </Button>
-            )}
-            {can('customers.edit') && (
-              <Button
-                variant="default"
-                leftSection={<IconEdit size={16} />}
-                onClick={() => setEditing(true)}
-              >
-                {t('common.edit')}
-              </Button>
-            )}
-          </>
-        }
-      />
+      <BackLink to="/customers" label={t('nav.customers')} />
       <Stack gap="md">
-        <SimpleGrid cols={{ base: 1, sm: 3 }}>
-          <Balance
-            label={t('customers.debt')}
-            value={money(c.debt)}
-            color={Number(c.debt) > 0 ? 'red.7' : undefined}
-          />
-          <Balance
-            label={t('customers.credit')}
-            value={money(c.credit)}
-            color={Number(c.credit) > 0 ? 'green.8' : undefined}
-          />
-          <Balance label={t('customers.depositsLabel')} value={money(c.deposits)} />
-        </SimpleGrid>
         <Card withBorder>
-          <Group gap="md">
-            {c.phone && (
-              <Button
-                component="a"
-                href={`tel:${c.phone}`}
-                variant="subtle"
-                leftSection={<IconPhone size={16} />}
-              >
-                <span dir="ltr">{c.phone}</span>
-              </Button>
-            )}
-            {wa && (
-              <Button
-                component="a"
-                href={`https://wa.me/${wa}`}
-                target="_blank"
-                rel="noreferrer"
-                variant="subtle"
-                color="green"
-                leftSection={<IconBrandWhatsapp size={16} />}
-              >
-                WhatsApp
-              </Button>
-            )}
-            {[c.city, c.address].filter(Boolean).length > 0 && (
-              <Text size="sm">{[c.city, c.address].filter(Boolean).join(' · ')}</Text>
-            )}
-          </Group>
-          {c.notes && (
-            <Text size="sm" mt="xs" c="dimmed">
-              {c.notes}
+          <div className={c.headTop}>
+            <div className={c.headTitle}>
+              <Initials name={cu.name} size="lg" />
+              <h1 className={c.title}>{cu.name}</h1>
+              {Number(cu.debt) > 0 && (
+                <Badge color="red" variant="light">
+                  {t('customers.owes', { amount: money(cu.debt) })}
+                </Badge>
+              )}
+              {Number(cu.credit) > 0 && (
+                <Badge color="green" variant="light">
+                  {t('customers.hasCredit', { amount: money(cu.credit) })}
+                </Badge>
+              )}
+            </div>
+            <div className={c.actions}>
+              {can('payments.receive') && (
+                <Button leftSection={<IconCash size={16} />} onClick={() => setPaying(true)}>
+                  {t('customers.receivePayment')}
+                </Button>
+              )}
+              {can('customers.edit') && (
+                <Button
+                  variant="default"
+                  leftSection={<IconEdit size={16} />}
+                  onClick={() => setEditing(true)}
+                >
+                  {t('common.edit')}
+                </Button>
+              )}
+            </div>
+          </div>
+          {(cu.phone || wa || cu.city || cu.address) && (
+            <dl className={c.fields}>
+              {cu.phone && (
+                <div className={c.field}>
+                  <dt className={c.fieldLabel}>{t('customers.phone')}</dt>
+                  <dd className={c.fieldValue}>
+                    <a href={`tel:${cu.phone}`} className={`${c.link} ${c.iconLink}`}>
+                      <IconPhone size={14} />
+                      <span className="o-num">{cu.phone}</span>
+                    </a>
+                  </dd>
+                </div>
+              )}
+              {wa && (
+                <div className={c.field}>
+                  <dt className={c.fieldLabel}>{t('customers.whatsapp')}</dt>
+                  <dd className={c.fieldValue}>
+                    <a
+                      href={`https://wa.me/${wa}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className={`${c.link} ${c.iconLink}`}
+                    >
+                      <IconBrandWhatsapp size={14} />
+                      <span className="o-num">{cu.whatsapp ?? cu.phone}</span>
+                    </a>
+                  </dd>
+                </div>
+              )}
+              {cu.city && (
+                <div className={c.field}>
+                  <dt className={c.fieldLabel}>{t('customers.city')}</dt>
+                  <dd className={c.fieldValue}>{cu.city}</dd>
+                </div>
+              )}
+              {cu.address && (
+                <div className={c.field}>
+                  <dt className={c.fieldLabel}>{t('customers.address')}</dt>
+                  <dd className={c.fieldValue}>{cu.address}</dd>
+                </div>
+              )}
+            </dl>
+          )}
+          {cu.notes && (
+            <Text size="sm" className="ds-mt-md ds-muted ds-pre-line">
+              {cu.notes}
             </Text>
           )}
         </Card>
-        <Tabs defaultValue="statement" keepMounted={false}>
-          <Tabs.List>
-            <Tabs.Tab value="statement">{t('customers.statement')}</Tabs.Tab>
-            <Tabs.Tab value="sales">{t('nav.sales')}</Tabs.Tab>
-          </Tabs.List>
-          <Tabs.Panel value="statement" pt="sm">
-            <Statement id={c.id} />
-          </Tabs.Panel>
-          <Tabs.Panel value="sales" pt="sm">
-            <CustomerSales id={c.id} />
-          </Tabs.Panel>
+        <StatGrid>
+          <StatCard
+            label={t('customers.debt')}
+            value={money(cu.debt)}
+            tone={Number(cu.debt) > 0 ? 'danger' : 'neutral'}
+          />
+          <StatCard
+            label={t('customers.credit')}
+            value={money(cu.credit)}
+            tone={Number(cu.credit) > 0 ? 'success' : 'neutral'}
+          />
+          <StatCard label={t('customers.depositsLabel')} value={money(cu.deposits)} />
+        </StatGrid>
+        <Tabs defaultValue="statement" keepMounted={false} variant="pills">
+          <Stack gap="md">
+            <Tabs.List>
+              <Tabs.Tab value="statement">{t('customers.statement')}</Tabs.Tab>
+              <Tabs.Tab value="sales">{t('nav.sales')}</Tabs.Tab>
+            </Tabs.List>
+            <Tabs.Panel value="statement">
+              <Statement id={cu.id} />
+            </Tabs.Panel>
+            <Tabs.Panel value="sales">
+              <CustomerSales id={cu.id} />
+            </Tabs.Panel>
+          </Stack>
         </Tabs>
       </Stack>
-      <CustomerForm opened={editing} onClose={() => setEditing(false)} customer={c} />
-      {paying && <ReceivePaymentDialog customer={c} onClose={() => setPaying(false)} />}
+      <CustomerForm opened={editing} onClose={() => setEditing(false)} customer={cu} />
+      {paying && <ReceivePaymentDialog customer={cu} onClose={() => setPaying(false)} />}
     </>
-  );
-}
-
-function Balance({ label, value, color }: { label: string; value: string; color?: string }) {
-  return (
-    <Card withBorder padding="sm">
-      <Text size="xs" c="dimmed">
-        {label}
-      </Text>
-      <Text size="xl" fw={700} c={color}>
-        {value}
-      </Text>
-    </Card>
   );
 }
 
@@ -183,16 +199,15 @@ function Statement({ id }: { id: string }) {
   if (query.isError) return <ErrorState error={query.error} onRetry={() => void query.refetch()} />;
   if (query.data.length === 0) return <EmptyState />;
   return (
-    <Card p={0}>
-      {' '}
+    <Card withBorder padding={0}>
       <Table.ScrollContainer minWidth={520}>
-        <Table striped verticalSpacing="xs">
+        <Table verticalSpacing="sm">
           <Table.Thead>
             <Table.Tr>
-              <Table.Th>{t('customers.date')}</Table.Th>
+              <Table.Th className="ds-col-sm">{t('customers.date')}</Table.Th>
               <Table.Th>{t('customers.entry')}</Table.Th>
-              <Table.Th ta="end">{t('customers.amount')}</Table.Th>
-              <Table.Th ta="end">{t('customers.balance')}</Table.Th>
+              <Table.Th className="ds-col-sm ds-end">{t('customers.amount')}</Table.Th>
+              <Table.Th className="ds-col-lg ds-end">{t('customers.balance')}</Table.Th>
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
@@ -202,23 +217,27 @@ function Statement({ id }: { id: string }) {
               const balance = Number(r.balance);
               return (
                 <Table.Tr key={i}>
-                  <Table.Td>{formatDate(r.date, i18n.language)}</Table.Td>
+                  <Table.Td className="ds-muted ds-nowrap">
+                    {formatDate(r.date, i18n.language)}
+                  </Table.Td>
                   <Table.Td>
                     {t(`customers.kind.${r.kind}`)}{' '}
                     {r.number &&
                       (link ? (
-                        <Link to={link} dir="ltr">
+                        <Link to={link} className={`${c.link} o-num`}>
                           {r.number}
                         </Link>
                       ) : (
-                        <span dir="ltr">{r.number}</span>
+                        <span className="o-num">{r.number}</span>
                       ))}
                   </Table.Td>
-                  <Table.Td ta="end" c={amount > 0 ? 'red.7' : 'green.8'}>
+                  <Table.Td
+                    className={`ds-end ds-nowrap ${amount > 0 ? 'ds-danger' : 'ds-success'}`}
+                  >
                     {amount > 0 ? '+' : '−'}
                     {money(String(Math.abs(amount)))}
                   </Table.Td>
-                  <Table.Td ta="end" fw={600}>
+                  <Table.Td className="ds-end ds-bold ds-nowrap">
                     {balance === 0
                       ? money('0')
                       : balance > 0
@@ -345,11 +364,11 @@ function ReceivePaymentDialog({
             label={t('pos.amount')}
             value={amount}
             onChange={setAmount}
-            style={{ flex: 1 }}
+            className="ds-grow"
           />
           {method === 'CASH' && active.length > 1 && (
             <Select
-              w={100}
+              className={c.currency}
               value={currency}
               onChange={(v) => v && setCurrency(v)}
               data={active.map((c) => c.code)}
@@ -388,8 +407,8 @@ function ReceivePaymentDialog({
                 }}
                 label={
                   <Group gap={6}>
-                    <span dir="ltr">{s.number}</span>
-                    <Text size="sm" c="dimmed">
+                    <span className="o-num">{s.number}</span>
+                    <Text size="sm" className="ds-muted">
                       {formatDate(s.createdAt, i18n.language)}
                     </Text>
                     <Badge size="sm" variant="light" color="red">
@@ -401,7 +420,7 @@ function ReceivePaymentDialog({
             ))}
           </Stack>
         )}
-        <Text size="xs" c="dimmed">
+        <Text size="xs" className="ds-muted">
           {pick ? t('customers.pickedHint') : t('customers.oldestFirstHint')}
         </Text>
         <Group justify="flex-end">

@@ -18,11 +18,12 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate, useParams } from 'react-router';
 import { useSession } from '@web/modules/auth/session';
-import { PageHeader } from '@web/shared/components/PageHeader';
+import { BackLink, PageHeader } from '@web/shared/components/PageHeader';
 import { EmptyState, ErrorState, FullScreenLoader } from '@web/shared/components/StatusScreens';
 import { useErrorMessage } from '@web/shared/hooks/use-error-message';
 import { formatDate, formatDateTime } from '@web/shared/lib/format';
 import { deviceRegister, useRegisters, useShift, useShiftMutations, useShifts } from './api';
+import c from './pages.module.css';
 import { SHIFT_COLORS, ShiftPanel } from './ShiftView';
 
 /** "My shift": the open shift on this device's till. */
@@ -46,7 +47,7 @@ export function MyShiftPage() {
         actions={
           list.length > 1 && (
             <Select
-              w={180}
+              className={c.registerSelect}
               value={register?.id ?? null}
               placeholder={t('pos.register')}
               data={list.map((r) => ({ value: r.id, label: r.name }))}
@@ -61,7 +62,7 @@ export function MyShiftPage() {
         }
       />
       {register && register.pendingCounts > 0 && (
-        <Card withBorder mb="md" bg="orange.0">
+        <Card withBorder className={`${c.notice} ds-mb-md`}>
           <Group justify="space-between">
             <Text size="sm">{t('shifts.pendingCounts', { count: register.pendingCounts })}</Text>
             <Button size="xs" variant="light" component={Link} to="/shifts?attention=1">
@@ -96,7 +97,7 @@ export function ShiftDetailPage() {
   if (shift.isError) return <ErrorState error={shift.error} onRetry={() => void shift.refetch()} />;
   return (
     <>
-      <PageHeader title={shift.data.number} back={{ to: '/shifts', label: t('nav.shifts') }} />
+      <BackLink to="/shifts" label={t('nav.shifts')} />
       <ShiftPanel shift={shift.data} />
     </>
   );
@@ -125,7 +126,7 @@ export function ShiftsPage() {
         }
       />
       <Switch
-        mb="md"
+        className="ds-mb-md"
         label={t('shifts.needsAttention')}
         checked={attention}
         onChange={(e) => setAttention(e.currentTarget.checked)}
@@ -133,47 +134,49 @@ export function ShiftsPage() {
       {query.isPending && <FullScreenLoader />}
       {query.isError && <ErrorState error={query.error} onRetry={() => void query.refetch()} />}
       {query.data?.length === 0 && <EmptyState />}
-      <Stack gap="xs" className="o-list">
-        {query.data?.map((s) => (
-          <Card
-            key={s.id}
-            withBorder
-            padding="sm"
-            style={{ cursor: 'pointer' }}
-            onClick={() => navigate(`/shifts/${s.id}`)}
-          >
-            <Group justify="space-between" wrap="nowrap">
-              <Stack gap={0}>
-                <Group gap={6}>
-                  <Text fw={600} dir="ltr">
-                    {s.number}
+      {query.data && query.data.length > 0 && (
+        <Stack gap="xs" className="o-list">
+          {query.data.map((s) => (
+            <Card
+              key={s.id}
+              withBorder
+              padding="sm"
+              className="ds-clickable"
+              onClick={() => navigate(`/shifts/${s.id}`)}
+            >
+              <Group justify="space-between" wrap="nowrap">
+                <Stack gap={0} className="ds-min-0">
+                  <Group gap={6}>
+                    <Text className="ds-medium o-num">{s.number}</Text>
+                    <Text size="sm" className="ds-muted">
+                      {s.register}
+                    </Text>
+                  </Group>
+                  <Text size="xs" className="ds-muted">
+                    {formatDate(s.businessDate, i18n.language)} · {s.openedBy} ·{' '}
+                    {formatDateTime(s.openedAt, i18n.language)}
                   </Text>
-                  <Text size="sm">{s.register}</Text>
+                </Stack>
+                <Group gap={4}>
+                  {s.hasDifference && (
+                    <Badge color="red" variant="light">
+                      {t('shifts.difference')}
+                    </Badge>
+                  )}
+                  {s.signedOff && (
+                    <Badge color="teal" variant="light">
+                      {t('shifts.signedOff')}
+                    </Badge>
+                  )}
+                  <Badge color={SHIFT_COLORS[s.status]} variant="light">
+                    {t(`shifts.status.${s.status}`)}
+                  </Badge>
                 </Group>
-                <Text size="xs" c="dimmed">
-                  {formatDate(s.businessDate, i18n.language)} · {s.openedBy} ·{' '}
-                  {formatDateTime(s.openedAt, i18n.language)}
-                </Text>
-              </Stack>
-              <Group gap={4}>
-                {s.hasDifference && (
-                  <Badge color="red" variant="light">
-                    {t('shifts.difference')}
-                  </Badge>
-                )}
-                {s.signedOff && (
-                  <Badge color="teal" variant="light">
-                    {t('shifts.signedOff')}
-                  </Badge>
-                )}
-                <Badge color={SHIFT_COLORS[s.status]} variant="light">
-                  {t(`shifts.status.${s.status}`)}
-                </Badge>
               </Group>
-            </Group>
-          </Card>
-        ))}
-      </Stack>
+            </Card>
+          ))}
+        </Stack>
+      )}
       <RegistersDialog opened={registersOpen} onClose={() => setRegistersOpen(false)} />
     </>
   );
@@ -201,7 +204,7 @@ function RegistersDialog({ opened, onClose }: { opened: boolean; onClose: () => 
         {(registers.data ?? []).map((r) => (
           <Group key={r.id} justify="space-between">
             <Group gap={6}>
-              <Text c={r.isActive ? undefined : 'dimmed'}>{r.name}</Text>
+              <Text className={r.isActive ? undefined : 'ds-muted'}>{r.name}</Text>
               {r.openShift && (
                 <Badge size="xs" color="green" variant="light">
                   {t('shifts.status.OPEN')}
@@ -218,7 +221,7 @@ function RegistersDialog({ opened, onClose }: { opened: boolean; onClose: () => 
           </Group>
         ))}
         {editing ? (
-          <Stack gap="xs" mt="sm">
+          <Stack gap="xs" className="ds-mt-sm">
             <TextInput
               data-autofocus
               label={t('shifts.registerName')}
@@ -249,7 +252,7 @@ function RegistersDialog({ opened, onClose }: { opened: boolean; onClose: () => 
           </Stack>
         ) : (
           <Button
-            mt="sm"
+            className="ds-mt-sm"
             variant="light"
             leftSection={<IconPlus size={16} />}
             onClick={() => setEditing({ name: '' })}

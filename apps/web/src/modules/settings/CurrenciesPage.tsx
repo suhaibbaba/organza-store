@@ -45,7 +45,7 @@ export function CurrenciesPage() {
     <>
       <PageHeader
         title={t('currencies.title')}
-        actions={
+        primary={
           can('currencies.manage') && (
             <Button
               leftSection={<IconPlus size={16} />}
@@ -56,58 +56,64 @@ export function CurrenciesPage() {
           )
         }
       />
-      <Card p={0} maw={720}>
-        <Table verticalSpacing="sm" fz="sm">
-          <Table.Thead>
-            <Table.Tr>
-              <Table.Th>{t('currencies.code')}</Table.Th>
-              <Table.Th>{t('currencies.rate', { base })}</Table.Th>
-              <Table.Th>{t('currencies.setAt')}</Table.Th>
-              <Table.Th>{t('staff.status')}</Table.Th>
-              <Table.Th />
-            </Table.Tr>
-          </Table.Thead>
-          <Table.Tbody>
-            {query.data.map((c) => (
-              <Table.Tr key={c.code}>
-                <Table.Td>
-                  <Group gap={6}>
-                    <Text fw={600}>{c.code}</Text>
-                    {c.isDefault && <Badge size="xs">{t('currencies.default')}</Badge>}
-                  </Group>
-                </Table.Td>
-                <Table.Td dir="ltr">{c.isDefault ? '1' : c.rate}</Table.Td>
-                <Table.Td>{c.rateSetAt ? formatDateTime(c.rateSetAt, i18n.language) : ''}</Table.Td>
-                <Table.Td>
-                  {!c.isDefault && (
-                    <Switch
-                      size="xs"
-                      checked={c.isActive}
-                      disabled={!can('currencies.manage')}
-                      onChange={(e) =>
-                        m.setActive.mutate(
-                          { code: c.code, isActive: e.currentTarget.checked },
-                          { onError: fail },
-                        )
-                      }
-                    />
-                  )}
-                </Table.Td>
-                <Table.Td>
-                  {!c.isDefault && can('currencies.setRate') && (
-                    <Button
-                      size="compact-xs"
-                      variant="light"
-                      onClick={() => setDialog({ code: c.code, rate: c.rate, isNew: false })}
-                    >
-                      {t('currencies.setRate')}
-                    </Button>
-                  )}
-                </Table.Td>
+      <Card padding={0} className="ds-w-lg">
+        <Table.ScrollContainer minWidth={480}>
+          <Table>
+            <Table.Thead>
+              <Table.Tr>
+                <Table.Th>{t('currencies.code')}</Table.Th>
+                <Table.Th>{t('currencies.rate', { base })}</Table.Th>
+                <Table.Th>{t('currencies.setAt')}</Table.Th>
+                <Table.Th>{t('staff.status')}</Table.Th>
+                <Table.Th className="ds-col-actions" />
               </Table.Tr>
-            ))}
-          </Table.Tbody>
-        </Table>
+            </Table.Thead>
+            <Table.Tbody>
+              {query.data.map((c) => (
+                <Table.Tr key={c.code}>
+                  <Table.Td>
+                    <Group gap={6}>
+                      <Text size="sm" className="ds-bold" dir="ltr">
+                        {c.code}
+                      </Text>
+                      {c.isDefault && <Badge size="xs">{t('currencies.default')}</Badge>}
+                    </Group>
+                  </Table.Td>
+                  <Table.Td dir="ltr">{c.isDefault ? '1' : c.rate}</Table.Td>
+                  <Table.Td>
+                    {c.rateSetAt ? formatDateTime(c.rateSetAt, i18n.language) : ''}
+                  </Table.Td>
+                  <Table.Td>
+                    {!c.isDefault && (
+                      <Switch
+                        size="xs"
+                        checked={c.isActive}
+                        disabled={!can('currencies.manage')}
+                        onChange={(e) =>
+                          m.setActive.mutate(
+                            { code: c.code, isActive: e.currentTarget.checked },
+                            { onError: fail },
+                          )
+                        }
+                      />
+                    )}
+                  </Table.Td>
+                  <Table.Td>
+                    {!c.isDefault && can('currencies.setRate') && (
+                      <Button
+                        size="compact-xs"
+                        variant="light"
+                        onClick={() => setDialog({ code: c.code, rate: c.rate, isNew: false })}
+                      >
+                        {t('currencies.setRate')}
+                      </Button>
+                    )}
+                  </Table.Td>
+                </Table.Tr>
+              ))}
+            </Table.Tbody>
+          </Table>
+        </Table.ScrollContainer>
       </Card>
       <Modal
         opened={Boolean(dialog)}

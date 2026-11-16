@@ -7,8 +7,9 @@ import {
   toggleDisplayFlip,
 } from '@organza/shared';
 import { IconFlipHorizontal, IconFlipVertical, IconRotateClockwise } from '@tabler/icons-react';
-import { type PointerEvent, useEffect, useMemo, useRef, useState } from 'react';
+import { type CSSProperties, type PointerEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import classes from './catalogue.module.css';
 
 interface Props {
   /** Object URL or server URL of the full picture, upright. */
@@ -105,18 +106,12 @@ export function PhotoEditor({ src, initial, onCancel, onDone }: Props) {
       centered
       size="auto"
     >
-      <Stack align="center">
+      <Stack
+        align="center"
+        style={{ '--frame-w': `${FRAME_W}px`, '--frame-h': `${FRAME_H}px` } as CSSProperties}
+      >
         <div
-          style={{
-            width: FRAME_W,
-            height: FRAME_H,
-            position: 'relative',
-            overflow: 'hidden',
-            borderRadius: 8,
-            background: '#111',
-            touchAction: 'none',
-            cursor: 'grab',
-          }}
+          className={classes.editorFrame}
           onPointerDown={onPointerDown}
           onPointerMove={onPointerMove}
           onPointerUp={() => (drag.current = null)}
@@ -129,22 +124,19 @@ export function PhotoEditor({ src, initial, onCancel, onDone }: Props) {
               onLoad={(e) =>
                 setNatural({ w: e.currentTarget.naturalWidth, h: e.currentTarget.naturalHeight })
               }
-              style={{
-                position: 'absolute',
-                left: '50%',
-                top: '50%',
-                width: imgW || undefined,
-                height: imgH || undefined,
-                maxWidth: 'none',
-                transform,
-                transformOrigin: 'center',
-                userSelect: 'none',
-              }}
+              className={classes.editorImage}
+              style={
+                {
+                  '--img-w': imgW ? `${imgW}px` : 'auto',
+                  '--img-h': imgH ? `${imgH}px` : 'auto',
+                  '--transform': transform,
+                } as CSSProperties
+              }
             />
           )}
         </div>
-        <Stack gap={4} w={FRAME_W}>
-          <Text size="xs" c="dimmed">
+        <Stack gap={4} className={classes.editorControls}>
+          <Text size="xs" className="ds-muted">
             {t('catalogue.photo.zoom')}
           </Text>
           <Slider min={1} max={4} step={0.05} value={zoom} onChange={setZoom} label={null} />
@@ -187,7 +179,7 @@ export function PhotoEditor({ src, initial, onCancel, onDone }: Props) {
             <IconFlipHorizontal size={18} />
           </ActionIcon>
         </Group>
-        <Group justify="flex-end" w="100%">
+        <Group justify="flex-end" className="ds-full">
           <Button variant="default" onClick={onCancel}>
             {t('common.cancel')}
           </Button>

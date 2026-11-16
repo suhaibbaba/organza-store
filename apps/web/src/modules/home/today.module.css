@@ -80,6 +80,7 @@
 .bar,
 .barToday {
   width: 100%;
+  height: var(--bar);
   max-width: 32px;
   border-radius: 12px 12px 0 0;
   background: var(--o-primary-200);

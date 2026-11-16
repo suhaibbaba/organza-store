@@ -3,6 +3,7 @@ import {
   Button,
   Card,
   Group,
+  Input,
   Modal,
   SegmentedControl,
   Select,
@@ -33,6 +34,7 @@ import { useErrorMessage } from '@web/shared/hooks/use-error-message';
 import { ApiError, newIdempotencyKey } from '@web/shared/lib/api-client';
 import { useCouriers, useOrderActions } from './api';
 import { type DraftLine, OrderLinesEditor } from './OrderLinesEditor';
+import classes from './orders.module.css';
 
 /** Taking an order from WhatsApp, the phone or the web (workflow D "Order preparation"). */
 export function OrderNewPage() {
@@ -92,26 +94,31 @@ export function OrderNewPage() {
   return (
     <>
       <PageHeader title={t('orders.new')} back={{ to: '/orders', label: t('nav.orders') }} />
-      <Stack gap="md" maw={900}>
-        <Card withBorder>
+      <div className={classes.form}>
+        <Card>
           <Stack gap="sm">
-            <UnstyledButton onClick={() => setPicking(true)}>
-              <Group gap="xs">
-                <IconUser size={18} />
-                {customer ? (
-                  <Text fw={600}>
-                    {customer.name}
-                    {customer.phone ? (
-                      <Text span c="dimmed" dir="ltr">
-                        {' '}
-                        {customer.phone}
-                      </Text>
-                    ) : null}
-                  </Text>
-                ) : (
-                  <Text c="dimmed">{t('orders.chooseCustomer')}</Text>
-                )}
-              </Group>
+            <h2 className="ds-heading">{t('pos.customer')}</h2>
+            <UnstyledButton
+              className={classes.customer}
+              onClick={() => setPicking(true)}
+              aria-label={t('orders.chooseCustomer')}
+            >
+              <IconUser size={18} className="ds-shrink-0" />
+              {customer ? (
+                <Text size="sm" truncate className="ds-bold ds-ink">
+                  {customer.name}
+                  {customer.phone ? (
+                    <Text span size="sm" dir="ltr" className="ds-regular ds-muted">
+                      {' '}
+                      {customer.phone}
+                    </Text>
+                  ) : null}
+                </Text>
+              ) : (
+                <Text size="sm" className="ds-muted">
+                  {t('orders.chooseCustomer')}
+                </Text>
+              )}
             </UnstyledButton>
             <SimpleGrid cols={{ base: 1, sm: 2 }}>
               <Select
@@ -121,10 +128,7 @@ export function OrderNewPage() {
                 onChange={(v) => setSource((v as SaleSource) ?? 'WHATSAPP')}
                 data={SALE_SOURCES.map((s) => ({ value: s, label: t(`orders.source.${s}`) }))}
               />
-              <div>
-                <Text size="sm" fw={500} mb={4}>
-                  {t('orders.deliveryLabel')}
-                </Text>
+              <Input.Wrapper label={t('orders.deliveryLabel')}>
                 <SegmentedControl
                   fullWidth
                   value={delivery}
@@ -134,10 +138,10 @@ export function OrderNewPage() {
                     { value: 'PICKUP', label: t('orders.delivery.PICKUP') },
                   ]}
                 />
-              </div>
+              </Input.Wrapper>
             </SimpleGrid>
             {delivery === 'COURIER' && (
-              <SimpleGrid cols={{ base: 1, sm: 3 }}>
+              <>
                 <Select
                   label={t('orders.courier')}
                   placeholder={t('orders.courierLater')}
@@ -146,53 +150,54 @@ export function OrderNewPage() {
                   onChange={setCourierId}
                   data={active.map((c) => ({ value: c.id, label: c.name }))}
                 />
-                <TextInput
-                  label={t('orders.city')}
-                  value={city}
-                  placeholder={customer?.city ?? ''}
-                  onChange={(e) => setCity(e.currentTarget.value)}
-                />
-                <TextInput
-                  label={t('orders.address')}
-                  value={address}
-                  placeholder={customer?.address ?? ''}
-                  onChange={(e) => setAddress(e.currentTarget.value)}
-                />
-              </SimpleGrid>
+                <SimpleGrid cols={{ base: 1, sm: 2 }}>
+                  <TextInput
+                    label={t('orders.city')}
+                    value={city}
+                    placeholder={customer?.city ?? ''}
+                    onChange={(e) => setCity(e.currentTarget.value)}
+                  />
+                  <TextInput
+                    label={t('orders.address')}
+                    value={address}
+                    placeholder={customer?.address ?? ''}
+                    onChange={(e) => setAddress(e.currentTarget.value)}
+                  />
+                </SimpleGrid>
+              </>
             )}
             <Textarea
               label={t('common.note')}
               autosize
-              minRows={1}
+              minRows={2}
               value={note}
               onChange={(e) => setNote(e.currentTarget.value)}
             />
           </Stack>
         </Card>
-        <Card withBorder>
-          <Text fw={600} mb="xs">
-            {t('orders.lines')}
-          </Text>
-          <OrderLinesEditor lines={lines} onChange={setLines} />
+        <Card>
+          <Stack gap="sm">
+            <h2 className="ds-heading">{t('orders.lines')}</h2>
+            <OrderLinesEditor lines={lines} onChange={setLines} />
+            <div className={`${classes.total} ds-divider-top`}>
+              <span>{t('sales.total')}</span>
+              <span className="ds-num">{money(total)}</span>
+            </div>
+          </Stack>
         </Card>
-        <Group justify="space-between">
-          <Text fw={700} size="lg">
-            {money(total)}
-          </Text>
-          <Group>
-            <Button variant="default" onClick={() => navigate('/orders')}>
-              {t('common.back')}
-            </Button>
-            <Button
-              disabled={!customer || lines.length === 0}
-              loading={create.isPending}
-              onClick={() => void submit()}
-            >
-              {t('orders.save')}
-            </Button>
-          </Group>
-        </Group>
-      </Stack>
+      </div>
+      <Group justify="flex-end" className="ds-mt-md">
+        <Button variant="default" onClick={() => navigate('/orders')}>
+          {t('common.back')}
+        </Button>
+        <Button
+          disabled={!customer || lines.length === 0}
+          loading={create.isPending}
+          onClick={() => void submit()}
+        >
+          {t('orders.save')}
+        </Button>
+      </Group>
       <CustomerPicker
         opened={picking}
         onClose={() => setPicking(false)}

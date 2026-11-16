@@ -10,7 +10,7 @@ import {
 } from '@mantine/core';
 import { type ImageView, suggestedMarkerColors } from '@organza/shared';
 import { IconTrash } from '@tabler/icons-react';
-import type { MouseEvent } from 'react';
+import type { CSSProperties, MouseEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { MoneyInput } from '@web/shared/components/MoneyInput';
 import { PhotosField } from './PhotosField';
@@ -75,7 +75,7 @@ export function NumberedSection({
       <PhotosField value={images} onChange={changeImages} label={t('catalogue.numbered.photo')} />
       {main && (
         <Stack gap={4}>
-          <Text size="sm" c="dimmed">
+          <Text size="sm" className="ds-muted">
             {t('catalogue.numbered.tapHint')}
           </Text>
           <div className={classes.pointCanvas} onClick={place} role="presentation">
@@ -84,12 +84,14 @@ export function NumberedSection({
               <span
                 key={p.number}
                 className={classes.point}
-                style={{
-                  left: `${p.x}%`,
-                  top: `${p.y}%`,
-                  color: value.textColor,
-                  background: value.backgroundColor,
-                }}
+                style={
+                  {
+                    '--x': `${p.x}%`,
+                    '--y': `${p.y}%`,
+                    '--fg': value.textColor,
+                    '--bg': value.backgroundColor,
+                  } as CSSProperties
+                }
               >
                 {p.number}
               </span>
@@ -97,7 +99,7 @@ export function NumberedSection({
           </div>
         </Stack>
       )}
-      <SimpleGrid cols={{ base: 1, xs: 2 }} maw={420}>
+      <SimpleGrid cols={{ base: 1, xs: 2 }} className="ds-w-sm">
         <ColorInput
           label={t('catalogue.numbered.textColor')}
           value={value.textColor}
@@ -112,13 +114,13 @@ export function NumberedSection({
         />
       </SimpleGrid>
       {value.points.length > 0 && (
-        <Table verticalSpacing={4} fz="sm" maw={520}>
+        <Table verticalSpacing={4} className={classes.pointsTable}>
           <Table.Thead>
             <Table.Tr>
-              <Table.Th w={90}>{t('catalogue.number')}</Table.Th>
-              <Table.Th w={100}>{t('catalogue.stock')}</Table.Th>
+              <Table.Th className={classes.colNumber}>{t('catalogue.number')}</Table.Th>
+              <Table.Th className={classes.colQty}>{t('catalogue.stock')}</Table.Th>
               <Table.Th>{t('catalogue.variants.ownPrice')}</Table.Th>
-              <Table.Th w={40} />
+              <Table.Th className={classes.colIcon} />
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
@@ -167,7 +169,7 @@ export function NumberedSection({
         </Table>
       )}
       {error && (
-        <Text size="sm" c="red">
+        <Text size="sm" className="ds-danger">
           {error}
         </Text>
       )}

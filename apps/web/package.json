@@ -8,7 +8,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "lint": "eslint src scripts && node scripts/check-css.mjs && node scripts/check-i18n.mjs",
+    "lint": "eslint src scripts && node scripts/check-css.mjs && node scripts/check-i18n.mjs && node scripts/check-styles.mjs",
     "check:safari": "node scripts/check-safari15.mjs",
     "test": "vitest run",
     "build:desktop": "vite build --mode desktop --outDir dist-desktop"

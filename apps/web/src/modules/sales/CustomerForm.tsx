@@ -98,7 +98,7 @@ export function CustomerForm({
         <TextInput label={t('customers.address')} {...field('address')} />
         <Textarea label={t('customers.notes')} autosize minRows={2} {...field('notes')} />
         {taken && (
-          <Text c="red" size="sm">
+          <Text size="sm" className="ds-danger">
             {t('customers.phoneTakenBy', { name: taken.name })}{' '}
             <Link to={`/customers/${taken.customerId}`} onClick={onClose}>
               {t('customers.open')}
@@ -106,7 +106,7 @@ export function CustomerForm({
           </Text>
         )}
         {error && (
-          <Text c="red" size="sm">
+          <Text size="sm" className="ds-danger">
             {error}
           </Text>
         )}

@@ -1,5 +1,5 @@
 import { BackLink } from '@web/shared/components/PageHeader';
-import { Badge, Button, Card, Group, NumberInput, Stack, Table, Text, Title } from '@mantine/core';
+import { Badge, Button, Card, Group, NumberInput, Stack, Table, Text } from '@mantine/core';
 import { modals } from '@mantine/modals';
 import { notifications } from '@mantine/notifications';
 import { localize } from '@organza/shared';
@@ -11,6 +11,7 @@ import { useErrorMessage } from '@web/shared/hooks/use-error-message';
 import { type PickedItem, useCount, useCountMutations } from './api';
 import { COUNT_COLORS } from './CountsPage';
 import { ItemPicker } from './ItemPicker';
+import classes from './stock.module.css';
 
 interface Draft {
   item: PickedItem;
@@ -60,17 +61,15 @@ export function CountDetailPage() {
   return (
     <>
       <BackLink to="/stock/counts" label={t('stock.counts')} />
-      <Group justify="space-between" mb="md" wrap="wrap">
-        <Stack gap={2}>
+      <Group justify="space-between" wrap="wrap" className="ds-mb-lg">
+        <Stack gap={2} className="ds-min-0">
           <Group gap="xs">
-            <Title order={1} size="h2">
-              {count.title}
-            </Title>
+            <h1 className={classes.detailTitle}>{count.title}</h1>
             <Badge color={COUNT_COLORS[count.status]} variant="light">
               {t(`stock.countStatus.${count.status}`)}
             </Badge>
           </Group>
-          <Text size="xs" c="dimmed" dir="ltr" ta="start">
+          <Text size="sm" className="ds-muted ds-ltr">
             {count.number}
           </Text>
         </Stack>
@@ -94,11 +93,11 @@ export function CountDetailPage() {
           </Group>
         )}
       </Group>
-      <Card withBorder>
-        <Stack gap="sm">
-          {open && (
+      <Stack gap="md">
+        {open && (
+          <Card withBorder>
             <Group align="flex-end">
-              <div style={{ flex: 1 }}>
+              <div className="ds-grow">
                 <ItemPicker onPick={scanned} />
               </div>
               <Button
@@ -109,95 +108,105 @@ export function CountDetailPage() {
                 {t('stock.saveCounts', { count: Object.keys(drafts).length })}
               </Button>
             </Group>
-          )}
-          <Table verticalSpacing={4} fz="sm">
-            <Table.Thead>
-              <Table.Tr>
-                <Table.Th>{t('catalogue.name')}</Table.Th>
-                <Table.Th w={80}>{t('stock.system')}</Table.Th>
-                <Table.Th w={120}>{t('stock.counted')}</Table.Th>
-                <Table.Th w={80}>{t('stock.difference')}</Table.Th>
-              </Table.Tr>
-            </Table.Thead>
-            <Table.Tbody>
-              {pendingRows.map((d) => (
-                <Table.Tr key={d.item.itemId}>
-                  <Table.Td>
-                    {[localize(d.item.name, i18n.language), ...d.item.options].join(' · ')}
-                  </Table.Td>
-                  <Table.Td>{d.item.onHand}</Table.Td>
-                  <Table.Td>
-                    <NumberInput
-                      size="xs"
-                      min={0}
-                      allowDecimal={false}
-                      value={d.counted}
-                      onChange={(v) =>
-                        setDrafts((s) => ({ ...s, [d.item.itemId]: { ...d, counted: v } }))
-                      }
-                    />
-                  </Table.Td>
-                  <Table.Td>{Number(d.counted) - d.item.onHand}</Table.Td>
+          </Card>
+        )}
+        <Card padding={0}>
+          <Table.ScrollContainer minWidth={480}>
+            <Table verticalSpacing={6}>
+              <Table.Thead>
+                <Table.Tr>
+                  <Table.Th>{t('catalogue.name')}</Table.Th>
+                  <Table.Th className="ds-col-xs">{t('stock.system')}</Table.Th>
+                  <Table.Th className="ds-col-sm">{t('stock.counted')}</Table.Th>
+                  <Table.Th className="ds-col-xs">{t('stock.difference')}</Table.Th>
                 </Table.Tr>
-              ))}
-              {count.lines.map((l) => {
-                const draft = drafts[l.itemId];
-                const value = draft ? draft.counted : l.counted;
-                const diff = Number(value) - l.system;
-                return (
-                  <Table.Tr key={l.itemId}>
+              </Table.Thead>
+              <Table.Tbody>
+                {pendingRows.map((d) => (
+                  <Table.Tr key={d.item.itemId}>
                     <Table.Td>
-                      {localize(l.name, i18n.language)}{' '}
-                      <Text span size="xs" c="dimmed" dir="ltr">
-                        {l.sku}
-                      </Text>
+                      {[localize(d.item.name, i18n.language), ...d.item.options].join(' · ')}
                     </Table.Td>
-                    <Table.Td>{l.system}</Table.Td>
+                    <Table.Td>{d.item.onHand}</Table.Td>
                     <Table.Td>
-                      {open ? (
-                        <NumberInput
-                          size="xs"
-                          min={0}
-                          allowDecimal={false}
-                          value={value}
-                          onChange={(v) =>
-                            setDrafts((s) => ({
-                              ...s,
-                              [l.itemId]: {
-                                item: {
-                                  itemId: l.itemId,
-                                  productId: '',
-                                  sku: l.sku,
-                                  name: l.name,
-                                  options: [],
-                                  onHand: l.system,
-                                  damaged: 0,
-                                },
-                                counted: v,
-                              },
-                            }))
-                          }
-                        />
-                      ) : (
-                        l.counted
-                      )}
+                      <NumberInput
+                        size="xs"
+                        min={0}
+                        allowDecimal={false}
+                        value={d.counted}
+                        onChange={(v) =>
+                          setDrafts((s) => ({ ...s, [d.item.itemId]: { ...d, counted: v } }))
+                        }
+                      />
                     </Table.Td>
-                    <Table.Td>
-                      <Text
-                        size="sm"
-                        c={diff === 0 ? undefined : diff > 0 ? 'green' : 'red'}
-                        dir="ltr"
-                      >
-                        {diff > 0 ? `+${diff}` : diff}
-                      </Text>
-                    </Table.Td>
+                    <Table.Td>{Number(d.counted) - d.item.onHand}</Table.Td>
                   </Table.Tr>
-                );
-              })}
-            </Table.Tbody>
-          </Table>
-        </Stack>
-      </Card>
+                ))}
+                {count.lines.map((l) => {
+                  const draft = drafts[l.itemId];
+                  const value = draft ? draft.counted : l.counted;
+                  const diff = Number(value) - l.system;
+                  return (
+                    <Table.Tr key={l.itemId}>
+                      <Table.Td>
+                        {localize(l.name, i18n.language)}{' '}
+                        <Text span size="xs" className="ds-muted" dir="ltr">
+                          {l.sku}
+                        </Text>
+                      </Table.Td>
+                      <Table.Td>{l.system}</Table.Td>
+                      <Table.Td>
+                        {open ? (
+                          <NumberInput
+                            size="xs"
+                            min={0}
+                            allowDecimal={false}
+                            value={value}
+                            onChange={(v) =>
+                              setDrafts((s) => ({
+                                ...s,
+                                [l.itemId]: {
+                                  item: {
+                                    itemId: l.itemId,
+                                    productId: '',
+                                    sku: l.sku,
+                                    name: l.name,
+                                    options: [],
+                                    onHand: l.system,
+                                    damaged: 0,
+                                  },
+                                  counted: v,
+                                },
+                              }))
+                            }
+                          />
+                        ) : (
+                          l.counted
+                        )}
+                      </Table.Td>
+                      <Table.Td>
+                        <Text
+                          size="sm"
+                          className={
+                            diff === 0
+                              ? undefined
+                              : diff > 0
+                                ? 'ds-bold ds-success'
+                                : 'ds-bold ds-danger'
+                          }
+                          dir="ltr"
+                        >
+                          {diff > 0 ? `+${diff}` : diff}
+                        </Text>
+                      </Table.Td>
+                    </Table.Tr>
+                  );
+                })}
+              </Table.Tbody>
+            </Table>
+          </Table.ScrollContainer>
+        </Card>
+      </Stack>
     </>
   );
 }

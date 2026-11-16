@@ -2,20 +2,18 @@ import {
   ActionIcon,
   Badge,
   Button,
-  Center,
+  Card,
   Drawer,
   Group,
   Indicator,
   Loader,
   Menu,
   Modal,
-  Paper,
   Popover,
   Select,
   Stack,
   Text,
   Textarea,
-  Title,
   Tooltip,
   UnstyledButton,
 } from '@mantine/core';
@@ -56,7 +54,7 @@ import { PaymentPanel } from './PaymentPanel';
 import { useItemChooser } from './picking';
 import { QuickSellDialog } from './QuickSellDialog';
 import { ProductBrowser } from './ProductBrowser';
-import classes from '../sales/sales.module.css';
+import classes from './pos.module.css';
 
 /** The till: pick the device's register, open a shift if needed, then sell. */
 export function PosPage() {
@@ -68,9 +66,9 @@ export function PosPage() {
 
   if (registers.isLoading)
     return (
-      <Center h="100%">
+      <div className={classes.gate}>
         <Loader />
-      </Center>
+      </div>
     );
   if (!register?.openShift)
     return (
@@ -125,12 +123,12 @@ function ShiftGate({
   };
 
   return (
-    <Center h="100%" p="md">
-      <Paper withBorder p="lg" radius="md" w={380} maw="100%">
+    <div className={classes.gate}>
+      <Card className="ds-w-sm">
         <Stack>
           <Group gap="xs">
             <IconCashRegister />
-            <Title order={3}>{t('pos.openShift')}</Title>
+            <h2 className="ds-heading">{t('pos.openShift')}</h2>
           </Group>
           <Select
             label={t('pos.register')}
@@ -174,8 +172,8 @@ function ShiftGate({
             </>
           )}
         </Stack>
-      </Paper>
-    </Center>
+      </Card>
+    </div>
   );
 }
 
@@ -283,9 +281,7 @@ function Till({
         size="90%"
         title={t('pos.browse')}
       >
-        <Stack gap="sm" h="70vh">
-          {browsing && browser}
-        </Stack>
+        <div className={classes.drawerBody}>{browsing && browser}</div>
       </Drawer>
       <CustomerPicker
         opened={picking}
@@ -353,7 +349,7 @@ function CartPanel({
       <div className={classes.cartHead}>
         <Group justify="space-between" wrap="nowrap">
           <Group gap={6} wrap="nowrap">
-            <Badge variant="light" component={Link} to="/shift" style={{ cursor: 'pointer' }}>
+            <Badge variant="light" component={Link} to="/shift" className="ds-clickable">
               {registerName} · {shiftNumber}
             </Badge>
             {cart.cart.giftReceipt && (
@@ -407,7 +403,7 @@ function CartPanel({
                       {p.customer?.name ??
                         t('pos.parkedCart', { count: p.lines.reduce((n, l) => n + l.quantity, 0) })}
                     </Text>
-                    <Text size="xs" c="dimmed">
+                    <Text size="xs" className="ds-muted">
                       {p.parkedAt ? formatDateTime(p.parkedAt, i18n.language) : ''} ·{' '}
                       {money(cartTotals(p).total)}
                     </Text>
@@ -417,12 +413,16 @@ function CartPanel({
             </Menu>
           </Group>
         </Group>
-        <UnstyledButton onClick={onCustomer} aria-label={t('pos.customer')}>
-          <Group gap={6} wrap="nowrap">
-            <IconUser size={18} />
+        <UnstyledButton
+          onClick={onCustomer}
+          aria-label={t('pos.customer')}
+          className={classes.customer}
+        >
+          <Group gap={8} wrap="nowrap" className="ds-grow">
+            <IconUser size={18} className="ds-shrink-0" />
             {customer ? (
-              <Group gap={6} wrap="nowrap" style={{ flex: 1 }}>
-                <Text fw={600} truncate>
+              <Group gap={6} wrap="nowrap" className="ds-grow">
+                <Text size="sm" truncate className="ds-bold ds-ink">
                   {customer.name}
                 </Text>
                 {Number(customer.debt) > 0 && (
@@ -448,7 +448,9 @@ function CartPanel({
                 </ActionIcon>
               </Group>
             ) : (
-              <Text c="dimmed">{t('pos.addCustomer')} (F4)</Text>
+              <Text size="sm" className="ds-muted">
+                {t('pos.addCustomer')} (F4)
+              </Text>
             )}
           </Group>
         </UnstyledButton>
@@ -456,9 +458,7 @@ function CartPanel({
 
       <div className={`${classes.cartLines} organza-scroll`}>
         {cart.cart.lines.length === 0 && (
-          <Text c="dimmed" ta="center" py="xl">
-            {t('pos.emptyCartHint')}
-          </Text>
+          <Text className="ds-muted ds-center ds-py-xl">{t('pos.emptyCartHint')}</Text>
         )}
         {cart.cart.lines.map((l) => (
           <div
@@ -466,31 +466,25 @@ function CartPanel({
             className={`${classes.cartLine} ${l.problem ? classes.cartLineError : ''}`}
           >
             {l.imageUrl ? (
-              <img
-                src={l.imageUrl}
-                alt=""
-                width={40}
-                height={60}
-                style={{ objectFit: 'cover', borderRadius: 4 }}
-              />
+              <img src={l.imageUrl} alt="" width={40} height={60} className={classes.thumb} />
             ) : (
-              <Center w={40} h={60} bg="gray.1" style={{ borderRadius: 4 }}>
+              <div className={classes.thumb}>
                 <IconPhoto size={16} />
-              </Center>
+              </div>
             )}
-            <div style={{ minWidth: 0 }}>
-              <Text size="sm" fw={600} truncate>
+            <div className="ds-min-0">
+              <Text size="sm" truncate className="ds-bold">
                 {localize(l.name, i18n.language)}
               </Text>
-              <Text size="xs" c="dimmed" truncate>
+              <Text size="xs" truncate className="ds-muted">
                 {[l.variantLabel, l.sku].filter(Boolean).join(' · ')}
               </Text>
               {l.problem && (
-                <Text size="xs" c="red">
+                <Text size="xs" className="ds-danger">
                   {t(`pos.problem.${l.problem}`)}
                 </Text>
               )}
-              <Group gap={4} mt={4}>
+              <Group gap={4} className="ds-mt-xs">
                 <ActionIcon
                   size="sm"
                   variant="default"
@@ -499,7 +493,7 @@ function CartPanel({
                 >
                   <IconMinus size={12} />
                 </ActionIcon>
-                <Text size="sm" w={24} ta="center">
+                <Text size="sm" className={`${classes.qty} ds-center ds-num`}>
                   {l.quantity}
                 </Text>
                 <ActionIcon
@@ -535,18 +529,18 @@ function CartPanel({
                 )}
               </Group>
             </div>
-            <Stack gap={0} align="flex-end">
+            <div className={classes.lineEnd}>
               {l.giveaway ? (
                 <Badge size="sm" color="pink" variant="light">
                   {t('pos.giveaway')}
                 </Badge>
               ) : (
-                <Text size="sm" fw={600}>
+                <Text size="sm" className="ds-bold ds-num">
                   {money(multiplyMoney(l.unitPrice, l.quantity))}
                 </Text>
               )}
               {Number(l.discount) > 0 && (
-                <Text size="xs" c="green.8">
+                <Text size="xs" className="ds-success ds-num">
                   −{money(l.discount)}
                 </Text>
               )}
@@ -559,23 +553,23 @@ function CartPanel({
               >
                 <IconTrash size={14} />
               </ActionIcon>
-            </Stack>
+            </div>
           </div>
         ))}
       </div>
 
       <div className={classes.cartFoot}>
-        {Number(totals.discountTotal) > 0 && (
-          <div className={classes.totalRow}>
-            <Text size="sm">{t('sales.discount')}</Text>
-            <Text size="sm" c="green.8">
-              −{money(totals.discountTotal)}
-            </Text>
+        <div className={classes.sum}>
+          {Number(totals.discountTotal) > 0 && (
+            <div className={classes.sumRow}>
+              <span>{t('sales.discount')}</span>
+              <span className="ds-success ds-num">−{money(totals.discountTotal)}</span>
+            </div>
+          )}
+          <div className={classes.sumTotal}>
+            <span className="ds-text-md ds-medium">{t('pos.items', { count: totals.count })}</span>
+            <span className={classes.bigTotal}>{money(totals.total)}</span>
           </div>
-        )}
-        <div className={classes.totalRow}>
-          <Text>{t('pos.items', { count: totals.count })}</Text>
-          <span className={classes.bigTotal}>{money(totals.total)}</span>
         </div>
         <Group grow gap="xs">
           <Button
@@ -595,7 +589,7 @@ function CartPanel({
             {t('pos.clear')}
           </Button>
         </Group>
-        <Button size="xl" onClick={onPay} disabled={!cart.cart.lines.length}>
+        <Button fullWidth onClick={onPay} disabled={!cart.cart.lines.length}>
           {t('pos.pay')} (F8)
         </Button>
       </div>
@@ -629,7 +623,7 @@ function LineDiscount({
         </ActionIcon>
       </Popover.Target>
       <Popover.Dropdown>
-        <Stack gap="xs" w={200}>
+        <Stack gap="xs" className={classes.lineDiscount}>
           <MoneyInput label={t('pos.lineDiscount')} value={amount} onChange={setAmount} size="xs" />
           <Group gap={4}>
             {[5, 10, 20].map((p) => (
@@ -676,7 +670,7 @@ function CartDiscount({
   return (
     <Modal opened={opened} onClose={onClose} title={t('pos.cartDiscount')} centered size="sm">
       <Stack>
-        <Text size="sm" c="dimmed">
+        <Text size="sm" className="ds-muted">
           {t('pos.cartDiscountHint', { amount: money(subtotal) })}
         </Text>
         <MoneyInput data-autofocus value={amount} onChange={setAmount} size="md" />

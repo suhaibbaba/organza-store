@@ -39,12 +39,12 @@ export function CountsPage() {
             withBorder
             padding="sm"
             onClick={() => navigate(`/stock/counts/${c.id}`)}
-            style={{ cursor: 'pointer' }}
+            className="ds-clickable"
           >
             <Group justify="space-between">
               <Stack gap={0}>
-                <Text fw={600}>{c.title}</Text>
-                <Text size="xs" c="dimmed">
+                <Text className="ds-bold">{c.title}</Text>
+                <Text size="xs" className="ds-muted">
                   <span dir="ltr">{c.number}</span> · {formatDateTime(c.createdAt, i18n.language)}
                 </Text>
               </Stack>

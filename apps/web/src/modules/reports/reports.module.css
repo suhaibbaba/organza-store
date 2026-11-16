@@ -1,0 +1,19 @@
+/* Reports: pill tabs that scroll sideways on phones instead of wrapping. */
+.tabs {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+}
+
+/* The single-day picker and the group-by select keep a compact width. */
+.dateField {
+  width: 100%;
+  max-width: 200px;
+}
+.groupSelect {
+  width: 200px;
+}
+
+/* A label / figure line inside a statement card. */
+.line {
+  padding-block: 2px;
+}

@@ -128,8 +128,9 @@ export function PurchaseFormPage({ mode }: { mode: 'receive' | 'order' }) {
         title={mode === 'order' ? t('purchasing.newOrder') : t('purchasing.receive')}
         back={{ to: '/purchasing', label: t('nav.purchasing') }}
       />
-      <Stack gap="md" maw={960}>
-        <Card withBorder>
+      <Stack gap="md" className="ds-w-xl">
+        <Card>
+          <h2 className="ds-heading ds-mb-sm">{t('purchasing.supplier')}</h2>
           <SimpleGrid cols={{ base: 1, sm: 2 }}>
             <Select
               label={t('purchasing.supplier')}
@@ -183,14 +184,12 @@ export function PurchaseFormPage({ mode }: { mode: 'receive' | 'order' }) {
             />
           </SimpleGrid>
         </Card>
-        <Card withBorder>
-          <Text fw={600} mb="xs">
-            {t('orders.lines')}
-          </Text>
+        <Card>
+          <h2 className="ds-heading ds-mb-sm">{t('orders.lines')}</h2>
           <PurchaseLinesEditor lines={lines} onChange={setLines} />
         </Card>
         {mode === 'receive' && (
-          <Card withBorder>
+          <Card>
             <SimpleGrid cols={{ base: 1, sm: 2 }}>
               <MoneyInput
                 label={t('purchasing.extraCosts')}
@@ -230,11 +229,9 @@ export function PurchaseFormPage({ mode }: { mode: 'receive' | 'order' }) {
         )}
         <Group justify="space-between">
           <Stack gap={0}>
-            <Text fw={700} size="lg">
-              {money(total.toFixed(2))}
-            </Text>
+            <Text className="ds-text-xl ds-bold ds-num">{money(total.toFixed(2))}</Text>
             {mode === 'receive' && (
-              <Text size="xs" c="dimmed">
+              <Text size="xs" className="ds-muted">
                 {t('purchasing.owedAfter', {
                   amount: money(Math.max(0, total - (paying ? Number(paid) : 0)).toFixed(2)),
                 })}

@@ -57,7 +57,11 @@ function Block({ block: b }: { block: ReceiptBlock }) {
       );
     case 'row':
       return (
-        <div className={classes.receiptRow} style={b.strong ? { fontWeight: 700 } : undefined}>
+        <div
+          className={
+            b.strong ? `${classes.receiptRow} ${classes.receiptStrong}` : classes.receiptRow
+          }
+        >
           <span>{b.label}</span>
           <span>{b.value}</span>
         </div>

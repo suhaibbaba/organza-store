@@ -1,17 +1,37 @@
+/* Printed sheets are paper: plain black on white, sized in mm from the label settings, which
+   LabelSheets passes as custom properties (--label-w, --label-h, --columns, --margin-*, --gap-*). */
 .sheet {
   background: #fff;
   color: #000;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
-  margin: 0 auto var(--mantine-spacing-md);
+  box-shadow: var(--o-shadow-card);
+  margin: 0 auto 16px;
   overflow: hidden;
   position: relative;
 }
 
+/* Thermal roll: one label per page, the page is the label. */
+.thermal {
+  width: var(--label-w);
+  height: var(--label-h);
+}
+
+/* A4 grid. Always laid out left to right, whatever the page direction. */
 .grid {
   display: grid;
+  box-sizing: border-box;
+  width: 210mm;
+  height: 297mm;
+  padding: var(--margin-top) var(--margin-right) var(--margin-bottom) var(--margin-left);
+  grid-template-columns: repeat(var(--columns), var(--label-w));
+  grid-auto-rows: var(--label-h);
+  column-gap: var(--gap-x);
+  row-gap: var(--gap-y);
+  direction: ltr;
 }
 
 .label {
+  width: var(--label-w);
+  height: var(--label-h);
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -54,12 +74,30 @@
   margin-top: 0.5mm;
 }
 
+/* Pick column and preview side by side on wide screens. */
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+@media (min-width: 75em) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+}
+
+.colCopies {
+  width: 110px;
+}
+
 .preview {
   overflow: auto;
   max-height: 70vh;
-  padding: var(--mantine-spacing-md);
-  background: var(--mantine-color-gray-1);
-  border-radius: var(--mantine-radius-md);
+  padding: 16px;
+  background: var(--o-inset);
+  border-radius: 12px;
 }
 
 @media print {

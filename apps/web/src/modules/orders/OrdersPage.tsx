@@ -1,4 +1,3 @@
-import { PageAction } from '@web/shared/components/PageAction';
 import {
   Badge,
   Button,
@@ -9,7 +8,6 @@ import {
   Select,
   Text,
   TextInput,
-  Title,
 } from '@mantine/core';
 import { useDebouncedValue } from '@mantine/hooks';
 import {
@@ -24,6 +22,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { useSession } from '@web/modules/auth/session';
 import { useMoney } from '@web/modules/catalogue/components';
+import { PageHeader } from '@web/shared/components/PageHeader';
 import { ErrorState, FullScreenLoader } from '@web/shared/components/StatusScreens';
 import { useOrders } from './api';
 import classes from './orders.module.css';
@@ -80,12 +79,10 @@ export function OrdersPage() {
 
   return (
     <div className={classes.board}>
-      <Group justify="space-between" wrap="nowrap">
-        <Title order={1} size="h2">
-          {t('nav.orders')}
-        </Title>
-        <Group gap="xs" wrap="nowrap">
-          {picked.length > 0 && (
+      <PageHeader
+        title={t('nav.orders')}
+        actions={
+          picked.length > 0 && (
             <Button
               variant="light"
               leftSection={<IconListCheck size={16} />}
@@ -93,33 +90,33 @@ export function OrdersPage() {
             >
               {t('orders.pickList')} ({picked.length})
             </Button>
-          )}
-          {can('orders.create') && (
-            <PageAction>
-              <Button leftSection={<IconPlus size={16} />} onClick={() => navigate('/orders/new')}>
-                {t('orders.new')}
-              </Button>
-            </PageAction>
-          )}
-        </Group>
-      </Group>
-      <Group gap="xs">
+          )
+        }
+        primary={
+          can('orders.create') && (
+            <Button leftSection={<IconPlus size={16} />} onClick={() => navigate('/orders/new')}>
+              {t('orders.new')}
+            </Button>
+          )
+        }
+      />
+      <div className={classes.filters}>
         <TextInput
-          style={{ flex: 1, minWidth: 180 }}
+          className={classes.search}
           leftSection={<IconSearch size={16} />}
           placeholder={t('orders.searchHint')}
           value={q}
           onChange={(e) => setQ(e.currentTarget.value)}
         />
         <Select
-          w={160}
+          className={classes.sourceFilter}
           clearable
           placeholder={t('orders.allSources')}
           value={source}
           onChange={(v) => setSource(v as SaleSource | null)}
           data={SALE_SOURCES.map((s) => ({ value: s, label: t(`orders.source.${s}`) }))}
         />
-      </Group>
+      </div>
       <div className={classes.tabs}>
         <SegmentedControl
           fullWidth
@@ -136,16 +133,14 @@ export function OrdersPage() {
         {COLUMNS.map((s) => (
           <section key={s} className={`${classes.column} ${tab === s ? classes.columnActive : ''}`}>
             <div className={classes.columnHead}>
-              <Text fw={700} size="sm">
-                {t(`orders.status.${s}`)}
-              </Text>
-              <Badge variant="light" color={ORDER_STATUS_COLORS[s]}>
+              <h2 className="ds-heading">{t(`orders.status.${s}`)}</h2>
+              <Badge variant="light" radius="xl" color={ORDER_STATUS_COLORS[s]}>
                 {byStatus(s).length}
               </Badge>
             </div>
             <div className={`${classes.columnBody} organza-scroll`}>
               {byStatus(s).length === 0 && (
-                <Text size="sm" c="dimmed" ta="center" py="md">
+                <Text size="sm" className={`${classes.columnEmpty} ds-muted ds-center`}>
                   {t('orders.emptyColumn')}
                 </Text>
               )}
@@ -192,12 +187,13 @@ function OrderCard({
   return (
     <Card
       withBorder
-      padding="xs"
+      padding="sm"
+      radius="lg"
       className={`${classes.card} ${o.short > 0 ? classes.cardShort : ''}`}
       onClick={onOpen}
     >
       <Group justify="space-between" wrap="nowrap" gap={4}>
-        <Group gap={6} wrap="nowrap" style={{ minWidth: 0 }}>
+        <Group gap={6} wrap="nowrap" className="ds-min-0">
           {onPick && (
             <Checkbox
               size="xs"
@@ -207,30 +203,30 @@ function OrderCard({
               onChange={() => onPick(o.id)}
             />
           )}
-          <Text size="sm" fw={700} dir="ltr">
+          <Text size="sm" dir="ltr" className="ds-bold ds-ink">
             {o.number.replace(/^ORD-\d{4}-/, '#')}
           </Text>
           <Badge size="xs" variant="light" color={SOURCE_COLORS[o.source]}>
             {t(`orders.source.${o.source}`)}
           </Badge>
         </Group>
-        <Text size="xs" c="dimmed">
+        <Text size="xs" className="ds-muted ds-nowrap">
           {age}
         </Text>
       </Group>
-      <Text size="sm" truncate mt={4}>
+      <Text size="sm" truncate className="ds-mt-xs">
         {o.customer.name}
         {o.customer.city ? ` · ${o.customer.city}` : ''}
       </Text>
       {o.images.length > 0 && (
-        <div className={classes.strip}>
+        <div className={`${classes.strip} ds-mt-xs`}>
           {o.images.map((src, i) => (
             <img key={i} src={src} alt="" loading="lazy" />
           ))}
         </div>
       )}
-      <Group justify="space-between" mt={6} wrap="nowrap">
-        <Text size="sm" fw={600}>
+      <Group justify="space-between" wrap="nowrap" className="ds-mt-xs">
+        <Text size="sm" className="ds-bold ds-num">
           {money(o.total)}
         </Text>
         <Group gap={4} wrap="nowrap">

@@ -36,7 +36,7 @@ export function ProductImages({ productId, images }: { productId: string; images
     <div className={classes.imageStrip}>
       {images.map((img) => (
         <div key={img.id} className={classes.imageTile}>
-          <Image src={img.thumbnailUrl} w={96} h={144} radius="sm" fit="cover" alt="" />
+          <Image src={img.thumbnailUrl} className={classes.tileMd} radius="sm" fit="cover" alt="" />
           {can('products.edit') && (
             <div className={classes.imageTileActions}>
               <ActionIcon
@@ -90,9 +90,7 @@ export function ProductImages({ productId, images }: { productId: string; images
             <Button
               {...props}
               variant="default"
-              h={144}
-              w={96}
-              p={0}
+              className={`${classes.addTile} ${classes.tileMd}`}
               disabled={busy}
               aria-label={t('catalogue.photo.add')}
             >

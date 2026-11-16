@@ -5,6 +5,7 @@ import {
   Group,
   SegmentedControl,
   Select,
+  SimpleGrid,
   Stack,
   Switch,
   Text,
@@ -42,10 +43,10 @@ export function DevicePage() {
   return (
     <>
       <PageHeader title={t('nav.device')} />
-      <Stack maw={560}>
+      <SimpleGrid cols={{ base: 1, lg: 2 }} className="ds-w-xl">
         <PrinterCard />
         <UpdateCard />
-      </Stack>
+      </SimpleGrid>
     </>
   );
 }
@@ -104,10 +105,8 @@ function PrinterCard() {
   ];
 
   return (
-    <Card withBorder>
-      <Text fw={600} mb="sm">
-        {t('device.receiptPrinter')}
-      </Text>
+    <Card>
+      <h2 className="ds-heading ds-mb-sm">{t('device.receiptPrinter')}</h2>
       <Stack gap="sm">
         <Select
           label={t('device.printer')}
@@ -220,20 +219,18 @@ function UpdateCard() {
     }
   };
   return (
-    <Card withBorder>
-      <Text fw={600} mb="xs">
-        {t('device.app')}
-      </Text>
-      <Text size="sm" c="dimmed" mb="sm">
+    <Card>
+      <h2 className="ds-heading ds-mb-xs">{t('device.app')}</h2>
+      <Text size="sm" className="ds-muted ds-mb-sm">
         {t('device.version', { version: info.data?.version ?? '…', os: info.data?.os ?? '' })}
       </Text>
       {update === null && (
-        <Alert color="green" mb="sm">
+        <Alert color="green" className="ds-mb-sm">
           {t('device.upToDate')}
         </Alert>
       )}
       {update && (
-        <Alert color="blue" mb="sm">
+        <Alert color="blue" className="ds-mb-sm">
           {t('device.updateAvailable', { version: update.version })}
           {update.notes && <Text size="sm">{update.notes}</Text>}
         </Alert>

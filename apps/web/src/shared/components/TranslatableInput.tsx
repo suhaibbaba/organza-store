@@ -44,7 +44,7 @@ export function TranslatableInput({ label, value, onChange, required, multiline,
           type="button"
           size="xs"
           onClick={() => setOpen(true)}
-          style={{ alignSelf: 'flex-start' }}
+          className="ds-self-start"
         >
           {t('common.otherLanguages')}
         </Anchor>

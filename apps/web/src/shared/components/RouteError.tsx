@@ -8,12 +8,10 @@ export function RouteError() {
   const error = useRouteError();
   if (import.meta.env.DEV) console.error(error);
   return (
-    <Center h="100%" p="xl">
-      <Stack align="center" gap="sm" maw={420}>
+    <Center className="ds-fill ds-pad-xl">
+      <Stack align="center" gap="sm" className="ds-w-sm">
         <Title order={3}>{t('errors.screenCrashed')}</Title>
-        <Text c="dimmed" ta="center">
-          {t('errors.screenCrashedHint')}
-        </Text>
+        <Text className="ds-muted ds-center">{t('errors.screenCrashedHint')}</Text>
         <Button onClick={() => window.location.reload()}>{t('common.retry')}</Button>
       </Stack>
     </Center>

@@ -35,7 +35,7 @@ export function AskCorrectionDialog({
       }}
       onClose={onClose}
     >
-      <Text fw={600}>{item?.name}</Text>
+      <Text className="ds-bold">{item?.name}</Text>
       <Select
         label={t('stock.reasonLabel')}
         allowDeselect={false}

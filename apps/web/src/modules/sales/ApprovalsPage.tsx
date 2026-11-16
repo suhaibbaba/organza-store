@@ -28,6 +28,7 @@ import { EmptyState, ErrorState, FullScreenLoader } from '@web/shared/components
 import { useErrorMessage } from '@web/shared/hooks/use-error-message';
 import { formatDateTime } from '@web/shared/lib/format';
 import { useApprovalActions, useApprovals } from './api';
+import c from './pages.module.css';
 
 const STATUS_COLORS: Record<ApprovalStatus, string> = {
   PENDING: 'orange',
@@ -49,12 +50,12 @@ export function ApprovalsPage() {
   const pages = query.data ? Math.ceil(query.data.total / query.data.pageSize) : 1;
   return (
     <>
-      <PageHeader title={t('nav.approvals')} />
-      <Text size="sm" c="dimmed" mb="sm">
-        {can('approvals.decide') ? t('approvals.managerHint') : t('approvals.mineHint')}
-      </Text>
+      <PageHeader
+        title={t('nav.approvals')}
+        subtitle={can('approvals.decide') ? t('approvals.managerHint') : t('approvals.mineHint')}
+      />
       <SegmentedControl
-        mb="md"
+        className="ds-mb-md"
         value={status}
         onChange={(v) => {
           setStatus(v as typeof status);
@@ -68,15 +69,17 @@ export function ApprovalsPage() {
       {query.isPending && <FullScreenLoader />}
       {query.isError && <ErrorState error={query.error} onRetry={() => void query.refetch()} />}
       {query.data?.items.length === 0 && <EmptyState />}
-      <Stack gap="sm">
-        {query.data?.items.map((a) => (
-          <ApprovalCard key={a.id} approval={a} />
-        ))}
-      </Stack>
+      {query.data && query.data.items.length > 0 && (
+        <Stack gap="xs" className="o-list">
+          {query.data.items.map((a) => (
+            <ApprovalCard key={a.id} approval={a} />
+          ))}
+        </Stack>
+      )}
       {pages > 1 && (
-        <Group justify="center" mt="md">
+        <div className={c.pager}>
           <Pagination value={page} onChange={setPage} total={pages} />
-        </Group>
+        </div>
       )}
     </>
   );
@@ -101,22 +104,22 @@ function ApprovalCard({ approval: a }: { approval: ApprovalView }) {
   };
 
   return (
-    <Card withBorder>
+    <Card withBorder padding="sm">
       <Group justify="space-between" align="flex-start" wrap="nowrap">
-        <Stack gap={4} style={{ minWidth: 0 }}>
+        <Stack gap={4} className="ds-min-0">
           <Group gap="xs">
-            <Text fw={700}>{t(`approvals.kind.${a.kind}`)}</Text>
+            <Text className="ds-medium">{t(`approvals.kind.${a.kind}`)}</Text>
             <Badge color={STATUS_COLORS[a.status]} variant="light">
               {t(`approvals.status.${a.status}`)}
             </Badge>
           </Group>
           <Summary approval={a} />
           <Text size="sm">{a.reason}</Text>
-          <Text size="xs" c="dimmed">
+          <Text size="xs" className="ds-muted">
             {a.requestedBy.name} · {formatDateTime(a.requestedAt, i18n.language)}
           </Text>
           {a.decidedAt && (
-            <Text size="xs" c="dimmed">
+            <Text size="xs" className="ds-muted">
               {a.decidedBy?.name ?? a.requestedBy.name} ·{' '}
               {formatDateTime(a.decidedAt, i18n.language)}
               {a.decisionNote ? ` · ${a.decisionNote}` : ''}
@@ -124,9 +127,12 @@ function ApprovalCard({ approval: a }: { approval: ApprovalView }) {
           )}
         </Stack>
         {pending && (
-          <Stack gap={6}>
+          <Group gap={6} wrap="nowrap" className="ds-shrink-0">
             {can('approvals.decide') && !mine && (
               <>
+                <Button size="xs" variant="light" color="red" onClick={() => setRejecting(true)}>
+                  {t('approvals.reject')}
+                </Button>
                 <Button
                   size="xs"
                   color="green"
@@ -136,9 +142,6 @@ function ApprovalCard({ approval: a }: { approval: ApprovalView }) {
                   }
                 >
                   {t('approvals.approve')}
-                </Button>
-                <Button size="xs" variant="light" color="red" onClick={() => setRejecting(true)}>
-                  {t('approvals.reject')}
                 </Button>
               </>
             )}
@@ -152,7 +155,7 @@ function ApprovalCard({ approval: a }: { approval: ApprovalView }) {
                 {t('approvals.cancel')}
               </Button>
             )}
-          </Stack>
+          </Group>
         )}
       </Group>
       {rejecting && <RejectDialog id={a.id} onClose={() => setRejecting(false)} />}
@@ -169,7 +172,12 @@ function Summary({ approval: a }: { approval: ApprovalView }) {
   switch (a.kind) {
     case 'PRICE_CHANGE':
       return (
-        <Text size="sm" component={Link} to={`/products/${String(s['productId'])}`} c="brand.7">
+        <Text
+          size="sm"
+          component={Link}
+          to={`/products/${String(s['productId'])}`}
+          className={c.link}
+        >
           {name(s['name'])}
           {s['sku'] ? ` (${String(s['sku'])})` : ''}:{' '}
           {s['from'] ? money(String(s['from'])) : t('approvals.productPrice')} →{' '}
@@ -178,14 +186,19 @@ function Summary({ approval: a }: { approval: ApprovalView }) {
       );
     case 'PRODUCT_HIDE':
       return (
-        <Text size="sm" component={Link} to={`/products/${String(s['productId'])}`} c="brand.7">
+        <Text
+          size="sm"
+          component={Link}
+          to={`/products/${String(s['productId'])}`}
+          className={c.link}
+        >
           {name(s['name'])} → {t(`catalogue.status.${String(s['status'])}`)}
         </Text>
       );
     case 'IMAGE_DELETE':
       return (
         <Group gap="xs">
-          <Image src={String(s['imageUrl'])} w={56} h={56} radius="sm" alt="" />
+          <Image src={String(s['imageUrl'])} className={c.thumb} radius="sm" alt="" />
           <Text size="sm">{name(s['name'])}</Text>
         </Group>
       );
@@ -205,7 +218,7 @@ function Summary({ approval: a }: { approval: ApprovalView }) {
     case 'REFUND':
     case 'VOID':
       return (
-        <Text size="sm" component={Link} to={`/sales/${String(s['saleId'])}`} c="brand.7">
+        <Text size="sm" component={Link} to={`/sales/${String(s['saleId'])}`} className={c.link}>
           {String(s['saleNumber'])} · {money(String(s['total']))}
           {s['exchange'] ? ` · ${t('returns.kind.EXCHANGE')}` : ''}
         </Text>

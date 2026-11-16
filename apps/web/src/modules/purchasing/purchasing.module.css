@@ -1,0 +1,66 @@
+/* Purchasing and suppliers: detail headers, the main + side column layout, and the cost-line rows. */
+
+/* Detail-page title, as in the clinic: 22/30 medium in the title colour. */
+.title {
+  margin: 0;
+  font-size: 22px;
+  line-height: 30px;
+  font-weight: 500;
+  color: var(--o-title);
+}
+
+/* Header block of a detail page: title and actions, then content. */
+.head {
+  margin-bottom: 20px;
+}
+
+/* A main column and a 320px side column of cards on wide screens. */
+.grid {
+  display: grid;
+  align-items: start;
+  gap: 16px;
+}
+.main,
+.side {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+@media (min-width: 1100px) {
+  .grid {
+    grid-template-columns: minmax(0, 1fr) 320px;
+  }
+}
+
+/* Suppliers list: the search field takes the free space and wraps under 220px. */
+.search {
+  flex: 1 1 220px;
+}
+
+/* A cost line in the lines editor. */
+.lineName {
+  flex: 1 1 180px;
+  min-width: 0;
+}
+.qty {
+  width: 84px;
+}
+.qtyNarrow {
+  width: 80px;
+}
+.cost {
+  width: 100px;
+}
+.lineTotal {
+  width: 80px;
+  padding-bottom: 6px;
+}
+.remove {
+  margin-bottom: 4px;
+}
+
+/* The product browser drawer fills most of the screen height. */
+.browser {
+  height: 70vh;
+}

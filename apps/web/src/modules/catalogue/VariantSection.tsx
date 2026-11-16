@@ -109,7 +109,7 @@ export function VariantSection({
   return (
     <Stack gap="md">
       <Stack gap={4}>
-        <Text size="sm" fw={500}>
+        <Text size="sm" className="ds-medium">
           {t('catalogue.variants.options')}
         </Text>
         <Chip.Group multiple value={value.optionTypeIds} onChange={toggleType}>
@@ -127,7 +127,7 @@ export function VariantSection({
         if (!type) return null;
         return (
           <Stack key={typeId} gap={4}>
-            <Text size="sm" fw={500}>
+            <Text size="sm" className="ds-medium">
               {localized(type.name)}
             </Text>
             <Chip.Group
@@ -143,10 +143,10 @@ export function VariantSection({
                 ))}
               </Group>
             </Chip.Group>
-            <Group gap={4} maw={320}>
+            <Group gap={4} wrap="nowrap" className={classes.addValue}>
               <TextInput
                 size="xs"
-                style={{ flex: 1 }}
+                className="ds-grow"
                 placeholder={t('catalogue.variants.newValue')}
                 value={newValue[typeId] ?? ''}
                 onChange={(e) => {
@@ -174,19 +174,19 @@ export function VariantSection({
       })}
       {value.rows.length > 0 && (
         <div className={classes.comboGrid}>
-          <Table verticalSpacing={4} fz="sm" miw={560}>
+          <Table verticalSpacing={4} className={classes.comboTable}>
             <Table.Thead>
               <Table.Tr>
-                <Table.Th w={36} />
+                <Table.Th className={classes.colCheck} />
                 <Table.Th>{t('catalogue.variants.combination')}</Table.Th>
-                <Table.Th w={100}>{t('catalogue.stock')}</Table.Th>
-                <Table.Th w={120}>{t('catalogue.variants.ownPrice')}</Table.Th>
-                <Table.Th w={170}>{t('catalogue.barcode')}</Table.Th>
+                <Table.Th className={classes.colQty}>{t('catalogue.stock')}</Table.Th>
+                <Table.Th className="ds-col-sm">{t('catalogue.variants.ownPrice')}</Table.Th>
+                <Table.Th className={classes.colBarcode}>{t('catalogue.barcode')}</Table.Th>
               </Table.Tr>
             </Table.Thead>
             <Table.Tbody>
               {value.rows.map((r) => (
-                <Table.Tr key={r.key} style={{ opacity: r.selected ? 1 : 0.5 }}>
+                <Table.Tr key={r.key} className={r.selected ? undefined : 'ds-dimmed'}>
                   <Table.Td>
                     <Checkbox
                       checked={r.selected}
@@ -231,7 +231,7 @@ export function VariantSection({
         </div>
       )}
       {error && (
-        <Text size="sm" c="red">
+        <Text size="sm" className="ds-danger">
           {error}
         </Text>
       )}
@@ -239,7 +239,7 @@ export function VariantSection({
         label={t('catalogue.variants.sharedBarcode')}
         description={t('catalogue.variants.sharedBarcodeHint')}
         dir="ltr"
-        maw={320}
+        className={classes.field}
         value={value.sharedBarcode}
         onChange={(e) => onChange({ ...value, sharedBarcode: e.currentTarget.value })}
         onKeyDown={(e) => e.key === 'Enter' && e.preventDefault()}

@@ -50,7 +50,7 @@ export function ArchiveDialog({ product, onClose }: { product: ProductView } & C
             value={stock}
             onChange={(v) => setStock(v as typeof stock)}
           >
-            <Stack gap={6} mt={6}>
+            <Stack gap={6} className="ds-mt-xs">
               <Radio value="WRITE_OFF" label={t('catalogue.archive.writeOff')} />
               <Radio value="KEEP" label={t('catalogue.archive.keep')} />
             </Stack>
@@ -240,7 +240,7 @@ export function EditItemDialog({
           onChange={(e) => setLocation(e.currentTarget.value)}
         />
         <Radio.Group label={t('catalogue.sellable')} value={active} onChange={setActive}>
-          <Group mt={4}>
+          <Group className="ds-mt-xs">
             <Radio value="yes" label={t('common.yes')} />
             <Radio value="no" label={t('common.no')} />
           </Group>

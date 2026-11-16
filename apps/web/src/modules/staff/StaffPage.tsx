@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSession } from '@web/modules/auth/session';
 import { PageHeader } from '@web/shared/components/PageHeader';
+import { Initials } from '@web/shared/components/Widgets';
 import { EmptyState, ErrorState, FullScreenLoader } from '@web/shared/components/StatusScreens';
 import { type StaffMember, useStaff } from './api';
 import { StaffForm } from './StaffForm';
@@ -43,12 +44,15 @@ export function StaffPage() {
           {query.data.map((m) => (
             <Card key={m.id} withBorder onClick={() => manage && setEditing(m)}>
               <Group justify="space-between">
-                <div>
-                  <Text fw={600}>{m.name}</Text>
-                  <Text size="sm" c="dimmed" dir="ltr">
-                    {m.email}
-                  </Text>
-                </div>
+                <Group gap="sm" wrap="nowrap" className="ds-min-0">
+                  <Initials name={m.name} />
+                  <div className="ds-min-0">
+                    <Text className="ds-bold">{m.name}</Text>
+                    <Text size="sm" className="ds-muted ds-ltr">
+                      {m.email}
+                    </Text>
+                  </div>
+                </Group>
                 <Stack gap={4} align="flex-end">
                   <Text size="sm">{t(`roles.${m.role}`)}</Text>
                   {status(m)}
@@ -59,9 +63,9 @@ export function StaffPage() {
         </Stack>
       )}
       {query.data && query.data.length > 0 && !phone && (
-        <Card p={0}>
+        <Card padding={0}>
           <Table.ScrollContainer minWidth={560}>
-            <Table highlightOnHover verticalSpacing="sm" fz="sm">
+            <Table highlightOnHover>
               <Table.Thead>
                 <Table.Tr>
                   <Table.Th>{t('staff.name')}</Table.Th>
@@ -75,11 +79,16 @@ export function StaffPage() {
                   <Table.Tr
                     key={m.id}
                     onClick={() => manage && setEditing(m)}
-                    style={{ cursor: manage ? 'pointer' : undefined }}
+                    className={manage ? 'ds-clickable' : undefined}
                   >
-                    <Table.Td>{m.name}</Table.Td>
                     <Table.Td>
-                      <span dir="ltr">{m.email}</span>
+                      <Group gap="sm" wrap="nowrap">
+                        <Initials name={m.name} size="sm" />
+                        <span className="ds-medium">{m.name}</span>
+                      </Group>
+                    </Table.Td>
+                    <Table.Td>
+                      <span className="ds-ltr">{m.email}</span>
                     </Table.Td>
                     <Table.Td>{t(`roles.${m.role}`)}</Table.Td>
                     <Table.Td>{status(m)}</Table.Td>

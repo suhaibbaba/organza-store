@@ -1,6 +1,7 @@
 import { Badge, Image } from '@mantine/core';
 import { localize } from '@organza/shared';
 import { IconPhoto } from '@tabler/icons-react';
+import type { CSSProperties } from 'react';
 import { useTranslation } from 'react-i18next';
 import { formatMoney } from '@web/shared/lib/format';
 import { useDefaultCurrency } from '@web/modules/settings/api';
@@ -14,9 +15,20 @@ export function ProductThumb({
   size?: number;
 }) {
   return url ? (
-    <Image src={url} w={size} h={size * 1.5} radius="sm" fit="cover" alt="" loading="lazy" />
+    <Image
+      src={url}
+      className={classes.thumb}
+      style={{ '--thumb': `${size}px` } as CSSProperties}
+      radius="sm"
+      fit="cover"
+      alt=""
+      loading="lazy"
+    />
   ) : (
-    <div className={classes.thumbEmpty} style={{ width: size, height: size * 1.5 }}>
+    <div
+      className={`${classes.thumb} ${classes.thumbEmpty}`}
+      style={{ '--thumb': `${size}px` } as CSSProperties}
+    >
       <IconPhoto size={size / 2.5} />
     </div>
   );

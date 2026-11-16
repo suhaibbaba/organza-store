@@ -138,20 +138,13 @@ export function WidgetRow({
   );
 }
 
-const TINTS = [
-  ['#fce8e6', '#a03b31'],
-  ['#e1eef5', '#1b6f97'],
-  ['#ede8f8', '#5b3ea6'],
-  ['#fbf1da', '#8f6206'],
-  ['#dcf3ec', '#1e7a62'],
-  ['#f2e7ee', '#8c3a6b'],
-] as const;
+const TINT_COUNT = 6;
+const SIZE_CLASS = { sm: classes.initialsSm, md: classes.initialsMd, lg: classes.initialsLg };
 
 /** Initials on a tint chosen from the name, so a person keeps the same colour everywhere. */
-export function Initials({ name, size = 36 }: { name: string; size?: number }) {
+export function Initials({ name, size = 'md' }: { name: string; size?: 'sm' | 'md' | 'lg' }) {
   let hash = 0;
   for (const ch of name) hash = (hash * 31 + ch.codePointAt(0)!) % 1000003;
-  const [bg, ink] = TINTS[hash % TINTS.length]!;
   const letters = name
     .split(/\s+/)
     .filter(Boolean)
@@ -159,16 +152,7 @@ export function Initials({ name, size = 36 }: { name: string; size?: number }) {
     .map((w) => w[0])
     .join('');
   return (
-    <span
-      className={classes.initials}
-      style={{
-        width: size,
-        height: size,
-        background: bg,
-        color: ink,
-        fontSize: size > 36 ? 15 : 13,
-      }}
-    >
+    <span className={`${classes.initials} ${SIZE_CLASS[size]}`} data-tint={hash % TINT_COUNT}>
       {letters || '?'}
     </span>
   );

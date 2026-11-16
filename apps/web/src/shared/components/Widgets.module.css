@@ -1,7 +1,7 @@
 /* Stat cards */
 .statGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 16px;
 }
 .stat {
@@ -197,4 +197,43 @@
   font-weight: 500;
   line-height: 1;
   user-select: none;
+}
+.initialsSm {
+  width: 32px;
+  height: 32px;
+  font-size: 13px;
+}
+.initialsMd {
+  width: 36px;
+  height: 36px;
+  font-size: 13px;
+}
+.initialsLg {
+  width: 44px;
+  height: 44px;
+  font-size: 15px;
+}
+.initials[data-tint='0'] {
+  background: #fce8e6;
+  color: #a03b31;
+}
+.initials[data-tint='1'] {
+  background: #e1eef5;
+  color: #1b6f97;
+}
+.initials[data-tint='2'] {
+  background: #ede8f8;
+  color: #5b3ea6;
+}
+.initials[data-tint='3'] {
+  background: #fbf1da;
+  color: #8f6206;
+}
+.initials[data-tint='4'] {
+  background: #dcf3ec;
+  color: #1e7a62;
+}
+.initials[data-tint='5'] {
+  background: #f2e7ee;
+  color: #8c3a6b;
 }

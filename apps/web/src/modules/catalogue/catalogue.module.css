@@ -1,32 +1,88 @@
+/* ---------------------------------------------------------------- product thumbnails (2:3) */
+/* `--thumb` is the width in px, passed by ProductThumb. */
+.thumb {
+  width: var(--thumb);
+  height: calc(var(--thumb) * 1.5);
+  flex-shrink: 0;
+}
+
 .thumbEmpty {
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: var(--mantine-radius-sm);
-  background: var(--mantine-color-gray-1);
-  color: var(--mantine-color-gray-5);
-  flex-shrink: 0;
+  border-radius: 10px;
+  background: var(--o-inset);
+  color: var(--o-ink-faint);
 }
 
+/* ---------------------------------------------------------------- list page */
 .filters {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--mantine-spacing-xs);
+  gap: 10px;
   align-items: flex-end;
-  margin-bottom: var(--mantine-spacing-md);
+  margin-bottom: 16px;
 }
 
 .search {
   flex: 1 1 240px;
 }
 
+.filterMd {
+  width: 180px;
+}
+
+.filterSm {
+  width: 150px;
+}
+
 .row {
   cursor: pointer;
 }
 
+/* ---------------------------------------------------------------- product detail */
+.detailTitle {
+  margin: 0;
+  font-size: 22px;
+  line-height: 30px;
+  font-weight: 500;
+  color: var(--o-title);
+  overflow-wrap: anywhere;
+}
+
+.was {
+  margin-inline-start: 6px;
+}
+
+/* Main column and a 320px side column of cards, stacked on narrow screens. */
+.detail {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+@media (min-width: 62em) {
+  .detail {
+    grid-template-columns: minmax(0, 1fr) 320px;
+  }
+}
+
+/* The title row of a padding-less card that holds a table. */
+.cardHead {
+  padding: 14px 20px;
+}
+
+/* Item rows on phones, inside a padding-less card. */
+.rows > * {
+  padding: 12px 18px;
+  border-top: 1px solid var(--o-line);
+}
+
+/* ---------------------------------------------------------------- photos */
 .imageStrip {
   display: flex;
-  gap: var(--mantine-spacing-xs);
+  gap: 10px;
   overflow-x: auto;
   padding-bottom: 4px;
   -webkit-overflow-scrolling: touch;
@@ -45,6 +101,58 @@
   gap: 2px;
 }
 
+.tileSm {
+  width: 72px;
+  height: 108px;
+}
+
+.tileMd {
+  width: 96px;
+  height: 144px;
+}
+
+/* The add-photo button is a photo-sized tile, not a 36px control. */
+.addTile:global(.mantine-Button-root) {
+  padding: 0;
+  flex: 0 0 auto;
+}
+.addTile.tileSm {
+  height: 108px;
+}
+.addTile.tileMd {
+  height: 144px;
+}
+
+/* The framing editor; `--frame-w`/`--frame-h` come from PhotoEditor's constants. */
+.editorFrame {
+  position: relative;
+  width: var(--frame-w);
+  height: var(--frame-h);
+  overflow: hidden;
+  border-radius: 8px;
+  background: var(--o-ink);
+  touch-action: none;
+  cursor: grab;
+}
+
+.editorImage {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: var(--img-w);
+  height: var(--img-h);
+  max-width: none;
+  transform: var(--transform);
+  transform-origin: center;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.editorControls {
+  width: var(--frame-w);
+}
+
+/* ---------------------------------------------------------------- numbered (shawl) photo */
 .pointCanvas {
   position: relative;
   display: inline-block;
@@ -55,14 +163,21 @@
   touch-action: manipulation;
 }
 
+.pointCanvasStatic {
+  cursor: default;
+}
+
 .pointCanvas img {
   display: block;
   max-width: 100%;
   max-height: 60vh;
 }
 
+/* A number on the photo; position and colours come from the product (--x, --y, --fg, --bg). */
 .point {
   position: absolute;
+  left: var(--x);
+  top: var(--y);
   min-width: 26px;
   height: 26px;
   padding: 0 6px;
@@ -73,11 +188,63 @@
   justify-content: center;
   font-size: 13px;
   font-weight: 700;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+  color: var(--fg);
+  background: var(--bg);
+  box-shadow: var(--o-shadow-float);
   pointer-events: none;
+}
+
+.pointOut {
+  opacity: 0.4;
+}
+
+/* ---------------------------------------------------------------- form tables and fields */
+.pointsTable {
+  max-width: 520px;
 }
 
 .comboGrid {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+}
+
+.comboTable {
+  min-width: 560px;
+}
+
+.colCheck {
+  width: 36px;
+}
+
+.colIcon {
+  width: 40px;
+}
+
+.colNumber {
+  width: 90px;
+}
+
+.colQty {
+  width: 100px;
+}
+
+.colBarcode {
+  width: 170px;
+}
+
+/* A short field, and a value input with its add button. */
+.field,
+.addValue {
+  max-width: 320px;
+}
+
+/* ---------------------------------------------------------------- categories */
+.panelSm {
+  max-width: 640px;
+}
+
+/* A category row, indented by its depth in the tree (--depth). */
+.treeRow {
+  padding-block: 6px;
+  padding-inline-start: calc(var(--depth, 0) * 20px);
 }

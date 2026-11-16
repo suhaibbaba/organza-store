@@ -8,7 +8,6 @@ import {
   NumberInput,
   SegmentedControl,
   Select,
-  SimpleGrid,
   Stack,
   Text,
   Textarea,
@@ -41,6 +40,8 @@ import { useErrorMessage } from '@web/shared/hooks/use-error-message';
 import { ApiError } from '@web/shared/lib/api-client';
 import { formatDateTime, formatMoney } from '@web/shared/lib/format';
 import { type CountInput, useShiftMutations } from './api';
+import { StatCard, StatGrid } from '@web/shared/components/Widgets';
+import c from './pages.module.css';
 import classes from './sales.module.css';
 
 export const SHIFT_COLORS = {
@@ -73,43 +74,29 @@ export function ShiftPanel({ shift }: { shift: Shift }) {
   return (
     <Stack gap="md">
       <Card withBorder>
-        <Group justify="space-between" align="flex-start">
-          <Stack gap={4}>
-            <Group gap={6}>
-              <Text fw={700} dir="ltr">
-                {shift.number}
-              </Text>
-              <Badge color={SHIFT_COLORS[shift.status]} variant="light">
-                {t(`shifts.status.${shift.status}`)}
+        <div className={c.headTop}>
+          <div className={c.headTitle}>
+            <h2 className={`${c.title} o-num`}>{shift.number}</h2>
+            <Badge color={SHIFT_COLORS[shift.status]} variant="light">
+              {t(`shifts.status.${shift.status}`)}
+            </Badge>
+            {shift.hasDifference && (
+              <Badge color="red" variant="light">
+                {t('shifts.difference')}
               </Badge>
-              {shift.hasDifference && (
-                <Badge color="red" variant="light">
-                  {t('shifts.difference')}
-                </Badge>
-              )}
-              {shift.imported && (
-                <Badge color="gray" variant="outline">
-                  {t('sales.imported')}
-                </Badge>
-              )}
-              {shift.signedOffAt && (
-                <Badge color="teal" variant="light">
-                  {t('shifts.signedOff')}
-                </Badge>
-              )}
-            </Group>
-            <Text size="sm" c="dimmed">
-              {shift.register.name} · {shift.openedBy.name} · {formatDateTime(shift.openedAt, lang)}
-              {shift.closedAt ? ` → ${formatDateTime(shift.closedAt, lang)}` : ''}
-            </Text>
-            <Text size="sm">
-              {t('shifts.float')}:{' '}
-              {shift.float.length
-                ? shift.float.map((f) => formatMoney(f.amount, f.currency, lang)).join(' + ')
-                : money('0')}
-            </Text>
-          </Stack>
-          <Group gap="xs">
+            )}
+            {shift.imported && (
+              <Badge color="gray" variant="outline">
+                {t('sales.imported')}
+              </Badge>
+            )}
+            {shift.signedOffAt && (
+              <Badge color="teal" variant="light">
+                {t('shifts.signedOff')}
+              </Badge>
+            )}
+          </div>
+          <div className={c.actions}>
             {shift.status === 'OPEN' && (can('cash.paidInOut') || can('cash.expense')) && (
               <Button
                 variant="default"
@@ -146,13 +133,38 @@ export function ShiftPanel({ shift }: { shift: Shift }) {
                   {t('shifts.signOff')}
                 </Button>
               )}
-          </Group>
-        </Group>
+          </div>
+        </div>
+        <dl className={c.fields}>
+          <div className={c.field}>
+            <dt className={c.fieldLabel}>{t('pos.register')}</dt>
+            <dd className={c.fieldValue}>{shift.register.name}</dd>
+          </div>
+          <div className={c.field}>
+            <dt className={c.fieldLabel}>{t('nav.staff')}</dt>
+            <dd className={c.fieldValue}>{shift.openedBy.name}</dd>
+          </div>
+          <div className={c.field}>
+            <dt className={c.fieldLabel}>{t('common.date')}</dt>
+            <dd className={c.fieldValue}>
+              {formatDateTime(shift.openedAt, lang)}
+              {shift.closedAt ? ` → ${formatDateTime(shift.closedAt, lang)}` : ''}
+            </dd>
+          </div>
+          <div className={c.field}>
+            <dt className={c.fieldLabel}>{t('shifts.float')}</dt>
+            <dd className={c.fieldValue}>
+              {shift.float.length
+                ? shift.float.map((f) => formatMoney(f.amount, f.currency, lang)).join(' + ')
+                : money('0')}
+            </dd>
+          </div>
+        </dl>
       </Card>
 
-      <SimpleGrid cols={{ base: 2, sm: 4 }}>
-        <Stat label={t('shifts.salesCount')} value={String(shift.totals.sales)} />
-        <Stat
+      <StatGrid>
+        <StatCard label={t('shifts.salesCount')} value={String(shift.totals.sales)} />
+        <StatCard
           label={t('shifts.salesTotal')}
           value={
             shift.totals.salesTotal === null
@@ -161,107 +173,110 @@ export function ShiftPanel({ shift }: { shift: Shift }) {
           }
         />
         {shift.totals.byMethod.map((m) => (
-          <Stat key={m.method} label={t(`sales.method.${m.method}`)} value={money(m.amount)} />
+          <StatCard key={m.method} label={t(`sales.method.${m.method}`)} value={money(m.amount)} />
         ))}
-      </SimpleGrid>
+      </StatGrid>
 
-      {shift.reconciliation ? (
-        <Card withBorder>
-          <Text fw={600} mb="xs">
-            {t('shifts.reconciliation')}
-          </Text>
-          <SimpleGrid cols={{ base: 1, sm: shift.reconciliation.length > 1 ? 2 : 1 }}>
-            {shift.reconciliation.map((r) => {
-              const diff = r.difference === null ? null : Number(r.difference);
-              return (
-                <Stack key={r.currency} gap={2}>
-                  <Text fw={600}>{r.currency}</Text>
-                  {r.lines.map((l) => (
-                    <div key={l.kind} className={classes.reconLine}>
-                      <Text size="sm">
-                        {t(`shifts.line.${l.kind}`)} {l.count > 1 ? `(${l.count})` : ''}
-                      </Text>
-                      <Text size="sm">{formatMoney(l.amount, r.currency, lang)}</Text>
-                    </div>
-                  ))}
-                  <div className={classes.reconLine}>
-                    <Text fw={600}>{t('shifts.expected')}</Text>
-                    <Text fw={600}>{formatMoney(r.expected, r.currency, lang)}</Text>
-                  </div>
-                  <div className={classes.reconLine}>
-                    <Text fw={600}>{t('shifts.counted')}</Text>
-                    <Text fw={600}>
-                      {r.counted === null ? '—' : formatMoney(r.counted, r.currency, lang)}
-                    </Text>
-                  </div>
-                  {diff !== null && (
-                    <div className={classes.reconLine}>
-                      <Text fw={700} c={diff === 0 ? 'green.8' : 'red.7'}>
-                        {diff === 0
-                          ? t('shifts.balanced')
-                          : diff > 0
-                            ? t('shifts.over')
-                            : t('shifts.short')}
-                      </Text>
-                      <Text fw={700} c={diff === 0 ? 'green.8' : 'red.7'}>
-                        {formatMoney(String(Math.abs(diff)), r.currency, lang)}
-                      </Text>
-                    </div>
-                  )}
-                </Stack>
-              );
-            })}
-          </SimpleGrid>
-          {shift.closeNote && (
-            <Text size="sm" mt="sm">
-              {t('shifts.closeNote')}: {shift.closeNote}
-            </Text>
-          )}
-          {shift.signOffNote && (
-            <Text size="sm">
-              {t('shifts.signOffNote')}: {shift.signOffNote}
-            </Text>
-          )}
-        </Card>
-      ) : (
-        <Alert variant="light" color="blue">
-          {t('shifts.blindHint')}
-        </Alert>
-      )}
-
-      <Card withBorder>
-        <Text fw={600} mb="xs">
-          {t('shifts.movements')}
-        </Text>
-        {shift.movements.length === 0 && (
-          <Text size="sm" c="dimmed">
-            {t('shifts.noMovements')}
-          </Text>
-        )}
-        <Stack gap={4}>
-          {shift.movements.map((m) => (
-            <Group key={m.id} justify="space-between" wrap="nowrap">
-              <Group gap={6} wrap="nowrap" style={{ minWidth: 0 }}>
-                {m.type === 'PAID_IN' ? (
-                  <IconArrowDown size={16} color="green" />
-                ) : (
-                  <IconArrowUp size={16} color="red" />
-                )}
-                <Text size="sm" truncate td={m.reversed ? 'line-through' : undefined}>
-                  {t(`shifts.movement.${m.type}`)} ·{' '}
-                  {m.type === 'EXPENSE'
-                    ? t(`shifts.expense.${m.counterpart}`)
-                    : t(`shifts.place.${m.counterpart}`)}
-                  {m.note ? ` · ${m.note}` : ''} · {m.createdBy}
-                </Text>
-              </Group>
-              <Text size="sm" fw={600}>
-                {formatMoney(m.amount, m.currency, lang)}
+      <div className={c.detail}>
+        <div className={c.main}>
+          <Card withBorder>
+            <h3 className="ds-heading ds-mb-sm">{t('shifts.movements')}</h3>
+            {shift.movements.length === 0 && (
+              <Text size="sm" className="ds-muted">
+                {t('shifts.noMovements')}
               </Text>
-            </Group>
-          ))}
-        </Stack>
-      </Card>
+            )}
+            <div>
+              {shift.movements.map((m) => (
+                <div key={m.id} className={c.entry}>
+                  <Group gap={6} wrap="nowrap" className="ds-min-0">
+                    {m.type === 'PAID_IN' ? (
+                      <IconArrowDown size={16} className="ds-success ds-shrink-0" />
+                    ) : (
+                      <IconArrowUp size={16} className="ds-danger ds-shrink-0" />
+                    )}
+                    <Text size="sm" truncate className={m.reversed ? 'ds-strike' : undefined}>
+                      {t(`shifts.movement.${m.type}`)} ·{' '}
+                      {m.type === 'EXPENSE'
+                        ? t(`shifts.expense.${m.counterpart}`)
+                        : t(`shifts.place.${m.counterpart}`)}
+                      {m.note ? ` · ${m.note}` : ''} · {m.createdBy}
+                    </Text>
+                  </Group>
+                  <Text size="sm" className="ds-bold ds-nowrap">
+                    {formatMoney(m.amount, m.currency, lang)}
+                  </Text>
+                </div>
+              ))}
+            </div>
+          </Card>
+        </div>
+
+        <div className={c.side}>
+          {shift.reconciliation ? (
+            <Card withBorder>
+              <h3 className="ds-heading ds-mb-sm">{t('shifts.reconciliation')}</h3>
+              <Stack gap="md">
+                {shift.reconciliation.map((r, _, all) => {
+                  const diff = r.difference === null ? null : Number(r.difference);
+                  const tone = diff === 0 ? 'ds-success' : 'ds-danger';
+                  return (
+                    <div key={r.currency} className={c.sum}>
+                      {all.length > 1 && <span className="ds-eyebrow">{r.currency}</span>}
+                      {r.lines.map((l) => (
+                        <div key={l.kind} className={c.sumRow}>
+                          <span>
+                            {t(`shifts.line.${l.kind}`)} {l.count > 1 ? `(${l.count})` : ''}
+                          </span>
+                          <span>{formatMoney(l.amount, r.currency, lang)}</span>
+                        </div>
+                      ))}
+                      <div className={`${c.sumRow} ${c.sumTotal}`}>
+                        <span>{t('shifts.expected')}</span>
+                        <span>{formatMoney(r.expected, r.currency, lang)}</span>
+                      </div>
+                      <div className={`${c.sumRow} ${c.sumStrong}`}>
+                        <span>{t('shifts.counted')}</span>
+                        <span>
+                          {r.counted === null ? '—' : formatMoney(r.counted, r.currency, lang)}
+                        </span>
+                      </div>
+                      {diff !== null && (
+                        <div className={`${c.sumRow} ${c.sumStrong}`}>
+                          <span className={tone}>
+                            {diff === 0
+                              ? t('shifts.balanced')
+                              : diff > 0
+                                ? t('shifts.over')
+                                : t('shifts.short')}
+                          </span>
+                          <span className={tone}>
+                            {formatMoney(String(Math.abs(diff)), r.currency, lang)}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </Stack>
+              {shift.closeNote && (
+                <Text size="sm" className="ds-mt-sm">
+                  {t('shifts.closeNote')}: {shift.closeNote}
+                </Text>
+              )}
+              {shift.signOffNote && (
+                <Text size="sm">
+                  {t('shifts.signOffNote')}: {shift.signOffNote}
+                </Text>
+              )}
+            </Card>
+          ) : (
+            <Alert variant="light" color="blue">
+              {t('shifts.blindHint')}
+            </Alert>
+          )}
+        </div>
+      </div>
 
       {dialog === 'movement' && <MovementDialog shift={shift} onClose={() => setDialog(null)} />}
       {(dialog === 'count' || dialog === 'recount') && (
@@ -270,17 +285,6 @@ export function ShiftPanel({ shift }: { shift: Shift }) {
       {dialog === 'close' && <CloseDialog shift={shift} onClose={() => setDialog(null)} />}
       {dialog === 'signOff' && <SignOffDialog shift={shift} onClose={() => setDialog(null)} />}
     </Stack>
-  );
-}
-
-function Stat({ label, value }: { label: string; value: string }) {
-  return (
-    <Card withBorder padding="sm">
-      <Text size="xs" c="dimmed">
-        {label}
-      </Text>
-      <Text fw={700}>{value}</Text>
-    </Card>
   );
 }
 
@@ -353,11 +357,11 @@ function MovementDialog({ shift, onClose }: { shift: Shift; onClose: () => void 
             label={t('pos.amount')}
             value={amount}
             onChange={setAmount}
-            style={{ flex: 1 }}
+            className="ds-grow"
           />
           {codes.length > 1 && (
             <Select
-              w={100}
+              className={c.currency}
               value={currency}
               onChange={(v) => v && setCurrency(v)}
               data={codes}
@@ -466,16 +470,16 @@ function CountDialog({
       size="lg"
     >
       <Stack>
-        <Text size="sm" c="dimmed">
+        <Text size="sm" className="ds-muted">
           {t('shifts.countHint')}
         </Text>
         {codes.map((code) => {
           const denoms = DENOMINATIONS[code];
           return (
             <Card key={code} withBorder padding="sm">
-              <Group justify="space-between" mb="xs">
-                <Text fw={700}>{code}</Text>
-                <Text fw={700}>{formatMoney(totalOf(code), code, i18n.language)}</Text>
+              <Group justify="space-between" className="ds-mb-xs">
+                <Text className="ds-bold">{code}</Text>
+                <Text className="ds-bold">{formatMoney(totalOf(code), code, i18n.language)}</Text>
               </Group>
               {denoms ? (
                 <div className={classes.denominations}>
@@ -501,7 +505,7 @@ function CountDialog({
               )}
               {denoms && (
                 <MoneyInput
-                  mt="xs"
+                  className="ds-mt-xs"
                   size="xs"
                   label={t('shifts.orTotal')}
                   value={amounts[code] ?? ''}
@@ -570,7 +574,7 @@ function CloseDialog({ shift, onClose }: { shift: Shift; onClose: () => void }) 
   return (
     <Modal opened onClose={onClose} title={t('shifts.close')} centered>
       <Stack>
-        <Text size="sm" c="dimmed">
+        <Text size="sm" className="ds-muted">
           {t('shifts.closeHint')}
         </Text>
         <SegmentedControl
@@ -589,7 +593,7 @@ function CloseDialog({ shift, onClose }: { shift: Shift; onClose: () => void }) 
                   label={t('shifts.takeOut', { code: r.currency })}
                   value={drops[r.currency] ?? ''}
                   onChange={(v) => setDrops((d) => ({ ...d, [r.currency]: v }))}
-                  style={{ flex: 1 }}
+                  className="ds-grow"
                 />
                 <Button
                   variant="default"
@@ -598,7 +602,7 @@ function CloseDialog({ shift, onClose }: { shift: Shift; onClose: () => void }) 
                   {t('shifts.all')}
                 </Button>
               </Group>
-              <Text size="xs" c={Number(stays) < 0 ? 'red' : 'dimmed'}>
+              <Text size="xs" className={Number(stays) < 0 ? 'ds-danger' : 'ds-muted'}>
                 {t('shifts.staysInDrawer', {
                   amount: formatMoney(stays, r.currency, i18n.language),
                 })}

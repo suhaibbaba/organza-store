@@ -14,7 +14,7 @@ import {
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { IconArchive, IconEdit, IconPlus, IconStarFilled } from '@tabler/icons-react';
-import { useState } from 'react';
+import { type CSSProperties, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { PageHeader } from '@web/shared/components/PageHeader';
 import { ErrorState, FullScreenLoader } from '@web/shared/components/StatusScreens';
@@ -22,6 +22,7 @@ import { TranslatableInput, type Translations } from '@web/shared/components/Tra
 import { useErrorMessage } from '@web/shared/hooks/use-error-message';
 import { type Category, useCatalogueAdmin, useCategories, useOptionTypes } from './api';
 import { useLocalized } from './components';
+import classes from './catalogue.module.css';
 
 /** Categories (a tree, with POS favourites) and the global options with their values. */
 export function CategoriesPage() {
@@ -29,8 +30,8 @@ export function CategoriesPage() {
   return (
     <>
       <PageHeader title={t('catalogue.setup')} />
-      <Tabs defaultValue="categories" keepMounted={false}>
-        <Tabs.List mb="md">
+      <Tabs defaultValue="categories" variant="pills" keepMounted={false}>
+        <Tabs.List className="ds-mb-md">
           <Tabs.Tab value="categories">{t('catalogue.categories')}</Tabs.Tab>
           <Tabs.Tab value="options">{t('catalogue.optionTypes')}</Tabs.Tab>
         </Tabs.List>
@@ -60,10 +61,15 @@ function CategoriesTab() {
 
   const row = (c: Category, depth: number): React.ReactNode => (
     <div key={c.id}>
-      <Group justify="space-between" py={6} ps={depth * 20} wrap="nowrap">
+      <Group
+        justify="space-between"
+        wrap="nowrap"
+        className={classes.treeRow}
+        style={{ '--depth': depth } as CSSProperties}
+      >
         <Group gap={6}>
           <Text size="sm">{localized(c.name)}</Text>
-          {c.isFavorite && <IconStarFilled size={12} color="var(--mantine-color-yellow-6)" />}
+          {c.isFavorite && <IconStarFilled size={12} className="ds-warning" />}
         </Group>
         <Group gap={4}>
           <ActionIcon variant="subtle" aria-label={t('common.edit')} onClick={() => setEditing(c)}>
@@ -86,14 +92,15 @@ function CategoriesTab() {
   );
 
   return (
-    <Card withBorder maw={640}>
-      <Group justify="flex-end" mb="xs">
+    <Card withBorder className={classes.panelSm}>
+      <Group justify="space-between" className="ds-mb-sm">
+        <h2 className="ds-heading">{t('catalogue.categories')}</h2>
         <Button size="xs" leftSection={<IconPlus size={14} />} onClick={() => setEditing('new')}>
           {t('catalogue.newCategory')}
         </Button>
       </Group>
       {all.length === 0 ? (
-        <Text c="dimmed">{t('common.empty')}</Text>
+        <Text className="ds-muted">{t('common.empty')}</Text>
       ) : (
         children(null).map((c) => row(c, 0))
       )}
@@ -185,22 +192,22 @@ function OptionsTab() {
   if (query.isError) return <ErrorState error={query.error} onRetry={() => void query.refetch()} />;
 
   return (
-    <Stack maw={720}>
+    <Stack className="ds-w-lg">
       {query.data.map((type) => (
         <Card key={type.id} withBorder>
-          <Group justify="space-between" mb="xs">
-            <Text fw={600}>{localized(type.name)}</Text>
-            <Badge variant="light" style={{ direction: 'ltr' }}>
+          <Group justify="space-between" className="ds-mb-sm">
+            <h2 className="ds-heading">{localized(type.name)}</h2>
+            <Badge variant="light" className="ds-ltr">
               {type.key}
             </Badge>
           </Group>
           {type.key === 'number' ? (
-            <Text size="sm" c="dimmed">
+            <Text size="sm" className="ds-muted">
               {t('catalogue.numberTypeHint')}
             </Text>
           ) : (
             <>
-              <Group gap={6} mb="xs">
+              <Group gap={6} className="ds-mb-sm">
                 {type.values.map((v) => (
                   <Badge
                     key={v.id}
@@ -225,10 +232,10 @@ function OptionsTab() {
                   </Badge>
                 ))}
               </Group>
-              <Group gap={4} maw={320}>
+              <Group gap={4} wrap="nowrap" className={classes.addValue}>
                 <TextInput
                   size="xs"
-                  style={{ flex: 1 }}
+                  className="ds-grow"
                   placeholder={t('catalogue.variants.newValue')}
                   value={draft[type.id] ?? ''}
                   onChange={(e) => {
@@ -259,39 +266,39 @@ function OptionsTab() {
         </Card>
       ))}
       <Card withBorder>
-        <Text fw={600} mb="xs">
-          {t('catalogue.newOptionType')}
-        </Text>
-        <Group align="flex-end">
-          <TextInput
-            label={t('catalogue.name')}
-            value={newType.name}
-            onChange={(e) => {
-              const text = e.currentTarget.value;
-              setNewType((s) => ({ ...s, name: text }));
-            }}
-          />
-          <TextInput
-            label={t('catalogue.optionKey')}
-            dir="ltr"
-            value={newType.key}
-            onChange={(e) => {
-              const text = e.currentTarget.value;
-              setNewType((s) => ({ ...s, key: text }));
-            }}
-          />
-          <Button
-            onClick={() =>
-              admin.createOptionType.mutate(
-                { key: newType.key, name: { ar: newType.name } },
-                { onSuccess: () => setNewType({ key: '', name: '' }), onError: fail },
-              )
-            }
-            disabled={!newType.key || !newType.name}
-          >
-            {t('common.add')}
-          </Button>
-        </Group>
+        <Stack gap="sm">
+          <h2 className="ds-heading">{t('catalogue.newOptionType')}</h2>
+          <Group align="flex-end">
+            <TextInput
+              label={t('catalogue.name')}
+              value={newType.name}
+              onChange={(e) => {
+                const text = e.currentTarget.value;
+                setNewType((s) => ({ ...s, name: text }));
+              }}
+            />
+            <TextInput
+              label={t('catalogue.optionKey')}
+              dir="ltr"
+              value={newType.key}
+              onChange={(e) => {
+                const text = e.currentTarget.value;
+                setNewType((s) => ({ ...s, key: text }));
+              }}
+            />
+            <Button
+              onClick={() =>
+                admin.createOptionType.mutate(
+                  { key: newType.key, name: { ar: newType.name } },
+                  { onSuccess: () => setNewType({ key: '', name: '' }), onError: fail },
+                )
+              }
+              disabled={!newType.key || !newType.name}
+            >
+              {t('common.add')}
+            </Button>
+          </Group>
+        </Stack>
       </Card>
     </Stack>
   );

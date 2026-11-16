@@ -8,7 +8,6 @@ import {
   Stack,
   Switch,
   TextInput,
-  Title,
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import type { ShopSettings } from '@organza/shared';
@@ -21,6 +20,7 @@ import { ErrorState, FullScreenLoader } from '@web/shared/components/StatusScree
 import { TranslatableInput } from '@web/shared/components/TranslatableInput';
 import { useErrorMessage } from '@web/shared/hooks/use-error-message';
 import { useSaveSettings, useSettings } from './api';
+import classes from './settings.module.css';
 
 /** One document with defaults; only an Admin can change it. */
 export function SettingsPage() {
@@ -43,10 +43,10 @@ export function SettingsPage() {
   const num = (v: number | string) => (typeof v === 'number' ? v : Number(v) || 0);
 
   return (
-    <fieldset disabled={readOnly} style={{ border: 0, padding: 0, margin: 0 }}>
+    <fieldset disabled={readOnly} className={classes.fieldset}>
       <PageHeader
         title={t('settings.title')}
-        actions={
+        primary={
           !readOnly && (
             <Button
               loading={save.isPending}
@@ -63,11 +63,9 @@ export function SettingsPage() {
           )
         }
       />
-      <Stack gap="md" maw={860}>
-        <Card withBorder>
-          <Title order={4} size="h5" mb="sm">
-            {t('settings.shop')}
-          </Title>
+      <div className={classes.cards}>
+        <Card>
+          <h2 className="ds-heading ds-mb-sm">{t('settings.shop')}</h2>
           <Stack gap="sm">
             <TranslatableInput
               label={t('settings.storeName')}
@@ -101,10 +99,8 @@ export function SettingsPage() {
             />
           </Stack>
         </Card>
-        <Card withBorder>
-          <Title order={4} size="h5" mb="sm">
-            {t('settings.rules')}
-          </Title>
+        <Card>
+          <h2 className="ds-heading ds-mb-sm">{t('settings.rules')}</h2>
           <SimpleGrid cols={{ base: 1, xs: 2 }}>
             <NumberInput
               label={t('settings.lowStock')}
@@ -149,10 +145,8 @@ export function SettingsPage() {
             />
           </SimpleGrid>
         </Card>
-        <Card withBorder>
-          <Title order={4} size="h5" mb="sm">
-            {t('settings.labels')}
-          </Title>
+        <Card>
+          <h2 className="ds-heading ds-mb-sm">{t('settings.labels')}</h2>
           <Stack gap="sm">
             <SegmentedControl
               value={s.label.mode}
@@ -229,10 +223,8 @@ export function SettingsPage() {
             </SimpleGrid>
           </Stack>
         </Card>
-        <Card withBorder>
-          <Title order={4} size="h5" mb="sm">
-            {t('settings.saleNotifications')}
-          </Title>
+        <Card>
+          <h2 className="ds-heading ds-mb-sm">{t('settings.saleNotifications')}</h2>
           <Group align="flex-end">
             <Switch
               label={t('settings.notifyEnabled')}
@@ -260,14 +252,14 @@ export function SettingsPage() {
             />
             {s.saleNotifications.mode === 'ABOVE_AMOUNT' && (
               <MoneyInput
-                w={140}
+                className={classes.amount}
                 value={s.saleNotifications.minAmount}
                 onChange={(v) => set('saleNotifications', { ...s.saleNotifications, minAmount: v })}
               />
             )}
           </Group>
         </Card>
-      </Stack>
+      </div>
     </fieldset>
   );
 }

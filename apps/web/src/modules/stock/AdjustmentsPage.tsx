@@ -31,6 +31,7 @@ import {
   useReverseAdjustment,
 } from './api';
 import { ItemPicker } from './ItemPicker';
+import classes from './stock.module.css';
 
 export function AdjustmentsPage() {
   const { t, i18n } = useTranslation();
@@ -50,37 +51,47 @@ export function AdjustmentsPage() {
       {query.isPending && <FullScreenLoader />}
       {query.isError && <ErrorState error={query.error} onRetry={() => void query.refetch()} />}
       {query.data?.length === 0 && <EmptyState />}
-      <Stack gap="xs" className="o-list">
-        {query.data?.map((a) => (
-          <Card
-            key={a.id}
-            withBorder
-            padding="sm"
-            onClick={() => setViewing(a.id)}
-            style={{ cursor: 'pointer' }}
-          >
-            <Group justify="space-between">
-              <Stack gap={0}>
-                <Text fw={600} dir="ltr" ta="start">
-                  {a.number}
-                </Text>
-                <Text size="xs" c="dimmed">
-                  {formatDateTime(a.createdAt, i18n.language)}
-                  {a.note && ` · ${a.note}`}
-                </Text>
-              </Stack>
-              <Group gap="xs">
-                <Badge variant="light">{t(`stock.adjustReason.${a.reason}`)}</Badge>
-                {a.reversed && (
-                  <Badge color="gray" variant="outline">
-                    {t('stock.reversed')}
-                  </Badge>
-                )}
-              </Group>
-            </Group>
-          </Card>
-        ))}
-      </Stack>
+      {query.data && query.data.length > 0 && (
+        <Card padding={0}>
+          <Table.ScrollContainer minWidth={560}>
+            <Table highlightOnHover verticalSpacing={6}>
+              <Table.Thead>
+                <Table.Tr>
+                  <Table.Th className="ds-col-sm">{t('catalogue.number')}</Table.Th>
+                  <Table.Th className="ds-col-md">{t('common.date')}</Table.Th>
+                  <Table.Th>{t('stock.reasonLabel')}</Table.Th>
+                  <Table.Th>{t('common.note')}</Table.Th>
+                </Table.Tr>
+              </Table.Thead>
+              <Table.Tbody>
+                {query.data.map((a) => (
+                  <Table.Tr
+                    key={a.id}
+                    onClick={() => setViewing(a.id)}
+                    className={a.reversed ? 'ds-clickable ds-dimmed' : 'ds-clickable'}
+                  >
+                    <Table.Td className="ds-ltr ds-medium">{a.number}</Table.Td>
+                    <Table.Td className="ds-nowrap">
+                      {formatDateTime(a.createdAt, i18n.language)}
+                    </Table.Td>
+                    <Table.Td>
+                      <Group gap="xs">
+                        <Badge variant="light">{t(`stock.adjustReason.${a.reason}`)}</Badge>
+                        {a.reversed && (
+                          <Badge color="gray" variant="outline">
+                            {t('stock.reversed')}
+                          </Badge>
+                        )}
+                      </Group>
+                    </Table.Td>
+                    <Table.Td className="ds-muted">{a.note}</Table.Td>
+                  </Table.Tr>
+                ))}
+              </Table.Tbody>
+            </Table>
+          </Table.ScrollContainer>
+        </Card>
+      )}
       {creating && <NewAdjustment onClose={() => setCreating(false)} />}
       <AdjustmentDetail id={viewing} onClose={() => setViewing(null)} />
     </>
@@ -162,21 +173,21 @@ function NewAdjustment({ onClose }: { onClose: () => void }) {
         )}
         <ItemPicker onPick={add} />
         {lines.length > 0 && (
-          <Table verticalSpacing={4} fz="sm">
+          <Table verticalSpacing={4}>
             <Table.Thead>
               <Table.Tr>
                 <Table.Th>{t('catalogue.name')}</Table.Th>
-                <Table.Th w={80}>
+                <Table.Th className="ds-col-xs">
                   {reason === 'WRITE_OFF_DAMAGED' ? t('stock.damaged') : t('stock.onHand')}
                 </Table.Th>
-                <Table.Th w={110}>
+                <Table.Th className={classes.colQty}>
                   {counted
                     ? t('stock.counted')
                     : isCorrection
                       ? t('stock.difference')
                       : t('stock.quantity')}
                 </Table.Th>
-                <Table.Th w={36} />
+                <Table.Th className="ds-col-actions" />
               </Table.Tr>
             </Table.Thead>
             <Table.Tbody>
@@ -249,14 +260,12 @@ function AdjustmentDetail({ id, onClose }: { id: string | null; onClose: () => v
             {t(`stock.adjustReason.${doc.reason}`)} · {formatDateTime(doc.createdAt, i18n.language)}
             {doc.note && ` · ${doc.note}`}
           </Text>
-          <Table verticalSpacing={4} fz="sm">
+          <Table verticalSpacing={4}>
             <Table.Tbody>
               {doc.lines.map((l) => (
                 <Table.Tr key={l.itemId}>
                   <Table.Td>{localize(l.name, i18n.language)}</Table.Td>
-                  <Table.Td dir="ltr" style={{ textAlign: 'start' }}>
-                    {l.sku}
-                  </Table.Td>
+                  <Table.Td className="ds-ltr">{l.sku}</Table.Td>
                   <Table.Td dir="ltr">
                     {l.previousQuantity} → {l.previousQuantity + l.delta}
                   </Table.Td>
@@ -272,7 +281,7 @@ function AdjustmentDetail({ id, onClose }: { id: string | null; onClose: () => v
                 label={t('stock.reverseReason')}
                 value={reason}
                 onChange={(e) => setReason(e.currentTarget.value)}
-                style={{ flex: 1 }}
+                className="ds-grow"
               />
               <Button
                 color="red"

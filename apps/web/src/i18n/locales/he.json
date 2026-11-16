@@ -340,7 +340,8 @@
     "numberTypeHint": "המספרים נקבעים במוצרים ממוספרים.",
     "quickSoldHint": "נמכר בקופה במכירה מהירה. הוסיפו קטגוריה (ועלות ותמונה אם יש) וסמנו כהושלם, או השאירו כפריט חד-פעמי.",
     "markCompleted": "סימון כהושלם",
-    "markOneOff": "פריט חד-פעמי"
+    "markOneOff": "פריט חד-פעמי",
+    "basics": "פרטים בסיסיים"
   },
   "labels": {
     "title": "מדבקות",
@@ -605,7 +606,8 @@
     "giftPurchase": "קניית מתנה",
     "appliedHere": "{{amount}} על מכירה זו",
     "amount": "סכום",
-    "reference": "אסמכתא"
+    "reference": "אסמכתא",
+    "summary": "סיכום"
   },
   "customers": {
     "address": "כתובת",

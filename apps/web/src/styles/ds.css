@@ -1,0 +1,293 @@
+/*
+ * Design-system utilities (docs/design-system.md). Screens style themselves only with these
+ * classes, the shared components in shared/ui, Mantine's own props (size, color, variant, gap)
+ * and their own CSS module. Inline styles and Mantine style props (c, fw, ta, mb, w, …) are
+ * rejected by scripts/check-styles.mjs. Every value here comes from the clinic tokens in
+ * clinic.css; add a class here before reaching for a one-off value.
+ */
+
+/* ---------------------------------------------------------------- text size */
+.ds-text-xs {
+  font-size: 12px;
+  line-height: 16px;
+}
+.ds-text-sm {
+  font-size: 13px;
+  line-height: 20px;
+}
+.ds-text-md {
+  font-size: 14px;
+  line-height: 20px;
+}
+.ds-text-lg {
+  font-size: 15px;
+  line-height: 24px;
+}
+.ds-text-xl {
+  font-size: 18px;
+  line-height: 26px;
+}
+.ds-text-2xl {
+  font-size: 22px;
+  line-height: 30px;
+}
+.ds-text-3xl {
+  font-size: 28px;
+  line-height: 36px;
+}
+
+/* ---------------------------------------------------------------- text weight */
+.ds-regular {
+  font-weight: 400;
+}
+.ds-medium {
+  font-weight: 500;
+}
+.ds-bold {
+  font-weight: 700;
+}
+
+/* ---------------------------------------------------------------- text colour */
+.ds-ink {
+  color: var(--o-ink);
+}
+.ds-title {
+  color: var(--o-title);
+}
+.ds-muted {
+  color: var(--o-ink-muted);
+}
+.ds-subtle {
+  color: var(--o-ink-subtle);
+}
+.ds-faint {
+  color: var(--o-ink-faint);
+}
+.ds-primary {
+  color: var(--o-primary-600);
+}
+.ds-success {
+  color: var(--o-success-900);
+}
+.ds-warning {
+  color: var(--o-warning-700);
+}
+.ds-danger {
+  color: var(--o-danger-600);
+}
+.ds-on-dark {
+  color: #ffffff;
+}
+
+/* ---------------------------------------------------------------- text alignment and flow */
+.ds-start {
+  text-align: start;
+}
+.ds-center {
+  text-align: center;
+}
+.ds-end {
+  text-align: end;
+}
+.ds-nowrap {
+  white-space: nowrap;
+}
+.ds-truncate {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ds-break {
+  overflow-wrap: anywhere;
+}
+.ds-pre-line {
+  white-space: pre-line;
+}
+.ds-strike {
+  text-decoration: line-through;
+}
+.ds-upper {
+  text-transform: uppercase;
+}
+/* Numbers, codes and phone numbers: tabular figures, always left-to-right, aligned to start. */
+.ds-num {
+  font-variant-numeric: tabular-nums;
+}
+.ds-ltr {
+  direction: ltr;
+  unicode-bidi: isolate;
+  text-align: start;
+}
+[dir='rtl'] .ds-ltr {
+  text-align: end;
+}
+
+/* ---------------------------------------------------------------- spacing (token steps) */
+.ds-mt-xs {
+  margin-top: 6px;
+}
+.ds-mt-sm {
+  margin-top: 10px;
+}
+.ds-mt-md {
+  margin-top: 16px;
+}
+.ds-mt-lg {
+  margin-top: 20px;
+}
+.ds-mb-xs {
+  margin-bottom: 6px;
+}
+.ds-mb-sm {
+  margin-bottom: 10px;
+}
+.ds-mb-md {
+  margin-bottom: 16px;
+}
+.ds-mb-lg {
+  margin-bottom: 20px;
+}
+.ds-ms-auto {
+  margin-inline-start: auto;
+}
+.ds-p-0 {
+  padding: 0;
+}
+
+/* ---------------------------------------------------------------- sizing */
+.ds-full {
+  width: 100%;
+}
+.ds-grow {
+  flex: 1 1 0;
+  min-width: 0;
+}
+.ds-shrink-0 {
+  flex-shrink: 0;
+}
+.ds-min-0 {
+  min-width: 0;
+}
+/* Readable widths for forms and narrow pages. */
+.ds-w-sm {
+  width: 100%;
+  max-width: 400px;
+}
+.ds-w-md {
+  width: 100%;
+  max-width: 560px;
+}
+.ds-w-lg {
+  width: 100%;
+  max-width: 760px;
+}
+.ds-w-xl {
+  width: 100%;
+  max-width: 960px;
+}
+
+/* ---------------------------------------------------------------- table columns */
+.ds-col-thumb {
+  width: 60px;
+}
+.ds-col-xs {
+  width: 80px;
+}
+.ds-col-sm {
+  width: 120px;
+}
+.ds-col-md {
+  width: 160px;
+}
+.ds-col-lg {
+  width: 220px;
+}
+.ds-col-actions {
+  width: 1%;
+  white-space: nowrap;
+}
+
+/* ---------------------------------------------------------------- states */
+.ds-clickable {
+  cursor: pointer;
+}
+.ds-dimmed {
+  opacity: 0.5;
+}
+.ds-hidden {
+  display: none;
+}
+
+/* ---------------------------------------------------------------- surfaces */
+.ds-surface {
+  border-radius: 14px;
+  border: 1px solid var(--o-line);
+  background: #ffffff;
+}
+.ds-inset {
+  border-radius: 14px;
+  background: var(--o-inset);
+}
+.ds-sunken {
+  border-radius: 12px;
+  background: var(--o-sunken);
+}
+.ds-wash {
+  background-image: var(--o-wash);
+  color: var(--o-primary-900);
+}
+.ds-divider-top {
+  border-top: 1px solid var(--o-line);
+}
+.ds-divider-bottom {
+  border-bottom: 1px solid var(--o-line);
+}
+
+/* ---------------------------------------------------------------- sections */
+/* A small uppercase-free section label, as in the clinic's panels. */
+.ds-eyebrow {
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
+  color: var(--o-ink-subtle);
+}
+/* A card or panel heading: 14px bold ink. */
+.ds-heading {
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 700;
+  color: var(--o-ink);
+}
+/* A figure: 22px medium, tabular. */
+.ds-figure {
+  font-size: 22px;
+  line-height: 30px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  color: var(--o-ink);
+}
+
+/* ---------------------------------------------------------------- box helpers */
+.ds-fill {
+  height: 100%;
+}
+.ds-fit {
+  width: fit-content;
+}
+.ds-self-start {
+  align-self: flex-start;
+}
+.ds-pad-md {
+  padding: 16px;
+}
+.ds-pad-lg {
+  padding: 20px;
+}
+.ds-pad-xl {
+  padding: 28px;
+}
+.ds-py-xl {
+  padding-block: 28px;
+}

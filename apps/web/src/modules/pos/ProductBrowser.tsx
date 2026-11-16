@@ -5,7 +5,7 @@ import { type RefObject, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useCategories, useProducts } from '@web/modules/catalogue/api';
 import { useLocalized, useMoney } from '@web/modules/catalogue/components';
-import classes from '../sales/sales.module.css';
+import classes from './pos.module.css';
 
 const looksLikeCode = (value: string) =>
   /^[\w-]{4,}$/.test(value.trim()) && !/\s/.test(value.trim());
@@ -46,7 +46,6 @@ export function ProductBrowser({
     <>
       <TextInput
         ref={searchRef}
-        size="md"
         autoFocus
         leftSection={<IconSearch size={18} />}
         rightSection={products.isFetching ? <Loader size="xs" /> : <IconBarcode size={18} />}
@@ -102,17 +101,17 @@ export function ProductBrowser({
               </div>
             )}
             <div className={classes.tileBody}>
-              <Text size="sm" fw={600} lineClamp={2}>
+              <Text size="sm" lineClamp={2} className="ds-medium">
                 {localized(p.name)}
               </Text>
               <Group justify="space-between" gap={4} wrap="nowrap">
-                <Text size="sm">
+                <Text size="sm" className="ds-bold ds-num ds-primary">
                   {p.minPrice === p.maxPrice ? money(p.price) : `${money(p.minPrice)}+`}
                 </Text>
                 <Badge
                   size="xs"
                   variant="light"
-                  color={p.available <= 0 ? 'red' : p.lowStock ? 'orange' : 'gray'}
+                  color={p.available <= 0 ? 'red' : p.lowStock ? 'orange' : 'teal'}
                 >
                   {p.available}
                 </Badge>
@@ -121,9 +120,7 @@ export function ProductBrowser({
           </button>
         ))}
         {products.data?.items.length === 0 && (
-          <Text c="dimmed" ta="center" py="xl" style={{ gridColumn: '1 / -1' }}>
-            {t('pos.nothingFound')}
-          </Text>
+          <Text className={`${classes.empty} ds-muted ds-center`}>{t('pos.nothingFound')}</Text>
         )}
       </div>
     </>

@@ -12,6 +12,7 @@ import {
   IconTruckDelivery,
   IconUserExclamation,
 } from '@tabler/icons-react';
+import type { CSSProperties } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import { useSession } from '@web/modules/auth/session';
@@ -134,7 +135,11 @@ export function TodayPage() {
                   <div className={classes.barTrack}>
                     <div
                       className={x.date === d.date ? classes.barToday : classes.bar}
-                      style={{ height: `${Math.max(3, (Number(x.total) / peak) * 100)}%` }}
+                      style={
+                        {
+                          '--bar': `${Math.max(3, (Number(x.total) / peak) * 100)}%`,
+                        } as CSSProperties
+                      }
                     />
                   </div>
                   <span className={classes.barLabel}>{date(x.date, { weekday: 'short' })}</span>
@@ -291,7 +296,7 @@ function ActivityLine({ item: a, language }: { item: ActivityItem; language: str
   return (
     <WidgetRow
       to={link}
-      start={<Initials name={a.by ?? '—'} size={32} />}
+      start={<Initials name={a.by ?? '—'} size="sm" />}
       label={`${a.by ?? '—'} · ${what}`}
       detail={detail || undefined}
       end={<span className={classes.time}>{formatDateTime(a.at, language)}</span>}
