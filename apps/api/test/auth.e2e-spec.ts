@@ -1,8 +1,11 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { eq } from 'drizzle-orm';
-import { auditLog } from '../src/database/schema/index.js';
+import { createHash } from 'node:crypto';
+import { and, eq, isNull } from 'drizzle-orm';
+import { auditLog, refreshTokens } from '../src/database/schema/index.js';
 import { bearer, createUser, login, signedIn, TEST_PASSWORD } from './helpers/fixtures.js';
 import { createTestContext, type TestContext } from './helpers/test-app.js';
+
+const digest = (token: string) => createHash('sha256').update(token).digest('hex');
 
 describe('auth', () => {
   let ctx: TestContext;
@@ -76,35 +79,63 @@ describe('auth', () => {
     expect(res.statusCode).toBe(401);
   });
 
-  it('rotates the refresh token and detects reuse', async () => {
-    const user = await createUser(ctx, 'EMPLOYEE');
-    const { refreshCookie } = await login(ctx, user.email);
-    const first = await ctx.app.inject({
+  const refresh = (token: string) =>
+    ctx.app.inject({
       method: 'POST',
       url: '/auth/refresh',
-      cookies: { organza_refresh: refreshCookie! },
+      cookies: { organza_refresh: token },
       payload: {},
     });
+  const cookieOf = (res: Awaited<ReturnType<typeof refresh>>) =>
+    res.cookies.find((c) => c.name === 'organza_refresh')?.value;
+
+  it('rotates the refresh token and treats a late reuse as theft', async () => {
+    const user = await createUser(ctx, 'EMPLOYEE');
+    const { refreshCookie } = await login(ctx, user.email);
+    const first = await refresh(refreshCookie!);
     expect(first.statusCode).toBe(200);
-    const rotated = first.cookies.find((c) => c.name === 'organza_refresh')?.value;
+    const rotated = cookieOf(first);
     expect(rotated).toBeDefined();
     expect(rotated).not.toBe(refreshCookie);
 
-    // The old token comes back: every session of the user ends, including the rotated one.
-    const reuse = await ctx.app.inject({
-      method: 'POST',
-      url: '/auth/refresh',
-      cookies: { organza_refresh: refreshCookie! },
-      payload: {},
-    });
+    // The old token comes back after the grace window: every session of the user ends,
+    // including the rotated one.
+    await ctx.db
+      .update(refreshTokens)
+      .set({ revokedAt: new Date(Date.now() - 60_000) })
+      .where(eq(refreshTokens.userId, user.id));
+    await ctx.db
+      .update(refreshTokens)
+      .set({ revokedAt: null })
+      .where(eq(refreshTokens.tokenHash, digest(rotated!)));
+    const reuse = await refresh(refreshCookie!);
     expect(reuse.statusCode).toBe(401);
-    const afterReuse = await ctx.app.inject({
-      method: 'POST',
-      url: '/auth/refresh',
-      cookies: { organza_refresh: rotated! },
-      payload: {},
-    });
+    const afterReuse = await refresh(rotated!);
     expect(afterReuse.statusCode).toBe(401);
+  });
+
+  it('lets a just-rotated token continue the session (a reload mid-refresh, two tabs)', async () => {
+    const user = await createUser(ctx, 'EMPLOYEE');
+    const { refreshCookie } = await login(ctx, user.email);
+    const first = await refresh(refreshCookie!);
+    expect(first.statusCode).toBe(200);
+    const again = await refresh(refreshCookie!);
+    expect(again.statusCode).toBe(200);
+    const newest = cookieOf(again);
+    expect(newest).toBeDefined();
+    expect(await refresh(newest!)).toHaveProperty('statusCode', 200);
+  });
+
+  it('survives several refreshes sent at the same moment (tabs opening together)', async () => {
+    const user = await createUser(ctx, 'EMPLOYEE');
+    const { refreshCookie } = await login(ctx, user.email);
+    const results = await Promise.all(Array.from({ length: 4 }, () => refresh(refreshCookie!)));
+    expect(results.map((r) => r.statusCode)).toEqual([200, 200, 200, 200]);
+    const live = await ctx.db
+      .select()
+      .from(refreshTokens)
+      .where(and(eq(refreshTokens.userId, user.id), isNull(refreshTokens.revokedAt)));
+    expect(live).toHaveLength(1);
   });
 
   it('gives the desktop client its refresh token in the body', async () => {

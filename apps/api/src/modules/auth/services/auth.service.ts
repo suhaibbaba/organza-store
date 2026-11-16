@@ -20,6 +20,12 @@ type UserRow = typeof users.$inferSelect;
 
 const invalidLogin = () =>
   new AppError(401, ERROR_CODES.LOGIN_INVALID, 'Invalid email or password');
+/** How long a just-rotated refresh token still leads to its successor instead of counting as theft. */
+const REFRESH_REUSE_GRACE_MS = 30_000;
+const MAX_CHAIN_HOPS = 10;
+/** Requests that lose the rotation race follow the chain and try again, a bounded number of times. */
+const MAX_ROTATION_ATTEMPTS = 6;
+
 const invalidRefresh = () =>
   new AppError(401, ERROR_CODES.UNAUTHENTICATED, 'Invalid refresh token');
 
@@ -100,11 +106,26 @@ export class AuthService {
     return this.startSession(user, persistent, client);
   }
 
-  async refresh(presented: string): Promise<IssuedSession> {
-    const stored = await this.tokens.findByToken(presented);
+  async refresh(presented: string, attempt = 0): Promise<IssuedSession> {
+    let stored = await this.tokens.findByToken(presented);
     if (!stored) throw invalidRefresh();
+    // A token rotated moments ago is a race, not theft: two tabs refreshing together, or a page
+    // reloaded while its refresh was in flight (the new cookie never landed). Within the grace
+    // window, carry on from the newest token of the same chain (docs/assumptions.md 53).
+    for (
+      let hop = 0;
+      stored.revokedAt &&
+      stored.replacedById &&
+      hop < MAX_CHAIN_HOPS &&
+      Date.now() - stored.revokedAt.getTime() <= REFRESH_REUSE_GRACE_MS;
+      hop++
+    ) {
+      const next = await this.tokens.findById(stored.replacedById);
+      if (!next) break;
+      stored = next;
+    }
     if (stored.revokedAt) {
-      // A rotated token came back: someone else may hold it. End every session of this user.
+      // A rotated token came back late: someone else may hold it. End every session of this user.
       this.logger.warn(`Refresh token reuse for user ${stored.userId}; revoking all sessions`);
       await this.tokens.revokeAllForUser(stored.userId);
       throw invalidRefresh();
@@ -115,13 +136,16 @@ export class AuthService {
       await this.tokens.revokeAllForUser(stored.userId);
       throw invalidRefresh();
     }
-    if (!(await this.tokens.revoke(stored.id))) {
-      await this.tokens.revokeAllForUser(stored.userId);
-      throw invalidRefresh();
-    }
     const session = await this.startSession(user, stored.persistent, stored.client);
     const replacement = await this.tokens.findByToken(session.refreshToken);
-    if (replacement) await this.tokens.linkReplacement(stored.id, replacement.id);
+    if (!replacement) throw invalidRefresh();
+    // Revoking the old token and naming its successor is one atomic claim, so a request that
+    // loses the race always finds the chain to follow.
+    if (!(await this.tokens.rotate(stored.id, replacement.id))) {
+      await this.tokens.revoke(replacement.id);
+      if (attempt + 1 >= MAX_ROTATION_ATTEMPTS) throw invalidRefresh();
+      return this.refresh(presented, attempt + 1);
+    }
     return session;
   }
 

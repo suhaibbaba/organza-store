@@ -84,8 +84,19 @@ export class TokenService {
     return claimed.length === 1;
   }
 
-  async linkReplacement(id: string, replacedById: string): Promise<void> {
-    await this.db.update(refreshTokens).set({ replacedById }).where(eq(refreshTokens.id, id));
+  async findById(id: string) {
+    const [row] = await this.db.select().from(refreshTokens).where(eq(refreshTokens.id, id));
+    return row;
+  }
+
+  /** Atomic rotation: revokes a live token and names its successor in one claim. */
+  async rotate(id: string, replacedById: string): Promise<boolean> {
+    const claimed = await this.db
+      .update(refreshTokens)
+      .set({ revokedAt: new Date(), replacedById })
+      .where(and(eq(refreshTokens.id, id), isNull(refreshTokens.revokedAt)))
+      .returning({ id: refreshTokens.id });
+    return claimed.length === 1;
   }
 
   async revokeAllForUser(userId: string): Promise<void> {
