@@ -700,17 +700,19 @@ export class ShiftsService {
       .groupBy(payments.currency, payments.direction, payments.purpose);
     for (const c of cash) {
       const kind: ExpectedLine['kind'] =
-        c.direction === 'IN'
-          ? c.purpose === 'REPAYMENT'
-            ? 'CASH_REPAYMENTS'
-            : c.purpose === 'DEPOSIT'
-              ? 'CASH_DEPOSITS'
-              : c.purpose === 'COURIER_SETTLEMENT'
-                ? 'COURIER_SETTLEMENTS'
-                : 'CASH_SALES'
-          : c.purpose === 'CHANGE'
-            ? 'CHANGE_GIVEN'
-            : 'CASH_REFUNDS';
+        c.purpose === 'SUPPLIER_PAYMENT'
+          ? 'SUPPLIER_PAYMENTS'
+          : c.direction === 'IN'
+            ? c.purpose === 'REPAYMENT'
+              ? 'CASH_REPAYMENTS'
+              : c.purpose === 'DEPOSIT'
+                ? 'CASH_DEPOSITS'
+                : c.purpose === 'COURIER_SETTLEMENT'
+                  ? 'COURIER_SETTLEMENTS'
+                  : 'CASH_SALES'
+            : c.purpose === 'CHANGE'
+              ? 'CHANGE_GIVEN'
+              : 'CASH_REFUNDS';
       add(c.currency, kind, c.total, c.count, c.direction === 'IN' ? 1 : -1);
     }
     const moves = await executor

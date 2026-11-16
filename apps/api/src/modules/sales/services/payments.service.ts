@@ -39,6 +39,7 @@ export interface RecordPayment extends PricedPayment {
   shiftId: string | null;
   saleId?: string | null;
   orderId?: string | null;
+  supplierId?: string | null;
   takenBy: string;
   businessDate: string;
   note?: string;
@@ -107,6 +108,7 @@ export class PaymentsService {
         saleId: input.saleId ?? null,
         orderId: input.orderId ?? null,
         courierId: input.courierId ?? null,
+        supplierId: input.supplierId ?? null,
         purpose: input.purpose,
         note: input.note ?? null,
         businessDate: input.businessDate,

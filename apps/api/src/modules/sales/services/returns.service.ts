@@ -417,7 +417,8 @@ export class ReturnsService {
         });
       } else {
         refundMethod =
-          s.refundMethod ?? (original && original !== 'STORE_CREDIT' ? original : 'CASH');
+          s.refundMethod ??
+          (original && original !== 'STORE_CREDIT' && original !== 'SAFE' ? original : 'CASH');
         if (
           compareMoney(rest, settings.employeeRefundLimit) > 0 &&
           !approvedBy &&

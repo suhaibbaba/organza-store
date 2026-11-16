@@ -134,6 +134,20 @@
       "when": 1794842883507,
       "tag": "0018_orders_guards",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1794844041211,
+      "tag": "0019_purchasing",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1794844066795,
+      "tag": "0020_purchasing_guards",
+      "breakpoints": true
     }
   ]
 }

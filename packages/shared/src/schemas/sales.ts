@@ -15,7 +15,7 @@ export const PAYMENT_METHODS = ['CASH', 'CARD', 'BANK_TRANSFER', 'STORE_CREDIT']
 /** What a cashier can take a payment by. */
 export type TillPaymentMethod = (typeof PAYMENT_METHODS)[number];
 /** COURIER: cash on delivery, owed by the delivery company until it settles (never typed in). */
-export type PaymentMethod = (typeof PAYMENT_METHODS)[number] | 'COURIER';
+export type PaymentMethod = (typeof PAYMENT_METHODS)[number] | 'COURIER' | 'SAFE';
 
 export const SALE_SOURCES = ['COUNTER', 'WHATSAPP', 'ONLINE', 'PHONE'] as const;
 export type SaleSource = (typeof SALE_SOURCES)[number];
@@ -190,6 +190,7 @@ export interface ExpectedLine {
     | 'CASH_REFUNDS'
     | 'CASH_DEPOSITS'
     | 'COURIER_SETTLEMENTS'
+    | 'SUPPLIER_PAYMENTS'
     | 'PAID_IN'
     | 'DROPS'
     | 'EXPENSES';

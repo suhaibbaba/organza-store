@@ -49,6 +49,7 @@ export const METHOD_ACCOUNT = {
   BANK_TRANSFER: 'BANK',
   STORE_CREDIT: 'CUSTOMER_CREDIT',
   COURIER: 'COURIER_RECEIVABLES',
+  SAFE: 'SAFE',
 } as const;
 
 /** What a payment was for; the shift's expected cash is listed by these. */
@@ -60,4 +61,6 @@ export type PaymentPurpose =
   /** Taken for an order before hand-over; held as the customer's credit. */
   | 'DEPOSIT'
   /** A delivery company paying the cash on delivery it collected. */
-  | 'COURIER_SETTLEMENT';
+  | 'COURIER_SETTLEMENT'
+  /** Paid to a supplier (OUT), or a supplier paying money back (IN). */
+  | 'SUPPLIER_PAYMENT';

@@ -77,6 +77,13 @@ export const CAPABILITIES = {
   'couriers.view': ALL,
   'couriers.manage': MANAGERS,
   'couriers.settle': MANAGERS,
+  // Suppliers and purchasing (proposal C8)
+  'suppliers.view': MANAGERS,
+  'suppliers.manage': MANAGERS,
+  'suppliers.pay': MANAGERS,
+  'purchasing.order': MANAGERS,
+  'purchasing.receive': ALL,
+  'purchasing.credit': MANAGERS,
   // Approvals inbox (proposal C12): anyone asks; managers decide, never on their own request.
   'approvals.request': ALL,
   'approvals.decide': MANAGERS,

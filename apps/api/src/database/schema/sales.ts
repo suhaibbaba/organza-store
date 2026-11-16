@@ -280,6 +280,7 @@ export const paymentMethod = pgEnum('payment_method', [
   'BANK_TRANSFER',
   'STORE_CREDIT',
   'COURIER',
+  'SAFE',
 ]);
 
 /**
@@ -304,6 +305,8 @@ export const payments = pgTable(
     shiftId: uuid('shift_id').references(() => shifts.id),
     /** COURIER payments: the delivery company that owes this cash on delivery. */
     courierId: uuid('courier_id'),
+    /** Paid to (or refunded by) a supplier. */
+    supplierId: uuid('supplier_id'),
     /** A deposit taken for an order before hand-over. */
     orderId: uuid('order_id'),
     /** The sale this money was taken or given back at, if any (context; allocations pay). */
