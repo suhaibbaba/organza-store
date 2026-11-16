@@ -124,6 +124,11 @@ export interface InventoryValuation {
   };
 }
 
+export interface ExpenseRow {
+  category: string;
+  amount: string;
+}
+
 export interface DailySummary {
   date: string;
   sales: { count: number; total: string; pieces: number };

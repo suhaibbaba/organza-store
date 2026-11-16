@@ -52,7 +52,8 @@
     "orders": "Orders",
     "couriers": "Delivery companies",
     "purchasing": "Purchases & receiving",
-    "suppliers": "Suppliers"
+    "suppliers": "Suppliers",
+    "reports": "Reports"
   },
   "roles": {
     "ADMIN": "Admin",
@@ -590,7 +591,8 @@
       "CHANGE": "Change given",
       "REFUND": "Refund",
       "DEPOSIT": "Deposit",
-      "COURIER_SETTLEMENT": "Courier settlement"
+      "COURIER_SETTLEMENT": "Courier settlement",
+      "SUPPLIER_PAYMENT": "Supplier payment"
     },
     "giftReceipt": "Gift receipt",
     "giftReceiptNote": "This gift can be exchanged with this receipt.",
@@ -973,5 +975,115 @@
       "REFUND": "Refund",
       "OPENING": "Opening balance"
     }
+  },
+  "reports": {
+    "tab": {
+      "summary": "Profit & loss",
+      "sales": "Sales",
+      "cash": "Cash",
+      "methods": "Payment methods",
+      "debts": "Customer debts",
+      "suppliers": "Supplier debts",
+      "inventory": "Stock value",
+      "daily": "Daily summary"
+    },
+    "preset": {
+      "today": "Today",
+      "week": "Last 7 days",
+      "month": "This month",
+      "lastMonth": "Last month"
+    },
+    "groupBy": {
+      "day": "Day",
+      "month": "Month",
+      "category": "Category",
+      "product": "Product",
+      "staff": "Staff",
+      "source": "Source"
+    },
+    "accountName": {
+      "CASH_DRAWER": "Cash drawer",
+      "SAFE": "Safe",
+      "BANK": "Bank",
+      "CARD_CLEARING": "Cards (to be paid out)"
+    },
+    "event": {
+      "PAYMENT_IN": "Payments received",
+      "PAYMENT_OUT": "Payments made",
+      "CASH_EXPENSE": "Expenses",
+      "CASH_PAID_IN": "Paid in",
+      "CASH_DROP": "Drawer drop",
+      "DRAWER_DIFFERENCE": "Drawer difference",
+      "COURIER_FEE": "Courier fee",
+      "OPENING_CASH": "Opening cash",
+      "FLOAT_DIFFERENCE": "Opening float difference",
+      "HANDOVER": "Cash handover"
+    },
+    "from": "From",
+    "to": "To",
+    "export": "Export CSV",
+    "line": "Line",
+    "profitAndLoss": "Profit and loss",
+    "revenue": "Sales",
+    "discounts": "Discounts",
+    "netSales": "Net sales",
+    "cogs": "Cost of goods sold",
+    "grossProfit": "Gross profit",
+    "expenses": "Expenses",
+    "damage": "Damage and loss",
+    "promotions": "Giveaways and offers",
+    "overShort": "Drawer over or short",
+    "exchange": "Exchange differences",
+    "otherIncome": "Other income",
+    "netProfit": "Net profit",
+    "salesCount": "Sales",
+    "pieces": "Pieces",
+    "average": "Average sale",
+    "importedHint": "{{count}} sales from the old system in this period, {{total}} in all; not counted here.",
+    "costHidden": "Cost and profit are shown to the Admin only.",
+    "account": "Account",
+    "opening": "Opening",
+    "in": "In",
+    "out": "Out",
+    "closing": "Closing",
+    "flow": "Movement",
+    "purpose": "Purpose",
+    "direction": "Direction",
+    "count": "Count",
+    "aging": {
+      "current": "Up to 30 days",
+      "days30": "31–60 days",
+      "days60": "61–90 days",
+      "days90": "Over 90 days"
+    },
+    "customerCredit": "Customer credit held",
+    "owed": "Owed",
+    "oldest": "Oldest",
+    "total": "Total",
+    "atCost": "At cost",
+    "atPrice": "At selling price",
+    "damagedPieces": "Damaged pieces",
+    "reconciled": "Stock value matches the Inventory account in the books.",
+    "notReconciled": "Stock value does not match the books ({{ledger}}).",
+    "unknownCost": "{{count}} pieces have no known cost.",
+    "salesTotal": "Sales total",
+    "returnsCount": "Returns ({{count}})"
+  },
+  "today": {
+    "sales": "Shop sales today",
+    "mySales": "My sales today",
+    "salesCount": "{{count}} sales · {{pieces}} pieces",
+    "vsLastWeek": "{{change}} vs last week",
+    "byMethod": "By payment method",
+    "grossProfit": "Gross profit today",
+    "openOrders": "Open orders",
+    "debtsOwed": "Customer debts",
+    "last7": "Last 7 days",
+    "toDo": "Waiting for you",
+    "heldSales": "Sales held, not handed over",
+    "approvals": "Approvals waiting",
+    "openShifts": "Open shifts",
+    "lowStock": "Items running low",
+    "activity": "Recent activity"
   }
 }

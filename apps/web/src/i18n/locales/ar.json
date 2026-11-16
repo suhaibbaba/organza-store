@@ -52,7 +52,8 @@
     "orders": "الطلبيات",
     "couriers": "شركات التوصيل",
     "purchasing": "المشتريات والاستلام",
-    "suppliers": "الموردون"
+    "suppliers": "الموردون",
+    "reports": "التقارير"
   },
   "roles": {
     "ADMIN": "مدير النظام",
@@ -590,7 +591,8 @@
       "CHANGE": "باقٍ مُعاد",
       "REFUND": "استرجاع",
       "DEPOSIT": "عربون",
-      "COURIER_SETTLEMENT": "تسوية شركة توصيل"
+      "COURIER_SETTLEMENT": "تسوية شركة توصيل",
+      "SUPPLIER_PAYMENT": "دفعة لمورّد"
     },
     "giftReceipt": "إيصال هدية",
     "giftReceiptNote": "يمكن استبدال هذه الهدية بإبراز هذا الإيصال.",
@@ -973,5 +975,115 @@
       "REFUND": "استرجاع",
       "OPENING": "رصيد افتتاحي"
     }
+  },
+  "reports": {
+    "tab": {
+      "summary": "الأرباح والخسائر",
+      "sales": "المبيعات",
+      "cash": "النقد",
+      "methods": "طرق الدفع",
+      "debts": "ديون الزبائن",
+      "suppliers": "ديون الموردين",
+      "inventory": "قيمة المخزون",
+      "daily": "ملخص اليوم"
+    },
+    "preset": {
+      "today": "اليوم",
+      "week": "آخر 7 أيام",
+      "month": "هذا الشهر",
+      "lastMonth": "الشهر الماضي"
+    },
+    "groupBy": {
+      "day": "اليوم",
+      "month": "الشهر",
+      "category": "التصنيف",
+      "product": "المنتج",
+      "staff": "الموظف",
+      "source": "المصدر"
+    },
+    "accountName": {
+      "CASH_DRAWER": "الدرج",
+      "SAFE": "الخزنة",
+      "BANK": "البنك",
+      "CARD_CLEARING": "البطاقات (قيد التحويل)"
+    },
+    "event": {
+      "PAYMENT_IN": "دفعات مقبوضة",
+      "PAYMENT_OUT": "دفعات مدفوعة",
+      "CASH_EXPENSE": "مصاريف",
+      "CASH_PAID_IN": "إيداع في الدرج",
+      "CASH_DROP": "سحب من الدرج",
+      "DRAWER_DIFFERENCE": "فرق الدرج",
+      "COURIER_FEE": "عمولة التوصيل",
+      "OPENING_CASH": "نقد الافتتاح",
+      "FLOAT_DIFFERENCE": "فرق مبلغ الافتتاح",
+      "HANDOVER": "تسليم النقد"
+    },
+    "from": "من",
+    "to": "إلى",
+    "export": "تصدير CSV",
+    "line": "البند",
+    "profitAndLoss": "الأرباح والخسائر",
+    "revenue": "المبيعات",
+    "discounts": "الخصومات",
+    "netSales": "صافي المبيعات",
+    "cogs": "تكلفة البضاعة المباعة",
+    "grossProfit": "الربح الإجمالي",
+    "expenses": "المصاريف",
+    "damage": "تالف وفاقد",
+    "promotions": "هدايا وعروض",
+    "overShort": "زيادة أو نقص الدرج",
+    "exchange": "فروقات العملة",
+    "otherIncome": "دخل آخر",
+    "netProfit": "صافي الربح",
+    "salesCount": "عدد المبيعات",
+    "pieces": "القطع",
+    "average": "متوسط الفاتورة",
+    "importedHint": "{{count}} بيع من النظام القديم في هذه الفترة بمجموع {{total}}؛ غير محسوبة هنا.",
+    "costHidden": "التكلفة والأرباح تظهر للمدير العام فقط.",
+    "account": "الحساب",
+    "opening": "رصيد البداية",
+    "in": "دخل",
+    "out": "خرج",
+    "closing": "رصيد النهاية",
+    "flow": "الحركة",
+    "purpose": "الغرض",
+    "direction": "الاتجاه",
+    "count": "العدد",
+    "aging": {
+      "current": "حتى 30 يومًا",
+      "days30": "31–60 يومًا",
+      "days60": "61–90 يومًا",
+      "days90": "أكثر من 90 يومًا"
+    },
+    "customerCredit": "رصيد لصالح الزبائن",
+    "owed": "المستحق",
+    "oldest": "أقدم دين",
+    "total": "المجموع",
+    "atCost": "بالتكلفة",
+    "atPrice": "بسعر البيع",
+    "damagedPieces": "قطع تالفة",
+    "reconciled": "قيمة المخزون تطابق حساب المخزون في الدفاتر.",
+    "notReconciled": "قيمة المخزون لا تطابق الدفاتر ({{ledger}}).",
+    "unknownCost": "{{count}} قطعة بلا تكلفة معروفة.",
+    "salesTotal": "مجموع المبيعات",
+    "returnsCount": "المرتجعات ({{count}})"
+  },
+  "today": {
+    "sales": "مبيعات المحل اليوم",
+    "mySales": "مبيعاتي اليوم",
+    "salesCount": "{{count}} فاتورة · {{pieces}} قطعة",
+    "vsLastWeek": "{{change}} عن الأسبوع الماضي",
+    "byMethod": "حسب طريقة الدفع",
+    "grossProfit": "الربح الإجمالي اليوم",
+    "openOrders": "طلبات مفتوحة",
+    "debtsOwed": "ديون الزبائن",
+    "last7": "آخر 7 أيام",
+    "toDo": "بانتظارك",
+    "heldSales": "مبيعات محجوزة لم تُسلَّم",
+    "approvals": "موافقات بالانتظار",
+    "openShifts": "ورديات مفتوحة",
+    "lowStock": "أصناف قاربت على النفاد",
+    "activity": "آخر النشاطات"
   }
 }

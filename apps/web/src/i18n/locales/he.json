@@ -52,7 +52,8 @@
     "orders": "הזמנות",
     "couriers": "חברות שליחויות",
     "purchasing": "רכש וקבלת סחורה",
-    "suppliers": "ספקים"
+    "suppliers": "ספקים",
+    "reports": "דוחות"
   },
   "roles": {
     "ADMIN": "מנהל מערכת",
@@ -590,7 +591,8 @@
       "CHANGE": "עודף",
       "REFUND": "החזר",
       "DEPOSIT": "מקדמה",
-      "COURIER_SETTLEMENT": "התחשבנות שליחויות"
+      "COURIER_SETTLEMENT": "התחשבנות שליחויות",
+      "SUPPLIER_PAYMENT": "תשלום לספק"
     },
     "giftReceipt": "קבלת מתנה",
     "giftReceiptNote": "ניתן להחליף את המתנה עם קבלה זו.",
@@ -973,5 +975,115 @@
       "REFUND": "החזר",
       "OPENING": "יתרת פתיחה"
     }
+  },
+  "reports": {
+    "tab": {
+      "summary": "רווח והפסד",
+      "sales": "מכירות",
+      "cash": "מזומן",
+      "methods": "אמצעי תשלום",
+      "debts": "חובות לקוחות",
+      "suppliers": "חובות לספקים",
+      "inventory": "שווי מלאי",
+      "daily": "סיכום יומי"
+    },
+    "preset": {
+      "today": "היום",
+      "week": "7 ימים אחרונים",
+      "month": "החודש",
+      "lastMonth": "החודש שעבר"
+    },
+    "groupBy": {
+      "day": "יום",
+      "month": "חודש",
+      "category": "קטגוריה",
+      "product": "מוצר",
+      "staff": "עובד",
+      "source": "מקור"
+    },
+    "accountName": {
+      "CASH_DRAWER": "מגירה",
+      "SAFE": "כספת",
+      "BANK": "בנק",
+      "CARD_CLEARING": "כרטיסים (לזיכוי)"
+    },
+    "event": {
+      "PAYMENT_IN": "תשלומים שהתקבלו",
+      "PAYMENT_OUT": "תשלומים ששולמו",
+      "CASH_EXPENSE": "הוצאות",
+      "CASH_PAID_IN": "הפקדה למגירה",
+      "CASH_DROP": "משיכה מהמגירה",
+      "DRAWER_DIFFERENCE": "הפרש מגירה",
+      "COURIER_FEE": "עמלת שליח",
+      "OPENING_CASH": "מזומן פתיחה",
+      "FLOAT_DIFFERENCE": "הפרש קופת פתיחה",
+      "HANDOVER": "העברת מזומן"
+    },
+    "from": "מ־",
+    "to": "עד",
+    "export": "ייצוא CSV",
+    "line": "שורה",
+    "profitAndLoss": "רווח והפסד",
+    "revenue": "מכירות",
+    "discounts": "הנחות",
+    "netSales": "מכירות נטו",
+    "cogs": "עלות המכר",
+    "grossProfit": "רווח גולמי",
+    "expenses": "הוצאות",
+    "damage": "נזק ואובדן",
+    "promotions": "מתנות ומבצעים",
+    "overShort": "עודף או חוסר במגירה",
+    "exchange": "הפרשי שער",
+    "otherIncome": "הכנסה אחרת",
+    "netProfit": "רווח נקי",
+    "salesCount": "מכירות",
+    "pieces": "פריטים",
+    "average": "ממוצע מכירה",
+    "importedHint": "{{count}} מכירות מהמערכת הישנה בתקופה, סה״כ {{total}}; לא נספרות כאן.",
+    "costHidden": "עלות ורווח מוצגים למנהל הראשי בלבד.",
+    "account": "חשבון",
+    "opening": "יתרת פתיחה",
+    "in": "נכנס",
+    "out": "יצא",
+    "closing": "יתרת סגירה",
+    "flow": "תנועה",
+    "purpose": "מטרה",
+    "direction": "כיוון",
+    "count": "כמות",
+    "aging": {
+      "current": "עד 30 יום",
+      "days30": "31–60 יום",
+      "days60": "61–90 יום",
+      "days90": "מעל 90 יום"
+    },
+    "customerCredit": "זיכוי ללקוחות",
+    "owed": "חוב",
+    "oldest": "החוב הישן",
+    "total": "סה״כ",
+    "atCost": "לפי עלות",
+    "atPrice": "לפי מחיר מכירה",
+    "damagedPieces": "פריטים פגומים",
+    "reconciled": "שווי המלאי תואם את חשבון המלאי בספרים.",
+    "notReconciled": "שווי המלאי אינו תואם את הספרים ({{ledger}}).",
+    "unknownCost": "ל־{{count}} פריטים אין עלות ידועה.",
+    "salesTotal": "סה״כ מכירות",
+    "returnsCount": "החזרות ({{count}})"
+  },
+  "today": {
+    "sales": "מכירות החנות היום",
+    "mySales": "המכירות שלי היום",
+    "salesCount": "{{count}} מכירות · {{pieces}} פריטים",
+    "vsLastWeek": "{{change}} לעומת שבוע שעבר",
+    "byMethod": "לפי אמצעי תשלום",
+    "grossProfit": "רווח גולמי היום",
+    "openOrders": "הזמנות פתוחות",
+    "debtsOwed": "חובות לקוחות",
+    "last7": "7 הימים האחרונים",
+    "toDo": "ממתין לך",
+    "heldSales": "מכירות שמורות שלא נמסרו",
+    "approvals": "אישורים ממתינים",
+    "openShifts": "משמרות פתוחות",
+    "lowStock": "פריטים במלאי נמוך",
+    "activity": "פעילות אחרונה"
   }
 }

@@ -162,6 +162,12 @@ export class StockService implements OnModuleInit {
             costUnknown = true;
           } else {
             unitCost = Number(cost).toFixed(4);
+            // The first known cost also prices the pieces already on hand with no cost; they
+            // were never in the Inventory account, so bring them in now (as setCost does).
+            if (balance.avgCost === null && balance.onHand > 0) {
+              const filled = valueOf(balance.onHand, unitCost);
+              posting.push(debit('INVENTORY', filled), credit('OPENING_BALANCES', filled));
+            }
             balance.avgCost = averageIn(balance.onHand, balance.avgCost, q, unitCost);
           }
           balance.onHand += q;

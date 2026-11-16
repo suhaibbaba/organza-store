@@ -159,6 +159,33 @@ describe('reports and dashboard', () => {
   });
 
   it('inventory value equals the Inventory account in the ledger', async () => {
+    // Pieces with no known cost take the first purchase cost, and the ledger follows.
+    const p = await createProduct(ctx, admin.headers, {
+      type: 'REGULAR',
+      name: { ar: `شال ${randomUUID().slice(0, 4)}` },
+      categoryId,
+      stock: 1,
+      price: '150.00',
+    });
+    const supplier = (
+      await ctx.app.inject({
+        method: 'POST',
+        url: '/suppliers',
+        headers: admin.headers,
+        payload: { name: `مورّد ${randomUUID().slice(0, 4)}` },
+      })
+    ).json<SupplierView>();
+    const received = await ctx.app.inject({
+      method: 'POST',
+      url: '/purchasing/receipts',
+      headers: admin.headers,
+      payload: {
+        idempotencyKey: randomUUID(),
+        supplierId: supplier.id,
+        lines: [{ itemId: p.items[0]!.id, quantity: 4, unitCost: '95' }],
+      },
+    });
+    expect(received.statusCode).toBe(201);
     const v = await get<InventoryValuation>('/reports/inventory');
     expect(v.totals.value).toBe(v.totals.ledger);
     const denied = await ctx.app.inject({
