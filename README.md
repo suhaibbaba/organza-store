@@ -29,6 +29,22 @@ pnpm --filter @organza/web dev               # app on http://localhost:5173 (pro
 
 `http://localhost:5173/dev/frames.html?path=/` shows any route at phone width (375 px).
 
+## Windows app
+
+`apps/desktop` wraps the web build in Tauri 2. It needs Rust (rustup) and, on Windows, the
+WebView2 runtime that ships with Windows 10/11.
+
+```sh
+pnpm --filter @organza/desktop tauri:dev     # the app against the Vite dev server
+pnpm --filter @organza/desktop tauri:build   # installer in src-tauri/target/release/bundle/nsis
+```
+
+The desktop build of the web app reads its API address from `apps/web/.env.desktop`. Inside the
+app the refresh token is kept in the OS secure store and receipts go straight to the ESC/POS
+printer chosen on **This device** (`/device`). CI builds an unsigned installer on every push
+(artifact `organza-windows-installer`). What is left to test on the shop's PC is in
+`docs/blocked.md`.
+
 ## Checks
 
 ```sh

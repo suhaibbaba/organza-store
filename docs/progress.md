@@ -1,7 +1,7 @@
 # Progress
 
-**Current phase:** 6
-**Next:** phase 6: reports and dashboard
+**Current phase:** 7 done (phases 0–7 complete; phase 7 hardware checks pending, see blocked.md)
+**Next:** phase 8, cut-over, to be run together with the owner (see handover.md)
 
 ## Finished steps
 
@@ -31,3 +31,5 @@
 | 2026-11-16 | 5 | Web: suppliers (owed or paid ahead, search, add/edit), supplier page (statement with running balance, receipts, purchase orders, payments, credit notes; pay with oldest-first preview; credit note for returned pieces or a price allowance), purchases & receiving (receipts and orders lists), receive goods (scan or browse, out-of-stock items pickable, cost per piece, extra costs, against an open order, pay now for managers), receipt page (landed cost, still owed, print labels for the new pieces), purchase order page (arrived per line, receive the rest, close short or cancel) | see git log |
 | 2026-11-16 | 6 | API: reports from the ledger (profit and loss with expenses by category, cash per money account with flows, payment methods, expenses, customer debts with aging, supplier debts with aging, inventory value reconciled to the Inventory account, daily summary with shifts), sales breakdowns by day, month, category, product, staff and source, Today per role, activity feed; cost figures for Admin only; 5 e2e tests | see git log |
 | 2026-11-16 | 6 | Web: Today dashboard per role (sales vs last week, by method, gross profit for Admin, debts, 7-day bars, to-do counts, activity feed refreshing every minute); Reports screen with tabs (profit and loss, sales by day/month/category/product/staff/source, cash per money account with flows, payment methods, customer debts with aging, supplier debts with aging, stock value with ledger check, daily summary) and CSV export with BOM for Excel. Fix: first purchase cost now posts the value of no-cost pieces on hand. Phase 6 done. | see git log |
+| 2026-11-16 | 7 | Web: receipts built from one list of blocks used by the screen and the printer; canvas painter (Arabic and Hebrew joined, right to left, 576 or 384 dots); ESC/POS raster encoder (GS v 0 in bands, drawer kick on pin 2 or 5, partial cut) with tests; printer and token-store interfaces with a desktop bridge installed at start-up; This device screen (printer from the system list or tcp://, paper width, auto-print, drawer on cash, test print, open drawer, version and update); fresh till sales print and open the drawer per device settings | see git log |
+| 2026-11-16 | 7 | Desktop shell (apps/desktop): Tauri 2 with single instance, OS secure store for the refresh token (allow-listed key), raw printing to Windows spooler, CUPS or a network printer, signed updater commands, NSIS installer in Arabic/English/Hebrew, overscroll and swipe navigation off, tight CSP. CI compiles it on Windows and Linux with clippy -D warnings, runs 4 Rust tests and publishes an unsigned installer. Phase 7 done except the on-site hardware checks | see git log |
