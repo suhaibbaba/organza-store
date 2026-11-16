@@ -1,0 +1,30 @@
+<!doctype html>
+<!-- Dev-only visual check: the same route at phone width (375 px). Open /dev/frames.html?path=/ -->
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Frames</title>
+    <style>
+      body {
+        margin: 0;
+        background: #ddd;
+        display: flex;
+        gap: 16px;
+        padding: 8px;
+      }
+      iframe {
+        border: 0;
+        background: #fff;
+        width: 375px;
+        height: 740px;
+      }
+    </style>
+  </head>
+  <body>
+    <iframe id="phone"></iframe>
+    <script>
+      const path = new URLSearchParams(location.search).get('path') || '/';
+      document.getElementById('phone').src = path;
+    </script>
+  </body>
+</html>

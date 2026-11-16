@@ -9,6 +9,8 @@ const envSchema = z.object({
   JWT_ACCESS_TTL_SECONDS: z.coerce.number().int().min(60).max(86_400).default(900),
   JWT_REFRESH_TTL_DAYS: z.coerce.number().int().min(1).max(365).default(30),
   CORS_ORIGIN: z.string().default('http://localhost:5173'),
+  /** Must cover the refresh URL as the browser sees it (behind the /api proxy). */
+  AUTH_COOKIE_PATH: z.string().default('/'),
   AUTH_COOKIE_SECURE: z.enum(['auto', 'always', 'never']).default('auto'),
   TRUST_PROXY: z.string().default('loopback, linklocal, uniquelocal'),
   UPLOAD_DIR: z.string().default('./uploads'),

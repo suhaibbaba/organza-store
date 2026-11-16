@@ -1,0 +1,54 @@
+/*
+ * The app shell never scrolls or overscrolls at the root (touchpad swipes would drag the whole
+ * window in WebView2 and Safari); only inner panels scroll.
+ */
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+body {
+  -webkit-text-size-adjust: 100%;
+  background: var(--mantine-color-body);
+}
+
+:root {
+  --organza-font: 'Cairo', 'Noto Sans Hebrew', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --organza-safe-top: env(safe-area-inset-top, 0px);
+  --organza-safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+html[lang='he'] {
+  --organza-font: 'Noto Sans Hebrew', 'Cairo', system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+/* Arabic letters with tails need room. */
+html[lang='ar'] body {
+  line-height: 1.7;
+}
+
+.organza-scroll {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* 16px inputs stop iOS zooming on focus. */
+input,
+select,
+textarea {
+  font-size: 16px;
+}
+
+@media print {
+  html,
+  body,
+  #root {
+    height: auto;
+    overflow: visible;
+  }
+}

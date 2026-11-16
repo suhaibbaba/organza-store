@@ -25,7 +25,7 @@ describe('auth', () => {
     expect(body.user.capabilities).not.toContain('staff.manage');
     const cookie = res.cookies.find((c) => c.name === 'organza_refresh');
     expect(cookie?.httpOnly).toBe(true);
-    expect(cookie?.path).toBe('/auth');
+    expect(cookie?.path).toBe('/');
     const audits = await ctx.db.select().from(auditLog).where(eq(auditLog.entityId, user.id));
     expect(audits.map((a) => a.action)).toContain('LOGIN');
   });

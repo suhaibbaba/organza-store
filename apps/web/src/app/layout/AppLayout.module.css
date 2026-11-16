@@ -1,0 +1,80 @@
+.shell {
+  display: grid;
+  height: 100%;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-areas:
+    'top top'
+    'side main'
+    'bottom bottom';
+}
+
+.top {
+  grid-area: top;
+  display: flex;
+  align-items: center;
+  gap: var(--mantine-spacing-sm);
+  padding: calc(var(--organza-safe-top) + 8px) var(--mantine-spacing-md) 8px;
+  border-bottom: 1px solid var(--mantine-color-default-border);
+  background: var(--mantine-color-body);
+}
+
+.side {
+  grid-area: side;
+  width: 240px;
+  border-inline-end: 1px solid var(--mantine-color-default-border);
+  padding: var(--mantine-spacing-sm);
+}
+
+.collapsed {
+  width: 64px;
+}
+
+.main {
+  grid-area: main;
+  padding: var(--mantine-spacing-md);
+}
+
+.bottom {
+  grid-area: bottom;
+  display: none;
+  border-top: 1px solid var(--mantine-color-default-border);
+  padding-bottom: var(--organza-safe-bottom);
+  background: var(--mantine-color-body);
+}
+
+.tab {
+  flex: 1 1 0;
+  min-height: 56px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  font-size: 12px;
+  color: var(--mantine-color-dimmed);
+  text-decoration: none;
+}
+
+.tabActive {
+  color: var(--mantine-color-plum-7);
+}
+
+.groupLabel {
+  padding: 12px 10px 4px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--mantine-color-dimmed);
+}
+
+@media (max-width: $mantine-breakpoint-sm) {
+  .side {
+    display: none;
+  }
+  .bottom {
+    display: flex;
+  }
+  .main {
+    padding: var(--mantine-spacing-sm);
+  }
+}

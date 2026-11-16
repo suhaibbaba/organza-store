@@ -59,7 +59,7 @@ export class OutboxService implements OnModuleInit, OnApplicationShutdown {
       .where(
         and(
           isNull(outbox.sentAt),
-          lte(outbox.nextAttemptAt, new Date()),
+          lte(outbox.nextAttemptAt, sql`now()`),
           lte(outbox.attempts, MAX_ATTEMPTS),
         ),
       )

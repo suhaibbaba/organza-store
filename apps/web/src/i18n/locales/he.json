@@ -1,0 +1,76 @@
+{
+  "app": { "name": "אורגנזה" },
+  "common": {
+    "save": "שמירה",
+    "cancel": "ביטול",
+    "close": "סגירה",
+    "edit": "עריכה",
+    "add": "הוספה",
+    "search": "חיפוש",
+    "loading": "טוען…",
+    "retry": "נסו שוב",
+    "yes": "כן",
+    "no": "לא",
+    "active": "פעיל",
+    "inactive": "מושבת",
+    "back": "חזרה",
+    "empty": "אין כאן עדיין כלום"
+  },
+  "nav": {
+    "home": "בית",
+    "today": "היום",
+    "sell": "מכירה",
+    "customers": "לקוחות",
+    "stock": "מלאי",
+    "money": "כספים",
+    "admin": "ניהול",
+    "staff": "צוות",
+    "settings": "הגדרות",
+    "more": "עוד",
+    "searchScreens": "חיפוש מסך"
+  },
+  "roles": { "ADMIN": "מנהל מערכת", "MANAGER": "מנהל", "EMPLOYEE": "עובד" },
+  "account": {
+    "language": "שפה",
+    "signOut": "התנתקות",
+    "version": "גרסה {{version}}",
+    "changePassword": "שינוי סיסמה"
+  },
+  "login": {
+    "title": "כניסה",
+    "email": "אימייל",
+    "password": "סיסמה",
+    "remember": "השאר אותי מחובר במכשיר זה",
+    "submit": "כניסה"
+  },
+  "staff": {
+    "title": "צוות",
+    "new": "איש צוות חדש",
+    "name": "שם",
+    "email": "אימייל",
+    "phone": "טלפון",
+    "role": "תפקיד",
+    "language": "שפה",
+    "status": "סטטוס",
+    "password": "סיסמה",
+    "newPassword": "סיסמה חדשה (רשות)",
+    "edit": "עריכת איש צוות"
+  },
+  "home": { "title": "היום", "welcome": "שלום {{name}}" },
+  "errors": {
+    "generic": "משהו השתבש. נסו שוב.",
+    "offline": "אין חיבור לשרת. נסו שוב.",
+    "VALIDATION": "חלק מהשדות אינם תקינים.",
+    "UNAUTHENTICATED": "החיבור הסתיים. התחברו שוב.",
+    "FORBIDDEN": "אין לך הרשאה לפעולה זו.",
+    "NOT_FOUND": "לא נמצא.",
+    "CONFLICT": "מישהו אחר שינה את זה. רעננו את הדף.",
+    "LOGIN_INVALID": "אימייל או סיסמה שגויים.",
+    "LOGIN_LOCKED": "יותר מדי ניסיונות. נסו שוב בעוד 15 דקות.",
+    "IDEMPOTENCY_KEY_REUSED": "בקשה זו כבר נשלחה עם תוכן שונה.",
+    "STAFF_EMAIL_TAKEN": "איש צוות אחר כבר משתמש באימייל הזה.",
+    "STAFF_LAST_ADMIN": "נדרש לפחות מנהל מערכת פעיל אחד.",
+    "STAFF_SELF_DEACTIVATE": "אי אפשר להשבית את החשבון שלך."
+  },
+  "languages": { "ar": "العربية", "en": "English", "he": "עברית" }
+}

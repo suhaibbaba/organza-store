@@ -1,0 +1,76 @@
+{
+  "app": { "name": "Organza" },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "close": "Close",
+    "edit": "Edit",
+    "add": "Add",
+    "search": "Search",
+    "loading": "Loading…",
+    "retry": "Try again",
+    "yes": "Yes",
+    "no": "No",
+    "active": "Active",
+    "inactive": "Inactive",
+    "back": "Back",
+    "empty": "Nothing here yet"
+  },
+  "nav": {
+    "home": "Home",
+    "today": "Today",
+    "sell": "Sell",
+    "customers": "Customers",
+    "stock": "Stock",
+    "money": "Money",
+    "admin": "Admin",
+    "staff": "Staff",
+    "settings": "Settings",
+    "more": "More",
+    "searchScreens": "Find a screen"
+  },
+  "roles": { "ADMIN": "Admin", "MANAGER": "Manager", "EMPLOYEE": "Employee" },
+  "account": {
+    "language": "Language",
+    "signOut": "Sign out",
+    "version": "Version {{version}}",
+    "changePassword": "Change password"
+  },
+  "login": {
+    "title": "Sign in",
+    "email": "Email",
+    "password": "Password",
+    "remember": "Keep me signed in on this device",
+    "submit": "Sign in"
+  },
+  "staff": {
+    "title": "Staff",
+    "new": "New staff member",
+    "name": "Name",
+    "email": "Email",
+    "phone": "Phone",
+    "role": "Role",
+    "language": "Language",
+    "status": "Status",
+    "password": "Password",
+    "newPassword": "New password (optional)",
+    "edit": "Edit staff member"
+  },
+  "home": { "title": "Today", "welcome": "Hello {{name}}" },
+  "errors": {
+    "generic": "Something went wrong. Please try again.",
+    "offline": "Cannot reach the server. Please try again.",
+    "VALIDATION": "Some fields are not valid.",
+    "UNAUTHENTICATED": "Your session ended. Please sign in again.",
+    "FORBIDDEN": "You are not allowed to do this.",
+    "NOT_FOUND": "Not found.",
+    "CONFLICT": "Someone else changed this. Refresh the page.",
+    "LOGIN_INVALID": "Wrong email or password.",
+    "LOGIN_LOCKED": "Too many attempts. Try again in 15 minutes.",
+    "IDEMPOTENCY_KEY_REUSED": "This request was already sent with different content.",
+    "STAFF_EMAIL_TAKEN": "Another staff member already uses this email.",
+    "STAFF_LAST_ADMIN": "At least one active admin is required.",
+    "STAFF_SELF_DEACTIVATE": "You cannot deactivate your own account."
+  },
+  "languages": { "ar": "العربية", "en": "English", "he": "עברית" }
+}

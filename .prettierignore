@@ -2,3 +2,4 @@ pnpm-lock.yaml
 docs/
 **/drizzle/*.sql
 **/migrations/*.sql
+apps/web/dist/
