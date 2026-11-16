@@ -10,6 +10,28 @@ const ADMIN: Role[] = ['ADMIN'];
  * table. ADMIN is allowed everything regardless of this list.
  */
 export const CAPABILITIES = {
+  // Catalogue
+  'products.view': ALL,
+  'products.create': ALL,
+  'products.edit': ALL,
+  /** Price changes by employees go through approval (phase 3); direct for managers. */
+  'products.editPrice': MANAGERS,
+  /** Cost and profit are Admin only (proposal C12). */
+  'products.viewCost': ADMIN,
+  'products.hide': MANAGERS,
+  'products.archive': MANAGERS,
+  'images.upload': ALL,
+  'images.delete': MANAGERS,
+  'catalogue.manage': MANAGERS,
+  'labels.print': ALL,
+  // Stock
+  'stock.view': ALL,
+  'stock.adjust': MANAGERS,
+  'stock.count': MANAGERS,
+  'stock.history': MANAGERS,
+  // Ledger
+  'ledger.view': ADMIN,
+  'ledger.manualEntry': ADMIN,
   // Own account (every signed-in user)
   'account.self': ALL,
   // Admin

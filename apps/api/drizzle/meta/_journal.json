@@ -29,6 +29,27 @@
       "when": 1794835513750,
       "tag": "0003_settings_guards",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1794835869514,
+      "tag": "0004_catalogue_stock_ledger",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1794835869852,
+      "tag": "0005_catalogue_stock_ledger_guards",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1794835953938,
+      "tag": "0006_pending_images",
+      "breakpoints": true
     }
   ]
 }

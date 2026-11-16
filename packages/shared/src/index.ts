@@ -5,3 +5,7 @@ export * from './capabilities.js';
 export * from './schemas/common.js';
 export * from './schemas/auth.js';
 export * from './schemas/settings.js';
+export * from './ledger.js';
+export * from './search.js';
+export * from './barcode.js';
+export * from './schemas/catalogue.js';

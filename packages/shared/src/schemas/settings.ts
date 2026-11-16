@@ -33,6 +33,8 @@ export const shopSettingsSchema = z.object({
   phone: z.string().max(40).default(''),
   address: translatableOptional,
   receiptFooter: translatableOptional,
+  /** The shop's day for business dates (reports, shifts, journal dates). */
+  timezone: z.string().default('Asia/Hebron'),
   defaultCountryCode: z
     .string()
     .regex(/^\+\d{1,4}$/)

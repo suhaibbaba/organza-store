@@ -15,7 +15,7 @@ export interface TestContext {
 export async function createTestContext(): Promise<TestContext> {
   const moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
   const app = moduleRef.createNestApplication<NestFastifyApplication>(createFastifyAdapter(), {
-    logger: false,
+    logger: process.env.TEST_LOG ? ['error'] : false,
   });
   await configureApp(app);
   await app.init();
