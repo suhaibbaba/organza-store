@@ -8,6 +8,8 @@ import {
   normalizeBarcode,
   normalizeSearch,
   type productListQuerySchema,
+  type quickSellReviewSchema,
+  type quickSellSchema,
   type ProductSummary,
   type ProductView,
   skuFor,
@@ -98,6 +100,71 @@ export class ProductsService {
       (tx) => this.createWithin(tx, actor, input),
     );
     return this.get(result.id, actor);
+  }
+
+  /**
+   * Quick sell: a regular product with a name, a price and the pieces in hand, no category yet.
+   * It sells at once and waits in "needs completing" for a manager.
+   */
+  async quickSell(actor: Actor, input: z.output<typeof quickSellSchema>): Promise<ProductView> {
+    const { result } = await this.idempotency.run(
+      'products.quickSell',
+      input.idempotencyKey,
+      actor.id,
+      input,
+      (tx) =>
+        this.createWithin(
+          tx,
+          actor,
+          {
+            type: 'REGULAR',
+            name: input.name,
+            description: {},
+            price: input.price,
+            stock: input.quantity,
+            imageIds: [],
+            idempotencyKey: input.idempotencyKey,
+          } as unknown as CreateInput,
+          { quickSell: true, categoryOptional: true },
+        ),
+    );
+    return this.get(result.id, actor);
+  }
+
+  /** A manager closes the review: completed (it has a category now) or kept as a one-off. */
+  async reviewQuickSell(
+    actor: Actor,
+    id: string,
+    input: z.output<typeof quickSellReviewSchema>,
+  ): Promise<ProductView> {
+    await inTransaction(this.db, async (tx) => {
+      const [before] = await tx.select().from(products).where(eq(products.id, id)).for('update');
+      if (!before) throw notFound('Product');
+      if (!before.quickSoldAt || before.completedAt || before.oneOffAt)
+        throw conflict(CATALOGUE_ERRORS.NOT_QUICK_SOLD, 'Nothing to review on this product');
+      if (before.version !== input.version)
+        throw conflict(CATALOGUE_ERRORS.STALE_VERSION, 'Someone else changed this product', {
+          version: before.version,
+        });
+      if (input.outcome === 'COMPLETED' && !before.categoryId)
+        throw badRequest(CATALOGUE_ERRORS.CATEGORY_REQUIRED, 'Choose a category first');
+      const now = new Date();
+      await tx
+        .update(products)
+        .set({
+          ...(input.outcome === 'COMPLETED' ? { completedAt: now } : { oneOffAt: now }),
+          version: before.version + 1,
+          updatedAt: now,
+        })
+        .where(eq(products.id, id));
+      await this.audit.record(tx, {
+        userId: actor.id,
+        action: input.outcome === 'COMPLETED' ? 'QUICK_SELL_COMPLETED' : 'QUICK_SELL_ONE_OFF',
+        entity: 'product',
+        entityId: id,
+      });
+    });
+    return this.get(id, actor);
   }
 
   async createWithin(

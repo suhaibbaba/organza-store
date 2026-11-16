@@ -23,6 +23,10 @@ export const CAPABILITIES = {
   'images.upload': ALL,
   'images.delete': MANAGERS,
   'catalogue.manage': MANAGERS,
+  /** Quick sell at the till (proposal B: a name and a price). */
+  'products.quickSell': ALL,
+  /** Closing the review of a quick-sold product. */
+  'products.reviewQuickSell': MANAGERS,
   'labels.print': ALL,
   // Stock
   'stock.view': ALL,

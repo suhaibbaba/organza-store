@@ -9,6 +9,8 @@ import {
   optionTypeInputSchema,
   optionValueInputSchema,
   productListQuerySchema,
+  quickSellReviewSchema,
+  quickSellSchema,
   type ProductView,
   roleCan,
   setItemCostSchema,
@@ -132,6 +134,26 @@ export class CatalogueController {
     @Body(zod(createProductSchema)) body: z.output<typeof createProductSchema>,
   ): Promise<ProductView> {
     return this.products.create(actor, body);
+  }
+
+  /** Quick sell at the till: makes a product with just a name and a price, ready to sell. */
+  @Can('products.quickSell')
+  @Post('products/quick-sell')
+  quickSell(
+    @CurrentUser() actor: Actor,
+    @Body(zod(quickSellSchema)) body: z.output<typeof quickSellSchema>,
+  ): Promise<ProductView> {
+    return this.products.quickSell(actor, body);
+  }
+
+  @Can('products.reviewQuickSell')
+  @Post('products/:id/quick-sell-review')
+  reviewQuickSell(
+    @CurrentUser() actor: Actor,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body(zod(quickSellReviewSchema)) body: z.output<typeof quickSellReviewSchema>,
+  ): Promise<ProductView> {
+    return this.products.reviewQuickSell(actor, id, body);
   }
 
   @Can('products.edit')

@@ -46,8 +46,8 @@ export const countLinesSchema = z.object({ lines: z.array(countLineSchema).min(1
 export const stockListQuerySchema = z.object({
   q: z.string().trim().max(100).optional(),
   categoryId: z.uuid().optional(),
-  lowStock: z.coerce.boolean().optional(),
-  damaged: z.coerce.boolean().optional(),
+  lowStock: z.stringbool().optional(),
+  damaged: z.stringbool().optional(),
   page: z.coerce.number().int().min(1).default(1),
   pageSize: z.coerce.number().int().min(1).max(200).default(50),
 });

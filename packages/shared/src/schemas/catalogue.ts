@@ -138,14 +138,30 @@ export const archiveProductSchema = z.object({
   reason: z.string().trim().max(500).optional(),
 });
 
+/** Quick sell at the till: a name and a price; the product is completed later by a manager. */
+export const quickSellSchema = z.object({
+  idempotencyKey: idempotencyKeySchema,
+  name: translatableSchema,
+  price: nonNegativeMoneySchema,
+  /** Pieces in hand, all about to be sold. */
+  quantity: z.number().int().min(1).max(100).default(1),
+});
+export type QuickSellInput = z.input<typeof quickSellSchema>;
+
+/** Closes a quick-sold product's review: completed (has a category) or kept as a one-off. */
+export const quickSellReviewSchema = z.object({
+  version: z.number().int().min(1),
+  outcome: z.enum(['COMPLETED', 'ONE_OFF']),
+});
+
 export const productListQuerySchema = z.object({
   q: z.string().trim().max(100).optional(),
   categoryId: z.uuid().optional(),
   status: z.enum(['ACTIVE', 'HIDDEN', 'ARCHIVED', 'ALL']).default('ACTIVE'),
   type: z.enum(['REGULAR', 'VARIANT', 'NUMBERED']).optional(),
-  lowStock: z.coerce.boolean().optional(),
-  needsCompletion: z.coerce.boolean().optional(),
-  labelsPending: z.coerce.boolean().optional(),
+  lowStock: z.stringbool().optional(),
+  needsCompletion: z.stringbool().optional(),
+  labelsPending: z.stringbool().optional(),
   page: z.coerce.number().int().min(1).default(1),
   pageSize: z.coerce.number().int().min(1).max(100).default(30),
 });
