@@ -275,6 +275,8 @@ export const checkoutLineSchema = z.object({
   unitPrice: nonNegativeMoneySchema,
   /** Discount on the whole line, in the default currency. */
   discount: nonNegativeMoneySchema.default('0.00'),
+  /** A giveaway (Admin/Manager): free to the customer, its cost booked as a promotion. */
+  giveaway: z.boolean().default(false),
 });
 
 export const checkoutSchema = z.object({
@@ -291,6 +293,8 @@ export const checkoutSchema = z.object({
   overpayment: z.enum(['CHANGE', 'CREDIT']).default('CHANGE'),
   /** The same cart was sold by this cashier within a minute; true saves it anyway. */
   confirmDuplicate: z.boolean().default(false),
+  /** A gift purchase: a gift receipt without prices can be printed. */
+  giftReceipt: z.boolean().default(false),
   note: z.string().trim().max(500).optional(),
 });
 export type CheckoutInput = z.input<typeof checkoutSchema>;
@@ -324,6 +328,81 @@ export const cancelHeldSchema = z.object({
   reason: z.string().trim().min(3).max(500),
 });
 
+export const RETURN_CONDITIONS = ['SHELF', 'DAMAGED'] as const;
+export type ReturnCondition = (typeof RETURN_CONDITIONS)[number];
+export const RETURN_SETTLEMENTS = ['REFUND', 'CREDIT'] as const;
+export type ReturnSettlement = (typeof RETURN_SETTLEMENTS)[number];
+export type ReturnKind = 'RETURN' | 'EXCHANGE' | 'VOID';
+export const REFUND_METHODS = ['CASH', 'CARD', 'BANK_TRANSFER'] as const;
+
+const settlementFields = {
+  idempotencyKey: idempotencyKeySchema,
+  /** The till's open shift: cash refunds come out of it, exchanges are sold on it. */
+  shiftId: uuidSchema.optional(),
+  /**
+   * What happens to money already paid for the goods once any debt on the sale is cleared:
+   * paid back (method defaults to how the sale was paid) or kept as store credit.
+   */
+  settlement: z.enum(RETURN_SETTLEMENTS).default('REFUND'),
+  refundMethod: z.enum(REFUND_METHODS).optional(),
+  reason: z.string().trim().min(3).max(500),
+};
+
+export const returnLineSchema = z.object({
+  lineId: uuidSchema,
+  quantity: z.number().int().min(1).max(10_000),
+  condition: z.enum(RETURN_CONDITIONS).default('SHELF'),
+});
+
+export const createReturnSchema = z.object({
+  ...settlementFields,
+  saleId: uuidSchema,
+  lines: z.array(returnLineSchema).min(1).max(200),
+  /** New goods for an exchange; the returned value pays for them first. */
+  exchange: z
+    .object({
+      lines: z.array(checkoutLineSchema).min(1).max(200),
+      cartDiscount: nonNegativeMoneySchema.default('0.00'),
+      payments: z.array(paymentInputSchema).max(10).default([]),
+    })
+    .optional(),
+});
+export type CreateReturnInput = z.input<typeof createReturnSchema>;
+
+/** A manager reverses a completed sale: everything not yet returned comes back to the shelf. */
+export const voidSaleSchema = z.object(settlementFields);
+export type VoidSaleInput = z.input<typeof voidSaleSchema>;
+
+export interface ReturnLineView {
+  id: string;
+  saleLineId: string;
+  name: Translatable;
+  variantLabel: Translatable | null;
+  quantity: number;
+  condition: ReturnCondition;
+  value: string;
+}
+
+export interface ReturnView {
+  id: string;
+  number: string;
+  kind: ReturnKind;
+  sale: { id: string; number: string };
+  customer: { id: string; name: string } | null;
+  createdAt: string;
+  createdBy: string;
+  approvedBy: string | null;
+  value: string;
+  debtReduced: string;
+  toExchange: string;
+  refunded: string;
+  refundMethod: PaymentMethod | null;
+  toCredit: string;
+  exchangeSale: { id: string; number: string; total: string } | null;
+  reason: string;
+  lines: ReturnLineView[];
+}
+
 export const saleListQuerySchema = paginationSchema.extend({
   q: z.string().trim().max(100).optional(),
   customerId: uuidSchema.optional(),
@@ -355,6 +434,9 @@ export interface SaleLineView {
   discount: string;
   lineTotal: string;
   handedOver: number;
+  /** Pieces already brought back. */
+  returned: number;
+  giveaway: boolean;
   imageUrl: string | null;
 }
 
@@ -392,8 +474,10 @@ export interface SaleView {
   subtotal: string;
   discountTotal: string;
   total: string;
+  /** The value of the goods returned so far; what is due is total minus this. */
+  returnedTotal: string;
   paid: string;
-  /** Total minus paid. */
+  /** Total minus returned minus paid. */
   owed: string;
   paymentState: PaymentState;
   payments: PaymentView[];
@@ -406,6 +490,10 @@ export interface SaleView {
   cancelReason: string | null;
   cancelOutcome: string | null;
   heldDays: number | null;
+  giftReceipt: boolean;
+  returns: { id: string; number: string; kind: ReturnKind; value: string; createdAt: string }[];
+  /** The sale an exchange came from, when this sale is the new half of one. */
+  exchangeOf: { returnId: string; saleId: string; saleNumber: string } | null;
   /** True when this response replays a checkout already saved under the same key. */
   replayed?: boolean;
 }
@@ -419,6 +507,7 @@ export interface SaleSummary {
   mode: FulfilmentMode;
   fulfilment: FulfilmentStatus;
   total: string;
+  returnedTotal: string;
   paid: string;
   owed: string;
   paymentState: PaymentState;

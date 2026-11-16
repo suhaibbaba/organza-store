@@ -2,17 +2,49 @@ import { Body, Controller, Get, Param, ParseUUIDPipe, Post, Query } from '@nestj
 import {
   cancelHeldSchema,
   checkoutSchema,
+  createReturnSchema,
+  voidSaleSchema,
   handoverSchema,
   saleListQuerySchema,
 } from '@organza/shared';
 import type { z } from 'zod';
 import { type Actor, Can, CurrentUser } from '../../../common/decorators/auth.decorators.js';
 import { zod } from '../../../common/lib/zod-pipe.js';
+import { ReturnsService } from '../services/returns.service.js';
 import { SalesService } from '../services/sales.service.js';
 
 @Controller('sales')
 export class SalesController {
-  constructor(private readonly sales: SalesService) {}
+  constructor(
+    private readonly sales: SalesService,
+    private readonly returns: ReturnsService,
+  ) {}
+
+  @Can('sales.return')
+  @Post('returns')
+  createReturn(
+    @CurrentUser() actor: Actor,
+    @Body(zod(createReturnSchema)) body: z.output<typeof createReturnSchema>,
+  ) {
+    return this.returns.create(actor, body);
+  }
+
+  @Can('sales.view')
+  @Get('returns/:id')
+  getReturn(@Param('id', ParseUUIDPipe) id: string) {
+    return this.returns.get(id);
+  }
+
+  /** Managers void directly; others are refused here and ask through the approvals inbox. */
+  @Can('sales.return')
+  @Post(':id/void')
+  voidSale(
+    @CurrentUser() actor: Actor,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body(zod(voidSaleSchema)) body: z.output<typeof voidSaleSchema>,
+  ) {
+    return this.returns.voidSale(actor, id, body);
+  }
 
   @Can('sales.view')
   @Get()

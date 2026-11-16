@@ -53,6 +53,7 @@ import {
   products,
   saleHandovers,
   saleLines,
+  saleReturns,
   sales,
   shifts,
   users,
@@ -117,10 +118,16 @@ export class SalesService {
     return replayed ? { ...view, replayed: true } : view;
   }
 
-  private async checkoutWithin(
+  /**
+   * The checkout itself, inside the caller's transaction. `credit` is value the customer already
+   * has towards this sale from an exchange: it pays the sale before any tender, and the caller
+   * moves it over (`credited` in the result).
+   */
+  async checkoutWithin(
     tx: Transaction,
     actor: Actor,
     input: z.output<typeof checkoutSchema>,
+    opts: { credit?: string } = {},
   ) {
     const shopSettings = await this.settings.get(tx);
     const defaultCurrency = await this.currencies.defaultCode(tx);
@@ -153,8 +160,16 @@ export class SalesService {
         items: changed,
       });
 
+    if (input.lines.some((l) => l.giveaway) && !roleCan(actor.role, 'sales.giveaway'))
+      throw forbidden(SALES_ERRORS.GIVEAWAY_NEEDS_MANAGER, 'Giveaways need a manager');
+    if (input.lines.some((l) => l.giveaway) && input.mode === 'HELD')
+      throw badRequest(SALES_ERRORS.GIVEAWAY_NOT_HELD, 'Giveaways are handed over at once');
     const priced = input.lines.map((l) => {
-      const price = catalogue.get(l.itemId)!.price;
+      const price = l.giveaway ? '0.00' : catalogue.get(l.itemId)!.price;
+      if (l.giveaway && compareMoney(l.discount, 0) > 0)
+        throw badRequest(SALES_ERRORS.DISCOUNT_TOO_LARGE, 'A giveaway has no discount', {
+          itemId: l.itemId,
+        });
       const gross = multiplyMoney(price, l.quantity);
       if (compareMoney(l.discount, gross) > 0)
         throw badRequest(SALES_ERRORS.DISCOUNT_TOO_LARGE, 'Discount above the line value', {
@@ -184,11 +199,12 @@ export class SalesService {
 
     if (!input.confirmDuplicate) await this.assertNotDuplicate(tx, actor, total, input.lines);
 
+    const credited = opts.credit ? minMoney(opts.credit, total) : '0.00';
     const tendered: PricedPayment[] = [];
     for (const p of input.payments)
       tendered.push(await this.payments.price(tx, p, defaultCurrency));
     const tenderedTotal = addMoney('0', ...tendered.map((p) => p.amountDefault));
-    const excess = addMoney(tenderedTotal, neg(total));
+    const excess = addMoney(tenderedTotal, credited, neg(total));
     let change = '0.00';
     let kept = '0.00';
     if (compareMoney(excess, 0) > 0) {
@@ -240,6 +256,7 @@ export class SalesService {
         subtotal,
         discountTotal,
         total,
+        giftReceipt: input.giftReceipt,
         note: input.note ?? null,
         createdBy: actor.id,
       })
@@ -261,8 +278,8 @@ export class SalesService {
         lines: lines.map((l) => ({
           itemId: l.itemId,
           quantity: -l.quantity,
-          reason: 'SALE',
-          counterAccount: 'COGS',
+          reason: l.giveaway ? 'GIFT' : 'SALE',
+          counterAccount: l.giveaway ? 'PROMOTIONS' : 'COGS',
         })),
       });
       for (const m of applied.movements)
@@ -291,6 +308,7 @@ export class SalesService {
           lineTotal: l.lineTotal,
           unitCost: costs.get(l.itemId)?.unitCost ?? null,
           costUnknown: costs.get(l.itemId)?.costUnknown ?? false,
+          giveaway: l.giveaway,
         };
       }),
     );
@@ -312,7 +330,7 @@ export class SalesService {
 
     // Payments in the order given; each pays the sale until it is covered. A held sale's
     // payments are deposits (customer credit for that sale) until hand-over.
-    let due = total;
+    let due = addMoney(total, neg(credited));
     const saleAccount = input.mode === 'TAKEN' ? 'CUSTOMER_RECEIVABLES' : 'CUSTOMER_CREDIT';
     for (const p of tendered) {
       const allocated = minMoney(p.amountDefault, due);
@@ -372,15 +390,18 @@ export class SalesService {
         change,
         kept,
         owed,
+        credited,
+        giftReceipt: input.giftReceipt,
         lines: lines.map((l) => ({
           itemId: l.itemId,
           quantity: l.quantity,
           price: l.price,
           discount: l.discount,
+          giveaway: l.giveaway,
         })),
       },
     });
-    return { id: saleId, number };
+    return { id: saleId, number, credited, total };
   }
 
   /** Same cashier, same cart, same total within a minute: ask before saving it again. */
@@ -654,6 +675,7 @@ export class SalesService {
         number: sales.number,
         createdAt: sales.createdAt,
         total: sales.total,
+        returnedTotal: sales.returnedTotal,
         mode: sales.fulfilmentMode,
         paid: sql<string>`coalesce((select sum(a.amount) from payment_allocations a where a.sale_id = ${sql.raw('sales.id')}), 0)::text`,
         receivable: sql<string>`coalesce((select sum(l.amount) from journal_lines l where l.account = 'CUSTOMER_RECEIVABLES' and l.party_type = 'CUSTOMER' and l.party_id = ${customerId} and l.dimension = ${sql.raw('sales.id')}::text), 0)::text`,
@@ -670,7 +692,7 @@ export class SalesService {
     return rows
       .map((r) => ({
         ...r,
-        open: addMoney(r.total, neg(r.paid)),
+        open: addMoney(r.total, neg(r.returnedTotal), neg(r.paid)),
         receivable: addMoney(r.receivable),
       }))
       .filter((r) => compareMoney(r.open, 0) > 0);
@@ -994,8 +1016,25 @@ export class SalesService {
       ...atCheckout.map((p) => addMoney(p.amountDefault, neg(p.allocated ?? '0'))),
       neg(change),
     );
-    const owed = s.status === 'COMPLETED' ? addMoney(s.total, neg(paid)) : '0.00';
+    const due = addMoney(s.total, neg(s.returnedTotal));
+    const owed = s.status === 'COMPLETED' ? addMoney(due, neg(paid)) : '0.00';
     const held = s.status === 'COMPLETED' && s.fulfilmentStatus !== 'FULFILLED';
+    const returnRows = await executor
+      .select({
+        id: saleReturns.id,
+        number: saleReturns.number,
+        kind: saleReturns.kind,
+        value: saleReturns.value,
+        createdAt: saleReturns.createdAt,
+      })
+      .from(saleReturns)
+      .where(eq(saleReturns.saleId, id))
+      .orderBy(asc(saleReturns.createdAt));
+    const [origin] = await executor
+      .select({ returnId: saleReturns.id, saleId: sales.id, saleNumber: sales.number })
+      .from(saleReturns)
+      .innerJoin(sales, eq(sales.id, saleReturns.saleId))
+      .where(eq(saleReturns.exchangeSaleId, id));
     return {
       id: s.id,
       number: s.number,
@@ -1022,14 +1061,17 @@ export class SalesService {
         discount: l.discount,
         lineTotal: l.lineTotal,
         handedOver: l.handedOver,
+        returned: l.returned,
+        giveaway: l.giveaway,
         imageUrl: image ? `/uploads/${image}-thumbnail.webp` : null,
       })),
       subtotal: s.subtotal,
       discountTotal: s.discountTotal,
       total: s.total,
+      returnedTotal: s.returnedTotal,
       paid,
       owed,
-      paymentState: paymentState(s.total, paid),
+      paymentState: paymentState(due, paid),
       payments: paymentRows,
       change,
       creditKept: compareMoney(creditKept, 0) > 0 ? creditKept : '0.00',
@@ -1038,11 +1080,15 @@ export class SalesService {
       cancelReason: s.cancelReason,
       cancelOutcome: s.cancelOutcome,
       heldDays: held ? daysSince(s.createdAt) : null,
+      giftReceipt: s.giftReceipt,
+      returns: returnRows.map((r) => ({ ...r, createdAt: r.createdAt.toISOString() })),
+      exchangeOf: origin ?? null,
     };
   }
 
   async list(query: z.output<typeof saleListQuerySchema>): Promise<Page<SaleSummary>> {
     const paid = sql<string>`coalesce((select sum(a.amount) from payment_allocations a where a.sale_id = ${sql.raw('sales.id')}), 0)`;
+    const due = sql`(${sales.total} - ${sales.returnedTotal})`;
     const where: (SQL | undefined)[] = [
       query.customerId ? eq(sales.customerId, query.customerId) : undefined,
       query.shiftId ? eq(sales.shiftId, query.shiftId) : undefined,
@@ -1054,15 +1100,15 @@ export class SalesService {
             inArray(sales.fulfilmentStatus, ['HELD', 'PARTLY_HANDED']),
           )
         : undefined,
-      query.state === 'PAID' ? sql`${paid} >= ${sales.total}` : undefined,
+      query.state === 'PAID' ? sql`${paid} >= ${due}` : undefined,
       query.state === 'UNPAID'
-        ? and(sql`${paid} = 0`, sql`${sales.total} > 0`, eq(sales.status, 'COMPLETED'))
+        ? and(sql`${paid} = 0`, sql`${due} > 0`, eq(sales.status, 'COMPLETED'))
         : undefined,
       query.state === 'PARTLY_PAID'
-        ? and(sql`${paid} > 0`, sql`${paid} < ${sales.total}`, eq(sales.status, 'COMPLETED'))
+        ? and(sql`${paid} > 0`, sql`${paid} < ${due}`, eq(sales.status, 'COMPLETED'))
         : undefined,
       query.state === 'OWED'
-        ? and(sql`${paid} < ${sales.total}`, eq(sales.status, 'COMPLETED'))
+        ? and(sql`${paid} < ${due}`, eq(sales.status, 'COMPLETED'))
         : undefined,
     ];
     if (query.q) {
@@ -1092,6 +1138,7 @@ export class SalesService {
     return {
       items: rows.map(({ sale: s, customerName, paid: p, itemCount }) => {
         const paidAmount = addMoney(p);
+        const saleDue = addMoney(s.total, neg(s.returnedTotal));
         const held = s.status === 'COMPLETED' && s.fulfilmentStatus !== 'FULFILLED';
         return {
           id: s.id,
@@ -1102,9 +1149,10 @@ export class SalesService {
           mode: s.fulfilmentMode,
           fulfilment: s.fulfilmentStatus,
           total: s.total,
+          returnedTotal: s.returnedTotal,
           paid: paidAmount,
-          owed: s.status === 'COMPLETED' ? addMoney(s.total, neg(paidAmount)) : '0.00',
-          paymentState: paymentState(s.total, paidAmount),
+          owed: s.status === 'COMPLETED' ? addMoney(saleDue, neg(paidAmount)) : '0.00',
+          paymentState: paymentState(saleDue, paidAmount),
           itemCount,
           imported: s.imported,
           heldDays: held ? daysSince(s.createdAt) : null,

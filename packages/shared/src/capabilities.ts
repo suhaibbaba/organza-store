@@ -44,6 +44,12 @@ export const CAPABILITIES = {
   'sales.keepDeposit': MANAGERS,
   /** Discounts above the employee limit in Settings. */
   'sales.bigDiscount': MANAGERS,
+  /** Returns, exchanges and returns to credit (proposal C12: direct for everyone). */
+  'sales.return': ALL,
+  /** Voiding a completed sale; employees ask through the approvals inbox. */
+  'sales.void': MANAGERS,
+  /** Free giveaway lines (proposal C11). */
+  'sales.giveaway': MANAGERS,
   'payments.receive': ALL,
   /** Refunds above the employee limit in Settings (decision H6). */
   'refunds.aboveLimit': MANAGERS,

@@ -202,6 +202,10 @@ export const sales = pgTable(
     note: text('note'),
     /** Imported from the old system: shown in history, never posted to the ledger. */
     imported: boolean('imported').notNull().default(false),
+    /** The value of the lines returned so far; what is due is total minus this. */
+    returnedTotal: money('returned_total').notNull().default('0'),
+    /** A gift purchase: the gift receipt prints without prices. */
+    giftReceipt: boolean('gift_receipt').notNull().default(false),
     createdBy: uuid('created_by').references(() => users.id),
     createdAt: createdAt(),
     cancelledAt: timestamp('cancelled_at', { withTimezone: true }),
@@ -241,6 +245,10 @@ export const saleLines = pgTable(
     unitCost: numeric('unit_cost', { precision: 14, scale: 4 }),
     costUnknown: boolean('cost_unknown').notNull().default(false),
     handedOver: integer('handed_over').notNull().default(0),
+    /** Pieces brought back by returns, exchanges or a void. */
+    returned: integer('returned').notNull().default(0),
+    /** A giveaway: free to the customer, its cost booked as a promotion. */
+    giveaway: boolean('giveaway').notNull().default(false),
   },
   (t) => [index('sale_lines_sale_idx').on(t.saleId), index('sale_lines_item_idx').on(t.itemId)],
 );
@@ -338,4 +346,68 @@ export const paymentAllocations = pgTable(
     index('payment_allocations_payment_idx').on(t.paymentId),
     index('payment_allocations_sale_idx').on(t.saleId),
   ],
+);
+
+export const returnKind = pgEnum('return_kind', ['RETURN', 'EXCHANGE', 'VOID']);
+export const returnCondition = pgEnum('return_condition', ['SHELF', 'DAMAGED']);
+
+/**
+ * Goods brought back against a sale's lines (proposal C6). An exchange is the same document
+ * with the new sale it paid towards; a void returns everything left on the sale. The value
+ * returned first clears what was still owed on the sale; the rest went to the new sale, back
+ * to the customer, or to store credit.
+ */
+export const saleReturns = pgTable(
+  'sale_returns',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    number: text('number').notNull().unique(),
+    kind: returnKind('kind').notNull(),
+    saleId: uuid('sale_id')
+      .notNull()
+      .references(() => sales.id),
+    customerId: uuid('customer_id').references(() => customers.id),
+    shiftId: uuid('shift_id').references(() => shifts.id),
+    businessDate: date('business_date').notNull(),
+    value: money('value').notNull(),
+    debtReduced: money('debt_reduced').notNull().default('0'),
+    toExchange: money('to_exchange').notNull().default('0'),
+    refunded: money('refunded').notNull().default('0'),
+    refundMethod: paymentMethod('refund_method'),
+    toCredit: money('to_credit').notNull().default('0'),
+    exchangeSaleId: uuid('exchange_sale_id').references(() => sales.id),
+    reason: text('reason').notNull(),
+    createdBy: uuid('created_by')
+      .notNull()
+      .references(() => users.id),
+    /** A manager who approved it in place or from the approvals inbox. */
+    approvedBy: uuid('approved_by').references(() => users.id),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    index('sale_returns_sale_idx').on(t.saleId),
+    index('sale_returns_shift_idx').on(t.shiftId),
+    index('sale_returns_date_idx').on(t.businessDate),
+  ],
+);
+
+export const saleReturnLines = pgTable(
+  'sale_return_lines',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    returnId: uuid('return_id')
+      .notNull()
+      .references(() => saleReturns.id),
+    saleLineId: uuid('sale_line_id')
+      .notNull()
+      .references(() => saleLines.id),
+    itemId: uuid('item_id').references(() => items.id),
+    quantity: integer('quantity').notNull(),
+    condition: returnCondition('condition').notNull(),
+    /** Price times quantity, the discount share, and what the customer had paid for them. */
+    gross: money('gross').notNull(),
+    discount: money('discount').notNull(),
+    value: money('value').notNull(),
+  },
+  (t) => [index('sale_return_lines_return_idx').on(t.returnId)],
 );

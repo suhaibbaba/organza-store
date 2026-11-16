@@ -724,7 +724,7 @@ describe('sales, payments and shifts', () => {
       expect(sum).toBe(0);
       const [owed] = await ctx.db
         .select({
-          total: sql<string>`coalesce(sum(s.total - coalesce((select sum(a.amount) from payment_allocations a where a.sale_id = s.id),0)),0)::text`,
+          total: sql<string>`coalesce(sum(s.total - s.returned_total - coalesce((select sum(a.amount) from payment_allocations a where a.sale_id = s.id),0)),0)::text`,
         })
         .from(sql`sales s`)
         .where(
