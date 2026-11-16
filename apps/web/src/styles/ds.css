@@ -235,7 +235,7 @@
 }
 .ds-wash {
   background-image: var(--o-wash);
-  color: var(--o-primary-900);
+  color: var(--o-brand-ink);
 }
 .ds-divider-top {
   border-top: 1px solid var(--o-line);

@@ -44,7 +44,7 @@
   font-size: 19px;
   font-weight: 700;
   letter-spacing: 0.22em;
-  color: var(--o-primary-900);
+  color: var(--o-brand-ink);
 }
 
 .navList {
@@ -129,7 +129,7 @@
 }
 .navActive .navCount {
   background: #ffffff;
-  color: var(--o-primary-700);
+  color: var(--o-brand);
 }
 
 .userSlot {
