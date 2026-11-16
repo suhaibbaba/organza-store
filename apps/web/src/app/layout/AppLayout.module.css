@@ -20,17 +20,13 @@
   padding: calc(var(--organza-safe-top) + 20px) 18px 18px;
 }
 
+/* The logo sits on the rail itself, at the reading start, with no box (as in the clinic). */
 .brand {
   display: flex;
   align-items: center;
-  justify-content: center;
   gap: 12px;
   flex-shrink: 0;
-  margin-bottom: 22px;
-  padding: 10px 16px;
-  border: 1px solid var(--o-line);
-  border-radius: 16px;
-  background: #ffffff;
+  margin: 0 4px 22px;
   text-decoration: none;
 }
 .brandMark {
@@ -54,33 +50,13 @@
   margin-inline: -18px;
   padding-inline: 18px;
 }
-.sep {
-  margin: 14px 4px;
-  border: 0;
-  border-top: 1px solid var(--o-line);
-}
-.groupLabel {
-  padding: 4px 12px 8px;
-  font-size: 12px;
-  line-height: 16px;
-  font-weight: 500;
-  letter-spacing: 0.02em;
-  color: var(--o-ink-subtle);
-}
-:global([dir='ltr']) .groupLabel {
-  text-transform: uppercase;
-}
-.items {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
 .navItem {
   display: flex;
+  width: 100%;
   align-items: center;
   gap: 11px;
-  min-height: 36px;
-  padding: 0 12px;
+  min-height: 44px;
+  padding: 4px 8px;
   margin-bottom: 2px;
   border-radius: 11px;
   font-size: 14px;
@@ -94,17 +70,108 @@
     box-shadow 150ms;
 }
 .navItem:hover {
-  background: var(--o-primary-100);
-  color: var(--o-primary-700);
+  background: var(--o-inset);
+  color: var(--o-ink);
+}
+/* An open section, or the section holding the current screen. */
+.navItem[data-current] {
+  background: var(--o-inset);
+  color: var(--o-ink);
+}
+.navActive .tile {
+  background: rgb(255 255 255 / 0.18);
+  color: #ffffff;
+}
+
+/* The tinted icon tile of each row. */
+.tile {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border-radius: 9px;
+}
+.tile[data-tone='brand'] {
+  background: #e3efed;
+  color: #235c63;
+}
+.tile[data-tone='blue'] {
+  background: #e1eef5;
+  color: #1b6f97;
+}
+.tile[data-tone='mint'] {
+  background: #dcf3ec;
+  color: #1e7a62;
+}
+.tile[data-tone='ochre'] {
+  background: #fbf1da;
+  color: #8f6206;
+}
+.tile[data-tone='violet'] {
+  background: #ede8f8;
+  color: #5b3ea6;
+}
+.tile[data-tone='brick'] {
+  background: #fce8e6;
+  color: #a03b31;
+}
+.tile[data-tone='slate'] {
+  background: #e9f0f2;
+  color: #4e6975;
+}
+
+.chevron {
+  margin-inline-start: auto;
+  flex-shrink: 0;
+  color: var(--o-ink-faint);
+  transition: transform 200ms;
+}
+.navItem[data-open] .chevron {
+  transform: rotate(180deg);
+}
+
+/* A section's links: indented under a guide line, text only. */
+.children {
+  list-style: none;
+  margin: 2px 0 6px;
+  padding: 0;
+  margin-inline-start: 23px;
+  padding-inline-start: 12px;
+  border-inline-start: 1px solid var(--o-line);
+}
+.child {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  padding: 0 12px;
+  margin-bottom: 2px;
+  border-radius: 10px;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  color: var(--o-ink-muted);
+  text-decoration: none;
+  transition:
+    background-color 150ms,
+    color 150ms;
+}
+.child:hover {
+  background: var(--o-inset);
+  color: var(--o-ink);
+}
+.childActive,
+.childActive:hover {
+  background: #e3efed;
+  color: var(--o-brand);
 }
 .navActive,
 .navActive:hover {
   background-image: var(--o-nav-active);
   color: #ffffff;
   box-shadow: var(--o-shadow-nav);
-}
-.navIcon {
-  flex-shrink: 0;
 }
 .navLabel {
   min-width: 0;

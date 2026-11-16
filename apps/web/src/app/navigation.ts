@@ -14,6 +14,7 @@ import {
   IconHome,
   IconPackages,
   IconSettings,
+  IconShoppingBag,
   IconTags,
   IconPackageImport,
   IconBuildingStore,
@@ -35,9 +36,15 @@ export interface NavItem {
   capability: Capability;
 }
 
+/** The tint of a section's icon tile in the menu (layout/AppLayout.module.css). */
+export type NavTone = 'brand' | 'blue' | 'mint' | 'ochre' | 'violet' | 'brick' | 'slate';
+
 export interface NavGroup {
   key: NavGroupKey;
   label: string;
+  /** Shown on the section's accordion row. */
+  icon: Icon;
+  tone: NavTone;
   items: NavItem[];
 }
 
@@ -49,6 +56,8 @@ export const NAV_GROUPS: NavGroup[] = [
   {
     key: 'home',
     label: 'nav.home',
+    icon: IconHome,
+    tone: 'brand',
     items: [
       { key: 'today', label: 'nav.today', path: '/', icon: IconHome, capability: 'account.self' },
       {
@@ -63,6 +72,8 @@ export const NAV_GROUPS: NavGroup[] = [
   {
     key: 'sell',
     label: 'nav.sell',
+    icon: IconShoppingBag,
+    tone: 'blue',
     items: [
       {
         key: 'pos',
@@ -104,6 +115,8 @@ export const NAV_GROUPS: NavGroup[] = [
   {
     key: 'customers',
     label: 'nav.customers',
+    icon: IconUserHeart,
+    tone: 'mint',
     items: [
       {
         key: 'customers',
@@ -117,6 +130,8 @@ export const NAV_GROUPS: NavGroup[] = [
   {
     key: 'stock',
     label: 'nav.stock',
+    icon: IconPackages,
+    tone: 'ochre',
     items: [
       {
         key: 'products',
@@ -179,6 +194,8 @@ export const NAV_GROUPS: NavGroup[] = [
   {
     key: 'money',
     label: 'nav.money',
+    icon: IconCoins,
+    tone: 'violet',
     items: [
       {
         key: 'couriers',
@@ -199,6 +216,8 @@ export const NAV_GROUPS: NavGroup[] = [
   {
     key: 'admin',
     label: 'nav.admin',
+    icon: IconSettings,
+    tone: 'slate',
     items: [
       {
         key: 'staff',

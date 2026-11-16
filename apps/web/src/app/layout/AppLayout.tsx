@@ -1,4 +1,4 @@
-import { Drawer, Menu, UnstyledButton } from '@mantine/core';
+import { Collapse, Drawer, Menu, UnstyledButton } from '@mantine/core';
 import { useDisclosure, useHotkeys, useMediaQuery } from '@mantine/hooks';
 import { Spotlight, spotlight, type SpotlightActionData } from '@mantine/spotlight';
 import { LANGUAGES, type Language } from '@organza/shared';
@@ -20,7 +20,7 @@ import { useSession } from '@web/modules/auth/session';
 import { useToday } from '@web/modules/reports/api';
 import { useApprovals } from '@web/modules/sales/api';
 import { PageActionSlot, WIDE } from '@web/shared/components/PageAction';
-import { allItems, type NavGroup, visibleGroups } from '../navigation';
+import { allItems, type NavGroup, type NavItem, visibleGroups } from '../navigation';
 import classes from './AppLayout.module.css';
 
 const APP_VERSION = (import.meta.env.VITE_APP_VERSION as string | undefined) ?? 'dev';
@@ -152,35 +152,90 @@ function Brand() {
   );
 }
 
+const isUnder = (pathname: string, path: string) =>
+  path === '/' ? pathname === '/' : pathname === path || pathname.startsWith(`${path}/`);
+
+/**
+ * The menu, as in the clinic's sidebar: home links and one-link sections are plain rows; every
+ * other section is an accordion row (tinted icon tile, chevron) whose links sit indented under a
+ * guide line. The section holding the current screen opens by itself.
+ */
 function Nav({ groups, waiting }: { groups: NavGroup[]; waiting: number }) {
   const { t } = useTranslation();
+  const { pathname } = useLocation();
+  const current = groups.find(
+    (g) => g.items.length > 1 && g.key !== 'home' && g.items.some((i) => isUnder(pathname, i.path)),
+  )?.key;
+  const [open, setOpen] = useState<string[]>(current ? [current] : []);
+  useEffect(() => {
+    if (current) setOpen((o) => (o.includes(current) ? o : [...o, current]));
+  }, [current]);
+  const toggle = (key: string) =>
+    setOpen((o) => (o.includes(key) ? o.filter((k) => k !== key) : [...o, key]));
+  const count = (item: NavItem) =>
+    item.key === 'approvals' && waiting > 0 ? (
+      <span className={classes.navCount}>{waiting}</span>
+    ) : null;
+
   return (
     <nav className={classes.navList}>
-      {groups.map((group, i) => (
-        <div key={group.key}>
-          {i > 0 && <hr className={classes.sep} />}
-          {group.key !== 'home' && <div className={classes.groupLabel}>{t(group.label)}</div>}
-          <ul className={classes.items}>
-            {group.items.map((item) => (
-              <li key={item.key}>
-                <NavLink
-                  to={item.path}
-                  end={item.path === '/'}
-                  className={({ isActive }) =>
-                    isActive ? `${classes.navItem} ${classes.navActive}` : classes.navItem
-                  }
-                >
-                  <item.icon size={19} className={classes.navIcon} />
-                  <span className={classes.navLabel}>{t(item.label)}</span>
-                  {item.key === 'approvals' && waiting > 0 && (
-                    <span className={classes.navCount}>{waiting}</span>
-                  )}
-                </NavLink>
-              </li>
-            ))}
-          </ul>
-        </div>
-      ))}
+      {groups.map((group) => {
+        // Home links and single-link sections are plain rows.
+        if (group.key === 'home' || group.items.length === 1)
+          return group.items.map((item) => (
+            <NavLink
+              key={item.key}
+              to={item.path}
+              end={item.path === '/'}
+              className={({ isActive }) =>
+                isActive ? `${classes.navItem} ${classes.navActive}` : classes.navItem
+              }
+            >
+              <span className={classes.tile} data-tone={group.tone}>
+                <item.icon size={18} />
+              </span>
+              <span className={classes.navLabel}>{t(item.label)}</span>
+              {count(item)}
+            </NavLink>
+          ));
+        const expanded = open.includes(group.key);
+        return (
+          <div key={group.key}>
+            <UnstyledButton
+              className={classes.navItem}
+              data-open={expanded || undefined}
+              data-current={group.key === current || undefined}
+              aria-expanded={expanded}
+              onClick={() => toggle(group.key)}
+            >
+              <span className={classes.tile} data-tone={group.tone}>
+                <group.icon size={18} />
+              </span>
+              <span className={classes.navLabel}>{t(group.label)}</span>
+              <IconChevronDown size={16} className={classes.chevron} />
+            </UnstyledButton>
+            <Collapse expanded={expanded}>
+              <ul className={classes.children}>
+                {group.items.map((item) => (
+                  <li key={item.key}>
+                    <NavLink
+                      to={item.path}
+                      // /stock must not light up on /stock/adjustments, which has its own link.
+                      end={group.items.some((o) => o.path.startsWith(`${item.path}/`))}
+                      className={({ isActive }) =>
+                        isActive ? `${classes.child} ${classes.childActive}` : classes.child
+                      }
+                    >
+                      <span className={classes.navLabel}>{t(item.label)}</span>
+                      {count(item)}
+                    </NavLink>
+                  </li>
+                ))}
+              </ul>
+            </Collapse>
+          </div>
+        );
+      })}
     </nav>
   );
 }
