@@ -18,6 +18,8 @@ organza-store/
 ├── frontend/    Customer storefront — Next.js (LATER, not this phase)
 └── shared/      Shared TypeScript types + Zod schemas — published as @organza/shared
 ```
+`desktop/` sits beside them and is **not** one of the workspaces: a Tauri (Rust) window around the
+deployed admin and POS for Windows, built and released by its own workflow — see `desktop/README.md`.
 Each project has its own `package.json`, and the root one ties them together as **npm
 workspaces**. There is exactly one `package-lock.json`, at the root; per-project lockfiles must
 never come back. `shared/` is a real dependency of the others (`@organza/shared`), resolved

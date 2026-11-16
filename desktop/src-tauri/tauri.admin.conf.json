@@ -1,0 +1,23 @@
+{
+  "productName": "Organza Admin",
+  "mainBinaryName": "organza-admin",
+  "identifier": "com.organza-moda.admin",
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "create": false,
+        "title": "Organza Admin",
+        "url": "https://admin.organza-moda.com",
+        "width": 1280,
+        "height": 800,
+        "minWidth": 360,
+        "minHeight": 600,
+        "maximized": false
+      }
+    ]
+  },
+  "bundle": {
+    "icon": ["icons/admin/icon.ico", "icons/admin/128x128.png"]
+  }
+}

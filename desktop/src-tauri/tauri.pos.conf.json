@@ -1,0 +1,23 @@
+{
+  "productName": "Organza POS",
+  "mainBinaryName": "organza-pos",
+  "identifier": "com.organza-moda.pos",
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "create": false,
+        "title": "Organza POS",
+        "url": "https://pos.organza-moda.com",
+        "width": 1280,
+        "height": 800,
+        "minWidth": 360,
+        "minHeight": 600,
+        "maximized": true
+      }
+    ]
+  },
+  "bundle": {
+    "icon": ["icons/pos/icon.ico", "icons/pos/128x128.png"]
+  }
+}
