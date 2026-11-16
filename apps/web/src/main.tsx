@@ -1,12 +1,14 @@
-import '@fontsource/cairo/400.css';
-import '@fontsource/cairo/600.css';
-import '@fontsource/cairo/700.css';
+import '@fontsource/tajawal/400.css';
+import '@fontsource/tajawal/500.css';
+import '@fontsource/tajawal/700.css';
 import '@fontsource/noto-sans-hebrew/400.css';
+import '@fontsource/noto-sans-hebrew/500.css';
 import '@fontsource/noto-sans-hebrew/700.css';
 import '@mantine/core/styles.css';
 import '@mantine/notifications/styles.css';
 import '@mantine/spotlight/styles.css';
 import './styles/global.css';
+import './styles/clinic.css';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { RouterProvider } from 'react-router';

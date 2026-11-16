@@ -54,7 +54,10 @@
     "purchasing": "المشتريات والاستلام",
     "suppliers": "الموردون",
     "reports": "التقارير",
-    "device": "هذا الجهاز"
+    "device": "هذا الجهاز",
+    "menu": "القائمة",
+    "notifications": "التنبيهات",
+    "nothingWaiting": "لا شيء ينتظرك الآن"
   },
   "roles": {
     "ADMIN": "مدير النظام",

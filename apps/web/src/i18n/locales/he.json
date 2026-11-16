@@ -54,7 +54,10 @@
     "purchasing": "רכש וקבלת סחורה",
     "suppliers": "ספקים",
     "reports": "דוחות",
-    "device": "מכשיר זה"
+    "device": "מכשיר זה",
+    "menu": "תפריט",
+    "notifications": "התראות",
+    "nothingWaiting": "אין משהו שממתין"
   },
   "roles": {
     "ADMIN": "מנהל מערכת",

@@ -169,7 +169,7 @@ function Summary({ approval: a }: { approval: ApprovalView }) {
   switch (a.kind) {
     case 'PRICE_CHANGE':
       return (
-        <Text size="sm" component={Link} to={`/products/${String(s['productId'])}`} c="plum.7">
+        <Text size="sm" component={Link} to={`/products/${String(s['productId'])}`} c="brand.7">
           {name(s['name'])}
           {s['sku'] ? ` (${String(s['sku'])})` : ''}:{' '}
           {s['from'] ? money(String(s['from'])) : t('approvals.productPrice')} →{' '}
@@ -178,7 +178,7 @@ function Summary({ approval: a }: { approval: ApprovalView }) {
       );
     case 'PRODUCT_HIDE':
       return (
-        <Text size="sm" component={Link} to={`/products/${String(s['productId'])}`} c="plum.7">
+        <Text size="sm" component={Link} to={`/products/${String(s['productId'])}`} c="brand.7">
           {name(s['name'])} → {t(`catalogue.status.${String(s['status'])}`)}
         </Text>
       );
@@ -205,7 +205,7 @@ function Summary({ approval: a }: { approval: ApprovalView }) {
     case 'REFUND':
     case 'VOID':
       return (
-        <Text size="sm" component={Link} to={`/sales/${String(s['saleId'])}`} c="plum.7">
+        <Text size="sm" component={Link} to={`/sales/${String(s['saleId'])}`} c="brand.7">
           {String(s['saleNumber'])} · {money(String(s['total']))}
           {s['exchange'] ? ` · ${t('returns.kind.EXCHANGE')}` : ''}
         </Text>

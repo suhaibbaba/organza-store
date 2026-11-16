@@ -129,7 +129,7 @@ export function SaleDetailPage() {
                 {sale.shift ? ` · ${sale.shift.number}` : ''}
               </Text>
               {sale.customer ? (
-                <Text component={Link} to={`/customers/${sale.customer.id}`} fw={600} c="plum.7">
+                <Text component={Link} to={`/customers/${sale.customer.id}`} fw={600} c="brand.7">
                   {sale.customer.name}
                 </Text>
               ) : (
@@ -154,7 +154,7 @@ export function SaleDetailPage() {
               {sale.exchangeOf && (
                 <Text size="sm">
                   {t('returns.exchangeOf')}{' '}
-                  <Text component={Link} to={`/sales/${sale.exchangeOf.saleId}`} c="plum.7" span>
+                  <Text component={Link} to={`/sales/${sale.exchangeOf.saleId}`} c="brand.7" span>
                     {sale.exchangeOf.saleNumber}
                   </Text>
                 </Text>
@@ -617,7 +617,7 @@ function ReturnDialog({ id, onClose }: { id: string | null; onClose: () => void 
             )}
             {Number(r.toExchange) > 0 && r.exchangeSale && (
               <Group justify="space-between">
-                <Text size="sm" component={Link} to={`/sales/${r.exchangeSale.id}`} c="plum.7">
+                <Text size="sm" component={Link} to={`/sales/${r.exchangeSale.id}`} c="brand.7">
                   {t('returns.toExchange', { number: r.exchangeSale.number })}
                 </Text>
                 <Text size="sm">{money(r.toExchange)}</Text>

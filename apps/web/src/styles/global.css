@@ -13,22 +13,23 @@ body,
 
 body {
   -webkit-text-size-adjust: 100%;
-  background: var(--mantine-color-body);
+  background: var(--o-canvas);
+  color: var(--o-ink);
 }
 
 :root {
-  --organza-font: 'Cairo', 'Noto Sans Hebrew', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --organza-safe-top: env(safe-area-inset-top, 0px);
   --organza-safe-bottom: env(safe-area-inset-bottom, 0px);
 }
 
+/* Tajawal has no Hebrew letters. */
 html[lang='he'] {
-  --organza-font: 'Noto Sans Hebrew', 'Cairo', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --o-font: 'Noto Sans Hebrew', 'Tajawal', system-ui, -apple-system, 'Segoe UI', sans-serif;
 }
 
 /* Arabic letters with tails need room. */
 html[lang='ar'] body {
-  line-height: 1.7;
+  line-height: 1.6;
 }
 
 .organza-scroll {

@@ -54,7 +54,10 @@
     "purchasing": "Purchases & receiving",
     "suppliers": "Suppliers",
     "reports": "Reports",
-    "device": "This device"
+    "device": "This device",
+    "menu": "Menu",
+    "notifications": "Notifications",
+    "nothingWaiting": "Nothing is waiting"
   },
   "roles": {
     "ADMIN": "Admin",

@@ -1,13 +1,53 @@
-import { Group, Title } from '@mantine/core';
+import { IconChevronLeft, IconChevronRight } from '@tabler/icons-react';
 import type { ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router';
+import { PageAction } from './PageAction';
+import classes from './PageHeader.module.css';
 
-export function PageHeader({ title, actions }: { title: string; actions?: ReactNode }) {
+/**
+ * The clinic's page header: title 22/30 medium in deep teal, an optional subtitle, actions at
+ * the end and an optional count badge. `primary` is the page's main button: it moves into the
+ * top bar on wide screens. `back` is the link above detail pages (there are no breadcrumbs).
+ */
+export function PageHeader({
+  title,
+  subtitle,
+  actions,
+  primary,
+  count,
+  back,
+}: {
+  title: ReactNode;
+  subtitle?: ReactNode;
+  actions?: ReactNode;
+  primary?: ReactNode;
+  count?: ReactNode;
+  back?: { to: string; label: string };
+}) {
+  const { i18n } = useTranslation();
+  const Chevron = i18n.dir() === 'rtl' ? IconChevronRight : IconChevronLeft;
   return (
-    <Group justify="space-between" mb="md" wrap="nowrap">
-      <Title order={2} size="h3">
-        {title}
-      </Title>
-      {actions && <Group gap="xs">{actions}</Group>}
-    </Group>
+    <div className={classes.wrap}>
+      {back && (
+        <Link to={back.to} className={classes.back}>
+          <Chevron size={16} />
+          {back.label}
+        </Link>
+      )}
+      <header className={classes.header}>
+        <div className={classes.titles}>
+          <h1 className={classes.title}>{title}</h1>
+          {subtitle && <p className={classes.subtitle}>{subtitle}</p>}
+        </div>
+        {(actions || primary || count) && (
+          <div className={classes.actions}>
+            {count && <span className={`${classes.count} o-wash`}>{count}</span>}
+            {actions}
+            {primary && <PageAction>{primary}</PageAction>}
+          </div>
+        )}
+      </header>
+    </div>
   );
 }

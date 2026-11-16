@@ -209,11 +209,11 @@ importers:
 
   apps/web:
     dependencies:
-      '@fontsource/cairo':
-        specifier: ^5.3.0
-        version: 5.3.0
       '@fontsource/noto-sans-hebrew':
         specifier: ^5.2.0
+        version: 5.3.0
+      '@fontsource/tajawal':
+        specifier: 5.3.0
         version: 5.3.0
       '@mantine/core':
         specifier: 9.8.1
@@ -915,11 +915,11 @@ packages:
   '@floating-ui/utils@0.2.12':
     resolution: {integrity: sha512-HpCo8tmWzLVad5s2d19EhAz5zqrrQ6s69qd6moPMQvkOuSwDT1YgRfWSVuc4ennqrgv3OHppiOGMQ7oC13yIww==}
 
-  '@fontsource/cairo@5.3.0':
-    resolution: {integrity: sha512-MdY6+gee1DVz4eUvx1Dd8Y1f50WcRELRKwKBarYZA3zT8dMhkuTWbcoE1LzezAy97h/9rob87s02NI6L8MaDgA==}
-
   '@fontsource/noto-sans-hebrew@5.3.0':
     resolution: {integrity: sha512-7owtzuw9D+ipt0g8mcBGOm7MS/mv/REKsjSwEUe749UUsrnG54TSmusNn7oxv2GxbUORAzADLQ8ggdtt7oKkpg==}
+
+  '@fontsource/tajawal@5.3.0':
+    resolution: {integrity: sha512-R2GUdHHAebeZ+CyYvulaSECfZe3BWbNjEWX3TXG0Csnx4RADO/zyqk6Y//NYdSx5n74zRJh9HTvd61mpX/UzZQ==}
 
   '@humanfs/core@0.19.2':
     resolution: {integrity: sha512-UhXNm+CFMWcbChXywFwkmhqjs3PRCmcSa/hfBgLIb7oQ5HNb1wS0icWsGtSAUNgefHeI+eBrA8I1fxmbHsGdvA==}
@@ -3486,9 +3486,9 @@ snapshots:
 
   '@floating-ui/utils@0.2.12': {}
 
-  '@fontsource/cairo@5.3.0': {}
-
   '@fontsource/noto-sans-hebrew@5.3.0': {}
+
+  '@fontsource/tajawal@5.3.0': {}
 
   '@humanfs/core@0.19.2':
     dependencies:

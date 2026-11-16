@@ -124,7 +124,7 @@
 }
 
 .tile:hover {
-  border-color: var(--mantine-color-plum-4);
+  border-color: var(--mantine-color-brand-4);
 }
 
 .tile:disabled {
