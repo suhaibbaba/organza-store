@@ -14,6 +14,12 @@ import { AdjustmentsPage } from '@web/modules/stock/AdjustmentsPage';
 import { CountDetailPage } from '@web/modules/stock/CountDetailPage';
 import { CountsPage } from '@web/modules/stock/CountsPage';
 import { StockPage } from '@web/modules/stock/StockPage';
+import { PosPage } from '@web/modules/pos/PosPage';
+import { CustomerDetailPage } from '@web/modules/sales/CustomerDetailPage';
+import { CustomersPage } from '@web/modules/sales/CustomersPage';
+import { SaleDetailPage } from '@web/modules/sales/SaleDetailPage';
+import { SalesPage } from '@web/modules/sales/SalesPage';
+import { MyShiftPage, ShiftDetailPage, ShiftsPage } from '@web/modules/sales/ShiftPages';
 import type { Capability } from '@organza/shared';
 import type { ReactNode } from 'react';
 import { RouteError } from '@web/shared/components/RouteError';
@@ -55,6 +61,14 @@ export const routes = [
           guarded('stock/adjustments', 'stock.adjust', <AdjustmentsPage />),
           guarded('stock/counts', 'stock.count', <CountsPage />),
           guarded('stock/counts/:id', 'stock.count', <CountDetailPage />),
+          guarded('pos', 'sales.create', <PosPage />),
+          guarded('sales', 'sales.view', <SalesPage />),
+          guarded('sales/:id', 'sales.view', <SaleDetailPage />),
+          guarded('shift', 'shifts.operate', <MyShiftPage />),
+          guarded('shifts', 'shifts.viewAll', <ShiftsPage />),
+          guarded('shifts/:id', 'shifts.operate', <ShiftDetailPage />),
+          guarded('customers', 'customers.view', <CustomersPage />),
+          guarded('customers/:id', 'customers.view', <CustomerDetailPage />),
         ],
       },
     ],

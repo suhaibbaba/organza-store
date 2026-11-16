@@ -249,6 +249,8 @@ export interface RegisterView {
   openShift: { id: string; number: string; openedBy: string; openedAt: string } | null;
   /** Shifts still needing a count (left open on an earlier day). */
   pendingCounts: number;
+  /** A shift counted but not yet closed (selling stops at the count; the close comes next). */
+  countedShiftId: string | null;
 }
 
 // ------------------------------------------------------------------ sales
@@ -324,7 +326,7 @@ export const saleListQuerySchema = paginationSchema.extend({
   q: z.string().trim().max(100).optional(),
   customerId: uuidSchema.optional(),
   shiftId: uuidSchema.optional(),
-  state: z.enum(['PAID', 'PARTLY_PAID', 'UNPAID']).optional(),
+  state: z.enum(['PAID', 'PARTLY_PAID', 'UNPAID', 'OWED']).optional(),
   held: z
     .enum(['true', 'false'])
     .optional()
@@ -428,7 +430,7 @@ export interface ReceiptData {
   sale: SaleView;
   shop: { name: Translatable; phone: string; address: Translatable; footer: Translatable };
   currency: string;
-  /** Customer's balance after this sale (debt minus credit), if there is a customer. */
+  /** Customer's balance after this sale: debt minus store credit (deposits on held goods excluded). */
   customerBalance: string | null;
 }
 

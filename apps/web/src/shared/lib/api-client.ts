@@ -14,6 +14,10 @@ export class ApiError extends Error {
   get code(): string | undefined {
     return this.body?.code;
   }
+  /** What the server attached to the error (e.g. which items changed price). */
+  get details(): unknown {
+    return this.body?.details;
+  }
 }
 
 export interface RequestOptions {

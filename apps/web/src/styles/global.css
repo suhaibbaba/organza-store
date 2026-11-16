@@ -52,3 +52,15 @@ textarea {
     overflow: visible;
   }
 }
+
+/* Generic print portal (receipts, shift summaries): only `.print-root` is printed. */
+@media print {
+  body.printing > *:not(.print-root) {
+    display: none !important;
+  }
+}
+@media screen {
+  .print-root {
+    display: none;
+  }
+}

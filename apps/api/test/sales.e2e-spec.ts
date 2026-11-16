@@ -434,6 +434,13 @@ describe('sales, payments and shifts', () => {
         })
       ).json<{ deposits: string; debt: string }>();
       expect(c).toMatchObject({ deposits: '150.00', debt: '0.00' });
+      // The deposit belongs to the held sale, not to spendable credit on the receipt.
+      const receipt = await ctx.app.inject({
+        method: 'GET',
+        url: `/sales/${sale.id}/receipt`,
+        headers: employee.headers,
+      });
+      expect(receipt.json<{ customerBalance: string }>().customerBalance).toBe('0.00');
 
       const firstLine = sale.lines[0]!.id;
       const part = await ctx.app.inject({

@@ -33,6 +33,13 @@
 .main {
   grid-area: main;
   padding: var(--mantine-spacing-md);
+  min-height: 0;
+}
+
+/* The till fills the area and scrolls its own panes. */
+.main.fullBleed {
+  padding: 0;
+  overflow: hidden;
 }
 
 .bottom {
@@ -76,5 +83,8 @@
   }
   .main {
     padding: var(--mantine-spacing-sm);
+  }
+  .main.fullBleed {
+    padding: 0;
   }
 }

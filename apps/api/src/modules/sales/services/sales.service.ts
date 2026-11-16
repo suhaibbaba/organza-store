@@ -1061,6 +1061,9 @@ export class SalesService {
       query.state === 'PARTLY_PAID'
         ? and(sql`${paid} > 0`, sql`${paid} < ${sales.total}`, eq(sales.status, 'COMPLETED'))
         : undefined,
+      query.state === 'OWED'
+        ? and(sql`${paid} < ${sales.total}`, eq(sales.status, 'COMPLETED'))
+        : undefined,
     ];
     if (query.q) {
       const q = query.q.trim();
@@ -1119,7 +1122,7 @@ export class SalesService {
     let customerBalance: string | null = null;
     if (sale.customer) {
       const b = (await this.customers.balances(this.db, [sale.customer.id])).get(sale.customer.id)!;
-      customerBalance = addMoney(b.debt, neg(b.credit), neg(b.deposits));
+      customerBalance = addMoney(b.debt, neg(b.credit));
     }
     return {
       sale,

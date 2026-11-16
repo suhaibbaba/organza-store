@@ -74,6 +74,9 @@ export class ShiftsService {
         openedBy: users.name,
         openedAt: shifts.openedAt,
         pending: sql<number>`(select count(*)::int from shifts s where s.register_id = ${sql.raw('registers.id')} and s.status = 'LEFT_OPEN')`,
+        counted: sql<
+          string | null
+        >`(select s.id from shifts s where s.register_id = ${sql.raw('registers.id')} and s.status = 'COUNTED' order by s.opened_at desc limit 1)`,
       })
       .from(registers)
       .leftJoin(shifts, and(eq(shifts.registerId, registers.id), eq(shifts.status, 'OPEN')))
@@ -92,6 +95,7 @@ export class ShiftsService {
           }
         : null,
       pendingCounts: r.pending,
+      countedShiftId: r.counted,
     }));
   }
 

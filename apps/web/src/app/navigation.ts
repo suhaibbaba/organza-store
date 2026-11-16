@@ -1,6 +1,11 @@
 import type { Capability, Role } from '@organza/shared';
 import {
   IconAdjustments,
+  IconCashRegister,
+  IconClock,
+  IconListCheck,
+  IconReceipt,
+  IconUserHeart,
   IconCategory,
   IconClipboardList,
   IconCoins,
@@ -41,8 +46,53 @@ export const NAV_GROUPS: NavGroup[] = [
       { key: 'today', label: 'nav.today', path: '/', icon: IconHome, capability: 'account.self' },
     ],
   },
-  { key: 'sell', label: 'nav.sell', items: [] },
-  { key: 'customers', label: 'nav.customers', items: [] },
+  {
+    key: 'sell',
+    label: 'nav.sell',
+    items: [
+      {
+        key: 'pos',
+        label: 'nav.pos',
+        path: '/pos',
+        icon: IconCashRegister,
+        capability: 'sales.create',
+      },
+      {
+        key: 'orders',
+        label: 'nav.sales',
+        path: '/sales',
+        icon: IconReceipt,
+        capability: 'sales.view',
+      },
+      {
+        key: 'shift',
+        label: 'nav.shift',
+        path: '/shift',
+        icon: IconClock,
+        capability: 'shifts.operate',
+      },
+      {
+        key: 'shifts',
+        label: 'nav.shifts',
+        path: '/shifts',
+        icon: IconListCheck,
+        capability: 'shifts.viewAll',
+      },
+    ],
+  },
+  {
+    key: 'customers',
+    label: 'nav.customers',
+    items: [
+      {
+        key: 'customers',
+        label: 'nav.customers',
+        path: '/customers',
+        icon: IconUserHeart,
+        capability: 'customers.view',
+      },
+    ],
+  },
   {
     key: 'stock',
     label: 'nav.stock',

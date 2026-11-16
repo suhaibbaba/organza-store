@@ -127,7 +127,13 @@ export function AppLayout() {
         ))}
       </nav>
 
-      <main className={`${classes.main} organza-scroll`}>
+      <main
+        className={
+          location.pathname === '/pos'
+            ? `${classes.main} ${classes.fullBleed}`
+            : `${classes.main} organza-scroll`
+        }
+      >
         <Outlet />
       </main>
 
