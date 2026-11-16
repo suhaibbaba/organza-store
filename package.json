@@ -1,0 +1,23 @@
+{
+  "name": "organza",
+  "private": true,
+  "packageManager": "pnpm@12.3.4",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "typecheck": "pnpm -r --parallel typecheck",
+    "lint": "pnpm -r --parallel lint",
+    "test": "pnpm -r test",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "devDependencies": {
+    "prettier": "^3.10.1",
+    "typescript": "~6.0.3",
+    "eslint": "^10.15.0",
+    "@eslint/js": "^10.0.0",
+    "typescript-eslint": "^8.72.2",
+    "eslint-config-prettier": "^10.1.0"
+  }
+}
