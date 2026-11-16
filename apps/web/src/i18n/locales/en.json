@@ -47,7 +47,9 @@
     "shift": "My shift",
     "shifts": "Shifts",
     "pos": "Point of sale",
-    "approvals": "Approvals"
+    "approvals": "Approvals",
+    "orders": "Orders",
+    "couriers": "Delivery companies"
   },
   "roles": {
     "ADMIN": "Admin",
@@ -180,7 +182,20 @@
     "APPROVAL_STALE": "Things changed since this was asked; reject it and ask again",
     "APPROVAL_NOTHING_TO_ASK": "Nothing would change",
     "PRODUCT_NOT_AWAITING_REVIEW": "This product is not waiting for review",
-    "CATEGORY_REQUIRED": "Choose a category first"
+    "CATEGORY_REQUIRED": "Choose a category first",
+    "ORDER_WRONG_STATUS": "That step does not apply to the order as it is now",
+    "ORDER_NOT_EDITABLE": "Items are fixed once the order is ready",
+    "ORDER_STALE": "The order changed; open it again",
+    "ORDER_NOT_RESERVED": "Some items are not fully reserved",
+    "ORDER_COURIER_REQUIRED": "Choose a delivery company",
+    "COURIER_INACTIVE": "That delivery company is inactive",
+    "ORDER_NOT_PICKUP": "This order goes with a courier",
+    "ORDER_NOT_COURIER": "This order is collected at the shop",
+    "ORDER_ALREADY_SETTLED": "The company already paid part of this order",
+    "ORDER_FINISHED": "The order is finished",
+    "COURIER_OVER_SETTLED": "More than the order still lacks",
+    "COURIER_ORDER_NOT_THEIRS": "Not an open order of this company",
+    "COURIER_ALLOCATION_ABOVE_PAID": "The orders add up to more than was paid"
   },
   "languages": {
     "ar": "العربية",
@@ -530,7 +545,8 @@
       "CASH": "Cash",
       "CARD": "Card",
       "BANK_TRANSFER": "Bank transfer",
-      "STORE_CREDIT": "Store credit"
+      "STORE_CREDIT": "Store credit",
+      "COURIER": "Cash on delivery (courier)"
     },
     "outcome": {
       "CREDIT": "Keep as credit",
@@ -556,13 +572,17 @@
       "SALE": "Sale",
       "REPAYMENT": "Repayment",
       "CHANGE": "Change given",
-      "REFUND": "Refund"
+      "REFUND": "Refund",
+      "DEPOSIT": "Deposit",
+      "COURIER_SETTLEMENT": "Courier settlement"
     },
     "giftReceipt": "Gift receipt",
     "giftReceiptNote": "This gift can be exchanged with this receipt.",
     "returnedTotal": "Returned",
     "giftPurchase": "Gift purchase",
-    "appliedHere": "{{amount}} on this sale"
+    "appliedHere": "{{amount}} on this sale",
+    "amount": "Amount",
+    "reference": "Reference"
   },
   "customers": {
     "address": "Address",
@@ -685,7 +705,9 @@
       "CASH_REFUNDS": "Cash refunds",
       "PAID_IN": "Cash in",
       "DROPS": "Cash out",
-      "EXPENSES": "Expenses"
+      "EXPENSES": "Expenses",
+      "CASH_DEPOSITS": "Cash deposits",
+      "COURIER_SETTLEMENTS": "From delivery companies"
     }
   },
   "returns": {
@@ -757,5 +779,100 @@
     "productPrice": "product price",
     "reasonForManager": "Reason (the manager reads it)",
     "priceGoesToManager": "The new price goes to a manager for approval"
+  },
+  "orders": {
+    "new": "New order",
+    "save": "Save order",
+    "created": "Order {{number}} created",
+    "chooseCustomer": "Choose the customer",
+    "sourceLabel": "Where it came from",
+    "deliveryLabel": "Delivery",
+    "delivery": {
+      "COURIER": "Courier",
+      "PICKUP": "Pickup at the shop"
+    },
+    "courier": "Delivery company",
+    "courierLater": "Choose later",
+    "city": "City",
+    "address": "Address",
+    "lines": "Items",
+    "noLines": "No items yet",
+    "reservedOf": "{{reserved}} of {{quantity}} reserved",
+    "duplicateTitle": "Duplicate order?",
+    "duplicateHint": "The same customer and items were ordered today ({{number}}).",
+    "saveAnyway": "Save anyway",
+    "searchHint": "Order number, customer, phone or city",
+    "allSources": "All sources",
+    "emptyColumn": "Nothing here",
+    "age": {
+      "now": "just now",
+      "hours": "{{count}} h ago",
+      "days": "{{count}} d ago"
+    },
+    "shortCount": "{{count}} short",
+    "shortHint": "{{count}} line(s) are not fully in stock. Reduce or remove them, or try again when stock arrives.",
+    "pickList": "Pick list",
+    "picked": "{{done}} of {{total}} picked",
+    "pickedOne": "Picked",
+    "order": "Order",
+    "toCollect": "To collect: {{amount}}",
+    "slip": "Pick list & slip",
+    "timeline": "History",
+    "call": "Call",
+    "customerPage": "Customer page",
+    "deposit": "Deposit",
+    "due": "Still due",
+    "dueNow": "Due now: {{amount}}",
+    "cod": "Cash on delivery",
+    "settled": "Paid by the company",
+    "saleLink": "Sale {{number}}",
+    "quoteKept": "Today’s price is {{price}}; the quoted price is kept",
+    "codHint": "The company collects {{amount}} from the customer and owes it to the shop.",
+    "prepaidHint": "Fully paid; nothing to collect on delivery.",
+    "leftAsDebt": "{{amount}} stays as the customer’s debt",
+    "returnedHint": "The parcel is back. For each piece choose: back to the shelf or damaged.",
+    "cancelDepositHint": "The deposit of {{amount}} stays as the customer’s credit.",
+    "depositHint": "Kept as the customer’s credit and used at hand-over.",
+    "linesFixed": "Items are fixed once the order is ready.",
+    "do": {
+      "confirm": "Confirm and reserve",
+      "prepare": "Start preparing",
+      "ready": "Ready",
+      "ship": "Hand to courier",
+      "collect": "Customer collected",
+      "returned": "Returned to shop",
+      "reserve": "Try reserving again",
+      "deposit": "Take a deposit",
+      "cancel": "Cancel order"
+    },
+    "status": {
+      "NEW": "New",
+      "CONFIRMED": "Confirmed",
+      "PREPARING": "Preparing",
+      "READY": "Ready",
+      "OUT": "Out",
+      "COLLECTED": "Collected",
+      "CANCELLED": "Cancelled",
+      "RETURNED": "Returned"
+    },
+    "source": {
+      "COUNTER": "In store",
+      "WHATSAPP": "WhatsApp",
+      "ONLINE": "Online",
+      "PHONE": "Phone"
+    }
+  },
+  "couriers": {
+    "add": "Add company",
+    "name": "Name",
+    "owes": "The company owes",
+    "openOrders": "{{count}} parcel(s) not paid yet",
+    "settle": "Settle",
+    "history": "Settlements",
+    "received": "Received",
+    "fee": "Delivery fee",
+    "covers": "Covers these orders (oldest first)",
+    "noOpen": "No unpaid parcels",
+    "overpaid": "{{amount}} more than owed stays on the company’s account"
   }
 }

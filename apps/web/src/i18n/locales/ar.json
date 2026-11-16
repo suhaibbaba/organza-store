@@ -47,7 +47,9 @@
     "shift": "ورديتي",
     "shifts": "الورديات",
     "pos": "نقطة البيع",
-    "approvals": "الموافقات"
+    "approvals": "الموافقات",
+    "orders": "الطلبيات",
+    "couriers": "شركات التوصيل"
   },
   "roles": {
     "ADMIN": "مدير النظام",
@@ -180,7 +182,20 @@
     "APPROVAL_STALE": "تغيّر الوضع منذ الطلب؛ ارفضه واطلب من جديد",
     "APPROVAL_NOTHING_TO_ASK": "لا شيء يتغير",
     "PRODUCT_NOT_AWAITING_REVIEW": "هذا المنتج لا ينتظر المراجعة",
-    "CATEGORY_REQUIRED": "اختر فئة أولًا"
+    "CATEGORY_REQUIRED": "اختر فئة أولًا",
+    "ORDER_WRONG_STATUS": "لا يمكن هذه الخطوة في حالة الطلبية الحالية",
+    "ORDER_NOT_EDITABLE": "القطع ثابتة بعد أن تصبح الطلبية جاهزة",
+    "ORDER_STALE": "تغيّرت الطلبية؛ افتحها من جديد",
+    "ORDER_NOT_RESERVED": "بعض القطع غير محجوزة بالكامل",
+    "ORDER_COURIER_REQUIRED": "اختر شركة التوصيل",
+    "COURIER_INACTIVE": "شركة التوصيل غير فعالة",
+    "ORDER_NOT_PICKUP": "هذه الطلبية تُرسل مع شركة توصيل",
+    "ORDER_NOT_COURIER": "هذه الطلبية تُستلم من المحل",
+    "ORDER_ALREADY_SETTLED": "دفعت شركة التوصيل جزءًا من هذه الطلبية",
+    "ORDER_FINISHED": "الطلبية منتهية",
+    "COURIER_OVER_SETTLED": "أكثر مما بقي على الطلبية",
+    "COURIER_ORDER_NOT_THEIRS": "ليست طلبية مفتوحة لهذه الشركة",
+    "COURIER_ALLOCATION_ABOVE_PAID": "الطلبيات أكثر من المبلغ المدفوع"
   },
   "languages": {
     "ar": "العربية",
@@ -530,7 +545,8 @@
       "CASH": "نقدًا",
       "CARD": "بطاقة",
       "BANK_TRANSFER": "تحويل بنكي",
-      "STORE_CREDIT": "رصيد المحل"
+      "STORE_CREDIT": "رصيد المحل",
+      "COURIER": "عند الاستلام (شركة التوصيل)"
     },
     "outcome": {
       "CREDIT": "حفظه رصيدًا",
@@ -556,13 +572,17 @@
       "SALE": "بيع",
       "REPAYMENT": "سداد",
       "CHANGE": "باقٍ مُعاد",
-      "REFUND": "استرجاع"
+      "REFUND": "استرجاع",
+      "DEPOSIT": "عربون",
+      "COURIER_SETTLEMENT": "تسوية شركة توصيل"
     },
     "giftReceipt": "إيصال هدية",
     "giftReceiptNote": "يمكن استبدال هذه الهدية بإبراز هذا الإيصال.",
     "returnedTotal": "مرتجع",
     "giftPurchase": "شراء هدية",
-    "appliedHere": "{{amount}} على هذا البيع"
+    "appliedHere": "{{amount}} على هذا البيع",
+    "amount": "المبلغ",
+    "reference": "المرجع"
   },
   "customers": {
     "address": "العنوان",
@@ -685,7 +705,9 @@
       "CASH_REFUNDS": "استرجاعات نقدية",
       "PAID_IN": "إدخال نقد",
       "DROPS": "إخراج نقد",
-      "EXPENSES": "مصروفات"
+      "EXPENSES": "مصروفات",
+      "CASH_DEPOSITS": "عرابين نقدية",
+      "COURIER_SETTLEMENTS": "من شركات التوصيل"
     }
   },
   "returns": {
@@ -757,5 +779,100 @@
     "productPrice": "سعر المنتج",
     "reasonForManager": "السبب (يقرؤه المدير)",
     "priceGoesToManager": "السعر الجديد يُرسل إلى المدير للموافقة"
+  },
+  "orders": {
+    "new": "طلبية جديدة",
+    "save": "حفظ الطلبية",
+    "created": "أُنشئت الطلبية {{number}}",
+    "chooseCustomer": "اختر الزبونة",
+    "sourceLabel": "مصدر الطلبية",
+    "deliveryLabel": "التسليم",
+    "delivery": {
+      "COURIER": "توصيل",
+      "PICKUP": "استلام من المحل"
+    },
+    "courier": "شركة التوصيل",
+    "courierLater": "تُختار لاحقًا",
+    "city": "المدينة",
+    "address": "العنوان",
+    "lines": "القطع",
+    "noLines": "لم تُضف قطع بعد",
+    "reservedOf": "محجوز {{reserved}} من {{quantity}}",
+    "duplicateTitle": "طلبية مكررة؟",
+    "duplicateHint": "سُجلت اليوم طلبية بنفس الزبونة والقطع ({{number}}).",
+    "saveAnyway": "احفظها على أي حال",
+    "searchHint": "رقم الطلبية أو الزبونة أو الهاتف أو المدينة",
+    "allSources": "كل المصادر",
+    "emptyColumn": "لا شيء هنا",
+    "age": {
+      "now": "الآن",
+      "hours": "قبل {{count}} ساعة",
+      "days": "قبل {{count}} يوم"
+    },
+    "shortCount": "{{count}} ناقص",
+    "shortHint": "{{count}} من القطع غير متوفرة بالكامل. قلّل الكمية أو احذفها، أو أعد المحاولة عند وصول البضاعة.",
+    "pickList": "قائمة التجهيز",
+    "picked": "جُهّز {{done}} من {{total}}",
+    "pickedOne": "جُهّزت",
+    "order": "الطلبية",
+    "toCollect": "للتحصيل: {{amount}}",
+    "slip": "قائمة التجهيز والإيصال",
+    "timeline": "سجل الطلبية",
+    "call": "اتصال",
+    "customerPage": "صفحة الزبونة",
+    "deposit": "عربون",
+    "due": "المتبقي",
+    "dueNow": "المطلوب الآن: {{amount}}",
+    "cod": "الدفع عند الاستلام",
+    "settled": "دفعته شركة التوصيل",
+    "saleLink": "البيع {{number}}",
+    "quoteKept": "السعر الحالي {{price}}؛ يبقى السعر المتفق عليه",
+    "codHint": "شركة التوصيل تحصّل {{amount}} من الزبونة وتصبح مدينة به للمحل.",
+    "prepaidHint": "الطلبية مدفوعة بالكامل؛ لا تحصيل عند الاستلام.",
+    "leftAsDebt": "يبقى {{amount}} دينًا على الزبونة",
+    "returnedHint": "الطرد عاد إلى المحل. اختر لكل قطعة: إلى الرف أو تالفة.",
+    "cancelDepositHint": "العربون {{amount}} يبقى رصيدًا للزبونة.",
+    "depositHint": "يُسجّل كرصيد للزبونة ويُخصم عند التسليم.",
+    "linesFixed": "القطع ثابتة بعد أن تصبح الطلبية جاهزة.",
+    "do": {
+      "confirm": "تأكيد وحجز",
+      "prepare": "بدء التجهيز",
+      "ready": "جاهزة",
+      "ship": "تسليم لشركة التوصيل",
+      "collect": "استلمتها الزبونة",
+      "returned": "عاد الطرد إلى المحل",
+      "reserve": "إعادة محاولة الحجز",
+      "deposit": "تسجيل عربون",
+      "cancel": "إلغاء الطلبية"
+    },
+    "status": {
+      "NEW": "جديدة",
+      "CONFIRMED": "مؤكدة",
+      "PREPARING": "قيد التجهيز",
+      "READY": "جاهزة",
+      "OUT": "مع شركة التوصيل",
+      "COLLECTED": "استُلمت",
+      "CANCELLED": "ملغاة",
+      "RETURNED": "عادت"
+    },
+    "source": {
+      "COUNTER": "في المحل",
+      "WHATSAPP": "واتساب",
+      "ONLINE": "أونلاين",
+      "PHONE": "هاتف"
+    }
+  },
+  "couriers": {
+    "add": "إضافة شركة",
+    "name": "الاسم",
+    "owes": "مستحق على الشركة",
+    "openOrders": "{{count}} طرد غير مسدد",
+    "settle": "تسوية",
+    "history": "التسويات",
+    "received": "المبلغ المستلم",
+    "fee": "أجرة التوصيل",
+    "covers": "تغطي الطلبيات (الأقدم أولًا)",
+    "noOpen": "لا طرود غير مسددة",
+    "overpaid": "{{amount}} زيادة تبقى على حساب الشركة"
   }
 }

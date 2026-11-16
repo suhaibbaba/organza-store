@@ -15,6 +15,8 @@ import {
   IconPackages,
   IconSettings,
   IconTags,
+  IconTruck,
+  IconTruckDelivery,
   IconUsers,
   type Icon,
 } from '@tabler/icons-react';
@@ -71,6 +73,13 @@ export const NAV_GROUPS: NavGroup[] = [
         path: '/sales',
         icon: IconReceipt,
         capability: 'sales.view',
+      },
+      {
+        key: 'fulfilment',
+        label: 'nav.orders',
+        path: '/orders',
+        icon: IconTruckDelivery,
+        capability: 'orders.view',
       },
       {
         key: 'shift',
@@ -149,7 +158,19 @@ export const NAV_GROUPS: NavGroup[] = [
       },
     ],
   },
-  { key: 'money', label: 'nav.money', items: [] },
+  {
+    key: 'money',
+    label: 'nav.money',
+    items: [
+      {
+        key: 'couriers',
+        label: 'nav.couriers',
+        path: '/couriers',
+        icon: IconTruck,
+        capability: 'couriers.view',
+      },
+    ],
+  },
   {
     key: 'admin',
     label: 'nav.admin',

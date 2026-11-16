@@ -15,7 +15,7 @@ import {
   compareMoney,
   fromMinor,
   multiplyMoney,
-  type PaymentMethod,
+  type TillPaymentMethod,
   type SaleView,
   toMinor,
 } from '@organza/shared';
@@ -35,7 +35,7 @@ import { type CartApi, cartTotals } from './cart';
 import classes from '../sales/sales.module.css';
 
 interface Tender {
-  method: PaymentMethod;
+  method: TillPaymentMethod;
   currency: string;
   amount: string;
   rate: string;
@@ -123,7 +123,7 @@ export function PaymentPanel({
   useEffect(() => setAmount(dueIn), [dueIn]);
 
   const add = (
-    method: PaymentMethod,
+    method: TillPaymentMethod,
     value = amount,
     cur = method === 'CASH' ? currency : defaultCurrency,
   ) => {
@@ -219,7 +219,7 @@ export function PaymentPanel({
     }
   };
 
-  const methods: { key: PaymentMethod; label: string; disabled?: boolean }[] = [
+  const methods: { key: TillPaymentMethod; label: string; disabled?: boolean }[] = [
     { key: 'CASH', label: t('sales.method.CASH') },
     { key: 'CARD', label: t('sales.method.CARD') },
     { key: 'BANK_TRANSFER', label: t('sales.method.BANK_TRANSFER') },

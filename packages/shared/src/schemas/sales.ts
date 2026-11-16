@@ -12,6 +12,8 @@ import { currencyCodeSchema } from './settings.js';
 // ------------------------------------------------------------------ constants
 
 export const PAYMENT_METHODS = ['CASH', 'CARD', 'BANK_TRANSFER', 'STORE_CREDIT'] as const;
+/** What a cashier can take a payment by. */
+export type TillPaymentMethod = (typeof PAYMENT_METHODS)[number];
 /** COURIER: cash on delivery, owed by the delivery company until it settles (never typed in). */
 export type PaymentMethod = (typeof PAYMENT_METHODS)[number] | 'COURIER';
 

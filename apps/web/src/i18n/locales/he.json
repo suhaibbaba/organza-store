@@ -47,7 +47,9 @@
     "shift": "המשמרת שלי",
     "shifts": "משמרות",
     "pos": "קופה",
-    "approvals": "אישורים"
+    "approvals": "אישורים",
+    "orders": "הזמנות",
+    "couriers": "חברות שליחויות"
   },
   "roles": {
     "ADMIN": "מנהל מערכת",
@@ -180,7 +182,20 @@
     "APPROVAL_STALE": "המצב השתנה מאז הבקשה; דחו ובקשו שוב",
     "APPROVAL_NOTHING_TO_ASK": "שום דבר לא ישתנה",
     "PRODUCT_NOT_AWAITING_REVIEW": "מוצר זה אינו ממתין לבדיקה",
-    "CATEGORY_REQUIRED": "בחרו קטגוריה קודם"
+    "CATEGORY_REQUIRED": "בחרו קטגוריה קודם",
+    "ORDER_WRONG_STATUS": "הצעד לא מתאים למצב ההזמנה כעת",
+    "ORDER_NOT_EDITABLE": "הפריטים קבועים לאחר שההזמנה מוכנה",
+    "ORDER_STALE": "ההזמנה השתנתה; פתחו אותה מחדש",
+    "ORDER_NOT_RESERVED": "חלק מהפריטים אינם שמורים במלואם",
+    "ORDER_COURIER_REQUIRED": "בחרו חברת שליחויות",
+    "COURIER_INACTIVE": "חברת השליחויות אינה פעילה",
+    "ORDER_NOT_PICKUP": "ההזמנה נשלחת עם שליח",
+    "ORDER_NOT_COURIER": "ההזמנה נאספת מהחנות",
+    "ORDER_ALREADY_SETTLED": "החברה כבר שילמה חלק מההזמנה",
+    "ORDER_FINISHED": "ההזמנה הסתיימה",
+    "COURIER_OVER_SETTLED": "יותר ממה שחסר בהזמנה",
+    "COURIER_ORDER_NOT_THEIRS": "לא הזמנה פתוחה של החברה",
+    "COURIER_ALLOCATION_ABOVE_PAID": "ההזמנות עולות על הסכום ששולם"
   },
   "languages": {
     "ar": "العربية",
@@ -530,7 +545,8 @@
       "CASH": "מזומן",
       "CARD": "כרטיס",
       "BANK_TRANSFER": "העברה בנקאית",
-      "STORE_CREDIT": "זיכוי בחנות"
+      "STORE_CREDIT": "זיכוי בחנות",
+      "COURIER": "במסירה (שליח)"
     },
     "outcome": {
       "CREDIT": "לשמור כזיכוי",
@@ -556,13 +572,17 @@
       "SALE": "מכירה",
       "REPAYMENT": "החזר חוב",
       "CHANGE": "עודף",
-      "REFUND": "החזר"
+      "REFUND": "החזר",
+      "DEPOSIT": "מקדמה",
+      "COURIER_SETTLEMENT": "התחשבנות שליחויות"
     },
     "giftReceipt": "קבלת מתנה",
     "giftReceiptNote": "ניתן להחליף את המתנה עם קבלה זו.",
     "returnedTotal": "הוחזר",
     "giftPurchase": "קניית מתנה",
-    "appliedHere": "{{amount}} על מכירה זו"
+    "appliedHere": "{{amount}} על מכירה זו",
+    "amount": "סכום",
+    "reference": "אסמכתא"
   },
   "customers": {
     "address": "כתובת",
@@ -685,7 +705,9 @@
       "CASH_REFUNDS": "החזרים במזומן",
       "PAID_IN": "הכנסת מזומן",
       "DROPS": "הוצאת מזומן",
-      "EXPENSES": "הוצאות"
+      "EXPENSES": "הוצאות",
+      "CASH_DEPOSITS": "מקדמות במזומן",
+      "COURIER_SETTLEMENTS": "מחברות שליחויות"
     }
   },
   "returns": {
@@ -757,5 +779,100 @@
     "productPrice": "מחיר המוצר",
     "reasonForManager": "סיבה (המנהל יקרא)",
     "priceGoesToManager": "המחיר החדש יישלח למנהל לאישור"
+  },
+  "orders": {
+    "new": "הזמנה חדשה",
+    "save": "שמירת ההזמנה",
+    "created": "הזמנה {{number}} נוצרה",
+    "chooseCustomer": "בחירת לקוחה",
+    "sourceLabel": "מקור ההזמנה",
+    "deliveryLabel": "מסירה",
+    "delivery": {
+      "COURIER": "שליח",
+      "PICKUP": "איסוף מהחנות"
+    },
+    "courier": "חברת שליחויות",
+    "courierLater": "לבחור אחר כך",
+    "city": "עיר",
+    "address": "כתובת",
+    "lines": "פריטים",
+    "noLines": "עדיין אין פריטים",
+    "reservedOf": "{{reserved}} מתוך {{quantity}} שמורים",
+    "duplicateTitle": "הזמנה כפולה?",
+    "duplicateHint": "אותה לקוחה ואותם פריטים הוזמנו היום ({{number}}).",
+    "saveAnyway": "לשמור בכל זאת",
+    "searchHint": "מספר הזמנה, לקוחה, טלפון או עיר",
+    "allSources": "כל המקורות",
+    "emptyColumn": "אין כאן כלום",
+    "age": {
+      "now": "עכשיו",
+      "hours": "לפני {{count}} שע׳",
+      "days": "לפני {{count}} ימים"
+    },
+    "shortCount": "{{count}} חסר",
+    "shortHint": "{{count}} שורות אינן במלאי במלואן. הקטינו או הסירו אותן, או נסו שוב כשיגיע מלאי.",
+    "pickList": "רשימת ליקוט",
+    "picked": "לוקטו {{done}} מתוך {{total}}",
+    "pickedOne": "לוקט",
+    "order": "הזמנה",
+    "toCollect": "לגבייה: {{amount}}",
+    "slip": "ליקוט ותעודת משלוח",
+    "timeline": "היסטוריה",
+    "call": "חיוג",
+    "customerPage": "דף הלקוחה",
+    "deposit": "מקדמה",
+    "due": "יתרה לתשלום",
+    "dueNow": "לתשלום עכשיו: {{amount}}",
+    "cod": "תשלום במסירה",
+    "settled": "שולם ע״י החברה",
+    "saleLink": "מכירה {{number}}",
+    "quoteKept": "המחיר היום {{price}}; המחיר שסוכם נשמר",
+    "codHint": "החברה גובה {{amount}} מהלקוחה וחייבת אותו לחנות.",
+    "prepaidHint": "שולם במלואו; אין גבייה במסירה.",
+    "leftAsDebt": "{{amount}} נשאר כחוב של הלקוחה",
+    "returnedHint": "החבילה חזרה. לכל פריט בחרו: חזרה למדף או פגום.",
+    "cancelDepositHint": "המקדמה {{amount}} נשארת כזיכוי ללקוחה.",
+    "depositHint": "נשמר כזיכוי ללקוחה ומנוכה במסירה.",
+    "linesFixed": "הפריטים קבועים לאחר שההזמנה מוכנה.",
+    "do": {
+      "confirm": "אישור ושמירה",
+      "prepare": "התחלת הכנה",
+      "ready": "מוכנה",
+      "ship": "מסירה לשליח",
+      "collect": "הלקוחה אספה",
+      "returned": "חזר לחנות",
+      "reserve": "ניסיון שמירה חוזר",
+      "deposit": "קבלת מקדמה",
+      "cancel": "ביטול הזמנה"
+    },
+    "status": {
+      "NEW": "חדשה",
+      "CONFIRMED": "מאושרת",
+      "PREPARING": "בהכנה",
+      "READY": "מוכנה",
+      "OUT": "במשלוח",
+      "COLLECTED": "נאספה",
+      "CANCELLED": "בוטלה",
+      "RETURNED": "חזרה"
+    },
+    "source": {
+      "COUNTER": "בחנות",
+      "WHATSAPP": "וואטסאפ",
+      "ONLINE": "אונליין",
+      "PHONE": "טלפון"
+    }
+  },
+  "couriers": {
+    "add": "הוספת חברה",
+    "name": "שם",
+    "owes": "החברה חייבת",
+    "openOrders": "{{count}} חבילות שטרם שולמו",
+    "settle": "התחשבנות",
+    "history": "התחשבנויות",
+    "received": "התקבל",
+    "fee": "דמי משלוח",
+    "covers": "מכסה את ההזמנות (הישנות קודם)",
+    "noOpen": "אין חבילות שלא שולמו",
+    "overpaid": "{{amount}} מעבר לחוב נשאר בחשבון החברה"
   }
 }

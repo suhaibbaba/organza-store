@@ -1,7 +1,7 @@
 # Progress
 
-**Current phase:** 4
-**Next:** phase 4 (see the roadmap in the proposal)
+**Current phase:** 5
+**Next:** phase 5: suppliers and purchasing
 
 ## Finished steps
 
@@ -26,3 +26,4 @@
 | 2026-11-16 | 3 | Quick sell (API): a product from a name and a price at the till, sold through the normal checkout, then reviewed by a manager as completed or one-off. Boolean query filters now read "false" as false | see git log |
 | 2026-11-16 | 3 | Web: return and exchange screen (quantities, shelf or damaged, exchange items from the product browser, debt cleared first, refund method or store credit, ask a manager above the refund limit), void (direct for managers, a request otherwise), returns on the sale page, gift receipt without prices, approvals inbox with a pending badge in the menu, giveaway lines and gift purchase at the till, quick-sell dialog, quick-sell review on the product page, price, hide, photo-delete and stock-correction requests for employees | see git log |
 | 2026-11-16 | 4 | Orders and couriers (API): orders with source and delivery method, quoted prices, line edits until ready, confirm reserves as far as stock goes, ready only when fully reserved, deposits as credit, hand-over to a courier (cash on delivery owed by the company) or collection at the shop (creates the sale), refused parcels back to shelf or damaged, cancel releases stock; delivery companies with ledger balances and settlements net of fees; pick list by shelf location; database guards for status moves and append-only history | see git log |
+| 2026-11-16 | 4 | Web: orders board (five columns on desktop, tabs with counts on phones; source badge, customer and city, photo strip, total and payment badge, age, short-stock warning), new order (customer, source, courier or pickup, lines from the browser or scanner, duplicate warning), order page (steps, reservation per line, quote kept, call and WhatsApp, deposits, hand to courier, collect with payment, refused parcel shelf/damaged, cancel, edit until ready, timeline), pick list by shelf location with packing slips (prints), delivery companies (balance, open parcels, settle with fee oldest-first preview, history) | see git log |

@@ -31,6 +31,9 @@ import classes from './AppLayout.module.css';
 
 const APP_VERSION = (import.meta.env.VITE_APP_VERSION as string | undefined) ?? 'dev';
 
+/** Screens that lay out their own scrolling areas (the till, the orders board). */
+const FULL_BLEED = ['/pos', '/orders'];
+
 export function AppLayout() {
   const { t, i18n } = useTranslation();
   const { user, can, signOut } = useSession();
@@ -148,7 +151,7 @@ export function AppLayout() {
 
       <main
         className={
-          location.pathname === '/pos'
+          FULL_BLEED.includes(location.pathname)
             ? `${classes.main} ${classes.fullBleed}`
             : `${classes.main} organza-scroll`
         }

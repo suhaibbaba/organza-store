@@ -22,7 +22,7 @@ import {
   type CustomerView,
   fromMinor,
   multiplyMoney,
-  type PaymentMethod,
+  type TillPaymentMethod,
   toMinor,
 } from '@organza/shared';
 import { IconBrandWhatsapp, IconCash, IconEdit, IconPhone } from '@tabler/icons-react';
@@ -256,7 +256,7 @@ function ReceivePaymentDialog({
   const receive = useReceivePayment();
   const defaultCurrency = currencies.data?.find((c) => c.isDefault)?.code ?? 'ILS';
   const active = (currencies.data ?? []).filter((c) => c.isActive && (c.isDefault || c.rateSetAt));
-  const [method, setMethod] = useState<PaymentMethod>('CASH');
+  const [method, setMethod] = useState<TillPaymentMethod>('CASH');
   const [currency, setCurrency] = useState(defaultCurrency);
   const [amount, setAmount] = useState('');
   const [reference, setReference] = useState('');
@@ -329,7 +329,7 @@ function ReceivePaymentDialog({
         )}
         <SegmentedControl
           value={method}
-          onChange={(v) => setMethod(v as PaymentMethod)}
+          onChange={(v) => setMethod(v as TillPaymentMethod)}
           data={(['CASH', 'CARD', 'BANK_TRANSFER'] as const).map((m) => ({
             value: m,
             label: t(`sales.method.${m}`),
