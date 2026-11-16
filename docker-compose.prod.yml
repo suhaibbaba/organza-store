@@ -1,0 +1,39 @@
+# Production stack on the VPS: nginx (static app + proxy), API, PostgreSQL 17.
+# Secrets come from .env on the server; nothing here is deployed by this repository's CI.
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER}']
+      interval: 5s
+      retries: 20
+  api:
+    image: ${API_IMAGE:-organza-api}
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      JWT_SECRET: ${JWT_SECRET}
+      CORS_ORIGIN: ${PUBLIC_ORIGIN}
+      AUTH_COOKIE_SECURE: always
+      UPLOAD_DIR: /app/uploads
+    volumes:
+      - uploads:/app/uploads
+  web:
+    image: ${WEB_IMAGE:-organza-web}
+    restart: unless-stopped
+    depends_on: [api]
+    ports:
+      - '${WEB_PORT:-8080}:80'
+volumes:
+  db-data:
+  uploads:
