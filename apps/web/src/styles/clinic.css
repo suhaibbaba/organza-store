@@ -52,7 +52,10 @@
   /* Gradients take the logo's colours: deep teal #235c63 and pale mint #b5d3cb. */
   --o-brand: #235c63;
   --o-brand-ink: #1a474d;
-  --o-wash: linear-gradient(100deg, #e6f2ef, #d2e6e1);
+  --o-wash: linear-gradient(100deg, #e3f1ed, #c7e1da);
+  /* Hover fill: mint into the logo's teal. */
+  --o-fill-hover: linear-gradient(135deg, #3fbf9c 0%, #1f8a6e 55%, #235c63 100%);
+  --o-fill-danger: linear-gradient(135deg, #d77c73 0%, #b03a31 60%, #7a2720 100%);
   --o-nav-active: linear-gradient(160deg, #2f7a82, #163e43);
   --o-banner:
     radial-gradient(600px 200px at 85% 0%, rgb(181 211 203 / 0.35), transparent 60%),
@@ -149,11 +152,6 @@
   border-color: var(--o-line);
   color: var(--o-ink);
 }
-.mantine-Button-root[data-variant='default']:hover:not(:disabled):not([data-disabled]) {
-  background: var(--o-inset);
-  border-color: var(--o-primary-600);
-  color: var(--o-primary-700);
-}
 .mantine-Button-root:disabled,
 .mantine-Button-root[data-disabled] {
   background: var(--o-inset);
@@ -163,11 +161,6 @@
 .mantine-ActionIcon-root[data-variant='default'] {
   border-color: var(--o-line);
   color: var(--o-ink-muted);
-}
-.mantine-ActionIcon-root[data-variant='default']:hover {
-  background: var(--o-inset);
-  border-color: var(--o-primary-600);
-  color: var(--o-primary-600);
 }
 
 /* ---------------------------------------------------------------- fields */
@@ -286,10 +279,10 @@
     border-color 250ms ease-in-out,
     color 250ms ease-in-out;
 }
-.mantine-Tabs-root[data-variant='pills'] .mantine-Tabs-tab:hover {
-  background: var(--o-inset);
-  border-color: #a3bac6;
-  color: var(--o-ink);
+.mantine-Tabs-root[data-variant='pills'] .mantine-Tabs-tab:not([data-active]):hover {
+  background: var(--o-fill-hover);
+  border-color: transparent;
+  color: #ffffff;
 }
 .mantine-Tabs-root[data-variant='pills'] .mantine-Tabs-tab[data-active] {
   background: var(--o-primary-600);
@@ -425,4 +418,86 @@ h1.mantine-Title-root {
 }
 .o-list > .mantine-Card-root:hover {
   background: var(--o-row-hover);
+}
+
+/* ---------------------------------------------------------------- full rounding */
+/* Every control is a pill; cards keep their 20px corners. A textarea keeps a soft corner. */
+.mantine-Button-root,
+.mantine-ActionIcon-root,
+.mantine-Input-input:not(textarea),
+.mantine-PillsInput-input,
+.mantine-Pagination-control,
+.mantine-SegmentedControl-root,
+.mantine-SegmentedControl-indicator,
+.mantine-Badge-root,
+.mantine-Chip-label,
+.mantine-Tabs-tab,
+.mantine-Menu-item,
+.mantine-Combobox-option,
+.mantine-NavLink-root {
+  border-radius: 980px;
+}
+textarea.mantine-Input-input {
+  border-radius: 18px;
+}
+
+/* ---------------------------------------------------------------- hover: a green gradient fill */
+/*
+ * Instead of a flat hover colour, the control fills with the green gradient from the reading
+ * start, and its text turns white. Drawn as a layer under the label so it can animate (a
+ * gradient itself cannot transition). Danger controls fill brick instead.
+ */
+.mantine-Button-root,
+.mantine-ActionIcon-root {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  transition:
+    color 300ms ease,
+    border-color 300ms ease,
+    transform 120ms ease-out;
+}
+.mantine-Button-root::after,
+.mantine-ActionIcon-root::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background-image: var(--o-fill-hover);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 350ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+[dir='rtl'] .mantine-Button-root::after,
+[dir='rtl'] .mantine-ActionIcon-root::after {
+  transform-origin: right center;
+}
+.mantine-Button-root.o-danger::after,
+.mantine-ActionIcon-root.o-danger::after {
+  background-image: var(--o-fill-danger);
+}
+.mantine-Button-root:hover:not(:disabled):not([data-disabled]):not([data-loading])::after,
+.mantine-ActionIcon-root:hover:not(:disabled):not([data-disabled]):not([data-loading])::after {
+  transform: scaleX(1);
+}
+.mantine-Button-root:hover:not(:disabled):not([data-disabled]):not([data-loading]),
+.mantine-ActionIcon-root:hover:not(:disabled):not([data-disabled]):not([data-loading]) {
+  color: #ffffff;
+  border-color: transparent;
+}
+/* Mantine's own hover colours would sit on top of the fill. */
+.mantine-Button-root[data-variant='default']:hover:not(:disabled):not([data-disabled]),
+.mantine-ActionIcon-root[data-variant='default']:hover,
+.mantine-Button-root[data-variant='subtle']:hover,
+.mantine-ActionIcon-root[data-variant='subtle']:hover,
+.mantine-Button-root[data-variant='transparent']:hover,
+.mantine-ActionIcon-root[data-variant='transparent']:hover {
+  background: transparent;
+  color: #ffffff;
+}
+.mantine-Button-inner,
+.mantine-ActionIcon-icon {
+  position: relative;
+  z-index: 1;
 }

@@ -86,10 +86,11 @@ const violet: MantineColorsTuple = [
   '#3a276b',
 ];
 
-/** Light variants are the clinic's tone fills (tint 100 under ink 700); filled is shade 6. */
 const variantColorResolver: VariantColorsResolver = (input) => {
   const base = defaultVariantColorsResolver(input);
-  const name = typeof input.color === 'string' ? input.color.split('.')[0] : undefined;
+  // No colour given means the primary colour.
+  const name =
+    typeof input.color === 'string' ? input.color.split('.')[0] : input.theme.primaryColor;
   const tuple = name ? input.theme.colors[name] : undefined;
   if (!tuple) return base;
   if (input.variant === 'light')
@@ -158,6 +159,16 @@ export const theme = createTheme({
   /* Keyboard focus only: mouse and touch users see no ring, as in the clinic. */
   focusRing: 'auto',
   components: {
+    Button: {
+      classNames: (_theme: unknown, props: { color?: unknown }) => ({
+        root: props.color === 'red' ? 'o-danger' : '',
+      }),
+    },
+    ActionIcon: {
+      classNames: (_theme: unknown, props: { color?: unknown }) => ({
+        root: props.color === 'red' ? 'o-danger' : '',
+      }),
+    },
     Card: { defaultProps: { radius: 'xl', withBorder: true, shadow: 'sm', padding: 'lg' } },
     Paper: { defaultProps: { radius: 'xl' } },
     Modal: {

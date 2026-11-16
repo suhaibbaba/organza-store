@@ -58,7 +58,7 @@
   min-height: 44px;
   padding: 4px 8px;
   margin-bottom: 2px;
-  border-radius: 11px;
+  border-radius: 980px;
   font-size: 14px;
   line-height: 20px;
   font-weight: 500;
@@ -69,13 +69,21 @@
     color 150ms,
     box-shadow 150ms;
 }
-.navItem:hover {
-  background: var(--o-inset);
-  color: var(--o-ink);
+.navItem:hover:not(.navActive),
+.child:hover:not(.childActive),
+.iconBtn:hover,
+.bell:hover {
+  background-size: 100% 100%;
+  color: #ffffff;
+  border-color: transparent;
+}
+.navItem:hover:not(.navActive) .tile {
+  background: rgb(255 255 255 / 0.2);
+  color: #ffffff;
 }
 /* An open section, or the section holding the current screen. */
 .navItem[data-current] {
-  background: var(--o-inset);
+  background-color: var(--o-inset);
   color: var(--o-ink);
 }
 .navActive .tile {
@@ -148,7 +156,7 @@
   min-height: 36px;
   padding: 0 12px;
   margin-bottom: 2px;
-  border-radius: 10px;
+  border-radius: 980px;
   font-size: 14px;
   line-height: 20px;
   font-weight: 500;
@@ -158,18 +166,15 @@
     background-color 150ms,
     color 150ms;
 }
-.child:hover {
-  background: var(--o-inset);
-  color: var(--o-ink);
-}
-.childActive,
-.childActive:hover {
+.child.childActive,
+.child.childActive:hover {
   background: #e3efed;
   color: var(--o-brand);
 }
-.navActive,
-.navActive:hover {
+.navItem.navActive,
+.navItem.navActive:hover {
   background-image: var(--o-nav-active);
+  background-size: 100% 100%;
   color: #ffffff;
   box-shadow: var(--o-shadow-nav);
 }
@@ -209,7 +214,7 @@
   align-items: center;
   gap: 11px;
   padding: 12px;
-  border-radius: 14px;
+  border-radius: 980px;
   border: 1px solid var(--o-line);
   background: #ffffff;
   transition: background-color 150ms;
@@ -323,7 +328,7 @@
   column-gap: 14px;
   min-height: 70px;
   padding: 12px 16px;
-  border-radius: 12px;
+  border-radius: 980px;
   border: 1px solid var(--o-line);
   background: #ffffff;
   box-shadow: var(--o-shadow-card);
@@ -335,17 +340,13 @@
   width: 36px;
   height: 36px;
   flex-shrink: 0;
-  border-radius: 10px;
+  border-radius: 980px;
   border: 1px solid var(--o-line);
   background: #ffffff;
   color: var(--o-ink-muted);
   transition:
     background-color 250ms ease-in-out,
     color 250ms ease-in-out;
-}
-.iconBtn:hover {
-  background: var(--o-inset);
-  color: var(--o-ink);
 }
 .topLogo {
   display: inline-flex;
@@ -363,7 +364,7 @@
   gap: 8px;
   height: 36px;
   padding: 0 14px;
-  border-radius: 10px;
+  border-radius: 980px;
   border: 1px solid var(--o-line-strong);
   background: #ffffff;
   color: var(--o-ink-subtle);
@@ -427,7 +428,7 @@
   justify-content: center;
   width: 36px;
   height: 36px;
-  border-radius: 10px;
+  border-radius: 980px;
   border: 1px solid var(--o-line);
   background: #ffffff;
   color: var(--o-ink-muted);
@@ -435,10 +436,6 @@
     color 250ms ease-in-out,
     background-color 250ms ease-in-out,
     border-color 250ms ease-in-out;
-}
-.bell:hover {
-  background: var(--o-primary-100);
-  color: var(--o-primary-700);
 }
 .bell[data-expanded] {
   border-color: var(--o-primary-600);
@@ -517,4 +514,30 @@
   .searchDivider {
     display: none;
   }
+}
+
+/* Hover fills each control with the green gradient from the reading start (clinic.css). */
+.navItem,
+.child,
+.iconBtn,
+.bell {
+  background-image: var(--o-fill-hover);
+  background-repeat: no-repeat;
+  background-size: 0% 100%;
+  background-position: left center;
+  transition:
+    background-size 350ms cubic-bezier(0.22, 1, 0.36, 1),
+    color 300ms ease,
+    border-color 300ms ease;
+}
+:global([dir='rtl']) .navItem,
+:global([dir='rtl']) .child,
+:global([dir='rtl']) .iconBtn,
+:global([dir='rtl']) .bell {
+  background-position: right center;
+}
+.navItem .tile {
+  transition:
+    background-color 300ms ease,
+    color 300ms ease;
 }

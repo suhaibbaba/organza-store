@@ -19,11 +19,13 @@
     "empty": "Nothing here yet",
     "more": "More",
     "note": "Note",
-    "otherLanguages": "English and Hebrew",
     "reason": "Reason",
     "remove": "Remove",
     "saved": "Saved",
-    "date": "Date"
+    "date": "Date",
+    "translations": "Translations",
+    "show": "Show",
+    "hide": "Hide"
   },
   "nav": {
     "home": "Home",

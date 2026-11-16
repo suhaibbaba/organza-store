@@ -19,7 +19,7 @@ Mantine. This page is the contract every screen follows.
 3. **No raw values in module CSS** when a token exists. Colours, shadows and radii come from
    `--o-*` in `styles/clinic.css`. Plain hex only (Safari 15: no `color-mix`, `oklch` or
    container queries).
-4. **Controls are 36px**, small ones 28px, and nothing is taller. This is enforced globally in
+4. **Controls are 36px and fully rounded (pills)**, small ones 28px, and nothing is taller. Hovering a button, an icon button or a menu row fills it with the green gradient (`--o-fill-hover`) from the reading start, with white text; danger controls fill brick. Figure cards (`StatCard`) have a soft gradient of their tone. This is enforced globally in
    `clinic.css`, so never set a control's height.
 5. **Every visible word is a translation key** (ar, en and he). `scripts/check-i18n.mjs`
    enforces this.

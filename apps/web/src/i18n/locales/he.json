@@ -19,11 +19,13 @@
     "empty": "אין כאן עדיין כלום",
     "more": "עוד",
     "note": "הערה",
-    "otherLanguages": "אנגלית ועברית",
     "reason": "סיבה",
     "remove": "הסרה",
     "saved": "נשמר",
-    "date": "תאריך"
+    "date": "תאריך",
+    "translations": "תרגומים",
+    "show": "הצג",
+    "hide": "הסתר"
   },
   "nav": {
     "home": "בית",

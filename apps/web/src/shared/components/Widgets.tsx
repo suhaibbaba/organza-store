@@ -35,11 +35,13 @@ export function StatCard({
     </>
   );
   return to ? (
-    <Link to={to} className={`${classes.stat} ${classes.statLink}`}>
+    <Link to={to} className={`${classes.stat} ${classes.statLink}`} data-tone={tone}>
       {body}
     </Link>
   ) : (
-    <div className={classes.stat}>{body}</div>
+    <div className={classes.stat} data-tone={tone}>
+      {body}
+    </div>
   );
 }
 

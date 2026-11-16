@@ -10,7 +10,8 @@
   height: 100%;
   border-radius: 20px;
   border: 1px solid var(--o-line);
-  background: #ffffff;
+  /* A soft gradient in the logo's teal and mint; the tone tints it (below). */
+  background: linear-gradient(140deg, #ffffff 0%, #f1f8f6 55%, #dcefe9 100%);
   padding: 18px 20px;
   box-shadow: var(--o-shadow-card);
   color: inherit;
@@ -236,4 +237,15 @@
 .initials[data-tint='5'] {
   background: #f2e7ee;
   color: #8c3a6b;
+}
+
+/* Figure cards take a gradient of their tone. */
+.stat[data-tone='success'] {
+  background: linear-gradient(140deg, #ffffff 0%, #eef9f5 55%, #d4f0e6 100%);
+}
+.stat[data-tone='warning'] {
+  background: linear-gradient(140deg, #ffffff 0%, #fdf8ec 55%, #f7e9c6 100%);
+}
+.stat[data-tone='danger'] {
+  background: linear-gradient(140deg, #ffffff 0%, #fdf3f2 55%, #f8dcd8 100%);
 }
