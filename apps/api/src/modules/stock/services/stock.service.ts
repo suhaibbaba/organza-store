@@ -1,10 +1,11 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, type OnModuleInit } from '@nestjs/common';
 import type { AccountCode, StockBucket, StockReason } from '@organza/shared';
 import { and, eq, inArray, isNull, sql } from 'drizzle-orm';
 import { conflict, notFound } from '../../../common/lib/app-error.js';
 import { InjectDb } from '../../../database/database.module.js';
 import { itemBalances, items, stockMovements } from '../../../database/schema/index.js';
 import type { Database, Executor, Transaction } from '../../../database/unit-of-work.js';
+import { JobsService } from '../../jobs/jobs.service.js';
 import {
   credit,
   debit,
@@ -74,13 +75,22 @@ export interface AppliedMovement {
  * cost side to the journal (proposal E, "Inventory transaction model").
  */
 @Injectable()
-export class StockService {
+export class StockService implements OnModuleInit {
   private readonly logger = new Logger('Stock');
 
   constructor(
     @InjectDb() private readonly db: Database,
     private readonly ledger: LedgerService,
+    private readonly jobs: JobsService,
   ) {}
+
+  onModuleInit(): void {
+    this.jobs.register({
+      name: 'stock-balance-check',
+      hour: 3,
+      run: async () => ({ mismatches: await this.verify() }),
+    });
+  }
 
   /** Locks balance rows in item-id order (deadlock-free) and returns them. */
   async lock(tx: Transaction, itemIds: string[]): Promise<Map<string, Balance>> {

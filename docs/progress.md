@@ -1,7 +1,7 @@
 # Progress
 
 **Current phase:** 1. Catalogue and stock
-**Next:** stock adjustments and counts (API), then the image pipeline and labels
+**Next:** image pipeline (sharp) and label data, then the catalogue migration script
 
 ## Finished steps
 
@@ -14,3 +14,4 @@
 | 2026-11-16 | 0 | CI workflow (format, type check, lint, API tests on a throwaway Postgres 17, web build + Safari check, image builds), API and web Dockerfiles, nginx, production compose, README. Phase 0 complete | see git log |
 | 2026-11-16 | 1 | Shop settings (one validated document with defaults: labels, thresholds, reminders) and currencies (one default, others with an append-only rate history) | see git log |
 | 2026-11-16 | 1 | Money and stock ledgers: 20 fixed accounts, balanced journal entries (deferred DB check), reversal by mirror entry, period locks; stock movements with ON_HAND/DAMAGED buckets, cached balances with CHECKs, sorted row locks, weighted average cost, reservations, source reversal, nightly balance check. Catalogue API: categories, option types and values, products of the three types created in one transaction with opening stock, EAN-13 (prefix 200) and SKUs, barcode uniqueness with shared supplier codes and lookup, Arabic search (pg_trgm), versioned edits, archive with write-off, unknown-cost fill-in. Tests: oversell under concurrency, ledger = balances, append-only | see git log |
+| 2026-11-16 | 1 | Stock adjustments (damage, loss, found, write-off of damaged, correction by delta or counted quantity) with ADJ numbers and reversal; stock counts (open, count lines, post differences at posting time, cancel); stock list with low-stock flag and item history; daily job runner (once per shop date across instances) running the 03:00 balance-versus-movements check | see git log |

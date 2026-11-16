@@ -9,3 +9,4 @@ export * from './ledger.js';
 export * from './search.js';
 export * from './barcode.js';
 export * from './schemas/catalogue.js';
+export * from './schemas/stock.js';

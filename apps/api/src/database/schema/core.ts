@@ -122,3 +122,17 @@ export const outbox = pgTable(
       .where(sql`${t.sentAt} is null`),
   ],
 );
+
+/** One row per daily job per shop date: the first instance to insert it runs the job. */
+export const jobRuns = pgTable(
+  'job_runs',
+  {
+    name: text('name').notNull(),
+    runDate: text('run_date').notNull(),
+    startedAt: timestamp('started_at', { withTimezone: true }).notNull().defaultNow(),
+    finishedAt: timestamp('finished_at', { withTimezone: true }),
+    result: jsonb('result'),
+    error: text('error'),
+  },
+  (t) => [primaryKey({ columns: [t.name, t.runDate] })],
+);
