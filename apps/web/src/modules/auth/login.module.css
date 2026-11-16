@@ -1,0 +1,34 @@
+.page {
+  background-image: var(--o-banner);
+}
+.brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+.brand img {
+  border-radius: 16px;
+}
+.wordmark {
+  direction: ltr;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.24em;
+  color: var(--o-primary-900);
+}
+.title {
+  margin: 0;
+  text-align: center;
+  font-size: 22px;
+  line-height: 30px;
+  font-weight: 500;
+  color: var(--o-title);
+}
+.subtitle {
+  margin: 4px 0 0;
+  text-align: center;
+  font-size: 14px;
+  color: var(--o-ink-muted);
+}

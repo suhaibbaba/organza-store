@@ -77,7 +77,7 @@ export function StockPage() {
       {query.isError && <ErrorState error={query.error} onRetry={() => void query.refetch()} />}
       {query.data?.items.length === 0 && <EmptyState />}
       {query.data && query.data.items.length > 0 && phone && (
-        <Stack gap="xs">
+        <Stack gap="xs" className="o-list">
           {query.data.items.map((r) => (
             <Card key={r.itemId} withBorder padding="xs" onClick={() => openRow(r)}>
               <Group justify="space-between" wrap="nowrap">

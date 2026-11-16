@@ -7,9 +7,9 @@ import {
   PasswordInput,
   Stack,
   TextInput,
-  Title,
 } from '@mantine/core';
 import { useState, type FormEvent } from 'react';
+import classes from './login.module.css';
 import { useTranslation } from 'react-i18next';
 import { Navigate, useLocation, useNavigate } from 'react-router';
 import { useErrorMessage } from '@web/shared/hooks/use-error-message';
@@ -45,15 +45,17 @@ export function LoginPage() {
   }
 
   return (
-    <Center h="100%" p="md" className="organza-scroll">
-      <Paper withBorder p="xl" w="100%" maw={380} component="form" onSubmit={submit}>
+    <Center h="100%" p="md" className={`organza-scroll ${classes.page}`}>
+      <Paper withBorder shadow="xl" p="xl" w="100%" maw={400} component="form" onSubmit={submit}>
         <Stack>
-          <Title order={2} ta="center">
-            {t('app.name')}
-          </Title>
-          <Title order={4} ta="center" c="dimmed" fw={500}>
-            {t('login.title')}
-          </Title>
+          <div className={classes.brand} aria-label={t('app.name')}>
+            <img src="/brand/mark.png" alt="" width={56} height={56} />
+            <span className={classes.wordmark}>ORGANZA</span>
+          </div>
+          <div>
+            <h1 className={classes.title}>{t('login.title')}</h1>
+            <p className={classes.subtitle}>{t('login.subtitle')}</p>
+          </div>
           {error !== null && <Alert color="red">{errorMessage(error)}</Alert>}
           <TextInput
             label={t('login.email')}

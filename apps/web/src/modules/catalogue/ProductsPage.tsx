@@ -156,7 +156,7 @@ export function ProductsPage() {
       {query.isError && <ErrorState error={query.error} onRetry={() => void query.refetch()} />}
       {query.data?.items.length === 0 && <EmptyState />}
       {query.data && query.data.items.length > 0 && phone && (
-        <Stack gap="xs">
+        <Stack gap="xs" className="o-list">
           {query.data.items.map((p) => (
             <Card
               key={p.id}

@@ -88,7 +88,7 @@ export function SaleList({ sales }: { sales: SaleSummary[] }) {
   const money = useMoney();
   const navigate = useNavigate();
   return (
-    <Stack gap="xs">
+    <Stack gap="xs" className="o-list">
       {sales.map((s) => (
         <Card
           key={s.id}

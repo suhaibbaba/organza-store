@@ -327,7 +327,7 @@ function Payments({ supplierId }: { supplierId: string }) {
   if (query.isPending) return <FullScreenLoader />;
   if (!query.data?.length) return <EmptyState />;
   return (
-    <Stack gap="xs">
+    <Stack gap="xs" className="o-list">
       {query.data.map((p) => (
         <Card key={p.id} withBorder padding="sm">
           <Group justify="space-between">
@@ -363,7 +363,7 @@ function CreditNotes({ supplierId }: { supplierId: string }) {
   if (query.isPending) return <FullScreenLoader />;
   if (!query.data?.length) return <EmptyState />;
   return (
-    <Stack gap="xs">
+    <Stack gap="xs" className="o-list">
       {query.data.map((c) => (
         <Card key={c.id} withBorder padding="sm">
           <Group justify="space-between">

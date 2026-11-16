@@ -39,7 +39,7 @@ export function StaffPage() {
       {query.isError && <ErrorState error={query.error} onRetry={() => void query.refetch()} />}
       {query.data?.length === 0 && <EmptyState />}
       {query.data && query.data.length > 0 && phone && (
-        <Stack gap="sm">
+        <Stack gap="sm" className="o-list">
           {query.data.map((m) => (
             <Card key={m.id} withBorder onClick={() => manage && setEditing(m)}>
               <Group justify="space-between">

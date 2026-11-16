@@ -75,7 +75,8 @@
     "email": "Email",
     "password": "Password",
     "remember": "Keep me signed in on this device",
-    "submit": "Sign in"
+    "submit": "Sign in",
+    "subtitle": "Enter your email and password to continue"
   },
   "staff": {
     "title": "Staff",

@@ -50,7 +50,7 @@ export function AdjustmentsPage() {
       {query.isPending && <FullScreenLoader />}
       {query.isError && <ErrorState error={query.error} onRetry={() => void query.refetch()} />}
       {query.data?.length === 0 && <EmptyState />}
-      <Stack gap="xs">
+      <Stack gap="xs" className="o-list">
         {query.data?.map((a) => (
           <Card
             key={a.id}

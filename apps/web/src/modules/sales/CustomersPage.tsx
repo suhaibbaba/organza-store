@@ -1,3 +1,4 @@
+import { Initials } from '@web/shared/components/Widgets';
 import {
   Badge,
   Button,
@@ -72,7 +73,7 @@ export function CustomersPage() {
       {query.isPending && <FullScreenLoader />}
       {query.isError && <ErrorState error={query.error} onRetry={() => void query.refetch()} />}
       {query.data?.items.length === 0 && <EmptyState />}
-      <Stack gap="xs">
+      <Stack gap="xs" className="o-list">
         {query.data?.items.map((c) => (
           <Card
             key={c.id}
@@ -82,16 +83,19 @@ export function CustomersPage() {
             onClick={() => navigate(`/customers/${c.id}`)}
           >
             <Group justify="space-between" wrap="nowrap">
-              <Stack gap={0} style={{ minWidth: 0 }}>
-                <Text fw={600} truncate>
-                  {c.name}
-                </Text>
-                {c.phone && (
-                  <Text size="xs" c="dimmed" dir="ltr" ta="start">
-                    {c.phone}
+              <Group gap="sm" wrap="nowrap" style={{ minWidth: 0 }}>
+                <Initials name={c.name} />
+                <Stack gap={0} style={{ minWidth: 0 }}>
+                  <Text fw={500} truncate>
+                    {c.name}
                   </Text>
-                )}
-              </Stack>
+                  {c.phone && (
+                    <Text size="xs" c="dimmed" dir="ltr" ta="start">
+                      {c.phone}
+                    </Text>
+                  )}
+                </Stack>
+              </Group>
               <Group gap={4}>
                 {Number(c.debt) > 0 && (
                   <Badge color="red" variant="light">

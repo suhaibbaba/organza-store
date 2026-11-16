@@ -399,3 +399,27 @@ h1.mantine-Title-root {
   color: var(--o-title);
   font-weight: 500;
 }
+
+/* A stack of row cards reads as one list card, as in the clinic. */
+.o-list {
+  gap: 0 !important;
+  border: 1px solid var(--o-line);
+  border-radius: 20px;
+  background: #ffffff;
+  box-shadow: var(--o-shadow-card);
+  overflow: hidden;
+}
+.o-list > .mantine-Card-root {
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--o-line);
+  transition: background-color 150ms;
+}
+.o-list > .mantine-Card-root:last-child {
+  border-bottom: 0;
+}
+.o-list > .mantine-Card-root:hover {
+  background: var(--o-row-hover);
+}

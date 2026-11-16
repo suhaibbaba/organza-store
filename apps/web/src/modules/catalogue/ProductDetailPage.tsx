@@ -306,7 +306,7 @@ export function ProductDetailPage() {
             )}
           </Group>
           {phone ? (
-            <Stack gap="xs">
+            <Stack gap="xs" className="o-list">
               {p.items.map((item) => (
                 <Card
                   key={item.id}
