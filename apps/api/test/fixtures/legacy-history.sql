@@ -9,7 +9,7 @@ CREATE TYPE "PaymentStatus" AS ENUM ('PENDING_COLLECTION', 'COLLECTED');
 CREATE TYPE "CashSessionStatus" AS ENUM ('OPEN', 'CLOSED');
 CREATE TABLE "user" ("id" text PRIMARY KEY, "name" text NOT NULL, "email" text UNIQUE NOT NULL, "emailVerified" boolean NOT NULL DEFAULT false, "role" "Role" NOT NULL DEFAULT 'EMPLOYEE', "phone" text UNIQUE NOT NULL, "isActive" boolean NOT NULL DEFAULT true, "createdAt" timestamp(3) NOT NULL DEFAULT now(), "updatedAt" timestamp(3) NOT NULL DEFAULT now());
 CREATE TABLE "account" ("id" text PRIMARY KEY, "userId" text NOT NULL REFERENCES "user"("id"), "accountId" text NOT NULL, "providerId" text NOT NULL, "password" text, "createdAt" timestamp(3) NOT NULL DEFAULT now(), "updatedAt" timestamp(3) NOT NULL DEFAULT now());
-CREATE TABLE "Order" ("id" text PRIMARY KEY, "orderNumber" serial UNIQUE, "channel" "OrderChannel" NOT NULL, "type" "OrderType" NOT NULL DEFAULT 'SALE', "status" "OrderStatus" NOT NULL DEFAULT 'NEW', "paymentMethod" "PaymentMethod" NOT NULL DEFAULT 'CASH', "paymentStatus" "PaymentStatus" NOT NULL DEFAULT 'PENDING_COLLECTION', "collectedAt" timestamp(3), "customerName" text, "customerPhone" text, "customerWhatsapp" text, "customerAddress" text, "note" text, "subtotal" decimal(10,2) NOT NULL, "discountAmount" decimal(10,2) NOT NULL DEFAULT 0, "total" decimal(10,2) NOT NULL, "hasQuickSale" boolean NOT NULL DEFAULT false, "deletedAt" timestamp(3), "createdById" text NOT NULL, "createdAt" timestamp(3) NOT NULL DEFAULT now(), "updatedAt" timestamp(3) NOT NULL DEFAULT now());
+CREATE TABLE "Order" ("id" text PRIMARY KEY, "orderNumber" serial UNIQUE, "channel" "OrderChannel" NOT NULL, "type" "OrderType" NOT NULL DEFAULT 'SALE', "status" "OrderStatus" NOT NULL DEFAULT 'NEW', "paymentMethod" "PaymentMethod" NOT NULL DEFAULT 'CASH', "paymentStatus" "PaymentStatus" NOT NULL DEFAULT 'PENDING_COLLECTION', "collectedAt" timestamp(3), "customerName" text, "customerPhone" text, "customerWhatsapp" text, "customerAddress" text, "note" text, "subtotal" decimal(10,2) NOT NULL, "discountAmount" decimal(10,2) NOT NULL DEFAULT 0, "total" decimal(10,2) NOT NULL, "hasQuickSale" boolean NOT NULL DEFAULT false, "deletedAt" timestamp(3), "stockDeductedAt" timestamp(3), "createdById" text NOT NULL, "createdAt" timestamp(3) NOT NULL DEFAULT now(), "updatedAt" timestamp(3) NOT NULL DEFAULT now());
 CREATE TABLE "OrderItem" ("id" text PRIMARY KEY, "orderId" text NOT NULL REFERENCES "Order"("id"), "productId" text, "variantId" text, "name" jsonb NOT NULL, "variantName" jsonb, "sku" text, "unitPrice" decimal(10,2) NOT NULL, "unitCost" decimal(10,2), "quantity" int NOT NULL, "quickSold" boolean NOT NULL DEFAULT false, "discountAmount" decimal(10,2) NOT NULL DEFAULT 0, "lineTotal" decimal(10,2) NOT NULL, "returnedQuantity" int NOT NULL DEFAULT 0, "createdAt" timestamp(3) NOT NULL DEFAULT now(), "updatedAt" timestamp(3) NOT NULL DEFAULT now());
 CREATE TABLE "CashSession" ("id" text PRIMARY KEY, "date" date UNIQUE NOT NULL, "status" "CashSessionStatus" NOT NULL DEFAULT 'OPEN', "openingFloat" decimal(10,2) NOT NULL, "cashSales" decimal(10,2), "cashExpenses" decimal(10,2), "expectedAmount" decimal(10,2), "countedAmount" decimal(10,2), "withdrawnAmount" decimal(10,2) NOT NULL DEFAULT 0, "difference" decimal(10,2), "closingBalance" decimal(10,2), "note" text, "followUpResolvedAt" timestamp(3), "followUpResolvedById" text, "openedById" text NOT NULL REFERENCES "user"("id"), "closedById" text, "openedAt" timestamp(3) NOT NULL DEFAULT now(), "closedAt" timestamp(3));
 
@@ -37,7 +37,11 @@ INSERT INTO "Order" ("id", "orderNumber", "channel", "type", "status", "paymentS
   -- 7: a different person with the same name as order 2's customer.
   ('o7', 7, 'STORE', 'SALE', 'COMPLETED', 'COLLECTED', NULL, 'Sara A', '0599000002', NULL, NULL, 120.00, 0, 120.00, NULL, 'u-owner', '2026-02-02 09:00', '2026-02-02 09:00'),
   -- 8: online, returned, a phone that is not a phone number, collected a day later.
-  ('o8', 8, 'WEBSITE', 'SALE', 'RETURNED', 'COLLECTED', '2026-02-04 12:00', 'Online', 'abc', NULL, NULL, 15.00, 0, 15.00, NULL, 'u-ghost', '2026-02-03 09:00', '2026-02-05 09:00');
+  ('o8', 8, 'WEBSITE', 'SALE', 'RETURNED', 'COLLECTED', '2026-02-04 12:00', 'Online', 'abc', NULL, NULL, 15.00, 0, 15.00, NULL, 'u-ghost', '2026-02-03 09:00', '2026-02-05 09:00'),
+  -- 9: still being prepared, pieces already off the shelf; 10: new, nothing taken yet.
+  ('o9', 9, 'WHATSAPP', 'SALE', 'PREPARING', 'PENDING_COLLECTION', NULL, 'Huda', '0599000003', NULL, 'Nablus', 120.00, 0, 120.00, NULL, 'u-staff', '2026-02-06 09:00', '2026-02-06 10:00'),
+  ('o10', 10, 'WEBSITE', 'SALE', 'NEW', 'PENDING_COLLECTION', NULL, 'Lina', '0599000004', NULL, 'Jenin', 50.00, 0, 50.00, NULL, 'u-staff', '2026-02-07 09:00', '2026-02-07 09:00');
+UPDATE "Order" SET "stockDeductedAt" = "createdAt" WHERE id <> 'o10';
 INSERT INTO "OrderItem" ("id", "orderId", "productId", "variantId", "name", "variantName", "sku", "unitPrice", "unitCost", "quantity", "discountAmount", "lineTotal", "returnedQuantity") VALUES
   ('i1', 'o1', 'p1', NULL, '{"ar":"شال حرير"}', NULL, 'ORG-00001', 120.00, 30.00, 1, 0, 120.00, 0),
   ('i2', 'o1', 'p2', 'p2v1', '{"ar":"فستان"}', '{"ar":"صغير أحمر"}', 'ORG-00002-1', 200.00, NULL, 1, 20.00, 180.00, 0),
@@ -46,4 +50,7 @@ INSERT INTO "OrderItem" ("id", "orderId", "productId", "variantId", "name", "var
   ('i5', 'o5', 'p5', NULL, '{"ar":"بدون فئة"}', NULL, 'ORG-00008', 15.00, NULL, 1, 0, 15.00, 0),
   ('i6', 'o6', 'p3', 'p3v1', '{"ar":"شالات مرقمة"}', '{"ar":"3"}', 'ORG-00005-1', 50.00, NULL, 2, 0, 100.00, 0),
   ('i7', 'o7', 'p1', NULL, '{"ar":"شال حرير"}', NULL, 'ORG-00001', 120.00, 30.00, 1, 0, 120.00, 0),
-  ('i8', 'o8', 'p5', NULL, '{"ar":"بدون فئة"}', NULL, 'ORG-00008', 15.00, NULL, 1, 0, 15.00, 1);
+  ('i8', 'o8', 'p5', NULL, '{"ar":"بدون فئة"}', NULL, 'ORG-00008', 15.00, NULL, 1, 0, 15.00, 1),
+  ('i9', 'o9', 'p1', NULL, '{"ar":"شال حرير"}', NULL, 'ORG-00001', 120.00, 30.00, 1, 0, 120.00, 0),
+  ('i10', 'o10', 'p1', NULL, '{"ar":"شال حرير"}', NULL, 'ORG-00001', 50.00, 30.00, 1, 0, 50.00, 0),
+  ('i11', 'o4', 'p1', NULL, '{"ar":"شال حرير"}', NULL, 'ORG-00001', 0, 30.00, 1, 0, 0, 0);

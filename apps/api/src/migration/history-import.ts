@@ -18,9 +18,14 @@ import { businessDate } from '../common/lib/dates.js';
 import { AuditService } from '../common/services/audit.service.js';
 import { InjectDb } from '../database/database.module.js';
 import {
+  couriers,
   customers,
   journalEntries,
+  journalLines,
   legacyIds,
+  orderEvents,
+  orderLines,
+  orders,
   paymentAllocations,
   payments,
   registers,
@@ -31,6 +36,7 @@ import {
   users,
 } from '../database/schema/index.js';
 import { type Database, inTransaction, type Transaction } from '../database/unit-of-work.js';
+import { credit, debit, LedgerService } from '../modules/ledger/services/ledger.service.js';
 import { CurrenciesService } from '../modules/settings/services/currencies.service.js';
 import type { LegacyCashSession } from '../modules/sales/services/shifts.service.js';
 import { SettingsService } from '../modules/settings/services/settings.service.js';
@@ -62,6 +68,9 @@ interface OldOrder {
   discountAmount: string;
   total: string;
   deletedAt: Date | null;
+  /** Set once the old system took the pieces off the shelf (counter sales at once, online
+   *  orders when they started being prepared). */
+  stockDeductedAt: Date | null;
   createdById: string;
   createdAt: Date;
   updatedAt: Date;
@@ -104,7 +113,7 @@ export interface HistoryReport {
   dryRun: boolean;
   counts: Record<string, number>;
   months: { month: string; old: string; imported: string }[];
-  money: { collected: string; outstanding: string };
+  money: { collected: string; outstanding: string; withCouriers: string };
   /** Customers whose names match but phones differ: to look at before cut-over. */
   reviewCustomers: { name: string; phones: string[] }[];
   warnings: string[];
@@ -119,6 +128,9 @@ class DryRunRollback extends Error {
 
 const SOURCE = { STORE: 'COUNTER', WHATSAPP: 'WHATSAPP', WEBSITE: 'ONLINE' } as const;
 const OLD_TILL = 'الصندوق القديم';
+/** The old system did not record which delivery company took a parcel. */
+const OLD_COURIER = 'شركة التوصيل (النظام القديم)';
+const OPEN_ONLINE = ['NEW', 'PREPARING', 'HANDED_TO_COURIER'];
 const UNUSABLE_PASSWORD = '!legacy';
 const neg = (v: string) => fromMinor(-toMinor(v));
 const dateOnly = (d: Date) => d.toISOString().slice(0, 10);
@@ -128,8 +140,15 @@ const normalName = (name: string) => name.trim().replace(/\s+/g, ' ').toLowerCas
  * One-way import of the old system's people and history: staff accounts (their old password
  * hashes are checked once at first sign-in), customers built from the snapshots on orders and
  * de-duplicated by phone, orders as imported sales with their cash payment, and cash sessions as
- * imported closed shifts on an old till. Nothing is posted to the ledger (it starts at cut-over).
- * Gifts and returns come with phase 3, courier balances and open online orders with phase 4.
+ * imported closed shifts on an old till, gifts as giveaway sales.
+ *
+ * Online orders still in progress become orders:
+ * - The ones whose pieces already left the shelf keep their imported sale and are out with one
+ *   "old system" delivery company. What it still owes is its opening balance, so it is settled
+ *   on the Couriers screen like any other parcel.
+ * - New orders whose pieces are still on the shelf become new orders with no sale yet.
+ *
+ * Those courier balances are the only thing posted to the ledger (it starts at cut-over).
  * Runs in one transaction; a rehearsal (the default) rolls back and only reports.
  */
 @Injectable()
@@ -139,6 +158,7 @@ export class HistoryImporter {
     private readonly settings: SettingsService,
     private readonly currencies: CurrenciesService,
     private readonly audit: AuditService,
+    private readonly ledger: LedgerService,
   ) {}
 
   async run(source: postgres.Sql, options: { commit: boolean }): Promise<HistoryReport> {
@@ -399,14 +419,20 @@ export class HistoryImporter {
     let oldCollected = '0.00';
     let oldOutstanding = '0.00';
     let eligible = 0;
+    const waiting: OldOrder[] = [];
+    const out: { o: OldOrder; saleId: string; customerId: string | null; createdBy: string }[] = [];
 
     for (const o of old.orders) {
       if (o.deletedAt) {
         bump('orders.skipped.deleted');
         continue;
       }
-      if (o.type === 'GIFT') {
-        bump('orders.deferred.gifts');
+      const gift = o.type === 'GIFT' && compareMoney(o.total, 0) === 0;
+      if (o.type === 'GIFT' && !gift)
+        warnings.push(`Gift #${o.orderNumber} has a price (${o.total}); imported as a sale`);
+      // Still waiting and nothing taken off the shelf: an order, not yet a sale.
+      if (OPEN_ONLINE.includes(o.status) && !o.stockDeductedAt) {
+        waiting.push(o);
         continue;
       }
       eligible++;
@@ -450,9 +476,7 @@ export class HistoryImporter {
       const notes = [
         o.note,
         !customerId && o.customerName ? `${o.customerName}${raw ? ` ${raw}` : ''}` : null,
-        ['NEW', 'PREPARING', 'HANDED_TO_COURIER', 'RETURNED'].includes(o.status)
-          ? `[${o.status}]`
-          : null,
+        o.status === 'RETURNED' ? `[${o.status}]` : null,
       ].filter(Boolean);
       const [sale] = await tx
         .insert(sales)
@@ -475,10 +499,10 @@ export class HistoryImporter {
         })
         .returning({ id: sales.id });
       await remember('order', o.id, sale!.id);
-      bump(cancelled ? 'sales.cancelled' : 'sales');
+      bump(cancelled ? 'sales.cancelled' : gift ? 'sales.gifts' : 'sales');
       if (o.status === 'RETURNED' || oldLines.some((l) => l.returnedQuantity > 0))
         bump('orders.withReturns');
-      if (['NEW', 'PREPARING', 'HANDED_TO_COURIER'].includes(o.status)) bump('orders.openOnline');
+      if (OPEN_ONLINE.includes(o.status)) out.push({ o, saleId: sale!.id, customerId, createdBy });
 
       await tx.insert(saleLines).values(
         oldLines.map((l, i) => {
@@ -498,12 +522,13 @@ export class HistoryImporter {
             variantLabel: l.variantName,
             sku: l.sku,
             quantity: l.quantity,
-            unitPrice: addMoney(l.unitPrice),
-            discount,
-            lineTotal: addMoney(gross[i]!, neg(discount)),
+            unitPrice: gift ? '0.00' : addMoney(l.unitPrice),
+            discount: gift ? '0.00' : discount,
+            lineTotal: gift ? '0.00' : addMoney(gross[i]!, neg(discount)),
             unitCost: l.unitCost,
             costUnknown: l.unitCost === null,
             handedOver: l.quantity,
+            giveaway: gift,
           };
         }),
       );
@@ -513,7 +538,7 @@ export class HistoryImporter {
       const month = day.slice(0, 7);
       newMonths.set(month, addMoney(newMonths.get(month) ?? '0', o.total));
       // Store orders and collected online orders were paid in cash; pending ones are still with
-      // the courier (their balance arrives with the orders import in phase 4).
+      // the courier (their balance is the courier's opening balance, below).
       if (o.paymentStatus !== 'COLLECTED') {
         outstanding = addMoney(outstanding, o.total);
         continue;
@@ -552,13 +577,172 @@ export class HistoryImporter {
       bump('payments');
     }
     if (counts['orders.withReturns'])
-      warnings.push(`${counts['orders.withReturns']} orders had returns: imported with phase 3`);
-    if (counts['orders.openOnline'])
       warnings.push(
-        `${counts['orders.openOnline']} online orders were still in progress: their status and courier balance come with phase 4`,
+        `${counts['orders.withReturns']} orders had returns: imported as sales at their old total, without the return`,
       );
-    if (counts['orders.deferred.gifts'])
-      warnings.push(`${counts['orders.deferred.gifts']} gifts are imported with phase 3`);
+
+    // ---------------------------------------------------------------- open online orders
+    const cutover = await this.ledger.today(tx);
+    let courierId: string | undefined;
+    let cod = '0.00';
+    const oldCourier = async () => {
+      if (!courierId) {
+        const [row] = await tx
+          .insert(couriers)
+          .values({ name: OLD_COURIER, note: 'Imported from the old system' })
+          .returning({ id: couriers.id });
+        courierId = row!.id;
+      }
+      return courierId;
+    };
+    const openOrder = async (
+      o: OldOrder,
+      customerId: string,
+      createdBy: string,
+    ): Promise<string | null> => {
+      const oldLines = (linesByOrder.get(o.id) ?? []).filter((l) => l.quantity > 0);
+      const resolved = oldLines.map((l) =>
+        l.variantId
+          ? variantItems.get(l.variantId)
+          : l.productId
+            ? productItems.get(l.productId)
+            : undefined,
+      );
+      if (oldLines.length === 0 || resolved.some((id) => !id)) {
+        warnings.push(`Order #${o.orderNumber}: a piece is not in the catalogue; not an order`);
+        return null;
+      }
+      const [row] = await tx
+        .insert(orders)
+        .values({
+          number: `OLD-${o.orderNumber}`,
+          source: SOURCE[o.channel],
+          status: o.status === 'NEW' ? 'NEW' : 'PREPARING',
+          customerId,
+          delivery: 'COURIER',
+          address: o.customerAddress?.trim() || null,
+          note: o.note,
+          createdBy,
+          createdAt: o.createdAt,
+          updatedAt: o.updatedAt,
+        })
+        .returning({ id: orders.id });
+      await tx.insert(orderLines).values(
+        oldLines.map((l, i) => ({
+          orderId: row!.id,
+          position: i + 1,
+          itemId: resolved[i]!,
+          quantity: l.quantity,
+          unitPrice: addMoney(l.unitPrice),
+          discount: addMoney(l.discountAmount),
+        })),
+      );
+      await remember('online_order', o.id, row!.id);
+      return row!.id;
+    };
+    const event = (orderId: string, to: 'NEW' | 'OUT', o: OldOrder, createdBy: string) =>
+      tx.insert(orderEvents).values({
+        orderId,
+        toStatus: to,
+        note: `Imported from the old system (${o.status})`,
+        createdBy,
+        createdAt: o.updatedAt,
+      });
+
+    for (const o of waiting) {
+      const raw = o.customerPhone ?? o.customerWhatsapp;
+      const phone = raw ? toE164(raw, defaultCountryCode) : null;
+      const customerId = phone ? customerIds.get(phoneIdentityKey(phone)) : undefined;
+      if (!customerId) {
+        warnings.push(`Order #${o.orderNumber} is new and has no phone; enter it again by hand`);
+        bump('orders.skipped.noCustomer');
+        continue;
+      }
+      const createdBy = await staff(o.createdById);
+      const id = await openOrder(o, customerId, createdBy);
+      if (!id) continue;
+      await event(id, 'NEW', o, createdBy);
+      bump('orders.new');
+    }
+
+    for (const { o, saleId, customerId, createdBy } of out) {
+      if (!customerId) {
+        warnings.push(
+          `Order #${o.orderNumber} (${o.status}) has no phone: kept as a sale, not on the Orders screen`,
+        );
+        bump('orders.skipped.noCustomer');
+        continue;
+      }
+      const id = await openOrder(o, customerId, createdBy);
+      if (!id) continue;
+      const owed = o.paymentStatus === 'COLLECTED' ? '0.00' : addMoney(o.total);
+      const courier = await oldCourier();
+      // The guards allow only the real steps: prepared, ready, then out with its sale.
+      await tx.update(orders).set({ status: 'READY' }).where(eq(orders.id, id));
+      await tx
+        .update(orders)
+        .set({ status: 'OUT', saleId, courierId: courier, cod: owed, updatedAt: o.updatedAt })
+        .where(eq(orders.id, id));
+      await event(id, 'OUT', o, createdBy);
+      bump(o.status === 'HANDED_TO_COURIER' ? 'orders.out' : 'orders.out.notYetSent');
+      if (compareMoney(owed, 0) === 0) continue;
+      const [payment] = await tx
+        .insert(payments)
+        .values({
+          number: `OLD-COD-${o.orderNumber}`,
+          direction: 'IN',
+          method: 'COURIER',
+          currency,
+          amount: owed,
+          rate: '1',
+          amountDefault: owed,
+          customerId,
+          courierId: courier,
+          saleId,
+          orderId: id,
+          purpose: 'SALE',
+          businessDate: cutover,
+          takenBy: createdBy,
+          takenAt: o.updatedAt,
+          imported: true,
+        })
+        .returning({ id: payments.id });
+      await tx.insert(paymentAllocations).values({
+        paymentId: payment!.id,
+        saleId,
+        amount: owed,
+        createdBy,
+        createdAt: o.updatedAt,
+      });
+      await this.ledger.post(tx, {
+        sourceType: 'payment',
+        sourceId: payment!.id,
+        event: 'OPENING_BALANCE',
+        createdBy,
+        entryDate: cutover,
+        lines: [
+          debit('COURIER_RECEIVABLES', owed, { partyType: 'COURIER', partyId: courier }),
+          credit('OPENING_BALANCES', owed),
+        ],
+      });
+      cod = addMoney(cod, owed);
+      bump('payments.courier');
+    }
+    if (counts['orders.out.notYetSent'])
+      warnings.push(
+        `${counts['orders.out.notYetSent']} orders were still being prepared but their pieces had left the shelf: they are out with "${OLD_COURIER}"; hand them over as usual`,
+      );
+    const pendingDone = old.orders.filter(
+      (o) =>
+        !o.deletedAt &&
+        o.paymentStatus === 'PENDING_COLLECTION' &&
+        !OPEN_ONLINE.includes(o.status) &&
+        o.status !== 'CANCELLED',
+    );
+    if (pendingDone.length)
+      warnings.push(
+        `${pendingDone.length} finished orders were never marked collected (${pendingDone.map((o) => `#${o.orderNumber}`).join(', ')}): not owed by any courier`,
+      );
 
     // ---------------------------------------------------------------- checks
     const checks: HistoryReport['checks'] = [];
@@ -612,16 +796,24 @@ export class HistoryImporter {
       ok: (counts['shifts'] ?? 0) === old.sessions.length,
     });
     const [entriesAfter] = await tx.select({ n: sql<number>`count(*)::int` }).from(journalEntries);
+    const [onCouriers] = await tx
+      .select({ total: sql<string>`coalesce(sum(${journalLines.amount}), 0)::text` })
+      .from(journalLines)
+      .where(eq(journalLines.account, 'COURIER_RECEIVABLES'));
+    const codPayments = counts['payments.courier'] ?? 0;
     checks.push({
-      name: 'nothing was posted to the ledger',
-      ok: entriesAfter?.n === entriesBefore?.n,
+      name: 'the ledger holds only what couriers owe',
+      ok:
+        entriesAfter!.n - entriesBefore!.n === codPayments &&
+        compareMoney(onCouriers?.total ?? '0', cod) === 0,
+      detail: `${cod} on ${codPayments} orders`,
     });
 
     const report: HistoryReport = {
       dryRun,
       counts,
       months,
-      money: { collected, outstanding },
+      money: { collected, outstanding, withCouriers: cod },
       reviewCustomers,
       warnings,
       checks,

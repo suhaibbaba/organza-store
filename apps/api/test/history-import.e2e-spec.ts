@@ -12,7 +12,11 @@ import { resetEnvCache } from '../src/config/env.js';
 import { DATABASE } from '../src/database/database.module.js';
 import { runMigrations } from '../src/database/migrate.js';
 import {
+  couriers,
   customers,
+  journalLines,
+  orderLines,
+  orders,
   payments,
   saleLines,
   sales,
@@ -87,18 +91,26 @@ describe('history import from the old system', () => {
     expect(report.counts).toMatchObject({
       'staff.imported': 2,
       shifts: 1,
-      customers: 2,
-      sales: 5,
+      customers: 4,
+      sales: 6,
+      'sales.gifts': 1,
       'sales.cancelled': 1,
       payments: 4,
+      'payments.courier': 2,
       'orders.skipped.deleted': 1,
-      'orders.deferred.gifts': 1,
+      'orders.out': 1,
+      'orders.out.notYetSent': 1,
+      'orders.new': 1,
     });
     expect(report.months).toEqual([
       { month: '2026-01', old: '510.00', imported: '510.00' },
-      { month: '2026-02', old: '235.00', imported: '235.00' },
+      { month: '2026-02', old: '355.00', imported: '355.00' },
     ]);
-    expect(report.money).toEqual({ collected: '525.00', outstanding: '220.00' });
+    expect(report.money).toEqual({
+      collected: '525.00',
+      outstanding: '340.00',
+      withCouriers: '340.00',
+    });
     expect(report.reviewCustomers).toEqual([
       { name: 'sara a', phones: ['+970599000002', '+972599000001'] },
     ]);
@@ -133,9 +145,33 @@ describe('history import from the old system', () => {
     expect(sara[0]).toMatchObject({ name: 'Sara A', address: 'Ramallah' });
     const [courier] = await db.select().from(sales).where(eq(sales.number, 'OLD-2'));
     expect(courier).toMatchObject({ customerId: sara[0]!.id, source: 'WHATSAPP' });
-    expect(courier!.note).toMatch(/HANDED_TO_COURIER/);
-    const courierPaid = await db.select().from(payments).where(eq(payments.saleId, courier!.id));
-    expect(courierPaid).toHaveLength(0);
+    // Out with the old system's courier, which owes the order as its opening balance.
+    const [out] = await db.select().from(orders).where(eq(orders.number, 'OLD-2'));
+    expect(out).toMatchObject({ status: 'OUT', saleId: courier!.id, cod: '220.00' });
+    const [company] = await db.select().from(couriers).where(eq(couriers.id, out!.courierId!));
+    expect(company!.name).toMatch(/\S/);
+    const cod = await db.select().from(payments).where(eq(payments.saleId, courier!.id));
+    expect(cod).toMatchObject([{ method: 'COURIER', amount: '220.00', imported: true }]);
+    const [owed] = await db
+      .select({ total: sql<string>`sum(${journalLines.amount})::text` })
+      .from(journalLines)
+      .where(eq(journalLines.account, 'COURIER_RECEIVABLES'));
+    expect(owed!.total).toBe('340.00');
+    const gift = await db
+      .select()
+      .from(saleLines)
+      .innerJoin(sales, eq(sales.id, saleLines.saleId))
+      .where(eq(sales.number, 'OLD-4'));
+    expect(gift.map((g) => [g.sale_lines.giveaway, g.sale_lines.lineTotal])).toEqual([
+      [true, '0.00'],
+    ]);
+    // A new order whose pieces are still on the shelf is an order, not a sale.
+    const [fresh] = await db.select().from(orders).where(eq(orders.number, 'OLD-10'));
+    expect(fresh).toMatchObject({ status: 'NEW', saleId: null, cod: '0.00' });
+    expect(
+      await db.select().from(orderLines).where(eq(orderLines.orderId, fresh!.id)),
+    ).toHaveLength(1);
+    expect(await db.select().from(sales).where(eq(sales.number, 'OLD-10'))).toHaveLength(0);
 
     // The counter sale's payment sits in that day's imported shift with the old figures.
     const [shift] = await db.select().from(shifts).where(eq(shifts.imported, true));
