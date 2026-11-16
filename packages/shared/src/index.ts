@@ -17,3 +17,4 @@ export * from './schemas/sales.js';
 export * from './schemas/approvals.js';
 export * from './schemas/orders.js';
 export * from './schemas/purchasing.js';
+export * from './schemas/reports.js';

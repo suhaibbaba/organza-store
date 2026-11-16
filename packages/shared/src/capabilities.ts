@@ -99,6 +99,9 @@ export const CAPABILITIES = {
   'currencies.setRate': MANAGERS,
   'audit.view': ADMIN,
   'activity.view': ALL,
+  // Reports (proposal F: managers all except cost; Admin everything)
+  'reports.view': MANAGERS,
+  'reports.cost': ADMIN,
 } as const satisfies Record<string, readonly Role[]>;
 
 export type Capability = keyof typeof CAPABILITIES;
