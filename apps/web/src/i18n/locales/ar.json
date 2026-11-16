@@ -1112,6 +1112,9 @@
     "upToDate": "التطبيق محدّث",
     "updateAvailable": "يتوفر إصدار جديد {{version}}",
     "checkUpdate": "ابحث عن تحديث",
-    "installUpdate": "ثبّت وأعد التشغيل"
+    "installUpdate": "ثبّت وأعد التشغيل",
+    "sampleItem": "فستان سهرة طويل بأكمام دانتيل",
+    "sampleVariant": "M · أسود · שחור · Black",
+    "sampleFooter": "شكرًا لزيارتكم"
   }
 }

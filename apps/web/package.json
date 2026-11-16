@@ -10,7 +10,8 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "eslint src scripts && node scripts/check-css.mjs && node scripts/check-i18n.mjs",
     "check:safari": "node scripts/check-safari15.mjs",
-    "test": "vitest run"
+    "test": "vitest run",
+    "build:desktop": "vite build --mode desktop --outDir dist-desktop"
   },
   "dependencies": {
     "@fontsource/cairo": "^5.3.0",

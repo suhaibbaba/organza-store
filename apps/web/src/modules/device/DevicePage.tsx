@@ -86,12 +86,12 @@ function PrinterCard() {
       { kind: 'rule' },
       {
         kind: 'line',
-        name: 'فستان سهرة — שמלת ערב — Evening dress',
+        name: t('device.sampleItem'),
         amount: '₪350.00',
-        details: ['M · أسود'],
+        details: [t('device.sampleVariant')],
       },
       { kind: 'row', label: t('sales.total'), value: '₪350.00', strong: true },
-      { kind: 'footer', text: 'شكرًا لزيارتكم · תודה · Thank you' },
+      { kind: 'footer', text: t('device.sampleFooter') },
     ];
     const image = await paintReceipt(blocks, { rtl: isRtl(lang), paper: settings.paper });
     await receiptPrinter.get().printImage(image, { openDrawer: false });

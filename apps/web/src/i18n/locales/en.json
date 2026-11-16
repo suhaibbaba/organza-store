@@ -1112,6 +1112,9 @@
     "upToDate": "The app is up to date",
     "updateAvailable": "Version {{version}} is available",
     "checkUpdate": "Check for update",
-    "installUpdate": "Install and restart"
+    "installUpdate": "Install and restart",
+    "sampleItem": "Long evening dress with lace sleeves",
+    "sampleVariant": "M · Black · أسود · שחור",
+    "sampleFooter": "Thank you for your visit"
   }
 }

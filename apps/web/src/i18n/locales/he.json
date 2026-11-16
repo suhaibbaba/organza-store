@@ -1112,6 +1112,9 @@
     "upToDate": "האפליקציה מעודכנת",
     "updateAvailable": "גרסה {{version}} זמינה",
     "checkUpdate": "בדוק עדכון",
-    "installUpdate": "התקן והפעל מחדש"
+    "installUpdate": "התקן והפעל מחדש",
+    "sampleItem": "שמלת ערב ארוכה עם שרוולי תחרה",
+    "sampleVariant": "M · שחור · أسود · Black",
+    "sampleFooter": "תודה על ביקורכם"
   }
 }
