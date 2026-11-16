@@ -136,3 +136,15 @@ export const jobRuns = pgTable(
   },
   (t) => [primaryKey({ columns: [t.name, t.runDate] })],
 );
+
+/** Where each imported record of the old system went (cut-over traceability; later imports use it). */
+export const legacyIds = pgTable(
+  'legacy_ids',
+  {
+    entity: text('entity').notNull(),
+    legacyId: text('legacy_id').notNull(),
+    newId: uuid('new_id').notNull(),
+    importedAt: timestamp('imported_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.entity, t.legacyId] })],
+);

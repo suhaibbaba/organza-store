@@ -1,7 +1,7 @@
 # Progress
 
 **Current phase:** 1. Catalogue and stock
-**Next:** catalogue migration script (old Prisma schema → new tables), then the phase 1 web screens
+**Next:** phase 1 web screens (products list, three create forms, product detail, categories and options, stock, adjustments, counts, labels, settings and currencies)
 
 ## Finished steps
 
@@ -16,3 +16,4 @@
 | 2026-11-16 | 1 | Money and stock ledgers: 20 fixed accounts, balanced journal entries (deferred DB check), reversal by mirror entry, period locks; stock movements with ON_HAND/DAMAGED buckets, cached balances with CHECKs, sorted row locks, weighted average cost, reservations, source reversal, nightly balance check. Catalogue API: categories, option types and values, products of the three types created in one transaction with opening stock, EAN-13 (prefix 200) and SKUs, barcode uniqueness with shared supplier codes and lookup, Arabic search (pg_trgm), versioned edits, archive with write-off, unknown-cost fill-in. Tests: oversell under concurrency, ledger = balances, append-only | see git log |
 | 2026-11-16 | 1 | Stock adjustments (damage, loss, found, write-off of damaged, correction by delta or counted quantity) with ADJ numbers and reversal; stock counts (open, count lines, post differences at posting time, cancel); stock list with low-stock flag and item history; daily job runner (once per shop date across instances) running the 03:00 balance-versus-movements check | see git log |
 | 2026-11-16 | 1 | Image pipeline ported (sharp: orient, crop from full pixels, resize 300/800/1600, mirror, turn; WebP 82; original kept for re-crop; brightness for marker colours; decode as type check; startup write probe), upload before or after the product exists, re-crop, reorder, remove, served at /uploads with long caching; label data endpoint and labels-printed flag | see git log |
+| 2026-11-16 | 1 | Catalogue import from the old system: one transaction, rehearsal by default, legacy ID map, opening stock at cost, self-checks (stock per item, balances = movements, inventory = stock at cost, product count); tested against a fixture database built from the old Prisma schema. Running it on a production copy is in blocked.md | see git log |

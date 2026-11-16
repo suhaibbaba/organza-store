@@ -10,7 +10,8 @@
     "db:migrate": "pnpm build && node --env-file-if-exists=../../.env dist/database/migrate-cli.js",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "eslint src test",
-    "test": "vitest run"
+    "test": "vitest run",
+    "import:catalogue": "node --env-file-if-exists=../../.env dist/migration/import-catalogue-cli.js"
   },
   "dependencies": {
     "@fastify/cookie": "^11.1.5",
