@@ -1,17 +1,40 @@
-import { Anchor, Badge, Card, Group, SimpleGrid, Stack, Text, UnstyledButton } from '@mantine/core';
+import { Badge, Button } from '@mantine/core';
 import type { ActivityItem } from '@organza/shared';
-import type { ReactNode } from 'react';
+import {
+  IconCash,
+  IconCashRegister,
+  IconCreditCard,
+  IconPackageImport,
+  IconPlus,
+  IconReceipt,
+  IconTags,
+  IconTrendingUp,
+  IconTruckDelivery,
+  IconUserExclamation,
+} from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import { useSession } from '@web/modules/auth/session';
 import { useMoney } from '@web/modules/catalogue/components';
 import { useActivity, useToday } from '@web/modules/reports/api';
-import { PageHeader } from '@web/shared/components/PageHeader';
+import { PageAction } from '@web/shared/components/PageAction';
 import { ErrorState, FullScreenLoader } from '@web/shared/components/StatusScreens';
+import {
+  Banner,
+  Initials,
+  StatCard,
+  StatGrid,
+  Widget,
+  WidgetRow,
+} from '@web/shared/components/Widgets';
 import { formatDateTime, formatNumber } from '@web/shared/lib/format';
 import classes from './today.module.css';
 
-/** Today (proposal F): own sales for employees, the shop for managers, with profit for Admin. */
+/**
+ * Today (proposal F), laid out like the clinic dashboard: a greeting banner, then the key
+ * numbers, the week and the activity feed in the main column, with quick actions and what is
+ * waiting in a 292px side column. Own sales for employees, the shop for managers, profit for Admin.
+ */
 export function TodayPage() {
   const { t, i18n } = useTranslation();
   const { user, can } = useSession();
@@ -24,158 +47,212 @@ export function TodayPage() {
   const before = Number(d.lastWeek.total);
   const change = before > 0 ? Math.round(((Number(d.sales.total) - before) / before) * 100) : null;
   const peak = Math.max(1, ...d.last7.map((x) => Number(x.total)));
+  const weekTotal = d.last7.reduce((s, x) => s + Number(x.total), 0);
   const openOrders = d.orders.reduce((s, o) => s + o.count, 0);
-  const weekday = (date: string) =>
-    new Intl.DateTimeFormat(i18n.language, { weekday: 'short', timeZone: 'UTC' }).format(
-      new Date(`${date}T00:00:00Z`),
+  const date = (iso: string, opts: Intl.DateTimeFormatOptions) =>
+    new Intl.DateTimeFormat(i18n.language, { ...opts, timeZone: 'UTC' }).format(
+      new Date(`${iso}T00:00:00Z`),
     );
 
   return (
-    <>
-      <PageHeader title={t('home.welcome', { name: user?.name ?? '' })} />
-      <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }} mb="md">
-        <Card withBorder>
-          <Text size="sm" c="dimmed">
-            {d.scope === 'OWN' ? t('today.mySales') : t('today.sales')}
-          </Text>
-          <Text fw={700} size="xl">
-            {money(d.sales.total)}
-          </Text>
-          <Text size="xs" c="dimmed">
-            {t('today.salesCount', { count: d.sales.count, pieces: d.sales.pieces })}
-          </Text>
-          {change !== null && (
-            <Badge mt={6} variant="light" color={change >= 0 ? 'green' : 'red'}>
-              {t('today.vsLastWeek', {
-                change: `${change >= 0 ? '+' : ''}${formatNumber(change, i18n.language)}%`,
-              })}
+    <div className={classes.page}>
+      {can('sales.create') && (
+        <PageAction>
+          <Button component={Link} to="/pos" leftSection={<IconPlus size={16} />}>
+            {t('today.newSale')}
+          </Button>
+        </PageAction>
+      )}
+      <Banner
+        title={t('home.welcome', { name: user?.name ?? '' })}
+        subtitle={date(d.date, { weekday: 'long', day: 'numeric', month: 'long' })}
+        end={
+          d.openShifts > 0 ? (
+            <Badge color="green" size="lg">
+              {t('today.shiftOpen')}
             </Badge>
-          )}
-        </Card>
-        <Card withBorder>
-          <Text size="sm" c="dimmed">
-            {t('today.byMethod')}
-          </Text>
-          <Stack gap={2} mt={4}>
-            {d.byMethod.length === 0 && <Text size="sm">—</Text>}
-            {d.byMethod.map((m) => (
-              <Group key={m.method} justify="space-between">
-                <Text size="sm">{t(`sales.method.${m.method}`)}</Text>
-                <Text size="sm" fw={600}>
-                  {money(m.amount)}
-                </Text>
-              </Group>
-            ))}
-          </Stack>
-        </Card>
-        {d.grossProfit !== null ? (
-          <Card withBorder>
-            <Text size="sm" c="dimmed">
-              {t('today.grossProfit')}
-            </Text>
-            <Text fw={700} size="xl" c={Number(d.grossProfit) < 0 ? 'red' : undefined}>
-              {money(d.grossProfit)}
-            </Text>
-          </Card>
-        ) : (
-          <Card withBorder>
-            <Text size="sm" c="dimmed">
-              {t('today.openOrders')}
-            </Text>
-            <Text fw={700} size="xl">
-              {openOrders}
-            </Text>
-          </Card>
-        )}
-        {d.debtsOwed !== null && (
-          <Card withBorder component={Link} to="/reports?tab=debts">
-            <Text size="sm" c="dimmed">
-              {t('today.debtsOwed')}
-            </Text>
-            <Text fw={700} size="xl" c="orange.8">
-              {money(d.debtsOwed)}
-            </Text>
-          </Card>
-        )}
-      </SimpleGrid>
+          ) : undefined
+        }
+      />
 
-      <SimpleGrid cols={{ base: 1, md: 2 }} mb="md">
-        <Card withBorder>
-          <Text fw={600} mb="sm">
-            {t('today.last7')}
-          </Text>
-          <div className={classes.bars}>
-            {d.last7.map((x) => (
-              <div key={x.date} className={classes.barColumn} title={money(x.total)}>
-                <div className={classes.barTrack}>
-                  <div
-                    className={x.date === d.date ? classes.barToday : classes.bar}
-                    style={{ height: `${Math.max(2, (Number(x.total) / peak) * 100)}%` }}
-                  />
-                </div>
-                <Text size="xs" c="dimmed">
-                  {weekday(x.date)}
-                </Text>
-              </div>
-            ))}
-          </div>
-        </Card>
-        <Card withBorder>
-          <Text fw={600} mb="sm">
-            {t('today.toDo')}
-          </Text>
-          <Stack gap={6}>
+      <div className={classes.grid}>
+        <div className={classes.main}>
+          <StatGrid>
+            <StatCard
+              icon={IconReceipt}
+              label={d.scope === 'OWN' ? t('today.mySales') : t('today.sales')}
+              value={money(d.sales.total)}
+              foot={
+                <>
+                  <span>
+                    {t('today.salesCount', { count: d.sales.count, pieces: d.sales.pieces })}
+                  </span>
+                  {change !== null && (
+                    <span className={change >= 0 ? classes.up : classes.down}>
+                      <IconTrendingUp size={14} />
+                      {`${change >= 0 ? '+' : ''}${formatNumber(change, i18n.language)}%`}
+                    </span>
+                  )}
+                </>
+              }
+            />
+            {d.grossProfit !== null && (
+              <StatCard
+                icon={IconCash}
+                label={t('today.grossProfit')}
+                value={money(d.grossProfit)}
+                tone={Number(d.grossProfit) < 0 ? 'danger' : 'success'}
+              />
+            )}
             {can('orders.view') && (
-              <Todo to="/orders" label={t('today.openOrders')} count={openOrders}>
-                <Group gap={4}>
-                  {d.orders.map((o) => (
-                    <Badge key={o.status} size="xs" variant="light">
-                      {t(`orders.status.${o.status}`)} {o.count}
-                    </Badge>
-                  ))}
-                </Group>
-              </Todo>
+              <StatCard
+                icon={IconTruckDelivery}
+                label={t('today.openOrders')}
+                value={formatNumber(openOrders, i18n.language)}
+                tone={openOrders > 0 ? 'warning' : 'neutral'}
+                to="/orders"
+              />
             )}
-            <Todo to="/sales" label={t('today.heldSales')} count={d.heldSales} />
-            {can('approvals.decide') && (
-              <Todo to="/approvals" label={t('today.approvals')} count={d.approvalsWaiting} alert />
+            {d.debtsOwed !== null && (
+              <StatCard
+                icon={IconUserExclamation}
+                label={t('today.debtsOwed')}
+                value={money(d.debtsOwed)}
+                tone={Number(d.debtsOwed) > 0 ? 'danger' : 'neutral'}
+                to="/reports?tab=debts"
+              />
             )}
-            <Todo to="/shifts" label={t('today.openShifts')} count={d.openShifts} />
-            <Todo to="/stock" label={t('today.lowStock')} count={d.lowStock} alert />
-          </Stack>
-        </Card>
-      </SimpleGrid>
+          </StatGrid>
 
-      <Activity />
-    </>
+          <Widget
+            title={t('today.last7')}
+            action={<span className={classes.weekTotal}>{money(weekTotal.toFixed(2))}</span>}
+          >
+            <div className={classes.bars}>
+              {d.last7.map((x) => (
+                <div key={x.date} className={classes.barColumn} title={money(x.total)}>
+                  <div className={classes.barTrack}>
+                    <div
+                      className={x.date === d.date ? classes.barToday : classes.bar}
+                      style={{ height: `${Math.max(3, (Number(x.total) / peak) * 100)}%` }}
+                    />
+                  </div>
+                  <span className={classes.barLabel}>{date(x.date, { weekday: 'short' })}</span>
+                </div>
+              ))}
+            </div>
+          </Widget>
+
+          <Activity />
+        </div>
+
+        <aside className={classes.side}>
+          <Widget title={t('today.quickActions')}>
+            <div className={classes.quick}>
+              {can('sales.create') && (
+                <Button
+                  component={Link}
+                  to="/pos"
+                  fullWidth
+                  justify="flex-start"
+                  leftSection={<IconCashRegister size={18} />}
+                >
+                  {t('today.newSale')}
+                </Button>
+              )}
+              {can('orders.create') && (
+                <Button
+                  component={Link}
+                  to="/orders/new"
+                  variant="default"
+                  fullWidth
+                  justify="flex-start"
+                  leftSection={<IconTruckDelivery size={18} />}
+                >
+                  {t('today.newOrder')}
+                </Button>
+              )}
+              {can('purchasing.receive') && (
+                <Button
+                  component={Link}
+                  to="/purchasing/receive"
+                  variant="default"
+                  fullWidth
+                  justify="flex-start"
+                  leftSection={<IconPackageImport size={18} />}
+                >
+                  {t('today.receiveGoods')}
+                </Button>
+              )}
+              {can('labels.print') && (
+                <Button
+                  component={Link}
+                  to="/labels"
+                  variant="default"
+                  fullWidth
+                  justify="flex-start"
+                  leftSection={<IconTags size={18} />}
+                >
+                  {t('today.printLabels')}
+                </Button>
+              )}
+            </div>
+          </Widget>
+
+          <Widget title={t('today.toDo')}>
+            {can('orders.view') && (
+              <WidgetRow
+                to="/orders"
+                label={t('today.openOrders')}
+                detail={d.orders
+                  .map((o) => `${t(`orders.status.${o.status}`)} ${o.count}`)
+                  .join(' · ')}
+                end={<Count n={openOrders} />}
+              />
+            )}
+            <WidgetRow to="/sales" label={t('today.heldSales')} end={<Count n={d.heldSales} />} />
+            {can('approvals.decide') && (
+              <WidgetRow
+                to="/approvals"
+                label={t('today.approvals')}
+                end={<Count n={d.approvalsWaiting} alert />}
+              />
+            )}
+            <WidgetRow
+              to="/shifts"
+              label={t('today.openShifts')}
+              end={<Count n={d.openShifts} />}
+            />
+            <WidgetRow
+              to="/stock"
+              label={t('today.lowStock')}
+              end={<Count n={d.lowStock} alert />}
+            />
+          </Widget>
+
+          {d.byMethod.length > 0 && (
+            <Widget title={t('today.byMethod')}>
+              {d.byMethod.map((m) => (
+                <WidgetRow
+                  key={m.method}
+                  start={<IconCreditCard size={18} className={classes.methodIcon} />}
+                  label={t(`sales.method.${m.method}`)}
+                  end={<span className={classes.amount}>{money(m.amount)}</span>}
+                />
+              ))}
+            </Widget>
+          )}
+        </aside>
+      </div>
+    </div>
   );
 }
 
-function Todo({
-  to,
-  label,
-  count,
-  alert,
-  children,
-}: {
-  to: string;
-  label: string;
-  count: number;
-  alert?: boolean;
-  children?: ReactNode;
-}) {
+function Count({ n, alert }: { n: number; alert?: boolean }) {
   return (
-    <UnstyledButton component={Link} to={to} className={classes.todo}>
-      <Group justify="space-between" wrap="nowrap">
-        <Stack gap={2}>
-          <Text size="sm">{label}</Text>
-          {children}
-        </Stack>
-        <Badge color={alert && count > 0 ? 'red' : 'gray'} variant={count > 0 ? 'filled' : 'light'}>
-          {count}
-        </Badge>
-      </Group>
-    </UnstyledButton>
+    <Badge color={n === 0 ? 'gray' : alert ? 'red' : 'blue'} variant="light">
+      {n}
+    </Badge>
   );
 }
 
@@ -191,19 +268,14 @@ const ENTITY_LINK: Record<string, (id: string) => string> = {
 
 function Activity() {
   const { t, i18n } = useTranslation();
-  const query = useActivity(30);
+  const query = useActivity(12);
   if (!query.data?.length) return null;
   return (
-    <Card withBorder>
-      <Text fw={600} mb="sm">
-        {t('today.activity')}
-      </Text>
-      <Stack gap={8}>
-        {query.data.map((a) => (
-          <ActivityLine key={a.id} item={a} language={i18n.language} />
-        ))}
-      </Stack>
-    </Card>
+    <Widget title={t('today.activity')}>
+      {query.data.map((a) => (
+        <ActivityLine key={a.id} item={a} language={i18n.language} />
+      ))}
+    </Widget>
   );
 }
 
@@ -217,24 +289,12 @@ function ActivityLine({ item: a, language }: { item: ActivityItem; language: str
     ? [a.summary.number, a.summary.name, a.summary.reason].filter(Boolean).join(' · ')
     : '';
   return (
-    <Group justify="space-between" wrap="nowrap" gap="sm">
-      <Text size="sm" style={{ minWidth: 0 }} truncate>
-        <b>{a.by ?? '—'}</b> {what}
-        {detail &&
-          (link ? (
-            <>
-              {' · '}
-              <Anchor component={Link} to={link} size="sm">
-                {detail}
-              </Anchor>
-            </>
-          ) : (
-            ` · ${detail}`
-          ))}
-      </Text>
-      <Text size="xs" c="dimmed" style={{ flexShrink: 0 }}>
-        {formatDateTime(a.at, language)}
-      </Text>
-    </Group>
+    <WidgetRow
+      to={link}
+      start={<Initials name={a.by ?? '—'} size={32} />}
+      label={`${a.by ?? '—'} · ${what}`}
+      detail={detail || undefined}
+      end={<span className={classes.time}>{formatDateTime(a.at, language)}</span>}
+    />
   );
 }

@@ -1088,7 +1088,13 @@
     "approvals": "Approvals waiting",
     "openShifts": "Open shifts",
     "lowStock": "Items running low",
-    "activity": "Recent activity"
+    "activity": "Recent activity",
+    "newSale": "New sale",
+    "newOrder": "New order",
+    "receiveGoods": "Receive goods",
+    "printLabels": "Print labels",
+    "quickActions": "Quick actions",
+    "shiftOpen": "Shift open"
   },
   "device": {
     "browserOnly": "Direct printing, the cash drawer and updates work in the Windows app. In a browser, receipts print through the print dialog.",

@@ -1,44 +1,113 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.grid {
+  display: grid;
+  align-items: start;
+  gap: 16px;
+}
+.main {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+.side {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+@media (min-width: 1220px) {
+  .grid {
+    grid-template-columns: minmax(0, 1fr) 292px;
+  }
+}
+@media (min-width: 760px) and (max-width: 1219px) {
+  .side {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  }
+}
+
+.up,
+.down {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 500;
+  direction: ltr;
+}
+.up {
+  color: var(--o-success-700);
+}
+.down {
+  color: var(--o-danger-700);
+}
+
+.weekTotal,
+.amount {
+  font-weight: 700;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+
 .bars {
   display: flex;
   align-items: flex-end;
   gap: 8px;
-  height: 140px;
+  height: 180px;
 }
-
 .barColumn {
   flex: 1 1 0;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
   height: 100%;
   min-width: 0;
 }
-
 .barTrack {
   flex: 1 1 auto;
   width: 100%;
   display: flex;
   align-items: flex-end;
+  justify-content: center;
 }
-
 .bar,
 .barToday {
   width: 100%;
-  border-radius: 4px 4px 0 0;
-  background: var(--mantine-color-gray-4);
+  max-width: 32px;
+  border-radius: 12px 12px 0 0;
+  background: var(--o-primary-200);
 }
-
 .barToday {
-  background: var(--mantine-primary-color-filled);
+  background: var(--o-primary-600);
+}
+.barLabel {
+  font-size: 12px;
+  color: var(--o-ink-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
 }
 
-.todo {
-  display: block;
-  padding: 6px 8px;
-  border-radius: var(--mantine-radius-sm);
+.quick {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
-.todo:hover {
-  background: var(--mantine-color-default-hover);
+.methodIcon {
+  color: var(--o-ink-faint);
+  flex-shrink: 0;
+}
+
+.time {
+  font-size: 12.5px;
+  color: var(--o-ink-subtle);
 }
