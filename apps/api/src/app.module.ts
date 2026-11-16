@@ -7,6 +7,7 @@ import { HealthModule } from './modules/health/health.module.js';
 import { JobsModule } from './modules/jobs/jobs.module.js';
 import { LedgerModule } from './modules/ledger/ledger.module.js';
 import { ApprovalsModule } from './modules/approvals/approvals.module.js';
+import { OrdersModule } from './modules/orders/orders.module.js';
 import { SalesModule } from './modules/sales/sales.module.js';
 import { SettingsModule } from './modules/settings/settings.module.js';
 import { StockModule } from './modules/stock/stock.module.js';
@@ -26,6 +27,7 @@ import { UsersModule } from './modules/users/users.module.js';
     CatalogueModule,
     SalesModule,
     ApprovalsModule,
+    OrdersModule,
   ],
 })
 export class AppModule {}

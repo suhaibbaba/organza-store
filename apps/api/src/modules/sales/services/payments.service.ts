@@ -28,6 +28,8 @@ export interface PricedPayment {
   rate: string;
   amountDefault: string;
   reference?: string;
+  /** COURIER payments: the company that owes it. */
+  courierId?: string;
 }
 
 export interface RecordPayment extends PricedPayment {
@@ -36,6 +38,7 @@ export interface RecordPayment extends PricedPayment {
   customerId: string | null;
   shiftId: string | null;
   saleId?: string | null;
+  orderId?: string | null;
   takenBy: string;
   businessDate: string;
   note?: string;
@@ -102,6 +105,8 @@ export class PaymentsService {
         customerId: input.customerId,
         shiftId: input.shiftId,
         saleId: input.saleId ?? null,
+        orderId: input.orderId ?? null,
+        courierId: input.courierId ?? null,
         purpose: input.purpose,
         note: input.note ?? null,
         businessDate: input.businessDate,
@@ -112,10 +117,16 @@ export class PaymentsService {
       ? { partyType: 'CUSTOMER' as const, partyId: input.customerId }
       : {};
     const account: AccountCode = METHOD_ACCOUNT[input.method];
+    const ownParty =
+      input.method === 'STORE_CREDIT'
+        ? party
+        : input.method === 'COURIER'
+          ? { partyType: 'COURIER' as const, partyId: input.courierId! }
+          : {};
     const own =
       input.direction === 'IN'
-        ? debit(account, input.amountDefault, input.method === 'STORE_CREDIT' ? party : {})
-        : credit(account, input.amountDefault, input.method === 'STORE_CREDIT' ? party : {});
+        ? debit(account, input.amountDefault, ownParty)
+        : credit(account, input.amountDefault, ownParty);
     await this.ledger.post(tx, {
       sourceType: 'payment',
       sourceId: row!.id,

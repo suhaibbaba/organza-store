@@ -55,12 +55,18 @@ const ZERO = '0.00';
 type Line = typeof saleLines.$inferSelect;
 type Settlement = z.output<typeof voidSaleSchema>;
 
-interface Request {
+export interface ReturnRequest {
   kind: ReturnKind;
   saleId: string;
   lines: { lineId: string; quantity: number; condition: ReturnCondition }[];
   exchange?: z.output<typeof createReturnSchema>['exchange'];
-  settlement: Settlement;
+  settlement: Settlement & {
+    /**
+     * A refused parcel: up to `amount` goes back off the courier's account (it never collected
+     * it); anything beyond (a deposit) becomes the customer's credit. No refund limit applies.
+     */
+    parcel?: { courierId: string; amount: string };
+  };
 }
 
 /**
@@ -154,7 +160,7 @@ export class ReturnsService {
     return this.get(result.id);
   }
 
-  private async within(tx: Transaction, actor: Actor, req: Request, approvedBy?: string) {
+  async within(tx: Transaction, actor: Actor, req: ReturnRequest, approvedBy?: string) {
     const [sale] = await tx.select().from(sales).where(eq(sales.id, req.saleId)).for('update');
     if (!sale) throw notFound('Sale');
     if (sale.status !== 'COMPLETED')
@@ -348,8 +354,47 @@ export class ReturnsService {
 
     let refunded = ZERO;
     let toCredit = ZERO;
-    let refundMethod: 'CASH' | 'CARD' | 'BANK_TRANSFER' | null = null;
-    if (compareMoney(rest, 0) > 0) {
+    let refundMethod: 'CASH' | 'CARD' | 'BANK_TRANSFER' | 'COURIER' | null = null;
+    if (compareMoney(rest, 0) > 0 && s.parcel) {
+      const courierPart = minMoney(rest, s.parcel.amount);
+      const creditPart = addMoney(rest, neg(courierPart));
+      if (compareMoney(courierPart, 0) > 0) {
+        refundMethod = 'COURIER';
+        refunded = courierPart;
+        await this.payments.record(tx, {
+          method: 'COURIER',
+          courierId: s.parcel.courierId,
+          currency: defaultCurrency,
+          amount: courierPart,
+          rate: '1',
+          amountDefault: courierPart,
+          direction: 'OUT',
+          purpose: 'REFUND',
+          customerId: sale.customerId,
+          shiftId: shift?.id ?? null,
+          saleId: sale.id,
+          takenBy: actor.id,
+          businessDate: today,
+          note: `${number} ${s.reason}`,
+          counter: [debit('CUSTOMER_RECEIVABLES', courierPart, onSale)],
+        });
+      }
+      if (compareMoney(creditPart, 0) > 0) {
+        toCredit = creditPart;
+        await this.ledger.post(tx, {
+          sourceType: 'sale_return',
+          sourceId: returnId,
+          event: 'RETURN_TO_CREDIT',
+          createdBy: actor.id,
+          entryDate: today,
+          lines: [
+            debit('CUSTOMER_RECEIVABLES', creditPart, onSale),
+            credit('CUSTOMER_CREDIT', creditPart, party),
+          ],
+        });
+      }
+      await this.release(tx, sale.id, rest, actor.id);
+    } else if (compareMoney(rest, 0) > 0) {
       const original = await this.originalMethod(tx, sale.id);
       const settlement =
         s.settlement === 'REFUND' && !s.refundMethod && original === 'STORE_CREDIT'

@@ -127,7 +127,13 @@ export class SalesService {
     tx: Transaction,
     actor: Actor,
     input: z.output<typeof checkoutSchema>,
-    opts: { credit?: string } = {},
+    opts: {
+      credit?: string;
+      /** Hand-over to a delivery company: this much is cash on delivery that it now owes. */
+      courier?: { id: string; amount: string };
+      /** The discounts were set by policy (an order's kept quote), not typed in at the till. */
+      discountApproved?: boolean;
+    } = {},
   ) {
     const shopSettings = await this.settings.get(tx);
     const defaultCurrency = await this.currencies.defaultCode(tx);
@@ -193,6 +199,7 @@ export class SalesService {
     const total = addMoney(subtotal, neg(discountTotal));
     if (
       toMinor(discountTotal) * 100 > toMinor(subtotal) * shopSettings.employeeMaxDiscountPercent &&
+      !opts.discountApproved &&
       !roleCan(actor.role, 'sales.bigDiscount')
     )
       throw forbidden(SALES_ERRORS.DISCOUNT_NEEDS_MANAGER, 'This discount needs a manager');
@@ -203,6 +210,15 @@ export class SalesService {
     const tendered: PricedPayment[] = [];
     for (const p of input.payments)
       tendered.push(await this.payments.price(tx, p, defaultCurrency));
+    if (opts.courier && compareMoney(opts.courier.amount, 0) > 0)
+      tendered.push({
+        method: 'COURIER',
+        currency: defaultCurrency,
+        amount: opts.courier.amount,
+        rate: '1',
+        amountDefault: opts.courier.amount,
+        courierId: opts.courier.id,
+      });
     const tenderedTotal = addMoney('0', ...tendered.map((p) => p.amountDefault));
     const excess = addMoney(tenderedTotal, credited, neg(total));
     let change = '0.00';
@@ -439,7 +455,7 @@ export class SalesService {
   }
 
   /** Server-side price, sellability and receipt snapshots for each item. */
-  private async catalogueRows(executor: Executor, itemIds: string[]) {
+  async catalogueRows(executor: Executor, itemIds: string[]) {
     const ids = [...new Set(itemIds)];
     const rows = await executor
       .select({

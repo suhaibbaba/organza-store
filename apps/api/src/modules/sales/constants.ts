@@ -48,7 +48,16 @@ export const METHOD_ACCOUNT = {
   CARD: 'CARD_CLEARING',
   BANK_TRANSFER: 'BANK',
   STORE_CREDIT: 'CUSTOMER_CREDIT',
+  COURIER: 'COURIER_RECEIVABLES',
 } as const;
 
 /** What a payment was for; the shift's expected cash is listed by these. */
-export type PaymentPurpose = 'SALE' | 'REPAYMENT' | 'CHANGE' | 'REFUND';
+export type PaymentPurpose =
+  | 'SALE'
+  | 'REPAYMENT'
+  | 'CHANGE'
+  | 'REFUND'
+  /** Taken for an order before hand-over; held as the customer's credit. */
+  | 'DEPOSIT'
+  /** A delivery company paying the cash on delivery it collected. */
+  | 'COURIER_SETTLEMENT';

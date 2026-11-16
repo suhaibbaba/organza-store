@@ -703,7 +703,11 @@ export class ShiftsService {
         c.direction === 'IN'
           ? c.purpose === 'REPAYMENT'
             ? 'CASH_REPAYMENTS'
-            : 'CASH_SALES'
+            : c.purpose === 'DEPOSIT'
+              ? 'CASH_DEPOSITS'
+              : c.purpose === 'COURIER_SETTLEMENT'
+                ? 'COURIER_SETTLEMENTS'
+                : 'CASH_SALES'
           : c.purpose === 'CHANGE'
             ? 'CHANGE_GIVEN'
             : 'CASH_REFUNDS';

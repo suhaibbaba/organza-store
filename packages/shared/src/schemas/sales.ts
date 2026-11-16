@@ -12,7 +12,8 @@ import { currencyCodeSchema } from './settings.js';
 // ------------------------------------------------------------------ constants
 
 export const PAYMENT_METHODS = ['CASH', 'CARD', 'BANK_TRANSFER', 'STORE_CREDIT'] as const;
-export type PaymentMethod = (typeof PAYMENT_METHODS)[number];
+/** COURIER: cash on delivery, owed by the delivery company until it settles (never typed in). */
+export type PaymentMethod = (typeof PAYMENT_METHODS)[number] | 'COURIER';
 
 export const SALE_SOURCES = ['COUNTER', 'WHATSAPP', 'ONLINE', 'PHONE'] as const;
 export type SaleSource = (typeof SALE_SOURCES)[number];
@@ -185,6 +186,8 @@ export interface ExpectedLine {
     | 'CASH_REPAYMENTS'
     | 'CHANGE_GIVEN'
     | 'CASH_REFUNDS'
+    | 'CASH_DEPOSITS'
+    | 'COURIER_SETTLEMENTS'
     | 'PAID_IN'
     | 'DROPS'
     | 'EXPENSES';

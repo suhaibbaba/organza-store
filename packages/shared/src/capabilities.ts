@@ -69,6 +69,14 @@ export const CAPABILITIES = {
   // Ledger
   'ledger.view': ADMIN,
   'ledger.manualEntry': ADMIN,
+  // Orders and couriers (proposal C7)
+  'orders.view': ALL,
+  'orders.create': ALL,
+  'orders.fulfil': ALL,
+  'orders.cancel': ALL,
+  'couriers.view': ALL,
+  'couriers.manage': MANAGERS,
+  'couriers.settle': MANAGERS,
   // Approvals inbox (proposal C12): anyone asks; managers decide, never on their own request.
   'approvals.request': ALL,
   'approvals.decide': MANAGERS,
