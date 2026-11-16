@@ -17,6 +17,9 @@ export const CAPABILITIES = {
   'staff.manage': ADMIN,
   'settings.view': ALL,
   'settings.manage': ADMIN,
+  'currencies.view': ALL,
+  'currencies.manage': ADMIN,
+  'currencies.setRate': MANAGERS,
   'audit.view': ADMIN,
   'activity.view': ALL,
 } as const satisfies Record<string, readonly Role[]>;

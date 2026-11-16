@@ -15,6 +15,20 @@
       "when": 1794834498964,
       "tag": "0001_integrity_guards",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1794835513418,
+      "tag": "0002_settings_currencies",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1794835513750,
+      "tag": "0003_settings_guards",
+      "breakpoints": true
     }
   ]
 }
