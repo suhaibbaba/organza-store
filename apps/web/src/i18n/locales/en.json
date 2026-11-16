@@ -22,7 +22,8 @@
     "otherLanguages": "English and Hebrew",
     "reason": "Reason",
     "remove": "Remove",
-    "saved": "Saved"
+    "saved": "Saved",
+    "date": "Date"
   },
   "nav": {
     "home": "Home",
@@ -49,7 +50,9 @@
     "pos": "Point of sale",
     "approvals": "Approvals",
     "orders": "Orders",
-    "couriers": "Delivery companies"
+    "couriers": "Delivery companies",
+    "purchasing": "Purchases & receiving",
+    "suppliers": "Suppliers"
   },
   "roles": {
     "ADMIN": "Admin",
@@ -195,7 +198,19 @@
     "ORDER_FINISHED": "The order is finished",
     "COURIER_OVER_SETTLED": "More than the order still lacks",
     "COURIER_ORDER_NOT_THEIRS": "Not an open order of this company",
-    "COURIER_ALLOCATION_ABOVE_PAID": "The orders add up to more than was paid"
+    "COURIER_ALLOCATION_ABOVE_PAID": "The orders add up to more than was paid",
+    "SUPPLIER_INACTIVE": "The supplier is inactive",
+    "RECEIPT_NOT_THEIRS": "Not an open receipt of this supplier",
+    "SUPPLIER_ALLOCATION_TOO_LARGE": "More than the receipt still owes",
+    "SUPPLIER_ALLOCATION_ABOVE_PAID": "The receipts add up to more than the amount",
+    "SUPPLIER_NOTHING_TO_REFUND": "The supplier does not owe the shop that much",
+    "ITEM_UNKNOWN": "Unknown item",
+    "PURCHASE_ORDER_NOT_OPEN": "The purchase order is finished",
+    "PURCHASE_ORDER_NOT_THEIRS": "The order is for another supplier",
+    "PURCHASE_ORDER_HAS_RECEIPTS": "Goods already arrived for it; close it instead",
+    "SUPPLIER_RETURN_TOO_MANY": "More than came on that receipt",
+    "SUPPLIER_PAY_NOT_ALLOWED": "Paying suppliers needs a manager",
+    "CREDIT_NOTE_EMPTY": "The credit note is for nothing"
   },
   "languages": {
     "ar": "العربية",
@@ -546,7 +561,8 @@
       "CARD": "Card",
       "BANK_TRANSFER": "Bank transfer",
       "STORE_CREDIT": "Store credit",
-      "COURIER": "Cash on delivery (courier)"
+      "COURIER": "Cash on delivery (courier)",
+      "SAFE": "From the safe"
     },
     "outcome": {
       "CREDIT": "Keep as credit",
@@ -707,7 +723,8 @@
       "DROPS": "Cash out",
       "EXPENSES": "Expenses",
       "CASH_DEPOSITS": "Cash deposits",
-      "COURIER_SETTLEMENTS": "From delivery companies"
+      "COURIER_SETTLEMENTS": "From delivery companies",
+      "SUPPLIER_PAYMENTS": "Supplier payments"
     }
   },
   "returns": {
@@ -874,5 +891,87 @@
     "covers": "Covers these orders (oldest first)",
     "noOpen": "No unpaid parcels",
     "overpaid": "{{amount}} more than owed stays on the company’s account"
+  },
+  "purchasing": {
+    "receive": "Receive goods",
+    "receiveGoods": "Receive",
+    "received": "Goods received",
+    "newOrder": "New purchase order",
+    "order": "Purchase order",
+    "orders": "Purchase orders",
+    "receipt": "Receipt",
+    "receipts": "Receipts",
+    "supplier": "Supplier",
+    "againstOrder": "Against a purchase order",
+    "noOrder": "No order",
+    "anyReceipt": "Any receipt (oldest first)",
+    "supplierRef": "Supplier invoice no.",
+    "expected": "Expected",
+    "arrived": "Arrived",
+    "unitCost": "Unit cost",
+    "landedCost": "Landed cost",
+    "extraCosts": "Extra costs",
+    "extraCostsHint": "Shipping or customs, spread over the pieces by value",
+    "payNow": "Pay now",
+    "owedAfter": "{{amount}} stays owed to the supplier",
+    "scanHint": "Scan the pieces or add them from the products",
+    "stillOpen": "{{count}} still on order",
+    "printLabels": "Print labels",
+    "labelsHint": "Stock is up. Print labels for the new pieces before they go on the shelf.",
+    "subtotal": "Subtotal",
+    "settled": "Paid or credited",
+    "open": "Still owed",
+    "openOnly": "Open only",
+    "returnedCount": "{{count}} sent back",
+    "creditNote": "Supplier credit note",
+    "creditNotes": "Credit notes",
+    "creditKind": {
+      "RETURN": "Goods sent back",
+      "ALLOWANCE": "Price allowance"
+    },
+    "canReturn": "{{count}} can go back",
+    "fromDamaged": "From the damaged shelf",
+    "close": "Close the order",
+    "closeShort": "Close with what arrived",
+    "closeShortHint": "What arrived is final; the rest will not come.",
+    "cancelOrder": "Cancel",
+    "cancelHint": "Nothing of this order arrived.",
+    "status": {
+      "OPEN": "Open",
+      "CLOSED": "Closed",
+      "CANCELLED": "Cancelled"
+    }
+  },
+  "suppliers": {
+    "add": "Add supplier",
+    "name": "Name",
+    "contact": "Contact person",
+    "searchHint": "Name or phone",
+    "all": "All",
+    "owedOnly": "Owed money",
+    "totalOwed": "Total owed",
+    "owed": "Owed to the supplier",
+    "paidAhead": "Paid ahead",
+    "openCounts": "{{receipts}} unpaid receipt(s) · {{orders}} open order(s)",
+    "pay": "Pay supplier",
+    "payOut": "Pay the supplier",
+    "refundIn": "Money back from supplier",
+    "method": "Paid by",
+    "covers": "Covers (oldest first)",
+    "noOpen": "No unpaid receipts",
+    "aheadHint": "{{amount}} extra is used on the next receipt",
+    "statement": "Statement",
+    "payments": "Payments",
+    "document": "Document",
+    "debit": "Owed +",
+    "credit": "Paid −",
+    "balance": "Balance",
+    "kind": {
+      "RECEIPT": "Receipt",
+      "CREDIT_NOTE": "Credit note",
+      "PAYMENT": "Payment",
+      "REFUND": "Refund",
+      "OPENING": "Opening balance"
+    }
   }
 }

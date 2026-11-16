@@ -20,6 +20,14 @@ import { OrderDetailPage } from '@web/modules/orders/OrderDetailPage';
 import { OrderNewPage } from '@web/modules/orders/OrderNewPage';
 import { OrdersPage } from '@web/modules/orders/OrdersPage';
 import { PickListPage } from '@web/modules/orders/PickListPage';
+import { PurchaseFormPage } from '@web/modules/purchasing/PurchaseFormPage';
+import {
+  PurchaseOrderPage,
+  PurchasingPage,
+  ReceiptPage,
+} from '@web/modules/purchasing/PurchasingPages';
+import { SupplierDetailPage } from '@web/modules/purchasing/SupplierDetailPage';
+import { SuppliersPage } from '@web/modules/purchasing/SuppliersPage';
 import { ApprovalsPage } from '@web/modules/sales/ApprovalsPage';
 import { CustomerDetailPage } from '@web/modules/sales/CustomerDetailPage';
 import { ReturnPage } from '@web/modules/sales/ReturnPage';
@@ -78,6 +86,13 @@ export const routes = [
           guarded('orders/pick', 'orders.view', <PickListPage />),
           guarded('orders/:id', 'orders.view', <OrderDetailPage />),
           guarded('couriers', 'couriers.view', <CouriersPage />),
+          guarded('suppliers', 'suppliers.view', <SuppliersPage />),
+          guarded('suppliers/:id', 'suppliers.view', <SupplierDetailPage />),
+          guarded('purchasing', 'purchasing.receive', <PurchasingPage />),
+          guarded('purchasing/receive', 'purchasing.receive', <PurchaseFormPage mode="receive" />),
+          guarded('purchasing/receipts/:id', 'purchasing.receive', <ReceiptPage />),
+          guarded('purchasing/orders/new', 'purchasing.order', <PurchaseFormPage mode="order" />),
+          guarded('purchasing/orders/:id', 'purchasing.receive', <PurchaseOrderPage />),
           guarded('shift', 'shifts.operate', <MyShiftPage />),
           guarded('shifts', 'shifts.viewAll', <ShiftsPage />),
           guarded('shifts/:id', 'shifts.operate', <ShiftDetailPage />),

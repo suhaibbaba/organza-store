@@ -22,7 +22,8 @@
     "otherLanguages": "אנגלית ועברית",
     "reason": "סיבה",
     "remove": "הסרה",
-    "saved": "נשמר"
+    "saved": "נשמר",
+    "date": "תאריך"
   },
   "nav": {
     "home": "בית",
@@ -49,7 +50,9 @@
     "pos": "קופה",
     "approvals": "אישורים",
     "orders": "הזמנות",
-    "couriers": "חברות שליחויות"
+    "couriers": "חברות שליחויות",
+    "purchasing": "רכש וקבלת סחורה",
+    "suppliers": "ספקים"
   },
   "roles": {
     "ADMIN": "מנהל מערכת",
@@ -195,7 +198,19 @@
     "ORDER_FINISHED": "ההזמנה הסתיימה",
     "COURIER_OVER_SETTLED": "יותר ממה שחסר בהזמנה",
     "COURIER_ORDER_NOT_THEIRS": "לא הזמנה פתוחה של החברה",
-    "COURIER_ALLOCATION_ABOVE_PAID": "ההזמנות עולות על הסכום ששולם"
+    "COURIER_ALLOCATION_ABOVE_PAID": "ההזמנות עולות על הסכום ששולם",
+    "SUPPLIER_INACTIVE": "הספק אינו פעיל",
+    "RECEIPT_NOT_THEIRS": "לא קבלה פתוחה של הספק",
+    "SUPPLIER_ALLOCATION_TOO_LARGE": "יותר ממה שנשאר בקבלה",
+    "SUPPLIER_ALLOCATION_ABOVE_PAID": "הקבלות עולות על הסכום",
+    "SUPPLIER_NOTHING_TO_REFUND": "הספק לא חייב לחנות סכום כזה",
+    "ITEM_UNKNOWN": "פריט לא מוכר",
+    "PURCHASE_ORDER_NOT_OPEN": "הזמנת הרכש הסתיימה",
+    "PURCHASE_ORDER_NOT_THEIRS": "ההזמנה לספק אחר",
+    "PURCHASE_ORDER_HAS_RECEIPTS": "כבר הגיעה סחורה; סגרו במקום לבטל",
+    "SUPPLIER_RETURN_TOO_MANY": "יותר ממה שהגיע בקבלה",
+    "SUPPLIER_PAY_NOT_ALLOWED": "תשלום לספקים דורש מנהל",
+    "CREDIT_NOTE_EMPTY": "הזיכוי ריק"
   },
   "languages": {
     "ar": "العربية",
@@ -546,7 +561,8 @@
       "CARD": "כרטיס",
       "BANK_TRANSFER": "העברה בנקאית",
       "STORE_CREDIT": "זיכוי בחנות",
-      "COURIER": "במסירה (שליח)"
+      "COURIER": "במסירה (שליח)",
+      "SAFE": "מהכספת"
     },
     "outcome": {
       "CREDIT": "לשמור כזיכוי",
@@ -707,7 +723,8 @@
       "DROPS": "הוצאת מזומן",
       "EXPENSES": "הוצאות",
       "CASH_DEPOSITS": "מקדמות במזומן",
-      "COURIER_SETTLEMENTS": "מחברות שליחויות"
+      "COURIER_SETTLEMENTS": "מחברות שליחויות",
+      "SUPPLIER_PAYMENTS": "תשלומים לספקים"
     }
   },
   "returns": {
@@ -874,5 +891,87 @@
     "covers": "מכסה את ההזמנות (הישנות קודם)",
     "noOpen": "אין חבילות שלא שולמו",
     "overpaid": "{{amount}} מעבר לחוב נשאר בחשבון החברה"
+  },
+  "purchasing": {
+    "receive": "קבלת סחורה",
+    "receiveGoods": "קבלה",
+    "received": "הסחורה התקבלה",
+    "newOrder": "הזמנת רכש חדשה",
+    "order": "הזמנת רכש",
+    "orders": "הזמנות רכש",
+    "receipt": "קבלה",
+    "receipts": "קבלות",
+    "supplier": "ספק",
+    "againstOrder": "מול הזמנת רכש",
+    "noOrder": "ללא הזמנה",
+    "anyReceipt": "כל קבלה (הישנה קודם)",
+    "supplierRef": "מס׳ חשבונית ספק",
+    "expected": "צפוי להגיע",
+    "arrived": "הגיע",
+    "unitCost": "עלות יחידה",
+    "landedCost": "עלות כוללת",
+    "extraCosts": "עלויות נוספות",
+    "extraCostsHint": "משלוח או מכס, מתחלק לפי ערך הפריטים",
+    "payNow": "תשלום עכשיו",
+    "owedAfter": "נשאר חוב לספק {{amount}}",
+    "scanHint": "סרקו פריטים או הוסיפו מהמוצרים",
+    "stillOpen": "{{count}} עוד בהזמנה",
+    "printLabels": "הדפסת מדבקות",
+    "labelsHint": "המלאי עלה. הדפיסו מדבקות לפריטים החדשים לפני שהם עולים למדף.",
+    "subtotal": "סכום ביניים",
+    "settled": "שולם או זוכה",
+    "open": "יתרה",
+    "openOnly": "פתוחות בלבד",
+    "returnedCount": "{{count}} הוחזרו",
+    "creditNote": "זיכוי מספק",
+    "creditNotes": "זיכויים",
+    "creditKind": {
+      "RETURN": "החזרת סחורה",
+      "ALLOWANCE": "הנחה במחיר"
+    },
+    "canReturn": "ניתן להחזיר {{count}}",
+    "fromDamaged": "ממדף הפגומים",
+    "close": "סגירת ההזמנה",
+    "closeShort": "סגירה לפי מה שהגיע",
+    "closeShortHint": "מה שהגיע סופי; השאר לא יגיע.",
+    "cancelOrder": "ביטול",
+    "cancelHint": "שום דבר מההזמנה לא הגיע.",
+    "status": {
+      "OPEN": "פתוחה",
+      "CLOSED": "סגורה",
+      "CANCELLED": "בוטלה"
+    }
+  },
+  "suppliers": {
+    "add": "הוספת ספק",
+    "name": "שם",
+    "contact": "איש קשר",
+    "searchHint": "שם או טלפון",
+    "all": "הכל",
+    "owedOnly": "שחייבים להם",
+    "totalOwed": "סך החוב",
+    "owed": "חוב לספק",
+    "paidAhead": "שולם מראש",
+    "openCounts": "{{receipts}} קבלות לא משולמות · {{orders}} הזמנות פתוחות",
+    "pay": "תשלום לספק",
+    "payOut": "תשלום לספק",
+    "refundIn": "החזר מהספק",
+    "method": "אמצעי תשלום",
+    "covers": "מכסה (הישן קודם)",
+    "noOpen": "אין קבלות פתוחות",
+    "aheadHint": "{{amount}} עודף ינוצל בקבלה הבאה",
+    "statement": "כרטסת",
+    "payments": "תשלומים",
+    "document": "מסמך",
+    "debit": "חובה",
+    "credit": "זכות",
+    "balance": "יתרה",
+    "kind": {
+      "RECEIPT": "קבלה",
+      "CREDIT_NOTE": "זיכוי",
+      "PAYMENT": "תשלום",
+      "REFUND": "החזר",
+      "OPENING": "יתרת פתיחה"
+    }
   }
 }

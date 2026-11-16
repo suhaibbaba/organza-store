@@ -15,8 +15,11 @@ export function ProductBrowser({
   searchRef,
   onProduct,
   onCode,
+  anyStock = false,
 }: {
   searchRef?: RefObject<HTMLInputElement | null>;
+  /** Receiving goods: products with nothing on the shelf stay tappable. */
+  anyStock?: boolean;
   onProduct: (productId: string) => void;
   /** A typed or scanned code; resolves false when nothing has it (then it stays a search). */
   onCode: (code: string) => Promise<boolean>;
@@ -88,7 +91,7 @@ export function ProductBrowser({
             key={p.id}
             type="button"
             className={classes.tile}
-            disabled={p.available <= 0}
+            disabled={!anyStock && p.available <= 0}
             onClick={() => onProduct(p.id)}
           >
             {p.thumbnailUrl ? (

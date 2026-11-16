@@ -22,7 +22,8 @@
     "otherLanguages": "الإنجليزية والعبرية",
     "reason": "السبب",
     "remove": "إزالة",
-    "saved": "تم الحفظ"
+    "saved": "تم الحفظ",
+    "date": "التاريخ"
   },
   "nav": {
     "home": "الرئيسية",
@@ -49,7 +50,9 @@
     "pos": "نقطة البيع",
     "approvals": "الموافقات",
     "orders": "الطلبيات",
-    "couriers": "شركات التوصيل"
+    "couriers": "شركات التوصيل",
+    "purchasing": "المشتريات والاستلام",
+    "suppliers": "الموردون"
   },
   "roles": {
     "ADMIN": "مدير النظام",
@@ -195,7 +198,19 @@
     "ORDER_FINISHED": "الطلبية منتهية",
     "COURIER_OVER_SETTLED": "أكثر مما بقي على الطلبية",
     "COURIER_ORDER_NOT_THEIRS": "ليست طلبية مفتوحة لهذه الشركة",
-    "COURIER_ALLOCATION_ABOVE_PAID": "الطلبيات أكثر من المبلغ المدفوع"
+    "COURIER_ALLOCATION_ABOVE_PAID": "الطلبيات أكثر من المبلغ المدفوع",
+    "SUPPLIER_INACTIVE": "المورّد غير فعال",
+    "RECEIPT_NOT_THEIRS": "ليس استلامًا مفتوحًا لهذا المورّد",
+    "SUPPLIER_ALLOCATION_TOO_LARGE": "أكثر مما بقي على الاستلام",
+    "SUPPLIER_ALLOCATION_ABOVE_PAID": "الاستلامات أكثر من المبلغ",
+    "SUPPLIER_NOTHING_TO_REFUND": "المورّد لا يدين للمحل بهذا المبلغ",
+    "ITEM_UNKNOWN": "قطعة غير معروفة",
+    "PURCHASE_ORDER_NOT_OPEN": "طلبية الشراء منتهية",
+    "PURCHASE_ORDER_NOT_THEIRS": "الطلبية لمورّد آخر",
+    "PURCHASE_ORDER_HAS_RECEIPTS": "وصلت بضاعة لهذه الطلبية؛ أغلقها بدل إلغائها",
+    "SUPPLIER_RETURN_TOO_MANY": "أكثر مما وصل في هذا الاستلام",
+    "SUPPLIER_PAY_NOT_ALLOWED": "الدفع للموردين يحتاج مديرًا",
+    "CREDIT_NOTE_EMPTY": "الإشعار بلا قيمة"
   },
   "languages": {
     "ar": "العربية",
@@ -546,7 +561,8 @@
       "CARD": "بطاقة",
       "BANK_TRANSFER": "تحويل بنكي",
       "STORE_CREDIT": "رصيد المحل",
-      "COURIER": "عند الاستلام (شركة التوصيل)"
+      "COURIER": "عند الاستلام (شركة التوصيل)",
+      "SAFE": "من الخزنة"
     },
     "outcome": {
       "CREDIT": "حفظه رصيدًا",
@@ -707,7 +723,8 @@
       "DROPS": "إخراج نقد",
       "EXPENSES": "مصروفات",
       "CASH_DEPOSITS": "عرابين نقدية",
-      "COURIER_SETTLEMENTS": "من شركات التوصيل"
+      "COURIER_SETTLEMENTS": "من شركات التوصيل",
+      "SUPPLIER_PAYMENTS": "دفعات للموردين"
     }
   },
   "returns": {
@@ -874,5 +891,87 @@
     "covers": "تغطي الطلبيات (الأقدم أولًا)",
     "noOpen": "لا طرود غير مسددة",
     "overpaid": "{{amount}} زيادة تبقى على حساب الشركة"
+  },
+  "purchasing": {
+    "receive": "استلام بضاعة",
+    "receiveGoods": "استلام",
+    "received": "استُلمت البضاعة",
+    "newOrder": "طلبية شراء جديدة",
+    "order": "طلبية الشراء",
+    "orders": "طلبيات الشراء",
+    "receipt": "الاستلام",
+    "receipts": "الاستلامات",
+    "supplier": "المورّد",
+    "againstOrder": "مقابل طلبية شراء",
+    "noOrder": "بدون طلبية",
+    "anyReceipt": "أي استلام (الأقدم أولًا)",
+    "supplierRef": "رقم فاتورة المورّد",
+    "expected": "موعد الوصول",
+    "arrived": "وصل",
+    "unitCost": "تكلفة القطعة",
+    "landedCost": "التكلفة مع المصاريف",
+    "extraCosts": "مصاريف إضافية",
+    "extraCostsHint": "شحن أو جمارك؛ تُوزّع على القطع حسب قيمتها",
+    "payNow": "دفع الآن",
+    "owedAfter": "يبقى للمورّد {{amount}}",
+    "scanHint": "امسح القطع أو أضفها من المنتجات",
+    "stillOpen": "بقي {{count}} من الطلبية",
+    "printLabels": "طباعة الملصقات",
+    "labelsHint": "ارتفع المخزون. اطبع ملصقات القطع الجديدة قبل وضعها على الرف.",
+    "subtotal": "المجموع قبل المصاريف",
+    "settled": "مدفوع أو مخصوم",
+    "open": "المتبقي",
+    "openOnly": "غير المكتملة",
+    "returnedCount": "أُرجع {{count}}",
+    "creditNote": "إشعار دائن من المورّد",
+    "creditNotes": "إشعارات دائنة",
+    "creditKind": {
+      "RETURN": "إرجاع بضاعة",
+      "ALLOWANCE": "خصم على السعر"
+    },
+    "canReturn": "يمكن إرجاع {{count}}",
+    "fromDamaged": "من رف التالف",
+    "close": "إغلاق الطلبية",
+    "closeShort": "إغلاق بما وصل",
+    "closeShortHint": "ما وصل نهائي؛ الباقي لن يصل.",
+    "cancelOrder": "إلغاء",
+    "cancelHint": "لم يصل شيء من هذه الطلبية.",
+    "status": {
+      "OPEN": "مفتوحة",
+      "CLOSED": "مغلقة",
+      "CANCELLED": "ملغاة"
+    }
+  },
+  "suppliers": {
+    "add": "إضافة مورّد",
+    "name": "الاسم",
+    "contact": "الشخص المسؤول",
+    "searchHint": "الاسم أو الهاتف",
+    "all": "الكل",
+    "owedOnly": "لهم مستحقات",
+    "totalOwed": "مجموع المستحق",
+    "owed": "مستحق للمورّد",
+    "paidAhead": "مدفوع مقدمًا",
+    "openCounts": "{{receipts}} استلام غير مسدد · {{orders}} طلبية مفتوحة",
+    "pay": "دفع للمورّد",
+    "payOut": "دفع للمورّد",
+    "refundIn": "استرجاع من المورّد",
+    "method": "طريقة الدفع",
+    "covers": "يغطي (الأقدم أولًا)",
+    "noOpen": "لا استلامات غير مسددة",
+    "aheadHint": "{{amount}} زيادة تُستخدم في الاستلام القادم",
+    "statement": "كشف الحساب",
+    "payments": "الدفعات",
+    "document": "المستند",
+    "debit": "عليه",
+    "credit": "له",
+    "balance": "الرصيد",
+    "kind": {
+      "RECEIPT": "استلام",
+      "CREDIT_NOTE": "إشعار دائن",
+      "PAYMENT": "دفعة",
+      "REFUND": "استرجاع",
+      "OPENING": "رصيد افتتاحي"
+    }
   }
 }

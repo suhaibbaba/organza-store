@@ -24,7 +24,11 @@ type Pickable = Omit<CartLine, 'key' | 'quantity' | 'discount'>;
  * Turns a tapped product or a scanned code into a cart line. A product with several items
  * (sizes, colours, numbered shawls, or a supplier code shared by all) opens a picker.
  */
-export function useItemChooser(onPick: (line: Pickable) => void) {
+export function useItemChooser(
+  onPick: (line: Pickable) => void,
+  /** Receiving goods: items with nothing on the shelf can be picked too. */
+  anyStock = false,
+) {
   const client = useQueryClient();
   const { i18n } = useTranslation();
   const [choice, setChoice] = useState<{ product: ProductView; itemIds: string[] } | null>(null);
@@ -93,6 +97,7 @@ export function useItemChooser(onPick: (line: Pickable) => void) {
     },
     picker: (
       <ChooseItem
+        anyStock={anyStock}
         choice={choice}
         onClose={() => setChoice(null)}
         onPick={(p, itemId) => {
@@ -105,10 +110,12 @@ export function useItemChooser(onPick: (line: Pickable) => void) {
 }
 
 function ChooseItem({
+  anyStock,
   choice,
   onClose,
   onPick,
 }: {
+  anyStock: boolean;
   choice: { product: ProductView; itemIds: string[] } | null;
   onClose: () => void;
   onPick: (p: ProductView, itemId: string) => void;
@@ -135,7 +142,7 @@ function ChooseItem({
         spacing="xs"
       >
         {items.map((item) => {
-          const out = item.stock.available <= 0;
+          const out = !anyStock && item.stock.available <= 0;
           const label =
             p!.type === 'NUMBERED'
               ? `#${item.number}`

@@ -1,7 +1,7 @@
 # Progress
 
-**Current phase:** 5
-**Next:** phase 5: suppliers and purchasing
+**Current phase:** 6
+**Next:** phase 6: reports and dashboard
 
 ## Finished steps
 
@@ -28,3 +28,4 @@
 | 2026-11-16 | 4 | Orders and couriers (API): orders with source and delivery method, quoted prices, line edits until ready, confirm reserves as far as stock goes, ready only when fully reserved, deposits as credit, hand-over to a courier (cash on delivery owed by the company) or collection at the shop (creates the sale), refused parcels back to shelf or damaged, cancel releases stock; delivery companies with ledger balances and settlements net of fees; pick list by shelf location; database guards for status moves and append-only history | see git log |
 | 2026-11-16 | 4 | Web: orders board (five columns on desktop, tabs with counts on phones; source badge, customer and city, photo strip, total and payment badge, age, short-stock warning), new order (customer, source, courier or pickup, lines from the browser or scanner, duplicate warning), order page (steps, reservation per line, quote kept, call and WhatsApp, deposits, hand to courier, collect with payment, refused parcel shelf/damaged, cancel, edit until ready, timeline), pick list by shelf location with packing slips (prints), delivery companies (balance, open parcels, settle with fee oldest-first preview, history) | see git log |
 | 2026-11-16 | 5 | API: suppliers (balance from the ledger, statement with running balance), purchase orders (partial deliveries, close short, cancel), receipts (stock in at landed cost with extra costs spread by value, weighted average, pay on delivery), credit notes (returns from shelf or damaged, allowances), supplier payments and refunds (oldest-first allocation, paying ahead used on the next receipt, cash from the shift, safe, bank, card), cost history per item; guards: append-only documents, a receipt never settled above its total; 8 e2e tests | see git log |
+| 2026-11-16 | 5 | Web: suppliers (owed or paid ahead, search, add/edit), supplier page (statement with running balance, receipts, purchase orders, payments, credit notes; pay with oldest-first preview; credit note for returned pieces or a price allowance), purchases & receiving (receipts and orders lists), receive goods (scan or browse, out-of-stock items pickable, cost per piece, extra costs, against an open order, pay now for managers), receipt page (landed cost, still owed, print labels for the new pieces), purchase order page (arrived per line, receive the rest, close short or cancel) | see git log |
