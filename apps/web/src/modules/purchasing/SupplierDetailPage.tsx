@@ -1,3 +1,4 @@
+import { BackLink } from '@web/shared/components/PageHeader';
 import {
   Alert,
   Anchor,
@@ -70,10 +71,11 @@ export function SupplierDetailPage() {
 
   return (
     <>
+      <BackLink to="/suppliers" label={t('nav.suppliers')} />
       <Group justify="space-between" mb="md" wrap="wrap" gap="xs">
         <Stack gap={2}>
           <Group gap="xs">
-            <Title order={2} size="h3">
+            <Title order={1} size="h2">
               {s.name}
             </Title>
             {!s.isActive && <Badge color="gray">{t('common.inactive')}</Badge>}

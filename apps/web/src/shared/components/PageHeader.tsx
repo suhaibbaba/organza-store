@@ -51,3 +51,15 @@ export function PageHeader({
     </div>
   );
 }
+
+/** The back link above a detail page whose header is laid out by the page itself. */
+export function BackLink({ to, label }: { to: string; label: string }) {
+  const { i18n } = useTranslation();
+  const Chevron = i18n.dir() === 'rtl' ? IconChevronRight : IconChevronLeft;
+  return (
+    <Link to={to} className={classes.back}>
+      <Chevron size={16} />
+      {label}
+    </Link>
+  );
+}

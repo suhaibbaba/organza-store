@@ -164,7 +164,7 @@ export function LabelsPage() {
           </Stack>
         </Card>
         {(labels.data?.length ?? 0) > 0 && (
-          <Card withBorder>
+          <Card p={0}>
             <Table verticalSpacing={4} fz="sm">
               <Table.Thead>
                 <Table.Tr>

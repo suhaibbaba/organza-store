@@ -68,6 +68,7 @@ export function CustomerDetailPage() {
     <>
       <PageHeader
         title={c.name}
+        back={{ to: '/customers', label: t('nav.customers') }}
         actions={
           <>
             {can('payments.receive') && (
@@ -182,52 +183,55 @@ function Statement({ id }: { id: string }) {
   if (query.isError) return <ErrorState error={query.error} onRetry={() => void query.refetch()} />;
   if (query.data.length === 0) return <EmptyState />;
   return (
-    <Table.ScrollContainer minWidth={520}>
-      <Table striped verticalSpacing="xs">
-        <Table.Thead>
-          <Table.Tr>
-            <Table.Th>{t('customers.date')}</Table.Th>
-            <Table.Th>{t('customers.entry')}</Table.Th>
-            <Table.Th ta="end">{t('customers.amount')}</Table.Th>
-            <Table.Th ta="end">{t('customers.balance')}</Table.Th>
-          </Table.Tr>
-        </Table.Thead>
-        <Table.Tbody>
-          {query.data.map((r, i) => {
-            const link = STATEMENT_LINK[r.kind]?.(r.sourceId);
-            const amount = Number(r.amount);
-            const balance = Number(r.balance);
-            return (
-              <Table.Tr key={i}>
-                <Table.Td>{formatDate(r.date, i18n.language)}</Table.Td>
-                <Table.Td>
-                  {t(`customers.kind.${r.kind}`)}{' '}
-                  {r.number &&
-                    (link ? (
-                      <Link to={link} dir="ltr">
-                        {r.number}
-                      </Link>
-                    ) : (
-                      <span dir="ltr">{r.number}</span>
-                    ))}
-                </Table.Td>
-                <Table.Td ta="end" c={amount > 0 ? 'red.7' : 'green.8'}>
-                  {amount > 0 ? '+' : '−'}
-                  {money(String(Math.abs(amount)))}
-                </Table.Td>
-                <Table.Td ta="end" fw={600}>
-                  {balance === 0
-                    ? money('0')
-                    : balance > 0
-                      ? t('customers.owes', { amount: money(String(balance)) })
-                      : t('customers.hasCredit', { amount: money(String(-balance)) })}
-                </Table.Td>
-              </Table.Tr>
-            );
-          })}
-        </Table.Tbody>
-      </Table>
-    </Table.ScrollContainer>
+    <Card p={0}>
+      {' '}
+      <Table.ScrollContainer minWidth={520}>
+        <Table striped verticalSpacing="xs">
+          <Table.Thead>
+            <Table.Tr>
+              <Table.Th>{t('customers.date')}</Table.Th>
+              <Table.Th>{t('customers.entry')}</Table.Th>
+              <Table.Th ta="end">{t('customers.amount')}</Table.Th>
+              <Table.Th ta="end">{t('customers.balance')}</Table.Th>
+            </Table.Tr>
+          </Table.Thead>
+          <Table.Tbody>
+            {query.data.map((r, i) => {
+              const link = STATEMENT_LINK[r.kind]?.(r.sourceId);
+              const amount = Number(r.amount);
+              const balance = Number(r.balance);
+              return (
+                <Table.Tr key={i}>
+                  <Table.Td>{formatDate(r.date, i18n.language)}</Table.Td>
+                  <Table.Td>
+                    {t(`customers.kind.${r.kind}`)}{' '}
+                    {r.number &&
+                      (link ? (
+                        <Link to={link} dir="ltr">
+                          {r.number}
+                        </Link>
+                      ) : (
+                        <span dir="ltr">{r.number}</span>
+                      ))}
+                  </Table.Td>
+                  <Table.Td ta="end" c={amount > 0 ? 'red.7' : 'green.8'}>
+                    {amount > 0 ? '+' : '−'}
+                    {money(String(Math.abs(amount)))}
+                  </Table.Td>
+                  <Table.Td ta="end" fw={600}>
+                    {balance === 0
+                      ? money('0')
+                      : balance > 0
+                        ? t('customers.owes', { amount: money(String(balance)) })
+                        : t('customers.hasCredit', { amount: money(String(-balance)) })}
+                  </Table.Td>
+                </Table.Tr>
+              );
+            })}
+          </Table.Tbody>
+        </Table>
+      </Table.ScrollContainer>
+    </Card>
   );
 }
 

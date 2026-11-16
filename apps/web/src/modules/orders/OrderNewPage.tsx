@@ -91,7 +91,7 @@ export function OrderNewPage() {
 
   return (
     <>
-      <PageHeader title={t('orders.new')} />
+      <PageHeader title={t('orders.new')} back={{ to: '/orders', label: t('nav.orders') }} />
       <Stack gap="md" maw={900}>
         <Card withBorder>
           <Stack gap="sm">

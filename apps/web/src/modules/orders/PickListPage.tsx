@@ -50,7 +50,7 @@ export function PickListPage() {
           </Button>
         </Group>
       </Group>
-      <Card withBorder>
+      <Card p={0}>
         <Table verticalSpacing={6}>
           <Table.Thead>
             <Table.Tr>

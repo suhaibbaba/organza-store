@@ -89,13 +89,14 @@ export function MyShiftPage() {
 }
 
 export function ShiftDetailPage() {
+  const { t } = useTranslation();
   const { id } = useParams();
   const shift = useShift(id);
   if (shift.isPending) return <FullScreenLoader />;
   if (shift.isError) return <ErrorState error={shift.error} onRetry={() => void shift.refetch()} />;
   return (
     <>
-      <PageHeader title={shift.data.number} />
+      <PageHeader title={shift.data.number} back={{ to: '/shifts', label: t('nav.shifts') }} />
       <ShiftPanel shift={shift.data} />
     </>
   );

@@ -41,7 +41,7 @@ export function AdjustmentsPage() {
     <>
       <PageHeader
         title={t('stock.adjustments')}
-        actions={
+        primary={
           <Button leftSection={<IconPlus size={16} />} onClick={() => setCreating(true)}>
             {t('stock.newAdjustment')}
           </Button>

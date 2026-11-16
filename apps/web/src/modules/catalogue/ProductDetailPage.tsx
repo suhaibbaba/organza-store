@@ -1,7 +1,7 @@
+import { BackLink } from '@web/shared/components/PageHeader';
 import {
   ActionIcon,
   Alert,
-  Anchor,
   Badge,
   Button,
   Card,
@@ -147,13 +147,11 @@ export function ProductDetailPage() {
 
   return (
     <>
+      <BackLink to="/products" label={t('catalogue.products')} />
       <Group justify="space-between" mb="md" wrap="wrap" gap="xs">
         <Stack gap={2}>
-          <Anchor component={Link} to="/products" size="sm">
-            {t('catalogue.products')}
-          </Anchor>
           <Group gap="xs">
-            <Title order={2} size="h3">
+            <Title order={1} size="h2">
               {localized(p.name)}
             </Title>
             <StatusBadge status={p.status} />

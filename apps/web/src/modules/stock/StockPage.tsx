@@ -101,41 +101,45 @@ export function StockPage() {
         </Stack>
       )}
       {query.data && query.data.items.length > 0 && !phone && (
-        <Table highlightOnHover verticalSpacing={6} fz="sm">
-          <Table.Thead>
-            <Table.Tr>
-              <Table.Th>{t('catalogue.name')}</Table.Th>
-              <Table.Th>{t('catalogue.sku')}</Table.Th>
-              <Table.Th>{t('stock.onHand')}</Table.Th>
-              <Table.Th>{t('stock.reserved')}</Table.Th>
-              <Table.Th>{t('stock.available')}</Table.Th>
-              <Table.Th>{t('stock.damaged')}</Table.Th>
-              <Table.Th>{t('catalogue.location')}</Table.Th>
-            </Table.Tr>
-          </Table.Thead>
-          <Table.Tbody>
-            {query.data.items.map((r) => (
-              <Table.Tr key={r.itemId} onClick={() => openRow(r)} style={{ cursor: 'pointer' }}>
-                <Table.Td>{name(r)}</Table.Td>
-                <Table.Td dir="ltr" style={{ textAlign: 'start' }}>
-                  {r.sku}
-                </Table.Td>
-                <Table.Td>{r.onHand}</Table.Td>
-                <Table.Td>{r.reserved || ''}</Table.Td>
-                <Table.Td>
-                  <Badge
-                    color={r.available <= 0 ? 'red' : r.lowStock ? 'orange' : 'gray'}
-                    variant="light"
-                  >
-                    {r.available}
-                  </Badge>
-                </Table.Td>
-                <Table.Td>{r.damaged || ''}</Table.Td>
-                <Table.Td>{r.location ?? ''}</Table.Td>
-              </Table.Tr>
-            ))}
-          </Table.Tbody>
-        </Table>
+        <Card p={0}>
+          <Table.ScrollContainer minWidth={640}>
+            <Table highlightOnHover verticalSpacing={6} fz="sm">
+              <Table.Thead>
+                <Table.Tr>
+                  <Table.Th>{t('catalogue.name')}</Table.Th>
+                  <Table.Th>{t('catalogue.sku')}</Table.Th>
+                  <Table.Th>{t('stock.onHand')}</Table.Th>
+                  <Table.Th>{t('stock.reserved')}</Table.Th>
+                  <Table.Th>{t('stock.available')}</Table.Th>
+                  <Table.Th>{t('stock.damaged')}</Table.Th>
+                  <Table.Th>{t('catalogue.location')}</Table.Th>
+                </Table.Tr>
+              </Table.Thead>
+              <Table.Tbody>
+                {query.data.items.map((r) => (
+                  <Table.Tr key={r.itemId} onClick={() => openRow(r)} style={{ cursor: 'pointer' }}>
+                    <Table.Td>{name(r)}</Table.Td>
+                    <Table.Td dir="ltr" style={{ textAlign: 'start' }}>
+                      {r.sku}
+                    </Table.Td>
+                    <Table.Td>{r.onHand}</Table.Td>
+                    <Table.Td>{r.reserved || ''}</Table.Td>
+                    <Table.Td>
+                      <Badge
+                        color={r.available <= 0 ? 'red' : r.lowStock ? 'orange' : 'gray'}
+                        variant="light"
+                      >
+                        {r.available}
+                      </Badge>
+                    </Table.Td>
+                    <Table.Td>{r.damaged || ''}</Table.Td>
+                    <Table.Td>{r.location ?? ''}</Table.Td>
+                  </Table.Tr>
+                ))}
+              </Table.Tbody>
+            </Table>
+          </Table.ScrollContainer>
+        </Card>
       )}
       {(query.data?.total ?? 0) > PAGE_SIZE && (
         <Group justify="center" mt="md">

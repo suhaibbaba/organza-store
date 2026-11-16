@@ -23,7 +23,7 @@ export function CountsPage() {
     <>
       <PageHeader
         title={t('stock.counts')}
-        actions={
+        primary={
           <Button leftSection={<IconPlus size={16} />} onClick={() => setTitle('')}>
             {t('stock.newCount')}
           </Button>

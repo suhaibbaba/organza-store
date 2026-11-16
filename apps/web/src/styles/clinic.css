@@ -393,3 +393,9 @@
   unicode-bidi: isolate;
   font-variant-numeric: tabular-nums;
 }
+
+/* Page titles laid out by the page itself match PageHeader. */
+h1.mantine-Title-root {
+  color: var(--o-title);
+  font-weight: 500;
+}

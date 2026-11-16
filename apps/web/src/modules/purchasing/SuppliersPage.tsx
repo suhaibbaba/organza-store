@@ -40,7 +40,7 @@ export function SuppliersPage() {
     <>
       <PageHeader
         title={t('nav.suppliers')}
-        actions={
+        primary={
           can('suppliers.manage') && (
             <Button leftSection={<IconPlus size={16} />} onClick={() => setAdding(true)}>
               {t('suppliers.add')}

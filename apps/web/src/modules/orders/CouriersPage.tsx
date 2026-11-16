@@ -43,7 +43,7 @@ export function CouriersPage() {
     <>
       <PageHeader
         title={t('nav.couriers')}
-        actions={
+        primary={
           can('couriers.manage') && (
             <Button leftSection={<IconPlus size={16} />} onClick={() => setEditing('new')}>
               {t('couriers.add')}

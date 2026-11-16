@@ -1,3 +1,4 @@
+import { PageAction } from '@web/shared/components/PageAction';
 import {
   Badge,
   Button,
@@ -80,7 +81,7 @@ export function OrdersPage() {
   return (
     <div className={classes.board}>
       <Group justify="space-between" wrap="nowrap">
-        <Title order={2} size="h3">
+        <Title order={1} size="h2">
           {t('nav.orders')}
         </Title>
         <Group gap="xs" wrap="nowrap">
@@ -94,9 +95,11 @@ export function OrdersPage() {
             </Button>
           )}
           {can('orders.create') && (
-            <Button leftSection={<IconPlus size={16} />} onClick={() => navigate('/orders/new')}>
-              {t('orders.new')}
-            </Button>
+            <PageAction>
+              <Button leftSection={<IconPlus size={16} />} onClick={() => navigate('/orders/new')}>
+                {t('orders.new')}
+              </Button>
+            </PageAction>
           )}
         </Group>
       </Group>

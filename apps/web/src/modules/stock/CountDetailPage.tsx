@@ -1,21 +1,11 @@
-import {
-  Anchor,
-  Badge,
-  Button,
-  Card,
-  Group,
-  NumberInput,
-  Stack,
-  Table,
-  Text,
-  Title,
-} from '@mantine/core';
+import { BackLink } from '@web/shared/components/PageHeader';
+import { Badge, Button, Card, Group, NumberInput, Stack, Table, Text, Title } from '@mantine/core';
 import { modals } from '@mantine/modals';
 import { notifications } from '@mantine/notifications';
 import { localize } from '@organza/shared';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link, useParams } from 'react-router';
+import { useParams } from 'react-router';
 import { ErrorState, FullScreenLoader } from '@web/shared/components/StatusScreens';
 import { useErrorMessage } from '@web/shared/hooks/use-error-message';
 import { type PickedItem, useCount, useCountMutations } from './api';
@@ -69,13 +59,11 @@ export function CountDetailPage() {
 
   return (
     <>
+      <BackLink to="/stock/counts" label={t('stock.counts')} />
       <Group justify="space-between" mb="md" wrap="wrap">
         <Stack gap={2}>
-          <Anchor component={Link} to="/stock/counts" size="sm">
-            {t('stock.counts')}
-          </Anchor>
           <Group gap="xs">
-            <Title order={2} size="h3">
+            <Title order={1} size="h2">
               {count.title}
             </Title>
             <Badge color={COUNT_COLORS[count.status]} variant="light">

@@ -27,7 +27,7 @@ export function StaffPage() {
     <>
       <PageHeader
         title={t('staff.title')}
-        actions={
+        primary={
           manage && (
             <Button leftSection={<IconPlus size={16} />} onClick={() => setEditing('new')}>
               {t('staff.new')}
@@ -59,32 +59,36 @@ export function StaffPage() {
         </Stack>
       )}
       {query.data && query.data.length > 0 && !phone && (
-        <Table highlightOnHover verticalSpacing="sm" fz="sm">
-          <Table.Thead>
-            <Table.Tr>
-              <Table.Th>{t('staff.name')}</Table.Th>
-              <Table.Th>{t('staff.email')}</Table.Th>
-              <Table.Th>{t('staff.role')}</Table.Th>
-              <Table.Th>{t('staff.status')}</Table.Th>
-            </Table.Tr>
-          </Table.Thead>
-          <Table.Tbody>
-            {query.data.map((m) => (
-              <Table.Tr
-                key={m.id}
-                onClick={() => manage && setEditing(m)}
-                style={{ cursor: manage ? 'pointer' : undefined }}
-              >
-                <Table.Td>{m.name}</Table.Td>
-                <Table.Td>
-                  <span dir="ltr">{m.email}</span>
-                </Table.Td>
-                <Table.Td>{t(`roles.${m.role}`)}</Table.Td>
-                <Table.Td>{status(m)}</Table.Td>
-              </Table.Tr>
-            ))}
-          </Table.Tbody>
-        </Table>
+        <Card p={0}>
+          <Table.ScrollContainer minWidth={560}>
+            <Table highlightOnHover verticalSpacing="sm" fz="sm">
+              <Table.Thead>
+                <Table.Tr>
+                  <Table.Th>{t('staff.name')}</Table.Th>
+                  <Table.Th>{t('staff.email')}</Table.Th>
+                  <Table.Th>{t('staff.role')}</Table.Th>
+                  <Table.Th>{t('staff.status')}</Table.Th>
+                </Table.Tr>
+              </Table.Thead>
+              <Table.Tbody>
+                {query.data.map((m) => (
+                  <Table.Tr
+                    key={m.id}
+                    onClick={() => manage && setEditing(m)}
+                    style={{ cursor: manage ? 'pointer' : undefined }}
+                  >
+                    <Table.Td>{m.name}</Table.Td>
+                    <Table.Td>
+                      <span dir="ltr">{m.email}</span>
+                    </Table.Td>
+                    <Table.Td>{t(`roles.${m.role}`)}</Table.Td>
+                    <Table.Td>{status(m)}</Table.Td>
+                  </Table.Tr>
+                ))}
+              </Table.Tbody>
+            </Table>
+          </Table.ScrollContainer>
+        </Card>
       )}
       {editing && (
         <StaffForm member={editing === 'new' ? null : editing} onClose={() => setEditing(null)} />

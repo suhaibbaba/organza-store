@@ -96,7 +96,10 @@ export function ReturnPage() {
   if (sale.status !== 'COMPLETED' || sale.fulfilment !== 'FULFILLED' || !returnable.length)
     return (
       <>
-        <PageHeader title={t('returns.title', { number: sale.number })} />
+        <PageHeader
+          title={t('returns.title', { number: sale.number })}
+          back={{ to: `/sales/${sale.id}`, label: sale.number }}
+        />
         <Alert color="orange">{t('errors.SALE_NOT_RETURNABLE')}</Alert>
       </>
     );
@@ -168,7 +171,10 @@ export function ReturnPage() {
 
   return (
     <>
-      <PageHeader title={t('returns.title', { number: sale.number })} />
+      <PageHeader
+        title={t('returns.title', { number: sale.number })}
+        back={{ to: `/sales/${sale.id}`, label: sale.number }}
+      />
       <Stack gap="md" maw={760}>
         <Card withBorder>
           <Text fw={600} mb="xs">

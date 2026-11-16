@@ -1,3 +1,4 @@
+import { BackLink } from '@web/shared/components/PageHeader';
 import {
   Alert,
   Anchor,
@@ -112,9 +113,10 @@ export function ReceiptPage() {
 
   return (
     <>
+      <BackLink to="/purchasing" label={t('nav.purchasing')} />
       <Group justify="space-between" mb="md" wrap="wrap" gap="xs">
         <Stack gap={2}>
-          <Title order={2} size="h3" dir="ltr" ta="start">
+          <Title order={1} size="h2" dir="ltr" ta="start">
             {r.number}
           </Title>
           <Text size="sm" c="dimmed">
@@ -256,10 +258,11 @@ export function PurchaseOrderPage() {
   const po = query.data;
   return (
     <>
+      <BackLink to="/purchasing" label={t('nav.purchasing')} />
       <Group justify="space-between" mb="md" wrap="wrap" gap="xs">
         <Stack gap={2}>
           <Group gap="xs">
-            <Title order={2} size="h3" dir="ltr">
+            <Title order={1} size="h2" dir="ltr">
               {po.number}
             </Title>
             <Badge color={PO_COLORS[po.status]}>{t(`purchasing.status.${po.status}`)}</Badge>

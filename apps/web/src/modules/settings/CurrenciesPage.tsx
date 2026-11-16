@@ -56,7 +56,7 @@ export function CurrenciesPage() {
           )
         }
       />
-      <Card withBorder maw={720}>
+      <Card p={0} maw={720}>
         <Table verticalSpacing="sm" fz="sm">
           <Table.Thead>
             <Table.Tr>

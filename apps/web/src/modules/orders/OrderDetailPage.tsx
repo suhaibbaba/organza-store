@@ -1,3 +1,4 @@
+import { BackLink } from '@web/shared/components/PageHeader';
 import {
   ActionIcon,
   Alert,
@@ -107,10 +108,11 @@ export function OrderDetailPage() {
 
   return (
     <>
+      <BackLink to="/orders" label={t('nav.orders')} />
       <Group justify="space-between" mb="md" wrap="wrap" gap="xs">
         <Stack gap={2}>
           <Group gap="xs">
-            <Title order={2} size="h3" dir="ltr">
+            <Title order={1} size="h2" dir="ltr">
               {o.number}
             </Title>
             <Badge color={ORDER_STATUS_COLORS[o.status]}>{t(`orders.status.${o.status}`)}</Badge>

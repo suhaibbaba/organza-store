@@ -70,6 +70,7 @@ export function SaleDetailPage() {
     <>
       <PageHeader
         title={sale.number}
+        back={{ to: '/sales', label: t('nav.sales') }}
         actions={
           <>
             {held && can('sales.handover') && (

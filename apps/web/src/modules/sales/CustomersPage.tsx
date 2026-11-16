@@ -38,7 +38,7 @@ export function CustomersPage() {
     <>
       <PageHeader
         title={t('nav.customers')}
-        actions={
+        primary={
           can('customers.edit') && (
             <Button leftSection={<IconUserPlus size={16} />} onClick={() => setAdding(true)}>
               {t('customers.new')}

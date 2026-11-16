@@ -124,7 +124,10 @@ export function PurchaseFormPage({ mode }: { mode: 'receive' | 'order' }) {
 
   return (
     <>
-      <PageHeader title={mode === 'order' ? t('purchasing.newOrder') : t('purchasing.receive')} />
+      <PageHeader
+        title={mode === 'order' ? t('purchasing.newOrder') : t('purchasing.receive')}
+        back={{ to: '/purchasing', label: t('nav.purchasing') }}
+      />
       <Stack gap="md" maw={960}>
         <Card withBorder>
           <SimpleGrid cols={{ base: 1, sm: 2 }}>

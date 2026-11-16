@@ -61,7 +61,7 @@ export function ProductsPage() {
     <>
       <PageHeader
         title={t('catalogue.products')}
-        actions={
+        primary={
           can('products.create') && (
             <Menu position="bottom-end">
               <Menu.Target>
@@ -186,47 +186,51 @@ export function ProductsPage() {
         </Stack>
       )}
       {query.data && query.data.items.length > 0 && !phone && (
-        <Table highlightOnHover verticalSpacing={6} fz="sm">
-          <Table.Thead>
-            <Table.Tr>
-              <Table.Th w={60} />
-              <Table.Th>{t('catalogue.name')}</Table.Th>
-              <Table.Th>{t('catalogue.number')}</Table.Th>
-              <Table.Th>{t('catalogue.productType')}</Table.Th>
-              <Table.Th>{t('catalogue.price')}</Table.Th>
-              <Table.Th>{t('catalogue.stock')}</Table.Th>
-              <Table.Th>{t('catalogue.statusLabel')}</Table.Th>
-            </Table.Tr>
-          </Table.Thead>
-          <Table.Tbody>
-            {query.data.items.map((p) => (
-              <Table.Tr key={p.id} onClick={() => open(p)} className={classes.row}>
-                <Table.Td>
-                  <ProductThumb url={p.thumbnailUrl} size={32} />
-                </Table.Td>
-                <Table.Td>
-                  <Text size="sm" fw={500}>
-                    {localized(p.name)}
-                  </Text>
-                  {p.needsCompletion && (
-                    <Text size="xs" c="orange">
-                      {t('catalogue.needsCompletion')}
-                    </Text>
-                  )}
-                </Table.Td>
-                <Table.Td>#{p.number}</Table.Td>
-                <Table.Td>{t(`catalogue.type.${p.type}`)}</Table.Td>
-                <Table.Td>{price(p)}</Table.Td>
-                <Table.Td>
-                  <StockBadge available={p.available} low={p.lowStock} />
-                </Table.Td>
-                <Table.Td>
-                  <StatusBadge status={p.status} />
-                </Table.Td>
-              </Table.Tr>
-            ))}
-          </Table.Tbody>
-        </Table>
+        <Card p={0}>
+          <Table.ScrollContainer minWidth={720}>
+            <Table highlightOnHover verticalSpacing={6} fz="sm">
+              <Table.Thead>
+                <Table.Tr>
+                  <Table.Th w={60} />
+                  <Table.Th>{t('catalogue.name')}</Table.Th>
+                  <Table.Th>{t('catalogue.number')}</Table.Th>
+                  <Table.Th>{t('catalogue.productType')}</Table.Th>
+                  <Table.Th>{t('catalogue.price')}</Table.Th>
+                  <Table.Th>{t('catalogue.stock')}</Table.Th>
+                  <Table.Th>{t('catalogue.statusLabel')}</Table.Th>
+                </Table.Tr>
+              </Table.Thead>
+              <Table.Tbody>
+                {query.data.items.map((p) => (
+                  <Table.Tr key={p.id} onClick={() => open(p)} className={classes.row}>
+                    <Table.Td>
+                      <ProductThumb url={p.thumbnailUrl} size={32} />
+                    </Table.Td>
+                    <Table.Td>
+                      <Text size="sm" fw={500}>
+                        {localized(p.name)}
+                      </Text>
+                      {p.needsCompletion && (
+                        <Text size="xs" c="orange">
+                          {t('catalogue.needsCompletion')}
+                        </Text>
+                      )}
+                    </Table.Td>
+                    <Table.Td>#{p.number}</Table.Td>
+                    <Table.Td>{t(`catalogue.type.${p.type}`)}</Table.Td>
+                    <Table.Td>{price(p)}</Table.Td>
+                    <Table.Td>
+                      <StockBadge available={p.available} low={p.lowStock} />
+                    </Table.Td>
+                    <Table.Td>
+                      <StatusBadge status={p.status} />
+                    </Table.Td>
+                  </Table.Tr>
+                ))}
+              </Table.Tbody>
+            </Table>
+          </Table.ScrollContainer>
+        </Card>
       )}
       {total > PAGE_SIZE && (
         <Group justify="center" mt="md">

@@ -179,7 +179,10 @@ function ProductForm({ type }: { type: ProductType }) {
         submit();
       }}
     >
-      <PageHeader title={t(`catalogue.new.${type}`)} />
+      <PageHeader
+        title={t(`catalogue.new.${type}`)}
+        back={{ to: '/products', label: t('catalogue.products') }}
+      />
       <Stack gap="md" maw={960}>
         <Card withBorder>
           <Stack gap="sm">
