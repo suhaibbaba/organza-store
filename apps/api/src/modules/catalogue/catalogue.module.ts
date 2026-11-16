@@ -10,6 +10,6 @@ import { ProductsService } from './services/products.service.js';
 @Module({
   controllers: [CatalogueController, ImagesController],
   providers: [ProductsService, ImagesService, ItemsService, CategoriesService, BarcodesService],
-  exports: [ProductsService, ItemsService, BarcodesService],
+  exports: [ProductsService, ItemsService, BarcodesService, ImagesService],
 })
 export class CatalogueModule {}

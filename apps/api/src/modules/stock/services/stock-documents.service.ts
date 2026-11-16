@@ -31,7 +31,12 @@ import {
   stockCounts,
   stockMovements,
 } from '../../../database/schema/index.js';
-import { type Database, type Executor, inTransaction } from '../../../database/unit-of-work.js';
+import {
+  currentTransaction,
+  type Database,
+  type Executor,
+  inTransaction,
+} from '../../../database/unit-of-work.js';
 import { SettingsService } from '../../settings/services/settings.service.js';
 import { type StockLine, StockService } from './stock.service.js';
 
@@ -198,16 +203,16 @@ export class StockDocumentsService {
     return this.getAdjustment(id);
   }
 
-  async getAdjustment(id: string) {
-    const [doc] = await this.db.select().from(stockAdjustments).where(eq(stockAdjustments.id, id));
+  async getAdjustment(id: string, executor: Executor = currentTransaction() ?? this.db) {
+    const [doc] = await executor.select().from(stockAdjustments).where(eq(stockAdjustments.id, id));
     if (!doc) throw notFound('Adjustment');
-    const lines = await this.db
+    const lines = await executor
       .select({ line: stockAdjustmentLines, sku: items.sku, name: products.name })
       .from(stockAdjustmentLines)
       .innerJoin(items, eq(items.id, stockAdjustmentLines.itemId))
       .innerJoin(products, eq(products.id, items.productId))
       .where(eq(stockAdjustmentLines.adjustmentId, id));
-    const [rev] = await this.db
+    const [rev] = await executor
       .select({ n: sql<number>`count(*)::int` })
       .from(stockMovements)
       .where(

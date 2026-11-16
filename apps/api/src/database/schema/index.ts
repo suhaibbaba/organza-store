@@ -4,3 +4,4 @@ export * from './catalogue.js';
 export * from './ledger.js';
 export * from './documents.js';
 export * from './sales.js';
+export * from './approvals.js';
