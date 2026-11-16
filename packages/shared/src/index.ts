@@ -11,3 +11,4 @@ export * from './barcode.js';
 export * from './schemas/catalogue.js';
 export * from './schemas/stock.js';
 export * from './image-edit.js';
+export * from './barcode-render.js';

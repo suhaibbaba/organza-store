@@ -1,7 +1,7 @@
 # Progress
 
-**Current phase:** 1. Catalogue and stock
-**Next:** phase 1 web screens (products list, three create forms, product detail, categories and options, stock, adjustments, counts, labels, settings and currencies)
+**Current phase:** 2. Sales, payments, POS
+**Next:** phase 2: customers (phone identity, debts), then the sale document and payment postings
 
 ## Finished steps
 
@@ -17,3 +17,4 @@
 | 2026-11-16 | 1 | Stock adjustments (damage, loss, found, write-off of damaged, correction by delta or counted quantity) with ADJ numbers and reversal; stock counts (open, count lines, post differences at posting time, cancel); stock list with low-stock flag and item history; daily job runner (once per shop date across instances) running the 03:00 balance-versus-movements check | see git log |
 | 2026-11-16 | 1 | Image pipeline ported (sharp: orient, crop from full pixels, resize 300/800/1600, mirror, turn; WebP 82; original kept for re-crop; brightness for marker colours; decode as type check; startup write probe), upload before or after the product exists, re-crop, reorder, remove, served at /uploads with long caching; label data endpoint and labels-printed flag | see git log |
 | 2026-11-16 | 1 | Catalogue import from the old system: one transaction, rehearsal by default, legacy ID map, opening stock at cost, self-checks (stock per item, balances = movements, inventory = stock at cost, product count); tested against a fixture database built from the old Prisma schema. Running it on a production copy is in blocked.md | see git log |
+| 2026-11-16 | 1 | Web screens: products list (search, scanner lookup, filters, phone cards / desktop table), three create forms (single piece; variants with option chips, inline new values and a combination grid where only ticked rows become items; numbered with tap-to-place points and marker colours), 2:3 photo framing editor, product detail (photos, items, codes, hide/archive, add items, costs), categories and options, stock levels with history, adjustments with reversal, counts (scan adds one, post, cancel), labels (50×30 thermal or A4 grid, dependency-free EAN-13/Code 128 SVG, mark printed), settings, currencies; hardware scanner hook ported; route error screen. Checked in Arabic at 1440 px and 375 px. Phase 1 complete | see git log |

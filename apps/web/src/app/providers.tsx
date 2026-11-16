@@ -1,4 +1,5 @@
 import { DirectionProvider, MantineProvider } from '@mantine/core';
+import { ModalsProvider } from '@mantine/modals';
 import { Notifications } from '@mantine/notifications';
 import { QueryClientProvider } from '@tanstack/react-query';
 import type { ReactNode } from 'react';
@@ -15,7 +16,9 @@ export function Providers({ children }: { children: ReactNode }) {
       <MantineProvider theme={theme} defaultColorScheme="light">
         <Notifications position={dir === 'rtl' ? 'top-left' : 'top-right'} />
         <QueryClientProvider client={queryClient}>
-          <SessionProvider>{children}</SessionProvider>
+          <SessionProvider>
+            <ModalsProvider>{children}</ModalsProvider>
+          </SessionProvider>
         </QueryClientProvider>
       </MantineProvider>
     </DirectionProvider>

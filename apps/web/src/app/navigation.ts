@@ -1,5 +1,17 @@
 import type { Capability, Role } from '@organza/shared';
-import { IconHome, IconUsers, type Icon } from '@tabler/icons-react';
+import {
+  IconAdjustments,
+  IconCategory,
+  IconClipboardList,
+  IconCoins,
+  IconHanger,
+  IconHome,
+  IconPackages,
+  IconSettings,
+  IconTags,
+  IconUsers,
+  type Icon,
+} from '@tabler/icons-react';
 
 export type NavGroupKey = 'home' | 'sell' | 'customers' | 'stock' | 'money' | 'admin';
 
@@ -31,7 +43,54 @@ export const NAV_GROUPS: NavGroup[] = [
   },
   { key: 'sell', label: 'nav.sell', items: [] },
   { key: 'customers', label: 'nav.customers', items: [] },
-  { key: 'stock', label: 'nav.stock', items: [] },
+  {
+    key: 'stock',
+    label: 'nav.stock',
+    items: [
+      {
+        key: 'products',
+        label: 'nav.products',
+        path: '/products',
+        icon: IconHanger,
+        capability: 'products.view',
+      },
+      {
+        key: 'stock',
+        label: 'nav.stockLevels',
+        path: '/stock',
+        icon: IconPackages,
+        capability: 'stock.view',
+      },
+      {
+        key: 'adjustments',
+        label: 'nav.adjustments',
+        path: '/stock/adjustments',
+        icon: IconAdjustments,
+        capability: 'stock.adjust',
+      },
+      {
+        key: 'counts',
+        label: 'nav.counts',
+        path: '/stock/counts',
+        icon: IconClipboardList,
+        capability: 'stock.count',
+      },
+      {
+        key: 'labels',
+        label: 'nav.labels',
+        path: '/labels',
+        icon: IconTags,
+        capability: 'labels.print',
+      },
+      {
+        key: 'catalogue',
+        label: 'nav.catalogueSetup',
+        path: '/catalogue/setup',
+        icon: IconCategory,
+        capability: 'catalogue.manage',
+      },
+    ],
+  },
   { key: 'money', label: 'nav.money', items: [] },
   {
     key: 'admin',
@@ -43,6 +102,20 @@ export const NAV_GROUPS: NavGroup[] = [
         path: '/admin/staff',
         icon: IconUsers,
         capability: 'staff.view',
+      },
+      {
+        key: 'settings',
+        label: 'nav.settings',
+        path: '/admin/settings',
+        icon: IconSettings,
+        capability: 'settings.manage',
+      },
+      {
+        key: 'currencies',
+        label: 'nav.currencies',
+        path: '/admin/currencies',
+        icon: IconCoins,
+        capability: 'currencies.setRate',
       },
     ],
   },

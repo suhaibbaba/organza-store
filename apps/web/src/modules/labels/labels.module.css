@@ -1,0 +1,82 @@
+.sheet {
+  background: #fff;
+  color: #000;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+  margin: 0 auto var(--mantine-spacing-md);
+  overflow: hidden;
+  position: relative;
+}
+
+.grid {
+  display: grid;
+}
+
+.label {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  padding: 1mm 1.5mm;
+  font-family: Arial, Helvetica, sans-serif;
+  line-height: 1.1;
+  box-sizing: border-box;
+}
+
+.labelTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1mm;
+  font-size: 2.6mm;
+}
+
+.labelName {
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.labelPrice {
+  font-weight: 700;
+  white-space: nowrap;
+  direction: ltr;
+}
+
+.labelOptions {
+  font-size: 2.3mm;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.labelBars {
+  flex: 1;
+  min-height: 0;
+  margin-top: 0.5mm;
+}
+
+.preview {
+  overflow: auto;
+  max-height: 70vh;
+  padding: var(--mantine-spacing-md);
+  background: var(--mantine-color-gray-1);
+  border-radius: var(--mantine-radius-md);
+}
+
+@media print {
+  :global(body.printing-labels) > *:not(:global(.label-print-root)) {
+    display: none !important;
+  }
+
+  :global(.label-print-root) .sheet {
+    box-shadow: none;
+    margin: 0;
+    break-after: page;
+    page-break-after: always;
+  }
+}
+
+@media screen {
+  :global(.label-print-root) {
+    display: none;
+  }
+}
