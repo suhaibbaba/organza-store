@@ -317,6 +317,7 @@ function Till({
         saleId={done?.id ?? null}
         replayed={done?.replayed}
         closeLabel={t('pos.nextSale')}
+        fresh
         onClose={() => setDone(null)}
       />
     </div>

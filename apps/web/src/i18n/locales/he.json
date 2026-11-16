@@ -53,7 +53,8 @@
     "couriers": "חברות שליחויות",
     "purchasing": "רכש וקבלת סחורה",
     "suppliers": "ספקים",
-    "reports": "דוחות"
+    "reports": "דוחות",
+    "device": "מכשיר זה"
   },
   "roles": {
     "ADMIN": "מנהל מערכת",
@@ -1085,5 +1086,32 @@
     "openShifts": "משמרות פתוחות",
     "lowStock": "פריטים במלאי נמוך",
     "activity": "פעילות אחרונה"
+  },
+  "device": {
+    "browserOnly": "הדפסה ישירה, מגירת הכסף ועדכונים פועלים באפליקציית Windows. בדפדפן הקבלה מודפסת דרך חלון ההדפסה.",
+    "receiptPrinter": "מדפסת קבלות",
+    "printer": "מדפסת",
+    "choosePrinter": "בחר מדפסת",
+    "noPrinters": "לא נמצאו מדפסות",
+    "networkPrinter": "או מדפסת רשת",
+    "networkHint": "כתובת ופורט, בדרך כלל 9100",
+    "paper": "רוחב נייר",
+    "autoPrint": "הדפס קבלה אוטומטית אחרי כל מכירה",
+    "drawerOnCash": "פתח את המגירה במכירה במזומן",
+    "drawerPin": "פין מגירה",
+    "pin2": "פין 2 (הנפוץ)",
+    "pin5": "פין 5",
+    "testPrint": "הדפסת ניסיון",
+    "testLine": "הדפסת ניסיון · طباعة تجريبية · Test print",
+    "openDrawer": "פתח מגירה",
+    "refreshPrinters": "רענן רשימה",
+    "sent": "נשלח למדפסת",
+    "printFailed": "ההדפסה נכשלה: {{reason}}",
+    "app": "אפליקציה",
+    "version": "גרסה {{version}} · {{os}}",
+    "upToDate": "האפליקציה מעודכנת",
+    "updateAvailable": "גרסה {{version}} זמינה",
+    "checkUpdate": "בדוק עדכון",
+    "installUpdate": "התקן והפעל מחדש"
   }
 }

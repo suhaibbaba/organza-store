@@ -13,6 +13,9 @@ import { RouterProvider } from 'react-router';
 import { Providers } from './app/providers';
 import { router } from './app/router';
 import { initI18n } from './i18n';
+import { installDesktop } from './shared/platform/desktop';
+
+installDesktop();
 
 void initI18n().then(() => {
   const root = document.getElementById('root');

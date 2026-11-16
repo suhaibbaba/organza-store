@@ -53,7 +53,8 @@
     "couriers": "Delivery companies",
     "purchasing": "Purchases & receiving",
     "suppliers": "Suppliers",
-    "reports": "Reports"
+    "reports": "Reports",
+    "device": "This device"
   },
   "roles": {
     "ADMIN": "Admin",
@@ -1085,5 +1086,32 @@
     "openShifts": "Open shifts",
     "lowStock": "Items running low",
     "activity": "Recent activity"
+  },
+  "device": {
+    "browserOnly": "Direct printing, the cash drawer and updates work in the Windows app. In a browser, receipts print through the print dialog.",
+    "receiptPrinter": "Receipt printer",
+    "printer": "Printer",
+    "choosePrinter": "Choose a printer",
+    "noPrinters": "No printers found",
+    "networkPrinter": "Or a network printer",
+    "networkHint": "Address and port, usually 9100",
+    "paper": "Paper width",
+    "autoPrint": "Print the receipt automatically after each sale",
+    "drawerOnCash": "Open the drawer on cash sales",
+    "drawerPin": "Drawer pin",
+    "pin2": "Pin 2 (most common)",
+    "pin5": "Pin 5",
+    "testPrint": "Test print",
+    "testLine": "Test print · طباعة تجريبية · הדפסת ניסיון",
+    "openDrawer": "Open drawer",
+    "refreshPrinters": "Refresh list",
+    "sent": "Sent to the printer",
+    "printFailed": "Could not print: {{reason}}",
+    "app": "App",
+    "version": "Version {{version}} · {{os}}",
+    "upToDate": "The app is up to date",
+    "updateAvailable": "Version {{version}} is available",
+    "checkUpdate": "Check for update",
+    "installUpdate": "Install and restart"
   }
 }

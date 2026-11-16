@@ -29,6 +29,7 @@ import {
 import { SupplierDetailPage } from '@web/modules/purchasing/SupplierDetailPage';
 import { SuppliersPage } from '@web/modules/purchasing/SuppliersPage';
 import { ReportsPage } from '@web/modules/reports/ReportsPage';
+import { DevicePage } from '@web/modules/device/DevicePage';
 import { ApprovalsPage } from '@web/modules/sales/ApprovalsPage';
 import { CustomerDetailPage } from '@web/modules/sales/CustomerDetailPage';
 import { ReturnPage } from '@web/modules/sales/ReturnPage';
@@ -90,6 +91,7 @@ export const routes = [
           guarded('suppliers', 'suppliers.view', <SuppliersPage />),
           guarded('suppliers/:id', 'suppliers.view', <SupplierDetailPage />),
           guarded('reports', 'reports.view', <ReportsPage />),
+          guarded('device', 'shifts.operate', <DevicePage />),
           guarded('purchasing', 'purchasing.receive', <PurchasingPage />),
           guarded('purchasing/receive', 'purchasing.receive', <PurchaseFormPage mode="receive" />),
           guarded('purchasing/receipts/:id', 'purchasing.receive', <ReceiptPage />),

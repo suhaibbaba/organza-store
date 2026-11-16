@@ -10,24 +10,21 @@
   background: #fff;
 }
 
-.receiptHead {
+.receiptTitle {
   text-align: center;
-  margin-bottom: 6px;
+  font-size: 16px;
+  font-weight: 700;
 }
 
-.receiptHead strong {
-  display: block;
-  font-size: 16px;
+.receiptCenter {
+  text-align: center;
 }
 
 .receiptMeta {
   display: flex;
   justify-content: space-between;
   gap: 8px;
-  border-top: 1px dashed #000;
-  border-bottom: 1px dashed #000;
-  padding: 4px 0;
-  margin-bottom: 4px;
+  margin-top: 6px;
 }
 
 .receiptNote {
@@ -35,31 +32,26 @@
   margin: 4px 0;
 }
 
-.receiptLines {
-  width: 100%;
-  border-collapse: collapse;
+.receiptRule {
+  border-top: 1px dashed #000;
   margin: 4px 0;
 }
 
-.receiptLines td {
+.receiptLine {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
   padding: 3px 0;
-  vertical-align: top;
 }
 
 .receiptAmount {
   text-align: end;
   white-space: nowrap;
-  padding-inline-start: 8px;
 }
 
 .receiptSmall {
   font-size: 11px;
   color: #333;
-}
-
-.receiptTotals {
-  border-top: 1px dashed #000;
-  padding-top: 4px;
 }
 
 .receiptRow {

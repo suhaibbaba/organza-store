@@ -53,7 +53,8 @@
     "couriers": "شركات التوصيل",
     "purchasing": "المشتريات والاستلام",
     "suppliers": "الموردون",
-    "reports": "التقارير"
+    "reports": "التقارير",
+    "device": "هذا الجهاز"
   },
   "roles": {
     "ADMIN": "مدير النظام",
@@ -1085,5 +1086,32 @@
     "openShifts": "ورديات مفتوحة",
     "lowStock": "أصناف قاربت على النفاد",
     "activity": "آخر النشاطات"
+  },
+  "device": {
+    "browserOnly": "الطباعة المباشرة والدرج والتحديثات تعمل في تطبيق ويندوز. في المتصفح تُطبع الفاتورة من نافذة الطباعة.",
+    "receiptPrinter": "طابعة الفواتير",
+    "printer": "الطابعة",
+    "choosePrinter": "اختر طابعة",
+    "noPrinters": "لا توجد طابعات",
+    "networkPrinter": "أو طابعة شبكة",
+    "networkHint": "العنوان والمنفذ، عادة 9100",
+    "paper": "عرض الورق",
+    "autoPrint": "اطبع الفاتورة تلقائيًا بعد كل بيع",
+    "drawerOnCash": "افتح الدرج عند البيع النقدي",
+    "drawerPin": "منفذ الدرج",
+    "pin2": "الطرف 2 (الأشيع)",
+    "pin5": "الطرف 5",
+    "testPrint": "طباعة تجريبية",
+    "testLine": "طباعة تجريبية · הדפסת ניסיון · Test print",
+    "openDrawer": "افتح الدرج",
+    "refreshPrinters": "تحديث القائمة",
+    "sent": "أُرسلت إلى الطابعة",
+    "printFailed": "تعذرت الطباعة: {{reason}}",
+    "app": "التطبيق",
+    "version": "الإصدار {{version}} · {{os}}",
+    "upToDate": "التطبيق محدّث",
+    "updateAvailable": "يتوفر إصدار جديد {{version}}",
+    "checkUpdate": "ابحث عن تحديث",
+    "installUpdate": "ثبّت وأعد التشغيل"
   }
 }
