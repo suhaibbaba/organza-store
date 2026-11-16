@@ -6,11 +6,13 @@
     "node": ">=24"
   },
   "scripts": {
+    "build": "pnpm -r build",
     "typecheck": "pnpm -r --parallel typecheck",
     "lint": "pnpm -r --parallel lint",
     "test": "pnpm -r test",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "db:up": "docker compose -f docker-compose.dev.yml -p organza-rebuild up -d --wait"
   },
   "devDependencies": {
     "prettier": "^3.10.1",

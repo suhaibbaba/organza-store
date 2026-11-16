@@ -1,0 +1,19 @@
+# Local development and test database. Not used in production.
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: organza
+      POSTGRES_PASSWORD: organza
+      POSTGRES_DB: organza
+    ports:
+      - '5433:5432'
+    volumes:
+      - organza-dev-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U organza']
+      interval: 2s
+      timeout: 3s
+      retries: 30
+volumes:
+  organza-dev-db:
