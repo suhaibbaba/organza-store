@@ -53,7 +53,7 @@ export function SearchField({ value, onChange, onSubmitCode, isLooking, inputRef
         data-test-selector="pos-search-input"
         className={cn(
           CONTROL_HEIGHT,
-          "w-full rounded-control border border-transparent bg-soft ps-9 pe-10 text-base text-foreground",
+          "w-full rounded-control border border-input bg-card ps-9 pe-10 text-base text-foreground",
           "placeholder:text-muted-foreground focus-visible:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         )}
       />
@@ -69,7 +69,7 @@ export function SearchField({ value, onChange, onSubmitCode, isLooking, inputRef
             onClick={() => onChange("")}
             aria-label={t("search.clear")}
             data-test-selector="pos-search-clear"
-            className="hit-area absolute end-1 top-1/2 flex size-8 -translate-y-1/2 items-center justify-center rounded-lg text-muted-foreground hover:bg-card"
+            className="hit-area absolute end-1 top-1/2 flex size-8 -translate-y-1/2 items-center justify-center rounded-lg text-muted-foreground hover:bg-soft"
           >
             <X className="size-4" aria-hidden="true" />
           </button>

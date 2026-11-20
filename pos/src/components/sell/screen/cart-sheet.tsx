@@ -31,7 +31,7 @@ export function CartSheet({ open, onOpenChange, ...panel }: CartSheetProps) {
             {t("sell.screen.cartTitle")}
           </SheetTitle>
         </SheetHeader>
-        <CartPanel {...panel} hideTitle className="flex-1 rounded-none" />
+        <CartPanel {...panel} hideTitle className="flex-1 rounded-none border-0" />
       </SheetContent>
     </Sheet>
   );

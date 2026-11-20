@@ -406,6 +406,10 @@ Design for that reality:
   (identity, preferences, the way out, the build) and anything added later joins one or starts a
   fifth **with a heading**. Two rules keep it usable: never a submenu (a preference stays two taps
   — open the menu, choose) and never a bare icon (every control keeps a word).
+  **The POS is the exception, by the shop's choice:** its bar shows the logo alone (no name
+  beside it), the sandbox badge, the selling tools, then two matching pills — the language
+  (globe, the language in its own script, chevron) and the account (avatar, name, chevron) —
+  and the language is no longer inside the POS account menu.
 - **Radix menus must be told which way round they are.** `DropdownMenu` portals its content to
   `document.body` and stamps its own `dir="ltr"` unless given one, so `dir="rtl"` on `<html>` is
   overridden rather than inherited and every logical property inside resolves backwards — `ps-*`

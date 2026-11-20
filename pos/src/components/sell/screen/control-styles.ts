@@ -5,5 +5,6 @@
 export const CONTROL_HEIGHT = "h-10 xwide:h-9";
 export const CONTROL_SIZE = "size-10 xwide:size-9";
 
-// A card on the selling screen: white, 18px corners, no shadow.
-export const SCREEN_CARD = "rounded-card bg-card";
+// A card on the selling screen: white, 18px corners, a hairline border (the
+// page is near-white, #F8FAFC), no shadow.
+export const SCREEN_CARD = "rounded-card border border-border bg-card";

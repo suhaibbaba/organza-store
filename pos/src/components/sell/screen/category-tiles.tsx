@@ -8,7 +8,6 @@ import { useProductCount } from "@/hooks/use-product-count";
 import { localize } from "@/lib/i18n-content";
 import { cn } from "@/lib/utils";
 import { Spinner } from "@/components/ui/spinner";
-import { SCREEN_CARD } from "@/components/sell/screen/control-styles";
 import { SectionTitle } from "@/components/sell/screen/section-title";
 
 interface CategoryTilesProps {
@@ -51,16 +50,16 @@ export function CategoryTiles({ selectedId, onSelect }: CategoryTilesProps) {
   }, [categories.data, locale, productCount.data, t]);
 
   return (
-    <section aria-labelledby={TITLE_ID} className={cn(SCREEN_CARD, "flex flex-col gap-3 p-4 desk:p-5")}>
+    <section aria-labelledby={TITLE_ID} className="flex flex-col gap-3">
       <SectionTitle id={TITLE_ID}>{t("screen.categoriesTitle")}</SectionTitle>
 
       {categories.isError ? (
         <p className="text-sm text-muted-foreground">{t("browse.categoriesError")}</p>
       ) : (
-        // Scrolls under the finger; the last tile is cut by the card's edge,
-        // which is what says there is more.
+        // Scrolls under the finger; the last tile is cut by the screen's
+        // edge, which is what says there is more.
         <ul
-          className="scrollbar-none -mx-4 flex gap-2 overflow-x-auto px-4 desk:-mx-5 desk:px-5"
+          className="scrollbar-none flex gap-2 overflow-x-auto"
           data-test-selector="pos-category-tiles"
         >
           {tiles.map((tile) => {
@@ -75,7 +74,7 @@ export function CategoryTiles({ selectedId, onSelect }: CategoryTilesProps) {
                   className={cn(
                     "flex min-w-24 flex-col items-start rounded-control border px-3.5 py-1.5 text-start transition-colors tab:min-w-27",
                     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                    selected ? "border-primary bg-pale" : "border-transparent bg-soft hover:bg-pale/60"
+                    selected ? "border-primary bg-pale" : "border-border bg-card hover:bg-pale/60"
                   )}
                 >
                   <span className="max-w-40 truncate text-sm font-bold">{tile.label}</span>

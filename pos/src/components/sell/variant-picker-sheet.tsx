@@ -352,7 +352,7 @@ function VariantPicker({ product, isNumbered, onPick, onClose }: VariantPickerPr
       {/* Pinned under the list: with a long grid the Add button must not be
           something you have to scroll to find, and it belongs where the
           thumb already is. */}
-      <div className="flex flex-col gap-2 border-t border-border bg-background px-5 pb-5 pt-3">
+      <div className="flex flex-col gap-2 border-t border-border bg-card px-5 pb-5 pt-3">
         {/* How many are about to be added, said in words as well as in ticks —
             with a grid of numbers the ticks are easy to miscount, and this is
             also what a screen reader announces as the selection changes. */}

@@ -6,7 +6,7 @@ import type { ProductSummary } from "@organza/shared/types/product";
 import { cn } from "@/lib/utils";
 import { Alert } from "@/components/ui/alert";
 import { Spinner } from "@/components/ui/spinner";
-import { CONTROL_HEIGHT, SCREEN_CARD } from "@/components/sell/screen/control-styles";
+import { CONTROL_HEIGHT } from "@/components/sell/screen/control-styles";
 import { ProductCard } from "@/components/sell/screen/product-card";
 import { SectionTitle } from "@/components/sell/screen/section-title";
 
@@ -50,7 +50,7 @@ export function ProductGrid({
   const t = useTranslations("sell");
 
   return (
-    <section aria-labelledby={TITLE_ID} className={cn(SCREEN_CARD, "flex flex-col gap-4 p-4 desk:p-5")}>
+    <section aria-labelledby={TITLE_ID} className="flex flex-col gap-3">
       <SectionTitle id={TITLE_ID}>{t("screen.productsTitle")}</SectionTitle>
 
       {isError ? (

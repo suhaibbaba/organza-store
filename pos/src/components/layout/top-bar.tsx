@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { AccountMenu } from "@/components/layout/account-menu";
+import { LanguageSwitcher } from "@/components/layout/language-switcher";
 import { EnvironmentBadge } from "@/components/layout/environment-badge";
 import { LOGO_ICON_SIZE, pwaIconPath } from "@/constants/pwa";
 
@@ -25,8 +26,8 @@ export function TopBar({ tools }: TopBarProps) {
       data-test-selector="pos-top-bar"
     >
       <div className="flex flex-wrap items-center gap-x-3 px-3 tab:px-4 desk:flex-nowrap desk:gap-x-4 desk:px-5">
-        {/* The name gives way first when the row is tight; the sandbox chip
-            never does — it says which database this sale goes into. */}
+        {/* The logo alone, no name beside it; the sandbox chip never gives
+            way — it says which database this sale goes into. */}
         <div className="flex h-[var(--top-bar-height)] min-w-0 flex-1 items-center gap-2 desk:flex-none">
           {/* The installed app's own icon doubles as the logo, so the sandbox
               build shows its own mark here exactly as on the home screen. */}
@@ -34,12 +35,11 @@ export function TopBar({ tools }: TopBarProps) {
               PWA icon, already sized; the optimiser buys nothing here. */}
           <img
             src={pwaIconPath(LOGO_ICON_SIZE)}
-            alt=""
+            alt={t("app.name")}
             width={36}
             height={36}
             className="size-9 shrink-0 rounded-[10px]"
           />
-          <span className="truncate text-lg font-bold">{t("app.name")}</span>
           <EnvironmentBadge />
         </div>
 
@@ -52,7 +52,10 @@ export function TopBar({ tools }: TopBarProps) {
           </div>
         )}
 
-        <AccountMenu className="shrink-0" />
+        <div className="flex shrink-0 items-center gap-2">
+          <LanguageSwitcher variant="pill" />
+          <AccountMenu />
+        </div>
       </div>
     </header>
   );

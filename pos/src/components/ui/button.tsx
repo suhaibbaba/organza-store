@@ -26,7 +26,7 @@ const buttonVariants = cva(
         default: "bg-primary text-primary-foreground not-disabled:hover:bg-primary/90",
         secondary: "bg-secondary text-secondary-foreground not-disabled:hover:bg-secondary/80",
         outline:
-          "border border-input bg-background not-disabled:hover:bg-accent not-disabled:hover:text-accent-foreground",
+          "border border-input bg-card not-disabled:hover:bg-accent not-disabled:hover:text-accent-foreground",
         ghost: "not-disabled:hover:bg-accent not-disabled:hover:text-accent-foreground",
         destructive: "bg-destructive text-destructive-foreground not-disabled:hover:bg-destructive/90",
         // Giving stock away (spec.md "Gifts"). Its own colour rather than

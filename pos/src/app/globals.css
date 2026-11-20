@@ -183,11 +183,13 @@
      ------------------------------------------------------------------ */
 
   /* The selling screen's palette (Figma "Organza POS — 4 sizes"), except
-     the page, which the shop asked to be off-white (#FAF8F5) rather than the
-     design's grey-green #EEF1F0: card #FFFFFF, card #FFFFFF, text #172B2D, muted text #667776, line #E4E9E7,
-     soft fill #F3F5F4, teal #235C63, pale teal #E9F2F0. */
-  --background: oklch(0.982 0.004 80);
-  --page: oklch(0.982 0.004 80);
+     the page, which the shop asked to be a cool off-white (#F8FAFC) rather
+     than the design's grey-green #EEF1F0 (the white cards keep a hairline
+     border, so they still stand off it), and the field border (#D3D9D7), darker than the line so a white field still
+     reads as a field: card #FFFFFF, text #172B2D, muted text #667776, line
+     #E4E9E7, soft fill #F3F5F4, teal #235C63, pale teal #E9F2F0. */
+  --background: oklch(0.984 0.003 247.9);
+  --page: oklch(0.984 0.003 247.9);
   --foreground: oklch(0.273 0.026 203.9);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.273 0.026 203.9);
@@ -271,7 +273,7 @@
   --gift-foreground: oklch(0.99 0 0);
 
   --border: oklch(0.93 0.006 170.4);
-  --input: oklch(0.93 0.006 170.4);
+  --input: oklch(0.87 0.008 170.4);
   /* 0.65 alpha keeps the focus ring at >=3:1 against the page background. */
   --ring: oklch(0.44 0.06 206.4 / 0.65);
 }

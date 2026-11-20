@@ -1,16 +1,20 @@
 "use client";
 
 import { useLocale, useTranslations } from "next-intl";
-import { Languages } from "lucide-react";
+import { ChevronDown, Globe, Languages } from "lucide-react";
 import { usePathname, useRouter } from "@/i18n/navigation";
 import { routing, type AppLocale } from "@/i18n/routing";
 import { LOCALE_LABELS } from "@/constants/locale";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
   DropdownMenuLabel,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+import { TOP_BAR_PILL } from "@/components/layout/top-bar-pill";
 import { testSelectorFor } from "@organza/shared/lib/testSelector";
 
 interface LanguageSwitcherProps {
@@ -25,23 +29,18 @@ interface LanguageSwitcherProps {
   // "list": every locale as a button in a row — the signed-out pages and the
   // "More" sheet, where there is no menu to sit inside and a nested popup in
   // an already-open sheet would be awkward.
-  variant?: "menu" | "list";
+  //
+  // "pill": the top bar's own control — a rounded pill with a globe, the
+  // language in use written out, and a chevron, opening a menu of all three.
+  // The shop asked for it back in the bar, beside the account pill, once the
+  // shop's name gave its place up to the logo alone.
+  variant?: "menu" | "list" | "pill";
 }
 
 // HOW THE LANGUAGE IS CHOSEN — one component, wherever the choosing happens.
-//
-// It used to have a `dropdown` variant of its own, and that control sat in
-// the top bar beside the account menu. Four things then shared that row —
-// the shop's name, the sandbox chip, the language and the account — and on a
-// phone the language had already given up its label and collapsed to a bare
-// icon to make room. An unlabelled icon is the wrong thing to leave for staff
-// who are not tech-savvy (CLAUDE.md "Frontend UX"), and it was the fourth
-// thing in a row that only had space for three.
-//
-// So it moved INTO the account menu, next to sign-out, which is where a
-// person's own preferences belong and where the "More" sheet had been putting
-// it all along. The header is down to the shop, the chip and the account, and
-// the language is still two taps away with its name written out in full.
+// In the POS that is the top bar's pill, beside the account; the list is for
+// the signed-out pages. Every language is written in its OWN script, so it is
+// legible to whoever wants it even when the interface around it is not.
 export function LanguageSwitcher({ className, variant = "list" }: LanguageSwitcherProps) {
   const locale = useLocale() as AppLocale;
   const pathname = usePathname();
@@ -91,6 +90,36 @@ export function LanguageSwitcher({ className, variant = "list" }: LanguageSwitch
           ))}
         </DropdownMenuRadioGroup>
       </>
+    );
+  }
+
+  if (variant === "pill") {
+    return (
+      <DropdownMenu>
+        <DropdownMenuTrigger
+          aria-label={t("language")}
+          data-test-selector="pos-language-menu"
+          className={cn(TOP_BAR_PILL, className)}
+        >
+          <Globe className="size-5 shrink-0 text-muted-foreground" aria-hidden="true" />
+          <span className="truncate text-sm font-semibold">{LOCALE_LABELS[locale]}</span>
+          <ChevronDown className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="min-w-44">
+          <DropdownMenuRadioGroup value={locale} onValueChange={(value) => handleChange(value as AppLocale)}>
+            {routing.locales.map((loc) => (
+              <DropdownMenuRadioItem
+                key={loc}
+                value={loc}
+                data-test-selector={testSelectorFor("pos-language-option", loc)}
+                className="data-[state=checked]:font-semibold data-[state=checked]:text-foreground"
+              >
+                {LOCALE_LABELS[loc]}
+              </DropdownMenuRadioItem>
+            ))}
+          </DropdownMenuRadioGroup>
+        </DropdownMenuContent>
+      </DropdownMenu>
     );
   }
 
