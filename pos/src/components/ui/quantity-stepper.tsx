@@ -25,6 +25,10 @@ interface QuantityStepperProps {
   // Which cart line this stepper belongs to, for its name in the DOM
   // (`pos-quantity-stepper-<name>` — CLAUDE.md "Test selectors").
   name?: string;
+  // "compact" is the selling screen's cart line: one outlined box holding
+  // − / count / +, at the screen's 40px (36px from 1400px) control height,
+  // each button keeping a 44px touch area through `hit-area`.
+  size?: "default" | "compact";
   className?: string;
 }
 
@@ -41,7 +45,16 @@ interface QuantityStepperProps {
 // straight back as a number would snap it to 1 under the cashier's finger.
 // Once the draft is dropped on blur the field shows the real quantity
 // again, so the +/- buttons need nothing kept in sync.
-export function QuantityStepper({ value, max, onChange, onBelowMin, itemLabel, name, className }: QuantityStepperProps) {
+export function QuantityStepper({
+  value,
+  max,
+  onChange,
+  onBelowMin,
+  itemLabel,
+  name,
+  size = "default",
+  className,
+}: QuantityStepperProps) {
   const t = useTranslations("sell.cart");
   const [draft, setDraft] = useState<string | null>(null);
 
@@ -65,8 +78,19 @@ export function QuantityStepper({ value, max, onChange, onBelowMin, itemLabel, n
     step(Number(raw));
   }
 
+  const compact = size === "compact";
+  const buttonClass = compact
+    ? "hit-area flex size-10 shrink-0 items-center justify-center rounded-control text-foreground transition-colors not-disabled:hover:bg-soft disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring xwide:size-9"
+    : "flex size-11 shrink-0 items-center justify-center rounded-lg border border-input text-foreground transition-colors not-disabled:hover:bg-accent disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
+  const iconClass = compact ? "size-4" : "size-5";
+
   return (
-    <div className={cn("flex items-center gap-1", className)} data-test-selector={testSelectorFor("pos-quantity-stepper", name)}>
+    <div
+      className={cn(
+        "flex items-center",
+        compact ? "rounded-control border border-border" : "gap-1",
+        className
+      )} data-test-selector={testSelectorFor("pos-quantity-stepper", name)}>
       <button
         type="button"
         onClick={() => step(value - 1)}
@@ -75,9 +99,9 @@ export function QuantityStepper({ value, max, onChange, onBelowMin, itemLabel, n
         disabled={value <= floor && !onBelowMin}
         aria-label={t("decrease", { name: itemLabel })}
         data-test-selector={testSelectorFor("pos-quantity-decrease", name)}
-        className="flex size-11 shrink-0 items-center justify-center rounded-lg border border-input text-foreground transition-colors not-disabled:hover:bg-accent disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className={buttonClass}
       >
-        <Minus className="size-5" aria-hidden="true" />
+        <Minus className={iconClass} aria-hidden="true" />
       </button>
 
       <NumericInput
@@ -87,7 +111,11 @@ export function QuantityStepper({ value, max, onChange, onBelowMin, itemLabel, n
         maxLength={QUANTITY_MAX_LENGTH}
         aria-label={t("quantity", { name: itemLabel })}
         data-test-selector={testSelectorFor("pos-quantity-value", name)}
-        className="h-11 w-14 px-0 text-center text-base font-semibold"
+        className={
+          compact
+            ? "h-10 w-9 rounded-none border-0 bg-transparent px-0 text-center text-base font-semibold shadow-none focus-visible:ring-0 xwide:h-9"
+            : "h-11 w-14 px-0 text-center text-base font-semibold"
+        }
       />
 
       <button
@@ -96,9 +124,9 @@ export function QuantityStepper({ value, max, onChange, onBelowMin, itemLabel, n
         disabled={value >= ceiling}
         aria-label={t("increase", { name: itemLabel })}
         data-test-selector={testSelectorFor("pos-quantity-increase", name)}
-        className="flex size-11 shrink-0 items-center justify-center rounded-lg border border-input text-foreground transition-colors not-disabled:hover:bg-accent disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className={buttonClass}
       >
-        <Plus className="size-5" aria-hidden="true" />
+        <Plus className={iconClass} aria-hidden="true" />
       </button>
     </div>
   );

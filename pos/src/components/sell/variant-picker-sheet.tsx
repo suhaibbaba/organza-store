@@ -7,7 +7,7 @@ import type { Product } from "@organza/shared/types/product";
 import type { Variant } from "@organza/shared/types/variant";
 import { testSelectorFor } from "@organza/shared/lib/testSelector";
 import { localize } from "@/lib/i18n-content";
-import { isNumberedProduct, variantsByNumber } from "@/lib/numbered";
+import { hasPlacedNumbers, isNumberedProduct, variantsByNumber } from "@/lib/numbered";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { NumericInput } from "@/components/ui/numeric-input";
@@ -15,6 +15,11 @@ import { Button } from "@/components/ui/button";
 import { Alert } from "@/components/ui/alert";
 import { StockBadge } from "@/components/ui/stock-badge";
 import { VariantNotes } from "@/components/sell/variant-notes";
+import { ProductThumb } from "@/components/sell/product-thumb";
+import { NumberedPhoto } from "@/components/sell/numbered-photo";
+import { CONTROL_HEIGHT } from "@/components/sell/screen/control-styles";
+import { VARIANT_PICKER_PHOTO_SIZES, VARIANT_TILE_THUMB_SIZES } from "@/constants/images";
+import { primaryImage } from "@/lib/primary-image";
 import { cn } from "@/lib/utils";
 
 interface VariantPickerSheetProps {
@@ -34,6 +39,9 @@ export function VariantPickerSheet({ product, onOpenChange, onPick }: VariantPic
   const locale = useLocale();
 
   const isNumbered = product ? isNumberedProduct(product) : false;
+  // A numbered shawl's photo is shown large, WITH its numbers, inside the
+  // picker body instead — the small thumbnail would only repeat it.
+  const showsNumberedPhoto = product ? hasPlacedNumbers(product) : false;
 
   return (
     <Sheet open={product !== null} onOpenChange={onOpenChange}>
@@ -46,9 +54,24 @@ export function VariantPickerSheet({ product, onOpenChange, onPick }: VariantPic
       <SheetContent name="variant-picker" closeLabel={tCommon("close")} className="mx-auto max-w-4xl">
         {product && (
           <>
-            <SheetHeader>
-              <SheetTitle>{localize(product.name, locale)}</SheetTitle>
-              <SheetDescription>{isNumbered ? t("numberedSubtitle") : t("subtitle")}</SheetDescription>
+            {/* The product's photo beside its name: which piece this is, at a
+                glance, before a single tile is read. It is also every
+                variant's photo unless that variant has one of its own, which
+                is why the tiles below only draw a variant's OWN photo — six
+                copies of the same picture down a grid say nothing. */}
+            <SheetHeader className="flex-row items-center gap-3">
+              {!showsNumberedPhoto && (
+                <ProductThumb
+                  src={primaryImage(product.images)?.thumbnailUrl}
+                  alt={localize(product.name, locale)}
+                  sizes={VARIANT_PICKER_PHOTO_SIZES}
+                  className="size-16 rounded-photo bg-soft"
+                />
+              )}
+              <div className="flex min-w-0 flex-col gap-1">
+                <SheetTitle className="truncate">{localize(product.name, locale)}</SheetTitle>
+                <SheetDescription>{isNumbered ? t("numberedSubtitle") : t("subtitle")}</SheetDescription>
+              </div>
             </SheetHeader>
 
             {/* Keyed by product: opening a different collection starts from
@@ -195,6 +218,8 @@ function VariantPicker({ product, isNumbered, onPick, onClose }: VariantPickerPr
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-5 pb-4">
+        {isNumbered && <NumberedPhoto product={product} chosenIds={chosenIds} onToggle={toggle} />}
+
         {isNumbered && (
           <form onSubmit={handleNumberSubmit} className="flex flex-col gap-2">
             <label htmlFor="pos-number-entry" className="text-sm font-medium">
@@ -238,6 +263,7 @@ function VariantPicker({ product, isNumbered, onPick, onClose }: VariantPickerPr
             const soldOut = variant.stock <= 0;
             const isChosen = chosenIds.has(variant.id);
             const name = localize(variant.name, locale);
+            const photo = primaryImage(variant.images);
 
             return (
               <li key={variant.id}>
@@ -277,6 +303,14 @@ function VariantPicker({ product, isNumbered, onPick, onClose }: VariantPickerPr
                     </span>
                   )}
 
+                  {photo && (
+                    <ProductThumb
+                      src={photo.thumbnailUrl}
+                      alt={name}
+                      sizes={VARIANT_TILE_THUMB_SIZES}
+                      className={cn("size-14 rounded-photo bg-soft", soldOut && "opacity-60")}
+                    />
+                  )}
                   <span
                     className={cn(
                       "font-medium",
@@ -326,24 +360,23 @@ function VariantPicker({ product, isNumbered, onPick, onClose }: VariantPickerPr
           {chosen.length > 0 ? t("selectedCount", { count: chosen.length }) : ""}
         </p>
 
-        {/* Two real buttons, not one button and an afterthought.
-            "Done" is a short word — تم is two letters — and left to size
-            itself it came out a third of Add's height in visual weight and
-            barely wider than a thumb, which is a poor target for the one
-            control that closes the sheet.
+        {/* Two real buttons, not one button and an afterthought. "Done" is a
+            short word — تم is two letters — so it gets a floor of its own
+            (7rem) and the same height as Add; the hierarchy is carried by
+            fill, not size: Add is solid, Done is outlined.
 
-            So it is given a floor of its own (7rem, growing to 9rem where
-            there is room) and the same h-12 as Add, and the hierarchy is
-            carried by fill instead of by size: Add is the solid brand button
-            and takes the remaining width, Done is outlined. Both stay well
-            over the 44px minimum. */}
-        <div className="flex items-stretch gap-3">
+            Both are the selling screen's control size (40px, 36px from
+            1400px) with the 44px hit area around them — the old 48px pair
+            dwarfed everything else on the screen. Add fills the row on a
+            phone, where it is the thumb's target; from a tablet up the pair
+            sizes to its words at the sheet's end. */}
+        <div className="flex items-stretch gap-3 tab:justify-end">
           <Button
             type="button"
             onClick={addChosen}
             disabled={chosen.length === 0}
             data-test-selector="pos-variant-picker-add"
-            className="min-w-0 flex-1"
+            className={cn(CONTROL_HEIGHT, "hit-area min-h-0 min-w-0 flex-1 rounded-control py-0 text-sm tab:min-w-48 tab:flex-none")}
           >
             {/* One chosen variant is named outright — it is the common case
                 and the name is the confirmation. Several are counted, because
@@ -358,7 +391,7 @@ function VariantPicker({ product, isNumbered, onPick, onClose }: VariantPickerPr
               type="button"
               variant="outline"
               onClick={onClose}
-              className="min-w-28 shrink-0 sm:min-w-36"
+              className={cn(CONTROL_HEIGHT, "hit-area min-h-0 min-w-28 shrink-0 rounded-control py-0 text-sm")}
             >
               {t("done")}
             </Button>

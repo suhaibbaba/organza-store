@@ -157,7 +157,9 @@
       "add": "הוספה לסל",
       "addNamed": "הוספת {name}",
       "addCount": "הוספת {count, plural, one {פריט אחד} two {{count, number, plain} פריטים} other {{count, number, plain} פריטים}} לסל",
-      "selectedCount": "{count, plural, one {נבחר פריט אחד} two {נבחרו {count, number, plain} פריטים} other {נבחרו {count, number, plain} פריטים}}"
+      "selectedCount": "{count, plural, one {נבחר פריט אחד} two {נבחרו {count, number, plain} פריטים} other {נבחרו {count, number, plain} פריטים}}",
+      "numberedPhotoAlt": "תמונת הקולקציה עם המספרים",
+      "numberedPoint": "מספר {number}"
     },
     "cart": {
       "title": "המכירה הנוכחית",
@@ -287,6 +289,26 @@
       "added": "{name} נוסף למכירה.",
       "emptyPrompt": "הפריט לא במערכת? מכרו אותו עכשיו והשלימו את פרטיו אחר כך.",
       "cancel": "ביטול"
+    },
+    "screen": {
+      "cartTitle": "סל",
+      "clear": "ניקוי",
+      "clearConfirmTitle": "לנקות את כל הסל?",
+      "clearConfirmYes": "ניקוי",
+      "clearConfirmKeep": "השארה",
+      "categoriesTitle": "קטגוריות",
+      "productsTitle": "מוצרים",
+      "productCount": "{count, plural, one {מוצר אחד} other {{count, number, plain} מוצרים}}",
+      "subtotal": "סכום ביניים",
+      "discount": "הנחה",
+      "editDiscount": "עריכת ההנחה על המכירה",
+      "viewCart": "הצגת הסל וסיום המכירה",
+      "scan": "סריקת ברקוד",
+      "searchPlaceholder": "חיפוש לפי שם או ברקוד",
+      "searchPlaceholderShort": "חיפוש מוצר",
+      "add": "הוספת {name} לסל",
+      "addToCart": "הוספה לסל",
+      "cartCount": "{count, plural, zero {הסל ריק} one {פריט אחד בסל} two {שני פריטים בסל} other {{count, number, plain} פריטים בסל}}"
     }
   },
   "errors": {

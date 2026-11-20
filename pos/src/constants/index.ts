@@ -8,3 +8,4 @@ export * from "./pos";
 export * from "./pwa";
 export * from "./segmented";
 export * from "./storage";
+export * from "./numbered";

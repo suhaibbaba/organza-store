@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { ChevronDown, LogOut } from "lucide-react";
+import { LogOut } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -45,6 +45,8 @@ export function AccountMenu({ className }: AccountMenuProps) {
   // (lib/user-display.ts). The letter comes from the same source as the name,
   // so the circle and the word beside it always agree.
   const { name, initial } = useUserDisplay()(user);
+  const tRole = useTranslations("common.role");
+  const roleLabel = user?.role ? tRole(user.role) : null;
 
   return (
     <DropdownMenu>
@@ -52,29 +54,23 @@ export function AccountMenu({ className }: AccountMenuProps) {
         aria-label={t("account")}
         data-test-selector="pos-account-menu"
         className={cn(
-          "group flex min-h-11 min-w-0 items-center gap-2 rounded-md border border-input px-2 text-sm font-medium text-foreground",
-          "transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-          "data-[state=open]:bg-accent",
+          "group flex min-h-11 min-w-0 items-center gap-2 rounded-control px-1 text-start text-foreground",
+          "transition-colors hover:bg-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+          "data-[state=open]:bg-soft",
           className
         )}
       >
-        <Avatar className="size-8 shrink-0">
-          <AvatarFallback>{initial}</AvatarFallback>
+        <Avatar className="size-9 shrink-0">
+          <AvatarFallback className="bg-pale text-base font-bold text-pale-foreground">{initial}</AvatarFallback>
         </Avatar>
-        {/* Capped AND truncating, both on purpose. The cap keeps a long name
-            from stretching the header out of shape; the truncation is what
-            stops the bar overflowing when even the cap is too much for the
-            width, which is how the sandbox chip once ended up painted over
-            the control beside it.
-            Wider than it was: this is the only control left in the row now
-            that the language has moved inside the menu, so the ~110px that
-            control used to take goes to the name it was crowding. */}
-        <span className="min-w-0 max-w-32 truncate sm:max-w-48">{name}</span>
-        {/* data-state lives on the trigger, so the arrow flips via the group. */}
-        <ChevronDown
-          className="size-4 shrink-0 text-muted-foreground transition-transform duration-200 group-data-[state=open]:rotate-180"
-          aria-hidden="true"
-        />
+        {/* Name over role, as the design draws it. Below 600px the bar has
+            room for the avatar only (the brief's phone layout); the full name
+            and the address are the first thing inside the menu either way.
+            Capped and truncating so a long name never widens the bar. */}
+        <span className="hidden min-w-0 max-w-40 flex-col tab:flex">
+          <span className="truncate text-sm font-bold">{name}</span>
+          {roleLabel && <span className="truncate text-xs text-muted-foreground">{roleLabel}</span>}
+        </span>
       </DropdownMenuTrigger>
 
       <DropdownMenuContent align="end" className="min-w-56">

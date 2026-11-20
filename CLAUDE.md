@@ -52,9 +52,10 @@ endpoints are gone, lifted into it.
 **Quick sell** is built end to end (POS + admin): a piece that isn't in the catalogue can be sold by
 typing a name and a price, and the deliberately-incomplete product it creates is reviewed
 afterwards through the same change-request mechanism — see "Quick sell" in `spec.md` and rule 23.
-The POS also has a **product browser** — a drawer over the sale with categories on the start side
-and a photo grid on the other, for pieces that can't carry a label (see "POS product browser" in
-`spec.md`); its favourite categories are flagged from the admin's category screen.
+The POS selling screen is laid out from the Figma design — category tiles with product counts, a
+photo grid, and the cart as a side panel from 1000px or a bottom bar + sheet below it (see "POS
+selling screen layout" in `spec.md`); its favourite categories are flagged from the admin's
+category screen.
 **Still deferred:** the customer storefront (Phase 3), real Customer accounts, and the
 numbered-shawls WhatsApp export. WhatsApp order entry is built (admin *and* POS): a cart can be
 filed as a WHATSAPP order with a customer snapshot, and the phone box suggests repeat customers

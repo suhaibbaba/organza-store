@@ -17,6 +17,8 @@ export const PRODUCT_SEARCH_QUERY_KEY = ["products", "search"] as const;
 // its own search box), kept apart from the search box's key so opening the
 // drawer never evicts the results the cashier already has on screen.
 export const PRODUCT_BROWSE_QUERY_KEY = ["products", "browse"] as const;
+// How many products the till can sell — the figure on the "All" tile.
+export const PRODUCT_COUNT_QUERY_KEY = ["products", "count"] as const;
 // The shop's shelves, for the browser's sidebar. Changed from the admin
 // perhaps once a season, so it is held for the shift.
 export const CATEGORIES_QUERY_KEY = ["categories"] as const;

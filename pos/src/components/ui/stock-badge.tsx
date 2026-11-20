@@ -21,6 +21,10 @@ interface StockBadgeProps {
   // the label has to keep fitting there, because the label is what makes this
   // readable to somebody who can't tell the three colours apart.
   size?: "sm" | "md";
+  // "pill" is the selling screen's product photo: a white pill with a
+  // coloured dot (or a dark pill when nothing is left) that stays legible
+  // over any photograph. Same states, same words — only the drawing differs.
+  appearance?: "badge" | "pill";
   className?: string;
 }
 
@@ -37,7 +41,14 @@ interface StockBadgeProps {
 // well, and carries a differently SHAPED icon, so the badge still says what it
 // says to somebody who cannot tell red from green — or to anyone reading it in
 // the sunlight at the shop counter.
-export function StockBadge({ stock, trackLowStock, showCount = false, size = "md", className }: StockBadgeProps) {
+export function StockBadge({
+  stock,
+  trackLowStock,
+  showCount = false,
+  size = "md",
+  appearance = "badge",
+  className,
+}: StockBadgeProps) {
   const t = useTranslations("stock");
   const threshold = useLowStockThreshold();
   const status = resolveStockStatus({ stock, trackLowStock, threshold });
@@ -55,6 +66,24 @@ export function StockBadge({ stock, trackLowStock, showCount = false, size = "md
         : showCount
           ? t("inCount", { count: stock })
           : t("in");
+
+  if (appearance === "pill") {
+    return (
+      <span
+        className={cn(
+          "inline-flex max-w-full items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-semibold shadow-sm",
+          STOCK_PILL_STYLES[status].tone,
+          className
+        )}
+        data-test-selector="pos-stock-pill"
+      >
+        {status !== "OUT" && (
+          <span className={cn("size-1.5 shrink-0 rounded-full", STOCK_PILL_STYLES[status].dot)} aria-hidden="true" />
+        )}
+        <span className="min-w-0 truncate">{label}</span>
+      </span>
+    );
+  }
 
   return (
     <span
@@ -84,4 +113,12 @@ const STOCK_BADGE_STYLES: Readonly<Record<StockStatus, { icon: LucideIcon; tone:
   OUT: { icon: Ban, tone: "bg-destructive/10 text-destructive" },
   LOW: { icon: TriangleAlert, tone: "bg-warning/10 text-warning" },
   IN: { icon: CircleCheck, tone: "bg-success/10 text-success" },
+};
+
+// The pill drawn over a product photo (appearance="pill"). The dot is never
+// the only signal — the word beside it says the state.
+const STOCK_PILL_STYLES: Readonly<Record<StockStatus, { tone: string; dot: string }>> = {
+  OUT: { tone: "bg-stock-out text-stock-out-foreground", dot: "" },
+  LOW: { tone: "bg-card text-stock-low-foreground", dot: "bg-stock-low" },
+  IN: { tone: "bg-card text-foreground", dot: "bg-stock-in" },
 };

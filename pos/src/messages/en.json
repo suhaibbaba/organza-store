@@ -157,7 +157,9 @@
       "add": "Add to the sale",
       "addNamed": "Add {name}",
       "addCount": "Add {count, plural, one {{count, number, plain} item} other {{count, number, plain} items}} to the sale",
-      "selectedCount": "{count, plural, one {{count, number, plain} chosen} other {{count, number, plain} chosen}}"
+      "selectedCount": "{count, plural, one {{count, number, plain} chosen} other {{count, number, plain} chosen}}",
+      "numberedPhotoAlt": "The collection photo with its numbers",
+      "numberedPoint": "Number {number}"
     },
     "cart": {
       "title": "Current sale",
@@ -287,6 +289,26 @@
       "added": "{name} added to the sale.",
       "emptyPrompt": "Not in the system? Sell it now and complete its details later.",
       "cancel": "Cancel"
+    },
+    "screen": {
+      "cartTitle": "Cart",
+      "clear": "Clear",
+      "clearConfirmTitle": "Clear the whole cart?",
+      "clearConfirmYes": "Clear",
+      "clearConfirmKeep": "Keep",
+      "categoriesTitle": "Categories",
+      "productsTitle": "Products",
+      "productCount": "{count, plural, one {{count, number, plain} product} other {{count, number, plain} products}}",
+      "subtotal": "Subtotal",
+      "discount": "Discount",
+      "editDiscount": "Edit the discount on the sale",
+      "viewCart": "View cart and complete sale",
+      "scan": "Scan barcode",
+      "searchPlaceholder": "Search by name or barcode",
+      "searchPlaceholderShort": "Search products",
+      "add": "Add {name} to the cart",
+      "addToCart": "Add to cart",
+      "cartCount": "{count, plural, zero {The cart is empty} one {{count, number, plain} piece in the cart} other {{count, number, plain} pieces in the cart}}"
     }
   },
   "errors": {

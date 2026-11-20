@@ -1,21 +1,7 @@
 import type { Pagination } from "@organza/shared/types/common";
 import type { Product, ProductLookupResult, ProductSummary } from "@organza/shared/types/product";
 import { apiFetch } from "@/lib/api/client";
-import { BROWSE_PAGE_SIZE, SEARCH_PAGE, SEARCH_PAGE_SIZE } from "@/constants/pos";
-
-// Cross-language, typo-tolerant search already lives on the backend
-// (CLAUDE.md rule 10) — the POS just asks for it. `status=active` keeps
-// hidden products out of the counter's results; they aren't for sale.
-export async function searchProducts(query: string): Promise<ProductSummary[]> {
-  const params = new URLSearchParams({
-    q: query,
-    page: String(SEARCH_PAGE),
-    pageSize: String(SEARCH_PAGE_SIZE),
-    status: "active",
-  });
-  const { data } = await apiFetch<ProductSummary[]>(`/api/products?${params.toString()}`);
-  return data;
-}
+import { BROWSE_PAGE_SIZE } from "@/constants/pos";
 
 export interface BrowseProductsParams {
   // null = every category ("All" in the sidebar).
@@ -73,4 +59,12 @@ export async function lookupProductByCode(code: string): Promise<ProductLookupRe
 export async function fetchProduct(id: string): Promise<Product> {
   const { data } = await apiFetch<Product>(`/api/products/${id}`);
   return data;
+}
+
+// How many products a till can sell (active, not deleted) — the figure under
+// the "All" tile. One row is asked for; only the list's own total is read.
+export async function countActiveProducts(): Promise<number> {
+  const params = new URLSearchParams({ page: "1", pageSize: "1", status: "active" });
+  const { meta } = await apiFetch<ProductSummary[]>(`/api/products?${params.toString()}`);
+  return meta?.total ?? 0;
 }

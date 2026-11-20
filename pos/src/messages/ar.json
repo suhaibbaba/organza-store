@@ -27,10 +27,10 @@
     }
   },
   "stock": {
-    "out": "غير متوفر",
-    "low": "كمية قليلة",
+    "out": "نافد",
+    "low": "مخزون منخفض",
     "in": "متوفر",
-    "lowCount": "كمية قليلة · {count, plural, one {قطعة واحدة} two {قطعتان} few {{count, number, plain} قطع} many {{count, number, plain} قطعة} other {{count, number, plain} قطعة}}",
+    "lowCount": "مخزون منخفض · {count, plural, one {قطعة واحدة} two {قطعتان} few {{count, number, plain} قطع} many {{count, number, plain} قطعة} other {{count, number, plain} قطعة}}",
     "inCount": "متوفر · {count, plural, one {قطعة واحدة} two {قطعتان} few {{count, number, plain} قطع} many {{count, number, plain} قطعة} other {{count, number, plain} قطعة}}"
   },
   "offline": {
@@ -157,7 +157,9 @@
       "add": "إضافة إلى السلة",
       "addNamed": "إضافة {name}",
       "addCount": "إضافة {count, plural, one {قطعة واحدة} two {قطعتين} few {{count, number, plain} قطع} many {{count, number, plain} قطعة} other {{count, number, plain} قطعة}} إلى السلة",
-      "selectedCount": "{count, plural, one {تم اختيار قطعة واحدة} two {تم اختيار قطعتين} few {تم اختيار {count, number, plain} قطع} many {تم اختيار {count, number, plain} قطعة} other {تم اختيار {count, number, plain} قطعة}}"
+      "selectedCount": "{count, plural, one {تم اختيار قطعة واحدة} two {تم اختيار قطعتين} few {تم اختيار {count, number, plain} قطع} many {تم اختيار {count, number, plain} قطعة} other {تم اختيار {count, number, plain} قطعة}}",
+      "numberedPhotoAlt": "صورة التشكيلة مع أرقامها",
+      "numberedPoint": "الرقم {number}"
     },
     "cart": {
       "title": "البيع الحالي",
@@ -287,6 +289,26 @@
       "added": "تمت إضافة {name} إلى البيع.",
       "emptyPrompt": "القطعة ليست في النظام؟ بِعها الآن وأكمل تفاصيلها لاحقًا.",
       "cancel": "إلغاء"
+    },
+    "screen": {
+      "cartTitle": "السلة",
+      "clear": "إفراغ",
+      "clearConfirmTitle": "إفراغ السلة كلها؟",
+      "clearConfirmYes": "إفراغ",
+      "clearConfirmKeep": "إبقاء",
+      "categoriesTitle": "التصنيفات",
+      "productsTitle": "المنتجات",
+      "productCount": "{count, number, plain} منتج",
+      "subtotal": "المجموع الفرعي",
+      "discount": "الخصم",
+      "editDiscount": "تعديل الخصم على الفاتورة",
+      "viewCart": "عرض السلة وإتمام البيع",
+      "scan": "مسح باركود",
+      "searchPlaceholder": "ابحث بالاسم أو الباركود",
+      "searchPlaceholderShort": "ابحث عن منتج",
+      "add": "إضافة {name} إلى السلة",
+      "addToCart": "أضف للسلة",
+      "cartCount": "{count, plural, zero {السلة فارغة} one {قطعة واحدة في السلة} two {قطعتان في السلة} few {{count, number, plain} قطع في السلة} many {{count, number, plain} قطعة في السلة} other {{count, number, plain} قطعة في السلة}}"
     }
   },
   "errors": {

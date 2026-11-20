@@ -22,6 +22,20 @@
   --color-warning: var(--warning);
   --color-gift: var(--gift);
   --color-gift-foreground: var(--gift-foreground);
+  --color-page: var(--page);
+  --color-soft: var(--soft);
+  --color-pale: var(--pale);
+  --color-pale-foreground: var(--pale-foreground);
+  --color-blush: var(--blush);
+  --color-blush-foreground: var(--blush-foreground);
+  --color-quick: var(--quick);
+  --color-quick-border: var(--quick-border);
+  --color-quick-foreground: var(--quick-foreground);
+  --color-stock-in: var(--stock-in);
+  --color-stock-low: var(--stock-low);
+  --color-stock-low-foreground: var(--stock-low-foreground);
+  --color-stock-out: var(--stock-out);
+  --color-stock-out-foreground: var(--stock-out-foreground);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
@@ -70,6 +84,22 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+
+  /* The selling screen's three corners (design: cards 18, controls 12,
+     product photos 14) — `rounded-card`, `rounded-control`, `rounded-photo`. */
+  --radius-card: 18px;
+  --radius-control: 12px;
+  --radius-photo: 14px;
+
+  /* The selling screen's widths, named for what changes at each one
+     (components/sell/screen). Below `tab` (600px) two products per row and a
+     bare top bar; `tab` three per row; `desk` (1000px) the cart becomes a
+     panel beside the grid; `wide` (1200px) four per row; `xwide` (1400px)
+     five per row and the 36px controls. */
+  --breakpoint-tab: 37.5rem;
+  --breakpoint-desk: 62.5rem;
+  --breakpoint-wide: 75rem;
+  --breakpoint-xwide: 87.5rem;
 }
 
 :root {
@@ -91,7 +121,7 @@
   /* The top bar's own row of content — the header sizes itself from this and
      nothing else, so the bar and anything positioned under it (the
      pull-to-refresh indicator) can never drift apart. */
-  --top-bar-height: 3.5rem;
+  --top-bar-height: 3.75rem;
 
   /* What is spoken for at the top of the viewport: the bar plus the notch
      strip it pads itself with. */
@@ -152,26 +182,57 @@
      is what makes sure it still does.
      ------------------------------------------------------------------ */
 
-  --background: oklch(0.99 0 0);
-  --foreground: oklch(0.18 0 0);
+  /* The selling screen's palette (Figma "Organza POS — 4 sizes"), except
+     the page, which the shop asked to be off-white (#FAF8F5) rather than the
+     design's grey-green #EEF1F0: card #FFFFFF, card #FFFFFF, text #172B2D, muted text #667776, line #E4E9E7,
+     soft fill #F3F5F4, teal #235C63, pale teal #E9F2F0. */
+  --background: oklch(0.982 0.004 80);
+  --page: oklch(0.982 0.004 80);
+  --foreground: oklch(0.273 0.026 203.9);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.18 0 0);
+  --card-foreground: oklch(0.273 0.026 203.9);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.18 0 0);
+  --popover-foreground: oklch(0.273 0.026 203.9);
 
   /* Organza teal — brand primary (#235C63) */
   --primary: oklch(0.44 0.06 206.4);
   --primary-foreground: oklch(0.98 0 0);
 
-  --secondary: oklch(0.96 0.012 206.4);
+  --secondary: oklch(0.954 0.01 181.4);
   --secondary-foreground: oklch(0.28 0.03 206.4);
 
-  --muted: oklch(0.96 0 0);
-  --muted-foreground: oklch(0.48 0 0);
+  --muted: oklch(0.968 0.002 165.1);
+  --muted-foreground: oklch(0.555 0.02 192.2);
 
   /* Organza mint — brand light accent (#B5D3CB) */
   --accent: oklch(0.843 0.034 177.6);
   --accent-foreground: oklch(0.28 0.03 206.4);
+
+  /* Soft fill (#F3F5F4): the search field, unselected category tiles, option
+     chips. Pale teal (#E9F2F0): the selected tile and the round add button,
+     with the brand teal on top of it. */
+  --soft: oklch(0.968 0.002 165.1);
+  --pale: oklch(0.954 0.01 181.4);
+  --pale-foreground: oklch(0.44 0.06 206.4);
+
+  /* Organza pink (#DBADB4): the cart count badge. */
+  --blush: oklch(0.791 0.054 8.2);
+  --blush-foreground: oklch(0.414 0.107 10.9);
+
+  /* Quick sell (spec.md "Quick sell"): fill #FBF1F3, border #EACDD3, text
+     #7A2E3D — the pink family, so it never reads as the teal sale button. */
+  --quick: oklch(0.966 0.011 3.5);
+  --quick-border: oklch(0.874 0.033 3.7);
+  --quick-foreground: oklch(0.414 0.107 10.9);
+
+  /* The stock pill on a product photo: a white pill with a green (#2E8B6A)
+     or amber (#E0A020, words #7A4B00) dot, or a dark pill (#172B2D) when
+     nothing is left. Always with the word — see StockBadge. */
+  --stock-in: oklch(0.573 0.101 165.7);
+  --stock-low: oklch(0.749 0.148 78.2);
+  --stock-low-foreground: oklch(0.456 0.099 69.1);
+  --stock-out: oklch(0.273 0.026 203.9);
+  --stock-out-foreground: oklch(1 0 0);
 
   --destructive: oklch(0.55 0.22 27);
   --destructive-foreground: oklch(0.98 0 0);
@@ -209,8 +270,8 @@
   --gift: oklch(0.5 0.16 300);
   --gift-foreground: oklch(0.99 0 0);
 
-  --border: oklch(0.9 0 0);
-  --input: oklch(0.9 0 0);
+  --border: oklch(0.93 0.006 170.4);
+  --input: oklch(0.93 0.006 170.4);
   /* 0.65 alpha keeps the focus ring at >=3:1 against the page background. */
   --ring: oklch(0.44 0.06 206.4 / 0.65);
 }
@@ -247,9 +308,55 @@
     --gift: oklch(0.75 0.14 300);
     --gift-foreground: oklch(0.16 0 0);
 
+    --page: oklch(0.16 0 0);
+    --soft: oklch(0.27 0 0);
+    --pale: oklch(0.3 0.035 206.4);
+    --pale-foreground: oklch(0.82 0.06 206.4);
+    --blush: oklch(0.62 0.07 8.2);
+    --blush-foreground: oklch(0.2 0.04 10.9);
+    --quick: oklch(0.3 0.04 3.5);
+    --quick-border: oklch(0.42 0.06 3.7);
+    --quick-foreground: oklch(0.88 0.05 8.2);
+    --stock-in: oklch(0.72 0.12 165.7);
+    --stock-low: oklch(0.8 0.14 78.2);
+    --stock-low-foreground: oklch(0.85 0.12 75);
+    --stock-out: oklch(0.96 0 0);
+    --stock-out-foreground: oklch(0.16 0 0);
+
     --border: oklch(1 0 0 / 12%);
     --input: oklch(1 0 0 / 18%);
     --ring: oklch(0.74 0.07 206.4 / 0.6);
+  }
+}
+
+/* From `desk` (1000px) the selling screen's top bar holds the search and its
+   two buttons in its own row, and is drawn taller, as the design has it. */
+@media (width >= 62.5rem) {
+  :root {
+    --top-bar-height: 4.5rem;
+  }
+}
+
+/* An invisible touch target of at least 44px around a control that is drawn
+   smaller (the selling screen's 36/40px add, -/+ and delete buttons). The
+   inset is negative only when the control is under 44px, and it is the same
+   on every side, so it needs no left/right and mirrors for free. The control
+   must not clip its overflow. */
+@utility hit-area {
+  position: relative;
+  &::after {
+    content: "";
+    position: absolute;
+    inset: min(0px, calc(50% - 22px));
+  }
+}
+
+/* A horizontal strip that scrolls by touch without drawing a scrollbar
+   under it (the category tiles). */
+@utility scrollbar-none {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
   }
 }
 
@@ -620,36 +727,6 @@ html[data-boot="failed"] .boot-failure {
   }
 }
 
-/* ------------------------------------------------------------------
-   Product browser — the drawer's grid (components/sell/browser).
-
-   The panel and its backdrop are animated by the sheet itself; this is
-   only what the cards do once it is open. Each one rises a few pixels
-   into place a beat after the one before it (the delay is an inline
-   style — see constants/pos.ts), so a screenful of photos arrives as a
-   sweep instead of appearing all at once like a page that jumped.
-
-   Opacity and transform only: both are composited, so a full grid of
-   photos animating at the same time costs no layout and stays smooth on
-   the counter's modest laptop. `both` holds the card invisible through
-   its delay; the animation itself is over in a fifth of a second,
-   because this is a till and nobody is here to watch it.
-   ------------------------------------------------------------------ */
-@keyframes pos-browse-card-in {
-  from {
-    opacity: 0;
-    transform: translate3d(0, 8px, 0);
-  }
-  to {
-    opacity: 1;
-    transform: translate3d(0, 0, 0);
-  }
-}
-
-.pos-browse-card {
-  animation: pos-browse-card-in 200ms ease-out both;
-}
-
 /* With motion turned down nothing moves — every card is simply there, at
    full strength, the moment the drawer opens. The panel and the backdrop
    go still with it: they are the largest moving things in the app, and a
@@ -657,10 +734,6 @@ html[data-boot="failed"] .boot-failure {
    only waits for an animation that is actually running, so removing
    these leaves opening and closing instant rather than stuck. */
 @media (prefers-reduced-motion: reduce) {
-  .pos-browse-card {
-    animation: none;
-  }
-
   [data-slot="sheet-content"],
   [data-slot="sheet-overlay"] {
     animation: none;

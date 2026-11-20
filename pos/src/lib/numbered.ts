@@ -37,3 +37,14 @@ export function variantsByNumber(product: Product, typed: string): Variant[] {
   if (!wanted) return [];
   return product.variants.filter((variant) => variantNumber(variant, numberTypeId) === wanted);
 }
+
+// Whether the picker can draw this product's photo WITH its numbers: it is a
+// numbered product, it has a photo, and at least one number has been placed
+// on it in the admin. Otherwise the picker shows the plain thumbnail.
+export function hasPlacedNumbers(product: Product): boolean {
+  return (
+    product.isNumbered &&
+    product.images.length > 0 &&
+    product.variants.some((variant) => variant.imageX != null && variant.imageY != null)
+  );
+}

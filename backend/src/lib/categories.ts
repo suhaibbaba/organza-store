@@ -42,3 +42,46 @@ export async function collectCategorySubtreeIds(rootId: string): Promise<string[
 
   return ids;
 }
+
+/**
+ * How many products sit on each category, counting everything filed beneath
+ * it — the figure under each tile on the POS's category row.
+ *
+ * Rolled up through the tree for the same reason the list filter is
+ * (`includeSubcategories`): tapping "Women" shows every dress under it, so the
+ * number on the tile has to promise exactly that many, not the handful filed
+ * on the parent itself. `directCounts` is what the database counted per
+ * `categoryId`; a category absent from it simply has none of its own.
+ *
+ * Pure, so the roll-up is tested without a database. Guarded against a parent
+ * cycle like collectCategorySubtreeIds above.
+ */
+export function rollUpCategoryCounts(
+  categories: ReadonlyArray<{ id: string; parentId: string | null }>,
+  directCounts: ReadonlyMap<string, number>
+): Map<string, number> {
+  const childrenByParent = new Map<string, string[]>();
+  for (const category of categories) {
+    if (!category.parentId) continue;
+    const siblings = childrenByParent.get(category.parentId);
+    if (siblings) siblings.push(category.id);
+    else childrenByParent.set(category.parentId, [category.id]);
+  }
+
+  const totals = new Map<string, number>();
+  for (const category of categories) {
+    let total = 0;
+    const queue = [category.id];
+    const seen = new Set<string>(queue);
+    for (let index = 0; index < queue.length; index += 1) {
+      total += directCounts.get(queue[index]) ?? 0;
+      for (const childId of childrenByParent.get(queue[index]) ?? []) {
+        if (seen.has(childId)) continue;
+        seen.add(childId);
+        queue.push(childId);
+      }
+    }
+    totals.set(category.id, total);
+  }
+  return totals;
+}

@@ -1,0 +1,99 @@
+"use client";
+
+import { useMemo } from "react";
+import { useLocale, useTranslations } from "next-intl";
+import { testSelectorFor } from "@organza/shared/lib/testSelector";
+import { useCategoriesQuery } from "@/hooks/use-categories";
+import { useProductCount } from "@/hooks/use-product-count";
+import { localize } from "@/lib/i18n-content";
+import { cn } from "@/lib/utils";
+import { Spinner } from "@/components/ui/spinner";
+import { SCREEN_CARD } from "@/components/sell/screen/control-styles";
+import { SectionTitle } from "@/components/sell/screen/section-title";
+
+interface CategoryTilesProps {
+  // null = "All".
+  selectedId: string | null;
+  onSelect: (categoryId: string | null) => void;
+}
+
+interface Tile {
+  id: string | null;
+  label: string;
+  count: number | null;
+}
+
+const TITLE_ID = "pos-categories-title";
+
+// The shelves, as one row of tiles that scrolls sideways: "All" first, then
+// the shelves the shop pinned in the admin (Category.isFavorite), then every
+// other category in the order the admin lists them. Each says how many
+// products tapping it will show (rolled up through its subcategories, the
+// same set the grid then lists).
+export function CategoryTiles({ selectedId, onSelect }: CategoryTilesProps) {
+  const t = useTranslations("sell");
+  const locale = useLocale();
+  const categories = useCategoriesQuery();
+  const productCount = useProductCount();
+
+  const tiles = useMemo<Tile[]>(() => {
+    const list = categories.data ?? [];
+    const pinned = list.filter((category) => category.isFavorite);
+    const rest = list.filter((category) => !category.isFavorite);
+    return [
+      { id: null, label: t("browse.all"), count: productCount.data ?? null },
+      ...[...pinned, ...rest].map((category) => ({
+        id: category.id,
+        label: localize(category.name, locale),
+        count: category.productCount,
+      })),
+    ];
+  }, [categories.data, locale, productCount.data, t]);
+
+  return (
+    <section aria-labelledby={TITLE_ID} className={cn(SCREEN_CARD, "flex flex-col gap-3 p-4 desk:p-5")}>
+      <SectionTitle id={TITLE_ID}>{t("screen.categoriesTitle")}</SectionTitle>
+
+      {categories.isError ? (
+        <p className="text-sm text-muted-foreground">{t("browse.categoriesError")}</p>
+      ) : (
+        // Scrolls under the finger; the last tile is cut by the card's edge,
+        // which is what says there is more.
+        <ul
+          className="scrollbar-none -mx-4 flex gap-2 overflow-x-auto px-4 desk:-mx-5 desk:px-5"
+          data-test-selector="pos-category-tiles"
+        >
+          {tiles.map((tile) => {
+            const selected = tile.id === selectedId;
+            return (
+              <li key={tile.id ?? "all"} className="shrink-0">
+                <button
+                  type="button"
+                  onClick={() => onSelect(tile.id)}
+                  aria-pressed={selected}
+                  data-test-selector={testSelectorFor("pos-category-tile", tile.id ?? "all")}
+                  className={cn(
+                    "flex min-w-24 flex-col items-start rounded-control border px-3.5 py-1.5 text-start transition-colors tab:min-w-27",
+                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                    selected ? "border-primary bg-pale" : "border-transparent bg-soft hover:bg-pale/60"
+                  )}
+                >
+                  <span className="max-w-40 truncate text-sm font-bold">{tile.label}</span>
+                  <span className="min-h-5 text-xs text-muted-foreground tabular-nums">
+                    {tile.count !== null && t("screen.productCount", { count: tile.count })}
+                  </span>
+                </button>
+              </li>
+            );
+          })}
+          {categories.isPending && (
+            <li className="flex shrink-0 items-center px-3 text-muted-foreground">
+              <Spinner />
+              <span className="sr-only">{t("browse.categoriesLoading")}</span>
+            </li>
+          )}
+        </ul>
+      )}
+    </section>
+  );
+}

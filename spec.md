@@ -32,7 +32,7 @@ organza-store/
 Holds the shared/general info:
 - `name`, auto-generated `slug`, `description`
 - `category` (nested categories supported: e.g. Women > Dresses > Evening; a category may be
-  flagged `isFavorite` to pin it at the top of the POS product browser — see "POS product browser")
+  flagged `isFavorite` to pin it at the front of the POS category tiles — see "POS selling screen layout")
 - `primaryImage` + `gallery` (ordered images, drag-to-reorder, lowest sortOrder = primary)
 - `barcode`
 - `basePrice` — the product's base price
@@ -481,44 +481,44 @@ garment in the other — so the browser's default reflexes are wrong for them:
 
 ---
 
-## POS product browser (picking by eye)
-Not every piece can carry a label. A silk scarf has nothing to stick one to, and some cashiers are
-simply faster finding a garment by its photo than by typing its name. So the selling screen has a
-fourth way in, beside the camera, the counter's hand scanner and the search box — and it ends in
-the same cart, through the same lookup.
+## POS selling screen layout (picking by eye)
+The selling screen follows the Figma file "Organza POS — 4 sizes" (Desktop 1440, Lenovo Miix 320
+1280×800, Tablet 1080, Small tablet 768, Mobile 390). The camera, the counter's hand scanner, the
+search box and the photo grid all end in the same cart, through the same lookup.
 
-- **A drawer, not a screen.** A clear labelled button under the search box opens it; it slides in
-  from the **start edge** (right in Arabic, left in English) over the sale, with the backdrop
-  fading in. It closes on the ✕, on the backdrop, on Escape, and by itself the moment something is
-  picked — the cart it was covering is exactly as it was, with one more line on it. It never
-  permanently occupies the screen.
-- **Two columns.** Categories down the start side, product grid on the other. Both scroll
-  independently.
-- **Sidebar = categories, never products.** "All" first, then the shop's **favourites**, then the
-  whole tree indented under its parents. Selecting one filters the grid; selecting a parent shows
-  everything filed under it, not just what hangs off the parent itself.
-- **Favourite categories** are flagged by hand in the admin (a star on each row of the category
-  screen, `category.manage`) and stored on the category (`Category.isFavorite`) — **server-side, so
-  every till and every phone agrees**, not a per-device preference. A pinned category still appears
-  in the tree below as well.
-- **Cards** show the photo (the shared placeholder when there is none), the name, the price, and a
-  red/amber/green stock badge **that always spells its state out in words**. Out of stock stays
-  visible but cannot be tapped. A product with variants is marked exactly as it is in the search
-  results — accent bar, tinted card, chevron instead of "+" — and a numbered collection shows its
-  number count.
-- **Search inside the drawer** is the same cross-language, typo-tolerant search the selling screen
-  runs, narrowed to the selected category. A search that finds nothing inside a category offers a
-  way back out to all of them.
-- **Tapping a product does exactly what tapping a search result does:** a simple product goes
-  straight into the cart with the usual toast; one with variants opens the variant picker.
+- **Top bar:** logo + shop name (+ the sandbox chip), the search field, "scan barcode", "quick
+  sell", and the account (avatar, name, role — avatar only under 600px). Under 1000px the search
+  and the two buttons move to a row of their own under the bar.
+- **Categories card:** a sideways-scrolling row of tiles, "All" first, then the shop's
+  **favourites** (`Category.isFavorite`, starred in the admin — server-side, so every till agrees),
+  then every other category. Each tile shows its **product count**: active, non-deleted products on
+  that category *and everything under it* (`productCount` on `GET /api/categories`), so the number
+  matches what selecting it lists. "All" uses the product list's own total.
+- **Products card:** title (no filter — the shop does not want one) and the grid: 2 per row under
+  600px, 3 from 600px, 4 from 1200px, 5 from 1400px. Each product is a **card of its own** — white,
+  hairline border — holding a **square** photo (the shared placeholder when there is none), the
+  category, the name on one line, a tinted stock pill with the count, the price, and an outlined
+  "add to cart" pill. The **whole card** is the button, not just the pill. Out of stock stays
+  visible, dimmed and disabled, with no pill. A product with variants opens the variant picker
+  from the card. No "new" tag until the shop decides what "new" means.
+- **Variant picker:** the product's photo beside its name; a tile shows a variant's photo only
+  when the variant has one of its own (otherwise it is the product's, already at the top). A
+  **numbered shawl** shows its photo large, **with its numbers on it** where the shop placed them
+  in the admin, in the shop's marker colours; tapping a number chooses it like its tile, and a
+  sold-out number is faded and cannot be chosen. Its
+  Add/Done buttons are the screen's control size, sized to their words from 600px.
+- **Search** narrows the grid with the same cross-language, typo-tolerant backend search, inside
+  the selected category; a search that finds nothing offers "show all products" and quick sell.
+  Enter looks the text up as a barcode/SKU.
+- **Cart:** a panel at the **end** side from 1000px (356px wide, 372px from 1200px): lines with
+  photo, name, option chips, quantity stepper, delete, line price; then subtotal, one discount row
+  (all discounts together — tapping it enters the discount on the whole sale), total, "complete
+  sale" (the only solid teal button in the panel) and "WhatsApp order". An Admin/Manager also gets
+  the gift button under them. Under 1000px a bar fixed at the bottom shows the count, the total and
+  "view cart and complete sale", which opens the same panel as a sheet.
+- **Sizes:** every button and the search field are 36px high from 1400px, 40px below; small
+  buttons keep a 44px invisible touch area. Form text is at least 16px, no interface text under 12px.
 - **The grid is paged** ("Show more"), never an unbounded list.
-- **Motion** is transforms and opacity only — the panel slide, the backdrop fade, a short staggered
-  entrance for the cards, a small dip on press — and all of it is dropped under
-  `prefers-reduced-motion: reduce`.
-
-Nothing about the existing phone flow changes: the camera, the hardware scanner, the toasts, the
-beep, de-duplication, quantity increment, the variant picker and the safe areas are the same code
-they were, and the browser is an addition layered on top of them.
 
 ---
 

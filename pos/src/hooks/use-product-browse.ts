@@ -10,7 +10,7 @@ interface UseProductBrowseOptions {
   query: string;
 }
 
-// The product browser's grid: a category at a time, page by page.
+// The selling screen's product grid: a category at a time, page by page.
 //
 // Paged rather than endless (CLAUDE.md rule 15) and accumulated rather than
 // replaced, so "Show more" adds a row to what is already on screen instead of
@@ -19,8 +19,6 @@ interface UseProductBrowseOptions {
 // The query is debounced on the same clock as the selling screen's search box
 // — it is the same backend search, typed the same way, and the two should not
 // feel like different fields.
-// Mounted only while the drawer is open (the sheet unmounts its content on
-// close), so nothing here runs behind a sale.
 export function useProductBrowse({ categoryId, query }: UseProductBrowseOptions) {
   const debounced = useDebouncedValue(query.trim(), SEARCH_DEBOUNCE_MS);
 
@@ -39,10 +37,8 @@ export function useProductBrowse({ categoryId, query }: UseProductBrowseOptions)
     // refresh — react-query replaces the page data in place, and nothing here
     // reads `isFetching`, so the only visible change is a badge.
     //
-    // Confined to the drawer's lifetime by construction: the sheet unmounts
-    // its contents on close, the query loses its last observer, and
-    // react-query drops the interval with it. A till that never opens the
-    // browser never polls it.
+    // The grid is always on screen now, so this polls for as long as the
+    // till is in use; refetchIntervalInBackground keeps an idle till quiet.
     staleTime: 0,
     refetchInterval: STOCK_POLL_INTERVAL_MS,
     refetchIntervalInBackground: false,

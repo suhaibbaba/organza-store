@@ -12,6 +12,7 @@ import {
   type UpdateCategoryInput,
 } from "@/validation/category";
 import { generateUniqueSlug } from "@/lib/slug";
+import { rollUpCategoryCounts } from "@/lib/categories";
 import { writeAudit } from "@/lib/audit";
 import { AUDIT_ENTITY, ERROR_CODES } from "@/constants";
 import type { CategoryNode } from "@/types";
@@ -60,7 +61,22 @@ router.get(
   "/",
   requirePermission("category.view"),
   asyncHandler(async (req, res) => {
-    const categories = await prisma.category.findMany({ orderBy: { createdAt: "asc" } });
+    const [rows, direct] = await Promise.all([
+      prisma.category.findMany({ orderBy: { createdAt: "asc" } }),
+      // What a till can sell: the same "active, not deleted" the POS's own
+      // product list asks for (status=active), so a tile's number and the
+      // grid it opens agree.
+      prisma.product.groupBy({
+        by: ["categoryId"],
+        where: { deletedAt: null, isActive: true, categoryId: { not: null } },
+        _count: { _all: true },
+      }),
+    ]);
+    const totals = rollUpCategoryCounts(
+      rows,
+      new Map(direct.flatMap((row) => (row.categoryId ? [[row.categoryId, row._count._all] as const] : [])))
+    );
+    const categories = rows.map((category) => ({ ...category, productCount: totals.get(category.id) ?? 0 }));
     if (req.query.flat === "true") {
       sendOk(res, categories);
       return;
