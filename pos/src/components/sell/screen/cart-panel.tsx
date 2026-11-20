@@ -7,7 +7,12 @@ import { useMoneyFormatter } from "@/hooks/use-money-formatter";
 import { fromCents, toCents } from "@/lib/money";
 import { cn } from "@/lib/utils";
 import { Spinner } from "@/components/ui/spinner";
-import { CONTROL_HEIGHT, SCREEN_CARD } from "@/components/sell/screen/control-styles";
+import {
+  CONTROL_HEIGHT,
+  PRIMARY_ACTION,
+  SCREEN_PANEL,
+  SECONDARY_ACTION,
+} from "@/components/sell/screen/control-styles";
 import { CartLine } from "@/components/sell/screen/cart-line";
 import { SectionTitle } from "@/components/sell/screen/section-title";
 import type { Cart } from "@/hooks/use-cart";
@@ -57,7 +62,7 @@ export function CartPanel({
     <section
       aria-labelledby={hideTitle ? undefined : TITLE_ID}
       aria-label={hideTitle ? t("screen.cartTitle") : undefined}
-      className={cn(SCREEN_CARD, "flex min-h-0 flex-col", className)}
+      className={cn(SCREEN_PANEL, "flex min-h-0 flex-col", className)}
       data-test-selector="pos-cart-panel"
     >
       <div className="flex items-center justify-between gap-3 px-4 pt-4 desk:px-5 desk:pt-5">
@@ -84,13 +89,13 @@ export function CartPanel({
           role="group"
           aria-label={t("screen.clearConfirmTitle")}
           data-test-selector="pos-cart-clear-confirm"
-          className="mx-4 mt-3 flex flex-wrap items-center gap-2 rounded-control border border-destructive/40 bg-destructive/5 p-2 desk:mx-5"
+          className="mx-4 mt-3 flex flex-wrap items-center gap-2 rounded-control border border-destructive/20 bg-destructive-soft p-2 desk:mx-5"
         >
           <p className="min-w-0 flex-1 text-sm font-medium">{t("screen.clearConfirmTitle")}</p>
           <button
             type="button"
             onClick={() => setConfirmingClear(false)}
-            className={cn(CONTROL_HEIGHT, "rounded-control border border-border bg-card px-3 text-sm font-medium hover:bg-soft")}
+            className={cn(CONTROL_HEIGHT, SECONDARY_ACTION, "px-3")}
           >
             {t("screen.clearConfirmKeep")}
           </button>
@@ -132,8 +137,8 @@ export function CartPanel({
 
       <div className="flex flex-col gap-2 border-t border-border px-4 pb-4 pt-3 desk:px-5 desk:pb-5">
         <div className="flex items-center justify-between text-sm">
-          <span className="text-muted-foreground">{t("screen.subtotal")}</span>
-          <span className="font-bold tabular-nums">{formatMoney(totals.subtotal)}</span>
+          <span className="text-subtle-foreground">{t("screen.subtotal")}</span>
+          <span className="font-semibold tabular-nums">{formatMoney(totals.subtotal)}</span>
         </div>
         {/* The whole row is the way to enter a discount on the sale: it is
             where the cashier is looking when the customer asks for one. */}
@@ -145,14 +150,16 @@ export function CartPanel({
           data-test-selector="pos-order-discount-button"
           className="hit-area -mx-1 flex items-center justify-between rounded-md px-1 text-sm hover:bg-soft disabled:cursor-default disabled:hover:bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
-          <span className="text-muted-foreground">{t("screen.discount")}</span>
-          <span className="font-bold tabular-nums">−&#x2009;{formatMoney(fromCents(discountCents))}</span>
+          <span className="text-subtle-foreground">{t("screen.discount")}</span>
+          <span className={cn("font-semibold tabular-nums", discountCents > 0 && "text-success")}>
+            −&#x2009;{formatMoney(fromCents(discountCents))}
+          </span>
         </button>
 
-        <div className="my-1 border-t border-dashed border-border" />
-
-        <div className="flex items-center justify-between">
-          <span className="text-base font-bold">{t("checkout.total")}</span>
+        {/* What the customer pays, on its own pale-emerald band so it is the
+            first thing an eye finds in the panel. */}
+        <div className="mt-1 flex items-center justify-between gap-3 rounded-control bg-pale px-3.5 py-2.5">
+          <span className="text-base font-bold text-pale-foreground">{t("checkout.total")}</span>
           <span className="text-2xl font-bold tabular-nums" data-test-selector="pos-cart-total">
             {formatMoney(totals.total)}
           </span>
@@ -164,11 +171,10 @@ export function CartPanel({
             onClick={onCheckout}
             disabled={!canFinish}
             data-test-selector="pos-checkout-button"
+            // 52px and bold: the one button on the screen that takes money.
             className={cn(
-              CONTROL_HEIGHT,
-              "inline-flex min-w-0 flex-1 items-center justify-center gap-2 rounded-control bg-primary px-4 text-sm font-semibold text-primary-foreground",
-              "transition-colors not-disabled:hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              PRIMARY_ACTION,
+              "inline-flex h-13 min-w-0 flex-1 items-center justify-center gap-2 px-4 text-base font-bold shadow-primary disabled:shadow-none"
             )}
           >
             {isSubmitting && <Spinner />}
@@ -179,12 +185,7 @@ export function CartPanel({
             onClick={onWhatsappOrder}
             disabled={!canFinish}
             data-test-selector="pos-whatsapp-order-button"
-            className={cn(
-              CONTROL_HEIGHT,
-              "inline-flex shrink-0 items-center justify-center gap-2 rounded-control border border-border bg-card px-3 text-sm font-medium",
-              "transition-colors not-disabled:hover:bg-soft disabled:cursor-not-allowed disabled:opacity-50",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            )}
+            className={cn(SECONDARY_ACTION, "inline-flex h-13 shrink-0 items-center justify-center gap-2 px-3")}
           >
             <MessageCircle className="size-4" aria-hidden="true" />
             {t("checkout.whatsappOrder")}
@@ -202,8 +203,9 @@ export function CartPanel({
             data-test-selector="pos-gift-order-button"
             className={cn(
               CONTROL_HEIGHT,
-              "inline-flex items-center justify-center gap-2 rounded-control border border-gift/40 px-3 text-sm font-medium text-gift",
-              "transition-colors not-disabled:hover:bg-gift/10 disabled:cursor-not-allowed disabled:opacity-50"
+              "inline-flex items-center justify-center gap-2 rounded-control border border-gift/40 bg-card px-3 text-sm font-medium text-gift",
+              "transition-colors not-disabled:hover:bg-gift/10 disabled:cursor-not-allowed disabled:opacity-50",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             )}
           >
             <Gift className="size-4" aria-hidden="true" />

@@ -64,7 +64,7 @@ export function SegmentedControl<T extends string>({
       aria-label={label}
       data-test-selector={testSelectorFor("pos-segmented", name)}
       className={cn(
-        "inline-flex w-fit max-w-full items-center gap-1 overflow-x-auto overscroll-x-contain rounded-xl border border-border bg-card p-1",
+        "inline-flex w-fit max-w-full items-center gap-1 overflow-x-auto overscroll-x-contain rounded-control border border-border bg-card p-1",
         // No scrollbar across a 44px strip — it is scrolled by thumb.
         "[scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
         className
@@ -81,7 +81,7 @@ export function SegmentedControl<T extends string>({
             data-test-selector={testSelectorFor(testSelectorFor("pos-segmented", name), option.value)}
             onClick={() => onChange(option.value)}
             className={cn(
-              "shrink-0 whitespace-nowrap rounded-lg px-3 font-medium transition-colors",
+              "shrink-0 whitespace-nowrap rounded-sm px-3 font-semibold transition-colors",
               // ring-inset: the row scrolls, so a ring drawn outside the
               // button's box would be clipped at either end of it.
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring",

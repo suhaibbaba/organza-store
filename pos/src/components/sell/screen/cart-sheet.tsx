@@ -26,12 +26,12 @@ export function CartSheet({ open, onOpenChange, ...panel }: CartSheetProps) {
         className="h-[88dvh] gap-0 bg-card"
       >
         <SheetHeader className="pb-0">
-          <SheetTitle className="flex items-center gap-2 text-base font-bold">
+          <SheetTitle className="flex items-center gap-2 text-[1.0625rem] font-bold">
             <span className="h-4 w-1 shrink-0 rounded-full bg-primary" aria-hidden="true" />
             {t("sell.screen.cartTitle")}
           </SheetTitle>
         </SheetHeader>
-        <CartPanel {...panel} hideTitle className="flex-1 rounded-none border-0" />
+        <CartPanel {...panel} hideTitle className="flex-1 rounded-none border-0 shadow-none" />
       </SheetContent>
     </Sheet>
   );

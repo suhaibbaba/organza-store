@@ -437,6 +437,13 @@ Design for that reality:
   typed so a new tab without a drawn twin fails the build). Check any new one at 24px, light and
   dark — not zoomed.
 - Keep the visual language consistent between admin and pos (shared components where sensible).
+  **Exception, for now:** the POS has moved to its own retail palette — slate page `#F8FAFC`,
+  white surfaces, deep emerald `#065F46` primary, soft slate shadows (`shadow-xs`…`shadow-xl`,
+  `shadow-focus`, `shadow-primary`) and named corners (`rounded-card` 16, `rounded-panel` 20,
+  `rounded-tile` 14, `rounded-control`/`rounded-photo` 12), all as tokens in
+  `pos/src/app/globals.css`; the selling screen's button classes are `PRIMARY_ACTION` /
+  `SECONDARY_ACTION` in `pos/src/components/sell/screen/control-styles.ts`. The admin is still
+  on the earlier teal until it is brought across.
 
 ## Mobile input & device specifics (admin + pos)
 - **Numeric fields (stock, quantities, prices) must be easy to type on a phone.** Do NOT use

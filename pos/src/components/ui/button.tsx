@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
   [
-    "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium transition-colors",
+    "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-control text-sm font-semibold transition-[color,background-color,border-color,box-shadow]",
     "[&_svg]:pointer-events-none [&_svg]:shrink-0",
     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
     // A disabled button must LOOK disabled as well as be one. The native
@@ -23,12 +23,16 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground not-disabled:hover:bg-primary/90",
-        secondary: "bg-secondary text-secondary-foreground not-disabled:hover:bg-secondary/80",
+        default: "bg-primary text-primary-foreground not-disabled:hover:bg-primary-hover not-disabled:active:bg-primary-active",
+        secondary: "border border-border bg-card text-foreground not-disabled:hover:border-border-strong not-disabled:hover:bg-soft",
         outline:
-          "border border-input bg-card not-disabled:hover:bg-accent not-disabled:hover:text-accent-foreground",
+          "border border-border bg-card text-foreground not-disabled:hover:border-border-strong not-disabled:hover:bg-soft",
         ghost: "not-disabled:hover:bg-accent not-disabled:hover:text-accent-foreground",
         destructive: "bg-destructive text-destructive-foreground not-disabled:hover:bg-destructive/90",
+        // The quieter red: a light wash with red words, for a destructive
+        // action that is not the last step of a confirmation.
+        "destructive-soft":
+          "border border-destructive/20 bg-destructive-soft text-destructive not-disabled:hover:bg-destructive/15",
         // Giving stock away (spec.md "Gifts"). Its own colour rather than
         // `default`, because the one thing this action must never be
         // mistaken for is completing a sale — and its own colour rather than

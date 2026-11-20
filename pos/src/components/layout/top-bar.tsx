@@ -22,7 +22,7 @@ export function TopBar({ tools }: TopBarProps) {
 
   return (
     <header
-      className="sticky top-0 z-30 border-b border-border bg-card pt-[var(--safe-top)]"
+      className="sticky top-0 z-30 border-b border-border bg-card pt-[var(--safe-top)] shadow-xs"
       data-test-selector="pos-top-bar"
     >
       <div className="flex flex-wrap items-center gap-x-3 px-3 tab:px-4 desk:flex-nowrap desk:gap-x-4 desk:px-5">

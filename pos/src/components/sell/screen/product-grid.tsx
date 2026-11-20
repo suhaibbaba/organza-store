@@ -6,7 +6,7 @@ import type { ProductSummary } from "@organza/shared/types/product";
 import { cn } from "@/lib/utils";
 import { Alert } from "@/components/ui/alert";
 import { Spinner } from "@/components/ui/spinner";
-import { CONTROL_HEIGHT } from "@/components/sell/screen/control-styles";
+import { CONTROL_HEIGHT, SECONDARY_ACTION } from "@/components/sell/screen/control-styles";
 import { ProductCard } from "@/components/sell/screen/product-card";
 import { SectionTitle } from "@/components/sell/screen/section-title";
 
@@ -68,10 +68,7 @@ export function ProductGrid({
               <button
                 type="button"
                 onClick={onClearFilters}
-                className={cn(
-                  CONTROL_HEIGHT,
-                  "rounded-control border border-border bg-card px-4 text-sm font-medium hover:bg-soft"
-                )}
+                className={cn(CONTROL_HEIGHT, SECONDARY_ACTION, "px-4")}
               >
                 {t("browse.clearFilters")}
               </button>
@@ -94,7 +91,7 @@ export function ProductGrid({
       ) : (
         <>
           <ul
-            className="grid grid-cols-2 gap-3 tab:grid-cols-3 desk:gap-4 wide:grid-cols-4 xwide:grid-cols-5"
+            className="grid grid-cols-2 gap-3 tab:grid-cols-3 desk:gap-4 xwide:grid-cols-4"
             data-test-selector="pos-product-grid"
           >
             {(products ?? []).map((product) => (
@@ -115,10 +112,7 @@ export function ProductGrid({
               type="button"
               onClick={onShowMore}
               disabled={isFetchingNextPage}
-              className={cn(
-                CONTROL_HEIGHT,
-                "mx-auto inline-flex items-center gap-2 rounded-control border border-border bg-card px-5 text-sm font-medium hover:bg-soft disabled:opacity-60"
-              )}
+              className={cn(CONTROL_HEIGHT, SECONDARY_ACTION, "mx-auto inline-flex items-center gap-2 px-5")}
             >
               {isFetchingNextPage && <Spinner />}
               {t("browse.showMore")}

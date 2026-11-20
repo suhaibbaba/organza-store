@@ -3,12 +3,14 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { testSelectorFor } from "@organza/shared/lib/testSelector";
 import { cn } from "@/lib/utils";
 
-const alertVariants = cva("flex items-start gap-3 rounded-lg border p-4 text-sm", {
+const alertVariants = cva("flex items-start gap-3 rounded-control border p-4 text-sm", {
   variants: {
     variant: {
-      default: "border-border bg-secondary text-secondary-foreground",
-      destructive: "border-destructive/30 bg-destructive/10 text-destructive",
-      success: "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400",
+      default: "border-border bg-soft text-foreground",
+      destructive: "border-destructive/20 bg-destructive-soft text-destructive",
+      success: "border-success/20 bg-success-soft text-success",
+      warning: "border-warning/20 bg-warning-soft text-warning",
+      info: "border-info/20 bg-info-soft text-info",
     },
   },
   defaultVariants: {

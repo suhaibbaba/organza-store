@@ -33,8 +33,7 @@ export function EnvironmentBadge({ className }: { className?: string }) {
         // and Hebrew, and spacing pulls Arabic letters out of their joins.
         // The English wording is already written in capitals in en.json.
         "inline-flex h-6 shrink-0 items-center rounded-full px-2 text-xs font-semibold",
-        "bg-amber-500/15 text-amber-700 ring-1 ring-inset ring-amber-500/30",
-        "dark:bg-amber-400/15 dark:text-amber-300 dark:ring-amber-400/30",
+        "bg-warning-soft text-warning ring-1 ring-inset ring-warning/25",
         className
       )}
     >

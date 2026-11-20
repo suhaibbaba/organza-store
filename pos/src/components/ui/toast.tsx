@@ -66,8 +66,8 @@ export function Toaster({ toasts }: ToasterProps) {
             // cart, and a see-through one leaves two lines of text printed
             // on top of each other.
             toast.variant === "success"
-              ? "border-emerald-500/40 bg-emerald-50 text-emerald-900 dark:border-emerald-400/30 dark:bg-emerald-950 dark:text-emerald-100"
-              : "border-destructive/40 bg-red-50 text-red-900 dark:border-red-400/30 dark:bg-red-950 dark:text-red-100"
+              ? "border-success/20 bg-success-soft text-success"
+              : "border-destructive/20 bg-destructive-soft text-destructive"
           )}
           style={{ animationDuration: `${TOAST_SLIDE_MS}ms` }}
         >
@@ -75,7 +75,7 @@ export function Toaster({ toasts }: ToasterProps) {
             className={cn(
               "flex size-7 shrink-0 items-center justify-center rounded-full",
               toast.variant === "success"
-                ? "bg-emerald-500 text-white"
+                ? "bg-success text-primary-foreground"
                 : "bg-destructive text-destructive-foreground"
             )}
             aria-hidden="true"

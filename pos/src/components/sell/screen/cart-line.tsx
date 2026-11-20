@@ -13,7 +13,7 @@ import { localize } from "@/lib/i18n-content";
 import { cn } from "@/lib/utils";
 import { ProductThumb } from "@/components/sell/product-thumb";
 import { QuantityStepper } from "@/components/ui/quantity-stepper";
-import { CONTROL_HEIGHT, CONTROL_SIZE } from "@/components/sell/screen/control-styles";
+import { CONTROL_HEIGHT, SECONDARY_ACTION } from "@/components/sell/screen/control-styles";
 import type { CartLine as CartLineData } from "@/types/cart";
 import type { ScanFlash } from "@/types/feedback";
 
@@ -53,7 +53,7 @@ export function CartLine({ line, flash, onQuantityChange, onRemove }: CartLinePr
   return (
     <li
       className={cn(
-        "relative flex flex-col gap-2 border-b border-border py-3 transition-colors last:border-b-0",
+        "relative flex flex-col gap-2 border-b border-border-light py-3 transition-colors last:border-b-0",
         flash && "-mx-2 rounded-control bg-pale px-2"
       )}
       data-test-selector={testSelectorFor("pos-cart-line", line.key)}
@@ -63,10 +63,10 @@ export function CartLine({ line, flash, onQuantityChange, onRemove }: CartLinePr
           src={line.imageUrl}
           alt={name}
           sizes={SELL_CART_THUMB_SIZES}
-          className="size-13 rounded-[10px] bg-soft"
+          className="size-13 rounded-photo bg-soft"
         />
         <div className="flex min-w-0 flex-1 flex-col items-start gap-1">
-          <span className="w-full truncate text-sm font-bold">{name}</span>
+          <span className="w-full truncate text-sm font-semibold">{name}</span>
           {(chips.length > 0 || line.quickSell) && (
             <span className="flex flex-wrap gap-1">
               {line.quickSell && (
@@ -83,7 +83,7 @@ export function CartLine({ line, flash, onQuantityChange, onRemove }: CartLinePr
             </span>
           )}
           {appliedDiscount && (
-            <span className="text-xs font-medium text-primary">{t("cart.discountValue", { value: appliedDiscount })}</span>
+            <span className="text-xs font-medium text-success">{t("cart.discountValue", { value: appliedDiscount })}</span>
           )}
           <div className="mt-1 flex w-full items-center gap-2">
             <QuantityStepper
@@ -103,9 +103,9 @@ export function CartLine({ line, flash, onQuantityChange, onRemove }: CartLinePr
               onClick={() => setConfirmingAt(line.quantity)}
               aria-label={t("cart.remove", { name: fullName })}
               data-test-selector={testSelectorFor("pos-cart-line-remove", line.key)}
+              // Matches the 40px stepper beside it; hit-area keeps 44px.
               className={cn(
-                CONTROL_SIZE,
-                "hit-area flex shrink-0 items-center justify-center rounded-control border border-border text-muted-foreground transition-colors",
+                "hit-area flex size-10 shrink-0 items-center justify-center rounded-control border border-border text-muted-foreground transition-colors",
                 "hover:border-destructive/40 hover:bg-destructive/10 hover:text-destructive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               )}
             >
@@ -121,13 +121,13 @@ export function CartLine({ line, flash, onQuantityChange, onRemove }: CartLinePr
           role="group"
           aria-label={t("cart.removeConfirmTitle")}
           data-test-selector={testSelectorFor("pos-cart-line-remove-confirm", line.key)}
-          className="flex flex-wrap items-center gap-2 rounded-control border border-destructive/40 bg-destructive/5 p-2"
+          className="flex flex-wrap items-center gap-2 rounded-control border border-destructive/20 bg-destructive-soft p-2"
         >
           <p className="min-w-0 flex-1 text-sm font-medium">{t("cart.removeConfirmTitle")}</p>
           <button
             type="button"
             onClick={() => setConfirmingAt(null)}
-            className={cn(CONTROL_HEIGHT, "rounded-control border border-border bg-card px-3 text-sm font-medium hover:bg-soft")}
+            className={cn(CONTROL_HEIGHT, SECONDARY_ACTION, "px-3")}
           >
             {t("cart.removeConfirmKeep")}
           </button>

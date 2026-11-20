@@ -10,6 +10,20 @@
   --color-popover-foreground: var(--popover-foreground);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-active: var(--primary-active);
+  --color-primary-light: var(--primary-light);
+  --color-primary-soft: var(--primary-soft);
+  --color-primary-border: var(--primary-border);
+  --color-subtle-foreground: var(--subtle-foreground);
+  --color-disabled-foreground: var(--disabled-foreground);
+  --color-border-light: var(--border-light);
+  --color-border-strong: var(--border-strong);
+  --color-success-soft: var(--success-soft);
+  --color-warning-soft: var(--warning-soft);
+  --color-destructive-soft: var(--destructive-soft);
+  --color-info: var(--info);
+  --color-info-soft: var(--info-soft);
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);
@@ -85,21 +99,47 @@
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
 
-  /* The selling screen's three corners (design: cards 18, controls 12,
-     product photos 14) — `rounded-card`, `rounded-control`, `rounded-photo`. */
-  --radius-card: 18px;
+  /* The POS's named corners — `rounded-card` (product cards, 16),
+     `rounded-panel` (the cart panel and every sheet/modal, 20),
+     `rounded-tile` (category tiles, 14), `rounded-control` (buttons and
+     fields, 12), `rounded-photo` (product photos, 12). Badges are
+     `rounded-full`. */
+  --radius-card: 16px;
+  --radius-panel: 20px;
+  --radius-tile: 14px;
   --radius-control: 12px;
-  --radius-photo: 14px;
+  --radius-photo: 12px;
+
+  /* Motion: one speed for everything that changes colour or lift. Turned
+     off entirely under prefers-reduced-motion (below). */
+  --default-transition-duration: 150ms;
 
   /* The selling screen's widths, named for what changes at each one
      (components/sell/screen). Below `tab` (600px) two products per row and a
      bare top bar; `tab` three per row; `desk` (1000px) the cart becomes a
-     panel beside the grid; `wide` (1200px) four per row; `xwide` (1400px)
-     five per row and the 36px controls. */
+     panel beside the grid, which keeps three; `wide` (1200px) the cart
+     panel widens; `xwide` (1400px) four per row. Sized for the counter's
+     Lenovo Miix 320 (1280x800): at 100% scaling the cart and three columns,
+     at 125% (~1024 CSS px) the same, at 150% (~853) the cart moves into its
+     bottom bar and the grid keeps three. */
   --breakpoint-tab: 37.5rem;
   --breakpoint-desk: 62.5rem;
   --breakpoint-wide: 75rem;
   --breakpoint-xwide: 87.5rem;
+}
+
+/* ELEVATION — soft, slate-tinted, never dark. Product cards `shadow-sm`, the
+   cart panel `shadow-md`, the header `shadow-xs`, dropdowns `shadow-lg`,
+   sheets and modals `shadow-xl`; a focused field gets `shadow-focus` instead
+   of a hard ring; the checkout button `shadow-primary`. Fields carry none. */
+@theme {
+  --shadow-xs: 0 1px 2px 0 oklch(0.208 0.04 265.8 / 0.04);
+  --shadow-sm: 0 1px 3px oklch(0.208 0.04 265.8 / 0.05), 0 1px 2px oklch(0.208 0.04 265.8 / 0.03);
+  --shadow-md: 0 4px 12px oklch(0.208 0.04 265.8 / 0.06), 0 2px 4px oklch(0.208 0.04 265.8 / 0.03);
+  --shadow-lg: 0 10px 25px oklch(0.208 0.04 265.8 / 0.08), 0 4px 10px oklch(0.208 0.04 265.8 / 0.04);
+  --shadow-xl: 0 20px 40px oklch(0.208 0.04 265.8 / 0.1);
+  --shadow-focus: 0 0 0 3px oklch(0.596 0.127 163.2 / 0.16);
+  --shadow-primary: 0 4px 12px oklch(0.432 0.086 166.9 / 0.12);
 }
 
 :root {
@@ -142,9 +182,10 @@
   /* ------------------------------------------------------------------
      THE BRAND HUES ARE WRITTEN OUT IN FULL BELOW, on purpose.
 
-     Organza's two hues are 206.4 (dark teal, #235C63) and 177.6 (light mint,
-     #B5D3CB), and every brand tint in this file carries one of those two
-     numbers literally. They used to arrive through a custom property, so that
+     The POS's brand hue is 166.9 (deep emerald, #065F46) and every brand
+     tint in this file carries that number — or its close neighbours from the
+     same emerald family — literally. (The admin is still on the earlier
+     teal, 206.4.) They used to arrive through a custom property, so that
      the whole theme could be re-hued from one line.
 
      That one line cost the shop every button.
@@ -182,100 +223,122 @@
      is what makes sure it still does.
      ------------------------------------------------------------------ */
 
-  /* The selling screen's palette (Figma "Organza POS — 4 sizes"), except
-     the page, which the shop asked to be a cool off-white (#F8FAFC) rather
-     than the design's grey-green #EEF1F0 (the white cards keep a hairline
-     border, so they still stand off it), and the field border (#D3D9D7), darker than the line so a white field still
-     reads as a field: card #FFFFFF, text #172B2D, muted text #667776, line
-     #E4E9E7, soft fill #F3F5F4, teal #235C63, pale teal #E9F2F0. */
+  /* THE POS PALETTE — a clean retail look: a very light slate page, pure
+     white surfaces, deep emerald for the actions that matter, and slate
+     text. The brief's names are on the right; the tokens keep the names the
+     components already use.
+
+       --background / --page  #F8FAFC  bg-app
+       --card / --popover     #FFFFFF  bg-surface, bg-input
+       --soft / --muted       #F1F5F9  bg-muted, bg-disabled, bg-hover
+       --pale                 #E8F5F1  bg-selected (category, total)
+       --foreground           #0F172A  text-primary
+       --subtle-foreground    #475569  text-secondary
+       --muted-foreground     #64748B  text-muted
+       --disabled-foreground  #94A3B8  text-disabled
+       --border / --input     #E2E8F0  border-default
+       --border-light         #F1F5F9  border-light
+       --border-strong        #CBD5E1  border-strong
+       --ring                 #059669  border-focus */
   --background: oklch(0.984 0.003 247.9);
   --page: oklch(0.984 0.003 247.9);
-  --foreground: oklch(0.273 0.026 203.9);
+  --foreground: oklch(0.208 0.04 265.8);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.273 0.026 203.9);
+  --card-foreground: oklch(0.208 0.04 265.8);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.273 0.026 203.9);
+  --popover-foreground: oklch(0.208 0.04 265.8);
 
-  /* Organza teal — brand primary (#235C63) */
-  --primary: oklch(0.44 0.06 206.4);
-  --primary-foreground: oklch(0.98 0 0);
+  /* Deep emerald — checkout, the selected thing, the important action.
+     #065F46, hover #047857, pressed #064E3B; light #D1FAE5, soft #ECFDF5,
+     border #A7F3D0. */
+  --primary: oklch(0.432 0.086 166.9);
+  --primary-foreground: oklch(1 0 0);
+  --primary-hover: oklch(0.508 0.105 165.6);
+  --primary-active: oklch(0.378 0.073 168.9);
+  --primary-light: oklch(0.95 0.051 163.1);
+  --primary-soft: oklch(0.979 0.021 166.1);
+  --primary-border: oklch(0.905 0.089 164.2);
 
-  --secondary: oklch(0.954 0.01 181.4);
-  --secondary-foreground: oklch(0.28 0.03 206.4);
+  --secondary: oklch(0.968 0.007 247.9);
+  --secondary-foreground: oklch(0.208 0.04 265.8);
 
-  --muted: oklch(0.968 0.002 165.1);
-  --muted-foreground: oklch(0.555 0.02 192.2);
+  --muted: oklch(0.968 0.007 247.9);
+  --muted-foreground: oklch(0.554 0.041 257.4);
+  --subtle-foreground: oklch(0.446 0.037 257.3);
+  --disabled-foreground: oklch(0.711 0.035 256.8);
 
-  /* Organza mint — brand light accent (#B5D3CB) */
-  --accent: oklch(0.843 0.034 177.6);
-  --accent-foreground: oklch(0.28 0.03 206.4);
+  /* Hover fill for quiet controls (menus, ghost and outline buttons). */
+  --accent: oklch(0.968 0.007 247.9);
+  --accent-foreground: oklch(0.208 0.04 265.8);
 
-  /* Soft fill (#F3F5F4): the search field, unselected category tiles, option
-     chips. Pale teal (#E9F2F0): the selected tile and the round add button,
-     with the brand teal on top of it. */
-  --soft: oklch(0.968 0.002 165.1);
-  --pale: oklch(0.954 0.01 181.4);
-  --pale-foreground: oklch(0.44 0.06 206.4);
+  /* Soft fill (#F1F5F9): photo placeholders, option chips, hovers. Pale
+     emerald (#E8F5F1): the selected category, the total, the cart icon,
+     with the brand emerald on top of it. */
+  --soft: oklch(0.968 0.007 247.9);
+  --pale: oklch(0.959 0.015 175.7);
+  --pale-foreground: oklch(0.432 0.086 166.9);
 
   /* Organza pink (#DBADB4): the cart count badge. */
   --blush: oklch(0.791 0.054 8.2);
   --blush-foreground: oklch(0.414 0.107 10.9);
 
   /* Quick sell (spec.md "Quick sell"): fill #FBF1F3, border #EACDD3, text
-     #7A2E3D — the pink family, so it never reads as the teal sale button. */
+     #7A2E3D — the pink family, so it never reads as the emerald sale button. */
   --quick: oklch(0.966 0.011 3.5);
   --quick-border: oklch(0.874 0.033 3.7);
   --quick-foreground: oklch(0.414 0.107 10.9);
 
-  /* The stock pill on a product photo: a white pill with a green (#2E8B6A)
-     or amber (#E0A020, words #7A4B00) dot, or a dark pill (#172B2D) when
+  /* The stock pill on a product photo: a white pill with a green (#16A34A)
+     or amber (#D97706, words #92400E) dot, or a dark pill (#0F172A) when
      nothing is left. Always with the word — see StockBadge. */
-  --stock-in: oklch(0.573 0.101 165.7);
-  --stock-low: oklch(0.749 0.148 78.2);
-  --stock-low-foreground: oklch(0.456 0.099 69.1);
-  --stock-out: oklch(0.273 0.026 203.9);
+  --stock-in: oklch(0.627 0.17 149.2);
+  --stock-low: oklch(0.666 0.157 58.3);
+  --stock-low-foreground: oklch(0.473 0.125 46.2);
+  --stock-out: oklch(0.208 0.04 265.8);
   --stock-out-foreground: oklch(1 0 0);
 
-  --destructive: oklch(0.55 0.22 27);
-  --destructive-foreground: oklch(0.98 0 0);
+  /* Error: text and solid #B91C1C, wash #FEE2E2. */
+  --destructive: oklch(0.505 0.19 27.5);
+  --destructive-foreground: oklch(1 0 0);
+  --destructive-soft: oklch(0.936 0.031 17.7);
 
   /* ------------------------------------------------------------------
-     Stock status — red / amber / green, and only ever these three.
+     Semantic states — success, warning, error (above) and info, each a
+     word colour and a wash, and used for nothing else: stock, validation,
+     alerts, discounts, notices.
 
      Every screen that shows a quantity or an availability reads them from
      here (see components/ui/stock-badge.tsx and shared's resolveStockStatus),
      so "nearly out" is the same amber in the POS search results, the variant
-     picker, the cart and the admin's inventory. They were tailwind palette
-     literals scattered through the admin before, which is how two screens
-     end up disagreeing about what amber is.
+     picker and the cart. The label is always spelled out next to them, so
+     nothing here is the only thing saying what the status is.
 
-     Both are lightnesses that carry text on the page background at >=4.5:1,
-     because that is what they are mostly used as — a word in colour, on a
-     10% wash of the same colour. Deliberately off the brand teal: this is
-     the one part of the interface that must not read as decoration. The
-     label is always spelled out next to them, so nothing here is the only
-     thing saying what the status is.
+     success #166534 on #DCFCE7, warning #92400E on #FEF3C7,
+     info #1D4ED8 on #DBEAFE.
      ------------------------------------------------------------------ */
-  --success: oklch(0.52 0.13 152);
-  --warning: oklch(0.56 0.13 70);
+  --success: oklch(0.448 0.108 151.3);
+  --success-soft: oklch(0.962 0.043 156.7);
+  --warning: oklch(0.473 0.125 46.2);
+  --warning-soft: oklch(0.962 0.058 95.6);
+  --info: oklch(0.488 0.217 264.4);
+  --info-soft: oklch(0.932 0.032 255.6);
 
   /* Giving stock away — an order of type GIFT (spec.md "Gifts").
-     A violet that is deliberately none of the four colours already in use:
-     not the brand teal, which is what "complete the sale" is drawn in and
-     the one thing a gift must never be mistaken for; not destructive red,
+     A violet that is deliberately none of the colours already in use: not
+     the brand emerald, which is what "complete the sale" is drawn in and the
+     one thing a gift must never be mistaken for; not destructive red,
      because giving a piece to a bride is not an error; and not the amber or
-     green above, which now mean something specific about stock. It is the
-     one action on the selling screen that moves goods without taking money,
-     so it gets a colour of its own and keeps it everywhere — the button, its
-     confirmation, the receipt panel, and the badge in the admin's orders
-     list. */
+     green above, which mean something specific about stock. */
   --gift: oklch(0.5 0.16 300);
   --gift-foreground: oklch(0.99 0 0);
 
-  --border: oklch(0.93 0.006 170.4);
-  --input: oklch(0.87 0.008 170.4);
-  /* 0.65 alpha keeps the focus ring at >=3:1 against the page background. */
-  --ring: oklch(0.44 0.06 206.4 / 0.65);
+  --border: oklch(0.929 0.013 255.5);
+  --border-light: oklch(0.968 0.007 247.9);
+  --border-strong: oklch(0.869 0.02 252.9);
+  --input: oklch(0.929 0.013 255.5);
+  /* Emerald #059669: the focused field's border and every focus outline
+     (3.8:1 on white). */
+  --ring: oklch(0.596 0.127 163.2);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -287,33 +350,45 @@
     --popover: oklch(0.2 0 0);
     --popover-foreground: oklch(0.96 0 0);
 
-    /* Same brand hue, lightened so it reads on a dark surface. */
-    --primary: oklch(0.74 0.07 206.4);
+    /* Same emerald, lightened so it reads on a dark surface. */
+    --primary: oklch(0.773 0.153 163.2);
     --primary-foreground: oklch(0.16 0 0);
+    --primary-hover: oklch(0.845 0.13 165);
+    --primary-active: oklch(0.7 0.14 163.2);
+    --primary-light: oklch(0.32 0.06 166.9);
+    --primary-soft: oklch(0.24 0.035 166.9);
+    --primary-border: oklch(0.45 0.08 166.9);
+    --subtle-foreground: oklch(0.8 0 0);
+    --disabled-foreground: oklch(0.5 0 0);
 
-    --secondary: oklch(0.28 0.03 206.4);
-    --secondary-foreground: oklch(0.94 0.015 177.6);
+    --secondary: oklch(0.28 0.03 166.9);
+    --secondary-foreground: oklch(0.94 0.015 166.1);
 
     --muted: oklch(0.27 0 0);
     --muted-foreground: oklch(0.68 0 0);
 
-    --accent: oklch(0.32 0.04 206.4);
-    --accent-foreground: oklch(0.94 0.015 177.6);
+    --accent: oklch(0.32 0.04 166.9);
+    --accent-foreground: oklch(0.94 0.015 166.1);
 
     --destructive: oklch(0.62 0.2 27);
     --destructive-foreground: oklch(0.16 0 0);
+    --destructive-soft: oklch(0.3 0.08 27);
 
     /* Same two hues, re-stepped for a dark surface — lightened rather than
        flipped, so amber is still amber and green still green. */
     --success: oklch(0.76 0.15 152);
     --warning: oklch(0.8 0.14 75);
+    --success-soft: oklch(0.28 0.06 152);
+    --warning-soft: oklch(0.3 0.06 75);
+    --info: oklch(0.75 0.12 255);
+    --info-soft: oklch(0.28 0.06 255);
     --gift: oklch(0.75 0.14 300);
     --gift-foreground: oklch(0.16 0 0);
 
     --page: oklch(0.16 0 0);
     --soft: oklch(0.27 0 0);
-    --pale: oklch(0.3 0.035 206.4);
-    --pale-foreground: oklch(0.82 0.06 206.4);
+    --pale: oklch(0.3 0.035 166.9);
+    --pale-foreground: oklch(0.82 0.06 166.9);
     --blush: oklch(0.62 0.07 8.2);
     --blush-foreground: oklch(0.2 0.04 10.9);
     --quick: oklch(0.3 0.04 3.5);
@@ -327,15 +402,17 @@
 
     --border: oklch(1 0 0 / 12%);
     --input: oklch(1 0 0 / 18%);
-    --ring: oklch(0.74 0.07 206.4 / 0.6);
+    --border-light: oklch(1 0 0 / 8%);
+    --border-strong: oklch(1 0 0 / 24%);
+    --ring: oklch(0.773 0.153 163.2);
   }
 }
 
 /* From `desk` (1000px) the selling screen's top bar holds the search and its
-   two buttons in its own row, and is drawn taller, as the design has it. */
+   two buttons in its own row — a little taller, still compact. */
 @media (width >= 62.5rem) {
   :root {
-    --top-bar-height: 4.5rem;
+    --top-bar-height: 4rem;
   }
 }
 
@@ -722,6 +799,16 @@ html[data-boot="failed"] .boot-failure {
 /* With motion turned down the acknowledgement stays — it just stops moving.
    Both elements are removed by the component when the window is up, so a
    still bar and a still frame say the same thing without animating. */
+/* Colour and lift changes are 150ms everywhere; under reduced motion they
+   are instant instead. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    transition-duration: 0ms !important;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-scan-flash-bar,
   .animate-scan-pulse {

@@ -49,14 +49,14 @@ export function SaleSuccess({ order, onNewSale }: SaleSuccessProps) {
       // stealing focus from whatever the cashier does next.
       role="status"
       className={cn(
-        "flex flex-col items-center gap-4 rounded-xl border px-6 py-12 text-center",
-        isGift ? "border-gift/30 bg-gift/10" : "border-emerald-500/30 bg-emerald-500/10"
+        "flex flex-col items-center gap-4 rounded-panel border px-6 py-12 text-center",
+        isGift ? "border-gift/30 bg-gift/10" : "border-success/20 bg-success-soft"
       )}
     >
       {isGift ? (
         <Gift className="size-12 text-gift" aria-hidden="true" />
       ) : (
-        <CheckCircle2 className="size-12 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
+        <CheckCircle2 className="size-12 text-success" aria-hidden="true" />
       )}
 
       <div className="flex flex-col gap-1">

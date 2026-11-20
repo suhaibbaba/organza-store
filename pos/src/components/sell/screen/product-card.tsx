@@ -11,7 +11,6 @@ import { cn } from "@/lib/utils";
 import { ProductThumb } from "@/components/sell/product-thumb";
 import { Spinner } from "@/components/ui/spinner";
 import { StockBadge } from "@/components/ui/stock-badge";
-import { CONTROL_HEIGHT } from "@/components/sell/screen/control-styles";
 
 interface ProductCardProps {
   product: ProductSummary;
@@ -23,10 +22,11 @@ interface ProductCardProps {
   onAdd: (product: ProductSummary) => void;
 }
 
-// One product in the grid, drawn as a card of its own (the shop's reference:
-// a white card with a hairline border, the photo in a soft square inside it,
-// the name, a tinted stock pill with the count, then the price and an
-// outlined "Add to cart" pill). The WHOLE card is the button — a cashier taps
+// One product in the grid, drawn as a card of its own: white, a hairline
+// border, 16px corners and the small lift; the photo in a 12px-cornered square
+// inside it, the name, a tinted stock pill with the count, then the price and
+// a compact emerald "Add to cart" pill. Hover strengthens the border and the
+// lift; keyboard focus draws the emerald ring. The WHOLE card is the button — a cashier taps
 // the dress they see — and a product with options opens the picker from it
 // the same way. The pill is drawn, not a second button.
 //
@@ -50,9 +50,9 @@ export function ProductCard({ product, isPending, isBusy, onAdd }: ProductCardPr
       aria-label={t("add", { name })}
       data-test-selector={testSelectorFor("pos-product-card", product.id)}
       className={cn(
-        "group flex size-full min-w-0 flex-col gap-3 rounded-card border border-border bg-card p-2.5 text-start transition-colors",
-        "not-disabled:hover:border-primary/40",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+        "group flex size-full min-w-0 flex-col gap-2.5 rounded-card border border-border bg-card p-2.5 text-start shadow-sm",
+        "transition-[border-color,box-shadow] not-disabled:hover:border-border-strong not-disabled:hover:shadow-md",
+        "focus-visible:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
         "disabled:cursor-not-allowed",
         isBusy && !soldOut && "cursor-wait"
       )}
@@ -69,7 +69,7 @@ export function ProductCard({ product, isPending, isBusy, onAdd }: ProductCardPr
           {/* min-h keeps the rows level when a product has no shelf (a quick
               sale not yet completed). */}
           <span className="min-h-5 truncate text-xs text-muted-foreground">{category}</span>
-          <span className={cn("truncate text-sm font-bold", soldOut && "text-muted-foreground")}>{name}</span>
+          <span className={cn("truncate text-sm font-semibold", soldOut && "text-muted-foreground")}>{name}</span>
         </div>
         <StockBadge stock={product.stock} trackLowStock={product.trackLowStock} showCount className="max-w-full" />
       </div>
@@ -82,10 +82,11 @@ export function ProductCard({ product, isPending, isBusy, onAdd }: ProductCardPr
           <span
             aria-hidden="true"
             data-test-selector={testSelectorFor("pos-product-add", product.id)}
+            // Drawn, not a second button (the whole card is the button), so
+            // it can be smaller than the 44px floor.
             className={cn(
-              CONTROL_HEIGHT,
-              "inline-flex shrink-0 items-center justify-center gap-1.5 rounded-full border border-border bg-card px-3 text-xs font-semibold transition-colors",
-              "group-not-disabled:group-hover:border-primary group-not-disabled:group-hover:bg-pale group-not-disabled:group-hover:text-pale-foreground"
+              "inline-flex h-9 shrink-0 items-center justify-center gap-1 rounded-control border border-primary-border bg-primary-soft px-2.5 text-xs font-semibold text-primary transition-colors",
+              "group-not-disabled:group-hover:border-primary group-not-disabled:group-hover:bg-primary group-not-disabled:group-hover:text-primary-foreground"
             )}
           >
             {isPending ? <Spinner /> : <Plus className="size-4" />}

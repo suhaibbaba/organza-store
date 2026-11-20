@@ -54,7 +54,7 @@ export function SearchField({ value, onChange, onSubmitCode, isLooking, inputRef
         className={cn(
           CONTROL_HEIGHT,
           "w-full rounded-control border border-input bg-card ps-9 pe-10 text-base text-foreground",
-          "placeholder:text-muted-foreground focus-visible:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          "placeholder:text-muted-foreground transition-[border-color,box-shadow] focus-visible:border-ring focus-visible:shadow-focus focus-visible:outline-none"
         )}
       />
       {isLooking ? (

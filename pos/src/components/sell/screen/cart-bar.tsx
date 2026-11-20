@@ -6,7 +6,7 @@ import { CHECKOUT_BAR_HEIGHT_VAR } from "@/constants/layout";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
 import { usePublishedHeight } from "@/hooks/use-published-height";
 import { cn } from "@/lib/utils";
-import { CONTROL_HEIGHT, CONTROL_SIZE } from "@/components/sell/screen/control-styles";
+import { CONTROL_HEIGHT, CONTROL_SIZE, PRIMARY_ACTION } from "@/components/sell/screen/control-styles";
 import type { CartTotals } from "@/types/cart";
 
 interface CartBarProps {
@@ -28,7 +28,7 @@ export function CartBar({ totals, onOpen, className }: CartBarProps) {
     <div
       ref={ref}
       className={cn(
-        "fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card pb-[var(--safe-bottom)] shadow-[0_-4px_16px_-8px_rgb(0_0_0/0.12)]",
+        "fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card pb-[var(--safe-bottom)] shadow-md",
         className
       )}
       data-test-selector="pos-cart-bar"
@@ -62,11 +62,7 @@ export function CartBar({ totals, onOpen, className }: CartBarProps) {
           type="button"
           onClick={onOpen}
           data-test-selector="pos-cart-open"
-          className={cn(
-            CONTROL_HEIGHT,
-            "inline-flex shrink-0 items-center justify-center rounded-control bg-primary px-4 text-sm font-semibold text-primary-foreground",
-            "transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-          )}
+          className={cn(CONTROL_HEIGHT, PRIMARY_ACTION, "inline-flex shrink-0 items-center justify-center px-5 shadow-primary")}
         >
           {t("screen.viewCart")}
         </button>

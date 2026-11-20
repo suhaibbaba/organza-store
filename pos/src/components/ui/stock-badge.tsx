@@ -88,7 +88,7 @@ export function StockBadge({
   return (
     <span
       className={cn(
-        "inline-flex max-w-full items-center rounded-full font-medium",
+        "inline-flex max-w-full items-center rounded-full font-semibold",
         // 12px even at "sm". Zoom is off (see globals.css "An app, not a page"),
         // so a label that needs pinching to read cannot be read at all — and
         // "nearly out" is exactly the word somebody has to catch mid-sale.
@@ -110,9 +110,9 @@ export function StockBadge({
 // surfaces they sit on, in light mode and dark alike. The tokens themselves
 // live in app/globals.css.
 const STOCK_BADGE_STYLES: Readonly<Record<StockStatus, { icon: LucideIcon; tone: string }>> = {
-  OUT: { icon: Ban, tone: "bg-destructive/10 text-destructive" },
-  LOW: { icon: TriangleAlert, tone: "bg-warning/10 text-warning" },
-  IN: { icon: CircleCheck, tone: "bg-success/10 text-success" },
+  OUT: { icon: Ban, tone: "bg-destructive-soft text-destructive" },
+  LOW: { icon: TriangleAlert, tone: "bg-warning-soft text-warning" },
+  IN: { icon: CircleCheck, tone: "bg-success-soft text-success" },
 };
 
 // The pill drawn over a product photo (appearance="pill"). The dot is never

@@ -3,7 +3,7 @@
 import { useTranslations } from "next-intl";
 import { ScanBarcode, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { CONTROL_HEIGHT } from "@/components/sell/screen/control-styles";
+import { CONTROL_HEIGHT, SECONDARY_ACTION } from "@/components/sell/screen/control-styles";
 
 interface TopBarActionsProps {
   onScan: () => void;
@@ -26,9 +26,9 @@ export function TopBarActions({ onScan, onQuickSell }: TopBarActionsProps) {
         data-test-selector="pos-scan-open"
         className={cn(
           CONTROL_HEIGHT,
-          "inline-flex shrink-0 items-center justify-center gap-2 rounded-control border border-border bg-card px-3 text-sm font-medium",
-          "max-tab:w-10 max-tab:px-0",
-          "transition-colors hover:bg-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          SECONDARY_ACTION,
+          "inline-flex shrink-0 items-center justify-center gap-2 px-3",
+          "max-tab:w-11 max-tab:px-0"
         )}
       >
         <ScanBarcode className="size-4" aria-hidden="true" />
@@ -43,7 +43,7 @@ export function TopBarActions({ onScan, onQuickSell }: TopBarActionsProps) {
           className={cn(
             CONTROL_HEIGHT,
             "inline-flex shrink-0 items-center justify-center gap-2 rounded-control border border-quick-border bg-quick px-3 text-sm font-medium text-quick-foreground",
-            "transition-colors hover:brightness-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            "transition-[filter] hover:brightness-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
           )}
         >
           <Zap className="size-4" aria-hidden="true" />

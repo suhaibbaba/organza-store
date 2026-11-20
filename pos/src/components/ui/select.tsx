@@ -23,9 +23,9 @@ function Select({ className, children, dir, "data-test-selector": testSelector, 
         data-slot="select"
         dir={dir}
         className={cn(
-          "h-12 w-full appearance-none rounded-lg border border-input bg-card px-4 pe-10 text-base text-foreground",
-          "transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-          "disabled:cursor-not-allowed disabled:opacity-50",
+          "h-12 w-full appearance-none rounded-control border border-input bg-card px-4 pe-10 text-base text-foreground",
+          "transition-[border-color,box-shadow] focus-visible:outline-none focus-visible:border-ring focus-visible:shadow-focus",
+          "disabled:cursor-not-allowed disabled:bg-soft disabled:text-disabled-foreground",
           className
         )}
         {...props}

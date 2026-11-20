@@ -16,7 +16,7 @@ function SheetOverlay({ className, ...props }: React.ComponentProps<typeof Dialo
     <DialogPrimitive.Overlay
       data-slot="sheet-overlay"
       className={cn(
-        "fixed inset-0 z-50 bg-black/50 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+        "fixed inset-0 z-50 bg-black/40 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
         className
       )}
       {...props}
@@ -63,11 +63,11 @@ function SheetContent({
           // pb: iOS home indicator (CLAUDE.md "Mobile input & device
           // specifics") — every sheet ends in a bottom-anchored action row,
           // so this has to live on the shared root, not each call site.
-          "fixed z-50 flex flex-col gap-4 border-border bg-card pb-[var(--safe-bottom)] shadow-lg",
+          "fixed z-50 flex flex-col gap-4 border-border bg-card pb-[var(--safe-bottom)] shadow-xl",
           "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
           "data-[state=closed]:duration-200 data-[state=open]:duration-300",
           side === "bottom" &&
-            "inset-x-0 bottom-0 max-h-[90dvh] rounded-t-2xl border-t data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom",
+            "inset-x-0 bottom-0 max-h-[90dvh] rounded-t-panel border-t data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom",
           // Centred with `inset-0` + `m-auto` rather than a half-translate:
           // no transform to fight the open/close animation, and nothing
           // direction-dependent to get wrong — centre is centre in Arabic
@@ -76,7 +76,7 @@ function SheetContent({
           // full viewport instead of centred in it.
           side === "bottom" &&
             compact &&
-            "sm:inset-0 sm:m-auto sm:h-fit sm:w-full sm:max-w-md sm:max-h-[85dvh] sm:rounded-2xl sm:border",
+            "sm:inset-0 sm:m-auto sm:h-fit sm:w-full sm:max-w-md sm:max-h-[85dvh] sm:rounded-panel sm:border",
           // The slide direction must be logical (`start`/`end`), not physical
           // (`left`/`right`): the panel is pinned with a logical inset, so in
           // RTL a physical slide would fly it in from the opposite edge and
@@ -99,7 +99,7 @@ function SheetContent({
           aria-label={closeLabel}
           data-test-selector={testSelectorFor("pos-sheet-close", name)}
           className={cn(
-            "absolute end-3 inline-flex size-11 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+            "absolute end-3 inline-flex size-11 items-center justify-center rounded-control text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
             // A bottom sheet's top edge is somewhere in the middle of the
             // screen and owes the notch nothing; a full-height side panel's
             // is the top of the viewport, and its ✕ has to clear the same

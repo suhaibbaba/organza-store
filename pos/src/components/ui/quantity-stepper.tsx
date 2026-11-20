@@ -80,8 +80,8 @@ export function QuantityStepper({
 
   const compact = size === "compact";
   const buttonClass = compact
-    ? "hit-area flex size-10 shrink-0 items-center justify-center rounded-control text-foreground transition-colors not-disabled:hover:bg-soft disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring xwide:size-9"
-    : "flex size-11 shrink-0 items-center justify-center rounded-lg border border-input text-foreground transition-colors not-disabled:hover:bg-accent disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
+    ? "hit-area flex size-10 shrink-0 items-center justify-center rounded-control text-foreground transition-colors not-disabled:hover:bg-soft disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+    : "flex size-11 shrink-0 items-center justify-center rounded-control border border-input text-foreground transition-colors not-disabled:hover:bg-accent disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
   const iconClass = compact ? "size-4" : "size-5";
 
   return (
@@ -113,7 +113,7 @@ export function QuantityStepper({
         data-test-selector={testSelectorFor("pos-quantity-value", name)}
         className={
           compact
-            ? "h-10 w-9 rounded-none border-0 bg-transparent px-0 text-center text-base font-semibold shadow-none focus-visible:ring-0 xwide:h-9"
+            ? "h-10 w-9 rounded-none border-0 bg-transparent px-0 text-center text-base font-semibold shadow-none focus-visible:ring-0"
             : "h-11 w-14 px-0 text-center text-base font-semibold"
         }
       />

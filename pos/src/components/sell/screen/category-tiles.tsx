@@ -72,12 +72,14 @@ export function CategoryTiles({ selectedId, onSelect }: CategoryTilesProps) {
                   aria-pressed={selected}
                   data-test-selector={testSelectorFor("pos-category-tile", tile.id ?? "all")}
                   className={cn(
-                    "flex min-w-24 flex-col items-start rounded-control border px-3.5 py-1.5 text-start transition-colors tab:min-w-27",
-                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                    selected ? "border-primary bg-pale" : "border-border bg-card hover:bg-pale/60"
+                    "flex min-h-11 min-w-24 flex-col items-start rounded-tile border px-3.5 py-1.5 text-start transition-[background-color,border-color,box-shadow] tab:min-w-27",
+                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                    selected
+                      ? "border-primary bg-pale text-pale-foreground"
+                      : "border-border bg-card shadow-xs hover:border-border-strong hover:bg-soft"
                   )}
                 >
-                  <span className="max-w-40 truncate text-sm font-bold">{tile.label}</span>
+                  <span className="max-w-40 truncate text-sm font-semibold">{tile.label}</span>
                   <span className="min-h-5 text-xs text-muted-foreground tabular-nums">
                     {tile.count !== null && t("screen.productCount", { count: tile.count })}
                   </span>
