@@ -42,10 +42,29 @@ reason). The ones most worth a second look:
    (`import:catalogue`, then `import:history`); read the warnings. See `docs/blocked.md`.
 2. Decide the open items in the proposal's decisions table, especially 15 (tills and printer
    models).
-3. Updater key, shop domain, CORS origins, code-signing certificate: `docs/blocked.md`, phase 7.
+3. Shop domain for the web build, CORS origins, code-signing certificate: `docs/blocked.md`, phase 7.
+   (The updater is set up — see "Desktop releases" below.)
 4. Run the shop-PC checklist in `docs/blocked.md` with the CI installer.
 5. Cut-over itself follows proposal section G, phase 8: freeze, final import, opening balances
    (cash count, customer debts, supplier balances) as the ledger's first entries.
+
+## Desktop releases (auto-update)
+
+Set up on 2026-11-20. Installed copies check
+`https://api.organza-moda.com/desktop/latest.json` and install a newer signed build by themselves.
+
+- **Signing key:** made on the owner's Mac in `~/.tauri/` (`organza.key`, `organza.key.pub`,
+  `organza.key.password`). The public key is in `tauri.conf.json` → `plugins.updater.pubkey`.
+  The private key and its password are the GitHub secrets `TAURI_SIGNING_PRIVATE_KEY` and
+  `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`. **Keep a copy of the key and password somewhere safe:**
+  if they are lost, installed apps can never update again and have to be reinstalled by hand.
+- **Server:** nginx on the VPS serves `/var/www/organza-desktop/` at `/desktop/` on
+  `api.organza-moda.com` (`/etc/nginx/sites-available/organza-prod.conf`; `latest.json` is
+  `no-cache`, no directory listing). Backup of the file before the change: `/root/organza-prod.conf.bak-*`.
+- **To release:** bump `version` in `apps/desktop/src-tauri/tauri.conf.json`, commit, then push a
+  tag `desktop-v<that version>`. `.github/workflows/desktop-release.yml` builds and signs on
+  Windows, uploads the installer, then `latest.json`, then checks what is served. A tag that does
+  not match the version is refused. Nothing is published without a tag.
 
 ## Working on it
 
