@@ -1,6 +1,13 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+/* A window that is wide but SHORT: a 10" Windows tablet in landscape with the
+   title bar and the taskbar taken out (a Lenovo Miix 320 leaves about
+   1024x570). Width alone cannot see it — it reads as a small laptop — and a
+   layout stacked for a phone is then taller than the screen it is on. Used
+   where a centred, stacked page has to go side by side instead. */
+@custom-variant short-wide (@media (min-width: 48rem) and (max-height: 45rem));
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);

@@ -103,70 +103,76 @@ function QuickSellForm({
 
   return (
     <form
-      className="flex flex-col gap-4 overflow-y-auto px-5 pb-5"
+      className="flex min-h-0 flex-col"
       onSubmit={(event) => {
         event.preventDefault();
         submit();
       }}
     >
-      <div className="flex flex-col gap-2">
-        <Label htmlFor="pos-quick-sell-name">{t("nameLabel")}</Label>
-        {/* Autofocus: the sheet was opened to type this. On a phone that
-            brings the keyboard up with the sheet rather than after a second
-            tap, which is the whole second this feature exists to save. */}
-        <Input
-          id="pos-quick-sell-name"
-          value={name}
-          onChange={(event) => setName(event.target.value)}
-          placeholder={t("namePlaceholder")}
-          maxLength={QUICK_SELL_NAME_MAX_LENGTH}
-          autoFocus
-          autoComplete="off"
-        />
-      </div>
+      {/* The fields scroll; the buttons do not. On a short, wide screen — a
+          10" Windows tablet leaves about 570px — the sheet is shorter than
+          its own form, and a form that scrolls as one piece takes "add" below
+          the fold of a dialog nobody thinks to scroll. */}
+      <div className="flex min-h-0 flex-col gap-4 overflow-y-auto px-5 pb-4">
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="pos-quick-sell-name">{t("nameLabel")}</Label>
+          {/* Autofocus: the sheet was opened to type this. On a phone that
+              brings the keyboard up with the sheet rather than after a second
+              tap, which is the whole second this feature exists to save. */}
+          <Input
+            id="pos-quick-sell-name"
+            value={name}
+            onChange={(event) => setName(event.target.value)}
+            placeholder={t("namePlaceholder")}
+            maxLength={QUICK_SELL_NAME_MAX_LENGTH}
+            autoFocus
+            autoComplete="off"
+          />
+        </div>
 
-      <div className="flex flex-col gap-2">
-        <Label htmlFor="pos-quick-sell-price">
-          {currency ? t("priceLabelCurrency", { currency }) : t("priceLabel")}
-        </Label>
-        {/* A price, so decimals are allowed — but still the numeric keypad
-            and still no "e"/"+"/"-" (CLAUDE.md "Mobile input"). */}
-        <NumericInput
-          id="pos-quick-sell-price"
-          allowDecimal
-          value={price}
-          onChange={(event) => setPrice(event.target.value)}
-          placeholder={t("pricePlaceholder")}
-          aria-invalid={showPriceError}
-        />
-        {showPriceError && <p className="text-sm text-destructive">{t("priceInvalid")}</p>}
-      </div>
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="pos-quick-sell-price">
+            {currency ? t("priceLabelCurrency", { currency }) : t("priceLabel")}
+          </Label>
+          {/* A price, so decimals are allowed — but still the numeric keypad
+              and still no "e"/"+"/"-" (CLAUDE.md "Mobile input"). */}
+          <NumericInput
+            id="pos-quick-sell-price"
+            allowDecimal
+            value={price}
+            onChange={(event) => setPrice(event.target.value)}
+            placeholder={t("pricePlaceholder")}
+            aria-invalid={showPriceError}
+          />
+          {showPriceError && <p className="text-sm text-destructive">{t("priceInvalid")}</p>}
+        </div>
 
-      <div className="flex flex-col gap-2">
-        <Label htmlFor="pos-quick-sell-detail">{t("detailLabel")}</Label>
-        <Input
-          id="pos-quick-sell-detail"
-          value={detail}
-          onChange={(event) => setDetail(event.target.value)}
-          placeholder={t("detailPlaceholder")}
-          maxLength={QUICK_SELL_DETAIL_MAX_LENGTH}
-          autoComplete="off"
-        />
-        <p className="text-xs text-muted-foreground">{t("detailHint")}</p>
-      </div>
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="pos-quick-sell-detail">{t("detailLabel")}</Label>
+          <Input
+            id="pos-quick-sell-detail"
+            value={detail}
+            onChange={(event) => setDetail(event.target.value)}
+            placeholder={t("detailPlaceholder")}
+            maxLength={QUICK_SELL_DETAIL_MAX_LENGTH}
+            autoComplete="off"
+          />
+          <p className="text-xs text-muted-foreground">{t("detailHint")}</p>
+        </div>
 
-      {/* Said once, plainly, and before the button rather than after it: the
-          sale goes through now, and an Admin finishes the piece off later.
-          Nobody at the till should be left wondering whether they have just
-          created a mess. */}
-      <Alert>{t("afterwards")}</Alert>
+        {/* Said once, plainly, and before the button rather than after it: the
+            sale goes through now, and an Admin finishes the piece off later.
+            Nobody at the till should be left wondering whether they have just
+            created a mess. */}
+        <Alert>{t("afterwards")}</Alert>
+      </div>
 
       {/* The primary action sits at the START edge, under where a thumb
           rests on a phone held in the reading direction — the same way round
           as the variant picker and the opposite of the gift sheet. The rule
           is what a stray tap costs: adding a line to a cart is one tap to
           undo, giving a piece away is not. */}
-      <div className="flex items-stretch gap-3">
+      <div className="flex shrink-0 items-stretch gap-3 border-t border-border px-5 py-4">
         <Button type="submit" disabled={!canAdd} data-test-selector="pos-quick-sell-add" className="min-w-0 flex-[2]">
           <Zap aria-hidden="true" />
           {t("add")}
