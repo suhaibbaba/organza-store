@@ -101,9 +101,19 @@ export function SegmentedControl<TValue extends string>({
   }, [value, options.length]);
 
   useEffect(() => {
-    track.current
-      ?.querySelector<HTMLElement>('[aria-checked="true"]')
-      ?.scrollIntoView?.({ block: "nearest", inline: "nearest", behavior: "smooth" });
+    // Scrolls the track only: scrollIntoView would also scroll the page to wherever the control sits.
+    const element = track.current;
+    const chosen = element?.querySelector<HTMLElement>('[aria-checked="true"]');
+    if (!element || !chosen) {
+      return;
+    }
+    const trackBox = element.getBoundingClientRect();
+    const chosenBox = chosen.getBoundingClientRect();
+    const overflow =
+      chosenBox.left < trackBox.left ? chosenBox.left - trackBox.left : Math.max(0, chosenBox.right - trackBox.right);
+    if (overflow !== 0) {
+      element.scrollBy?.({ left: overflow, behavior: "smooth" });
+    }
   }, [value]);
 
   const scroll = (side: "left" | "right"): void => {
