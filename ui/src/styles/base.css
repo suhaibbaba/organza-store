@@ -268,7 +268,7 @@
 
 @keyframes drawer-end-in {
   from {
-    transform: translateX(calc(100% * var(--drawer-direction, 1)));
+    transform: translateX(100%);
   }
   to {
     transform: translateX(0);
@@ -280,7 +280,7 @@
     transform: translateX(0);
   }
   to {
-    transform: translateX(calc(100% * var(--drawer-direction, 1)));
+    transform: translateX(100%);
   }
 }
 

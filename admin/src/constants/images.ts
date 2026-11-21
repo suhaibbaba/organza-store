@@ -74,18 +74,11 @@ export const NEXT_IMAGE_QUALITY = 75;
  */
 export const CROP_ZOOM_KEY_STEP = 0.05;
 
-// The one big photo on the product detail page. It is capped by HEIGHT
-// (16rem, 18rem from md up), so a photo framed 2:3 — the editor's default,
-// and nearly every photo in the shop — is drawn about 171px wide, 192px from
-// md up. It used to say "92vw", which on a phone asked for a 750px-wide copy
-// (over 200 KB) to fill a box 192px wide; a `vw` in `sizes` also makes
-// next/image drop every candidate under 640px from the srcset. In pixels it
-// fetches 384px at 2x — a landscape photo, drawn wider, is the one that comes
-// out a little soft, and that is the trade.
-export const PRODUCT_DETAIL_IMAGE_SIZES = "192px";
+// The product page's big photo: half the page on desktop, the full width on a phone.
+export const PRODUCT_DETAIL_IMAGE_SIZES = "(max-width: 1023px) 92vw, 28rem";
 
-// Its thumbnail strip — small fixed squares at every screen size.
-export const PRODUCT_DETAIL_THUMB_SIZES = "56px";
+// Its thumbnail grid: five small squares under the big photo.
+export const PRODUCT_DETAIL_THUMB_SIZES = "96px";
 
 /**
  * Drawn wherever a product has no photo, or the photo it has won't load

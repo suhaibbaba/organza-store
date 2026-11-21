@@ -82,7 +82,7 @@ export function VariantList({ variants, variantTypes, currency }: VariantListPro
       hideOnMobile: true,
       render: (variant) =>
         variant.barcode ? (
-          <span className="flex flex-col">
+          <span className="flex flex-col items-start">
             <span dir="ltr" className="tabular-nums" {...SELECTABLE}>
               {variant.barcode}
             </span>

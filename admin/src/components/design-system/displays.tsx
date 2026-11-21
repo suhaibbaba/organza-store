@@ -27,10 +27,14 @@ import {
   Widget,
   useToast,
   type Column,
+  ImageViewer,
+  StickyActions,
+  STICKY_PRIMARY_CLASS,
+  STICKY_SECONDARY_CLASS,
 } from "@store/ui";
 import { Skeleton } from "@store/ui/components/skeleton";
 import { useSettingsQuery } from "@/hooks/use-settings";
-import { DESIGN_SYSTEM_SAMPLE_ROWS } from "@/constants/design-system";
+import { DESIGN_SYSTEM_SAMPLE_ROWS, DESIGN_SYSTEM_VIEWER_IMAGES } from "@/constants/design-system";
 import { ShowcaseRow, ShowcaseSection } from "@/components/design-system/showcase-section";
 import type { DesignSystemSampleRow } from "@/types/design-system";
 
@@ -43,6 +47,9 @@ export function Displays() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [navDrawerOpen, setNavDrawerOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [viewerOpen, setViewerOpen] = useState(false);
+  const [viewerIndex, setViewerIndex] = useState(0);
+  const [stickyOpen, setStickyOpen] = useState(false);
   const [page, setPage] = useState(1);
   const [tableLoading, setTableLoading] = useState(false);
   const [tableSelected, setTableSelected] = useState<string[]>([]);
@@ -209,6 +216,12 @@ export function Displays() {
           <Button variant="danger" onClick={() => setConfirmOpen(true)}>
             {t("overlays.openConfirm")}
           </Button>
+          <Button variant="secondary" onClick={() => setViewerOpen(true)}>
+            {t("overlays.openImageViewer")}
+          </Button>
+          <Button variant="secondary" onClick={() => setStickyOpen((open) => !open)}>
+            {t("overlays.toggleStickyActions")}
+          </Button>
           <Menu>
             <MenuTrigger asChild>
               <Button variant="secondary" icon={<span aria-hidden="true">⋯</span>}>
@@ -250,6 +263,29 @@ export function Displays() {
         />
       </ShowcaseSection>
 
+      <StickyActions
+        data-testid="design-system-sticky-actions"
+        visible={stickyOpen}
+        tone="primary"
+        size="md"
+        label={t("overlays.stickyMessage")}
+        message={t("overlays.stickyMessage")}
+      >
+        <Button variant="quiet" className={STICKY_SECONDARY_CLASS} onClick={() => setStickyOpen(false)}>
+          {t("overlays.stickyClear")}
+        </Button>
+        <Button className={STICKY_PRIMARY_CLASS} onClick={() => setStickyOpen(false)}>
+          {t("overlays.stickyAction")}
+        </Button>
+      </StickyActions>
+      <ImageViewer
+        data-testid="design-system-image-viewer"
+        open={viewerOpen}
+        onOpenChange={setViewerOpen}
+        index={viewerIndex}
+        onIndexChange={setViewerIndex}
+        images={DESIGN_SYSTEM_VIEWER_IMAGES.map((src, position) => ({ id: src, src, thumbnailSrc: src, alt: t("overlays.imageAlt", { number: position + 1 }) }))}
+      />
       <Modal
         open={modalOpen}
         onOpenChange={setModalOpen}

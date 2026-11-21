@@ -624,8 +624,9 @@
         "selected": "{count, plural, one {طلب واحد محدد} two {طلبان محددان} few {{count, number, plain} طلبات محددة} other {{count, number, plain} طلبًا محددًا}}",
         "selectAll": "تحديد الكل",
         "clear": "إلغاء التحديد",
-        "markCollected": "{count, plural, one {استلمت مبلغ طلب واحد} two {استلمت مبلغ طلبين} few {استلمت مبالغ {count, number, plain} طلبات} other {استلمت مبالغ {count, number, plain} طلبًا}}",
-        "selectAllLabel": "تحديد كل طلبات هذه الصفحة"
+        "selectAllLabel": "تحديد كل طلبات هذه الصفحة",
+        "confirm": "تم استلام المبلغ",
+        "label": "الطلبات المحددة"
       },
       "table": {
         "owed": "المستحق"
@@ -804,8 +805,6 @@
       "cost": "التكلفة",
       "wasPrice": "كان {price}",
       "descriptionTitle": "الوصف",
-      "numberedPointsAlt": "صورة المنتج مع أرقامها",
-      "numberedPointsHint": "{count} رقم موضوع على هذه الصورة.",
       "variantsTitle": "المتغيرات",
       "variantsCount": "{count} متغيرات",
       "variantSku": "رمز SKU",
@@ -828,13 +827,20 @@
       "barcodeSupplierShort": "كود المورّد",
       "actions": "إجراءات المنتج",
       "price": "السعر",
-      "noPhotos": "لا توجد صور بعد",
-      "noDescription": "لا يوجد وصف بعد",
-      "tabs": {
-        "label": "أقسام المنتج",
-        "variants": "المتغيرات",
-        "photos": "الصور",
-        "description": "الوصف"
+      "inStock": "{count, plural, zero {لا شيء في المخزون} one {قطعة واحدة في المخزون} two {قطعتان في المخزون} few {{count, number, plain} قطع في المخزون} many {{count, number, plain} قطعة في المخزون} other {{count, number, plain} قطعة في المخزون}}",
+      "outOfStock": "نفد من المخزون",
+      "gallery": {
+        "open": "فتح الصورة بحجم كبير",
+        "show": "عرض الصورة {number}",
+        "numbered": "مع الأرقام",
+        "variant": "متغير: {name}",
+        "none": "لا توجد صور بعد"
+      },
+      "print": {
+        "open": "طباعة الباركود",
+        "title": "طباعة الباركود",
+        "print": "{count, plural, zero {طباعة} one {طباعة ملصق واحد} two {طباعة ملصقين} few {طباعة {count, number, plain} ملصقات} many {طباعة {count, number, plain} ملصقًا} other {طباعة {count, number, plain} ملصق}}",
+        "tooMany": "عدد الملصقات أكبر من المسموح في مرة واحدة (الحد {max})."
       }
     },
     "form": {
@@ -1918,7 +1924,13 @@
       "delete": "حذف",
       "close": "إغلاق",
       "openNavDrawer": "قائمة جانبية",
-      "navDrawerDescription": "القائمة: ضيّقة ومن بداية السطر."
+      "navDrawerDescription": "القائمة: ضيّقة ومن بداية السطر.",
+      "openImageViewer": "فتح عارض الصور",
+      "imageAlt": "صورة تجريبية {number}",
+      "toggleStickyActions": "إظهار شريط الإجراءات",
+      "stickyMessage": "3 محددة",
+      "stickyClear": "مسح",
+      "stickyAction": "تطبيق"
     },
     "table": {
       "product": "المنتج",

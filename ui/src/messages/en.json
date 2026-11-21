@@ -35,7 +35,15 @@
     "confirm": "Confirm",
     "deleteForever": "Delete for good",
     "hidePassword": "Hide password",
-    "showPassword": "Show password"
+    "showPassword": "Show password",
+    "imageViewer": {
+      "title": "Photos",
+      "previous": "Previous photo",
+      "next": "Next photo",
+      "counter": "{current} of {total}",
+      "show": "Show photo {number}",
+      "open": "Open photo {number} large"
+    }
   },
   "pagination": {
     "goToPage": "Page {page, number, plain}",

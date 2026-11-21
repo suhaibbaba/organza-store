@@ -121,6 +121,9 @@ clinic app (`/Users/suhaibbaba/Projects/clinic-management-system/apps/web/src/mo
   the buttons drop to the next line on phones, never a squeezed "ابحث بالا…"), a secondary **Filters** button
   (sliders icon + a count bubble of active filters), and `TotalBadge` pushed to the end (`ms-auto`).
   Never stacked full-width filter rows or a switch in its own card.
+- **The list's main filter also sits in the toolbar on desktop (user, 2026-11-21: products → category)**: a `Select`
+  (`hidden md:block`, applied at once) beside the search; phones keep it in the drawer; its chip still shows (user).
+- Page width is the `max-w-page` token (`--container-page` in `globals.css`), never `max-w-[1440px]` inline.
 - **Filters live in a `Drawer`:** a draft copied on open, footer "Clear filters" + "Show results";
   each filter is a `FormField`/`Switch` with a one-line hint. Applying resets to page 1.
 - **Active filters show as removable chips** under the toolbar: `@store/ui` `Chip` with `onRemove`
@@ -145,6 +148,9 @@ clinic app (`/Users/suhaibbaba/Projects/clinic-management-system/apps/web/src/mo
 - **Filters, sort, search, page and page size live in the URL** (user, 2026-11-21): `useUrlFilters(DEFAULTS, <LIST>_URL_PARAMS)`
   + `useUrlSearch` (box types freely, `q` written once typing pauses); a param map per list in `constants/`, built
   from `urlParam.*` so a bad value falls back to the default; defaults are left out of the URL; `replace`, not push.
+- **Back from a record returns to the list as it was left (user, 2026-11-21)**: the breadcrumb's ← and parent crumb use
+  `useReturnHref` (each page's last query string, per tab), never `router.back()` — a shared link or an edit page in
+  between would send Back somewhere else.
 - **No auto-save on a list.** Inline edits (stock) are staged, outlined while changed, and written
   together by a sticky `SaveBar` ("N changed" · Discard · Save); a failed row stays outlined red with
   one Alert on top. No "kept here outside the filter" notices — staged rows don't move until Save.
@@ -162,6 +168,11 @@ clinic app (`/Users/suhaibbaba/Projects/clinic-management-system/apps/web/src/mo
   in it, role-gated actions are added when they apply (orders: "money received"). Desktop: the
   actions column gets `className: "align-top"`; phone cards: `besideTitleOnMobile` (the Table's
   card title row is `items-start`, so it stays in the corner beside tall photo titles).
+- **Bottom action bars are `StickyActions` (`@store/ui`, user 2026-11-21)** — the SaveBar's glass pill, made general (SaveBar
+  is built on it): sits above the phone nav, one pill from `sm`, a card below it (message on its own line, buttons
+  sharing the row). Never a hand-built `fixed` bar; actions use `STICKY_PRIMARY_CLASS` / `STICKY_SECONDARY_CLASS`.
+- Record pages: codes (`dir="ltr"`) in a flex column need `items-start`, or Arabic pushes them to the end. The
+  barcode fact has a print icon opening this product's labels (copies + preview) through the labels page's own sheet.
 - `useConfirm` defaults to delete styling (trash icon, red): pass `tone: "primary"` for anything
   that isn't a removal. Every confirm keeps its 3-second hold.
 - A wide cell needs `className: "min-w-[13rem] [--cell-max:22rem]"` (sized to fit) on its column: Table caps cell
@@ -233,7 +244,8 @@ clinic app (`/Users/suhaibbaba/Projects/clinic-management-system/apps/web/src/mo
   `MenuSheet` — `Drawer side="start" size="sm"` (from the RIGHT in Arabic), logo in its title, pages
   grouped by `NAV_GROUPS` under small headings, deepest matching href active, no language/sign-out
   (the header has both). The bottom bar keeps 4 tabs, no "More".
-- `Drawer`: `side="end"` (default) for content panels, `side="start"` for navigation.
+- `Drawer`: `side="end"` (default) for content panels — it slides in from the RIGHT edge in Arabic too (user,
+  2026-11-21: left-to-right in RTL is wrong); `side="start"` for navigation. The account button has no ▾ (user).
 - The ADMIN zooms (pinch / Ctrl+wheel) — only the POS till locks zoom (spec.md "An installed app").
 
 - Orders: the hand-rolled tanstack table + separate phone `OrderCard` + own pagination → one
@@ -337,8 +349,16 @@ clinic app (`/Users/suhaibbaba/Projects/clinic-management-system/apps/web/src/mo
 - **The row ⋯ (`RowMenu`) is a round button** (`rounded-pill`), on every list.
 - A filter chip names its filter ("Stock: out of stock"), never the bare value — "Out of stock" alone reads as a status.
 
+- **Product page — gallery beside the details, no tabs (user, 2026-11-21: "redesign from scratch")**: start column a
+  big 1:1 photo (`contain`, `CardButton`, ⤢ chip) with every photo small under it (5-column grid) — the numbered
+  image first, then the product's photos, then the variants' own (`lib/product-gallery.ts`); end column the details
+  card (badges + Edit/⋯, name, big price, stock badge, codes strip 2 per row) and the description; variants `Table`
+  full width under both. Sticky gallery on desktop.
+- **A big photo opens `ImageViewer` (`@store/ui`)**: the photo alone on a dim of the page (no panel behind it), the
+  set as thumbnails under it, arrows that follow the reading direction, a counter only when there are 2+.
+
 ## Done
-- admin `products/[id]` (record) — 2026-11-21
+- admin `products/[id]` (record) — 2026-11-21; rebuilt 2026-11-21: gallery + viewer, details card, no tabs
 - admin `products/[id]/edit` + `products/new` (form, shared `product-form.tsx`) — 2026-11-21
 - admin `inventory` (list — first list pattern) — 2026-11-21
 - admin `orders` (list) — 2026-11-21

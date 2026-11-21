@@ -171,7 +171,6 @@ function OrderCollectionPageContent() {
           />
         )}
 
-        {selectedOnPage.length > 0 && <div className="h-32" aria-hidden="true" />}
         <CollectionActionBar
           count={selectedOnPage.length}
           amount={selectedAmount}

@@ -14,7 +14,12 @@ import { useUrlFilters } from "@/hooks/use-url-filters";
 import { useUrlSearch } from "@/hooks/use-url-search";
 import { useNeedsCompletingCountQuery, useProductsQuery } from "@/hooks/use-products";
 import { ProductSearch } from "@/components/products/product-search";
-import { ProductFilterChips, ProductFilters, countProductFilters } from "@/components/products/product-filters";
+import {
+  ProductCategoryFilter,
+  ProductFilterChips,
+  ProductFilters,
+  countProductFilters,
+} from "@/components/products/product-filters";
 import { ProductTable } from "@/components/products/product-table";
 import { ProductListEmpty, ProductListError } from "@/components/products/product-list-states";
 import type { ProductFiltersValue, ProductListFilters, ProductSortValue } from "@/types/product";
@@ -107,6 +112,10 @@ export default function ProductsPage() {
                 onChange={setSearchInput}
               />
             </div>
+            <ProductCategoryFilter
+              value={filters.categoryId}
+              onChange={(categoryId) => changeFilters({ categoryId, page: DEFAULT_PAGE })}
+            />
             <ProductFilters
               value={filtersValue}
               sort={sortValue}

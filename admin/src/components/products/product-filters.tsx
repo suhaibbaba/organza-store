@@ -11,7 +11,12 @@ import { useMoneyFormatter } from "@/hooks/use-money-formatter";
 import { flattenCategoryTree } from "@/lib/api/categories";
 import { localize } from "@/lib/i18n-content";
 import { PRODUCT_SORT_OPTIONS } from "@/constants/products";
-import type { ProductFilterChipsProps, ProductFiltersProps, ProductFiltersValue } from "@/types/product";
+import type {
+  ProductCategoryFilterProps,
+  ProductFilterChipsProps,
+  ProductFiltersProps,
+  ProductFiltersValue,
+} from "@/types/product";
 
 export const EMPTY_PRODUCT_FILTERS: ProductFiltersValue = {
   categoryId: null,
@@ -33,6 +38,24 @@ function useCategoryOptions() {
     label: `${"  ".repeat(category.depth)}${localize(category.name, locale)}`,
     name: localize(category.name, locale),
   }));
+}
+
+// Category is the filter the shop reaches for most, so desktop gets it in the toolbar, applied at once; phones keep it in the drawer.
+export function ProductCategoryFilter({ value, onChange }: ProductCategoryFilterProps) {
+  const t = useTranslations("products.filters");
+  const categories = useCategoryOptions();
+  return (
+    <div className="hidden w-60 shrink-0 md:block">
+      <Select
+        aria-label={t("category")}
+        data-testid="products-category"
+        value={value ?? ""}
+        placeholder={t("allCategories")}
+        options={categories.map(({ value: id, label }) => ({ value: id, label }))}
+        onChange={(event) => onChange(event.target.value || null)}
+      />
+    </div>
+  );
 }
 
 export function ProductFilters({ value, sort, onApply }: ProductFiltersProps) {

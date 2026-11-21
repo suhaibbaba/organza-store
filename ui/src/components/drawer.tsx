@@ -15,7 +15,7 @@ export interface DrawerProps extends TestIdProps {
   descriptionKey: string;
   children: ReactNode;
   footer?: ReactNode | undefined;
-  // "start" for navigation opened from a start-side ☰ (the right edge in Arabic); content panels stay "end".
+  // "start" for navigation from a start-side ☰; "end" content panels always slide in from the right edge, Arabic included.
   side?: "start" | "end" | undefined;
   // "sm" leaves the page visible beside a navigation drawer.
   size?: "sm" | "md" | undefined;
@@ -67,7 +67,7 @@ export function Drawer({
                   "data-[state=closed]:animate-[drawer-out_180ms_ease-in]",
                 ]
               : [
-                  "end-0 border-s",
+                  "right-0 border-l",
                   "data-[state=open]:animate-[drawer-end-in_220ms_cubic-bezier(0.32,0.72,0,1)]",
                   "data-[state=closed]:animate-[drawer-end-out_180ms_ease-in]",
                 ],

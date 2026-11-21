@@ -624,8 +624,9 @@
         "selected": "{count, plural, one {הזמנה אחת נבחרה} two {שתי הזמנות נבחרו} other {{count, number, plain} הזמנות נבחרו}}",
         "selectAll": "בחר הכל",
         "clear": "ניקוי",
-        "markCollected": "{count, plural, one {התקבל תשלום עבור הזמנה} two {התקבל תשלום עבור שתיים} other {התקבל תשלום עבור {count, number, plain}}}",
-        "selectAllLabel": "בחירת כל ההזמנות בעמוד"
+        "selectAllLabel": "בחירת כל ההזמנות בעמוד",
+        "confirm": "התשלום התקבל",
+        "label": "הזמנות שנבחרו"
       },
       "table": {
         "owed": "לתשלום"
@@ -804,8 +805,6 @@
       "cost": "עלות",
       "wasPrice": "היה {price}",
       "descriptionTitle": "תיאור",
-      "numberedPointsAlt": "תמונת המוצר עם המספרים שלה",
-      "numberedPointsHint": "{count} מספרים ממוקמים על התמונה הזו.",
       "variantsTitle": "וריאציות",
       "variantsCount": "{count} וריאציות",
       "variantSku": "מק\"ט",
@@ -828,13 +827,20 @@
       "barcodeSupplierShort": "קוד היבואן",
       "actions": "פעולות מוצר",
       "price": "מחיר",
-      "noPhotos": "אין עדיין תמונות",
-      "noDescription": "אין עדיין תיאור",
-      "tabs": {
-        "label": "חלקי המוצר",
-        "variants": "וריאציות",
-        "photos": "תמונות",
-        "description": "תיאור"
+      "inStock": "{count, plural, one {יחידה אחת במלאי} other {{count, number, plain} במלאי}}",
+      "outOfStock": "אזל מהמלאי",
+      "gallery": {
+        "open": "פתיחת התמונה בגדול",
+        "show": "הצגת תמונה {number}",
+        "numbered": "עם המספרים",
+        "variant": "וריאנט: {name}",
+        "none": "אין תמונות עדיין"
+      },
+      "print": {
+        "open": "הדפסת ברקוד",
+        "title": "הדפסת ברקוד",
+        "print": "{count, plural, one {הדפסת מדבקה אחת} other {הדפסת {count, number, plain} מדבקות}}",
+        "tooMany": "יותר מדי מדבקות להדפסה אחת (לכל היותר {max})."
       }
     },
     "form": {
@@ -1918,7 +1924,13 @@
       "delete": "מחיקה",
       "close": "סגירה",
       "openNavDrawer": "פתיחת תפריט צד",
-      "navDrawerDescription": "ניווט: צר, מתחילת השורה."
+      "navDrawerDescription": "ניווט: צר, מתחילת השורה.",
+      "openImageViewer": "פתיחת מציג התמונות",
+      "imageAlt": "תמונה לדוגמה {number}",
+      "toggleStickyActions": "הצגת סרגל הפעולות",
+      "stickyMessage": "3 נבחרו",
+      "stickyClear": "ניקוי",
+      "stickyAction": "החלה"
     },
     "table": {
       "product": "מוצר",

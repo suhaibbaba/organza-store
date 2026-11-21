@@ -1,7 +1,6 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { ChevronDown } from "lucide-react";
 import { Avatar, Menu, MenuContent, MenuItem, MenuLabel, MenuSeparator, MenuTrigger } from "@store/ui";
 import { useSession } from "@/components/providers/session-provider";
 import { useUserDisplay } from "@/lib/user-display";
@@ -26,7 +25,7 @@ export function AccountMenu({ className }: AccountMenuProps) {
         aria-label={t("account")}
         data-test-selector="account-menu"
         className={cn(
-          "group flex h-(--control-h) min-w-0 cursor-pointer items-center gap-1.5 rounded-control border border-line bg-surface ps-1 pe-2",
+          "group flex h-(--control-h) min-w-0 cursor-pointer items-center gap-1.5 rounded-control border border-line bg-surface ps-1 pe-1 sm:pe-2.5",
           "text-label font-medium text-ink transition-colors duration-150",
           "hover:bg-primary-50 data-[state=open]:bg-primary-50",
           className
@@ -34,10 +33,6 @@ export function AccountMenu({ className }: AccountMenuProps) {
       >
         <Avatar name={name} tintKey={user?.id} size={26} />
         <span className="min-w-0 max-w-32 truncate max-sm:sr-only sm:max-w-48">{name}</span>
-        <ChevronDown
-          className="size-4 shrink-0 text-ink-subtle transition-transform duration-150 group-data-[state=open]:rotate-180"
-          aria-hidden="true"
-        />
       </MenuTrigger>
 
       <MenuContent align="end">

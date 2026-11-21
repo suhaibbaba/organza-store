@@ -142,3 +142,11 @@ export interface OrderFilterChipsProps {
   value: OrderFiltersValue;
   onChange: (value: OrderFiltersValue) => void;
 }
+
+export interface CollectionActionBarProps {
+  count: number;
+  amount: string;
+  isPending: boolean;
+  onConfirm: () => void;
+  onClear: () => void;
+}

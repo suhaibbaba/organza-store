@@ -42,6 +42,9 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+
+  /* The widest a page gets (max-w-page): this app's tables are wide, but not wall-to-wall on a big monitor. */
+  --container-page: 1440px;
 }
 
 :root {

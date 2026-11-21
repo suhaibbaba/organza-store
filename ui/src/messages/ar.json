@@ -35,7 +35,15 @@
     "confirm": "تأكيد",
     "deleteForever": "حذف نهائي",
     "hidePassword": "إخفاء كلمة المرور",
-    "showPassword": "إظهار كلمة المرور"
+    "showPassword": "إظهار كلمة المرور",
+    "imageViewer": {
+      "title": "الصور",
+      "previous": "الصورة السابقة",
+      "next": "الصورة التالية",
+      "counter": "{current} من {total}",
+      "show": "عرض الصورة {number}",
+      "open": "فتح الصورة {number} بحجم كبير"
+    }
   },
   "pagination": {
     "goToPage": "الصفحة {page, number, plain}",

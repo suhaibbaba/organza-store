@@ -67,3 +67,6 @@ export const DESIGN_SYSTEM_SAMPLE_ROWS = [
 
 // Long enough (over 10) that the Select turns searchable on its own.
 export const DESIGN_SYSTEM_COLOURS = ["black", "white", "navy", "beige", "camel", "grey", "olive", "burgundy", "rose", "sky", "mint", "mustard"] as const;
+
+// Local pictures for the image viewer demo, so it works without uploads.
+export const DESIGN_SYSTEM_VIEWER_IMAGES = ["/splash/preview.png", "/product-placeholder.svg", "/splash/splash-1170x2532.png"] as const;

@@ -3,6 +3,9 @@ import type { ProductPrintState, ProductSummary } from "@organza/shared/types/pr
 import type { Pagination } from "@organza/shared/types/common";
 import type { TableSort } from "@store/ui";
 import type { ProductCompletenessFilter } from "@organza/shared/constants/quickSell";
+import type { LucideIcon } from "lucide-react";
+import type { ReactNode } from "react";
+import type { Product } from "@organza/shared/types/product";
 
 // Cropped to fill (thumbnails), whole inside the box, or its own size within a cap (detail page).
 export type ProductImageFit = "cover" | "contain" | "natural";
@@ -65,4 +68,36 @@ export interface ProductPhotoProps {
   className?: string;
   sizes: string;
   fit?: ProductImageFit;
+}
+
+// One photo on the product page: the saved numbered image, a product photo, or a variant's own photo.
+export interface GalleryPhoto {
+  id: string;
+  url: string;
+  mediumUrl: string;
+  thumbnailUrl: string;
+  kind: "numbered" | "product" | "variant";
+  variantName: string | null;
+}
+
+export interface ProductDetailGalleryProps {
+  photos: GalleryPhoto[];
+  name: string;
+}
+
+export interface ProductFactProps {
+  icon: LucideIcon;
+  label: string;
+  children: ReactNode;
+  testId: string;
+  action?: ReactNode;
+}
+
+export interface ProductCategoryFilterProps {
+  value: string | null;
+  onChange: (categoryId: string | null) => void;
+}
+
+export interface ProductBarcodePrintProps {
+  product: Product;
 }

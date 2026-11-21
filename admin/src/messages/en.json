@@ -624,8 +624,9 @@
         "selected": "{count, plural, one {1 order selected} other {{count, number, plain} orders selected}}",
         "selectAll": "Select all",
         "clear": "Clear",
-        "markCollected": "{count, plural, one {Payment received for 1} other {Payment received for {count, number, plain}}}",
-        "selectAllLabel": "Select every order on this page"
+        "selectAllLabel": "Select every order on this page",
+        "confirm": "Payment received",
+        "label": "Selected orders"
       },
       "table": {
         "owed": "Owed"
@@ -804,8 +805,6 @@
       "cost": "Cost",
       "wasPrice": "Was {price}",
       "descriptionTitle": "Description",
-      "numberedPointsAlt": "Product photo with its numbered points",
-      "numberedPointsHint": "{count} numbers placed on this photo.",
       "variantsTitle": "Variants",
       "variantsCount": "{count} variants",
       "variantSku": "SKU",
@@ -828,13 +827,20 @@
       "barcodeSupplierShort": "supplier's code",
       "actions": "Product actions",
       "price": "Price",
-      "noPhotos": "No photos yet",
-      "noDescription": "No description yet",
-      "tabs": {
-        "label": "Product sections",
-        "variants": "Variants",
-        "photos": "Photos",
-        "description": "Description"
+      "inStock": "{count, plural, one {{count, number, plain} in stock} other {{count, number, plain} in stock}}",
+      "outOfStock": "Out of stock",
+      "gallery": {
+        "open": "Open the photo large",
+        "show": "Show photo {number}",
+        "numbered": "With numbers",
+        "variant": "Variant: {name}",
+        "none": "No photos yet"
+      },
+      "print": {
+        "open": "Print barcode",
+        "title": "Print barcode",
+        "print": "{count, plural, one {Print 1 label} other {Print {count, number, plain} labels}}",
+        "tooMany": "Too many labels for one run (at most {max})."
       }
     },
     "form": {
@@ -1918,7 +1924,13 @@
       "delete": "Delete",
       "close": "Close",
       "openNavDrawer": "Open navigation drawer",
-      "navDrawerDescription": "Navigation: narrow, from the inline start."
+      "navDrawerDescription": "Navigation: narrow, from the inline start.",
+      "openImageViewer": "Open image viewer",
+      "imageAlt": "Sample photo {number}",
+      "toggleStickyActions": "Toggle sticky actions",
+      "stickyMessage": "3 selected",
+      "stickyClear": "Clear",
+      "stickyAction": "Apply"
     },
     "table": {
       "product": "Product",

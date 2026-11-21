@@ -35,7 +35,15 @@
     "confirm": "אישור",
     "deleteForever": "מחיקה לצמיתות",
     "hidePassword": "הסתרת הסיסמה",
-    "showPassword": "הצגת הסיסמה"
+    "showPassword": "הצגת הסיסמה",
+    "imageViewer": {
+      "title": "תמונות",
+      "previous": "התמונה הקודמת",
+      "next": "התמונה הבאה",
+      "counter": "{current} מתוך {total}",
+      "show": "הצגת תמונה {number}",
+      "open": "פתיחת תמונה {number} בגדול"
+    }
   },
   "pagination": {
     "goToPage": "עמוד {page, number, plain}",
