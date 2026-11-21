@@ -1,15 +1,12 @@
-import type { PermissionAction } from "@store/shared/types/permission";
 import { PERMISSION_ACTIONS } from "@store/shared/constants/permissions";
+import type { EditableRole, PermissionGroup } from "@/types/permission";
 
 // Grouped by part of the shop; every action must appear in exactly one group (checked below).
-export interface PermissionGroup {
-  key: string;
-  actions: readonly PermissionAction[];
-}
-
 export const PERMISSION_GROUPS: readonly PermissionGroup[] = [
   {
     key: "products",
+    icon: "package",
+    tone: "blue",
     actions: [
       "product.view",
       "product.create",
@@ -26,6 +23,8 @@ export const PERMISSION_GROUPS: readonly PermissionGroup[] = [
   },
   {
     key: "catalogue",
+    icon: "layers",
+    tone: "violet",
     actions: [
       "category.view",
       "category.manage",
@@ -37,10 +36,14 @@ export const PERMISSION_GROUPS: readonly PermissionGroup[] = [
   },
   {
     key: "inventory",
+    icon: "shapes",
+    tone: "green",
     actions: ["inventory.view", "inventory.adjust"],
   },
   {
     key: "orders",
+    icon: "receipt",
+    tone: "amber",
     actions: [
       "order.view",
       "order.create",
@@ -55,6 +58,8 @@ export const PERMISSION_GROUPS: readonly PermissionGroup[] = [
   },
   {
     key: "money",
+    icon: "money",
+    tone: "rose",
     actions: [
       "dashboard.view",
       "report.view",
@@ -70,10 +75,14 @@ export const PERMISSION_GROUPS: readonly PermissionGroup[] = [
   },
   {
     key: "approvals",
+    icon: "clipboard",
+    tone: "red",
     actions: ["changeRequest.create", "changeRequest.view", "changeRequest.cancel", "changeRequest.approve"],
   },
   {
     key: "staff",
+    icon: "users",
+    tone: "neutral",
     actions: ["user.manage", "user.delete", "user.viewSensitive", "settings.manage", "permission.manage"],
   },
 ];
@@ -90,5 +99,5 @@ if (missing.length > 0 || duplicated.length > 0) {
   );
 }
 
-/** Roles down the columns of the matrix, in the order the shop thinks of them. */
-export const PERMISSION_MATRIX_ROLES = ["ADMIN", "MANAGER", "EMPLOYEE"] as const;
+// The Admin holds everything and is never editable (rule 22), so only these two are columns.
+export const EDITABLE_ROLES: readonly EditableRole[] = ["MANAGER", "EMPLOYEE"];

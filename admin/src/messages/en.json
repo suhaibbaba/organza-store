@@ -1810,25 +1810,16 @@
     "title": "Permissions",
     "subtitle": "Choose what each role is allowed to do.",
     "rolePicker": "Choose a role",
-    "saving": "Saving…",
     "unavailable": "The permissions could not be loaded. Please try again.",
     "ownRole": "You cannot change your own role's permissions.",
-    "adminRole": "The Admin always has every permission, so it cannot be changed here.",
     "toggleLabel": "{action} — {role}",
-    "intro": {
-      "title": "Every permission can be changed",
-      "body": "Turn on or off anything a manager or an employee may do — including costs and profit, reports, cancelling a sale, approvals and staff accounts. The Admin always keeps every permission."
-    },
     "locked": {
       "label": "Locked",
-      "protected": "This protects the shop's records",
-      "ownRole": "This is your own role",
-      "adminRole": "The Admin always has this",
       "on": "On",
       "off": "Off"
     },
     "table": {
-      "action": "What it is"
+      "action": "Permission"
     },
     "role": {
       "ADMIN": "Admin",
@@ -1922,6 +1913,21 @@
       "permission": {
         "manage": "Change these permissions"
       }
+    },
+    "adminNote": "The Admin always holds every permission, so it is not listed.",
+    "summary": "{role} {granted}/{total}",
+    "changed": "Changed",
+    "saved": "Permissions saved",
+    "changes": "{count, plural, one {1 change not saved} other {{count} changes not saved}}",
+    "restoreDefaults": "Restore shop defaults",
+    "search": {
+      "label": "Search permissions",
+      "placeholder": "Search a permission…",
+      "clear": "Clear search"
+    },
+    "empty": {
+      "title": "No matching permission",
+      "hint": "Try another word."
     }
   },
   "designSystem": {

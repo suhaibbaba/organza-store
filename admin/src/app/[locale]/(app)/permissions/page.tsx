@@ -23,11 +23,11 @@ function PermissionsPageContent() {
 
   return (
     <PageContainer>
-      <PageHeader name="permissions" title={t("title")} description={t("subtitle")} />
+      <PageHeader name="permissions" title={t("title")} description={`${t("subtitle")} ${t("adminNote")}`} />
       {matrix ? (
         <PermissionsEditor matrix={matrix} />
       ) : (
-        <Alert tone="danger" data-testid="alert-destructive">
+        <Alert tone="danger" data-testid="permissions-unavailable">
           {t("unavailable")}
         </Alert>
       )}

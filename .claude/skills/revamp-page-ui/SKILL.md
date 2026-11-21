@@ -446,6 +446,11 @@ hover:text-primary-700` (or `group` on the link + `group-hover:text-primary-700`
 
 - A page with no rows in the sandbox is checked by patching `fetch` to answer its GETs with sample rows (and its writes with a fake 201), then changing a filter to refetch.
 - A side card beside a wide Table only from `2xl`: at 1280px with the sidebar, a 20rem side column squeezes a 6-column table into horizontal scroll.
+- **Permissions (user, 2026-11-22): Manager and Employee side by side, staged with a SaveBar** — never a switch that
+  saves on tap. No Admin column (it holds everything); groups are collapsible `Section`s whose description counts
+  "Manager n/m · Employee n/m"; a search opens every group; "Restore shop defaults" only stages
+  `DEFAULT_ROLE_PERMISSIONS`; phones pick one role with segments. Save sends one PATCH per changed role and clears
+  each role as it lands.
 
 ## Done
 
@@ -465,3 +470,4 @@ hover:text-primary-700` (or `group` on the link + `group-hover:text-primary-700`
 - admin `reports` (range segments + URL, 3 headline cards, profit statement, best sellers Table with photos, side facts) — 2026-11-21
 - admin `dashboard` (greeting banner, today cards with icons, 7-day bars, latest orders, week/month brief, drawer, to-do list) — 2026-11-21
 - admin `expenses` (new: period segments, totals, table, by-category, add/edit modal with category tiles, categories drawer; dashboard button opens the form via `?new=1`) — 2026-11-22
+- admin `permissions` (two role columns, staged + SaveBar, group Sections with counts, search, restore defaults) — 2026-11-22
