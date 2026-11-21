@@ -8,18 +8,15 @@ import {
 } from "@/constants/dangerousCommands";
 import { currentAppEnv, isAppEnvDeclared, isProductionAppEnv } from "@/lib/appEnv";
 
-// The refusals in front of the two commands that can destroy a shop's data.
-//
-// They throw rather than exit(1) so a caller can catch them, and every message
-// is a console message for a developer at a terminal — not user-facing UI, so
-// CLAUDE.md rule 12 (no hard-coded strings) does not reach here. Nothing in
-// this file is ever rendered to a member of staff.
+// Refusals for the two data-destroying commands; they throw so callers can catch, and are terminal text, not UI (rule 12).
 
 const RULE = COMMAND_RULE;
 
 /** Never prints the password. `postgres://user:pw@host:5432/db` -> `host:5432/db`. */
 export function describeDatabase(url = process.env.DATABASE_URL): string {
-  if (!url) return "(DATABASE_URL is not set)";
+  if (!url) {
+    return "(DATABASE_URL is not set)";
+  }
   try {
     const parsed = new URL(url);
     return `${parsed.hostname}${parsed.port ? `:${parsed.port}` : ""}${parsed.pathname}`;
@@ -28,13 +25,7 @@ export function describeDatabase(url = process.env.DATABASE_URL): string {
   }
 }
 
-/**
- * Whether the database in front of this process is the shop's real one.
- *
- * Reads APP_ENV, not NODE_ENV (see lib/appEnv.ts): the sandbox is a
- * production *build* too, and answering "yes" for it made both refusals below
- * fire on the stack that exists to be thrown away.
- */
+/** Whether this is the shop's real database — by APP_ENV, not NODE_ENV (the sandbox is a production build too). */
 export function isProductionEnv(): boolean {
   return isProductionAppEnv();
 }
@@ -45,12 +36,7 @@ export function describeAppEnv(): string {
   return isAppEnvDeclared() ? appEnv : `${appEnv}  (APP_ENV is unset — assumed)`;
 }
 
-/**
- * The shape every refusal in this codebase takes: a banner, the lines, a
- * banner. Exported so the guards in front of `import:prod`
- * (lib/productionImport/guards.ts) read identically to the two below rather
- * than inventing a second house style for the same job.
- */
+/** The house shape of every refusal: banner, lines, banner (also used by productionImport/guards.ts). */
 export function refuseCommand(lines: string[]): never {
   throw new Error(["", RULE, ...lines, RULE, ""].join("\n"));
 }
@@ -64,14 +50,7 @@ interface DisposableOptions {
   what: string;
 }
 
-/**
- * For commands that must NEVER touch a real shop: the demo seed.
- *
- * Two conditions, both required — the caller has to declare the database
- * disposable, AND the process must not be running as production. There is no
- * override for the second: demo products on the live shop is not a thing
- * anybody needs to be able to do in a hurry.
- */
+/** Demo seed only: the database must be declared disposable AND the process not production; no override for the second. */
 export function assertDisposableDatabase(options: DisposableOptions): void {
   if (isProductionEnv()) {
     refuseCommand([
@@ -109,12 +88,7 @@ interface DestructiveOptions {
   what: string;
 }
 
-/**
- * For `db:reset`: confirmation on every run, plus a second, separate
- * declaration when the process is running as production. The shop may
- * genuinely need to wipe and restart a botched go-live — refusing outright
- * would just get the reset done by hand with psql, which is worse.
- */
+/** db:reset: confirmation every run, plus a second declaration under production — refusing outright would push people to psql. */
 export function assertDestructiveConfirmed(options: DestructiveOptions): void {
   if (process.env[options.confirmEnv] !== DESTRUCTIVE_CONFIRM_VALUE) {
     refuseCommand([

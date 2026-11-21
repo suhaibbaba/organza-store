@@ -1,103 +1,116 @@
 "use client";
 
-import { useMemo } from "react";
 import { useTranslations } from "next-intl";
-import { flexRender, getCoreRowModel, useReactTable, type ColumnDef } from "@tanstack/react-table";
-import { testSelectorFor } from "@organza/shared/lib/testSelector";
-import type { User } from "@organza/shared/types/user";
-import { RoleBadge } from "@/components/users/role-badge";
+import { Avatar, Badge, PhoneLink, Table, Typography, WhatsAppLink, type Column } from "@store/ui";
+import { PAGE_SIZE_OPTIONS } from "@store/shared/constants/pagination";
+import type { User } from "@store/shared/types/user";
+import { useSession } from "@/components/providers/session-provider";
 import { useUserDisplay } from "@/lib/user-display";
+import { RoleBadge } from "@/components/users/role-badge";
 import { UserStatusBadge } from "@/components/users/user-status-badge";
 import { AccountStateBadge } from "@/components/users/account-state-badge";
-import { UserRowActions, type UserRowActionsProps } from "@/components/users/user-row-actions";
+import { USER_AVATAR_SIZE } from "@/constants/users";
+import type { UserTableProps } from "@/types/user";
 
-type UserTableProps = Omit<UserRowActionsProps, "user" | "size"> & { users: User[] };
+// Rows are named `users-row-<id>` by the Table (its data-testid + "-row-" + rowKey).
+const TABLE_NAME = "users";
 
-export function UserTable({ users, ...actions }: UserTableProps) {
-  const tTable = useTranslations("users.table");
-  // Same rule as the card view of this list (lib/user-display.ts): the row
-  // reads as a name, never as an internal id.
+export function UserTable({
+  users,
+  meta,
+  isLoading,
+  isRefreshing,
+  sort,
+  onPageChange,
+  onPageSizeChange,
+  renderMenu,
+}: UserTableProps) {
+  const t = useTranslations("users");
   const display = useUserDisplay();
+  const { user: currentUser } = useSession();
 
-  const columns = useMemo<ColumnDef<User>[]>(
-    () => [
-      {
-        id: "name",
-        header: tTable("name"),
-        cell: ({ row }) => (
-          <div>
-            <p className="font-medium text-foreground">{display(row.original).name}</p>
-            <p className="text-xs text-muted-foreground" dir="ltr">
-              {row.original.email}
-            </p>
+  function renderPerson(user: User) {
+    const { name } = display(user);
+    return (
+      <div className="flex items-start gap-3">
+        <Avatar name={name} tintKey={user.id} size={USER_AVATAR_SIZE} className="shrink-0" />
+        <div className="flex min-w-0 flex-col gap-1">
+          <div className="flex flex-wrap items-center gap-1.5">
+            <Typography variant="body" weight="medium" as="span" className="break-words">
+              {name}
+            </Typography>
+            {currentUser?.id === user.id && <Badge tone="info">{t("table.you")}</Badge>}
           </div>
-        ),
-      },
-      {
-        id: "role",
-        header: tTable("role"),
-        cell: ({ row }) => <RoleBadge role={row.original.role} />,
-      },
-      {
-        id: "phone",
-        header: tTable("phone"),
-        cell: ({ row }) => (
-          <span dir="ltr" className="text-muted-foreground">
-            {row.original.phone}
-          </span>
-        ),
-      },
-      {
-        id: "status",
-        header: tTable("status"),
-        cell: ({ row }) => (
-          <div className="flex flex-wrap items-center gap-1">
-            <UserStatusBadge isActive={row.original.isActive} />
-            <AccountStateBadge hasPassword={row.original.hasPassword} />
-          </div>
-        ),
-      },
-      {
-        id: "actions",
-        header: "",
-        cell: ({ row }) => <UserRowActions user={row.original} size="table" {...actions} />,
-      },
-    ],
-    [tTable, actions, display]
-  );
+          <Typography variant="small" tone="muted" as="span" dir="ltr" className="self-start break-all">
+            {user.email}
+          </Typography>
+          <AccountStateBadge hasPassword={user.hasPassword} />
+        </div>
+      </div>
+    );
+  }
 
-  const table = useReactTable({ data: users, columns, getCoreRowModel: getCoreRowModel() });
+  const columns: Column<User>[] = [
+    {
+      key: "person",
+      header: "users.table.name",
+      primary: true,
+      sortKey: "name",
+      className: "min-w-[16rem] [--cell-max:24rem]",
+      render: renderPerson,
+    },
+    {
+      key: "role",
+      header: "users.table.role",
+      sortKey: "role",
+      render: (user) => <RoleBadge role={user.role} />,
+    },
+    {
+      key: "contact",
+      header: "users.table.contact",
+      render: (user) => (
+        <div className="flex flex-col items-start gap-1">
+          <PhoneLink value={user.phone} data-testid={`user-phone-${user.id}`} />
+          {user.whatsapp && <WhatsAppLink value={user.whatsapp} label={t("table.whatsapp")} />}
+        </div>
+      ),
+    },
+    {
+      key: "status",
+      header: "users.table.status",
+      render: (user) => <UserStatusBadge isActive={user.isActive} />,
+    },
+    {
+      key: "actions",
+      header: "users.table.actions",
+      actions: true,
+      besideTitleOnMobile: true,
+      align: "end",
+      className: "align-top",
+      render: renderMenu,
+    },
+  ];
 
   return (
-    <div className="overflow-hidden rounded-xl border border-border" data-test-selector="users-table">
-      <table className="w-full text-sm">
-        <thead className="bg-secondary text-secondary-foreground">
-          {table.getHeaderGroups().map((headerGroup) => (
-            <tr key={headerGroup.id}>
-              {headerGroup.headers.map((header) => (
-                <th key={header.id} className="px-4 py-3 text-start font-medium">
-                  {flexRender(header.column.columnDef.header, header.getContext())}
-                </th>
-              ))}
-            </tr>
-          ))}
-        </thead>
-        <tbody>
-          {table.getRowModel().rows.map((row) => (
-            <tr
-              key={row.id}
-              className="border-t border-border"
-              data-test-selector={testSelectorFor("users-row", row.original.id)}
-            >
-              {row.getVisibleCells().map((cell) => (
-                <td key={cell.id} className="px-4 py-3">
-                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                </td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+    <Table
+      data-testid={TABLE_NAME}
+      columns={columns}
+      rows={users}
+      rowKey={(user) => user.id}
+      isLoading={isLoading}
+      isRefreshing={isRefreshing}
+      sort={sort}
+      {...(meta && {
+        pagination: {
+          "data-testid": "users-pagination",
+          page: meta.page,
+          totalPages: Math.max(meta.totalPages, 1),
+          perPage: meta.pageSize,
+          perPageOptions: PAGE_SIZE_OPTIONS,
+          onPageChange,
+          onPerPageChange: onPageSizeChange,
+        },
+      })}
+    />
   );
 }

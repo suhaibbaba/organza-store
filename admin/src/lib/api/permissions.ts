@@ -1,5 +1,5 @@
-import type { PermissionMatrixPayload } from "@organza/shared/types/permission";
-import type { Role } from "@organza/shared/types/role";
+import type { PermissionMatrixPayload } from "@store/shared/types/permission";
+import type { Role } from "@store/shared/types/role";
 import { apiFetch } from "@/lib/api/client";
 
 /** What the API says each role may do right now (spec.md "Editable role permissions"). */
@@ -13,11 +13,7 @@ export interface RolePermissionChange {
   granted: boolean;
 }
 
-/**
- * One checkbox, one request. The response is the whole matrix again, so the
- * screen never has to guess what the change did — including the case where it
- * did nothing because somebody else got there first.
- */
+// The response is the whole matrix, including when someone else got there first.
 export async function updateRolePermissions(input: {
   role: Role;
   changes: RolePermissionChange[];

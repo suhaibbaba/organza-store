@@ -1,9 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { createRateLimiter } from "@/middleware/rateLimit";
 
-// The counter behind the public password endpoints. Exercised directly with
-// an injected clock, because a window that resets after fifteen minutes is
-// not something an HTTP suite can sit and wait for.
+// An injected clock, since a 15-minute window is not something HTTP can wait for.
 
 const WINDOW_MS = 15 * 60 * 1000;
 const NOW = Date.UTC(2026, 7, 1, 9, 0, 0);
@@ -38,9 +36,10 @@ describe("Rate limiter", () => {
   it("forgets buckets whose window has expired, so a long uptime doesn't grow forever", () => {
     const limiter = createRateLimiter({ limit: 1, windowMs: WINDOW_MS });
 
-    for (let i = 0; i < 100; i++) limiter.check(`probe-${i}@example.com`, NOW);
-    // A day later every one of those buckets is dead; the sweep runs on the
-    // next check and the limiter behaves as if none of them ever existed.
+    for (let i = 0; i < 100; i++) {
+      limiter.check(`probe-${i}@example.com`, NOW);
+    }
+    // A day later every bucket is swept and the limiter behaves as if none existed.
     expect(limiter.check("probe-0@example.com", NOW + 24 * 60 * 60 * 1000)).toBe(true);
   });
 });

@@ -1,6 +1,4 @@
-// The report endpoints return the shared DTOs verbatim (unlike the order
-// serializers, which build plain objects — see tests/types/order.ts), so the
-// suite asserts against the very types the API is typed with.
+// Report endpoints return the shared DTOs verbatim, so the suite asserts against the API's own types.
 export type {
   ChannelSales,
   PeriodSummary,
@@ -11,4 +9,4 @@ export type {
   SalesSummary,
   SalesTotals,
   TopSeller,
-} from "@organza/shared/types/report";
+} from "@store/shared/types/report";

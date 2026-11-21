@@ -1,16 +1,5 @@
 #!/usr/bin/env tsx
-// ============================================================================
-//  npm run verify — one command, one verdict.
-//
-//  Runs the whole vitest suite (tests/verify/* alongside the older
-//  tests/api/*) against a live API, then prints a pass/fail line per AREA
-//  rather than per file, and writes a report that can be handed to somebody
-//  else.
-//
-//  It refuses to run against production before it spawns anything, so the
-//  refusal arrives in one clean message rather than repeated once per test
-//  file (tests/setup.ts carries the same gate, for a bare `vitest`).
-// ============================================================================
+// npm run verify — runs the whole suite against a live API and prints one pass/fail line per area, plus a report.
 import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
@@ -50,15 +39,8 @@ interface VitestRun {
 function runVitest(extraArgs: string[]): number {
   const result = spawnSync(
     "npx",
-    [
-      "vitest",
-      "run",
-      "--reporter=default",
-      "--reporter=json",
-      `--outputFile.json=${VERIFY_RESULT_JSON}`,
-      ...extraArgs,
-    ],
-    { cwd: BACKEND_DIR, stdio: "inherit", shell: true, env: { ...process.env, API_URL: TARGET.url } }
+    ["vitest", "run", "--reporter=default", "--reporter=json", `--outputFile.json=${VERIFY_RESULT_JSON}`, ...extraArgs],
+    { cwd: BACKEND_DIR, stdio: "inherit", shell: true, env: { ...process.env, API_URL: TARGET.url } },
   );
   // A signal (Ctrl-C) has no exit code; treat it as a failure rather than a pass.
   return result.status ?? 1;
@@ -86,9 +68,10 @@ function summarise(run: VitestRun, vitestExitCode: number): VerifyRunSummary {
     failures: [],
   });
 
-  // Every declared area is seeded, so one that ran NOTHING shows up as an
-  // empty row rather than silently disappearing from the summary.
-  for (const area of VERIFY_AREAS) byKey.set(area.key, blank(area));
+  // Every declared area is seeded, so one that ran nothing shows as an empty row instead of vanishing.
+  for (const area of VERIFY_AREAS) {
+    byKey.set(area.key, blank(area));
+  }
 
   for (const file of run.testResults ?? []) {
     const area = areaFor(file.name);
@@ -96,7 +79,9 @@ function summarise(run: VitestRun, vitestExitCode: number): VerifyRunSummary {
     byKey.set(area.key, result);
 
     const base = path.basename(file.name);
-    if (!result.files.includes(base)) result.files.push(base);
+    if (!result.files.includes(base)) {
+      result.files.push(base);
+    }
 
     for (const test of file.assertionResults ?? []) {
       result.durationMs += test.duration ?? 0;
@@ -105,9 +90,7 @@ function summarise(run: VitestRun, vitestExitCode: number): VerifyRunSummary {
         result.failures.push({
           file: base,
           name: [...(test.ancestorTitles ?? []), test.title].join(" › "),
-          // The first line of an assertion failure is the money sentence
-          // ("order total: expected 162.00, got 161.99") — the stack below it
-          // is noise in a summary somebody reads at the counter.
+          // An assertion's first line is the useful sentence; the stack below is noise in a summary.
           message: (test.failureMessages?.[0] ?? "").split("\n")[0].trim(),
         });
       } else if (test.status === "passed") {
@@ -121,11 +104,7 @@ function summarise(run: VitestRun, vitestExitCode: number): VerifyRunSummary {
   const areas = [...byKey.values()];
   const failed = areas.reduce((total, area) => total + area.failed, 0);
   return {
-    // A run can fail without a single assertion failing — a test file that
-    // could not even load (the API was down, an import broke) reports every
-    // test as SKIPPED. Reading that as "pass, nothing failed" would be the
-    // worst lie this tool could tell, so vitest's own verdict is carried
-    // through and shown.
+    // A file that failed to load reports every test SKIPPED, so vitest's own verdict is carried through, never read as a pass.
     incomplete: vitestExitCode !== 0 && failed === 0,
     target: { url: TARGET.url, host: TARGET.host, kind: TARGET.kind },
     startedAt: new Date(run.startTime ?? Date.now()).toISOString(),
@@ -147,9 +126,15 @@ const BOLD = "[1m";
 const RESET = "[0m";
 
 function verdict(area: AreaResult): string {
-  if (area.failed > 0) return `${RED}FAIL${RESET}`;
-  if (area.passed === 0) return `${YELLOW}NONE${RESET}`;
-  if (area.skipped > 0) return `${YELLOW}PASS${RESET}`;
+  if (area.failed > 0) {
+    return `${RED}FAIL${RESET}`;
+  }
+  if (area.passed === 0) {
+    return `${YELLOW}NONE${RESET}`;
+  }
+  if (area.skipped > 0) {
+    return `${YELLOW}PASS${RESET}`;
+  }
   return `${GREEN}PASS${RESET}`;
 }
 
@@ -158,7 +143,7 @@ function seconds(ms: number): string {
 }
 
 function printSummary(summary: VerifyRunSummary): void {
-  const lines: string[] = ["", RULE, `  ${BOLD}ORGANZA — VERIFICATION SUITE${RESET}`, RULE];
+  const lines: string[] = ["", RULE, `  ${BOLD}STORE MANAGEMENT — VERIFICATION SUITE${RESET}`, RULE];
   lines.push(`  Target : ${summary.target.url}  (${summary.target.kind})`);
   lines.push(`  Ran at : ${summary.startedAt}`);
   lines.push(THIN);
@@ -175,7 +160,9 @@ function printSummary(summary: VerifyRunSummary): void {
     lines.push(`        ${DIM}${area.claim}${RESET}`);
     for (const failure of area.failures) {
       lines.push(`        ${RED}✗ ${failure.name}${RESET}`);
-      if (failure.message) lines.push(`          ${failure.message}`);
+      if (failure.message) {
+        lines.push(`          ${failure.message}`);
+      }
     }
   }
 
@@ -187,12 +174,12 @@ function printSummary(summary: VerifyRunSummary): void {
       : `${RED}${BOLD}FAIL${RESET}`;
   const skipped = summary.skipped ? `, ${summary.skipped} skipped` : "";
   lines.push(
-    `  ${overall} — ${summary.passed} passed, ${summary.failed} failed${skipped} in ${seconds(summary.durationMs)}`
+    `  ${overall} — ${summary.passed} passed, ${summary.failed} failed${skipped} in ${seconds(summary.durationMs)}`,
   );
   if (summary.incomplete) {
     lines.push(
       `  ${RED}The run ended badly without any assertion failing — a test file could not load,${RESET}`,
-      `  ${RED}or the target API could not be reached. Nothing below is a verdict. See above.${RESET}`
+      `  ${RED}or the target API could not be reached. Nothing below is a verdict. See above.${RESET}`,
     );
   }
   lines.push(`  Report: backend/${VERIFY_REPORT_FILE}`);
@@ -210,7 +197,7 @@ function writeReport(summary: VerifyRunSummary): void {
   const headline = summary.incomplete ? "DID NOT COMPLETE" : summary.failed === 0 ? "PASS" : "FAIL";
 
   const lines = [
-    "# Organza — verification report",
+    "# Store Management — verification report",
     "",
     `**${headline}** — ${summary.passed} passed, ${summary.failed} failed, ` +
       `${summary.skipped} skipped, in ${seconds(summary.durationMs)}.`,
@@ -234,7 +221,7 @@ function writeReport(summary: VerifyRunSummary): void {
     "|---|---|---:|---:|---:|---|",
     ...summary.areas.map(
       (area) =>
-        `| ${area.title} | ${status(area)} | ${area.passed} | ${area.failed} | ${area.skipped} | ${area.claim} |`
+        `| ${area.title} | ${status(area)} | ${area.passed} | ${area.failed} | ${area.skipped} | ${area.claim} |`,
     ),
     "",
   ];
@@ -261,10 +248,10 @@ function writeReport(summary: VerifyRunSummary): void {
       "`✅ pass*` means every assertion that ran passed, but some were skipped because the",
       "target could not offer what they need — a deployment with no VAPID keys cannot send a",
       "notification, and a day whose drawer the shop has not opened cannot be measured (the",
-      "suite never opens one on a real trading day; see `ORGANZA_ALLOW_TODAY_DRAWER`).",
+      "suite never opens one on a real trading day; see `STORE_ALLOW_TODAY_DRAWER`).",
       "",
       ...partial.map((area) => `- ${area.title}: ${area.skipped} skipped`),
-      ""
+      "",
     );
   }
 
@@ -272,7 +259,7 @@ function writeReport(summary: VerifyRunSummary): void {
     "## Files",
     "",
     ...summary.areas.map((area) => `- **${area.title}** — ${area.files.join(", ") || "(none ran)"}`),
-    ""
+    "",
   );
 
   fs.writeFileSync(path.join(BACKEND_DIR, VERIFY_REPORT_FILE), lines.join("\n"), "utf8");
@@ -281,12 +268,7 @@ function writeReport(summary: VerifyRunSummary): void {
 // --- main ------------------------------------------------------------------
 
 function main(): void {
-  // The gate, before a single request goes out — and before vitest is even
-  // spawned, so a refusal is one clean message rather than one per test file.
-  //
-  // The refusal is a thrown Error (that is what makes vitest fail loudly when
-  // the suite is run directly), but here it is the whole output, so it is
-  // printed as the message it is rather than as a stack trace.
+  // The production gate runs before vitest is spawned, so a refusal is one clean message, printed without a stack.
   try {
     assertSafeTarget();
   } catch (error) {
@@ -300,7 +282,7 @@ function main(): void {
   if (!fs.existsSync(resultPath)) {
     console.error(
       `\n${RED}The test run produced no result file (${VERIFY_RESULT_JSON}).${RESET}\n` +
-        "Nothing could be summarised — see the output above for why the run did not start.\n"
+        "Nothing could be summarised — see the output above for why the run did not start.\n",
     );
     process.exit(exitCode || 1);
   }
@@ -311,9 +293,7 @@ function main(): void {
   writeReport(summary);
   printSummary(summary);
 
-  // The suite's own verdict wins over vitest's exit code only when it is
-  // worse — a failure vitest reported but no assertion carries (a file that
-  // failed to load, say) must still fail the run.
+  // The suite's verdict overrides vitest's exit code only when worse — a load failure must still fail the run.
   process.exit(summary.failed > 0 || summary.incomplete ? 1 : exitCode);
 }
 

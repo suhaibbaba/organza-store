@@ -1,22 +1,16 @@
-import type { ReportPresetKey } from "@/types/report";
+import { urlParam } from "@/lib/url-filters";
+import type { ReportPresetKey, ReportRangeValue, TopSellerRanking } from "@/types/report";
+import type { UrlParams } from "@/types/urlFilters";
 
 export const REPORTS_SUMMARY_QUERY_KEY = ["reports", "salesSummary"] as const;
+export const REPORTS_DAILY_QUERY_KEY = ["reports", "dailySales"] as const;
 export const REPORTS_SALES_QUERY_KEY = "reports.sales";
 
-// Sales figures move with every sale rung up at the counter, so they go stale
-// fast — a minute is long enough to spare the API a refetch per navigation
-// and short enough that the dashboard isn't showing yesterday's number.
+// Sales go stale fast; a minute spares a refetch per navigation without showing yesterday's number.
 export const REPORTS_STALE_TIME_MS = 60 * 1000;
 
-// The ranges a shop owner actually asks for, in the order they'd ask. "This
-// month" is the default: it's the figure the rent is paid out of.
-export const REPORT_PRESETS: readonly ReportPresetKey[] = [
-  "today",
-  "last7Days",
-  "last30Days",
-  "thisMonth",
-  "custom",
-];
+// "This month" is the default: it's the figure the rent is paid out of.
+export const REPORT_PRESETS: readonly ReportPresetKey[] = ["today", "last7Days", "last30Days", "thisMonth", "custom"];
 export const DEFAULT_REPORT_PRESET: ReportPresetKey = "thisMonth";
 
 export const REPORT_PRESET_DAYS: Partial<Record<ReportPresetKey, number>> = {
@@ -25,6 +19,21 @@ export const REPORT_PRESET_DAYS: Partial<Record<ReportPresetKey, number>> = {
   last30Days: 29,
 };
 
-// How many best sellers to ask for. Five fills a phone screen without
-// scrolling past the point where anyone is still reading.
+// Five fills a phone screen without scrolling past where anyone still reads.
 export const TOP_SELLERS_LIMIT = 5;
+
+export const TOP_SELLER_RANKINGS: readonly { value: TopSellerRanking; labelKey: "byRevenue" | "byQuantity" }[] = [
+  { value: "revenue", labelKey: "byRevenue" },
+  { value: "quantity", labelKey: "byQuantity" },
+];
+
+// Dates only travel in the URL for a custom range; a preset is worked out from today on every visit.
+export const DEFAULT_REPORT_RANGE: ReportRangeValue = { preset: DEFAULT_REPORT_PRESET, from: "", to: "" };
+
+export const REPORT_RANGE_URL_PARAMS: UrlParams<ReportRangeValue> = {
+  preset: urlParam.oneOf(REPORT_PRESETS),
+  from: urlParam.text(),
+  to: urlParam.text(),
+};
+
+export const REPORT_THUMB_SIZES = "(max-width: 767px) 64px, 48px";

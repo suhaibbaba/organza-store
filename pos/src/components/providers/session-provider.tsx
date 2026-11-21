@@ -12,7 +12,8 @@ interface SessionContextValue {
   /** The check itself failed (server unreachable) — NOT the same as signed out. */
   isError: boolean;
   refresh: () => Promise<void>;
-  login: (email: string, password: string) => Promise<void>;
+  // Returns the account so the caller can open it in that person's own language.
+  login: (email: string, password: string) => Promise<SessionUser>;
   logout: () => Promise<void>;
 }
 
@@ -30,9 +31,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     queryKey: SESSION_QUERY_KEY,
     queryFn: fetchSession,
     staleTime: 5 * 60 * 1000,
-    // Only thrown errors retry here — a rejected token comes back as a plain
-    // null, not a throw. So this is purely "the phone's connection blinked",
-    // which on shop mobile data it regularly does.
+    // Only a dropped connection throws here (a rejected token is null), so one retry is enough.
     retry: 1,
   });
 
@@ -44,8 +43,9 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     async (email: string, password: string) => {
       const session = await signInWithEmail(email, password);
       queryClient.setQueryData(SESSION_QUERY_KEY, session.user);
+      return session.user;
     },
-    [queryClient]
+    [queryClient],
   );
 
   const logout = useCallback(async () => {
@@ -62,6 +62,8 @@ export function SessionProvider({ children }: { children: ReactNode }) {
 
 export function useSession(): SessionContextValue {
   const ctx = useContext(SessionContext);
-  if (!ctx) throw new Error("useSession must be used within a SessionProvider");
+  if (!ctx) {
+    throw new Error("useSession must be used within a SessionProvider");
+  }
   return ctx;
 }

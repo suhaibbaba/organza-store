@@ -1,6 +1,6 @@
 {
   "app": {
-    "name": "أورجانزا",
+    "name": "إدارة المتجر",
     "sandbox": "تجريبي"
   },
   "common": {
@@ -28,7 +28,8 @@
       "value": "الكمية — {name}",
       "increase": "زيادة الكمية — {name}",
       "decrease": "إنقاص الكمية — {name}"
-    }
+    },
+    "profile": "ملفي الشخصي"
   },
   "stock": {
     "out": "نفدت الكمية",
@@ -61,16 +62,25 @@
     "reports": "التقارير",
     "users": "المستخدمون",
     "settings": "الإعدادات",
-    "more": "المزيد",
     "changeRequests": "الموافقات",
-    "permissions": "الصلاحيات"
+    "permissions": "الصلاحيات",
+    "menu": "القائمة",
+    "openMenu": "فتح القائمة",
+    "groups": {
+      "sales": "المبيعات",
+      "catalogue": "الكتالوج",
+      "manage": "الإدارة"
+    },
+    "collapse": "طيّ القائمة",
+    "expand": "توسيع القائمة",
+    "expenses": "المصاريف"
   },
   "auth": {
     "login": {
       "title": "تسجيل الدخول",
       "subtitle": "أدخل بريدك الإلكتروني وكلمة المرور للمتابعة.",
       "emailLabel": "البريد الإلكتروني",
-      "emailPlaceholder": "you@organza.test",
+      "emailPlaceholder": "you@store.test",
       "passwordLabel": "كلمة المرور",
       "passwordPlaceholder": "أدخل كلمة المرور",
       "submit": "تسجيل الدخول",
@@ -116,8 +126,6 @@
   },
   "dashboard": {
     "title": "الرئيسية",
-    "welcome": "مرحبًا، {name}",
-    "subtitle": "المبالغ المقبوضة والمبالغ المستحقة لا تُخلط أبدًا هنا.",
     "today": {
       "title": "اليوم",
       "orders": "{count, plural, =0 {لا توجد طلبات} one {طلب واحد} two {طلبان} few {{count, number, plain} طلبات} other {{count, number, plain} طلبًا}}",
@@ -127,7 +135,10 @@
         "label": "ربح مبيعات اليوم",
         "help": "مبيعات اليوم ناقص تكلفة البضاعة ومصاريف اليوم. يشمل كل عملية بيع، حتى التي لم تدفع شركة التوصيل ثمنها بعد.",
         "hint": "بعد التكلفة والمصاريف"
-      }
+      },
+      "ordersLabel": "الطلبات",
+      "pieces": "{count, plural, =0 {لا قطع} one {قطعة واحدة} two {قطعتان} few {{count, number, plain} قطع} many {{count, number, plain} قطعة} other {{count, number, plain} قطعة}}",
+      "averageHint": "المتوسط {amount}"
     },
     "drawer": {
       "title": "صندوق النقد",
@@ -144,8 +155,6 @@
         "help": "نقد الصباح زائد مبيعات اليوم النقدية، ناقص ما صُرف من الصندوق. هذا ما يُفترض وجوده الآن قبل الجرد."
       },
       "notClosed": {
-        "title": "لم يُغلق اليوم بعد",
-        "body": "اجرد الصندوق وسجّل أي نقد تسحبه",
         "action": "إغلاق اليوم / الجرد"
       },
       "notStarted": {
@@ -188,7 +197,8 @@
         "body": "الجرد {counted}. ويبقى {carried} في الصندوق للغد.",
         "short": "نقص {amount}",
         "over": "زيادة {amount}"
-      }
+      },
+      "openBadge": "مفتوح"
     },
     "period": {
       "export": "تصدير Excel",
@@ -240,11 +250,48 @@
         "none": "—"
       }
     },
-    "attention": {
-      "title": "يحتاج انتباهًا",
-      "lowStock": "أصناف مخزونها منخفض",
-      "pendingApprovals": "بانتظار موافقتك",
-      "uncollected": "لم يُحصّل من التوصيل"
+    "hero": {
+      "label": "ترحيب",
+      "morning": "صباح الخير، {name}",
+      "afternoon": "مساء الخير، {name}",
+      "evening": "مساء الخير، {name}",
+      "openSince": "الصندوق مفتوح منذ {time}",
+      "notOpen": "لم يُفتح الصندوق اليوم بعد",
+      "closed": "أُغلق صندوق اليوم",
+      "ordersToday": "{count, plural, =0 {لا طلبات بعد} one {طلب واحد حتى الآن} two {طلبان حتى الآن} few {{count, number, plain} طلبات حتى الآن} many {{count, number, plain} طلبًا حتى الآن} other {{count, number, plain} طلب حتى الآن}}",
+      "todaySales": "مبيعات اليوم",
+      "receivedShare": "قُبض {received} · {owed} مع التوصيل",
+      "newOrder": "طلب جديد",
+      "newProduct": "منتج جديد",
+      "newExpense": "مصروف"
+    },
+    "bars": {
+      "title": "مبيعات آخر 7 أيام",
+      "total": "المجموع {amount}",
+      "best": "أفضل يوم: {day}",
+      "none": "لا مبيعات في آخر 7 أيام",
+      "today": "اليوم",
+      "chart": "مبيعات كل يوم في آخر سبعة أيام",
+      "day": "{day}: {amount}"
+    },
+    "recent": {
+      "title": "آخر الطلبات",
+      "all": "كل الطلبات",
+      "empty": "لا طلبات بعد."
+    },
+    "brief": {
+      "choose": "الفترة",
+      "fullReport": "التقرير الكامل",
+      "netProfit": "صافي الربح"
+    },
+    "todo": {
+      "title": "ما يحتاج متابعة",
+      "approvals": "بانتظار الموافقة",
+      "incomplete": "قطع تحتاج إكمال",
+      "labels": "ملصقات لم تُطبع",
+      "lowStock": "مخزون منخفض",
+      "uncollected": "مع شركة التوصيل",
+      "followUps": "فروقات صندوق للمراجعة"
     }
   },
   "figures": {
@@ -293,10 +340,23 @@
       "dateRange": "الفترة الزمنية",
       "dateFrom": "من تاريخ",
       "dateTo": "إلى تاريخ",
-      "reset": "إعادة ضبط",
-      "apply": "تطبيق",
+      "reset": "مسح التصفية",
+      "apply": "عرض النتائج",
       "quickSale": "عمليات البيع السريع فقط",
-      "quickSaleHint": "قطع بيعت قبل إدخالها إلى النظام."
+      "quickSaleHint": "قطع بيعت قبل إدخالها إلى النظام.",
+      "sortHint": "ترتيب القائمة على الهاتف؛ على الشاشة الكبيرة اضغط عنوان العمود.",
+      "statusHint": "المرحلة التي وصل إليها الطلب.",
+      "channelHint": "من أين جاء الطلب.",
+      "paymentStatusHint": "هل وصل ثمن الطلب إلى المحل.",
+      "dateRangeHint": "الطلبات المسجّلة بين هذين اليومين.",
+      "chipStatus": "الحالة: {name}",
+      "chipChannel": "المصدر: {name}",
+      "chipPayment": "التحصيل: {name}",
+      "chipQuickSale": "بيع سريع",
+      "chipDateFrom": "من {date}",
+      "chipDateTo": "حتى {date}",
+      "chipDates": "{from} — {to}",
+      "removeFilter": "إزالة التصفية: {name}"
     },
     "status": {
       "NEW": "جديد",
@@ -350,7 +410,9 @@
     },
     "card": {
       "orderNumber": "طلب رقم {number}",
-      "itemCount": "{count, plural, one {منتج واحد} two {منتجان} few {{count, number, plain} منتجات} other {{count, number, plain} منتجًا}}"
+      "itemCount": "{count, plural, one {منتج واحد} two {منتجان} few {{count, number, plain} منتجات} other {{count, number, plain} منتجًا}}",
+      "quantity": "×{count}",
+      "morePieces": "+{count}"
     },
     "table": {
       "orderNumber": "رقم الطلب",
@@ -361,7 +423,9 @@
       "customer": "الزبون",
       "noCustomer": "—",
       "date": "التاريخ",
-      "total": "المجموع"
+      "total": "المجموع",
+      "photos": "الصور",
+      "actions": "إجراءات"
     },
     "empty": {
       "noOrdersTitle": "لا توجد طلبات بعد",
@@ -375,17 +439,18 @@
       "pageOf": "صفحة {page} من {totalPages}"
     },
     "detail": {
-      "back": "الطلبات",
       "notFoundTitle": "الطلب غير موجود",
       "notFoundDescription": "قد يكون هذا الطلب محذوفًا.",
       "items": {
         "title": "{count, plural, one {منتج واحد} two {منتجان} few {{count, number, plain} منتجات} other {{count, number, plain} منتجًا}}",
         "noSku": "بدون SKU",
-        "quantity": "الكمية: {count}",
-        "unitPrice": "سعر القطعة: {price}",
-        "itemDiscount": "خصم {label} (−{amount})",
         "returned": "تم إرجاع {count} من هذا المنتج",
-        "quickSold": "بيع سريع — بدون تكلفة بعد"
+        "quickSold": "بيع سريع — بدون تكلفة بعد",
+        "piece": "القطعة",
+        "quantityHeader": "الكمية",
+        "unitPriceHeader": "سعر القطعة",
+        "discountHeader": "الخصم",
+        "lineTotalHeader": "المجموع"
       },
       "totals": {
         "subtotal": "المجموع الفرعي",
@@ -413,10 +478,13 @@
         "createdAt": "تاريخ الإنشاء",
         "updatedAt": "آخر تحديث",
         "stockDeducted": "خصم المخزون",
-        "stockNotDeducted": "لم يُخصم بعد"
+        "stockNotDeducted": "لم يُخصم بعد",
+        "title": "التفاصيل"
       },
       "statusActions": {
         "progressLabel": "مراحل الطلب",
+        "stepDone": "مكتملة",
+        "stepCurrent": "المرحلة الحالية",
         "moved": "تم تحديث الحالة إلى: {status}",
         "advanceTo": {
           "PREPARING": "ابدأ التحضير",
@@ -424,10 +492,11 @@
         },
         "stockDeductionNotice": "عند بدء التحضير سيتم خصم الكميات من المخزون.",
         "cancelOrder": "إلغاء الطلب",
-        "confirmCancel": "هل تريد إلغاء هذا الطلب؟",
-        "confirmCancelWithStock": "هل تريد إلغاء هذا الطلب؟ ستعود الكميات إلى المخزون.",
-        "confirmCancelAction": "نعم، ألغِ الطلب",
-        "keepOrder": "تراجع"
+        "title": "حالة الطلب",
+        "cancelTitle": "إلغاء الطلب رقم {number}؟",
+        "cancelConsequence": "سيُلغى الطلب ولن يُحسب في المبيعات.",
+        "cancelConsequenceStock": "سيُلغى الطلب وتعود الكميات إلى المخزون.",
+        "cancelled": "تم إلغاء الطلب."
       },
       "returns": {
         "title": "إرجاع",
@@ -445,21 +514,21 @@
       "manage": {
         "returnItems": "إرجاع منتجات",
         "deleteOrder": "حذف الطلب",
-        "confirmDelete": "هل تريد حذف هذا الطلب؟ سيُخفى من كل الشاشات.",
-        "confirmDeleteWithStock": "هل تريد حذف هذا الطلب؟ سيُخفى من كل الشاشات وستعود الكميات إلى المخزون.",
-        "confirmDeleteAction": "نعم، احذف الطلب",
-        "keepOrder": "تراجع",
-        "noPermission": "يمكنك تحديث حالة الطلب فقط. الإلغاء والإرجاع والحذف تحتاج صلاحية مدير."
+        "noPermission": "يمكنك تحديث حالة الطلب فقط. الإلغاء والإرجاع والحذف تحتاج صلاحية مدير.",
+        "deleteTitle": "حذف الطلب رقم {number}؟",
+        "deleteConsequence": "سيُخفى الطلب من كل الشاشات.",
+        "deleteConsequenceStock": "سيُخفى الطلب من كل الشاشات وتعود الكميات إلى المخزون.",
+        "deleted": "تم حذف الطلب."
+      },
+      "header": {
+        "options": "خيارات الطلب",
+        "date": "التاريخ"
       }
     },
     "new": {
-      "back": "الطلبات",
-      "title": "طلب واتساب جديد",
-      "subtitle": "سجّل طلبًا وصل عبر الواتساب.",
-      "itemsTitle": "المنتجات",
-      "needItems": "أضف منتجًا واحدًا على الأقل قبل الحفظ.",
-      "save": "حفظ الطلب",
-      "saving": "جارٍ الحفظ…",
+      "title": "طلب جديد",
+      "subtitle": "سجّل طلب واتساب أو بيعًا في المحل، أو أعطِ هدية.",
+      "needItems": "أضف قطعة أولًا",
       "wholeOrder": "الطلب كامل",
       "search": {
         "placeholder": "ابحث عن منتج بالاسم أو الـ SKU",
@@ -488,7 +557,8 @@
         "percentValue": "{value}%",
         "discountApplied": "خصم {value} · ‎−{amount}",
         "discountValue": "خصم {value}",
-        "stockCap": "{count, plural, zero {لا يوجد مخزون} one {هذه آخر قطعة متوفرة} two {هاتان آخر قطعتين متوفرتين} other {هذا كل المتوفر: {count, number, plain} قطعة}}"
+        "stockCap": "{count, plural, zero {لا يوجد مخزون} one {هذه آخر قطعة متوفرة} two {هاتان آخر قطعتين متوفرتين} other {هذا كل المتوفر: {count, number, plain} قطعة}}",
+        "lineTotal": "مجموع القطعة"
       },
       "totals": {
         "subtotal": "المجموع الفرعي ({count})",
@@ -496,43 +566,93 @@
         "orderDiscount": "خصم على الطلب ({label})",
         "addOrderDiscount": "خصم على الطلب",
         "editOrderDiscount": "تعديل خصم الطلب",
-        "total": "المجموع النهائي"
+        "total": "المجموع النهائي",
+        "giftNote": "هدية: كل القطع بسعر صفر ولا تُحسب في المبيعات."
       },
       "customer": {
-        "title": "بيانات الزبون",
         "name": "اسم الزبون",
         "phone": "رقم الهاتف",
         "phonePrefixLabel": "مفتاح الدولة",
         "whatsapp": "رقم الواتساب",
-        "whatsappHint": "اتركه فارغًا إذا كان نفس رقم الهاتف.",
         "address": "العنوان",
         "addressPlaceholder": "المدينة، الشارع، أقرب معلم…",
         "location": "موقع على الخريطة (اختياري)",
-        "locationHint": "الصق الإحداثيات من الواتساب في خانة خط العرض وسيتم تعبئة الخانتين.",
-        "latitude": "خط العرض",
-        "longitude": "خط الطول",
-        "note": "ملاحظة (اختياري)",
-        "notePlaceholder": "أي تفاصيل إضافية عن الطلب…"
+        "locationHint": "الصق رابط الموقع الذي أرسله الزبون من خرائط Google.",
+        "notePlaceholder": "أي تفاصيل إضافية عن الطلب…",
+        "namePlaceholder": "مثال: سارة أحمد",
+        "phonePlaceholder": "59 123 4567",
+        "whatsappToggle": "رقم الواتساب مختلف عن رقم الهاتف",
+        "locationPlaceholder": "https://maps.app.goo.gl/…",
+        "locationResolving": "جارٍ قراءة الموقع من الرابط…",
+        "openInMaps": "فتح في خرائط Google"
       },
       "success": {
         "title": "تم حفظ الطلب",
         "orderNumber": "طلب رقم {number}",
         "nextStep": "الطلب الآن بحالة «جديد». سيتم خصم المخزون عند بدء التحضير.",
         "openOrder": "فتح الطلب",
-        "newOrder": "طلب جديد"
-      }
+        "newOrder": "طلب جديد",
+        "nextStepStore": "تم تسجيل البيع مكتملًا وخُصم المخزون.",
+        "nextStepGift": "تم تسجيل الهدية وخُصم المخزون."
+      },
+      "kind": {
+        "label": "نوع الطلب",
+        "options": {
+          "WHATSAPP": "واتساب",
+          "STORE": "في المحل"
+        },
+        "hints": {
+          "WHATSAPP": "يُسلَّم عبر شركة التوصيل. يبدأ بحالة «جديد» ويُخصم المخزون عند بدء التحضير.",
+          "STORE": "الزبون في المحل والمبلغ مدفوع نقدًا. يُسجَّل الطلب مكتملًا ويُخصم المخزون فورًا."
+        },
+        "giftHints": {
+          "WHATSAPP": "هدية تُرسل عبر شركة التوصيل. يبدأ بحالة «جديد» ويُخصم المخزون عند بدء التحضير، ولا يوجد مبلغ للتحصيل.",
+          "STORE": "هدية تُسلَّم في المحل. تُسجَّل مكتملة ويُخصم المخزون فورًا."
+        },
+        "gift": "هدية",
+        "giftHint": "كل القطع بسعر صفر ولا تُحسب في المبيعات؛ تُحسب تكلفتها مصروفًا."
+      },
+      "sections": {
+        "products": {
+          "title": "القطع",
+          "description": "ابحث عن القطعة وأضفها؛ الكمية والخصم لكل سطر."
+        },
+        "customer": {
+          "title": "الزبون والتوصيل",
+          "description": "لمن يُسلَّم الطلب وأين."
+        },
+        "kind": {
+          "title": "نوع الطلب",
+          "description": "من أين جاء الطلب، وهل هو هدية."
+        },
+        "summary": {
+          "title": "الملخص",
+          "description": "المبلغ قبل الحفظ؛ يُعاد حسابه عند الحفظ."
+        },
+        "note": {
+          "title": "ملاحظة",
+          "description": "اختيارية، تظهر على الطلب."
+        }
+      },
+      "save": "إنشاء الطلب"
     },
     "collection": {
-      "back": "الطلبات",
       "title": "المبالغ عند شركة التوصيل",
       "subtitle": "الطلبات التي لم يصل مبلغها بعد. حدّد ما تم استلامه.",
       "listLabel": "طلبات بانتظار التحصيل",
       "selectOrder": "تحديد طلب رقم {number} — {amount}",
       "marked": "{count, plural, one {تم تسجيل استلام مبلغ طلب واحد.} two {تم تسجيل استلام مبلغ طلبين.} few {تم تسجيل استلام مبالغ {count, number, plain} طلبات.} other {تم تسجيل استلام مبالغ {count, number, plain} طلبًا.}}",
       "summary": {
-        "label": "المبلغ المستحق لك",
-        "orders": "{count, plural, =0 {لا توجد طلبات} one {طلب واحد} two {طلبان} few {{count, number, plain} طلبات} other {{count, number, plain} طلبًا}}",
-        "oldest": "أقدم طلب بانتظار التحصيل: {date}"
+        "label": "المستحق لك",
+        "orders": "{count, plural, =0 {لا طلبات} one {طلب واحد} two {طلبان} few {{count, number, plain} طلبات} many {{count, number, plain} طلبًا} other {{count, number, plain} طلب}}",
+        "withCourier": "عند شركة التوصيل",
+        "withCourierHint": "{count, plural, =0 {لم يُسلَّم شيء} one {طلب واحد سُلّم للتوصيل} two {طلبان سُلّما للتوصيل} few {{count, number, plain} طلبات سُلّمت للتوصيل} many {{count, number, plain} طلبًا سُلّمت للتوصيل} other {{count, number, plain} طلب سُلّمت للتوصيل}}",
+        "notShipped": "لم تُشحن بعد",
+        "notShippedHint": "{count, plural, =0 {لا شيء بالانتظار} one {طلب واحد ما زال في المحل} two {طلبان ما زالا في المحل} few {{count, number, plain} طلبات ما زالت في المحل} many {{count, number, plain} طلبًا ما زالت في المحل} other {{count, number, plain} طلب ما زالت في المحل}}",
+        "oldest": "أقدم مبلغ غير محصّل",
+        "oldestDays": "{count, plural, =0 {اليوم} one {يوم واحد} two {يومان} few {{count, number, plain} أيام} many {{count, number, plain} يومًا} other {{count, number, plain} يوم}}",
+        "overdue": "{count, plural, =0 {لا طلبات أقدم من {days} أيام} one {طلب واحد أقدم من {days} أيام} two {طلبان أقدم من {days} أيام} few {{count, number, plain} طلبات أقدم من {days} أيام} many {{count, number, plain} طلبًا أقدم من {days} أيام} other {{count, number, plain} طلب أقدم من {days} أيام}}",
+        "none": "—"
       },
       "empty": {
         "title": "لا توجد مبالغ مستحقة",
@@ -542,11 +662,29 @@
         "selected": "{count, plural, one {طلب واحد محدد} two {طلبان محددان} few {{count, number, plain} طلبات محددة} other {{count, number, plain} طلبًا محددًا}}",
         "selectAll": "تحديد الكل",
         "clear": "إلغاء التحديد",
-        "markCollected": "{count, plural, one {استلمت مبلغ طلب واحد} two {استلمت مبلغ طلبين} few {استلمت مبالغ {count, number, plain} طلبات} other {استلمت مبالغ {count, number, plain} طلبًا}}"
+        "selectAllLabel": "تحديد كل طلبات هذه الصفحة",
+        "confirm": "تم استلام المبلغ",
+        "label": "الطلبات المحددة"
+      },
+      "table": {
+        "owed": "المستحق"
+      },
+      "noResults": {
+        "title": "لا يوجد طلب غير مدفوع يطابق البحث",
+        "description": "جرّب بحثًا آخر أو أزل أحد الفلاتر."
       }
     },
     "quickSale": {
       "badge": "بيع سريع"
+    },
+    "rowMenu": {
+      "label": "خيارات الطلب رقم {number}",
+      "open": "فتح الطلب",
+      "markCollected": "استلمت المبلغ",
+      "confirmTitle": "تسجيل استلام مبلغ الطلب رقم {number}؟",
+      "confirmConsequence": "سيُسجَّل أن شركة التوصيل دفعت {amount} عن هذا الطلب.",
+      "confirmAction": "استلمت المبلغ",
+      "collected": "تم تسجيل استلام المبلغ."
     }
   },
   "reports": {
@@ -560,12 +698,14 @@
       "thisMonth": "هذا الشهر",
       "custom": "فترة أخرى",
       "from": "من تاريخ",
-      "to": "إلى تاريخ"
+      "to": "إلى تاريخ",
+      "label": "الفترة",
+      "dates": "التواريخ"
     },
     "totals": {
       "title": "مبيعات هذه الفترة",
-      "soldHint": "{orders} طلب، {items} قطعة",
-      "owedOrders": "{count, plural, one {طلب واحد} two {طلبان} few {{count, number, plain} طلبات} other {{count, number, plain} طلبًا}}",
+      "soldHint": "{orders, plural, zero {لا طلبات} one {طلب واحد} two {طلبان} few {{orders} طلبات} many {{orders} طلبًا} other {{orders} طلب}} · {items, plural, zero {لا قطع} one {قطعة واحدة} two {قطعتان} few {{items} قطع} many {{items} قطعة} other {{items} قطعة}}",
+      "owedOrders": "{count, plural, zero {لا طلبات} one {طلب واحد} two {طلبان} few {{count} طلبات} many {{count} طلبًا} other {{count} طلب}}",
       "averageOrder": {
         "label": "متوسط الطلب",
         "help": "المبيعات مقسومة على عدد الطلبات — أي كم كانت قيمة الطلب الواحد في هذه الفترة."
@@ -583,11 +723,11 @@
         "help": "المبيعات ناقص تكلفة البضاعة. لا تُخصم منه الإيجار والرواتب وباقي المصاريف."
       },
       "margin": "نسبة الربح {value, number, percent}",
-      "missingCost": "{count} قطعة مباعة بدون سعر تكلفة، فالربح المعروض أعلى من الحقيقي."
+      "missingCost": "{count, plural, one {قطعة مباعة واحدة بدون} two {قطعتان مباعتان بدون} few {{count} قطع مباعة بدون} many {{count} قطعة مباعة بدون} other {{count} قطعة مباعة بدون}} سعر تكلفة، فالربح المعروض أعلى من الحقيقي."
     },
     "channels": {
       "title": "حسب مصدر البيع",
-      "orders": "{count} طلب",
+      "orders": "{count, plural, zero {لا طلبات} one {طلب واحد} two {طلبان} few {{count} طلبات} many {{count} طلبًا} other {{count} طلب}}",
       "empty": "لا توجد مبيعات في هذه الفترة.",
       "help": "من أين جاءت المبيعات: من المحل، أو واتساب، أو الموقع."
     },
@@ -607,11 +747,43 @@
       "orders": "ضمن {count} طلب",
       "empty": "لا توجد مرتجعات في هذه الفترة.",
       "amountHelp": "قيمة ما أعاده الزبائن في هذه الفترة. أرقام المبيعات أعلاه مطروح منها هذا المبلغ أصلًا.",
-      "itemsHelp": "كم قطعة رجعت، ومن كم طلب."
+      "itemsHelp": "كم قطعة رجعت، ومن كم طلب.",
+      "ordersCount": "{count, plural, zero {من دون طلبات} one {من طلب واحد} two {من طلبين} few {من {count} طلبات} many {من {count} طلبًا} other {من {count} طلب}}"
     },
     "empty": {
       "title": "لا توجد مبيعات في هذه الفترة",
       "description": "جرّب فترة أخرى، أو سجّل أول طلب."
+    },
+    "statement": {
+      "title": "الربح",
+      "sold": "المبيعات",
+      "cogs": "تكلفة البضاعة المباعة",
+      "gross": "الربح الإجمالي",
+      "expenses": "المصاريف",
+      "gifts": "الهدايا (بالتكلفة)",
+      "net": "صافي الربح",
+      "margin": "نسبة الربح {value, number, percent}",
+      "receivedTitle": "بحساب المقبوض فقط",
+      "receivedSold": "المقبوض",
+      "receivedCogs": "تكلفة ما دُفع ثمنه",
+      "receivedGross": "الربح الإجمالي",
+      "receivedNet": "صافي الربح",
+      "receivedHint": "المبيعات التي قُبض ثمنها فقط. تُخصم المصاريف والهدايا كاملة، لأن الفاتورة مستحقة في الحالتين.",
+      "help": "المبيعات ناقص تكلفة البضاعة هي الربح الإجمالي، وبعد خصم المصاريف والهدايا يبقى ما ربحه المحل فعلًا.",
+      "overheads": "المصاريف والهدايا"
+    },
+    "orders": {
+      "title": "الطلبات",
+      "count": "الطلبات",
+      "items": "القطع المباعة",
+      "average": "متوسط الطلب",
+      "discounts": "الخصومات"
+    },
+    "table": {
+      "product": "المنتج",
+      "quantity": "الكمية",
+      "revenue": "المبيعات",
+      "profit": "الربح"
     }
   },
   "products": {
@@ -619,8 +791,8 @@
     "subtitle": "تصفّح كتالوج منتجاتك.",
     "addProduct": "إضافة منتج",
     "search": {
-      "placeholder": "ابحث عن منتج…",
-      "label": "البحث عن منتجات",
+      "placeholder": "ابحث بالاسم أو الرمز أو الباركود",
+      "label": "البحث في المنتجات",
       "clear": "مسح البحث"
     },
     "sort": {
@@ -629,7 +801,9 @@
       "priceLowToHigh": "السعر: الأقل أولًا",
       "priceHighToLow": "السعر: الأعلى أولًا",
       "nameAToZ": "الاسم: أ إلى ي",
-      "nameZToA": "الاسم: ي إلى أ"
+      "nameZToA": "الاسم: ي إلى أ",
+      "stockLowToHigh": "المخزون: من الأقل",
+      "stockHighToLow": "المخزون: من الأكثر"
     },
     "filters": {
       "trigger": "عوامل التصفية",
@@ -647,8 +821,20 @@
       "priceRange": "نطاق السعر",
       "priceMin": "الحد الأدنى",
       "priceMax": "الحد الأقصى",
-      "reset": "إعادة تعيين",
-      "apply": "تطبيق"
+      "reset": "مسح التصفية",
+      "apply": "عرض النتائج",
+      "categoryHint": "القطع في هذا القسم وما تحته من أقسام.",
+      "statusHint": "القطع المخفية لا تُباع في المحل ولا عبر الإنترنت.",
+      "stockHint": "يشمل كل متغيرات القطعة.",
+      "priceHint": "سعر البيع قبل أي خصم.",
+      "sortHint": "يمكن تغييره أيضًا بالضغط على عنوان العمود.",
+      "chipCategory": "القسم: {name}",
+      "chipStatus": "الحالة: {name}",
+      "chipStock": "المخزون: {name}",
+      "chipPrice": "السعر {min} – {max}",
+      "chipPriceMin": "السعر من {min}",
+      "chipPriceMax": "السعر حتى {max}",
+      "removeFilter": "إزالة التصفية: {name}"
     },
     "status": {
       "active": "ظاهر",
@@ -666,7 +852,10 @@
       "sku": "رمز SKU",
       "price": "السعر",
       "stock": "المخزون",
-      "status": "الحالة"
+      "status": "الحالة",
+      "actions": "إجراءات",
+      "variants": "{count, plural, zero {لا متغيرات} one {متغير واحد} two {متغيران} few {{count, number, plain} متغيرات} many {{count, number, plain} متغيرًا} other {{count, number, plain} متغير}}",
+      "noCategory": "بلا قسم"
     },
     "empty": {
       "noProductsTitle": "لا توجد منتجات بعد",
@@ -680,7 +869,6 @@
       "pageOf": "صفحة {page} من {totalPages}"
     },
     "detail": {
-      "back": "العودة إلى المنتجات",
       "notFoundTitle": "المنتج غير موجود",
       "notFoundDescription": "ربما تمت إزالة هذا المنتج.",
       "sku": "رمز SKU",
@@ -689,8 +877,6 @@
       "cost": "التكلفة",
       "wasPrice": "كان {price}",
       "descriptionTitle": "الوصف",
-      "numberedPointsAlt": "صورة المنتج مع أرقامها",
-      "numberedPointsHint": "{count} رقم موضوع على هذه الصورة.",
       "variantsTitle": "المتغيرات",
       "variantsCount": "{count} متغيرات",
       "variantSku": "رمز SKU",
@@ -703,15 +889,33 @@
         "confirm": "حذف هذا المنتج؟ سيختفي من قائمة المنتجات ومن نقطة البيع ومن المتجر. الطلبات السابقة تبقى كما هي.",
         "confirmAction": "نعم، احذفه",
         "keep": "الاحتفاظ به",
-        "success": "تم حذف المنتج."
+        "success": "تم حذف المنتج.",
+        "title": "حذف «{name}»؟",
+        "consequence": "يختفي من قائمة المنتجات ونقطة البيع والمتجر. الطلبات السابقة تحتفظ به."
       },
       "barcodeSource": "مصدر الباركود",
       "barcodeGenerated": "باركود المتجر (يُطبع ملصق)",
       "barcodeSupplier": "باركود المورّد (لا يحتاج ملصقاً)",
-      "barcodeSupplierShort": "كود المورّد"
+      "barcodeSupplierShort": "كود المورّد",
+      "actions": "إجراءات المنتج",
+      "price": "السعر",
+      "inStock": "{count, plural, zero {لا شيء في المخزون} one {قطعة واحدة في المخزون} two {قطعتان في المخزون} few {{count, number, plain} قطع في المخزون} many {{count, number, plain} قطعة في المخزون} other {{count, number, plain} قطعة في المخزون}}",
+      "outOfStock": "نفد من المخزون",
+      "gallery": {
+        "open": "فتح الصورة بحجم كبير",
+        "show": "عرض الصورة {number}",
+        "numbered": "مع الأرقام",
+        "variant": "متغير: {name}",
+        "none": "لا توجد صور بعد"
+      },
+      "print": {
+        "open": "طباعة الباركود",
+        "title": "طباعة الباركود",
+        "print": "{count, plural, zero {طباعة} one {طباعة ملصق واحد} two {طباعة ملصقين} few {طباعة {count, number, plain} ملصقات} many {طباعة {count, number, plain} ملصقًا} other {طباعة {count, number, plain} ملصق}}",
+        "tooMany": "عدد الملصقات أكبر من المسموح في مرة واحدة (الحد {max})."
+      }
     },
     "form": {
-      "back": "رجوع",
       "createTitle": "إضافة منتج",
       "editTitle": "تعديل المنتج",
       "notFoundTitle": "المنتج غير موجود",
@@ -791,7 +995,7 @@
         "addType": "إضافة نوع خيار جديد",
         "newTypePlaceholder": "مثال: الخامة",
         "noTypesYet": "لا توجد أنواع خيارات بعد — أضِف واحدًا أدناه.",
-        "previewCount": "سيتم إنشاء {count} متغيرات",
+        "previewCount": "{count, plural, zero {لن يُنشأ أي متغير} one {سيتم إنشاء متغير واحد} two {سيتم إنشاء متغيرين} few {سيتم إنشاء {count} متغيرات} many {سيتم إنشاء {count} متغيرًا} other {سيتم إنشاء {count} متغير}}",
         "removeCombo": "إزالة",
         "restoreCombo": "استعادة",
         "undo": "تراجع",
@@ -800,13 +1004,23 @@
         "inherits": "موروث: {value}",
         "cost": "التكلفة",
         "active": "ظاهر",
-        "addMoreTitle": "إضافة مزيد من التركيبات",
-        "addMoreSuccess": "تمت إضافة المتغيرات.",
-        "generate": "إنشاء المتغيرات",
+        "addMoreTitle": "إضافة مزيد من المتغيرات",
         "toggleDetails": "تفاصيل {name}",
         "summaryStock": "المخزون: {count}",
         "hidden": "مخفي",
-        "barcodeIncomplete": "الباركود ناقص"
+        "barcodeIncomplete": "الباركود ناقص",
+        "addButton": "إضافة متغيرات",
+        "done": "تم",
+        "drawerDescription": "الظهور والسعر والباركود والصور لهذا المتغير. تُحفظ مع المنتج.",
+        "selectedCount": "{count} محدد",
+        "addDescription": "اختر الألوان والمقاسات المراد إضافتها. يظهر كل متغير جديد في القائمة بمخزونه الخاص.",
+        "addCount": "إضافة {count, plural, one {متغير واحد} two {متغيرين} few {{count} متغيرات} many {{count} متغيرًا} other {{count} متغير}}",
+        "noneSelected": "لم يُحدَّد شيء",
+        "selectAll": "تحديد الكل",
+        "bulkStock": "مخزون المحدد",
+        "bulkSetStock": "تعيين المخزون",
+        "bulkRemove": "حذف",
+        "selectRow": "تحديد {name}"
       },
       "optionNotes": {
         "title": "ملاحظات على الخيارات",
@@ -879,7 +1093,6 @@
       "kind": {
         "title": "ماذا تبيع؟",
         "legend": "نوع المنتج",
-        "hint": "اختر واحدًا — الاختيار يغيّر ما ستملأه بالأسفل.",
         "ordinaryTitle": "منتج عادي",
         "ordinaryDescription": "قطعة واحدة، أو عدة قطع بألوان ومقاسات مختلفة.",
         "numberedTitle": "قطع مرقّمة",
@@ -900,6 +1113,19 @@
         "title": "تم الحفظ — بعض التعديلات بالانتظار",
         "detail": "{count} من تعديلاتك تحتاج موافقة المدير قبل أن تُطبَّق. لم يضِع شيء.",
         "viewProduct": "عرض المنتج"
+      },
+      "statusTitle": "الحالة",
+      "sections": {
+        "basic-info": "الاسم والوصف اللذان يراهما الزبائن، ومكان المنتج في الأقسام.",
+        "pricing": "سعر البيع، وسعر قبل الخصم اختياري، وكم كلّفك.",
+        "barcode": "الرمز الذي يمسحه الكاشير: رمز المتجر أو رمز المورّد المطبوع.",
+        "variants": "كل لون ومقاس متوفّر لهذه القطعة، ولكلٍّ مخزونه.",
+        "numbered-hint": "توضع الأرقام على الصورة بعد حفظ المنتج.",
+        "numbered-shawl": "كل قطعة مرقّمة على الصورة، بسعرها ومخزونها.",
+        "status": "هل يراه الزبائن، وهل ينبّهك عند قلّة المخزون.",
+        "kind": "اختر واحدًا — الاختيار يغيّر ما ستملأه بالأسفل.",
+        "photos": "الصورة الرئيسية هي التي تظهر في كل مكان.",
+        "inventory": "كم قطعة لديك، ورمز SKU الخاص بها."
       }
     },
     "completeness": {
@@ -917,6 +1143,11 @@
       "oneOff": "كانت قطعة واحدة فقط",
       "confirmOneOff": "تأكيد: قطعة واحدة فقط",
       "oneOffWarning": "لن تُضاف القطعة إلى الكتالوج. عملية البيع تبقى كما هي ولا يتأثر الطلب."
+    },
+    "rowMenu": {
+      "label": "إجراءات {name}",
+      "edit": "تعديل",
+      "delete": "حذف"
     }
   },
   "inventory": {
@@ -932,16 +1163,21 @@
       "category": "القسم",
       "allCategories": "كل الأقسام",
       "lowStockOnly": "عرض المخزون المنخفض فقط",
-      "lowStockCount": "{count} عنصر بحاجة لإعادة تعبئة"
+      "lowStockCount": "{count} عنصر بحاجة لإعادة تعبئة",
+      "trigger": "تصفية",
+      "title": "تصفية المخزون",
+      "reset": "مسح التصفية",
+      "apply": "عرض النتائج",
+      "lowStockHint": "فقط القطع التي وصلت حدّ المخزون المنخفض أو أقل.",
+      "chipCategory": "القسم: {name}",
+      "removeFilter": "إزالة التصفية: {name}",
+      "chipLowStock": "مخزون منخفض"
     },
     "card": {
-      "noSku": "بدون رمز",
-      "stockLabel": "الكمية",
-      "outsideFilter": "لم يعد ضمن التصفية الحالية"
+      "stockLabel": "الكمية"
     },
     "table": {
       "item": "المنتج",
-      "sku": "الرمز",
       "status": "الحالة",
       "stock": "الكمية"
     },
@@ -949,14 +1185,7 @@
       "decrease": "إنقاص الكمية",
       "increase": "زيادة الكمية",
       "edit": "تعديل الكمية",
-      "quantity": "الكمية",
-      "save": "حفظ",
-      "cancel": "إلغاء",
-      "saved": "تم الحفظ",
-      "unsaved": "لم يُحفظ بعد",
-      "saving": "جارٍ الحفظ…",
-      "savedValue": "تم الحفظ: {count}",
-      "revertedTo": "أُعيدت الكمية إلى {count}."
+      "quantity": "الكمية"
     },
     "empty": {
       "noItemsTitle": "لا يوجد مخزون بعد",
@@ -964,20 +1193,17 @@
       "noMatchesTitle": "لا نتائج مطابقة",
       "noMatchesDescription": "جرّب بحثًا مختلفًا أو أزل التصفية."
     },
-    "pagination": {
-      "previous": "السابق",
-      "next": "التالي",
-      "pageOf": "صفحة {page} من {totalPages}"
-    },
-    "outsideFilterNotice": "{count, plural, zero {لا شيء} one {صنف واحد لم يعد ضمن التصفية، وبقي هنا حتى لا يختفي أثناء العمل} two {صنفان لم يعودا ضمن التصفية، وبقيا هنا حتى لا يختفيا أثناء العمل} other {{count, number, plain} أصناف لم تعد ضمن التصفية، وبقيت هنا حتى لا تختفي أثناء العمل}}",
-    "refreshList": "تحديث القائمة"
+    "save": {
+      "changed": "{count, plural, zero {لا تغييرات} one {تغيّرت كمية واحدة} two {تغيّرت كميتان} few {تغيّرت {count} كميات} many {تغيّرت {count} كمية} other {تغيّرت {count} كمية}}",
+      "failed": "{count, plural, one {تعذّر حفظ كمية واحدة، وبقيت هنا لإعادة المحاولة.} two {تعذّر حفظ كميتين، وبقيتا هنا لإعادة المحاولة.} few {تعذّر حفظ {count} كميات، وبقيت هنا لإعادة المحاولة.} many {تعذّر حفظ {count} كمية، وبقيت هنا لإعادة المحاولة.} other {تعذّر حفظ {count} كمية، وبقيت هنا لإعادة المحاولة.}}"
+    }
   },
   "labels": {
     "title": "ملصقات الباركود",
     "subtitle": "اطبع ملصقات القطع التي ما زالت بحاجة إلى ملصق.",
-    "selectAll": "اختيار كل ما في الصفحة",
+    "selectAll": "تحديد كل منتجات هذه الصفحة",
     "clearSelection": "مسح الاختيار",
-    "selectedCount": "{count} محدّد",
+    "selectedCount": "{count, plural, zero {لم يُحدَّد شيء} one {منتج واحد محدّد} two {منتجان محدّدان} few {{count} منتجات محدّدة} many {{count} منتجًا محدّدًا} other {{count} منتج محدّد}}",
     "next": "التالي",
     "filters": {
       "printState": "حالة الطباعة",
@@ -985,12 +1211,18 @@
       "printed": "مطبوعة",
       "not_printed": "غير مطبوعة",
       "category": "الفئة",
-      "allCategories": "كل الفئات"
+      "allCategories": "كل الفئات",
+      "trigger": "الفلاتر",
+      "title": "تصفية المنتجات",
+      "reset": "مسح الفلاتر",
+      "apply": "عرض النتائج",
+      "categoryHint": "المنتجات في هذا التصنيف فقط.",
+      "chipCategory": "التصنيف: {name}",
+      "removeFilter": "إزالة الفلتر: {name}"
     },
     "row": {
       "select": "اختيار {name}",
-      "variants": "{count} خيارات",
-      "printedOn": "آخر طباعة {date}",
+      "variants": "{count, plural, zero {بلا متغيرات} one {متغير واحد} two {متغيران} few {{count} متغيرات} many {{count} متغيرًا} other {{count} متغير}}",
       "neverPrinted": "لم تُطبع بعد",
       "supplierBarcode": "باركود المورّد — لا يحتاج ملصقاً"
     },
@@ -1001,29 +1233,31 @@
       "noMatchesDescription": "جرّب بحثًا آخر أو فئة أخرى أو حالة طباعة أخرى."
     },
     "copies": {
-      "total": "{count} ملصق",
+      "total": "{count, plural, zero {لا ملصقات} one {ملصق واحد} two {ملصقان} few {{count} ملصقات} many {{count} ملصقًا} other {{count} ملصق}}",
       "wholeProduct": "المنتج كامل",
       "noBarcode": "بدون باركود",
       "simpleHint": "ملصق لكل قطعة في المخزون.",
-      "perVariantHint": "ملصق لكل خيار ({count})، حسب مخزون كل خيار.",
+      "perVariantHint": "ملصق لكل متغير ({count})، حسب مخزون كل متغير.",
       "numberedHint": "شال مرقّم — ملصق واحد للمنتج كامل. اكتب عدد النسخ التي تحتاجها.",
       "supplierBarcode": "باركود المورّد — لا يحتاج ملصقاً. اكتب عدداً لطباعته على أي حال.",
-      "copiesLabel": "النسخ",
       "copiesFor": "عدد النسخ — {name}",
       "increase": "زيادة النسخ — {name}",
       "decrease": "إنقاص النسخ — {name}",
-      "stockAboveMax": "المخزون {stock} قطعة، والحد الأقصى {max} ملصق في المرة الواحدة. اطبع الباقي في دفعة ثانية."
+      "stockAboveMax": "المخزون {stock} قطعة، والحد الأقصى {max} ملصق في المرة الواحدة. اطبع الباقي في دفعة ثانية.",
+      "title": "عدد النسخ"
     },
     "prepare": {
-      "back": "رجوع إلى المنتجات",
+      "back": "العودة إلى المنتجات",
       "title": "عدد النسخ والمعاينة",
-      "subtitle": "{products} منتجات · {labels} ملصق",
-      "totalLabels": "{count} ملصق",
-      "print": "طباعة"
+      "subtitle": "{products, plural, one {منتج واحد} two {منتجان} few {{products} منتجات} many {{products} منتجًا} other {{products} منتج}} · {labels, plural, zero {لا ملصقات} one {ملصق واحد} two {ملصقان} few {{labels} ملصقات} many {{labels} ملصقًا} other {{labels} ملصق}}",
+      "totalLabels": "{count, plural, zero {لا ملصقات} one {ملصق واحد} two {ملصقان} few {{count} ملصقات} many {{count} ملصقًا} other {{count} ملصق}}",
+      "print": "طباعة",
+      "labelsToPrint": "ملصقات للطباعة"
     },
     "preview": {
-      "pageCount": "معاينة — {count} صفحات",
-      "truncated": "تظهر أول {shown} صفحات من أصل {total} — وستُطبع كلها."
+      "pageCount": "{count, plural, zero {لا صفحات} one {صفحة واحدة} two {صفحتان} few {{count} صفحات} many {{count} صفحة} other {{count} صفحة}}",
+      "truncated": "تظهر أول {shown} صفحات من أصل {total} — وستُطبع كلها.",
+      "title": "المعاينة"
     },
     "sheet": {
       "title": "ورقة الملصقات",
@@ -1043,71 +1277,106 @@
       "confirmYes": "نعم، سجّلها كمطبوعة",
       "confirmNo": "ليس بعد",
       "marked": "تم تسجيلها كمطبوعة."
+    },
+    "search": {
+      "label": "البحث في المنتجات",
+      "placeholder": "الاسم أو رمز المنتج أو الباركود",
+      "clear": "مسح البحث"
+    },
+    "selectBar": {
+      "label": "منتجات محددة للطباعة"
+    },
+    "table": {
+      "product": "المنتج",
+      "printed": "آخر طباعة"
     }
   },
   "categories": {
     "title": "الأقسام",
     "subtitle": "نظّم منتجاتك ضمن أقسام متداخلة.",
     "addCategory": "إضافة قسم",
-    "readOnlyHint": "يمكنك عرض الأقسام فقط. للتعديل، تواصل مع مسؤول أو مدير.",
+    "readOnlyHint": "يمكنك عرض الأقسام فقط. لإجراء تغييرات، تواصل مع مدير أو مسؤول.",
+    "favoritesHint": "ضع نجمة على الأقسام الأكثر استخدامًا – تظهر أولًا في متصفّح المنتجات على الكاشير.",
     "empty": {
       "title": "لا توجد أقسام بعد",
-      "description": "الأقسام التي تضيفها ستظهر هنا."
+      "description": "ستظهر هنا الأقسام التي تضيفها."
     },
+    "noMatch": {
+      "title": "لا يوجد قسم مطابق",
+      "description": "جرّب تهجئة أخرى، أو ابحث بلغة أخرى."
+    },
+    "search": {
+      "label": "البحث في الأقسام",
+      "placeholder": "ابحث عن قسم بأي لغة…",
+      "clear": "مسح البحث"
+    },
+    "expandAll": "توسيع الكل",
+    "collapseAll": "طيّ الكل",
     "tree": {
-      "expand": "توسيع",
-      "collapse": "طي",
-      "edit": "تعديل القسم",
-      "delete": "حذف القسم",
-      "confirmDelete": "حذف",
-      "cancelDelete": "إلغاء",
+      "label": "شجرة الأقسام",
+      "expand": "توسيع {name}",
+      "collapse": "طيّ {name}",
       "pinned": "مثبّت",
       "pin": "تثبيت {name} في متصفّح المنتجات على الكاشير",
-      "unpin": "إلغاء تثبيت {name} من متصفّح المنتجات على الكاشير"
+      "unpin": "إلغاء تثبيت {name} من متصفّح المنتجات على الكاشير",
+      "products": "{count, plural, zero {لا منتجات} one {منتج واحد} two {منتجان} few {{count} منتجات} many {{count} منتجًا} other {{count} منتج}}",
+      "productsLink": "عرض منتجات {name}",
+      "subcategories": "{count, plural, zero {لا أقسام فرعية} one {قسم فرعي واحد} two {قسمان فرعيان} few {{count} أقسام فرعية} many {{count} قسمًا فرعيًا} other {{count} قسم فرعي}}"
+    },
+    "menu": {
+      "label": "إجراءات {name}",
+      "edit": "تعديل",
+      "addChild": "إضافة قسم فرعي",
+      "delete": "حذف"
+    },
+    "delete": {
+      "title": "حذف {name}؟",
+      "consequence": "يُحذف القسم نهائيًا. لا يمكن حذف قسم ما زالت فيه أقسام فرعية أو منتجات.",
+      "confirm": "حذف القسم",
+      "success": "تم حذف القسم"
+    },
+    "favorite": {
+      "pinned": "تم التثبيت على الكاشير",
+      "unpinned": "تم إلغاء التثبيت من الكاشير"
     },
     "form": {
       "createTitle": "إضافة قسم",
       "editTitle": "تعديل القسم",
+      "createDescription": "اكتب الاسم بالعربية؛ اللغات الأخرى اختيارية.",
+      "editDescription": "غيّر اسمه أو انقله تحت قسم آخر.",
       "name": "الاسم",
       "required": "مطلوب",
       "optional": "اختياري",
       "parent": "القسم الأب",
-      "noParent": "بدون قسم أب (المستوى الأعلى)",
-      "creating": "جارٍ الإنشاء…",
-      "saving": "جارٍ الحفظ…",
+      "parentHint": "اتركه فارغًا ليكون قسمًا رئيسيًا.",
+      "noParent": "بدون قسم أب (رئيسي)",
       "create": "إنشاء القسم",
-      "save": "حفظ التغييرات"
+      "save": "حفظ التغييرات",
+      "created": "تم إنشاء القسم",
+      "saved": "تم حفظ القسم"
     },
-    "favoritesHint": "ضع نجمة على الأقسام الأكثر استخدامًا — تظهر أولًا في متصفّح المنتجات على الكاشير."
+    "total": "{count, plural, zero {لا أقسام} one {قسم واحد} two {قسمان} few {{count} أقسام} many {{count} قسمًا} other {{count} قسم}}"
   },
   "settings": {
     "title": "الإعدادات",
-    "subtitle": "اسم المتجر والعملة ومستويات المخزون والإشعارات وملصقات الباركود.",
+    "subtitle": "اسم المتجر والهوية والإعدادات الإقليمية والمخزون والإشعارات وملصقات الباركود.",
     "form": {
-      "readOnlyHint": "يمكنك عرض الإعدادات فقط. للتعديل، تواصل مع المسؤول.",
-      "storeInfoTitle": "معلومات المتجر",
       "storeName": "اسم المتجر",
       "required": "مطلوب",
       "optional": "اختياري",
-      "regionalTitle": "الإعدادات الإقليمية",
       "defaultLanguage": "اللغة الافتراضية",
       "currency": "العملة",
       "currencyHint": "العملة ثابتة حاليًا ولا يمكن تغييرها من هنا بعد.",
       "defaultCountryCode": "مفتاح الهاتف الافتراضي",
       "defaultCountryCodeHint": "يُستخدم لتعبئة أرقام الهواتف الجديدة تلقائيًا.",
-      "inventoryTitle": "المخزون",
       "lowStockThreshold": "حد تنبيه انخفاض المخزون",
       "lowStockThresholdHint": "المنتجات التي تصل كميتها لهذا الحد أو أقل تُعتبر منخفضة المخزون.",
-      "saleNotificationsTitle": "إشعارات المبيعات",
-      "saleNotificationsIntro": "عند كل عملية بيع ينفّذها مدير أو موظف، يصل إشعار إلى هواتف المسؤولين. لا يصل إشعار لصاحب العملية نفسه.",
       "saleNotificationsEnabled": "إرسال إشعار عند كل عملية بيع",
       "saleNotificationMode": "متى يصل الإشعار؟",
       "saleNotificationModeOption": {
         "EVERY_SALE": "عند كل عملية بيع"
       },
       "saleNotificationModeHint": "ستُضاف خيارات أخرى لاحقًا، مثل المبيعات فوق مبلغ معيّن أو ملخّص دوري.",
-      "labelsTitle": "ملصقات الباركود",
-      "labelsIntro": "طريقة خروج ملصقات الباركود من الطابعة. شاشة الملصقات تستخدم هذه الأرقام في كل عملية طباعة.",
       "labelPrintMode": "نوع الطابعة",
       "labelPrintModeOption": {
         "THERMAL": "طابعة ملصقات (رول)",
@@ -1136,33 +1405,48 @@
       "labelGapY": "بالطول",
       "labelGapsHint": "الفراغ بين ملصق والذي يليه. اكتب 0 إذا كانت الملصقات متلاصقة.",
       "labelSheetErrorHint": "بعض أرقام ورقة A4 غير صحيحة. أعِد نوع الطابعة إلى ورقة A4 لتصحيحها.",
-      "saving": "جارٍ الحفظ…",
-      "save": "حفظ التغييرات",
       "saved": "تم حفظ الإعدادات."
     },
-    "notifications": {
-      "title": "الإشعارات على هذا الجهاز",
-      "intro": "شغّل الإشعارات لتصلك المبيعات على هذا الهاتف فور حدوثها. الإعداد يخصّ هذا الجهاز وحده.",
-      "state": {
-        "on": "الإشعارات تعمل على هذا الجهاز.",
-        "off": "الإشعارات غير مفعّلة على هذا الجهاز."
+    "sections": {
+      "store-info": {
+        "title": "معلومات المتجر",
+        "description": "اسم المتجر بكل لغة."
       },
-      "turnOn": "تفعيل الإشعارات",
-      "turnOff": "إيقاف الإشعارات",
-      "permissionLabel": "إذن الإشعارات في المتصفح",
-      "permission": {
-        "default": "لم يُطلب بعد",
-        "granted": "مسموح",
-        "denied": "مرفوض"
+      "regional": {
+        "title": "الإعدادات الإقليمية",
+        "description": "اللغة الافتراضية والعملة ومفتاح الهاتف."
       },
-      "blocked": {
-        "unsupported": "هذا المتصفح لا يدعم الإشعارات. جرّب متصفحًا آخر أو هاتفًا آخر.",
-        "needs-install": "على الآيفون والآيباد، أضف التطبيق إلى الشاشة الرئيسية أولًا: من زر المشاركة اختر «إضافة إلى الشاشة الرئيسية»، ثم افتح التطبيق من أيقونته وفعّل الإشعارات من هنا.",
-        "not-configured": "الإشعارات غير مهيّأة على الخادم بعد. تواصل مع من يدير الخادم.",
-        "denied": "الإشعارات مرفوضة لهذا الموقع. اسمح بها من إعدادات المتصفح أو الهاتف ثم أعد المحاولة."
+      "inventory": {
+        "title": "المخزون",
+        "description": "متى يُعتبر المنتج منخفض المخزون."
       },
-      "failed": "تعذّر تغيير إعداد الإشعارات. حاول مرة أخرى.",
-      "iosHint": "ملاحظة للآيفون والآيباد: لا تصل الإشعارات إلا بعد إضافة التطبيق إلى الشاشة الرئيسية وفتحه من أيقونته."
+      "labels": {
+        "title": "ملصقات الباركود",
+        "description": "طريقة خروج ملصقات الباركود من الطابعة. شاشة الملصقات تستخدم هذه الأرقام في كل عملية طباعة."
+      },
+      "branding": {
+        "title": "الهوية",
+        "description": "الشعار في الشريط الجانبي، والأيقونة في تبويب المتصفح وعلى الشاشة الرئيسية."
+      },
+      "sale-notifications": {
+        "title": "إشعارات المبيعات",
+        "description": "عند كل عملية بيع ينفّذها مدير أو موظف، يصل إشعار إلى هواتف المسؤولين. لا يصل إشعار لصاحب العملية نفسه."
+      }
+    },
+    "branding": {
+      "logo": "الشعار",
+      "logoHint": "يظهر أعلى الشريط الجانبي. PNG أو JPG أو WebP، ويفضَّل PNG بخلفية شفافة.",
+      "favicon": "أيقونة الموقع",
+      "faviconHint": "الأيقونة في تبويب المتصفح وعلى الشاشة الرئيسية وفي الإشعارات. الأفضل صورة مربعة لا تقل عن 512 × 512.",
+      "choose": "اختيار صورة",
+      "replace": "استبدال",
+      "remove": "إزالة",
+      "undo": "تراجع",
+      "pendingReplace": "صورة جديدة — تُرفع عند الحفظ.",
+      "pendingRemove": "تُزال عند الحفظ.",
+      "builtIn": "لم تُرفع صورة بعد — تُستخدم الأيقونة المدمجة.",
+      "tabPreview": "تبويب المتصفح",
+      "appPreview": "الشاشة الرئيسية"
     }
   },
   "push": {
@@ -1192,7 +1476,17 @@
       "status": "الحالة",
       "statusAll": "الكل",
       "statusActive": "نشط",
-      "statusInactive": "غير نشط"
+      "statusInactive": "غير نشط",
+      "trigger": "عوامل التصفية",
+      "title": "تصفية الموظفين",
+      "reset": "مسح التصفية",
+      "apply": "عرض النتائج",
+      "sortHint": "ترتيب ظهور الموظفين في القائمة.",
+      "roleHint": "اعرض دورًا واحدًا فقط.",
+      "statusHint": "الموظف النشط يستطيع تسجيل الدخول، وغير النشط لا يستطيع.",
+      "chipRole": "الدور: {name}",
+      "chipStatus": "الحالة: {name}",
+      "removeFilter": "إزالة التصفية: {name}"
     },
     "role": {
       "ADMIN": "مسؤول",
@@ -1206,30 +1500,20 @@
     "accountState": {
       "pending": "بانتظار كلمة المرور"
     },
-    "card": {
-      "edit": "تعديل الموظف",
-      "activate": "تفعيل",
-      "confirmActivate": "تفعيل",
-      "cancelToggle": "إلغاء",
-      "remove": "إزالة الموظف",
-      "actionsFor": "إجراءات لـ {name}"
-    },
     "table": {
       "name": "الاسم",
       "role": "الدور",
-      "phone": "الهاتف",
-      "status": "الحالة"
+      "status": "الحالة",
+      "contact": "التواصل",
+      "actions": "الإجراءات",
+      "you": "أنت",
+      "whatsapp": "واتساب"
     },
     "empty": {
       "noUsersTitle": "لا يوجد موظفون بعد",
       "noUsersDescription": "ستظهر هنا حسابات الموظفين التي تضيفها.",
       "noMatchesTitle": "لا توجد نتائج مطابقة",
       "noMatchesDescription": "جرّب بحثًا مختلفًا أو امسح عوامل التصفية."
-    },
-    "pagination": {
-      "previous": "السابق",
-      "next": "التالي",
-      "pageOf": "صفحة {page} من {totalPages}"
     },
     "form": {
       "createTitle": "إضافة موظف",
@@ -1243,26 +1527,39 @@
       "passwordHintEdit": "اتركها فارغة للإبقاء على كلمة المرور الحالية.",
       "role": "الدور",
       "phone": "رقم الهاتف",
-      "phonePrefixLabel": "مفتاح الدولة",
       "whatsapp": "واتساب",
       "whatsappHint": "اختياري — يُستخدم للتواصل مع هذا الموظف عبر واتساب.",
       "idNumber": "رقم الهوية",
-      "creating": "جارٍ الإنشاء…",
-      "saving": "جارٍ الحفظ…",
       "create": "إضافة موظف",
       "save": "حفظ التغييرات",
-      "passwordHintCreate": "اتركها فارغة (الأفضل): سيصله رابط على بريده ليختار كلمة المرور بنفسه، فلا يعرفها أحد غيره."
+      "passwordHintCreate": "اتركها فارغة (الأفضل): سيصله رابط على بريده ليختار كلمة المرور بنفسه، فلا يعرفها أحد غيره.",
+      "createDescription": "سيصله بريد فيه رابط ليختار كلمة المرور بنفسه.",
+      "editDescription": "تسري التغييرات في المرة القادمة التي يستخدم فيها التطبيق.",
+      "created": "تمت إضافة الموظف.",
+      "saved": "تم حفظ التغييرات.",
+      "groups": {
+        "account": "الحساب",
+        "contact": "التواصل",
+        "signIn": "تسجيل الدخول"
+      },
+      "namePlaceholder": "الاسم الكامل",
+      "emailPlaceholder": "name@example.com",
+      "emailHintCreate": "يسجّل الدخول بهذا العنوان، ولا يمكن تغييره لاحقًا.",
+      "idNumberPlaceholder": "رقم بطاقة الهوية",
+      "idNumberHint": "يظهر للمدير فقط.",
+      "roleHint": "يحدد ما يستطيع رؤيته وفعله. صلاحيات كل دور تُضبط من صفحة الصلاحيات.",
+      "passwordEdit": "تعيين كلمة مرور جديدة بنفسك"
     },
     "passwordReset": {
       "action": "إرسال رابط كلمة المرور",
-      "sending": "جارٍ الإرسال…",
       "sent": "تم إرسال رابط تعيين كلمة المرور إلى {email}.",
       "copyLink": "نسخ الرابط",
       "copied": "تم نسخ الرابط.",
       "linkHint": "إذا لم يصل البريد، يمكنك إرسال هذا الرابط للموظف بنفسك. الرابط يعمل مرة واحدة فقط.",
       "resendInvite": "إعادة إرسال رابط التفعيل",
       "inviteSent": "تم إرسال رابط اختيار كلمة المرور إلى {email}.",
-      "pendingHint": "لم يختر هذا الموظف كلمة مرور بعد، فلا يستطيع تسجيل الدخول. أعد إرسال الرابط إذا لم يصله."
+      "pendingHint": "لم يختر هذا الموظف كلمة مرور بعد، فلا يستطيع تسجيل الدخول. أعد إرسال الرابط إذا لم يصله.",
+      "hint": "يُرسل إليه رابطًا ليختار كلمة مرور جديدة. يعمل مرة واحدة وتنتهي صلاحيته بعد ساعتين."
     },
     "remove": {
       "title": "إزالة {name}",
@@ -1272,7 +1569,8 @@
         "body": "لن يستطيع تسجيل الدخول بعد الآن، وسيُسجَّل خروجه فورًا من كل جهاز هو مسجَّل الدخول عليه. ويبقى كل ما قام به كما هو تمامًا: طلباته ومصاريفه وجرد الصندوق ما زالت تحمل اسمه. ويمكنك إعادة تفعيله لاحقًا.",
         "action": "تعطيل هذا الحساب",
         "confirmQuestion": "هل تريد تعطيل هذا الحساب؟ لن يتمكن من تسجيل الدخول.",
-        "confirm": "نعم، عطِّل {name}"
+        "confirm": "نعم، عطِّل {name}",
+        "success": "تم إيقاف الحساب."
       },
       "delete": {
         "heading": "الحذف نهائيًا",
@@ -1280,8 +1578,30 @@
         "unavailable": "لا يمكن حذف هذا الحساب لأنه استُخدم في المتجر بالفعل — هناك طلبات أو مصاريف أو سجلات أخرى تحمل اسم هذا الشخص. عطِّله بدلًا من ذلك، لتبقى تلك السجلات تقول من قام بماذا.",
         "action": "حذف نهائي",
         "confirmQuestion": "هذا يمحو الحساب {email} وكلمة المرور نهائيًا. لا يمكن التراجع عنه.",
-        "confirm": "نعم، احذف {name} نهائيًا"
-      }
+        "confirm": "نعم، احذف {name} نهائيًا",
+        "success": "تم حذف الحساب."
+      },
+      "description": "اختر طريقة إزالة هذا الشخص من المتجر."
+    },
+    "sort": {
+      "label": "الترتيب حسب",
+      "newest": "الأحدث أولًا",
+      "oldest": "الأقدم أولًا",
+      "nameAToZ": "الاسم: أ إلى ي",
+      "nameZToA": "الاسم: ي إلى أ",
+      "role": "الدور"
+    },
+    "rowMenu": {
+      "label": "إجراءات {name}",
+      "edit": "تعديل",
+      "remove": "إيقاف أو حذف…",
+      "activate": "تفعيل من جديد"
+    },
+    "activate": {
+      "title": "تفعيل حساب {name} من جديد؟",
+      "consequence": "سيستطيع تسجيل الدخول مرة أخرى بكلمة المرور الخاصة به.",
+      "confirm": "تفعيل",
+      "success": "أصبح الحساب نشطًا من جديد."
     }
   },
   "errors": {
@@ -1353,7 +1673,6 @@
     "orderNotCollectable": "لا يمكن تسجيل تحصيل هذا الطلب لأنه ملغي أو مُرجع.",
     "reportRangeInvalid": "الفترة غير صحيحة. راجع تاريخ البداية والنهاية.",
     "reportRangeTooLong": "الفترة طويلة جدًا. اختر مدة سنة كحد أقصى.",
-    "orderGiftChannelInvalid": "الهدية تُسلَّم في المحل فقط.",
     "cashSessionNotFound": "تعذّر العثور على صندوق ذلك اليوم.",
     "cashSessionDateTaken": "هذا اليوم له صندوق بالفعل.",
     "cashSessionAlreadyClosed": "تمّ جرد هذا اليوم وإغلاقه من قبل.",
@@ -1381,7 +1700,10 @@
     "userSelfRemoval": "لا يمكنك إزالة حسابك أنت. اطلب من مدير آخر أن يفعل ذلك.",
     "userHasHistory": "هذا الحساب استُخدم في المتجر بالفعل، لذا لا يمكن حذفه. عطِّله بدلًا من ذلك — تبقى طلباته ومصاريفه تحمل اسم صاحبها.",
     "productCompletionIncomplete": "اختر قسمًا للمنتج قبل اعتماده — بدون قسم لن يظهر في أي قائمة مصنّفة.",
-    "orderItemSourceInvalid": "تعذّر تحديد القطعة المطلوبة في هذا السطر."
+    "orderItemSourceInvalid": "تعذّر تحديد القطعة المطلوبة في هذا السطر.",
+    "orderLocationLinkInvalid": "تعذّر قراءة موقع من هذا الرابط. الصق رابط مشاركة من خرائط Google.",
+    "profileWrongPassword": "كلمة المرور الحالية غير صحيحة.",
+    "profileSessionNotFound": "تم تسجيل خروج هذا الجهاز من قبل."
   },
   "pwa": {
     "version": {
@@ -1488,25 +1810,16 @@
     "title": "الصلاحيات",
     "subtitle": "اختر ما يُسمح به لكل دور.",
     "rolePicker": "اختر الدور",
-    "saving": "جارٍ الحفظ…",
     "unavailable": "تعذّر تحميل الصلاحيات. حاول مرة أخرى.",
     "ownRole": "لا يمكنك تغيير صلاحيات دورك أنت.",
-    "adminRole": "المسؤول يملك كل الصلاحيات دائمًا، لذلك لا يمكن تغييرها هنا.",
     "toggleLabel": "{action} — {role}",
-    "intro": {
-      "title": "يمكن تغيير كل الصلاحيات",
-      "body": "فعّل أو أوقف أي شيء يستطيع المدير أو الموظف فعله، بما في ذلك التكاليف والأرباح والتقارير وإلغاء البيع والموافقات وحسابات الموظفين. يحتفظ المسؤول دائمًا بكل الصلاحيات."
-    },
     "locked": {
       "label": "مقفل",
-      "protected": "هذا يحمي سجلات المتجر",
-      "ownRole": "هذا دورك أنت",
-      "adminRole": "المسؤول يملك هذه دائمًا",
       "on": "مفعّل",
       "off": "غير مفعّل"
     },
     "table": {
-      "action": "ما هو"
+      "action": "الصلاحية"
     },
     "role": {
       "ADMIN": "مسؤول",
@@ -1600,6 +1913,487 @@
       "permission": {
         "manage": "تغيير هذه الصلاحيات"
       }
+    },
+    "adminNote": "المسؤول يملك كل الصلاحيات دائمًا، لذلك لا يظهر هنا.",
+    "summary": "{role} {granted}/{total}",
+    "changed": "معدّل",
+    "saved": "حُفظت الصلاحيات",
+    "changes": "{count, plural, zero {لا تغييرات} one {تغيير واحد غير محفوظ} two {تغييران غير محفوظين} few {{count} تغييرات غير محفوظة} many {{count} تغييرًا غير محفوظ} other {{count} تغيير غير محفوظ}}",
+    "restoreDefaults": "استعادة الإعدادات الافتراضية",
+    "search": {
+      "label": "بحث في الصلاحيات",
+      "placeholder": "ابحث عن صلاحية…",
+      "clear": "مسح البحث"
+    },
+    "empty": {
+      "title": "لا صلاحية مطابقة",
+      "hint": "جرّب كلمة أخرى."
+    }
+  },
+  "designSystem": {
+    "title": "نظام التصميم",
+    "subtitle": "كل مكوّنات Store Management بكل حالاتها، بثيم المتجر.",
+    "adminOnly": "فقط المدير يستطيع فتح نظام التصميم.",
+    "sections": {
+      "colours": "الألوان",
+      "typography": "الخطوط",
+      "buttons": "الأزرار",
+      "badges": "الشارات والخيارات",
+      "fields": "الحقول",
+      "choices": "الاختيارات",
+      "cards": "البطاقات والأرقام",
+      "feedback": "الرسائل والحالات",
+      "overlays": "النوافذ واللوحات والقوائم",
+      "table": "الجدول",
+      "shape": "الزوايا والظلال"
+    },
+    "hints": {
+      "colours": "الألوان التي تقرؤها كل المكوّنات. ثيم العميل يغيّر القيم ولا يغيّر الأسماء.",
+      "typography": "سلّم الخطوط من أصغر نص إلى رقم المؤشّر.",
+      "buttons": "خمسة أنواع وارتفاعان، مع حالتي التحميل والتعطيل. زر أساسي واحد في كل شاشة.",
+      "badges": "الشارة تخبر بحالة، والخيار شيء تختاره.",
+      "fields": "إطار الحقل الذي تُبنى منه كل المدخلات: عادي، مُركَّز، خطأ، معطّل.",
+      "choices": "اختيار واحد من عدة، وتشغيل/إيقاف، وكلها تعمل بلوحة المفاتيح.",
+      "cards": "اللوحات والأرقام وملخّص البيع.",
+      "feedback": "ما تقوله الشاشة أثناء التحميل وعندما تكون فارغة وبعد كل إجراء.",
+      "overlays": "كل ما يُفتح فوق الصفحة.",
+      "table": "صفوف على الشاشة العريضة وبطاقات على الهاتف، بتعريف أعمدة واحد.",
+      "shape": "الزوايا المسمّاة والارتفاع الذي يستخدمه كل سطح."
+    },
+    "type": {
+      "micro": "صغير جدًا",
+      "meta": "وصفي",
+      "label": "عنوان حقل",
+      "value": "قيمة",
+      "section": "قسم",
+      "heading": "عنوان",
+      "title": "عنوان الصفحة",
+      "kpi": "مؤشّر",
+      "sample": "شال حرير"
+    },
+    "buttons": {
+      "primary": "إتمام البيع",
+      "secondary": "حفظ كمسودة",
+      "ghost": "عرض المزيد",
+      "quiet": "تخطّي",
+      "danger": "حذف",
+      "loading": "جارٍ الحفظ",
+      "disabled": "غير متاح",
+      "small": "صغير",
+      "withIcon": "إضافة منتج",
+      "iconDelete": "حذف",
+      "iconClose": "إغلاق",
+      "outbound": "افتح في الخرائط",
+      "card": "بطاقة للنقر",
+      "cardSelected": "بطاقة محددة",
+      "cardHint": "البطاقة كلها زر واحد",
+      "inverse": "على الداكن: معكوس",
+      "glass": "على الداكن: زجاجي"
+    },
+    "badges": {
+      "inStock": "متوفر",
+      "lowStock": "كمية قليلة",
+      "soldOut": "نفد",
+      "new": "جديد",
+      "gift": "هدية",
+      "all": "الكل",
+      "dresses": "فساتين",
+      "shawls": "شالات"
+    },
+    "fields": {
+      "name": "اسم المنتج",
+      "namePlaceholder": "مثال: شال حرير",
+      "nameHint": "يظهر على الفاتورة وملصق الرف.",
+      "search": "البحث في المنتجات",
+      "searchPlaceholder": "ابحث بالاسم أو الباركود",
+      "price": "السعر",
+      "quantity": "الكمية",
+      "notes": "ملاحظات",
+      "notesPlaceholder": "أي شيء يجب أن يعرفه الشخص التالي",
+      "category": "التصنيف",
+      "categoryPlaceholder": "اختر تصنيفًا",
+      "password": "كلمة المرور",
+      "phone": "الهاتف",
+      "date": "التاريخ",
+      "time": "الوقت",
+      "range": "الفترة",
+      "error": "مطلوب",
+      "errorHint": "هذا الحقل مطلوب",
+      "disabled": "حقل معطّل",
+      "translated": "اسم مترجَم",
+      "sectionTitle": "قسم",
+      "sectionDescription": "بطاقة بعنوان يمكن طيّها.",
+      "colour": "اللون",
+      "colourHint": "أكثر من عشرة خيارات، لذا في القائمة مربع بحث.",
+      "colourPlaceholder": "اختر لونًا"
+    },
+    "choices": {
+      "channel": "قناة البيع",
+      "counter": "المحل",
+      "whatsapp": "واتساب",
+      "online": "أونلاين",
+      "discount": "نوع الخصم",
+      "percent": "نسبة",
+      "amount": "مبلغ",
+      "tabs": "تبويبات الطلبات",
+      "open": "مفتوحة",
+      "delivered": "تم التسليم",
+      "returned": "مرتجعة",
+      "trackStock": "تنبيه عند قلّة الكمية",
+      "printLabel": "طباعة ملصق",
+      "giftWrap": "تغليف هدية"
+    },
+    "cards": {
+      "cardTitle": "بطاقة",
+      "cardBody": "اللوحة: حافة رفيعة وظل ناعم.",
+      "selected": "بطاقة مختارة",
+      "sales": "مبيعات اليوم",
+      "orders": "الطلبات",
+      "returns": "المرتجعات",
+      "stockValue": "القطع في المخزون",
+      "vsYesterday": "مقارنة بالأمس",
+      "widget": "لوحة جانبية",
+      "widgetBody": "الأخت الصغرى للبطاقة، لعمود جانبي.",
+      "entityTitle": "شال حرير",
+      "entitySubtitle": "شالات",
+      "progress": "المُباع",
+      "progressCaption": "من مخزون هذا الأسبوع",
+      "open": "فتح",
+      "subtotal": "المجموع الفرعي",
+      "discount": "الخصم",
+      "total": "الإجمالي",
+      "itemLine": "شال حرير × 2"
+    },
+    "feedback": {
+      "emptyTitle": "لا توجد مبيعات اليوم بعد",
+      "emptyHint": "ستظهر الطلبات المكتملة هنا.",
+      "toastSuccess": "تم الحفظ",
+      "toastWarning": "الكمية قليلة",
+      "toastError": "تعذّر الحفظ",
+      "showSuccess": "رسالة نجاح",
+      "showWarning": "رسالة تنبيه",
+      "showError": "رسالة خطأ",
+      "info": "عن هذا الرقم",
+      "infoBody": "تُحسب المبيعات عند إتمام الطلب.",
+      "loading": "أشكال التحميل",
+      "alerts": "التنبيهات",
+      "alertDangerTitle": "تعذّر إغلاق اليوم",
+      "alertDangerBody": "النقد المعدود لا يطابق الدرج.",
+      "alertWarningTitle": "المخزون ينفد",
+      "alertWarningBody": "بقيت قطعة واحدة من 3 منتجات.",
+      "alertSuccessTitle": "طُبعت كل الملصقات",
+      "alertInfoTitle": "الأسعار تشمل الضريبة",
+      "alertInfoBody": "المجاميع في هذه الشاشة معروضة بعد الضريبة.",
+      "alertNeutralBody": "يمكنك تغيير تذييل الإيصال من صفحة الإعدادات.",
+      "toastWarningBody": "بقيت قطعة واحدة فقط من هذا الصنف.",
+      "toastErrorBody": "تحقّق من الاتصال وحاول مرة أخرى.",
+      "toastInfo": "الأسعار تشمل الضريبة",
+      "toastInfoBody": "المجاميع معروضة بعد الضريبة.",
+      "toastNeutral": "تذييل الإيصال",
+      "toastNeutralBody": "يمكنك تغييره من صفحة الإعدادات.",
+      "showInfo": "رسالة معلومات",
+      "showNeutral": "رسالة عامة"
+    },
+    "overlays": {
+      "openModal": "فتح نافذة",
+      "modalTitle": "تعديل المنتج",
+      "modalDescription": "نافذة في المنتصف لمهمة قصيرة.",
+      "openDrawer": "فتح لوحة",
+      "drawerTitle": "طلب رقم 1042",
+      "drawerDescription": "تفاصيل سجل، من الطرف الآخر للشاشة.",
+      "openConfirm": "حذف…",
+      "confirmTitle": "حذف هذا المنتج؟",
+      "confirmConsequence": "سيختفي من الكتالوج ومن نقطة البيع.",
+      "menu": "إجراءات الصف",
+      "edit": "تعديل",
+      "duplicate": "تكرار",
+      "delete": "حذف",
+      "close": "إغلاق",
+      "openNavDrawer": "قائمة جانبية",
+      "navDrawerDescription": "القائمة: ضيّقة ومن بداية السطر.",
+      "openImageViewer": "فتح عارض الصور",
+      "imageAlt": "صورة تجريبية {number}",
+      "toggleStickyActions": "إظهار شريط الإجراءات",
+      "stickyMessage": "3 محددة",
+      "stickyClear": "مسح",
+      "stickyAction": "تطبيق"
+    },
+    "table": {
+      "product": "المنتج",
+      "sku": "رمز المنتج",
+      "stock": "المخزون",
+      "price": "السعر",
+      "rowA": "شال حرير",
+      "rowB": "عباية كتان",
+      "rowC": "حجاب قطن",
+      "empty": "لا توجد منتجات مطابقة",
+      "selectRow": "تحديد الصف {name}",
+      "selectAll": "تحديد كل الصفوف"
+    },
+    "chips": {
+      "remove": "إزالة {name}"
+    },
+    "colours": {
+      "black": "أسود",
+      "white": "أبيض",
+      "navy": "كحلي",
+      "beige": "بيج",
+      "camel": "جملي",
+      "grey": "رمادي",
+      "olive": "زيتي",
+      "burgundy": "خمري",
+      "rose": "وردي",
+      "sky": "سماوي",
+      "mint": "نعناعي",
+      "mustard": "خردلي"
+    }
+  },
+  "breadcrumb": {
+    "label": "مسار التنقل",
+    "back": "رجوع",
+    "detail": "التفاصيل",
+    "new": "جديد",
+    "edit": "تعديل",
+    "orders": {
+      "detail": "تفاصيل الطلب",
+      "new": "طلب جديد"
+    },
+    "products": {
+      "detail": "تفاصيل المنتج",
+      "new": "منتج جديد",
+      "edit": "تعديل المنتج"
+    }
+  },
+  "globalSearch": {
+    "label": "بحث في المتجر",
+    "placeholder": "ابحث عن طلب، منتج، عميل …",
+    "open": "فتح البحث",
+    "close": "إغلاق البحث",
+    "clear": "مسح البحث",
+    "minChars": "اكتب حرفين على الأقل للبحث.",
+    "searching": "جارٍ البحث…",
+    "noResults": "لا توجد نتائج لـ «{query}».",
+    "error": "تعذّر البحث الآن. حاول مرة أخرى.",
+    "seeAll": "عرض الكل ({count})",
+    "hint": "↑ ↓ للتنقل · Enter للفتح · Esc للإغلاق",
+    "groups": {
+      "pages": "الصفحات",
+      "orders": "الطلبات",
+      "products": "المنتجات",
+      "customers": "العملاء"
+    }
+  },
+  "profile": {
+    "title": "ملفي الشخصي",
+    "subtitle": "حسابك أنت: بياناتك وكلمة المرور والأجهزة واللغة.",
+    "header": {
+      "email": "البريد الإلكتروني",
+      "phone": "الهاتف",
+      "memberSince": "عضو منذ"
+    },
+    "sections": {
+      "details": {
+        "title": "البيانات الشخصية",
+        "description": "اسمك وأرقامك كما يراها باقي فريق المحل."
+      },
+      "devices": {
+        "title": "الأجهزة المسجّل دخولها",
+        "description": "الأماكن المسجّل فيها دخول حسابك الآن."
+      },
+      "password": {
+        "title": "كلمة المرور",
+        "description": "تغييرها يسجّل خروجك من كل الأجهزة الأخرى."
+      },
+      "language": {
+        "title": "اللغة",
+        "description": "تُستخدم على هذا الجهاز الآن، وكلما سجّلت الدخول."
+      },
+      "notifications": {
+        "title": "الإشعارات على هذا الجهاز",
+        "description": "شغّل الإشعارات لتصلك المبيعات على هذا الهاتف فور حدوثها. الإعداد يخصّ هذا الجهاز وحده."
+      }
+    },
+    "details": {
+      "name": "الاسم الكامل",
+      "namePlaceholder": "اسمك الكامل",
+      "phone": "رقم الهاتف",
+      "whatsapp": "واتساب",
+      "whatsappHint": "فقط إذا كان مختلفًا عن رقم الهاتف.",
+      "email": "البريد الإلكتروني",
+      "emailNote": "تسجّل الدخول بهذا العنوان، ولا يغيّره إلا المسؤول.",
+      "saved": "تم حفظ بياناتك."
+    },
+    "password": {
+      "open": "تغيير كلمة المرور",
+      "title": "تغيير كلمة المرور",
+      "description": "أدخل كلمة المرور الحالية، ثم الجديدة مرتين.",
+      "current": "كلمة المرور الحالية",
+      "currentPlaceholder": "كلمة مرورك الحالية",
+      "new": "كلمة المرور الجديدة",
+      "newPlaceholder": "اختر كلمة مرور جديدة",
+      "newNote": "8 أحرف على الأقل.",
+      "confirm": "أعد كتابة كلمة المرور الجديدة",
+      "confirmPlaceholder": "أعد كتابة كلمة المرور الجديدة",
+      "submit": "تغيير كلمة المرور",
+      "changed": "تم تغيير كلمة المرور، وسُجّل خروج أجهزتك الأخرى.",
+      "mismatch": "كلمتا المرور الجديدتان غير متطابقتين."
+    },
+    "language": {
+      "label": "لغة الواجهة"
+    },
+    "devices": {
+      "browserOn": "{browser} على {system}",
+      "unknownDevice": "جهاز غير معروف",
+      "thisDevice": "هذا الجهاز",
+      "lastActive": "آخر نشاط {when}",
+      "signOut": "تسجيل الخروج",
+      "signOutTitle": "تسجيل خروج هذا الجهاز؟",
+      "signOutConsequence": "سيحتاج من يستخدمه إلى تسجيل الدخول من جديد.",
+      "signedOut": "تم تسجيل خروج الجهاز.",
+      "signOutOthers": "تسجيل الخروج من كل الأجهزة الأخرى",
+      "signOutOthersTitle": "تسجيل الخروج من كل الأجهزة الأخرى؟",
+      "signOutOthersConsequence": "كل جهاز غير هذا سيحتاج إلى تسجيل الدخول من جديد.",
+      "signedOutOthers": "تم تسجيل الخروج من كل الأجهزة الأخرى.",
+      "onlyThisDevice": "أنت مسجّل الدخول على هذا الجهاز فقط."
+    },
+    "notifications": {
+      "state": {
+        "on": "الإشعارات تعمل على هذا الجهاز.",
+        "off": "الإشعارات غير مفعّلة على هذا الجهاز."
+      },
+      "turnOn": "تفعيل الإشعارات",
+      "turnOff": "إيقاف الإشعارات",
+      "permissionLabel": "إذن الإشعارات في المتصفح",
+      "permission": {
+        "default": "لم يُطلب بعد",
+        "granted": "مسموح",
+        "denied": "مرفوض"
+      },
+      "blocked": {
+        "unsupported": "هذا المتصفح لا يدعم الإشعارات. جرّب متصفحًا آخر أو هاتفًا آخر.",
+        "needs-install": "على الآيفون والآيباد، أضف التطبيق إلى الشاشة الرئيسية أولًا: من زر المشاركة اختر «إضافة إلى الشاشة الرئيسية»، ثم افتح التطبيق من أيقونته وفعّل الإشعارات من هنا.",
+        "not-configured": "الإشعارات غير مهيّأة على الخادم بعد. تواصل مع من يدير الخادم.",
+        "denied": "الإشعارات مرفوضة لهذا الموقع. اسمح بها من إعدادات المتصفح أو الهاتف ثم أعد المحاولة."
+      },
+      "failed": "تعذّر تغيير إعداد الإشعارات. حاول مرة أخرى.",
+      "iosHint": "ملاحظة للآيفون والآيباد: لا تصل الإشعارات إلا بعد إضافة التطبيق إلى الشاشة الرئيسية وفتحه من أيقونته."
+    }
+  },
+  "expenses": {
+    "title": "المصاريف",
+    "subtitle": "ما يصرفه المحل من فواتير ورواتب ومستلزمات. المصاريف المعتمدة فقط تدخل في الربح والصندوق.",
+    "add": "إضافة مصروف",
+    "categoriesButton": "التصنيفات",
+    "search": {
+      "label": "بحث في المصاريف",
+      "placeholder": "ابحث في الملاحظات…",
+      "clear": "مسح البحث"
+    },
+    "filters": {
+      "category": "التصنيف",
+      "allCategories": "كل التصنيفات",
+      "status": "الحالة",
+      "allStatuses": "كل الحالات"
+    },
+    "status": {
+      "PENDING": "بانتظار الموافقة",
+      "APPROVED": "معتمد",
+      "REJECTED": "مرفوض"
+    },
+    "summary": {
+      "total": "المصروف",
+      "count": "{count, plural, zero {لا مصاريف} one {مصروف واحد} two {مصروفان} few {{count} مصاريف} many {{count} مصروفًا} other {{count} مصروف}}",
+      "cash": "من الصندوق",
+      "cashHint": "دُفع نقدًا من الكاش",
+      "pending": "بانتظار الموافقة",
+      "pendingHint": "{count, plural, zero {لا شيء معلّق} one {مصروف واحد، لم يُحسب بعد} two {مصروفان، لم يُحسبا بعد} few {{count} مصاريف، لم تُحسب بعد} many {{count} مصروفًا، لم تُحسب بعد} other {{count} مصروف، لم تُحسب بعد}}"
+    },
+    "breakdown": {
+      "title": "حسب التصنيف",
+      "empty": "لا مصاريف في هذه الفترة."
+    },
+    "table": {
+      "category": "التصنيف",
+      "date": "التاريخ",
+      "paidFrom": "الدفع من",
+      "createdBy": "سجّله",
+      "amount": "المبلغ",
+      "actions": "إجراءات",
+      "cash": "الصندوق",
+      "other": "بطاقة / تحويل",
+      "recurring": "ثابت",
+      "noCategory": "بلا تصنيف"
+    },
+    "menu": {
+      "label": "إجراءات {name}",
+      "edit": "تعديل",
+      "delete": "حذف"
+    },
+    "delete": {
+      "title": "حذف مصروف {name} بقيمة {amount}؟",
+      "consequence": "لن يُحسب بعد الآن في الربح ولا في الصندوق، ويبقى في سجل التدقيق.",
+      "confirm": "حذف المصروف",
+      "success": "حُذف المصروف"
+    },
+    "empty": {
+      "noneTitle": "لا مصاريف في هذه الفترة",
+      "noneHint": "سجّل الفاتورة أو الدفعة فور دفعها.",
+      "noMatchesTitle": "لا مصاريف مطابقة",
+      "noMatchesHint": "جرّب تصنيفًا أو حالة أو بحثًا آخر."
+    },
+    "form": {
+      "createTitle": "إضافة مصروف",
+      "createDescription": "كم، وعلى ماذا، وهل خرج من الصندوق.",
+      "editTitle": "تعديل المصروف",
+      "editDescription": "التعديل يظهر في الربح والصندوق فورًا.",
+      "amount": "المبلغ",
+      "amountPlaceholder": "0.00",
+      "date": "تاريخ الدفع",
+      "category": "على ماذا صُرف؟",
+      "categoryRequired": "اختر تصنيفًا.",
+      "paidInCash": "دُفع نقدًا من الصندوق",
+      "paidInCashHint": "يُخصم مما يجب أن يكون في الصندوق اليوم",
+      "isRecurring": "مصروف ثابت",
+      "isRecurringHint": "إيجار، رواتب، إنترنت — يُدفع كل شهر",
+      "note": "ملاحظة",
+      "notePlaceholder": "مثلًا: فاتورة كهرباء شهر أكتوبر",
+      "create": "إضافة المصروف",
+      "save": "حفظ التعديلات",
+      "created": "أُضيف المصروف",
+      "saved": "حُفظ المصروف",
+      "sentForApproval": "أُرسل المصروف للموافقة",
+      "amountRequired": "أدخل المبلغ المدفوع."
+    },
+    "categories": {
+      "title": "تصنيفات المصاريف",
+      "description": "expenses.categories.descriptionText",
+      "add": "إضافة تصنيف",
+      "count": "{count, plural, zero {لا مصاريف} one {مصروف واحد} two {مصروفان} few {{count} مصاريف} many {{count} مصروفًا} other {{count} مصروف}}",
+      "active": "عرض {name} عند إضافة مصروف",
+      "edit": "إعادة تسمية {name}",
+      "offHint": "التصنيف المُطفأ لا يظهر عند الإضافة، لكن مصاريفه السابقة تحتفظ به.",
+      "turnedOn": "شُغّل التصنيف",
+      "turnedOff": "أُطفئ التصنيف",
+      "delete": {
+        "label": "حذف {name}",
+        "title": "حذف التصنيف {name}؟",
+        "consequence": "لا مصاريف تحته، فلن يتغيّر شيء آخر.",
+        "confirm": "حذف التصنيف",
+        "success": "حُذف التصنيف"
+      },
+      "form": {
+        "createTitle": "إضافة تصنيف",
+        "editTitle": "إعادة تسمية التصنيف",
+        "name": "الاسم",
+        "required": "مطلوب",
+        "optional": "اختياري",
+        "nameRequired": "اكتب الاسم باللغة الافتراضية.",
+        "create": "إضافة التصنيف",
+        "save": "حفظ",
+        "created": "أُضيف التصنيف",
+        "saved": "حُفظ التصنيف"
+      },
+      "descriptionText": "أضف تصنيفات المصاريف أو أعد تسميتها أو أطفئها."
     }
   }
 }

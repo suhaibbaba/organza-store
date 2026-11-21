@@ -13,7 +13,7 @@ import type {
   OrderType,
   PaymentMethod,
   PaymentStatus,
-} from "@organza/shared/types/order";
+} from "@store/shared/types/order";
 
 export type {
   CollectResult,
@@ -31,27 +31,26 @@ export type {
   PaymentStatus,
 };
 
-// The raw aggregate behind CollectionSummary. Postgres hands numeric back as
-// Prisma.Decimal and count as BigInt; lib/orderCollection.ts is the only
-// place that converts them (same convention as the report rows).
+// Raw CollectionSummary aggregate (Decimal, BigInt), converted only in lib/orderCollection.ts.
 export interface CollectionSummaryRow {
   orderCount: bigint;
   amount: Prisma.Decimal | null;
   oldestCreatedAt: Date | null;
+  withCourierCount: bigint;
+  withCourierAmount: Prisma.Decimal | null;
+  notShippedCount: bigint;
+  notShippedAmount: Prisma.Decimal | null;
+  overdueCount: bigint;
 }
 
-// One line's worth of stock movement: exactly one of variantId/productId is
-// set (the variant owns the stock when the product has variants), plus how
-// many units to take off or put back.
+// One line's stock movement: exactly one of variantId/productId, and the quantity.
 export interface StockMovement {
   productId: string | null;
   variantId: string | null;
   quantity: number;
 }
 
-// A priced line, resolved from the live catalogue at creation time and then
-// frozen onto the OrderItem row. Money is carried as a 2dp string so it
-// survives the hop into Prisma's Decimal columns without a float in between.
+// A priced line frozen onto OrderItem; money as a 2dp string so no float sits in between.
 export interface PricedOrderItem {
   productId: string;
   variantId: string | null;
@@ -65,10 +64,7 @@ export interface PricedOrderItem {
   discountValue: string | null;
   discountAmount: string;
   lineTotal: string;
-  /**
-   * This line sells a piece that was typed at the counter rather than picked
-   * from the catalogue (spec.md "Quick sell"). Absent on every ordinary line.
-   */
+  /** A line for a piece typed at the counter (quick sell); absent on ordinary lines. */
   quickSold?: boolean;
 }
 

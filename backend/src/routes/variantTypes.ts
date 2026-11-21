@@ -15,17 +15,7 @@ import { generateUniqueSlug, toSlug } from "@/lib/slug";
 import { writeAudit } from "@/lib/audit";
 import { AUDIT_ENTITY, ERROR_CODES } from "@/constants";
 
-// Global variant types/values (Color, Size, Number, ...), shared across all
-// products. Creation here is what powers the "inline add" flow from the
-// product screen (spec.md "Inline add") — Employees can use it too, since
-// it's part of "add products", and it only ever appends to the lists.
-//
-// Hence the two permissions: adding is variantType.create (every role that
-// can add a product), while variantType.manage covers changing or removing
-// what already exists — a rename propagates to every product using that
-// value (CLAUDE.md rule 2) and a deletion pulls it out from under them.
-// There is no rename/delete endpoint yet; when one is added it belongs
-// behind variantType.manage, not behind the create gate below.
+// Global variant types/values; create is every adder's (inline add), manage covers changes and deletes.
 const router = Router();
 router.use(requireAuth);
 
@@ -37,7 +27,7 @@ router.get(
       orderBy: { createdAt: "asc" },
     });
     sendOk(res, types);
-  })
+  }),
 );
 
 router.post(
@@ -63,7 +53,7 @@ router.post(
     });
 
     sendOk(res, type, null, 201);
-  })
+  }),
 );
 
 router.post(
@@ -72,7 +62,9 @@ router.post(
   validateBody(addOptionValueSchema),
   asyncHandler(async (req, res) => {
     const type = await prisma.variantType.findUnique({ where: { id: req.params.id } });
-    if (!type) throw new AppError(404, ERROR_CODES.VARIANT_TYPE_NOT_FOUND);
+    if (!type) {
+      throw new AppError(404, ERROR_CODES.VARIANT_TYPE_NOT_FOUND);
+    }
 
     const body = req.body as AddOptionValueInput;
     const key = toSlug(body.value.ar);
@@ -80,7 +72,9 @@ router.post(
     const existing = await prisma.variantOptionValue.findUnique({
       where: { variantTypeId_key: { variantTypeId: type.id, key } },
     });
-    if (existing) throw new AppError(409, ERROR_CODES.VARIANT_TYPE_VALUE_DUPLICATE);
+    if (existing) {
+      throw new AppError(409, ERROR_CODES.VARIANT_TYPE_VALUE_DUPLICATE);
+    }
 
     const sortOrder = await prisma.variantOptionValue.count({ where: { variantTypeId: type.id } });
     const value = await prisma.variantOptionValue.create({
@@ -96,7 +90,7 @@ router.post(
     });
 
     sendOk(res, value, null, 201);
-  })
+  }),
 );
 
 export default router;

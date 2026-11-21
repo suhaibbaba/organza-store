@@ -1,16 +1,6 @@
-import { ERROR_CODES } from "@organza/shared/constants/errors";
+import { ERROR_CODES } from "@store/shared/constants/errors";
 
-// Backend error codes (e.g. "error.validation.required") can't be used as
-// next-intl message paths directly — "error.validation" is both a leaf code
-// and the parent of "error.validation.required", which nested JSON can't
-// represent. This maps each backend code to a flat, collision-free message
-// key instead. Keep in sync with ERROR_CODES and messages/*.json#errors.
-//
-// Only the codes this app can actually provoke are listed: the POS reads
-// products and writes orders, so product/order/auth codes are covered and
-// the admin-only ones (categories, images, users, settings) are not —
-// anything unmapped falls back to the generic message below, which is the
-// right outcome for a code the counter can do nothing about anyway.
+// Backend codes mapped to flat message keys (nested JSON can't hold a code that is also a parent); only codes the POS can provoke.
 export const ERROR_MESSAGE_KEYS: Record<string, string> = {
   [ERROR_CODES.NOT_FOUND]: "errors.notFound",
   [ERROR_CODES.VALIDATION]: "errors.validation",
@@ -18,8 +8,7 @@ export const ERROR_MESSAGE_KEYS: Record<string, string> = {
   [ERROR_CODES.UNAUTHORIZED]: "errors.unauthorized",
   [ERROR_CODES.FORBIDDEN]: "errors.forbidden",
   [ERROR_CODES.ACCOUNT_INACTIVE]: "errors.accountInactive",
-  // The "email me a link" form is rate-limited per address (spec.md "Auth
-  // (details)"), so this one is reachable from the POS too.
+  // The emailed-link form is rate-limited per address, so the POS can see this too.
   [ERROR_CODES.RATE_LIMITED]: "errors.rateLimited",
 
   [ERROR_CODES.VALIDATION_REQUIRED]: "errors.validationRequired",
@@ -28,6 +17,10 @@ export const ERROR_MESSAGE_KEYS: Record<string, string> = {
   [ERROR_CODES.VALIDATION_INVALID_PHONE]: "errors.validationInvalidPhone",
   [ERROR_CODES.VALIDATION_INVALID_EMAIL]: "errors.validationInvalidEmail",
   [ERROR_CODES.VALIDATION_PASSWORD_TOO_SHORT]: "errors.validationPasswordTooShort",
+  [ERROR_CODES.PHONE_DUPLICATE]: "errors.phoneDuplicate",
+  [ERROR_CODES.WHATSAPP_DUPLICATE]: "errors.whatsappDuplicate",
+  [ERROR_CODES.PROFILE_WRONG_PASSWORD]: "errors.profileWrongPassword",
+  [ERROR_CODES.PROFILE_SESSION_NOT_FOUND]: "errors.profileSessionNotFound",
 
   [ERROR_CODES.PRODUCT_NOT_FOUND]: "errors.productNotFound",
   [ERROR_CODES.VARIANT_NOT_FOUND]: "errors.variantNotFound",
@@ -44,3 +37,6 @@ export const ERROR_MESSAGE_KEYS: Record<string, string> = {
 };
 
 export const FALLBACK_ERROR_MESSAGE_KEY = "errors.internal";
+
+// Every backend error code starts with this; anything else in a field error is already a screen key.
+export const BACKEND_ERROR_PREFIX = "error.";

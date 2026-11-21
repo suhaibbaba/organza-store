@@ -1,0 +1,73 @@
+{
+  "common": {
+    "addNamed": "הוספת „{name}”",
+    "addNew": "הוספה חדשה",
+    "calendar": {
+      "chooseMonth": "בחירת חודש",
+      "chooseYear": "בחירת שנה",
+      "nextMonth": "החודש הבא",
+      "nextYear": "השנה הבאה",
+      "previousMonth": "החודש הקודם",
+      "previousYear": "השנה הקודמת"
+    },
+    "cancel": "ביטול",
+    "clear": "ניקוי",
+    "close": "סגירה",
+    "diallingCode": "קידומת מדינה",
+    "discard": "ביטול השינויים",
+    "done": "סיום",
+    "loading": "טוען",
+    "moreInfo": "מידע נוסף",
+    "noMatches": "אין תוצאות",
+    "openCalendar": "פתיחת לוח השנה",
+    "optional": "רשות",
+    "placeholders": {
+      "date": "יי/חח/שששש",
+      "dateRange": "בחירת תקופה",
+      "time": "בחירת שעה"
+    },
+    "save": "שמירה",
+    "search": "חיפוש",
+    "showMore": "הצג עוד",
+    "today": "היום",
+    "unsavedChanges": "שינויים שלא נשמרו",
+    "updating": "מעדכן",
+    "confirm": "אישור",
+    "deleteForever": "מחיקה לצמיתות",
+    "hidePassword": "הסתרת הסיסמה",
+    "showPassword": "הצגת הסיסמה",
+    "imageViewer": {
+      "title": "תמונות",
+      "previous": "התמונה הקודמת",
+      "next": "התמונה הבאה",
+      "counter": "{current} מתוך {total}",
+      "show": "הצגת תמונה {number}",
+      "open": "פתיחת תמונה {number} בגדול"
+    }
+  },
+  "pagination": {
+    "goToPage": "עמוד {page, number, plain}",
+    "label": "מעבר בין עמודים",
+    "next": "הבא",
+    "pageOf": "מספר עמוד, מתוך {totalPages, number, plain}",
+    "perPage": "לכל עמוד",
+    "previous": "הקודם",
+    "total": "{total, number, plain} רשומות"
+  },
+  "validation": {
+    "required": "שדה חובה",
+    "tooSmall": "הערך קצר מהמותר",
+    "tooBig": "הערך ארוך מהמותר",
+    "invalidFormat": "פורמט לא תקין",
+    "invalid": "ערך לא תקין",
+    "yearOutOfRange": "השנה אינה תקינה — יש להזין תאריך בין 1900 ל-2100",
+    "dateInFuture": "התאריך לא יכול להיות בעתיד",
+    "dateInPast": "התאריך לא יכול להיות בעבר"
+  },
+  "translatedField": {
+    "translations": "תרגומים",
+    "filled": "{done}/{total}",
+    "show": "הצג",
+    "hide": "הסתר"
+  }
+}

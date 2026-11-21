@@ -1,20 +1,12 @@
-import type { CustomerSuggestion } from "@organza/shared/types/order";
+import type { CustomerSuggestion } from "@store/shared/types/order";
 import type { OrderCustomerDraft } from "@/types/customer";
 import type { OrderCustomerFormValues } from "@/lib/validation/customer";
 
-// Shaping between the customer form, a tapped suggestion, and the order API.
-// Mirrors admin/src/lib/order-draft.ts's customer half.
-
-// The customer half of the create-order request. Optional fields are omitted
-// rather than sent empty: the create schema requires a non-empty string when
-// a key is present, so `""` would be a validation error where "not given" is
-// fine. Name and phone are always sent — an online order must be deliverable
-// back to someone (ORDER_CUSTOMER_REQUIRED).
+// Optional fields are omitted, not sent empty: the schema rejects "" for a present key.
 export function toCustomerFields(customer: OrderCustomerDraft) {
   const latitude = customer.latitude.trim();
   const longitude = customer.longitude.trim();
-  // Half a coordinate points nowhere, so the pair is sent together or not at
-  // all (isLocationConsistent).
+  // Half a coordinate points nowhere: both or neither.
   const hasLocation = latitude !== "" && longitude !== "";
 
   return {
@@ -27,12 +19,10 @@ export function toCustomerFields(customer: OrderCustomerDraft) {
   };
 }
 
-// Filling the form from a tapped suggestion. The phone goes in exactly as it
-// was stored, on its own prefix (CLAUDE.md rule 18), and the note is left
-// alone: it belongs to this order, not to the customer.
+// The phone goes in as stored, on its own prefix (rule 18); the note belongs to this order, so it stays.
 export function suggestionToFormValues(
   suggestion: CustomerSuggestion,
-  current: OrderCustomerFormValues
+  current: OrderCustomerFormValues,
 ): OrderCustomerFormValues {
   return {
     ...current,

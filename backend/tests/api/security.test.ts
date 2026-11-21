@@ -1,15 +1,4 @@
-// ============================================================================
-//  SECURITY REGRESSIONS
-//
-//  One test per finding from the security audit (SECURITY-AUDIT.md). Each one
-//  FAILED before its fix and passes after it, so this file is the thing that
-//  would notice any of them coming back.
-//
-//  They are grouped by what they defend rather than by endpoint, because the
-//  endpoint is rarely the point: "nobody can make themselves an account" is a
-//  property of the system, and it would be just as broken if it were a
-//  different route that let them.
-// ============================================================================
+// One test per SECURITY-AUDIT.md finding: each failed before its fix, so this file notices one coming back.
 import { describe, expect, it } from "vitest";
 import { API_BASE_URL, API_ORIGIN, apiRequest, rawRequest, uniqueId } from "@tests/support/client";
 import { getSession } from "@tests/support/auth";
@@ -18,15 +7,7 @@ import { ERROR_CODES } from "@/constants";
 import type { SeededRole } from "@tests/types";
 
 describe("Security", () => {
-  // --------------------------------------------------------------------------
-  // C1 — the critical one. Better Auth's `emailAndPassword.enabled` turns on
-  // its whole email+password surface, sign-up included, and `disableSignUp`
-  // defaults to false. The endpoint was mounted publicly by
-  // `app.all("/api/auth/*")`, so anybody on the internet could POST an email,
-  // a password and a phone number and be handed a signed-in EMPLOYEE account
-  // — the POS, the catalogue, and every order in the shop with every
-  // customer's name and phone number on it.
-  // --------------------------------------------------------------------------
+  // C1: sign-up was public, handing anybody a signed-in Employee account and every customer's details.
   describe("nobody can sign themselves up", () => {
     it("refuses anonymous account creation", async () => {
       const { status, body } = await rawRequest("/api/auth/sign-up/email", {
@@ -41,8 +22,7 @@ describe("Security", () => {
 
       expect(status).toBeGreaterThanOrEqual(400);
       expect(status).toBeLessThan(500);
-      // No session, under any spelling — this is the field that used to come
-      // back holding a working bearer token.
+      // No session under any spelling: this field used to hold a working bearer token.
       expect(body?.token).toBeFalsy();
       expect(body?.user).toBeFalsy();
     });
@@ -66,7 +46,7 @@ describe("Security", () => {
 
     it("still lets an Admin create staff, which is the path that had to keep working", async () => {
       const admin = await getSession("ADMIN");
-      const email = `audit-staff-${uniqueId()}@organza.test`;
+      const email = `audit-staff-${uniqueId()}@store.test`;
 
       const res = await apiRequest<{ id: string; role: string; hasPassword: boolean }>("/api/users", {
         method: "POST",
@@ -81,27 +61,19 @@ describe("Security", () => {
 
       expect(res.status).toBe(201);
       expect(res.data!.role).toBe("EMPLOYEE");
-      // Created with no password at all (CLAUDE.md rule 17) — no throwaway
-      // secret is minted any more, so there is nothing to leak.
+      // Created with no password (rule 17), so there is no throwaway secret to leak.
       expect(res.data!.hasPassword).toBe(false);
     });
   });
 
-  // --------------------------------------------------------------------------
-  // L1 — Better Auth's own POST /update-user accepts any additionalField
-  // declared `input: true`. `idNumber` is Admin-only data (CLAUDE.md rule 19)
-  // and `phone` is unique across BOTH Palestine prefixes (rule 18), a rule
-  // enforced only by routes/users.ts — so neither is the account owner's to
-  // rewrite from a session.
-  // --------------------------------------------------------------------------
+  // L1: idNumber (Admin-only, rule 19) and phone (unique across both prefixes, rule 18) are not the owner's to rewrite.
   describe("staff cannot rewrite their own protected fields", () => {
     it.each(["idNumber", "phone", "whatsapp", "role", "isActive"])(
       "does not let an Employee set their own %s through Better Auth's update-user",
       async (field) => {
         const employee = await getSession("EMPLOYEE");
         const before = await apiRequest<{ role: string }>("/api/users", { token: employee.token });
-        // The users list is Admin-only, so an Employee cannot even read it —
-        // which is itself the check that matters for `role`.
+        // The users list is Admin-only, so an Employee cannot even read it.
         expect(before.status).toBe(403);
 
         const values: Record<string, unknown> = {
@@ -118,29 +90,21 @@ describe("Security", () => {
           body: { [field]: values[field] },
         });
 
-        // Whatever that request did or did not do, the session's role must be
-        // unchanged — the one consequence that would actually be a breach.
+        // Whatever that request did, the session's role must be unchanged: that would be the breach.
         const session = await rawRequest("/api/auth/get-session", { token: employee.token });
         expect(session.body?.user?.role).toBe("EMPLOYEE");
         expect(session.body?.user?.idNumber ?? null).not.toBe("999999999");
         expect(session.body?.user?.isActive).toBe(true);
-      }
+      },
     );
   });
 
-  // --------------------------------------------------------------------------
-  // M2 — the admin and POS clients used to clear the local token FIRST and
-  // then fire sign-out with its failure swallowed, so an offline logout left
-  // a live session on the server for its full week. They now await it (see
-  // admin/src/lib/auth/client.ts). This is the half that has to be true for
-  // that to be worth anything: that the server really does revoke.
-  // --------------------------------------------------------------------------
+  // M2: the clients now await sign-out, which is worth something only if the server really revokes.
   describe("signing out", () => {
     it("makes the token dead on the server, not just forgotten by the client", async () => {
-      // A session of its own, so signing it out cannot disturb the cached
-      // sessions every other test in the run is sharing.
+      // Its own session, so signing it out leaves the shared ones alone.
       const admin = await getSession("ADMIN");
-      const email = `audit-logout-${uniqueId()}@organza.test`;
+      const email = `audit-logout-${uniqueId()}@store.test`;
       const password = `Aa1!${uniqueId()}${uniqueId()}`;
 
       const created = await apiRequest<{ id: string }>("/api/users", {
@@ -169,20 +133,14 @@ describe("Security", () => {
       const out = await rawRequest("/api/auth/sign-out", { method: "POST", token });
       expect(out.status).toBeLessThan(400);
 
-      // ...and now it does not. Replaying it is what somebody who picked up
-      // the shop phone after a shift would be doing.
+      // Replaying it is what somebody picking up the shop phone after a shift would do.
       const replayed = await apiRequest("/api/categories", { token });
       expect(replayed.status).toBe(401);
       expect(replayed.error?.code).toBe(ERROR_CODES.UNAUTHORIZED);
     });
   });
 
-  // --------------------------------------------------------------------------
-  // M1 — Zod strips unknown keys by default, so a body naming its own price,
-  // its own approval status or its own timestamps was answered with a 200 and
-  // the fields quietly dropped. Safe, but silent, and one `data: { ...body }`
-  // away from being a real mass-assignment hole.
-  // --------------------------------------------------------------------------
+  // M1: an unknown body field is refused, one `{ ...body }` away from a mass-assignment hole otherwise.
   describe("a field an endpoint does not accept is refused, not swallowed", () => {
     it.each([
       ["stockDeductedAt", { stockDeductedAt: null }],
@@ -198,8 +156,7 @@ describe("Security", () => {
         body: { note: "a note", ...extra },
       });
 
-      // 400 rather than 404: validation runs before the row is looked up, so
-      // this holds without needing a real order to tamper with.
+      // 400, not 404: validation runs before the lookup, so no real order is needed.
       expect(res.status).toBe(400);
       expect(res.error?.code).toBe(ERROR_CODES.VALIDATION);
     });
@@ -255,11 +212,7 @@ describe("Security", () => {
     });
   });
 
-  // --------------------------------------------------------------------------
-  // M3 — GET /api/settings used to be `{ ...setting }` on a route every
-  // signed-in role can read, so the next column added to the model would have
-  // reached every Employee with nobody deciding it should.
-  // --------------------------------------------------------------------------
+  // M3: settings is an allow-list, so a new column never reaches every Employee unasked.
   describe("the settings payload is an allow-list", () => {
     const EXPECTED_FIELDS = [
       "id",
@@ -269,6 +222,8 @@ describe("Security", () => {
       "currency",
       "defaultCountryCode",
       "lowStockThreshold",
+      "logoUrl",
+      "faviconUrls",
       "labelPrintMode",
       "labelWidthMm",
       "labelHeightMm",
@@ -293,26 +248,18 @@ describe("Security", () => {
         const res = await apiRequest<Record<string, unknown>>("/api/settings", { token: session.token });
 
         expect(res.status).toBe(200);
-        // Set equality both ways: a field that appears without being added
-        // here is the regression this guards, and one that disappears is a
-        // screen that has quietly lost a value it reads.
+        // Set equality both ways: an unlisted field is the regression, a missing one a screen losing its value.
         expect(Object.keys(res.data!).sort()).toEqual([...EXPECTED_FIELDS].sort());
-      }
+      },
     );
   });
 
-  // --------------------------------------------------------------------------
-  // L3 — the multer filter checks the client-declared Content-Type, so a
-  // non-image announced as image/png reached sharp and threw: HTTP 500,
-  // error.internal, and a Sentry event, for what is a bad request.
-  // --------------------------------------------------------------------------
+  // L3: a non-image declared as image/png must be a 400, not a 500 from sharp.
   describe("an upload that is not an image", () => {
     it("is refused as a bad request rather than crashing into a 500", async () => {
       const admin = await getSession("ADMIN");
 
-      // A REAL product, because the route resolves the owner before it ever
-      // reaches the file — without one this would 404 on the product and
-      // prove nothing about the upload.
+      // A real product, or the route 404s on the owner before reaching the file.
       const categoryId = await anyCategoryId(admin.token);
       const product = await apiRequest<{ id: string }>("/api/products", {
         method: "POST",
@@ -322,9 +269,7 @@ describe("Security", () => {
       expect(product.status).toBe(201);
 
       const form = new FormData();
-      // A PHP script wearing a PNG's Content-Type — exactly what the
-      // declared-mimetype filter waves through, and what used to reach sharp
-      // and come back out as a 500 with a Sentry event attached.
+      // A PHP script wearing a PNG's Content-Type: what the declared-mimetype filter waves through.
       form.append("productId", product.data!.id);
       form.append("file", new Blob(["<?php system($_GET['c']); ?>"], { type: "image/png" }), "shell.png");
 
@@ -340,35 +285,23 @@ describe("Security", () => {
     });
   });
 
-  // --------------------------------------------------------------------------
-  // L4 — demoting or deactivating the last Admin locks the door from the
-  // outside: nobody can then approve a change, reach Settings, manage staff or
-  // see profit, and nothing in the app can put it back.
-  // --------------------------------------------------------------------------
+  // L4: losing the last Admin locks the shop out of approvals, Settings, staff and profit for good.
   describe("the last Admin", () => {
     it("cannot be demoted or deactivated while they are the only one", async () => {
       const admin = await getSession("ADMIN");
 
       const admins = await apiRequest<{ id: string; isActive: boolean }[]>(
         "/api/users?role=ADMIN&isActive=true&pageSize=50",
-        { token: admin.token }
+        { token: admin.token },
       );
       expect(admins.status).toBe(200);
 
-      // The seeded database has exactly one Admin; if a run ever has more,
-      // the rule genuinely does not apply and there is nothing to assert.
-      if ((admins.data ?? []).length !== 1) return;
+      // The rule applies only with exactly one Admin.
+      if ((admins.data ?? []).length !== 1) {
+        return;
+      }
 
-      // Two different guards, and which one answers depends on what was
-      // attempted — so both are named rather than asserting whichever fires:
-      //
-      //   demoting yourself   -> USER_LAST_ADMIN. Nothing stops an Admin
-      //     changing their own role in general; what stops this one is that
-      //     there would be no Admin left afterwards.
-      //   deactivating yourself -> USER_SELF_REMOVAL, checked first because it
-      //     is the more useful answer and stays true however many Admins
-      //     there are (routes/users.ts). The last-Admin rule is behind it and
-      //     would refuse this too.
+      // Demoting yourself is USER_LAST_ADMIN; deactivating yourself is USER_SELF_REMOVAL, checked first.
       const demoted = await apiRequest(`/api/users/${admin.userId}`, {
         method: "PATCH",
         token: admin.token,
@@ -385,8 +318,7 @@ describe("Security", () => {
       expect(switchedOff.status).toBe(409);
       expect(switchedOff.error?.code).toBe(ERROR_CODES.USER_SELF_REMOVAL);
 
-      // ...and the account is untouched, so the run that just tried has not
-      // locked itself out.
+      // The account is untouched, so the run has not locked itself out.
       const after = await apiRequest<{ role: string; isActive: boolean }>(`/api/users/${admin.userId}`, {
         token: admin.token,
       });

@@ -1,10 +1,4 @@
-// Guard rails for the two commands that can destroy a shop's data.
-//
-// Both values have to be typed out in full. A bare "1" is something that ends
-// up in a shell profile, a CI variable or somebody's history and then fires by
-// accident six months later; a sentence you have to mean is not.
-// (The test suite guards its own target the same way — see
-// tests/constants/targets.ts.)
+// Guard rails for the two data-destroying commands: each needs a full sentence, never a bare "1" that fires by accident.
 
 /** The banner every refusal and every command header is drawn with. */
 export const COMMAND_RULE = "═".repeat(74);
@@ -19,7 +13,7 @@ export const DESTRUCTIVE_CONFIRM_VALUE = "I-KNOW-THIS-DELETES-EVERYTHING";
 export const PRODUCTION_OVERRIDE_VALUE = "I-KNOW-THIS-IS-PRODUCTION";
 
 export const DANGEROUS_COMMAND_ENV = {
-  demoSeed: "ORGANZA_ALLOW_DEMO_SEED",
-  dbResetConfirm: "ORGANZA_DB_RESET_CONFIRM",
-  productionOverride: "ORGANZA_ALLOW_PRODUCTION",
+  demoSeed: "STORE_ALLOW_DEMO_SEED",
+  dbResetConfirm: "STORE_DB_RESET_CONFIRM",
+  productionOverride: "STORE_ALLOW_PRODUCTION",
 } as const;

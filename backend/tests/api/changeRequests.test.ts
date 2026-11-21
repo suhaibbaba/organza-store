@@ -12,36 +12,15 @@ import {
   rejectChange,
 } from "@tests/support/changeRequests";
 import { createExpense, expenseCategoryId } from "@tests/support/cash";
-import type {
-  ChangeRequestCountDto,
-  ChangeRequestDto,
-  ExpenseDto,
-  OrderDto,
-  ProductDto,
-} from "@tests/types";
+import type { ChangeRequestCountDto, ChangeRequestDto, ExpenseDto, OrderDto, ProductDto } from "@tests/types";
 import { ERROR_CODES } from "@/constants";
 
-// The generic change-approval flow (spec.md "Employee change approvals").
-//
-// Five things an Employee may ask for but not do — a product's price, a
-// manual stock figure, deleting a photo, hiding or unhiding a product, and
-// changing which variants a product has — plus the sixth that was lifted into
-// the same mechanism, an expense's approval (that one is asserted in
-// expenses.test.ts, where the expenses are).
-//
-// What every case has to prove is the same shape: the value did NOT change,
-// something is waiting with the old and the requested value on it, only an
-// Admin can decide it, approving applies it and rejecting discards it.
-//
-// Like the rest of the suite this runs against a LIVE API holding other
-// people's requests, so nothing asserts a total — requests are always looked
-// up by the entity they are about.
+// Change approvals: the value must not move, the request carries old and new, only an Admin decides; live API, so never assert totals.
 
-// The smallest valid PNG there is: one transparent pixel. Enough for sharp to
-// process into the three sizes, which is all the photo-deletion case needs.
+// The smallest valid PNG: one transparent pixel, enough for sharp's sizes.
 const ONE_PIXEL_PNG = Buffer.from(
   "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
-  "base64"
+  "base64",
 );
 
 describe("Change requests", () => {
@@ -58,11 +37,7 @@ describe("Change requests", () => {
     }
   });
 
-  async function product(
-    token: string,
-    label: string,
-    body: Record<string, unknown> = {}
-  ): Promise<ProductDto> {
+  async function product(token: string, label: string, body: Record<string, unknown> = {}): Promise<ProductDto> {
     const categoryId = await anyCategoryId(token);
     const name = `Vitest CR ${label} ${uniqueId()}`;
     const res = await apiRequest<ProductDto>("/api/products", {
@@ -75,9 +50,6 @@ describe("Change requests", () => {
     return res.data!;
   }
 
-  // -------------------------------------------------------------------------
-  // Each gated action files a request instead of applying
-  // -------------------------------------------------------------------------
   describe("the five gated actions", () => {
     it("holds a price change, and says so on the product it was asked about", async () => {
       const admin = await getSession("ADMIN");
@@ -104,8 +76,9 @@ describe("Change requests", () => {
       expect(request.entityLabel?.ar).toContain("Vitest CR Price");
       expect(request.productId).toBe(created.id);
 
-      expect(Number((await apiRequest<ProductDto>(`/api/products/${created.id}`, { token: admin.token })).data!
-        .basePrice)).toBe(100);
+      expect(
+        Number((await apiRequest<ProductDto>(`/api/products/${created.id}`, { token: admin.token })).data!.basePrice),
+      ).toBe(100);
     });
 
     it("holds a manual stock change", async () => {
@@ -143,8 +116,7 @@ describe("Change requests", () => {
         value: false,
       });
 
-      // The same gate holds in the other direction: an Employee cannot put a
-      // hidden product back on the shelf either.
+      // The gate holds both ways: an Employee cannot unhide a product either.
       const hidden = await product(admin.token, "Unhide", { isActive: false });
       const show = await apiRequest<ProductDto>(`/api/products/${hidden.id}`, {
         method: "PATCH",
@@ -176,8 +148,7 @@ describe("Change requests", () => {
       expect(addRequest.newValue!.detail!.action).toBe("add");
       expect(addRequest.newValue!.value).toBe(4);
       expect(addRequest.newValue!.detail!.variants).toHaveLength(4);
-      // The option VALUE IDS are what is stored, never the names they happen
-      // to have today (CLAUDE.md rule 2).
+      // Option value ids are stored, never their current names (rule 2).
       expect(addRequest.newValue!.detail!.optionSelections).toHaveLength(2);
 
       // Removing: an Employee cannot pull a combination out either.
@@ -185,7 +156,7 @@ describe("Change requests", () => {
       const variant = withVariants.variants[0];
       const remove = await apiRequest<{ id: string; deleted: boolean; pendingChange: ChangeRequestDto }>(
         `/api/products/${withVariants.id}/variants/${variant.id}`,
-        { method: "DELETE", token: employee.token }
+        { method: "DELETE", token: employee.token },
       );
       expect(remove.status).toBe(202);
       expect(remove.data!.deleted).toBe(false);
@@ -214,7 +185,7 @@ describe("Change requests", () => {
 
       const res = await apiRequest<{ id: string; deleted: boolean; pendingChange: ChangeRequestDto }>(
         `/api/images/${image.id}`,
-        { method: "DELETE", token: employee.token }
+        { method: "DELETE", token: employee.token },
       );
       expect(res.status).toBe(202);
       expect(res.data!.deleted).toBe(false);
@@ -228,8 +199,7 @@ describe("Change requests", () => {
       expect(reread.data!.images.map((i) => i.id)).toContain(image.id);
     });
 
-    // Admin and Manager are unaffected by every one of the above: they hold
-    // the permissions, so their edits land immediately and file nothing.
+    // Admin and Manager hold the permissions, so their edits apply at once and file nothing.
     it("applies a Manager's price change immediately, with nothing left waiting", async () => {
       const admin = await getSession("ADMIN");
       const manager = await getSession("MANAGER");
@@ -248,9 +218,6 @@ describe("Change requests", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
-  // Superseding
-  // -------------------------------------------------------------------------
   describe("superseding", () => {
     it("replaces the older pending request for the same field rather than queueing", async () => {
       const admin = await getSession("ADMIN");
@@ -280,12 +247,11 @@ describe("Change requests", () => {
 
       const listed = await listChangeRequests(
         admin.token,
-        `?status=PENDING&entityType=Product&entityId=${created.id}&pageSize=100`
+        `?status=PENDING&entityType=Product&entityId=${created.id}&pageSize=100`,
       );
       expect(listed.data!.filter((c) => c.field === "basePrice")).toHaveLength(1);
 
-      // Approving the survivor applies the NEWER figure — the stale one is
-      // gone, not merely ordered behind it.
+      // Approving the survivor applies the newer figure; the stale one is gone.
       await approveChange(admin.token, held[0].id);
       const after = await apiRequest<ProductDto>(`/api/products/${created.id}`, { token: admin.token });
       expect(Number(after.data!.basePrice)).toBe(20);
@@ -310,16 +276,12 @@ describe("Change requests", () => {
         body: { basePrice: "40" },
       });
       const held = second.data!.pendingChanges!.filter((c) => c.field === "basePrice");
-      // A NEW row: the decided one keeps its decision, and the slot it held
-      // while pending was freed when it was decided.
+      // A new row: the decided one keeps its decision, its pending slot freed.
       expect(held).toHaveLength(1);
       expect(held[0].id).not.toBe(firstId);
     });
   });
 
-  // -------------------------------------------------------------------------
-  // Who may decide
-  // -------------------------------------------------------------------------
   describe("deciding", () => {
     async function heldPrice(label: string, price = "5") {
       const admin = await getSession("ADMIN");
@@ -413,6 +375,47 @@ describe("Change requests", () => {
       expect(after.data!.variants.every((v) => Boolean(v.barcode))).toBe(true);
     });
 
+    it("creates new combinations with the opening stock asked for, and the default for the rest", async () => {
+      const admin = await getSession("ADMIN");
+      const optionSelections = await twoByTwoOptionSelections(admin.token);
+      const created = await product(admin.token, "ComboStock");
+      const first = optionSelections.map((selection) => selection.valueIds[0]!);
+
+      const added = await apiRequest<ProductDto>(`/api/products/${created.id}/variants/generate`, {
+        method: "POST",
+        token: admin.token,
+        body: { optionSelections, comboStocks: [{ valueIds: [...first].reverse(), stock: 7 }] },
+      });
+      expect(added.status).toBe(201);
+
+      const stocks = added.data!.variants.map((variant) => ({
+        stock: variant.stock,
+        chosen: variant.values.every((value) => first.includes(value.id)),
+      }));
+      expect(stocks.filter((row) => row.chosen).map((row) => row.stock)).toEqual([7]);
+      expect(stocks.filter((row) => !row.chosen).every((row) => row.stock === 1)).toBe(true);
+    });
+
+    it("carries the asked-for opening stock through an approved variant-set addition", async () => {
+      const admin = await getSession("ADMIN");
+      const employee = await getSession("EMPLOYEE");
+      const optionSelections = await twoByTwoOptionSelections(admin.token);
+      const created = await product(admin.token, "ApproveComboStock");
+      const first = optionSelections.map((selection) => selection.valueIds[0]!);
+
+      const asked = await apiRequest<ProductDto>(`/api/products/${created.id}/variants/generate`, {
+        method: "POST",
+        token: employee.token,
+        body: { optionSelections, comboStocks: [{ valueIds: first, stock: 5 }] },
+      });
+      const request = asked.data!.pendingChanges!.find((c) => c.field === "variantSet")!;
+      expect((await approveChange(admin.token, request.id)).status).toBe(200);
+
+      const after = await apiRequest<ProductDto>(`/api/products/${created.id}`, { token: admin.token });
+      const chosen = after.data!.variants.find((variant) => variant.values.every((value) => first.includes(value.id)));
+      expect(chosen?.stock).toBe(5);
+    });
+
     it("applies an approved photo deletion, and the photo is gone", async () => {
       const admin = await getSession("ADMIN");
       const employee = await getSession("EMPLOYEE");
@@ -446,9 +449,6 @@ describe("Change requests", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
-  // Reading
-  // -------------------------------------------------------------------------
   describe("the list", () => {
     it("shows an Employee only their own, and an Admin everyone's", async () => {
       const admin = await getSession("ADMIN");
@@ -468,10 +468,7 @@ describe("Change requests", () => {
       expect(asEmployee.data!.every((c) => c.requestedById === employee.userId)).toBe(true);
       expect(asEmployee.data!.map((c) => c.id)).toContain(requestId);
 
-      const asAdmin = await listChangeRequests(
-        admin.token,
-        `?status=PENDING&entityId=${created.id}&pageSize=100`
-      );
+      const asAdmin = await listChangeRequests(admin.token, `?status=PENDING&entityId=${created.id}&pageSize=100`);
       expect(asAdmin.data!.map((c) => c.id)).toContain(requestId);
 
       // ...and reading someone else's directly is refused too.
@@ -509,18 +506,8 @@ describe("Change requests", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
-  // What the approvals screen is allowed to say
-  //
-  // The screen has three tabs and draws one card per request, so two things
-  // have to hold or it contradicts itself in front of an Admin: a decided
-  // request must carry the decision that was actually made, and each tab must
-  // list only requests in its own state. Both are the API's answer, not the
-  // frontend's — a card can only be as truthful as the row behind it.
-  // -------------------------------------------------------------------------
+  // A decided request carries the decision really made, and each tab lists only its own state.
   describe("status, as reported", () => {
-    // Two requests on two products, one turned down and one signed off, so
-    // every assertion below reads a real decided row rather than a fixture.
     async function decidedPair() {
       const admin = await getSession("ADMIN");
       const employee = await getSession("EMPLOYEE");
@@ -575,17 +562,14 @@ describe("Change requests", () => {
         expect(single.data!.status).toBe(status);
       }
 
-      // ...and off the list the screen actually draws from. A card renders
-      // whatever this row says, so this is the value the badge shows.
+      // The card renders whatever this row says.
       const listed = await changeRequestsFor(admin.token, "Product", rejected.productId, "basePrice");
       expect(listed).toHaveLength(1);
       expect(listed[0].status).toBe("REJECTED");
       // Its decision is on it, so the card needs no second lookup to say who.
       expect(listed[0].decidedBy?.id).toBe(admin.userId);
       expect(listed[0].decisionNote).toBe("غالي");
-      // A refusal changes the request and nothing else: the value asked for
-      // is still on the row (that is what the card shows), and the product
-      // still holds the price it always had.
+      // A refusal changes the request only: the asked value stays on the row, the price never moved.
       expect(listed[0].newValue).toEqual({ kind: "money", value: "11.00" });
       const untouched = await apiRequest<ProductDto>(`/api/products/${rejected.productId}`, { token: admin.token });
       expect(Number(untouched.data!.basePrice)).toBe(100);
@@ -594,18 +578,14 @@ describe("Change requests", () => {
     it("lists a request under its own status tab only", async () => {
       const { admin, rejected, approved } = await decidedPair();
 
-      // Each tab is one status= call. Every row it returns must be in that
-      // state — otherwise a card lands under a heading that contradicts it,
-      // which is exactly the bug this covers.
+      // Every row a status tab returns must be in that state, or a card contradicts its heading.
       for (const status of ["PENDING", "APPROVED", "REJECTED"] as const) {
         const tab = await listChangeRequests(admin.token, `?status=${status}&pageSize=100`);
         expect(tab.status).toBe(200);
         expect(tab.data!.every((c) => c.status === status)).toBe(true);
       }
 
-      // ...and the two known rows land in one tab each, not in two and not in
-      // none. Scoped to their own product so other people's requests on the
-      // same live database cannot make this pass or fail by accident.
+      // Scoped to their own product, so other requests on the live database cannot sway this.
       for (const { id, productId, belongs } of [
         { ...rejected, belongs: "REJECTED" },
         { ...approved, belongs: "APPROVED" },
@@ -613,7 +593,7 @@ describe("Change requests", () => {
         for (const status of ["PENDING", "APPROVED", "REJECTED"] as const) {
           const tab = await listChangeRequests(
             admin.token,
-            `?status=${status}&entityType=Product&entityId=${productId}&pageSize=100`
+            `?status=${status}&entityType=Product&entityId=${productId}&pageSize=100`,
           );
           expect(tab.data!.map((c) => c.id).includes(id)).toBe(status === belongs);
         }
@@ -635,8 +615,7 @@ describe("Change requests", () => {
       expect(decidedById).toBe(admin.userId);
       expect(decidedAt).not.toBeNull();
 
-      // Deciding again — the other way, by anyone — is refused rather than
-      // overwriting who agreed to what. That is what keeps ONE decision one.
+      // Deciding again is refused rather than overwriting who agreed to what.
       expect((await approveChange(admin.token, request.id)).status).toBe(409);
       expect((await rejectChange(manager.token, request.id)).status).toBe(403);
 
@@ -647,19 +626,13 @@ describe("Change requests", () => {
       expect(after.data!.decidedById).toBe(decidedById);
       expect(after.data!.decidedAt).toBe(decidedAt);
 
-      // And ONE row carries it. Not two rows describing the same refusal
-      // under two different deciders, which is what an approvals screen with
-      // duplicate records looks like.
+      // One row carries the refusal, never duplicates under two deciders.
       const rows = await changeRequestsFor(admin.token, "Product", request.entityId, "basePrice");
       expect(rows).toHaveLength(1);
       expect(rows[0].id).toBe(request.id);
     });
 
-    // The expense approval is the same mechanism (spec.md "Employee change
-    // approvals") and the one where every request asks for the identical
-    // thing — PENDING → APPROVED — so a refused one is where a screen that
-    // reads the ASKED-FOR value instead of the STATUS says "approved" under
-    // the Rejected tab. Its row has to be unambiguous about which happened.
+    // Every expense request asks for APPROVED, so only the status can say a refused one was refused.
     it("marks a refused expense's request REJECTED, once, with the Admin who refused it", async () => {
       const admin = await getSession("ADMIN");
       const employee = await getSession("EMPLOYEE");
@@ -677,8 +650,6 @@ describe("Change requests", () => {
 
       const asked = (await pendingChangeFor(admin.token, "Expense", created.data!.id))!;
       expect(asked.status).toBe("PENDING");
-      // Every one of these asks for the same thing, which is precisely why
-      // the request's own status is the only honest answer once it is decided.
       expect(asked.newValue).toEqual({ kind: "approval", value: "APPROVED" });
 
       const refused = await rejectChange(admin.token, asked.id, "مسجّلة مرتين");
@@ -686,24 +657,19 @@ describe("Change requests", () => {
       expect(refused.data!.status).toBe("REJECTED");
       expect(refused.data!.decidedBy?.id).toBe(admin.userId);
 
-      // One row for this expense, in the REJECTED state, decided by the Admin
-      // — never the same refusal listed twice under two deciders.
+      // One REJECTED row for this expense, decided by the Admin.
       const rows = await changeRequestsFor(admin.token, "Expense", created.data!.id);
       expect(rows).toHaveLength(1);
       expect(rows[0].status).toBe("REJECTED");
       expect(rows[0].decidedById).toBe(admin.userId);
 
-      // ...and the expense itself agrees with it, so the two screens that
-      // show this spending cannot disagree either.
+      // The expense itself agrees, so the two screens showing it cannot disagree.
       const expense = await apiRequest<ExpenseDto>(`/api/expenses/${created.data!.id}`, { token: admin.token });
       expect(expense.data!.approvalStatus).toBe("REJECTED");
       expect(expense.data!.approvedBy?.id).toBe(admin.userId);
     });
 
-    // Rule 5 / rule 21: deciding is changeRequest.approve, and only an Admin
-    // holds it. A Manager holds expense.approve — "the spending I record
-    // MYSELF counts immediately" — which is a different thing and must not
-    // let them sign off somebody else's request.
+    // Deciding is changeRequest.approve (Admin); a Manager's expense.approve covers only their own spending.
     it("refuses every non-Admin, on both endpoints, and stores no decider when it does", async () => {
       const admin = await getSession("ADMIN");
       const manager = await getSession("MANAGER");
@@ -715,9 +681,7 @@ describe("Change requests", () => {
         expect((await rejectChange(token, request.id, "لا")).status).toBe(403);
       }
 
-      // Refused means refused: still waiting, and nobody recorded as having
-      // decided it. A 403 that had already written decidedBy would be worse
-      // than one that applied the change.
+      // A 403 that had already written decidedBy would be worse than applying the change.
       const still = await apiRequest<ChangeRequestDto>(`/api/change-requests/${request.id}`, {
         token: admin.token,
       });
@@ -726,8 +690,7 @@ describe("Change requests", () => {
       expect(still.data!.decidedBy).toBeNull();
       expect(still.data!.decidedAt).toBeNull();
 
-      // ...and when it IS decided, the stored decider is the Admin who called,
-      // not whoever asked and not whoever tried.
+      // The stored decider is the Admin who called, not the asker or whoever tried.
       const decided = await approveChange(admin.token, request.id);
       expect(decided.status).toBe(200);
       expect(decided.data!.decidedById).toBe(admin.userId);
@@ -736,15 +699,7 @@ describe("Change requests", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
-  // WHICH PIECE the card is about
-  //
-  // An approver's first question. It used to go unanswered on a variant: the
-  // card was headed with the ENTITY's label, which for a combination is "1"
-  // or "أحمر / M", so a stock request read "كمية الخيار · 1 · ORG-00089-1"
-  // and the only way to tell what it concerned was to decode the SKU. Every
-  // request that has a product behind it now carries that product's name.
-  // -------------------------------------------------------------------------
+  // Every request with a product behind it carries the product's name, so a variant's card is not just "1 · SKU".
   describe("naming the product", () => {
     it("names the product on every kind of request, with the combination beneath it", async () => {
       const admin = await getSession("ADMIN");
@@ -754,8 +709,6 @@ describe("Change requests", () => {
       const productName = (created.name as Record<string, string>).ar;
       const [firstVariant] = created.variants;
 
-      // Every gated shape, filed against the one product so each assertion is
-      // about a card an Admin could actually be looking at.
       const priceAndVisibility = await apiRequest<ProductDto>(`/api/products/${created.id}`, {
         method: "PATCH",
         token: employee.token,
@@ -763,20 +716,17 @@ describe("Change requests", () => {
       });
       expect(priceAndVisibility.status).toBe(200);
 
-      // A variant's own price and stock. Through the product form, which is
-      // the only door an Employee has to them: the stock SCREEN needs
-      // inventory.view, which they do not hold at all (CLAUDE.md rule 5), so
-      // its own request branch is unreachable until that widens.
+      // Through the product form, the only door an Employee has: the stock screen needs inventory.view.
       const variantEdit = await apiRequest<{ pendingChanges: ChangeRequestDto[] }>(
         `/api/products/${created.id}/variants/${firstVariant.id}`,
-        { method: "PATCH", token: employee.token, body: { priceOverride: "12", stock: 3 } }
+        { method: "PATCH", token: employee.token, body: { priceOverride: "12", stock: 3 } },
       );
       expect(variantEdit.status).toBe(200);
 
       // Removing a combination — the variant-set field.
       const variantSet = await apiRequest<{ pendingChange: ChangeRequestDto }>(
         `/api/products/${created.id}/variants/${firstVariant.id}`,
-        { method: "DELETE", token: employee.token }
+        { method: "DELETE", token: employee.token },
       );
       expect(variantSet.status).toBe(202);
 
@@ -804,7 +754,7 @@ describe("Change requests", () => {
 
       // One of every gated shape a product can produce.
       expect(filed.map((c) => c.field).sort()).toEqual(
-        ["basePrice", "deletion", "isActive", "priceOverride", "stock", "variantSet"].sort()
+        ["basePrice", "deletion", "isActive", "priceOverride", "stock", "variantSet"].sort(),
       );
 
       // THE ASSERTION: whatever the entity is, the card can name the piece.
@@ -813,15 +763,12 @@ describe("Change requests", () => {
         expect(request.productId).toBe(created.id);
       }
 
-      // ...and on a variant the combination is still there, underneath, as
-      // its own label rather than as the heading.
+      // On a variant the combination stays, as its own label rather than the heading.
       const variantRequests = filed.filter((c) => c.entityType === "Variant");
       expect(variantRequests.length).toBeGreaterThan(0);
       for (const request of variantRequests) {
         expect(request.entityLabel).not.toBeNull();
         expect(request.entityLabel?.ar).not.toBe(productName);
-        // ...next to the combination's own SKU, which is what it was before
-        // and is now the third line rather than the only identification.
         expect(request.entityDetail).toBe(firstVariant.sku);
       }
     });
@@ -847,13 +794,7 @@ describe("Change requests", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
-  // Withdrawing your own ask
-  //
-  // Not a third decision: a decision is somebody else's answer, and this is
-  // taking the question back. Two conditions, both enforced here rather than
-  // in the UI (CLAUDE.md rule 5): yours, and still waiting.
-  // -------------------------------------------------------------------------
+  // Withdrawing your own ask is not a decision: only yours, and only while pending (rule 5).
   describe("cancelling", () => {
     async function askedByEmployee(label: string) {
       const admin = await getSession("ADMIN");
@@ -885,8 +826,7 @@ describe("Change requests", () => {
       expect(cancelled.data!.id).toBe(request.id);
       expect(cancelled.data!.cancelled).toBe(true);
 
-      // Gone, not decided: it is in no tab, and nothing is left waiting on the
-      // product it was about.
+      // Gone, not decided: in no tab, and nothing left waiting on the product.
       expect(await changeRequestsFor(admin.token, "Product", productId, "basePrice")).toHaveLength(0);
       expect((await apiRequest(`/api/change-requests/${request.id}`, { token: admin.token })).status).toBe(404);
 
@@ -894,8 +834,6 @@ describe("Change requests", () => {
       const after = await apiRequest<ChangeRequestCountDto>("/api/change-requests/count", { token: admin.token });
       expect(after.data!.pending).toBe(before.data!.pending - 1);
 
-      // The value it was about never moved — that is the point of withdrawing
-      // something that was never applied.
       const untouched = await apiRequest<ProductDto>(`/api/products/${productId}`, { token: admin.token });
       expect(Number(untouched.data!.basePrice)).toBe(100);
       expect(untouched.data!.pendingChanges).toEqual([]);
@@ -913,8 +851,7 @@ describe("Change requests", () => {
       const { admin, employee, request } = await askedByEmployee("CancelOther");
       const manager = await getSession("MANAGER");
 
-      // An Admin has REJECT, which says who disagreed and why. Making
-      // somebody else's request disappear is not on offer to anyone.
+      // An Admin has reject; making somebody else's request disappear is on offer to nobody.
       for (const token of [admin.token, manager.token]) {
         const res = await cancelChange(token, request.id);
         expect(res.status).toBe(403);
@@ -964,13 +901,8 @@ describe("Change requests", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
-  // The line the gate must never cross
-  // -------------------------------------------------------------------------
   describe("sales", () => {
-    // Manual stock edits are gated; stock coming off the shelf because
-    // something was SOLD is not, and must never be. A counter sale has a
-    // customer standing there — it completes on the spot, whoever rang it up.
+    // Manual stock is gated; stock sold never is — a sale with a customer waiting always completes.
     it("still deducts stock for an Employee's sale, with nothing waiting for approval", async () => {
       const admin = await getSession("ADMIN");
       const employee = await getSession("EMPLOYEE");
@@ -990,9 +922,7 @@ describe("Change requests", () => {
       expect(await pendingChangeFor(admin.token, "Product", sellable.id)).toBeUndefined();
     });
 
-    // ...and the same for the other end of a sale: a return puts stock back
-    // there and then, because refusing a customer their money until an Admin
-    // wakes up is not a thing a shop can do.
+    // A return restores stock at once: a refund cannot wait for an Admin.
     it("still restores stock on a return", async () => {
       const admin = await getSession("ADMIN");
       const employee = await getSession("EMPLOYEE");

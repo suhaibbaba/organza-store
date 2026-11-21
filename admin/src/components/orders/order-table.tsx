@@ -1,142 +1,124 @@
 "use client";
 
-import { useMemo } from "react";
-import { useLocale, useTranslations } from "next-intl";
-import { flexRender, getCoreRowModel, useReactTable, type ColumnDef } from "@tanstack/react-table";
-import { testSelectorFor } from "@organza/shared/lib/testSelector";
-import { ChevronRight } from "lucide-react";
-import type { OrderSummary } from "@organza/shared/types/order";
-import { isOrderCollectable } from "@organza/shared/lib/orders";
-import { Link } from "@/i18n/navigation";
-import { formatDateTime } from "@/lib/format";
+import { useLocale } from "next-intl";
+import { Table, type Column, type TableSort, Typography } from "@store/ui";
+import type { OrderSummary } from "@store/shared/types/order";
+import type { Pagination } from "@store/shared/types/common";
+import { PAGE_SIZE_OPTIONS } from "@store/shared/constants/pagination";
+import { isOrderCollectable } from "@store/shared/lib/orders";
+import { formatDate, formatTime } from "@/lib/format";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
-import { OrderChannelBadge } from "@/components/orders/order-channel-badge";
+import { useOrderRowMenu } from "@/components/orders/order-row-menu";
+import { OrderPhotos, OrderTitle } from "@/components/orders/order-cells";
 import { OrderStatusBadge } from "@/components/orders/order-status-badge";
-import { OrderTypeBadge } from "@/components/orders/order-type-badge";
-import { QuickSaleBadge } from "@/components/orders/quick-sale-badge";
 import { PaymentStatusBadge } from "@/components/orders/payment-status-badge";
 
-// Desktop-only view of the same orders the cards show on a phone. Same data,
-// same order, same tap targets — just laid out across a wider screen.
-export function OrderTable({ orders }: { orders: OrderSummary[] }) {
+// Rows are named `orders-row-<id>` by the Table (its data-testid + "-row-" + rowKey).
+const TABLE_NAME = "orders";
+
+interface OrderTableProps {
+  orders: OrderSummary[];
+  meta: Pagination | null;
+  isRefreshing: boolean;
+  sort: TableSort;
+  onPageChange: (page: number) => void;
+  onPageSizeChange: (pageSize: number) => void;
+}
+
+export function OrderTable({ orders, meta, isRefreshing, sort, onPageChange, onPageSizeChange }: OrderTableProps) {
   const locale = useLocale();
-  const t = useTranslations("orders.card");
-  const tTable = useTranslations("orders.table");
   const formatMoney = useMoneyFormatter();
+  const menu = useOrderRowMenu();
 
-  const columns = useMemo<ColumnDef<OrderSummary>[]>(
-    () => [
-      {
-        id: "orderNumber",
-        header: tTable("orderNumber"),
-        cell: ({ row }) => (
-          <div className="flex min-w-0 flex-wrap items-center gap-2">
-            {/* ::after stretches the link over its whole cell, so the number
-                column is clickable end to end. */}
-            <Link
-              href={`/orders/${row.original.id}`}
-              className="flex min-w-0 items-center gap-2 rounded-md after:absolute after:inset-0 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            >
-              <span className="font-medium text-foreground">
-                {t("orderNumber", { number: String(row.original.orderNumber) })}
-              </span>
-              <ChevronRight className="size-4 shrink-0 text-muted-foreground rtl:-scale-x-100" aria-hidden="true" />
-            </Link>
-            {/* Beside the number rather than in the Channel column: a gift is
-                not a channel (it is a STORE order like any counter sale), and
-                what it changes is what the row's total means. Renders nothing
-                for an ordinary sale. */}
-            <OrderTypeBadge type={row.original.type} />
-            {/* ...and for the same reason: something on this sale was typed
-                at the counter, so its cost may still be missing (spec.md
-                "Quick sell"). */}
-            {row.original.hasQuickSale && <QuickSaleBadge />}
-          </div>
-        ),
-      },
-      {
-        id: "channel",
-        header: tTable("channel"),
-        cell: ({ row }) => <OrderChannelBadge channel={row.original.channel} />,
-      },
-      {
-        id: "status",
-        header: tTable("status"),
-        cell: ({ row }) => <OrderStatusBadge status={row.original.status} />,
-      },
-      {
-        id: "paymentStatus",
-        header: tTable("payment"),
-        // A cancelled or returned sale owes nothing, so it shows no payment
-        // state rather than a debt that doesn't exist.
-        cell: ({ row }) =>
-          isOrderCollectable(row.original.status) ? (
-            <PaymentStatusBadge status={row.original.paymentStatus} />
-          ) : (
-            <span className="text-muted-foreground">{tTable("noPayment")}</span>
-          ),
-      },
-      {
-        id: "customer",
-        header: tTable("customer"),
-        cell: ({ row }) => (
-          <span className="text-muted-foreground">{row.original.customerName ?? tTable("noCustomer")}</span>
-        ),
-      },
-      {
-        id: "createdAt",
-        header: tTable("date"),
-        cell: ({ row }) => (
-          <span className="whitespace-nowrap text-muted-foreground">
-            {formatDateTime(row.original.createdAt, locale)}
-          </span>
-        ),
-      },
-      {
-        id: "total",
-        header: tTable("total"),
-        cell: ({ row }) => (
-          <span className="font-semibold tabular-nums text-foreground">{formatMoney(row.original.total)}</span>
-        ),
-      },
-    ],
-    [locale, t, tTable, formatMoney]
-  );
-
-  const table = useReactTable({ data: orders, columns, getCoreRowModel: getCoreRowModel() });
+  const columns: Column<OrderSummary>[] = [
+    {
+      key: "order",
+      header: "orders.table.orderNumber",
+      primary: true,
+      sortKey: "orderNumber",
+      // Two lines of piece names need more room than the Table's default cell cap.
+      className: "min-w-[13rem] [--cell-max:22rem]",
+      render: (order) => <OrderTitle order={order} />,
+    },
+    {
+      key: "photos",
+      header: "orders.table.photos",
+      hideOnMobile: true,
+      render: (order) => <OrderPhotos order={order} />,
+    },
+    {
+      key: "status",
+      header: "orders.table.status",
+      render: (order) => <OrderStatusBadge status={order.status} className="whitespace-nowrap" />,
+    },
+    {
+      key: "payment",
+      header: "orders.table.payment",
+      // A cancelled or returned sale owes nothing, so it carries no payment state.
+      render: (order) =>
+        isOrderCollectable(order.status) ? (
+          <PaymentStatusBadge status={order.paymentStatus} className="whitespace-nowrap" />
+        ) : null,
+    },
+    {
+      key: "createdAt",
+      header: "orders.table.date",
+      sortKey: "createdAt",
+      render: (order) => (
+        <div className="flex flex-col whitespace-nowrap tabular-nums">
+          <Typography variant="body" as="span">
+            {formatDate(order.createdAt, locale)}
+          </Typography>
+          <Typography variant="small" tone="muted" as="span">
+            {formatTime(order.createdAt, locale)}
+          </Typography>
+        </div>
+      ),
+    },
+    {
+      key: "total",
+      header: "orders.table.total",
+      sortKey: "total",
+      align: "numeric",
+      render: (order) => (
+        <Typography variant="body" weight="medium" as="span" className="whitespace-nowrap tabular-nums">
+          {formatMoney(order.total)}
+        </Typography>
+      ),
+    },
+    {
+      key: "actions",
+      header: "orders.table.actions",
+      actions: true,
+      besideTitleOnMobile: true,
+      align: "end",
+      className: "align-top",
+      render: menu.renderMenu,
+    },
+  ];
 
   return (
-    <div className="overflow-hidden rounded-xl border border-border" data-test-selector="orders-table">
-      <table className="w-full text-sm">
-        <thead className="bg-secondary text-secondary-foreground">
-          {table.getHeaderGroups().map((headerGroup) => (
-            <tr key={headerGroup.id}>
-              {headerGroup.headers.map((header) => (
-                <th key={header.id} className="px-4 py-3 text-start font-medium">
-                  {flexRender(header.column.columnDef.header, header.getContext())}
-                </th>
-              ))}
-            </tr>
-          ))}
-        </thead>
-        <tbody>
-          {table.getRowModel().rows.map((row) => (
-            <tr
-              key={row.id}
-              className="border-t border-border"
-              data-test-selector={testSelectorFor("orders-row", row.original.id)}
-            >
-              {/* `relative` scopes the number link's stretched ::after to its
-                  own cell. */}
-              {row.getVisibleCells().map((cell) => (
-                <td key={cell.id} className="relative px-4 py-3 align-middle">
-                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                </td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+    <>
+      <Table
+        data-testid={TABLE_NAME}
+        columns={columns}
+        rows={orders}
+        rowKey={(order) => order.id}
+        isRefreshing={isRefreshing}
+        sort={sort}
+        {...(meta && {
+          pagination: {
+            "data-testid": "orders-pagination",
+            page: meta.page,
+            totalPages: Math.max(meta.totalPages, 1),
+            perPage: meta.pageSize,
+            perPageOptions: PAGE_SIZE_OPTIONS,
+            onPageChange,
+            onPerPageChange: onPageSizeChange,
+          },
+        })}
+      />
+      {menu.dialog}
+    </>
   );
 }

@@ -2,19 +2,31 @@
 
 Everything in this repo can be recreated from git. Two things cannot:
 
-| What | Where it lives | Rebuildable? |
-|---|---|---|
-| The database — orders, products, stock, staff, the audit log | Docker volume `sandbox_db_data`, mounted at `/var/lib/postgresql/data` in the `db` container | **No.** |
-| Uploaded product photographs (the WebP sizes `sharp` writes) | Docker volume `sandbox_uploads`, mounted at `/app/uploads` in the `backend` container | **No.** The originals are on somebody's phone, if anywhere. |
+| What                                                         | Where it lives                                                                               | Rebuildable?                                                |
+| ------------------------------------------------------------ | -------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
+| The database — orders, products, stock, staff, the audit log | Docker volume `sandbox_db_data`, mounted at `/var/lib/postgresql/data` in the `db` container | **No.**                                                     |
+| Uploaded product photographs (the WebP sizes `sharp` writes) | Docker volume `sandbox_uploads`, mounted at `/app/uploads` in the `backend` container        | **No.** The originals are on somebody's phone, if anywhere. |
 
 Both are named volumes declared at the bottom of `docker-compose.sandbox.yml`.
 
 ### Both stacks exist now
 
-`docker-compose.prod.yml` is the live shop (project name `organza-prod`, volumes
+`docker-compose.prod.yml` is the live shop (project name: `STACK_NAME` in `.env.production`, volumes
 `prod_db_data` and `prod_uploads`); `docker-compose.sandbox.yml` is the practice stack
-(`organza-sandbox`, `sandbox_db_data`, `sandbox_uploads`). The table above names the
+(`STACK_NAME` in `.env.sandbox`, `sandbox_db_data`, `sandbox_uploads`). The table above names the
 sandbox's volumes; production's are the same two things under the other prefix.
+
+### What each stack is told, not hard-coded
+
+The compose files and workflows carry no client name, domain or path; each stack's env file
+(`.env.production`, `.env.sandbox`) and the repository's Actions variables supply them:
+
+| Where             | Setting                                       | Example                   | Notes                                                                                                                                                                                                                                 |
+| ----------------- | --------------------------------------------- | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| env file          | `STACK_NAME`                                  | `acme-prod`               | The compose project name, so it **names the volumes**. On an existing stack it must be the name the stack already runs under (`docker compose ls`), or the stack comes up on new, empty volumes. Compose refuses to start without it. |
+| env file          | `PUBLIC_API_URL`                              | `https://api.example.com` | Baked into the admin and POS builds.                                                                                                                                                                                                  |
+| env file          | `ADMIN_APP_NAME`, `POS_APP_NAME`              | `Acme Admin`              | Optional: the home-screen names.                                                                                                                                                                                                      |
+| Actions variables | `PRODUCTION_DEPLOY_DIR`, `SANDBOX_DEPLOY_DIR` | `/opt/acme/production`    | The VPS clone each deploy runs in.                                                                                                                                                                                                    |
 
 Four rules hold on both, and a third stack would inherit them or inherit the bug:
 
@@ -29,10 +41,10 @@ Four rules hold on both, and a third stack would inherit them or inherit the bug
    `NODE_ENV` is `production` on both, which is why `db:reset` used to announce "that is the
    LIVE SHOP" while pointed at the sandbox. It decides which `public/app_icon/<env>/` folder
    the tiles, the tab icon and the launch screen come from, whether the installed app is
-   called "Organza Admin" or "Organza Admin (SBX)", whether staff see a SANDBOX chip in the
+   called by `ADMIN_APP_NAME` (with " (SBX)" on the sandbox), whether staff see a SANDBOX chip in the
    top bar, and which mark a password email carries.
 
-   Left unset it means *production* on purpose, so a missed env file cannot label the real
+   Left unset it means _production_ on purpose, so a missed env file cannot label the real
    shop as practice data. `ops/restore.sh` reads it the same way round: it asks the running
    container, and a value it cannot determine counts as production, so a missing env file
    can never be the reason a guard stands down.
@@ -54,11 +66,11 @@ tonight rather than quietly for a year.
 
 Three independent checks stand behind that one word, and any of them aborts the run:
 
-| Check | Catches |
-|---|---|
-| `STACK` derives both files | The compose file and the env file can no longer disagree at all. |
-| The database name must suit the stack | `STACK=production` refuses a `DB_NAME` containing `sandbox`, and vice versa — the name travels with the database, unlike a value typed into a file. |
-| The running container's `APP_ENV` must equal `STACK` | The files and the deployment that is actually up disagreeing. (Warns, rather than aborting, when the container cannot be asked.) |
+| Check                                                | Catches                                                                                                                                             |
+| ---------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `STACK` derives both files                           | The compose file and the env file can no longer disagree at all.                                                                                    |
+| The database name must suit the stack                | `STACK=production` refuses a `DB_NAME` containing `sandbox`, and vice versa — the name travels with the database, unlike a value typed into a file. |
+| The running container's `APP_ENV` must equal `STACK` | The files and the deployment that is actually up disagreeing. (Warns, rather than aborting, when the container cannot be asked.)                    |
 
 The resolved stack, compose file, env file and database name are printed in the header
 of every run and repeated in the summary line and in `backups/backup.log`, so a cron log
@@ -66,18 +78,18 @@ says which environment was really backed up rather than leaving it to be inferre
 
 ## What a volume does and does not protect against
 
-| | Survives? |
-|---|---|
-| `docker compose up -d --build` (what the deploy runs) | ✅ |
-| `docker compose restart` / a container crash | ✅ |
-| `docker compose down` then `up` | ✅ |
-| Rebuilding the image from scratch, changing the Dockerfile | ✅ |
-| `docker image prune` / `docker builder prune` (what the deploy runs for disk space) | ✅ |
-| **`docker compose down -v`** | ❌ deletes both volumes |
-| **`docker volume rm`** | ❌ |
-| **`docker system prune --volumes`** after a `down` | ❌ deletes any volume no container is using |
-| **`npm run db:reset`** | ❌ empties the database (it asks first, twice) |
-| The VPS's disk failing, or the VPS being lost | ❌ |
+|                                                                                     | Survives?                                      |
+| ----------------------------------------------------------------------------------- | ---------------------------------------------- |
+| `docker compose up -d --build` (what the deploy runs)                               | ✅                                             |
+| `docker compose restart` / a container crash                                        | ✅                                             |
+| `docker compose down` then `up`                                                     | ✅                                             |
+| Rebuilding the image from scratch, changing the Dockerfile                          | ✅                                             |
+| `docker image prune` / `docker builder prune` (what the deploy runs for disk space) | ✅                                             |
+| **`docker compose down -v`**                                                        | ❌ deletes both volumes                        |
+| **`docker volume rm`**                                                              | ❌                                             |
+| **`docker system prune --volumes`** after a `down`                                  | ❌ deletes any volume no container is using    |
+| **`npm run db:reset`**                                                              | ❌ empties the database (it asks first, twice) |
+| The VPS's disk failing, or the VPS being lost                                       | ❌                                             |
 
 The first four rows are why the volumes exist. The last five are why backups exist.
 A volume is not a backup: it is on the same disk, in the same machine, one command away.
@@ -89,18 +101,18 @@ Cloudflare R2 bucket. R2 is S3-compatible, so the script drives it with the ordi
 CLI — run as a pinned container, so nothing is installed on the VPS.
 
 ```
-s3://organza-production-backups/
-  organza-prod/
-    database/organza-prod-20260815T023000Z.dump   <- one pg_dump -Fc per night, ~30 kept
+s3://<backup-bucket>/
+  <STACK_NAME>/
+    database/<STACK_NAME>-20260815T023000Z.dump   <- one pg_dump -Fc per night, ~30 kept
     uploads/…                                     <- a mirror of the photographs
-  organza-sandbox/
+  <SANDBOX_STACK_NAME>/
     …                                             <- same shape, its own folder
 ```
 
-| | How | Why that way |
-|---|---|---|
-| Database | `pg_dump --clean --if-exists -Fc -Z 9`, run inside the `db` container | `-Fc` is a compressed archive `pg_restore` can be selective about. Inside the container so it uses the stack's own credentials — no password on a command line, and it cannot dump the wrong database. Every dump is then **read all the way through** before it is trusted (below). |
-| Photographs | `aws s3 sync`, reading the backend container's own `/app/uploads` mount | **Incremental.** Only files whose size or timestamp differ are sent, so the nightly cost is the day's photographs rather than the whole shop. Verified: a re-sync of 27 unchanged images transfers nothing. |
+|             | How                                                                     | Why that way                                                                                                                                                                                                                                                                         |
+| ----------- | ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Database    | `pg_dump --clean --if-exists -Fc -Z 9`, run inside the `db` container   | `-Fc` is a compressed archive `pg_restore` can be selective about. Inside the container so it uses the stack's own credentials — no password on a command line, and it cannot dump the wrong database. Every dump is then **read all the way through** before it is trusted (below). |
+| Photographs | `aws s3 sync`, reading the backend container's own `/app/uploads` mount | **Incremental.** Only files whose size or timestamp differ are sent, so the nightly cost is the day's photographs rather than the whole shop. Verified: a re-sync of 27 unchanged images transfers nothing.                                                                          |
 
 Two deliberate asymmetries:
 
@@ -123,8 +135,8 @@ compose exec -T db pg_restore --list /dev/stdin < dump      # WRONG
 ```
 
 A custom-format (`-Fc`) archive is read by seeking, and `docker compose exec -T` hands
-the container a **pipe**. So `pg_restore` answered *"did not find magic string in file
-header"* for every dump ever taken, valid ones included. The check fails closed, so the
+the container a **pipe**. So `pg_restore` answered _"did not find magic string in file
+header"_ for every dump ever taken, valid ones included. The check fails closed, so the
 backup aborted nightly and uploaded **nothing** — while reporting what looked exactly
 like a corrupt dump. (A full restore is fine from a pipe; `pg_restore` only needs to seek
 for `--list`. That is why restoring worked while verifying could not.) The fix is to
@@ -133,7 +145,7 @@ container on purpose, so the `pg_restore` reading it is exactly the version of t
 `pg_dump` that wrote it.
 
 **It could pass a dump that was half missing.** `pg_restore --list` only walks the table
-of contents, which sits at the *front* of the archive — so a dump truncated to half its
+of contents, which sits at the _front_ of the archive — so a dump truncated to half its
 length lists perfectly and passes. Truncation is the failure that actually happens (a
 full disk, a killed process), so that check was ceremony. It is now
 `pg_restore --file=/dev/null`, which converts the whole archive to SQL and throws it
@@ -159,6 +171,10 @@ itself. An unencrypted secret sitting in object storage is a secret with a secon
 unmonitored front door — and the R2 token in particular would then be backing up the
 credentials needed to read the backups.
 
+The **search index** (`*_search_data` volume) is not backed up either. It is a copy of the
+database, rebuilt by `npm run search:reindex` (every deploy runs it). Its `MEILI_MASTER_KEY` is
+one of the secrets below.
+
 Those are kept **by hand**: in whatever password manager the shop already uses, written
 down and stored somewhere physical, or both. They are short, they change rarely, and
 they are the one part of a rebuild that a person can retype. Everything else in the
@@ -168,7 +184,7 @@ deployment comes back from git plus the bucket.
 
 Once, in the Cloudflare dashboard:
 
-1. **R2 → Create bucket → `organza-production-backups`.** Keep it private. One bucket
+1. **R2 → Create bucket → `<backup-bucket>`.** Keep it private. One bucket
    serves both stacks; they are separated by the folder the script derives from the
    compose project name, so a sandbox backup can never land on the shop's.
 2. **R2 → Manage API tokens → Create → Object Read & Write**, scoped **to that bucket
@@ -182,14 +198,14 @@ already runs on, so a backup cannot read one stack's credentials while dumping a
 R2_ACCOUNT_ID=…
 R2_ACCESS_KEY_ID=…
 R2_SECRET_ACCESS_KEY=…
-R2_BUCKET=organza-production-backups
+R2_BUCKET=<backup-bucket>
 R2_ENDPOINT=            # optional; derived from the account id when empty
 ```
 
 Prove it works before trusting it:
 
 ```bash
-cd /opt/organza/production
+cd <PRODUCTION_DEPLOY_DIR>
 STACK=production ./ops/selftest.sh          # do the safety checks actually work?
 STACK=production ./ops/backup.sh
 STACK=production ./ops/restore.sh --list
@@ -197,7 +213,7 @@ STACK=production ./ops/restore.sh --list
 
 `ops/selftest.sh` is the one to run first, and again after any change to the
 verification. It takes a dump, checks it, then damages a **copy** and checks that too —
-proving the integrity check accepts a good dump *and* rejects a truncated one. It
+proving the integrity check accepts a good dump _and_ rejects a truncated one. It
 uploads nothing and touches nothing. See "Why the self-test exists" below.
 
 ### The schedule
@@ -206,7 +222,7 @@ uploads nothing and touches nothing. See "Why the self-test exists" below.
 POS, so the dump is of a quiet database:
 
 ```cron
-30 2 * * * cd /opt/organza/production && STACK=production ./ops/backup.sh >> /var/log/organza-backup.log 2>&1
+30 2 * * * cd <PRODUCTION_DEPLOY_DIR> && STACK=production ./ops/backup.sh >> /var/log/store-backup.log 2>&1
 ```
 
 That is the whole entry. **Retention needs no second line** — the script prunes both the
@@ -218,7 +234,7 @@ Stagger the sandbox by an hour if it is backed up too, so the two runs never com
 the same CPU:
 
 ```cron
-30 3 * * * cd /opt/organza/sandbox && STACK=sandbox ./ops/backup.sh >> /var/log/organza-backup.log 2>&1
+30 3 * * * cd <SANDBOX_DEPLOY_DIR> && STACK=sandbox ./ops/backup.sh >> /var/log/store-backup.log 2>&1
 ```
 
 **Spell `STACK` out in both entries**, even the sandbox one where it is the default. A
@@ -238,12 +254,12 @@ container, which also writes the outcome to the `BackupRun` table.
 without it — raises nothing at all, because nothing runs to fail. That is the one that
 gets discovered during an emergency, so it is watched from the other end:
 
-| Where | What it tells you |
-|---|---|
-| `npm run backup:status` (backend) | The last success, the last failure, the last five runs. **Exits non-zero when the last success is over 48h old**, so a monitor can use it without parsing anything. `--json` for machines. |
-| `GET /health` | `backup: { lastSuccessAt, stale }`, next to `uploadsWritable`. Two fields, no figures from the shop's books. |
-| Sentry | The API re-checks the age every 6 hours and files an issue when it goes stale, at most once a day. This is what notices a backup that stopped in March. |
-| `backups/last-success.txt` on the VPS | Readable with `cat` when nothing else is up. |
+| Where                                 | What it tells you                                                                                                                                                                          |
+| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `npm run backup:status` (backend)     | The last success, the last failure, the last five runs. **Exits non-zero when the last success is over 48h old**, so a monitor can use it without parsing anything. `--json` for machines. |
+| `GET /health`                         | `backup: { lastSuccessAt, stale }`, next to `uploadsWritable`. Two fields, no figures from the shop's books.                                                                               |
+| Sentry                                | The API re-checks the age every 6 hours and files an issue when it goes stale, at most once a day. This is what notices a backup that stopped in March.                                    |
+| `backups/last-success.txt` on the VPS | Readable with `cat` when nothing else is up.                                                                                                                                               |
 
 ```bash
 docker compose -f docker-compose.prod.yml --env-file .env.production exec -T backend npm run backup:status
@@ -258,7 +274,7 @@ docker compose -f docker-compose.prod.yml --env-file .env.production exec -T bac
 ### 0. What have we got?
 
 ```bash
-cd /opt/organza/production
+cd <PRODUCTION_DEPLOY_DIR>
 STACK=production ./ops/restore.sh --list
 ```
 
@@ -280,8 +296,8 @@ This is the step people skip, and it is the whole point. It puts the live shop's
 the practice stack, where being wrong costs nothing:
 
 ```bash
-cd /opt/organza/sandbox
-ORGANZA_RESTORE_CONFIRM=I-KNOW-THIS-OVERWRITES-THE-DATABASE \
+cd <SANDBOX_DEPLOY_DIR>
+STORE_RESTORE_CONFIRM=I-KNOW-THIS-OVERWRITES-THE-DATABASE \
   STACK=sandbox ./ops/restore.sh --from-stack production --from-r2 latest
 ```
 
@@ -302,9 +318,9 @@ container**, not from a file, because `docker-compose.prod.yml` sets it in
 `environment:` where it overrides `env_file:`. Same shape as `db:reset`:
 
 ```bash
-cd /opt/organza/production
-ORGANZA_ALLOW_PRODUCTION=I-KNOW-THIS-IS-PRODUCTION \
-ORGANZA_RESTORE_CONFIRM=I-KNOW-THIS-OVERWRITES-THE-DATABASE \
+cd <PRODUCTION_DEPLOY_DIR>
+STORE_ALLOW_PRODUCTION=I-KNOW-THIS-IS-PRODUCTION \
+STORE_RESTORE_CONFIRM=I-KNOW-THIS-OVERWRITES-THE-DATABASE \
   STACK=production ./ops/restore.sh --from-r2 latest
 ```
 
@@ -334,7 +350,7 @@ The check that matters is not that the command exited 0:
 - open the admin, find a product **with a photograph, and see the photograph** — not the
   placeholder;
 - open the orders list and find the last order you know was taken;
-- `curl -s https://api.organza-moda.com/health` → `uploadsWritable: true`.
+- `curl -s <PUBLIC_API_URL>/health` → `uploadsWritable: true`.
 
 ### If only the images are wrong
 
@@ -347,7 +363,7 @@ docker compose -f docker-compose.prod.yml --env-file .env.production ps -q backe
 docker run --rm --volumes-from <id> \
   -e AWS_ACCESS_KEY_ID=$R2_ACCESS_KEY_ID -e AWS_SECRET_ACCESS_KEY=$R2_SECRET_ACCESS_KEY \
   amazon/aws-cli:2.36.24 --endpoint-url "$R2_ENDPOINT" --region auto \
-  s3 sync s3://organza-production-backups/organza-prod/uploads/ /app/uploads
+  s3 sync s3://<backup-bucket>/<STACK_NAME>/uploads/ /app/uploads
 ```
 
 ### Rebuilding on a brand-new server
@@ -360,7 +376,9 @@ The bucket plus git is everything except the secrets you kept by hand:
 3. `npx prisma migrate deploy` (the restore brings the schema, but a new stack needs the
    migration table straight first);
 4. restore, as in step 3 above;
-5. check it with your eyes, as in step 4.
+5. `docker compose -f docker-compose.prod.yml --env-file .env.production exec backend npm run search:reindex`
+   (the search index starts empty on a new server; until then search runs on Postgres);
+6. check it with your eyes, as in step 4.
 
 ## Moving the catalogue from production to the sandbox
 
@@ -384,7 +402,7 @@ the one routine operation, besides a restore, that changes data a deploy cannot 
 
 In order:
 
-1. `curl -s https://api.sandbox.organza-moda.com/health` — `uploadsWritable: false` means
+1. `curl -s <sandbox PUBLIC_API_URL>/health` — `uploadsWritable: false` means
    the API cannot write where it is pointed. That is this problem; carry on.
 2. `docker compose -f docker-compose.sandbox.yml logs backend | grep -i uploads` — the API
    prints the absolute directory it is using on every start.
@@ -409,7 +427,7 @@ In order:
    hand:
 
    ```bash
-   docker run --rm --user 0:0 -v organza-sandbox_sandbox_uploads:/vol node:20-slim \
+   docker run --rm --user 0:0 -v <SANDBOX_STACK_NAME>_sandbox_uploads:/vol node:20-slim \
      chown -R 1000:1000 /vol
    ```
 

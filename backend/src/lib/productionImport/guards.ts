@@ -10,30 +10,11 @@ import { currentAppEnv, isAppEnvDeclared } from "@/lib/appEnv";
 import { describeDatabase, refuseCommand } from "@/lib/dangerousCommands";
 import type { ImportEndpoints } from "@/types";
 
-// ============================================================================
-//  The refusals in front of `npm run import:prod`.
-//
-//  The command copies the live shop's catalogue into the sandbox and wipes the
-//  sandbox to do it. Run the other way round it would delete the shop's entire
-//  catalogue, so "one way" cannot be a convention people remember — it is four
-//  independent things, each of which alone is enough to stop the run:
-//
-//    1. APP_ENV must SAY sandbox. Unset means production (lib/appEnv.ts), so a
-//       missing env file refuses rather than proceeds.
-//    2. The target database's NAME must contain "sandbox". APP_ENV is a line
-//       in a compose file and can be wrong; the name travels with the data.
-//    3. The confirmation has to spell out that database's name, so a command
-//       copied from a chat window cannot fire against a different one.
-//    4. The production connection is opened READ-ONLY at the server
-//       (source.ts), and its client never leaves that module.
-//
-//  Nothing here is user-facing text: every message is for a person at a
-//  terminal over SSH, so CLAUDE.md rule 12 does not reach it.
-// ============================================================================
+// The refusals in front of import:prod: four independent checks, each enough to stop a run pointed the wrong way.
 
 const COMMAND = "import:prod";
 
-/** `postgresql://u:p@host:5432/organza_sandbox?schema=public` -> `organza_sandbox`. */
+/** `postgresql://u:p@host:5432/store_sandbox?schema=public` -> `store_sandbox`. */
 export function databaseNameOf(url: string): string {
   try {
     return decodeURIComponent(new URL(url).pathname.replace(/^\//, ""));
@@ -52,27 +33,18 @@ function isSameDatabase(a: string, b: string): boolean {
       databaseNameOf(a).toLowerCase() === databaseNameOf(b).toLowerCase()
     );
   } catch {
-    // Unparseable is not "different". Refuse by claiming a match rather than
-    // waving through a URL nobody could read.
+    // Unparseable is not "different": refuse by treating it as a match.
     return true;
   }
 }
 
-/**
- * Turns the production URL into one whose every transaction is read-only,
- * enforced by Postgres rather than by this code being careful.
- *
- * `options` is passed straight through to the server as startup parameters.
- * URLSearchParams encodes a space as `+`, which libpq does NOT read as a
- * space, so the query string is re-encoded before it goes anywhere near a
- * connection.
- */
+/** Makes every transaction on the production URL read-only at the server; re-encoded since libpq reads `+` literally. */
 export function readOnlyConnectionUrl(url: string): string {
   const parsed = new URL(url);
   const existing = parsed.searchParams.get("options");
   parsed.searchParams.set(
     "options",
-    existing ? `${existing} ${READ_ONLY_CONNECTION_OPTION}` : READ_ONLY_CONNECTION_OPTION
+    existing ? `${existing} ${READ_ONLY_CONNECTION_OPTION}` : READ_ONLY_CONNECTION_OPTION,
   );
   parsed.search = parsed.searchParams.toString().replace(/\+/g, "%20");
   return parsed.toString();
@@ -85,10 +57,7 @@ export interface ResolvedEndpoints extends ImportEndpoints {
   sourceUrl: string;
 }
 
-/**
- * Decides — before a single row is read or deleted — that this run is
- * pointed the right way round. Throws a printable refusal if it is not.
- */
+/** Decides — before a single row is read or deleted — that this run is pointed the right way round. */
 export function resolveImportEndpoints(): ResolvedEndpoints {
   const targetUrl = process.env.DATABASE_URL ?? "";
   const rawSourceUrl = process.env[PRODUCTION_IMPORT_ENV.databaseUrl] ?? "";
@@ -148,10 +117,10 @@ export function resolveImportEndpoints(): ResolvedEndpoints {
       "  Set it on THIS server only, in the sandbox's own env file, pointing at",
       "  a read-only role on the live database:",
       "",
-      "      CREATE ROLE organza_readonly LOGIN PASSWORD '…';",
-      "      GRANT CONNECT ON DATABASE organza TO organza_readonly;",
-      "      GRANT USAGE ON SCHEMA public TO organza_readonly;",
-      "      GRANT SELECT ON ALL TABLES IN SCHEMA public TO organza_readonly;",
+      "      CREATE ROLE store_readonly LOGIN PASSWORD '…';",
+      "      GRANT CONNECT ON DATABASE <database> TO store_readonly;",
+      "      GRANT USAGE ON SCHEMA public TO store_readonly;",
+      "      GRANT SELECT ON ALL TABLES IN SCHEMA public TO store_readonly;",
       "",
       "  The connection is opened read-only either way, but a role that cannot",
       "  write is the version that survives somebody editing this file.",
@@ -179,16 +148,12 @@ export function resolveImportEndpoints(): ResolvedEndpoints {
   };
 }
 
-/**
- * The last gate: the run has to name the database it is about to empty.
- *
- * Separate from the checks above because those establish that the target is
- * *allowed*, and this one establishes that somebody looked at it. A pasted
- * command carrying yesterday's confirmation fires against nothing.
- */
+/** The last gate: the run must name the database it is about to empty, proving somebody looked. */
 export function assertConfirmedTarget(endpoints: ResolvedEndpoints): void {
   const given = process.env[PRODUCTION_IMPORT_ENV.confirm]?.trim();
-  if (given === endpoints.targetDatabase) return;
+  if (given === endpoints.targetDatabase) {
+    return;
+  }
 
   const lines = [
     `  ⛔  REFUSING TO RUN — ${COMMAND}`,
@@ -200,7 +165,9 @@ export function assertConfirmedTarget(endpoints: ResolvedEndpoints): void {
     "  expense, cash session, approval and audit entry in the target, then",
     "  copies production's catalogue in. Staff accounts are left alone.",
   ];
-  if (given) lines.push(`  The confirmation given ("${given}") is not this database's name.`);
+  if (given) {
+    lines.push(`  The confirmation given ("${given}") is not this database's name.`);
+  }
   lines.push("", "  Name the database being wiped, in full:");
   lines.push(`      ${PRODUCTION_IMPORT_ENV.confirm}=${endpoints.targetDatabase} npm run ${COMMAND}`);
   refuseCommand(lines);

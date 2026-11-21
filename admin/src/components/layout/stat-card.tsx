@@ -1,74 +1,91 @@
 "use client";
 
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
+import type { LucideIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { ExplainedLabel } from "@/components/figures/explained-label";
-import { testSelectorFor } from "@organza/shared/lib/testSelector";
+import { testSelectorFor } from "@store/shared/lib/testSelector";
 import { cn } from "@/lib/utils";
 import type { StatCardTone } from "@/types/layout";
 
 interface StatCardProps {
   label: string;
-  // Already formatted, in the store's currency where it is money (CLAUDE.md
-  // rule 14 — the symbol comes from Settings, never from here).
+  // Already formatted; money in the Settings currency (rule 14).
   value: ReactNode;
   hint?: ReactNode;
-  // Plain language, one or two sentences: what this figure means and what it
-  // does NOT mean. Omit it and no (?) is rendered.
+  // What the figure means and does not mean; omit for no (?).
   tooltip?: string;
   tone?: StatCardTone;
-  // Which figure this is — "sales-total", "orders-count". Rendered as
-  // `stat-card-<name>` with the figure itself under it, because "the third
-  // box" is not a description of a number somebody is querying.
+  // Rendered as `stat-card-<name>`, with `stat-card-value-<name>` for the figure.
   name?: string;
+  // A tinted tile beside the label, in the figure's tone.
+  icon?: LucideIcon;
   className?: string;
+  style?: CSSProperties;
 }
 
 const TONE_CLASS: Record<StatCardTone, string> = {
-  default: "text-foreground",
-  success: "text-success",
-  warning: "text-warning",
+  default: "text-ink",
+  success: "text-success-700",
+  warning: "text-warning-700",
 };
 
-// One figure, on a card: the label with its (?) explanation, the number, and
-// an optional line of context under it.
-//
-// The explanation is the app's existing ExplainedLabel — a 44px tap target
-// that expands the sentence inline rather than a hover tooltip, because ~95%
-// of use is on a phone where there is no hover and a floating bubble clips at
-// the edge of a narrow screen. The accessible name is the same `figures.explain`
-// sentence every figure in the app already uses.
-//
-// No fixed height: an Arabic label that wraps to two lines makes the card
-// taller, it does not get clipped.
-export function StatCard({ label, value, hint, tooltip, tone = "default", name, className }: StatCardProps) {
+const ICON_TILE_CLASS: Record<StatCardTone, string> = {
+  default: "bg-primary-100 text-primary-700",
+  success: "bg-success-100 text-success-700",
+  warning: "bg-warning-100 text-warning-700",
+};
+
+// The (?) expands inline rather than hovering: ~95% of use is on a phone.
+export function StatCard({
+  label,
+  value,
+  hint,
+  tooltip,
+  tone = "default",
+  name,
+  icon: Icon,
+  className,
+  style,
+}: StatCardProps) {
   const tFigures = useTranslations("figures");
 
   return (
     <div
-      className={cn("flex min-w-0 flex-col rounded-lg bg-muted/40 p-4", className)}
+      className={cn(
+        "flex min-w-0 flex-col rounded-card border border-line bg-surface p-[18px_20px] shadow-card",
+        className,
+      )}
+      style={style}
       data-test-selector={testSelectorFor("stat-card", name)}
     >
-      <ExplainedLabel
-        label={label}
-        description={tooltip}
-        toggleLabel={tFigures("explain", { label })}
-        // The (?) sits in the card's corner rather than tight against the
-        // label — `justify-between`, so it mirrors in Arabic on its own.
-        rowClassName="justify-between gap-2"
-      />
+      <div className="flex items-start gap-3">
+        <ExplainedLabel
+          className="min-w-0 flex-1"
+          label={label}
+          description={tooltip}
+          toggleLabel={tFigures("explain", { label })}
+          rowClassName="justify-between gap-2"
+        />
+        {Icon && (
+          <span
+            className={cn("flex size-10 shrink-0 items-center justify-center rounded-panel", ICON_TILE_CLASS[tone])}
+            aria-hidden="true"
+          >
+            <Icon className="size-5" />
+          </span>
+        )}
+      </div>
 
-      {/* break-words, not truncate: a long figure in a narrow column has to
-          wrap rather than be silently cut in half — a clipped amount is worse
-          than an ugly one. tabular-nums keeps the digits in step. */}
+      {/* break-words, not truncate: a clipped amount is worse than an ugly one. */}
       <p
-        className={cn("mt-1.5 break-words text-2xl font-medium tabular-nums", TONE_CLASS[tone])}
+        className={cn("mt-2 break-words text-title font-medium tabular-nums", TONE_CLASS[tone])}
         data-test-selector={testSelectorFor("stat-card-value", name)}
       >
         {value}
       </p>
 
-      {hint && <p className="mt-0.5 text-xs text-muted-foreground">{hint}</p>}
+      {hint && <p className="mt-[7px] text-meta text-ink-subtle">{hint}</p>}
     </div>
   );
 }

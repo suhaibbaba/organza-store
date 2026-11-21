@@ -5,9 +5,7 @@ import { money, resolveDiscountAmount, roundMoney, formatMoney, ZERO_MONEY } fro
 import { ERROR_CODES } from "@/constants";
 import type { AnyRecord, DiscountType, OrderTotals, PricedOrderItem, StockMovement } from "@/types";
 
-// The one place order money is computed. Both creation and editing go
-// through it, so a client-supplied total has nowhere to enter: the caller
-// only ever names products, quantities and discounts.
+// The one place order money is computed, so a client-supplied total has nowhere to enter.
 
 interface RequestedItem {
   productId: string;
@@ -22,13 +20,11 @@ interface DiscountInput {
   discountValue?: string | null;
 }
 
-// unitPrice * quantity - itemDiscount. Exported so the edit path can
-// re-price an existing line from its stored snapshot without re-reading the
-// catalogue (a past sale keeps the price it was sold at).
+// unitPrice × quantity − itemDiscount; exported so an edit re-prices from the stored snapshot.
 export function priceLine(
   unitPrice: Prisma.Decimal.Value,
   quantity: number,
-  discount: DiscountInput
+  discount: DiscountInput,
 ): { discountAmount: string; lineTotal: string } {
   const gross = roundMoney(money(unitPrice).mul(quantity));
   const discountAmount = resolveDiscountAmount(gross, discount.discountType, discount.discountValue);
@@ -38,12 +34,8 @@ export function priceLine(
   };
 }
 
-// subtotal = sum of line totals (item discounts already applied);
-// total = subtotal - the order-level discount resolved against it.
-export function computeOrderTotals(
-  lineTotals: readonly string[],
-  discount: DiscountInput
-): OrderTotals {
+// subtotal = sum of line totals; total = subtotal − the order discount resolved against it.
+export function computeOrderTotals(lineTotals: readonly string[], discount: DiscountInput): OrderTotals {
   const subtotal = lineTotals.reduce((sum, line) => sum.add(money(line)), ZERO_MONEY());
   const rounded = roundMoney(subtotal);
   const discountAmount = resolveDiscountAmount(rounded, discount.discountType, discount.discountValue);
@@ -54,11 +46,7 @@ export function computeOrderTotals(
   };
 }
 
-// Resolves each requested line against the live catalogue and snapshots it:
-// name, sku, price and cost are frozen here so renaming or repricing the
-// product later never rewrites this sale. Price/cost follow the same
-// variant-inherits-from-parent fallback the product API uses (CLAUDE.md
-// rule 3) — resolved at read time, never copied onto the variant.
+// Snapshots each line (name, sku, price, cost) so later catalogue changes never rewrite the sale; variant fallback per rule 3.
 export async function priceRequestedItems(items: readonly RequestedItem[]): Promise<PricedOrderItem[]> {
   const priced: PricedOrderItem[] = [];
 
@@ -67,17 +55,19 @@ export async function priceRequestedItems(items: readonly RequestedItem[]): Prom
       where: { id: item.productId, deletedAt: null },
       include: { variants: true },
     });
-    if (!product) throw new AppError(400, ERROR_CODES.ORDER_PRODUCT_UNAVAILABLE);
+    if (!product) {
+      throw new AppError(400, ERROR_CODES.ORDER_PRODUCT_UNAVAILABLE);
+    }
 
     let variant: AnyRecord | null = null;
     if (item.variantId) {
       variant = product.variants.find((v) => v.id === item.variantId) ?? null;
-      // A variant id that isn't this product's is a caller mistake, not a
-      // missing row — refuse rather than silently selling the parent.
-      if (!variant) throw new AppError(400, ERROR_CODES.ORDER_PRODUCT_UNAVAILABLE);
+      // A variant id that isn't this product's is a caller mistake: refuse rather than sell the parent.
+      if (!variant) {
+        throw new AppError(400, ERROR_CODES.ORDER_PRODUCT_UNAVAILABLE);
+      }
     } else if (product.variants.length > 0) {
-      // The parent of a variant-bearing product isn't purchasable: it owns
-      // neither the price nor the stock that would be sold.
+      // The parent of a variant-bearing product isn't sellable: it owns neither the price nor the stock.
       throw new AppError(400, ERROR_CODES.ORDER_VARIANT_REQUIRED);
     }
 
@@ -104,15 +94,7 @@ export async function priceRequestedItems(items: readonly RequestedItem[]): Prom
   return priced;
 }
 
-// A gift charges nothing, so every line is re-priced at zero — the piece
-// still leaves the shop and its stock still moves, but no money changes
-// hands. What the shop LOST is `unitCost`, which is left exactly as the
-// catalogue resolved it: that is the figure gifts are reported at.
-//
-// Zeroing the price rather than discounting it 100% is deliberate. A
-// discounted line is a sale that earned less; a gift earned nothing, and
-// keeping the two apart is what stops a month of giveaways from reading as a
-// month of generous discounts.
+// A gift re-prices every line to zero (not a 100% discount) and keeps unitCost — the figure gifts are reported at.
 export function asGiftLines(lines: readonly PricedOrderItem[]): PricedOrderItem[] {
   const free = ZERO_MONEY().toFixed(2);
   return lines.map((line) => ({
@@ -125,19 +107,20 @@ export function asGiftLines(lines: readonly PricedOrderItem[]): PricedOrderItem[
   }));
 }
 
-// Collapses lines into per-stock-target quantities: the same variant listed
-// twice in one order has to be checked and deducted as one total, or the
-// second line could oversell what the first already took.
+// Sums lines per stock target, so the same variant listed twice is checked and deducted as one total.
 export function toStockMovements(
-  lines: readonly { productId: string | null; variantId: string | null; quantity: number }[]
+  lines: readonly { productId: string | null; variantId: string | null; quantity: number }[],
 ): StockMovement[] {
   const byTarget = new Map<string, StockMovement>();
 
   for (const line of lines) {
-    if (line.quantity <= 0) continue;
-    // Products that are no longer in the catalogue (variant hard-deleted)
-    // have nothing left to move stock against.
-    if (!line.variantId && !line.productId) continue;
+    if (line.quantity <= 0) {
+      continue;
+    }
+    // Products that are no longer in the catalogue (variant hard-deleted) have nothing left to move stock against.
+    if (!line.variantId && !line.productId) {
+      continue;
+    }
 
     const key = line.variantId ? `variant:${line.variantId}` : `product:${line.productId}`;
     const existing = byTarget.get(key);

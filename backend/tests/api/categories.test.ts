@@ -7,9 +7,13 @@ import type { CategoryNode } from "@/types";
 
 function findNode(nodes: CategoryNode[], id: string): CategoryNode | undefined {
   for (const node of nodes) {
-    if (node.id === id) return node;
+    if (node.id === id) {
+      return node;
+    }
     const found = findNode(node.children ?? [], id);
-    if (found) return found;
+    if (found) {
+      return found;
+    }
   }
   return undefined;
 }
@@ -22,12 +26,16 @@ describe("Categories", () => {
 
   afterAll(async () => {
     const admin = await getSession("ADMIN");
-    // Products first: a category with anything filed under it refuses to be
-    // deleted (CATEGORY_HAS_PRODUCTS), so the shelf can only be cleared once
-    // what is on it has gone.
-    if (childProductId) await apiRequest(`/api/products/${childProductId}`, { method: "DELETE", token: admin.token });
-    if (childId) await apiRequest(`/api/categories/${childId}`, { method: "DELETE", token: admin.token });
-    if (parentId) await apiRequest(`/api/categories/${parentId}`, { method: "DELETE", token: admin.token });
+    // A category with products refuses deletion (CATEGORY_HAS_PRODUCTS), so products go first.
+    if (childProductId) {
+      await apiRequest(`/api/products/${childProductId}`, { method: "DELETE", token: admin.token });
+    }
+    if (childId) {
+      await apiRequest(`/api/categories/${childId}`, { method: "DELETE", token: admin.token });
+    }
+    if (parentId) {
+      await apiRequest(`/api/categories/${parentId}`, { method: "DELETE", token: admin.token });
+    }
   });
 
   it("creates a parent category (Admin/Manager)", async () => {
@@ -68,9 +76,7 @@ describe("Categories", () => {
     expect(res.error?.code).toBe(ERROR_CODES.FORBIDDEN);
   });
 
-  // The POS product browser's sidebar pins these to the top, on every till
-  // (spec.md "POS product browser") — so the flag is stored on the category
-  // and gated like every other category edit.
+  // Favourites are pinned on every till, so the flag is stored on the category and gated like any edit.
   it("pins and unpins a category as a favourite", async () => {
     const admin = await getSession("ADMIN");
 
@@ -104,9 +110,7 @@ describe("Categories", () => {
     expect(res.error?.code).toBe(ERROR_CODES.FORBIDDEN);
   });
 
-  // Products hang off leaves, so the browser asking for a parent shelf has to
-  // be answered with everything under it — otherwise tapping "Women" shows an
-  // empty grid while the dresses sit one level down.
+  // Products hang off leaves, so a parent shelf must answer with everything under it.
   it("lists a child category's products under the parent only with includeSubcategories", async () => {
     const admin = await getSession("ADMIN");
     const name = `Vitest Subtree ${nonce}`;
@@ -126,7 +130,7 @@ describe("Categories", () => {
 
     const wholeBranch = await apiRequest<{ id: string }[]>(
       `/api/products?categoryId=${parentId}&includeSubcategories=true`,
-      { token: admin.token }
+      { token: admin.token },
     );
     expect(wholeBranch.data!.some((p) => p.id === childProductId)).toBe(true);
   });

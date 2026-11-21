@@ -1,24 +1,4 @@
-// ============================================================================
-//  8. PERMISSIONS — every role against every sensitive action
-//
-//  Enforced on the BACKEND, not hidden in a UI (CLAUDE.md rule 5). Every
-//  refusal below is asserted twice: the status code, AND that the thing it
-//  refused did not happen anyway.
-//
-//    * an EMPLOYEE may ring up a sale and hand it to the courier, and nothing
-//      else that touches money: no inventory, no cost, no profit, no deleting
-//      or hiding a product, no re-pricing, no editing/cancelling/deleting an
-//      order, no declaring its money received, no gifts, no users, no
-//      settings, and no approving anything — including their own request;
-//    * a MANAGER runs the shop floor but may not see COST or PROFIT (Admin
-//      only), and may not manage users or settings;
-//    * an Employee's gated edit is HELD as a request rather than applied,
-//      only an Admin may decide it, approving applies it atomically and
-//      rejecting discards it;
-//    * and no endpoint anywhere leaks cost, unitCost, COGS, profit, margin or
-//      idNumber to a role that may not see it — checked by walking every
-//      response, nested objects and list rows included.
-// ============================================================================
+// Every role against every sensitive action, asserting the status and that nothing happened; no payload may leak cost or idNumber.
 import { beforeAll, describe, expect, it } from "vitest";
 import { apiRequest, uniqueId } from "@tests/support/client";
 import { fetchPermissionMatrix } from "@tests/support/permissions";
@@ -42,13 +22,11 @@ import {
 import { COST_BEARING_KEYS, REPRICED_BASE_PRICE, UNIT_COST, UNIT_PRICE } from "@tests/constants";
 import type { PricedProduct, ProductDto } from "@tests/types";
 
-/**
- * Walks a whole response and reports every path at which a forbidden key
- * appears — list rows and nested objects included, which is exactly where a
- * leak would hide.
- */
+/** Every path where a forbidden key appears, rows and nested objects included. */
 function leakedPaths(value: unknown, forbidden: readonly string[], path = "$"): string[] {
-  if (value === null || typeof value !== "object") return [];
+  if (value === null || typeof value !== "object") {
+    return [];
+  }
 
   if (Array.isArray(value)) {
     return value.flatMap((entry, index) => leakedPaths(entry, forbidden, `${path}[${index}]`));
@@ -56,7 +34,9 @@ function leakedPaths(value: unknown, forbidden: readonly string[], path = "$"): 
 
   const found: string[] = [];
   for (const [key, nested] of Object.entries(value as Record<string, unknown>)) {
-    if (forbidden.includes(key)) found.push(`${path}.${key} = ${JSON.stringify(nested)}`);
+    if (forbidden.includes(key)) {
+      found.push(`${path}.${key} = ${JSON.stringify(nested)}`);
+    }
     found.push(...leakedPaths(nested, forbidden, `${path}.${key}`));
   }
   return found;
@@ -118,17 +98,7 @@ describe("Verify · permissions and data exposure", () => {
     });
 
     it("holds the additive option permission and not the destructive one", async () => {
-      // A rename reaches every product using that value at once (CLAUDE.md
-      // rule 2), so it belongs to Admin/Manager. There is no rename or delete
-      // ENDPOINT yet — the API exposes GET plus the two creates — so what is
-      // pinned here is the layer that exists: an Employee may append to the
-      // global lists and may not touch what is already on them, and the
-      // routes really are absent rather than merely unlisted.
-      //
-      // Read from the API rather than from the constant it is seeded with:
-      // both of these are configurable per shop now (spec.md "Editable role
-      // permissions"), so what has to hold is what is IN FORCE — which is the
-      // baseline this suite writes for itself in tests/setup.ts.
+      // Renaming a global value is Admin/Manager (rule 2); an Employee may only append. Read from the matrix in force.
       const matrix = await fetchPermissionMatrix();
       expect(matrix.roles.EMPLOYEE, "an Employee may add an option value").toContain("variantType.create");
       expect(matrix.roles.EMPLOYEE, "and may not rename or remove one").not.toContain("variantType.manage");
@@ -148,8 +118,7 @@ describe("Verify · permissions and data exposure", () => {
         expect(res.status, `there is no ${method} /api/variant-types/:id for anyone to reach`).toBe(404);
       }
 
-      // ...and the additive half genuinely works for them, so the refusal
-      // above is a gate rather than a broken route.
+      // The additive half works for them, so the refusal is a gate, not a broken route.
       const added = await apiRequest(`/api/variant-types/${type.id}/values`, {
         method: "POST",
         token: employee,
@@ -217,7 +186,7 @@ describe("Verify · permissions and data exposure", () => {
         token: manager,
         body: {
           name: `[verify] ${uniqueId()}`,
-          email: `verify-${uniqueId()}@organza.test`,
+          email: `verify-${uniqueId()}@store.test`,
           password: "password123",
           role: "EMPLOYEE",
           phone: randomPalestinePhone(),
@@ -270,9 +239,7 @@ describe("Verify · permissions and data exposure", () => {
 
   // ==========================================================================
   describe("nothing derived from cost ever leaves the backend", () => {
-    // Every endpoint the two roles can actually read. A leak would show up as
-    // a key anywhere in the payload — a list row, a nested variant, a channel
-    // entry — which is why the whole tree is walked rather than the top level.
+    // The whole tree is walked, since a leak hides in a row, a nested variant or a channel entry.
     const sharedReads = [
       "/api/products?pageSize=10",
       "/api/orders?pageSize=10",
@@ -282,13 +249,7 @@ describe("Verify · permissions and data exposure", () => {
       "/api/settings",
     ];
 
-    // The shop-wide money screens. These are not "a report with the costs
-    // taken out" — they are refused outright to whoever may not read them,
-    // which is a different and stronger thing:
-    //   * the Reports page (report.view) is ADMIN ONLY, so both roles are out;
-    //   * the dashboard's sales block (dashboard.view) and the outstanding
-    //     total (order.markCollected) answer a Manager and refuse an Employee,
-    //     who sees the orders they took and nothing added up.
+    // Shop-wide money is refused outright, not served without costs: Reports Admin-only, dashboard and outstanding Manager.
     function moneyReads(role: "manager" | "employee", range: string): { path: string; status: number }[] {
       const managerOnly = role === "manager" ? 200 : 403;
       return [
@@ -318,10 +279,7 @@ describe("Verify · permissions and data exposure", () => {
         expect(res.status, `${path} must answer this role (or be refused outright, not half-answered)`).toBe(200);
 
         const leaks = leakedPaths(res.data, COST_BEARING_KEYS);
-        expect(
-          leaks,
-          `${path} leaked cost-derived data:\n   ${leaks.join("\n   ")}`
-        ).toEqual([]);
+        expect(leaks, `${path} leaked cost-derived data:\n   ${leaks.join("\n   ")}`).toEqual([]);
       }
 
       for (const { path, status } of moneyReads(role, range)) {
@@ -335,24 +293,18 @@ describe("Verify · permissions and data exposure", () => {
         }
 
         const leaks = leakedPaths(res.data, COST_BEARING_KEYS);
-        expect(
-          leaks,
-          `${path} leaked cost-derived data:\n   ${leaks.join("\n   ")}`
-        ).toEqual([]);
+        expect(leaks, `${path} leaked cost-derived data:\n   ${leaks.join("\n   ")}`).toEqual([]);
       }
     });
 
     it("keeps the Reports screen on the owner's side of the permission table", async () => {
-      // The rules IN FORCE on the target, not the constant they are seeded
-      // from. Every action is configurable, so what is asserted here is the
-      // baseline this suite writes in tests/setup.ts.
+      // The rules in force on the target: the baseline written in tests/setup.ts.
       const matrix = await fetchPermissionMatrix();
 
       expect(matrix.roles.ADMIN, "an Admin reads the reports").toContain("report.view");
 
       for (const role of ["MANAGER", "EMPLOYEE"] as const) {
-        // Its own action, deliberately: it used to ride on order.view, which
-        // an Employee holds so they can follow the orders they take.
+        // Its own action: on order.view an Employee would add up the whole shop.
         expect(matrix.roles[role], `a ${role} must not hold report.view`).not.toContain("report.view");
         expect(matrix.roles[role], `a ${role} must not hold product.viewCost`).not.toContain("product.viewCost");
       }
@@ -371,12 +323,12 @@ describe("Verify · permissions and data exposure", () => {
 
       const report = await apiRequest<Record<string, unknown>>(
         `/api/reports/sales?from=${range}&to=${range}&tzOffset=0`,
-        { token: admin }
+        { token: admin },
       );
       expect(report.data!.profit, "the profit block, to an Admin").toBeDefined();
       expect(
         leakedPaths(report.data, COST_BEARING_KEYS).length,
-        "an Admin's report must be full of exactly the figures the others are refused"
+        "an Admin's report must be full of exactly the figures the others are refused",
       ).toBeGreaterThan(0);
     });
 
@@ -522,7 +474,7 @@ describe("Verify · permissions and data exposure", () => {
       expect(theirs.status).toBe(200);
       expect(
         (theirs.data ?? []).every((change) => change.requestedById === employeeId),
-        "an Employee sees what they asked for, and nothing else"
+        "an Employee sees what they asked for, and nothing else",
       ).toBe(true);
 
       const all = await apiRequest<{ id: string }[]>("/api/change-requests?pageSize=100&status=PENDING", {

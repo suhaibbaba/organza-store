@@ -1,6 +1,8 @@
 import type { Prisma } from "@prisma/client";
 import type {
   ChannelSales,
+  DailySales,
+  DailySalesDay,
   ProfitTotals,
   ReportPeriod,
   ReturnsTotals,
@@ -8,10 +10,12 @@ import type {
   SalesSummary,
   SalesTotals,
   TopSeller,
-} from "@organza/shared/types/report";
+} from "@store/shared/types/report";
 
 export type {
   ChannelSales,
+  DailySales,
+  DailySalesDay,
   ProfitTotals,
   ReportPeriod,
   ReturnsTotals,
@@ -21,17 +25,13 @@ export type {
   TopSeller,
 };
 
-// The window a report covers, as instants. `to` is exclusive: a range picked
-// as 1–3 August ends at local midnight opening the 4th, so a sale rung up at
-// 23:59 on the 3rd is inside it.
+// A report window as instants; `to` is exclusive, so 1–3 August ends at local midnight on the 4th.
 export interface ReportRange {
   from: Date;
   to: Date;
 }
 
-// --- shapes returned by the raw aggregate queries (lib/reports.ts) ---
-// Postgres hands back numeric as Prisma.Decimal and count as BigInt; the
-// serializers in lib/reports.ts are the only place that converts them.
+// Raw aggregate rows (Decimal, BigInt), converted only by the serializers in lib/reports.ts.
 
 export interface SalesAggregateRow {
   orderCount: bigint;
@@ -42,8 +42,7 @@ export interface SalesAggregateRow {
   pendingCollectionOrderCount: bigint;
   grossRevenue: Prisma.Decimal | null;
   cost: Prisma.Decimal | null;
-  // COGS on the part that has actually been paid for — what makes a
-  // "received only" profit answerable at all.
+  // COGS on the paid-for part — what makes a received-only profit answerable.
   collectedCost: Prisma.Decimal | null;
   missingCostItems: bigint;
   returnedOrderCount: bigint;
@@ -51,14 +50,18 @@ export interface SalesAggregateRow {
   returnedAmount: Prisma.Decimal | null;
 }
 
+// One local day's sales; `date` is already the viewer's YYYY-MM-DD.
+export interface DailySalesRow {
+  date: string;
+  orderCount: bigint;
+  revenue: Prisma.Decimal | null;
+}
+
 export interface ChannelAggregateRow extends SalesAggregateRow {
   channel: string;
 }
 
-// What the stock given away in a range cost the shop. Its own query because
-// gifts are excluded from the sales view entirely — they earn nothing, so
-// letting them anywhere near revenue would be the bug this separation exists
-// to prevent.
+// Cost of stock given away; its own query, since gifts are kept out of the sales view entirely.
 export interface GiftAggregateRow {
   orderCount: bigint;
   itemCount: Prisma.Decimal | null;

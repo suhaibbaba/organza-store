@@ -3,17 +3,14 @@
 import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Plus } from "lucide-react";
-import type { VariantType } from "@organza/shared/types/variant";
+import { Button, Chip, Input, Section, Switch } from "@store/ui";
+import type { VariantType } from "@store/shared/types/variant";
 import { localize } from "@/lib/i18n-content";
 import { useTranslateError } from "@/hooks/use-translate-error";
 import { useAddOptionValueMutation, useCreateVariantTypeMutation } from "@/hooks/use-variant-types";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Spinner } from "@/components/ui/spinner";
 import { ApiError } from "@/lib/api/errors";
-import { cn } from "@/lib/utils";
 import type { VariantSelectionMap } from "@/types/productForm";
+import { VARIANT_PICKER_SUMMARY_NAMES as SUMMARY_NAMES } from "@/constants/products";
 
 interface VariantTypePickerProps {
   variantTypes: VariantType[];
@@ -25,69 +22,83 @@ export function VariantTypePicker({ variantTypes, value, onChange }: VariantType
   const t = useTranslations("products.form.variants");
   const locale = useLocale();
 
-  function toggleType(typeId: string, checked: boolean) {
-    const next = { ...value };
-    if (checked) next[typeId] = [];
-    else delete next[typeId];
-    onChange(next);
-  }
-
   function toggleValue(typeId: string, valueId: string, checked: boolean) {
     const current = value[typeId] ?? [];
     const nextValues = checked ? [...current, valueId] : current.filter((id) => id !== valueId);
-    onChange({ ...value, [typeId]: nextValues });
+    const next = { ...value, [typeId]: nextValues };
+    if (nextValues.length === 0) {
+      delete next[typeId];
+    }
+    onChange(next);
+  }
+
+  function setAll(typeId: string, valueIds: string[]) {
+    const next = { ...value, [typeId]: valueIds };
+    if (valueIds.length === 0) {
+      delete next[typeId];
+    }
+    onChange(next);
   }
 
   return (
     <div className="flex flex-col gap-3">
-      {variantTypes.map((type) => {
-        const isUsed = type.id in value;
+      {variantTypes.map((type, index) => {
         const selectedValueIds = value[type.id] ?? [];
-
+        const selectedNames = type.values
+          .filter((optionValue) => selectedValueIds.includes(optionValue.id))
+          .map((optionValue) => localize(optionValue.value, locale));
         return (
-          <div key={type.id} className="rounded-xl border border-border bg-card p-3">
-            <label className="flex min-h-11 cursor-pointer items-center gap-3">
-              <Checkbox checked={isUsed} onCheckedChange={(checked) => toggleType(type.id, checked === true)} />
-              <span className="text-sm font-medium text-foreground">{localize(type.name, locale)}</span>
-            </label>
-
-            {isUsed && (
-              <div className="mt-3 flex flex-col gap-3 ps-9">
-                <div className="flex flex-wrap gap-2">
-                  {type.values.map((optionValue) => {
-                    const checked = selectedValueIds.includes(optionValue.id);
-                    return (
-                      <button
-                        key={optionValue.id}
-                        type="button"
-                        aria-pressed={checked}
-                        onClick={() => toggleValue(type.id, optionValue.id, !checked)}
-                        className={cn(
-                          "h-10 rounded-full border px-4 text-sm font-medium transition-colors",
-                          checked
-                            ? "border-primary bg-primary text-primary-foreground"
-                            : "border-input bg-background text-foreground"
-                        )}
-                      >
-                        {localize(optionValue.value, locale)}
-                      </button>
-                    );
-                  })}
-                </div>
-
-                <AddValueInline
-                  typeId={type.id}
-                  onAdded={(valueId) => onChange({ ...value, [type.id]: [...selectedValueIds, valueId] })}
-                />
-              </div>
+          <Section
+            key={type.id}
+            data-testid={`variant-type-${type.id}`}
+            title={localize(type.name, locale)}
+            description={
+              selectedNames.length > 0
+                ? [
+                    t("selectedCount", { count: selectedNames.length }),
+                    selectedNames.slice(0, SUMMARY_NAMES).join("، ") +
+                      (selectedNames.length > SUMMARY_NAMES ? ` +${selectedNames.length - SUMMARY_NAMES}` : ""),
+                  ].join(" · ")
+                : t("noneSelected")
+            }
+            collapsible
+            defaultOpen={index === 0 || selectedValueIds.length > 0}
+            className="shadow-none"
+          >
+            {type.values.length > 0 && (
+              <Switch
+                size="sm"
+                data-testid={`variant-type-select-all-${type.id}`}
+                label={t("selectAll")}
+                checked={selectedValueIds.length === type.values.length}
+                onCheckedChange={(checked) => setAll(type.id, checked ? type.values.map((v) => v.id) : [])}
+              />
             )}
-          </div>
+            <div className="flex flex-wrap items-center gap-2">
+              {type.values.map((optionValue) => {
+                const checked = selectedValueIds.includes(optionValue.id);
+                return (
+                  <Chip
+                    key={optionValue.id}
+                    selected={checked}
+                    onClick={() => toggleValue(type.id, optionValue.id, !checked)}
+                  >
+                    {localize(optionValue.value, locale)}
+                  </Chip>
+                );
+              })}
+              <AddValueInline
+                typeId={type.id}
+                onAdded={(valueId) => onChange({ ...value, [type.id]: [...selectedValueIds, valueId] })}
+              />
+            </div>
+          </Section>
         );
       })}
 
       <AddTypeInline onCreated={(typeId) => onChange({ ...value, [typeId]: [] })} />
 
-      {variantTypes.length === 0 && <p className="text-sm text-muted-foreground">{t("noTypesYet")}</p>}
+      {variantTypes.length === 0 && <p className="text-label text-ink-muted">{t("noTypesYet")}</p>}
     </div>
   );
 }
@@ -101,15 +112,15 @@ function AddValueInline({ typeId, onAdded }: { typeId: string; onAdded: (valueId
 
   async function handleAdd() {
     const trimmed = text.trim();
-    if (!trimmed) return;
+    if (!trimmed) {
+      return;
+    }
     try {
       const created = await mutation.mutateAsync({ variantTypeId: typeId, value: { ar: trimmed } });
       onAdded(created.id);
       setText("");
       setOpen(false);
-    } catch {
-      // error surfaced below via mutation.isError
-    }
+    } catch {}
   }
 
   if (!open) {
@@ -117,7 +128,7 @@ function AddValueInline({ typeId, onAdded }: { typeId: string; onAdded: (valueId
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="inline-flex min-h-9 items-center gap-1 self-start text-sm font-medium text-primary"
+        className="inline-flex h-8 cursor-pointer items-center gap-1 rounded-pill border border-dashed border-line-strong px-3 text-label text-primary-600 hover:border-primary-600 focus-visible:border-primary-700 focus-visible:bg-primary-100 focus-visible:text-primary-800"
       >
         <Plus className="size-4" aria-hidden="true" />
         {t("addValue")}
@@ -126,37 +137,20 @@ function AddValueInline({ typeId, onAdded }: { typeId: string; onAdded: (valueId
   }
 
   return (
-    <div className="flex flex-col gap-1.5">
-      {/* The box on its own line, the two buttons under it, until there is
-          room for one row. Squeezed onto a phone's width together, the field
-          was left ~120px — narrower than its own placeholder, which came out
-          as "اسم الة" — and a field you cannot read the prompt of is worse
-          than one extra line. From `sm` it is the single row it always was,
-          the box taking the space the buttons don't need. */}
+    <div className="flex basis-full flex-col gap-1.5">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-        {/* No autoFocus: revealing the box is not the same as asking to
-            type in it, and on a phone the keyboard covers the list of
-            values being added to. */}
         <Input
           value={text}
           onChange={(e) => setText(e.target.value)}
           placeholder={t("newValuePlaceholder")}
-          className="h-11 w-full min-w-0 sm:flex-1"
+          className="w-full min-w-0 sm:flex-1"
         />
         <div className="flex items-center gap-2">
-          <Button
-            type="button"
-            size="sm"
-            onClick={() => void handleAdd()}
-            disabled={mutation.isPending}
-            className="flex-1 sm:flex-none"
-          >
-            {mutation.isPending ? <Spinner className="size-4" /> : t("add")}
+          <Button onClick={() => void handleAdd()} isLoading={mutation.isPending} className="flex-1 sm:flex-none">
+            {t("add")}
           </Button>
           <Button
-            type="button"
-            size="sm"
-            variant="ghost"
+            variant="quiet"
             onClick={() => {
               setOpen(false);
               setText("");
@@ -168,7 +162,7 @@ function AddValueInline({ typeId, onAdded }: { typeId: string; onAdded: (valueId
         </div>
       </div>
       {mutation.isError && (
-        <p className="text-xs text-destructive">
+        <p className="text-micro text-danger-600" role="alert">
           {translateError(mutation.error instanceof ApiError ? mutation.error.code : "error.internal")}
         </p>
       )}
@@ -185,15 +179,15 @@ function AddTypeInline({ onCreated }: { onCreated: (typeId: string) => void }) {
 
   async function handleAdd() {
     const trimmed = text.trim();
-    if (!trimmed) return;
+    if (!trimmed) {
+      return;
+    }
     try {
       const created = await mutation.mutateAsync({ name: { ar: trimmed } });
       onCreated(created.id);
       setText("");
       setOpen(false);
-    } catch {
-      // error surfaced below via mutation.isError
-    }
+    } catch {}
   }
 
   if (!open) {
@@ -201,7 +195,7 @@ function AddTypeInline({ onCreated }: { onCreated: (typeId: string) => void }) {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="inline-flex min-h-11 items-center gap-1 self-start text-sm font-medium text-primary"
+        className="inline-flex min-h-11 items-center gap-1 self-start text-label font-medium text-primary-600 hover:text-primary-700 focus-link"
       >
         <Plus className="size-4" aria-hidden="true" />
         {t("addType")}
@@ -210,31 +204,20 @@ function AddTypeInline({ onCreated }: { onCreated: (typeId: string) => void }) {
   }
 
   return (
-    <div className="flex flex-col gap-1.5 rounded-xl border border-dashed border-border p-3">
-      {/* Stacked on a phone, one row from `sm` — the same shape as the value
-          box above, and for the same reason. */}
+    <div className="flex flex-col gap-1.5 rounded-panel border border-dashed border-line-strong p-3">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-        {/* No autoFocus — same reason as the value box above. */}
         <Input
           value={text}
           onChange={(e) => setText(e.target.value)}
           placeholder={t("newTypePlaceholder")}
-          className="h-11 w-full min-w-0 sm:flex-1"
+          className="w-full min-w-0 sm:flex-1"
         />
         <div className="flex items-center gap-2">
-          <Button
-            type="button"
-            size="sm"
-            onClick={() => void handleAdd()}
-            disabled={mutation.isPending}
-            className="flex-1 sm:flex-none"
-          >
-            {mutation.isPending ? <Spinner className="size-4" /> : t("add")}
+          <Button onClick={() => void handleAdd()} isLoading={mutation.isPending} className="flex-1 sm:flex-none">
+            {t("add")}
           </Button>
           <Button
-            type="button"
-            size="sm"
-            variant="ghost"
+            variant="quiet"
             onClick={() => {
               setOpen(false);
               setText("");
@@ -246,7 +229,7 @@ function AddTypeInline({ onCreated }: { onCreated: (typeId: string) => void }) {
         </div>
       </div>
       {mutation.isError && (
-        <p className="text-xs text-destructive">
+        <p className="text-micro text-danger-600" role="alert">
           {translateError(mutation.error instanceof ApiError ? mutation.error.code : "error.internal")}
         </p>
       )}

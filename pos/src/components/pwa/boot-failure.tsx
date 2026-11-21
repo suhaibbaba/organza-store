@@ -54,8 +54,6 @@ export async function BootFailure() {
     <>
       <div
         className="boot-failure"
-        // Not aria-live: this is not an update to a page somebody is reading,
-        // it is the only thing on screen by the time it appears.
         role="alert"
         data-boot-failure=""
         style={{ backgroundColor: PWA_BACKGROUND_COLOR, color: PWA_SPLASH_FOREGROUND_COLOR }}
@@ -68,19 +66,12 @@ export async function BootFailure() {
         </p>
         <button
           type="button"
-          className="boot-failure-retry"
+          className="boot-failure-retry focus-darken"
           data-boot-failure-retry=""
-          // The click handler is attached by the script below, not here: this
-          // markup is on screen precisely because React is not running, so a
-          // React handler would never be bound.
           style={{ backgroundColor: PWA_SPLASH_FOREGROUND_COLOR, color: PWA_BACKGROUND_COLOR }}
         >
           {t("failed.retry")}
         </button>
-        {/* The build number, and whatever the browser said, for the person on
-            the other end of the phone call. Not prose — an identifier and a
-            raw browser message — so it is the one line here that does not go
-            through t(). */}
         <p className="boot-failure-detail" data-boot-failure-detail="">
           {APP_VERSION}
         </p>

@@ -1,11 +1,11 @@
 "use client";
 
 import { useCallback, useMemo, useRef, useState } from "react";
-import type { Product } from "@organza/shared/types/product";
-import type { Variant } from "@organza/shared/types/variant";
-import type { DiscountType } from "@organza/shared/types/order";
-import type { QuickSellItemInput } from "@organza/shared/schemas/order";
-import { clampQuantity } from "@organza/shared/constants/quantity";
+import type { Product } from "@store/shared/types/product";
+import type { Variant } from "@store/shared/types/variant";
+import type { DiscountType } from "@store/shared/types/order";
+import type { QuickSellItemInput } from "@store/shared/schemas/order";
+import { clampQuantity } from "@store/shared/constants/quantity";
 import { cartLineKey, computeTotals, toCartLine, toQuickSellCartLine } from "@/lib/cart";
 import { MIN_CART_QUANTITY } from "@/constants/pos";
 import type { CartLine, CartTotals, DiscountState } from "@/types/cart";
@@ -17,12 +17,9 @@ export interface Cart {
   orderDiscount: DiscountState;
   totals: CartTotals;
   isEmpty: boolean;
-  // Returns the resulting line so the caller can tell the cashier what just
-  // landed in the cart — a scan gives no other feedback that it worked.
+  // Returned so the caller can tell the cashier what landed: a scan gives no other feedback.
   addItem: (product: Product, variant: Variant | null) => CartLine;
-  // A piece that isn't in the catalogue, typed at the counter (spec.md "Quick
-  // sell"). Always a NEW line — two pieces typed under the same name are two
-  // pieces, never one scanned twice — so unlike addItem it never merges.
+  // Quick sell (spec.md): always a new line, never merged, since two typed pieces are two pieces.
   addQuickSellItem: (input: QuickSellItemInput, quantity: number) => CartLine;
   setQuantity: (key: string, quantity: number) => void;
   incrementQuantity: (key: string) => void;
@@ -33,25 +30,12 @@ export interface Cart {
   clear: () => void;
 }
 
-// Quantity can never leave [1, what's on the shelf]: below one the line
-// should have been removed, above stock the backend would reject the sale
-// anyway (ORDER_INSUFFICIENT_STOCK) and the cashier would find out only at
-// checkout, with the customer waiting. The shared 999 ceiling applies on top
-// of that, so a line can never carry a number the stepper refuses to show.
+// Clamped to [1, stock]: the backend would refuse more at checkout, with the customer waiting.
 function clampLineQuantity(quantity: number, line: CartLine): number {
   return clampQuantity(quantity, MIN_CART_QUANTITY, Math.max(MIN_CART_QUANTITY, line.availableStock));
 }
 
-// The open sale. Held in component state on purpose: a sale belongs to the
-// person standing at the counter right now, and abandoning it should cost
-// nothing more than a refresh.
-//
-// The lines live in a ref as well as in state, and every mutation reads the
-// ref rather than the state variable. Two reasons, both about scanning: a
-// handler has to be able to return the line it just produced (state updates
-// aren't visible until the next render), and a camera firing two scans
-// inside one tick must see the first one's result instead of both starting
-// from the same stale array.
+// Component state on purpose (abandoning a sale costs a refresh); mutations read a ref so rapid scans don't race.
 export function useCart(): Cart {
   const linesRef = useRef<CartLine[]>([]);
   const [lines, setLines] = useState<CartLine[]>([]);
@@ -67,7 +51,7 @@ export function useCart(): Cart {
     (key: string, update: (line: CartLine) => CartLine) => {
       commit(linesRef.current.map((line) => (line.key === key ? update(line) : line)));
     },
-    [commit]
+    [commit],
   );
 
   const addItem = useCallback(
@@ -80,9 +64,7 @@ export function useCart(): Cart {
         return incoming;
       }
 
-      // Re-scanning an item the cart already holds bumps that line instead
-      // of stacking a duplicate — and refreshes its price/stock snapshot
-      // from this lookup, which is newer than the one it was added with.
+      // A repeat scan bumps the line and refreshes its price/stock snapshot from this newer lookup.
       const refreshed: CartLine = {
         ...existing,
         unitPrice: incoming.unitPrice,
@@ -94,7 +76,7 @@ export function useCart(): Cart {
       commit(linesRef.current.map((line) => (line.key === updated.key ? updated : line)));
       return updated;
     },
-    [commit]
+    [commit],
   );
 
   const addQuickSellItem = useCallback(
@@ -103,45 +85,45 @@ export function useCart(): Cart {
       commit([line, ...linesRef.current]);
       return line;
     },
-    [commit]
+    [commit],
   );
 
   const setQuantity = useCallback(
     (key: string, quantity: number) => {
       updateLine(key, (line) => ({ ...line, quantity: clampLineQuantity(quantity, line) }));
     },
-    [updateLine]
+    [updateLine],
   );
 
   const incrementQuantity = useCallback(
     (key: string) => {
       updateLine(key, (line) => ({ ...line, quantity: clampLineQuantity(line.quantity + 1, line) }));
     },
-    [updateLine]
+    [updateLine],
   );
 
   const decrementQuantity = useCallback(
     (key: string) => {
       updateLine(key, (line) => ({ ...line, quantity: clampLineQuantity(line.quantity - 1, line) }));
     },
-    [updateLine]
+    [updateLine],
   );
 
   const removeLine = useCallback(
     (key: string) => {
       commit(linesRef.current.filter((line) => line.key !== key));
     },
-    [commit]
+    [commit],
   );
 
   const setLineDiscount = useCallback(
     (key: string, type: DiscountType | null, value: string | null) => {
-      // Both halves move together — the create-order schema refuses a
-      // half-set pair (isDiscountConsistent).
-      const applied = type && value ? { discountType: type, discountValue: value } : { discountType: null, discountValue: null };
+      // Both halves move together: the create-order schema refuses a half-set pair.
+      const applied =
+        type && value ? { discountType: type, discountValue: value } : { discountType: null, discountValue: null };
       updateLine(key, (line) => ({ ...line, ...applied }));
     },
-    [updateLine]
+    [updateLine],
   );
 
   const setOrderDiscount = useCallback((type: DiscountType | null, value: string | null) => {

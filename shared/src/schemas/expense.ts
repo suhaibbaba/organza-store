@@ -70,6 +70,16 @@ export const listExpensesQuerySchema = paginationSchema.extend({
 });
 export type ListExpensesQuery = z.infer<typeof listExpensesQuerySchema>;
 
+// The same filters as the list, minus status, paging and sort: the summary splits approved from pending itself.
+export const expenseSummaryQuerySchema = z.object({
+  categoryId: z.string().min(1).optional(),
+  paidInCash: booleanInput.optional(),
+  dateFrom: z.coerce.date().optional(),
+  dateTo: z.coerce.date().optional(),
+  q: z.string().min(1).optional(),
+});
+export type ExpenseSummaryQuery = z.infer<typeof expenseSummaryQuerySchema>;
+
 // --- categories ------------------------------------------------------------
 
 // The stable identifier a category is known by forever. Lowercase, no

@@ -2,239 +2,223 @@
 
 import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
-import { Lock, ShieldCheck } from "lucide-react";
-import { isFixedRole, isProtectedAction } from "@organza/shared/lib/permissions";
-import type { PermissionAction, PermissionMatrixPayload } from "@organza/shared/types/permission";
-import type { Role } from "@organza/shared/types/role";
-import { PERMISSION_GROUPS, PERMISSION_MATRIX_ROLES } from "@/constants/permissions";
+import { RotateCcw } from "lucide-react";
+import { Alert, Button, EmptyState, SaveBar, SearchField, SegmentedControl, useToast } from "@store/ui";
+import { DEFAULT_ROLE_PERMISSIONS } from "@store/shared/constants/permissions";
+import { isProtectedAction } from "@store/shared/lib/permissions";
+import type { PermissionAction, PermissionMatrixPayload } from "@store/shared/types/permission";
+import { EDITABLE_ROLES, PERMISSION_GROUPS } from "@/constants/permissions";
 import { useUpdateRolePermissionsMutation } from "@/hooks/use-permissions";
 import { useTranslateError } from "@/hooks/use-translate-error";
 import { useSession } from "@/components/providers/session-provider";
-import { Alert } from "@/components/ui/alert";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { SegmentedControl } from "@/components/ui/segmented-control";
-import { PermissionLock } from "@/components/permissions/permission-lock";
-import { PermissionToggle } from "@/components/permissions/permission-toggle";
+import { PermissionGroupSection } from "@/components/permissions/permission-group-section";
 import { ApiError } from "@/lib/api/errors";
-import type { PermissionLockReason } from "@/types/permission";
+import type { EditableRole, PermissionGrid, PermissionLockReason } from "@/types/permission";
 
-// The Permissions screen (spec.md "Editable role permissions").
-//
-// Two renderings of one model, because the two readers are different:
-//
-//   * a PHONE, which is ~95% of use (CLAUDE.md): one role at a time, picked
-//     with a segmented control, then a plain list of switches grouped by the
-//     part of the shop they belong to. A 3-by-45 grid on a 390px screen is
-//     not a matrix, it is a wall.
-//   * a DESKTOP (lg and up): the actual matrix — actions down, roles across —
-//     because that is where "who can do what" is a question you answer by
-//     comparing columns.
-//
-// Both are driven by PERMISSION_GROUPS and by the payload the API served, so
-// they cannot disagree about what is on or off.
+type Staged = Partial<Record<EditableRole, Partial<Record<PermissionAction, boolean>>>>;
+
+function savedGrid(matrix: PermissionMatrixPayload): PermissionGrid {
+  return {
+    MANAGER: new Set(matrix.roles.MANAGER ?? []),
+    EMPLOYEE: new Set(matrix.roles.EMPLOYEE ?? []),
+  };
+}
+
+// Lower-cased and stripped of Arabic diacritics, so "صلاحية" finds "صَلاحية".
+function normalize(text: string): string {
+  return text.toLocaleLowerCase().replace(/[ً-ْـ]/g, "");
+}
 
 interface PermissionsEditorProps {
   matrix: PermissionMatrixPayload;
 }
 
+// Edits are staged and written together from the SaveBar: a slip must never change what staff can do at once.
 export function PermissionsEditor({ matrix }: PermissionsEditorProps) {
   const t = useTranslations("permissions");
+  const toast = useToast();
   const translateError = useTranslateError();
   const { user } = useSession();
   const mutation = useUpdateRolePermissionsMutation();
 
-  // The role the phone layout is showing. Starts on the one an Admin most
-  // often comes here to change — their own is not editable at all.
-  const [selectedRole, setSelectedRole] = useState<Role>("EMPLOYEE");
-  const [pending, setPending] = useState<{ role: Role; action: PermissionAction } | null>(null);
+  const [staged, setStaged] = useState<Staged>({});
+  const [phoneRole, setPhoneRole] = useState<EditableRole>("EMPLOYEE");
+  const [query, setQuery] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [failure, setFailure] = useState<string | null>(null);
 
-  const held = useMemo(() => {
-    const map = {} as Record<Role, Set<string>>;
-    for (const role of PERMISSION_MATRIX_ROLES) map[role] = new Set(matrix.roles?.[role] ?? []);
-    return map;
-  }, [matrix]);
+  const saved = useMemo(() => savedGrid(matrix), [matrix]);
+  const grid = useMemo<PermissionGrid>(() => {
+    const next = { MANAGER: new Set(saved.MANAGER), EMPLOYEE: new Set(saved.EMPLOYEE) };
+    for (const role of EDITABLE_ROLES) {
+      for (const [action, granted] of Object.entries(staged[role] ?? {})) {
+        if (granted) {
+          next[role].add(action as PermissionAction);
+        } else {
+          next[role].delete(action as PermissionAction);
+        }
+      }
+    }
+    return next;
+  }, [saved, staged]);
 
-  const ownRole = (user?.role ?? null) as Role | null;
+  const ownRole = user?.role;
+  const ownRoleIsEditable = EDITABLE_ROLES.some((role) => role === ownRole);
 
-  function toggle(role: Role, action: PermissionAction, granted: boolean) {
-    setPending({ role, action });
-    mutation.mutate(
-      { role, changes: [{ action, granted }] },
-      { onSettled: () => setPending(null) }
-    );
+  function lockedReason(role: EditableRole, action: PermissionAction): PermissionLockReason | null {
+    if (isProtectedAction(action)) {
+      return "protected";
+    }
+    return role === ownRole ? "ownRole" : null;
   }
 
-  /** Why this cell cannot be tapped — or null when it can. */
-  function lockedReason(role: Role, action: PermissionAction): PermissionLockReason | null {
-    if (isProtectedAction(action)) return "protected";
-    if (role === ownRole) return "ownRole";
-    // An Admin holds everything, always — whoever is looking at the screen.
-    if (isFixedRole(role)) return "adminRole";
-    return null;
+  // Staging the saved value again drops the entry, so the change count stays honest.
+  function setGrant(next: Staged, role: EditableRole, action: PermissionAction, granted: boolean) {
+    const forRole = { ...next[role] };
+    if (saved[role].has(action) === granted) {
+      delete forRole[action];
+    } else {
+      forRole[action] = granted;
+    }
+    return { ...next, [role]: forRole };
   }
 
-  const failure = mutation.isError
-    ? translateError(mutation.error instanceof ApiError ? mutation.error.code : "error.internal")
-    : null;
+  function toggle(role: EditableRole, action: PermissionAction, granted: boolean) {
+    setFailure(null);
+    setStaged((current) => setGrant(current, role, action, granted));
+  }
+
+  function restoreDefaults() {
+    setFailure(null);
+    setStaged(() => {
+      let next: Staged = {};
+      for (const role of EDITABLE_ROLES) {
+        const defaults = new Set<PermissionAction>(DEFAULT_ROLE_PERMISSIONS[role]);
+        for (const group of PERMISSION_GROUPS) {
+          for (const action of group.actions) {
+            if (!lockedReason(role, action)) {
+              next = setGrant(next, role, action, defaults.has(action));
+            }
+          }
+        }
+      }
+      return next;
+    });
+  }
+
+  const changeCount = EDITABLE_ROLES.reduce((sum, role) => sum + Object.keys(staged[role] ?? {}).length, 0);
+
+  async function save() {
+    setSaving(true);
+    setFailure(null);
+    try {
+      for (const role of EDITABLE_ROLES) {
+        const changes = Object.entries(staged[role] ?? {}).map(([action, granted]) => ({ action, granted: !!granted }));
+        if (changes.length === 0) {
+          continue;
+        }
+        await mutation.mutateAsync({ role, changes });
+        // A role that landed is cleared at once, so a later failure leaves only what is still unsaved.
+        setStaged((current) => ({ ...current, [role]: {} }));
+      }
+      toast.success("permissions.saved");
+    } catch (error) {
+      setFailure(translateError(error instanceof ApiError ? error.code : "error.internal"));
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  const needle = normalize(query.trim());
+  const groups = PERMISSION_GROUPS.map((group) => ({
+    group,
+    actions: needle
+      ? group.actions.filter((action) =>
+          normalize(`${t(`actions.${action}`)} ${t(`groups.${group.key}`)}`).includes(needle),
+        )
+      : group.actions,
+  })).filter((entry) => entry.actions.length > 0);
 
   return (
-    <div className="flex flex-col gap-4">
-      {/* What this screen will not do, said before anybody looks for it — so
-          the padlocks further down read as a design and not as a fault. */}
-      <Alert>
-        <ShieldCheck className="mt-0.5 size-5 shrink-0" aria-hidden="true" />
-        <div className="flex flex-col gap-1">
-          <p className="font-medium">{t("intro.title")}</p>
-          <p className="text-muted-foreground">{t("intro.body")}</p>
-        </div>
-      </Alert>
-
-      {failure && (
-        <Alert variant="destructive" role="alert">
-          <p>{failure}</p>
+    <div className="flex flex-col gap-4 pb-24">
+      {ownRoleIsEditable && (
+        <Alert tone="neutral" icon="lock" data-testid="permissions-own-role">
+          {t("ownRole")}
         </Alert>
       )}
 
-      {/* ---------- phone: one role at a time ---------- */}
-      <div className="flex flex-col gap-4 lg:hidden">
-        <SegmentedControl
-          label={t("rolePicker")}
-          value={selectedRole}
-          onChange={(role) => setSelectedRole(role as Role)}
-          options={PERMISSION_MATRIX_ROLES.map((role) => ({ value: role, label: t(`role.${role}`) }))}
+      {failure && (
+        <Alert tone="danger" data-testid="permissions-error">
+          {failure}
+        </Alert>
+      )}
+
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="min-w-64 flex-1 sm:max-w-md">
+          <SearchField
+            data-testid="permissions-search"
+            label={t("search.label")}
+            placeholder={t("search.placeholder")}
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            onClear={() => setQuery("")}
+            clearLabel={t("search.clear")}
+          />
+        </div>
+        <Button
+          variant="secondary"
+          data-test-selector="permissions-restore-defaults"
+          icon={<RotateCcw className="size-4" aria-hidden="true" />}
+          onClick={restoreDefaults}
+        >
+          {t("restoreDefaults")}
+        </Button>
+        <div className="w-full lg:hidden">
+          <SegmentedControl
+            data-testid="permissions-role"
+            label={t("rolePicker")}
+            value={phoneRole}
+            onChange={(role) => setPhoneRole(role as EditableRole)}
+            options={EDITABLE_ROLES.map((role) => ({ value: role, label: t(`role.${role}`) }))}
+          />
+        </div>
+      </div>
+
+      {groups.length === 0 ? (
+        <EmptyState
+          data-testid="permissions-no-match"
+          icon="search"
+          title="permissions.empty.title"
+          hint="permissions.empty.hint"
         />
+      ) : (
+        groups.map(({ group, actions }, index) => (
+          <PermissionGroupSection
+            key={group.key}
+            group={group}
+            actions={actions}
+            grid={grid}
+            saved={saved}
+            phoneRole={phoneRole}
+            forceOpen={needle.length > 0}
+            defaultOpen={index === 0}
+            lockedReason={lockedReason}
+            onToggle={toggle}
+          />
+        ))
+      )}
 
-        {selectedRole === ownRole ? (
-          <Alert>
-            <Lock className="mt-0.5 size-5 shrink-0" aria-hidden="true" />
-            <p>{t("ownRole")}</p>
-          </Alert>
-        ) : (
-          isFixedRole(selectedRole) && (
-            <Alert>
-              <Lock className="mt-0.5 size-5 shrink-0" aria-hidden="true" />
-              <p>{t("adminRole")}</p>
-            </Alert>
-          )
-        )}
-
-        {PERMISSION_GROUPS.map((group) => (
-          <Card key={group.key}>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base">{t(`groups.${group.key}`)}</CardTitle>
-            </CardHeader>
-            <CardContent className="flex flex-col divide-y divide-border">
-              {group.actions.map((action) => {
-                const reason = lockedReason(selectedRole, action);
-                const label = t(`actions.${action}`);
-                return (
-                  <div key={action} className="flex items-center justify-between gap-4 py-3 first:pt-0 last:pb-0">
-                    <div className="flex min-w-0 flex-col gap-0.5">
-                      <span className="text-sm font-medium text-foreground">{label}</span>
-                      {reason === "protected" && (
-                        <span className="text-xs text-muted-foreground">{t("locked.protected")}</span>
-                      )}
-                    </div>
-
-                    {reason ? (
-                      <PermissionLock
-                        reason={reason}
-                        granted={reason === "protected" ? undefined : held[selectedRole].has(action)}
-                        className="shrink-0"
-                        compact
-                      />
-                    ) : (
-                      <PermissionToggle
-                        role={selectedRole}
-                        action={action}
-                        actionLabel={label}
-                        granted={held[selectedRole].has(action)}
-                        busy={pending?.role === selectedRole && pending.action === action}
-                        onChange={(granted) => toggle(selectedRole, action, granted)}
-                      />
-                    )}
-                  </div>
-                );
-              })}
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {/* ---------- desktop: the matrix ---------- */}
-      <div className="hidden flex-col gap-4 lg:flex">
-        {PERMISSION_GROUPS.map((group) => (
-          <Card key={group.key}>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base">{t(`groups.${group.key}`)}</CardTitle>
-            </CardHeader>
-            <CardContent className="overflow-x-auto p-0">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border text-xs uppercase tracking-wide text-muted-foreground">
-                    <th scope="col" className="px-5 py-2 text-start font-medium">
-                      {t("table.action")}
-                    </th>
-                    {PERMISSION_MATRIX_ROLES.map((role) => (
-                      <th key={role} scope="col" className="w-32 px-5 py-2 text-center font-medium">
-                        {t(`role.${role}`)}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {group.actions.map((action) => {
-                    const label = t(`actions.${action}`);
-                    const isProtected = isProtectedAction(action);
-                    return (
-                      <tr key={action} className="border-b border-border last:border-0">
-                        <th scope="row" className="px-5 py-3 text-start font-normal text-foreground">
-                          {label}
-                        </th>
-
-                        {isProtected ? (
-                          // One cell across the three roles, carrying the
-                          // reason — rather than three padlocks in a row,
-                          // which would look like three separate faults.
-                          <td colSpan={PERMISSION_MATRIX_ROLES.length} className="px-5 py-3 text-center">
-                            <PermissionLock reason="protected" />
-                          </td>
-                        ) : (
-                          PERMISSION_MATRIX_ROLES.map((role) => {
-                            const reason = lockedReason(role, action);
-                            return (
-                              <td key={role} className="px-5 py-3 text-center">
-                                <div className="flex items-center justify-center">
-                                  {reason ? (
-                                    <PermissionLock reason={reason} granted={held[role].has(action)} compact />
-                                  ) : (
-                                    <PermissionToggle
-                                      role={role}
-                                      action={action}
-                                      actionLabel={label}
-                                      granted={held[role].has(action)}
-                                      busy={pending?.role === role && pending.action === action}
-                                      onChange={(granted) => toggle(role, action, granted)}
-                                    />
-                                  )}
-                                </div>
-                              </td>
-                            );
-                          })
-                        )}
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </CardContent>
-          </Card>
-        ))}
-
-        <p className="text-sm text-muted-foreground">
-          {ownRole && isFixedRole(ownRole) ? t("adminRole") : `${t("ownRole")} ${t("adminRole")}`}
-        </p>
-      </div>
+      <SaveBar
+        data-testid="permissions-save-bar"
+        visible={changeCount > 0}
+        saving={saving}
+        message={t("changes", { count: changeCount })}
+        onDiscard={() => {
+          setFailure(null);
+          setStaged({});
+        }}
+        onSave={() => void save()}
+      />
     </div>
   );
 }

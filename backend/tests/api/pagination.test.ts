@@ -4,9 +4,7 @@ import { apiRequest, uniqueId } from "@tests/support/client";
 import { getSession } from "@tests/support/auth";
 import type { ProductDto, ProductSummaryDto } from "@tests/types";
 
-// A dedicated, freshly-created category scopes every assertion to exactly
-// the 3 products this suite creates, independent of whatever else exists in
-// the sandbox's catalog.
+// A fresh category scopes every assertion to the 3 products this suite creates.
 describe("Products pagination + filtering + sorting", () => {
   const nonce = uniqueId();
   const prices = [10, 30, 20];
@@ -43,14 +41,16 @@ describe("Products pagination + filtering + sorting", () => {
     for (const id of productIds) {
       await apiRequest(`/api/products/${id}`, { method: "DELETE", token: admin.token });
     }
-    if (categoryId) await apiRequest(`/api/categories/${categoryId}`, { method: "DELETE", token: admin.token });
+    if (categoryId) {
+      await apiRequest(`/api/categories/${categoryId}`, { method: "DELETE", token: admin.token });
+    }
   });
 
   it("filters by categoryId and paginates with pageSize=2", async () => {
     const admin = await getSession("ADMIN");
     const page1 = await apiRequest<ProductSummaryDto[]>(
       `/api/products?categoryId=${categoryId}&pageSize=2&page=1&sortBy=basePrice&sortDir=asc`,
-      { token: admin.token }
+      { token: admin.token },
     );
     expect(page1.status).toBe(200);
     expect(page1.meta).toMatchObject({ page: 1, pageSize: 2, total: 3, totalPages: 2 });
@@ -58,7 +58,7 @@ describe("Products pagination + filtering + sorting", () => {
 
     const page2 = await apiRequest<ProductSummaryDto[]>(
       `/api/products?categoryId=${categoryId}&pageSize=2&page=2&sortBy=basePrice&sortDir=asc`,
-      { token: admin.token }
+      { token: admin.token },
     );
     expect(page2.status).toBe(200);
     expect(page2.meta).toMatchObject({ page: 2, pageSize: 2, total: 3, totalPages: 2 });
@@ -67,17 +67,23 @@ describe("Products pagination + filtering + sorting", () => {
 
   it("sorts by basePrice descending", async () => {
     const admin = await getSession("ADMIN");
-    const res = await apiRequest<ProductSummaryDto[]>(`/api/products?categoryId=${categoryId}&sortBy=basePrice&sortDir=desc`, {
-      token: admin.token,
-    });
+    const res = await apiRequest<ProductSummaryDto[]>(
+      `/api/products?categoryId=${categoryId}&sortBy=basePrice&sortDir=desc`,
+      {
+        token: admin.token,
+      },
+    );
     expect(res.data!.map((p) => Number(p.basePrice))).toEqual([30, 20, 10]);
   });
 
   it("filters by price range", async () => {
     const admin = await getSession("ADMIN");
-    const res = await apiRequest<ProductSummaryDto[]>(`/api/products?categoryId=${categoryId}&priceMin=15&priceMax=25`, {
-      token: admin.token,
-    });
+    const res = await apiRequest<ProductSummaryDto[]>(
+      `/api/products?categoryId=${categoryId}&priceMin=15&priceMax=25`,
+      {
+        token: admin.token,
+      },
+    );
     expect(res.data!.map((p) => Number(p.basePrice))).toEqual([20]);
   });
 });

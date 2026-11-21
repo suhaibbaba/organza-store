@@ -5,3 +5,11 @@
 // which must never read as takings. Never colour alone: the label says which
 // is which, the tone only reinforces it.
 export type StatCardTone = "default" | "warning" | "success";
+
+export type BreadcrumbLeafKind = "detail" | "new" | "edit";
+
+export interface BreadcrumbCrumb {
+  key: string;
+  href: string;
+  label: string;
+}

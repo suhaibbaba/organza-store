@@ -1,5 +1,3 @@
-// Helpers for the Orders suite: a throwaway product to sell, and a way to
-// read back the stock the API currently reports for it.
 import { apiRequest, uniqueId } from "@tests/support/client";
 import { anyCategoryId } from "@tests/support/fixtures";
 import type { ProductDto } from "@tests/types";
@@ -10,12 +8,10 @@ export interface SellableProduct {
   basePrice: string;
 }
 
-// A simple (variant-less) product with a known price, cost and stock, so
-// every stock and money assertion in the suite starts from a fixed point
-// instead of from whatever the seed happens to hold.
+// A simple product with known price, cost and stock, so every assertion starts from a fixed point.
 export async function createSellableProduct(
   token: string,
-  options: { basePrice?: string; cost?: string; stock?: number } = {}
+  options: { basePrice?: string; cost?: string; stock?: number } = {},
 ): Promise<SellableProduct> {
   const nonce = uniqueId();
   const categoryId = await anyCategoryId(token);

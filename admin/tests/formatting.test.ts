@@ -1,19 +1,7 @@
-// THE SAME DIGITS ON EVERY DEVICE.
-//
-// `Intl` fills in whatever the engine thinks is normal for a locale, and for
-// Arabic the engines disagree: recent ICU writes `ar` in western digits, the
-// ICU on the shop's iOS 15 phone writes it in Arabic-Indic ones. A price is
-// read off that phone, off the counter screen and off a printed label and
-// compared with a supplier's invoice, so it cannot be one number that looks
-// like two.
-//
-// `ar-EG` stands in for that older engine here — it is a locale whose CLDR
-// default really is Arabic-Indic on THIS runtime, so the test can show the
-// difference rather than assert it. The first case in each block proves the
-// drift is real; the rest prove the app is out of its way.
+// The same digits on every device: ar-EG stands in for the iOS 15 ICU, which writes Arabic-Indic digits.
 import { createTranslator } from "use-intl/core";
 import { describe, expect, it } from "vitest";
-import { CALENDAR, MESSAGE_FORMATS, NUMBERING_SYSTEM } from "@organza/shared/constants/formatting";
+import { CALENDAR, MESSAGE_FORMATS, NUMBERING_SYSTEM } from "@store/shared/constants/formatting";
 import { formatDate, formatDateTime, formatMoney, formatNumber } from "@/lib/format";
 
 const DRIFTING_LOCALE = "ar-EG";
@@ -49,8 +37,7 @@ describe("Dates", () => {
   });
 
   it("stays on the Gregorian calendar, which is what the paperwork uses", () => {
-    // A phone set to Arabic (Saudi Arabia) dates in Umm al-Qura by default:
-    // the same order would read 26 Safar there and 20 August here.
+    // Arabic (Saudi Arabia) defaults to the Umm al-Qura calendar.
     const resolved = new Intl.DateTimeFormat("ar-SA", { calendar: CALENDAR }).resolvedOptions();
     expect(resolved.calendar).toBe(CALENDAR);
     expect(formatDate(ISO, "ar-SA")).toContain("2026");
@@ -63,9 +50,7 @@ describe("Dates", () => {
 });
 
 describe("Figures inside a sentence", () => {
-  // A message writes `{count, number, plain}` rather than ICU's `#`, because
-  // `#` is formatted with `Intl.NumberFormat(locale)` and nothing else — the
-  // one path that would still take its digits from the device.
+  // Never ICU's `#`: it formats with the device's own digits.
   const messages = {
     pieces: "{count, plural, other {{count, number, plain} قطعة}}",
     margin: "{value, number, percent}",
@@ -84,7 +69,4 @@ describe("Figures inside a sentence", () => {
   });
 });
 
-// The matching guard over the message FILES — "no message may reach for ICU's
-// `#` again" — is shared/scripts/check-messages.js, wired into both apps'
-// builds. It lives there rather than here because the POS carries most of the
-// counted sentences and has no test runner of its own.
+// The message-file guard against `#` is shared/scripts/check-messages.js.

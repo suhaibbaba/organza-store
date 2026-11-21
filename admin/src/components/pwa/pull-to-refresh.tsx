@@ -18,40 +18,21 @@ import {
 import { isInstalledTouchApp, isInstalledTouchAppOnServer, subscribeToInstalledTouchApp } from "@/lib/pwa";
 import { cn } from "@/lib/utils";
 
-// Pull down at the top of a screen to re-read it.
-//
-// Installed from the Home Screen there is no browser chrome left: no reload
-// button, and no native pull-to-refresh either. That leaves someone looking
-// at a number they doubt with no way to ask for it again, which on a shop
-// floor is the moment they stop trusting the app. So this only runs in the
-// installed app — in a tab the browser's own gesture is still there and two
-// of them would fight.
-//
-// What it refreshes is whatever the current screen is actually reading:
-// react-query's active queries. No route knowledge, so it stays right as
-// screens change.
+// Pull-to-refresh for the installed app only (a tab has the browser's own gesture); refetches react-query's active queries.
 export function PullToRefresh({ children }: { children: ReactNode }) {
   const t = useTranslations("common.pullToRefresh");
   const queryClient = useQueryClient();
 
-  // How far the finger has travelled, in px, after resistance. Only the
-  // indicator is drawn from it — see the note on the overlay below.
   const [distance, setDistance] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  // True once the finger is up, so the indicator animates to where it has
-  // been let go to instead of snapping there.
   const [isSettling, setIsSettling] = useState(false);
 
-  // Touch bookkeeping is refs, not state: it changes on every touchmove and
-  // must not re-render the page under the finger.
+  // Refs, not state: touchmove must not re-render the page under the finger.
   const startRef = useRef<{ x: number; y: number } | null>(null);
   const pullingRef = useRef(false);
   const distanceRef = useRef(0);
   const refreshingRef = useRef(false);
 
-  // Only in the installed app (see above), and only where there is a finger.
-  // Read straight from the browser rather than copied into state, so it is
-  // right on the first paint after hydration and stays right afterwards.
   const enabled = useSyncExternalStore(subscribeToInstalledTouchApp, isInstalledTouchApp, isInstalledTouchAppOnServer);
 
   const refresh = useCallback(async () => {
@@ -60,15 +41,11 @@ export function PullToRefresh({ children }: { children: ReactNode }) {
     setDistance(PULL_REFRESH_THRESHOLD_PX);
     const startedAt = performance.now();
     try {
-      // Screens that deliberately hold something on display against the
-      // server's latest answer need to know this one came from the user
-      // (lib/manual-refresh.ts) — the inventory list lets go of the rows it
-      // was keeping in place.
+      // Tells screens holding rows in place (inventory) that this refresh came from the user.
       notifyManualRefresh();
       await queryClient.refetchQueries({ type: "active" });
     } finally {
-      // A refetch off a good connection can land in 40ms; snapping the
-      // spinner away that fast reads as "nothing happened".
+      // A minimum spinner time: a 40ms refetch otherwise reads as "nothing happened".
       const elapsed = performance.now() - startedAt;
       if (elapsed < PULL_REFRESH_MIN_VISIBLE_MS) {
         await new Promise((resolve) => setTimeout(resolve, PULL_REFRESH_MIN_VISIBLE_MS - elapsed));
@@ -82,56 +59,70 @@ export function PullToRefresh({ children }: { children: ReactNode }) {
   }, [queryClient]);
 
   useEffect(() => {
-    if (!enabled) return;
+    if (!enabled) {
+      return;
+    }
 
-    // Anything that handles its own touches — a photo being dragged into
-    // place, a numbered point being moved, an open sheet — declares itself
-    // with touch-action: none (or the opt-out attribute). Starting a pull
-    // from one of those would steal the gesture it was already having.
+    // Surfaces with their own touches (touch-action: none, the opt-out attribute, dialogs) keep their gesture.
     function ownsItsTouches(target: EventTarget | null): boolean {
       let node = target instanceof Element ? target : null;
       for (let depth = 0; node && depth < PULL_REFRESH_SURFACE_SEARCH_DEPTH; depth += 1) {
-        if (node.hasAttribute(PULL_REFRESH_IGNORE_ATTRIBUTE) || node.getAttribute("role") === "dialog") return true;
-        if (window.getComputedStyle(node).touchAction === "none") return true;
+        if (node.hasAttribute(PULL_REFRESH_IGNORE_ATTRIBUTE) || node.getAttribute("role") === "dialog") {
+          return true;
+        }
+        if (window.getComputedStyle(node).touchAction === "none") {
+          return true;
+        }
         node = node.parentElement;
       }
       return false;
     }
 
     function handleTouchStart(event: TouchEvent) {
-      if (refreshingRef.current || event.touches.length !== 1) return;
+      if (refreshingRef.current || event.touches.length !== 1) {
+        return;
+      }
       // Only from the very top: mid-page this is an ordinary scroll.
-      if (window.scrollY > 0) return;
-      if (ownsItsTouches(event.target)) return;
+      if (window.scrollY > 0) {
+        return;
+      }
+      if (ownsItsTouches(event.target)) {
+        return;
+      }
       const touch = event.touches[0];
       startRef.current = { x: touch.clientX, y: touch.clientY };
     }
 
     function handleTouchMove(event: TouchEvent) {
       const start = startRef.current;
-      if (!start || refreshingRef.current) return;
+      if (!start || refreshingRef.current) {
+        return;
+      }
 
       const touch = event.touches[0];
       const dy = touch.clientY - start.y;
       const dx = touch.clientX - start.x;
 
       if (!pullingRef.current) {
-        // Scrolling up, or swiping sideways (a thumbnail strip, a tab row):
-        // not ours. Let go for the rest of this gesture.
+        // Scrolling up or swiping sideways is not ours; let go for the rest of the gesture.
         if (dy <= PULL_REFRESH_DEAD_ZONE_PX || Math.abs(dx) > Math.abs(dy)) {
-          if (dy < 0 || Math.abs(dx) > Math.abs(dy)) startRef.current = null;
+          if (dy < 0 || Math.abs(dx) > Math.abs(dy)) {
+            startRef.current = null;
+          }
           return;
         }
         pullingRef.current = true;
         setIsSettling(false);
       }
 
-      // Past the dead zone the indicator follows the finger, with resistance
-      // so it feels like something is being pulled rather than dragged loose.
       const pulled = Math.min(PULL_REFRESH_MAX_PX, (dy - PULL_REFRESH_DEAD_ZONE_PX) * PULL_REFRESH_RESISTANCE);
-      if (pulled <= 0) return;
+      if (pulled <= 0) {
+        return;
+      }
       // Stops the page itself from rubber-banding behind the pull.
-      if (event.cancelable) event.preventDefault();
+      if (event.cancelable) {
+        event.preventDefault();
+      }
       distanceRef.current = pulled;
       setDistance(pulled);
     }
@@ -141,7 +132,9 @@ export function PullToRefresh({ children }: { children: ReactNode }) {
       const wasPulling = pullingRef.current;
       startRef.current = null;
       pullingRef.current = false;
-      if (!wasPulling) return;
+      if (!wasPulling) {
+        return;
+      }
 
       setIsSettling(true);
       if (pulled >= PULL_REFRESH_THRESHOLD_PX) {
@@ -152,8 +145,7 @@ export function PullToRefresh({ children }: { children: ReactNode }) {
       setDistance(0);
     }
 
-    // touchmove must be non-passive: it is the only way to keep the page
-    // from scrolling while the pull is in hand.
+    // touchmove must be non-passive to stop the page scrolling during a pull.
     window.addEventListener("touchstart", handleTouchStart, { passive: true });
     window.addEventListener("touchmove", handleTouchMove, { passive: false });
     window.addEventListener("touchend", endGesture, { passive: true });
@@ -166,43 +158,29 @@ export function PullToRefresh({ children }: { children: ReactNode }) {
     };
   }, [enabled, refresh]);
 
-  if (!enabled) return <>{children}</>;
+  if (!enabled) {
+    return <>{children}</>;
+  }
 
   const isReleasable = distance >= PULL_REFRESH_THRESHOLD_PX;
   const label = isRefreshing ? t("refreshing") : isReleasable ? t("release") : t("pull");
-  // Nothing in the DOM at rest: an invisible label is still a label to a
-  // screen reader, and there is nothing to announce until a pull starts.
   const isVisible = distance > 0 || isRefreshing;
 
   return (
     <>
-      {/* An overlay, and only an overlay. The pull used to drag the page down
-          with it, which on a screen carrying fixed chrome — a top bar, a
-          sticky search box, a checkout bar — read as the layout coming apart
-          rather than as a gesture: everything shifted, and the parts that are
-          pinned to the viewport stayed where they were. So the indicator is
-          all that moves now. It is out of the flow entirely and displaces
-          nothing, and the content underneath never budges.
-
-          Centred on the viewport: a centred thing is the same in both
-          directions, so there is nothing to mirror for RTL. It rides down
-          with the pull and sits below the top bar and the notch, whose
-          combined height the shell already names — so it clears the notch on
-          a phone without knowing anything about safe areas itself. */}
+      {/* An overlay only: dragging the page itself made pinned chrome look broken. */}
       {isVisible && (
         <div
           className="pointer-events-none fixed inset-x-0 top-[calc(var(--top-bar-inset)+0.5rem)] z-40 flex justify-center"
           style={{
             transform: `translateY(${distance * PULL_REFRESH_INDICATOR_TRAVEL_RATIO}px)`,
-            // Fades in over the first part of the pull, so a pull that was
-            // half a scroll leaves nothing but a faint hint behind it.
             opacity: Math.min(1, distance / PULL_REFRESH_THRESHOLD_PX),
             transition: isSettling ? "transform 200ms ease-out, opacity 200ms ease-out" : "none",
           }}
         >
-          <div className="flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1.5 text-sm font-medium text-foreground shadow-lg">
+          <div className="flex items-center gap-2 rounded-pill border border-line bg-surface px-3 py-1.5 text-label font-medium text-ink shadow-float">
             <RefreshCw
-              className={cn("size-4 text-primary", isRefreshing && "animate-spin")}
+              className={cn("size-4 text-primary-600", isRefreshing && "animate-spin")}
               style={isRefreshing ? undefined : { transform: `rotate(${distance * 3}deg)` }}
               aria-hidden="true"
             />

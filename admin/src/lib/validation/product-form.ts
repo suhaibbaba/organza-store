@@ -1,24 +1,20 @@
 import { z } from "zod";
-import { BARCODE_SOURCE, BARCODE_SOURCES } from "@organza/shared/constants/barcode";
-import { ERROR_CODES } from "@organza/shared/constants/errors";
-import { isValidBarcode, normalizeBarcode } from "@organza/shared/lib/barcode";
-import type { I18n } from "@organza/shared/types/common";
-import type { Product } from "@organza/shared/types/product";
-import type { CreateProductInput, OptionValueNoteInput, UpdateProductInput } from "@organza/shared/schemas/product";
+import { BARCODE_SOURCE, BARCODE_SOURCES } from "@store/shared/constants/barcode";
+import { ERROR_CODES } from "@store/shared/constants/errors";
+import { isValidBarcode, normalizeBarcode } from "@store/shared/lib/barcode";
+import type { I18n } from "@store/shared/types/common";
+import type { Product } from "@store/shared/types/product";
+import type { CreateProductInput, OptionValueNoteInput, UpdateProductInput } from "@store/shared/schemas/product";
 import { optionalDecimalField, optionalIntegerField, requiredDecimalField } from "@/lib/validation/numeric";
 import type { I18nFormValue, ProductEditAbilities } from "@/types/productForm";
 
-// The exact { ar: string; en?: string; he?: string } shape the shared
-// create/update schemas require for `name` — narrower than the generic
-// `I18n` display type, since `ar` must always be present here.
+// `ar` is required here, unlike the display I18n type.
 type RequiredI18nInput = CreateProductInput["name"];
 type OptionalI18nInput = NonNullable<CreateProductInput["description"]>;
 
 const i18nFormSchema = z.object({ ar: z.string(), en: z.string(), he: z.string() });
 
-// Field messages are backend error codes (CLAUDE.md rule 12), same as every
-// other form — see useTranslateError. Stock is an integer (no decimals);
-// prices may keep a decimal point (CLAUDE.md "Mobile input" rules).
+// Messages are backend error codes (rule 12); stock is an integer, prices may have decimals.
 export const productBasicFormSchema = z
   .object({
     name: i18nFormSchema.extend({ ar: z.string().min(1, ERROR_CODES.VALIDATION_REQUIRED) }),
@@ -29,21 +25,18 @@ export const productBasicFormSchema = z
     cost: optionalDecimalField,
     isActive: z.boolean(),
     trackLowStock: z.boolean(),
-    // Which kind of product this is (spec.md "Numbered shawls") — asked first,
-    // because it decides what the rest of the form shows.
+    // Asked first: it decides what the rest of the form shows.
     isNumbered: z.boolean(),
     stock: optionalIntegerField,
-    // Ours by default (CLAUDE.md rule 13), or the code the garment arrived
-    // carrying. `barcode` holds the supplier's code only — the generated one is
-    // never typed by hand.
+    // Ours by default (rule 13); `barcode` holds only a supplier's code.
     barcodeSource: z.enum(BARCODE_SOURCES),
     barcode: z.string(),
   })
-  // Checked here as well as on the backend so the message lands under the
-  // field the user is looking at, rather than as a whole-form failure after a
-  // round trip.
+  // So the message lands under the field, not as a failed save.
   .superRefine((values, ctx) => {
-    if (values.barcodeSource !== BARCODE_SOURCE.SUPPLIER) return;
+    if (values.barcodeSource !== BARCODE_SOURCE.SUPPLIER) {
+      return;
+    }
     const code = normalizeBarcode(values.barcode);
     if (code.length === 0) {
       ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["barcode"], message: ERROR_CODES.BARCODE_REQUIRED });
@@ -66,8 +59,6 @@ export const DEFAULT_PRODUCT_FORM_VALUES: ProductBasicFormValues = {
   trackLowStock: false,
   isNumbered: false,
   stock: "1",
-  // Generation is the default, so nothing changes for a piece that arrives
-  // with no code on it.
   barcodeSource: BARCODE_SOURCE.GENERATED,
   barcode: "",
 };
@@ -110,15 +101,12 @@ export function productToFormValues(product: Product): ProductBasicFormValues {
     isNumbered: product.isNumbered,
     stock: product.hasVariants ? "" : String(product.stock ?? 1),
     barcodeSource: product.barcodeSource,
-    // Only a supplier code belongs in the editable box; ours is shown
-    // read-only from the product itself.
-    barcode: product.barcodeSource === BARCODE_SOURCE.SUPPLIER ? product.barcode ?? "" : "",
+    // Only a supplier code is editable; ours shows read-only.
+    barcode: product.barcodeSource === BARCODE_SOURCE.SUPPLIER ? (product.barcode ?? "") : "",
   };
 }
 
-// The barcode half of a create/update body. Sent as an explicit source plus,
-// for a supplier code, the code itself — never as a bare code the API would
-// have to guess the meaning of.
+// An explicit source plus, for a supplier, the code: never a bare code to guess at.
 function barcodePayload(values: ProductBasicFormValues) {
   return values.barcodeSource === BARCODE_SOURCE.SUPPLIER
     ? { barcodeSource: BARCODE_SOURCE.SUPPLIER, barcode: normalizeBarcode(values.barcode) }
@@ -128,10 +116,7 @@ function barcodePayload(values: ProductBasicFormValues) {
 export function toCreatePayload(
   values: ProductBasicFormValues,
   optionSelections: { variantTypeId: string; valueIds: string[] }[],
-  // What each chosen value means on this product (spec.md "Notes on a
-  // product's options") — omitted entirely when nothing was written, which is
-  // the usual case.
-  optionValueNotes: OptionValueNoteInput[] = []
+  optionValueNotes: OptionValueNoteInput[] = [],
 ): CreateProductInput {
   const hasVariants = optionSelections.length > 0;
   return {
@@ -145,25 +130,20 @@ export function toCreatePayload(
     trackLowStock: values.trackLowStock,
     isNumbered: values.isNumbered,
     stock: hasVariants ? undefined : Number(emptyToUndefined(values.stock) ?? "1"),
-    // A product with variants may carry one too: a supplier's single code for
-    // every size lives on the parent, and scanning it opens the picker.
+    // A supplier's single code for every size lives on the parent; scanning it opens the picker.
     ...barcodePayload(values),
     optionSelections: hasVariants ? optionSelections : undefined,
     optionValueNotes: optionValueNotes.length > 0 ? optionValueNotes : undefined,
   };
 }
 
-// Only the fields this user may write are sent (see ProductEditAbilities):
-// the form still holds a price and a cost for everyone, but an Employee's
-// copy of them is either read-only or never loaded at all, so echoing them
-// back would at best be refused and at worst clear a cost they can't see.
+// Only fields this user may write: echoing an unseen cost back could clear it.
 export function toUpdatePayload(
   values: ProductBasicFormValues,
   hasVariants: boolean,
   abilities: ProductEditAbilities,
-  // Only the notes this save changed. A value left out keeps whatever note it
-  // had, and a cleared one is sent as an explicit null.
-  optionValueNotes: OptionValueNoteInput[] = []
+  // Only changed notes; a cleared one is an explicit null.
+  optionValueNotes: OptionValueNoteInput[] = [],
 ): UpdateProductInput {
   return {
     name: sanitizeName(values.name),
@@ -174,14 +154,10 @@ export function toUpdatePayload(
     cost: abilities.canEditCost ? emptyToNull(values.cost) : undefined,
     isActive: abilities.canHide ? values.isActive : undefined,
     trackLowStock: abilities.canEditStock ? values.trackLowStock : undefined,
-    // Always sent, never diffed here: the API compares it against what is
-    // stored and only refuses a real change on a product that still has
-    // variants (error.product.numbered_switch_has_variants).
+    // Always sent: the API refuses a real change only while variants exist.
     isNumbered: values.isNumbered,
     stock: hasVariants || !abilities.canEditStock ? undefined : Number(emptyToUndefined(values.stock) ?? "1"),
-    // Always sent, and safe to resend: the API compares it against what is
-    // stored, so an unchanged answer writes nothing, and switching back to
-    // GENERATED restores the code we had before rather than minting a new one.
+    // Always sent: unchanged writes nothing, and GENERATED restores our previous code.
     ...barcodePayload(values),
     optionValueNotes: optionValueNotes.length > 0 ? optionValueNotes : undefined,
   };

@@ -7,22 +7,20 @@ interface NumberedBadgeProps {
   className?: string;
 }
 
-// Numbered products (spec.md "Numbered shawls") look like any other product in
-// a list: their numbers live on the photo and are illegible at thumbnail size.
-// This badge names the type instead — "مرقّم · 6" — so the shape of the product
-// is readable at a glance without touching the thumbnail.
+// A numbered product's numbers are illegible at thumbnail size, so the badge names the type (spec.md "Numbered shawls").
 export function NumberedBadge({ count, className }: NumberedBadgeProps) {
   const t = useTranslations("products.card");
 
-  // A numbered product always has at least one number; a count of 0 would only
-  // mean the numbers haven't been generated yet, and "مرقّم · 0" reads as a bug.
-  if (count <= 0) return null;
+  // A count of 0 only means the numbers aren't generated yet; "· 0" would read as a bug.
+  if (count <= 0) {
+    return null;
+  }
 
   return (
     <span
       className={cn(
-        "inline-flex shrink-0 items-center gap-1 rounded-full bg-secondary px-2 py-0.5 text-xs font-medium text-secondary-foreground",
-        className
+        "inline-flex shrink-0 items-center gap-1 rounded-pill bg-inset px-2 py-0.5 text-micro font-medium text-ink",
+        className,
       )}
     >
       <Hash className="size-3 shrink-0" aria-hidden="true" />

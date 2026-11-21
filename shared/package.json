@@ -1,8 +1,8 @@
 {
-  "name": "@organza/shared",
+  "name": "@store/shared",
   "version": "0.1.0",
   "private": true,
-  "description": "Organza Store \u2014 shared TypeScript types + Zod schemas, consumed by backend/admin/pos (and later frontend) as a workspace dependency.",
+  "description": "Store Management \u2014 shared TypeScript types + Zod schemas, consumed by backend/admin/pos (and later frontend) as a workspace dependency.",
   "type": "commonjs",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -11,7 +11,7 @@
     "scripts/prepare.js",
     "scripts/postcss-ios15.cjs"
   ],
-  "_comment_exports": "Subpath map for the way the apps actually import this package: the four barrels by name (@organza/shared/types), and any single module underneath them through the wildcard (@organza/shared/types/product -> dist/types/product.js). The explicit barrel keys have to come before './*' because that wildcard would otherwise resolve './types' to dist/types.js, which does not exist \u2014 Node prefers the most specific match, and these are it.",
+  "_comment_exports": "Subpath map for the way the apps actually import this package: the four barrels by name (@store/shared/types), and any single module underneath them through the wildcard (@store/shared/types/product -> dist/types/product.js). The explicit barrel keys have to come before './*' because that wildcard would otherwise resolve './types' to dist/types.js, which does not exist \u2014 Node prefers the most specific match, and these are it.",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -40,7 +40,7 @@
     },
     "./package.json": "./package.json"
   },
-  "_comment_typesVersions": "The same map again, for TypeScript's node10 resolver. admin and pos are on moduleResolution 'bundler' and read `exports` directly, but the backend is a CommonJS Node service on moduleResolution 'node', which ignores `exports` entirely \u2014 without this it resolves @organza/shared/types/product to the package root and reports TS2307. Node itself still resolves the real thing at runtime through `exports` above; this only teaches tsc where the declarations are. Keep the two lists in step.",
+  "_comment_typesVersions": "The same map again, for TypeScript's node10 resolver. admin and pos are on moduleResolution 'bundler' and read `exports` directly, but the backend is a CommonJS Node service on moduleResolution 'node', which ignores `exports` entirely \u2014 without this it resolves @store/shared/types/product to the package root and reports TS2307. Node itself still resolves the real thing at runtime through `exports` above; this only teaches tsc where the declarations are. Keep the two lists in step.",
   "typesVersions": {
     "*": {
       "types": [

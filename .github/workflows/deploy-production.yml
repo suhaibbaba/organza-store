@@ -10,11 +10,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      # No actions/checkout here on purpose: the build happens on the VPS,
-      # from the VPS's own clone. The equivalent of checkout's `fetch-depth: 0`
-      # therefore lives in the script below — the app's version number is
-      # <major>.<minor> plus the repo's commit count, and a shallow clone would
-      # report a commit count of 1 forever (see shared/scripts/app-version.js).
+      # No checkout: the VPS builds from its own clone, which must be unshallowed because the version is a commit count.
       - name: Deploy over SSH
         uses: appleboy/ssh-action@v1.2.0
         with:
@@ -24,7 +20,9 @@ jobs:
           command_timeout: 15m
           script: |
             set -euo pipefail
-            cd /opt/organza/production
+            DEPLOY_DIR="${{ vars.PRODUCTION_DEPLOY_DIR }}"
+            [ -n "$DEPLOY_DIR" ] || { echo "::error::Set the PRODUCTION_DEPLOY_DIR repository variable to this stack's directory on the VPS."; exit 1; }
+            cd "$DEPLOY_DIR"
             echo "==> Pulling latest 'production' branch"
             git fetch origin production
             git reset --hard origin/production
@@ -36,12 +34,7 @@ jobs:
             fi
 
             echo "==> Resolving app version"
-            # One number for the whole deploy: the API reports it at
-            # /api/version and both frontends show it in their account menu, so
-            # a mismatch between them is exactly the stale-build symptom this
-            # is here to expose. shared/scripts/app-version.js is the reference
-            # implementation; the shell fallback below mirrors it for a VPS
-            # with no node installed.
+            # One version for API and both frontends, so a mismatch exposes a stale build; mirrors shared/scripts/app-version.js.
             if command -v node >/dev/null 2>&1; then
               APP_VERSION="$(node shared/scripts/app-version.js backend)"
             else
@@ -52,19 +45,10 @@ jobs:
             echo "    APP_VERSION=$APP_VERSION"
 
             echo "==> Making sure the uploads volume belongs to the app user"
-            # The containers stopped running as root: the API now runs as the
-            # base image's unprivileged `node` user (uid 1000). Docker seeds a
-            # NEW named volume from the image, ownership included, so a fresh
-            # prod_uploads comes out owned by uid 1000 and needs nothing
-            # here. A volume that ALREADY holds the shop's photographs is not
-            # re-seeded — it keeps the root ownership it was created with, and
-            # the API can then read those photographs but not write new ones.
-            #
-            # So hand it over, once. Guarded on the current owner rather than
-            # run unconditionally, because a recursive chown across every
-            # photograph the shop owns is not something to repeat on every
-            # deploy. Nothing here touches the file contents.
-            UPLOADS_VOLUME=organza-prod_prod_uploads
+            # An existing uploads volume keeps its old root ownership, so hand it to uid 1000 once (guarded: never a chown per deploy).
+            STACK_NAME="$(sed -n 's/^STACK_NAME=["\x27]\{0,1\}\([^"\x27]*\).*$/\1/p' .env.production | head -n 1)"
+            [ -n "$STACK_NAME" ] || { echo "::error::Set STACK_NAME in .env.production (the compose project name the volumes carry)."; exit 1; }
+            UPLOADS_VOLUME="${STACK_NAME}_prod_uploads"
             if docker volume inspect "$UPLOADS_VOLUME" >/dev/null 2>&1; then
               CURRENT_UID="$(docker run --rm -v "$UPLOADS_VOLUME":/vol node:20-slim stat -c '%u' /vol)"
               echo "    $UPLOADS_VOLUME is owned by uid $CURRENT_UID"
@@ -77,44 +61,38 @@ jobs:
             fi
 
             echo "==> Building + starting containers"
-            # All three images build from the repo root as their context and
-            # install from the root package.json + the single package-lock.json
-            # (the repo is one npm workspace), each narrowing the install to its
-            # own app with `npm ci -w <app>`. Nothing installs on the VPS itself
-            # — node here is only used to read the version number above.
-            #
-            # Consequence worth knowing when a build looks slower than expected:
-            # one lockfile means a dependency bump in ANY app invalidates the
-            # "npm ci" layer of all three, not just the app that changed.
             docker compose -f docker-compose.prod.yml --env-file .env.production up -d --build
             echo "==> Applying database migrations"
             sleep 5
             docker compose -f docker-compose.prod.yml --env-file .env.production exec -T backend npx prisma migrate deploy
             echo "==> Creating essential data (settings, variant types, expense categories)"
-            # NOT a seed. This creates only the lists the app cannot run
-            # without, each exactly once in the life of the database (see
-            # backend/src/lib/bootstrap.ts) — so a colour or an expense
-            # category the shop retires stays retired instead of coming back
-            # on the next push.
-            #
-            # The demo seed (fake products, fake orders, admin@organza.test)
-            # is deliberately NOT here any more, and cannot be reached from a
-            # deploy at all: it is quarantined under backend/prisma/dev/ and
-            # refuses to run without being told the database is disposable.
+            # Essential data only, once per database (backend/src/lib/bootstrap.ts); the demo seed is never reachable from a deploy.
             docker compose -f docker-compose.prod.yml --env-file .env.production exec -T backend npm run bootstrap
 
+            echo "==> Rebuilding the search index (Meilisearch)"
+            # A failure here is a warning, not a failed deploy: search falls back to pg_trgm until the next run.
+            REINDEXED=false
+            for ATTEMPT in 1 2 3; do
+              if docker compose -f docker-compose.prod.yml --env-file .env.production exec -T backend npm run search:reindex; then
+                REINDEXED=true
+                break
+              fi
+              echo "    attempt $ATTEMPT failed — waiting for Meilisearch"
+              sleep 5
+            done
+            if [ "$REINDEXED" != "true" ]; then
+              echo "::warning::The search index was not rebuilt. Search still works through Postgres (pg_trgm)."
+              echo "::warning::Check: docker compose -f docker-compose.prod.yml --env-file .env.production logs meilisearch"
+            fi
+
+            echo "==> Rebuilding the numbered shawls' photos"
+            # A warning, not a failed deploy: the lists show the plain photo until the next save or deploy.
+            if ! docker compose -f docker-compose.prod.yml --env-file .env.production exec -T backend npm run images:mark; then
+              echo "::warning::The numbered photos were not rebuilt (npm run images:mark)."
+            fi
+
             echo "==> Checking the uploads volume is mounted and writable"
-            # The shop's photographs are the one thing a deploy can silently
-            # destroy: point UPLOAD_DIR one directory away from the mount and
-            # every upload lands in the container's own layer, to be thrown
-            # away by the NEXT deploy. Nothing errors — the files just stop
-            # existing, and nobody finds out for a week.
-            #
-            # So the deploy asks. The API reports the directory it is using on
-            # startup and answers /health with whether it can write there.
-            # Both come from the same resolved path the uploads themselves use
-            # (backend/src/lib/image.ts), so this cannot pass while uploads
-            # are broken.
+            # A wrong UPLOAD_DIR silently writes photos into the container layer, so fail the deploy unless /health says uploads are writable.
             docker compose -f docker-compose.prod.yml --env-file .env.production logs --tail 50 backend \
               | grep -i "Uploads directory" || true
             UPLOADS_OK="$(docker compose -f docker-compose.prod.yml --env-file .env.production exec -T backend \
@@ -129,16 +107,7 @@ jobs:
             fi
 
             echo "==> Checking both apps were built as PRODUCTION"
-            # NEXT_PUBLIC_APP_ENV is inlined at build time, so a wrong build
-            # arg cannot be noticed at runtime — the container comes up
-            # perfectly, serving the sandbox's amber SBX icons under the
-            # sandbox's name, on the stack that holds the shop's real orders.
-            # Nothing 404s and nothing logs.
-            #
-            # The manifest is where that choice surfaces: it names the app and
-            # lists the icon paths, both resolved from the same value. If it
-            # says production, the tiles, the tab, the boot splash and the
-            # absent SANDBOX chip all do too (src/constants/pwa.ts).
+            # NEXT_PUBLIC_APP_ENV is baked at build time and fails silently, so check the manifest says production.
             for APP in admin pos; do
               MANIFEST="$(docker compose -f docker-compose.prod.yml --env-file .env.production exec -T "$APP" \
                 node -e "fetch('http://localhost:3000/manifest.webmanifest').then(r=>r.text()).then(t=>console.log(t)).catch(e=>console.log('unreachable: '+e.message))")"
@@ -156,13 +125,7 @@ jobs:
             docker image prune -f
 
             echo "==> Capping the build cache"
-            # `docker image prune` never touches build cache, which is what
-            # actually filled the disk (150 GB across 526 entries). Cap it
-            # rather than emptying it: the Dockerfiles are ordered so the
-            # "npm ci" layer survives between deploys, and an unbounded
-            # `docker builder prune -f` would throw that away and make every
-            # build cold. The flag was renamed --keep-storage ->
-            # --max-used-space, so ask this Docker which one it speaks.
+            # Cap the build cache instead of emptying it, so the npm ci layer survives; the flag name differs between Docker versions.
             if docker builder prune --help 2>&1 | grep -q -- '--max-used-space'; then
               docker builder prune -f --max-used-space 10GB
             else

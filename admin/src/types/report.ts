@@ -1,5 +1,8 @@
+import type { ReactNode } from "react";
 import type {
   ChannelSales,
+  DailySales,
+  DailySalesDay,
   PeriodSummary,
   ProfitTotals,
   ReportPeriod,
@@ -8,10 +11,12 @@ import type {
   SalesSummary,
   SalesTotals,
   TopSeller,
-} from "@organza/shared/types/report";
+} from "@store/shared/types/report";
 
 export type {
   ChannelSales,
+  DailySales,
+  DailySalesDay,
   PeriodSummary,
   ProfitTotals,
   ReportPeriod,
@@ -22,14 +27,67 @@ export type {
   TopSeller,
 };
 
-// The quick ranges offered by the picker, plus the escape hatch to two dates.
 export type ReportPresetKey = "today" | "last7Days" | "last30Days" | "thisMonth" | "custom";
 
-// What the Reports page asks the API for: two local calendar dates
-// (YYYY-MM-DD) — the backend resolves them into instants using the viewer's
-// timezone offset, which the API layer attaches.
+export type TopSellerRanking = "revenue" | "quantity";
+
+// Local calendar dates (YYYY-MM-DD); the backend resolves them with the viewer's timezone offset.
 export interface ReportRangeValue {
   preset: ReportPresetKey;
   from: string;
   to: string;
+}
+
+export interface ReportRangePickerProps {
+  value: ReportRangeValue;
+  onChange: (value: ReportRangeValue) => void;
+  // Test-selector name, so the same picker on two screens isn't one name.
+  name?: string;
+}
+
+export interface ReportHeadlineProps {
+  totals: SalesTotals;
+}
+
+export interface ReportProfitStatementProps {
+  profit: ProfitTotals;
+}
+
+export type StatementSign = "minus" | "equals";
+
+export interface StatementRowProps {
+  label: string;
+  amount: string;
+  sign?: StatementSign;
+  emphasis?: "subtotal" | "total";
+  name: string;
+}
+
+export interface ReportOrdersCardProps {
+  totals: SalesTotals;
+}
+
+export interface ReportFactRowProps {
+  label: string;
+  value: ReactNode;
+  hint?: ReactNode;
+  name: string;
+}
+
+export interface ReportChannelsCardProps {
+  byChannel: ChannelSales[];
+}
+
+export interface ReportTopSellersProps {
+  byRevenue: TopSeller[];
+  byQuantity: TopSeller[];
+}
+
+export interface ReportReturnsCardProps {
+  returns: ReturnsTotals;
+}
+
+export interface ReportErrorProps {
+  error: unknown;
+  onRetry: () => void;
 }

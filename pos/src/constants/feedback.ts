@@ -1,20 +1,7 @@
 import type { ScanTone, VibrationPattern } from "@/types/feedback";
 
-// How long a self-clearing confirmation ("added to cart", "no such
-// barcode") stays on screen. Long enough to read at a glance while handling
-// an item, short enough that it never lingers into the next scan.
+// How long the same toast is not repeated for (a tag still lying under the camera).
 export const FEEDBACK_TIMEOUT_MS = 3000;
-
-// How long a toast takes to slide in from beyond the screen edge, and to
-// slide back out again when its time is up. Short enough that a run of scans
-// never feels like it is waiting for animations.
-export const TOAST_SLIDE_MS = 220;
-
-// How many confirmations may stack at once. Kept low because the column
-// hangs over the cart: repeats of one item collapse into a single counting
-// toast (hooks/use-toasts.ts), so reaching even two means genuinely
-// different items landed within a few seconds of each other.
-export const MAX_VISIBLE_TOASTS = 2;
 
 // ---- Audible scan feedback (lib/scan-sound.ts) --------------------------
 //

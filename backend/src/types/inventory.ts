@@ -12,5 +12,6 @@ export type StockItem = {
   // row — including variant rows, which inherit it — so the client can badge
   // low stock without re-deriving it from a threshold alone.
   trackLowStock: boolean;
+  thumbnailUrl: string | null;
   createdAt: Date;
 };

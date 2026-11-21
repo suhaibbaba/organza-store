@@ -1,23 +1,16 @@
 import { z } from "zod";
-import { imageEditSchema } from "@organza/shared/schemas/image";
+import { imageEditSchema } from "@store/shared/schemas/image";
 import { ERROR_CODES } from "@/constants";
 
-/**
- * The editor's crop, as it survives a multipart upload.
- *
- * Everything else in a multipart body is a plain string, and so is this: the
- * admin sends the edit as JSON in a text field beside the file. Parsed here
- * rather than in the route so that a malformed one is a validation failure
- * like any other — the shape it must parse INTO is shared with the re-crop
- * endpoint and with the geometry that reads it (CLAUDE.md rule 8).
- */
+/** The editor's crop arrives as JSON in a multipart text field, parsed here so a bad one is a validation failure. */
 const jsonImageEdit = z.preprocess((value) => {
-  if (typeof value !== "string") return value;
+  if (typeof value !== "string") {
+    return value;
+  }
   try {
     return JSON.parse(value);
   } catch {
-    // Left as the unparseable string; the object schema below refuses it and
-    // the caller gets error.validation rather than a 500.
+    // Left as the raw string, so the schema below refuses it as error.validation, not a 500.
     return value;
   }
 }, imageEditSchema);
@@ -31,8 +24,7 @@ const ownerFields = {
 export const uploadImageSchema = z
   .object({
     ...ownerFields,
-    // Optional throughout: a photo uploaded without opening the editor is a
-    // supported way to add one, and is stored whole exactly as it always was.
+    // Optional: a photo uploaded without the editor is stored whole.
     edit: jsonImageEdit.optional(),
   })
   .refine((v) => Boolean(v.productId) !== Boolean(v.variantId), {
@@ -58,8 +50,6 @@ export const setPrimaryImageSchema = z.object({
 });
 export type SetPrimaryImageInput = z.infer<typeof setPrimaryImageSchema>;
 
-// PATCH /api/images/:id/edit — cut the same photograph differently, from the
-// original kept beside it. JSON, not multipart: there is no file, which is
-// the whole point of having kept one.
+// PATCH /api/images/:id/edit — re-cut from the kept original; JSON, since there is no file.
 export const editImageSchema = z.object({ edit: imageEditSchema });
 export type EditImageInput = z.infer<typeof editImageSchema>;

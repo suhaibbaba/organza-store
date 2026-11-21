@@ -16,6 +16,10 @@ export interface Category {
   // the admin and stored here, not per device, so every till agrees on which
   // shelves come first.
   isFavorite: boolean;
+  // Active, non-deleted products on this category AND everything under it —
+  // the figure on the POS's category tiles. Rolled up through the tree so it
+  // matches what selecting the category lists (includeSubcategories).
+  productCount: number;
   createdAt: string;
   updatedAt: string;
 }

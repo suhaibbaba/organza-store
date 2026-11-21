@@ -6,23 +6,16 @@ import { approveChange, pendingChangeFor, rejectExpense } from "@tests/support/c
 import { DEFAULT_EXPENSE_CATEGORY_KEYS, ERROR_CODES } from "@/constants";
 import type { ExpenseCategoryDto, ExpenseDto } from "@tests/types";
 
-// Expenses (spec.md "Cash drawer & expenses") — the other half of the profit
-// sum. Two rules carry the whole feature and are what this suite proves:
-//
-//   * ANYONE may record one, but an Employee's is a REQUEST: it opens PENDING
-//     and counts for nothing until an Admin signs it off. Which of the two it
-//     is depends on the caller's ROLE, never on the request body. The signing
-//     off itself happens through the generic change-request flow (spec.md
-//     "Employee change approvals"), which is where its tests live.
-//   * Only APPROVED expenses are real money. (That they then reach the cash
-//     drawer is asserted in cashDrawer.test.ts, where the drawer is.)
+// Expenses: anyone records one, an Employee's opens PENDING by role (never by body); only APPROVED ones are money.
 describe("Expenses", () => {
   const openedExpenseIds: string[] = [];
   const openedCategoryIds: string[] = [];
 
   async function expense(token: string, body: Record<string, unknown>) {
     const res = await createExpense(token, body);
-    if (res.data?.id) openedExpenseIds.push(res.data.id);
+    if (res.data?.id) {
+      openedExpenseIds.push(res.data.id);
+    }
     return res;
   }
 
@@ -36,9 +29,6 @@ describe("Expenses", () => {
     }
   });
 
-  // -------------------------------------------------------------------------
-  // Recording
-  // -------------------------------------------------------------------------
   describe("recording", () => {
     it("approves an Admin's own expense as it is written", async () => {
       const admin = await getSession("ADMIN");
@@ -96,10 +86,7 @@ describe("Expenses", () => {
       const employee = await getSession("EMPLOYEE");
       const categoryId = await expenseCategoryId(employee.token);
 
-      // Asking to be approved is not a way of being approved — otherwise
-      // "record an expense" would be a way to approve one. It used to be
-      // ignored; it is now refused outright (middleware/validate.ts), which
-      // says the same thing out loud.
+      // Asking to be approved is refused outright, or recording an expense would be a way to approve one.
       const asking = await expense(employee.token, {
         categoryId,
         amount: "20",
@@ -110,8 +97,7 @@ describe("Expenses", () => {
       expect(asking.status).toBe(400);
       expect(asking.error?.code).toBe(ERROR_CODES.VALIDATION);
 
-      // ...and what the role actually decides is unchanged: an Employee's
-      // expense opens PENDING and has approved nothing.
+      // The role decides: an Employee's expense opens PENDING and has approved nothing.
       const res = await expense(employee.token, { categoryId, amount: "20" });
 
       expect(res.status).toBe(201);
@@ -145,14 +131,7 @@ describe("Expenses", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
-  // Approval
-  // -------------------------------------------------------------------------
-  // The approval itself lives in the generic change-request flow now (spec.md
-  // "Employee change approvals") — there is one approval mechanism in the
-  // shop, not an expense-shaped one beside everything else. What an expense
-  // still owns is its APPLIED state: approvalStatus/approvedBy, which every
-  // money query filters on.
+  // Approval goes through the generic change-request flow; the expense keeps only its applied state, which money queries filter on.
   describe("approval", () => {
     it("files a change request for an Employee's expense, and applies it on approval", async () => {
       const employee = await getSession("EMPLOYEE");
@@ -161,8 +140,7 @@ describe("Expenses", () => {
 
       const created = await expense(employee.token, { categoryId, amount: "55", paidInCash: true });
       expect(created.data!.approvalStatus).toBe("PENDING");
-      // The request comes straight back, so the screen that recorded it can
-      // say it is waiting rather than leaving the person guessing.
+      // The request comes back, so the screen can say it is waiting.
       expect(created.data!.pendingChange?.status).toBe("PENDING");
       expect(created.data!.pendingChange?.requestedById).toBe(employee.userId);
 
@@ -180,8 +158,7 @@ describe("Expenses", () => {
       expect(reread.data!.approvedBy?.id).toBe(admin.userId);
       expect(reread.data!.approvedAt).not.toBeNull();
 
-      // Deciding it again would silently overwrite who decided what — the one
-      // thing the record exists to hold.
+      // Deciding again would overwrite who decided what, the one thing the record holds.
       const again = await approveChange(admin.token, pending!.id);
       expect(again.status).toBe(409);
       expect(again.error?.code).toBe(ERROR_CODES.CHANGE_REQUEST_NOT_PENDING);
@@ -198,13 +175,11 @@ describe("Expenses", () => {
       expect(rejected.status).toBe(200);
       expect(rejected.data!.status).toBe("REJECTED");
       expect(rejected.data!.decidedBy?.id).toBe(admin.userId);
-      // The reason stays on the decision rather than being appended to what
-      // the person who recorded the expense wrote.
+      // The reason stays on the decision, not appended to the recorder's note.
       expect(rejected.data!.decisionNote).toBe("مسجّلة مرتين");
 
       const reread = await apiRequest<ExpenseDto>(`/api/expenses/${created.data!.id}`, { token: admin.token });
-      // Rejected on the expense too — a refused expense says so on its own
-      // row rather than sitting pending forever — and its own note is intact.
+      // A refused expense says so on its own row, never pending forever.
       expect(reread.data!.approvalStatus).toBe("REJECTED");
       expect(reread.data!.approvedBy?.id).toBe(admin.userId);
       expect(reread.data!.note).toBe("تصليح");
@@ -230,10 +205,7 @@ describe("Expenses", () => {
       expect(reread.data!.approvalStatus).toBe("PENDING");
     });
 
-    // Approving is Admin-only now (changeRequest.approve). A Manager still
-    // records spending that counts immediately — they hold expense.approve,
-    // so their own expense never becomes a request at all — but signing off
-    // somebody ELSE's is the Admin's.
+    // A Manager's own spending counts at once (expense.approve); signing off somebody else's is the Admin's.
     it("does not let a Manager decide an Employee's expense", async () => {
       const employee = await getSession("EMPLOYEE");
       const manager = await getSession("MANAGER");
@@ -249,9 +221,6 @@ describe("Expenses", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
-  // Reading, editing, deleting
-  // -------------------------------------------------------------------------
   describe("the list", () => {
     it("keeps an Employee out of the expense list", async () => {
       const employee = await getSession("EMPLOYEE");
@@ -268,7 +237,7 @@ describe("Expenses", () => {
 
       const res = await apiRequest<ExpenseDto[]>(
         `/api/expenses?categoryId=${categoryId}&paidInCash=false&page=1&pageSize=5&sortBy=amount&sortDir=asc`,
-        { token: admin.token }
+        { token: admin.token },
       );
       expect(res.status).toBe(200);
       expect(res.meta?.pageSize).toBe(5);
@@ -325,9 +294,6 @@ describe("Expenses", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
-  // Categories — the shop's own list
-  // -------------------------------------------------------------------------
   describe("categories", () => {
     it("ships the five the shop starts with, readable by every role", async () => {
       for (const role of ["ADMIN", "MANAGER", "EMPLOYEE"] as const) {
@@ -336,8 +302,7 @@ describe("Expenses", () => {
 
         expect(res.status).toBe(200);
         const keys = res.data!.map((category) => category.key);
-        // Picking a category is part of recording an expense, which every
-        // role may do — so every role may read the list.
+        // Every role records expenses, so every role reads the category list.
         for (const key of DEFAULT_EXPENSE_CATEGORY_KEYS) {
           expect(keys).toContain(key);
         }
@@ -357,9 +322,7 @@ describe("Expenses", () => {
       openedCategoryIds.push(created.data!.id);
       expect(created.data!.key).toBe(key);
 
-      // The key is frozen, and trying to move it is now refused rather than
-      // ignored (middleware/validate.ts) — an unknown field is an answer, not
-      // something to swallow.
+      // The key is frozen; trying to move it is refused, not ignored.
       const reKeyed = await apiRequest(`/api/expense-categories/${created.data!.id}`, {
         method: "PATCH",
         token: manager.token,
@@ -368,9 +331,7 @@ describe("Expenses", () => {
       expect(reKeyed.status).toBe(400);
       expect(reKeyed.error?.code).toBe(ERROR_CODES.VALIDATION);
 
-      // A rename reaches every expense filed under it automatically, because
-      // nothing copies the name (CLAUDE.md rule 2/9) — and the key it is
-      // identified by does not move.
+      // A rename reaches every filed expense because nothing copies the name (rules 2, 9); the key stays.
       const renamed = await apiRequest<ExpenseCategoryDto>(`/api/expense-categories/${created.data!.id}`, {
         method: "PATCH",
         token: manager.token,
@@ -410,8 +371,7 @@ describe("Expenses", () => {
       expect(refused.status).toBe(409);
       expect(refused.error?.code).toBe(ERROR_CODES.EXPENSE_CATEGORY_HAS_EXPENSES);
 
-      // Retiring it is what the shop does instead: out of the picker, still
-      // on the record.
+      // Retiring is what the shop does instead: out of the picker, still on the record.
       const retired = await apiRequest<ExpenseCategoryDto>(`/api/expense-categories/${categoryId}`, {
         method: "PATCH",
         token: admin.token,

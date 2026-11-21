@@ -9,12 +9,9 @@ import { useTranslateError } from "@/hooks/use-translate-error";
 import { requestPasswordReset } from "@/lib/api/password-setup";
 import { ApiError } from "@/lib/api/errors";
 import { forgotPasswordSchema, type ForgotPasswordValues } from "@/lib/validation/set-password";
-import { FieldError } from "@/components/ui/field-error";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Alert } from "@/components/ui/alert";
-import { Spinner } from "@/components/ui/spinner";
+import { fieldTestSelector } from "@store/shared/lib/testSelector";
+import { Alert, Button, buttonClassName, FormField, Input } from "@store/ui";
+import { AuthFieldError } from "@/components/auth/auth-field-error";
 
 export function ForgotPasswordForm() {
   const t = useTranslations("auth.forgotPassword");
@@ -32,14 +29,9 @@ export function ForgotPasswordForm() {
     setFormError(null);
     try {
       await requestPasswordReset(values.email);
-      // Shown whether or not that address belongs to an account — the API
-      // deliberately answers the same either way, and so does this screen.
-      // Anything else would turn the form into a way of asking "does this
-      // person work here?".
+      // Same answer whether or not the address exists, so the form never reveals who works here.
       setSent(true);
     } catch (error) {
-      // Only a genuine failure gets here: too many attempts, or the API being
-      // unreachable.
       setFormError(error instanceof ApiError ? error.code : "error.internal");
     }
   }
@@ -47,20 +39,19 @@ export function ForgotPasswordForm() {
   if (sent) {
     return (
       <div className="flex flex-col gap-5">
-        <Alert variant="success">{t("sentBody")}</Alert>
-        <Button asChild variant="outline" className="w-full sm:w-auto sm:self-start">
-          <Link href="/login">{t("back")}</Link>
-        </Button>
+        <Alert tone="success">{t("sentBody")}</Alert>
+        <Link href="/login" className={buttonClassName({ variant: "secondary", className: "w-full" })}>
+          {t("back")}
+        </Link>
       </div>
     );
   }
 
   return (
     <form method="post" onSubmit={handleSubmit(onSubmit)} noValidate className="flex flex-col gap-5">
-      {formError && <Alert variant="destructive">{translateError(formError)}</Alert>}
+      {formError && <Alert tone="danger">{translateError(formError)}</Alert>}
 
-      <div className="flex flex-col gap-2">
-        <Label htmlFor="email">{t("emailLabel")}</Label>
+      <FormField label="auth.forgotPassword.emailLabel" htmlFor="email">
         <Input
           id="email"
           type="email"
@@ -68,26 +59,26 @@ export function ForgotPasswordForm() {
           autoComplete="email"
           dir="ltr"
           placeholder={t("emailPlaceholder")}
-          aria-invalid={!!errors.email}
+          hasError={!!errors.email}
+          aria-describedby={errors.email ? "email-error" : undefined}
+          data-testid={fieldTestSelector("email")}
           {...register("email")}
         />
-        {errors.email && <FieldError field="email">{translateError(errors.email.message ?? "")}</FieldError>}
-      </div>
+        {errors.email && <AuthFieldError field="email">{translateError(errors.email.message ?? "")}</AuthFieldError>}
+      </FormField>
 
-      <Button type="submit" data-test-selector="forgot-password-submit" disabled={isSubmitting} className="mt-2 w-full sm:w-auto sm:self-start">
-        {isSubmitting ? (
-          <>
-            <Spinner />
-            {t("submitting")}
-          </>
-        ) : (
-          t("submit")
-        )}
+      <Button
+        type="submit"
+        data-test-selector="forgot-password-submit"
+        isLoading={isSubmitting}
+        className="mt-2 w-full"
+      >
+        {isSubmitting ? t("submitting") : t("submit")}
       </Button>
 
-      <Button asChild variant="ghost" className="w-full sm:w-auto sm:self-start">
-        <Link href="/login">{t("back")}</Link>
-      </Button>
+      <Link href="/login" className={buttonClassName({ variant: "quiet", className: "w-full" })}>
+        {t("back")}
+      </Link>
     </form>
   );
 }

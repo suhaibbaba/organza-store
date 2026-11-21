@@ -1,16 +1,14 @@
 "use client";
 
 import { useLocale, useTranslations } from "next-intl";
-import { Plus, Search, X } from "lucide-react";
-import type { ProductSummary } from "@organza/shared/types/product";
-import { testSelectorFor } from "@organza/shared/lib/testSelector";
+import { Plus } from "lucide-react";
+import { Alert, CardButton, Input, Spinner, Typography } from "@store/ui";
+import type { ProductSummary } from "@store/shared/types/product";
+import { testSelectorFor } from "@store/shared/lib/testSelector";
 import { localize } from "@/lib/i18n-content";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
 import { useProductSearch } from "@/hooks/use-product-search";
-import { Input } from "@/components/ui/input";
-import { Alert } from "@/components/ui/alert";
-import { Spinner } from "@/components/ui/spinner";
-import { ProductImage } from "@/components/products/product-image";
+import { ProductPhoto } from "@/components/products/product-photo";
 
 interface ProductPickerProps {
   query: string;
@@ -20,9 +18,7 @@ interface ProductPickerProps {
   onSelect: (product: ProductSummary) => void;
 }
 
-// Finding what the customer asked for. Same cross-language, typo-tolerant
-// search the catalogue uses (CLAUDE.md rule 10), rendered as big rows: a
-// whole row is the tap target, never a small link inside one.
+// The catalogue's cross-language, typo-tolerant search (rule 10); a whole row is the tap target.
 export function ProductPicker({ query, onQueryChange, pendingId, onSelect }: ProductPickerProps) {
   const t = useTranslations("orders.new.search");
   const locale = useLocale();
@@ -34,85 +30,94 @@ export function ProductPicker({ query, onQueryChange, pendingId, onSelect }: Pro
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="relative">
-        <Search
-          className="pointer-events-none absolute start-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
-          aria-hidden="true"
-        />
-        <Input
-          type="search"
-          value={query}
-          onChange={(event) => onQueryChange(event.target.value)}
-          placeholder={t("placeholder")}
-          aria-label={t("label")}
-          autoComplete="off"
-          enterKeyHint="search"
-          className="ps-11 pe-11"
-        />
-        {query && (
-          <button
-            type="button"
-            onClick={() => onQueryChange("")}
-            aria-label={t("clear")}
-            className="absolute end-2 top-1/2 flex size-8 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-          >
-            <X className="size-4" aria-hidden="true" />
-          </button>
-        )}
-      </div>
+      <Input
+        type="search"
+        adornment="search"
+        value={query}
+        onChange={(event) => onQueryChange(event.target.value)}
+        onClear={() => onQueryChange("")}
+        clearLabel={t("clear")}
+        placeholder={t("placeholder")}
+        aria-label={t("label")}
+        autoComplete="off"
+        enterKeyHint="search"
+        // The picker sits inside the order form: Enter searches, it must never create the order.
+        onKeyDown={(event) => {
+          if (event.key === "Enter") {
+            event.preventDefault();
+          }
+        }}
+      />
 
-      {search.isError && <Alert variant="destructive">{t("error")}</Alert>}
+      {search.isError && (
+        <Alert tone="danger" data-testid="alert-destructive">
+          {t("error")}
+        </Alert>
+      )}
 
       {isLoading && (
-        <p className="flex items-center justify-center gap-2 py-6 text-sm text-muted-foreground">
+        <Typography variant="small" tone="muted" className="flex items-center justify-center gap-2 py-6">
           <Spinner />
           {t("searching")}
-        </p>
+        </Typography>
       )}
 
       {search.isActive && !isLoading && products.length === 0 && (
-        <p className="py-6 text-center text-sm text-muted-foreground">{t("empty")}</p>
+        <Typography variant="small" tone="muted" className="py-6 text-center">
+          {t("empty")}
+        </Typography>
       )}
 
-      {!isLoading && products.length > 0 && (
-        <ul className="flex flex-col gap-2" data-test-selector="order-product-results">
+      {search.isActive && !isLoading && products.length > 0 && (
+        <ul
+          className="grid max-h-[28rem] grid-cols-[repeat(auto-fill,minmax(9rem,1fr))] gap-3 overflow-y-auto p-0.5"
+          data-test-selector="order-product-results"
+        >
           {products.map((product) => {
             const name = localize(product.name, locale);
             const soldOut = product.stock <= 0;
 
             return (
               <li key={product.id}>
-                <button
-                  data-test-selector={testSelectorFor("order-product-result", product.id)}
-                  type="button"
+                <CardButton
+                  data-testid={testSelectorFor("order-product-result", product.id)}
                   disabled={soldOut || pendingId !== null}
                   onClick={() => onSelect(product)}
-                  className="flex w-full items-center gap-3 rounded-xl border border-border bg-card p-3 text-start transition-colors not-disabled:hover:bg-accent/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-60"
+                  className="h-full flex-col overflow-hidden"
                 >
-                  <ProductImage
-                    src={product.image?.thumbnailUrl}
-                    alt={name}
-                    className="size-14 shrink-0 rounded-lg"
-                    sizes="56px"
-                  />
-
-                  <span className="flex min-w-0 flex-1 flex-col gap-1">
-                    <span className="truncate text-sm font-medium">{name}</span>
-                    <span className="flex flex-wrap items-center gap-x-2 text-xs text-muted-foreground">
-                      <span className="font-semibold text-foreground">{formatMoney(product.basePrice)}</span>
-                      {product.hasVariants && <span>· {t("variantCount", { count: product.variantCount })}</span>}
-                      <span className={soldOut ? "text-destructive" : undefined}>
-                        · {soldOut ? t("soldOut") : t("inStock", { count: product.stock })}
-                      </span>
+                  <span className="relative block aspect-square w-full bg-sunken">
+                    <ProductPhoto
+                      product={product}
+                      alt={name}
+                      fit="contain"
+                      className="size-full"
+                      sizes="(max-width: 640px) 45vw, 160px"
+                    />
+                    <span className="absolute end-2 top-2 flex size-8 items-center justify-center rounded-pill bg-surface/90 text-primary-700 shadow-card">
+                      {pendingId === product.id ? <Spinner /> : <Plus className="size-4" aria-hidden="true" />}
                     </span>
                   </span>
 
-                  {pendingId === product.id ? (
-                    <Spinner className="text-muted-foreground" />
-                  ) : (
-                    <Plus className="size-5 shrink-0 text-muted-foreground" aria-hidden="true" />
-                  )}
-                </button>
+                  <span className="flex flex-1 flex-col gap-1 p-2.5">
+                    <Typography
+                      variant="small"
+                      weight="medium"
+                      as="span"
+                      className="line-clamp-2 group-hover:text-primary-700"
+                    >
+                      {name}
+                    </Typography>
+                    <Typography variant="small" weight="semibold" as="span">
+                      {formatMoney(product.basePrice)}
+                    </Typography>
+                    <Typography variant="caption" tone="muted">
+                      {product.hasVariants && <>{t("variantCount", { count: product.variantCount })} · </>}
+                      <Typography as="span" variant="caption" tone={soldOut ? "error" : "inherit"}>
+                        {soldOut ? t("soldOut") : t("inStock", { count: product.stock })}
+                      </Typography>
+                    </Typography>
+                  </span>
+                </CardButton>
               </li>
             );
           })}

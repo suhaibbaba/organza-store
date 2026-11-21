@@ -1,6 +1,6 @@
 import { hasLocale } from "next-intl";
 import { getRequestConfig } from "next-intl/server";
-import { MESSAGE_FORMATS } from "@organza/shared/constants/formatting";
+import { MESSAGE_FORMATS } from "@store/shared/constants/formatting";
 import { routing } from "@/i18n/routing";
 
 export default getRequestConfig(async ({ requestLocale }) => {
@@ -9,11 +9,13 @@ export default getRequestConfig(async ({ requestLocale }) => {
 
   return {
     locale,
-    messages: (await import(`../messages/${locale}.json`)).default,
+    // @store/ui ships its own strings (cancel, pagination, validation) under `ui`.
+    messages: {
+      ...(await import(`../messages/${locale}.json`)).default,
+      ui: (await import(`@store/ui/messages/${locale}.json`)).default,
+    },
 
-    // How a figure inside a sentence is written. Named rather than left to
-    // the device — see @organza/shared/constants/formatting. The client
-    // provider inherits this from here, so both halves of the app agree.
+    // Named formats, not the device's (shared constants/formatting); the client provider inherits them.
     formats: MESSAGE_FORMATS,
   };
 });

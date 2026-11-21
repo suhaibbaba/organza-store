@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { Role, type Setting } from "@prisma/client";
-import type { PushConfig } from "@organza/shared/types/push";
+import type { PushConfig } from "@store/shared/types/push";
 import { apiRequest, uniqueId } from "@tests/support/client";
 import { getSession, signIn } from "@tests/support/auth";
 import { createSellableProduct } from "@tests/support/orders";
@@ -20,22 +20,9 @@ import type { OrderDto } from "@tests/types";
 import { ERROR_CODES } from "@/constants";
 import type { SerializableUser } from "@/types";
 
-// Sale notifications (Web Push).
-//
-// The shop owner isn't at the counter all day, so a sale rung up by a
-// Manager or an Employee is pushed to the Admins' devices. What this suite
-// can observe over HTTP is the ATTEMPT: the API stamps `lastAttemptAt` on a
-// subscription whenever it pushes at it, and the devices registered here
-// are unreachable on purpose (see tests/support/push.ts) — which doubles as
-// the proof that a failing push can't hurt a sale.
-//
-// Every "nothing was sent" assertion is paired with a sale that MUST send,
-// so a slow API can never make a negative assertion pass by accident.
+// Admins are pushed Manager/Employee sales; test devices are unreachable on purpose, proving a failed push never hurts a sale.
 
-// Filled in by the file-level beforeAll below. A deployment with no VAPID
-// keys in its environment cannot send anything at all, so the delivery tests
-// skip themselves rather than fail — loudly, so a silently unconfigured
-// server is never mistaken for a passing feature.
+// Without VAPID keys nothing can send, so delivery tests skip loudly instead of failing.
 let pushConfig: PushConfig = { configured: false, publicKey: null };
 
 beforeAll(async () => {
@@ -48,17 +35,16 @@ beforeAll(async () => {
     console.warn(
       "\n⚠️  Sale-notification tests SKIPPED: the target API has no VAPID keys.\n" +
         "   Set VAPID_PUBLIC_KEY / VAPID_PRIVATE_KEY (see backend/.env.example) on the\n" +
-        "   deployment being tested — until then it cannot send notifications at all.\n"
+        "   deployment being tested — until then it cannot send notifications at all.\n",
     );
   }
 });
 
-// Decided per test rather than per file: whether the server can send is a
-// property of the deployment, and it is only known once it has been asked.
-// vitest's skip() throws, so the `return true` is belt and braces for the
-// caller's own early return rather than something that runs.
+// Decided per test: whether the server can send is only known once asked.
 function skipUnlessConfigured(ctx: { skip: () => void }): boolean {
-  if (pushConfig.configured) return false;
+  if (pushConfig.configured) {
+    return false;
+  }
   ctx.skip();
   return true;
 }
@@ -73,7 +59,9 @@ describe("Push subscriptions", () => {
 
   it("hands out the server's VAPID public key to a signed-in caller", () => {
     expect(typeof pushConfig.configured).toBe("boolean");
-    if (pushConfig.configured) expect(pushConfig.publicKey).toBeTruthy();
+    if (pushConfig.configured) {
+      expect(pushConfig.publicKey).toBeTruthy();
+    }
   });
 
   it("requires a session", async () => {
@@ -93,7 +81,9 @@ describe("Push subscriptions", () => {
   });
 
   it("registers a device, lists it, and removes it again", async (ctx) => {
-    if (skipUnlessConfigured(ctx)) return;
+    if (skipUnlessConfigured(ctx)) {
+      return;
+    }
     const admin = await getSession("ADMIN");
 
     const created = await registerDevice(admin.token, device);
@@ -101,8 +91,7 @@ describe("Push subscriptions", () => {
     expect(created.data!.endpoint).toBe(device.endpoint);
     expect(created.data!.lastAttemptAt).toBeNull();
 
-    // Re-registering the same device is the browser handing back the same
-    // subscription — one row, not two.
+    // Re-registering the same device is the same subscription: one row.
     const again = await registerDevice(admin.token, device);
     expect(again.status).toBe(201);
     expect(again.data!.id).toBe(created.data!.id);
@@ -114,8 +103,7 @@ describe("Push subscriptions", () => {
     expect(removed.status).toBe(200);
     expect(await readDevice(admin.token, device)).toBeUndefined();
 
-    // Removing it twice is a 404, not a silent success — the caller asked
-    // about a device that isn't theirs (or isn't there).
+    // Removing twice is a 404: the caller asked about a device that isn't theirs or isn't there.
     expect((await unregisterDevice(admin.token, device)).status).toBe(404);
   });
 });
@@ -189,12 +177,10 @@ describe("Sale-notification settings", () => {
 });
 
 describe("Sale notifications", () => {
-  // The seeded Admin's device, plus a second Admin created for this suite —
-  // "push to all ADMIN users" is a claim about more than one of them, and
-  // "not to the author" is only meaningful when somebody else is listening.
+  // A second Admin, because "all Admins" and "not the author" need somebody else listening.
   const device: FakeDevice = fakeDevice();
   const otherDevice: FakeDevice = fakeDevice();
-  const otherAdmin = { email: `vitest.push-admin.${uniqueId()}@organza.test`, id: "", token: "" };
+  const otherAdmin = { email: `vitest.push-admin.${uniqueId()}@store.test`, id: "", token: "" };
   const openedOrderIds: string[] = [];
   const openedProductIds: string[] = [];
 
@@ -239,7 +225,9 @@ describe("Sale notifications", () => {
   }
 
   beforeAll(async () => {
-    if (!pushConfig.configured) return;
+    if (!pushConfig.configured) {
+      return;
+    }
     const admin = await getSession("ADMIN");
 
     await setNotifications(true);
@@ -260,7 +248,9 @@ describe("Sale notifications", () => {
     otherAdmin.id = created.data!.id;
 
     const signedIn = await signIn(otherAdmin.email, SEEDED_PASSWORD);
-    if (!signedIn.session) throw new Error(`Second Admin sign-in failed (HTTP ${signedIn.status}).`);
+    if (!signedIn.session) {
+      throw new Error(`Second Admin sign-in failed (HTTP ${signedIn.status}).`);
+    }
     otherAdmin.token = signedIn.session.token;
 
     expect((await registerDevice(otherAdmin.token, otherDevice, "en")).status).toBe(201);
@@ -269,10 +259,10 @@ describe("Sale notifications", () => {
   afterAll(async () => {
     const admin = await getSession("ADMIN");
     await unregisterDevice(admin.token, device);
-    if (otherAdmin.token) await unregisterDevice(otherAdmin.token, otherDevice);
-    // There is no delete endpoint for staff (see users.test.ts), so the test
-    // Admin is deactivated — which also takes it out of any later run's
-    // notification recipients.
+    if (otherAdmin.token) {
+      await unregisterDevice(otherAdmin.token, otherDevice);
+    }
+    // Staff have no delete endpoint, so the test Admin is deactivated, which also drops it from later recipients.
     if (otherAdmin.id) {
       await apiRequest(`/api/users/${otherAdmin.id}`, {
         method: "PATCH",
@@ -280,7 +270,9 @@ describe("Sale notifications", () => {
         body: { isActive: false },
       });
     }
-    if (pushConfig.configured) await setNotifications(true);
+    if (pushConfig.configured) {
+      await setNotifications(true);
+    }
 
     for (const id of openedOrderIds) {
       await apiRequest(`/api/orders/${id}`, { method: "DELETE", token: admin.token });
@@ -291,7 +283,9 @@ describe("Sale notifications", () => {
   });
 
   it("notifies every Admin's device when a Manager makes a sale", async (ctx) => {
-    if (skipUnlessConfigured(ctx)) return;
+    if (skipUnlessConfigured(ctx)) {
+      return;
+    }
     const manager = await getSession("MANAGER");
     const before = await lastAttempt();
     const otherBefore = await otherLastAttempt();
@@ -302,7 +296,9 @@ describe("Sale notifications", () => {
   });
 
   it("notifies every Admin's device when an Employee makes a sale", async (ctx) => {
-    if (skipUnlessConfigured(ctx)) return;
+    if (skipUnlessConfigured(ctx)) {
+      return;
+    }
     const employee = await getSession("EMPLOYEE");
     const before = await lastAttempt();
     const otherBefore = await otherLastAttempt();
@@ -313,30 +309,30 @@ describe("Sale notifications", () => {
   });
 
   it("does not notify an Admin about their own sale", async (ctx) => {
-    if (skipUnlessConfigured(ctx)) return;
+    if (skipUnlessConfigured(ctx)) {
+      return;
+    }
     const before = await lastAttempt();
     const otherBefore = await otherLastAttempt();
 
     await sell(otherAdmin.token);
     await settleQuietly();
 
-    // The author hears nothing about their own sale — being told what
-    // someone ELSE sold is the whole point of the feature.
+    // The author hears nothing of their own sale.
     expect(await otherLastAttempt()).toBe(otherBefore);
-    // Nor does the other Admin: an Admin at the counter is not the case this
-    // notifies about (SALE_NOTIFICATION_TRIGGER_ROLES — a Manager's or an
-    // Employee's sale).
+    // An Admin's sale notifies nobody: only Manager and Employee sales do (SALE_NOTIFICATION_TRIGGER_ROLES).
     expect(await lastAttempt()).toBe(before);
 
-    // ...and the pipeline was awake the whole time: a Manager's sale made
-    // right afterwards does come through, to both.
+    // The pipeline was awake: a Manager's sale right after does come through, to both.
     const manager = await getSession("MANAGER");
     await sell(manager.token);
     await expectBothNotified(before, otherBefore);
   });
 
   it("sends nothing while the shop has notifications switched off", async (ctx) => {
-    if (skipUnlessConfigured(ctx)) return;
+    if (skipUnlessConfigured(ctx)) {
+      return;
+    }
     await setNotifications(false);
     const before = await lastAttempt();
     const otherBefore = await otherLastAttempt();
@@ -348,18 +344,17 @@ describe("Sale notifications", () => {
     expect(await lastAttempt()).toBe(before);
     expect(await otherLastAttempt()).toBe(otherBefore);
 
-    // Same sale, same seller, switch back on — so the silence above was the
-    // setting and nothing else.
+    // Same sale, same seller, switched back on: the silence above was the setting.
     await setNotifications(true);
     await sell(manager.token);
     await expectBothNotified(before, otherBefore);
   });
 
   it("completes the sale even though every push fails", async (ctx) => {
-    if (skipUnlessConfigured(ctx)) return;
-    // The registered devices are unreachable, so every notification in this
-    // suite has already failed to be delivered — and none of that has been
-    // allowed anywhere near the sale.
+    if (skipUnlessConfigured(ctx)) {
+      return;
+    }
+    // Every notification here already failed to deliver, and none of that reached the sale.
     const admin = await getSession("ADMIN");
     const manager = await getSession("MANAGER");
     const before = await lastAttempt();

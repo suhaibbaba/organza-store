@@ -1,13 +1,16 @@
 import type { Role } from "@prisma/client";
-import { can } from "@organza/shared/lib/permissions";
+import { can } from "@store/shared/lib/permissions";
 import { formatMoney } from "@/lib/money";
 import type { AnyRecord } from "@/types";
 
-// `unitCost` is sensitive (CLAUDE.md rule 19): ADMIN ONLY. Gated here, at
-// the response boundary, with the same permission the product API uses for
-// cost — one rule, one place.
+// unitCost is Admin only (rule 19), gated at the response boundary with the product API's own permission.
 function canSeeCost(role: Role): boolean {
   return can({ role }, "product.viewCost");
+}
+
+// A variant's own photo first, else its product's; null for a quick-sold line or a removed product.
+function lineThumbnail(item: AnyRecord): string | null {
+  return item.variant?.images?.[0]?.thumbnailUrl ?? item.product?.images?.[0]?.thumbnailUrl ?? null;
 }
 
 function serializeItem(item: AnyRecord, role: Role) {
@@ -25,9 +28,8 @@ function serializeItem(item: AnyRecord, role: Role) {
     discountAmount: formatMoney(item.discountAmount?.toString()),
     lineTotal: formatMoney(item.lineTotal?.toString()),
     returnedQuantity: item.returnedQuantity,
-    // How this line was rung up: picked from the catalogue, or typed at the
-    // counter because the piece wasn't in it yet (spec.md "Quick sell").
     quickSold: item.quickSold ?? false,
+    thumbnailUrl: lineThumbnail(item),
   };
 
   if (canSeeCost(role)) {
@@ -71,9 +73,17 @@ export function serializeOrder(order: AnyRecord, role: Role) {
   };
 }
 
-// Lighter DTO for the list endpoint — enough to render a row without
-// shipping every line of every order.
-export function serializeOrderSummary(order: AnyRecord) {
+function serializePreviewItem(item: AnyRecord) {
+  return {
+    id: item.id,
+    name: item.name,
+    variantName: item.variantName ?? null,
+    quantity: item.quantity,
+    thumbnailUrl: lineThumbnail(item),
+  };
+}
+
+export function serializeOrderSummary(order: AnyRecord, outstanding?: Map<string, string>) {
   return {
     id: order.id,
     orderNumber: order.orderNumber,
@@ -88,7 +98,10 @@ export function serializeOrderSummary(order: AnyRecord) {
     subtotal: formatMoney(order.subtotal?.toString()),
     discountAmount: formatMoney(order.discountAmount?.toString()),
     total: formatMoney(order.total?.toString()),
-    itemCount: order._count?.items ?? (order.items?.length ?? 0),
+    // Net of partial returns; only an order still waiting for its money has one.
+    outstanding: order.paymentStatus === "PENDING_COLLECTION" ? (outstanding?.get(order.id) ?? formatMoney("0")) : null,
+    itemCount: order._count?.items ?? order.items?.length ?? 0,
+    previewItems: (order.items ?? []).map(serializePreviewItem),
     hasQuickSale: order.hasQuickSale ?? false,
     stockDeductedAt: order.stockDeductedAt,
     createdById: order.createdById,

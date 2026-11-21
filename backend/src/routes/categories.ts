@@ -12,17 +12,16 @@ import {
   type UpdateCategoryInput,
 } from "@/validation/category";
 import { generateUniqueSlug } from "@/lib/slug";
+import { rollUpCategoryCounts } from "@/lib/categories";
 import { writeAudit } from "@/lib/audit";
+import { queueCategorySync } from "@/lib/search";
 import { AUDIT_ENTITY, ERROR_CODES } from "@/constants";
 import type { CategoryNode } from "@/types";
 
 const router = Router();
 router.use(requireAuth);
 
-// Builds the parent/child tree from a flat list — categories are few enough
-// (a boutique's catalog) that loading them all and nesting in memory is
-// simpler than a recursive CTE, and keeps pagination out of a hierarchy that
-// doesn't really have "pages".
+// Nests the flat list in memory: a boutique has few categories, and a tree has no pages.
 function buildTree(categories: Category[]): CategoryNode[] {
   const nodes = new Map<string, CategoryNode>(categories.map((c) => [c.id, { ...c, children: [] }]));
   const roots: CategoryNode[] = [];
@@ -36,42 +35,50 @@ function buildTree(categories: Category[]): CategoryNode[] {
   return roots;
 }
 
-// True if `candidateParentId` is `categoryId` itself or one of its
-// descendants — reparenting onto either would create a cycle.
+// True if candidateParentId is categoryId or a descendant — reparenting there would make a cycle.
 function wouldCreateCycle(categories: Category[], categoryId: string, candidateParentId: string): boolean {
-  if (candidateParentId === categoryId) return true;
+  if (candidateParentId === categoryId) {
+    return true;
+  }
   const byId = new Map(categories.map((c) => [c.id, c]));
   let current = byId.get(candidateParentId);
   while (current?.parentId) {
-    if (current.parentId === categoryId) return true;
+    if (current.parentId === categoryId) {
+      return true;
+    }
     current = byId.get(current.parentId);
   }
   return false;
 }
 
-// ---------------------------------------------------------------------------
-// GET /api/categories — list as a nested tree (default) or ?flat=true
-// ---------------------------------------------------------------------------
-// Gated on category.view for the same reason the product list is gated on
-// product.view: every role holds it as shipped, so nothing changes today —
-// but it is a CONFIGURABLE grant now, and a grant the API does not enforce is
-// a checkbox that lies (spec.md "Editable role permissions").
+// GET /api/categories — nested tree, or ?flat=true; gated on the configurable category.view.
 router.get(
   "/",
   requirePermission("category.view"),
   asyncHandler(async (req, res) => {
-    const categories = await prisma.category.findMany({ orderBy: { createdAt: "asc" } });
+    const [rows, direct] = await Promise.all([
+      prisma.category.findMany({ orderBy: { createdAt: "asc" } }),
+      // What a till can sell (active, not deleted), so a tile's count matches the grid it opens.
+      prisma.product.groupBy({
+        by: ["categoryId"],
+        where: { deletedAt: null, isActive: true, categoryId: { not: null } },
+        _count: { _all: true },
+      }),
+    ]);
+    const totals = rollUpCategoryCounts(
+      rows,
+      new Map(direct.flatMap((row) => (row.categoryId ? [[row.categoryId, row._count._all] as const] : []))),
+    );
+    const categories = rows.map((category) => ({ ...category, productCount: totals.get(category.id) ?? 0 }));
     if (req.query.flat === "true") {
       sendOk(res, categories);
       return;
     }
     sendOk(res, buildTree(categories));
-  })
+  }),
 );
 
-// ---------------------------------------------------------------------------
 // POST /api/categories — create (Admin/Manager only)
-// ---------------------------------------------------------------------------
 router.post(
   "/",
   requirePermission("category.manage"),
@@ -81,7 +88,9 @@ router.post(
 
     if (body.parentId) {
       const parent = await prisma.category.findUnique({ where: { id: body.parentId } });
-      if (!parent) throw new AppError(400, ERROR_CODES.CATEGORY_NOT_FOUND);
+      if (!parent) {
+        throw new AppError(400, ERROR_CODES.CATEGORY_NOT_FOUND);
+      }
     }
 
     const slug = await generateUniqueSlug(body.name.ar, async (candidate) => {
@@ -107,26 +116,28 @@ router.post(
     });
 
     sendOk(res, created, null, 201);
-  })
+  }),
 );
 
-// ---------------------------------------------------------------------------
 // PATCH /api/categories/:id — rename / reparent (Admin/Manager only)
-// ---------------------------------------------------------------------------
 router.patch(
   "/:id",
   requirePermission("category.manage"),
   validateBody(updateCategorySchema),
   asyncHandler(async (req, res) => {
     const existing = await prisma.category.findUnique({ where: { id: req.params.id } });
-    if (!existing) throw new AppError(404, ERROR_CODES.CATEGORY_NOT_FOUND);
+    if (!existing) {
+      throw new AppError(404, ERROR_CODES.CATEGORY_NOT_FOUND);
+    }
 
     const body = req.body as UpdateCategoryInput;
 
     let slug: string | undefined;
     if (body.name) {
       slug = await generateUniqueSlug(body.name.ar, async (candidate) => {
-        if (candidate === existing.slug) return false;
+        if (candidate === existing.slug) {
+          return false;
+        }
         const found = await prisma.category.findUnique({ where: { slug: candidate } });
         return Boolean(found);
       });
@@ -134,7 +145,9 @@ router.patch(
 
     if (body.parentId !== undefined && body.parentId !== null) {
       const parent = await prisma.category.findUnique({ where: { id: body.parentId } });
-      if (!parent) throw new AppError(400, ERROR_CODES.CATEGORY_NOT_FOUND);
+      if (!parent) {
+        throw new AppError(400, ERROR_CODES.CATEGORY_NOT_FOUND);
+      }
 
       const all = await prisma.category.findMany();
       if (wouldCreateCycle(all, existing.id, body.parentId)) {
@@ -148,8 +161,7 @@ router.patch(
         name: body.name,
         slug,
         parentId: body.parentId === undefined ? undefined : body.parentId,
-        // Pinning a category to the front of the POS browser is an ordinary
-        // category edit — same permission, same audit entry as a rename.
+        // Pinning to the POS browser is an ordinary category edit: same permission and audit.
         isFavorite: body.isFavorite,
       },
     });
@@ -162,30 +174,32 @@ router.patch(
       oldValue: existing,
       newValue: updated,
     });
+    await queueCategorySync(updated.id);
 
     sendOk(res, updated);
-  })
+  }),
 );
 
-// ---------------------------------------------------------------------------
-// DELETE /api/categories/:id — blocked while it has children or products
-// (Admin/Manager only). Categories have no soft-delete column, so deletion
-// is only ever allowed once the category is empty — reassign children/
-// products elsewhere first, then delete.
-// ---------------------------------------------------------------------------
+// DELETE /api/categories/:id — only once it has no children or products (no soft delete here).
 router.delete(
   "/:id",
   requirePermission("category.manage"),
   asyncHandler(async (req, res) => {
     const existing = await prisma.category.findUnique({ where: { id: req.params.id } });
-    if (!existing) throw new AppError(404, ERROR_CODES.CATEGORY_NOT_FOUND);
+    if (!existing) {
+      throw new AppError(404, ERROR_CODES.CATEGORY_NOT_FOUND);
+    }
 
     const [childCount, productCount] = await Promise.all([
       prisma.category.count({ where: { parentId: existing.id } }),
       prisma.product.count({ where: { categoryId: existing.id, deletedAt: null } }),
     ]);
-    if (childCount > 0) throw new AppError(409, ERROR_CODES.CATEGORY_HAS_CHILDREN);
-    if (productCount > 0) throw new AppError(409, ERROR_CODES.CATEGORY_HAS_PRODUCTS);
+    if (childCount > 0) {
+      throw new AppError(409, ERROR_CODES.CATEGORY_HAS_CHILDREN);
+    }
+    if (productCount > 0) {
+      throw new AppError(409, ERROR_CODES.CATEGORY_HAS_PRODUCTS);
+    }
 
     await prisma.category.delete({ where: { id: existing.id } });
 
@@ -198,7 +212,7 @@ router.delete(
     });
 
     sendOk(res, { id: existing.id });
-  })
+  }),
 );
 
 export default router;

@@ -1,6 +1,7 @@
-# Organza Store
+# Store Management
 
-A custom e-commerce and point-of-sale system for a clothing shop (Organza, Tulkarm branch).
+A custom e-commerce and point-of-sale system for clothing shops. Each shop that runs it is a
+client: its name, logo and theme are data and configuration, never code.
 Built from scratch — **not** Medusa, not Shopify, not any e-commerce framework. TypeScript
 everywhere, one npm workspace, deployed to the shop's own VPS.
 
@@ -12,9 +13,9 @@ as old as an iPhone 7. Most of the unusual decisions in this repo follow from th
 ## The four projects
 
 ```
-organza-store/
+store-management/
 ├── package.json      workspace root — declares the workspaces, holds the only lockfile
-├── shared/           @organza/shared — TypeScript types, Zod schemas, constants, build guards
+├── shared/           @store/shared — TypeScript types, Zod schemas, constants, build guards
 ├── backend/          the API — Node + Express + TypeScript + Prisma + PostgreSQL
 ├── admin/            the admin dashboard — Next.js
 ├── pos/              the point-of-sale screen — Next.js
@@ -22,15 +23,15 @@ organza-store/
 ```
 
 They install as **one npm workspace** against a single root lockfile. `shared/` is a real
-dependency of the other three (`@organza/shared`), resolved through `node_modules` like any
+dependency of the other three (`@store/shared`), resolved through `node_modules` like any
 package — never copied, symlinked or aliased by hand.
 
-| Project | What it is | Dev port |
-|---|---|---|
-| `backend/` | REST API, Prisma schema, auth, images, reports, the verification suite | 4000 |
-| `admin/` | Products, stock, orders, reports, users, settings, approvals | 3000 |
-| `pos/` | The counter: scan or search, cart, discounts, checkout | 3001 |
-| `shared/` | Types + Zod schemas both sides agree on, plus the iOS 15 build guards | — |
+| Project    | What it is                                                             | Dev port |
+| ---------- | ---------------------------------------------------------------------- | -------- |
+| `backend/` | REST API, Prisma schema, auth, images, reports, the verification suite | 4000     |
+| `admin/`   | Products, stock, orders, reports, users, settings, approvals           | 3000     |
+| `pos/`     | The counter: scan or search, cart, discounts, checkout                 | 3001     |
+| `shared/`  | Types + Zod schemas both sides agree on, plus the iOS 15 build guards  | —        |
 
 ## Stack
 
@@ -59,8 +60,8 @@ Then bring up the API:
 
 ```bash
 cp backend/.env.example backend/.env       # set DATABASE_URL, BETTER_AUTH_SECRET, …
-sudo -u postgres psql -c "CREATE ROLE organza WITH LOGIN PASSWORD 'organza_dev_pw' CREATEDB;"
-sudo -u postgres psql -c "CREATE DATABASE organza OWNER organza;"
+sudo -u postgres psql -c "CREATE ROLE store WITH LOGIN PASSWORD 'store_dev_pw' CREATEDB;"
+sudo -u postgres psql -c "CREATE DATABASE store OWNER store;"
 
 cd backend
 npx prisma migrate dev     # all tables + the pg_trgm extension used by fuzzy search
@@ -119,18 +120,18 @@ npm run db:reset           # DESTRUCTIVE — manual, double-confirmed
 
 Only one of these is automatic. The rest are typed by a person, on purpose.
 
-| Command | What it creates | When |
-|---|---|---|
-| `npm run bootstrap` | The Setting singleton, global variant types, expense categories, role permissions — each **once in the life of the database** | Every deploy |
-| `npm run seed:demo` | A fake catalogue for development and the API tests | By hand, dev/sandbox only — refuses a database not declared disposable |
-| `npm run init` | The shop's real staff, from a git-ignored roster file | By hand, once — refuses a database that already has users |
-| `npm run import:prod` | The live catalogue copied into the sandbox, one way | By hand, on the sandbox server only |
-| `npm run db:reset` | Nothing — it wipes | By hand, double-confirmed |
+| Command               | What it creates                                                                                                               | When                                                                   |
+| --------------------- | ----------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| `npm run bootstrap`   | The Setting singleton, global variant types, expense categories, role permissions — each **once in the life of the database** | Every deploy                                                           |
+| `npm run seed:demo`   | A fake catalogue for development and the API tests                                                                            | By hand, dev/sandbox only — refuses a database not declared disposable |
+| `npm run init`        | The shop's real staff, from a git-ignored roster file                                                                         | By hand, once — refuses a database that already has users              |
+| `npm run import:prod` | The live catalogue copied into the sandbox, one way                                                                           | By hand, on the sandbox server only                                    |
+| `npm run db:reset`    | Nothing — it wipes                                                                                                            | By hand, double-confirmed                                              |
 
 ## Verification
 
 `npm run verify -w backend` runs the whole suite against a **live, already-seeded API** and
-prints a verdict per *area* rather than per file, so a money bug is obvious at a glance:
+prints a verdict per _area_ rather than per file, so a money bug is obvious at a glance:
 pricing, discounts and rounding, quantities and stock, returns, the cash drawer, sold vs
 received vs owed, profit, permissions and data exposure, passwords and go-live, edge cases,
 and the API contract. It writes a shareable report to `backend/tests/verify-report.md`.
@@ -142,15 +143,15 @@ production. See `backend/README.md` for the guards.
 
 ## Where things are documented
 
-| File | What it holds |
-|---|---|
-| **`spec.md`** | The product. Every behavioural rule: products, variants, SKUs, barcodes, search, roles, permissions, approvals, quick sell, orders, the cash drawer, reports. **The answer is usually here.** |
-| **`CLAUDE.md`** | The operating manual for working in this repo — the hard rules, the structural conventions, the mobile/RTL/iOS-15 constraints. Read it before making a change. |
-| `backend/README.md` | API setup, endpoints, the verification suite, going live, backups, auth notes, layout |
-| `admin/README.md` | Admin setup, i18n, auth, API client, app icons, layout |
-| `pos/README.md` | POS setup, the selling screen, roles, layout |
-| `ops/README.md` | The data that cannot be rebuilt: volumes, backups, restores, the drills |
-| `SECURITY-AUDIT.md` | A findings-and-fixes record of the security review |
+| File                | What it holds                                                                                                                                                                                 |
+| ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **`spec.md`**       | The product. Every behavioural rule: products, variants, SKUs, barcodes, search, roles, permissions, approvals, quick sell, orders, the cash drawer, reports. **The answer is usually here.** |
+| **`CLAUDE.md`**     | The operating manual for working in this repo — the hard rules, the structural conventions, the mobile/RTL/iOS-15 constraints. Read it before making a change.                                |
+| `backend/README.md` | API setup, endpoints, the verification suite, going live, backups, auth notes, layout                                                                                                         |
+| `admin/README.md`   | Admin setup, i18n, auth, API client, app icons, layout                                                                                                                                        |
+| `pos/README.md`     | POS setup, the selling screen, roles, layout                                                                                                                                                  |
+| `ops/README.md`     | The data that cannot be rebuilt: volumes, backups, restores, the drills                                                                                                                       |
+| `SECURITY-AUDIT.md` | A findings-and-fixes record of the security review                                                                                                                                            |
 
 ## Current phase
 
@@ -179,7 +180,7 @@ The full list is in `CLAUDE.md`. These are the ones that bite hardest:
 - **Role gating is enforced on the backend**, not hidden in the UI. `cost` and everything derived
   from it (COGS, profit, margin, inventory value) is Admin-only and **absent** from the response
   for everyone else — not zeroed.
-- **No hard-coded user-facing text, anywhere.** The backend returns translation *keys*
+- **No hard-coded user-facing text, anywhere.** The backend returns translation _keys_
   (`error.*`), never sentences. A single hard-coded string is a bug.
 - **Nobody is handed a password.** Staff accounts are created with none, and their owner sets one
   from a single-use, time-limited emailed link.
@@ -191,11 +192,11 @@ The full list is in `CLAUDE.md`. These are the ones that bite hardest:
 ### And two the browser will not warn you about
 
 - **The oldest phone on the floor runs iOS 15**, and both frontends declare it in their
-  browserslist. CSS fails *silently* there — no build error, no console message, perfect on every
+  browserslist. CSS fails _silently_ there — no build error, no console message, perfect on every
   desktop browser — so it is enforced by three build guards wired into `npm run build`:
   `check-messages.js`, then `next build`, then `check-browser-target.js` and
   `check-css-target.js`. Colours are written once in `oklch()` and their sRGB fallback is
-  *generated*; never hand-write a second palette, and never put a `var()` inside a colour function.
+  _generated_; never hand-write a second palette, and never put a `var()` inside a colour function.
 - **Arabic needs more vertical room than Latin at the same size.** Both apps override the line
   heights for it. Do not put `leading-tight`, `leading-snug` or `leading-none` back on Arabic
   text — the damage only shows where something clips.
@@ -205,18 +206,19 @@ The full list is in `CLAUDE.md`. These are the ones that bite hardest:
 GitHub Actions deploys over SSH to the user's own VPS, building on the VPS from its own clone.
 Two branches, two stacks, two sets of volumes:
 
-| Branch | Stack | Compose file | API |
-|---|---|---|---|
-| `sandbox` | `organza-sandbox` | `docker-compose.sandbox.yml` | `api.sandbox.organza-moda.com` |
-| `production` | `organza-prod` | `docker-compose.prod.yml` | `api.organza-moda.com` |
+| Branch       | Stack                                   | Compose file                 | API                               |
+| ------------ | --------------------------------------- | ---------------------------- | --------------------------------- |
+| `sandbox`    | `STACK_NAME` in the sandbox env file    | `docker-compose.sandbox.yml` | `PUBLIC_API_URL` in the same file |
+| `production` | `STACK_NAME` in the production env file | `docker-compose.prod.yml`    | `PUBLIC_API_URL` in the same file |
 
 All three images are multi-stage and only the last stage ships. `.env` files live on the VPS and
 are never committed. The deploy applies migrations and runs `npm run bootstrap` — **never** demo
 data, never `init`, never `db:reset`.
 
 Persistent data lives on named volumes at absolute paths the app is told explicitly: the database
-and the uploaded photographs are the only two things a deploy cannot rebuild. Renaming a volume
-key or the compose `name:` points the stack at a new, empty volume. See `ops/README.md` for
+and the uploaded photographs are the only two things a deploy cannot rebuild. Volume names come from
+`STACK_NAME` in the stack env file plus the volume key; changing either points the stack at a new,
+empty volume. See `ops/README.md` for
 backups, restores and the drills.
 
 No third-party hosting or paid services. Sentry's and Resend's free tiers are the only external

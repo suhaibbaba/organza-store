@@ -1,39 +1,40 @@
-import { NUMBER_VARIANT_TYPE_SLUG } from "@organza/shared/constants/variantType";
-import type { Product } from "@organza/shared/types/product";
-import type { Variant } from "@organza/shared/types/variant";
+import { NUMBER_VARIANT_TYPE_SLUG } from "@store/shared/constants/variantType";
+import type { Product } from "@store/shared/types/product";
+import type { Variant } from "@store/shared/types/variant";
 
-// Which variant type carries the numbers, so a variant's number can be read
-// off it below. Only ever consulted on a product that already says it is
-// numbered — this locates the number, it does not decide anything.
+// Only consulted on a product already flagged numbered: it locates the number, it decides nothing.
 export function numberVariantTypeId(product: Product): string | null {
   return product.variantTypes.find((type) => type.slug === NUMBER_VARIANT_TYPE_SLUG)?.id ?? null;
 }
 
-// Numbered shawls (spec.md) say so themselves: the POS reads the product's
-// own explicit flag, exactly like the admin does, rather than guessing from
-// the variant types it happens to use.
+// The product's explicit flag, as in the admin, never a guess from its variant types.
 export function isNumberedProduct(product: Product): boolean {
   return product.isNumbered;
 }
 
-// The number a variant carries, as printed on the shared photo. Taken from
-// the option value's stable `key` rather than its translated text
-// (CLAUDE.md rule 9: identity never depends on a translation) — digits read
-// the same in all three languages, but the key is what the value is really
-// filed under.
+// From the option value's stable key, never its translation (rule 9).
 export function variantNumber(variant: Variant, numberTypeId: string): string | null {
   return variant.values.find((value) => value.variantTypeId === numberTypeId)?.key ?? null;
 }
 
-// Every variant whose number matches what the cashier typed. Usually exactly
-// one — a numbered shawl offers nothing but numbers (spec.md deliberately
-// omits sizes/colours for them) — but a product that pairs numbers with, say,
-// a colour would legitimately return several, and the picker then narrows
-// to those rather than guessing one.
+// Usually one, but a product pairing numbers with a colour legitimately returns several.
 export function variantsByNumber(product: Product, typed: string): Variant[] {
   const numberTypeId = numberVariantTypeId(product);
-  if (!numberTypeId) return [];
+  if (!numberTypeId) {
+    return [];
+  }
   const wanted = typed.trim();
-  if (!wanted) return [];
+  if (!wanted) {
+    return [];
+  }
   return product.variants.filter((variant) => variantNumber(variant, numberTypeId) === wanted);
+}
+
+// Otherwise the picker shows the plain thumbnail.
+export function hasPlacedNumbers(product: Product): boolean {
+  return (
+    product.isNumbered &&
+    product.images.length > 0 &&
+    product.variants.some((variant) => variant.imageX != null && variant.imageY != null)
+  );
 }

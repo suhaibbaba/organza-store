@@ -1,20 +1,11 @@
-import type { OptionValueNoteInput } from "@organza/shared/schemas/product";
-import type { I18n } from "@organza/shared/types/common";
-import type { Product } from "@organza/shared/types/product";
-import type { VariantType } from "@organza/shared/types/variant";
+import type { OptionValueNoteInput } from "@store/shared/schemas/product";
+import type { I18n } from "@store/shared/types/common";
+import type { Product } from "@store/shared/types/product";
+import type { VariantType } from "@store/shared/types/variant";
 import { localize } from "@/lib/i18n-content";
 import type { I18nFormValue, OptionValueNoteGroup, VariantSelectionMap } from "@/types/productForm";
 
-// The product form's working shape for the notes it writes against option
-// values (spec.md "Notes on a product's options"). Notes are edited as plain
-// strings per language, like the name and the description, and turned into
-// the API's shape only at save time.
-//
-// Rows are keyed by a STRING the caller chooses rather than by the option
-// value id: for an ordinary product that key is the value id, but a numbered
-// shawl writes notes against numbers it has only just placed, whose global
-// value does not exist until the save resolves it. Keeping the key opaque is
-// what lets one editor serve both.
+// Keyed by an opaque string, because a numbered shawl's new numbers have no value id until the save.
 
 export type OptionValueNoteMap = Record<string, I18nFormValue>;
 
@@ -45,7 +36,7 @@ export function setNoteLanguage(
   notes: OptionValueNoteMap,
   key: string,
   language: keyof I18nFormValue,
-  text: string
+  text: string,
 ): OptionValueNoteMap {
   return { ...notes, [key]: { ...noteFor(notes, key), [language]: text } };
 }
@@ -54,20 +45,11 @@ export function countNotes(notes: OptionValueNoteMap): number {
   return Object.values(notes).filter((value) => !isBlank(value)).length;
 }
 
-/**
- * Only what changed, in the API's shape — a note that was cleared is sent as
- * an explicit `null` (which removes it), and one that was never touched is
- * not sent at all, so a save can never overwrite a note this screen didn't
- * know about.
- *
- * `resolveOptionValueId` turns a row key into the option value the note
- * belongs to; a row whose value does not exist yet (a number placed in this
- * same save, before it was resolved) is skipped rather than guessed at.
- */
+// Only what changed: cleared is null, untouched is omitted, so a save can't overwrite unseen notes.
 export function diffOptionValueNotes(
   initial: OptionValueNoteMap,
   current: OptionValueNoteMap,
-  resolveOptionValueId: (key: string) => string | null = (key) => key
+  resolveOptionValueId: (key: string) => string | null = (key) => key,
 ): OptionValueNoteInput[] {
   const changes: OptionValueNoteInput[] = [];
 
@@ -75,12 +57,16 @@ export function diffOptionValueNotes(
     const before = noteFor(initial, key);
     const after = noteFor(current, key);
     const sameInEveryLanguage = (["ar", "en", "he"] as const).every(
-      (language) => before[language].trim() === after[language].trim()
+      (language) => before[language].trim() === after[language].trim(),
     );
-    if (sameInEveryLanguage) continue;
+    if (sameInEveryLanguage) {
+      continue;
+    }
 
     const optionValueId = resolveOptionValueId(key);
-    if (!optionValueId) continue;
+    if (!optionValueId) {
+      continue;
+    }
 
     changes.push({
       optionValueId,
@@ -89,7 +75,7 @@ export function diffOptionValueNotes(
         : Object.fromEntries(
             (["ar", "en", "he"] as const)
               .map((language) => [language, after[language].trim()] as const)
-              .filter(([, text]) => text.length > 0)
+              .filter(([, text]) => text.length > 0),
           ),
     });
   }
@@ -97,14 +83,10 @@ export function diffOptionValueNotes(
   return changes;
 }
 
-/**
- * The values a note may be written against while a product is being CREATED:
- * whatever has just been ticked in the option picker.
- */
 export function noteGroupsFromSelections(
   variantTypes: VariantType[],
   selections: VariantSelectionMap,
-  locale: string
+  locale: string,
 ): OptionValueNoteGroup[] {
   return variantTypes
     .filter((type) => (selections[type.id] ?? []).length > 0)
@@ -117,11 +99,6 @@ export function noteGroupsFromSelections(
     }));
 }
 
-/**
- * The values a note may be written against on a product that already exists:
- * every value its variants actually use, each listed once, grouped by the
- * type it belongs to and in the order the variants present them.
- */
 export function noteGroupsFromProduct(product: Product, locale: string): OptionValueNoteGroup[] {
   const groups = new Map<string, OptionValueNoteGroup>();
 

@@ -1,5 +1,5 @@
-import type { VariantType, VariantOptionValue } from "@organza/shared/types/variant";
-import type { CreateVariantTypeInput, AddOptionValueInput } from "@organza/shared/schemas/variantType";
+import type { VariantType, VariantOptionValue } from "@store/shared/types/variant";
+import type { CreateVariantTypeInput, AddOptionValueInput } from "@store/shared/schemas/variantType";
 import { apiFetch } from "@/lib/api/client";
 
 export async function fetchVariantTypes(): Promise<VariantType[]> {
@@ -12,10 +12,7 @@ export async function createVariantType(input: CreateVariantTypeInput): Promise<
   return data;
 }
 
-export async function addOptionValue(
-  variantTypeId: string,
-  input: AddOptionValueInput
-): Promise<VariantOptionValue> {
+export async function addOptionValue(variantTypeId: string, input: AddOptionValueInput): Promise<VariantOptionValue> {
   const { data } = await apiFetch<VariantOptionValue>(`/api/variant-types/${variantTypeId}/values`, {
     method: "POST",
     body: input,

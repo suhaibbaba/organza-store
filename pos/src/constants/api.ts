@@ -1,5 +1,4 @@
-// Better Auth's own routes, mounted at /api/auth/* on the backend (see
-// backend/src/index.ts). Not part of our REST resource routes.
+// Better Auth's own routes, mounted at /api/auth/* on the backend.
 export const AUTH_ENDPOINTS = {
   SIGN_IN_EMAIL: "/api/auth/sign-in/email",
   SIGN_OUT: "/api/auth/sign-out",
@@ -7,33 +6,31 @@ export const AUTH_ENDPOINTS = {
 } as const;
 
 export const SESSION_QUERY_KEY = ["session"] as const;
+export const PROFILE_QUERY_KEY = ["profile"] as const;
+export const PROFILE_SESSIONS_QUERY_KEY = ["profile", "sessions"] as const;
 export const SETTINGS_QUERY_KEY = ["settings"] as const;
-// Which actions each role holds (spec.md "Editable role permissions"). Loaded
-// with the session and pushed into `can()` — see PermissionsProvider. Held
-// for the shift: a shop changes this from the admin, not from the till.
+
+// Each role's actions, loaded with the session and held for the shift.
 export const PERMISSIONS_QUERY_KEY = ["permissions"] as const;
 export const PRODUCT_SEARCH_QUERY_KEY = ["products", "search"] as const;
-// The product browser's grid — a page of a category (optionally narrowed by
-// its own search box), kept apart from the search box's key so opening the
-// drawer never evicts the results the cashier already has on screen.
+
+// Kept apart from the search key, so opening search never evicts the grid on screen.
 export const PRODUCT_BROWSE_QUERY_KEY = ["products", "browse"] as const;
-// The shop's shelves, for the browser's sidebar. Changed from the admin
-// perhaps once a season, so it is held for the shift.
+
+// How many products the till can sell — the figure on the "All" tile.
+export const PRODUCT_COUNT_QUERY_KEY = ["products", "count"] as const;
+// Categories rarely change, so they are held for the shift.
 export const CATEGORIES_QUERY_KEY = ["categories"] as const;
 export const CATEGORIES_STALE_TIME_MS = 30 * 60 * 1000;
 export const PRODUCT_DETAIL_QUERY_KEY = ["products", "detail"] as const;
 export const PRODUCT_LOOKUP_QUERY_KEY = ["products", "lookup"] as const;
-// Repeat customers, matched on the phone digits typed so far (there is no
-// Customer entity — these come out of past orders' snapshots).
+
+// Repeat customers by phone digits typed so far, from past orders' snapshots (there is no Customer table).
 export const CUSTOMER_SUGGESTION_QUERY_KEY = ["orders", "customerSuggestions"] as const;
 
-// The running API's build number (GET /api/version) — read out alongside the
-// app's own when something looks stale, never polled.
+// The API's build number, read when something looks stale; never polled.
 export const API_VERSION_QUERY_KEY = ["version"] as const;
 export const API_VERSION_STALE_TIME_MS = 5 * 60 * 1000;
 
-// Sign-in refused because it has been tried too often, not because the
-// password was wrong (Better Auth rate-limits that route). Worth telling
-// apart on screen: the two are indistinguishable otherwise, and a password
-// that was in fact correct then looks broken.
+// Too many sign-in attempts, told apart on screen from a wrong password.
 export const HTTP_TOO_MANY_REQUESTS = 429;

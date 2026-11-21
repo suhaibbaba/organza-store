@@ -1,1 +1,1 @@
-export * from "@organza/shared/constants/errors";
+export * from "@store/shared/constants/errors";

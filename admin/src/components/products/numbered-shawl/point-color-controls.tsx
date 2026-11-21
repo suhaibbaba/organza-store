@@ -1,9 +1,9 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import type { PointColors } from "@organza/shared/constants/numberedShawl";
-import { Button } from "@/components/ui/button";
-import { ColorInput } from "@/components/ui/color-input";
+import type { PointColors } from "@store/shared/constants/numberedShawl";
+import { Button } from "@store/ui";
+import { ColorInput } from "@/components/fields/color-input";
 
 interface PointColorControlsProps {
   /** The product's stored choice, or null while it still follows the photo. */
@@ -18,11 +18,7 @@ interface PointColorControlsProps {
   disabled?: boolean;
 }
 
-// The colour of this product's numbers (spec.md "Numbered shawls"), one pair
-// for all of them. Presented as a suggestion the shop can overrule rather
-// than a decision it has to make: the pickers open on whatever the photo
-// suggested, and touching one pins it — including through a replaced
-// photograph, which is the point of storing it.
+// One pair for all numbers: opens on the photo's suggestion, and touching one pins it even through a replaced photo (spec.md "Numbered shawls").
 export function PointColorControls({
   textColor,
   backgroundColor,
@@ -36,17 +32,17 @@ export function PointColorControls({
   const isAuto = textColor === null && backgroundColor === null;
 
   return (
-    <div className="flex flex-col gap-3 rounded-xl border border-border bg-card p-3">
+    <div className="flex flex-col gap-3 rounded-panel border border-line bg-surface p-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <span className="text-sm font-medium text-foreground">{t("title")}</span>
+        <span className="text-label font-medium text-ink">{t("title")}</span>
         {!isAuto && (
-          <Button type="button" variant="ghost" size="sm" onClick={onUseSuggestion} disabled={disabled}>
+          <Button variant="quiet" onClick={onUseSuggestion} disabled={disabled}>
             {t("useSuggestion")}
           </Button>
         )}
       </div>
 
-      <p className="text-sm text-muted-foreground">{isAuto ? t("autoHint") : t("chosenHint")}</p>
+      <p className="text-label text-ink-muted">{isAuto ? t("autoHint") : t("chosenHint")}</p>
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <ColorInput
@@ -65,7 +61,7 @@ export function PointColorControls({
         />
       </div>
 
-      {adjustedForContrast && <p className="text-sm text-muted-foreground">{t("contrastAdjusted")}</p>}
+      {adjustedForContrast && <p className="text-label text-ink-muted">{t("contrastAdjusted")}</p>}
     </div>
   );
 }

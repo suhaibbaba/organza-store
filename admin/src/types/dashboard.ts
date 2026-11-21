@@ -1,25 +1,56 @@
-import type { DashboardSummary } from "@organza/shared/types/dashboard";
+import type { ReactNode } from "react";
+import type { LucideIcon } from "lucide-react";
+import type { DashboardSummary } from "@store/shared/types/dashboard";
+import type { CurrentCashSession } from "@store/shared/types/cash";
+import type { DailySales, PeriodSummary, SalesSummary } from "@/types/report";
 
 export type { DashboardSummary };
 
-// How a figure is coloured. `warning` is money someone else is holding —
-// it must never read as takings; `positive` is money the shop has.
+// `warning` is money someone else holds and must never read as takings.
 export type FigureTone = "default" | "positive" | "warning";
 
-// Where the blind count has got to (see close-day-sheet.tsx).
-//
-//   counting — the expected figure is deliberately withheld while the drawer
-//              is counted, so nobody can make the count agree with the books;
-//   reveal   — the count disagreed: expected vs counted vs difference are now
-//              on screen, and the difference has to be explained before it
-//              can be saved;
-//   done     — closed, with the comparison shown.
+// counting withholds the expected figure; reveal shows the difference, which must be explained; done is closed.
 export type CloseDayStep = "counting" | "reveal" | "done";
 
-// What the server said when it refused an unexplained difference, and what
-// it says once the day is closed. Money as 2dp strings, like everywhere else.
 export interface CountComparison {
   expected: string;
   counted: string;
   difference: string;
+}
+
+export type DashboardTodoKey = "approvals" | "incomplete" | "labels" | "lowStock" | "uncollected" | "followUps";
+
+export interface DashboardTodoMeta {
+  icon: LucideIcon;
+  href: string | null;
+}
+
+export interface DashboardTodoRow {
+  key: DashboardTodoKey;
+  value: ReactNode;
+  // Zero is nothing to act on, so the row reads muted.
+  active: boolean;
+}
+
+export interface DashboardHeroProps {
+  name: string;
+  today: PeriodSummary;
+  drawer: CurrentCashSession | undefined;
+}
+
+export interface DashboardTodayStripProps {
+  today: PeriodSummary;
+}
+
+export interface DashboardSalesBarsProps {
+  daily: DailySales;
+}
+
+export interface DashboardPeriodBriefProps {
+  summary: SalesSummary;
+}
+
+export interface DashboardTodoListProps {
+  summary: DashboardSummary;
+  drawer: CurrentCashSession | undefined;
 }

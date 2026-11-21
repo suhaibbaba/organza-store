@@ -1,82 +1,28 @@
 import type { Role } from "@/types/role";
 
-// Every action currently enforced across backend + admin (CLAUDE.md rule 5,
-// spec.md "Roles & Permissions"). Adding a capability later means adding an
-// entry here, to DEFAULT_ROLE_PERMISSIONS below, and to exactly one of
-// PROTECTED_ACTIONS / CONFIGURABLE_ACTIONS — callers only ever call
-// `can(user, action)` (see lib/permissions.ts) and never touch this list,
-// which is what let the source of the rules move into the database
-// (spec.md "Editable role permissions") without a single call site changing.
+// Every enforced action (rule 5). A new one goes here, in DEFAULT_ROLE_PERMISSIONS and the admin's PERMISSION_GROUPS; callers only use can().
 export const PERMISSION_ACTIONS = [
   "dashboard.view",
 
   "product.view",
   "product.create",
   "product.edit",
-  // What a product SELLS for: basePrice, compareAtPrice and a variant's
-  // priceOverride. Split out of product.edit so an Employee can fix a name,
-  // a description or a category on a piece already on the shelf without
-  // being able to re-price it — the money side stays with Admin/Manager.
-  // `cost` is not here: it is invisible to an Employee entirely
-  // (product.viewCost, CLAUDE.md rule 19).
+  // Selling price (basePrice, compareAtPrice, priceOverride), split from product.edit so an Employee can fix details without re-pricing.
   "product.editPrice",
   "product.delete",
   "product.hide",
-  // WHICH variants a product has — adding combinations, or removing one.
-  // Split out of product.edit for the same reason product.editPrice was: an
-  // Employee may fix a name or a photo on a piece already on the shelf, but
-  // changing what the piece even IS reaches its stock, its barcodes and its
-  // labels all at once (spec.md "Employee change approvals"), so it stays
-  // with Admin/Manager — and an Employee's attempt becomes a request.
+  // Which variants a product has, split from product.edit: it reaches stock, barcodes and labels at once, so an Employee's attempt is a request.
   "product.editVariantSet",
-  // What a piece COST the shop, and everything derived from it: COGS, gross
-  // and net profit, margin, the inventory valuation at cost. ADMIN ONLY —
-  // this is the owner's own margin, and it is not a Manager's to read
-  // (CLAUDE.md rule 19). One action gates the field and every figure computed
-  // from it, so there is no second place a profit number can slip out of.
+  // Cost and everything derived from it (COGS, profit, margin, valuation at cost): Admin only, one gate for all of it (rule 19).
   "product.viewCost",
-  // Printing barcode labels and recording that they were printed. Held by
-  // every role on purpose: an Employee may add products (spec.md), and a new
-  // piece is useless on the shelf until its label is on it. It writes nothing
-  // but the print timestamp — no price, stock or visibility — so it stays
-  // clear of the edit/delete/hide gates an Employee must not pass.
+  // Every role: a new piece needs its label, and printing writes only the print timestamp.
   "product.printLabels",
-  // Ringing up a piece that is not in the catalogue yet (spec.md "Quick
-  // sell"): a name, a price, and the sale completes. Held by EVERY role on
-  // purpose — that is the whole point of it. It happens when the shop is
-  // busiest, and a permission that stops the person at the till from taking
-  // money would only produce a sale written on paper.
-  //
-  // It is not product.create by another name: it creates a deliberately
-  // incomplete product (no category, no cost, no barcode of anybody's
-  // choosing, no photographs) and files it for review, so it grants none of
-  // what adding a product properly grants.
+  // Every role, on purpose (spec.md "Quick sell"): it creates a deliberately incomplete product for review and grants nothing of product.create.
   "product.quickSell",
-  // Finishing a quick-sold product off: choosing its category, its cost, its
-  // barcode and its photographs, or ruling that it was a one-off. Admin and
-  // Manager — this is catalogue curation and it decides what the shop is
-  // holding, which is not the job of whoever was at the counter.
-  //
-  // Its own action rather than a reuse of changeRequest.approve, which is
-  // Admin-only as shipped for a different reason entirely: approving a gated
-  // change is permission BEFORE the fact, while completing a quick sale is
-  // review AFTER it, on money already taken. Widening one must not widen the
-  // other.
+  // Completing a quick-sold product (category, cost, barcode, photos, or one-off): review after the sale, separate from changeRequest.approve.
   "product.complete",
 
-  // The Reports screen and the endpoints behind it: sales by period, the
-  // channel split, best sellers, returns, and — for whoever also holds
-  // product.viewCost — cost, COGS, profit and margin. ADMIN ONLY.
-  //
-  // Its own action rather than a reuse of order.view, which was the bug this
-  // replaces: order.view is held by an Employee so they can ring up and
-  // follow the orders they take, and hanging the reports off it handed them
-  // the shop's whole takings as a side effect. Reading ONE order you took is
-  // not the same as reading EVERY order added up, so the two are now
-  // different permissions. Modelled separately from product.viewCost as well,
-  // even though both are Admin-only today: that one gates cost-derived
-  // figures wherever they appear, this one gates a screen, and widening
-  // either later must not silently widen the other.
+  // The Reports screen: Admin only, separate from order.view, so following your own orders never adds up to the shop's takings.
   "report.view",
 
   "category.view",
@@ -85,15 +31,9 @@ export const PERMISSION_ACTIONS = [
   "inventory.view",
   "inventory.adjust",
 
-  // Adding to the global option lists — a new type (Material), or a new
-  // value under an existing one (Emerald). Additive only, which is what
-  // makes it safe for an Employee to hold: it is part of adding a product
-  // (spec.md "Inline add"), and nothing already on the shelf changes just
-  // because a new colour exists.
+  // Adding option types or values is additive, so an Employee may (spec.md "Inline add").
   "variantType.create",
-  // Changing or removing what is already there. A rename reaches every
-  // product using that value (CLAUDE.md rule 2) and a deletion would pull it
-  // out from under them, so this one stays with Admin/Manager.
+  // Renaming or removing reaches every product using the value (rule 2), so Admin/Manager only.
   "variantType.manage",
 
   "images.edit",
@@ -101,212 +41,75 @@ export const PERMISSION_ACTIONS = [
 
   "order.view",
   "order.create",
-  // Advancing an order along the flow, up to handing it to the courier
-  // (spec.md: Employees "create + hand over" orders). Cancelling is NOT part
-  // of this — it has its own action below, so an Employee can move an order
-  // forward but never void it.
+  // Moving an order forward up to the courier; cancelling has its own action, so an Employee can never void one.
   "order.updateStatus",
   "order.edit",
   "order.cancel",
   "order.delete",
-  // Reversing a sale, in whole or in part. Gated with cancel/delete rather
-  // than with updateStatus for the same reason: a sale must not be undoable
-  // by the person who rang it up.
+  // Gated with cancel/delete: a sale must not be undoable by the person who rang it up.
   "order.return",
-  // Recording that the delivery company has actually paid for an order.
-  // Admin/Manager only: this is the shop's cash position, and the person who
-  // took the order must not be able to declare its money received — the same
-  // anti-theft reasoning that keeps cancel and delete out of their hands.
+  // Admin/Manager: whoever took the order must not declare its money received.
   "order.markCollected",
-  // Giving stock away: an order of type GIFT, rung up at the POS, which
-  // deducts stock exactly like a sale but takes no money. Admin/Manager only
-  // — an Employee who could file a sale as a gift could walk out with the
-  // piece, which is the same reasoning that keeps cancel and delete from
-  // them.
+  // A GIFT order deducts stock and takes no money, so Admin/Manager only.
   "order.createGift",
 
-  // --- the cash drawer (spec.md "Cash drawer & expenses") ---
-  // Opening the day's drawer, closing it against a physical count, and
-  // reading what it says. Admin/Manager only, both halves: the count IS the
-  // shop's cash position, so the person standing at the till must not be the
-  // one who declares what should have been in it.
+  // Cash drawer: Admin/Manager for both halves, since the count is the shop's cash position (spec.md "Cash drawer & expenses").
   "cashSession.view",
   "cashSession.manage",
 
-  // --- expenses ---
-  // Recording what the shop spent. Held by every role on purpose: whoever
-  // pays the electricity bill should be able to write it down there and then.
-  // An Employee's expense opens PENDING and buys nothing until it is
-  // approved, so this is a request, not a payout.
+  // Every role may record an expense; an Employee's opens PENDING and pays nothing until approved.
   "expense.create",
-  // Reading the expense list, which is the shop's spending laid bare —
-  // Admin/Manager, like every other figure that adds up to profit.
+  // The expense list is the shop's spending: Admin/Manager.
   "expense.view",
   // Editing and deleting an expense after the fact.
   "expense.manage",
   // Signing off (or refusing) an expense someone else recorded.
   "expense.approve",
 
-  // The category list an expense is filed under. Everyone may READ it —
-  // picking "Utilities" is part of recording an expense — but changing the
-  // list itself reaches every past expense, so it stays with Admin/Manager.
+  // Everyone reads the categories; changing them reaches every past expense, so Admin/Manager.
   "expenseCategory.view",
   "expenseCategory.manage",
 
-  // --- change requests (spec.md "Employee change approvals") ---
-  // Being allowed to ASK for a change you may not make yourself. Held by
-  // every role, and only ever reached by someone who lacks the permission
-  // that would apply the change outright: an Admin re-prices a piece, an
-  // Employee asks to. Without it a gated action is simply refused, which is
-  // what the flow looked like before this existed.
+  // Asking for a change you may not make yourself (spec.md "Employee change approvals"); without it a gated action is refused.
   "changeRequest.create",
-  // Reading requests. Held by every role, but it does NOT mean "read
-  // everyone's": the route narrows the list to your own unless you also hold
-  // changeRequest.approve (see routes/changeRequests.ts). An Employee has to
-  // be able to see that their price change is waiting rather than lost.
+  // Every role, but the route narrows the list to your own unless you hold changeRequest.approve.
   "changeRequest.view",
-  // Taking your OWN request back while it is still waiting. Held by every
-  // role, and — like changeRequest.view — it does not mean "anybody's": the
-  // route also checks that the caller is the one who asked. Somebody who
-  // typed the wrong price should not have to occupy an Admin's attention to
-  // undo it, but withdrawing is the asker's only. An Admin who disagrees
-  // REJECTS, which stays on the record; a decided request can never be
-  // withdrawn at all.
+  // Withdrawing your OWN pending request (the route checks the asker); decided requests can never be withdrawn.
   "changeRequest.cancel",
-  // Deciding one. ADMIN ONLY for now — this is the whole point of the gate,
-  // and the person who asked must never be able to sign their own request
-  // off. Modelled as its own action rather than as "is the user an Admin" so
-  // that widening it later (a senior Manager, a second Admin tier) is one
-  // entry in ROLE_PERMISSIONS below and nothing else.
+  // Deciding a request: Admin only as shipped, and never the asker's; its own action so widening it is one entry.
   "changeRequest.approve",
 
   "user.manage",
-  // ERASING a staff account, rather than editing or deactivating one.
-  //
-  // Its own action rather than part of user.manage, for the same reason
-  // changeRequest.approve is not part of changeRequest.view: the two are
-  // different powers that happen to sit on the same screen today. Editing
-  // somebody's phone number and destroying their account permanently should
-  // not be one permission, and widening who may do the first must not
-  // silently widen the second.
-  //
-  // It is only ever reachable for an account with NO history — one order,
-  // one expense or one audit entry and the API refuses and says to deactivate
-  // instead (routes/users.ts). So this is the permission to tidy up a
-  // mistake, not a permission to make somebody's work disappear.
+  // Erasing a staff account, separate from user.manage; the API allows it only for accounts with no history (routes/users.ts).
   "user.delete",
   "user.viewSensitive",
 
   "settings.manage",
 
-  // Editing this very table: which actions the Manager and the Employee hold
-  // (spec.md "Editable role permissions"). Admin only as shipped, and
-  // grantable like everything else — but whoever holds it can still never
-  // touch their own role or the ADMIN role (routes/permissions.ts), so
-  // handing it out can never take it, or anything else, away from an Admin.
+  // Editing this table: Admin as shipped and grantable, but nobody edits their own role or the ADMIN role (routes/permissions.ts).
   "permission.manage",
 ] as const;
 
 type Action = (typeof PERMISSION_ACTIONS)[number];
 
-// ===========================================================================
-//  PROTECTED vs CONFIGURABLE (spec.md "Editable role permissions")
-// ===========================================================================
-//
-// Every action is CONFIGURABLE: the shop decides, from the admin's
-// Permissions screen, which of the Manager's and the Employee's powers they
-// hold — including the money ones (cost and profit, the reports, re-pricing,
-// cancelling or returning a sale, gifts, marking money collected, approvals,
-// staff and this table itself). That was the owner's call to make, and they
-// made it.
-//
-// What stops that from becoming a way to lock the shop out is not this list
-// but the ADMIN role, which is never configurable: an Admin always holds
-// everything (CLAUDE.md rule 5), `can()` answers it from the shipped table
-// alone, and the API refuses any edit to the ADMIN row — from an Admin
-// (nobody edits their own role) and equally from a Manager who has been
-// handed permission.manage. Together with routes/users.ts refusing to demote
-// or deactivate the last active Admin, there is still no sequence of edits
-// that ends with nobody able to administer the shop.
-//
-// The PROTECTED mechanism itself is kept, empty: re-locking an action later
-// is one entry here, and the resolver, the API and the screen already honour
-// it.
+// Every action is configurable; the unconfigurable ADMIN role is what prevents a lockout. PROTECTED stays, empty, to re-lock one later.
 
-/**
- * Never editable, by anyone, through any UI or API. Empty today — see above.
- *
- * `can()` resolves these from DEFAULT_ROLE_PERMISSIONS alone and never looks
- * at the stored config.
- */
+/** Never editable through any UI or API; can() answers these from DEFAULT_ROLE_PERMISSIONS alone. Empty today. */
 export const PROTECTED_ACTIONS = [] as const satisfies readonly Action[];
 
-/**
- * Editable per role from the admin's Permissions screen, stored in the
- * database, and resolved by `can()` from there.
- *
- * Everything PROTECTED_ACTIONS does not claim. Derived rather than typed out
- * a second time, so the two can never drift apart or leave an action in
- * neither list.
- */
+/** Editable per role and stored in the database; derived as the complement of PROTECTED_ACTIONS so the two cannot drift. */
 export const CONFIGURABLE_ACTIONS = PERMISSION_ACTIONS.filter(
-  (action) => !(PROTECTED_ACTIONS as readonly string[]).includes(action)
+  (action) => !(PROTECTED_ACTIONS as readonly string[]).includes(action),
 ) as readonly Exclude<Action, (typeof PROTECTED_ACTIONS)[number]>[];
 
-// The split is exhaustive by construction (CONFIGURABLE is the complement),
-// so the only way to break it is to protect something that is not an action
-// at all — a typo, or an action deleted from the list above while its entry
-// here stayed. `satisfies` catches that at compile time; this catches it at
-// runtime too, because the apps ship compiled JavaScript.
+// Runtime check too, since the apps ship compiled JavaScript: a protected entry must be a real action.
 for (const action of PROTECTED_ACTIONS as readonly string[]) {
   if (!(PERMISSION_ACTIONS as readonly string[]).includes(action)) {
     throw new Error(`PROTECTED_ACTIONS names "${action}", which is not a permission action.`);
   }
 }
 
-// spec.md "Roles & Permissions" table, verbatim:
-// Admin: everything. Manager: products/stock/orders full, no users/settings,
-// AND NO COST OR PROFIT. Employee: POS, add and edit products, edit images,
-// create + hand over orders — cannot delete/hide products, cannot
-// delete/edit/cancel orders, cannot mark money collected, no users/settings,
-// no cost/idNumber visibility, and none of the dashboard, the reports or the
-// inventory list: all three are shop-wide overviews (takings, stock levels,
-// inventory value, low-stock alerts) that belong to whoever runs the shop,
-// which an Employee does not. An Employee sees the orders they take and
-// nothing added up.
-//
-// Reports are ADMIN ONLY (report.view): the sales, cost, profit and margin
-// figures on that screen are the owner's read of the business, and a Manager
-// gets what they need to run the floor from the dashboard instead — sold,
-// received and still owed, with every cost-derived figure absent from their
-// payload.
-//
-// Cost and profit are ADMIN ONLY (spec.md "Sensitive fields"). A Manager runs
-// the shop floor — stock, orders, the drawer, what was spent — but what each
-// piece cost the owner, and therefore what the shop earns on it, is the
-// owner's alone. product.viewCost is the single gate: dropping it from
-// MANAGER below is what removes cost from products, unitCost from order
-// lines, the cost basis from the inventory valuation, and COGS / gross
-// profit / net profit / margin from every report, all at once.
-// Editing a product is the details only — its price is product.editPrice,
-// its stock inventory.adjust, its visibility product.hide, none of which an
-// Employee holds. On the global option lists they may add (variantType.create,
-// so the inline add on the product form keeps working) but not rename or
-// remove (variantType.manage), which would reach every product at once.
-/**
- * The rules as shipped — the shop's behaviour on day one, and for PROTECTED
- * actions for ever.
- *
- * Two different jobs, which is worth being explicit about:
- *   - the ADMIN row (and any PROTECTED action) is the live rule. `can()`
- *     reads it directly and nothing can override it.
- *   - everything else is the SEED. `npm run bootstrap` copies it into
- *     the RolePermission table once in the life of a database (CLAUDE.md rule
- *     11), and it is also the fallback `can()` uses for any grant the stored
- *     config has no row for — a permission added in a later release, on a
- *     database bootstrapped before it existed, behaves exactly as it does
- *     here until somebody decides otherwise.
- */
+/** Shipped rules (spec.md "Roles & Permissions"): live for ADMIN and PROTECTED, the bootstrap seed and can()'s fallback otherwise. */
 export const DEFAULT_ROLE_PERMISSIONS: Record<Role, readonly Action[]> = {
   ADMIN: [...PERMISSION_ACTIONS],
   MANAGER: [
@@ -319,15 +122,9 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<Role, readonly Action[]> = {
     "product.hide",
     "product.editVariantSet",
     "product.quickSell",
-    // Completing a quick-sold piece is catalogue curation, which is squarely
-    // the Manager's. Cost is NOT: they may finish everything else about the
-    // product and leave the cost blank, and the missing-cost warning on the
-    // reports keeps saying so until an Admin fills it in (CLAUDE.md rule 19).
+    // Managers complete quick-sold pieces but not their cost, which stays flagged until an Admin fills it (rule 19).
     "product.complete",
-    // NOTE: no "product.viewCost" — cost and profit are Admin only.
-    // NOTE: no "report.view" either — the Reports screen is Admin only. The
-    // dashboard (dashboard.view, above) carries the sales figures a Manager
-    // runs the floor on.
+    // No product.viewCost or report.view: cost, profit and Reports are Admin only.
     "product.printLabels",
     "category.view",
     "category.manage",
@@ -354,11 +151,7 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<Role, readonly Action[]> = {
     "expense.approve",
     "expenseCategory.view",
     "expenseCategory.manage",
-    // A Manager holds every gated permission outright, so they never file a
-    // request — but they carry the action anyway, so that gating a NEW field
-    // above them later needs no change here. What they do NOT hold is
-    // changeRequest.approve: deciding someone else's request is the Admin's,
-    // which is the whole reason the gate exists.
+    // Managers hold every gated permission, but never changeRequest.approve.
     "changeRequest.create",
     "changeRequest.view",
     "changeRequest.cancel",
@@ -368,9 +161,7 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<Role, readonly Action[]> = {
     "product.create",
     "product.edit",
     "product.printLabels",
-    // The busiest hour is exactly when an Employee is the one at the till,
-    // so this is theirs (spec.md "Quick sell"). Completing the product
-    // afterwards is not — product.complete is absent below.
+    // The Employee is at the till at the busiest hour; completing the product afterwards is not theirs.
     "product.quickSell",
     "category.view",
     "variantType.create",
@@ -378,21 +169,13 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<Role, readonly Action[]> = {
     "order.view",
     "order.create",
     "order.updateStatus",
-    // Whoever pays the bill writes it down. It opens PENDING and needs an
-    // Admin/Manager to approve it before it touches the drawer or the books,
-    // so recording one spends nothing on its own.
     "expense.create",
     // ...and to record one they have to be able to read the category list.
     "expenseCategory.view",
-    // The five gated actions (price, manual stock, image deletion,
-    // hide/unhide, the variant set) are refused to an Employee outright —
-    // these two are what turn that refusal into a request an Admin can say
-    // yes to, and what lets them watch it waiting (spec.md "Employee change
-    // approvals").
+    // These turn the five refused gated actions into requests an Admin can approve.
     "changeRequest.create",
     "changeRequest.view",
-    // ...and to take one back when they typed it by mistake, rather than
-    // waiting for an Admin to turn down something nobody wanted.
+    // ...and to withdraw one typed by mistake.
     "changeRequest.cancel",
   ],
 };

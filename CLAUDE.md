@@ -1,30 +1,41 @@
-# CLAUDE.md — Organza Store
+# CLAUDE.md — Store Management
 
 Rules for working in this repo. Read this before making any change.
 Full product logic lives in `spec.md` — this file is the operating manual.
 
 ## What this project is
-Custom e-commerce + POS system for a clothing shop. **Not** Medusa or any e-commerce framework.
+
+Custom e-commerce + POS system for clothing shops, run by each shop as a client. **Not** Medusa or any e-commerce framework.
 Build it from scratch with the stack below. If something is ambiguous, check `spec.md`;
 if it's still unclear, **ask before assuming** — do not invent product behavior.
 
 ## Repo structure (4 separate projects + shared, one npm workspace)
+
 ```
-organza-store/
+store-management/
 ├── package.json      workspace root — declares the workspaces, holds the only lockfile
 ├── backend/     API — Node + Express + TypeScript + Prisma + PostgreSQL
 ├── admin/       Admin dashboard — Next.js
 ├── pos/         Point-of-sale — Next.js
 ├── frontend/    Customer storefront — Next.js (LATER, not this phase)
-└── shared/      Shared TypeScript types + Zod schemas — published as @organza/shared
+├── shared/      Shared TypeScript types + Zod schemas — published as @store/shared
+└── ui/          Store Management's design system — published as @store/ui (TypeScript source)
 ```
+
+The system is **Store Management**; each shop that runs it is a **client**, and nothing in the code
+names one — the shop's name, logo and favicon are Settings data.
+`@store/ui` is its design system (ported from the clinic system's `@clinic/ui`). Client looks are
+themes inside it — today `ui/src/themes/teal.css` + `teal.ts`, applied by `UiProvider` — never
+edits to the components. The admin's `/design-system` page (Admin role only) shows every component.
+
 Each project has its own `package.json`, and the root one ties them together as **npm
 workspaces**. There is exactly one `package-lock.json`, at the root; per-project lockfiles must
-never come back. `shared/` is a real dependency of the others (`@organza/shared`), resolved
+never come back. `shared/` is a real dependency of the others (`@store/shared`), resolved
 through `node_modules` like any package — not copied, symlinked or aliased by hand. A new project
 (`frontend/`) has to be added to the root `workspaces` array to exist.
 
 ## Non-negotiable stack choices
+
 - **Language:** TypeScript everywhere.
 - **All frontends:** Next.js. Never plain React, never another framework.
 - **DB:** PostgreSQL via Prisma. The schema in `backend/prisma/schema.prisma` is the source of truth.
@@ -40,6 +51,7 @@ through `node_modules` like any package — not copied, symlinked or aliased by 
 - **i18n:** UI via `next-intl`; product content translated via JSON fields. Languages: ar (default), en, he.
 
 ## Scope of the CURRENT phase (Phase 2 — Orders)
+
 Phase 1 is DONE and tested: products, variants, categories, inventory, users/roles, settings,
 images, audit log, plus the full admin UI.
 **Current work: Orders** (see "Phase 2: Orders" in `spec.md`) — order model, status flow, stock
@@ -52,15 +64,17 @@ endpoints are gone, lifted into it.
 **Quick sell** is built end to end (POS + admin): a piece that isn't in the catalogue can be sold by
 typing a name and a price, and the deliberately-incomplete product it creates is reviewed
 afterwards through the same change-request mechanism — see "Quick sell" in `spec.md` and rule 23.
-The POS also has a **product browser** — a drawer over the sale with categories on the start side
-and a photo grid on the other, for pieces that can't carry a label (see "POS product browser" in
-`spec.md`); its favourite categories are flagged from the admin's category screen.
+The POS selling screen is laid out from the Figma design — category tiles with product counts, a
+photo grid, and the cart as a side panel from 1000px or a bottom bar + sheet below it (see "POS
+selling screen layout" in `spec.md`); its favourite categories are flagged from the admin's
+category screen.
 **Still deferred:** the customer storefront (Phase 3), real Customer accounts, and the
-numbered-shawls WhatsApp export. WhatsApp order entry is built (admin *and* POS): a cart can be
+numbered-shawls WhatsApp export. WhatsApp order entry is built (admin _and_ POS): a cart can be
 filed as a WHATSAPP order with a customer snapshot, and the phone box suggests repeat customers
 from past orders — there is still no Customer table behind it.
 
 ## Hard rules — do not break these
+
 1. **SKU is frozen at creation.** Format `ORG-<productNumber>` (simple) or
    `ORG-<productNumber>-<variantNumber>` (variant). Never regenerate it when category/options change.
 2. **Variant → option value is a reference (ID), not copied text.** Renaming a value must
@@ -76,9 +90,9 @@ from past orders — there is still no Customer table behind it.
      **Cannot** delete/hide products, **cannot** delete/edit/cancel orders, no users/settings,
      and **no shop-wide money view at all** — no dashboard, no Reports, no outstanding total.
      They see the orders they take, never every order added up.
-   Five Employee actions are neither applied nor refused but **held for approval** (rule 21).
-   That table is the shop's **starting point**: every Manager/Employee grant is editable per shop
-   from the admin's Permissions screen; the Admin role never is — see rule 22.
+     Five Employee actions are neither applied nor refused but **held for approval** (rule 21).
+     That table is the shop's **starting point**: every Manager/Employee grant is editable per shop
+     from the admin's Permissions screen; the Admin role never is — see rule 22.
 6. **Every mutation writes an Audit Log entry** (userId, action, entityType, entityId, old/new).
 7. **stock default = 1** for products and variants.
 8. **Validate all inputs with Zod** (shared schemas where possible).
@@ -87,8 +101,23 @@ from past orders — there is still no Customer table behind it.
    translated text — use `slug` / `key` for that.
 10. **Search is cross-language + normalized + fuzzy.** It must search ALL stored languages
     (not the current UI language), strip Arabic diacritics, unify similar Arabic letters, and be
-    typo-tolerant via `pg_trgm`. Build it as an isolated, swappable search layer. Keep each
-    Product's `searchText` in sync on every name/description change.
+    typo-tolerant. The engine is a **self-hosted Meilisearch** (its own compose service and
+    volume), reached only through the isolated layer in `backend/src/lib/search/` — callers use
+    `searchProductIds` and `indexProducts`, never an engine. **`pg_trgm` is the fallback**: no
+    `MEILI_HOST`, or Meilisearch down or erroring, and search answers from Postgres, so the till
+    never loses search. Our own `normalize()` (diacritics, tatweel, similar letters) runs on both
+    the indexed text and the query, and each word is also indexed without the article ال and an
+    attached و/ب/ل. **Every index setting and the synonyms list live in one versioned file,
+    `backend/src/constants/searchIndex.ts`**, applied by `npm run search:setup` and by every
+    reindex — never set by hand. A search on a list's default sort comes back **closest match
+    first** (`lib/search/relevance.ts`); every other filter still runs in Postgres. Keep each
+    Product's `searchText` in sync on every name/description change, and after the commit of
+    anything that changes a product's document (name, codes, category, variants, price, stock,
+    visibility, image) call **`indexProducts`** (awaited ≤2s, so a save is searchable on return)
+    or **`queueProductSync` / `queueOwnerSync` / `queueCategorySync`** (batched, returns at once).
+    None of them throw, so search can never fail a save. The index is rebuildable:
+    `npm run search:reindex` rebuilds it from the database on every deploy, and the import and
+    demo seed rebuild it too.
 11. **Essential data ≠ demo data.** `npm run bootstrap` (`backend/src/lib/bootstrap.ts`) creates
     the only things a real shop cannot run without — the Setting singleton, the global variant
     types + their default values, the expense categories, and the configurable role permissions
@@ -101,7 +130,7 @@ from past orders — there is still no Customer table behind it.
     (never under `NODE_ENV=production`). The API test suite depends on its accounts.
     `npm run init` creates the shop's real staff, by hand, once, and refuses a database that
     already has users. **Who** it creates is a git-ignored JSON roster read at run time
-    (`staff.json`, or `--accounts`/`ORGANZA_STAFF_FILE`; `staff.example.json` shows the shape) —
+    (`staff.json`, or `--accounts`/`STORE_STAFF_FILE`; `staff.example.json` shows the shape) —
     never a list in the source: real people's names, addresses and phone numbers are operational
     data, not code. The whole file is validated before the database is touched, so a bad entry
     can never leave half the accounts created. `npm run db:reset` wipes everything and is
@@ -117,7 +146,7 @@ from past orders — there is still no Customer table behind it.
     single hard-coded string is a bug.
 13. **Barcodes are auto-generated & unique** (EAN-13), for both products and variants — not the SKU.
     A garment that arrives **already barcoded** may keep the supplier's printed code instead: the
-    field is editable (typed or scanned) on create and on edit, per product *and* per variant, and
+    field is editable (typed or scanned) on create and on edit, per product _and_ per variant, and
     which of the two a piece uses is **stored** (`barcodeSource`), never inferred from the code.
     The toggle is reversible — switching back restores the code we minted, so a label already stuck
     on the piece keeps working. Uniqueness is enforced across the whole store (products and
@@ -168,7 +197,7 @@ from past orders — there is still no Customer table behind it.
 21. **One generic change-approval mechanism** (see "Employee change approvals" in `spec.md`).
     Gated Employee actions — product price, manual stock, image deletion, hide/unhide, and a
     product's variant set — file a `ChangeRequest` `(entityType, entityId, field, oldValue,
-    newValue)` instead of applying; Admin/Manager edits apply immediately. **Automatic stock
+newValue)` instead of applying; Admin/Manager edits apply immediately. **Automatic stock
     deduction from a sale is never gated** — a sale always completes. A newer request for the same
     field on the same entity **replaces** the pending one (enforced by the unique `pendingKey`
     column, never by a sweep). Approving applies the change atomically; rejecting discards it;
@@ -199,7 +228,7 @@ from past orders — there is still no Customer table behind it.
     product, the order and a `(Product, completion)` change request are written in ONE transaction,
     so an abandoned checkout cannot leave a nameless half-product behind. That request is the one
     that reads backwards — the sale has already happened, so it says "this was sold, complete its
-    details" and offers *complete* / *one-off*, never *approve* / *reject*: **rejecting must never
+    details" and offers _complete_ / _one-off_, never _approve_ / _reject_: **rejecting must never
     look like it undoes a sale**, and it never does (an order's lines are snapshots). Empty is a
     supported state, not a broken record: `Product.categoryId` is nullable ONLY for this, `cost` is
     absent rather than zero (which is what the reports' missing-cost warning counts), and every
@@ -210,15 +239,18 @@ from past orders — there is still no Customer table behind it.
     shipped).
 
 ## Workflow
+
 - Build **one stage at a time** (see the build order in `spec.md`). Test a stage before the next.
 - Run Prisma migrations for any schema change; never edit the DB by hand.
 - Keep shared types in `shared/` — don't redefine the Product/Variant shape in each project.
 - Prefer small, reviewable changes over large sweeps.
 
 ## Commands (fill in real ones as they're set up)
+
 The repo is one npm workspace: install once at the root, then drive each project with `-w`
 (the flag takes the directory name). Running a script from inside a project directory works too
 — it is the same install either way.
+
 ```
 # once, at the repo root — installs all four projects and compiles shared/
 npm install
@@ -239,9 +271,12 @@ npm run test -w admin
 # everything at once
 npm run build          # shared, then backend, admin, pos
 npm run typecheck
+npm run lint           # eslint everywhere; every if/else/loop body is braced (curly: all)
+npm run format         # prettier: double quotes, 2 spaces, width 120 (.prettierrc.json)
 ```
 
 ## Deployment
+
 Hosted on the user's own VPS via GitHub Actions. Do not add third-party hosting/paid services
 (Sentry's free tier and Resend's free tier are the only external services, and both sit behind a
 swappable layer — GlitchTip for Sentry, another transport in `backend/src/lib/email/transports/`
@@ -261,31 +296,37 @@ nothing else — no TypeScript, no vitest, no source tree it does not need. admi
 `node` user, which is why the uploads volume has to be owned by uid 1000 (see `ops/README.md`).
 Two things are easy to break here and are worth re-checking after any Dockerfile edit: the
 `NEXT_PUBLIC_*` build args must be set in the stage that runs `next build` — they are baked into
-the bundle there, and `NEXT_PUBLIC_APP_ENV` is what decides the environment's icons — and the
+the bundle there, `NEXT_PUBLIC_APP_ENV` is what decides the environment's icons and
+`NEXT_PUBLIC_APP_NAME` what the installed app is called — and the
 backend's runtime needs `openssl` plus **all three** `node_modules` directories, because zod
 cannot hoist (backend and shared are on zod 3, better-auth on zod 4).
 
 **Persistent data lives on named volumes, at absolute paths the app is told explicitly.** The
 database (`sandbox_db_data` → `/var/lib/postgresql/data`) and the uploaded photographs
 (`sandbox_uploads` → `/app/uploads`, with `UPLOAD_DIR` set in the compose file's `environment:`,
-never left to `.env`) are the only things a deploy cannot rebuild. A **relative** `UPLOAD_DIR`
+never left to `.env`) are the only things a deploy cannot rebuild. The search index
+(`sandbox_search_data` → `/meili_data`) is on a volume too, but it can be rebuilt from the
+database at any time, so it is not backed up; `MEILI_MASTER_KEY` must be set in the stack's env
+file, or compose refuses to start. A **relative** `UPLOAD_DIR`
 resolves against the container's working directory (`/app/backend`), which is how every uploaded
 image was being written into the container layer and lost on each deploy — so any new service or
 compose file states its data path absolutely and mounts a volume there. Never rename a volume key
-or the compose `name:`: both feed the real volume name, and changing either points the stack at a
-new empty volume. See `ops/README.md` for backups — the volumes survive redeploys, not disks.
+or change `STACK_NAME` in a stack's env file (the compose `name:` reads it): both feed the real
+volume name, and changing either points the stack at a new empty volume. See `ops/README.md` for backups — the volumes survive redeploys, not disks.
 
 ## When unsure
+
 Check `spec.md` first. If the answer isn't there, ask the user. Never silently guess product
 behavior — guessing is what broke the previous attempt.
 
 ## Code organization (apply everywhere, backend + frontends)
+
 - **Use path aliases, not relative paths.** Within a project, import local modules with `@/`
   (e.g. `@/lib/auth`, `@/routes/products`) — never `../../lib/auth`. Configure that alias in each
   project's `tsconfig.json` (and the bundler/runtime resolver) so it works at build and runtime.
   The cross-app shared package is **not** an alias: the repo is one npm workspace and `shared/` is
-  published into it as `@organza/shared`, so import it by package name
-  (e.g. `@organza/shared/types`, `@organza/shared/constants/errors`) and let node_modules resolve
+  published into it as `@store/shared`, so import it by package name
+  (e.g. `@store/shared/types`, `@store/shared/constants/errors`) and let node_modules resolve
   it. Its subpaths come from the `exports` map in `shared/package.json` — add a new folder there
   (and to the matching `typesVersions` block, which is what the backend's node10 resolver reads)
   before importing it.
@@ -297,155 +338,14 @@ behavior — guessing is what broke the previous attempt.
   `constants/` directory (e.g. `constants/sku.ts`, `constants/images.ts`, `constants/errors.ts`)
   and import from there. This includes the `ORG-` prefix, image sizes, size/type limits, error
   keys, default page sizes, the +970/+972 prefixes, etc.
+- **Comments: one line, or none.** Write a comment only when it says something important about
+  the feature that the code cannot (a business rule, a non-obvious why) — and keep it to a single
+  line. No multi-line explanation blocks, no narrating what the code does, no history.
 - These are **structural rules**: when refactoring to satisfy them, move/rename only — never change
   behavior — and keep `tsc` type-check and the build passing.
 
-## The oldest phone on the floor decides (admin + pos)
-The shop's main device runs **iOS 15**, and both apps declare it in their browserslist
-(`ios_saf >= 15`). CSS fails silently there — no build error, no console message, every desktop
-browser perfect — so this is enforced by the build rather than by review.
-
-- **Every colour is written ONCE, in `oklch()`; the fallback is generated, never typed.**
-  `@csstools/postcss-oklab-function` (`preserve: true`, in both `postcss.config.mjs`) derives the
-  plain sRGB copy from each colour and keeps the original inside an `@supports`, so the two cannot
-  drift when a colour changes. **Never hand-write a second palette.** It only works for a colour
-  the plugin can EVALUATE, so **never put a `var()` inside a colour function** —
-  `oklch(0.44 0.06 var(--brand-hue))` is passed through untouched, with nothing behind it, and
-  that is exactly what left every button in both apps with no background and every badge a blank
-  coloured pill. The brand hues are literals in `globals.css`; the note at the top of the palette
-  says why.
-- **Supported is not the same as accepted.** Safari has known `oklch()` since 15.4, but 15.x reads
-  the lightness as a PERCENTAGE and drops the whole declaration when it is a decimal —
-  `oklch(44% .06 206.4)` paints, `oklch(0.44 .06 206.4)` does not, which is why Tailwind rewrote
-  its own default theme. That is the worst shape of all: the `@supports` guard lets the modern
-  declaration in, the browser discards it anyway, and the fallback in front of it has already been
-  overwritten. `check-css-target.js` fails the build on a decimal lightness. (The HUE is a plain
-  number — that is what the spec says and what Safari 15 accepts; the build normalises away a
-  `deg` unit anyway, so do not add one expecting it to ship.)
-- **Three build guards, one per failure mode**, wired into `npm run build` in both apps:
-  `shared/scripts/check-messages.js` (source messages), then `next build`, then
-  `check-browser-target.js` (JS parses) and `check-css-target.js` (CSS is usable). The CSS one
-  separates FATAL — a colour or length with nothing behind it, or an at-rule that takes its whole
-  block with it, or a colour Safari 15.x discards — from DEGRADED, which it names and allows:
-  `:has()`, `:focus-visible`, `::backdrop`, `accent-color`, `backdrop-filter`, `@property`.
-  Losing an effect is fine; losing a stylesheet is not.
-- **Both ranges are checked, not just the old one.** `shared/scripts` has no simulator, so the
-  sweep renders the built stylesheet twice — once filtered as iOS 15.0–15.3 parses it (the
-  derived sRGB fallback paints) and once as 15.4–15.8 does (the native `oklch()` paints, and the
-  percentage-lightness bug is reproduced). The two must agree with each other and with a modern
-  engine, down to the painted RGB of every token.
-- **`shared/scripts/postcss-ios15.cjs` runs last and repairs what the framework cannot.**
-  It flattens `@layer` (an unknown at-rule is dropped WITH its block, so one `@layer` discards the
-  whole sheet on 15.0–15.3 — without this pass 15% of the stylesheet survives, not 72%), rewrites
-  Tailwind's `color-mix()` opacity modifiers to `rgb(var(--token-rgb) / N%)` so `bg-primary/10` is
-  a tint rather than the solid colour (`color-mix` is Safari 16.2, so this one reaches 16.1 too),
-  and puts a `vh` fallback before every `dvh`. It has no dependencies: the plain sRGB it needs is
-  what the oklab plugin already wrote in front of each colour, so it reads that instead of
-  computing a second opinion — which is also why removing that plugin makes this one **throw**
-  rather than quietly go back to solid badges. Its own header explains each pass.
-- **Numbers and dates are stated, never inherited.** `Intl` takes its numbering system from the
-  device: recent ICU writes `ar` in western digits, iOS 15's writes it in Arabic-Indic ones, so
-  the same price reads two ways on two devices in one shop. Every `Intl` call in both apps spreads
-  `NUMBER_FORMAT_BASE` / `DATE_FORMAT_BASE` from `@organza/shared/constants/formatting` (western
-  digits, Gregorian calendar), and a figure inside a sentence is written `{count, number, plain}` —
-  never ICU's `#`, which is formatted with the bare locale. `check-messages.js` refuses `#`, a
-  bare `{arg, number}`, and Arabic-Indic digits typed into the copy.
-
-## Frontend UX — mobile-first, simple, RTL (admin + pos)
-The people using the admin and POS are **not tech-savvy**, and ~**95% of use is on mobile phones**.
-Design for that reality:
-
-- **Mobile-first, not merely responsive.** Design and build for a phone screen FIRST, then scale
-  up to desktop. Single-column layouts by default; never a desktop layout crammed onto a phone.
-- **Nothing zooms, so nothing may depend on zooming.** Page zoom is off in both apps — viewport
-  (`maximumScale: 1`, `userScalable: false`), `touch-action: manipulation`, and the gesture guards
-  in `components/pwa/native-gesture-guard.tsx` for iOS, which ignores the viewport. So: **every
-  form field is at least 16px** (Safari zooms the page in on focus below that, and there is now no
-  way back out), 44px stays the floor for anything a thumb hits, and **no interface text goes below
-  12px**. Anything that genuinely wants two fingers marks itself `data-allow-zoom="true"`.
-- **A long press must not raise the system sheet.** Text selection and the iOS callout are off
-  app-wide and opted back in with `data-selectable="true"` — for a barcode, a SKU, an order number,
-  a phone number, an address: things somebody copies. Not for cards, rows or buttons.
-- **Big, easy touch targets.** Large tappable buttons (min ~44px), generous spacing, no tiny links
-  or dense toolbars. Primary action on each screen should be obvious and reachable by thumb.
-- **Few, clear steps.** Minimize taps to complete any task. Avoid multi-step wizards where one
-  screen would do. Plain, simple wording — no technical jargon in the UI.
-- **Tables become cards on mobile.** Wide data tables must reflow into stacked cards/list items on
-  small screens (TanStack Table can drive both). Never force horizontal scrolling of a table on a
-  phone.
-- **Clear feedback always.** Every action shows loading, success, and error states in plain
-  language (mapped from `error.*` keys via `t()`), so an untrained user is never left guessing.
-- **RTL must be 100% correct**, not just `dir="rtl"`: the whole layout mirrors (nav, icons, arrows,
-  padding/margins, alignment), Arabic uses a clear legible Arabic font, and numbers/dates render
-  correctly. **Verify Arabic visually** — do not assume it works. Arabic is the default locale.
-- **Arabic needs more vertical room than Latin at the same size — the type scale already gives it.**
-  Cairo's ink runs from ~0.7em above the baseline to ~0.45em below it, so Tailwind's Latin line
-  heights (text-sm at 1.43, text-2xl at 1.33) leave the tails of ج ح خ ي outside the line box, where
-  the first `truncate` or `line-clamp` slices them off. Both apps therefore override every
-  `--text-*--line-height` (and the inherited `html` line height) in `globals.css` — around 1.8 at
-  interface sizes. **Do not put `leading-tight`, `leading-snug` or `leading-none` back on Arabic
-  text**: they undo it, and the damage only shows where something clips. `leading-none` is for
-  content that is digits or a single glyph by construction (a count badge, a numbered-shawl
-  marker) and nothing else. Any new fixed-height text box has to fit the line box the scale gives
-  it — prefer `min-h-*` with padding over `h-*`, and check with `ملاحظات على الخيارات جحخي`.
-- **Accessibility basics:** readable font sizes on mobile, sufficient contrast, labels on inputs.
-- **Whoever is signed in is named IN THE SHELL, never on a page.** The header carries the
-  account — name, role, sign-out, the language, the app version — at every width and for every
-  role, sourced from the session (`components/layout/account-menu.tsx`, mirroring the POS's). It
-  may never be hidden below a breakpoint, and it may never be the dashboard's job: the dashboard
-  is Admin/Manager only, so tying identity to it takes their own name away from the one role that
-  spends all day filing orders under it. The same holds for anything a person always needs — the
-  sandbox badge, the way out. Nothing that must always be reachable may live behind a
-  permission-gated page, and nothing may live *only* in the bottom nav's "More" sheet either: that
-  sheet exists only when a role has more nav entries than the four tabs hold.
-- **The top bar carries three things: the shop's name, the sandbox badge, the account.** Nothing
-  else — a bar with a fourth control in it had already squeezed the language down to an unlabelled
-  icon below `sm` and clipped "أورجانزا" to "أ…" at 320px. A person's own settings go INSIDE the
-  account menu, which is where the language now lives; that menu is built in named groups
-  (identity, preferences, the way out, the build) and anything added later joins one or starts a
-  fifth **with a heading**. Two rules keep it usable: never a submenu (a preference stays two taps
-  — open the menu, choose) and never a bare icon (every control keeps a word).
-- **Radix menus must be told which way round they are.** `DropdownMenu` portals its content to
-  `document.body` and stamps its own `dir="ltr"` unless given one, so `dir="rtl"` on `<html>` is
-  overridden rather than inherited and every logical property inside resolves backwards — `ps-*`
-  became padding-LEFT and the tick beside the chosen language sat on the wrong side in Arabic.
-  Both apps' `components/ui/dropdown-menu.tsx` pass `dir` from the locale in the wrapper, so no
-  call site has to remember. Check any other portalled Radix primitive the same way.
-- **A person is named through `lib/user-display.ts`, never by rendering `user.name` raw.**
-  One rule for both apps (`shared/src/lib/userDisplay.ts`): their name, then the local part of
-  their email, then their translated role — and **never an internal id**. An id is meaningless to
-  staff, unbounded in length so it stretches whatever is drawn around it, and a top bar reading
-  "Admin mt0grbxoqx7nbf" looks broken rather than informative. Id-shaped words are stripped from a
-  stored name (the test suite once renamed the sandbox's Admin and never put it back), and the
-  avatar's letter comes from the same source as the name so the two can never disagree. Long names
-  truncate with an ellipsis; they never widen the header.
-- **Every password field is a `PasswordInput`** (`components/ui/password-input.tsx`, one per app),
-  never a bare `<Input type="password">`. Typing eight unseen characters on a phone keyboard and
-  being told only that they were wrong is not something to ask of anyone. It starts hidden always,
-  the eye is a 44px button carrying a `t()` label and `aria-pressed`, and it sits at the field's
-  **end** (`end-*` / `pe-*`) so it mirrors correctly in Arabic and Hebrew.
-- **Never fake a solid icon by putting `fill` on an outline one.** lucide is an outline set; filling
-  one floods the body and swallows every inner stroke — a receipt loses its lines, stacked boxes
-  merge into a blob. A filled icon must be *drawn* filled, with its detail knocked out as negative
-  space (`fill-rule="evenodd"`) or split into separate shapes. The bottom nav's solid twins live in
-  `admin/src/components/icons/nav-solid-icons.tsx`, one per `PRIMARY_NAV_KEYS` entry (the table is
-  typed so a new tab without a drawn twin fails the build). Check any new one at 24px, light and
-  dark — not zoomed.
-- Keep the visual language consistent between admin and pos (shared components where sensible).
-
-## Mobile input & device specifics (admin + pos)
-- **Numeric fields (stock, quantities, prices) must be easy to type on a phone.** Do NOT use
-  `<input type="number">` (it's hard to clear the last digit and accepts junk like `e`/`+`/`-`).
-  Use `type="text"` with `inputMode="numeric"` (and `pattern="[0-9]*"` for integers) so the phone
-  shows a numeric keypad, plus regex/Zod validation. Stock/quantities are **integers only** (no
-  decimals, no negatives). Prices allow decimals but still validate.
-- **iOS safe areas:** the app must respect the iPhone home-indicator area. Any fixed **bottom
-  navigation/bar** must add `padding-bottom: env(safe-area-inset-bottom)` (e.g. Tailwind
-  `pb-[env(safe-area-inset-bottom)]`) so its last part isn't hidden under the indicator on devices
-  like iPhone Pro Max. Ensure the viewport meta includes `viewport-fit=cover` (required for safe
-  areas to work). Apply the same to any fixed top bar with `safe-area-inset-top` where relevant.
-
 ## Test selectors — naming what is on the screen
+
 Every element worth diagnosing carries **`data-test-selector`**, a stable name saying WHAT IT IS.
 "The button in the corner" is not a description on a screen that mirrors itself in Arabic, and a
 Tailwind class is not a name — it changes the next time the design does.
@@ -461,43 +361,18 @@ Tailwind class is not a name — it changes the next time the design does.
   its contents.
 - **The POS prefixes everything with `pos-`;** the admin's names are unprefixed. Two apps, one
   vocabulary, no collisions in a report that spans both.
-- **Names come from `@organza/shared/lib/testSelector`** (`testSelectorFor`, `fieldTestSelector`,
+- **Names come from `@store/shared/lib/testSelector`** (`testSelectorFor`, `fieldTestSelector`,
   `fieldErrorTestSelector`, `toSelectorName`) rather than from hand-built strings, so both apps
   spell the same idea the same way.
 - **Kept in production builds.** The deployed app is where problems appear; an attribute stripped
   from the build is no use to whoever is describing one. They weigh nothing and expose nothing.
 
-**Applied at the shared-component level wherever possible, so new screens inherit it:**
-`Input`/`Textarea`/`Select`/`Checkbox`/`Switch` name themselves `field-<id>` from their own id;
-`FieldError` names the message under a field `field-<id>-error`; `Alert` names itself by kind;
-`SheetContent`, `StatCard`, `FigureCard`, `PageHeader`, `SegmentedControl` and `QuantityStepper`
-take a `name` prop and render `sheet-<name>`, `stat-card-<name>` and so on. Add the name to the
-shared component once; only reach for a literal attribute where the element is one of a kind.
+**Naming a `@store/ui` component:** pass the name as its `data-testid` prop; the component writes it
+to both `data-testid` and `data-test-selector` and names its parts `<name>-<part>` (an `Input`
+named `field-<id>` puts that on its wrapper and `field-<id>-control` on the `<input>`). Plain
+elements carry a literal `data-test-selector`.
 
 **What to cover:** cards and list rows, table rows, primary action buttons, form fields and their
 errors, sheets and dialogs, navigation items, empty and error states, and the numbered-shawl point
 markers (`shawl-point-<number>`). **Not** every wrapper `<div>` — a name on everything is a name on
 nothing.
-
-## Admin layout conventions
-The admin app uses shared layout primitives (`admin/src/components/layout/`). Use them —
-don't hand-roll page chrome:
-- **Every admin page is wrapped in `<PageContainer>`** — it provides the max width and page
-  padding. Never add page-level padding on top of it (that double-pads).
-- **Page titles use `<PageHeader>`** (title, optional description, and page-level actions in
-  `actions`) — not an ad-hoc heading block.
-- **Summary metrics use `<StatCard>`**, never a bespoke card, so figures look and behave the
-  same everywhere.
-- **Never use bare `w-full` on a button** — use `w-full sm:w-auto`, so buttons fill the width on
-  phones but size to their content on desktop. Exceptions: buttons inside Dialog/Sheet/AlertDialog
-  footers, dropdown-menu items, command-palette items and nav items.
-- **Segmented controls and tab rows** use `inline-flex w-fit`, not `grid grid-cols-N w-full`.
-- **Card grids** scale as `grid-cols-1 sm:grid-cols-2 xl:grid-cols-4` rather than being fixed at
-  two columns.
-- **Use logical CSS utilities only** (`ms-/me-/ps-/pe-`), never `ml-/mr-/pl-/pr-`, so layouts
-  mirror correctly in RTL.
-- **Desktop layout work must never regress mobile.** The admin is used ~95% on phones: verify
-  every change on a phone-sized viewport in Arabic RTL before finishing.
-
-**Note:** these primitives are for `admin/` only. The POS (`pos/`) is a distinct operational
-screen with its own layout and is deliberately not converted.

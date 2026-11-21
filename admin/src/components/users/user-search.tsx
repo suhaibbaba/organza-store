@@ -1,8 +1,7 @@
 "use client";
 
-import { Search, X } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { Input } from "@/components/ui/input";
+import { SearchField } from "@store/ui";
 
 interface UserSearchProps {
   value: string;
@@ -13,29 +12,13 @@ export function UserSearch({ value, onChange }: UserSearchProps) {
   const t = useTranslations("users");
 
   return (
-    <div className="relative">
-      <Search
-        className="pointer-events-none absolute start-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
-        aria-hidden="true"
-      />
-      <Input
-        type="search"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={t("search.placeholder")}
-        aria-label={t("search.label")}
-        className="ps-11 pe-11"
-      />
-      {value && (
-        <button
-          type="button"
-          onClick={() => onChange("")}
-          aria-label={t("search.clear")}
-          className="absolute end-2 top-1/2 flex size-8 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-        >
-          <X className="size-4" aria-hidden="true" />
-        </button>
-      )}
-    </div>
+    <SearchField
+      label={t("search.label")}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      onClear={() => onChange("")}
+      clearLabel={t("search.clear")}
+      placeholder={t("search.placeholder")}
+    />
   );
 }

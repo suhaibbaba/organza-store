@@ -1,35 +1,5 @@
 #!/usr/bin/env bash
-#
-# Organza — prove the backup's own safety checks actually work.
-#
-#   STACK=production ./ops/selftest.sh
-#   STACK=sandbox    ./ops/selftest.sh
-#
-# Read-only. It takes a dump, checks it, damages a COPY of it and checks that
-# too. It never uploads, never prunes and never touches the database, the
-# uploads volume or the bucket.
-#
-# WHY THIS EXISTS
-#   The dump verification in ops/backup.sh was once written as
-#
-#       compose exec -T db pg_restore --list /dev/stdin < dump
-#
-#   which cannot work: a custom-format archive keeps its table of contents at
-#   the end and seeks back to it, and `compose exec -T` supplies a pipe. So the
-#   check failed on every dump ever taken — and because it fails CLOSED, the
-#   backup aborted every night and uploaded nothing at all. It read like
-#   corruption; it was the check being impossible.
-#
-#   A check that can only fail and a check that can only pass are the same kind
-#   of bug: neither one is looking at anything. This script pins down both ends
-#   so it cannot silently invert again.
-#
-#      1. a dump straight out of pg_dump              -> must PASS
-#      2. the same dump with its tail cut off         -> must FAIL
-#      3. a file that is not an archive at all        -> must FAIL
-#
-# Run it after any change to the verification, and on the server the first time
-# the backup is set up.
+# Read-only proof that dump verification can both pass and fail: a good dump must pass, truncated or garbage must fail.
 set -euo pipefail
 
 OPS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -52,8 +22,6 @@ trap 'rm -rf "$WORK"' EXIT
 PASSED=0
 FAILED=0
 
-# `ops_verify_dump` is the thing under test. These assert on its EXIT STATUS,
-# which is the only thing its callers act on.
 expect() {
   local want="$1" label="$2" file="$3" got=0
   ops_verify_dump "$file" || got=1
@@ -67,7 +35,7 @@ expect() {
 }
 
 echo "$RULE"
-echo "  Organza — backup self-test"
+echo "  Store Management — backup self-test"
 echo "$RULE"
 ops_print_target
 echo "$RULE"
@@ -83,14 +51,11 @@ echo "    $GOOD_BYTES bytes"
 # 1. The dump as pg_dump wrote it.
 expect 0 "a valid dump" "$WORK/good.dump"
 
-# 2. Truncated — what a full disk or a killed process leaves behind. Cut to
-#    half, so the header is intact and the table of contents at the end is
-#    gone: the case a naive "is the file non-empty?" check would wave through.
+# 2. Truncated to half: header intact, table of contents gone; a naive non-empty check would pass it.
 head -c "$((GOOD_BYTES / 2))" "$WORK/good.dump" > "$WORK/truncated.dump"
 expect 1 "a dump truncated to half its length" "$WORK/truncated.dump"
 
-# 3. Not an archive at all — a stage that wrote an error message where a dump
-#    should have gone.
+# 3. Not an archive at all.
 printf 'pg_dump: error: connection to server failed\n' > "$WORK/garbage.dump"
 expect 1 "a file that is not an archive" "$WORK/garbage.dump"
 

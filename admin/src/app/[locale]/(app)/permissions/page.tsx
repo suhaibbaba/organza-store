@@ -6,7 +6,7 @@ import { PageContainer } from "@/components/layout/page-container";
 import { PageHeader } from "@/components/layout/page-header";
 import { usePermissionMatrix } from "@/components/providers/permissions-provider";
 import { PermissionsEditor } from "@/components/permissions/permissions-editor";
-import { Alert } from "@/components/ui/alert";
+import { Alert } from "@store/ui";
 
 export default function PermissionsPage() {
   return (
@@ -18,19 +18,17 @@ export default function PermissionsPage() {
 
 function PermissionsPageContent() {
   const t = useTranslations("permissions");
-  // Already loaded — AuthGuard holds the app until it is (see
-  // components/providers/permissions-provider.tsx), so there is no separate
-  // loading state to draw here.
+  // Already loaded: AuthGuard holds the app until it is.
   const { matrix } = usePermissionMatrix();
 
   return (
     <PageContainer>
-      <PageHeader name="permissions" title={t("title")} description={t("subtitle")} />
+      <PageHeader name="permissions" title={t("title")} description={`${t("subtitle")} ${t("adminNote")}`} />
       {matrix ? (
         <PermissionsEditor matrix={matrix} />
       ) : (
-        <Alert variant="destructive">
-          <p>{t("unavailable")}</p>
+        <Alert tone="danger" data-testid="permissions-unavailable">
+          {t("unavailable")}
         </Alert>
       )}
     </PageContainer>

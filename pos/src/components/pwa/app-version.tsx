@@ -12,26 +12,14 @@ interface AppVersionProps {
   className?: string;
 }
 
-/**
- * Which build this phone is running — the first question worth asking when
- * staff report that something looks wrong, and the answer an installed PWA
- * otherwise hides completely.
- *
- * Deliberately quiet: small muted text at the foot of the account menu, never
- * a badge or a banner. Tapping it copies both numbers (this app's and the
- * API's), because reading a version down the phone is exactly when a typo
- * costs an hour. The text stays selectable for anyone who would rather
- * long-press it.
- */
+// Which build this phone runs, quiet at the foot of the account menu; a tap copies both versions.
 export function AppVersion({ className }: AppVersionProps) {
   const t = useTranslations("pwa.version");
   const { data } = useApiVersionQuery();
   const [copied, setCopied] = useState(false);
 
   const appLine = t("app", { version: APP_VERSION });
-  // Absent until the API answers, and left out entirely if it never does —
-  // this app's own version is the one that matters most, and it is already
-  // on screen.
+  // Left out until (or unless) the API answers; this app's own version is the one that matters.
   const apiLine = data?.version ? t("api", { version: data.version }) : null;
 
   async function copy() {
@@ -40,8 +28,7 @@ export function AppVersion({ className }: AppVersionProps) {
       setCopied(true);
       window.setTimeout(() => setCopied(false), COPIED_FEEDBACK_MS);
     } catch {
-      // No clipboard (an insecure context, or permission refused) — the text
-      // is on screen and selectable, which is all this ever promised.
+      // No clipboard: the text is on screen and selectable, which is all this promised.
     }
   }
 
@@ -51,16 +38,16 @@ export function AppVersion({ className }: AppVersionProps) {
       onClick={() => void copy()}
       aria-label={t("copy")}
       className={cn(
-        "flex w-full flex-col items-start gap-0.5 rounded-md px-2 py-1.5 text-start",
-        "text-xs text-muted-foreground transition-colors hover:bg-accent",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-        className
+        "flex w-full flex-col items-start gap-0.5 rounded-control px-2 py-1.5 text-start",
+        "text-micro text-ink-muted transition-colors hover:bg-inset",
+        "focus-visible:bg-neutral-200 focus-visible:text-ink",
+        className,
       )}
     >
       <span className="select-all font-mono">{appLine}</span>
       {apiLine && <span className="select-all font-mono">{apiLine}</span>}
       {copied && (
-        <span className="flex items-center gap-1 text-primary">
+        <span className="flex items-center gap-1 text-primary-600">
           <Check className="size-3" aria-hidden="true" />
           {t("copied")}
         </span>

@@ -1,18 +1,9 @@
-// Helpers for the Reports suite.
-//
-// The suite runs against a LIVE API whose database already holds other
-// sales, so nothing here asserts an absolute total. Instead every test takes
-// a snapshot of the report, makes a sale, and asserts on the DIFFERENCE —
-// which is exactly the figure under test and is immune to whatever else the
-// sandbox contains.
+// Live API: every test snapshots the report, sells, and asserts the difference.
 import { apiRequest } from "@tests/support/client";
 import { MS_PER_DAY } from "@/constants";
 import type { ApiResult, SalesReport, SalesSummary, SalesTotals } from "@tests/types";
 
-// A UTC window that always contains the moment the suite runs, even if that
-// moment is midnight: yesterday through tomorrow. Ranges are asked for in
-// local dates + an offset, and offset 0 keeps the boundaries in UTC so the
-// window doesn't depend on where the test machine thinks it is.
+// Yesterday to tomorrow in UTC, so the window holds the run even at midnight wherever the machine is.
 export function surroundingRange(): { from: string; to: string } {
   const day = (offset: number) => new Date(Date.now() + offset * MS_PER_DAY).toISOString().slice(0, 10);
   return { from: day(-1), to: day(1) };
@@ -31,18 +22,21 @@ export function fetchSalesSummary(token: string): Promise<ApiResult<SalesSummary
 
 export async function salesReport(token: string, topLimit = 50): Promise<SalesReport> {
   const res = await fetchSalesReport(token, topLimit);
-  if (res.status !== 200 || !res.data) throw new Error(`Could not read the sales report (HTTP ${res.status}).`);
+  if (res.status !== 200 || !res.data) {
+    throw new Error(`Could not read the sales report (HTTP ${res.status}).`);
+  }
   return res.data;
 }
 
 export async function salesSummary(token: string): Promise<SalesSummary> {
   const res = await fetchSalesSummary(token);
-  if (res.status !== 200 || !res.data) throw new Error(`Could not read the sales summary (HTTP ${res.status}).`);
+  if (res.status !== 200 || !res.data) {
+    throw new Error(`Could not read the sales summary (HTTP ${res.status}).`);
+  }
   return res.data;
 }
 
-// Money crosses the API as 2dp strings (never floats), so tests turn them
-// into numbers only here, at the assertion boundary.
+// Money crosses the API as 2dp strings; they become numbers only here.
 export function num(value: string | number | null | undefined): number {
   return Number(value ?? 0);
 }
@@ -51,8 +45,7 @@ export interface TotalsDelta {
   orderCount: number;
   itemCount: number;
   revenue: number;
-  // What was sold vs. what the shop has actually been paid for — the two
-  // move independently once an order goes out with the delivery company.
+  // What was sold vs what has been paid: they diverge once an order goes out with the courier.
   collectedRevenue: number;
   pendingCollectionAmount: number;
   pendingCollectionOrderCount: number;
@@ -77,6 +70,8 @@ export function totalsDelta(after: SalesTotals, before: SalesTotals): TotalsDelt
 
 export function channelTotals(report: SalesReport, channel: string): SalesTotals {
   const found = report.byChannel.find((entry) => entry.channel === channel);
-  if (!found) throw new Error(`The report is missing the ${channel} channel.`);
+  if (!found) {
+    throw new Error(`The report is missing the ${channel} channel.`);
+  }
   return found;
 }

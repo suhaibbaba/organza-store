@@ -22,7 +22,7 @@ describe("Auth", () => {
       const res = await apiRequest("/api/categories", { token: session.token });
       expect(res.status).toBe(200);
       expect(res.success).toBe(true);
-    }
+    },
   );
 
   it("rejects an incorrect password for a seeded account", async () => {

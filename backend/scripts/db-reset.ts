@@ -1,44 +1,20 @@
 #!/usr/bin/env tsx
-// ============================================================================
-//  npm run db:reset — wipe the database and start again.
-//
-//  DESTRUCTIVE, MANUAL ONLY. It drops every table, re-applies every migration
-//  and removes uploaded image files that no longer belong to anything. It is
-//  not in the deploy pipeline, has no scheduled caller, and refuses to run
-//  without being told, in full, that this is what you want — twice over if the
-//  process is running as production (see lib/dangerousCommands.ts).
-//
-//  It seeds NOTHING. What comes next is deliberate and separate:
-//      npm run bootstrap    # settings, variant types, expense categories
-//      npm run init         # the real staff accounts, by email
-// ============================================================================
+// npm run db:reset — DESTRUCTIVE, manual only: drops everything, re-migrates, sweeps orphan uploads; double-confirmed.
 import "dotenv/config";
 import { spawnSync } from "node:child_process";
 import path from "node:path";
 import { prisma } from "@/lib/prisma";
 import { UPLOAD_DIR } from "@/lib/image";
 import { claimedImageBases, deleteOrphanedUploads } from "@/lib/uploads";
-import {
-  assertDestructiveConfirmed,
-  describeAppEnv,
-  describeDatabase,
-  isProductionEnv,
-} from "@/lib/dangerousCommands";
+import { assertDestructiveConfirmed, describeAppEnv, describeDatabase, isProductionEnv } from "@/lib/dangerousCommands";
 import { DANGEROUS_COMMAND_ENV } from "@/constants";
 
 const RULE = "═".repeat(74);
 
-/**
- * Every file under UPLOAD_DIR that no ProductImage row claims. Run straight
- * after a reset that is every file there is — which is the point: a wiped
- * database with a full uploads folder is gigabytes of pictures of nothing.
- *
- * The sweep itself lives in lib/uploads.ts, shared with `import:prod`, which
- * leaves the folder out of step with the database for the same reason.
- */
+/** Every file under UPLOAD_DIR no ProductImage row claims — after a reset, all of them (sweep shared with import:prod). */
 async function deleteUploadsBelongingToNothing(): Promise<{ deleted: number; kept: number }> {
   const claimed = claimedImageBases(
-    await prisma.productImage.findMany({ select: { filename: true, originalFilename: true } })
+    await prisma.productImage.findMany({ select: { filename: true, originalFilename: true } }),
   );
   return deleteOrphanedUploads(claimed);
 }
@@ -51,16 +27,14 @@ async function main(): Promise<void> {
   });
 
   console.log(RULE);
-  console.log("  Organza — resetting the database");
+  console.log("  Store Management — resetting the database");
   console.log(RULE);
   console.log(`  Database : ${describeDatabase()}`);
   console.log(`  Uploads  : ${UPLOAD_DIR}`);
   console.log(`  APP_ENV  : ${describeAppEnv()}${isProductionEnv() ? "  ← the live shop, overridden" : ""}`);
   console.log(RULE);
 
-  // Drop + re-apply every migration. --skip-seed is belt and braces: the demo
-  // seed is no longer wired to `prisma db seed` at all (see package.json), so
-  // there is nothing for this to trigger.
+  // Drop + re-apply every migration; --skip-seed is belt and braces, since no seed is wired to prisma db seed.
   console.log("\n==> Dropping the schema and re-applying migrations");
   const migrate = spawnSync("npx", ["prisma", "migrate", "reset", "--force", "--skip-seed"], {
     stdio: "inherit",

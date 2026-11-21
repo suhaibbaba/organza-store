@@ -1,45 +1,25 @@
 import { useTranslations } from "next-intl";
-import { BanknoteArrowDown, Wallet } from "lucide-react";
-import type { PaymentStatus } from "@organza/shared/types/order";
+import { Badge, type BadgeVariant, type IconName } from "@store/ui";
+import type { PaymentStatus } from "@store/shared/types/order";
 import { cn } from "@/lib/utils";
 
-// Has the money for this sale actually reached the shop? Kept visually
-// distinct from the order-status badge (which is about the goods) so a glance
-// down a list never confuses "delivered" with "paid for" — the whole reason
-// the two are separate fields (spec.md "Payment collection").
-//
-// Amber for money still out there, green for money in hand; the icon and the
-// wording carry the same meaning, so colour is never the only signal.
-const PAYMENT_BADGE_STYLES: Record<PaymentStatus, string> = {
-  PENDING_COLLECTION: "bg-amber-500/10 text-amber-700 dark:text-amber-400",
-  COLLECTED: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400",
+// Kept visually distinct from the order-status badge so "delivered" is never read as "paid for" (spec.md "Payment collection").
+const PAYMENT_BADGE_TONES: Record<PaymentStatus, BadgeVariant> = {
+  PENDING_COLLECTION: "warning",
+  COLLECTED: "success",
 };
 
-const PAYMENT_BADGE_ICONS: Record<PaymentStatus, typeof Wallet> = {
-  PENDING_COLLECTION: BanknoteArrowDown,
-  COLLECTED: Wallet,
+const PAYMENT_BADGE_ICONS: Record<PaymentStatus, IconName> = {
+  PENDING_COLLECTION: "banknote",
+  COLLECTED: "wallet",
 };
 
-export function PaymentStatusBadge({
-  status,
-  className,
-}: {
-  status: PaymentStatus;
-  className?: string;
-}) {
+export function PaymentStatusBadge({ status, className }: { status: PaymentStatus; className?: string }) {
   const t = useTranslations("orders.paymentStatus");
-  const Icon = PAYMENT_BADGE_ICONS[status];
 
   return (
-    <span
-      className={cn(
-        "inline-flex h-6 shrink-0 items-center gap-1 rounded-full px-2.5 text-xs font-medium",
-        PAYMENT_BADGE_STYLES[status],
-        className
-      )}
-    >
-      <Icon className="size-3.5" aria-hidden="true" />
+    <Badge tone={PAYMENT_BADGE_TONES[status]} icon={PAYMENT_BADGE_ICONS[status]} className={cn("shrink-0", className)}>
       {t(status)}
-    </span>
+    </Badge>
   );
 }

@@ -20,15 +20,18 @@ export const PRODUCT_PLACEHOLDER_PATH = "/product-placeholder.svg";
 // fraction of 640px from the srcset, which is how a 109px card on the shop's
 // iPhone came to fetch a 384px picture. Change one with its box.
 
-/** The search result row's photo: size-16. */
-export const SEARCH_RESULT_THUMB_SIZES = "64px";
-
-/** A cart line's photo: size-14. */
-export const CART_LINE_THUMB_SIZES = "56px";
-
 /**
- * A product browser card's square photo. The grid sizes its columns from the
- * panel, and a column settles between about 6.8rem on a 375px phone and 12rem
- * on a wide screen.
+ * A product card's square photo on the selling screen's grid: about 170px wide
+ * two-up on a phone, up to about 230px three-up on a tablet, and 180-200px
+ * in the four- and five-column layouts beside the cart panel.
  */
-export const BROWSER_CARD_THUMB_SIZES = "(min-width: 640px) 192px, 128px";
+export const SELL_CARD_THUMB_SIZES = "(min-width: 600px) 240px, 180px";
+
+/** A cart line's photo in the selling screen's cart panel: size-13. */
+export const SELL_CART_THUMB_SIZES = "52px";
+
+/** The product's photo beside the variant picker's title: size-16. */
+export const VARIANT_PICKER_PHOTO_SIZES = "64px";
+
+/** A variant's own photo on its tile in the picker: size-14. */
+export const VARIANT_TILE_THUMB_SIZES = "56px";

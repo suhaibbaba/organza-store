@@ -1,25 +1,30 @@
-import type { InventoryItem, StockAdjustResult } from "@organza/shared/types/inventory";
-import type { Pagination } from "@organza/shared/types/common";
+import type { InventoryItem, StockAdjustResult } from "@store/shared/types/inventory";
+import type { Pagination } from "@store/shared/types/common";
 import { apiFetch } from "@/lib/api/client";
 import type { InventoryListFilters } from "@/types/inventory";
 
-function buildInventoryListQuery(filters: InventoryListFilters, pageSize: number): string {
+function buildInventoryListQuery(filters: InventoryListFilters): string {
   const params = new URLSearchParams();
   params.set("page", String(filters.page));
-  params.set("pageSize", String(pageSize));
+  params.set("pageSize", String(filters.pageSize));
   params.set("sortBy", filters.sortBy);
   params.set("sortDir", filters.sortDir);
-  if (filters.q.trim()) params.set("q", filters.q.trim());
-  if (filters.categoryId) params.set("categoryId", filters.categoryId);
-  if (filters.lowStock) params.set("lowStock", "true");
+  if (filters.q.trim()) {
+    params.set("q", filters.q.trim());
+  }
+  if (filters.categoryId) {
+    params.set("categoryId", filters.categoryId);
+  }
+  if (filters.lowStock) {
+    params.set("lowStock", "true");
+  }
   return params.toString();
 }
 
 export async function fetchInventory(
   filters: InventoryListFilters,
-  pageSize: number
 ): Promise<{ items: InventoryItem[]; meta: Pagination | null }> {
-  const query = buildInventoryListQuery(filters, pageSize);
+  const query = buildInventoryListQuery(filters);
   const { data, meta } = await apiFetch<InventoryItem[]>(`/api/inventory?${query}`);
   return { items: data, meta };
 }

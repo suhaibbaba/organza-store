@@ -1,6 +1,6 @@
 {
   "app": {
-    "name": "أورجانزا",
+    "name": "إدارة المتجر",
     "tagline": "شاشة البيع",
     "sandbox": "تجريبي"
   },
@@ -24,13 +24,15 @@
       "ADMIN": "مسؤول",
       "MANAGER": "مدير",
       "EMPLOYEE": "موظف"
-    }
+    },
+    "profile": "ملفي الشخصي",
+    "cancel": "إلغاء"
   },
   "stock": {
-    "out": "غير متوفر",
-    "low": "كمية قليلة",
+    "out": "نافد",
+    "low": "مخزون منخفض",
     "in": "متوفر",
-    "lowCount": "كمية قليلة · {count, plural, one {قطعة واحدة} two {قطعتان} few {{count, number, plain} قطع} many {{count, number, plain} قطعة} other {{count, number, plain} قطعة}}",
+    "lowCount": "مخزون منخفض · {count, plural, one {قطعة واحدة} two {قطعتان} few {{count, number, plain} قطع} many {{count, number, plain} قطعة} other {{count, number, plain} قطعة}}",
     "inCount": "متوفر · {count, plural, one {قطعة واحدة} two {قطعتان} few {{count, number, plain} قطع} many {{count, number, plain} قطعة} other {{count, number, plain} قطعة}}"
   },
   "offline": {
@@ -53,7 +55,7 @@
       "title": "تسجيل الدخول",
       "subtitle": "أدخل بريدك الإلكتروني وكلمة المرور للمتابعة.",
       "emailLabel": "البريد الإلكتروني",
-      "emailPlaceholder": "you@organza.test",
+      "emailPlaceholder": "you@store.test",
       "passwordLabel": "كلمة المرور",
       "passwordPlaceholder": "أدخل كلمة المرور",
       "submit": "تسجيل الدخول",
@@ -157,7 +159,9 @@
       "add": "إضافة إلى السلة",
       "addNamed": "إضافة {name}",
       "addCount": "إضافة {count, plural, one {قطعة واحدة} two {قطعتين} few {{count, number, plain} قطع} many {{count, number, plain} قطعة} other {{count, number, plain} قطعة}} إلى السلة",
-      "selectedCount": "{count, plural, one {تم اختيار قطعة واحدة} two {تم اختيار قطعتين} few {تم اختيار {count, number, plain} قطع} many {تم اختيار {count, number, plain} قطعة} other {تم اختيار {count, number, plain} قطعة}}"
+      "selectedCount": "{count, plural, one {تم اختيار قطعة واحدة} two {تم اختيار قطعتين} few {تم اختيار {count, number, plain} قطع} many {تم اختيار {count, number, plain} قطعة} other {تم اختيار {count, number, plain} قطعة}}",
+      "numberedPhotoAlt": "صورة التشكيلة مع أرقامها",
+      "numberedPoint": "الرقم {number}"
     },
     "cart": {
       "title": "البيع الحالي",
@@ -287,6 +291,26 @@
       "added": "تمت إضافة {name} إلى البيع.",
       "emptyPrompt": "القطعة ليست في النظام؟ بِعها الآن وأكمل تفاصيلها لاحقًا.",
       "cancel": "إلغاء"
+    },
+    "screen": {
+      "cartTitle": "السلة",
+      "clear": "إفراغ",
+      "clearConfirmTitle": "إفراغ السلة كلها؟",
+      "clearConfirmYes": "إفراغ",
+      "clearConfirmKeep": "إبقاء",
+      "categoriesTitle": "التصنيفات",
+      "productsTitle": "المنتجات",
+      "productCount": "{count, number, plain} منتج",
+      "subtotal": "المجموع الفرعي",
+      "discount": "الخصم",
+      "editDiscount": "تعديل الخصم على الفاتورة",
+      "viewCart": "عرض السلة وإتمام البيع",
+      "scan": "مسح باركود",
+      "searchPlaceholder": "ابحث بالاسم أو الباركود",
+      "searchPlaceholderShort": "ابحث عن منتج",
+      "add": "إضافة {name} إلى السلة",
+      "addToCart": "أضف للسلة",
+      "cartCount": "{count, plural, zero {السلة فارغة} one {قطعة واحدة في السلة} two {قطعتان في السلة} few {{count, number, plain} قطع في السلة} many {{count, number, plain} قطعة في السلة} other {{count, number, plain} قطعة في السلة}}"
     }
   },
   "errors": {
@@ -312,7 +336,11 @@
     "validationInvalidPhone": "أدخل رقم هاتف صحيحًا.",
     "orderCustomerRequired": "أدخل اسم الزبون ورقم هاتفه.",
     "orderLocationInvalid": "الموقع غير صحيح. أدخل خط العرض وخط الطول معًا.",
-    "rateLimited": "حاولت عدة مرات خلال وقت قصير. انتظر قليلاً ثم أعد المحاولة."
+    "rateLimited": "حاولت عدة مرات خلال وقت قصير. انتظر قليلاً ثم أعد المحاولة.",
+    "profileWrongPassword": "كلمة المرور الحالية غير صحيحة.",
+    "profileSessionNotFound": "تم تسجيل خروج هذا الجهاز من قبل.",
+    "phoneDuplicate": "رقم الهاتف هذا مستخدم مسبقًا.",
+    "whatsappDuplicate": "رقم الواتساب هذا مستخدم مسبقًا."
   },
   "pwa": {
     "version": {
@@ -327,5 +355,76 @@
       "action": "التحديث الآن",
       "updating": "جارٍ التحديث…"
     }
+  },
+  "profile": {
+    "title": "ملفي الشخصي",
+    "subtitle": "حسابك أنت: بياناتك وكلمة المرور والأجهزة واللغة.",
+    "header": {
+      "email": "البريد الإلكتروني",
+      "phone": "الهاتف",
+      "memberSince": "عضو منذ"
+    },
+    "sections": {
+      "details": {
+        "title": "البيانات الشخصية",
+        "description": "اسمك وأرقامك كما يراها باقي فريق المحل."
+      },
+      "devices": {
+        "title": "الأجهزة المسجّل دخولها",
+        "description": "الأماكن المسجّل فيها دخول حسابك الآن."
+      },
+      "password": {
+        "title": "كلمة المرور",
+        "description": "تغييرها يسجّل خروجك من كل الأجهزة الأخرى."
+      },
+      "language": {
+        "title": "اللغة",
+        "description": "تُستخدم على هذا الجهاز الآن، وكلما سجّلت الدخول."
+      }
+    },
+    "details": {
+      "name": "الاسم الكامل",
+      "namePlaceholder": "اسمك الكامل",
+      "phone": "رقم الهاتف",
+      "whatsapp": "واتساب",
+      "whatsappHint": "فقط إذا كان مختلفًا عن رقم الهاتف.",
+      "email": "البريد الإلكتروني",
+      "emailNote": "تسجّل الدخول بهذا العنوان، ولا يغيّره إلا المسؤول.",
+      "saved": "تم حفظ بياناتك."
+    },
+    "password": {
+      "open": "تغيير كلمة المرور",
+      "title": "تغيير كلمة المرور",
+      "description": "أدخل كلمة المرور الحالية، ثم الجديدة مرتين.",
+      "current": "كلمة المرور الحالية",
+      "currentPlaceholder": "كلمة مرورك الحالية",
+      "new": "كلمة المرور الجديدة",
+      "newPlaceholder": "اختر كلمة مرور جديدة",
+      "newNote": "8 أحرف على الأقل.",
+      "confirm": "أعد كتابة كلمة المرور الجديدة",
+      "confirmPlaceholder": "أعد كتابة كلمة المرور الجديدة",
+      "submit": "تغيير كلمة المرور",
+      "changed": "تم تغيير كلمة المرور، وسُجّل خروج أجهزتك الأخرى.",
+      "mismatch": "كلمتا المرور غير متطابقتين."
+    },
+    "language": {
+      "label": "لغة الواجهة"
+    },
+    "devices": {
+      "browserOn": "{browser} على {system}",
+      "unknownDevice": "جهاز غير معروف",
+      "thisDevice": "هذا الجهاز",
+      "lastActive": "آخر نشاط {when}",
+      "signOut": "تسجيل الخروج",
+      "signOutTitle": "تسجيل خروج هذا الجهاز؟",
+      "signOutConsequence": "سيحتاج من يستخدمه إلى تسجيل الدخول من جديد.",
+      "signedOut": "تم تسجيل خروج الجهاز.",
+      "signOutOthers": "تسجيل الخروج من كل الأجهزة الأخرى",
+      "signOutOthersTitle": "تسجيل الخروج من كل الأجهزة الأخرى؟",
+      "signOutOthersConsequence": "كل جهاز غير هذا سيحتاج إلى تسجيل الدخول من جديد.",
+      "signedOutOthers": "تم تسجيل الخروج من كل الأجهزة الأخرى.",
+      "onlyThisDevice": "أنت مسجّل الدخول على هذا الجهاز فقط."
+    },
+    "back": "العودة إلى البيع"
   }
 }

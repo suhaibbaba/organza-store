@@ -7,24 +7,15 @@ import {
   CHANGE_REQUEST_VALUE_KINDS,
   PENDING_CHANGE_REQUEST_STATUS,
   REJECTED_CHANGE_REQUEST_STATUS,
-} from "@organza/shared/constants/changeRequest";
-import type { ChangeRequestStatus, ChangeRequestValue } from "@organza/shared/types/changeRequest";
+} from "@store/shared/constants/changeRequest";
+import type { ChangeRequestStatus, ChangeRequestValue } from "@store/shared/types/changeRequest";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
 import { formatNumber } from "@/lib/format";
 import { localize } from "@/lib/i18n-content";
 import { resolveRequestedValue } from "@/lib/change-requests";
 import { cn } from "@/lib/utils";
 
-// Turning a stored value into something a person can read.
-//
-// The API sends data plus a rendering hint (`kind`), never a sentence
-// (CLAUDE.md rule 12), so every word below comes from t() and every amount
-// from the shop's own currency setting (rule 14).
-
-// An approval status is three words, and all three are reachable: an expense
-// waiting, one signed off, one turned down. Mapped rather than guessed from a
-// single "is it APPROVED" test, which read every other status as "waiting"
-// and put "بالانتظار" on refused requests.
+// All three approval statuses are reachable, so they are mapped rather than tested against APPROVED alone.
 const APPROVAL_VALUE_KEYS: Record<string, string> = {
   [PENDING_CHANGE_REQUEST_STATUS]: "awaiting",
   [APPROVED_CHANGE_REQUEST_STATUS]: "approved",
@@ -37,7 +28,9 @@ function useValueText(): (value: ChangeRequestValue | null) => string {
   const money = useMoneyFormatter();
 
   return (value) => {
-    if (!value) return t("none");
+    if (!value) {
+      return t("none");
+    }
     switch (value.kind) {
       case CHANGE_REQUEST_VALUE_KINDS.MONEY:
         return value.value === null ? t("none") : money(String(value.value));
@@ -62,23 +55,7 @@ export function ChangeValueText({ value }: { value: ChangeRequestValue | null })
   return <>{useValueText()(value)}</>;
 }
 
-/**
- * "from X → to Y", the line the whole approval screen is built around.
- *
- * Two things it must never do, both of them Arabic-first requirements
- * (CLAUDE.md "Frontend UX"):
- *
- *  * NO STRIKETHROUGH on the old value. A line through connected Arabic
- *    script cuts straight across the letters' joins and the word stops being
- *    readable — "بالانتظار" turned into a smear. "Previous" is carried by a
- *    muted colour and by its own "from" label instead, which survives being
- *    read at arm's length on a phone.
- *  * The arrow is written pointing the way LTR reads and mirrored for RTL
- *    (rtl:-scale-x-100, the same convention as every other directional icon
- *    in the app), so it always points from what is stored towards what is
- *    being asked for. Written the other way round it pointed backwards in
- *    Arabic, which is the default locale.
- */
+// No strikethrough on the old value: it cuts across connected Arabic script and makes it unreadable.
 export function ChangeValueDiff({
   oldValue,
   newValue,
@@ -102,25 +79,21 @@ export function ChangeValueDiff({
   return (
     <div className={cn("flex flex-col gap-2", className)}>
       <div className="flex flex-wrap items-center gap-2">
-        <span className="inline-flex items-baseline gap-1.5 rounded-lg bg-muted px-2.5 py-1 text-sm text-muted-foreground">
-          <span className="text-xs opacity-80">{t("from")}</span>
+        <span className="inline-flex items-baseline gap-1.5 rounded-control bg-inset px-2.5 py-1 text-label text-ink-muted">
+          <span className="text-meta opacity-80">{t("from")}</span>
           <span>{text(oldValue)}</span>
         </span>
-        <ArrowRight className="size-4 shrink-0 text-muted-foreground rtl:-scale-x-100" aria-hidden="true" />
-        <span className="inline-flex items-baseline gap-1.5 rounded-lg bg-primary/10 px-2.5 py-1 text-sm font-semibold text-primary">
-          <span className="text-xs font-medium opacity-80">{t("to")}</span>
+        <ArrowRight className="size-4 shrink-0 text-ink-muted rtl:-scale-x-100" aria-hidden="true" />
+        <span className="inline-flex items-baseline gap-1.5 rounded-control bg-primary-50 px-2.5 py-1 text-label font-semibold text-primary-600">
+          <span className="text-meta font-medium opacity-80">{t("to")}</span>
           <span>{text(requested)}</span>
         </span>
       </div>
 
-      {/* Which combinations, when the change is about a product's variant
-          set — a count on its own would not tell an Admin what they are
-          agreeing to. */}
+      {/* A variant-set change names its combinations: a count alone doesn't say what is being agreed to. */}
       {variants.length > 0 && (
-        <p className="text-xs text-muted-foreground">
-          <span className="font-medium">
-            {detail?.action === "remove" ? t("removing") : t("adding")}
-          </span>{" "}
+        <p className="text-meta text-ink-muted">
+          <span className="font-medium">{detail?.action === "remove" ? t("removing") : t("adding")}</span>{" "}
           {variants.map((v) => localize(v.name, locale)).join(t("listSeparator"))}
         </p>
       )}

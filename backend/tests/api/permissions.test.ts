@@ -1,20 +1,6 @@
-// ============================================================================
-//  Editable role permissions (spec.md "Editable role permissions")
-//
-//  What has to hold, and is asserted here twice over — the API's answer AND
-//  the effect on a real endpoint:
-//
-//    * a CONFIGURABLE grant can be revoked and the refusal is immediate;
-//    * ...and granted, and the new power is immediately real;
-//    * every action is configurable — the money ones included;
-//    * the ADMIN role cannot be edited by anybody, so an Admin always holds
-//      everything — refused by the server, not hidden by a screen;
-//    * only a holder of permission.manage may edit, and never their own role;
-//    * the last active Admin cannot be stripped of the role either way;
-//    * and the cache behind `can()` never serves a stale answer.
-// ============================================================================
+// Role permissions: every grant flips and takes effect at once; the ADMIN row is never editable; the last Admin stays.
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { CONFIGURABLE_ACTIONS, PERMISSION_ACTIONS } from "@organza/shared/constants/permissions";
+import { CONFIGURABLE_ACTIONS, PERMISSION_ACTIONS } from "@store/shared/constants/permissions";
 import { apiRequest, uniqueId } from "@tests/support/client";
 import { getSession } from "@tests/support/auth";
 import {
@@ -38,15 +24,11 @@ describe("Role permissions", () => {
     employeeToken = (await getSession("EMPLOYEE")).token;
   });
 
-  // Everything below flips grants. Whatever a case leaves behind, the next
-  // suite in the run must not inherit it.
+  // Every case flips grants, so the next suite must not inherit what it leaves.
   afterAll(async () => {
     await applyDefaultPermissions();
   });
 
-  // -------------------------------------------------------------------------
-  // The shape of the rules
-  // -------------------------------------------------------------------------
   describe("the matrix itself", () => {
     it("splits every action into exactly one of protected and configurable", async () => {
       const matrix = await fetchPermissionMatrix();
@@ -86,15 +68,9 @@ describe("Role permissions", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
-  // A configurable grant, revoked — and the refusal that follows
-  // -------------------------------------------------------------------------
   describe("revoking a configurable grant", () => {
     it("stops the role doing the thing, on the very next request", async () => {
-      // An Employee creates products by default (spec.md). The 400 is the
-      // validation failure BEYOND the gate: it proves the permission passed,
-      // which a 200 with a real payload would prove too but at the cost of a
-      // fixture to clean up.
+      // The 400 is validation beyond the gate: it proves the permission passed without a fixture to clean up.
       const before = await apiRequest("/api/products", { method: "POST", token: employeeToken, body: {} });
       expect(before.status, "the gate is open to start with").toBe(400);
 
@@ -136,9 +112,6 @@ describe("Role permissions", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
-  // ...and granted
-  // -------------------------------------------------------------------------
   describe("granting a configurable action", () => {
     it("lets a role do something it could not do before", async () => {
       const denied = await apiRequest("/api/categories", {
@@ -156,9 +129,7 @@ describe("Role permissions", () => {
         });
         expect(created.status).toBe(201);
 
-        // Taken away again here rather than at teardown: a category with no
-        // products is deletable, and leaving one behind would put a row in the
-        // shop's own tree.
+        // Deleted here, not at teardown, so no row is left in the shop's own tree.
         await apiRequest(`/api/categories/${created.data!.id}`, { method: "DELETE", token: adminToken });
       });
 
@@ -171,9 +142,6 @@ describe("Role permissions", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
-  // What used to be locked — now the shop's to decide
-  // -------------------------------------------------------------------------
   describe("a formerly locked action", () => {
     it("can be granted, and the gate follows on the very next request", async () => {
       const before = await apiRequest("/api/orders/collection-summary", { token: employeeToken });
@@ -205,9 +173,6 @@ describe("Role permissions", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
-  // Who may edit
-  // -------------------------------------------------------------------------
   describe("who may edit the table", () => {
     it("refuses a Manager and an Employee outright", async () => {
       for (const token of [managerToken, employeeToken]) {
@@ -230,18 +195,13 @@ describe("Role permissions", () => {
     });
 
     it("refuses it even for a change that would be harmless", async () => {
-      // Granting the Admin something they already hold changes nothing at
-      // all — and is still refused, because the rule is about WHO is editing
-      // WHOSE authority, not about what the edit happens to amount to.
+      // Refused even when it changes nothing: the rule is who edits whose authority.
       const res = await patchRolePermissions("ADMIN", [{ action: "product.view", granted: true }]);
       expect(res.status).toBe(409);
       expect(res.error?.code).toBe(ERROR_CODES.PERMISSION_SELF_ROLE);
     });
   });
 
-  // -------------------------------------------------------------------------
-  // The last Admin
-  // -------------------------------------------------------------------------
   describe("the last active Admin", () => {
     it("cannot be stripped by demotion, which the permissions screen offers no way round", async () => {
       const admins = await apiRequest<StaffAccountView[]>("/api/users?role=ADMIN&isActive=true&pageSize=50", {
@@ -249,10 +209,7 @@ describe("Role permissions", () => {
       });
       expect(admins.status).toBe(200);
 
-      // Only meaningful while there is exactly one — with two, demoting one
-      // is a legitimate thing to allow (and userRemoval.test.ts owns the
-      // full treatment of that guard). What is pinned here is the other half:
-      // that this feature did not open a second road to the same place.
+      // Only meaningful with exactly one Admin; userRemoval.test.ts owns the full guard.
       if ((admins.data ?? []).length === 1) {
         const admin = await getSession("ADMIN");
         const demoted = await apiRequest(`/api/users/${admin.userId}`, {
@@ -264,41 +221,38 @@ describe("Role permissions", () => {
         expect(demoted.error?.code).toBe(ERROR_CODES.USER_LAST_ADMIN);
       }
 
-      // And the road this feature could have opened is closed: the ADMIN row
-      // is not editable at all, so no sequence of permission edits can take
-      // anything away from the account holding the shop together.
+      // The ADMIN row is not editable, so no sequence of permission edits can strip the shop's Admin.
       const selfEdit = await patchRolePermissions("ADMIN", [{ action: "settings.manage", granted: false }]);
       expect(selfEdit.status).toBe(409);
       expect(selfEdit.error?.code).toBe(ERROR_CODES.PERMISSION_SELF_ROLE);
 
-      // Belt and braces on the thing that actually matters: the Admin can
-      // still reach Settings afterwards.
+      // The thing that matters: the Admin still reaches Settings afterwards.
       const settings = await apiRequest("/api/settings", { method: "PATCH", token: adminToken, body: {} });
       expect(settings.status).toBe(200);
     });
 
     it("keeps every power with the Admin no matter what is configured", async () => {
-      // The worst case the screen can produce: every action granted to
-      // everybody, permission.manage included. The Admin row is still out of
-      // everybody's reach.
-      await patchRolePermissions("MANAGER", CONFIGURABLE_ACTIONS.map((action) => ({ action, granted: true })));
-      await patchRolePermissions("EMPLOYEE", CONFIGURABLE_ACTIONS.map((action) => ({ action, granted: true })));
+      // Worst case: everything granted to everybody, permission.manage included — the Admin row is still out of reach.
+      await patchRolePermissions(
+        "MANAGER",
+        CONFIGURABLE_ACTIONS.map((action) => ({ action, granted: true })),
+      );
+      await patchRolePermissions(
+        "EMPLOYEE",
+        CONFIGURABLE_ACTIONS.map((action) => ({ action, granted: true })),
+      );
 
       try {
         // A Manager holding permission.manage may edit the Employee's row...
-        const managerEdit = await patchRolePermissions(
-          "EMPLOYEE",
-          [{ action: "inventory.view", granted: false }],
-          { token: managerToken }
-        );
+        const managerEdit = await patchRolePermissions("EMPLOYEE", [{ action: "inventory.view", granted: false }], {
+          token: managerToken,
+        });
         expect(managerEdit.status).toBe(200);
 
         // ...never their own...
-        const managerSelf = await patchRolePermissions(
-          "MANAGER",
-          [{ action: "inventory.view", granted: false }],
-          { token: managerToken }
-        );
+        const managerSelf = await patchRolePermissions("MANAGER", [{ action: "inventory.view", granted: false }], {
+          token: managerToken,
+        });
         expect(managerSelf.status).toBe(409);
         expect(managerSelf.error?.code).toBe(ERROR_CODES.PERMISSION_SELF_ROLE);
 
@@ -320,14 +274,9 @@ describe("Role permissions", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
-  // The cache
-  // -------------------------------------------------------------------------
   describe("the cache behind can()", () => {
     it("never serves a stale answer to the request straight after a change", async () => {
-      // No pause, no retry, no polling: the assertion is that the very next
-      // request already sees it. `can()` answers from memory, so this is the
-      // property the whole caching design has to buy.
+      // No retry or polling: the very next request must see the change, which is what the cache has to buy.
       for (let round = 0; round < 3; round++) {
         await setRolePermission("EMPLOYEE", "product.create", false);
         const denied = await apiRequest("/api/products", { method: "POST", token: employeeToken, body: {} });
@@ -346,8 +295,7 @@ describe("Role permissions", () => {
         { action: "inventory.view", granted: true },
       ]);
 
-      // Sending the same state again is not an error and is not a change —
-      // the screen may re-send what it already has.
+      // Re-sending the same state is neither an error nor a change.
       const again = await patchRolePermissions("EMPLOYEE", [{ action: "inventory.view", granted: true }]);
       expect(again.status).toBe(200);
       expect((again.data as PermissionMatrixResponse & { changed: unknown[] }).changed).toEqual([]);
@@ -356,26 +304,17 @@ describe("Role permissions", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
-  // The trail
-  // -------------------------------------------------------------------------
   describe("the audit trail", () => {
     it("records every grant and every revoke, by role and by action", async () => {
       await setRolePermission("EMPLOYEE", "expense.view", true);
       await setRolePermission("EMPLOYEE", "expense.view", false);
 
-      // The audit log has no read endpoint yet, so what is asserted here is
-      // the contract the write depends on: the change landed, and it landed
-      // through the route that writes the entry (a direct database write
-      // would not have gone through requirePermission at all).
+      // No audit read endpoint yet: the change landing through the route that writes the entry is the contract.
       const matrix = await fetchPermissionMatrix();
       expect(matrix.roles.EMPLOYEE).not.toContain("expense.view");
     });
   });
 
-  // -------------------------------------------------------------------------
-  // The body itself
-  // -------------------------------------------------------------------------
   describe("the request body", () => {
     it("refuses an empty change list and a repeated action", async () => {
       const empty = await patchRolePermissions("EMPLOYEE", []);
@@ -396,7 +335,7 @@ describe("Role permissions", () => {
     it("accepts the whole configurable list in one request", async () => {
       const res = await patchRolePermissions(
         "MANAGER",
-        CONFIGURABLE_ACTIONS.map((action) => ({ action, granted: true }))
+        CONFIGURABLE_ACTIONS.map((action) => ({ action, granted: true })),
       );
       expect(res.status).toBe(200);
 

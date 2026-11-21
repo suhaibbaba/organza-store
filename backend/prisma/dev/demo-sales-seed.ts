@@ -1,33 +1,4 @@
-// ============================================================
-//  Organza Store — DEMO SALES HISTORY (DEV / SANDBOX ONLY — NEVER PRODUCTION)
-//
-//  A run of everyday trading from DEMO_SALES_FROM up to the moment it runs,
-//  so the dashboard's Today / This week / This month and the Reports page
-//  have figures in every window — the main demo seed (demo-seed.ts) writes a
-//  handful of orders that cover every RULE, not a history.
-//
-//  Quarantined exactly like demo-seed.ts — refused unless the run declares
-//  the database disposable, and never under APP_ENV=production:
-//      ORGANZA_ALLOW_DEMO_SEED=I-KNOW-THIS-IS-NOT-PRODUCTION npm run seed:demo-sales
-//
-//  Per day (shop's local time): a few counter sales, now and then a WhatsApp
-//  order and a gift, and the month's standing costs plus small cash
-//  expenses. Online orders older than a few days have been delivered and
-//  collected; the most recent ones are still with the courier, being
-//  prepared, or new — so the outstanding-money figure has something in it.
-//
-//  Idempotent: every row has a fixed id derived from its day, and every
-//  choice comes from a generator seeded by that day — re-running rewrites
-//  the same rows, and a later run simply adds the days since. Only the
-//  current day is written up to "now", so today grows on a re-run.
-//
-//  Stock is deliberately NOT touched. Like demo-seed.ts, this writes the
-//  resulting state of each sale rather than replaying the API's deduction —
-//  replaying it would walk the shelf down further on every run.
-//
-//  Needs a catalogue with priced products and the demo accounts, i.e.
-//  `npm run seed:demo` first.
-// ============================================================
+// DEMO sales history (dev/sandbox only, never production), so dashboard and reports have figures; gated like demo-seed.ts.
 import { PrismaClient } from "@prisma/client";
 import { assertDisposableDatabase } from "@/lib/dangerousCommands";
 import { DANGEROUS_COMMAND_ENV, MS_PER_MINUTE } from "@/constants";
@@ -79,8 +50,7 @@ const DEMO_CUSTOMERS = [
 
 const round2 = (n: number) => Math.round(n * 100) / 100;
 
-// Deterministic per key (mulberry32 over a string hash), so the same day
-// always makes the same choices.
+// Deterministic per key (mulberry32 over a string hash), so the same day always makes the same choices.
 function rng(key: string) {
   let h = 1779033703 ^ key.length;
   for (let i = 0; i < key.length; i++) {
@@ -104,13 +74,19 @@ function rng(key: string) {
 
 // A local wall-clock time on a local date, as a real instant.
 function localInstant(day: string, minutesIntoDay: number): Date {
-  return new Date(new Date(`${day}T00:00:00.000Z`).getTime() + (minutesIntoDay - SHOP_TZ_OFFSET_MINUTES) * MS_PER_MINUTE);
+  return new Date(
+    new Date(`${day}T00:00:00.000Z`).getTime() + (minutesIntoDay - SHOP_TZ_OFFSET_MINUTES) * MS_PER_MINUTE,
+  );
 }
 
 function localDays(from: string, until: Date): string[] {
   const today = new Date(until.getTime() + SHOP_TZ_OFFSET_MINUTES * MS_PER_MINUTE).toISOString().slice(0, 10);
   const days: string[] = [];
-  for (let d = new Date(`${from}T00:00:00.000Z`); d.toISOString().slice(0, 10) <= today; d.setUTCDate(d.getUTCDate() + 1)) {
+  for (
+    let d = new Date(`${from}T00:00:00.000Z`);
+    d.toISOString().slice(0, 10) <= today;
+    d.setUTCDate(d.getUTCDate() + 1)
+  ) {
     days.push(d.toISOString().slice(0, 10));
   }
   return days;
@@ -121,24 +97,27 @@ function localDays(from: string, until: Date): string[] {
 async function main() {
   const now = new Date();
 
-  const admin = await prisma.user.findUniqueOrThrow({ where: { email: "admin@organza.test" } });
-  const manager = await prisma.user.findUniqueOrThrow({ where: { email: "manager@organza.test" } });
-  const employee = await prisma.user.findUniqueOrThrow({ where: { email: "employee@organza.test" } });
+  const admin = await prisma.user.findUniqueOrThrow({ where: { email: "admin@store.test" } });
+  const manager = await prisma.user.findUniqueOrThrow({ where: { email: "manager@store.test" } });
+  const employee = await prisma.user.findUniqueOrThrow({ where: { email: "employee@store.test" } });
   const sellers = [employee, employee, manager, admin];
 
-  // Anything on the shelf with a price. Ordered by id so the same day picks
-  // the same pieces on every run while the catalogue is unchanged.
+  // Anything on the shelf with a price, ordered by id so the same day picks the same pieces.
   const products = await prisma.product.findMany({
     where: { deletedAt: null, isActive: true, basePrice: { gt: 0 } },
     include: { variants: { where: { isActive: true }, orderBy: { variantNumber: "asc" } } },
     orderBy: { id: "asc" },
   });
-  if (products.length === 0) throw new Error("No priced products to sell — run `npm run seed:demo` first.");
+  if (products.length === 0) {
+    throw new Error("No priced products to sell — run `npm run seed:demo` first.");
+  }
 
   const categories = await prisma.expenseCategory.findMany();
   const categoryId = (key: string) => {
     const found = categories.find((c) => c.key === key);
-    if (!found) throw new Error(`Expense category "${key}" is missing — run \`npm run seed:demo\` first.`);
+    if (!found) {
+      throw new Error(`Expense category "${key}" is missing — run \`npm run seed:demo\` first.`);
+    }
     return found.id;
   };
 
@@ -243,13 +222,19 @@ async function main() {
     const randomMinute = () => r.int(OPEN_HOUR * 60, CLOSE_HOUR * 60 - 1);
 
     let count = r.int(STORE_SALES_PER_DAY.min, STORE_SALES_PER_DAY.max);
-    if (weekday === BUSY_DAY) count += 2;
-    if (weekday === QUIET_DAY) count = Math.max(1, count - 2);
+    if (weekday === BUSY_DAY) {
+      count += 2;
+    }
+    if (weekday === QUIET_DAY) {
+      count = Math.max(1, count - 2);
+    }
 
     const minutes = Array.from({ length: count }, randomMinute).sort((a, b) => a - b);
     for (let i = 0; i < minutes.length; i++) {
       const createdAt = at(minutes[i]);
-      if (!happened(createdAt)) continue;
+      if (!happened(createdAt)) {
+        continue;
+      }
       await writeOrder({
         id: `${ID_PREFIX}-${day}-store-${i + 1}`,
         r,
@@ -265,10 +250,15 @@ async function main() {
     if (r.chance(WHATSAPP_CHANCE)) {
       const createdAt = at(randomMinute());
       if (happened(createdAt)) {
-        // Delivered and paid once the courier has had it long enough; before
-        // that it walks back through the flow the younger it is.
+        // Delivered and paid once the courier has had it long enough; younger orders sit earlier in the flow.
         const delivered = ageDays >= COURIER_DAYS;
-        const status = delivered ? "COMPLETED" : ageDays >= 1 ? "HANDED_TO_COURIER" : r.chance(0.5) ? "PREPARING" : "NEW";
+        const status = delivered
+          ? "COMPLETED"
+          : ageDays >= 1
+            ? "HANDED_TO_COURIER"
+            : r.chance(0.5)
+              ? "PREPARING"
+              : "NEW";
         const collectedAt = delivered ? localInstant(day, (COURIER_DAYS * 24 + 12) * 60) : null;
         await writeOrder({
           id: `${ID_PREFIX}-${day}-whatsapp`,
@@ -304,8 +294,24 @@ async function main() {
     if (day.endsWith("-01")) {
       const morning = at(OPEN_HOUR * 60);
       if (happened(morning)) {
-        await writeExpense({ id: `${ID_PREFIX}-${day}-salaries`, date: morning, key: "salaries", amount: 3500, paidInCash: false, isRecurring: true, note: "رواتب الشهر" });
-        await writeExpense({ id: `${ID_PREFIX}-${day}-utilities`, date: morning, key: "utilities", amount: 1200, paidInCash: false, isRecurring: true, note: "إيجار وكهرباء" });
+        await writeExpense({
+          id: `${ID_PREFIX}-${day}-salaries`,
+          date: morning,
+          key: "salaries",
+          amount: 3500,
+          paidInCash: false,
+          isRecurring: true,
+          note: "رواتب الشهر",
+        });
+        await writeExpense({
+          id: `${ID_PREFIX}-${day}-utilities`,
+          date: morning,
+          key: "utilities",
+          amount: 1200,
+          paidInCash: false,
+          isRecurring: true,
+          note: "إيجار وكهرباء",
+        });
         expenses += 2;
       }
     }
@@ -314,7 +320,15 @@ async function main() {
       const date = at(randomMinute());
       if (happened(date)) {
         const key = r.pick(["supplies", "delivery", "maintenance"] as const);
-        await writeExpense({ id: `${ID_PREFIX}-${day}-cash`, date, key, amount: r.int(2, 12) * 10, paidInCash: true, isRecurring: false, note: "مصروف نقدي" });
+        await writeExpense({
+          id: `${ID_PREFIX}-${day}-cash`,
+          date,
+          key,
+          amount: r.int(2, 12) * 10,
+          paidInCash: true,
+          isRecurring: false,
+          note: "مصروف نقدي",
+        });
         expenses++;
       }
     }

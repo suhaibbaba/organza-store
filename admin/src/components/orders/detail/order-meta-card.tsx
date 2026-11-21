@@ -1,20 +1,16 @@
+import { Typography } from "@store/ui";
 import { useLocale, useTranslations } from "next-intl";
-import type { Order } from "@organza/shared/types/order";
+import { Info } from "lucide-react";
+import type { Order } from "@store/shared/types/order";
 import { formatDateTime } from "@/lib/format";
-import { useActorName } from "@/lib/user-display";
-import { Card, CardContent } from "@/components/ui/card";
+import { DetailCard } from "@/components/layout/detail-card";
 
-// Who took the order and when things happened to it. `stockDeductedAt` is
-// shown as its own line because it answers the question staff actually ask —
-// "has this been taken off the shelf yet?" — which the status alone doesn't.
+// "Has this left the shelf yet?" is what staff ask, and the status alone doesn't say.
 export function OrderMetaCard({ order }: { order: Order }) {
   const t = useTranslations("orders.detail.meta");
   const locale = useLocale();
-  const actorName = useActorName();
 
-  const rows: { key: string; label: string; value: string }[] = [
-    { key: "createdBy", label: t("createdBy"), value: actorName(order.createdBy, t("unknownStaff")) },
-    { key: "createdAt", label: t("createdAt"), value: formatDateTime(order.createdAt, locale) },
+  const rows = [
     { key: "updatedAt", label: t("updatedAt"), value: formatDateTime(order.updatedAt, locale) },
     {
       key: "stockDeductedAt",
@@ -24,15 +20,19 @@ export function OrderMetaCard({ order }: { order: Order }) {
   ];
 
   return (
-    <Card>
-      <CardContent className="flex flex-col gap-2 p-5 text-sm">
+    <DetailCard icon={Info} title={t("title")} data-testid="order-meta">
+      <dl className="flex flex-col divide-y divide-line">
         {rows.map((row) => (
-          <div key={row.key} className="flex items-start justify-between gap-3">
-            <span className="shrink-0 text-muted-foreground">{row.label}</span>
-            <span className="text-end text-foreground">{row.value}</span>
+          <div key={row.key} className="py-3 first:pt-0 last:pb-0">
+            <Typography variant="body" tone="muted" as="dt">
+              {row.label}
+            </Typography>
+            <Typography variant="body" as="dd" className="mt-0.5 tabular-nums">
+              {row.value}
+            </Typography>
           </div>
         ))}
-      </CardContent>
-    </Card>
+      </dl>
+    </DetailCard>
   );
 }

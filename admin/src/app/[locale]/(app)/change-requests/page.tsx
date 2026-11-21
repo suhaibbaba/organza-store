@@ -1,19 +1,21 @@
 "use client";
 
-import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { can } from "@organza/shared/lib/permissions";
-import { DEFAULT_PAGE } from "@organza/shared/constants/pagination";
-import type { ChangeRequestStatus } from "@organza/shared/types/changeRequest";
+import { can } from "@store/shared/lib/permissions";
+import { DEFAULT_PAGE } from "@store/shared/constants/pagination";
+import type { ChangeRequestStatus } from "@store/shared/types/changeRequest";
 import { RoleGuard } from "@/components/auth/role-guard";
 import { PageContainer } from "@/components/layout/page-container";
 import { PageHeader } from "@/components/layout/page-header";
 import { useSession } from "@/components/providers/session-provider";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs } from "@store/ui";
+import { toSelectorName } from "@store/shared/lib/testSelector";
 import {
   CHANGE_REQUEST_STATUS_TABS,
+  CHANGE_REQUEST_LIST_URL_PARAMS,
   DEFAULT_CHANGE_REQUEST_FILTERS,
 } from "@/constants/changeRequests";
+import { useUrlFilters } from "@/hooks/use-url-filters";
 import { useChangeRequestsQuery } from "@/hooks/use-change-requests";
 import { isQuickSoldRequest } from "@/lib/change-requests";
 import { ChangeRequestCard } from "@/components/change-requests/change-request-card";
@@ -25,15 +27,8 @@ import {
   ChangeRequestListLoading,
   ChangeRequestListSpinnerOverlay,
 } from "@/components/change-requests/change-request-list-states";
-import type { ChangeRequestListFilters } from "@/types/changeRequest";
 
-// The approvals screen (spec.md "Employee change approvals").
-//
-// Two audiences, one page, decided entirely on the backend: an Admin sees
-// everything waiting and can act on it; anybody else sees only what they
-// themselves asked for and can only watch it. That is why the guard is
-// changeRequest.view rather than .approve — an Employee has to be able to
-// follow their own request, or the flow feels like a black hole.
+// Approvals: guarded by .view, not .approve, so an Employee can follow their own request (the backend scopes what each sees).
 export default function ChangeRequestsPage() {
   return (
     <RoleGuard action="changeRequest.view">
@@ -46,38 +41,38 @@ function ChangeRequestsPageContent() {
   const t = useTranslations("changeRequests");
   const { user } = useSession();
   const canDecide = can(user, "changeRequest.approve");
-  // Completing a quick-sold piece is a different permission from approving a
-  // gated change, and deliberately so (spec.md "Quick sell"): the first is
-  // review after money changed hands, the second is permission before
-  // anything happens. A Manager holds one and not the other.
+  // Completing a quick sale is its own permission (review after the sale), separate from approving a change (rule 23).
   const canComplete = can(user, "product.complete");
 
-  const [filters, setFilters] = useState<ChangeRequestListFilters>(DEFAULT_CHANGE_REQUEST_FILTERS);
+  const [filters, setFilters] = useUrlFilters(DEFAULT_CHANGE_REQUEST_FILTERS, CHANGE_REQUEST_LIST_URL_PARAMS);
   const { data, isLoading, isFetching, isError, error, refetch } = useChangeRequestsQuery(filters);
   const items = data?.items ?? [];
 
   return (
     <PageContainer>
-      <PageHeader name="change-requests" title={t("title")} description={canDecide ? t("subtitle") : t("subtitleOwn")} />
+      <PageHeader
+        name="change-requests"
+        title={t("title")}
+        description={canDecide ? t("subtitle") : t("subtitleOwn")}
+      />
 
       <div className="flex flex-col gap-4">
+        {/* Tab ids are the selector spelling (tab-pending), mapped back to the status. */}
         <Tabs
-          value={filters.status}
-          onValueChange={(status) =>
-            setFilters({ status: status as ChangeRequestStatus, page: DEFAULT_PAGE })
-          }
-        >
-          {/* Sized to its three labels rather than stretched across the row,
-              one line each however long the Arabic runs, and scrolling
-              sideways on a narrow phone — all of it in TabsList itself. */}
-          <TabsList>
-            {CHANGE_REQUEST_STATUS_TABS.map((status) => (
-              <TabsTrigger key={status} value={status}>
-                {t(`status.${status}`)}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-        </Tabs>
+          data-testid="tab"
+          label="changeRequests.title"
+          tabs={CHANGE_REQUEST_STATUS_TABS.map((status) => ({
+            id: toSelectorName(status),
+            label: `changeRequests.status.${status}`,
+          }))}
+          value={toSelectorName(filters.status)}
+          onChange={(id) => {
+            const status = CHANGE_REQUEST_STATUS_TABS.find((value) => toSelectorName(value) === id);
+            if (status) {
+              setFilters({ status: status as ChangeRequestStatus, page: DEFAULT_PAGE });
+            }
+          }}
+        />
 
         {isLoading ? (
           <ChangeRequestListLoading />
@@ -88,29 +83,18 @@ function ChangeRequestsPageContent() {
         ) : (
           <>
             {isFetching && <ChangeRequestListSpinnerOverlay />}
-            {/* Decision cards, two across from the large-tablet width up —
-                each carries a couple of buttons and a note box, so it wants
-                more room than a plain row. `items-start` keeps a card whose
-                refusal note is open from stretching the one beside it. */}
+            {/* items-start: a card with its refusal note open doesn't stretch its neighbour. */}
             <div className="grid grid-cols-1 items-start gap-3 lg:grid-cols-2">
               {items.map((request) =>
-                // A quick sale reads the opposite way round from every other
-                // request on this screen — "this was sold, complete its
-                // details" rather than "approve this change" — so it gets a
-                // card of its own rather than a variant of the other one.
+                // A quick sale reads "complete its details", never "approve", so it has its own card.
                 isQuickSoldRequest(request) ? (
                   <QuickSoldCard key={request.id} request={request} canDecide={canComplete} />
                 ) : (
                   <ChangeRequestCard key={request.id} request={request} canDecide={canDecide} />
-                )
+                ),
               )}
             </div>
-            {data?.meta && (
-              <ChangeRequestPagination
-                meta={data.meta}
-                onPageChange={(page) => setFilters((f) => ({ ...f, page }))}
-              />
-            )}
+            {data?.meta && <ChangeRequestPagination meta={data.meta} onPageChange={(page) => setFilters({ page })} />}
           </>
         )}
       </div>

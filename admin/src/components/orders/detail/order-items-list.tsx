@@ -1,100 +1,162 @@
 import { useLocale, useTranslations } from "next-intl";
-import { Undo2, Zap } from "lucide-react";
-import type { OrderItem } from "@organza/shared/types/order";
-import { testSelectorFor } from "@organza/shared/lib/testSelector";
+import type { ReactNode } from "react";
+import { Package, Undo2, Zap } from "lucide-react";
+import { Table, type Column, Typography } from "@store/ui";
+import type { OrderItem } from "@store/shared/types/order";
+import { testSelectorFor } from "@store/shared/lib/testSelector";
+import { SELECTABLE } from "@store/shared/lib/nativeGestures";
+import { Link } from "@/i18n/navigation";
 import { localize } from "@/lib/i18n-content";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ORDER_THUMB_SIZES } from "@/constants/orders";
+import { ProductImage } from "@/components/products/product-image";
+import { DetailCard } from "@/components/layout/detail-card";
 
-// What was sold, one card-row per line. A line shows the four things needed
-// to check an order against a chat message: what it is, how many, what each
-// one cost, and what the line came to after its own discount.
-export function OrderItemsList({ items }: { items: OrderItem[] }) {
+// Rows are named `order-item-row-<id>` by the Table; the cell keeps the old `order-item-<id>` name too.
+const TABLE_NAME = "order-item";
+
+export function OrderItemsList({ items, footer }: { items: OrderItem[]; footer?: ReactNode }) {
   const t = useTranslations("orders.detail.items");
   const tDiscount = useTranslations("orders.discount");
+  const tCard = useTranslations("orders.card");
   const locale = useLocale();
   const formatMoney = useMoneyFormatter();
 
-  return (
-    <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className="text-base">{t("title", { count: items.length })}</CardTitle>
-      </CardHeader>
-      {/* A sold line is a name, a SKU and three short figures. One per row
-          left most of an order's card empty on anything wider than a phone,
-          so they flow — and a ten-line order is checked against a chat
-          message without scrolling. */}
-      <CardContent className="grid grid-cols-1 items-start gap-3 sm:grid-cols-2 xl:grid-cols-3">
-        {items.map((item) => {
-          const name = localize(item.name, locale);
-          const variantName = item.variantName ? localize(item.variantName, locale) : null;
-          const hasDiscount = item.discountType !== null && Number(item.discountAmount) > 0;
+  function renderDiscount(item: OrderItem) {
+    if (item.discountType === null || Number(item.discountAmount) <= 0) {
+      return null;
+    }
+    return (
+      <div className="flex flex-col whitespace-nowrap">
+        <Typography variant="body" tone="success" as="span" className="tabular-nums" dir="ltr">
+          −{formatMoney(item.discountAmount)}
+        </Typography>
+        {item.discountType === "PERCENT" && (
+          <Typography variant="small" tone="muted" as="span">
+            {tDiscount("percentValue", { value: Number(item.discountValue ?? 0) })}
+          </Typography>
+        )}
+      </div>
+    );
+  }
 
-          return (
-            <div
-              key={item.id}
-              className="flex flex-col gap-1.5 rounded-lg border border-border p-3"
-              data-test-selector={testSelectorFor("order-item", item.id)}
-            >
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-medium text-foreground">{name}</p>
-                  {/* Typed at the counter, not picked from the catalogue
-                      (spec.md "Quick sell") — so this line's cost, and the
-                      profit on it, may still be missing. Marked on the line
-                      itself as well as on the order, because an order of six
-                      lines may have one. */}
-                  {item.quickSold && (
-                    <p className="mt-0.5 inline-flex items-center gap-1 text-xs font-medium text-primary">
-                      <Zap className="size-3.5 shrink-0" aria-hidden="true" />
-                      {t("quickSold")}
-                    </p>
-                  )}
-                  {variantName && <p className="truncate text-xs text-muted-foreground">{variantName}</p>}
-                  {/* SKU is Latin text (ORG-00042) — pinned LTR so it reads
-                      correctly inside an RTL page. */}
-                  <p className="truncate text-xs text-muted-foreground" dir="ltr">
-                    {item.sku ?? t("noSku")}
-                  </p>
-                </div>
-                <span className="shrink-0 text-sm font-semibold tabular-nums text-foreground">
-                  {formatMoney(item.lineTotal)}
-                </span>
-              </div>
-
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-border pt-1.5 text-xs text-muted-foreground">
-                <span>{t("quantity", { count: item.quantity })}</span>
-                <span aria-hidden="true">·</span>
-                <span>{t("unitPrice", { price: formatMoney(item.unitPrice) })}</span>
-                {hasDiscount && (
-                  <>
-                    <span aria-hidden="true">·</span>
-                    <span className="text-emerald-700 dark:text-emerald-400">
-                      {t("itemDiscount", {
-                        // The stored (type, value) pair is shown as well as
-                        // the resolved amount, so "10%" doesn't have to be
-                        // reverse-engineered from the money it took off.
-                        label:
-                          item.discountType === "PERCENT"
-                            ? tDiscount("percentValue", { value: Number(item.discountValue ?? 0) })
-                            : formatMoney(item.discountValue ?? "0"),
-                        amount: formatMoney(item.discountAmount),
-                      })}
-                    </span>
-                  </>
-                )}
-              </div>
-
+  const columns: Column<OrderItem>[] = [
+    {
+      key: "piece",
+      header: "orders.detail.items.piece",
+      primary: true,
+      className: "min-w-[14rem] [--cell-max:24rem]",
+      render: (item) => {
+        const name = localize(item.name, locale);
+        const photo = (
+          <ProductImage
+            src={item.thumbnailUrl}
+            alt={name}
+            className="size-16 rounded-control md:size-14"
+            sizes={ORDER_THUMB_SIZES}
+          />
+        );
+        return (
+          <div className="flex items-start gap-3" data-test-selector={testSelectorFor("order-item", item.id)}>
+            {/* A removed product keeps its line (a snapshot) but has no page to open. */}
+            {item.productId ? (
+              <Link href={`/products/${item.productId}`} tabIndex={-1} aria-hidden="true" className="shrink-0">
+                {photo}
+              </Link>
+            ) : (
+              <Typography variant="body" as="span" className="shrink-0">
+                {photo}
+              </Typography>
+            )}
+            <div className="flex min-w-0 flex-col gap-0.5">
+              {item.productId ? (
+                <Link
+                  href={`/products/${item.productId}`}
+                  className="self-start rounded-control text-value font-normal text-ink transition-colors hover:text-primary-700 focus-link"
+                >
+                  {name}
+                </Link>
+              ) : (
+                <Typography variant="body" as="span" className="font-normal">
+                  {name}
+                </Typography>
+              )}
+              {item.variantName && (
+                <Typography variant="small" tone="muted" as="span" className="font-normal">
+                  {localize(item.variantName, locale)}
+                </Typography>
+              )}
+              <Typography variant="small" tone="muted" as="span" className="font-normal" dir="ltr" {...SELECTABLE}>
+                {item.sku ?? t("noSku")}
+              </Typography>
+              {/* Typed at the counter (spec.md "Quick sell"): this line's cost, and its profit, may still be missing. */}
+              {item.quickSold && (
+                <Typography
+                  variant="small"
+                  tone="brand"
+                  as="span"
+                  className="inline-flex items-center gap-1 font-normal"
+                >
+                  <Zap className="size-3.5 shrink-0" aria-hidden="true" />
+                  {t("quickSold")}
+                </Typography>
+              )}
               {item.returnedQuantity > 0 && (
-                <p className="flex items-center gap-1.5 text-xs font-medium text-amber-600 dark:text-amber-400">
+                <Typography
+                  variant="small"
+                  as="span"
+                  className="inline-flex items-center gap-1 font-normal text-warning-700"
+                >
                   <Undo2 className="size-3.5 rtl:-scale-x-100" aria-hidden="true" />
                   {t("returned", { count: item.returnedQuantity })}
-                </p>
+                </Typography>
               )}
             </div>
-          );
-        })}
-      </CardContent>
-    </Card>
+          </div>
+        );
+      },
+    },
+    {
+      key: "quantity",
+      header: "orders.detail.items.quantityHeader",
+      align: "numeric",
+      render: (item) => (
+        <Typography variant="body" as="span" className="tabular-nums" dir="ltr">
+          {tCard("quantity", { count: item.quantity })}
+        </Typography>
+      ),
+    },
+    {
+      key: "unitPrice",
+      header: "orders.detail.items.unitPriceHeader",
+      align: "numeric",
+      render: (item) => (
+        <Typography variant="body" as="span" className="whitespace-nowrap tabular-nums">
+          {formatMoney(item.unitPrice)}
+        </Typography>
+      ),
+    },
+    {
+      key: "discount",
+      header: "orders.detail.items.discountHeader",
+      render: renderDiscount,
+    },
+    {
+      key: "lineTotal",
+      header: "orders.detail.items.lineTotalHeader",
+      align: "numeric",
+      render: (item) => (
+        <Typography variant="body" weight="medium" as="span" className="whitespace-nowrap tabular-nums">
+          {formatMoney(item.lineTotal)}
+        </Typography>
+      ),
+    },
+  ];
+
+  return (
+    <DetailCard icon={Package} title={t("title", { count: items.length })} data-testid="order-items">
+      <Table data-testid={TABLE_NAME} columns={columns} rows={items} rowKey={(item) => item.id} />
+      {footer}
+    </DetailCard>
   );
 }

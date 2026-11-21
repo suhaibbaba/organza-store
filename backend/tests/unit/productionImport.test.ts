@@ -7,18 +7,11 @@ import {
   resolveImportEndpoints,
 } from "@/lib/productionImport/guards";
 
-// The guards in front of `npm run import:prod`.
-//
-// This command copies the live shop's catalogue into the sandbox and WIPES
-// the sandbox to do it. Run the other way round it would delete the shop's
-// entire catalogue — so the refusals below are the whole safety of it, and
-// they are asserted rather than assumed. Each one is proven to fire ON ITS
-// OWN, with every other condition satisfied, because "one of the four would
-// have caught it" is only true if each of the four actually does.
+// import:prod wipes the sandbox to copy the live catalogue, so each refusal is proven to fire on its own.
 
-const SANDBOX_URL = "postgresql://app:pw@db-sandbox:5432/organza_sandbox?schema=public";
-const PRODUCTION_URL = "postgresql://reader:pw@db-live:5432/organza?schema=public";
-const SANDBOX_DATABASE = "organza_sandbox";
+const SANDBOX_URL = "postgresql://app:pw@db-sandbox:5432/store_sandbox?schema=public";
+const PRODUCTION_URL = "postgresql://reader:pw@db-live:5432/store?schema=public";
+const SANDBOX_DATABASE = "store_sandbox";
 
 const APP_ENV = "APP_ENV";
 const TOUCHED = [APP_ENV, "DATABASE_URL", PRODUCTION_IMPORT_ENV.databaseUrl, PRODUCTION_IMPORT_ENV.confirm];
@@ -26,8 +19,11 @@ const ORIGINAL = Object.fromEntries(TOUCHED.map((key) => [key, process.env[key]]
 
 afterEach(() => {
   for (const key of TOUCHED) {
-    if (ORIGINAL[key] === undefined) delete process.env[key];
-    else process.env[key] = ORIGINAL[key];
+    if (ORIGINAL[key] === undefined) {
+      delete process.env[key];
+    } else {
+      process.env[key] = ORIGINAL[key];
+    }
   }
 });
 
@@ -41,8 +37,11 @@ function setValidRun(overrides: Record<string, string | undefined> = {}): void {
     ...overrides,
   };
   for (const [key, value] of Object.entries(values)) {
-    if (value === undefined) delete process.env[key];
-    else process.env[key] = value;
+    if (value === undefined) {
+      delete process.env[key];
+    } else {
+      process.env[key] = value;
+    }
   }
 }
 
@@ -51,7 +50,7 @@ describe("Production import — the target", () => {
     setValidRun();
     const endpoints = resolveImportEndpoints();
     expect(endpoints.targetDatabase).toBe(SANDBOX_DATABASE);
-    expect(endpoints.target).toBe("db-sandbox:5432/organza_sandbox");
+    expect(endpoints.target).toBe("db-sandbox:5432/store_sandbox");
     expect(() => assertConfirmedTarget(endpoints)).not.toThrow();
   });
 
@@ -66,7 +65,7 @@ describe("Production import — the target", () => {
   });
 
   it('refuses a database whose name does not contain "sandbox", however APP_ENV is set', () => {
-    setValidRun({ DATABASE_URL: PRODUCTION_URL, [PRODUCTION_IMPORT_ENV.confirm]: "organza" });
+    setValidRun({ DATABASE_URL: PRODUCTION_URL, [PRODUCTION_IMPORT_ENV.confirm]: "store" });
     expect(() => resolveImportEndpoints()).toThrow(/does not contain "sandbox"/);
   });
 
@@ -89,7 +88,7 @@ describe("Production import — the source", () => {
 
   it("treats a different user on the same host and database as the same database", () => {
     setValidRun({
-      [PRODUCTION_IMPORT_ENV.databaseUrl]: "postgresql://someone-else:pw@db-sandbox:5432/organza_sandbox",
+      [PRODUCTION_IMPORT_ENV.databaseUrl]: "postgresql://someone-else:pw@db-sandbox:5432/store_sandbox",
     });
     expect(() => resolveImportEndpoints()).toThrow(/same database/);
   });
@@ -97,9 +96,7 @@ describe("Production import — the source", () => {
   it("hands back a source connection that is read-only at the server", () => {
     setValidRun();
     const { sourceUrl } = resolveImportEndpoints();
-    expect(decodeURIComponent(new URL(sourceUrl).searchParams.get("options") ?? "")).toBe(
-      READ_ONLY_CONNECTION_OPTION
-    );
+    expect(decodeURIComponent(new URL(sourceUrl).searchParams.get("options") ?? "")).toBe(READ_ONLY_CONNECTION_OPTION);
   });
 
   it("never names the password in what it prints", () => {
@@ -116,7 +113,7 @@ describe("Production import — the confirmation", () => {
   });
 
   it("refuses a confirmation that names a different database", () => {
-    setValidRun({ [PRODUCTION_IMPORT_ENV.confirm]: "organza" });
+    setValidRun({ [PRODUCTION_IMPORT_ENV.confirm]: "store" });
     expect(() => assertConfirmedTarget(resolveImportEndpoints())).toThrow(/is not this database's name/);
   });
 

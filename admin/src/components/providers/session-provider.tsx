@@ -12,11 +12,7 @@ interface SessionContextValue {
   /** The check itself failed (server unreachable) — NOT the same as signed out. */
   isError: boolean;
   refresh: () => Promise<void>;
-  /**
-   * Signs in and RETURNS the account, because the caller's next act is to
-   * decide where to send them — and that depends on their role. Reading the
-   * context's `user` instead would read the render before this one.
-   */
+  // Returns the account because the caller routes by role, and the context's user would still be the previous render's.
   login: (email: string, password: string) => Promise<SessionUser>;
   logout: () => Promise<void>;
 }
@@ -35,9 +31,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     queryKey: SESSION_QUERY_KEY,
     queryFn: fetchSession,
     staleTime: 5 * 60 * 1000,
-    // Only thrown errors retry here — a rejected token comes back as a plain
-    // null, not a throw. So this is purely "the phone's connection blinked",
-    // which on shop mobile data it regularly does.
+    // Only thrown errors retry (a rejected token is a plain null), so this covers a blinking connection.
     retry: 1,
   });
 
@@ -51,7 +45,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       queryClient.setQueryData(SESSION_QUERY_KEY, session.user);
       return session.user;
     },
-    [queryClient]
+    [queryClient],
   );
 
   const logout = useCallback(async () => {
@@ -68,6 +62,8 @@ export function SessionProvider({ children }: { children: ReactNode }) {
 
 export function useSession(): SessionContextValue {
   const ctx = useContext(SessionContext);
-  if (!ctx) throw new Error("useSession must be used within a SessionProvider");
+  if (!ctx) {
+    throw new Error("useSession must be used within a SessionProvider");
+  }
   return ctx;
 }

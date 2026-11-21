@@ -1,21 +1,14 @@
-import type { CustomerSuggestion, Order } from "@organza/shared/types/order";
-import type { CreateOrderInput } from "@organza/shared/schemas/order";
+import type { CustomerSuggestion, Order } from "@store/shared/types/order";
+import type { CreateOrderInput } from "@store/shared/schemas/order";
 import { apiFetch } from "@/lib/api/client";
 
-// The POS opens two kinds of order from the same cart (see constants/pos.ts):
-// a STORE sale, which opens COMPLETED with stock already deducted and its
-// money in the till, and a WHATSAPP order, which opens NEW with customer
-// details attached. Neither carries a total — the backend prices both.
+// STORE opens COMPLETED with stock deducted; WHATSAPP opens NEW. Neither sends a total: the backend prices it.
 export async function createOrder(input: CreateOrderInput): Promise<Order> {
   const { data } = await apiFetch<Order>("/api/orders", { method: "POST", body: input });
   return data;
 }
 
-// Customers the shop has served before, matched on the phone digits typed so
-// far. There is no Customer entity (spec.md "Customer information"), so these
-// are snapshots read back out of past orders — capped and newest-first by the
-// backend, which is also where the "how many digits before we look" floor
-// lives.
+// No Customer table: snapshots from past orders, capped and newest-first by the backend.
 export async function fetchCustomerSuggestions(query: string): Promise<CustomerSuggestion[]> {
   const params = new URLSearchParams({ q: query });
   const { data } = await apiFetch<CustomerSuggestion[]>(`/api/orders/customer-suggestions?${params.toString()}`);

@@ -1,0 +1,73 @@
+{
+  "common": {
+    "addNamed": "إضافة «{name}»",
+    "addNew": "إضافة جديد",
+    "calendar": {
+      "chooseMonth": "اختيار الشهر",
+      "chooseYear": "اختيار السنة",
+      "nextMonth": "الشهر التالي",
+      "nextYear": "السنة التالية",
+      "previousMonth": "الشهر السابق",
+      "previousYear": "السنة السابقة"
+    },
+    "cancel": "إلغاء",
+    "clear": "مسح",
+    "close": "إغلاق",
+    "diallingCode": "رمز الدولة",
+    "discard": "تجاهل",
+    "done": "تم",
+    "loading": "جارٍ التحميل",
+    "moreInfo": "مزيد من المعلومات",
+    "noMatches": "لا توجد نتائج",
+    "openCalendar": "فتح التقويم",
+    "optional": "اختياري",
+    "placeholders": {
+      "date": "يوم/شهر/سنة",
+      "dateRange": "اختر الفترة",
+      "time": "اختر الوقت"
+    },
+    "save": "حفظ",
+    "search": "بحث",
+    "showMore": "عرض المزيد",
+    "today": "اليوم",
+    "unsavedChanges": "تغييرات غير محفوظة",
+    "updating": "جارٍ التحديث",
+    "confirm": "تأكيد",
+    "deleteForever": "حذف نهائي",
+    "hidePassword": "إخفاء كلمة المرور",
+    "showPassword": "إظهار كلمة المرور",
+    "imageViewer": {
+      "title": "الصور",
+      "previous": "الصورة السابقة",
+      "next": "الصورة التالية",
+      "counter": "{current} من {total}",
+      "show": "عرض الصورة {number}",
+      "open": "فتح الصورة {number} بحجم كبير"
+    }
+  },
+  "pagination": {
+    "goToPage": "الصفحة {page, number, plain}",
+    "label": "التنقل بين الصفحات",
+    "next": "التالي",
+    "pageOf": "رقم الصفحة من {totalPages, number, plain}",
+    "perPage": "لكل صفحة",
+    "previous": "السابق",
+    "total": "{total, number, plain} سجل"
+  },
+  "validation": {
+    "required": "هذا الحقل مطلوب",
+    "tooSmall": "القيمة أقصر من المسموح",
+    "tooBig": "القيمة أطول من المسموح",
+    "invalidFormat": "الصيغة غير صحيحة",
+    "invalid": "قيمة غير صحيحة",
+    "yearOutOfRange": "السنة غير صحيحة، اكتب تاريخًا بين 1900 و2100",
+    "dateInFuture": "لا يمكن أن يكون هذا التاريخ في المستقبل",
+    "dateInPast": "لا يمكن أن يكون هذا التاريخ في الماضي"
+  },
+  "translatedField": {
+    "translations": "الترجمات",
+    "filled": "{done}/{total}",
+    "show": "إظهار",
+    "hide": "إخفاء"
+  }
+}

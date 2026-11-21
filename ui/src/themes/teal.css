@@ -1,0 +1,93 @@
+/* Teal — a client theme: dark-teal navigation, soft blue-grey canvas, white cards, green for done. Keep in step with teal.ts. */
+
+@theme static {
+  --color-primary-50: #eef8f7;
+  --color-primary-100: #e0f5f2;
+  --color-primary-200: #bfe6e2;
+  --color-primary-300: #8fcfd0;
+  --color-primary-500: #2a8a96;
+  --color-primary-600: #197783;
+  --color-primary-700: #15626c;
+  --color-primary-800: #124f58;
+  --color-primary-900: #103f46;
+
+  --color-success-50: #eefaf3;
+  --color-success-100: #d8f5e5;
+  --color-success-300: #9fdfbc;
+  --color-success-400: #5cc68d;
+  --color-success-500: #2ea866;
+  --color-success-600: #1c9455;
+  --color-success-700: #16834a;
+  --color-success-800: #136f3f;
+  --color-success-900: #0f5c34;
+
+  --color-danger-50: #fef5f4;
+  --color-danger-100: #fbeae8;
+  --color-danger-200: #fce8e6;
+  --color-danger-500: #c4544a;
+  --color-danger-600: #b03a31;
+  --color-danger-700: #a03b31;
+  --color-danger-800: #7a2720;
+
+  --color-warning-50: #fef8ec;
+  --color-warning-100: #fdefd3;
+  --color-warning-300: #f9cf80;
+  --color-warning-500: #f5a623;
+  --color-warning-700: #9a5f00;
+  --color-warning-800: #774900;
+
+  --color-neutral-50: #f1f7fa;
+  --color-neutral-100: #e8f0f4;
+  --color-neutral-200: #dce8ef;
+  --color-neutral-300: #c3d4dd;
+  --color-neutral-400: #9cb2be;
+  --color-neutral-500: #7d95a2;
+  --color-neutral-600: #607d8b;
+  --color-neutral-700: #546f7d;
+  --color-neutral-900: #102a3a;
+  --color-ink-muted: #2c4350;
+
+  --color-sunken: #f4f8fa;
+  --color-row-hover: #f8fbfc;
+  --color-table-head: #f4f8fa;
+  --color-quiet-bg: #eef4f7;
+  --color-quiet-ink: #607d8b;
+
+  --color-rail: #103f46;
+  --color-rail-ink: #b7d0d4;
+  --color-rail-ink-active: #ffffff;
+  --color-rail-hover: #174a52;
+  --color-rail-hover-ink: #ffffff;
+  --color-rail-active: #197783;
+  --color-rail-line: #1c4c54;
+
+  --color-tint-3-bg: #ede8f8;
+  --color-tint-3-ink: #5b3ea6;
+  --color-tint-5-ink: #16834a;
+  --color-tint-6-bg: #f2e7ee;
+  --color-tint-6-ink: #8c3a6b;
+
+  --color-tag-from: #e0f5f2;
+  --color-tag-to: #e6f0f6;
+}
+
+@theme static {
+  --shadow-card: 0 1px 2px rgb(16 63 70 / 0.04), 0 4px 12px rgb(16 63 70 / 0.06);
+  --shadow-card-hover: 0 8px 24px rgb(16 63 70 / 0.08);
+  --shadow-nav-active: 0 6px 16px -8px rgb(4 24 28 / 0.45);
+  --shadow-float: 0 12px 32px -8px rgb(16 63 70 / 0.18);
+  --shadow-glass:
+    0 18px 40px -18px rgb(16 63 70 / 0.4), 0 2px 8px -4px rgb(16 63 70 / 0.14), inset 0 1px 0 rgb(255 255 255 / 0.75),
+    inset 0 -1px 0 rgb(255 255 255 / 0.2);
+  --shadow-drawer: calc(20px * var(--drawer-direction, 1)) 0 48px -16px rgb(16 63 70 / 0.28);
+  --shadow-now: 0 10px 22px -14px rgb(22 131 74 / 0.5);
+  --shadow-pill: 0 1px 2px rgb(16 42 58 / 0.08);
+  --shadow-field-focus: 0 0 0 0.5px var(--color-primary-600), 0 0 0 3.5px rgb(25 119 131 / 0.15);
+  --shadow-field-error-ring: 0 0 0 0.5px var(--color-danger-600), 0 0 0 3.5px rgb(176 58 49 / 0.15);
+  --radius-control: 12px;
+}
+
+/* The active navigation item: one flat teal, no gradient. */
+@utility nav-active-wash {
+  background-color: var(--color-rail-active);
+}

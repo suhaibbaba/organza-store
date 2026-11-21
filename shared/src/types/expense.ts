@@ -59,3 +59,20 @@ export interface Expense {
   createdAt: string;
   updatedAt: string;
 }
+
+// One category's approved spending in the range, for the breakdown.
+export interface ExpenseCategoryTotal {
+  categoryId: string;
+  total: string;
+  count: number;
+}
+
+// The expenses screen's headline: approved money only, with what is still waiting counted apart.
+export interface ExpenseSummary {
+  total: string;
+  cashTotal: string;
+  count: number;
+  pendingCount: number;
+  pendingAmount: string;
+  byCategory: ExpenseCategoryTotal[];
+}

@@ -2,108 +2,102 @@
 
 import { useLocale, useTranslations } from "next-intl";
 import { Tag, Trash2 } from "lucide-react";
+import { Button, IconButton, Typography } from "@store/ui";
 import { localize } from "@/lib/i18n-content";
 import { lineDiscountCents, lineTotal } from "@/lib/order-draft";
 import { fromCents, toCents } from "@/lib/money";
-import { MIN_ORDER_QUANTITY } from "@/constants/orders";
+import { GIFT_LINE_TOTAL, MIN_ORDER_QUANTITY } from "@/constants/orders";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
-import { QuantityStepper } from "@/components/ui/quantity-stepper";
+import { QuantityStepper } from "@/components/fields/quantity-stepper";
 import { ProductImage } from "@/components/products/product-image";
 import type { OrderDraft } from "@/hooks/use-order-draft";
-import { testSelectorFor } from "@organza/shared/lib/testSelector";
+import { testSelectorFor } from "@store/shared/lib/testSelector";
 
 interface DraftLinesListProps {
   draft: OrderDraft;
+  isGift: boolean;
   onLineDiscountClick: (key: string) => void;
 }
 
-// What is going on the order so far. Each line carries its own quantity,
-// discount and remove control, all at thumb size — there is no separate
-// "edit line" screen to get lost in.
-export function DraftLinesList({ draft, onLineDiscountClick }: DraftLinesListProps) {
+// Each line carries its own quantity, discount and remove control; there is no separate "edit line" screen.
+export function DraftLinesList({ draft, isGift, onLineDiscountClick }: DraftLinesListProps) {
   const t = useTranslations("orders.new.lines");
   const locale = useLocale();
   const formatMoney = useMoneyFormatter();
 
   if (draft.isEmpty) {
     return (
-      <div className="rounded-xl border border-dashed border-border py-10 text-center">
-        <p className="text-sm text-muted-foreground">{t("empty")}</p>
+      <div className="rounded-panel border border-dashed border-line py-10 text-center">
+        <Typography variant="small" tone="muted">
+          {t("empty")}
+        </Typography>
       </div>
     );
   }
 
   return (
-    <ul className="flex flex-col gap-2" data-test-selector="order-draft-lines">
+    <ul className="divide-y divide-line rounded-panel border border-line" data-test-selector="order-draft-lines">
       {draft.lines.map((line) => {
         const name = localize(line.name, locale);
         const variantName = line.variantName ? localize(line.variantName, locale) : null;
         const label = variantName ? `${name} — ${variantName}` : name;
-        const hasDiscount = line.discountType !== null && line.discountValue !== null;
+        const hasDiscount = !isGift && line.discountType !== null && line.discountValue !== null;
         const discountCents = lineDiscountCents(line);
-        // What was applied, written the way its own type is written: a
-        // percentage as a percentage, a flat sum in the shop's currency (from
-        // Settings, via the money formatter). Never a percent sign over an
-        // amount.
+        // A percentage as a percentage, a flat sum in the shop's currency (from Settings).
         const appliedDiscount = hasDiscount
           ? line.discountType === "PERCENT"
             ? t("percentValue", { value: Number(line.discountValue) })
             : formatMoney(line.discountValue ?? "0")
           : null;
-        // A percentage says nothing about the money until it is resolved
-        // against the line, so the money is spelled out beside it. A flat sum
-        // already is the money — unless it was clamped down to what the line
-        // was worth, which is the one case worth spelling out too.
+        // Spell the money out for a percentage, or for a flat sum clamped to what the line was worth.
         const showResolvedAmount =
-          hasDiscount &&
-          (line.discountType === "PERCENT" || discountCents !== toCents(line.discountValue));
+          hasDiscount && (line.discountType === "PERCENT" || discountCents !== toCents(line.discountValue));
 
         return (
           <li
             key={line.key}
-            className="flex flex-col gap-2 rounded-xl border border-border bg-card p-3"
+            className="flex flex-wrap items-center gap-x-3 gap-y-2 p-3"
             data-test-selector={testSelectorFor("order-draft-line", line.key)}
           >
-            <div className="flex items-start gap-3">
-              <ProductImage src={line.imageUrl} alt={name} className="size-14 shrink-0 rounded-lg" sizes="56px" />
+            <ProductImage src={line.imageUrl} alt={name} className="size-14 shrink-0 rounded-control" sizes="56px" />
 
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium text-foreground">{name}</p>
-                {variantName && <p className="truncate text-xs text-muted-foreground">{variantName}</p>}
-                <p className="truncate text-xs text-muted-foreground">
-                  {t("unitPrice", { price: formatMoney(line.unitPrice) })}
-                </p>
-                {/* Under the price, because that is the number it changes.
-                    A percentage is shown with the money it comes to — "10%"
-                    alone is not an amount anybody can check an order against. */}
-                {appliedDiscount && (
-                  <p className="truncate text-xs font-medium text-primary">
-                    {showResolvedAmount
-                      ? t("discountApplied", {
-                          value: appliedDiscount,
-                          amount: formatMoney(fromCents(discountCents)),
-                        })
-                      : t("discountValue", { value: appliedDiscount })}
-                  </p>
-                )}
-              </div>
-
-              <button
-                type="button"
-                onClick={() => draft.removeLine(line.key)}
-                aria-label={t("remove", { name: label })}
-                className="flex size-11 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-accent hover:text-destructive"
-              >
-                <Trash2 className="size-4" aria-hidden="true" />
-              </button>
+            <div className="min-w-0 flex-1 basis-0 self-start sm:basis-40">
+              <Typography variant="small" weight="medium">
+                {name}
+              </Typography>
+              {variantName && (
+                <Typography variant="caption" tone="muted" as="p" className="truncate">
+                  {variantName}
+                </Typography>
+              )}
+              <Typography variant="caption" tone="muted" as="p" className="truncate">
+                {t("unitPrice", { price: formatMoney(line.unitPrice) })}
+              </Typography>
+              {appliedDiscount && (
+                <Typography variant="caption" tone="brand" weight="medium" as="p" className="truncate">
+                  {showResolvedAmount
+                    ? t("discountApplied", {
+                        value: appliedDiscount,
+                        amount: formatMoney(fromCents(discountCents)),
+                      })
+                    : t("discountValue", { value: appliedDiscount })}
+                </Typography>
+              )}
             </div>
+            <IconButton
+              label={t("remove", { name: label })}
+              icon={<Trash2 aria-hidden="true" />}
+              tone="danger"
+              onClick={() => draft.removeLine(line.key)}
+              data-testid={testSelectorFor("order-line-remove", line.key)}
+              className="self-start sm:order-last"
+            />
 
-            <div className="flex items-center justify-between gap-2 border-t border-border pt-2">
+            <div className="flex w-full min-w-0 items-center gap-2 sm:w-auto">
               <QuantityStepper
                 value={line.quantity}
                 min={MIN_ORDER_QUANTITY}
-                // Never more than the shop holds — the backend re-checks
-                // stock atomically when the order is saved.
+                // Never more than the shop holds; the backend re-checks stock atomically on save.
                 max={Math.max(MIN_ORDER_QUANTITY, line.availableStock)}
                 onChange={(quantity) => draft.setQuantity(line.key, quantity)}
                 decreaseLabel={t("decrease", { name: label })}
@@ -111,35 +105,43 @@ export function DraftLinesList({ draft, onLineDiscountClick }: DraftLinesListPro
                 valueLabel={t("quantityFor", { name: label })}
               />
 
-              <div className="flex items-center gap-1">
-                <button
-                  type="button"
-                  onClick={() => onLineDiscountClick(line.key)}
-                  aria-label={t("discountFor", { name: label })}
-                  className={
-                    hasDiscount
-                      ? "flex min-h-11 items-center gap-1 rounded-lg border border-primary px-3 py-2 text-xs font-medium text-primary"
-                      : "flex min-h-11 items-center gap-1 rounded-lg border border-input px-3 py-2 text-xs font-medium text-muted-foreground transition-colors hover:bg-accent"
-                  }
-                >
-                  {/* A price tag, not a percent sign: the glyph names the
-                      control, and it cannot know whether this discount is a
-                      percentage or a flat sum. The text beside it does — it is
-                      either "10%" or an amount in the shop's own currency. */}
-                  <Tag className="size-4" aria-hidden="true" />
-                  {appliedDiscount ?? t("addDiscount")}
-                </button>
-                <span className="w-20 shrink-0 text-end text-sm font-semibold tabular-nums text-foreground">
-                  {formatMoney(lineTotal(line))}
-                </span>
+              <div className="ms-auto flex min-w-0 items-center gap-1">
+                {!isGift && (
+                  // A price tag, not a percent sign: the discount may be a percentage or a flat sum.
+                  <Button
+                    variant={hasDiscount ? "ghost" : "secondary"}
+                    icon={<Tag className="size-4 shrink-0" aria-hidden="true" />}
+                    onClick={() => onLineDiscountClick(line.key)}
+                    aria-label={t("discountFor", { name: label })}
+                    data-testid={testSelectorFor("order-line-discount", line.key)}
+                  >
+                    {appliedDiscount ?? (
+                      <Typography as="span" variant="small" tone="inherit" weight="medium" className="max-sm:sr-only">
+                        {t("addDiscount")}
+                      </Typography>
+                    )}
+                  </Button>
+                )}
               </div>
             </div>
 
-            {/* Why the + went dead. A disabled control with no explanation
-                reads as a broken screen; the shop simply hasn't got another
-                one of these. */}
+            <div
+              className="flex w-full items-center justify-between gap-2 border-t border-line pt-2 sm:w-auto sm:border-0 sm:pt-0"
+              data-test-selector="order-draft-line-total"
+            >
+              <Typography variant="caption" tone="muted" className="sm:sr-only">
+                {t("lineTotal")}
+              </Typography>
+              <Typography variant="h2" weight="bold" as="span" className="tabular-nums">
+                {formatMoney(isGift ? GIFT_LINE_TOTAL : lineTotal(line))}
+              </Typography>
+            </div>
+
+            {/* Explains why + went dead: the shop has no more of this piece. */}
             {line.quantity >= line.availableStock && (
-              <p className="text-xs text-muted-foreground">{t("stockCap", { count: line.availableStock })}</p>
+              <Typography variant="caption" tone="muted" as="p" className="w-full sm:order-last">
+                {t("stockCap", { count: line.availableStock })}
+              </Typography>
             )}
           </li>
         );

@@ -1,6 +1,6 @@
 {
   "app": {
-    "name": "אורגנזה",
+    "name": "ניהול חנות",
     "sandbox": "ניסיוני"
   },
   "common": {
@@ -28,7 +28,8 @@
       "value": "כמות — {name}",
       "increase": "הגדלת הכמות — {name}",
       "decrease": "הקטנת הכמות — {name}"
-    }
+    },
+    "profile": "הפרופיל שלי"
   },
   "stock": {
     "out": "אזל מהמלאי",
@@ -61,16 +62,25 @@
     "reports": "דוחות",
     "users": "משתמשים",
     "settings": "הגדרות",
-    "more": "עוד",
     "changeRequests": "אישורים",
-    "permissions": "הרשאות"
+    "permissions": "הרשאות",
+    "menu": "תפריט",
+    "openMenu": "פתיחת התפריט",
+    "groups": {
+      "sales": "מכירות",
+      "catalogue": "קטלוג",
+      "manage": "ניהול"
+    },
+    "collapse": "כיווץ התפריט",
+    "expand": "הרחבת התפריט",
+    "expenses": "הוצאות"
   },
   "auth": {
     "login": {
       "title": "התחברות",
       "subtitle": "הזן/י אימייל וסיסמה כדי להמשיך.",
       "emailLabel": "אימייל",
-      "emailPlaceholder": "you@organza.test",
+      "emailPlaceholder": "you@store.test",
       "passwordLabel": "סיסמה",
       "passwordPlaceholder": "הזן/י סיסמה",
       "submit": "התחברות",
@@ -116,8 +126,6 @@
   },
   "dashboard": {
     "title": "לוח בקרה",
-    "welcome": "שלום, {name}",
-    "subtitle": "כסף שהתקבל וכסף שעדיין חייבים לך לעולם לא מעורבבים כאן.",
     "today": {
       "title": "היום",
       "orders": "{count, plural, =0 {אין הזמנות} one {הזמנה אחת} two {שתי הזמנות} other {{count, number, plain} הזמנות}}",
@@ -127,7 +135,10 @@
         "label": "רווח על מכירות היום",
         "help": "מכירות היום פחות עלות הסחורה וההוצאות. כולל כל מכירה, גם כזו שחברת המשלוחים עדיין לא שילמה עליה.",
         "hint": "אחרי עלות והוצאות"
-      }
+      },
+      "ordersLabel": "הזמנות",
+      "pieces": "{count, plural, =0 {אין פריטים} one {פריט אחד} other {{count, number, plain} פריטים}}",
+      "averageHint": "ממוצע {amount}"
     },
     "drawer": {
       "title": "קופת מזומן",
@@ -144,8 +155,6 @@
         "help": "מזומן הבוקר ועוד מכירות המזומן היום, פחות מה ששולם מהקופה. זה מה שאמור להיות שם עכשיו, לפני הספירה."
       },
       "notClosed": {
-        "title": "היום עדיין לא נסגר",
-        "body": "ספור את הקופה ורשום כל משיכה",
         "action": "סגירת היום / ספירה"
       },
       "notStarted": {
@@ -188,7 +197,8 @@
         "body": "נספרו {counted}. {carried} נשארים בקופה למחר.",
         "short": "חסרו {amount}",
         "over": "היה עודף של {amount}"
-      }
+      },
+      "openBadge": "פתוחה"
     },
     "period": {
       "export": "ייצוא לאקסל",
@@ -240,11 +250,48 @@
         "none": "—"
       }
     },
-    "attention": {
-      "title": "דורש טיפול",
-      "lowStock": "פריטים במלאי נמוך",
-      "pendingApprovals": "מחכים לאישורך",
-      "uncollected": "טרם נגבה מהמשלוחים"
+    "hero": {
+      "label": "ברוכים הבאים",
+      "morning": "בוקר טוב, {name}",
+      "afternoon": "צהריים טובים, {name}",
+      "evening": "ערב טוב, {name}",
+      "openSince": "הקופה פתוחה מאז {time}",
+      "notOpen": "הקופה עוד לא נפתחה היום",
+      "closed": "הקופה של היום נסגרה",
+      "ordersToday": "{count, plural, =0 {עדיין אין הזמנות} one {הזמנה אחת עד עכשיו} other {{count, number, plain} הזמנות עד עכשיו}}",
+      "todaySales": "מכירות היום",
+      "receivedShare": "{received} התקבלו · {owed} אצל השליחויות",
+      "newOrder": "הזמנה חדשה",
+      "newProduct": "מוצר חדש",
+      "newExpense": "הוצאה"
+    },
+    "bars": {
+      "title": "מכירות ב-7 הימים האחרונים",
+      "total": "סה״כ {amount}",
+      "best": "היום הטוב ביותר: {day}",
+      "none": "אין מכירות ב-7 הימים האחרונים",
+      "today": "היום",
+      "chart": "מכירות לכל יום בשבעת הימים האחרונים",
+      "day": "{day}: {amount}"
+    },
+    "recent": {
+      "title": "הזמנות אחרונות",
+      "all": "כל ההזמנות",
+      "empty": "עדיין אין הזמנות."
+    },
+    "brief": {
+      "choose": "תקופה",
+      "fullReport": "הדוח המלא",
+      "netProfit": "רווח נקי"
+    },
+    "todo": {
+      "title": "למעקב",
+      "approvals": "ממתינים לאישור",
+      "incomplete": "פריטים להשלמה",
+      "labels": "מדבקות שלא הודפסו",
+      "lowStock": "מלאי נמוך",
+      "uncollected": "אצל חברת המשלוחים",
+      "followUps": "הפרשי קופה לבדיקה"
     }
   },
   "figures": {
@@ -293,10 +340,23 @@
       "dateRange": "טווח תאריכים",
       "dateFrom": "מתאריך",
       "dateTo": "עד תאריך",
-      "reset": "איפוס",
-      "apply": "החלה",
+      "reset": "ניקוי סינון",
+      "apply": "הצגת תוצאות",
       "quickSale": "מכירות מהירות בלבד",
-      "quickSaleHint": "פריטים שנמכרו לפני שהוזנו למערכת."
+      "quickSaleHint": "פריטים שנמכרו לפני שהוזנו למערכת.",
+      "sortHint": "ממיין את הרשימה בטלפון; במסך רחב לחצו על כותרת עמודה.",
+      "statusHint": "באיזה שלב נמצאת ההזמנה.",
+      "channelHint": "מאיפה הגיעה ההזמנה.",
+      "paymentStatusHint": "האם הכסף הגיע לחנות.",
+      "dateRangeHint": "הזמנות שנרשמו בין שני הימים האלה.",
+      "chipStatus": "סטטוס: {name}",
+      "chipChannel": "מקור: {name}",
+      "chipPayment": "תשלום: {name}",
+      "chipQuickSale": "מכירה מהירה",
+      "chipDateFrom": "מ־{date}",
+      "chipDateTo": "עד {date}",
+      "chipDates": "{from} — {to}",
+      "removeFilter": "הסרת סינון: {name}"
     },
     "status": {
       "NEW": "חדשה",
@@ -350,7 +410,9 @@
     },
     "card": {
       "orderNumber": "הזמנה {number}",
-      "itemCount": "{count, plural, one {פריט אחד} two {שני פריטים} other {{count, number, plain} פריטים}}"
+      "itemCount": "{count, plural, one {פריט אחד} two {שני פריטים} other {{count, number, plain} פריטים}}",
+      "quantity": "×{count}",
+      "morePieces": "+{count}"
     },
     "table": {
       "orderNumber": "הזמנה",
@@ -361,7 +423,9 @@
       "customer": "לקוח",
       "noCustomer": "—",
       "date": "תאריך",
-      "total": "סכום"
+      "total": "סכום",
+      "photos": "תמונות",
+      "actions": "פעולות"
     },
     "empty": {
       "noOrdersTitle": "אין הזמנות עדיין",
@@ -375,17 +439,18 @@
       "pageOf": "עמוד {page} מתוך {totalPages}"
     },
     "detail": {
-      "back": "הזמנות",
       "notFoundTitle": "ההזמנה לא נמצאה",
       "notFoundDescription": "ייתכן שההזמנה נמחקה.",
       "items": {
         "title": "{count, plural, one {פריט אחד} two {שני פריטים} other {{count, number, plain} פריטים}}",
         "noSku": "ללא מק\"ט",
-        "quantity": "כמות: {count}",
-        "unitPrice": "מחיר ליחידה: {price}",
-        "itemDiscount": "הנחה {label} (−{amount})",
         "returned": "{count} הוחזרו",
-        "quickSold": "מכירה מהירה — עדיין ללא עלות"
+        "quickSold": "מכירה מהירה — עדיין ללא עלות",
+        "piece": "פריט",
+        "quantityHeader": "כמות",
+        "unitPriceHeader": "מחיר ליחידה",
+        "discountHeader": "הנחה",
+        "lineTotalHeader": "סה״כ"
       },
       "totals": {
         "subtotal": "סכום ביניים",
@@ -413,10 +478,13 @@
         "createdAt": "נוצרה",
         "updatedAt": "עודכנה לאחרונה",
         "stockDeducted": "ניכוי מלאי",
-        "stockNotDeducted": "טרם נוכה"
+        "stockNotDeducted": "טרם נוכה",
+        "title": "פרטים"
       },
       "statusActions": {
         "progressLabel": "התקדמות ההזמנה",
+        "stepDone": "הושלם",
+        "stepCurrent": "השלב הנוכחי",
         "moved": "הסטטוס עודכן ל: {status}",
         "advanceTo": {
           "PREPARING": "התחלת הכנה",
@@ -424,10 +492,11 @@
         },
         "stockDeductionNotice": "תחילת ההכנה מנכה את הפריטים מהמלאי.",
         "cancelOrder": "ביטול ההזמנה",
-        "confirmCancel": "לבטל את ההזמנה?",
-        "confirmCancelWithStock": "לבטל את ההזמנה? הפריטים יחזרו למלאי.",
-        "confirmCancelAction": "כן, לבטל",
-        "keepOrder": "לא, להשאיר"
+        "title": "סטטוס ההזמנה",
+        "cancelTitle": "לבטל את הזמנה {number}?",
+        "cancelConsequence": "ההזמנה תבוטל ולא תיספר כמכירה.",
+        "cancelConsequenceStock": "ההזמנה תבוטל והפריטים יחזרו למלאי.",
+        "cancelled": "ההזמנה בוטלה."
       },
       "returns": {
         "title": "החזרה",
@@ -445,21 +514,21 @@
       "manage": {
         "returnItems": "החזרת פריטים",
         "deleteOrder": "מחיקת ההזמנה",
-        "confirmDelete": "למחוק את ההזמנה? היא תוסתר מכל המסכים.",
-        "confirmDeleteWithStock": "למחוק את ההזמנה? היא תוסתר מכל המסכים והפריטים יחזרו למלאי.",
-        "confirmDeleteAction": "כן, למחוק",
-        "keepOrder": "לא, להשאיר",
-        "noPermission": "ניתן לעדכן את סטטוס ההזמנה בלבד. ביטול, החזרה ומחיקה דורשים הרשאת מנהל."
+        "noPermission": "ניתן לעדכן את סטטוס ההזמנה בלבד. ביטול, החזרה ומחיקה דורשים הרשאת מנהל.",
+        "deleteTitle": "למחוק את הזמנה {number}?",
+        "deleteConsequence": "ההזמנה תוסתר מכל המסכים.",
+        "deleteConsequenceStock": "ההזמנה תוסתר מכל המסכים והפריטים יחזרו למלאי.",
+        "deleted": "ההזמנה נמחקה."
+      },
+      "header": {
+        "options": "אפשרויות הזמנה",
+        "date": "תאריך"
       }
     },
     "new": {
-      "back": "הזמנות",
-      "title": "הזמנת וואטסאפ חדשה",
-      "subtitle": "רישום הזמנה שהתקבלה בוואטסאפ.",
-      "itemsTitle": "מוצרים",
-      "needItems": "יש להוסיף מוצר אחד לפחות לפני השמירה.",
-      "save": "שמירת ההזמנה",
-      "saving": "שומר…",
+      "title": "הזמנה חדשה",
+      "subtitle": "רשמו הזמנת וואטסאפ או מכירה בחנות, או תנו מתנה.",
+      "needItems": "הוסיפו פריט קודם",
       "wholeOrder": "ההזמנה כולה",
       "search": {
         "placeholder": "חיפוש מוצר לפי שם או מק\"ט",
@@ -488,7 +557,8 @@
         "percentValue": "{value}%",
         "discountApplied": "הנחה {value} · ‎−{amount}",
         "discountValue": "הנחה {value}",
-        "stockCap": "{count, plural, one {זה הפריט האחרון במלאי} two {אלה כל {count, number, plain} הפריטים במלאי} other {אלה כל {count, number, plain} הפריטים במלאי}}"
+        "stockCap": "{count, plural, one {זה הפריט האחרון במלאי} two {אלה כל {count, number, plain} הפריטים במלאי} other {אלה כל {count, number, plain} הפריטים במלאי}}",
+        "lineTotal": "סה״כ לשורה"
       },
       "totals": {
         "subtotal": "סכום ביניים ({count})",
@@ -496,43 +566,93 @@
         "orderDiscount": "הנחה על ההזמנה ({label})",
         "addOrderDiscount": "הנחה על כל ההזמנה",
         "editOrderDiscount": "עריכת ההנחה על ההזמנה",
-        "total": "סה\"כ"
+        "total": "סה\"כ",
+        "giftNote": "מתנה: כל הפריטים במחיר אפס ואינם נספרים במכירות."
       },
       "customer": {
-        "title": "פרטי הלקוח",
         "name": "שם הלקוח",
         "phone": "מספר טלפון",
         "phonePrefixLabel": "קידומת מדינה",
         "whatsapp": "מספר וואטסאפ",
-        "whatsappHint": "אפשר להשאיר ריק אם זהה לטלפון.",
         "address": "כתובת",
         "addressPlaceholder": "עיר, רחוב, ציון דרך…",
         "location": "מיקום במפה (רשות)",
-        "locationHint": "הדבקת הקואורדינטות מוואטסאפ בשדה קו הרוחב תמלא את שני השדות.",
-        "latitude": "קו רוחב",
-        "longitude": "קו אורך",
-        "note": "הערה (רשות)",
-        "notePlaceholder": "פרטים נוספים על ההזמנה…"
+        "locationHint": "הדביקו את קישור המיקום שהלקוח שלח מ-Google Maps.",
+        "notePlaceholder": "פרטים נוספים על ההזמנה…",
+        "namePlaceholder": "לדוגמה: שרה אחמד",
+        "phonePlaceholder": "59 123 4567",
+        "whatsappToggle": "מספר הוואטסאפ שונה ממספר הטלפון",
+        "locationPlaceholder": "https://maps.app.goo.gl/…",
+        "locationResolving": "קורא את המיקום מהקישור…",
+        "openInMaps": "פתיחה ב-Google Maps"
       },
       "success": {
         "title": "ההזמנה נשמרה",
         "orderNumber": "הזמנה {number}",
         "nextStep": "ההזמנה בסטטוס חדשה. המלאי מנוכה כשמתחילים בהכנה.",
         "openOrder": "פתיחת ההזמנה",
-        "newOrder": "הזמנה חדשה"
-      }
+        "newOrder": "הזמנה חדשה",
+        "nextStepStore": "המכירה נרשמה כהושלמה והמלאי ירד.",
+        "nextStepGift": "המתנה נרשמה והמלאי ירד."
+      },
+      "kind": {
+        "label": "סוג ההזמנה",
+        "options": {
+          "WHATSAPP": "וואטסאפ",
+          "STORE": "בחנות"
+        },
+        "hints": {
+          "WHATSAPP": "נמסרת דרך חברת המשלוחים. נפתחת כ„חדשה”; המלאי יורד כשמתחילה ההכנה.",
+          "STORE": "הלקוח בחנות ושילם במזומן. נשמרת כהושלמה; המלאי יורד מיד."
+        },
+        "giftHints": {
+          "WHATSAPP": "מתנה שנשלחת עם שליח. נפתחת כ„חדשה”; המלאי יורד כשמתחילה ההכנה, ואין מה לגבות.",
+          "STORE": "מתנה שנמסרת בחנות. נשמרת כהושלמה; המלאי יורד מיד."
+        },
+        "gift": "מתנה",
+        "giftHint": "כל הפריטים במחיר אפס ואינם נספרים במכירות; העלות נרשמת כהוצאה."
+      },
+      "sections": {
+        "products": {
+          "title": "פריטים",
+          "description": "חפשו פריט והוסיפו אותו; כמות והנחה לכל שורה."
+        },
+        "customer": {
+          "title": "לקוח ומשלוח",
+          "description": "למי ההזמנה נמסרת, ולאן."
+        },
+        "kind": {
+          "title": "סוג ההזמנה",
+          "description": "מאיפה הגיעה ההזמנה, והאם היא מתנה."
+        },
+        "summary": {
+          "title": "סיכום",
+          "description": "הסכום לפני השמירה; מחושב מחדש בשמירה."
+        },
+        "note": {
+          "title": "הערה",
+          "description": "אופציונלית, מופיעה על ההזמנה."
+        }
+      },
+      "save": "יצירת הזמנה"
     },
     "collection": {
-      "back": "הזמנות",
       "title": "כסף אצל חברת המשלוחים",
       "subtitle": "הזמנות שטרם שולמו. סמן את מה שהתקבל.",
       "listLabel": "הזמנות הממתינות לתשלום",
       "selectOrder": "בחירת הזמנה {number} — {amount}",
       "marked": "{count, plural, one {נרשם תשלום עבור הזמנה אחת.} two {נרשם תשלום עבור שתי הזמנות.} other {נרשם תשלום עבור {count, number, plain} הזמנות.}}",
       "summary": {
-        "label": "חייבים לך",
-        "orders": "{count, plural, =0 {אין הזמנות} one {הזמנה אחת} two {שתי הזמנות} other {{count, number, plain} הזמנות}}",
-        "oldest": "ההזמנה הוותיקה שטרם שולמה: {date}"
+        "label": "מגיע לך",
+        "orders": "{count, plural, =0 {אין הזמנות} one {הזמנה אחת} other {{count, number, plain} הזמנות}}",
+        "withCourier": "אצל חברת המשלוחים",
+        "withCourierHint": "{count, plural, =0 {לא נמסר דבר} one {הזמנה אחת נמסרה למשלוח} other {{count, number, plain} הזמנות נמסרו למשלוח}}",
+        "notShipped": "טרם נשלח",
+        "notShippedHint": "{count, plural, =0 {אין ממתינות} one {הזמנה אחת עדיין בחנות} other {{count, number, plain} הזמנות עדיין בחנות}}",
+        "oldest": "החוב הוותיק ביותר",
+        "oldestDays": "{count, plural, =0 {היום} one {יום אחד} other {{count, number, plain} ימים}}",
+        "overdue": "{count, plural, =0 {אין הזמנות מעל {days} ימים} one {הזמנה אחת מעל {days} ימים} other {{count, number, plain} הזמנות מעל {days} ימים}}",
+        "none": "—"
       },
       "empty": {
         "title": "אין חובות פתוחים",
@@ -542,11 +662,29 @@
         "selected": "{count, plural, one {הזמנה אחת נבחרה} two {שתי הזמנות נבחרו} other {{count, number, plain} הזמנות נבחרו}}",
         "selectAll": "בחר הכל",
         "clear": "ניקוי",
-        "markCollected": "{count, plural, one {התקבל תשלום עבור הזמנה} two {התקבל תשלום עבור שתיים} other {התקבל תשלום עבור {count, number, plain}}}"
+        "selectAllLabel": "בחירת כל ההזמנות בעמוד",
+        "confirm": "התשלום התקבל",
+        "label": "הזמנות שנבחרו"
+      },
+      "table": {
+        "owed": "לתשלום"
+      },
+      "noResults": {
+        "title": "אין הזמנה שלא שולמה שתואמת",
+        "description": "נסו חיפוש אחר, או הסירו מסנן."
       }
     },
     "quickSale": {
       "badge": "מכירה מהירה"
+    },
+    "rowMenu": {
+      "label": "אפשרויות להזמנה {number}",
+      "open": "פתיחת ההזמנה",
+      "markCollected": "הכסף התקבל",
+      "confirmTitle": "לרשום תשלום עבור הזמנה {number}?",
+      "confirmConsequence": "יירשם שחברת המשלוחים שילמה {amount} עבור ההזמנה.",
+      "confirmAction": "הכסף התקבל",
+      "collected": "התשלום נרשם."
     }
   },
   "reports": {
@@ -560,11 +698,13 @@
       "thisMonth": "החודש",
       "custom": "תקופה אחרת",
       "from": "מתאריך",
-      "to": "עד תאריך"
+      "to": "עד תאריך",
+      "label": "תקופה",
+      "dates": "תאריכים"
     },
     "totals": {
       "title": "מכירות בתקופה זו",
-      "soldHint": "{orders} הזמנות, {items} פריטים",
+      "soldHint": "{orders, plural, one {הזמנה אחת} other {{orders} הזמנות}} · {items, plural, one {פריט אחד} other {{items} פריטים}}",
       "owedOrders": "{count, plural, one {הזמנה אחת} two {שתי הזמנות} other {{count, number, plain} הזמנות}}",
       "averageOrder": {
         "label": "הזמנה ממוצעת",
@@ -583,11 +723,11 @@
         "help": "מכירות פחות עלות הסחורה. שכר דירה, משכורות והוצאות אחרות אינם מנוכים ממנו."
       },
       "margin": "שיעור רווח {value, number, percent}",
-      "missingCost": "ל-{count} פריטים שנמכרו אין מחיר עלות, ולכן הרווח המוצג גבוה מהאמיתי."
+      "missingCost": "{count, plural, one {לפריט אחד שנמכר אין} other {ל־{count} פריטים שנמכרו אין}} מחיר עלות, ולכן הרווח המוצג גבוה מהאמיתי."
     },
     "channels": {
       "title": "לפי ערוץ מכירה",
-      "orders": "{count} הזמנות",
+      "orders": "{count, plural, one {הזמנה אחת} other {{count} הזמנות}}",
       "empty": "אין מכירות בתקופה זו.",
       "help": "מהיכן הגיעו המכירות: מהדלפק בחנות, מוואטסאפ או מהאתר."
     },
@@ -607,11 +747,43 @@
       "orders": "מתוך {count} הזמנות",
       "empty": "אין החזרות בתקופה זו.",
       "amountHelp": "השווי של מה שלקוחות החזירו בתקופה זו. נתוני המכירות שלמעלה כבר מנוכים בו.",
-      "itemsHelp": "כמה פריטים חזרו, ומכמה הזמנות."
+      "itemsHelp": "כמה פריטים חזרו, ומכמה הזמנות.",
+      "ordersCount": "{count, plural, one {מהזמנה אחת} other {מ־{count} הזמנות}}"
     },
     "empty": {
       "title": "אין מכירות בתקופה זו",
       "description": "נסה תקופה אחרת, או רשום הזמנה ראשונה."
+    },
+    "statement": {
+      "title": "רווח",
+      "sold": "מכירות",
+      "cogs": "עלות הסחורה שנמכרה",
+      "gross": "רווח גולמי",
+      "expenses": "הוצאות",
+      "gifts": "מתנות (בעלות)",
+      "net": "רווח נקי",
+      "margin": "שיעור רווח {value, number, percent}",
+      "receivedTitle": "לפי הכסף שהתקבל בלבד",
+      "receivedSold": "התקבל",
+      "receivedCogs": "עלות מה ששולם",
+      "receivedGross": "רווח גולמי",
+      "receivedNet": "רווח נקי",
+      "receivedHint": "רק מכירות ששולמו. ההוצאות והמתנות יורדות במלואן, כי החשבון חייב בכל מקרה.",
+      "help": "המכירות פחות עלות הסחורה הן הרווח הגולמי; אחרי הוצאות ומתנות נשאר מה שהחנות הרוויחה באמת.",
+      "overheads": "הוצאות ומתנות"
+    },
+    "orders": {
+      "title": "הזמנות",
+      "count": "הזמנות",
+      "items": "פריטים שנמכרו",
+      "average": "הזמנה ממוצעת",
+      "discounts": "הנחות"
+    },
+    "table": {
+      "product": "מוצר",
+      "quantity": "כמות",
+      "revenue": "מכירות",
+      "profit": "רווח"
     }
   },
   "products": {
@@ -619,9 +791,9 @@
     "subtitle": "עיין בקטלוג המוצרים שלך.",
     "addProduct": "הוספת מוצר",
     "search": {
-      "placeholder": "חיפוש מוצרים…",
+      "placeholder": "חיפוש לפי שם, מק״ט או ברקוד",
       "label": "חיפוש מוצרים",
-      "clear": "ניקוי חיפוש"
+      "clear": "ניקוי החיפוש"
     },
     "sort": {
       "label": "מיון לפי",
@@ -629,7 +801,9 @@
       "priceLowToHigh": "מחיר: הזול קודם",
       "priceHighToLow": "מחיר: היקר קודם",
       "nameAToZ": "שם: א עד ת",
-      "nameZToA": "שם: ת עד א"
+      "nameZToA": "שם: ת עד א",
+      "stockLowToHigh": "מלאי: מהנמוך",
+      "stockHighToLow": "מלאי: מהגבוה"
     },
     "filters": {
       "trigger": "סינון",
@@ -647,8 +821,20 @@
       "priceRange": "טווח מחירים",
       "priceMin": "מינימום",
       "priceMax": "מקסימום",
-      "reset": "איפוס",
-      "apply": "החל"
+      "reset": "ניקוי מסננים",
+      "apply": "הצגת תוצאות",
+      "categoryHint": "פריטים בקטגוריה זו ובקטגוריות שמתחתיה.",
+      "statusHint": "פריטים מוסתרים אינם נמכרים בחנות או באתר.",
+      "stockHint": "כולל את כל הווריאציות של הפריט.",
+      "priceHint": "מחיר המכירה לפני הנחה.",
+      "sortHint": "אפשר גם בלחיצה על כותרת עמודה.",
+      "chipCategory": "קטגוריה: {name}",
+      "chipStatus": "סטטוס: {name}",
+      "chipStock": "מלאי: {name}",
+      "chipPrice": "מחיר {min} – {max}",
+      "chipPriceMin": "מחיר מ-{min}",
+      "chipPriceMax": "מחיר עד {max}",
+      "removeFilter": "הסרת מסנן: {name}"
     },
     "status": {
       "active": "פעיל",
@@ -666,7 +852,10 @@
       "sku": "מק\"ט",
       "price": "מחיר",
       "stock": "מלאי",
-      "status": "סטטוס"
+      "status": "סטטוס",
+      "actions": "פעולות",
+      "variants": "{count, plural, one {וריאציה אחת} other {{count, number, plain} וריאציות}}",
+      "noCategory": "ללא קטגוריה"
     },
     "empty": {
       "noProductsTitle": "אין עדיין מוצרים",
@@ -680,7 +869,6 @@
       "pageOf": "עמוד {page} מתוך {totalPages}"
     },
     "detail": {
-      "back": "חזרה למוצרים",
       "notFoundTitle": "המוצר לא נמצא",
       "notFoundDescription": "ייתכן שהמוצר הוסר.",
       "sku": "מק\"ט",
@@ -689,8 +877,6 @@
       "cost": "עלות",
       "wasPrice": "היה {price}",
       "descriptionTitle": "תיאור",
-      "numberedPointsAlt": "תמונת המוצר עם המספרים שלה",
-      "numberedPointsHint": "{count} מספרים ממוקמים על התמונה הזו.",
       "variantsTitle": "וריאציות",
       "variantsCount": "{count} וריאציות",
       "variantSku": "מק\"ט",
@@ -703,15 +889,33 @@
         "confirm": "למחוק את המוצר הזה? הוא ייעלם מרשימת המוצרים, מהקופה ומהחנות. הזמנות קודמות נשמרות.",
         "confirmAction": "כן, למחוק",
         "keep": "להשאיר",
-        "success": "המוצר נמחק."
+        "success": "המוצר נמחק.",
+        "title": "למחוק את „{name}”?",
+        "consequence": "הוא ייעלם מרשימת המוצרים, מהקופה ומהחנות. הזמנות קודמות שומרות אותו."
       },
       "barcodeSource": "מקור הברקוד",
       "barcodeGenerated": "שלנו (מודפסת מדבקה)",
       "barcodeSupplier": "של היבואן (לא צריך מדבקה)",
-      "barcodeSupplierShort": "קוד היבואן"
+      "barcodeSupplierShort": "קוד היבואן",
+      "actions": "פעולות מוצר",
+      "price": "מחיר",
+      "inStock": "{count, plural, one {יחידה אחת במלאי} other {{count, number, plain} במלאי}}",
+      "outOfStock": "אזל מהמלאי",
+      "gallery": {
+        "open": "פתיחת התמונה בגדול",
+        "show": "הצגת תמונה {number}",
+        "numbered": "עם המספרים",
+        "variant": "וריאנט: {name}",
+        "none": "אין תמונות עדיין"
+      },
+      "print": {
+        "open": "הדפסת ברקוד",
+        "title": "הדפסת ברקוד",
+        "print": "{count, plural, one {הדפסת מדבקה אחת} other {הדפסת {count, number, plain} מדבקות}}",
+        "tooMany": "יותר מדי מדבקות להדפסה אחת (לכל היותר {max})."
+      }
     },
     "form": {
-      "back": "חזרה",
       "createTitle": "הוספת מוצר",
       "editTitle": "עריכת מוצר",
       "notFoundTitle": "המוצר לא נמצא",
@@ -791,7 +995,7 @@
         "addType": "הוספת סוג אפשרות חדש",
         "newTypePlaceholder": "לדוגמה: חומר",
         "noTypesYet": "אין עדיין סוגי אפשרויות — הוסף/י אחד למטה.",
-        "previewCount": "ייווצרו {count} וריאציות",
+        "previewCount": "{count, plural, one {תיווצר וריאציה אחת} other {ייווצרו {count} וריאציות}}",
         "removeCombo": "הסרה",
         "restoreCombo": "שחזור",
         "undo": "ביטול פעולה",
@@ -801,12 +1005,22 @@
         "cost": "עלות",
         "active": "גלוי",
         "addMoreTitle": "הוספת שילובים נוספים",
-        "addMoreSuccess": "הוריאציות נוספו.",
-        "generate": "יצירת וריאציות",
         "toggleDetails": "פרטים — {name}",
         "summaryStock": "מלאי: {count}",
         "hidden": "מוסתר",
-        "barcodeIncomplete": "הברקוד חסר"
+        "barcodeIncomplete": "הברקוד חסר",
+        "addButton": "הוספת וריאציות",
+        "done": "סיום",
+        "drawerDescription": "נראות, מחיר, ברקוד ותמונות לווריאציה זו. נשמר עם המוצר.",
+        "selectedCount": "{count} נבחרו",
+        "addDescription": "בחרו צבעים ומידות להוספה. כל צירוף חדש מופיע ברשימה עם מלאי משלו.",
+        "addCount": "הוספת {count, plural, one {וריאציה אחת} other {{count} וריאציות}}",
+        "noneSelected": "לא נבחר דבר",
+        "selectAll": "בחירת הכל",
+        "bulkStock": "מלאי לנבחרים",
+        "bulkSetStock": "קביעת מלאי",
+        "bulkRemove": "הסרה",
+        "selectRow": "בחירת {name}"
       },
       "optionNotes": {
         "title": "הערות על האפשרויות",
@@ -879,7 +1093,6 @@
       "kind": {
         "title": "מה אתם מוכרים?",
         "legend": "סוג המוצר",
-        "hint": "בחרו אחד — הבחירה משנה את מה שתמלאו בהמשך.",
         "ordinaryTitle": "מוצר רגיל",
         "ordinaryDescription": "פריט אחד, או כמה פריטים בצבעים ובמידות שונים.",
         "numberedTitle": "פריטים ממוספרים",
@@ -900,6 +1113,19 @@
         "title": "נשמר — חלק מהשינויים ממתינים",
         "detail": "{count} מהשינויים שלכם דורשים אישור מנהל לפני שייכנסו לתוקף. שום דבר לא אבד.",
         "viewProduct": "הצגת המוצר"
+      },
+      "statusTitle": "סטטוס",
+      "sections": {
+        "basic-info": "השם והתיאור שהלקוחות רואים, והמיקום בקטלוג.",
+        "pricing": "מחיר המכירה, מחיר לפני הנחה (רשות), וכמה עלה לך.",
+        "barcode": "הקוד שהקופה סורקת: שלנו, או המודפס של הספק.",
+        "variants": "כל צבע ומידה של הפריט, לכל אחד מלאי משלו.",
+        "numbered-hint": "המספרים ממוקמים על התמונה אחרי שמירת המוצר.",
+        "numbered-shawl": "כל פריט ממוספר בתמונה, עם מחיר ומלאי משלו.",
+        "status": "האם לקוחות רואים אותו, והאם מלאי נמוך מתריע.",
+        "kind": "בחרו אחד — הבחירה משנה את מה שתמלאו בהמשך.",
+        "photos": "התמונה הראשית מוצגת בכל מקום.",
+        "inventory": "כמה פריטים יש לך, וקוד ה-SKU."
       }
     },
     "completeness": {
@@ -917,6 +1143,11 @@
       "oneOff": "זה היה פריט חד-פעמי",
       "confirmOneOff": "אישור: פריט חד-פעמי",
       "oneOffWarning": "הפריט לא יצטרף לקטלוג. המכירה נשארת וההזמנה לא מושפעת."
+    },
+    "rowMenu": {
+      "label": "פעולות עבור {name}",
+      "edit": "עריכה",
+      "delete": "מחיקה"
     }
   },
   "inventory": {
@@ -932,16 +1163,21 @@
       "category": "קטגוריה",
       "allCategories": "כל הקטגוריות",
       "lowStockOnly": "הצג מלאי נמוך בלבד",
-      "lowStockCount": "{count} פריטים דורשים חידוש מלאי"
+      "lowStockCount": "{count} פריטים דורשים חידוש מלאי",
+      "trigger": "סינון",
+      "title": "סינון המלאי",
+      "reset": "ניקוי הסינון",
+      "apply": "הצגת התוצאות",
+      "lowStockHint": "רק פריטים בסף המלאי הנמוך או מתחתיו.",
+      "chipCategory": "קטגוריה: {name}",
+      "removeFilter": "הסרת סינון: {name}",
+      "chipLowStock": "מלאי נמוך"
     },
     "card": {
-      "noSku": "אין מק\"ט",
-      "stockLabel": "מלאי",
-      "outsideFilter": "כבר לא תואם את הסינון הנוכחי"
+      "stockLabel": "מלאי"
     },
     "table": {
       "item": "פריט",
-      "sku": "מק\"ט",
       "status": "סטטוס",
       "stock": "מלאי"
     },
@@ -949,14 +1185,7 @@
       "decrease": "הפחתת כמות",
       "increase": "הוספת כמות",
       "edit": "עריכת כמות",
-      "quantity": "כמות",
-      "save": "שמירה",
-      "cancel": "ביטול",
-      "saved": "נשמר",
-      "unsaved": "טרם נשמר",
-      "saving": "שומר…",
-      "savedValue": "נשמר: {count}",
-      "revertedTo": "הוחזר ל-{count}."
+      "quantity": "כמות"
     },
     "empty": {
       "noItemsTitle": "אין עדיין מלאי",
@@ -964,18 +1193,15 @@
       "noMatchesTitle": "לא נמצאו פריטים תואמים",
       "noMatchesDescription": "נסה/י חיפוש אחר או נקה/י את הסינון."
     },
-    "pagination": {
-      "previous": "הקודם",
-      "next": "הבא",
-      "pageOf": "עמוד {page} מתוך {totalPages}"
-    },
-    "outsideFilterNotice": "{count, plural, one {פריט אחד כבר לא תואם את הסינון — נשאר כאן כדי שלא ייעלם תוך כדי עבודה} two {{count, number, plain} פריטים כבר לא תואמים את הסינון — נשארו כאן כדי שלא ייעלמו תוך כדי עבודה} other {{count, number, plain} פריטים כבר לא תואמים את הסינון — נשארו כאן כדי שלא ייעלמו תוך כדי עבודה}}",
-    "refreshList": "רענון הרשימה"
+    "save": {
+      "changed": "{count, plural, one {כמות אחת שונתה} other {{count} כמויות שונו}}",
+      "failed": "{count, plural, one {כמות אחת לא נשמרה ונשארה כאן לניסיון נוסף.} other {{count} כמויות לא נשמרו ונשארו כאן לניסיון נוסף.}}"
+    }
   },
   "labels": {
     "title": "מדבקות ברקוד",
     "subtitle": "הדפסת מדבקות לפריטים שעדיין צריכים אחת.",
-    "selectAll": "בחירת הכול בעמוד",
+    "selectAll": "בחירת כל המוצרים בעמוד הזה",
     "clearSelection": "ניקוי הבחירה",
     "selectedCount": "{count} נבחרו",
     "next": "הבא",
@@ -985,12 +1211,18 @@
       "printed": "הודפסו",
       "not_printed": "לא הודפסו",
       "category": "קטגוריה",
-      "allCategories": "כל הקטגוריות"
+      "allCategories": "כל הקטגוריות",
+      "trigger": "מסננים",
+      "title": "סינון מוצרים",
+      "reset": "ניקוי מסננים",
+      "apply": "הצגת תוצאות",
+      "categoryHint": "רק מוצרים בקטגוריה הזו.",
+      "chipCategory": "קטגוריה: {name}",
+      "removeFilter": "הסרת מסנן: {name}"
     },
     "row": {
       "select": "בחירת {name}",
-      "variants": "{count} וריאציות",
-      "printedOn": "הודפס לאחרונה {date}",
+      "variants": "{count, plural, one {וריאציה אחת} other {{count} וריאציות}}",
       "neverPrinted": "עדיין לא הודפס",
       "supplierBarcode": "ברקוד היבואן — לא צריך מדבקה"
     },
@@ -1001,29 +1233,31 @@
       "noMatchesDescription": "נסו חיפוש אחר, קטגוריה אחרת או מצב הדפסה אחר."
     },
     "copies": {
-      "total": "{count} מדבקות",
+      "total": "{count, plural, one {מדבקה אחת} other {{count} מדבקות}}",
       "wholeProduct": "המוצר כולו",
       "noBarcode": "אין ברקוד",
       "simpleHint": "מדבקה לכל פריט במלאי.",
       "perVariantHint": "מדבקה לכל וריאציה ({count}), לפי המלאי של כל אחת.",
       "numberedHint": "צעיף ממוספר — מדבקה אחת למוצר כולו. הזינו כמה עותקים צריך.",
       "supplierBarcode": "ברקוד היבואן — לא צריך מדבקה. הזן כמות כדי להדפיס בכל זאת.",
-      "copiesLabel": "עותקים",
       "copiesFor": "מספר עותקים — {name}",
       "increase": "יותר עותקים — {name}",
       "decrease": "פחות עותקים — {name}",
-      "stockAboveMax": "המלאי הוא {stock}, ו-{max} מדבקות הוא המרב שאפשר להזין בבת אחת. הדפיסו את היתר במנה נוספת."
+      "stockAboveMax": "המלאי הוא {stock}, ו-{max} מדבקות הוא המרב שאפשר להזין בבת אחת. הדפיסו את היתר במנה נוספת.",
+      "title": "עותקים"
     },
     "prepare": {
       "back": "חזרה למוצרים",
       "title": "עותקים ותצוגה מקדימה",
-      "subtitle": "{products} מוצרים · {labels} מדבקות",
-      "totalLabels": "{count} מדבקות",
-      "print": "הדפסה"
+      "subtitle": "{products, plural, one {מוצר אחד} other {{products} מוצרים}} · {labels, plural, one {מדבקה אחת} other {{labels} מדבקות}}",
+      "totalLabels": "{count, plural, one {מדבקה אחת} other {{count} מדבקות}}",
+      "print": "הדפסה",
+      "labelsToPrint": "מדבקות להדפסה"
     },
     "preview": {
-      "pageCount": "תצוגה מקדימה — {count} עמודים",
-      "truncated": "מוצגים {shown} העמודים הראשונים מתוך {total} — כולם יודפסו."
+      "pageCount": "{count, plural, one {עמוד אחד} other {{count} עמודים}}",
+      "truncated": "מוצגים {shown} העמודים הראשונים מתוך {total} — כולם יודפסו.",
+      "title": "תצוגה מקדימה"
     },
     "sheet": {
       "title": "גיליון מדבקות",
@@ -1043,71 +1277,106 @@
       "confirmYes": "כן, סמנו כמודפס",
       "confirmNo": "עדיין לא",
       "marked": "סומנו כמודפסים."
+    },
+    "search": {
+      "label": "חיפוש מוצרים",
+      "placeholder": "שם, מק״ט או ברקוד",
+      "clear": "ניקוי החיפוש"
+    },
+    "selectBar": {
+      "label": "מוצרים שנבחרו להדפסה"
+    },
+    "table": {
+      "product": "מוצר",
+      "printed": "הודפס לאחרונה"
     }
   },
   "categories": {
     "title": "קטגוריות",
-    "subtitle": "ארגון המוצרים בקטגוריות מקוננות.",
+    "subtitle": "ארגנו את המוצרים בקטגוריות מקוננות.",
     "addCategory": "הוספת קטגוריה",
-    "readOnlyHint": "ניתן לצפות בקטגוריות בלבד. לביצוע שינויים, פנה/י למנהל.",
+    "readOnlyHint": "באפשרותך רק לצפות בקטגוריות. לשינויים, פנו למנהל או לאדמין.",
+    "favoritesHint": "סמנו בכוכב את הקטגוריות שהקופאים משתמשים בהן הכי הרבה — הן מופיעות ראשונות בדפדפן המוצרים בקופה.",
     "empty": {
       "title": "אין עדיין קטגוריות",
-      "description": "קטגוריות שתוסיף/י יופיעו כאן."
+      "description": "קטגוריות שתוסיפו יופיעו כאן."
     },
+    "noMatch": {
+      "title": "אין קטגוריה תואמת",
+      "description": "נסו כתיב אחר, או חפשו בשפה אחרת."
+    },
+    "search": {
+      "label": "חיפוש קטגוריות",
+      "placeholder": "חפשו קטגוריה בכל שפה…",
+      "clear": "ניקוי החיפוש"
+    },
+    "expandAll": "הרחבת הכול",
+    "collapseAll": "כיווץ הכול",
     "tree": {
-      "expand": "הרחבה",
-      "collapse": "כיווץ",
-      "edit": "עריכת קטגוריה",
-      "delete": "מחיקת קטגוריה",
-      "confirmDelete": "מחיקה",
-      "cancelDelete": "ביטול",
-      "pinned": "מוצמד",
+      "label": "עץ הקטגוריות",
+      "expand": "הרחבת {name}",
+      "collapse": "כיווץ {name}",
+      "pinned": "מוצמדת",
       "pin": "הצמדת {name} לדפדפן המוצרים בקופה",
-      "unpin": "ביטול ההצמדה של {name} מדפדפן המוצרים בקופה"
+      "unpin": "ביטול הצמדת {name} מדפדפן המוצרים בקופה",
+      "products": "{count, plural, =0 {אין מוצרים} one {מוצר אחד} other {{count} מוצרים}}",
+      "productsLink": "הצגת המוצרים ב{name}",
+      "subcategories": "{count, plural, one {תת־קטגוריה אחת} other {{count} תת־קטגוריות}}"
+    },
+    "menu": {
+      "label": "פעולות עבור {name}",
+      "edit": "עריכה",
+      "addChild": "הוספת תת־קטגוריה",
+      "delete": "מחיקה"
+    },
+    "delete": {
+      "title": "למחוק את {name}?",
+      "consequence": "הקטגוריה תימחק לצמיתות. לא ניתן למחוק קטגוריה שיש בה עדיין תת־קטגוריות או מוצרים.",
+      "confirm": "מחיקת הקטגוריה",
+      "success": "הקטגוריה נמחקה"
+    },
+    "favorite": {
+      "pinned": "הוצמדה לקופה",
+      "unpinned": "ההצמדה לקופה בוטלה"
     },
     "form": {
       "createTitle": "הוספת קטגוריה",
       "editTitle": "עריכת קטגוריה",
+      "createDescription": "כתבו את השם בערבית; שאר השפות אופציונליות.",
+      "editDescription": "שנו את שמה או העבירו אותה תחת קטגוריה אחרת.",
       "name": "שם",
       "required": "חובה",
       "optional": "אופציונלי",
       "parent": "קטגוריית אב",
-      "noParent": "ללא קטגוריית אב (רמה עליונה)",
-      "creating": "יוצר…",
-      "saving": "שומר…",
+      "parentHint": "השאירו ריק לקטגוריה ראשית.",
+      "noParent": "ללא קטגוריית אב (ראשית)",
       "create": "יצירת קטגוריה",
-      "save": "שמירת שינויים"
+      "save": "שמירת השינויים",
+      "created": "הקטגוריה נוצרה",
+      "saved": "הקטגוריה נשמרה"
     },
-    "favoritesHint": "סמנו בכוכב את הקטגוריות שהקופאים משתמשים בהן הכי הרבה — הן יופיעו ראשונות בדפדפן המוצרים בקופה."
+    "total": "{count, plural, one {קטגוריה אחת} other {{count} קטגוריות}}"
   },
   "settings": {
     "title": "הגדרות",
-    "subtitle": "שם החנות, מטבע, רמות מלאי, התראות ותוויות ברקוד.",
+    "subtitle": "שם החנות, מיתוג, הגדרות אזוריות, מלאי, התראות ותוויות ברקוד.",
     "form": {
-      "readOnlyHint": "ניתן לצפות בהגדרות בלבד. לביצוע שינויים, פנה/י למנהל.",
-      "storeInfoTitle": "פרטי החנות",
       "storeName": "שם החנות",
       "required": "חובה",
       "optional": "אופציונלי",
-      "regionalTitle": "הגדרות אזוריות",
       "defaultLanguage": "שפת ברירת מחדל",
       "currency": "מטבע",
       "currencyHint": "המטבע קבוע כרגע ולא ניתן לשנותו כאן עדיין.",
       "defaultCountryCode": "קידומת טלפון ברירת מחדל",
       "defaultCountryCodeHint": "משמש למילוי אוטומטי של מספרי טלפון חדשים.",
-      "inventoryTitle": "מלאי",
       "lowStockThreshold": "סף התראת מלאי נמוך",
       "lowStockThresholdHint": "מוצרים בכמות זו או פחות מסומנים כמלאי נמוך.",
-      "saleNotificationsTitle": "התראות מכירה",
-      "saleNotificationsIntro": "כל מכירה שמבצע מנהל או עובד שולחת התראה לטלפונים של מנהלי המערכת. אף אחד לא מקבל התראה על המכירה שלו עצמו.",
       "saleNotificationsEnabled": "שליחת התראה על מכירות",
       "saleNotificationMode": "מתי לשלוח התראה",
       "saleNotificationModeOption": {
         "EVERY_SALE": "בכל מכירה"
       },
       "saleNotificationModeHint": "אפשרויות נוספות יתווספו בהמשך, למשל מכירות מעל סכום מסוים או סיכום תקופתי.",
-      "labelsTitle": "תוויות ברקוד",
-      "labelsIntro": "איך תוויות הברקוד יוצאות מהמדפסת. מסך התוויות משתמש במספרים האלה בכל הדפסה.",
       "labelPrintMode": "סוג המדפסת",
       "labelPrintModeOption": {
         "THERMAL": "מדפסת תוויות (גליל)",
@@ -1136,33 +1405,48 @@
       "labelGapY": "לאורך",
       "labelGapsHint": "הרווח בין מדבקה אחת לשנייה. הזן 0 אם הן צמודות זו לזו.",
       "labelSheetErrorHint": "חלק מהמספרים של דף A4 אינם תקינים. החזר את סוג המדפסת לדף A4 כדי לתקן אותם.",
-      "saving": "שומר…",
-      "save": "שמירת שינויים",
       "saved": "ההגדרות נשמרו."
     },
-    "notifications": {
-      "title": "התראות במכשיר הזה",
-      "intro": "הפעילו התראות כדי לקבל את המכירות לטלפון הזה ברגע שהן קורות. ההגדרה חלה על המכשיר הזה בלבד.",
-      "state": {
-        "on": "ההתראות פעילות במכשיר הזה.",
-        "off": "ההתראות כבויות במכשיר הזה."
+    "sections": {
+      "store-info": {
+        "title": "פרטי החנות",
+        "description": "שם החנות בכל שפה."
       },
-      "turnOn": "הפעלת התראות",
-      "turnOff": "כיבוי התראות",
-      "permissionLabel": "הרשאת התראות בדפדפן",
-      "permission": {
-        "default": "טרם התבקשה",
-        "granted": "מאושרת",
-        "denied": "חסומה"
+      "regional": {
+        "title": "הגדרות אזוריות",
+        "description": "שפת ברירת מחדל, מטבע וקידומת טלפון."
       },
-      "blocked": {
-        "unsupported": "הדפדפן הזה לא תומך בהתראות. נסו דפדפן אחר או טלפון אחר.",
-        "needs-install": "באייפון ובאייפד צריך קודם להוסיף את האפליקציה למסך הבית: לחצו על כפתור השיתוף, בחרו “הוספה למסך הבית”, פתחו את האפליקציה מהאייקון והפעילו כאן התראות.",
-        "not-configured": "ההתראות עדיין לא מוגדרות בשרת. פנו למי שמנהל את השרת.",
-        "denied": "ההתראות חסומות לאתר הזה. אפשרו אותן בהגדרות הדפדפן או הטלפון ונסו שוב."
+      "inventory": {
+        "title": "מלאי",
+        "description": "מתי מוצר נחשב במלאי נמוך."
       },
-      "failed": "לא הצלחנו לשנות את הגדרת ההתראות. נסו שוב.",
-      "iosHint": "לתשומת לב משתמשי אייפון ואייפד: התראות מגיעות רק אחרי שהאפליקציה נוספה למסך הבית ונפתחה מהאייקון שלה."
+      "labels": {
+        "title": "תוויות ברקוד",
+        "description": "איך תוויות הברקוד יוצאות מהמדפסת. מסך התוויות משתמש במספרים האלה בכל הדפסה."
+      },
+      "branding": {
+        "title": "מיתוג",
+        "description": "הלוגו בסרגל הצד, והסמל בלשונית הדפדפן ובמסך הבית."
+      },
+      "sale-notifications": {
+        "title": "התראות מכירה",
+        "description": "כל מכירה שמבצע מנהל או עובד שולחת התראה לטלפונים של מנהלי המערכת. אף אחד לא מקבל התראה על המכירה שלו עצמו."
+      }
+    },
+    "branding": {
+      "logo": "לוגו",
+      "logoHint": "מוצג בראש סרגל הצד. PNG‏, JPG או WebP; עדיף PNG עם רקע שקוף.",
+      "favicon": "סמל האתר",
+      "faviconHint": "הסמל בלשונית הדפדפן, במסך הבית ובהתראות. הכי טוב תמונה ריבועית של 512 × 512 לפחות.",
+      "choose": "בחירת תמונה",
+      "replace": "החלפה",
+      "remove": "הסרה",
+      "undo": "ביטול",
+      "pendingReplace": "תמונה חדשה — תועלה בשמירה.",
+      "pendingRemove": "תוסר בשמירה.",
+      "builtIn": "עדיין לא הועלתה תמונה — נעשה שימוש בסמל המובנה.",
+      "tabPreview": "לשונית דפדפן",
+      "appPreview": "מסך הבית"
     }
   },
   "push": {
@@ -1192,7 +1476,17 @@
       "status": "סטטוס",
       "statusAll": "הכול",
       "statusActive": "פעיל",
-      "statusInactive": "לא פעיל"
+      "statusInactive": "לא פעיל",
+      "trigger": "סינון",
+      "title": "סינון אנשי צוות",
+      "reset": "ניקוי מסננים",
+      "apply": "הצגת תוצאות",
+      "sortHint": "הסדר שבו אנשי הצוות מוצגים.",
+      "roleHint": "הצגת תפקיד אחד בלבד.",
+      "statusHint": "איש צוות פעיל יכול להתחבר; לא פעיל – לא.",
+      "chipRole": "תפקיד: {name}",
+      "chipStatus": "סטטוס: {name}",
+      "removeFilter": "הסרת מסנן: {name}"
     },
     "role": {
       "ADMIN": "מנהל מערכת",
@@ -1206,30 +1500,20 @@
     "accountState": {
       "pending": "הסיסמה טרם נבחרה"
     },
-    "card": {
-      "edit": "עריכת איש צוות",
-      "activate": "הפעלה",
-      "confirmActivate": "הפעלה",
-      "cancelToggle": "ביטול",
-      "remove": "הסרת עובד",
-      "actionsFor": "פעולות עבור {name}"
-    },
     "table": {
       "name": "שם",
       "role": "תפקיד",
-      "phone": "טלפון",
-      "status": "סטטוס"
+      "status": "סטטוס",
+      "contact": "יצירת קשר",
+      "actions": "פעולות",
+      "you": "את/ה",
+      "whatsapp": "וואטסאפ"
     },
     "empty": {
       "noUsersTitle": "אין עדיין אנשי צוות",
       "noUsersDescription": "חשבונות צוות שתוסיף/י יופיעו כאן.",
       "noMatchesTitle": "לא נמצאו אנשי צוות תואמים",
       "noMatchesDescription": "נסה/י חיפוש אחר או נקה/י את הסינון."
-    },
-    "pagination": {
-      "previous": "הקודם",
-      "next": "הבא",
-      "pageOf": "עמוד {page} מתוך {totalPages}"
     },
     "form": {
       "createTitle": "הוספת איש צוות",
@@ -1243,26 +1527,39 @@
       "passwordHintEdit": "השאר/י ריק כדי לשמור על הסיסמה הנוכחית.",
       "role": "תפקיד",
       "phone": "טלפון",
-      "phonePrefixLabel": "קידומת מדינה",
       "whatsapp": "וואטסאפ",
       "whatsappHint": "אופציונלי — משמש ליצירת קשר עם איש הצוות בוואטסאפ.",
       "idNumber": "מספר זהות",
-      "creating": "יוצר…",
-      "saving": "שומר…",
       "create": "הוספת איש צוות",
       "save": "שמירת שינויים",
-      "passwordHintCreate": "מומלץ להשאיר ריק: יישלח קישור למייל והם יבחרו סיסמה בעצמם, כך שאיש אחר לא יידע אותה."
+      "passwordHintCreate": "מומלץ להשאיר ריק: יישלח קישור למייל והם יבחרו סיסמה בעצמם, כך שאיש אחר לא יידע אותה.",
+      "createDescription": "יישלח אליהם מייל עם קישור לבחירת סיסמה.",
+      "editDescription": "השינויים יחולו בפעם הבאה שישתמשו באפליקציה.",
+      "created": "איש הצוות נוסף.",
+      "saved": "השינויים נשמרו.",
+      "groups": {
+        "account": "חשבון",
+        "contact": "יצירת קשר",
+        "signIn": "התחברות"
+      },
+      "namePlaceholder": "שם מלא",
+      "emailPlaceholder": "name@example.com",
+      "emailHintCreate": "מתחברים עם הכתובת הזו; לא ניתן לשנות אותה אחר כך.",
+      "idNumberPlaceholder": "מספר תעודת זהות",
+      "idNumberHint": "גלוי למנהלים בלבד.",
+      "roleHint": "קובע מה ניתן לראות ולעשות. הרשאות כל תפקיד נקבעות בדף ההרשאות.",
+      "passwordEdit": "הגדרת סיסמה חדשה בעצמך"
     },
     "passwordReset": {
       "action": "שליחת קישור סיסמה",
-      "sending": "שולח…",
       "sent": "קישור להגדרת סיסמה נשלח אל {email}.",
       "copyLink": "העתקת קישור",
       "copied": "הקישור הועתק.",
       "linkHint": "אם המייל לא מגיע, אפשר להעביר את הקישור הזה ידנית. הוא פועל פעם אחת בלבד.",
       "resendInvite": "שליחת קישור ההגדרה שוב",
       "inviteSent": "קישור לבחירת סיסמה נשלח אל {email}.",
-      "pendingHint": "העובד/ת עדיין לא בחר/ה סיסמה ולכן לא יכול/ה להתחבר. אפשר לשלוח את הקישור שוב אם הוא לא הגיע."
+      "pendingHint": "העובד/ת עדיין לא בחר/ה סיסמה ולכן לא יכול/ה להתחבר. אפשר לשלוח את הקישור שוב אם הוא לא הגיע.",
+      "hint": "שולח קישור לבחירת סיסמה חדשה. עובד פעם אחת ותוקפו פג אחרי שעתיים."
     },
     "remove": {
       "title": "הסרת {name}",
@@ -1272,7 +1569,8 @@
         "body": "הוא לא יוכל עוד להתחבר, וכל מכשיר שהוא מחובר בו יתנתק מיד. כל מה שהוא עשה נשאר בדיוק כפי שהוא: ההזמנות, ההוצאות וספירות הקופה שלו עדיין נושאות את שמו. אפשר להפעיל אותו מחדש בהמשך.",
         "action": "השבת את החשבון הזה",
         "confirmQuestion": "להשבית את החשבון הזה? הוא לא יוכל להתחבר.",
-        "confirm": "כן, השבת את {name}"
+        "confirm": "כן, השבת את {name}",
+        "success": "החשבון הושבת."
       },
       "delete": {
         "heading": "מחיקה לצמיתות",
@@ -1280,8 +1578,30 @@
         "unavailable": "אי אפשר למחוק את החשבון הזה, כי כבר נעשה בו שימוש בחנות — יש הזמנות, הוצאות או רשומות אחרות שנושאות את שמו של אדם זה. השבת אותו במקום, כדי שהרשומות האלה ימשיכו לומר מי עשה מה.",
         "action": "מחק לצמיתות",
         "confirmQuestion": "פעולה זו מוחקת לצמיתות את החשבון {email} ואת הסיסמה שלו. אי אפשר לבטל אותה.",
-        "confirm": "כן, מחק לצמיתות את {name}"
-      }
+        "confirm": "כן, מחק לצמיתות את {name}",
+        "success": "החשבון נמחק."
+      },
+      "description": "בחר/י איך להסיר את האדם הזה מהחנות."
+    },
+    "sort": {
+      "label": "מיון לפי",
+      "newest": "החדשים קודם",
+      "oldest": "הוותיקים קודם",
+      "nameAToZ": "שם: א עד ת",
+      "nameZToA": "שם: ת עד א",
+      "role": "תפקיד"
+    },
+    "rowMenu": {
+      "label": "פעולות עבור {name}",
+      "edit": "עריכה",
+      "remove": "השבתה או מחיקה…",
+      "activate": "הפעלה מחדש"
+    },
+    "activate": {
+      "title": "להפעיל מחדש את {name}?",
+      "consequence": "יוכלו להתחבר שוב עם הסיסמה שלהם.",
+      "confirm": "הפעלה",
+      "success": "החשבון פעיל שוב."
     }
   },
   "errors": {
@@ -1353,7 +1673,6 @@
     "orderNotCollectable": "ההזמנה בוטלה או הוחזרה, ולכן אין תשלום לרשום.",
     "reportRangeInvalid": "התקופה אינה תקינה. בדוק את תאריכי ההתחלה והסיום.",
     "reportRangeTooLong": "התקופה ארוכה מדי. בחר שנה לכל היותר.",
-    "orderGiftChannelInvalid": "מתנה ניתנת רק בדלפק.",
     "cashSessionNotFound": "לא נמצאה קופה לאותו יום.",
     "cashSessionDateTaken": "ליום הזה כבר יש קופה.",
     "cashSessionAlreadyClosed": "היום הזה כבר נספר ונסגר.",
@@ -1381,7 +1700,10 @@
     "userSelfRemoval": "אי אפשר להסיר את החשבון שלך עצמך. בקש ממנהל אחר לעשות זאת.",
     "userHasHistory": "כבר נעשה שימוש בחשבון הזה בחנות, ולכן אי אפשר למחוק אותו. השבת אותו במקום — ההזמנות וההוצאות שלו ממשיכות לשאת את שם האדם.",
     "productCompletionIncomplete": "בחרו קטגוריה לפני השלמת המוצר — בלעדיה הוא לא יופיע באף רשימה מסוננת.",
-    "orderItemSourceInvalid": "לא ברור מה נמכר בשורה הזו."
+    "orderItemSourceInvalid": "לא ברור מה נמכר בשורה הזו.",
+    "orderLocationLinkInvalid": "לא הצלחנו לקרוא מיקום מהקישור. הדביקו קישור שיתוף מ-Google Maps.",
+    "profileWrongPassword": "הסיסמה הנוכחית שגויה.",
+    "profileSessionNotFound": "המכשיר הזה כבר נותק."
   },
   "pwa": {
     "version": {
@@ -1488,25 +1810,16 @@
     "title": "הרשאות",
     "subtitle": "בחר מה מותר לכל תפקיד.",
     "rolePicker": "בחירת תפקיד",
-    "saving": "שומר…",
     "unavailable": "לא ניתן היה לטעון את ההרשאות. נסה שוב.",
     "ownRole": "אינך יכול לשנות את ההרשאות של התפקיד שלך.",
-    "adminRole": "למנהל המערכת יש תמיד את כל ההרשאות, ולכן לא ניתן לשנות אותן כאן.",
     "toggleLabel": "{action} — {role}",
-    "intro": {
-      "title": "ניתן לשנות כל הרשאה",
-      "body": "הפעילו או כבו כל דבר שמנהל או עובד רשאים לעשות — כולל עלויות ורווח, דוחות, ביטול מכירה, אישורים וחשבונות צוות. למנהל המערכת נשארות תמיד כל ההרשאות."
-    },
     "locked": {
       "label": "נעול",
-      "protected": "זה מגן על רישומי החנות",
-      "ownRole": "זה התפקיד שלך",
-      "adminRole": "למנהל המערכת יש את זה תמיד",
       "on": "פעיל",
       "off": "כבוי"
     },
     "table": {
-      "action": "מה זה"
+      "action": "הרשאה"
     },
     "role": {
       "ADMIN": "מנהל מערכת",
@@ -1600,6 +1913,487 @@
       "permission": {
         "manage": "שינוי ההרשאות האלה"
       }
+    },
+    "adminNote": "למנהל המערכת יש תמיד את כל ההרשאות, ולכן הוא לא מופיע כאן.",
+    "summary": "{role} {granted}/{total}",
+    "changed": "שונה",
+    "saved": "ההרשאות נשמרו",
+    "changes": "{count, plural, one {שינוי אחד לא נשמר} other {{count} שינויים לא נשמרו}}",
+    "restoreDefaults": "שחזור ברירות המחדל",
+    "search": {
+      "label": "חיפוש הרשאות",
+      "placeholder": "חפשו הרשאה…",
+      "clear": "ניקוי החיפוש"
+    },
+    "empty": {
+      "title": "אין הרשאה תואמת",
+      "hint": "נסו מילה אחרת."
+    }
+  },
+  "designSystem": {
+    "title": "מערכת עיצוב",
+    "subtitle": "כל רכיבי Store Management בכל המצבים, בערכת הנושא של החנות.",
+    "adminOnly": "רק מנהל יכול לפתוח את מערכת העיצוב.",
+    "sections": {
+      "colours": "צבעים",
+      "typography": "טיפוגרפיה",
+      "buttons": "כפתורים",
+      "badges": "תגיות ובחירות",
+      "fields": "שדות",
+      "choices": "בחירות",
+      "cards": "כרטיסים ונתונים",
+      "feedback": "משוב ומצבים",
+      "overlays": "חלונות, מגירות ותפריטים",
+      "table": "טבלה",
+      "shape": "פינות וצללים"
+    },
+    "hints": {
+      "colours": "הצבעים שכל רכיב קורא. ערכת נושא של לקוח משנה ערכים, לא שמות.",
+      "typography": "סולם הגופנים, מהטקסט הקטן ביותר ועד מספר מדד.",
+      "buttons": "חמישה סוגים ושני גבהים, עם מצבי טעינה והשבתה. כפתור ראשי אחד בכל מסך.",
+      "badges": "תגית מציינת מצב; בחירה היא משהו שבוחרים.",
+      "fields": "מסגרת השדה שממנה בנויים כל הקלטים: רגיל, בפוקוס, שגיאה ומושבת.",
+      "choices": "אחד מתוך כמה והפעלה/כיבוי, הכול עם המקלדת.",
+      "cards": "לוחות, נתונים וסיכום מכירה.",
+      "feedback": "מה המסך אומר בזמן טעינה, כשהוא ריק ואחרי פעולה.",
+      "overlays": "כל מה שנפתח מעל הדף.",
+      "table": "שורות במסך רחב, כרטיסים בטלפון — הגדרת עמודות אחת לשניהם.",
+      "shape": "הפינות בעלות השם וההגבהה שכל משטח משתמש בה."
+    },
+    "type": {
+      "micro": "זעיר",
+      "meta": "מטא",
+      "label": "תווית",
+      "value": "ערך",
+      "section": "מקטע",
+      "heading": "כותרת",
+      "title": "כותרת עמוד",
+      "kpi": "מדד",
+      "sample": "צעיף משי"
+    },
+    "buttons": {
+      "primary": "השלמת מכירה",
+      "secondary": "שמירת טיוטה",
+      "ghost": "הצג עוד",
+      "quiet": "דילוג",
+      "danger": "מחיקה",
+      "loading": "שומר",
+      "disabled": "לא זמין",
+      "small": "קטן",
+      "withIcon": "הוספת מוצר",
+      "iconDelete": "מחיקה",
+      "iconClose": "סגירה",
+      "outbound": "פתיחה במפות",
+      "card": "כרטיס ללחיצה",
+      "cardSelected": "כרטיס נבחר",
+      "cardHint": "הכרטיס כולו כפתור אחד",
+      "inverse": "על כהה: הפוך",
+      "glass": "על כהה: זכוכית"
+    },
+    "badges": {
+      "inStock": "במלאי",
+      "lowStock": "מלאי נמוך",
+      "soldOut": "אזל",
+      "new": "חדש",
+      "gift": "מתנה",
+      "all": "הכול",
+      "dresses": "שמלות",
+      "shawls": "צעיפים"
+    },
+    "fields": {
+      "name": "שם המוצר",
+      "namePlaceholder": "למשל: צעיף משי",
+      "nameHint": "מופיע בקבלה ובתווית המדף.",
+      "search": "חיפוש מוצרים",
+      "searchPlaceholder": "חיפוש לפי שם או ברקוד",
+      "price": "מחיר",
+      "quantity": "כמות",
+      "notes": "הערות",
+      "notesPlaceholder": "כל מה שהאדם הבא צריך לדעת",
+      "category": "קטגוריה",
+      "categoryPlaceholder": "בחירת קטגוריה",
+      "password": "סיסמה",
+      "phone": "טלפון",
+      "date": "תאריך",
+      "time": "שעה",
+      "range": "תקופה",
+      "error": "חובה",
+      "errorHint": "שדה חובה",
+      "disabled": "שדה מושבת",
+      "translated": "שם מתורגם",
+      "sectionTitle": "מקטע",
+      "sectionDescription": "כרטיס עם כותרת שאפשר לקפל.",
+      "colour": "צבע",
+      "colourHint": "יותר מעשר אפשרויות, ולכן ברשימה יש חיפוש.",
+      "colourPlaceholder": "בחרו צבע"
+    },
+    "choices": {
+      "channel": "ערוץ מכירה",
+      "counter": "בחנות",
+      "whatsapp": "וואטסאפ",
+      "online": "אונליין",
+      "discount": "סוג הנחה",
+      "percent": "אחוז",
+      "amount": "סכום",
+      "tabs": "לשוניות הזמנות",
+      "open": "פתוחות",
+      "delivered": "נמסרו",
+      "returned": "הוחזרו",
+      "trackStock": "התראה על מלאי נמוך",
+      "printLabel": "הדפסת תווית",
+      "giftWrap": "עטיפת מתנה"
+    },
+    "cards": {
+      "cardTitle": "כרטיס",
+      "cardBody": "הלוח: קצה דק וצל רך.",
+      "selected": "כרטיס נבחר",
+      "sales": "מכירות היום",
+      "orders": "הזמנות",
+      "returns": "החזרות",
+      "stockValue": "פריטים במלאי",
+      "vsYesterday": "לעומת אתמול",
+      "widget": "וידג׳ט",
+      "widgetBody": "האח הקטן של הכרטיס, לעמודה צדדית.",
+      "entityTitle": "צעיף משי",
+      "entitySubtitle": "צעיפים",
+      "progress": "נמכר",
+      "progressCaption": "ממלאי השבוע",
+      "open": "פתיחה",
+      "subtotal": "סכום ביניים",
+      "discount": "הנחה",
+      "total": "סה״כ",
+      "itemLine": "צעיף משי × 2"
+    },
+    "feedback": {
+      "emptyTitle": "אין עדיין מכירות היום",
+      "emptyHint": "הזמנות שהושלמו יופיעו כאן.",
+      "toastSuccess": "נשמר",
+      "toastWarning": "המלאי נמוך",
+      "toastError": "השמירה נכשלה",
+      "showSuccess": "הודעת הצלחה",
+      "showWarning": "הודעת אזהרה",
+      "showError": "הודעת שגיאה",
+      "info": "על הנתון הזה",
+      "infoBody": "מכירות נספרות כשההזמנה מושלמת.",
+      "loading": "צורות טעינה",
+      "alerts": "התראות",
+      "alertDangerTitle": "לא ניתן לסגור את היום",
+      "alertDangerBody": "המזומן שנספר אינו תואם את המגירה.",
+      "alertWarningTitle": "המלאי אוזל",
+      "alertWarningBody": "ל-3 מוצרים נשאר פריט אחד.",
+      "alertSuccessTitle": "כל התוויות הודפסו",
+      "alertInfoTitle": "המחירים כוללים מס",
+      "alertInfoBody": "הסכומים במסך זה מוצגים אחרי מס.",
+      "alertNeutralBody": "אפשר לשנות את תחתית הקבלה מדף ההגדרות.",
+      "toastWarningBody": "נשאר רק פריט אחד מהמוצר הזה.",
+      "toastErrorBody": "בדקו את החיבור ונסו שוב.",
+      "toastInfo": "המחירים כוללים מס",
+      "toastInfoBody": "הסכומים מוצגים אחרי מס.",
+      "toastNeutral": "תחתית הקבלה",
+      "toastNeutralBody": "אפשר לשנות אותה מדף ההגדרות.",
+      "showInfo": "הודעת מידע",
+      "showNeutral": "הודעה כללית"
+    },
+    "overlays": {
+      "openModal": "פתיחת חלון",
+      "modalTitle": "עריכת מוצר",
+      "modalDescription": "חלון ממורכז למשימה קצרה.",
+      "openDrawer": "פתיחת מגירה",
+      "drawerTitle": "הזמנה 1042",
+      "drawerDescription": "פרטי רשומה, מהקצה השני של המסך.",
+      "openConfirm": "מחיקה…",
+      "confirmTitle": "למחוק את המוצר?",
+      "confirmConsequence": "הוא ייעלם מהקטלוג ומהקופה.",
+      "menu": "פעולות שורה",
+      "edit": "עריכה",
+      "duplicate": "שכפול",
+      "delete": "מחיקה",
+      "close": "סגירה",
+      "openNavDrawer": "פתיחת תפריט צד",
+      "navDrawerDescription": "ניווט: צר, מתחילת השורה.",
+      "openImageViewer": "פתיחת מציג התמונות",
+      "imageAlt": "תמונה לדוגמה {number}",
+      "toggleStickyActions": "הצגת סרגל הפעולות",
+      "stickyMessage": "3 נבחרו",
+      "stickyClear": "ניקוי",
+      "stickyAction": "החלה"
+    },
+    "table": {
+      "product": "מוצר",
+      "sku": "מק״ט",
+      "stock": "מלאי",
+      "price": "מחיר",
+      "rowA": "צעיף משי",
+      "rowB": "עבאיה פשתן",
+      "rowC": "חיג׳אב כותנה",
+      "empty": "אין מוצרים תואמים",
+      "selectRow": "בחירת שורה {name}",
+      "selectAll": "בחירת כל השורות"
+    },
+    "chips": {
+      "remove": "הסרת {name}"
+    },
+    "colours": {
+      "black": "שחור",
+      "white": "לבן",
+      "navy": "כחול כהה",
+      "beige": "בז׳",
+      "camel": "גמל",
+      "grey": "אפור",
+      "olive": "זית",
+      "burgundy": "בורדו",
+      "rose": "ורוד",
+      "sky": "תכלת",
+      "mint": "מנטה",
+      "mustard": "חרדל"
+    }
+  },
+  "breadcrumb": {
+    "label": "נתיב ניווט",
+    "back": "חזרה",
+    "detail": "פרטים",
+    "new": "חדש",
+    "edit": "עריכה",
+    "orders": {
+      "detail": "פרטי הזמנה",
+      "new": "הזמנה חדשה"
+    },
+    "products": {
+      "detail": "פרטי מוצר",
+      "new": "מוצר חדש",
+      "edit": "עריכת מוצר"
+    }
+  },
+  "globalSearch": {
+    "label": "חיפוש בחנות",
+    "placeholder": "חיפוש הזמנה, מוצר, לקוח …",
+    "open": "פתיחת חיפוש",
+    "close": "סגירת חיפוש",
+    "clear": "ניקוי החיפוש",
+    "minChars": "הקלידו לפחות שני תווים כדי לחפש.",
+    "searching": "מחפש…",
+    "noResults": "אין תוצאות עבור „{query}”.",
+    "error": "החיפוש אינו זמין כרגע. נסו שוב.",
+    "seeAll": "הצגת הכול ({count})",
+    "hint": "↑ ↓ למעבר · Enter לפתיחה · Esc לסגירה",
+    "groups": {
+      "pages": "עמודים",
+      "orders": "הזמנות",
+      "products": "מוצרים",
+      "customers": "לקוחות"
+    }
+  },
+  "profile": {
+    "title": "הפרופיל שלי",
+    "subtitle": "החשבון שלך: פרטים, סיסמה, מכשירים ושפה.",
+    "header": {
+      "email": "אימייל",
+      "phone": "טלפון",
+      "memberSince": "חבר/ה מאז"
+    },
+    "sections": {
+      "details": {
+        "title": "פרטים אישיים",
+        "description": "השם והמספרים שלך, כפי ששאר הצוות רואה אותם."
+      },
+      "devices": {
+        "title": "מכשירים מחוברים",
+        "description": "היכן החשבון שלך מחובר כרגע."
+      },
+      "password": {
+        "title": "סיסמה",
+        "description": "שינוי הסיסמה מנתק אותך מכל המכשירים האחרים."
+      },
+      "language": {
+        "title": "שפה",
+        "description": "בשימוש במכשיר הזה עכשיו, ובכל פעם שתתחבר/י."
+      },
+      "notifications": {
+        "title": "התראות במכשיר הזה",
+        "description": "הפעילו התראות כדי לקבל את המכירות לטלפון הזה ברגע שהן קורות. ההגדרה חלה על המכשיר הזה בלבד."
+      }
+    },
+    "details": {
+      "name": "שם מלא",
+      "namePlaceholder": "השם המלא שלך",
+      "phone": "מספר טלפון",
+      "whatsapp": "וואטסאפ",
+      "whatsappHint": "רק אם הוא שונה ממספר הטלפון.",
+      "email": "אימייל",
+      "emailNote": "זו הכתובת שאיתה מתחברים. רק מנהל/ת יכול/ה לשנות אותה.",
+      "saved": "הפרטים שלך נשמרו."
+    },
+    "password": {
+      "open": "שינוי סיסמה",
+      "title": "שינוי סיסמה",
+      "description": "הזן/י את הסיסמה הנוכחית, ואז את החדשה פעמיים.",
+      "current": "סיסמה נוכחית",
+      "currentPlaceholder": "הסיסמה הנוכחית שלך",
+      "new": "סיסמה חדשה",
+      "newPlaceholder": "בחר/י סיסמה חדשה",
+      "newNote": "לפחות 8 תווים.",
+      "confirm": "חזרה על הסיסמה החדשה",
+      "confirmPlaceholder": "חזרה על הסיסמה החדשה",
+      "submit": "שינוי סיסמה",
+      "changed": "הסיסמה שונתה. המכשירים האחרים שלך נותקו.",
+      "mismatch": "שתי הסיסמאות החדשות אינן תואמות."
+    },
+    "language": {
+      "label": "שפת הממשק"
+    },
+    "devices": {
+      "browserOn": "{browser} ב-{system}",
+      "unknownDevice": "מכשיר לא מזוהה",
+      "thisDevice": "המכשיר הזה",
+      "lastActive": "פעילות אחרונה {when}",
+      "signOut": "ניתוק",
+      "signOutTitle": "לנתק את המכשיר הזה?",
+      "signOutConsequence": "מי שמשתמש בו יצטרך להתחבר מחדש.",
+      "signedOut": "המכשיר נותק.",
+      "signOutOthers": "ניתוק כל המכשירים האחרים",
+      "signOutOthersTitle": "לנתק את כל המכשירים האחרים?",
+      "signOutOthersConsequence": "כל מכשיר מלבד זה יצטרך להתחבר מחדש.",
+      "signedOutOthers": "כל המכשירים האחרים נותקו.",
+      "onlyThisDevice": "את/ה מחובר/ת רק במכשיר הזה."
+    },
+    "notifications": {
+      "state": {
+        "on": "ההתראות פעילות במכשיר הזה.",
+        "off": "ההתראות כבויות במכשיר הזה."
+      },
+      "turnOn": "הפעלת התראות",
+      "turnOff": "כיבוי התראות",
+      "permissionLabel": "הרשאת התראות בדפדפן",
+      "permission": {
+        "default": "טרם התבקשה",
+        "granted": "מאושרת",
+        "denied": "חסומה"
+      },
+      "blocked": {
+        "unsupported": "הדפדפן הזה לא תומך בהתראות. נסו דפדפן אחר או טלפון אחר.",
+        "needs-install": "באייפון ובאייפד צריך קודם להוסיף את האפליקציה למסך הבית: לחצו על כפתור השיתוף, בחרו “הוספה למסך הבית”, פתחו את האפליקציה מהאייקון והפעילו כאן התראות.",
+        "not-configured": "ההתראות עדיין לא מוגדרות בשרת. פנו למי שמנהל את השרת.",
+        "denied": "ההתראות חסומות לאתר הזה. אפשרו אותן בהגדרות הדפדפן או הטלפון ונסו שוב."
+      },
+      "failed": "לא הצלחנו לשנות את הגדרת ההתראות. נסו שוב.",
+      "iosHint": "לתשומת לב משתמשי אייפון ואייפד: התראות מגיעות רק אחרי שהאפליקציה נוספה למסך הבית ונפתחה מהאייקון שלה."
+    }
+  },
+  "expenses": {
+    "title": "הוצאות",
+    "subtitle": "מה שהחנות מוציאה — חשבונות, משכורות, ציוד. רק הוצאות מאושרות נספרות ברווח ובקופה.",
+    "add": "הוספת הוצאה",
+    "categoriesButton": "קטגוריות",
+    "search": {
+      "label": "חיפוש הוצאות",
+      "placeholder": "חיפוש בהערות…",
+      "clear": "ניקוי החיפוש"
+    },
+    "filters": {
+      "category": "קטגוריה",
+      "allCategories": "כל הקטגוריות",
+      "status": "סטטוס",
+      "allStatuses": "כל הסטטוסים"
+    },
+    "status": {
+      "PENDING": "ממתינה לאישור",
+      "APPROVED": "מאושרת",
+      "REJECTED": "נדחתה"
+    },
+    "summary": {
+      "total": "הוצאות",
+      "count": "{count, plural, =0 {אין הוצאות} one {הוצאה אחת} other {{count} הוצאות}}",
+      "cash": "מהקופה",
+      "cashHint": "שולם במזומן מהקופה",
+      "pending": "ממתינות לאישור",
+      "pendingHint": "{count, plural, =0 {אין ממתינות} one {הוצאה אחת, עוד לא נספרה} other {{count} הוצאות, עוד לא נספרו}}"
+    },
+    "breakdown": {
+      "title": "לפי קטגוריה",
+      "empty": "אין הוצאות בתקופה הזו."
+    },
+    "table": {
+      "category": "קטגוריה",
+      "date": "תאריך",
+      "paidFrom": "שולם מ",
+      "createdBy": "נרשם על ידי",
+      "amount": "סכום",
+      "actions": "פעולות",
+      "cash": "קופה",
+      "other": "כרטיס / העברה",
+      "recurring": "קבועה",
+      "noCategory": "ללא קטגוריה"
+    },
+    "menu": {
+      "label": "פעולות עבור {name}",
+      "edit": "עריכה",
+      "delete": "מחיקה"
+    },
+    "delete": {
+      "title": "למחוק את הוצאת {name} בסך {amount}?",
+      "consequence": "היא תפסיק להיספר ברווח ובקופה, ותישאר ביומן הביקורת.",
+      "confirm": "מחיקת ההוצאה",
+      "success": "ההוצאה נמחקה"
+    },
+    "empty": {
+      "noneTitle": "אין הוצאות בתקופה הזו",
+      "noneHint": "רשמו חשבון או תשלום ברגע ששולם.",
+      "noMatchesTitle": "אין הוצאות תואמות",
+      "noMatchesHint": "נסו קטגוריה, סטטוס או חיפוש אחר."
+    },
+    "form": {
+      "createTitle": "הוספת הוצאה",
+      "createDescription": "כמה, על מה, והאם יצא מהקופה.",
+      "editTitle": "עריכת הוצאה",
+      "editDescription": "השינוי מופיע ברווח ובקופה מיד.",
+      "amount": "סכום",
+      "amountPlaceholder": "0.00",
+      "date": "תאריך תשלום",
+      "category": "על מה?",
+      "categoryRequired": "בחרו קטגוריה.",
+      "paidInCash": "שולם במזומן מהקופה",
+      "paidInCashHint": "יורד ממה שאמור להיות בקופה היום",
+      "isRecurring": "הוצאה קבועה",
+      "isRecurringHint": "שכירות, משכורות, אינטרנט — כל חודש",
+      "note": "הערה",
+      "notePlaceholder": "למשל: חשבון חשמל לאוקטובר",
+      "create": "הוספת ההוצאה",
+      "save": "שמירת השינויים",
+      "created": "ההוצאה נוספה",
+      "saved": "ההוצאה נשמרה",
+      "sentForApproval": "ההוצאה נשלחה לאישור",
+      "amountRequired": "הזינו את הסכום ששולם."
+    },
+    "categories": {
+      "title": "קטגוריות הוצאות",
+      "description": "expenses.categories.descriptionText",
+      "add": "הוספת קטגוריה",
+      "count": "{count, plural, =0 {אין הוצאות} one {הוצאה אחת} other {{count} הוצאות}}",
+      "active": "להציע את {name} בהוספת הוצאה",
+      "edit": "שינוי שם {name}",
+      "offHint": "קטגוריה כבויה לא מוצעת יותר, אבל ההוצאות הקודמות שלה שומרות עליה.",
+      "turnedOn": "הקטגוריה הופעלה",
+      "turnedOff": "הקטגוריה כובתה",
+      "delete": {
+        "label": "מחיקת {name}",
+        "title": "למחוק את הקטגוריה {name}?",
+        "consequence": "אין תחתיה הוצאות, כך ששום דבר אחר לא משתנה.",
+        "confirm": "מחיקת הקטגוריה",
+        "success": "הקטגוריה נמחקה"
+      },
+      "form": {
+        "createTitle": "הוספת קטגוריה",
+        "editTitle": "שינוי שם קטגוריה",
+        "name": "שם",
+        "required": "חובה",
+        "optional": "רשות",
+        "nameRequired": "כתבו את השם בשפת ברירת המחדל.",
+        "create": "הוספת הקטגוריה",
+        "save": "שמירה",
+        "created": "הקטגוריה נוספה",
+        "saved": "הקטגוריה נשמרה"
+      },
+      "descriptionText": "הוסיפו, שנו שם או כבו את הקטגוריות שההוצאות נרשמות תחתן."
     }
   }
 }

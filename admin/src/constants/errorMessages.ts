@@ -1,10 +1,6 @@
-import { ERROR_CODES } from "@organza/shared/constants/errors";
+import { ERROR_CODES } from "@store/shared/constants/errors";
 
-// Backend error codes (e.g. "error.validation.required") can't be used as
-// next-intl message paths directly — "error.validation" is both a leaf code
-// and the parent of "error.validation.required", which nested JSON can't
-// represent. This maps each backend code to a flat, collision-free message
-// key instead. Keep in sync with ERROR_CODES and messages/*.json#errors.
+// Flat message keys per backend code: nested JSON can't hold a code that is both leaf and parent. Sync with ERROR_CODES.
 export const ERROR_MESSAGE_KEYS: Record<string, string> = {
   [ERROR_CODES.NOT_FOUND]: "errors.notFound",
   [ERROR_CODES.VALIDATION]: "errors.validation",
@@ -67,6 +63,7 @@ export const ERROR_MESSAGE_KEYS: Record<string, string> = {
   [ERROR_CODES.ORDER_ITEMS_REQUIRED]: "errors.orderItemsRequired",
   [ERROR_CODES.ORDER_CUSTOMER_REQUIRED]: "errors.orderCustomerRequired",
   [ERROR_CODES.ORDER_LOCATION_INVALID]: "errors.orderLocationInvalid",
+  [ERROR_CODES.ORDER_LOCATION_LINK_INVALID]: "errors.orderLocationLinkInvalid",
   [ERROR_CODES.ORDER_DISCOUNT_INVALID]: "errors.orderDiscountInvalid",
   [ERROR_CODES.ORDER_INVALID_STATUS_TRANSITION]: "errors.orderInvalidStatusTransition",
   [ERROR_CODES.ORDER_INSUFFICIENT_STOCK]: "errors.orderInsufficientStock",
@@ -76,7 +73,6 @@ export const ERROR_MESSAGE_KEYS: Record<string, string> = {
   [ERROR_CODES.ORDER_PRODUCT_UNAVAILABLE]: "errors.orderProductUnavailable",
   [ERROR_CODES.ORDER_VARIANT_REQUIRED]: "errors.orderVariantRequired",
   [ERROR_CODES.ORDER_NOT_COLLECTABLE]: "errors.orderNotCollectable",
-  [ERROR_CODES.ORDER_GIFT_CHANNEL_INVALID]: "errors.orderGiftChannelInvalid",
   [ERROR_CODES.ORDER_ITEM_SOURCE_INVALID]: "errors.orderItemSourceInvalid",
 
   [ERROR_CODES.CASH_SESSION_NOT_FOUND]: "errors.cashSessionNotFound",
@@ -116,9 +112,14 @@ export const ERROR_MESSAGE_KEYS: Record<string, string> = {
   [ERROR_CODES.USER_LAST_ADMIN]: "errors.userLastAdmin",
   [ERROR_CODES.USER_SELF_REMOVAL]: "errors.userSelfRemoval",
   [ERROR_CODES.USER_HAS_HISTORY]: "errors.userHasHistory",
+  [ERROR_CODES.PROFILE_WRONG_PASSWORD]: "errors.profileWrongPassword",
+  [ERROR_CODES.PROFILE_SESSION_NOT_FOUND]: "errors.profileSessionNotFound",
 
   [ERROR_CODES.RATE_LIMITED]: "errors.rateLimited",
   [ERROR_CODES.PASSWORD_TOKEN_INVALID]: "errors.passwordTokenInvalid",
 };
 
 export const FALLBACK_ERROR_MESSAGE_KEY = "errors.internal";
+
+// Every backend error code starts with this; anything else in a field error is already a screen key.
+export const BACKEND_ERROR_PREFIX = "error.";

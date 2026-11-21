@@ -1,8 +1,4 @@
-// Barcode-label printing (CLAUDE.md rule 13): the store generates every
-// barcode itself, so a product is only shelf-ready once its label has been
-// printed and stuck on. This suite covers the record of that — the print
-// timestamp and the work queue built on it — plus the label geometry that
-// lets any printer the shop happens to own produce the sheet.
+// Label printing (rule 13): a piece is shelf-ready only once its label is printed; covers the print record, its queue and label geometry.
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import type { Setting } from "@prisma/client";
 import { apiRequest, uniqueId } from "@tests/support/client";
@@ -63,8 +59,7 @@ describe("Barcode labels", () => {
       const afterFirst = await readProduct(admin.token, product.id);
       expect(afterFirst.labelsPrintedAt).toBe(first.data!.labelsPrintedAt);
 
-      // Labels fall off and rolls jam — printing again is never blocked, it
-      // just moves the timestamp forward.
+      // Labels fall off and rolls jam: reprinting is never blocked, it moves the timestamp.
       const second = await apiRequest<MarkLabelsPrintedDto>("/api/products/labels/printed", {
         method: "POST",
         token: admin.token,
@@ -75,7 +70,7 @@ describe("Barcode labels", () => {
       const afterSecond = await readProduct(admin.token, product.id);
       expect(afterSecond.labelsPrintedAt).toBe(second.data!.labelsPrintedAt);
       expect(new Date(afterSecond.labelsPrintedAt!).getTime()).toBeGreaterThanOrEqual(
-        new Date(afterFirst.labelsPrintedAt!).getTime()
+        new Date(afterFirst.labelsPrintedAt!).getTime(),
       );
     });
 
@@ -96,10 +91,7 @@ describe("Barcode labels", () => {
 
     it("filters the product list by print state", async () => {
       const admin = await getSession("ADMIN");
-      // A shared nonce in both names narrows the list down to (roughly) these
-      // two — the search is deliberately fuzzy (CLAUDE.md rule 10), so the
-      // assertions below are about which of the two shows up, not about the
-      // exact contents of the page.
+      // Search is fuzzy (rule 10), so a shared nonce narrows to these two and assertions ask which of them shows.
       const nonce = uniqueId();
       const printed = await createProduct(admin.token, `Vitest Printstate ${nonce} A`);
       const notPrinted = await createProduct(admin.token, `Vitest Printstate ${nonce} B`);
@@ -114,7 +106,7 @@ describe("Barcode labels", () => {
       const ids = async (printState: string): Promise<string[]> => {
         const res = await apiRequest<ProductSummaryDto[]>(
           `/api/products?q=${encodeURIComponent(nonce)}&printState=${printState}`,
-          { token: admin.token }
+          { token: admin.token },
         );
         expect(res.status).toBe(200);
         return res.data!.map((p) => p.id);
@@ -146,8 +138,7 @@ describe("Barcode labels", () => {
 
       expect(res.status).toBe(404);
       expect(res.error?.code).toBe(ERROR_CODES.PRODUCT_NOT_FOUND);
-      // All or nothing — a half-applied run would leave the queue lying about
-      // which labels are still owed.
+      // All or nothing: a half-applied run would leave the queue lying about what is owed.
       expect((await readProduct(admin.token, product.id)).labelsPrintedAt).toBeNull();
     });
 

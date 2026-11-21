@@ -1,15 +1,4 @@
-// Supplier barcodes (shared/constants/barcode.ts).
-//
-// Auto-generation is still the default (CLAUDE.md rule 13) — that is covered in
-// products.test.ts and edgeCases.verify.test.ts. This suite covers the other
-// case: a garment that arrived already barcoded, whose printed code the shop
-// keeps instead of covering with a label of its own.
-//
-// Everything asserted here is a way the shop could otherwise lose money or
-// time: a duplicate code sells the wrong piece, a parent code sold as an item
-// deducts stock from the wrong size, a toggle that mints a new code strands the
-// label already stuck on the garment, and a piece that came barcoded sitting in
-// the "still to print" queue wastes a label and a minute per piece.
+// Supplier barcodes (rule 13): a duplicate, a parent sold as an item or a stranded label each sells the wrong piece.
 import { afterAll, describe, expect, it } from "vitest";
 import { apiRequest, uniqueId } from "@tests/support/client";
 import { getSession } from "@tests/support/auth";
@@ -18,8 +7,7 @@ import { createNumberedShawl } from "@tests/support/numbered";
 import type { OrderDto, ProductDto, ProductLookupDto, ProductSummaryDto } from "@tests/types";
 import { ERROR_CODES, PRODUCT_LOOKUP_KIND } from "@/constants";
 
-// A code that cannot collide with one this system generates (those all start
-// 200-299, src/constants/barcode.ts) nor with another run of this suite.
+// Cannot collide with a generated code (those start 200-299) nor with another run of this suite.
 function supplierCode(): string {
   const digits = `${Date.now()}${Math.floor(Math.random() * 1000)}`.slice(-12);
   return `9${digits}`;
@@ -51,12 +39,11 @@ async function lookup(token: string, code: string) {
   return apiRequest<ProductLookupDto>(`/api/products/lookup?code=${encodeURIComponent(code)}`, { token });
 }
 
-// Whether the product appears in the "labels still to print" queue. The list
-// filter is the queue, so this asks the API the same question the screen does.
+// The list filter IS the "labels still to print" queue, so this asks what the screen asks.
 async function inNotPrintedQueue(token: string, productId: string): Promise<boolean> {
   const res = await apiRequest<ProductSummaryDto[]>(
     `/api/products?printState=not_printed&pageSize=100&q=${encodeURIComponent("Vitest Barcode")}`,
-    { token }
+    { token },
   );
   return (res.data ?? []).some((product) => product.id === productId);
 }
@@ -102,9 +89,7 @@ describe("Supplier barcodes", () => {
     it("normalizes what was typed: stray whitespace and Arabic-Indic digits", async () => {
       const admin = await getSession("ADMIN");
       const code = supplierCode();
-      // ٤٠١ is 401 — the shop types on an Arabic keyboard, whose digit row
-      // sends Arabic-Indic digits, and every code in the catalogue is ASCII. A
-      // code stored as typed would never scan.
+      // Arabic keyboards send Arabic-Indic digits; a code stored as typed would never scan.
       const asTyped = ` ${code.slice(0, 4).replace(/\d/g, (d) => "٠١٢٣٤٥٦٧٨٩"[Number(d)])} ${code.slice(4)} `;
       const created = await product(admin.token, { barcodeSource: "SUPPLIER", barcode: asTyped });
 
@@ -131,9 +116,7 @@ describe("Supplier barcodes", () => {
             ...(barcode === undefined ? {} : { barcode }),
           },
         });
-        // Nothing is generated in its place: the garment either carries a tag
-        // or it doesn't, and guessing would put a code on the shelf that
-        // matches nothing.
+        // Nothing is generated in its place: guessing would shelve a code that matches nothing.
         expect(res.status, `barcode ${JSON.stringify(barcode)}`).toBe(400);
         expect(res.error?.code).toBe(ERROR_CODES.VALIDATION);
       }
@@ -185,11 +168,10 @@ describe("Supplier barcodes", () => {
       expect(back.data!.barcodeSource).toBe("GENERATED");
       expect(
         back.data!.barcode,
-        "the code we minted comes back, so a label already stuck on the piece still scans"
+        "the code we minted comes back, so a label already stuck on the piece still scans",
       ).toBe(ours);
 
-      // Reversible any number of times, and it is the toggle that decides —
-      // never a leftover code lying around.
+      // Reversible any number of times, and the toggle decides — never a leftover code.
       const again = await apiRequest<ProductDto>(`/api/products/${created.id}`, {
         method: "PATCH",
         token: admin.token,
@@ -244,7 +226,7 @@ describe("Supplier barcodes", () => {
       const code = supplierCode();
       const patched = await apiRequest<ProductDto["variants"][number]>(
         `/api/products/${created.id}/variants/${first.id}`,
-        { method: "PATCH", token: admin.token, body: { barcodeSource: "SUPPLIER", barcode: code } }
+        { method: "PATCH", token: admin.token, body: { barcodeSource: "SUPPLIER", barcode: code } },
       );
       expect(patched.status).toBe(200);
       expect(patched.data!.barcode).toBe(code);
@@ -263,7 +245,7 @@ describe("Supplier barcodes", () => {
       // And the variant toggles back to its own printed code, like the parent.
       const back = await apiRequest<ProductDto["variants"][number]>(
         `/api/products/${created.id}/variants/${first.id}`,
-        { method: "PATCH", token: admin.token, body: { barcodeSource: "GENERATED" } }
+        { method: "PATCH", token: admin.token, body: { barcodeSource: "GENERATED" } },
       );
       expect(back.data!.barcode).toBe(ours);
     });
@@ -329,9 +311,7 @@ describe("Supplier barcodes", () => {
       });
       expect(toSupplier.status).toBe(200);
 
-      // Our code is no longer in `barcode`, but the sticker carrying it is still
-      // on the garment — handing it to a second piece would put one code on two
-      // labels, and scanning that sticker would then sell the wrong item.
+      // Our sticker is still on the garment, so handing its code to another piece would sell the wrong item.
       const other = await product(admin.token);
       const clash = await apiRequest(`/api/products/${other.id}`, {
         method: "PATCH",
@@ -378,15 +358,12 @@ describe("Supplier barcodes", () => {
 
       const scan = await lookup(admin.token, code);
       expect(scan.status).toBe(200);
-      // The same mechanism as a numbered shawl's collection label: the code
-      // names the garment, not the size that just sold.
+      // Same mechanism as a numbered shawl's label: the code names the garment, not the size.
       expect(scan.data!.kind).toBe(PRODUCT_LOOKUP_KIND.VARIANT_SELECTION);
       expect(scan.data!.variant, "nothing sellable comes back").toBeNull();
       expect(scan.data!.product.variants.length, "the picker has every size to choose from").toBe(
-        created.variants.length
+        created.variants.length,
       );
-      // `numbers` is the numbered flavour of the same answer, and this product
-      // is not numbered.
       expect(scan.data!.numbers).toEqual([]);
 
       const sold = await apiRequest<OrderDto>("/api/orders", {
@@ -394,7 +371,9 @@ describe("Supplier barcodes", () => {
         token: admin.token,
         body: { channel: "STORE", items: [{ productId: created.id, quantity: 1 }] },
       });
-      if (sold.data?.id) openedOrderIds.push(sold.data.id);
+      if (sold.data?.id) {
+        openedOrderIds.push(sold.data.id);
+      }
       expect(sold.status, "a sale on the parent alone deducts stock from the wrong place").toBe(400);
       expect(sold.error?.code).toBe(ERROR_CODES.ORDER_VARIANT_REQUIRED);
 
@@ -407,7 +386,9 @@ describe("Supplier barcodes", () => {
           items: [{ productId: created.id, variantId: created.variants[0].id, quantity: 1 }],
         },
       });
-      if (withVariant.data?.id) openedOrderIds.push(withVariant.data.id);
+      if (withVariant.data?.id) {
+        openedOrderIds.push(withVariant.data.id);
+      }
       expect(withVariant.status).toBe(201);
     });
 
@@ -447,8 +428,7 @@ describe("Supplier barcodes", () => {
       expect(await inNotPrintedQueue(admin.token, ours.id), "our own code still owes a label").toBe(true);
       expect(await inNotPrintedQueue(admin.token, theirs.id), "a garment that came barcoded does not").toBe(false);
 
-      // Excluded by SOURCE, never by pretending the label was printed — the
-      // print date is a record of something that happened.
+      // Excluded by source, never by faking a print date — that date records something that happened.
       const reloaded = await readProduct(admin.token, theirs.id);
       expect(reloaded.labelsPrintedAt).toBeNull();
 
@@ -477,8 +457,7 @@ describe("Supplier barcodes", () => {
 
     it("puts a piece back in the queue when the switch had to mint a brand-new code", async () => {
       const admin = await getSession("ADMIN");
-      // Created on the supplier's tag, so there is no code of ours parked to
-      // restore — the switch back has to mint one.
+      // Created on the supplier's tag, so the switch back has to mint a code of ours.
       const created = await product(admin.token, { barcodeSource: "SUPPLIER", barcode: supplierCode() });
       const printed = await apiRequest("/api/products/labels/printed", {
         method: "POST",
@@ -496,16 +475,14 @@ describe("Supplier barcodes", () => {
       expect(back.status).toBe(200);
       expect(
         back.data!.labelsPrintedAt,
-        "whatever label is on the piece now carries a different number, so one is owed again"
+        "whatever label is on the piece now carries a different number, so one is owed again",
       ).toBeNull();
       expect(await inNotPrintedQueue(admin.token, created.id)).toBe(true);
     });
 
     it("keeps a numbered shawl in the queue on our own parent code, whatever its numbers carry", async () => {
       const admin = await getSession("ADMIN");
-      // A numbered shawl prints ONE label, for the parent: the numbers live on
-      // the photo, not on separate tags. Supplier codes on the numbers cover
-      // nothing, so they must not clear the debt.
+      // A numbered shawl prints one parent label, so supplier codes on its numbers must not clear it.
       const { product: shawl, numbers } = await createNumberedShawl(admin.token, {
         basePrice: "60",
         stocks: [2, 1],
@@ -523,7 +500,7 @@ describe("Supplier barcodes", () => {
 
       const stillOwed = await apiRequest<ProductSummaryDto[]>(
         `/api/products?printState=not_printed&pageSize=100&q=${encodeURIComponent("Vitest Numbered")}`,
-        { token: admin.token }
+        { token: admin.token },
       );
       const row = (stillOwed.data ?? []).find((entry) => entry.id === shawl.id);
       expect(row, "the collection label is still owed").toBeTruthy();
@@ -538,7 +515,7 @@ describe("Supplier barcodes", () => {
       expect(parentSupplier.status).toBe(200);
       const after = await apiRequest<ProductSummaryDto[]>(
         `/api/products?printState=not_printed&pageSize=100&q=${encodeURIComponent("Vitest Numbered")}`,
-        { token: admin.token }
+        { token: admin.token },
       );
       expect((after.data ?? []).some((entry) => entry.id === shawl.id)).toBe(false);
     });
@@ -560,14 +537,14 @@ describe("Supplier barcodes", () => {
         const isLast = index === variants.length - 1;
         expect(
           await inNotPrintedQueue(admin.token, created.id),
-          isLast ? "with every size barcoded, nothing is owed" : "sizes still on our own code owe a label"
+          isLast ? "with every size barcoded, nothing is owed" : "sizes still on our own code owe a label",
         ).toBe(!isLast);
       }
 
       // Which is also what the list row reports, so the screen can say so.
       const summary = await apiRequest<ProductSummaryDto[]>(
         `/api/products?printState=all&pageSize=100&q=${encodeURIComponent("Vitest Barcode")}`,
-        { token: admin.token }
+        { token: admin.token },
       );
       expect((summary.data ?? []).find((row) => row.id === created.id)?.needsLabel).toBe(false);
     });

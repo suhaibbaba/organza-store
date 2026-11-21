@@ -1,19 +1,21 @@
 "use client";
 
-import { Controller, type Control, type FieldErrors, type UseFormRegister, type UseFormSetValue } from "react-hook-form";
+import {
+  Controller,
+  type Control,
+  type FieldErrors,
+  type UseFormRegister,
+  type UseFormSetValue,
+} from "react-hook-form";
 import { useTranslations } from "next-intl";
 import { ChevronDown, MapPin } from "lucide-react";
-import type { CustomerSuggestion } from "@organza/shared/types/order";
+import { FormField, Input, Textarea } from "@store/ui";
+import type { CustomerSuggestion } from "@store/shared/types/order";
+import { fieldErrorTestSelector, fieldTestSelector } from "@store/shared/lib/testSelector";
 import { SIGNED_DECIMAL_INPUT_PATTERN } from "@/constants/numeric";
-import { useSettingsQuery } from "@/hooks/use-settings";
 import { useTranslateError } from "@/hooks/use-translate-error";
 import { splitCoordinatePair, type OrderCustomerFormValues } from "@/lib/validation/customer";
-import { FieldError } from "@/components/ui/field-error";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { PhoneField } from "@/components/ui/phone-field";
-import { CustomerPhoneField } from "@/components/sell/customer-phone-field";
+import { CustomerPhoneField, ShopPhoneInput } from "@/components/sell/customer-phone-field";
 
 interface CustomerFormProps {
   register: UseFormRegister<OrderCustomerFormValues>;
@@ -23,44 +25,47 @@ interface CustomerFormProps {
   onPickSuggestion: (suggestion: CustomerSuggestion) => void;
 }
 
-// Who the order goes to. Snapshotted onto the order itself — there is no
-// Customer entity yet (spec.md "Customer information").
-//
-// Only the three things a delivery actually needs are on screen: a name, a
-// number, and where it goes. Everything else is optional and folded away, so
-// the common order is three fields and a button rather than a form to work
-// through (CLAUDE.md "Few, clear steps").
+const FIELD_HEIGHT = "h-12";
+
+function FieldMessage({ field, children }: { field: string; children: string }) {
+  return (
+    <p className="text-meta text-danger-600" role="alert" data-test-selector={fieldErrorTestSelector(field)}>
+      {children}
+    </p>
+  );
+}
+
+// Snapshotted onto the order (no Customer entity yet); only name, number and address are up front, the rest is folded away.
 export function CustomerForm({ register, control, setValue, errors, onPickSuggestion }: CustomerFormProps) {
   const t = useTranslations("sell.whatsapp.customer");
   const translateError = useTranslateError();
-  const { data: settings } = useSettingsQuery();
 
-  // A WhatsApp location share is one "32.313, 35.028" string. Pasting it into
-  // the latitude box fills both fields instead of failing validation — that
-  // paste is exactly how these coordinates reach the shop.
+  // A pasted WhatsApp location ("32.313, 35.028") fills both coordinates.
   function handleLatitudeChange(value: string) {
     const pair = splitCoordinatePair(value);
-    if (!pair) return;
+    if (!pair) {
+      return;
+    }
     setValue("latitude", pair.latitude, { shouldValidate: true });
     setValue("longitude", pair.longitude, { shouldValidate: true });
   }
 
   return (
     <div className="flex flex-col gap-5">
-      <div className="flex flex-col gap-2">
-        <Label htmlFor="customer-name">{t("name")}</Label>
+      <FormField label="sell.whatsapp.customer.name" htmlFor="customer-name">
         <Input
           id="customer-name"
+          data-testid={fieldTestSelector("customer-name")}
           autoComplete="off"
-          aria-invalid={!!errors.name}
+          hasError={!!errors.name}
           placeholder={t("namePlaceholder")}
+          className={FIELD_HEIGHT}
           {...register("name")}
         />
-        {errors.name && <FieldError field="customer-name">{translateError(errors.name.message ?? "")}</FieldError>}
-      </div>
+        {errors.name && <FieldMessage field="customer-name">{translateError(errors.name.message ?? "")}</FieldMessage>}
+      </FormField>
 
-      <div className="flex flex-col gap-2">
-        <Label htmlFor="customer-phone">{t("phone")}</Label>
+      <FormField label="sell.whatsapp.customer.phone" htmlFor="customer-phone">
         <Controller
           control={control}
           name="phone"
@@ -75,66 +80,65 @@ export function CustomerForm({ register, control, setValue, errors, onPickSugges
             />
           )}
         />
-        {errors.phone && <FieldError field="customer-phone">{translateError(errors.phone.message ?? "")}</FieldError>}
-      </div>
+        {errors.phone && (
+          <FieldMessage field="customer-phone">{translateError(errors.phone.message ?? "")}</FieldMessage>
+        )}
+      </FormField>
 
-      <div className="flex flex-col gap-2">
-        <Label htmlFor="customer-address">{t("address")}</Label>
-        <Textarea id="customer-address" placeholder={t("addressPlaceholder")} {...register("address")} />
-      </div>
+      <FormField label="sell.whatsapp.customer.address" htmlFor="customer-address">
+        <Textarea
+          id="customer-address"
+          data-testid={fieldTestSelector("customer-address")}
+          placeholder={t("addressPlaceholder")}
+          {...register("address")}
+        />
+      </FormField>
 
-      {/* Native disclosure rather than a JS accordion: it is one tap, it
-          works before hydration, and the screen reader announces it for
-          free. */}
-      <details className="rounded-lg border border-border">
-        <summary className="flex cursor-pointer list-none items-center justify-between gap-2 px-4 py-3.5 text-base font-medium marker:hidden [&::-webkit-details-marker]:hidden">
+      <details className="rounded-panel border border-line">
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-2 px-4 py-3.5 text-value font-medium text-ink marker:hidden [&::-webkit-details-marker]:hidden focus-visible:bg-neutral-200">
           {t("moreDetails")}
-          <ChevronDown className="size-5 shrink-0 text-muted-foreground" aria-hidden="true" />
+          <ChevronDown className="size-5 shrink-0 text-ink-muted" aria-hidden="true" />
         </summary>
 
-        <div className="flex flex-col gap-5 border-t border-border p-4">
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="customer-whatsapp">{t("whatsapp")}</Label>
+        <div className="flex flex-col gap-5 border-t border-line p-4">
+          <FormField label="sell.whatsapp.customer.whatsapp" htmlFor="customer-whatsapp">
             <Controller
               control={control}
               name="whatsapp"
               render={({ field }) => (
-                <PhoneField
+                <ShopPhoneInput
                   id="customer-whatsapp"
                   value={field.value}
                   onChange={field.onChange}
                   onBlur={field.onBlur}
-                  defaultCountryCode={settings?.defaultCountryCode}
-                  ariaInvalid={!!errors.whatsapp}
-                  prefixAriaLabel={t("phonePrefixLabel")}
+                  invalid={!!errors.whatsapp}
                 />
               )}
             />
             {errors.whatsapp ? (
-              <FieldError field="customer-whatsapp">{translateError(errors.whatsapp.message ?? "")}</FieldError>
+              <FieldMessage field="customer-whatsapp">{translateError(errors.whatsapp.message ?? "")}</FieldMessage>
             ) : (
-              <p className="text-xs text-muted-foreground">{t("whatsappHint")}</p>
+              <p className="text-micro text-ink-muted">{t("whatsappHint")}</p>
             )}
-          </div>
+          </FormField>
 
           <div className="flex flex-col gap-2">
-            <Label className="flex items-center gap-1.5">
+            <p className="flex items-center gap-1.5 text-label font-medium text-ink">
               <MapPin className="size-4" aria-hidden="true" />
               {t("location")}
-            </Label>
-            <p className="text-xs text-muted-foreground">{t("locationHint")}</p>
-            {/* Coordinates are Latin decimals that may be negative, so they
-                use a plain decimal keypad rather than the digits-only
-                NumericInput, and sit LTR so a minus sign stays in front. */}
+            </p>
+            <p className="text-micro text-ink-muted">{t("locationHint")}</p>
+            {/* Plain decimal keypad (coordinates may be negative), LTR so the minus stays in front. */}
             <Input
               type="text"
               inputMode="decimal"
               pattern={SIGNED_DECIMAL_INPUT_PATTERN}
               dir="ltr"
-              data-test-selector="field-latitude"
+              data-testid="field-latitude"
               placeholder={t("latitude")}
               aria-label={t("latitude")}
-              aria-invalid={!!errors.latitude}
+              hasError={!!errors.latitude}
+              className={FIELD_HEIGHT}
               {...register("latitude", { onChange: (event) => handleLatitudeChange(event.target.value) })}
             />
             <Input
@@ -142,23 +146,28 @@ export function CustomerForm({ register, control, setValue, errors, onPickSugges
               inputMode="decimal"
               pattern={SIGNED_DECIMAL_INPUT_PATTERN}
               dir="ltr"
-              data-test-selector="field-longitude"
+              data-testid="field-longitude"
               placeholder={t("longitude")}
               aria-label={t("longitude")}
-              aria-invalid={!!errors.longitude}
+              hasError={!!errors.longitude}
+              className={FIELD_HEIGHT}
               {...register("longitude")}
             />
             {(errors.latitude || errors.longitude) && (
-              <FieldError field="coordinates">
+              <FieldMessage field="coordinates">
                 {translateError(errors.latitude?.message ?? errors.longitude?.message ?? "")}
-              </FieldError>
+              </FieldMessage>
             )}
           </div>
 
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="customer-note">{t("note")}</Label>
-            <Textarea id="customer-note" placeholder={t("notePlaceholder")} {...register("note")} />
-          </div>
+          <FormField label="sell.whatsapp.customer.note" htmlFor="customer-note">
+            <Textarea
+              id="customer-note"
+              data-testid={fieldTestSelector("customer-note")}
+              placeholder={t("notePlaceholder")}
+              {...register("note")}
+            />
+          </FormField>
         </div>
       </details>
     </div>

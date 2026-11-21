@@ -11,8 +11,9 @@ import {
   Users,
   ShieldCheck,
   Settings,
+  WalletMinimal,
 } from "lucide-react";
-import type { NavItem } from "@/types/nav";
+import type { NavGroup, NavItem } from "@/types/nav";
 
 // CLAUDE.md rule 5 / task spec: Users + Settings are Admin-only in the nav;
 // everything else is visible to every authenticated role.
@@ -36,6 +37,8 @@ export const NAV_ITEMS: readonly NavItem[] = [
   // from an Employee. Cost and profit inside the page are gated again, and
   // separately, by product.viewCost (CLAUDE.md rule 19).
   { key: "reports", href: "/reports", icon: ChartColumn, action: "report.view" },
+  // What the shop spent; reading it is Admin/Manager, the same gate as the API.
+  { key: "expenses", href: "/expenses", icon: WalletMinimal, action: "expense.view" },
   // Changes waiting on somebody (spec.md "Employee change approvals").
   // Gated on the permission to READ requests, which every role holds — an
   // Admin comes here to decide, an Employee to see their own edit waiting
@@ -63,6 +66,13 @@ export const NAV_ITEMS: readonly NavItem[] = [
 // says which tab you are on — a difference you can see across a room, unlike a
 // tint — and that only holds if the solid is legible, which only holds if
 // somebody drew it.
+// The phone menu's headings; the design system link goes last in "manage".
+export const NAV_GROUPS: readonly NavGroup[] = [
+  { key: "sales", items: ["dashboard", "orders", "collection", "reports", "expenses"] },
+  { key: "catalogue", items: ["products", "inventory", "labels", "categories"] },
+  { key: "manage", items: ["changeRequests", "users", "permissions", "settings"] },
+];
+
 export const PRIMARY_NAV_KEYS = ["dashboard", "orders", "products", "inventory"] as const;
 
 export type PrimaryNavKey = (typeof PRIMARY_NAV_KEYS)[number];

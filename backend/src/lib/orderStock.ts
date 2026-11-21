@@ -3,16 +3,11 @@ import { AppError } from "@/lib/response";
 import { ERROR_CODES } from "@/constants";
 import type { StockMovement } from "@/types";
 
-// Stock movement for orders. Every call runs inside the caller's
-// transaction, and deduction is guarded so two POS terminals selling the
-// last piece at the same moment can't both succeed.
+// Stock movement for orders, inside the caller's transaction; deduction is guarded against two tills selling the last piece.
 
 type Tx = Prisma.TransactionClient;
 
-// Takes stock off the shelf, one target at a time. The `stock: { gte }`
-// guard makes the check and the decrement a single atomic statement — a
-// read-then-write would leave a window where both callers see enough stock.
-// A zero-row result means someone else got there first.
+// `stock: { gte }` makes check and decrement one atomic statement; zero rows means someone else got there first.
 export async function deductStock(tx: Tx, movements: readonly StockMovement[]): Promise<void> {
   for (const movement of movements) {
     const result = movement.variantId
@@ -25,13 +20,13 @@ export async function deductStock(tx: Tx, movements: readonly StockMovement[]): 
           data: { stock: { decrement: movement.quantity } },
         });
 
-    if (result.count === 0) throw new AppError(409, ERROR_CODES.ORDER_INSUFFICIENT_STOCK);
+    if (result.count === 0) {
+      throw new AppError(409, ERROR_CODES.ORDER_INSUFFICIENT_STOCK);
+    }
   }
 }
 
-// Puts stock back — on a cancellation or a return. No guard: restoring can
-// never fail on availability, and a target that has since been deleted
-// simply matches nothing.
+// Puts stock back on cancel or return; unguarded, and a deleted target simply matches nothing.
 export async function restoreStock(tx: Tx, movements: readonly StockMovement[]): Promise<void> {
   for (const movement of movements) {
     if (movement.variantId) {

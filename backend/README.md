@@ -1,6 +1,6 @@
-# Organza Store — Backend
+# Store Management — Backend
 
-API for the Organza Store system. Node + Express + TypeScript + Prisma + PostgreSQL.
+API for the Store Management system. Node + Express + TypeScript + Prisma + PostgreSQL.
 Auth is [Better Auth](https://www.better-auth.com/), email + password only, admin-provisioned
 (no public sign-up). Staff choose their own passwords from a single-use emailed link — see
 [Going live](#going-live).
@@ -33,8 +33,8 @@ cp .env.example .env
 Create the database (adjust user/db names to match your `.env`):
 
 ```bash
-sudo -u postgres psql -c "CREATE ROLE organza WITH LOGIN PASSWORD 'organza_dev_pw' CREATEDB;"
-sudo -u postgres psql -c "CREATE DATABASE organza OWNER organza;"
+sudo -u postgres psql -c "CREATE ROLE store WITH LOGIN PASSWORD 'store_dev_pw' CREATEDB;"
+sudo -u postgres psql -c "CREATE DATABASE store OWNER store;"
 ```
 
 Apply migrations (creates all tables, including Better Auth's `user`/`session`/`account`/
@@ -71,7 +71,7 @@ session, etc.). Example, using an account from the demo seed:
 ```bash
 curl -X POST http://localhost:4000/api/auth/sign-in/email \
   -H "Content-Type: application/json" \
-  -d '{"email":"admin@organza.test","password":"password123"}'
+  -d '{"email":"admin@store.test","password":"password123"}'
 ```
 
 The response includes a session `token`. Every route below requires it, either as the
@@ -108,44 +108,46 @@ FAIL  2. Discounts & rounding      18 passed, 1 failed
 
 ### The areas
 
-| # | Area | What it proves |
-|---|---|---|
-| 1 | Pricing | A variant's `priceOverride` applies, an empty one inherits the parent's `basePrice` (and the same for `cost`) resolved at read time, the SKU is frozen at creation, and `compareAtPrice` never changes what is charged. |
-| 2 | Discounts & rounding | Percentage and fixed, at line and order level, alone and combined; 2dp HALF-UP rounding with no float drift (3 × 0.10 = 0.30); the server recomputes every total and ignores a tampered one; malformed discounts refused, over-large ones clamped. |
-| 3 | Quantities & stock | Whole numbers only; stock leaves the shelf exactly once (STORE at the sale, online at `PREPARING`, guarded by `stockDeductedAt`); overselling refused; stock never negative. |
-| 4 | Returns | Partial and full, exact quantities restored, `returnedQuantity` recorded, sales and profit adjusted, nothing returned twice. |
-| 5 | Cash drawer | A whole day walked end to end: `expected = opening + cash sales − cash expenses`, a difference recorded with its note and never blocking, a withdrawal subtracted, the remainder carried into the next day, and a counted day never rewritten. |
-| 6 | Sold vs received vs owed | The three always reconcile; collecting moves money from owed to received; a bulk settlement takes only what was pending at that moment. |
-| 7 | Profit | Gross and net, for all sales and for the received part alone, from the snapshotted `unitPrice`/`unitCost` — re-pricing a product afterwards moves nothing. |
-| 8 | Permissions & data exposure | Every role against every sensitive action, enforced on the backend; gated Employee edits held for approval; no endpoint leaking `cost`, `unitCost`, COGS, profit, margin or `idNumber`. |
-| 9 | Passwords & go-live | An emailed link works exactly once and dies on time; the public endpoint answers a known and an unknown address identically; the per-address rate limit bites; `init` refuses a database that already has users and writes nothing when it does; a mail provider that cannot deliver never fails the account creation that triggered it; and the guards in front of `seed:demo` and `db:reset` refuse production. |
-| 10 | Edge cases | Concurrent sales of the last unit, duplicate SKU, generated EAN-13 uniqueness, a numbered shawl's parent barcode, `+970`/`+972` phone uniqueness. |
-| 11 | Platform & API contract | The envelope, pagination, search, categories, images, labels, notifications, version. |
+| #   | Area                        | What it proves                                                                                                                                                                                                                                                                                                                                                                                                    |
+| --- | --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Pricing                     | A variant's `priceOverride` applies, an empty one inherits the parent's `basePrice` (and the same for `cost`) resolved at read time, the SKU is frozen at creation, and `compareAtPrice` never changes what is charged.                                                                                                                                                                                           |
+| 2   | Discounts & rounding        | Percentage and fixed, at line and order level, alone and combined; 2dp HALF-UP rounding with no float drift (3 × 0.10 = 0.30); the server recomputes every total and ignores a tampered one; malformed discounts refused, over-large ones clamped.                                                                                                                                                                |
+| 3   | Quantities & stock          | Whole numbers only; stock leaves the shelf exactly once (STORE at the sale, online at `PREPARING`, guarded by `stockDeductedAt`); overselling refused; stock never negative.                                                                                                                                                                                                                                      |
+| 4   | Returns                     | Partial and full, exact quantities restored, `returnedQuantity` recorded, sales and profit adjusted, nothing returned twice.                                                                                                                                                                                                                                                                                      |
+| 5   | Cash drawer                 | A whole day walked end to end: `expected = opening + cash sales − cash expenses`, a difference recorded with its note and never blocking, a withdrawal subtracted, the remainder carried into the next day, and a counted day never rewritten.                                                                                                                                                                    |
+| 6   | Sold vs received vs owed    | The three always reconcile; collecting moves money from owed to received; a bulk settlement takes only what was pending at that moment.                                                                                                                                                                                                                                                                           |
+| 7   | Profit                      | Gross and net, for all sales and for the received part alone, from the snapshotted `unitPrice`/`unitCost` — re-pricing a product afterwards moves nothing.                                                                                                                                                                                                                                                        |
+| 8   | Permissions & data exposure | Every role against every sensitive action, enforced on the backend; gated Employee edits held for approval; no endpoint leaking `cost`, `unitCost`, COGS, profit, margin or `idNumber`.                                                                                                                                                                                                                           |
+| 9   | Passwords & go-live         | An emailed link works exactly once and dies on time; the public endpoint answers a known and an unknown address identically; the per-address rate limit bites; `init` refuses a database that already has users and writes nothing when it does; a mail provider that cannot deliver never fails the account creation that triggered it; and the guards in front of `seed:demo` and `db:reset` refuse production. |
+| 10  | Edge cases                  | Concurrent sales of the last unit, duplicate SKU, generated EAN-13 uniqueness, a numbered shawl's parent barcode, `+970`/`+972` phone uniqueness.                                                                                                                                                                                                                                                                 |
+| 11  | Platform & API contract     | The envelope, pagination, search, categories, images, labels, notifications, version.                                                                                                                                                                                                                                                                                                                             |
 
 ### Safety
 
 The suite is **not read-only**. It creates orders, moves stock, records expenses and opens cash
 drawers, so it decides where it is pointed before it sends a single request:
 
-- **The sandbox is the default.** With `API_URL` unset it targets
-  `https://api.sandbox.organza-moda.com`.
-- **Production is refused**, loudly, with instructions — and so is *any host this suite does not
-  recognise*, which is treated as production until told otherwise. To override:
+- **The sandbox is the default.** With `API_URL` unset it targets `$SANDBOX_API_URL`, or
+  `http://localhost:4000` when that is unset too. No shop's address is written in the code.
+- **Production is refused**, loudly, with instructions: the host of `$PRODUCTION_API_URL` (and its
+  site and `www.` hosts), and _any host this suite does not recognise_ — anything not local and not
+  saying `sandbox` — which is treated as production until told otherwise. To override:
 
   ```bash
-  ORGANZA_ALLOW_PRODUCTION=I-KNOW-THIS-IS-PRODUCTION npm run verify
+  STORE_ALLOW_PRODUCTION=I-KNOW-THIS-IS-PRODUCTION npm run verify
   ```
 
   which prints a large warning banner before it starts.
+
 - **Nothing is left behind.** Every product, order and expense the run creates is recorded from
   inside `apiRequest` (`tests/support/fixtureRegistry.ts`) and soft-deleted afterwards, and
   anything left waiting for an Admin is rejected — so the target ends the run in the state it
-  started it. Re-running changes no count. `ORGANZA_KEEP_FIXTURES=1` skips the teardown when
+  started it. Re-running changes no count. `STORE_KEEP_FIXTURES=1` skips the teardown when
   something needs inspecting by hand.
 - **A real trading day's cash session is never touched.** A drawer is one per calendar day and
   the API has no way to delete one, so the arithmetic is walked on synthetic dates in 2100+,
   which no sale can fall inside. The one assertion that needs a live window measures the drawer
-  **the shop has already opened**, or reports itself skipped. `ORGANZA_ALLOW_TODAY_DRAWER=1`
+  **the shop has already opened**, or reports itself skipped. `STORE_ALLOW_TODAY_DRAWER=1`
   lets it open one — only ever appropriate on a disposable database.
 
 `npm run api-test` and `npm run api-test:prod` still exist and run the same vitest suite without
@@ -156,20 +158,20 @@ the summary; the production one now needs the override above, like everything el
 All endpoints return the unified envelope (`{ success, data, meta }` / `{ success: false, error: { code } }`)
 and require auth. Errors are translation **keys** (`error.*`), not literal sentences.
 
-| Method | Path                                         | Role gate               | Notes |
-|--------|----------------------------------------------|--------------------------|-------|
-| GET    | `/api/products`                              | any                      | pagination (`page`,`pageSize`), filters (`categoryId`,`status`,`stock`,`priceMin`,`priceMax`,`q`), sort (`sortBy`,`sortDir`) |
-| GET    | `/api/products/:id`                          | any                      | full detail incl. resolved variant price/cost |
-| POST   | `/api/products`                              | Admin/Manager/Employee   | `optionSelections` generates cartesian variants |
-| PATCH  | `/api/products/:id`                          | Admin/Manager            | isActive change logs PUBLISH/HIDE instead of UPDATE |
-| DELETE | `/api/products/:id`                          | Admin/Manager            | soft delete (`deletedAt`) |
-| POST   | `/api/products/:id/variants/generate`        | Admin/Manager            | additive — existing combinations are left alone |
-| PATCH  | `/api/products/:id/variants/:variantId`      | Admin/Manager            | name/sku/priceOverride/cost/stock/isActive |
-| DELETE | `/api/products/:id/variants/:variantId`      | Admin/Manager            | removes one combination |
-| GET    | `/api/variant-types`                         | any                      | global types + values, for building option pickers |
-| POST   | `/api/variant-types`                         | Admin/Manager/Employee   | inline "add a whole new type" |
-| POST   | `/api/variant-types/:id/values`               | Admin/Manager/Employee   | inline "add a value to an existing type" |
-| GET    | `/api/categories`                            | any                      | flat list; read-only for now (full nested CRUD is a later stage) |
+| Method | Path                                    | Role gate              | Notes                                                                                                                        |
+| ------ | --------------------------------------- | ---------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| GET    | `/api/products`                         | any                    | pagination (`page`,`pageSize`), filters (`categoryId`,`status`,`stock`,`priceMin`,`priceMax`,`q`), sort (`sortBy`,`sortDir`) |
+| GET    | `/api/products/:id`                     | any                    | full detail incl. resolved variant price/cost                                                                                |
+| POST   | `/api/products`                         | Admin/Manager/Employee | `optionSelections` generates cartesian variants                                                                              |
+| PATCH  | `/api/products/:id`                     | Admin/Manager          | isActive change logs PUBLISH/HIDE instead of UPDATE                                                                          |
+| DELETE | `/api/products/:id`                     | Admin/Manager          | soft delete (`deletedAt`)                                                                                                    |
+| POST   | `/api/products/:id/variants/generate`   | Admin/Manager          | additive — existing combinations are left alone                                                                              |
+| PATCH  | `/api/products/:id/variants/:variantId` | Admin/Manager          | name/sku/priceOverride/cost/stock/isActive                                                                                   |
+| DELETE | `/api/products/:id/variants/:variantId` | Admin/Manager          | removes one combination                                                                                                      |
+| GET    | `/api/variant-types`                    | any                    | global types + values, for building option pickers                                                                           |
+| POST   | `/api/variant-types`                    | Admin/Manager/Employee | inline "add a whole new type"                                                                                                |
+| POST   | `/api/variant-types/:id/values`         | Admin/Manager/Employee | inline "add a value to an existing type"                                                                                     |
+| GET    | `/api/categories`                       | any                    | flat list; read-only for now (full nested CRUD is a later stage)                                                             |
 
 `cost` (and `resolvedCost`) are only present in responses for Admin/Manager — stripped entirely
 for Employee, not just hidden client-side.
@@ -183,12 +185,12 @@ Uploads are processed with `sharp` into three WebP sizes (thumbnail/medium/full)
 `UPLOAD_DIR` is relative in local development and **absolute in every deployment**, where it
 must match the mounted volume exactly — see [Data, volumes & backups](#data-volumes--backups).
 
-| Method | Path                     | Role gate               | Notes |
-|--------|--------------------------|--------------------------|-------|
-| POST   | `/api/images`             | Admin/Manager/Employee   | `multipart/form-data`: `file` + exactly one of `productId` / `variantId`. First image for an owner becomes primary automatically. |
-| PATCH  | `/api/images/reorder`     | Admin/Manager/Employee   | body `{ productId or variantId, imageIds: string[] }` — sets `sortOrder` from array order; must cover the owner's full image set |
-| PATCH  | `/api/images/:id`         | Admin/Manager/Employee   | body `{ isPrimary: boolean }` — setting `true` clears `isPrimary` on the owner's other images |
-| DELETE | `/api/images/:id`         | Admin/Manager            | deletion follows product-edit permissions, not the looser "edit images" rule; removes the DB row and all size variants on disk |
+| Method | Path                  | Role gate              | Notes                                                                                                                             |
+| ------ | --------------------- | ---------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| POST   | `/api/images`         | Admin/Manager/Employee | `multipart/form-data`: `file` + exactly one of `productId` / `variantId`. First image for an owner becomes primary automatically. |
+| PATCH  | `/api/images/reorder` | Admin/Manager/Employee | body `{ productId or variantId, imageIds: string[] }` — sets `sortOrder` from array order; must cover the owner's full image set  |
+| PATCH  | `/api/images/:id`     | Admin/Manager/Employee | body `{ isPrimary: boolean }` — setting `true` clears `isPrimary` on the owner's other images                                     |
+| DELETE | `/api/images/:id`     | Admin/Manager          | deletion follows product-edit permissions, not the looser "edit images" rule; removes the DB row and all size variants on disk    |
 
 ```bash
 curl -X POST http://localhost:4000/api/images \
@@ -244,7 +246,7 @@ Any status before the courier handover may go to `CANCELLED` (which puts committ
 A parcel the customer refuses comes back as a return, not a cancellation, so stock and money
 move together.
 `RETURNED` is reachable only through the returns endpoint, so stock and `returnedQuantity`
-always move together. The legal-move table lives in `@organza/shared/constants/order`
+always move together. The legal-move table lives in `@store/shared/constants/order`
 (`ORDER_STATUS_TRANSITIONS`) so the backend gate and the frontends' buttons read one source.
 
 Orders are **soft-deleted** (`deletedAt`), like products — a sale is a financial record, so
@@ -266,17 +268,17 @@ state can neither double-deduct nor double-restore. Deduction itself is a guarde
 Each line snapshots `name`, `variantName`, `sku`, `unitPrice` and `unitCost` at creation, so
 renaming or repricing a product later never rewrites a past sale.
 
-| Method | Path                        | Role gate               | Notes |
-|--------|-----------------------------|--------------------------|-------|
-| GET    | `/api/orders`               | Admin/Manager/Employee   | pagination (`page`,`pageSize`), filters (`status`,`channel`,`paymentStatus`,`collectableOnly`,`dateFrom`,`dateTo`,`q`), sort (`sortBy`,`sortDir`) |
-| GET    | `/api/orders/collection-summary` | Admin/Manager/Employee | what the delivery company still owes: `{ orderCount, amount, oldestCreatedAt }`, net of returns, across all dates |
-| POST   | `/api/orders/collect`       | Admin/Manager            | body `{ orderIds: string[] }` (max 100) — marks a batch collected; already-collected ids are a no-op, an unknown id 404s, a cancelled/returned one 409s |
-| GET    | `/api/orders/:id`           | Admin/Manager/Employee   | full detail incl. lines |
-| POST   | `/api/orders`               | Admin/Manager/Employee   | `{ channel, items: [{ productId, variantId?, quantity, discount? }], ... }` |
-| PATCH  | `/api/orders/:id/status`    | Admin/Manager/Employee   | Employees may advance the flow; `CANCELLED` additionally needs `order.cancel` (Admin/Manager) |
-| PATCH  | `/api/orders/:id`           | Admin/Manager            | contact details, note, payment method, order- and item-level discounts (lines are fixed at creation) |
-| POST   | `/api/orders/:id/return`    | Admin/Manager            | body `{}` returns the whole order; `{ items: [{ orderItemId, quantity }] }` returns specific lines |
-| DELETE | `/api/orders/:id`           | Admin/Manager            | soft delete (`deletedAt`); restores any still-committed stock and hides the order from every endpoint |
+| Method | Path                             | Role gate              | Notes                                                                                                                                                   |
+| ------ | -------------------------------- | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| GET    | `/api/orders`                    | Admin/Manager/Employee | pagination (`page`,`pageSize`), filters (`status`,`channel`,`paymentStatus`,`collectableOnly`,`dateFrom`,`dateTo`,`q`), sort (`sortBy`,`sortDir`)       |
+| GET    | `/api/orders/collection-summary` | Admin/Manager/Employee | what the delivery company still owes: `{ orderCount, amount, oldestCreatedAt }`, net of returns, across all dates                                       |
+| POST   | `/api/orders/collect`            | Admin/Manager          | body `{ orderIds: string[] }` (max 100) — marks a batch collected; already-collected ids are a no-op, an unknown id 404s, a cancelled/returned one 409s |
+| GET    | `/api/orders/:id`                | Admin/Manager/Employee | full detail incl. lines                                                                                                                                 |
+| POST   | `/api/orders`                    | Admin/Manager/Employee | `{ channel, items: [{ productId, variantId?, quantity, discount? }], ... }`                                                                             |
+| PATCH  | `/api/orders/:id/status`         | Admin/Manager/Employee | Employees may advance the flow; `CANCELLED` additionally needs `order.cancel` (Admin/Manager)                                                           |
+| PATCH  | `/api/orders/:id`                | Admin/Manager          | contact details, note, payment method, order- and item-level discounts (lines are fixed at creation)                                                    |
+| POST   | `/api/orders/:id/return`         | Admin/Manager          | body `{}` returns the whole order; `{ items: [{ orderItemId, quantity }] }` returns specific lines                                                      |
+| DELETE | `/api/orders/:id`                | Admin/Manager          | soft delete (`deletedAt`); restores any still-committed stock and hides the order from every endpoint                                                   |
 
 Per spec.md's security rationale, an Employee can create an order and hand it to the courier but
 can never edit, cancel, return, delete or mark the money collected on one — a sale must not be
@@ -308,10 +310,10 @@ into memory — and share one set of rules:
   it, so "we sold 4,000 but 1,500 is still with the delivery company" is answerable. Those
   three are sales figures, not costs, so every role that may read a report sees them.
 
-| Method | Path                          | Role gate               | Notes |
-|--------|-------------------------------|--------------------------|-------|
-| GET    | `/api/reports/sales-summary`  | Admin/Manager/Employee   | today / this week / this month; `tzOffset` (minutes to add to UTC) puts the period boundaries on the caller's clock |
-| GET    | `/api/reports/sales`          | Admin/Manager/Employee   | `from`/`to` are local `YYYY-MM-DD` dates (inclusive), plus `tzOffset` and `topLimit`; returns totals, returns, per-channel split, a trend series and the best sellers |
+| Method | Path                         | Role gate              | Notes                                                                                                                                                                 |
+| ------ | ---------------------------- | ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| GET    | `/api/reports/sales-summary` | Admin/Manager/Employee | today / this week / this month; `tzOffset` (minutes to add to UTC) puts the period boundaries on the caller's clock                                                   |
+| GET    | `/api/reports/sales`         | Admin/Manager/Employee | `from`/`to` are local `YYYY-MM-DD` dates (inclusive), plus `tzOffset` and `topLimit`; returns totals, returns, per-channel split, a trend series and the best sellers |
 
 `cost`, `profit`, `margin` and `missingCostItems` require **`product.viewCost`** (Admin +
 Manager). For anyone else those fields are never computed and never appear in the response —
@@ -345,16 +347,16 @@ With those unset, notifications are simply off: `/api/push/config` reports
 `configured: false`, subscribing returns `error.push.not_configured`, and nothing else in the
 API behaves differently.
 
-| Method | Path                       | Role gate     | Notes |
-|--------|----------------------------|---------------|-------|
-| GET    | `/api/push/config`         | any signed-in | `{ configured, publicKey }` — the VAPID public key a browser needs to subscribe |
-| GET    | `/api/push/subscriptions`  | any signed-in | the caller's **own** registered devices |
-| POST   | `/api/push/subscriptions`  | any signed-in | register this device (upsert on `endpoint`) |
-| DELETE | `/api/push/subscriptions`  | any signed-in | unregister it again (body: `{ endpoint }`) |
+| Method | Path                      | Role gate     | Notes                                                                           |
+| ------ | ------------------------- | ------------- | ------------------------------------------------------------------------------- |
+| GET    | `/api/push/config`        | any signed-in | `{ configured, publicKey }` — the VAPID public key a browser needs to subscribe |
+| GET    | `/api/push/subscriptions` | any signed-in | the caller's **own** registered devices                                         |
+| POST   | `/api/push/subscriptions` | any signed-in | register this device (upsert on `endpoint`)                                     |
+| DELETE | `/api/push/subscriptions` | any signed-in | unregister it again (body: `{ endpoint }`)                                      |
 
 There is deliberately no permission gate beyond a session: managing your own device isn't a
 capability the role table has anything to say about, and every query is scoped to the session's
-user. Who *receives* a notification is decided on the sending side
+user. Who _receives_ a notification is decided on the sending side
 (`src/lib/saleNotifications.ts`), not here.
 
 **Sending never touches the sale.** It runs after the order is committed and its response is on
@@ -384,7 +386,7 @@ nothing here happens as a side effect of a deploy, and nothing here creates samp
 
 ```bash
 # 0. only when starting over — DESTRUCTIVE, see below
-ORGANZA_DB_RESET_CONFIRM=I-KNOW-THIS-DELETES-EVERYTHING npm run db:reset
+STORE_DB_RESET_CONFIRM=I-KNOW-THIS-DELETES-EVERYTHING npm run db:reset
 
 # 1. schema
 npx prisma migrate deploy
@@ -419,9 +421,9 @@ deploy does not touch ignored files, so it survives every push.
 
 ```json
 [
-  { "email": "owner@example.com",   "role": "ADMIN",    "name": "الاسم الكامل", "phone": "+970599123456" },
-  { "email": "manager@example.com", "role": "MANAGER",  "name": "Manager Name", "phone": "+972599123457" },
-  { "email": "employee@example.com","role": "EMPLOYEE", "name": "Employee Name","phone": "+970599123458" }
+  { "email": "owner@example.com", "role": "ADMIN", "name": "الاسم الكامل", "phone": "+970599123456" },
+  { "email": "manager@example.com", "role": "MANAGER", "name": "Manager Name", "phone": "+972599123457" },
+  { "email": "employee@example.com", "role": "EMPLOYEE", "name": "Employee Name", "phone": "+970599123458" }
 ]
 ```
 
@@ -436,7 +438,7 @@ malformed or duplicate emails, invalid or duplicate numbers, missing fields, str
 every problem is reported at once, naming the entry:
 
 ```
-7 problem(s) in /opt/organza/sandbox/staff.json:
+7 problem(s) in /opt/store/sandbox/staff.json:
   • entry #1 (one@example.com) — role: unknown role "OWNER" — one of ADMIN, MANAGER, EMPLOYEE
   • entry #3 (three@example.com) — phone: already used by entry #1 (one@example.com) — the same
     line written under the other prefix (+970/+972)
@@ -450,8 +452,8 @@ has users and so could not finish the job on a second run.
 Where the file is, in precedence order:
 
 ```bash
-npm run init -- --accounts /srv/organza/staff.json   # flag wins
-ORGANZA_STAFF_FILE=/srv/organza/staff.json npm run init
+npm run init -- --accounts /srv/store/staff.json   # flag wins
+STORE_STAFF_FILE=/srv/store/staff.json npm run init
 npm run init                                          # <repo>/staff.json
 ```
 
@@ -465,15 +467,15 @@ docker compose -f docker-compose.sandbox.yml exec -T backend rm /tmp/staff.json
 
 ### The commands
 
-| Command | What it does | Safe to run twice? |
-|---|---|---|
-| `npm run bootstrap` | Creates the store settings singleton, the three global variant types with a starting set of values, and the five expense categories. Runs on every deploy. | **Yes** — the second run creates nothing. Each item is recorded in `BootstrapRecord` and created at most once in the life of the database, so a colour or an expense category the shop retires stays retired instead of coming back on the next push. A *new* default added in a later release still lands. |
-| `npm run init` | Creates every account in the staff roster (see above) with **no password**, and emails each of them a single-use "set your password" link. | **Yes, and the second run refuses** — it will not touch a database that already has any user in it. There is no partial mode: adding one more member of staff is the admin's Users screen. |
-| `npm run db:reset` | Drops every table, re-applies every migration, and deletes uploaded image files that no longer belong to any product. Seeds nothing. | **Yes** — the second run leaves an empty database empty. It refuses without `ORGANZA_DB_RESET_CONFIRM` typed out in full, every single time, and needs `ORGANZA_ALLOW_PRODUCTION=I-KNOW-THIS-IS-PRODUCTION` on top when `NODE_ENV=production`. |
-| `npm run import:prod` | Copies the **live shop's catalogue** into the **sandbox** — products, categories, variants, images — after wiping the sandbox's own. Staff accounts survive. See [Importing the production catalogue](#importing-the-production-catalogue-into-the-sandbox). | **Yes** — it wipes first, so two runs leave byte-identical data. It refuses unless the target says *sandbox* in both `APP_ENV` and its database name, and unless the run names that database. |
-| `npm run email:preview` | Renders every email in every language to `tmp/email-preview/` (git-ignored). Sends nothing, needs no API key, touches no database. | Yes. |
-| `npm run backup:status` | Prints when the off-site backup last actually worked, the last failure and the last five runs. **Exits non-zero when the last success is over 48h old**, so a monitor can call it directly; `-- --json` for machines. Reads only. | Yes — it changes nothing. |
-| `npm run backup:record` | Called **by `ops/backup.sh`**, never by hand. Reports a failed run to Sentry (through `lib/logger.ts`) and writes the outcome to `BackupRun`. | Yes, but each call appends a run to the record — do not use it to fake a success. |
+| Command                 | What it does                                                                                                                                                                                                                                                 | Safe to run twice?                                                                                                                                                                                                                                                                                          |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `npm run bootstrap`     | Creates the store settings singleton, the three global variant types with a starting set of values, and the five expense categories. Runs on every deploy.                                                                                                   | **Yes** — the second run creates nothing. Each item is recorded in `BootstrapRecord` and created at most once in the life of the database, so a colour or an expense category the shop retires stays retired instead of coming back on the next push. A _new_ default added in a later release still lands. |
+| `npm run init`          | Creates every account in the staff roster (see above) with **no password**, and emails each of them a single-use "set your password" link.                                                                                                                   | **Yes, and the second run refuses** — it will not touch a database that already has any user in it. There is no partial mode: adding one more member of staff is the admin's Users screen.                                                                                                                  |
+| `npm run db:reset`      | Drops every table, re-applies every migration, and deletes uploaded image files that no longer belong to any product. Seeds nothing.                                                                                                                         | **Yes** — the second run leaves an empty database empty. It refuses without `STORE_DB_RESET_CONFIRM` typed out in full, every single time, and needs `STORE_ALLOW_PRODUCTION=I-KNOW-THIS-IS-PRODUCTION` on top when `NODE_ENV=production`.                                                                  |
+| `npm run import:prod`   | Copies the **live shop's catalogue** into the **sandbox** — products, categories, variants, images — after wiping the sandbox's own. Staff accounts survive. See [Importing the production catalogue](#importing-the-production-catalogue-into-the-sandbox). | **Yes** — it wipes first, so two runs leave byte-identical data. It refuses unless the target says _sandbox_ in both `APP_ENV` and its database name, and unless the run names that database.                                                                                                               |
+| `npm run email:preview` | Renders every email in every language to `tmp/email-preview/` (git-ignored). Sends nothing, needs no API key, touches no database.                                                                                                                           | Yes.                                                                                                                                                                                                                                                                                                        |
+| `npm run backup:status` | Prints when the off-site backup last actually worked, the last failure and the last five runs. **Exits non-zero when the last success is over 48h old**, so a monitor can call it directly; `-- --json` for machines. Reads only.                            | Yes — it changes nothing.                                                                                                                                                                                                                                                                                   |
+| `npm run backup:record` | Called **by `ops/backup.sh`**, never by hand. Reports a failed run to Sentry (through `lib/logger.ts`) and writes the outcome to `BackupRun`.                                                                                                                | Yes, but each call appends a run to the record — do not use it to fake a success.                                                                                                                                                                                                                           |
 
 The backing up itself is **`ops/backup.sh`**, on the host rather than in here: it drives
 `docker compose`, and a container cannot dump the database it lives next to without one.
@@ -531,10 +533,10 @@ uploaded photographs**. Both live on Docker named volumes declared in
 `docker-compose.sandbox.yml`, and both are mounted at absolute paths the app is pointed at
 explicitly:
 
-| | Volume | Mounted at | Told to the app by |
-|---|---|---|---|
-| Database | `sandbox_db_data` | `/var/lib/postgresql/data` (postgres:16's `PGDATA`) | the `db` image's own default |
-| Uploaded images | `sandbox_uploads` | `/app/uploads` | `UPLOAD_DIR` in the compose file's `environment:` |
+|                 | Volume            | Mounted at                                          | Told to the app by                                |
+| --------------- | ----------------- | --------------------------------------------------- | ------------------------------------------------- |
+| Database        | `sandbox_db_data` | `/var/lib/postgresql/data` (postgres:16's `PGDATA`) | the `db` image's own default                      |
+| Uploaded images | `sandbox_uploads` | `/app/uploads`                                      | `UPLOAD_DIR` in the compose file's `environment:` |
 
 `UPLOAD_DIR` is set **in the compose file rather than in `.env.sandbox`**, and absolutely
 rather than relatively. It has to be: the API resolves a relative `UPLOAD_DIR` against the
@@ -551,7 +553,7 @@ can actually write there:
 docker compose -f docker-compose.sandbox.yml logs backend | grep -i uploads
 # Uploads directory: /app/uploads (writable)
 
-curl -s https://api.sandbox.organza-moda.com/health
+curl -s "$SANDBOX_API_URL/health"
 # {"success":true,"data":{"status":"ok","uploadsWritable":true},"meta":null}
 ```
 
@@ -571,7 +573,7 @@ So `STACK=production ops/backup.sh` runs nightly from cron and puts both of them
 `s3 sync` of the photographs (only what changed that day). It keeps the last ~30 dumps and
 prunes the rest, **reads every dump all the way through** before trusting it, and checks
 the uploaded object's size against the local file. `ops/restore.sh` puts a backup back,
-and refuses production without `ORGANZA_ALLOW_PRODUCTION` on top of the usual
+and refuses production without `STORE_ALLOW_PRODUCTION` on top of the usual
 confirmation — the same two phrases `db:reset` uses.
 
 `STACK` is one word (`production` or `sandbox`) and derives both the compose file and the
@@ -588,10 +590,10 @@ it: a backup nobody has restored is a hope.
 The API's part is remembering that it happened, because the failure that actually kills a
 shop is not a backup that breaks — that one is loud — but a schedule that quietly stopped:
 
-| Command | What it does |
-|---|---|
+| Command                 | What it does                                                                                                                                                                                          |
+| ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `npm run backup:status` | When the backup last actually worked, the last failure, and the last five runs. **Exits non-zero when the last success is over 48h old**, so a monitor can use it directly. `-- --json` for machines. |
-| `npm run backup:record` | Called **by `ops/backup.sh`**, not by a person. Files a failed run to Sentry through `lib/logger.ts` and writes either outcome to the `BackupRun` table. |
+| `npm run backup:record` | Called **by `ops/backup.sh`**, not by a person. Files a failed run to Sentry through `lib/logger.ts` and writes either outcome to the `BackupRun` table.                                              |
 
 The same figures come out of `GET /health` as `backup: { lastSuccessAt, stale }`, and the
 API re-checks the age every six hours and reports staleness to Sentry — at most once a
@@ -610,7 +612,7 @@ categories and the real photographs — and nothing else.
 ```bash
 # on the SANDBOX server, over SSH
 docker compose -f docker-compose.sandbox.yml exec -T backend \
-  env ORGANZA_IMPORT_CONFIRM=<the sandbox's database name> \
+  env STORE_IMPORT_CONFIRM=<the sandbox's database name> \
   npm run import:prod
 ```
 
@@ -620,13 +622,13 @@ production's database credentials inside the sandbox deployment — the less pro
 
 ### What crosses over, and what never does
 
-| Imported | Left in production |
-|---|---|
-| Categories (including the nesting and the POS favourites) | Orders and order lines |
-| Products — including hidden and soft-deleted ones | Users, credentials, sessions, password links |
-| Variants, and the global variant types + option values | Expenses and cash sessions |
-| Images (rows **and** the files on disk) | Change requests and the audit log |
-| Barcodes, `barcodeSource`, SKUs, prices, costs, stock | Push subscriptions |
+| Imported                                                  | Left in production                           |
+| --------------------------------------------------------- | -------------------------------------------- |
+| Categories (including the nesting and the POS favourites) | Orders and order lines                       |
+| Products — including hidden and soft-deleted ones         | Users, credentials, sessions, password links |
+| Variants, and the global variant types + option values    | Expenses and cash sessions                   |
+| Images (rows **and** the files on disk)                   | Change requests and the audit log            |
+| Barcodes, `barcodeSource`, SKUs, prices, costs, stock     | Push subscriptions                           |
 
 **No customer or staff data ever leaves the live shop.** The one staff field on an imported row —
 `Product.createdById`, who added it — is dropped; everything else is copied byte for byte.
@@ -658,18 +660,18 @@ that direction is made structurally impossible rather than discouraged:
 2. **The target database's own name must contain `sandbox`.** An env var can be copied into the
    wrong compose file; the name travels with the data. Both have to agree.
 3. **The run must name the database it is about to empty** —
-   `ORGANZA_IMPORT_CONFIRM=<database>` — so a command pasted from elsewhere fires against
+   `STORE_IMPORT_CONFIRM=<database>` — so a command pasted from elsewhere fires against
    nothing.
 4. **Source and target must be different databases**, checked by host, port and name.
 5. **The production connection is read-only at the server.** `PRODUCTION_DATABASE_URL` is
    rewritten with `options=-c default_transaction_read_only=on` before Prisma opens it, the
-   session is then *proven* read-only — a write is attempted and has to fail — and only then is
+   session is then _proven_ read-only — a write is attempted and has to fail — and only then is
    a row read. Give it a role with no write privileges as well
    (`.env.example` has the `GRANT`s): the connection is read-only either way, but a role that
    cannot write is the version that survives somebody editing the code.
 6. **The client that reaches production never leaves `src/lib/productionImport/source.ts`.** It
    is created, used and disconnected inside one function, so no other module in the codebase
-   holds an object that *could* write to the live shop.
+   holds an object that _could_ write to the live shop.
 
 Production is read **before** the sandbox is touched, and the wipe plus the whole write are one
 transaction. A production database that is unreachable, or a run that is refused, leaves the
@@ -695,8 +697,8 @@ npm run import:prod -- --skip-images
 Both variables live in the **sandbox's** `.env` and nowhere else (see `.env.example`):
 
 ```bash
-PRODUCTION_DATABASE_URL=postgresql://organza_readonly:…@…/organza?schema=public
-PRODUCTION_UPLOAD_DIR=/srv/organza/production-uploads
+PRODUCTION_DATABASE_URL=postgresql://store_readonly:…@…/<database>?schema=public
+PRODUCTION_UPLOAD_DIR=/srv/store/production-uploads
 ```
 
 The run prints what it wiped, what it imported and how many photographs came across, and ends by
@@ -710,16 +712,16 @@ deploy pipeline, and it refuses to run unless told the database is disposable �
 outright when `NODE_ENV=production`, with no override.
 
 ```bash
-ORGANZA_ALLOW_DEMO_SEED=I-KNOW-THIS-IS-NOT-PRODUCTION npm run seed:demo
+STORE_ALLOW_DEMO_SEED=I-KNOW-THIS-IS-NOT-PRODUCTION npm run seed:demo
 ```
 
 It creates one user per role (all `password123`) —
 
-| Email                    | Role     |
-|---------------------------|----------|
-| admin@organza.test        | ADMIN    |
-| manager@organza.test      | MANAGER  |
-| employee@organza.test     | EMPLOYEE |
+| Email               | Role     |
+| ------------------- | -------- |
+| admin@store.test    | ADMIN    |
+| manager@store.test  | MANAGER  |
+| employee@store.test | EMPLOYEE |
 
 — plus nested categories, sample products covering every Phase 1 rule (simple, single-option,
 cartesian 2-option, price override, inherited price/cost, out-of-stock variant, hidden and
@@ -799,7 +801,7 @@ backend/
 
 Local modules are imported via the `@/` path alias (e.g. `@/lib/auth`), never relative paths.
 The shared cross-app package is a workspace dependency, imported by package name (e.g.
-`@organza/shared/schemas/product`), not through an alias.
+`@store/shared/schemas/product`), not through an alias.
 
 The repo is one npm workspace, so **install from the repo root, not from here**: a single
 `npm install` at the root wires up all four projects against one lockfile and compiles `shared/`

@@ -6,8 +6,9 @@ declare global {
     interface Request {
       // Set by requireAuth once the Better Auth session is resolved.
       user?: AuthedUser;
-      // Parsed+coerced req.query, stashed here since req.query is read-only
-      // in some Express/Node combinations.
+      // The session this request came in on, so a person can sign out every other device but this one.
+      sessionId?: string;
+      // Parsed query, kept here because req.query is read-only in some Express versions.
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       validatedQuery?: any;
     }

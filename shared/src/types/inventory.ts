@@ -26,6 +26,8 @@ export interface InventoryItem {
   // inherit it from their product. A row with this false must never be shown
   // as low stock, however small its quantity.
   trackLowStock: boolean;
+  // The row's main photo — the variant's own, else the product's; many pieces share a name.
+  thumbnailUrl: string | null;
   // Stock changes somebody has asked for on this exact row but may not make
   // (spec.md "Employee change approvals"). Empty for almost every row; when
   // it isn't, the quantity shown is spoken for rather than simply wrong.

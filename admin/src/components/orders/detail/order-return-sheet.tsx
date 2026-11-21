@@ -3,17 +3,14 @@
 import { useMemo, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Undo2 } from "lucide-react";
-import { ERROR_CODES } from "@organza/shared/constants/errors";
-import type { Order } from "@organza/shared/types/order";
+import { Alert, Button, Drawer, Typography } from "@store/ui";
+import { ERROR_CODES } from "@store/shared/constants/errors";
+import type { Order } from "@store/shared/types/order";
 import { useReturnOrderMutation } from "@/hooks/use-orders";
 import { useTranslateError } from "@/hooks/use-translate-error";
 import { localize } from "@/lib/i18n-content";
 import { ApiError } from "@/lib/api/errors";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { Alert } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
-import { QuantityStepper } from "@/components/ui/quantity-stepper";
-import { Spinner } from "@/components/ui/spinner";
+import { QuantityStepper } from "@/components/fields/quantity-stepper";
 import type { ReturnQuantities } from "@/types/order";
 
 interface OrderReturnSheetProps {
@@ -22,27 +19,21 @@ interface OrderReturnSheetProps {
   onOpenChange: (open: boolean) => void;
 }
 
-// Taking goods back, in whole or in part (spec.md "Returns"). Stock is
-// restored by the backend inside its transaction — nothing here touches
-// quantities directly.
-//
-// Two ways through, because both happen: "the customer sent everything back"
-// is one tap, and "she kept the black one" is a quantity per line.
+// Whole or partial return (spec.md "Returns"); stock is restored by the backend inside its transaction.
 export function OrderReturnSheet({ order, open, onOpenChange }: OrderReturnSheetProps) {
-  const tCommon = useTranslations("common");
   const t = useTranslations("orders.detail.returns");
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent name="order-return" side="end" closeLabel={tCommon("close")}>
-        <SheetHeader>
-          <SheetTitle>{t("title")}</SheetTitle>
-        </SheetHeader>
-        {/* Keyed by order so the quantities start fresh each time the sheet
-            opens rather than showing what was last typed and abandoned. */}
-        <ReturnForm key={order.id} order={order} onDone={() => onOpenChange(false)} />
-      </SheetContent>
-    </Sheet>
+    <Drawer
+      open={open}
+      onOpenChange={onOpenChange}
+      title={t("title")}
+      descriptionKey="orders.detail.returns.description"
+      data-testid="sheet-order-return"
+    >
+      {/* Keyed by order so quantities start fresh each time rather than showing an abandoned edit. */}
+      <ReturnForm key={order.id} order={order} onDone={() => onOpenChange(false)} />
+    </Drawer>
   );
 }
 
@@ -53,15 +44,13 @@ function ReturnForm({ order, onDone }: { order: Order; onDone: () => void }) {
   const mutation = useReturnOrderMutation(order.id);
   const [quantities, setQuantities] = useState<ReturnQuantities>({});
 
-  // What each line still has outstanding — a line already returned in full
-  // can't be returned again, and the backend refuses the attempt anyway
-  // (ORDER_RETURN_QUANTITY_EXCEEDED).
+  // A line already returned in full can't be returned again (backend: ORDER_RETURN_QUANTITY_EXCEEDED).
   const returnable = useMemo(
     () =>
       order.items
         .map((item) => ({ item, outstanding: item.quantity - item.returnedQuantity }))
         .filter((entry) => entry.outstanding > 0),
-    [order.items]
+    [order.items],
   );
 
   const selectedCount = Object.values(quantities).reduce((sum, quantity) => sum + quantity, 0);
@@ -71,8 +60,7 @@ function ReturnForm({ order, onDone }: { order: Order; onDone: () => void }) {
   }
 
   function submitWholeOrder() {
-    // No `items` means "all of it" — every line, in whatever quantity is
-    // still outstanding (see the backend's return route).
+    // No `items` means every line, in whatever quantity is still outstanding.
     mutation.mutate({}, { onSuccess: onDone });
   }
 
@@ -80,47 +68,55 @@ function ReturnForm({ order, onDone }: { order: Order; onDone: () => void }) {
     const items = Object.entries(quantities)
       .filter(([, quantity]) => quantity > 0)
       .map(([orderItemId, quantity]) => ({ orderItemId, quantity }));
-    if (items.length === 0) return;
+    if (items.length === 0) {
+      return;
+    }
     mutation.mutate({ items }, { onSuccess: onDone });
   }
 
   if (returnable.length === 0) {
     return (
-      <div className="px-5 pb-5">
-        <Alert>{t("nothingLeft")}</Alert>
-      </div>
+      <Alert tone="neutral" data-testid="alert-default">
+        {t("nothingLeft")}
+      </Alert>
     );
   }
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-5 pb-5">
-      <p className="text-sm text-muted-foreground">{t("description")}</p>
+    <div className="flex min-h-full flex-col gap-4">
+      <Typography variant="small" tone="muted">
+        {t("description")}
+      </Typography>
 
       {mutation.isError && (
-        <Alert variant="destructive">
+        <Alert tone="danger" data-testid="alert-destructive">
           {translateError(mutation.error instanceof ApiError ? mutation.error.code : ERROR_CODES.INTERNAL)}
         </Alert>
       )}
 
       <Button
         type="button"
-        variant="destructive"
-        className="h-14 w-full text-base"
-        disabled={mutation.isPending}
+        variant="danger"
+        className="w-full"
+        isLoading={mutation.isPending}
         onClick={submitWholeOrder}
+        icon={<Undo2 className="size-5 rtl:-scale-x-100" aria-hidden="true" />}
       >
-        {mutation.isPending ? <Spinner /> : <Undo2 className="size-5 rtl:-scale-x-100" aria-hidden="true" />}
         {t("returnWholeOrder")}
       </Button>
 
       <div className="flex items-center gap-3">
-        <span className="h-px flex-1 bg-border" />
-        <span className="text-xs text-muted-foreground">{t("or")}</span>
-        <span className="h-px flex-1 bg-border" />
+        <div aria-hidden="true" className="h-px flex-1 bg-line" />
+        <Typography variant="caption" tone="muted">
+          {t("or")}
+        </Typography>
+        <div aria-hidden="true" className="h-px flex-1 bg-line" />
       </div>
 
       <div className="flex flex-col gap-3">
-        <p className="text-sm font-medium text-foreground">{t("pickItems")}</p>
+        <Typography variant="small" weight="medium">
+          {t("pickItems")}
+        </Typography>
 
         {returnable.map(({ item, outstanding }) => {
           const name = localize(item.name, locale);
@@ -128,11 +124,19 @@ function ReturnForm({ order, onDone }: { order: Order; onDone: () => void }) {
           const label = variantName ? `${name} — ${variantName}` : name;
 
           return (
-            <div key={item.id} className="flex items-center justify-between gap-3 rounded-lg border border-border p-3">
+            <div key={item.id} className="flex items-center justify-between gap-3 rounded-panel border border-line p-3">
               <div className="min-w-0">
-                <p className="truncate text-sm font-medium text-foreground">{name}</p>
-                {variantName && <p className="truncate text-xs text-muted-foreground">{variantName}</p>}
-                <p className="text-xs text-muted-foreground">{t("outstanding", { count: outstanding })}</p>
+                <Typography variant="small" weight="medium" className="truncate">
+                  {name}
+                </Typography>
+                {variantName && (
+                  <Typography variant="caption" tone="muted" as="p" className="truncate">
+                    {variantName}
+                  </Typography>
+                )}
+                <Typography variant="caption" tone="muted" as="p">
+                  {t("outstanding", { count: outstanding })}
+                </Typography>
               </div>
               <QuantityStepper
                 value={quantities[item.id] ?? 0}
@@ -152,12 +156,12 @@ function ReturnForm({ order, onDone }: { order: Order; onDone: () => void }) {
 
       <Button
         type="button"
-        variant="destructive"
-        className="mt-auto h-14 w-full text-base"
-        disabled={mutation.isPending || selectedCount === 0}
+        variant="danger"
+        className="mt-auto w-full"
+        isLoading={mutation.isPending}
+        disabled={selectedCount === 0}
         onClick={submitSelected}
       >
-        {mutation.isPending && <Spinner />}
         {t("returnSelected", { count: selectedCount })}
       </Button>
     </div>

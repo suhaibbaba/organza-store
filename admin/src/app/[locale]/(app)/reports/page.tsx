@@ -1,33 +1,25 @@
 "use client";
 
-import { useState } from "react";
 import { useTranslations } from "next-intl";
+import { Spinner, Typography } from "@store/ui";
 import { RoleGuard } from "@/components/auth/role-guard";
 import { useSalesReportQuery } from "@/hooks/use-reports";
-import { DEFAULT_REPORT_PRESET } from "@/constants/reports";
+import { useUrlFilters } from "@/hooks/use-url-filters";
+import { DEFAULT_REPORT_RANGE, REPORT_RANGE_URL_PARAMS } from "@/constants/reports";
 import { rangeForPreset } from "@/lib/report-range";
 import { PageContainer } from "@/components/layout/page-container";
 import { PageHeader } from "@/components/layout/page-header";
 import { ReportRangePicker } from "@/components/reports/report-range-picker";
 import { ReportHeadline } from "@/components/reports/report-headline";
+import { ReportProfitStatement } from "@/components/reports/report-profit-statement";
+import { ReportOrdersCard } from "@/components/reports/report-orders-card";
 import { ReportChannelsCard } from "@/components/reports/report-channels-card";
 import { ReportTopSellers } from "@/components/reports/report-top-sellers";
 import { ReportReturnsCard } from "@/components/reports/report-returns-card";
 import { ReportEmpty, ReportError, ReportLoading } from "@/components/reports/report-states";
-import { Spinner } from "@/components/ui/spinner";
 import type { ReportRangeValue } from "@/types/report";
 
-// Sales & profit for a picked range (spec.md "Reports"). ADMIN ONLY.
-//
-// The gate is report.view, and the real one is on the backend: /api/reports/
-// sales 403s without it. This guard is what stops a typed URL or an old
-// bookmark from showing a signed-in Manager or Employee a broken-looking
-// screen — they get the same "you don't have permission" sentence the API
-// would have answered with, and a way back to a screen that is theirs.
-//
-// Figures only, no chart — the same choice as the dashboard (spec.md "The
-// admin dashboard"): the reader is standing at a counter with a phone in one
-// hand, and a number they can act on beats a trend they have to interpret.
+// Sales & profit behind report.view (the API refuses regardless); figures, no chart: read standing at a counter.
 export default function ReportsPage() {
   return (
     <RoleGuard action="report.view">
@@ -38,48 +30,69 @@ export default function ReportsPage() {
 
 function ReportsPageContent() {
   const t = useTranslations("reports");
-  const [range, setRange] = useState<ReportRangeValue>(() => rangeForPreset(DEFAULT_REPORT_PRESET));
+  const [filters, changeFilters] = useUrlFilters(DEFAULT_REPORT_RANGE, REPORT_RANGE_URL_PARAMS);
+  const range = rangeForPreset(filters.preset, filters);
 
   const { data, isLoading, isFetching, isError, error, refetch } = useSalesReportQuery(range.from, range.to);
   const isEmpty = data !== undefined && data.totals.orderCount === 0 && data.returns.itemCount === 0;
 
+  function changeRange(next: ReportRangeValue) {
+    changeFilters(next.preset === "custom" ? next : { preset: next.preset, from: "", to: "" });
+  }
+
+  function renderBody() {
+    if (isLoading) {
+      return <ReportLoading />;
+    }
+    if (isError) {
+      return <ReportError error={error} onRetry={() => void refetch()} />;
+    }
+    if (!data) {
+      return null;
+    }
+    if (isEmpty) {
+      return <ReportEmpty />;
+    }
+    return (
+      <div className="flex flex-col gap-5">
+        <ReportHeadline totals={data.totals} />
+        <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-[minmax(0,1fr)_22rem]">
+          <div className="flex min-w-0 flex-col gap-5">
+            {data.profit && <ReportProfitStatement profit={data.profit} />}
+            <ReportTopSellers byRevenue={data.topByRevenue} byQuantity={data.topByQuantity} />
+          </div>
+          <div className="flex min-w-0 flex-col gap-5">
+            <ReportOrdersCard totals={data.totals} />
+            <ReportChannelsCard byChannel={data.byChannel} />
+            <ReportReturnsCard returns={data.returns} />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <PageContainer>
-      <PageHeader
-        name="reports"
-        title={t("title")}
-        description={t("subtitle")}
-        actions={<ReportRangePicker value={range} onChange={setRange} />}
-      />
+      <PageHeader name="reports" title={t("title")} description={t("subtitle")} />
 
-      <div className="flex flex-col gap-4">
-        {isLoading ? (
-          <ReportLoading />
-        ) : isError ? (
-          <ReportError error={error} onRetry={() => void refetch()} />
-        ) : data ? (
-          <>
-            {/* The previous range stays on screen while the next one loads, so
-                this spinner is the only thing that changes mid-fetch. */}
-            {isFetching && (
-              <p className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
-                <Spinner className="size-4" />
-                {t("updating")}
-              </p>
-            )}
-
-            {isEmpty ? (
-              <ReportEmpty />
-            ) : (
-              <>
-                <ReportHeadline totals={data.totals} />
-                <ReportChannelsCard byChannel={data.byChannel} />
-                <ReportTopSellers byRevenue={data.topByRevenue} byQuantity={data.topByQuantity} />
-                <ReportReturnsCard returns={data.returns} />
-              </>
-            )}
-          </>
-        ) : null}
+      <div className="flex flex-col gap-5">
+        <div className="flex flex-wrap items-center gap-3">
+          <ReportRangePicker value={range} onChange={changeRange} />
+          {/* The previous range stays on screen while the next one loads. */}
+          {isFetching && !isLoading && (
+            <Typography
+              variant="small"
+              tone="muted"
+              as="p"
+              className="flex items-center gap-2"
+              data-test-selector="reports-updating"
+            >
+              <Spinner />
+              {t("updating")}
+            </Typography>
+          )}
+        </div>
+        {renderBody()}
       </div>
     </PageContainer>
   );

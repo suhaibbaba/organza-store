@@ -1,9 +1,4 @@
-// How a person is named on screen (shared/src/lib/userDisplay.ts).
-//
-// Two things these pin, and both are about damage: an internal id must never
-// reach a screen, and the rule that removes one must never eat a real name.
-// The second is the reason the id test is as narrow as it is — this code
-// deletes words somebody may have typed on purpose.
+// An internal id must never reach a screen, and the rule removing one must never eat a real name.
 import { describe, expect, it } from "vitest";
 import {
   cleanUserName,
@@ -11,12 +6,11 @@ import {
   looksLikeInternalId,
   userDisplayName,
   userInitial,
-} from "@organza/shared/lib/userDisplay";
+} from "@store/shared/lib/userDisplay";
 
 describe("spotting an internal id", () => {
   it("recognizes the shapes that actually reach the name field", () => {
-    // A test nonce: Date.now() in base 36 plus six random characters. This is
-    // the exact shape that renamed a sandbox's Admin to "Admin mt0grbxoqx7nbf".
+    // A test nonce: the exact shape that once renamed the sandbox Admin.
     expect(looksLikeInternalId("mt0grbxoqx7nbf")).toBe(true);
     expect(looksLikeInternalId("mt0lvkbaksaqkk")).toBe(true);
     // A cuid, with and without its leading letter.
@@ -35,8 +29,7 @@ describe("spotting an internal id", () => {
     expect(looksLikeInternalId("a1b2c3d4")).toBe(false);
     // Digits alone are a number somebody meant, not an id.
     expect(looksLikeInternalId("123456789012")).toBe(false);
-    // Arabic and Hebrew can never match — the default locale's names are safe
-    // by construction, which is most of why the rule is ASCII-only.
+    // Arabic and Hebrew can never match, which is why the rule is ASCII-only.
     expect(looksLikeInternalId("محمدعبدالرحمن")).toBe(false);
     expect(looksLikeInternalId("ישראלישראלי")).toBe(false);
   });
@@ -63,13 +56,13 @@ describe("cleaning a stored name", () => {
 
 describe("falling back to the email", () => {
   it("uses the local part, with its punctuation read as spaces", () => {
-    expect(emailLocalPart("suhaib.baba@organza.test")).toBe("suhaib baba");
-    expect(emailLocalPart("employee@organza.test")).toBe("employee");
+    expect(emailLocalPart("suhaib.baba@store.test")).toBe("suhaib baba");
+    expect(emailLocalPart("employee@store.test")).toBe("employee");
     expect(emailLocalPart("a_b-c@x.test")).toBe("a b c");
   });
 
   it("has nothing to give for an address it cannot read", () => {
-    expect(emailLocalPart("@organza.test")).toBeNull();
+    expect(emailLocalPart("@store.test")).toBeNull();
     expect(emailLocalPart("")).toBeNull();
     expect(emailLocalPart(null)).toBeNull();
   });
@@ -79,8 +72,8 @@ describe("what a screen shows", () => {
   it("prefers the name, then the email, then nothing", () => {
     expect(userDisplayName({ name: "Suhaib", email: "s@x.test" })).toBe("Suhaib");
     // The name is only an id, so the address answers instead.
-    expect(userDisplayName({ name: "mt0grbxoqx7nbf", email: "admin@organza.test" })).toBe("admin");
-    expect(userDisplayName({ name: "", email: "manager@organza.test" })).toBe("manager");
+    expect(userDisplayName({ name: "mt0grbxoqx7nbf", email: "admin@store.test" })).toBe("admin");
+    expect(userDisplayName({ name: "", email: "manager@store.test" })).toBe("manager");
     // Nothing usable at all — the caller shows the role, which it translates.
     expect(userDisplayName({ name: null, email: null })).toBeNull();
     expect(userDisplayName(null)).toBeNull();
@@ -89,7 +82,7 @@ describe("what a screen shows", () => {
   it("takes the avatar's letter from whatever is actually shown", () => {
     expect(userInitial({ name: "Suhaib", email: "s@x.test" })).toBe("S");
     // Not "M" from the id: the circle and the name beside it agree.
-    expect(userInitial({ name: "mt0grbxoqx7nbf", email: "admin@organza.test" })).toBe("A");
+    expect(userInitial({ name: "mt0grbxoqx7nbf", email: "admin@store.test" })).toBe("A");
     expect(userInitial({ name: "سهيب", email: null })).toBe("س");
     // Nothing to go on, so the caller's translated role supplies the letter.
     expect(userInitial(null, "مدير")).toBe("م");

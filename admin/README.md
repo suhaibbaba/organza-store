@@ -1,6 +1,6 @@
-# Organza Store — Admin
+# Store Management — Admin
 
-Admin dashboard for the Organza Store system. Next.js (App Router) + TypeScript + Tailwind +
+Admin dashboard for the Store Management system. Next.js (App Router) + TypeScript + Tailwind +
 shadcn/ui-style components, talking to the `backend/` API.
 
 > **Phase 1, Part 1 (this build):** app shell only — i18n, auth, role-aware navigation, and
@@ -20,7 +20,7 @@ cp .env.example .env.local
 # edit .env.local: NEXT_PUBLIC_API_URL should point at a running backend/ instance
 ```
 
-That root install also compiles `shared/` into the `@organza/shared` package this app imports
+That root install also compiles `shared/` into the `@store/shared` package this app imports
 (the shared package's own `prepare` script) — no separate setup step needed, matching `backend/`.
 
 The backend must be running (see `backend/README.md`) with at least the dev seed applied —
@@ -92,7 +92,7 @@ decides three things:
 - **Which icons are served.** `public/app_icon/production/` and `public/app_icon/sandbox/`
   hold the same file names; every icon path is built from the chosen folder in
   `src/constants/pwa.ts`. The sandbox artwork carries an amber `SBX` band.
-- **What the installed app is called** — `Organza Admin` or `Organza Admin (SBX)`, so two tiles on the
+- **What the installed app is called** — `NEXT_PUBLIC_APP_NAME` (default `Store Admin`) or the same with `(SBX)`, so two tiles on the
   same phone can be told apart without opening them.
 - **Whether the SANDBOX chip appears** next to the shop's name in the top bar and on the
   login screen (`src/components/layout/environment-badge.tsx`). Production shows nothing.
@@ -105,15 +105,15 @@ what its destructive-command guards read.
 
 ### The files in each folder
 
-| File | Used for |
-|---|---|
-| `favicon.ico` | Legacy tab icon. A single 16×16. |
-| `icon-32.png` | The tab on any current screen, which draws it at 32 real pixels. **Derived.** |
-| `icon-180.png` | iOS home screen (`apple-touch-icon`). iOS ignores the manifest entirely. |
-| `icon-192.png` | Android launcher icon, and the icon on a pushed notification. |
-| `icon-512.png` | Chrome's install prompt and its generated splash. |
+| File                    | Used for                                                                             |
+| ----------------------- | ------------------------------------------------------------------------------------ |
+| `favicon.ico`           | Legacy tab icon. A single 16×16.                                                     |
+| `icon-32.png`           | The tab on any current screen, which draws it at 32 real pixels. **Derived.**        |
+| `icon-180.png`          | iOS home screen (`apple-touch-icon`). iOS ignores the manifest entirely.             |
+| `icon-192.png`          | Android launcher icon, and the icon on a pushed notification.                        |
+| `icon-512.png`          | Chrome's install prompt and its generated splash.                                    |
 | `icon-maskable-512.png` | Android adaptive icon — mark inside the safe zone, so a circular mask can't clip it. |
-| `icon-mark-512.png` | The mark on transparency, for the in-app boot splash. **Derived.** |
+| `icon-mark-512.png`     | The mark on transparency, for the in-app boot splash. **Derived.**                   |
 
 The two marked **Derived** are generated from `icon-512.png` in the same folder. After
 replacing any artwork, regenerate them (needs `backend/`'s dependencies installed, for
@@ -147,7 +147,7 @@ admin/
 
 Local modules are imported via the `@/` path alias (e.g. `@/lib/api/client`), never relative
 paths. The shared cross-app package is a workspace dependency, imported by package name (e.g.
-`@organza/shared/constants/errors`), not through an alias — so install from the repo root
+`@store/shared/constants/errors`), not through an alias — so install from the repo root
 (`npm install`) and run this app with `npm run dev -w admin`.
 
 ### A note on Next.js 16

@@ -1,0 +1,91 @@
+import type { ThemeOverride } from "@ui/theme/create-theme";
+
+// The same values as themes/teal.css, which is what paints before any JavaScript runs.
+export const tealTheme: ThemeOverride = {
+  color: {
+    "primary-50": "#eef8f7",
+    "primary-100": "#e0f5f2",
+    "primary-200": "#bfe6e2",
+    "primary-300": "#8fcfd0",
+    "primary-500": "#2a8a96",
+    "primary-600": "#197783",
+    "primary-700": "#15626c",
+    "primary-800": "#124f58",
+    "primary-900": "#103f46",
+
+    "success-50": "#eefaf3",
+    "success-100": "#d8f5e5",
+    "success-300": "#9fdfbc",
+    "success-400": "#5cc68d",
+    "success-500": "#2ea866",
+    "success-600": "#1c9455",
+    "success-700": "#16834a",
+    "success-800": "#136f3f",
+    "success-900": "#0f5c34",
+
+    "danger-50": "#fef5f4",
+    "danger-100": "#fbeae8",
+    "danger-200": "#fce8e6",
+    "danger-500": "#c4544a",
+    "danger-600": "#b03a31",
+    "danger-700": "#a03b31",
+    "danger-800": "#7a2720",
+
+    "warning-50": "#fef8ec",
+    "warning-100": "#fdefd3",
+    "warning-300": "#f9cf80",
+    "warning-500": "#f5a623",
+    "warning-700": "#9a5f00",
+    "warning-800": "#774900",
+
+    "neutral-50": "#f1f7fa",
+    "neutral-100": "#e8f0f4",
+    "neutral-200": "#dce8ef",
+    "neutral-300": "#c3d4dd",
+    "neutral-400": "#9cb2be",
+    "neutral-500": "#7d95a2",
+    "neutral-600": "#607d8b",
+    "neutral-700": "#546f7d",
+    "neutral-900": "#102a3a",
+    "ink-muted": "#2c4350",
+
+    sunken: "#f4f8fa",
+    "row-hover": "#f8fbfc",
+    "table-head": "#f4f8fa",
+    "quiet-bg": "#eef4f7",
+    "quiet-ink": "#607d8b",
+
+    rail: "#103f46",
+    "rail-ink": "#b7d0d4",
+    "rail-ink-active": "#ffffff",
+    "rail-hover": "#174a52",
+    "rail-hover-ink": "#ffffff",
+    "rail-active": "#197783",
+    "rail-line": "#1c4c54",
+
+    "tint-3-bg": "#ede8f8",
+    "tint-3-ink": "#5b3ea6",
+    "tint-5-ink": "#16834a",
+    "tint-6-bg": "#f2e7ee",
+    "tint-6-ink": "#8c3a6b",
+
+    "tag-from": "#e0f5f2",
+    "tag-to": "#e6f0f6",
+  },
+  shadow: {
+    card: "0 1px 2px rgb(16 63 70 / 0.04), 0 4px 12px rgb(16 63 70 / 0.06)",
+    "card-hover": "0 8px 24px rgb(16 63 70 / 0.08)",
+    "nav-active": "0 6px 16px -8px rgb(4 24 28 / 0.45)",
+    float: "0 12px 32px -8px rgb(16 63 70 / 0.18)",
+    glass:
+      "0 18px 40px -18px rgb(16 63 70 / 0.4), 0 2px 8px -4px rgb(16 63 70 / 0.14), inset 0 1px 0 rgb(255 255 255 / 0.75), inset 0 -1px 0 rgb(255 255 255 / 0.2)",
+    drawer: "calc(20px * var(--drawer-direction, 1)) 0 48px -16px rgb(16 63 70 / 0.28)",
+    now: "0 10px 22px -14px rgb(22 131 74 / 0.5)",
+    pill: "0 1px 2px rgb(16 42 58 / 0.08)",
+    "field-focus": "0 0 0 0.5px var(--color-primary-600), 0 0 0 3.5px rgb(25 119 131 / 0.15)",
+    "field-error-ring": "0 0 0 0.5px var(--color-danger-600), 0 0 0 3.5px rgb(176 58 49 / 0.15)",
+  },
+  radius: {
+    control: "12px",
+  },
+};

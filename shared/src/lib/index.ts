@@ -2,6 +2,7 @@ export * from "./barcode";
 export * from "./i18n";
 export * from "./imageEdit";
 export * from "./keyboard";
+export * from "./mapLink";
 export * from "./nativeGestures";
 export * from "./permissions";
 export * from "./phone";

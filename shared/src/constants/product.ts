@@ -29,3 +29,6 @@ export const PRODUCT_LOOKUP_KIND = {
   ITEM: "ITEM",
   VARIANT_SELECTION: "VARIANT_SELECTION",
 } as const;
+
+// How many variant photos a product list row shows beside the main one.
+export const VARIANT_IMAGE_PREVIEW_LIMIT = 4;

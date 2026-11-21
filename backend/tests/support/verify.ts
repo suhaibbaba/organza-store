@@ -1,10 +1,4 @@
-// Fixtures for the verification suite.
-//
-// Every one of them is built from scratch to a KNOWN price, cost and stock,
-// and every one is registered for teardown automatically (apiRequest feeds
-// tests/support/fixtureRegistry.ts). Nothing here reads the seed's own
-// products: an assertion about money has to start from a figure this file
-// chose, or it is measuring whatever the sandbox happened to contain.
+// Fixtures built to a known price, cost and stock, never the seed's: money assertions start from figures chosen here.
 import { apiRequest, uniqueId } from "@tests/support/client";
 import { anyCategoryId } from "@tests/support/fixtures";
 import { randomPalestinePhone } from "@tests/support/phone";
@@ -19,8 +13,7 @@ import type {
   VariantTypeDto,
 } from "@tests/types";
 
-// Everything the suite creates carries this in its name, so a leftover is
-// recognisable at a glance in the admin if a teardown ever fails to finish.
+// In every fixture's name, so a leftover is recognisable in the admin.
 const MARKER = "verify";
 
 function fixtureName(what: string): { ar: string; en: string } {
@@ -39,10 +32,7 @@ export interface PricedProductOptions {
 }
 
 /** A simple (variant-less) product at a price and cost the caller chose. */
-export async function createPricedProduct(
-  token: string,
-  options: PricedProductOptions = {}
-): Promise<PricedProduct> {
+export async function createPricedProduct(token: string, options: PricedProductOptions = {}): Promise<PricedProduct> {
   const basePrice = options.basePrice ?? UNIT_PRICE;
   const cost = options.cost === undefined ? UNIT_COST : options.cost;
   const stock = options.stock ?? STOCK_ON_HAND;
@@ -66,8 +56,7 @@ export async function createPricedProduct(
   return { product: res.data, id: res.data.id, basePrice, cost, stock };
 }
 
-// One option type with two values = two variants, which is all the fallback
-// rule needs: one variant that overrides, one that inherits.
+// One type with two values: one variant that overrides, one that inherits.
 async function twoValueSelection(token: string): Promise<{ variantTypeId: string; valueIds: string[] }> {
   const res = await apiRequest<VariantTypeDto[]>("/api/variant-types", { token });
   const colour = res.data?.find((type) => type.slug === "color");
@@ -83,14 +72,10 @@ export interface PricedVariantOptions extends PricedProductOptions {
   variantStock?: number;
 }
 
-/**
- * A product with two variants: the first carries an explicit price AND cost,
- * the second carries neither and must therefore inherit the parent's
- * (CLAUDE.md rule 3 — resolved at read time, never copied).
- */
+/** Two variants: the first sets price and cost, the second inherits the parent's (rule 3). */
 export async function createVariantProduct(
   token: string,
-  options: PricedVariantOptions
+  options: PricedVariantOptions,
 ): Promise<PricedVariantProduct> {
   const basePrice = options.basePrice ?? UNIT_PRICE;
   const cost = options.cost === undefined ? UNIT_COST : options.cost;
@@ -113,8 +98,7 @@ export async function createVariantProduct(
 
   const [first, second] = created.data.variants;
 
-  // Only the FIRST variant is given a price and a cost. The second is left
-  // untouched on purpose: that is the inheritance under test.
+  // Only the first variant is priced: the second's inheritance is what is tested.
   const patched = await apiRequest(`/api/products/${created.data.id}/variants/${first.id}`, {
     method: "PATCH",
     token,
@@ -129,7 +113,9 @@ export async function createVariantProduct(
     token,
     body: { stock },
   });
-  if (stocked.status !== 200) throw new Error(`Could not stock the inheriting variant (HTTP ${stocked.status}).`);
+  if (stocked.status !== 200) {
+    throw new Error(`Could not stock the inheriting variant (HTTP ${stocked.status}).`);
+  }
 
   const reloaded = await readProduct(token, created.data.id);
   const overridden = reloaded.variants.find((variant) => variant.id === first.id)!;
@@ -140,7 +126,9 @@ export async function createVariantProduct(
 
 export async function readProduct(token: string, id: string): Promise<ProductDto> {
   const res = await apiRequest<ProductDto>(`/api/products/${id}`, { token });
-  if (res.status !== 200 || !res.data) throw new Error(`Could not read product ${id} (HTTP ${res.status}).`);
+  if (res.status !== 200 || !res.data) {
+    throw new Error(`Could not read product ${id} (HTTP ${res.status}).`);
+  }
   return res.data;
 }
 
@@ -148,11 +136,15 @@ export async function readProduct(token: string, id: string): Promise<ProductDto
 export async function readStock(token: string, productId: string, variantId?: string): Promise<number> {
   const product = await readProduct(token, productId);
   if (!variantId) {
-    if (product.stock === undefined) throw new Error(`Product ${productId} has variants — ask for one of them.`);
+    if (product.stock === undefined) {
+      throw new Error(`Product ${productId} has variants — ask for one of them.`);
+    }
     return product.stock;
   }
   const variant = product.variants.find((entry) => entry.id === variantId);
-  if (!variant || variant.stock === undefined) throw new Error(`Variant ${variantId} is not on product ${productId}.`);
+  if (!variant || variant.stock === undefined) {
+    throw new Error(`Variant ${variantId} is not on product ${productId}.`);
+  }
   return variant.stock;
 }
 
@@ -172,11 +164,7 @@ export function onlineCustomer(): { customerName: string; customerPhone: string 
   return { customerName: `[${MARKER}] customer ${uniqueId()}`, customerPhone: randomPalestinePhone() };
 }
 
-export function sellRequest(
-  token: string,
-  items: SoldItem[],
-  options: SaleOptions = {}
-): Promise<ApiResult<OrderDto>> {
+export function sellRequest(token: string, items: SoldItem[], options: SaleOptions = {}): Promise<ApiResult<OrderDto>> {
   const channel = options.channel ?? "STORE";
   return apiRequest<OrderDto>("/api/orders", {
     method: "POST",
@@ -207,7 +195,9 @@ export function readOrderRequest(token: string, id: string): Promise<ApiResult<O
 
 export async function readOrder(token: string, id: string): Promise<OrderDto> {
   const res = await readOrderRequest(token, id);
-  if (res.status !== 200 || !res.data) throw new Error(`Could not read order ${id} (HTTP ${res.status}).`);
+  if (res.status !== 200 || !res.data) {
+    throw new Error(`Could not read order ${id} (HTTP ${res.status}).`);
+  }
   return res.data;
 }
 
@@ -219,7 +209,9 @@ export function setStatus(token: string, id: string, status: string): Promise<Ap
 export async function handToCourier(token: string, id: string): Promise<OrderDto> {
   for (const status of ["PREPARING", "HANDED_TO_COURIER"]) {
     const res = await setStatus(token, id, status);
-    if (res.status !== 200) throw new Error(`Could not move order ${id} to ${status} (HTTP ${res.status}).`);
+    if (res.status !== 200) {
+      throw new Error(`Could not move order ${id} to ${status} (HTTP ${res.status}).`);
+    }
   }
   return readOrder(token, id);
 }
@@ -227,7 +219,7 @@ export async function handToCourier(token: string, id: string): Promise<OrderDto
 export function returnOrderRequest(
   token: string,
   id: string,
-  items?: { orderItemId: string; quantity: number }[]
+  items?: { orderItemId: string; quantity: number }[],
 ): Promise<ApiResult<OrderDto>> {
   return apiRequest<OrderDto>(`/api/orders/${id}/return`, {
     method: "POST",
@@ -236,7 +228,10 @@ export function returnOrderRequest(
   });
 }
 
-export function collect(token: string, orderIds: string[]): Promise<ApiResult<{ collectedIds: string[]; alreadyCollectedIds: string[] }>> {
+export function collect(
+  token: string,
+  orderIds: string[],
+): Promise<ApiResult<{ collectedIds: string[]; alreadyCollectedIds: string[] }>> {
   return apiRequest("/api/orders/collect", { method: "POST", token, body: { orderIds } });
 }
 

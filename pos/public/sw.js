@@ -1,62 +1,23 @@
-/*
- * Organza POS — service worker.
- *
- * Two jobs, and only two:
- *   1. Make the installed app open instantly and survive a weak connection,
- *      by caching the app shell (the HTML skeleton) and the build's static
- *      assets.
- *   2. Never, ever serve stale business data. Products, stock and orders all
- *      come from the backend API on a different origin, and this worker
- *      declines to touch anything cross-origin. A cached stock figure would
- *      mean selling something the shop no longer has.
- *
- * The cached HTML is safe to keep because the selling screen is a client
- * component that fetches its data at runtime (see sell-screen.tsx) — the
- * server-rendered document is an empty skeleton, with no user or shop data in
- * it. That is also why the no-store header Next puts on those documents is
- * deliberately not honoured here.
- *
- * This file is NOT bundled — it runs in the service-worker global scope and
- * cannot import from src/. Anything it needs to know about the app is passed
- * on its own script URL by components/pwa/service-worker-registrar.tsx.
- */
+// Caches the app shell and static assets only; never business data (the API is cross-origin and left alone).
 
 const params = new URL(self.location.href).searchParams;
 
-// Changes on every deploy (NEXT_PUBLIC_BUILD_ID, see next.config.ts). A new
-// value means a new script URL, which is what makes the browser install this
-// worker instead of leaving phones running the previous one.
+// New on every deploy (NEXT_PUBLIC_BUILD_ID): a new script URL is what installs the new worker.
 const VERSION = params.get("v") || "dev";
 
-// Locale-prefixed offline pages, passed in so the locale list stays in
-// shared/ and isn't duplicated here. First entry is the default locale.
 const OFFLINE_URLS = (params.get("offline") || "").split(",").filter(Boolean);
 
-// The cookie the app stores the chosen language in (src/constants/locale.ts).
-// Only used offline: with a connection, proxy.ts reads the same cookie and
-// the request never reaches the fallback below.
+// Only used offline; online, proxy.ts reads the same cookie.
 const LOCALE_COOKIE_NAME = params.get("localeCookie") || "";
 
-const CACHE_PREFIX = "organza-pos";
-// Versioned: every deploy starts with an empty shell cache, so nobody is left
-// opening an HTML document from a build that no longer exists.
+const CACHE_PREFIX = "store-pos";
+// Versioned, so no one opens HTML from a build that no longer exists.
 const SHELL_CACHE = `${CACHE_PREFIX}-shell-${VERSION}`;
-// Not versioned: everything in here is content-hashed by Next, so the URL
-// already changes when the file does. Re-downloading unchanged chunks on
-// every deploy would waste the shop's mobile data for nothing.
+// Not versioned: Next content-hashes these, so unchanged chunks are not re-downloaded on every deploy.
 const ASSET_CACHE = `${CACHE_PREFIX}-assets`;
 const MAX_ASSET_ENTRIES = 200;
 
-// Files served straight out of public/ — icons, the manifest, and the
-// stand-in drawn for a product with no photo. The placeholder is in here
-// because it is the one image the app draws when the network is the very
-// thing that failed: fetching it from a dead connection would leave the
-// fallback needing a fallback.
-//
-// The icons live one folder deeper than they used to (app_icon/production/,
-// app_icon/sandbox/ — src/constants/pwa.ts), and the folder segment is
-// matched loosely rather than spelled out: a build only ever requests its own
-// environment's folder, and this file cannot read which one that is.
+// Includes the no-photo placeholder, the one image needed exactly when the network has failed.
 const PUBLIC_ASSET_PATTERN =
   /^\/(app_icon\/[\w-]+\/(favicon\.ico|icon-[\w-]+\.png)|product-placeholder\.svg|manifest\.webmanifest)$/;
 
@@ -64,32 +25,21 @@ self.addEventListener("install", (event) => {
   event.waitUntil(
     (async () => {
       const cache = await caches.open(SHELL_CACHE);
-      // Settled, not all: one unreachable page must not fail the whole
-      // install and leave the app with no worker at all.
+      // Settled: one unreachable page must not fail the whole install.
       await Promise.allSettled(
         OFFLINE_URLS.map(async (url) => {
           const response = await fetch(url, { cache: "reload", credentials: "same-origin" });
           if (isStorable(response)) {
             await cache.put(url, response);
           }
-        })
+        }),
       );
-      // Deliberately NOT skipWaiting() here: taking over silently swaps the
-      // build underneath a page that is already running the old one — and in
-      // this app that page may be holding a half-rung-up sale. This worker
-      // waits, the app notices it waiting and offers the update
-      // (components/pwa/update-prompt.tsx), and the message below is how the
-      // cashier's "update now" tap gets here. Staff leave the app open for
-      // days, so without that prompt they simply stay on yesterday's build.
-    })()
+      // No skipWaiting(): swapping builds under a running page could lose a half-rung-up sale; the app prompts instead.
+    })(),
   );
 });
 
-// The one thing this worker is told to do from the page: stop waiting and
-// become the active worker, which fires `controllerchange` there and lets the
-// page reload onto the new build. The string is duplicated from
-// constants/pwa.ts (SERVICE_WORKER_SKIP_WAITING_MESSAGE) — this file isn't
-// bundled and can't import it.
+// Sent by the update prompt; the string duplicates SERVICE_WORKER_SKIP_WAITING_MESSAGE (this file is not bundled).
 self.addEventListener("message", (event) => {
   if (event.data && event.data.type === "SKIP_WAITING") {
     self.skipWaiting();
@@ -101,39 +51,42 @@ self.addEventListener("activate", (event) => {
     (async () => {
       const names = await caches.keys();
       await Promise.all(
-        names
-          .filter((name) => name.startsWith(CACHE_PREFIX) && name !== SHELL_CACHE && name !== ASSET_CACHE)
-          .map((name) => caches.delete(name))
+        names.filter((name) => name !== SHELL_CACHE && name !== ASSET_CACHE).map((name) => caches.delete(name)),
       );
       await trimCache(ASSET_CACHE, MAX_ASSET_ENTRIES);
       await self.clients.claim();
-    })()
+    })(),
   );
 });
 
 self.addEventListener("fetch", (event) => {
   const request = event.request;
-  if (request.method !== "GET") return;
+  if (request.method !== "GET") {
+    return;
+  }
 
   const url = new URL(request.url);
 
-  // The backend API is a different origin (NEXT_PUBLIC_API_URL): letting it
-  // fall through to the network, uncached, is the whole point.
-  if (url.origin !== self.location.origin) return;
-  if (url.pathname.startsWith("/api/")) return;
-  // React Server Component payloads — the data path for client-side
-  // navigation. Always fresh.
-  if (url.searchParams.has("_rsc")) return;
+  // The API is another origin: it always goes to the network, uncached.
+  if (url.origin !== self.location.origin) {
+    return;
+  }
+  if (url.pathname.startsWith("/api/")) {
+    return;
+  }
+  if (url.searchParams.has("_rsc")) {
+    return;
+  }
   // next/image proxies product photos from the API. Same rule as the API.
-  if (url.pathname.startsWith("/_next/image")) return;
+  if (url.pathname.startsWith("/_next/image")) {
+    return;
+  }
 
   if (request.mode === "navigate") {
     event.respondWith(handleNavigation(event));
     return;
   }
 
-  // Content-hashed by the build (JS, CSS, and the self-hosted fonts under
-  // /_next/static/media) — if the URL matches, the bytes match.
   if (url.pathname.startsWith("/_next/static/")) {
     event.respondWith(cacheFirst(event));
     return;
@@ -144,30 +97,27 @@ self.addEventListener("fetch", (event) => {
   }
 });
 
-/**
- * Network-first: the shop is normally online, and a fresh document is always
- * preferable. The cache is the safety net for a dead or crawling connection.
- */
+// Network-first; the cache is the safety net for a dead or crawling connection.
 async function handleNavigation(event) {
   const request = event.request;
   try {
     const response = await fetch(request);
-    // A successful fetch is returned as-is even when it isn't a 200 — a
-    // navigation redirect (proxy.ts sending a signed-out user to /login)
-    // arrives here as an opaque redirect that only the browser can follow.
+    // Returned as-is even when not 200: a sign-in redirect arrives as an opaque redirect only the browser can follow.
     if (isStorable(response)) {
       const copy = response.clone();
-      event.waitUntil(
-        caches.open(SHELL_CACHE).then((cache) => cache.put(request, copy))
-      );
+      event.waitUntil(caches.open(SHELL_CACHE).then((cache) => cache.put(request, copy)));
     }
     return response;
   } catch {
     const cached = await caches.match(request, { cacheName: SHELL_CACHE });
-    if (cached) return cached;
+    if (cached) {
+      return cached;
+    }
 
     const offline = await matchOfflinePage(request);
-    if (offline) return offline;
+    if (offline) {
+      return offline;
+    }
 
     throw new Error("Offline and nothing cached for this navigation");
   }
@@ -177,7 +127,9 @@ async function handleNavigation(event) {
 async function cacheFirst(event) {
   const request = event.request;
   const cached = await caches.match(request, { cacheName: ASSET_CACHE });
-  if (cached) return cached;
+  if (cached) {
+    return cached;
+  }
 
   const response = await fetch(request);
   if (isStorable(response)) {
@@ -208,38 +160,30 @@ async function staleWhileRevalidate(event) {
   }
 
   const response = await network;
-  if (response) return response;
+  if (response) {
+    return response;
+  }
   throw new Error("Offline and no cached copy of this asset");
 }
 
 /** The offline page for the locale the user was heading to, if we have it. */
 async function matchOfflinePage(request) {
   const localeMatch = new URL(request.url).pathname.match(/^\/([a-z]{2})(?:\/|$)/);
-  // start_url is "/", so a launch made offline arrives here with no locale to
-  // read. The stored choice is what proxy.ts would have used had the request
-  // reached it, which keeps an offline launch in the same language as an
-  // online one — a cashier who set Arabic never sees an English screen just
-  // because the connection dropped.
+  // Offline launches from "/" use the stored language, so a cashier who chose Arabic still gets Arabic.
   const locale = localeMatch ? localeMatch[1] : await storedLocale();
   const forLocale = locale && OFFLINE_URLS.find((url) => url.startsWith(`/${locale}/`));
-  // Falls back to the first entry, which the registrar puts in the app's
-  // default language.
   const url = forLocale || OFFLINE_URLS[0];
-  if (!url) return undefined;
+  if (!url) {
+    return undefined;
+  }
   return caches.match(url, { cacheName: SHELL_CACHE });
 }
 
-/**
- * The language this device chose, read straight from the cookie.
- *
- * The Cookie Store API is the only way a worker can see a cookie, and it is
- * Chromium-only — which is most phones in the shop, and every one of them
- * where an installed app launches offline often. Anywhere it is missing this
- * returns nothing and the caller uses the default language, which is exactly
- * what the old behaviour was.
- */
+// Cookie Store API is Chromium-only; elsewhere this returns nothing and the default language is used.
 async function storedLocale() {
-  if (!LOCALE_COOKIE_NAME || !self.cookieStore) return undefined;
+  if (!LOCALE_COOKIE_NAME || !self.cookieStore) {
+    return undefined;
+  }
   try {
     const cookie = await self.cookieStore.get(LOCALE_COOKIE_NAME);
     return cookie ? cookie.value : undefined;
@@ -248,20 +192,20 @@ async function storedLocale() {
   }
 }
 
-/**
- * `basic` rules out opaque cross-origin responses, and `redirected` matters
- * because a redirected response can never be replayed for a navigation —
- * the browser rejects it outright.
- */
+// Opaque and redirected responses can never be replayed for a navigation.
 function isStorable(response) {
   return Boolean(response) && response.ok && response.type === "basic" && !response.redirected;
 }
 
 /** cache.keys() is insertion-ordered, so the front of the list is the oldest. */
 async function trimCache(cacheName, maxEntries) {
-  if (!(await caches.has(cacheName))) return;
+  if (!(await caches.has(cacheName))) {
+    return;
+  }
   const cache = await caches.open(cacheName);
   const keys = await cache.keys();
-  if (keys.length <= maxEntries) return;
+  if (keys.length <= maxEntries) {
+    return;
+  }
   await Promise.all(keys.slice(0, keys.length - maxEntries).map((key) => cache.delete(key)));
 }

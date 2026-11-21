@@ -19,31 +19,16 @@ import type {
   DbClient,
 } from "@/types/changeRequest";
 import type { ExpenseApprovalStatus } from "@/types";
-import type { PermissionAction } from "@organza/shared/types/permission";
+import type { PermissionAction } from "@store/shared/types/permission";
 
-// ============================================================================
-//  What "approve" actually DOES, per gated field.
-//
-//  This is the only place that knows how to turn a request back into a write.
-//  Everything else in the flow — filing, superseding, listing, deciding,
-//  auditing — is entity-agnostic, which is what makes gating a new field a
-//  matter of adding one entry to the table at the bottom of this file.
-//
-//  Every applier runs inside the approval's transaction. Throwing therefore
-//  leaves the request pending and the entity untouched, which is the honest
-//  outcome when the thing being changed has moved on since it was asked for.
-// ============================================================================
+// What "approve" does per gated field, inside the approval's transaction: throwing leaves it pending.
 
 /** The audit entries an application wants written, minus the actor. */
 export type ApplierAudit = Omit<import("@/types").AuditEntry, "userId">;
 
 export interface ApplyOutcome {
   audits: ApplierAudit[];
-  /**
-   * Work that must NOT be inside the transaction — deleting the image files
-   * off disk, which cannot be rolled back. Runs only once the change is
-   * committed, so a failed approval never destroys the photo it was about.
-   */
+  /** Post-commit work that cannot roll back (deleting image files), so a failed approval never destroys the photo. */
   afterCommit?: () => Promise<void>;
 }
 
@@ -56,61 +41,48 @@ export interface ApplyContext {
 export interface ChangeRequestApplier {
   /** Applies the requested value. */
   apply: (tx: DbClient, request: AppliedChangeRequestRow, ctx: ApplyContext) => Promise<ApplyOutcome>;
-  /**
-   * Optional: what a REFUSAL has to write, when discarding the request alone
-   * would leave the entity stuck. Only expenses need it — an expense that is
-   * turned down has to say so on its own row, or it sits "pending" forever.
-   * Everything else is discarded by doing precisely nothing.
-   */
+  /** Optional: what a refusal must write; only an expense needs it, or it would sit pending forever. */
   reject?: (tx: DbClient, request: AppliedChangeRequestRow, ctx: ApplyContext) => Promise<ApplyOutcome>;
-  /**
-   * Optional: may the person who filed this request also decide it?
-   *
-   * NO for every gated change, and that is the whole design — a gate whose
-   * asker can sign their own ask off is decorative (routes/changeRequests.ts
-   * refuses it by default).
-   *
-   * YES for exactly one field, quick sell's `completion`, because it is not a
-   * gate at all: the sale already happened, and what waits is a piece of data
-   * entry. An Admin or a Manager who quick-sold something at the counter holds
-   * product.complete outright — they could edit that product directly — so
-   * refusing to let them finish their own would only strand it on the "needs
-   * completing" list with nobody able to clear it.
-   */
+  /** Optional: may the asker decide their own request? Never for a gate; only quick sell's `completion`, which is data entry. */
   allowSelfDecision?: boolean;
 }
 
 function requestedValue(request: AppliedChangeRequestRow): ChangeRequestValue {
   const value = request.newValue as ChangeRequestValue | null;
-  if (!value) throw new AppError(409, ERROR_CODES.CHANGE_REQUEST_NOT_APPLICABLE);
+  if (!value) {
+    throw new AppError(409, ERROR_CODES.CHANGE_REQUEST_NOT_APPLICABLE);
+  }
   return value;
 }
 
 function requestedDetail(request: AppliedChangeRequestRow): ChangeRequestValueDetail {
   const detail = requestedValue(request).detail;
-  if (!detail) throw new AppError(409, ERROR_CODES.CHANGE_REQUEST_NOT_APPLICABLE);
+  if (!detail) {
+    throw new AppError(409, ERROR_CODES.CHANGE_REQUEST_NOT_APPLICABLE);
+  }
   return detail;
 }
 
-// A live product, or a refusal. Soft-deleted counts as gone: approving a
-// price for a product that has since been deleted would resurrect a decision
-// about something nobody can sell.
+// A live product or a refusal; soft-deleted counts as gone.
 async function liveProduct(tx: DbClient, id: string) {
   const product = await tx.product.findFirst({ where: { id, deletedAt: null } });
-  if (!product) throw new AppError(409, ERROR_CODES.CHANGE_REQUEST_TARGET_MISSING);
+  if (!product) {
+    throw new AppError(409, ERROR_CODES.CHANGE_REQUEST_TARGET_MISSING);
+  }
   return product;
 }
 
 async function liveVariant(tx: DbClient, id: string) {
   const variant = await tx.variant.findFirst({ where: { id, product: { deletedAt: null } } });
-  if (!variant) throw new AppError(409, ERROR_CODES.CHANGE_REQUEST_TARGET_MISSING);
+  if (!variant) {
+    throw new AppError(409, ERROR_CODES.CHANGE_REQUEST_TARGET_MISSING);
+  }
   return variant;
 }
 
 // --- products --------------------------------------------------------------
 
-// A money field on the product: basePrice, or the "was" price beside it.
-// Both are PRICE_CHANGE in the trail, which is the question anyone asks of it.
+// A money field on the product (basePrice or the "was" price), audited as PRICE_CHANGE.
 function productMoneyApplier(field: "basePrice" | "compareAtPrice"): ChangeRequestApplier {
   return {
     apply: async (tx, request) => {
@@ -136,11 +108,11 @@ function productMoneyApplier(field: "basePrice" | "compareAtPrice"): ChangeReque
 const productStockApplier: ChangeRequestApplier = {
   apply: async (tx, request) => {
     const product = await liveProduct(tx, request.entityId);
-    // Stock moved to the variants while the request waited: the number asked
-    // for no longer means anything, since the parent's own stock is ignored
-    // on a variant-bearing product.
+    // Stock moved to the variants meanwhile: the parent's own stock is ignored on a variant-bearing product.
     const variantCount = await tx.variant.count({ where: { productId: product.id } });
-    if (variantCount > 0) throw new AppError(409, ERROR_CODES.CHANGE_REQUEST_NOT_APPLICABLE);
+    if (variantCount > 0) {
+      throw new AppError(409, ERROR_CODES.CHANGE_REQUEST_NOT_APPLICABLE);
+    }
 
     const stock = Number(requestedValue(request).value);
     await tx.product.update({ where: { id: product.id }, data: { stock } });
@@ -177,22 +149,23 @@ const productVisibilityApplier: ChangeRequestApplier = {
   },
 };
 
-// Which variants the product has. One field for both directions — adding
-// combinations and removing one are the same question, so a second request
-// supersedes the first rather than queueing behind it.
+// The product's variant set: adding and removing are one field, so a newer request supersedes rather than queues.
 const productVariantSetApplier: ChangeRequestApplier = {
   apply: async (tx, request) => {
     const detail = requestedDetail(request);
     const product = await liveProduct(tx, request.entityId);
 
     if (detail.action === CHANGE_REQUEST_VARIANT_SET_ACTIONS.REMOVE) {
-      if (!detail.variantId) throw new AppError(409, ERROR_CODES.CHANGE_REQUEST_NOT_APPLICABLE);
+      if (!detail.variantId) {
+        throw new AppError(409, ERROR_CODES.CHANGE_REQUEST_NOT_APPLICABLE);
+      }
       const variant = await tx.variant.findFirst({
         where: { id: detail.variantId, productId: product.id },
       });
-      // Already gone — nothing left to approve, and saying so beats pretending
-      // the approval did something.
-      if (!variant) throw new AppError(409, ERROR_CODES.CHANGE_REQUEST_TARGET_MISSING);
+      // Already gone — nothing left to approve, and saying so beats pretending the approval did something.
+      if (!variant) {
+        throw new AppError(409, ERROR_CODES.CHANGE_REQUEST_TARGET_MISSING);
+      }
 
       await tx.variant.delete({ where: { id: variant.id } });
       return {
@@ -207,18 +180,23 @@ const productVariantSetApplier: ChangeRequestApplier = {
       };
     }
 
-    if (!detail.optionSelections?.length) throw new AppError(409, ERROR_CODES.CHANGE_REQUEST_NOT_APPLICABLE);
+    if (!detail.optionSelections?.length) {
+      throw new AppError(409, ERROR_CODES.CHANGE_REQUEST_NOT_APPLICABLE);
+    }
 
-    // Re-validated at approval time, not trusted from when it was asked for:
-    // an option value may have been removed in the meantime, and the request
-    // stores ids rather than copied text precisely so this resolves against
-    // whatever those values say now (CLAUDE.md rule 2).
+    // Re-validated at approval: option values are stored as ids and resolved against what they say now (rule 2).
     const valueMap = await validateOptionSelections(detail.optionSelections, product.isNumbered, tx);
     const full = await tx.product.findUniqueOrThrow({
       where: { id: product.id },
       include: { variants: { include: { values: true } } },
     });
-    const { createdSkus } = await generateVariantsForProduct(tx, full, detail.optionSelections, valueMap);
+    const { createdSkus } = await generateVariantsForProduct(
+      tx,
+      full,
+      detail.optionSelections,
+      valueMap,
+      detail.comboStocks,
+    );
 
     return {
       audits: [
@@ -239,8 +217,7 @@ const variantPriceApplier: ChangeRequestApplier = {
   apply: async (tx, request) => {
     const variant = await liveVariant(tx, request.entityId);
     const raw = requestedValue(request).value;
-    // Null is a real answer here, not a missing one: clearing the override is
-    // what makes the variant inherit its parent's price again (CLAUDE.md rule 3).
+    // Null is a real answer: clearing the override makes the variant inherit the parent's price (rule 3).
     const priceOverride = raw === null ? null : new Prisma.Decimal(String(raw));
     await tx.variant.update({ where: { id: variant.id }, data: { priceOverride } });
     return {
@@ -278,18 +255,9 @@ const variantStockApplier: ChangeRequestApplier = {
 
 // --- quick sell (spec.md "Quick sell") --------------------------------------
 
-// The request that reads backwards from every other one: the sale has already
-// happened, so this asks a reviewer to FINISH the product rather than to
-// permit anything. Approving completes it; refusing rules it a one-off. The
-// order is untouched by either — its lines are snapshots, and the money was
-// taken before the request existed.
-//
-// Both outcomes are `completedAt`/`oneOffAt` stamps rather than a status
-// column on Product (CLAUDE.md rule 21): what is WAITING lives on the request,
-// and these only record what has already been decided.
+// Quick sell's completion reads backwards: approving completes the product, refusing rules it a one-off; the order is untouched.
 const productCompletionApplier: ChangeRequestApplier = {
-  // See allowSelfDecision above: reviewing your own quick sale is data entry,
-  // not self-approval.
+  // See allowSelfDecision above: reviewing your own quick sale is data entry, not self-approval.
   allowSelfDecision: true,
 
   apply: async (tx, request, ctx) => {
@@ -297,23 +265,16 @@ const productCompletionApplier: ChangeRequestApplier = {
     if (!product.quickSoldAt || product.completedAt) {
       throw new AppError(409, ERROR_CODES.CHANGE_REQUEST_NOT_APPLICABLE);
     }
-    // The one thing completing cannot leave undone. Without a category the
-    // product is invisible to every category-filtered list in the shop, so
-    // signing it off as an ordinary catalogue item would quietly lose it —
-    // which is exactly what the "needs completing" queue exists to prevent.
-    // Cost, barcode and photographs are genuinely optional: plenty of real
-    // products have no photograph, and cost is Admin-only (CLAUDE.md rule 19),
-    // so a Manager completing a piece leaves it blank and the reports keep
-    // saying so.
-    if (!product.categoryId) throw new AppError(409, ERROR_CODES.PRODUCT_COMPLETION_INCOMPLETE);
+    // Completing requires a category, or the product vanishes from every category list; cost, barcode and photos stay optional.
+    if (!product.categoryId) {
+      throw new AppError(409, ERROR_CODES.PRODUCT_COMPLETION_INCOMPLETE);
+    }
 
     await tx.product.update({
       where: { id: product.id },
       data: {
         completedAt: ctx.decidedAt,
-        // Onto the shelf. A quick-sold product is created hidden — nothing
-        // should browse to a nameless, photoless piece — and completing it is
-        // what publishes it.
+        // A quick-sold product is created hidden; completing it is what publishes it.
         isActive: true,
       },
     });
@@ -331,12 +292,7 @@ const productCompletionApplier: ChangeRequestApplier = {
     };
   },
 
-  // "It was a one-off." NOT an undo: the sale stays exactly where it is, with
-  // its own snapshots of the name and the price, and the money stays taken.
-  // What changes is the catalogue — a piece that will not come back has no
-  // business sitting in it — so the product is soft-deleted alongside the
-  // stamp (CLAUDE.md rule 4: soft delete only, never destroyed), which is also
-  // what takes it off the "needs completing" queue.
+  // "One-off" is NOT an undo: the sale and money stay; the product is soft-deleted (rule 4), leaving the completing queue.
   reject: async (tx, request, ctx) => {
     const product = await liveProduct(tx, request.entityId);
     if (!product.quickSoldAt || product.completedAt) {
@@ -367,7 +323,9 @@ const productCompletionApplier: ChangeRequestApplier = {
 const imageDeletionApplier: ChangeRequestApplier = {
   apply: async (tx, request) => {
     const image = await tx.productImage.findUnique({ where: { id: request.entityId } });
-    if (!image) throw new AppError(409, ERROR_CODES.CHANGE_REQUEST_TARGET_MISSING);
+    if (!image) {
+      throw new AppError(409, ERROR_CODES.CHANGE_REQUEST_TARGET_MISSING);
+    }
 
     await tx.productImage.delete({ where: { id: image.id } });
     return {
@@ -379,8 +337,7 @@ const imageDeletionApplier: ChangeRequestApplier = {
           oldValue: image,
         },
       ],
-      // The files go only once the row is committed — a rolled-back approval
-      // must never leave a product pointing at photos that no longer exist.
+      // Files are deleted only after commit, so a rolled-back approval never points at missing photos.
       afterCommit: () => deleteProductImageFiles(image.filename, image.originalFilename),
     };
   },
@@ -388,22 +345,18 @@ const imageDeletionApplier: ChangeRequestApplier = {
 
 // --- expenses --------------------------------------------------------------
 
-// The approval that used to be POST /api/expenses/:id/approve. The expense's
-// own approvalStatus/approvedBy columns stay: they are the APPLIED state, and
-// every money query in the shop already filters on them ("only approved
-// expenses count"). What moved is the request — the thing an Admin acts on —
-// so there is one approval mechanism rather than two.
+// Expense approval: approvalStatus/approvedBy stay as the applied state every money query filters on.
 async function decideExpense(
   tx: DbClient,
   request: AppliedChangeRequestRow,
   ctx: ApplyContext,
-  status: ExpenseApprovalStatus
+  status: ExpenseApprovalStatus,
 ): Promise<ApplyOutcome> {
   const expense = await tx.expense.findFirst({ where: { id: request.entityId, deletedAt: null } });
-  if (!expense) throw new AppError(409, ERROR_CODES.CHANGE_REQUEST_TARGET_MISSING);
-  // Deciding one that is no longer pending is not a no-op: it would silently
-  // overwrite who signed off what, which is the one thing the record exists
-  // to hold (the rule the old /approve endpoint enforced, kept intact).
+  if (!expense) {
+    throw new AppError(409, ERROR_CODES.CHANGE_REQUEST_TARGET_MISSING);
+  }
+  // Deciding a non-pending expense would overwrite who signed off what, so it is refused.
   if (expense.approvalStatus !== PENDING_EXPENSE_APPROVAL_STATUS) {
     throw new AppError(409, ERROR_CODES.CHANGE_REQUEST_NOT_APPLICABLE);
   }
@@ -429,20 +382,14 @@ async function decideExpense(
 const expenseApprovalApplier: ChangeRequestApplier = {
   apply: (tx, request, ctx) =>
     decideExpense(tx, request, ctx, APPROVED_EXPENSE_APPROVAL_STATUS as ExpenseApprovalStatus),
-  // The one field where refusing has to write something: an expense turned
-  // down is REJECTED on its own row, with who turned it down, rather than
-  // sitting pending forever (spec.md "Expenses").
+  // Refusing an expense writes REJECTED on its own row, with who refused it.
   reject: (tx, request, ctx) =>
     decideExpense(tx, request, ctx, REJECTED_EXPENSE_APPROVAL_STATUS as ExpenseApprovalStatus),
 };
 
-// ---------------------------------------------------------------------------
-//  The registry. Gating a new field is one line here plus an applier above —
-//  no new table, no new endpoint, no new approval screen.
-// ---------------------------------------------------------------------------
+// The registry: gating a new field is one entry here plus an applier above.
 const APPLIERS: Record<string, ChangeRequestApplier> = {
-  [`${CHANGE_REQUEST_ENTITIES.PRODUCT}:${CHANGE_REQUEST_FIELDS.PRODUCT_BASE_PRICE}`]:
-    productMoneyApplier("basePrice"),
+  [`${CHANGE_REQUEST_ENTITIES.PRODUCT}:${CHANGE_REQUEST_FIELDS.PRODUCT_BASE_PRICE}`]: productMoneyApplier("basePrice"),
   [`${CHANGE_REQUEST_ENTITIES.PRODUCT}:${CHANGE_REQUEST_FIELDS.PRODUCT_COMPARE_AT_PRICE}`]:
     productMoneyApplier("compareAtPrice"),
   [`${CHANGE_REQUEST_ENTITIES.PRODUCT}:${CHANGE_REQUEST_FIELDS.PRODUCT_STOCK}`]: productStockApplier,
@@ -458,13 +405,12 @@ const APPLIERS: Record<string, ChangeRequestApplier> = {
   [`${CHANGE_REQUEST_ENTITIES.EXPENSE}:${CHANGE_REQUEST_FIELDS.EXPENSE_APPROVAL}`]: expenseApprovalApplier,
 };
 
-/**
- * The applier for a stored request, or a refusal. A row whose field has since
- * been un-gated has nothing to apply — better to say so than to guess.
- */
+/** The applier for a stored request, or a refusal. */
 export function applierFor(entityType: string, field: string): ChangeRequestApplier {
   const applier = APPLIERS[`${entityType}:${field}`];
-  if (!applier) throw new AppError(409, ERROR_CODES.CHANGE_REQUEST_NOT_APPLICABLE);
+  if (!applier) {
+    throw new AppError(409, ERROR_CODES.CHANGE_REQUEST_NOT_APPLICABLE);
+  }
   return applier;
 }
 
@@ -473,20 +419,7 @@ export function isGatedField(entityType: string, field: string): boolean {
   return Boolean(APPLIERS[`${entityType}:${field}`]);
 }
 
-/**
- * WHICH permission decides this request.
- *
- * `changeRequest.approve` for everything, and that is the rule the approval
- * gate rests on: Admin only, PROTECTED, never grantable (CLAUDE.md rule 22).
- *
- * The single exception is quick sell's `completion` (spec.md "Quick sell"),
- * which is not an approval in the same sense at all — the sale has already
- * completed, and what is being decided is whether a piece of stock becomes a
- * catalogue item. That is catalogue curation, so it answers to
- * `product.complete` (Admin + Manager, CONFIGURABLE) instead. Kept as a lookup
- * here rather than as a branch in the route so that the routes stay
- * entity-agnostic and a future field can differ the same way in one line.
- */
+/** Which permission decides this request: changeRequest.approve, except quick sell's completion, decided by product.complete. */
 const DECISION_PERMISSIONS: Record<string, PermissionAction> = {
   [`${CHANGE_REQUEST_ENTITIES.PRODUCT}:${CHANGE_REQUEST_FIELDS.PRODUCT_COMPLETION}`]: "product.complete",
 };
@@ -495,12 +428,7 @@ export function decisionPermissionFor(entityType: string, field: string): Permis
   return DECISION_PERMISSIONS[`${entityType}:${field}`] ?? "changeRequest.approve";
 }
 
-/**
- * Every action that can decide SOMETHING. What the list and count endpoints
- * check to answer "may this person see requests other than their own" — an
- * Admin sees all of them through changeRequest.approve, a Manager sees the
- * quick-sold ones they are the reviewer for.
- */
+/** Every action that can decide something — what the list and count endpoints check before showing others' requests. */
 export const DECIDER_PERMISSIONS: readonly PermissionAction[] = [
   "changeRequest.approve",
   ...Object.values(DECISION_PERMISSIONS),

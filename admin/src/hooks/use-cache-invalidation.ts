@@ -2,35 +2,28 @@
 
 import { useMemo } from "react";
 import { useQueryClient, type QueryClient } from "@tanstack/react-query";
-import { DASHBOARD_SUMMARY_QUERY_KEY, CATEGORIES_QUERY_KEY, SETTINGS_QUERY_KEY, VARIANT_TYPES_QUERY_KEY } from "@/constants/api";
+import {
+  DASHBOARD_SUMMARY_QUERY_KEY,
+  CATEGORIES_QUERY_KEY,
+  SETTINGS_QUERY_KEY,
+  VARIANT_TYPES_QUERY_KEY,
+} from "@/constants/api";
 import { PRODUCT_LIST_QUERY_KEY } from "@/constants/products";
 import { INVENTORY_LIST_QUERY_KEY } from "@/constants/inventory";
-import {
-  ORDER_COLLECTION_SUMMARY_QUERY_KEY,
-  ORDER_DETAIL_QUERY_KEY,
-  ORDER_LIST_QUERY_KEY,
-} from "@/constants/orders";
-import { REPORTS_SALES_QUERY_KEY, REPORTS_SUMMARY_QUERY_KEY } from "@/constants/reports";
+import { ORDER_COLLECTION_SUMMARY_QUERY_KEY, ORDER_DETAIL_QUERY_KEY, ORDER_LIST_QUERY_KEY } from "@/constants/orders";
+import { REPORTS_DAILY_QUERY_KEY, REPORTS_SALES_QUERY_KEY, REPORTS_SUMMARY_QUERY_KEY } from "@/constants/reports";
 import { USERS_LIST_QUERY_KEY } from "@/constants/users";
+import { EXPENSE_CATEGORIES_QUERY_KEY, EXPENSE_LIST_QUERY_KEY, EXPENSE_SUMMARY_QUERY_KEY } from "@/constants/expenses";
+import { CASH_SESSION_CURRENT_QUERY_KEY } from "@/constants/dashboard";
+import { CHANGE_REQUEST_COUNT_QUERY_KEY, CHANGE_REQUEST_LIST_QUERY_KEY } from "@/constants/changeRequests";
 
-// Which screens a change makes wrong, in one place.
-//
-// Every mutation in the admin ends by calling one of these. They are written
-// per *thing that changed*, not per endpoint, because one write is usually
-// visible on several screens: a photo shows on the product page and in the
-// list, a sale moves stock, the money owed, the dashboard and the reports at
-// once. Keeping that map here — instead of a queryClient call at each call
-// site — is what stops a new screen from quietly going stale.
-//
-// react-query matches query keys by prefix, so invalidating
-// [PRODUCT_LIST_QUERY_KEY] covers the list (keyed [key, filters]) and every
-// product's detail (keyed [key, id]) together. Where a specific id is known
-// it is invalidated explicitly too, so the intent is readable rather than
-// resting on that.
+// Which screens a change makes stale, per thing changed, so a new screen can't quietly go stale.
 
 function invalidateProductViews(queryClient: QueryClient, productId?: string) {
   void queryClient.invalidateQueries({ queryKey: [PRODUCT_LIST_QUERY_KEY] });
-  if (productId) void queryClient.invalidateQueries({ queryKey: [PRODUCT_LIST_QUERY_KEY, productId] });
+  if (productId) {
+    void queryClient.invalidateQueries({ queryKey: [PRODUCT_LIST_QUERY_KEY, productId] });
+  }
   // Stock counts and the low-stock badge are read from the product rows.
   void queryClient.invalidateQueries({ queryKey: [INVENTORY_LIST_QUERY_KEY] });
   // Product/category counts, inventory value and the low-stock tile.
@@ -50,6 +43,10 @@ export interface CacheInvalidation {
   settingsChanged: () => void;
   /** A staff account was added, edited or deactivated. */
   usersChanged: () => void;
+  /** An expense was recorded, edited or deleted. */
+  expensesChanged: () => void;
+  /** An expense category was added, renamed, retired or removed. */
+  expenseCategoriesChanged: () => void;
 }
 
 export function useCacheInvalidation(): CacheInvalidation {
@@ -68,37 +65,29 @@ export function useCacheInvalidation(): CacheInvalidation {
         }
         // What the delivery company still owes.
         void queryClient.invalidateQueries({ queryKey: ORDER_COLLECTION_SUMMARY_QUERY_KEY });
-        // Every order mutation can move stock: creating deducts it (STORE) or
-        // commits it later (online), advancing to PREPARING deducts it, and
-        // cancelling, returning or deleting puts it back — so the catalogue
-        // views go with it, or they keep showing quantities that aren't true.
+        // Every order mutation can move stock, so the catalogue views go with it.
         invalidateProductViews(queryClient);
         // A sale, a cancellation or a return all change the sales figures.
         void queryClient.invalidateQueries({ queryKey: REPORTS_SUMMARY_QUERY_KEY });
         void queryClient.invalidateQueries({ queryKey: [REPORTS_SALES_QUERY_KEY] });
+        void queryClient.invalidateQueries({ queryKey: REPORTS_DAILY_QUERY_KEY });
       },
 
       categoriesChanged() {
         void queryClient.invalidateQueries({ queryKey: CATEGORIES_QUERY_KEY });
-        // Product rows and the product page print their category's name, and
-        // renaming a category has to reach them (CLAUDE.md rule 2: the name
-        // is referenced, never copied).
+        // Product views print the category's name, which is referenced, not copied (rule 2).
         invalidateProductViews(queryClient);
       },
 
       variantTypesChanged() {
         void queryClient.invalidateQueries({ queryKey: VARIANT_TYPES_QUERY_KEY });
-        // Variant rows are labelled with their option values, so a new value
-        // has to be readable on the product it was just added from.
+        // Variant rows are labelled with their option values.
         void queryClient.invalidateQueries({ queryKey: [PRODUCT_LIST_QUERY_KEY] });
       },
 
       settingsChanged() {
         void queryClient.invalidateQueries({ queryKey: SETTINGS_QUERY_KEY });
-        // The currency every price is printed in, and the low-stock threshold
-        // the dashboard tile and the inventory filter both count against
-        // (CLAUDE.md rule 14 — the threshold lives in settings, so changing
-        // it changes what those screens say).
+        // Settings hold the currency and the low-stock threshold those screens count against (rule 14).
         void queryClient.invalidateQueries({ queryKey: DASHBOARD_SUMMARY_QUERY_KEY });
         void queryClient.invalidateQueries({ queryKey: [INVENTORY_LIST_QUERY_KEY] });
       },
@@ -106,7 +95,25 @@ export function useCacheInvalidation(): CacheInvalidation {
       usersChanged() {
         void queryClient.invalidateQueries({ queryKey: [USERS_LIST_QUERY_KEY] });
       },
+
+      expensesChanged() {
+        void queryClient.invalidateQueries({ queryKey: [EXPENSE_LIST_QUERY_KEY] });
+        void queryClient.invalidateQueries({ queryKey: [EXPENSE_SUMMARY_QUERY_KEY] });
+        void queryClient.invalidateQueries({ queryKey: [EXPENSE_CATEGORIES_QUERY_KEY] });
+        // A cash expense moves the drawer's expected amount; every approved one moves net profit.
+        void queryClient.invalidateQueries({ queryKey: CASH_SESSION_CURRENT_QUERY_KEY });
+        void queryClient.invalidateQueries({ queryKey: REPORTS_SUMMARY_QUERY_KEY });
+        void queryClient.invalidateQueries({ queryKey: [REPORTS_SALES_QUERY_KEY] });
+        // An Employee's expense, or deleting a pending one, changes the approvals queue.
+        void queryClient.invalidateQueries({ queryKey: CHANGE_REQUEST_COUNT_QUERY_KEY });
+        void queryClient.invalidateQueries({ queryKey: [CHANGE_REQUEST_LIST_QUERY_KEY] });
+      },
+
+      expenseCategoriesChanged() {
+        void queryClient.invalidateQueries({ queryKey: [EXPENSE_CATEGORIES_QUERY_KEY] });
+        void queryClient.invalidateQueries({ queryKey: [EXPENSE_LIST_QUERY_KEY] });
+      },
     }),
-    [queryClient]
+    [queryClient],
   );
 }

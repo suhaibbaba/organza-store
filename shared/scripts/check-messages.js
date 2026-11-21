@@ -1,24 +1,5 @@
 #!/usr/bin/env node
-/*
- * Refuses a message that lets the DEVICE decide how a figure is written.
- *
- * ICU's `#` shorthand inside a plural — and a bare `{count, number}` — is
- * formatted with `Intl.NumberFormat(locale)` and nothing else, which takes its
- * numbering system from whatever the engine thinks is normal for that locale.
- * Recent ICU writes `ar` in western digits; the ICU on the shop's iOS 15 phone
- * writes it in Arabic-Indic ones. So the same sentence reads "5 قطع" on the
- * counter screen and "٥ قطع" on the phone, beside a price that is in western
- * digits either way, because prices go through lib/format.ts.
- *
- * The fix is one character longer and says what it means: `{count, number,
- * plain}`, where `plain` is a named format both apps hand to next-intl (see
- * @organza/shared/constants/formatting and each app's src/i18n/request.ts).
- *
- * This is a build step rather than a code review because `#` is invisible in a
- * diff full of Arabic and only misbehaves on the one phone nobody develops on.
- *
- *   node shared/scripts/check-messages.js pos/src/messages
- */
+// Refuses ICU `#` and bare `{n, number}`, which take digits from the device (Arabic-Indic on iOS 15); use `{n, number, plain}`.
 "use strict";
 
 const fs = require("node:fs");
@@ -33,14 +14,7 @@ const UNNAMED_NUMBER = /\{\w+, *number *\}/;
 /** `{date, date}` / `{date, time}` with no named format after it. */
 const UNNAMED_DATE = /\{\w+, *(date|time) *\}/;
 
-/**
- * A figure TYPED INTO the Arabic copy in Arabic-Indic digits.
- *
- * The same problem from the other end: "آخر ٧ أيام" is a fixed string, so it
- * reads the same on every device — and reads nothing like the "4,820.00 ₪"
- * beside it, which goes through Intl. One shop, one set of digits, whether
- * the number came from the database or from a translator.
- */
+/** Arabic-Indic digits typed into Arabic copy: the shop uses one set of digits everywhere. */
 const EASTERN_DIGITS = /[\u0660-\u0669\u06F0-\u06F9]/;
 
 function walk(node, keyPath, report) {
@@ -60,7 +34,9 @@ function walk(node, keyPath, report) {
     return;
   }
   if (node && typeof node === "object") {
-    for (const [key, value] of Object.entries(node)) walk(value, keyPath ? `${keyPath}.${key}` : key, report);
+    for (const [key, value] of Object.entries(node)) {
+      walk(value, keyPath ? `${keyPath}.${key}` : key, report);
+    }
   }
 }
 
@@ -90,9 +66,13 @@ function main() {
 
   if (problems.length > 0) {
     console.error(`check-messages: ${problems.length} message(s) would take their digits from the device:\n`);
-    for (const line of problems.slice(0, 20)) console.error(`  ${line}`);
-    if (problems.length > 20) console.error(`  …and ${problems.length - 20} more`);
-    console.error("\nSee @organza/shared/constants/formatting.ts for the named formats and why they exist.");
+    for (const line of problems.slice(0, 20)) {
+      console.error(`  ${line}`);
+    }
+    if (problems.length > 20) {
+      console.error(`  …and ${problems.length - 20} more`);
+    }
+    console.error("\nSee @store/shared/constants/formatting.ts for the named formats and why they exist.");
     process.exit(1);
   }
 

@@ -11,11 +11,9 @@ describe("Inventory", () => {
   const nonce = uniqueId();
   let categoryId: string;
   let productId: string;
-  // Same low stock, but left at the default trackLowStock=false — used to
-  // prove the low-stock filter is opt-in, not threshold-only.
+  // Low stock but trackLowStock=false: proves the filter is opt-in, not threshold-only.
   let untrackedProductId: string;
-  // Read from Setting rather than hard-coded (CLAUDE.md rule 14), so these
-  // assertions still mean something if the sandbox threshold changes.
+  // Read from Settings (rule 14), so this holds if the sandbox threshold changes.
   let threshold: number;
 
   beforeAll(async () => {
@@ -50,15 +48,16 @@ describe("Inventory", () => {
       },
     });
     expect(untracked.status).toBe(201);
-    // Off by default (CLAUDE.md rule 7: stock defaults to 1, so most products
-    // would otherwise always look "low").
+    // Off by default: with stock defaulting to 1 (rule 7) most products would otherwise look low.
     expect(untracked.data!.trackLowStock).toBe(false);
     untrackedProductId = untracked.data!.id;
   });
 
   afterAll(async () => {
     const admin = await getSession("ADMIN");
-    if (productId) await apiRequest(`/api/products/${productId}`, { method: "DELETE", token: admin.token });
+    if (productId) {
+      await apiRequest(`/api/products/${productId}`, { method: "DELETE", token: admin.token });
+    }
     if (untrackedProductId) {
       await apiRequest(`/api/products/${untrackedProductId}`, { method: "DELETE", token: admin.token });
     }
@@ -72,13 +71,11 @@ describe("Inventory", () => {
     expect(res.status).toBe(200);
     const row = res.data!.find((i) => i.id === productId);
     expect(row).toBeDefined();
-    // The admin badges low stock off this flag, not off the threshold alone,
-    // so the list has to carry it per row.
+    // The admin badges low stock off this flag, so the list carries it per row.
     expect(row!.trackLowStock).toBe(true);
   });
 
-  // Stock is Admin/Manager territory (CLAUDE.md rule 5) — an Employee doesn't
-  // get to browse it either, so the list 403s just like an adjustment does.
+  // Stock is Admin/Manager territory (rule 5), so the list refuses an Employee too.
   it("forbids Employee from viewing inventory", async () => {
     const employee = await getSession("EMPLOYEE");
     const res = await apiRequest("/api/inventory", { token: employee.token });
@@ -97,9 +94,7 @@ describe("Inventory", () => {
     expect(res.error?.code).toBe(ERROR_CODES.FORBIDDEN);
   });
 
-  // Ordered deliberately: this lowers stock to 2 (<= the seeded default
-  // lowStockThreshold of 3) so the very next test can rely on it surfacing
-  // under the lowStock filter without touching the global Setting row.
+  // Order matters: this lowers stock to 2 so the next test sees it under lowStock without touching Settings.
   it("adjusts a simple product's stock", async () => {
     const admin = await getSession("ADMIN");
     const res = await apiRequest<StockAdjustResult>(`/api/inventory/products/${productId}`, {
@@ -115,24 +110,22 @@ describe("Inventory", () => {
     const admin = await getSession("ADMIN");
     const res = await apiRequest<StockItem[]>(
       `/api/inventory?lowStock=true&q=${encodeURIComponent(`Vitest Inventory ${nonce}`)}`,
-      { token: admin.token }
+      { token: admin.token },
     );
     expect(res.status).toBe(200);
     const row = res.data!.find((i) => i.id === productId);
     expect(row).toBeDefined();
-    // Both halves of what the admin badge now checks: opted in, and at or
-    // under the threshold.
+    // Both halves of the badge: opted in, and at or under the threshold.
     expect(row!.trackLowStock).toBe(true);
     expect(row!.stock).toBeLessThanOrEqual(threshold);
   });
 
-  // Low-stock alerts are opt-in per product: this one sits at stock = 1,
-  // well under the threshold, but never asked to be tracked.
+  // Low-stock alerts are opt-in per product: under the threshold but never tracked.
   it("omits an untracked product from lowStock even below the threshold", async () => {
     const admin = await getSession("ADMIN");
     const res = await apiRequest<StockItem[]>(
       `/api/inventory?lowStock=true&q=${encodeURIComponent(`Vitest Untracked Inventory ${nonce}`)}`,
-      { token: admin.token }
+      { token: admin.token },
     );
     expect(res.status).toBe(200);
     expect(res.data!.some((i) => i.id === untrackedProductId)).toBe(false);
@@ -142,13 +135,11 @@ describe("Inventory", () => {
     const admin = await getSession("ADMIN");
     const res = await apiRequest<StockItem[]>(
       `/api/inventory?q=${encodeURIComponent(`Vitest Untracked Inventory ${nonce}`)}`,
-      { token: admin.token }
+      { token: admin.token },
     );
     expect(res.status).toBe(200);
     const row = res.data!.find((i) => i.id === untrackedProductId);
     expect(row).toBeDefined();
-    // stock = 1, comfortably under the threshold — but untracked, so the row
-    // reports trackLowStock=false and the admin must not badge it as low.
     expect(row!.stock).toBeLessThanOrEqual(threshold);
     expect(row!.trackLowStock).toBe(false);
   });
@@ -165,12 +156,11 @@ describe("Inventory", () => {
 
     const listed = await apiRequest<StockItem[]>(
       `/api/inventory?lowStock=true&q=${encodeURIComponent(`Vitest Untracked Inventory ${nonce}`)}`,
-      { token: admin.token }
+      { token: admin.token },
     );
     expect(listed.data!.some((i) => i.id === untrackedProductId)).toBe(true);
 
-    // Restore, so the two later assertions in this file stay independent of
-    // ordering if more are added.
+    // Restored, so later assertions in this file don't depend on order.
     await apiRequest(`/api/products/${untrackedProductId}`, {
       method: "PATCH",
       token: admin.token,
@@ -178,8 +168,7 @@ describe("Inventory", () => {
     });
   });
 
-  // Employees can add products but don't manage stock (CLAUDE.md rule 5), so
-  // the flag is dropped rather than honoured on their creates.
+  // Employees don't manage stock (rule 5), so their trackLowStock is dropped on create.
   it("ignores trackLowStock sent by an Employee on create", async () => {
     const employee = await getSession("EMPLOYEE");
     const admin = await getSession("ADMIN");
@@ -198,9 +187,7 @@ describe("Inventory", () => {
     await apiRequest(`/api/products/${res.data!.id}`, { method: "DELETE", token: admin.token });
   });
 
-  // Tracking is a product-level opt-in, and variants have no flag of their
-  // own — every variant row has to report its parent's, or a tracked
-  // variant-bearing product would never badge in the admin.
+  // Variants have no flag of their own, so every row must carry the parent's or it never badges.
   it("reports the parent product's trackLowStock on every variant row", async () => {
     const admin = await getSession("ADMIN");
     const optionSelections = await twoByTwoOptionSelections(admin.token);
@@ -221,7 +208,7 @@ describe("Inventory", () => {
     try {
       const listed = await apiRequest<StockItem[]>(
         `/api/inventory?q=${encodeURIComponent(`Vitest Variant Track ${nonce}`)}`,
-        { token: admin.token }
+        { token: admin.token },
       );
       expect(listed.status).toBe(200);
       const rows = listed.data!.filter((i) => i.productId === trackedVariantProductId);
@@ -232,7 +219,7 @@ describe("Inventory", () => {
       // And the mirror case: the untracked simple product's rows stay false.
       const untracked = await apiRequest<StockItem[]>(
         `/api/inventory?q=${encodeURIComponent(`Vitest Untracked Inventory ${nonce}`)}`,
-        { token: admin.token }
+        { token: admin.token },
       );
       const untrackedRows = untracked.data!.filter((i) => i.productId === untrackedProductId);
       expect(untrackedRows.length).toBeGreaterThan(0);

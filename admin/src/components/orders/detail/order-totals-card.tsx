@@ -1,54 +1,54 @@
+import { Typography } from "@store/ui";
 import { useTranslations } from "next-intl";
-import type { Order } from "@organza/shared/types/order";
+import type { Order } from "@store/shared/types/order";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
-import { Card, CardContent } from "@/components/ui/card";
 
-// The money, in the order it was worked out: line totals summed into a
-// subtotal (item discounts already applied), then the order-level discount,
-// then what was actually charged — the same order of operations the backend
-// used (backend/src/lib/orderPricing.ts).
-export function OrderTotalsCard({ order }: { order: Order }) {
+// Same order of operations as backend/src/lib/orderPricing.ts: subtotal, order discount, total.
+export function OrderTotals({ order }: { order: Order }) {
   const t = useTranslations("orders.detail.totals");
   const tDiscount = useTranslations("orders.discount");
-  const tPayment = useTranslations("orders.payment");
   const formatMoney = useMoneyFormatter();
 
   const hasOrderDiscount = order.discountType !== null && Number(order.discountAmount) > 0;
 
   return (
-    <Card>
-      <CardContent className="flex flex-col gap-2 p-5 text-sm">
-        <div className="flex items-center justify-between gap-3">
-          <span className="text-muted-foreground">{t("subtotal")}</span>
-          <span className="tabular-nums text-foreground">{formatMoney(order.subtotal)}</span>
-        </div>
+    <div
+      className="flex flex-col gap-1 overflow-hidden rounded-panel border border-line text-value"
+      data-test-selector="order-totals"
+    >
+      <div className="flex items-center justify-between gap-3 px-5 pt-3">
+        <Typography variant="body" tone="muted" as="span">
+          {t("subtotal")}
+        </Typography>
+        <Typography variant="body" as="span" className="tabular-nums">
+          {formatMoney(order.subtotal)}
+        </Typography>
+      </div>
 
-        {hasOrderDiscount && (
-          <div className="flex items-center justify-between gap-3">
-            <span className="text-muted-foreground">
-              {t("orderDiscount", {
-                label:
-                  order.discountType === "PERCENT"
-                    ? tDiscount("percentValue", { value: Number(order.discountValue ?? 0) })
-                    : formatMoney(order.discountValue ?? "0"),
-              })}
-            </span>
-            <span className="tabular-nums text-emerald-700 dark:text-emerald-400">
-              −{formatMoney(order.discountAmount)}
-            </span>
-          </div>
-        )}
-
-        <div className="flex items-center justify-between gap-3 border-t border-border pt-2">
-          <span className="font-semibold text-foreground">{t("total")}</span>
-          <span className="text-lg font-bold tabular-nums text-foreground">{formatMoney(order.total)}</span>
+      {hasOrderDiscount && (
+        <div className="flex items-center justify-between gap-3 px-5">
+          <Typography variant="body" tone="muted" as="span">
+            {t("orderDiscount", {
+              label:
+                order.discountType === "PERCENT"
+                  ? tDiscount("percentValue", { value: Number(order.discountValue ?? 0) })
+                  : formatMoney(order.discountValue ?? "0"),
+            })}
+          </Typography>
+          <Typography variant="body" tone="success" as="span" className="tabular-nums" dir="ltr">
+            −{formatMoney(order.discountAmount)}
+          </Typography>
         </div>
+      )}
 
-        <div className="flex items-center justify-between gap-3 border-t border-border pt-2">
-          <span className="text-muted-foreground">{t("paymentMethod")}</span>
-          <span className="text-foreground">{tPayment(order.paymentMethod)}</span>
-        </div>
-      </CardContent>
-    </Card>
+      <div className="mt-2 flex items-center justify-between gap-3 bg-primary-50 px-5 py-3">
+        <Typography variant="body" weight="semibold" as="span">
+          {t("total")}
+        </Typography>
+        <Typography variant="h2" weight="semibold" as="span" className="tabular-nums text-primary-900">
+          {formatMoney(order.total)}
+        </Typography>
+      </div>
+    </div>
   );
 }

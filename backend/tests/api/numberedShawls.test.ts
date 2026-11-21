@@ -1,8 +1,4 @@
-// Numbered shawls at the counter (spec.md "Numbered shawls"): one photo,
-// numbers drawn on it, each number its own piece with its own stock. The
-// parent's label therefore stands for the whole collection — scanning it must
-// never hand the POS something sellable, or a sale would deduct stock from the
-// wrong place.
+// A numbered collection's label must never scan as something sellable, or a sale deducts the wrong stock.
 import { afterAll, describe, expect, it } from "vitest";
 import { apiRequest, uniqueId } from "@tests/support/client";
 import { getSession } from "@tests/support/auth";
@@ -39,7 +35,7 @@ describe("Numbered shawls", () => {
 
     const res = await apiRequest<ProductLookupDto>(
       `/api/products/lookup?code=${encodeURIComponent(product.barcode!)}`,
-      { token: employee.token }
+      { token: employee.token },
     );
 
     expect(res.status).toBe(200);
@@ -52,17 +48,14 @@ describe("Numbered shawls", () => {
     expect(options).toHaveLength(numbers.length);
     expect(options.map((o) => o.variantId)).toEqual(numbers.map((v) => v.id));
 
-    // Each entry carries what the POS needs to render the choice: the number
-    // itself (referenced from the global option value, CLAUDE.md rule 2), the
-    // price it sells at, and what is left of it.
+    // Each entry carries what the picker draws: the number (by reference, rule 2), its price and its stock.
     expect(options[0].stock).toBe(3);
     expect(options[0].available).toBe(true);
     expect(Number(options[0].resolvedPrice)).toBe(60);
     expect(options[0].numberKey.length).toBeGreaterThan(0);
     expect(options[0].number.ar.length).toBeGreaterThan(0);
 
-    // A number with nothing left is listed and flagged, never dropped — the
-    // cashier needs to see that it exists and is gone.
+    // A sold-out number is listed and flagged, never dropped: the cashier must see it is gone.
     expect(options[1].stock).toBe(0);
     expect(options[1].available).toBe(false);
   });
@@ -73,10 +66,9 @@ describe("Numbered shawls", () => {
     createdProductIds.push(product.id);
 
     const target = numbers[1];
-    const res = await apiRequest<ProductLookupDto>(
-      `/api/products/lookup?code=${encodeURIComponent(target.barcode!)}`,
-      { token: admin.token }
-    );
+    const res = await apiRequest<ProductLookupDto>(`/api/products/lookup?code=${encodeURIComponent(target.barcode!)}`, {
+      token: admin.token,
+    });
 
     expect(res.status).toBe(200);
     // A number scanned on its own label IS one piece — no choice to make.
@@ -105,9 +97,7 @@ describe("Numbered shawls", () => {
     expect(await readVariantStock(admin.token, product.id, numbers[1].id)).toBe(3);
   });
 
-  // The kind of product is an explicit flag, not a guess made from the variant
-  // types it happens to use, and it is enforced on the backend (CLAUDE.md rule
-  // 5) — the two shapes never mix, whichever screen the request came from.
+  // The product kind is an explicit flag enforced on the backend: numbers and colours/sizes never mix.
   it("refuses colours and sizes on a numbered product, at creation and afterwards", async () => {
     const admin = await getSession("ADMIN");
     const categoryId = await anyCategoryId(admin.token);
@@ -122,8 +112,7 @@ describe("Numbered shawls", () => {
     expect(created.status).toBe(400);
     expect(created.error?.code).toBe(ERROR_CODES.PRODUCT_NUMBERED_ONLY_NUMBERS);
 
-    // And the same refusal on a numbered product that already exists — the
-    // generate endpoint is the other way colours could sneak in.
+    // The generate endpoint is the other way colours could sneak onto a numbered product.
     const { product } = await createNumberedShawl(admin.token, { stocks: [1, 1] });
     createdProductIds.push(product.id);
 
@@ -195,8 +184,7 @@ describe("Numbered shawls", () => {
     expect(patched.status).toBe(409);
     expect(patched.error?.code).toBe(ERROR_CODES.PRODUCT_NUMBERED_SWITCH_HAS_VARIANTS);
 
-    // Nothing was deleted to make the switch possible — the numbers, their
-    // stock and the flag itself are all exactly as they were.
+    // Nothing was deleted to allow the switch: numbers, stock and flag are as they were.
     const reloaded = await apiRequest<ProductDto>(`/api/products/${product.id}`, { token: admin.token });
     expect(reloaded.data!.isNumbered).toBe(true);
     expect(reloaded.data!.variants.map((v) => v.id)).toEqual(numbers.map((v) => v.id));
@@ -255,16 +243,12 @@ describe("Numbered shawls", () => {
     });
     expect(order.status).toBe(201);
 
-    // A counter sale deducts immediately, and only from the number that was
-    // actually picked.
+    // A counter sale deducts at once, only from the number picked.
     expect(await readVariantStock(admin.token, product.id, chosen.id)).toBe(1);
     expect(await readVariantStock(admin.token, product.id, untouched.id)).toBe(3);
   });
 
-  // The numbers have to be readable on the photograph they are drawn on: a
-  // dark badge disappears on a black abaya, a white one on a cream scarf. The
-  // shop can pin both colours, and what it pins outlives the photograph
-  // (spec.md "Numbered shawls" — the marker colours).
+  // The shop can pin both marker colours, and what it pins outlives the photograph.
   it("stores the marker colours on the product, and keeps them when the photo changes", async () => {
     const admin = await getSession("ADMIN");
     const { product } = await createNumberedShawl(admin.token);

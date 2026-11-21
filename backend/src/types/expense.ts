@@ -4,14 +4,22 @@ import type {
   ExpenseActor,
   ExpenseApprovalStatus,
   ExpenseCategory,
+  ExpenseCategoryTotal,
   ExpenseSortField,
-} from "@organza/shared/types/expense";
+  ExpenseSummary,
+} from "@store/shared/types/expense";
 
-export type { Expense, ExpenseActor, ExpenseApprovalStatus, ExpenseCategory, ExpenseSortField };
+export type {
+  Expense,
+  ExpenseActor,
+  ExpenseApprovalStatus,
+  ExpenseCategory,
+  ExpenseCategoryTotal,
+  ExpenseSortField,
+  ExpenseSummary,
+};
 
-// The raw aggregate behind the expense figures on a report. Postgres hands
-// numeric back as Prisma.Decimal; lib/expenses.ts is the only place that
-// converts it (same convention as the report rows).
+// Raw expense aggregate (Prisma.Decimal), converted only in lib/expenses.ts.
 export interface ExpenseAggregateRow {
   total: Prisma.Decimal | null;
   cashTotal: Prisma.Decimal | null;

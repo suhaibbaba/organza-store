@@ -8,19 +8,9 @@ import {
   BACKUP_STALE_REPORT_EVERY_HOURS,
 } from "@/constants";
 import type { BackupRunStatus, BackupStage } from "@/constants/backup";
-import { MS_PER_HOUR } from "@organza/shared/constants/time";
+import { MS_PER_HOUR } from "@store/shared/constants/time";
 
-/*
- * The API's half of the off-site backup: remembering that it ran.
- *
- * ops/backup.sh does the work and reports its own failures loudly — to the
- * cron log, and to Sentry through `npm run backup:record` below. What that
- * cannot cover is the failure mode this file exists for: a schedule that
- * stopped firing. A cron entry lost in a server move raises no error, fills
- * no log and pages nobody, and the shop finds out on the morning it needs a
- * dump. So the last success is recorded here, served by /health, and its age
- * re-checked on a timer.
- */
+// Records each off-site backup run, so the API can notice a schedule that silently stopped firing.
 
 export interface RecordBackupRunInput {
   status: BackupRunStatus;
@@ -33,13 +23,7 @@ export interface RecordBackupRunInput {
   error?: string | null;
 }
 
-/**
- * Write one run to the noticeboard and trim it back to its limit.
- *
- * Both halves in one transaction so a crash between them cannot leave the
- * table growing forever, and the trim is by row rather than by age: "the last
- * ninety" stays bounded whether the schedule is nightly or hourly.
- */
+/** Writes one run and trims to the row limit in one transaction, so the table stays bounded. */
 export async function recordBackupRun(input: RecordBackupRunInput): Promise<void> {
   await prisma.$transaction(async (tx) => {
     await tx.backupRun.create({
@@ -78,12 +62,7 @@ export interface BackupHealth {
   lastFailure: { at: Date; stage: string | null; error: string | null } | null;
 }
 
-/**
- * The two questions worth asking: when did it last work, and is the most
- * recent thing that happened a failure. Answered in one round trip each and
- * nothing more — this is read by /health, which is on the path of every
- * uptime check the shop points at the API.
- */
+/** When did it last work, and is the latest run a failure — one query each, since /health reads this. */
 export async function getBackupHealth(now: Date = new Date()): Promise<BackupHealth> {
   const [lastSuccess, latest] = await Promise.all([
     prisma.backupRun.findFirst({
@@ -102,10 +81,7 @@ export async function getBackupHealth(now: Date = new Date()): Promise<BackupHea
 
   return {
     lastSuccessAt,
-    // Never having succeeded counts as stale. A deployment that has never
-    // been backed up is the state this whole mechanism is here to make
-    // visible, and reporting it as healthy because the table is empty would
-    // be the one lie that matters.
+    // Never having succeeded counts as stale — an empty table must never read as healthy.
     stale: ageMs === null || ageMs > BACKUP_STALE_AFTER_HOURS * MS_PER_HOUR,
     ageHours: ageMs === null ? null : Math.round(ageMs / MS_PER_HOUR),
     lastFailure:
@@ -115,18 +91,7 @@ export async function getBackupHealth(now: Date = new Date()): Promise<BackupHea
   };
 }
 
-/**
- * The watcher.
- *
- * A failing backup reports itself; a backup that stopped being run reports
- * nothing, because nothing runs. So the API asks instead — on a timer, from
- * the one process that is always up — and files the answer through the same
- * error-tracking layer as everything else (CLAUDE.md rule 20).
- *
- * Throttled hard on purpose. Once a backup has been stale for a month the
- * information is unchanged every six hours, and an alert that repeats that
- * often is one people mute, which would cost more than it buys.
- */
+/** The watcher: a backup that stopped running reports nothing, so the API checks on a timer (throttled, rule 20). */
 let lastStaleReportAt: number | null = null;
 
 export async function reportBackupStaleness(now: Date = new Date()): Promise<BackupHealth | null> {
@@ -134,22 +99,21 @@ export async function reportBackupStaleness(now: Date = new Date()): Promise<Bac
   try {
     health = await getBackupHealth(now);
   } catch (error) {
-    // The database being unreachable is somebody else's alarm — every request
-    // is already failing. Never let the watcher be the thing that crashes the
-    // API it is watching over.
+    // An unreachable database is someone else's alarm; the watcher must never crash the API.
     captureException(error, { check: "backup-staleness" });
     return null;
   }
 
   if (!health.stale) {
-    // Recovered: the next stale spell should be reported at once rather than
-    // waiting out a throttle window left over from the last one.
+    // Recovered: report the next stale spell at once, not after a leftover throttle window.
     lastStaleReportAt = null;
     return health;
   }
 
   const throttleMs = BACKUP_STALE_REPORT_EVERY_HOURS * MS_PER_HOUR;
-  if (lastStaleReportAt !== null && now.getTime() - lastStaleReportAt < throttleMs) return health;
+  if (lastStaleReportAt !== null && now.getTime() - lastStaleReportAt < throttleMs) {
+    return health;
+  }
   lastStaleReportAt = now.getTime();
 
   const age = health.lastSuccessAt
@@ -169,13 +133,7 @@ export async function reportBackupStaleness(now: Date = new Date()): Promise<Bac
   return health;
 }
 
-/**
- * Start the watcher. Called once, from the listen callback.
- *
- * `unref()` so this timer can never hold the process open — a container told
- * to stop should stop, not wait six hours for a backup check it does not owe
- * anybody.
- */
+/** Started once from the listen callback; unref() so the timer never holds the process open. */
 export function startBackupStalenessWatch(): NodeJS.Timeout {
   void reportBackupStaleness();
   const timer = setInterval(() => {

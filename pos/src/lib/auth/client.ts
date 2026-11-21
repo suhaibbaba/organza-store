@@ -3,28 +3,12 @@ import { API_BASE_URL } from "@/lib/env";
 import { getStoredToken, setStoredToken, clearStoredToken } from "@/lib/auth/session-storage";
 import type { Session, SessionUser } from "@/types/auth";
 
-// Better Auth's own `/api/auth/*` routes (see backend/src/index.ts) don't
-// follow our `{ success, data }` envelope — they're a separate library with
-// their own response shape, so this talks to them directly instead of going
-// through lib/api/client.ts.
+// Better Auth's /api/auth/* routes don't use our envelope, so this talks to them directly.
 export class AuthError extends Error {
-  /**
-   * The HTTP status the sign-in came back with, so the screen can tell
-   * "wrong password" apart from "you have tried too often" — Better Auth
-   * rate-limits sign-in, and a 429 that reads as "your password is wrong" is
-   * how a password somebody has just chosen appears to be broken.
-   */
+  // So a 429 (rate-limited) isn't shown as "wrong password".
   readonly status: number;
 
-  /**
-   * Better Auth's own machine-readable reason, when it gives one.
-   *
-   * The status alone is not enough for every case that matters: a 403 from
-   * this endpoint is a DEACTIVATED account (backend lib/auth.ts refuses to
-   * create the session), and telling somebody whose account was switched off
-   * this morning that their password is wrong sends them to reset a password
-   * that was never the problem. Undefined when the response carried no code.
-   */
+  // A 403 here is a deactivated account, which needs a different message than a wrong password.
   readonly code?: string;
 
   constructor(status = 0, code?: string) {
@@ -49,9 +33,6 @@ export async function signInWithEmail(email: string, password: string): Promise<
   });
 
   if (!res.ok) {
-    // Better Auth answers in its own shape, not our { success, error } one,
-    // so the reason is read straight off the body rather than through the
-    // envelope helpers.
     const failure = (await res.json().catch(() => null)) as { code?: string } | null;
     throw new AuthError(res.status, failure?.code);
   }
@@ -65,26 +46,12 @@ export async function signInWithEmail(email: string, password: string): Promise<
   return { token: body.token, user: body.user };
 }
 
-/**
- * Ends the session on the SERVER first, and only then forgets it here.
- *
- * The order matters, and it used to be the other way round: the token was
- * cleared locally and the sign-out request was fired afterwards with its
- * failure swallowed. Offline — on a phone in a shop with bad reception, which
- * is most of them — the screen said "signed out" while the session stayed
- * valid on the server for the full week it lives. On a handset shared between
- * shifts that is a live login nobody can see and nobody can revoke, belonging
- * to somebody who believes they logged out.
- *
- * So the request is awaited, and the caller is told whether it worked. The
- * local token is cleared either way (in `finally`): refusing to clear it
- * would strand somebody on a device they cannot sign out of, which is worse
- * — but "we could not reach the server" is now something the screen can say
- * rather than something nobody finds out.
- */
+// Server first, then locally: clearing the token first left a live session behind whenever the request failed.
 export async function signOut(): Promise<{ revoked: boolean }> {
   const token = getStoredToken();
-  if (!token) return { revoked: true };
+  if (!token) {
+    return { revoked: true };
+  }
 
   try {
     const res = await fetch(`${API_BASE_URL}${AUTH_ENDPOINTS.SIGN_OUT}`, {
@@ -92,8 +59,7 @@ export async function signOut(): Promise<{ revoked: boolean }> {
       headers: { Authorization: `Bearer ${token}` },
       credentials: "include",
     });
-    // A 401 means the server has no such session any more, which is the
-    // outcome asked for — it is revoked, not failed.
+    // A 401 means the session is already gone, which is the outcome asked for.
     return { revoked: res.ok || res.status === 401 };
   } catch {
     return { revoked: false };
@@ -105,12 +71,7 @@ export async function signOut(): Promise<{ revoked: boolean }> {
 export async function fetchSession(): Promise<SessionUser | null> {
   const token = getStoredToken();
   if (!token) {
-    // The cookie mirror can outlive the localStorage token — iOS hands a
-    // freshly installed home-screen app the Safari cookie jar but not its
-    // localStorage. Left in place, that cookie makes proxy.ts wave us
-    // through to a screen AuthGuard immediately sends back to /login, which
-    // proxy sends back here: an install stuck on a spinner forever. Clearing
-    // it here keeps the two stores from ever disagreeing.
+    // iOS gives a new home-screen app Safari's cookies but not its localStorage, so the cookie must go too.
     clearStoredToken();
     return null;
   }

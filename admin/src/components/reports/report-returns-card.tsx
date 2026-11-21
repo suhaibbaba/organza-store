@@ -1,38 +1,40 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { StatCard } from "@/components/layout/stat-card";
+import { Undo2 } from "lucide-react";
+import { Typography } from "@store/ui";
+import { DetailCard } from "@/components/layout/detail-card";
+import { ReportFactRow } from "@/components/reports/report-fact-row";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
-import type { ReturnsTotals } from "@/types/report";
+import type { ReportReturnsCardProps } from "@/types/report";
 
-// What came back. Kept beside the sales figures rather than folded into
-// them: the totals above are already net of returns, so this answers the
-// separate question of how much was handed back — which the (?) on each card
-// says out loud, because "returned value" next to a sales figure invites
-// exactly the wrong subtraction.
-export function ReportReturnsCard({ returns }: { returns: ReturnsTotals }) {
+// Apart from the sales figures, which are already net of returns: the hint says so to stop a double subtraction.
+export function ReportReturnsCard({ returns }: ReportReturnsCardProps) {
   const t = useTranslations("reports.returns");
   const formatMoney = useMoneyFormatter();
 
   return (
-    <section className="flex flex-col gap-3">
-      <h2 className="text-base font-semibold">{t("title")}</h2>
-
+    <DetailCard icon={Undo2} title={t("title")} data-testid="report-returns">
       {returns.itemCount === 0 ? (
-        <p className="rounded-xl border border-dashed border-border bg-card p-4 text-sm text-muted-foreground">
+        <Typography variant="body" tone="muted" as="p">
           {t("empty")}
-        </p>
+        </Typography>
       ) : (
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          <StatCard name="returns-amount" label={t("amount")} tooltip={t("amountHelp")} value={formatMoney(returns.amount)} />
-          <StatCard name="returns-items"
-            label={t("items")}
-            tooltip={t("itemsHelp")}
-            value={returns.itemCount}
-            hint={t("orders", { count: returns.orderCount })}
-          />
-        </div>
+        <>
+          <Typography variant="small" tone="muted" as="p">
+            {t("amountHelp")}
+          </Typography>
+          <dl className="flex flex-col divide-y divide-line">
+            <ReportFactRow name="returns-amount" label={t("amount")} value={formatMoney(returns.amount)} />
+            <ReportFactRow
+              name="returns-items"
+              label={t("items")}
+              hint={t("ordersCount", { count: returns.orderCount })}
+              value={returns.itemCount}
+            />
+          </dl>
+        </>
       )}
-    </section>
+    </DetailCard>
   );
 }

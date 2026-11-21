@@ -1,35 +1,9 @@
 @import "tailwindcss";
+@import "@store/ui/styles/base.css";
+@import "@store/ui/themes/teal.css";
 @import "tw-animate-css";
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-destructive: var(--destructive);
-  --color-destructive-foreground: var(--destructive-foreground);
-  --color-success: var(--success);
-  --color-warning: var(--warning);
-  --color-gift: var(--gift);
-  --color-gift-foreground: var(--gift-foreground);
-  --color-border: var(--border);
-  --color-input: var(--input);
-  --color-ring: var(--ring);
-
-  --font-sans: var(--font-geist-sans);
-  --font-arabic: var(--font-cairo);
-  --font-hebrew: var(--font-noto-hebrew);
-
   /* ------------------------------------------------------------------
      LINE HEIGHTS — sized for Arabic, which is the script this app is
      written in.
@@ -70,17 +44,31 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+
+  /* POS-only corners; card/panel/control come from @store/ui. */
+  --radius-tile: 14px;
+  --radius-photo: 12px;
+
+  /* Motion: one speed for everything that changes colour or lift. Turned
+     off entirely under prefers-reduced-motion (below). */
+  --default-transition-duration: 150ms;
+
+  /* The selling screen's widths, named for what changes at each one
+     (components/sell/screen). Below `tab` (600px) two products per row and a
+     bare top bar; `tab` three per row; `desk` (1000px) the cart becomes a
+     panel beside the grid, which keeps three; `wide` (1200px) the cart
+     panel widens; `xwide` (1400px) four per row. Sized for the counter's
+     Lenovo Miix 320 (1280x800): at 100% scaling the cart and three columns,
+     at 125% (~1024 CSS px) the same, at 150% (~853) the cart moves into its
+     bottom bar and the grid keeps three. */
+  --breakpoint-tab: 37.5rem;
+  --breakpoint-desk: 62.5rem;
+  --breakpoint-wide: 75rem;
+  --breakpoint-xwide: 87.5rem;
 }
 
 :root {
   --radius: 0.75rem;
-
-  /* ------------------------------------------------------------------
-     Fixed chrome — the one place that says how much of the viewport the
-     app's own bars occupy. The bars size themselves from these, and the
-     scrolling page reserves space with the same values, so a bar and the
-     room kept clear for it can never drift apart.
-     ------------------------------------------------------------------ */
 
   /* iOS notch / home indicator. Named once so every bar reads the same
      value (and so it can be forced to a non-zero number when checking the
@@ -91,7 +79,7 @@
   /* The top bar's own row of content — the header sizes itself from this and
      nothing else, so the bar and anything positioned under it (the
      pull-to-refresh indicator) can never drift apart. */
-  --top-bar-height: 3.5rem;
+  --top-bar-height: 3.75rem;
 
   /* What is spoken for at the top of the viewport: the bar plus the notch
      strip it pads itself with. */
@@ -108,157 +96,40 @@
      fallback, deliberately on the generous side: too much room under the
      last cart line is a smaller sin than a line trapped under the bar. */
   --checkout-bar-height: 18rem;
-
-  /* ------------------------------------------------------------------
-     THE BRAND HUES ARE WRITTEN OUT IN FULL BELOW, on purpose.
-
-     Organza's two hues are 206.4 (dark teal, #235C63) and 177.6 (light mint,
-     #B5D3CB), and every brand tint in this file carries one of those two
-     numbers literally. They used to arrive through a custom property, so that
-     the whole theme could be re-hued from one line.
-
-     That one line cost the shop every button.
-
-     Every colour below is written ONCE, in oklch(). The sRGB copy the older
-     phones read is DERIVED from it at build time by
-     @csstools/postcss-oklab-function (see postcss.config.mjs), which puts the
-     plain colour in front and keeps this one inside an @supports — so the two
-     can never say different things, and nobody has to remember to update a
-     second palette. Never type a fallback by hand here; there is one colour
-     per token and this is it.
-
-     What that plugin cannot do is evaluate a colour whose hue arrives through
-     a custom property, because those are substituted in the browser, long
-     after the build has finished. It leaves such a colour exactly as it found
-     it — no fallback, no warning. Those six tokens per theme were therefore
-     the ONLY ones that ever shipped bare: primary, secondary, accent and the
-     focus ring. On a phone without oklch() they resolve to nothing,
-     `background-color: var(--primary)` computes to transparent, and every
-     button in both apps loses its background while its near-white label stays
-     near-white.
-
-     So the hue is a literal here. Re-hueing is a find-and-replace of one
-     number rather than an edit of one line, which is a small price for a
-     palette that cannot silently stop existing — and
-     shared/scripts/check-css-target.js fails the build if any token ever
-     ships without its fallback again.
-
-     One more thing that guard watches, because 15.4 is not the end of it:
-     Safari has known oklch() since 15.4, but 15.x reads the LIGHTNESS as a
-     percentage and throws the whole declaration away when it is a decimal —
-     oklch(44% .06 206.4) paints, oklch(0.44 .06 206.4) does not (it is why
-     Tailwind rewrote its own default theme). Decimals are fine to write here,
-     since the build normalises them to percentages on the way out; the guard
-     is what makes sure it still does.
-     ------------------------------------------------------------------ */
-
-  --background: oklch(0.99 0 0);
-  --foreground: oklch(0.18 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.18 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.18 0 0);
-
-  /* Organza teal — brand primary (#235C63) */
-  --primary: oklch(0.44 0.06 206.4);
-  --primary-foreground: oklch(0.98 0 0);
-
-  --secondary: oklch(0.96 0.012 206.4);
-  --secondary-foreground: oklch(0.28 0.03 206.4);
-
-  --muted: oklch(0.96 0 0);
-  --muted-foreground: oklch(0.48 0 0);
-
-  /* Organza mint — brand light accent (#B5D3CB) */
-  --accent: oklch(0.843 0.034 177.6);
-  --accent-foreground: oklch(0.28 0.03 206.4);
-
-  --destructive: oklch(0.55 0.22 27);
-  --destructive-foreground: oklch(0.98 0 0);
-
-  /* ------------------------------------------------------------------
-     Stock status — red / amber / green, and only ever these three.
-
-     Every screen that shows a quantity or an availability reads them from
-     here (see components/ui/stock-badge.tsx and shared's resolveStockStatus),
-     so "nearly out" is the same amber in the POS search results, the variant
-     picker, the cart and the admin's inventory. They were tailwind palette
-     literals scattered through the admin before, which is how two screens
-     end up disagreeing about what amber is.
-
-     Both are lightnesses that carry text on the page background at >=4.5:1,
-     because that is what they are mostly used as — a word in colour, on a
-     10% wash of the same colour. Deliberately off the brand teal: this is
-     the one part of the interface that must not read as decoration. The
-     label is always spelled out next to them, so nothing here is the only
-     thing saying what the status is.
-     ------------------------------------------------------------------ */
-  --success: oklch(0.52 0.13 152);
-  --warning: oklch(0.56 0.13 70);
-
-  /* Giving stock away — an order of type GIFT (spec.md "Gifts").
-     A violet that is deliberately none of the four colours already in use:
-     not the brand teal, which is what "complete the sale" is drawn in and
-     the one thing a gift must never be mistaken for; not destructive red,
-     because giving a piece to a bride is not an error; and not the amber or
-     green above, which now mean something specific about stock. It is the
-     one action on the selling screen that moves goods without taking money,
-     so it gets a colour of its own and keeps it everywhere — the button, its
-     confirmation, the receipt panel, and the badge in the admin's orders
-     list. */
-  --gift: oklch(0.5 0.16 300);
-  --gift-foreground: oklch(0.99 0 0);
-
-  --border: oklch(0.9 0 0);
-  --input: oklch(0.9 0 0);
-  /* 0.65 alpha keeps the focus ring at >=3:1 against the page background. */
-  --ring: oklch(0.44 0.06 206.4 / 0.65);
 }
 
-@media (prefers-color-scheme: dark) {
+/* From `desk` (1000px) the selling screen's top bar holds the search and its
+   two buttons in its own row — a little taller, still compact. */
+@media (width >= 62.5rem) {
   :root {
-    --background: oklch(0.16 0 0);
-    --foreground: oklch(0.96 0 0);
-    --card: oklch(0.2 0 0);
-    --card-foreground: oklch(0.96 0 0);
-    --popover: oklch(0.2 0 0);
-    --popover-foreground: oklch(0.96 0 0);
+    --top-bar-height: 4rem;
+  }
+}
 
-    /* Same brand hue, lightened so it reads on a dark surface. */
-    --primary: oklch(0.74 0.07 206.4);
-    --primary-foreground: oklch(0.16 0 0);
+/* An invisible touch target of at least 44px around a control that is drawn
+   smaller (the selling screen's 36/40px add, -/+ and delete buttons). The
+   inset is negative only when the control is under 44px, and it is the same
+   on every side, so it needs no left/right and mirrors for free. The control
+   must not clip its overflow. */
+@utility hit-area {
+  position: relative;
+  &::after {
+    content: "";
+    position: absolute;
+    inset: min(0px, calc(50% - 22px));
+  }
+}
 
-    --secondary: oklch(0.28 0.03 206.4);
-    --secondary-foreground: oklch(0.94 0.015 177.6);
-
-    --muted: oklch(0.27 0 0);
-    --muted-foreground: oklch(0.68 0 0);
-
-    --accent: oklch(0.32 0.04 206.4);
-    --accent-foreground: oklch(0.94 0.015 177.6);
-
-    --destructive: oklch(0.62 0.2 27);
-    --destructive-foreground: oklch(0.16 0 0);
-
-    /* Same two hues, re-stepped for a dark surface — lightened rather than
-       flipped, so amber is still amber and green still green. */
-    --success: oklch(0.76 0.15 152);
-    --warning: oklch(0.8 0.14 75);
-    --gift: oklch(0.75 0.14 300);
-    --gift-foreground: oklch(0.16 0 0);
-
-    --border: oklch(1 0 0 / 12%);
-    --input: oklch(1 0 0 / 18%);
-    --ring: oklch(0.74 0.07 206.4 / 0.6);
+/* A horizontal strip that scrolls by touch without drawing a scrollbar
+   under it (the category tiles). */
+@utility scrollbar-none {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
   }
 }
 
 @layer base {
-  * {
-    border-color: var(--border);
-    outline-color: var(--ring);
-  }
-
   html {
     -webkit-text-size-adjust: 100%;
     /* Tailwind's preflight sets 1.5 here, and every element that carries no
@@ -266,20 +137,6 @@
        box and let `truncate` slice its descenders. Same reasoning, and the
        same number, as the type scale above. */
     line-height: 1.8;
-  }
-
-  body {
-    background: var(--background);
-    color: var(--foreground);
-    font-family: var(--font-sans);
-  }
-
-  html[lang="ar"] body {
-    font-family: var(--font-arabic);
-  }
-
-  html[lang="he"] body {
-    font-family: var(--font-hebrew);
   }
 
   /* A placeholder longer than its box is otherwise chopped off mid-word
@@ -333,7 +190,7 @@
      handful of places where text is genuinely worth lifting out — a barcode,
      an order number, a phone number, the diagnostic detail on a failure
      screen — are countable and known. They say so with data-selectable
-     (@organza/shared/constants/gestures.ts).
+     (@store/shared/constants/gestures.ts).
      ------------------------------------------------------------------ */
   body {
     -webkit-touch-callout: none;
@@ -572,12 +429,6 @@ html[data-boot="failed"] .boot-failure {
   word-break: break-word;
 }
 
-/* ------------------------------------------------------------------
-   Scan acknowledgement — see hooks/use-scan-flash.ts. Both animations
-   are told their duration by the component (from constants/pos.ts), so
-   the numbers stay in one place; only the shapes live here.
-   ------------------------------------------------------------------ */
-
 /* The bar under a freshly scanned cart line. It runs down over exactly the
    window in which the same barcode is ignored, so "wait a moment before
    re-scanning this one" is something the cashier can see rather than count.
@@ -610,44 +461,21 @@ html[data-boot="failed"] .boot-failure {
   animation: scan-pulse ease-out forwards;
 }
 
-/* With motion turned down the acknowledgement stays — it just stops moving.
-   Both elements are removed by the component when the window is up, so a
-   still bar and a still frame say the same thing without animating. */
+/* Colour and lift changes are 150ms everywhere; under reduced motion they
+   are instant instead. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    transition-duration: 0ms !important;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-scan-flash-bar,
   .animate-scan-pulse {
     animation: none;
   }
-}
-
-/* ------------------------------------------------------------------
-   Product browser — the drawer's grid (components/sell/browser).
-
-   The panel and its backdrop are animated by the sheet itself; this is
-   only what the cards do once it is open. Each one rises a few pixels
-   into place a beat after the one before it (the delay is an inline
-   style — see constants/pos.ts), so a screenful of photos arrives as a
-   sweep instead of appearing all at once like a page that jumped.
-
-   Opacity and transform only: both are composited, so a full grid of
-   photos animating at the same time costs no layout and stays smooth on
-   the counter's modest laptop. `both` holds the card invisible through
-   its delay; the animation itself is over in a fifth of a second,
-   because this is a till and nobody is here to watch it.
-   ------------------------------------------------------------------ */
-@keyframes pos-browse-card-in {
-  from {
-    opacity: 0;
-    transform: translate3d(0, 8px, 0);
-  }
-  to {
-    opacity: 1;
-    transform: translate3d(0, 0, 0);
-  }
-}
-
-.pos-browse-card {
-  animation: pos-browse-card-in 200ms ease-out both;
 }
 
 /* With motion turned down nothing moves — every card is simply there, at
@@ -657,10 +485,6 @@ html[data-boot="failed"] .boot-failure {
    only waits for an animation that is actually running, so removing
    these leaves opening and closing instant rather than stuck. */
 @media (prefers-reduced-motion: reduce) {
-  .pos-browse-card {
-    animation: none;
-  }
-
   [data-slot="sheet-content"],
   [data-slot="sheet-overlay"] {
     animation: none;

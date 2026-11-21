@@ -1,17 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { PASSWORD_TOKEN_TTL_HOURS } from "@organza/shared/constants/passwordSetup";
+import { PASSWORD_TOKEN_TTL_HOURS } from "@store/shared/constants/passwordSetup";
 import { createPasswordTokenService, hashToken, generateToken } from "@/lib/passwordTokens";
 import { createFakeClock, createInMemoryTokenStore } from "@tests/support/passwordTokens";
 
-// The rules behind an emailed password link, exercised against an in-memory
-// store and a clock the test winds forward (tests/support/passwordTokens.ts).
-//
-// These are deliberately NOT API tests. Single-use under a race, and a link
-// that dies exactly 72 hours after it was issued, are not things a black-box
-// HTTP suite can reach: it cannot make two redemptions arrive together and it
-// cannot wait three days. So the service takes its store and its clock as
-// arguments, and this is where the guarantees are actually proven — the API
-// suite then checks that the real endpoints are wired to them.
+// Single use under a race and the exact 72-hour expiry are proven here; HTTP cannot race or wait three days.
 
 const NOW = Date.UTC(2026, 7, 1, 9, 0, 0);
 const USER = "user-1";
@@ -38,9 +30,10 @@ describe("Password setup tokens", () => {
     it("mints an unguessable token, different every time", () => {
       const tokens = new Set(Array.from({ length: 50 }, () => generateToken()));
       expect(tokens.size).toBe(50);
-      // 32 bytes of randomness -> 43 url-safe characters, and nothing in it
-      // that would need escaping in a URL.
-      for (const token of tokens) expect(token).toMatch(/^[A-Za-z0-9_-]{43}$/);
+      // 32 random bytes → 43 URL-safe characters, nothing that needs escaping.
+      for (const token of tokens) {
+        expect(token).toMatch(/^[A-Za-z0-9_-]{43}$/);
+      }
     });
   });
 
@@ -91,8 +84,7 @@ describe("Password setup tokens", () => {
 
       clock.advanceHours(PASSWORD_TOKEN_TTL_HOURS.RESET + 1);
       expect(await service.inspect(reset.token)).toBeNull();
-      // ...whereas a SET link issued at the same moment would still be alive,
-      // which is the whole reason the two TTLs differ.
+      // A SET link issued at the same moment is still alive: the reason the two TTLs differ.
       expect(PASSWORD_TOKEN_TTL_HOURS.SET).toBeGreaterThan(PASSWORD_TOKEN_TTL_HOURS.RESET);
     });
   });
@@ -103,8 +95,7 @@ describe("Password setup tokens", () => {
       const first = await service.issue(USER, "RESET");
       const second = await service.issue(USER, "RESET");
 
-      // Otherwise an Admin's reset would leave a link that had already gone
-      // astray still working.
+      // Otherwise an Admin's reset would leave a stray link working.
       expect(await service.inspect(first.token)).toBeNull();
       expect(await service.inspect(second.token)).not.toBeNull();
     });

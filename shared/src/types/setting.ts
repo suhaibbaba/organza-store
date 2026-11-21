@@ -1,6 +1,7 @@
 import type { I18n } from "@/types/common";
 import type { LABEL_PRINT_MODES } from "@/constants/label";
 import type { SaleNotificationMode } from "@/types/push";
+import type { FAVICON_SIZES } from "@/constants/brand";
 
 export type LabelPrintMode = (typeof LABEL_PRINT_MODES)[number];
 
@@ -13,10 +14,9 @@ export interface Setting {
   currency: string;
   defaultCountryCode: string;
   lowStockThreshold: number;
-  // --- barcode-label printing ---
-  // Every dimension is in millimetres. THERMAL prints one label per page (the
-  // page is the label); A4_GRID lays labels out on a sheet, so the grid and
-  // page fields below only matter in that mode.
+  logoUrl: string | null; // API-relative ("/uploads/…"); null when no logo was uploaded
+  faviconUrls: FaviconUrls | null; // API-relative, one per size; null = the built-in icons
+  // Barcode labels, in millimetres: THERMAL is one label per page; the grid and page fields apply only to A4_GRID.
   labelPrintMode: LabelPrintMode;
   labelWidthMm: number;
   labelHeightMm: number;
@@ -28,12 +28,19 @@ export interface Setting {
   labelPageMarginLeftMm: number;
   labelGapXMm: number;
   labelGapYMm: number;
-  // --- sale notifications (Web Push to the Admins) ---
-  // The master switch, plus which sales are worth a notification. Only
-  // EVERY_SALE is implemented today; minAmount is stored in every mode so
-  // switching modes never loses the figure the shop chose.
+  // Sale notifications (Web Push to Admins): only EVERY_SALE is implemented; minAmount is kept in every mode.
   saleNotificationsEnabled: boolean;
   saleNotificationMode: SaleNotificationMode;
   saleNotificationMinAmount: string;
   updatedAt: string;
+}
+
+export type FaviconSize = (typeof FAVICON_SIZES)[number];
+export type FaviconUrls = Record<FaviconSize, string>;
+
+// GET /api/branding — open to anyone, so a tab or a home-screen icon can draw it before sign-in.
+export interface Branding {
+  storeName: I18n;
+  logoUrl: string | null;
+  faviconUrls: FaviconUrls | null;
 }

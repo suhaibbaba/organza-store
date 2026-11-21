@@ -1,27 +1,12 @@
-import type { PermissionAction } from "@organza/shared/types/permission";
-import { PERMISSION_ACTIONS } from "@organza/shared/constants/permissions";
+import { PERMISSION_ACTIONS } from "@store/shared/constants/permissions";
+import type { EditableRole, PermissionGroup } from "@/types/permission";
 
-/**
- * The Permissions screen, laid out the way somebody running a shop thinks
- * about it: by the part of the shop each action belongs to, not by the order
- * the actions happen to be declared in.
- *
- * Every action appears in exactly one group — checked below, so an action
- * added to the shared list and forgotten here is a crash on the first render
- * rather than a row that is silently missing from the screen that exists to
- * show all of them.
- *
- * Labels come from `permissions.actions.*` in the message files, keyed by the
- * action itself (CLAUDE.md rule 12), and so do the group headings.
- */
-export interface PermissionGroup {
-  key: string;
-  actions: readonly PermissionAction[];
-}
-
+// Grouped by part of the shop; every action must appear in exactly one group (checked below).
 export const PERMISSION_GROUPS: readonly PermissionGroup[] = [
   {
     key: "products",
+    icon: "package",
+    tone: "blue",
     actions: [
       "product.view",
       "product.create",
@@ -38,14 +23,27 @@ export const PERMISSION_GROUPS: readonly PermissionGroup[] = [
   },
   {
     key: "catalogue",
-    actions: ["category.view", "category.manage", "variantType.create", "variantType.manage", "images.edit", "images.delete"],
+    icon: "layers",
+    tone: "violet",
+    actions: [
+      "category.view",
+      "category.manage",
+      "variantType.create",
+      "variantType.manage",
+      "images.edit",
+      "images.delete",
+    ],
   },
   {
     key: "inventory",
+    icon: "shapes",
+    tone: "green",
     actions: ["inventory.view", "inventory.adjust"],
   },
   {
     key: "orders",
+    icon: "receipt",
+    tone: "amber",
     actions: [
       "order.view",
       "order.create",
@@ -60,6 +58,8 @@ export const PERMISSION_GROUPS: readonly PermissionGroup[] = [
   },
   {
     key: "money",
+    icon: "money",
+    tone: "rose",
     actions: [
       "dashboard.view",
       "report.view",
@@ -75,17 +75,19 @@ export const PERMISSION_GROUPS: readonly PermissionGroup[] = [
   },
   {
     key: "approvals",
+    icon: "clipboard",
+    tone: "red",
     actions: ["changeRequest.create", "changeRequest.view", "changeRequest.cancel", "changeRequest.approve"],
   },
   {
     key: "staff",
+    icon: "users",
+    tone: "neutral",
     actions: ["user.manage", "user.delete", "user.viewSensitive", "settings.manage", "permission.manage"],
   },
 ];
 
-// The screen's own promise: it shows EVERY action. Broken loudly rather than
-// quietly, at module load, because the failure it prevents — a permission
-// that exists and cannot be found anywhere — is invisible by nature.
+// Fails at load: a permission missing from this screen would otherwise be invisible.
 const grouped = PERMISSION_GROUPS.flatMap((group) => group.actions);
 const missing = PERMISSION_ACTIONS.filter((action) => !grouped.includes(action));
 const duplicated = grouped.filter((action, index) => grouped.indexOf(action) !== index);
@@ -93,9 +95,9 @@ const duplicated = grouped.filter((action, index) => grouped.indexOf(action) !==
 if (missing.length > 0 || duplicated.length > 0) {
   throw new Error(
     `PERMISSION_GROUPS must list every action exactly once. Missing: [${missing.join(", ")}]. ` +
-      `Duplicated: [${duplicated.join(", ")}].`
+      `Duplicated: [${duplicated.join(", ")}].`,
   );
 }
 
-/** Roles down the columns of the matrix, in the order the shop thinks of them. */
-export const PERMISSION_MATRIX_ROLES = ["ADMIN", "MANAGER", "EMPLOYEE"] as const;
+// The Admin holds everything and is never editable (rule 22), so only these two are columns.
+export const EDITABLE_ROLES: readonly EditableRole[] = ["MANAGER", "EMPLOYEE"];

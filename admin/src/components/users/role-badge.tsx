@@ -1,19 +1,19 @@
 import { useTranslations } from "next-intl";
-import type { Role } from "@organza/shared/types/role";
-import { cn } from "@/lib/utils";
+import { Badge, type BadgeTone } from "@store/ui";
+import type { Role } from "@store/shared/types/role";
 
-const ROLE_BADGE_STYLES: Record<Role, string> = {
-  ADMIN: "bg-primary/10 text-primary",
-  MANAGER: "bg-amber-500/10 text-amber-600 dark:text-amber-400",
-  EMPLOYEE: "bg-secondary text-secondary-foreground",
+const ROLE_BADGE_TONES: Record<Role, BadgeTone> = {
+  ADMIN: "info",
+  MANAGER: "warning",
+  EMPLOYEE: "neutral",
 };
 
 export function RoleBadge({ role }: { role: Role }) {
   const t = useTranslations("users.role");
 
   return (
-    <span className={cn("inline-flex h-6 shrink-0 items-center rounded-full px-2.5 text-xs font-medium", ROLE_BADGE_STYLES[role])}>
+    <Badge tone={ROLE_BADGE_TONES[role]} plain>
       {t(role)}
-    </span>
+    </Badge>
   );
 }

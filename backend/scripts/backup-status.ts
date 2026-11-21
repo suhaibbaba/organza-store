@@ -1,19 +1,5 @@
 #!/usr/bin/env tsx
-// ============================================================================
-//  npm run backup:status — when did the off-site backup last actually work?
-//
-//  The question you want answered in ten seconds over SSH, and the one nobody
-//  thinks to ask until the morning it matters. Reads the BackupRun table that
-//  ops/backup.sh writes to (via `backup:record`), prints the last few runs,
-//  and EXITS NON-ZERO when the last success is older than
-//  BACKUP_STALE_AFTER_HOURS — so it can be dropped into a monitor or a cron
-//  entry without anybody having to parse its output.
-//
-//    npm run backup:status
-//    npm run backup:status -- --json     # for a monitor rather than a person
-//
-//  Same figures as /health serves; this is the terminal spelling of them.
-// ============================================================================
+// npm run backup:status — prints the last runs and exits non-zero when the last success is older than BACKUP_STALE_AFTER_HOURS.
 import "dotenv/config";
 import { prisma } from "@/lib/prisma";
 import { getBackupHealth } from "@/lib/backups";
@@ -24,7 +10,9 @@ const RECENT_RUNS = 5;
 
 /** Bytes as something a person reads, not as a number they have to divide. */
 function humanBytes(bytes: bigint | null): string {
-  if (bytes === null) return "—";
+  if (bytes === null) {
+    return "—";
+  }
   const units = ["B", "KB", "MB", "GB", "TB"];
   let value = Number(bytes);
   let unit = 0;
@@ -56,15 +44,15 @@ async function main(): Promise<void> {
           },
         },
         null,
-        2
-      )
+        2,
+      ),
     );
     process.exitCode = health.stale ? 1 : 0;
     return;
   }
 
   console.log(RULE);
-  console.log("  Organza — off-site backup status");
+  console.log("  Store Management — off-site backup status");
   console.log(RULE);
 
   if (health.lastSuccessAt) {
@@ -92,7 +80,7 @@ async function main(): Promise<void> {
       console.log(
         `    ${mark} ${run.finishedAt.toISOString()}  db ${size}  ${images}` +
           `${run.destination ? `  -> ${run.destination}` : ""}` +
-          `${run.status === BACKUP_RUN_STATUS.failed ? `  [${run.failedStage ?? "?"}]` : ""}`
+          `${run.status === BACKUP_RUN_STATUS.failed ? `  [${run.failedStage ?? "?"}]` : ""}`,
       );
     }
   }
@@ -103,15 +91,14 @@ async function main(): Promise<void> {
     console.log("");
     console.log("  Nothing here is a fresh copy of the shop. Check, in this order:");
     console.log("    1. the cron entry on the VPS   crontab -l | grep backup");
-    console.log("    2. the log it writes to        tail -50 /var/log/organza-backup.log");
+    console.log("    2. the log it writes to        tail -50 /var/log/store-backup.log");
     console.log("    3. the R2 credentials in the stack's env file (R2_ACCESS_KEY_ID etc.)");
     console.log("    4. run it by hand              ./ops/backup.sh");
     console.log("  See ops/README.md.");
     console.log("");
   }
 
-  // Non-zero so a monitor, or `&&` in a shell, treats a stale backup as the
-  // failure it is. Every other exit here is a success.
+  // Non-zero so a monitor, or `&&` in a shell, treats a stale backup as the failure it is.
   process.exitCode = health.stale ? 1 : 0;
 }
 

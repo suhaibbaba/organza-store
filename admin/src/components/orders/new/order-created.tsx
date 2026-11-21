@@ -2,49 +2,67 @@
 
 import { useTranslations } from "next-intl";
 import { CheckCircle2, Plus } from "lucide-react";
-import type { Order } from "@organza/shared/types/order";
+import { Button, buttonClassName, Typography } from "@store/ui";
+import { GIFT_ORDER_TYPE, ONLINE_ORDER_CHANNELS } from "@store/shared/constants/order";
+import type { Order } from "@store/shared/types/order";
 import { Link } from "@/i18n/navigation";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
-import { Button } from "@/components/ui/button";
 
 interface OrderCreatedProps {
   order: Order;
   onNewOrder: () => void;
 }
 
-// Confirmation the order was written down: the number to quote back in the
-// chat, and the amount. Unlike the POS this does not clear itself — a
-// WhatsApp order is typed sitting down, and the next step (open it, or start
-// another) is a decision, not a queue of customers.
+// Unlike the POS this does not clear itself: opening the order or starting another is the user's decision.
 export function OrderCreated({ order, onNewOrder }: OrderCreatedProps) {
   const t = useTranslations("orders.new.success");
   const formatMoney = useMoneyFormatter();
+  // An online order opens NEW with no stock taken yet; a counter sale or a gift is finished already.
+  const nextStepKey =
+    order.type === GIFT_ORDER_TYPE
+      ? "nextStepGift"
+      : (ONLINE_ORDER_CHANNELS as readonly string[]).includes(order.channel)
+        ? "nextStep"
+        : "nextStepStore";
 
   return (
     <div
-      // Worth announcing to a screen reader without stealing focus.
       role="status"
-      className="flex flex-col items-center gap-4 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-6 py-12 text-center"
+      className="flex flex-col items-center gap-4 rounded-card border border-success-300 bg-success-50 px-6 py-12 text-center"
     >
-      <CheckCircle2 className="size-12 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
+      <CheckCircle2 className="size-12 text-success-700" aria-hidden="true" />
 
       <div className="flex flex-col gap-1">
-        <p className="text-xl font-semibold">{t("title")}</p>
-        <p className="text-sm text-muted-foreground">{t("orderNumber", { number: String(order.orderNumber) })}</p>
+        <Typography variant="h1" weight="semibold" as="p">
+          {t("title")}
+        </Typography>
+        <Typography variant="small" tone="muted">
+          {t("orderNumber", { number: String(order.orderNumber) })}
+        </Typography>
       </div>
 
-      <p className="text-3xl font-bold tabular-nums">{formatMoney(order.total)}</p>
+      <Typography variant="display" as="p" className="text-kpi tabular-nums">
+        {formatMoney(order.total)}
+      </Typography>
 
-      {/* The order opens NEW with nothing taken off the shelf yet — stock
-          moves when preparation starts (spec.md "Stock deduction"). */}
-      <p className="text-sm text-muted-foreground">{t("nextStep")}</p>
+      <Typography variant="small" tone="muted">
+        {t(nextStepKey)}
+      </Typography>
 
       <div className="flex w-full max-w-xs flex-col gap-2">
-        <Button asChild className="w-full sm:w-auto sm:self-center">
-          <Link href={`/orders/${order.id}`}>{t("openOrder")}</Link>
-        </Button>
-        <Button type="button" variant="outline" className="w-full sm:w-auto sm:self-center" onClick={onNewOrder}>
-          <Plus className="size-5" aria-hidden="true" />
+        <Link
+          href={`/orders/${order.id}`}
+          className={buttonClassName({ className: "w-full sm:w-auto sm:self-center" })}
+        >
+          {t("openOrder")}
+        </Link>
+        <Button
+          type="button"
+          variant="secondary"
+          className="w-full sm:w-auto sm:self-center"
+          onClick={onNewOrder}
+          icon={<Plus className="size-5" aria-hidden="true" />}
+        >
           {t("newOrder")}
         </Button>
       </div>

@@ -1,4 +1,10 @@
-import type { PushConfig, PushPayloadType, PushSubscriptionDto, SaleNotificationMode, SaleNotificationPayload } from "@organza/shared/types/push";
+import type {
+  PushConfig,
+  PushPayloadType,
+  PushSubscriptionDto,
+  SaleNotificationMode,
+  SaleNotificationPayload,
+} from "@store/shared/types/push";
 
 export type { PushConfig, PushPayloadType, PushSubscriptionDto, SaleNotificationMode, SaleNotificationPayload };
 
@@ -11,12 +17,7 @@ export interface PushTarget {
   locale: string | null;
 }
 
-/**
- * What became of one push.
- *   sent   — the push service accepted it
- *   gone   — the subscription is dead and has been removed
- *   failed — something else went wrong; the subscription is kept
- */
+/** sent: accepted; gone: dead and removed; failed: anything else, subscription kept. */
 export type PushOutcome = "sent" | "gone" | "failed";
 
 /** Tally of a fan-out, for the log line and for nothing else. */

@@ -1,16 +1,4 @@
-// ============================================================================
-//  1. PRICING
-//
-//  What a piece costs the customer, and where that figure comes from.
-//
-//    * a variant's priceOverride is what is charged when it is set;
-//    * an empty one inherits the parent's basePrice — RESOLVED AT READ TIME,
-//      so re-pricing the parent afterwards reaches it (CLAUDE.md rule 3);
-//    * cost follows exactly the same fallback;
-//    * the SKU is frozen at creation and survives every later edit
-//      (CLAUDE.md rule 1) — printed barcodes must never break;
-//    * compareAtPrice is a "was" price and never touches what is charged.
-// ============================================================================
+// Pricing: an override is charged, an empty one inherits at read time (rule 3), cost likewise, SKU frozen (rule 1).
 import { beforeAll, describe, expect, it } from "vitest";
 import { apiRequest, uniqueId } from "@tests/support/client";
 import { getSession } from "@tests/support/auth";
@@ -100,7 +88,11 @@ describe("Verify · pricing", () => {
       expectPrice(inheriting.resolvedPrice, REPRICED_BASE_PRICE, "inheriting variant's price after the parent moved");
       expectPrice(inheriting.resolvedCost, REPRICED_COST, "inheriting variant's cost after the parent moved");
       // ...and the one with its own figures did not.
-      expectPrice(overridden.resolvedPrice, VARIANT_PRICE_OVERRIDE, "overriding variant's price after the parent moved");
+      expectPrice(
+        overridden.resolvedPrice,
+        VARIANT_PRICE_OVERRIDE,
+        "overriding variant's price after the parent moved",
+      );
       expectPrice(overridden.resolvedCost, VARIANT_COST_OVERRIDE, "overriding variant's cost after the parent moved");
     });
   });
@@ -139,7 +131,9 @@ describe("Verify · pricing", () => {
         costOverride: VARIANT_COST_OVERRIDE,
       });
       const skus = fixture.product.variants.map((variant) => variant.sku);
-      for (const sku of skus) expect(sku, "variant SKUs are ORG-#####-N").toMatch(/^ORG-\d{5}-\d+$/);
+      for (const sku of skus) {
+        expect(sku, "variant SKUs are ORG-#####-N").toMatch(/^ORG-\d{5}-\d+$/);
+      }
 
       await apiRequest(`/api/products/${fixture.id}/variants/${fixture.overridden.id}`, {
         method: "PATCH",
@@ -155,7 +149,7 @@ describe("Verify · pricing", () => {
       const after = await readProduct(admin, fixture.id);
       expect(
         after.variants.map((variant) => variant.sku),
-        `variant SKUs must be frozen at creation — they were ${skus.join(", ")}`
+        `variant SKUs must be frozen at creation — they were ${skus.join(", ")}`,
       ).toEqual(skus);
     });
   });
@@ -177,8 +171,7 @@ describe("Verify · pricing", () => {
     });
 
     it("never changes what is charged when it is set BELOW the base price either", async () => {
-      // A "was" price lower than the current one is nonsense on a tag, but it
-      // must not become a discount if somebody types it.
+      // A lower "was" price must not become a discount.
       const fixture = await createPricedProduct(admin, { basePrice: UNIT_PRICE, compareAtPrice: "1.00" });
       const order = await sell(admin, [{ productId: fixture.id, quantity: 1 }]);
 
@@ -198,10 +191,9 @@ describe("Verify · pricing", () => {
         body: { basePrice: "999.99", cost: "888.88" },
       });
 
-      const after = await apiRequest<{ items: { unitPrice: string; unitCost: string }[] }>(
-        `/api/orders/${order.id}`,
-        { token: admin }
-      );
+      const after = await apiRequest<{ items: { unitPrice: string; unitCost: string }[] }>(`/api/orders/${order.id}`, {
+        token: admin,
+      });
       expectMoney(after.data!.items[0].unitPrice, UNIT_PRICE, "snapshotted unit price after the product was re-priced");
       expectMoney(after.data!.items[0].unitCost, UNIT_COST, "snapshotted unit cost after the product was re-costed");
       expectCount(after.data!.items.length, 1, "the order still has exactly its one line");

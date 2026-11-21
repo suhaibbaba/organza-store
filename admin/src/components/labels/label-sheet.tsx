@@ -7,14 +7,7 @@ import { BarcodeSvg } from "@/components/labels/barcode-svg";
 import type { AppLocale } from "@/i18n/routing";
 import type { LabelGeometry, LabelPrintItem } from "@/types/label";
 
-// The printed sheet. ONE component draws both the on-screen preview and the
-// page the browser prints (see label-print-portal.tsx) — that is what makes
-// "the print matches the preview" a fact rather than a hope. Everything is
-// sized in millimetres so it lands on paper at exactly the configured size,
-// and the colours are pinned to black-on-white: this is paper, and it must
-// not follow the app's dark theme.
-
-// A sticker: name on top, barcode filling whatever height is left.
+// One component draws both the preview and the printed page, in millimetres and black-on-white, so print matches preview.
 function Label({ item, geometry, textDir }: { item: LabelPrintItem; geometry: LabelGeometry; textDir: "rtl" | "ltr" }) {
   return (
     <div className="label-box" style={{ width: `${geometry.widthMm}mm`, height: `${geometry.heightMm}mm` }}>
@@ -22,8 +15,7 @@ function Label({ item, geometry, textDir }: { item: LabelPrintItem; geometry: La
         <span className="label-name">{item.name}</span>
         {item.subtitle && <span className="label-variant">{item.subtitle}</span>}
       </div>
-      {/* No price on the label, on purpose: a price change would otherwise
-          mean reprinting every sticker in the shop. */}
+      {/* No price on the label: a price change would otherwise mean reprinting every sticker in the shop. */}
       <div className="label-code">{item.code ? <BarcodeSvg value={item.code} /> : null}</div>
     </div>
   );
@@ -34,10 +26,7 @@ export function LabelSheet({ items, geometry }: { items: readonly LabelPrintItem
   const textDir = getTextDirection(locale as AppLocale);
   const pages = paginateLabels(items, geometry);
 
-  // The sheet itself is laid out left-to-right in both locales: it is a
-  // picture of a piece of paper, so the first sticker is the top-left one
-  // whichever language the app is in. The text inside each label still runs
-  // in the reading direction of the locale.
+  // The sheet is a picture of paper, so it runs left-to-right in every locale; only the text inside a label follows the locale.
   if (geometry.printMode === "A4_GRID") {
     return (
       <div className="label-sheet" dir="ltr">

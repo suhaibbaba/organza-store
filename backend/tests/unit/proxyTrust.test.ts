@@ -1,24 +1,15 @@
-// ============================================================================
-//  Proxy trust — who the caller looks like (SECURITY-AUDIT.md H1 / H2)
-//
-//  A unit test rather than an API one, because the failure it guards has no
-//  observable symptom over HTTP: a misconfigured deployment answers every
-//  request perfectly, and only the rate limiting is wrong — silently, until
-//  the morning one attacker has locked the whole shop out of the till.
-//
-//  lib/proxyTrust.ts reads its environment once at module load (both values
-//  are decided at startup and baked into express and Better Auth), so each
-//  case resets the module registry and re-imports it under a different
-//  environment.
-// ============================================================================
+// Proxy trust (H1/H2): a wrong setting has no HTTP symptom, only broken rate limits; the module is re-imported per env.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const KEYS = ["TRUST_PROXY", "TRUSTED_PROXY_IPS", "NODE_ENV"] as const;
 
 async function loadWith(env: Partial<Record<(typeof KEYS)[number], string | undefined>>) {
   for (const key of KEYS) {
-    if (env[key] === undefined) delete process.env[key];
-    else process.env[key] = env[key];
+    if (env[key] === undefined) {
+      delete process.env[key];
+    } else {
+      process.env[key] = env[key];
+    }
   }
   vi.resetModules();
   return import("@/lib/proxyTrust");
@@ -33,8 +24,11 @@ describe("proxy trust", () => {
 
   afterEach(() => {
     for (const key of KEYS) {
-      if (original[key] === undefined) delete process.env[key];
-      else process.env[key] = original[key];
+      if (original[key] === undefined) {
+        delete process.env[key];
+      } else {
+        process.env[key] = original[key];
+      }
     }
     vi.resetModules();
   });
@@ -52,9 +46,7 @@ describe("proxy trust", () => {
     });
 
     it("becomes a NUMBER when it is digits, not the string '2'", async () => {
-      // express treats `"2"` and `2` differently: a string is read as a list
-      // of trusted addresses, so the quoted version would trust a proxy
-      // literally named "2" and nothing else.
+      // express reads "2" as a list of trusted addresses and 2 as a hop count.
       const { TRUST_PROXY_SETTING } = await loadWith({ TRUST_PROXY: "2", NODE_ENV: "development" });
 
       expect(TRUST_PROXY_SETTING).toBe(2);
@@ -90,8 +82,7 @@ describe("proxy trust", () => {
 
   describe("what it says on startup", () => {
     it("shouts when a DEPLOYED build has been told nothing", async () => {
-      // The whole point of the check: this is the state the live shop was in,
-      // and nothing anywhere said so.
+      // The state the live shop was in, with nothing saying so.
       const { describeProxyTrust } = await loadWith({
         TRUST_PROXY: undefined,
         TRUSTED_PROXY_IPS: undefined,
@@ -100,8 +91,7 @@ describe("proxy trust", () => {
 
       const described = describeProxyTrust();
       expect(described.level).toBe("warn");
-      // The message has to be actionable at 2am in a deploy log, so it names
-      // both variables and the hop count for the current chain.
+      // Actionable in a 2am deploy log: names both variables and the hop count.
       const text = described.lines.join("\n");
       expect(text).toContain("TRUST_PROXY=2");
       expect(text).toContain("TRUSTED_PROXY_IPS");
@@ -131,10 +121,7 @@ describe("proxy trust", () => {
     });
 
     it("still shouts when only ONE of the two is set — half-configured is the trap", async () => {
-      // Setting TRUST_PROXY alone fixes express and leaves Better Auth's
-      // sign-in limit sharing one bucket with the entire internet, which is
-      // the more dangerous half AND the half that looks fixed. Neither value
-      // on its own counts as done.
+      // TRUST_PROXY alone leaves Better Auth's sign-in limit one bucket for the whole internet: neither half alone is done.
       for (const half of [{ TRUST_PROXY: "2" }, { TRUSTED_PROXY_IPS: "172.18.0.1" }]) {
         const { describeProxyTrust, isProxyTrustConfigured } = await loadWith({
           TRUST_PROXY: undefined,

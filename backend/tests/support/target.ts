@@ -1,29 +1,51 @@
-// Where this run is pointed, and whether it is allowed to go there.
-//
-// Resolved once, at module load, from API_URL — defaulting to the sandbox so
-// that a bare `vitest` can never accidentally mean "the live shop". The guard
-// below is what every entry point (tests/setup.ts and scripts/verify.ts)
-// calls before the first request goes out.
+// The run's target, from API_URL then SANDBOX_API_URL then localhost: a bare run never means the live shop.
 import {
   ALLOW_TODAY_DRAWER_ENV,
+  DEFAULT_API_URL,
   KEEP_FIXTURES_ENV,
   LOCAL_HOSTS,
-  PRODUCTION_HOSTS,
+  PRODUCTION_API_URL_ENV,
+  PRODUCTION_HOST_PREFIXES,
   PRODUCTION_OVERRIDE_ENV,
   PRODUCTION_OVERRIDE_VALUE,
   SAFE_TARGET_KINDS,
-  SANDBOX_API_URL,
+  SANDBOX_API_URL_ENV,
   SANDBOX_HOST_PATTERN,
 } from "@tests/constants";
 import type { ResolvedTarget, TargetKind } from "@tests/types";
 
-function classify(host: string): TargetKind {
+function bareHost(host: string): string {
   const lower = host.toLowerCase();
-  if ((PRODUCTION_HOSTS as readonly string[]).includes(lower)) return "production";
-  if (SANDBOX_HOST_PATTERN.test(lower)) return "sandbox";
-  if ((LOCAL_HOSTS as readonly string[]).includes(lower)) return "local";
-  // Never heard of it. Treated as the live shop until someone says otherwise
-  // — a typo'd URL must not be assumed harmless.
+  const prefix = PRODUCTION_HOST_PREFIXES.find((one) => lower.startsWith(one));
+  return prefix ? lower.slice(prefix.length) : lower;
+}
+
+function productionHost(): string | null {
+  const raw = process.env[PRODUCTION_API_URL_ENV]?.trim();
+  if (!raw) {
+    return null;
+  }
+  try {
+    return bareHost(new URL(raw).hostname);
+  } catch {
+    return null;
+  }
+}
+
+const SANDBOX_API_URL = process.env[SANDBOX_API_URL_ENV]?.trim() || DEFAULT_API_URL;
+
+export function classify(host: string, liveHost: string | null = productionHost()): TargetKind {
+  const lower = host.toLowerCase();
+  if (liveHost && bareHost(lower) === liveHost) {
+    return "production";
+  }
+  if (SANDBOX_HOST_PATTERN.test(lower)) {
+    return "sandbox";
+  }
+  if ((LOCAL_HOSTS as readonly string[]).includes(lower)) {
+    return "local";
+  }
+  // Never heard of it: treated as the live shop, since a typo'd URL must not be assumed harmless.
   return "unrecognised";
 }
 
@@ -38,7 +60,7 @@ function resolve(): ResolvedTarget {
   } catch {
     throw new Error(
       `API_URL is not a valid URL: ${JSON.stringify(raw)}.\n` +
-        `Leave it unset to target the sandbox (${SANDBOX_API_URL}), or set a full origin such as http://localhost:4000.`
+        `Leave it unset to target ${SANDBOX_API_URL_ENV} (${SANDBOX_API_URL}), or set a full origin such as http://localhost:4000.`,
     );
   }
 
@@ -62,13 +84,7 @@ export function keepFixtures(): boolean {
   return process.env[KEEP_FIXTURES_ENV] === "1" || process.env[KEEP_FIXTURES_ENV] === "true";
 }
 
-/**
- * May this run OPEN the drawer for the window that contains "now"?
- *
- * A drawer is one per calendar day and there is no way to delete one, so
- * opening today's takes the shop's own day away from it. Off unless the run
- * says the database is disposable.
- */
+/** Today's drawer cannot be deleted, so opening it takes the shop's day; only on a disposable database. */
 export function mayOpenTodaysDrawer(): boolean {
   return process.env[ALLOW_TODAY_DRAWER_ENV] === "1" || process.env[ALLOW_TODAY_DRAWER_ENV] === "true";
 }
@@ -95,7 +111,7 @@ function refusalMessage(target: ResolvedTarget): string {
     "  expenses and opens cash drawers. Against real data that is a stranger",
     "  ringing up sales on the shop's till.",
     "",
-    "  Run it against the sandbox instead (the default — just unset API_URL):",
+    `  Run it against the sandbox instead (the default — unset API_URL and set ${SANDBOX_API_URL_ENV}):`,
     `      ${SANDBOX_API_URL}`,
     "",
     "  If you genuinely mean the live shop, say so in full:",
@@ -132,28 +148,24 @@ export function targetBanner(target: ResolvedTarget = TARGET): string {
   return `🎯  Target: ${target.url}  (${target.kind}, from ${source})`;
 }
 
-/**
- * The gate. Sandbox and local run without ceremony; the live shop — and any
- * host this file has never heard of — is refused unless the override says
- * otherwise, and even then it shouts first.
- *
- * Throws rather than exiting, so vitest reports it as a failure rather than
- * as a silent zero-test run.
- */
-// setupFiles run once per TEST FILE, so without this the banner (or the
-// production warning) would be printed thirty times in a row and stop being
-// read. The check itself is cheap and repeats; only the announcement doesn't.
+// setupFiles run per test file, so the banner is announced once while the gate itself repeats.
 let announced = false;
 
 export function assertSafeTarget(target: ResolvedTarget = TARGET): void {
   if (isSafeTarget(target)) {
-    if (!announced) console.info(targetBanner(target));
+    if (!announced) {
+      console.info(targetBanner(target));
+    }
     announced = true;
     return;
   }
 
-  if (!target.overridden) throw new Error(refusalMessage(target));
+  if (!target.overridden) {
+    throw new Error(refusalMessage(target));
+  }
 
-  if (!announced) console.warn(warningBanner(target));
+  if (!announced) {
+    console.warn(warningBanner(target));
+  }
   announced = true;
 }

@@ -1,7 +1,8 @@
 "use client";
 
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { can } from "@organza/shared/lib/permissions";
+import { can } from "@store/shared/lib/permissions";
+import { CHANGE_REQUEST_ENTITIES } from "@store/shared/constants/changeRequest";
 import {
   CHANGE_REQUEST_COUNT_QUERY_KEY,
   CHANGE_REQUEST_COUNT_REFETCH_MS,
@@ -27,13 +28,7 @@ export function useChangeRequestsQuery(filters: ChangeRequestListFilters) {
   });
 }
 
-/**
- * The number on the navigation badge.
- *
- * Only asked for by somebody who may read requests at all — otherwise this
- * would be a 403 on every screen. The backend decides WHOSE requests are
- * counted (see lib/api/change-requests.ts), so nothing here needs to know.
- */
+// Asked only by someone who may read requests; the backend decides whose are counted.
 export function useChangeRequestCountQuery() {
   const { user } = useSession();
   return useQuery({
@@ -45,15 +40,10 @@ export function useChangeRequestCountQuery() {
   });
 }
 
-/**
- * Approving or rejecting. Approving APPLIES the change, so everything that
- * change could be about has to be reconsidered stale — a price, a stock
- * figure, a photo, a product's visibility, its variants, or an expense that
- * has just become real money.
- */
+// Approving applies the change, so everything it could touch is stale.
 export function useDecideChangeRequestMutation() {
   const queryClient = useQueryClient();
-  const { productChanged } = useCacheInvalidation();
+  const { productChanged, expensesChanged } = useCacheInvalidation();
 
   return useMutation({
     mutationFn: ({ id, decision, note }: { id: string; decision: "approve" | "reject"; note?: string }) =>
@@ -61,22 +51,16 @@ export function useDecideChangeRequestMutation() {
     onSuccess: (request) => {
       void queryClient.invalidateQueries({ queryKey: [CHANGE_REQUEST_LIST_QUERY_KEY] });
       void queryClient.invalidateQueries({ queryKey: CHANGE_REQUEST_COUNT_QUERY_KEY });
-      // productId is null for an expense; productChanged() with no id still
-      // refreshes the catalogue views, which is the safe answer either way.
+      if (request.entityType === CHANGE_REQUEST_ENTITIES.EXPENSE) {
+        expensesChanged();
+        return;
+      }
       productChanged(request.productId ?? undefined);
     },
   });
 }
 
-/**
- * Withdrawing your own request.
- *
- * Nothing about the entity changes — that is the point, the change was never
- * applied — but everything that DISPLAYS the request has to forget it: the
- * approvals list, the count on the navigation, and the "waiting for approval"
- * badges hanging off the product it was about (productChanged), which would
- * otherwise keep showing a figure nobody is asking for any more.
- */
+// Nothing changed, but every view showing the request (list, badge, product's pending badges) must forget it.
 export function useCancelChangeRequestMutation() {
   const queryClient = useQueryClient();
   const { productChanged } = useCacheInvalidation();

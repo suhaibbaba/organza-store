@@ -6,7 +6,7 @@ import type {
   CashSessionSortField,
   CashSessionStatus,
   CurrentCashSession,
-} from "@organza/shared/types/cash";
+} from "@store/shared/types/cash";
 
 export type {
   CashSession,
@@ -17,8 +17,7 @@ export type {
   CurrentCashSession,
 };
 
-// What the drawer's own arithmetic works in: Decimals, not the 2dp strings
-// the API hands out. Converted to strings once, at the response boundary.
+// Drawer arithmetic in Decimals, converted to 2dp strings once at the response boundary.
 export interface CashSessionMovements {
   cashSales: Prisma.Decimal;
   cashExpenses: Prisma.Decimal;

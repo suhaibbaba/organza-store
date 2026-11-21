@@ -1,11 +1,12 @@
 {
-  "name": "organza-store",
+  "name": "store-management",
   "version": "0.1.0",
   "private": true,
-  "description": "Organza Store — npm workspace root. The four projects (shared, backend, admin, pos) install from here as one dependency tree.",
+  "description": "Store Management — npm workspace root. The four projects (shared, backend, admin, pos) install from here as one dependency tree.",
   "_comment_workspaces": "shared/ is listed first because it is the package the other three depend on. npm resolves the graph itself, so the order is documentation rather than mechanism — but `npm run build` below relies on it being built first, and that IS ordered explicitly.",
   "workspaces": [
     "shared",
+    "ui",
     "backend",
     "admin",
     "pos"
@@ -14,12 +15,20 @@
   "scripts": {
     "build": "npm run build -w shared && npm run build -w backend && npm run build -w admin && npm run build -w pos",
     "typecheck": "npm run build -w shared && npm run typecheck --workspaces --if-present",
-    "lint": "npm run lint --workspaces --if-present",
+    "lint": "eslint backend shared ui && npm run lint --workspaces --if-present",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "dev:backend": "npm run dev -w backend",
     "dev:admin": "npm run dev -w admin",
     "dev:pos": "npm run dev -w pos",
     "_comment_api_test": "Passthroughs, so the suite can be reached from the workspace root as well as from inside backend/. Both hit a real, already-running API — see backend/README.md.",
     "api-test": "npm run api-test -w backend",
     "api-test:prod": "npm run api-test:prod -w backend"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^8.67.0",
+    "@typescript-eslint/parser": "^8.67.0",
+    "eslint": "^9.39.5",
+    "prettier": "^3.10.1"
   }
 }

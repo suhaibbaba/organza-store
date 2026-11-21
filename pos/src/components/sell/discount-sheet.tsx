@@ -2,64 +2,53 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { DISCOUNT_TYPES } from "@organza/shared/constants/order";
-import type { DiscountType } from "@organza/shared/types/order";
+import { Alert, Button, SegmentedControl } from "@store/ui";
+import { DISCOUNT_TYPES } from "@store/shared/constants/order";
+import type { DiscountType } from "@store/shared/types/order";
 import { isDiscountValueInRange, maxDiscountValue } from "@/lib/money";
 import { isNonNegativeIntegerString } from "@/lib/validation/numeric";
 import { useCurrencySymbol } from "@/hooks/use-currency-symbol";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { NumericInput } from "@/components/ui/numeric-input";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Alert } from "@/components/ui/alert";
-import { SegmentedControl } from "@/components/ui/segmented-control";
+import { NumericInput } from "@/components/fields/numeric-input";
+import { BottomSheet } from "@/components/sell/bottom-sheet";
+import { SHEET_ACTION, SHEET_SEGMENTED } from "@/components/sell/sheet-styles";
 import type { DiscountState } from "@/types/cart";
 
 interface DiscountSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  // What the discount applies to — the line's own name, or the whole sale.
+  // The line's own name, or the whole sale.
   title: string;
-  // The amount being discounted, so the cashier can see what a percentage
-  // is a percentage of — and so a flat sum can be held to it.
+  // What a percentage is a percentage of, and what a flat sum is held to.
   baseAmount: string;
   current: DiscountState;
   onApply: (type: DiscountType | null, value: string | null) => void;
 }
 
-// A discount at either level: percentage or fixed amount (spec.md
-// "Discounts"). Only the (type, value) pair is captured — the money itself
-// is worked out by the server, so nothing here can be talked into a total
-// the backend disagrees with.
+// Only the (type, value) pair is captured; the server works out the money (spec.md "Discounts").
 export function DiscountSheet({ open, onOpenChange, title, baseAmount, current, onApply }: DiscountSheetProps) {
   const t = useTranslations("sell.discount");
-  const tCommon = useTranslations("common");
   const formatMoney = useMoneyFormatter();
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      {/* Two options and one number: a small modal on a laptop, and the
-          same full-width bottom sheet as ever on a phone. */}
-      <SheetContent name="discount" compact closeLabel={tCommon("close")}>
-        <SheetHeader>
-          <SheetTitle>{t("title")}</SheetTitle>
-          <SheetDescription>{t("subtitle", { name: title, amount: formatMoney(baseAmount) })}</SheetDescription>
-        </SheetHeader>
-
-        {/* The form lives in its own component so its fields are created
-            fresh each time the sheet opens: reopening must show what is
-            currently applied, not what was last typed and abandoned. */}
-        <DiscountForm
-          baseAmount={baseAmount}
-          current={current}
-          onApply={(type, value) => {
-            onApply(type, value);
-            onOpenChange(false);
-          }}
-        />
-      </SheetContent>
-    </Sheet>
+    <BottomSheet
+      open={open}
+      onOpenChange={onOpenChange}
+      name="discount"
+      compact
+      title={t("title")}
+      description={t("subtitle", { name: title, amount: formatMoney(baseAmount) })}
+    >
+      {/* Its own component so reopening shows what is applied, not what was last typed and abandoned. */}
+      <DiscountForm
+        baseAmount={baseAmount}
+        current={current}
+        onApply={(type, value) => {
+          onApply(type, value);
+          onOpenChange(false);
+        }}
+      />
+    </BottomSheet>
   );
 }
 
@@ -77,92 +66,70 @@ function DiscountForm({ baseAmount, current, onApply }: DiscountFormProps) {
   const [value, setValue] = useState(current.value ?? "");
 
   const trimmed = value.trim();
-  // Whole numbers only, on both sides of the toggle (CLAUDE.md "Mobile input
-  // & device specifics"): a discount is keyed in at a counter on a phone
-  // keypad, and a stray "." there is a mis-key, not an intention.
+  // Whole numbers only on both sides: a stray "." on a counter keypad is a mis-key.
   const isValid =
     trimmed !== "" && isNonNegativeIntegerString(trimmed) && isDiscountValueInRange(type, trimmed, baseAmount);
-  // Only complain about something actually typed — an empty field is where
-  // everyone starts, not a mistake.
   const showRangeError = trimmed !== "" && !isValid;
   const max = maxDiscountValue(type, baseAmount);
 
   return (
     <div className="flex flex-col gap-4 overflow-y-auto px-5 pb-5">
       <div className="flex flex-col gap-2">
-        <Label>{t("typeLabel")}</Label>
-        {/* Two words wide, not half the screen each — and each the width of
-            its own label, so "مبلغ ثابت (₪)" stays on one line instead of
-            breaking in half against the shorter option beside it. */}
+        <p className="text-label font-medium text-ink">{t("typeLabel")}</p>
         <SegmentedControl
-          size="lg"
+          data-testid="pos-segmented"
           label={t("typeLabel")}
           value={type}
           onChange={setType}
+          className={SHEET_SEGMENTED}
           options={DISCOUNT_TYPES.map((option) => ({
             value: option,
-            // The fixed-amount option names the shop's currency, from
-            // Settings — "Amount" alone left the two options telling the
-            // cashier nothing about which one deals in money.
             label: option === "AMOUNT" && currency ? t("type.AMOUNT_currency", { currency }) : t(`type.${option}`),
           }))}
         />
       </div>
 
       <div className="flex flex-col gap-2">
-        <Label htmlFor="pos-discount-value">
+        <label htmlFor="pos-discount-value" className="text-label text-ink">
           {type === "AMOUNT" && currency ? t("valueLabel.AMOUNT_currency", { currency }) : t(`valueLabel.${type}`)}
-        </Label>
+        </label>
+        {/* No autoFocus: the phone keyboard would cover the type buttons and Apply. */}
         <NumericInput
           id="pos-discount-value"
           value={value}
           onChange={(event) => setValue(event.target.value)}
-          // A whole percentage can only ever be three digits, and a flat sum
-          // can only ever be as long as the amount it comes off.
           maxLength={String(Math.max(max, 1)).length}
           placeholder={t(`valuePlaceholder.${type}`)}
           aria-invalid={showRangeError}
           enterKeyHint="done"
-          // No autoFocus: opening this sheet used to throw the phone
-          // keyboard up over the sheet itself, hiding the type buttons and
-          // the Apply button the cashier came here to press. The keyboard
-          // belongs to whoever taps the field.
-          className="text-lg sm:max-w-40"
+          className="h-12 text-lg sm:max-w-40"
         />
         {showRangeError && (
-          <Alert variant="destructive">
+          <Alert tone="danger" data-testid="alert-destructive">
             {type === "PERCENT" ? t("invalid.PERCENT", { max }) : t("invalid.AMOUNT", { max: formatMoney(baseAmount) })}
           </Alert>
         )}
       </div>
 
-      {/* Side by side and only as wide as they need to be on a laptop; still
-          stacked and full width under a thumb. Apply stays the primary
-          button; Remove is destructive, because undoing a discount in front
-          of a customer who was promised one is not a neutral act — and it is
-          absent entirely when there is nothing to remove. */}
+      {/* Remove is danger (undoing a promised discount is not neutral); Apply ends the row in both directions. */}
       <div className="mt-2 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
         {current.type && (
           <Button
             type="button"
-            variant="destructive"
+            variant="danger"
             onClick={() => onApply(null, null)}
-            data-test-selector="pos-discount-remove"
-            className="w-full sm:w-auto"
+            data-testid="pos-discount-remove"
+            className={`${SHEET_ACTION} w-full sm:w-auto`}
           >
             {t("remove")}
           </Button>
         )}
-        {/* Written after Remove so the row reads Remove → Apply on a wide
-            screen, putting the primary action at the end of the row in both
-            directions; `flex-col-reverse` puts it back on top when the two
-            stack under a thumb. */}
         <Button
           type="button"
           onClick={() => isValid && onApply(type, trimmed)}
-          data-test-selector="pos-discount-apply"
+          data-testid="pos-discount-apply"
           disabled={!isValid}
-          className="w-full sm:w-auto"
+          className={`${SHEET_ACTION} w-full sm:w-auto`}
         >
           {t("apply")}
         </Button>

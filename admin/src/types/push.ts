@@ -1,16 +1,6 @@
-// State of sale notifications on THIS device, as the settings screen needs
-// to show it. Everything here is about the browser in front of the user —
-// whether the shop sends notifications at all is a Setting (see
-// @organza/shared/types/setting).
+// About this browser only; whether the shop sends notifications at all is a Setting.
 
-/**
- * Why notifications can't be switched on right now, or `null` when they can.
- *   unsupported   — the browser has no push support at all
- *   needs-install — iOS, and the app hasn't been added to the Home Screen;
- *                   Safari only allows notifications for an installed app
- *   not-configured— the server has no VAPID keys, so nothing could be sent
- *   denied        — the user (or the device) refused the permission
- */
+// needs-install: Safari allows notifications only for an app added to the Home Screen.
 export type PushBlockedReason = "unsupported" | "needs-install" | "not-configured" | "denied";
 
 /** How the last enable/disable attempt ended, for the message under the switch. */

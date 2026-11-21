@@ -1,6 +1,6 @@
 {
   "app": {
-    "name": "Organza",
+    "name": "Store Management",
     "tagline": "Point of sale",
     "sandbox": "SANDBOX"
   },
@@ -24,7 +24,9 @@
       "ADMIN": "Admin",
       "MANAGER": "Manager",
       "EMPLOYEE": "Employee"
-    }
+    },
+    "profile": "My profile",
+    "cancel": "Cancel"
   },
   "stock": {
     "out": "Out of stock",
@@ -53,7 +55,7 @@
       "title": "Log in",
       "subtitle": "Enter your email and password to continue.",
       "emailLabel": "Email",
-      "emailPlaceholder": "you@organza.test",
+      "emailPlaceholder": "you@store.test",
       "passwordLabel": "Password",
       "passwordPlaceholder": "Enter your password",
       "submit": "Log in",
@@ -157,7 +159,9 @@
       "add": "Add to the sale",
       "addNamed": "Add {name}",
       "addCount": "Add {count, plural, one {{count, number, plain} item} other {{count, number, plain} items}} to the sale",
-      "selectedCount": "{count, plural, one {{count, number, plain} chosen} other {{count, number, plain} chosen}}"
+      "selectedCount": "{count, plural, one {{count, number, plain} chosen} other {{count, number, plain} chosen}}",
+      "numberedPhotoAlt": "The collection photo with its numbers",
+      "numberedPoint": "Number {number}"
     },
     "cart": {
       "title": "Current sale",
@@ -287,6 +291,26 @@
       "added": "{name} added to the sale.",
       "emptyPrompt": "Not in the system? Sell it now and complete its details later.",
       "cancel": "Cancel"
+    },
+    "screen": {
+      "cartTitle": "Cart",
+      "clear": "Clear",
+      "clearConfirmTitle": "Clear the whole cart?",
+      "clearConfirmYes": "Clear",
+      "clearConfirmKeep": "Keep",
+      "categoriesTitle": "Categories",
+      "productsTitle": "Products",
+      "productCount": "{count, plural, one {{count, number, plain} product} other {{count, number, plain} products}}",
+      "subtotal": "Subtotal",
+      "discount": "Discount",
+      "editDiscount": "Edit the discount on the sale",
+      "viewCart": "View cart and complete sale",
+      "scan": "Scan barcode",
+      "searchPlaceholder": "Search by name or barcode",
+      "searchPlaceholderShort": "Search products",
+      "add": "Add {name} to the cart",
+      "addToCart": "Add to cart",
+      "cartCount": "{count, plural, zero {The cart is empty} one {{count, number, plain} piece in the cart} other {{count, number, plain} pieces in the cart}}"
     }
   },
   "errors": {
@@ -312,7 +336,11 @@
     "validationInvalidPhone": "Enter a valid phone number.",
     "orderCustomerRequired": "Enter the customer's name and phone number.",
     "orderLocationInvalid": "That location isn't valid. Enter both latitude and longitude.",
-    "rateLimited": "Too many attempts in a short time. Wait a moment and try again."
+    "rateLimited": "Too many attempts in a short time. Wait a moment and try again.",
+    "profileWrongPassword": "The current password is not correct.",
+    "profileSessionNotFound": "That device is already signed out.",
+    "phoneDuplicate": "This phone number is already in use.",
+    "whatsappDuplicate": "This WhatsApp number is already in use."
   },
   "pwa": {
     "version": {
@@ -327,5 +355,76 @@
       "action": "Update now",
       "updating": "Updating…"
     }
+  },
+  "profile": {
+    "title": "My profile",
+    "subtitle": "Your own account: details, password, devices and language.",
+    "header": {
+      "email": "Email",
+      "phone": "Phone",
+      "memberSince": "Member since"
+    },
+    "sections": {
+      "details": {
+        "title": "Personal details",
+        "description": "Your name and numbers, as the rest of the shop sees them."
+      },
+      "devices": {
+        "title": "Signed-in devices",
+        "description": "Where your account is signed in right now."
+      },
+      "password": {
+        "title": "Password",
+        "description": "Changing it signs you out on every other device."
+      },
+      "language": {
+        "title": "Language",
+        "description": "Used on this device now, and whenever you sign in."
+      }
+    },
+    "details": {
+      "name": "Full name",
+      "namePlaceholder": "Your full name",
+      "phone": "Phone number",
+      "whatsapp": "WhatsApp",
+      "whatsappHint": "Only if it differs from your phone number.",
+      "email": "Email",
+      "emailNote": "You sign in with this address. Only an Admin can change it.",
+      "saved": "Your details were saved."
+    },
+    "password": {
+      "open": "Change password",
+      "title": "Change password",
+      "description": "Enter your current password, then the new one twice.",
+      "current": "Current password",
+      "currentPlaceholder": "Your current password",
+      "new": "New password",
+      "newPlaceholder": "Choose a new password",
+      "newNote": "At least 8 characters.",
+      "confirm": "Repeat the new password",
+      "confirmPlaceholder": "Repeat the new password",
+      "submit": "Change password",
+      "changed": "Password changed. Your other devices were signed out.",
+      "mismatch": "The two passwords do not match."
+    },
+    "language": {
+      "label": "Interface language"
+    },
+    "devices": {
+      "browserOn": "{browser} on {system}",
+      "unknownDevice": "Unknown device",
+      "thisDevice": "This device",
+      "lastActive": "Last active {when}",
+      "signOut": "Sign out",
+      "signOutTitle": "Sign out this device?",
+      "signOutConsequence": "Whoever is using it will have to sign in again.",
+      "signedOut": "The device was signed out.",
+      "signOutOthers": "Sign out all other devices",
+      "signOutOthersTitle": "Sign out all other devices?",
+      "signOutOthersConsequence": "Every device except this one will have to sign in again.",
+      "signedOutOthers": "All other devices were signed out.",
+      "onlyThisDevice": "You are signed in on this device only."
+    },
+    "back": "Back to selling"
   }
 }
