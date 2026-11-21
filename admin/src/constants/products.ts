@@ -2,7 +2,7 @@ import type { IconName, SectionTone } from "@store/ui";
 import { DEFAULT_PAGE, DEFAULT_PAGE_SIZE } from "@organza/shared/constants/pagination";
 import type { ProductListFilters } from "@/types/product";
 
-export const PRODUCT_SEARCH_DEBOUNCE_MS = 400;
+export const PRODUCT_SEARCH_DEBOUNCE_MS = 250;
 
 export const PRODUCT_LIST_QUERY_KEY = "products" as const;
 

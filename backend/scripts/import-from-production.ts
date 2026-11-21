@@ -39,6 +39,7 @@ import path from "node:path";
 import { prisma } from "@/lib/prisma";
 import { UPLOAD_DIR } from "@/lib/image";
 import { describeAppEnv } from "@/lib/dangerousCommands";
+import { reindexAllProducts } from "@/lib/search";
 import { canReadUploadDir, runProductionImport } from "@/lib/productionImport";
 import { COMMAND_RULE as RULE, PRODUCTION_IMPORT_ENV, PRODUCTION_IMPORT_FLAGS } from "@/constants";
 import type { ProductionImportSummary } from "@/types";
@@ -154,6 +155,8 @@ async function main(): Promise<void> {
   });
 
   report(summary, uploadSource);
+  const search = await reindexAllProducts();
+  console.log(`==> Search index rebuilt (${search.engine}): ${search.indexed} product(s)`);
 }
 
 main()

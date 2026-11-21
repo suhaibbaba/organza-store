@@ -14,6 +14,7 @@ import {
 import { generateUniqueSlug } from "@/lib/slug";
 import { rollUpCategoryCounts } from "@/lib/categories";
 import { writeAudit } from "@/lib/audit";
+import { queueCategorySync } from "@/lib/search";
 import { AUDIT_ENTITY, ERROR_CODES } from "@/constants";
 import type { CategoryNode } from "@/types";
 
@@ -178,6 +179,7 @@ router.patch(
       oldValue: existing,
       newValue: updated,
     });
+    await queueCategorySync(updated.id);
 
     sendOk(res, updated);
   })

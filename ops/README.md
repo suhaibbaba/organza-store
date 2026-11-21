@@ -159,6 +159,10 @@ itself. An unencrypted secret sitting in object storage is a secret with a secon
 unmonitored front door — and the R2 token in particular would then be backing up the
 credentials needed to read the backups.
 
+The **search index** (`*_search_data` volume) is not backed up either. It is a copy of the
+database, rebuilt by `npm run search:reindex` (every deploy runs it). Its `MEILI_MASTER_KEY` is
+one of the secrets below.
+
 Those are kept **by hand**: in whatever password manager the shop already uses, written
 down and stored somewhere physical, or both. They are short, they change rarely, and
 they are the one part of a rebuild that a person can retype. Everything else in the
@@ -360,7 +364,9 @@ The bucket plus git is everything except the secrets you kept by hand:
 3. `npx prisma migrate deploy` (the restore brings the schema, but a new stack needs the
    migration table straight first);
 4. restore, as in step 3 above;
-5. check it with your eyes, as in step 4.
+5. `docker compose -f docker-compose.prod.yml --env-file .env.production exec backend npm run search:reindex`
+   (the search index starts empty on a new server; until then search runs on Postgres);
+6. check it with your eyes, as in step 4.
 
 ## Moving the catalogue from production to the sandbox
 

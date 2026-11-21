@@ -13,7 +13,8 @@ import {
   type ListInventoryQuery,
 } from "@/validation/inventory";
 import { writeAudit } from "@/lib/audit";
-import { searchProductIds } from "@/lib/search";
+import { queueProductSync, searchProductIds } from "@/lib/search";
+import { isRelevanceSort, rankOf } from "@/lib/search/relevance";
 import {
   countValue,
   fileChangeRequests,
@@ -27,6 +28,7 @@ import {
   DEFAULT_LOW_STOCK_THRESHOLD,
   ERROR_CODES,
   SETTINGS_SINGLETON_ID,
+  RELEVANCE_DEFAULT_SORT,
 } from "@/constants";
 import type { StockItem } from "@/types";
 import { MAIN_IMAGE_ONLY } from "@/constants/images";
@@ -118,7 +120,9 @@ router.get(
 
     const filtered = query.lowStock ? items.filter((i) => i.stock <= threshold) : items;
 
+    const rank = nameMatchIds && isRelevanceSort(query, RELEVANCE_DEFAULT_SORT.INVENTORY) ? rankOf(nameMatchIds) : null;
     filtered.sort((a, b) => {
+      if (rank) return rank(a.productId) - rank(b.productId);
       const dir = query.sortDir === "asc" ? 1 : -1;
       if (query.sortBy === "sku") return dir * (a.sku ?? "").localeCompare(b.sku ?? "");
       if (query.sortBy === "createdAt") return dir * (a.createdAt.getTime() - b.createdAt.getTime());
@@ -205,6 +209,7 @@ router.patch(
       oldValue: { stock: product.stock },
       newValue: { stock: updated.stock },
     });
+    queueProductSync([updated.id]);
 
     sendOk(res, { id: updated.id, stock: updated.stock });
   })
@@ -254,6 +259,7 @@ router.patch(
       oldValue: { stock: variant.stock },
       newValue: { stock: updated.stock },
     });
+    queueProductSync([variant.productId]);
 
     sendOk(res, { id: updated.id, stock: updated.stock });
   })

@@ -366,17 +366,42 @@ product, because all translations live in the same record. Rules:
 - **Normalization** (applied to both query and content before matching):
   - strip Arabic diacritics/tashkeel (فَستان = فستان)
   - unify similar Arabic letters (أ/إ/آ/ا, ة/ه, ى/ي, ؤ/و ...)
-- **Typo tolerance (fuzzy):** via Postgres **`pg_trgm`** (free, built-in extension) — finds words
-  with a missing/extra/wrong letter.
-- Implemented as an **isolated search layer** so it can be upgraded later (e.g. self-hosted
-  Meilisearch) without touching callers.
+  - each word is also indexed without the article ال and without an attached و/ب/ل
+    (الفستان, وابيض, باللون), so "فستان" finds "الفستان" and "ابيض" finds "وابيض"; a query
+    word typed with ال is searched without it
+  - tatweel is stripped (شـــال = شال)
+  - a **synonyms list** (عباية = عباءة, جاكيت = جاكت = جكيت, بنطلون = بنطال) lives in
+    `backend/src/constants/searchIndex.ts` and can be extended there
+- **Words don't have to be next to each other:** "شال خميل" finds "شال معرق شيفون خميل".
+- **Closest match first:** products matching every word come first, then those matching fewer,
+  ranked by typos, how close the words are, and which field matched (name, then SKU/barcode,
+  category, variant attributes, description). This applies when the list is on its default sort;
+  picking another sort (price, name) still sorts by that.
+- **Typo tolerance (fuzzy):** one wrong/missing/extra letter from 4 letters (شيفن → شيفون),
+  two from 8. **SKUs, barcodes and numbers are matched exactly**: a code typed in the search box
+  must match in full, so ORG-00042 never finds ORG-00043.
+- **What is searched:** the name in every language, product and variant SKUs and barcodes, the
+  category and its parents in every language, variant option values (colour, size) and the
+  description. The index also holds price, in-stock, active and the main image, so the
+  storefront can filter on them; the storefront's search returns active products only.
+- **Engine:** a **self-hosted Meilisearch**, its own container on the VPS beside Postgres, with
+  the index on its own volume. It is updated right after each save (a save waits up to 2s for
+  its product to become searchable, then returns anyway); stock, price, visibility, image and
+  category changes are sent in batches half a second later. It is rebuilt from the database on
+  every deploy (`npm run search:reindex`), and its settings are applied by `npm run search:setup`.
+- **Search box debounce:** 250 ms in the admin and the POS, results update as you type.
+- **Fallback:** if Meilisearch is not configured, is down or errors, search answers from
+  Postgres **`pg_trgm`** instead (word similarity or substring), so search never stops working at
+  the till. `/health` reports which engine is configured and whether it is reachable.
+- Implemented as an **isolated search layer** (`backend/src/lib/search/`): nothing outside it
+  talks to an engine.
 
 **Performance note:** each Product stores a `searchText` field = normalized concatenation of all
-language names+descriptions, with a GIN trigram index. Rebuilt whenever name/description change.
-This keeps fuzzy cross-language search fast even with thousands of products.
+language names+descriptions, with a GIN trigram index — what the fallback searches. Rebuilt
+whenever name/description change.
 
-**Everything here is free/open-source** — pg_trgm is part of Postgres, next-intl is open-source,
-translations live in the DB. No paid search or translation services.
+**Everything here is free/open-source** — Meilisearch (self-hosted, MIT) and pg_trgm are free,
+next-intl is open-source, translations live in the DB. No paid search or translation services.
 
 ---
 

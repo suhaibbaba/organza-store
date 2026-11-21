@@ -1,7 +1,7 @@
 import { DEFAULT_PAGE, DEFAULT_PAGE_SIZE } from "@organza/shared/constants/pagination";
 import type { InventoryListFilters } from "@/types/inventory";
 
-export const INVENTORY_SEARCH_DEBOUNCE_MS = 400;
+export const INVENTORY_SEARCH_DEBOUNCE_MS = 250;
 
 export const INVENTORY_LIST_QUERY_KEY = "inventory" as const;
 

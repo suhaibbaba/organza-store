@@ -7,3 +7,4 @@ export * from "./phone";
 export * from "./push";
 export * from "./targets";
 export * from "./verify";
+export * from "./search";

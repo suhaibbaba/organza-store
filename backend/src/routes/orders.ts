@@ -32,6 +32,7 @@ import {
 } from "@/lib/orderPricing";
 import { deductStock, restoreStock } from "@/lib/orderStock";
 import { createQuickSoldProduct } from "@/lib/quickSell";
+import { queueProductSync } from "@/lib/search";
 import {
   announceFiledChangeRequest,
   fileChangeRequestInTransaction,
@@ -76,7 +77,13 @@ const router = Router();
 router.use(requireAuth);
 
 const orderInclude = {
-  items: { orderBy: [{ createdAt: "asc" as const }, { id: "asc" as const }] },
+  items: {
+    orderBy: [{ createdAt: "asc" as const }, { id: "asc" as const }],
+    include: {
+      product: { select: { images: MAIN_IMAGE_ONLY } },
+      variant: { select: { images: MAIN_IMAGE_ONLY } },
+    },
+  },
   // Author's name only — no email, phone or idNumber (rule 19).
   createdBy: { select: { id: true, name: true } },
 } satisfies Prisma.OrderInclude;
@@ -410,6 +417,8 @@ router.post(
       entityId: created.id,
       newValue: serializeOrder(created, Role.ADMIN),
     });
+    // Stock moved and quick-sold pieces were created; batched, so the till never waits on search.
+    queueProductSync(created.items.map((item) => item.productId));
 
     // After commit, so a rolled-back sale leaves neither the request's audit entry nor its push behind.
     for (const request of quickSellRequests) {
@@ -562,6 +571,7 @@ router.patch(
       oldValue: { status: existing.status, stockDeductedAt: existing.stockDeductedAt },
       newValue: { status: updated.status, stockDeductedAt: updated.stockDeductedAt },
     });
+    queueProductSync(existing.items.map((item) => item.productId));
 
     sendOk(res, serializeOrder(updated, req.user!.role));
   })
@@ -655,6 +665,7 @@ router.post(
         returned: [...returnedById].map(([orderItemId, quantity]) => ({ orderItemId, quantity })),
       },
     });
+    queueProductSync(existing.items.map((item) => item.productId));
 
     sendOk(res, serializeOrder(updated, req.user!.role));
   })
@@ -685,6 +696,7 @@ router.delete(
       oldValue: serializeOrder(existing, Role.ADMIN) as AnyRecord,
       newValue: { deletedAt: deleted.deletedAt, stockDeductedAt: deleted.stockDeductedAt },
     });
+    queueProductSync(existing.items.map((item) => item.productId));
 
     sendOk(res, { id: deleted.id, deletedAt: deleted.deletedAt });
   })

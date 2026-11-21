@@ -103,6 +103,22 @@ jobs:
             # refuses to run without being told the database is disposable.
             docker compose -f docker-compose.prod.yml --env-file .env.production exec -T backend npm run bootstrap
 
+            echo "==> Rebuilding the search index (Meilisearch)"
+            # A failure here is a warning, not a failed deploy: search falls back to pg_trgm until the next run.
+            REINDEXED=false
+            for ATTEMPT in 1 2 3; do
+              if docker compose -f docker-compose.prod.yml --env-file .env.production exec -T backend npm run search:reindex; then
+                REINDEXED=true
+                break
+              fi
+              echo "    attempt $ATTEMPT failed — waiting for Meilisearch"
+              sleep 5
+            done
+            if [ "$REINDEXED" != "true" ]; then
+              echo "::warning::The search index was not rebuilt. Search still works through Postgres (pg_trgm)."
+              echo "::warning::Check: docker compose -f docker-compose.prod.yml --env-file .env.production logs meilisearch"
+            fi
+
             echo "==> Checking the uploads volume is mounted and writable"
             # The shop's photographs are the one thing a deploy can silently
             # destroy: point UPLOAD_DIR one directory away from the mount and

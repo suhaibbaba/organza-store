@@ -24,6 +24,8 @@
     "backup:status": "tsx scripts/backup-status.ts",
     "backup:record": "tsx scripts/backup-record.ts",
     "import:prod": "tsx scripts/import-from-production.ts",
+    "search:setup": "tsx scripts/search-setup.ts",
+    "search:reindex": "tsx scripts/search-reindex.ts",
     "email:preview": "tsx scripts/email-preview.ts",
     "seed:demo": "tsx prisma/dev/demo-seed.ts",
     "seed:demo-sales": "tsx prisma/dev/demo-sales-seed.ts",

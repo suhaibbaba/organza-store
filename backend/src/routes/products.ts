@@ -28,7 +28,8 @@ import { productSku, variantSku } from "@/lib/sku";
 import { generateUniqueBarcode, resolveBarcodeChange, resolveNewBarcode } from "@/lib/barcode";
 import { NEEDS_LABEL_WHERE } from "@/lib/labelState";
 import { NEEDS_COMPLETING_WHERE, QUICK_SOLD_WHERE } from "@/lib/quickSellState";
-import { buildSearchText, searchProductIds } from "@/lib/search";
+import { buildSearchText, indexProducts, queueProductSync, searchProductIds } from "@/lib/search";
+import { isRelevanceSort, pageByRelevance } from "@/lib/search/relevance";
 import { cartesianProduct, buildComboName, buildImagePointMap, resolveComboImagePoint } from "@/lib/variantCombo";
 import { comboStockLookup, generateVariantsForProduct, previewComboNames, validateOptionSelections } from "@/lib/variants";
 import { serializeProduct, serializeProductSummary, serializeVariant } from "@/lib/pricing";
@@ -55,6 +56,7 @@ import {
   DEFAULT_STOCK,
   ERROR_CODES,
   PRODUCT_LOOKUP_KIND,
+  RELEVANCE_DEFAULT_SORT,
 } from "@/constants";
 import type { AnyRecord, ChangeRequestDraft, I18n, OptionValueLookup } from "@/types";
 
@@ -170,21 +172,25 @@ router.get(
       where.AND = [...(Array.isArray(where.AND) ? where.AND : where.AND ? [where.AND] : []), clause];
     }
 
-    if (query.q) {
-      const ids = await searchProductIds(query.q);
-      where.id = { in: ids.length ? ids : ["__none_matched__"] };
-    }
+    const ranked = query.q ? await searchProductIds(query.q) : null;
+    if (ranked) where.id = { in: ranked.length ? ranked : ["__none_matched__"] };
 
-    const [total, products] = await Promise.all([
-      prisma.product.count({ where }),
-      prisma.product.findMany({
-        where,
-        include: productInclude,
-        orderBy: { [query.sortBy]: query.sortDir },
-        skip: (query.page - 1) * query.pageSize,
-        take: query.pageSize,
-      }),
-    ]);
+    // A search on the default sort comes back closest match first; every other filter still applies in the database.
+    const { total, products } =
+      ranked && isRelevanceSort(query, RELEVANCE_DEFAULT_SORT.PRODUCTS)
+        ? await pageByRelevance(ranked, where, query.page, query.pageSize, (ids) =>
+            prisma.product.findMany({ where: { id: { in: ids } }, include: productInclude })
+          )
+        : await Promise.all([
+            prisma.product.count({ where }),
+            prisma.product.findMany({
+              where,
+              include: productInclude,
+              orderBy: { [query.sortBy]: query.sortDir },
+              skip: (query.page - 1) * query.pageSize,
+              take: query.pageSize,
+            }),
+          ]).then(([count, rows]) => ({ total: count, products: rows }));
 
     sendOk(
       res,
@@ -487,6 +493,7 @@ router.post(
       entityId: created.id,
       newValue: serializeProduct(full, Role.ADMIN),
     });
+    await indexProducts([created.id]);
 
     sendOk(res, serializeProduct(full, req.user!.role), null, 201);
   })
@@ -704,6 +711,7 @@ router.patch(
       oldValue: serializeProduct(existing, Role.ADMIN),
       newValue: serializeProduct(updated, Role.ADMIN),
     });
+    await indexProducts([updated.id]);
 
     // Filed after the save, so a request only ever exists alongside a change
     // that actually went through.
@@ -750,6 +758,7 @@ router.delete(
       oldValue: { deletedAt: null, isActive: existing.isActive },
       newValue: { deletedAt: deleted.deletedAt, isActive: deleted.isActive },
     });
+    await indexProducts([deleted.id]);
 
     sendOk(res, { id: deleted.id, deletedAt: deleted.deletedAt });
   })
@@ -828,6 +837,7 @@ router.post(
       entityId: product.id,
       newValue: { generatedSkus: createdSkus },
     });
+    await indexProducts([product.id]);
 
     const full = await fetchFullProduct(product.id);
     sendOk(res, await serializeProductWithPending(full, req.user!.role), null, 201);
@@ -944,6 +954,7 @@ router.patch(
     });
 
     if (drafts.length) await fileChangeRequests(req.user!, drafts);
+    queueProductSync([product.id]);
 
     const pending = await findPendingChangesForProduct({ id: product.id, variants: [{ id: variant.id }] });
     sendOk(res, {
@@ -1018,6 +1029,7 @@ router.delete(
       entityId: variant.id,
       oldValue: variant,
     });
+    queueProductSync([variant.productId]);
 
     sendOk(res, { id: variant.id, deleted: true });
   })

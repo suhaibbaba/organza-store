@@ -2,7 +2,7 @@ import { DEFAULT_PAGE, DEFAULT_PAGE_SIZE } from "@organza/shared/constants/pagin
 import { QUANTITY_MAX } from "@organza/shared/constants/quantity";
 import type { LabelListFilters } from "@/types/label";
 
-export const LABEL_SEARCH_DEBOUNCE_MS = 400;
+export const LABEL_SEARCH_DEBOUNCE_MS = 250;
 
 // The preview redraws the whole sheet, so it trails the copies inputs by a
 // moment instead of redrawing on every keystroke.

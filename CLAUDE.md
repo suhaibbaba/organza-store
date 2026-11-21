@@ -94,8 +94,23 @@ from past orders — there is still no Customer table behind it.
    translated text — use `slug` / `key` for that.
 10. **Search is cross-language + normalized + fuzzy.** It must search ALL stored languages
     (not the current UI language), strip Arabic diacritics, unify similar Arabic letters, and be
-    typo-tolerant via `pg_trgm`. Build it as an isolated, swappable search layer. Keep each
-    Product's `searchText` in sync on every name/description change.
+    typo-tolerant. The engine is a **self-hosted Meilisearch** (its own compose service and
+    volume), reached only through the isolated layer in `backend/src/lib/search/` — callers use
+    `searchProductIds` and `indexProducts`, never an engine. **`pg_trgm` is the fallback**: no
+    `MEILI_HOST`, or Meilisearch down or erroring, and search answers from Postgres, so the till
+    never loses search. Our own `normalize()` (diacritics, tatweel, similar letters) runs on both
+    the indexed text and the query, and each word is also indexed without the article ال and an
+    attached و/ب/ل. **Every index setting and the synonyms list live in one versioned file,
+    `backend/src/constants/searchIndex.ts`**, applied by `npm run search:setup` and by every
+    reindex — never set by hand. A search on a list's default sort comes back **closest match
+    first** (`lib/search/relevance.ts`); every other filter still runs in Postgres. Keep each
+    Product's `searchText` in sync on every name/description change, and after the commit of
+    anything that changes a product's document (name, codes, category, variants, price, stock,
+    visibility, image) call **`indexProducts`** (awaited ≤2s, so a save is searchable on return)
+    or **`queueProductSync` / `queueOwnerSync` / `queueCategorySync`** (batched, returns at once).
+    None of them throw, so search can never fail a save. The index is rebuildable:
+    `npm run search:reindex` rebuilds it from the database on every deploy, and the import and
+    demo seed rebuild it too.
 11. **Essential data ≠ demo data.** `npm run bootstrap` (`backend/src/lib/bootstrap.ts`) creates
     the only things a real shop cannot run without — the Setting singleton, the global variant
     types + their default values, the expense categories, and the configurable role permissions
@@ -275,7 +290,10 @@ cannot hoist (backend and shared are on zod 3, better-auth on zod 4).
 **Persistent data lives on named volumes, at absolute paths the app is told explicitly.** The
 database (`sandbox_db_data` → `/var/lib/postgresql/data`) and the uploaded photographs
 (`sandbox_uploads` → `/app/uploads`, with `UPLOAD_DIR` set in the compose file's `environment:`,
-never left to `.env`) are the only things a deploy cannot rebuild. A **relative** `UPLOAD_DIR`
+never left to `.env`) are the only things a deploy cannot rebuild. The search index
+(`sandbox_search_data` → `/meili_data`) is on a volume too, but it can be rebuilt from the
+database at any time, so it is not backed up; `MEILI_MASTER_KEY` must be set in the stack's env
+file, or compose refuses to start. A **relative** `UPLOAD_DIR`
 resolves against the container's working directory (`/app/backend`), which is how every uploaded
 image was being written into the container layer and lost on each deploy — so any new service or
 compose file states its data path absolutely and mounts a volume there. Never rename a volume key

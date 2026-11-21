@@ -26,6 +26,7 @@ import { errorHandler } from "@/middleware/errorHandler";
 import { AppError, sendError } from "@/lib/response";
 import { UPLOAD_DIR, checkUploadDirWritable } from "@/lib/image";
 import { getBackupHealth, startBackupStalenessWatch } from "@/lib/backups";
+import { searchEngineStatus } from "@/lib/search";
 import { loadPermissionConfig } from "@/lib/permissionConfig";
 import { TRUST_PROXY_SETTING, describeProxyTrust } from "@/lib/proxyTrust";
 import { captureException } from "@/lib/logger";
@@ -121,7 +122,10 @@ app.get("/health", async (_req, res) => {
     // Left null: "we could not tell you" rather than a reassuring false.
   }
 
-  res.json({ success: true, data: { status: "ok", uploadsWritable, backup }, meta: null });
+  // Which engine answers search, and whether it is up; a down Meilisearch silently degrades to pg_trgm.
+  const search = await searchEngineStatus();
+
+  res.json({ success: true, data: { status: "ok", uploadsWritable, backup, search }, meta: null });
 });
 
 // Open, like /health above — see routes/version.ts for why.

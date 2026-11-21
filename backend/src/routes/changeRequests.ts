@@ -7,6 +7,7 @@ import { requireAuth, requirePermission } from "@/middleware/auth";
 import { validateBody, validateQuery } from "@/middleware/validate";
 import { AppError, sendOk } from "@/lib/response";
 import { writeAudit } from "@/lib/audit";
+import { queueOwnerSync } from "@/lib/search";
 import { changeRequestInclude, serializeChangeRequest } from "@/lib/changeRequests";
 import {
   DECIDER_PERMISSIONS,
@@ -27,6 +28,7 @@ import {
   ERROR_CODES,
   PENDING_CHANGE_REQUEST_STATUS,
   REJECTED_CHANGE_REQUEST_STATUS,
+  CHANGE_REQUEST_ENTITIES,
 } from "@/constants";
 import type { ChangeRequestStatus } from "@/types";
 
@@ -289,6 +291,12 @@ async function decide(
   // Only now, with everything committed: deleting an image's files cannot be
   // rolled back, so it must never run inside the transaction that might.
   if (outcome.afterCommit) await outcome.afterCommit();
+
+  // Whatever the decision changed (price, stock, visibility, variants, an image, a one-off) is re-indexed.
+  await queueOwnerSync({
+    productId: request.productId ?? (request.entityType === CHANGE_REQUEST_ENTITIES.PRODUCT ? request.entityId : null),
+    variantId: request.entityType === CHANGE_REQUEST_ENTITIES.VARIANT ? request.entityId : null,
+  });
 
   return request;
 }

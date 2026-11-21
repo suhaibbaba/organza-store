@@ -25,6 +25,7 @@ import {
   type UploadImageInput,
 } from "@/validation/image";
 import { writeAudit } from "@/lib/audit";
+import { queueOwnerSync } from "@/lib/search";
 import { cancelPendingChangesFor, deletionValue, fileChangeRequests } from "@/lib/changeRequests";
 import { AUDIT_ENTITY, CHANGE_REQUEST_ENTITIES, CHANGE_REQUEST_FIELDS, ERROR_CODES } from "@/constants";
 
@@ -119,6 +120,7 @@ router.post(
       entityId: created.id,
       newValue: created,
     });
+    await queueOwnerSync(created);
 
     sendOk(res, serializeImage(created), null, 201);
   })
@@ -156,6 +158,7 @@ router.patch(
       oldValue: { order: existing.sort((a, b) => a.sortOrder - b.sortOrder).map((i) => i.id) },
       newValue: { order: body.imageIds },
     });
+    await queueOwnerSync(body);
 
     sendOk(res, updated.map(serializeImage));
   })
@@ -196,6 +199,7 @@ router.patch(
       oldValue: { isPrimary: image.isPrimary },
       newValue: { isPrimary: updated.isPrimary },
     });
+    await queueOwnerSync(image);
 
     sendOk(res, serializeImage(updated));
   })
@@ -266,6 +270,7 @@ router.patch(
       oldValue: { url: image.url, edit: image.edit },
       newValue: { url: updated.url, edit },
     });
+    await queueOwnerSync(image);
 
     sendOk(res, serializeImage(updated));
   })
@@ -339,6 +344,7 @@ router.delete(
       entityId: image.id,
       oldValue: image,
     });
+    await queueOwnerSync(image);
 
     sendOk(res, { id: image.id, deleted: true });
   })

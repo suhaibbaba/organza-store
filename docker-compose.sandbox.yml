@@ -78,6 +78,9 @@ services:
       # `db:reset` announced "that is the LIVE SHOP" on a database whose whole
       # purpose is to be wiped (backend/src/lib/appEnv.ts).
       APP_ENV: sandbox
+      # Search engine on the compose network. No depends_on: if it is down the API falls back to pg_trgm.
+      MEILI_HOST: http://meilisearch:7700
+      MEILI_MASTER_KEY: ${MEILI_MASTER_KEY}
     depends_on:
       db:
         condition: service_healthy
@@ -88,6 +91,20 @@ services:
       - sandbox_uploads:/app/uploads
     ports:
       - "127.0.0.1:14000:4000"           # sandbox range (leaves 4000 free for prod later)
+
+  meilisearch:
+    image: getmeili/meilisearch:v1.55.1
+    restart: unless-stopped
+    environment:
+      MEILI_ENV: production
+      # At least 16 bytes; set it in .env.sandbox on the VPS. A missing key stops the deploy before anything changes.
+      MEILI_MASTER_KEY: ${MEILI_MASTER_KEY:?set MEILI_MASTER_KEY in .env.sandbox}
+      MEILI_NO_ANALYTICS: "true"
+      MEILI_DB_PATH: /meili_data/data.ms
+    volumes:
+      # Rebuildable from the database (npm run search:reindex), but kept so a restart does not start empty.
+      - sandbox_search_data:/meili_data
+    # Internal only: no published port, the backend reaches it by service name.
 
   admin:
     build:
@@ -159,3 +176,4 @@ services:
 volumes:
   sandbox_db_data:
   sandbox_uploads:
+  sandbox_search_data:

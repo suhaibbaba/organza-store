@@ -50,7 +50,7 @@ import { PrismaClient, Role } from "@prisma/client";
 import { createStaffUser, setUserPassword } from "@/lib/credentials";
 // Reuse the real search normalizer + SKU generator so the seed can never
 // silently drift from the production logic (CLAUDE.md rule 11).
-import { buildSearchText } from "@/lib/search";
+import { buildSearchText, reindexAllProducts } from "@/lib/search";
 import { productSku, variantSku } from "@/lib/sku";
 import { generateUniqueBarcode } from "@/lib/barcode";
 import { assertDisposableDatabase } from "@/lib/dangerousCommands";
@@ -1147,6 +1147,8 @@ async function main() {
     await prisma.cashSession.upsert({ where: { id: s.id }, update: data, create: { id: s.id, ...data } });
   }
 
+  const search = await reindexAllProducts();
+  console.log(`   Search index (${search.engine}): ${search.indexed} product(s)`);
   console.log("✅ Seed complete.");
   console.log(`   Users: admin@ / manager@ / employee@organza.test  (password: ${DEMO_PASSWORD})`);
 }
