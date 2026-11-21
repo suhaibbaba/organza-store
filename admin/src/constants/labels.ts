@@ -9,14 +9,13 @@ export const LABEL_SEARCH_DEBOUNCE_MS = 250;
 
 export const PREVIEW_DEBOUNCE_MS = 250;
 
-export const LABEL_LIST_PAGE_SIZE = DEFAULT_PAGE_SIZE;
-
 // After a bulk import, "not printed yet" is the whole job.
 export const DEFAULT_LABEL_FILTERS: LabelListFilters = {
   q: "",
   categoryId: null,
   printState: "not_printed",
   page: DEFAULT_PAGE,
+  pageSize: DEFAULT_PAGE_SIZE,
 };
 
 // A4 sheet, in millimetres — the paper the grid mode lays labels out on.
@@ -57,4 +56,5 @@ export const LABEL_LIST_URL_PARAMS: UrlParams<LabelListFilters> = {
   categoryId: urlParam.id(),
   printState: urlParam.oneOf(PRODUCT_PRINT_STATES),
   page: urlParam.page(),
+  pageSize: urlParam.pageSize(),
 };

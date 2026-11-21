@@ -1,6 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { Typography } from "@store/ui";
 import { LABEL_PREVIEW_MAX_PAGES } from "@/constants/labels";
 import { mmToPx, paginateLabels, printedPageSizeMm } from "@/lib/labels";
 import { useFitScale } from "@/hooks/use-fit-scale";
@@ -23,7 +24,9 @@ export function LabelPreview({ items, geometry }: { items: readonly LabelPrintIt
 
   return (
     <div className="flex flex-col gap-2">
-      <p className="text-label text-ink-muted">{t("pageCount", { count: pages.length })}</p>
+      <Typography variant="small" tone="muted" data-test-selector="label-preview-pages">
+        {t("pageCount", { count: pages.length })}
+      </Typography>
 
       <div ref={ref} dir="ltr" className="label-preview overflow-hidden rounded-panel border border-line bg-sunken p-3">
         <div
@@ -45,7 +48,9 @@ export function LabelPreview({ items, geometry }: { items: readonly LabelPrintIt
       </div>
 
       {isTruncated && (
-        <p className="text-label text-ink-muted">{t("truncated", { shown: shownPages.length, total: pages.length })}</p>
+        <Typography variant="small" tone="muted">
+          {t("truncated", { shown: shownPages.length, total: pages.length })}
+        </Typography>
       )}
     </div>
   );

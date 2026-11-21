@@ -1130,7 +1130,7 @@
   "labels": {
     "title": "Barcode labels",
     "subtitle": "Print labels for the pieces that still need one.",
-    "selectAll": "Select all on this page",
+    "selectAll": "Select every product on this page",
     "clearSelection": "Clear",
     "selectedCount": "{count} selected",
     "next": "Next",
@@ -1140,12 +1140,18 @@
       "printed": "Printed",
       "not_printed": "Not printed",
       "category": "Category",
-      "allCategories": "All categories"
+      "allCategories": "All categories",
+      "trigger": "Filters",
+      "title": "Filter products",
+      "reset": "Clear filters",
+      "apply": "Show results",
+      "categoryHint": "Only products in this category.",
+      "chipCategory": "Category: {name}",
+      "removeFilter": "Remove filter: {name}"
     },
     "row": {
       "select": "Select {name}",
-      "variants": "{count} variants",
-      "printedOn": "Last printed {date}",
+      "variants": "{count, plural, one {1 variant} other {{count} variants}}",
       "neverPrinted": "Not printed yet",
       "supplierBarcode": "Supplier barcode — no label needed"
     },
@@ -1156,29 +1162,31 @@
       "noMatchesDescription": "Try a different search, category, or print state."
     },
     "copies": {
-      "total": "{count} labels",
+      "total": "{count, plural, one {1 label} other {{count} labels}}",
       "wholeProduct": "Whole product",
       "noBarcode": "No barcode",
       "simpleHint": "One label per piece in stock.",
       "perVariantHint": "One label per variant ({count}), from each variant's stock.",
       "numberedHint": "Numbered shawl — one label for the whole product. Type how many you need.",
       "supplierBarcode": "Supplier barcode — no label needed. Set a count to print one anyway.",
-      "copiesLabel": "Copies",
       "copiesFor": "Copies — {name}",
       "increase": "More copies — {name}",
       "decrease": "Fewer copies — {name}",
-      "stockAboveMax": "Stock is {stock}, and {max} labels is the most that can be set at once. Print the rest in a second batch."
+      "stockAboveMax": "Stock is {stock}, and {max} labels is the most that can be set at once. Print the rest in a second batch.",
+      "title": "Copies"
     },
     "prepare": {
       "back": "Back to products",
       "title": "Copies and preview",
-      "subtitle": "{products} products · {labels} labels",
-      "totalLabels": "{count} labels",
-      "print": "Print"
+      "subtitle": "{products, plural, one {1 product} other {{products} products}} · {labels, plural, one {1 label} other {{labels} labels}}",
+      "totalLabels": "{count, plural, one {1 label} other {{count} labels}}",
+      "print": "Print",
+      "labelsToPrint": "Labels to print"
     },
     "preview": {
-      "pageCount": "Preview — {count} pages",
-      "truncated": "Showing the first {shown} of {total} pages — all of them will print."
+      "pageCount": "{count, plural, one {1 page} other {{count} pages}}",
+      "truncated": "Showing the first {shown} of {total} pages — all of them will print.",
+      "title": "Preview"
     },
     "sheet": {
       "title": "Label sheet",
@@ -1198,6 +1206,18 @@
       "confirmYes": "Yes, mark as printed",
       "confirmNo": "Not yet",
       "marked": "Marked as printed."
+    },
+    "search": {
+      "label": "Search products",
+      "placeholder": "Name, SKU or barcode",
+      "clear": "Clear search"
+    },
+    "table": {
+      "product": "Product",
+      "printed": "Last printed"
+    },
+    "selectBar": {
+      "label": "Products selected for printing"
     }
   },
   "categories": {

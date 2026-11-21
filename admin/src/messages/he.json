@@ -1130,7 +1130,7 @@
   "labels": {
     "title": "מדבקות ברקוד",
     "subtitle": "הדפסת מדבקות לפריטים שעדיין צריכים אחת.",
-    "selectAll": "בחירת הכול בעמוד",
+    "selectAll": "בחירת כל המוצרים בעמוד הזה",
     "clearSelection": "ניקוי הבחירה",
     "selectedCount": "{count} נבחרו",
     "next": "הבא",
@@ -1140,12 +1140,18 @@
       "printed": "הודפסו",
       "not_printed": "לא הודפסו",
       "category": "קטגוריה",
-      "allCategories": "כל הקטגוריות"
+      "allCategories": "כל הקטגוריות",
+      "trigger": "מסננים",
+      "title": "סינון מוצרים",
+      "reset": "ניקוי מסננים",
+      "apply": "הצגת תוצאות",
+      "categoryHint": "רק מוצרים בקטגוריה הזו.",
+      "chipCategory": "קטגוריה: {name}",
+      "removeFilter": "הסרת מסנן: {name}"
     },
     "row": {
       "select": "בחירת {name}",
-      "variants": "{count} וריאציות",
-      "printedOn": "הודפס לאחרונה {date}",
+      "variants": "{count, plural, one {וריאציה אחת} other {{count} וריאציות}}",
       "neverPrinted": "עדיין לא הודפס",
       "supplierBarcode": "ברקוד היבואן — לא צריך מדבקה"
     },
@@ -1156,29 +1162,31 @@
       "noMatchesDescription": "נסו חיפוש אחר, קטגוריה אחרת או מצב הדפסה אחר."
     },
     "copies": {
-      "total": "{count} מדבקות",
+      "total": "{count, plural, one {מדבקה אחת} other {{count} מדבקות}}",
       "wholeProduct": "המוצר כולו",
       "noBarcode": "אין ברקוד",
       "simpleHint": "מדבקה לכל פריט במלאי.",
       "perVariantHint": "מדבקה לכל וריאציה ({count}), לפי המלאי של כל אחת.",
       "numberedHint": "צעיף ממוספר — מדבקה אחת למוצר כולו. הזינו כמה עותקים צריך.",
       "supplierBarcode": "ברקוד היבואן — לא צריך מדבקה. הזן כמות כדי להדפיס בכל זאת.",
-      "copiesLabel": "עותקים",
       "copiesFor": "מספר עותקים — {name}",
       "increase": "יותר עותקים — {name}",
       "decrease": "פחות עותקים — {name}",
-      "stockAboveMax": "המלאי הוא {stock}, ו-{max} מדבקות הוא המרב שאפשר להזין בבת אחת. הדפיסו את היתר במנה נוספת."
+      "stockAboveMax": "המלאי הוא {stock}, ו-{max} מדבקות הוא המרב שאפשר להזין בבת אחת. הדפיסו את היתר במנה נוספת.",
+      "title": "עותקים"
     },
     "prepare": {
       "back": "חזרה למוצרים",
       "title": "עותקים ותצוגה מקדימה",
-      "subtitle": "{products} מוצרים · {labels} מדבקות",
-      "totalLabels": "{count} מדבקות",
-      "print": "הדפסה"
+      "subtitle": "{products, plural, one {מוצר אחד} other {{products} מוצרים}} · {labels, plural, one {מדבקה אחת} other {{labels} מדבקות}}",
+      "totalLabels": "{count, plural, one {מדבקה אחת} other {{count} מדבקות}}",
+      "print": "הדפסה",
+      "labelsToPrint": "מדבקות להדפסה"
     },
     "preview": {
-      "pageCount": "תצוגה מקדימה — {count} עמודים",
-      "truncated": "מוצגים {shown} העמודים הראשונים מתוך {total} — כולם יודפסו."
+      "pageCount": "{count, plural, one {עמוד אחד} other {{count} עמודים}}",
+      "truncated": "מוצגים {shown} העמודים הראשונים מתוך {total} — כולם יודפסו.",
+      "title": "תצוגה מקדימה"
     },
     "sheet": {
       "title": "גיליון מדבקות",
@@ -1198,6 +1206,18 @@
       "confirmYes": "כן, סמנו כמודפס",
       "confirmNo": "עדיין לא",
       "marked": "סומנו כמודפסים."
+    },
+    "search": {
+      "label": "חיפוש מוצרים",
+      "placeholder": "שם, מק״ט או ברקוד",
+      "clear": "ניקוי החיפוש"
+    },
+    "selectBar": {
+      "label": "מוצרים שנבחרו להדפסה"
+    },
+    "table": {
+      "product": "מוצר",
+      "printed": "הודפס לאחרונה"
     }
   },
   "categories": {

@@ -1130,9 +1130,9 @@
   "labels": {
     "title": "ملصقات الباركود",
     "subtitle": "اطبع ملصقات القطع التي ما زالت بحاجة إلى ملصق.",
-    "selectAll": "اختيار كل ما في الصفحة",
+    "selectAll": "تحديد كل منتجات هذه الصفحة",
     "clearSelection": "مسح الاختيار",
-    "selectedCount": "{count} محدّد",
+    "selectedCount": "{count, plural, zero {لم يُحدَّد شيء} one {منتج واحد محدّد} two {منتجان محدّدان} few {{count} منتجات محدّدة} many {{count} منتجًا محدّدًا} other {{count} منتج محدّد}}",
     "next": "التالي",
     "filters": {
       "printState": "حالة الطباعة",
@@ -1140,12 +1140,18 @@
       "printed": "مطبوعة",
       "not_printed": "غير مطبوعة",
       "category": "الفئة",
-      "allCategories": "كل الفئات"
+      "allCategories": "كل الفئات",
+      "trigger": "الفلاتر",
+      "title": "تصفية المنتجات",
+      "reset": "مسح الفلاتر",
+      "apply": "عرض النتائج",
+      "categoryHint": "المنتجات في هذا التصنيف فقط.",
+      "chipCategory": "التصنيف: {name}",
+      "removeFilter": "إزالة الفلتر: {name}"
     },
     "row": {
       "select": "اختيار {name}",
-      "variants": "{count} خيارات",
-      "printedOn": "آخر طباعة {date}",
+      "variants": "{count, plural, zero {بلا متغيرات} one {متغير واحد} two {متغيران} few {{count} متغيرات} many {{count} متغيرًا} other {{count} متغير}}",
       "neverPrinted": "لم تُطبع بعد",
       "supplierBarcode": "باركود المورّد — لا يحتاج ملصقاً"
     },
@@ -1156,29 +1162,31 @@
       "noMatchesDescription": "جرّب بحثًا آخر أو فئة أخرى أو حالة طباعة أخرى."
     },
     "copies": {
-      "total": "{count} ملصق",
+      "total": "{count, plural, zero {لا ملصقات} one {ملصق واحد} two {ملصقان} few {{count} ملصقات} many {{count} ملصقًا} other {{count} ملصق}}",
       "wholeProduct": "المنتج كامل",
       "noBarcode": "بدون باركود",
       "simpleHint": "ملصق لكل قطعة في المخزون.",
-      "perVariantHint": "ملصق لكل خيار ({count})، حسب مخزون كل خيار.",
+      "perVariantHint": "ملصق لكل متغير ({count})، حسب مخزون كل متغير.",
       "numberedHint": "شال مرقّم — ملصق واحد للمنتج كامل. اكتب عدد النسخ التي تحتاجها.",
       "supplierBarcode": "باركود المورّد — لا يحتاج ملصقاً. اكتب عدداً لطباعته على أي حال.",
-      "copiesLabel": "النسخ",
       "copiesFor": "عدد النسخ — {name}",
       "increase": "زيادة النسخ — {name}",
       "decrease": "إنقاص النسخ — {name}",
-      "stockAboveMax": "المخزون {stock} قطعة، والحد الأقصى {max} ملصق في المرة الواحدة. اطبع الباقي في دفعة ثانية."
+      "stockAboveMax": "المخزون {stock} قطعة، والحد الأقصى {max} ملصق في المرة الواحدة. اطبع الباقي في دفعة ثانية.",
+      "title": "عدد النسخ"
     },
     "prepare": {
-      "back": "رجوع إلى المنتجات",
+      "back": "العودة إلى المنتجات",
       "title": "عدد النسخ والمعاينة",
-      "subtitle": "{products} منتجات · {labels} ملصق",
-      "totalLabels": "{count} ملصق",
-      "print": "طباعة"
+      "subtitle": "{products, plural, one {منتج واحد} two {منتجان} few {{products} منتجات} many {{products} منتجًا} other {{products} منتج}} · {labels, plural, zero {لا ملصقات} one {ملصق واحد} two {ملصقان} few {{labels} ملصقات} many {{labels} ملصقًا} other {{labels} ملصق}}",
+      "totalLabels": "{count, plural, zero {لا ملصقات} one {ملصق واحد} two {ملصقان} few {{count} ملصقات} many {{count} ملصقًا} other {{count} ملصق}}",
+      "print": "طباعة",
+      "labelsToPrint": "ملصقات للطباعة"
     },
     "preview": {
-      "pageCount": "معاينة — {count} صفحات",
-      "truncated": "تظهر أول {shown} صفحات من أصل {total} — وستُطبع كلها."
+      "pageCount": "{count, plural, zero {لا صفحات} one {صفحة واحدة} two {صفحتان} few {{count} صفحات} many {{count} صفحة} other {{count} صفحة}}",
+      "truncated": "تظهر أول {shown} صفحات من أصل {total} — وستُطبع كلها.",
+      "title": "المعاينة"
     },
     "sheet": {
       "title": "ورقة الملصقات",
@@ -1198,6 +1206,18 @@
       "confirmYes": "نعم، سجّلها كمطبوعة",
       "confirmNo": "ليس بعد",
       "marked": "تم تسجيلها كمطبوعة."
+    },
+    "search": {
+      "label": "البحث في المنتجات",
+      "placeholder": "الاسم أو رمز المنتج أو الباركود",
+      "clear": "مسح البحث"
+    },
+    "selectBar": {
+      "label": "منتجات محددة للطباعة"
+    },
+    "table": {
+      "product": "المنتج",
+      "printed": "آخر طباعة"
     }
   },
   "categories": {

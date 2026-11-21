@@ -1,6 +1,7 @@
 import { BARCODE_SOURCE } from "@store/shared/constants/barcode";
 import { clampQuantity } from "@store/shared/constants/quantity";
 import type { Product } from "@store/shared/types/product";
+import type { ProductImageRef } from "@store/shared/types/variant";
 import type { Setting } from "@store/shared/types/setting";
 import { localize } from "@/lib/i18n-content";
 import { isNonNegativeIntegerString } from "@/lib/validation/numeric";
@@ -24,6 +25,7 @@ export function toProductListFilters(filters: LabelListFilters): ProductListFilt
     categoryId: filters.categoryId,
     printState: filters.printState,
     page: filters.page,
+    pageSize: filters.pageSize,
   };
 }
 
@@ -39,6 +41,11 @@ export function isNumberedProduct(product: Pick<Product, "isNumbered">): boolean
   return product.isNumbered;
 }
 
+function primaryThumb(images: readonly ProductImageRef[]): string | null {
+  const primary = images.find((image) => image.isPrimary) ?? [...images].sort((a, b) => a.sortOrder - b.sortOrder)[0];
+  return primary?.thumbnailUrl ?? null;
+}
+
 // Simple: copies = stock; variants: one line each; numbered shawl: the parent, count typed. Supplier codes start at 0.
 export function buildLabelLines(product: Product, locale: string): LabelLine[] {
   const name = localize(product.name, locale);
@@ -46,6 +53,7 @@ export function buildLabelLines(product: Product, locale: string): LabelLine[] {
   const suggest = (stock: number) => clampQuantity(stock, 0, LABEL_COPIES_MAX);
   // A supplier code on the parent is one tag for every variant.
   const parentIsSupplier = product.barcodeSource === BARCODE_SOURCE.SUPPLIER;
+  const productThumb = primaryThumb(product.images);
 
   if (isNumberedProduct(product)) {
     return [
@@ -55,6 +63,7 @@ export function buildLabelLines(product: Product, locale: string): LabelLine[] {
         variantId: null,
         name,
         subtitle: null,
+        thumbnailUrl: product.markedImage?.thumbnailUrl ?? productThumb,
         code: product.barcode,
         suggestedCopies: parentIsSupplier ? 0 : 1,
         // The numbers live on the photo, so the count is a choice, not stock.
@@ -74,6 +83,7 @@ export function buildLabelLines(product: Product, locale: string): LabelLine[] {
         variantId: variant.id,
         name,
         subtitle: localize(variant.name, locale),
+        thumbnailUrl: primaryThumb(variant.images) ?? productThumb,
         // The SKU stands in only if no barcode was ever generated.
         code: variant.barcode ?? variant.sku,
         suggestedCopies: supplierBarcode ? 0 : suggest(variant.stock),
@@ -92,6 +102,7 @@ export function buildLabelLines(product: Product, locale: string): LabelLine[] {
       variantId: null,
       name,
       subtitle: null,
+      thumbnailUrl: productThumb,
       code: product.barcode ?? product.sku,
       suggestedCopies: parentIsSupplier ? 0 : suggest(product.stock ?? 0),
       stock: product.stock ?? 0,

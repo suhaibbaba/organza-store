@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { Alert, Button, EmptyState, Skeleton, SkeletonStatus, Spinner } from "@store/ui";
+import { Alert, Button, EmptyState, Skeleton, SkeletonStatus } from "@store/ui";
 import { useTranslateError } from "@/hooks/use-translate-error";
 import { ApiError } from "@/lib/api/errors";
 
@@ -44,13 +44,5 @@ export function LabelListError({ error, onRetry }: { error: unknown; onRetry: ()
     >
       {code ? translateError(code) : t("retry")}
     </Alert>
-  );
-}
-
-export function LabelListSpinnerOverlay() {
-  return (
-    <div className="flex items-center justify-center py-3">
-      <Spinner className="size-5" />
-    </div>
   );
 }

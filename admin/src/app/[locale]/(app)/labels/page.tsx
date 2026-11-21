@@ -2,15 +2,15 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { ArrowLeft, ArrowRight, Printer } from "lucide-react";
-import { can } from "@store/shared/lib/permissions";
+import { ArrowLeft, Eye, Tags } from "lucide-react";
+import { Alert, Button, SearchField, SegmentedControl, TotalBadge, useToast } from "@store/ui";
 import { DEFAULT_PAGE } from "@store/shared/constants/pagination";
-import type { ProductPrintState } from "@store/shared/types/product";
-import { Link } from "@/i18n/navigation";
+import { ERROR_CODES } from "@store/shared/constants/errors";
+import { PRODUCT_PRINT_STATES } from "@store/shared/constants/product";
 import { RoleGuard } from "@/components/auth/role-guard";
+import { DetailCard } from "@/components/layout/detail-card";
 import { PageContainer } from "@/components/layout/page-container";
 import { PageHeader } from "@/components/layout/page-header";
-import { useSession } from "@/components/providers/session-provider";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { useUrlFilters } from "@/hooks/use-url-filters";
 import { useUrlSearch } from "@/hooks/use-url-search";
@@ -21,7 +21,6 @@ import {
   useRefetchSelectedProducts,
   useSelectedProductsQueries,
 } from "@/hooks/use-labels";
-import { useTranslateError } from "@/hooks/use-translate-error";
 import { ApiError } from "@/lib/api/errors";
 import {
   buildLabelLines,
@@ -40,45 +39,36 @@ import {
   MIN_SCANNABLE_LABEL_WIDTH_MM,
   PREVIEW_DEBOUNCE_MS,
 } from "@/constants/labels";
-import { ProductSearch } from "@/components/products/product-search";
-import { ProductPagination } from "@/components/products/product-pagination";
-import { LabelFilters } from "@/components/labels/label-filters";
-import { LabelProductRow } from "@/components/labels/label-product-row";
+import { LabelCategoryFilter, LabelFilterChips, LabelFilters } from "@/components/labels/label-filters";
+import { LabelTable } from "@/components/labels/label-table";
+import { LabelSelectBar } from "@/components/labels/label-select-bar";
 import { LabelCopiesList } from "@/components/labels/label-copies-list";
+import { LabelSheetCard } from "@/components/labels/label-sheet-card";
+import { LabelPrintBar } from "@/components/labels/label-print-bar";
+import { LabelPrintedModal } from "@/components/labels/label-printed-modal";
 import { LabelPreview } from "@/components/labels/label-preview";
 import { LabelPrintPortal } from "@/components/labels/label-print-portal";
 import { LabelSheet } from "@/components/labels/label-sheet";
-import {
-  LabelListEmpty,
-  LabelListError,
-  LabelListLoading,
-  LabelListSpinnerOverlay,
-} from "@/components/labels/label-states";
-import { Alert, Button } from "@store/ui";
-import type { LabelStep } from "@/types/label";
+import { LabelListEmpty, LabelListError, LabelListLoading } from "@/components/labels/label-states";
+import type { LabelFiltersValue, LabelListFilters, LabelStep } from "@/types/label";
 
 // Barcode labels (rule 13): pick the pieces still owed a label, then set copies and print; the sheet comes from Settings.
-
 function LabelsPageContent() {
   const t = useTranslations("labels");
   const locale = useLocale();
-  const translateError = useTranslateError();
-  const { user } = useSession();
+  const toast = useToast();
 
   const [step, setStep] = useState<LabelStep>("select");
   const [filters, setFilters] = useUrlFilters(DEFAULT_LABEL_FILTERS, LABEL_LIST_URL_PARAMS);
   const [searchInput, handleSearchChange] = useUrlSearch(
     filters.q,
-    (q) => setFilters({ q, page: DEFAULT_PAGE }),
+    (q) => changeFilters({ q, page: DEFAULT_PAGE }),
     LABEL_SEARCH_DEBOUNCE_MS,
   );
 
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
-
-  // Only counts the user changed; the rest fall back to the suggestion so none goes stale.
+  // Only counts the user changed; the rest follow the suggestion so none goes stale.
   const [copyOverrides, setCopyOverrides] = useState<Record<string, string>>({});
-
-  // The browser never says whether anything printed, so we ask once its dialog closes.
   const [printDialogClosed, setPrintDialogClosed] = useState(false);
 
   const list = useProductsQuery(toProductListFilters(filters));
@@ -88,20 +78,16 @@ function LabelsPageContent() {
     isLoading: detailsLoading,
     error: detailsError,
   } = useSelectedProductsQueries(selectedIds);
-
   const retryDetails = useRefetchSelectedProducts(selectedIds);
   const markPrinted = useMarkLabelsPrintedMutation();
 
   const products = list.data?.products ?? [];
-  const selectedSet = new Set(selectedIds);
 
   // Memoised down to the sheet: a run can be hundreds of labels, not rebuilt per keystroke.
   const lines = useMemo(
     () => selectedProducts.flatMap((product) => buildLabelLines(product, locale)),
     [selectedProducts, locale],
   );
-
-  // Suggested counts, with the user's own edits layered on top.
   const copies = useMemo(
     () => Object.fromEntries(lines.map((line) => [line.key, copyOverrides[line.key] ?? String(line.suggestedCopies)])),
     [lines, copyOverrides],
@@ -110,9 +96,10 @@ function LabelsPageContent() {
   const totalLabels = countLabels(lines, copies);
   const geometry = settingsQuery.data ? toLabelGeometry(settingsQuery.data) : null;
   const runTooLarge = totalLabels > LABEL_RUN_MAX;
+  const canPrint = totalLabels > 0 && !runTooLarge;
 
   const items = useMemo(() => (runTooLarge ? [] : expandLabels(lines, copies)), [lines, copies, runTooLarge]);
-  // The preview trails the input so typing a count stays responsive on a phone.
+  // The preview trails the counts so typing stays responsive on a phone.
   const previewItems = useDebouncedValue(items, PREVIEW_DEBOUNCE_MS);
 
   useEffect(() => {
@@ -121,24 +108,18 @@ function LabelsPageContent() {
     return () => window.removeEventListener("afterprint", handleAfterPrint);
   }, []);
 
-  function toggleProduct(productId: string, selected: boolean) {
-    setSelectedIds((ids) => (selected ? [...new Set([...ids, productId])] : ids.filter((id) => id !== productId)));
+  function changeFilters(next: Partial<LabelListFilters>) {
+    setFilters(next);
   }
 
-  function selectAllOnPage() {
-    setSelectedIds((ids) => [...new Set([...ids, ...products.map((product) => product.id)])]);
+  function toggleProduct(productId: string) {
+    setSelectedIds((ids) => (ids.includes(productId) ? ids.filter((id) => id !== productId) : [...ids, productId]));
   }
 
-  function updatePage(page: number) {
-    setFilters({ page });
-  }
-
-  function handlePrintStateChange(printState: ProductPrintState) {
-    setFilters({ printState, page: DEFAULT_PAGE });
-  }
-
-  function handleCategoryChange(categoryId: string | null) {
-    setFilters({ categoryId, page: DEFAULT_PAGE });
+  // Selection outlives paging and filters, so the head checkbox only adds or removes this page's rows.
+  function toggleAllOnPage(select: boolean) {
+    const pageIds = products.map((product) => product.id);
+    setSelectedIds((ids) => (select ? [...new Set([...ids, ...pageIds])] : ids.filter((id) => !pageIds.includes(id))));
   }
 
   function handlePrint() {
@@ -150,6 +131,7 @@ function LabelsPageContent() {
   function handleMarkPrinted() {
     markPrinted.mutate(selectedIds, {
       onSuccess: () => {
+        toast.success("labels.print.marked");
         setSelectedIds([]);
         setCopyOverrides({});
         setPrintDialogClosed(false);
@@ -158,206 +140,169 @@ function LabelsPageContent() {
     });
   }
 
-  const hasFilters = hasActiveLabelFilters(filters);
+  const filtersValue: LabelFiltersValue = { categoryId: filters.categoryId };
+  const applyFilters = (next: LabelFiltersValue) => changeFilters({ ...next, page: DEFAULT_PAGE });
 
-  // ---- Step 2: counts, preview, print ------------------------------------
   if (step === "prepare") {
     return (
       <PageContainer>
-        {/* Above the header: steps back through the screen's own two stages. */}
-        <div className="mb-4 flex items-center gap-2">
-          <Button type="button" variant="quiet" className="-ms-2 px-2" onClick={() => setStep("select")}>
-            <ArrowLeft className="size-4 rtl:-scale-x-100" aria-hidden="true" />
-            {t("prepare.back")}
-          </Button>
-        </div>
-
         <PageHeader
           name="labels"
           title={t("prepare.title")}
           description={t("prepare.subtitle", { products: selectedIds.length, labels: totalLabels })}
+          actions={
+            <Button
+              variant="secondary"
+              onClick={() => setStep("select")}
+              data-test-selector="labels-back"
+              icon={<ArrowLeft className="size-4 rtl:-scale-x-100" aria-hidden="true" />}
+            >
+              {t("prepare.back")}
+            </Button>
+          }
         />
 
-        <div className="flex flex-col gap-4">
-          {markPrinted.isSuccess && (
-            <Alert tone="success" data-testid="alert-success">
-              {t("print.marked")}
-            </Alert>
-          )}
-
-          {printDialogClosed && !markPrinted.isSuccess && (
-            <Alert tone="info" data-testid="alert-default" title={t("print.confirmTitle")}>
-              <div className="flex flex-col gap-3">
-                <p>{t("print.confirmDescription")}</p>
-                {markPrinted.isError && (
-                  <p className="text-toast-error-icon" role="alert">
-                    {translateError(markPrinted.error instanceof ApiError ? markPrinted.error.code : "error.internal")}
-                  </p>
-                )}
-                <div className="flex flex-col gap-2 sm:flex-row">
-                  <Button type="button" onClick={handleMarkPrinted} isLoading={markPrinted.isPending}>
-                    {t("print.confirmYes")}
-                  </Button>
-                  <Button type="button" variant="secondary" onClick={() => setPrintDialogClosed(false)}>
-                    {t("print.confirmNo")}
-                  </Button>
-                </div>
+        {detailsLoading || (!detailsError && !geometry) ? (
+          <LabelListLoading />
+        ) : detailsError ? (
+          <LabelListError error={detailsError} onRetry={retryDetails} />
+        ) : (
+          geometry && (
+            <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-[minmax(0,1fr)_22rem]">
+              <div className="flex flex-col gap-5 lg:sticky lg:top-4 lg:col-start-2 lg:row-start-1">
+                <LabelSheetCard geometry={geometry} totalLabels={totalLabels} canPrint={canPrint} onPrint={handlePrint}>
+                  {geometry.widthMm < MIN_SCANNABLE_LABEL_WIDTH_MM && (
+                    <Alert tone="warning" data-testid="labels-small-warning">
+                      {t("warnings.smallLabel", { width: MIN_SCANNABLE_LABEL_WIDTH_MM })}
+                    </Alert>
+                  )}
+                  {gridOverflowsPage(geometry) && (
+                    <Alert tone="danger" data-testid="labels-overflow-warning">
+                      {t("warnings.gridOverflow")}
+                    </Alert>
+                  )}
+                </LabelSheetCard>
               </div>
-            </Alert>
-          )}
 
-          {detailsLoading ? (
-            <LabelListLoading />
-          ) : detailsError ? (
-            <LabelListError error={detailsError} onRetry={retryDetails} />
-          ) : !geometry ? (
-            <LabelListLoading />
-          ) : (
-            <>
-              <div
-                className="rounded-card border border-line bg-surface p-4 shadow-card"
-                data-test-selector="label-sheet-summary"
-              >
-                <p className="text-label font-medium text-ink">{t("sheet.title")}</p>
-                <p className="mt-0.5 text-label text-ink-muted">
-                  {geometry.printMode === "A4_GRID"
-                    ? t("sheet.a4", {
-                        width: geometry.widthMm,
-                        height: geometry.heightMm,
-                        columns: geometry.columns,
-                        rows: geometry.rows,
-                      })
-                    : t("sheet.thermal", { width: geometry.widthMm, height: geometry.heightMm })}
-                </p>
-                {can(user, "settings.manage") && (
-                  <Link
-                    href="/settings"
-                    className="mt-2 inline-block text-label font-medium text-primary-600 underline hover:text-primary-700 focus-link"
-                  >
-                    {t("sheet.change")}
-                  </Link>
+              <div className="flex min-w-0 flex-col gap-5 lg:col-start-1 lg:row-start-1">
+                <DetailCard icon={Tags} title={t("copies.title")} data-testid="labels-copies-card">
+                  <LabelCopiesList
+                    lines={lines}
+                    copies={copies}
+                    onChange={(key, value) => setCopyOverrides((prev) => ({ ...prev, [key]: value }))}
+                  />
+                  {runTooLarge && (
+                    <Alert tone="danger" data-testid="labels-too-many">
+                      {t("warnings.tooManyLabels", { max: LABEL_RUN_MAX })}
+                    </Alert>
+                  )}
+                  {totalLabels === 0 && (
+                    <Alert tone="info" data-testid="labels-none">
+                      {t("warnings.noLabels")}
+                    </Alert>
+                  )}
+                </DetailCard>
+
+                {canPrint && (
+                  <DetailCard icon={Eye} title={t("preview.title")} data-testid="labels-preview-card">
+                    <LabelPreview items={previewItems} geometry={geometry} />
+                  </DetailCard>
                 )}
               </div>
+            </div>
+          )
+        )}
 
-              {geometry.widthMm < MIN_SCANNABLE_LABEL_WIDTH_MM && (
-                <Alert tone="warning" data-testid="alert-default">
-                  {t("warnings.smallLabel", { width: MIN_SCANNABLE_LABEL_WIDTH_MM })}
-                </Alert>
-              )}
+        {/* What the browser prints, outside the app layout so nothing can clip a label. */}
+        {geometry && canPrint && (
+          <LabelPrintPortal geometry={geometry}>
+            <LabelSheet items={items} geometry={geometry} />
+          </LabelPrintPortal>
+        )}
 
-              {gridOverflowsPage(geometry) && (
-                <Alert tone="danger" data-testid="alert-destructive">
-                  {t("warnings.gridOverflow")}
-                </Alert>
-              )}
+        <LabelPrintBar totalLabels={totalLabels} canPrint={canPrint} onPrint={handlePrint} />
 
-              <LabelCopiesList
-                lines={lines}
-                copies={copies}
-                onChange={(key, value) => setCopyOverrides((prev) => ({ ...prev, [key]: value }))}
-              />
-
-              {runTooLarge ? (
-                <Alert tone="danger" data-testid="alert-destructive">
-                  {t("warnings.tooManyLabels", { max: LABEL_RUN_MAX })}
-                </Alert>
-              ) : totalLabels === 0 ? (
-                <Alert tone="info" data-testid="alert-default">
-                  {t("warnings.noLabels")}
-                </Alert>
-              ) : (
-                <>
-                  <LabelPreview items={previewItems} geometry={geometry} />
-                  {/* What the browser prints, rendered outside the app layout so nothing can clip a label. */}
-                  <LabelPrintPortal geometry={geometry}>
-                    <LabelSheet items={items} geometry={geometry} />
-                  </LabelPrintPortal>
-                </>
-              )}
-
-              <div className="sticky bottom-[var(--bottom-bar-inset)] z-20 -mx-4 border-t border-line bg-surface px-4 py-3 md:mx-0 md:rounded-panel md:border md:shadow-float">
-                <div className="flex items-center justify-between gap-3">
-                  <span className="text-label text-ink-muted">{t("prepare.totalLabels", { count: totalLabels })}</span>
-                  <Button type="button" onClick={handlePrint} disabled={totalLabels === 0 || runTooLarge}>
-                    <Printer className="size-5" aria-hidden="true" />
-                    {t("prepare.print")}
-                  </Button>
-                </div>
-              </div>
-            </>
-          )}
-        </div>
+        <LabelPrintedModal
+          open={printDialogClosed}
+          isPending={markPrinted.isPending}
+          errorCode={
+            markPrinted.isError
+              ? markPrinted.error instanceof ApiError
+                ? markPrinted.error.code
+                : ERROR_CODES.INTERNAL
+              : null
+          }
+          onConfirm={handleMarkPrinted}
+          onClose={() => setPrintDialogClosed(false)}
+        />
       </PageContainer>
     );
   }
 
-  // ---- Step 1: pick the products ------------------------------------------
   return (
     <PageContainer>
       <PageHeader name="labels" title={t("title")} description={t("subtitle")} />
 
       <div className="flex flex-col gap-4">
-        {markPrinted.isSuccess && (
-          <Alert tone="success" data-testid="alert-success">
-            {t("print.marked")}
-          </Alert>
-        )}
+        {/* Which labels are still owed is this screen's question, so it is one tap away rather than in the drawer. */}
+        <SegmentedControl
+          data-testid="labels-print-state"
+          label={t("filters.printState")}
+          value={filters.printState}
+          onChange={(printState) => changeFilters({ printState, page: DEFAULT_PAGE })}
+          options={PRODUCT_PRINT_STATES.map((state) => ({ value: state, label: t(`filters.${state}`) }))}
+        />
 
         <div className="flex flex-col gap-3">
-          <ProductSearch value={searchInput} onChange={handleSearchChange} />
-          <LabelFilters
-            printState={filters.printState}
-            categoryId={filters.categoryId}
-            onPrintStateChange={handlePrintStateChange}
-            onCategoryChange={handleCategoryChange}
-          />
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="min-w-64 flex-1 sm:max-w-md">
+              <SearchField
+                data-testid="labels-search"
+                label={t("search.label")}
+                value={searchInput}
+                onChange={(event) => handleSearchChange(event.target.value)}
+                onClear={() => handleSearchChange("")}
+                clearLabel={t("search.clear")}
+                placeholder={t("search.placeholder")}
+              />
+            </div>
+            <LabelCategoryFilter
+              value={filters.categoryId}
+              onChange={(categoryId) => changeFilters({ categoryId, page: DEFAULT_PAGE })}
+            />
+            <LabelFilters value={filtersValue} onApply={applyFilters} />
+            {list.data?.meta && (
+              <div className="ms-auto flex h-(--control-h) items-center">
+                <TotalBadge data-testid="labels-count" total={list.data.meta.total} />
+              </div>
+            )}
+          </div>
+          <LabelFilterChips value={filtersValue} onChange={applyFilters} />
         </div>
 
-        {list.isLoading ? (
-          <LabelListLoading />
-        ) : list.isError ? (
+        {list.isError ? (
           <LabelListError error={list.error} onRetry={() => void list.refetch()} />
-        ) : products.length === 0 ? (
-          <LabelListEmpty hasFilters={hasFilters} />
+        ) : !list.isLoading && products.length === 0 ? (
+          <LabelListEmpty hasFilters={hasActiveLabelFilters(filters)} />
         ) : (
-          <>
-            <div className="flex items-center justify-between gap-3">
-              <Button type="button" variant="secondary" onClick={selectAllOnPage}>
-                {t("selectAll")}
-              </Button>
-              {selectedIds.length > 0 && (
-                <Button type="button" variant="quiet" onClick={() => setSelectedIds([])}>
-                  {t("clearSelection")}
-                </Button>
-              )}
-            </div>
-
-            {list.isFetching && <LabelListSpinnerOverlay />}
-
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
-              {products.map((product) => (
-                <LabelProductRow
-                  key={product.id}
-                  product={product}
-                  selected={selectedSet.has(product.id)}
-                  onToggle={toggleProduct}
-                />
-              ))}
-            </div>
-
-            {list.data?.meta && <ProductPagination meta={list.data.meta} onPageChange={updatePage} />}
-          </>
+          <LabelTable
+            products={products}
+            meta={list.data?.meta ?? null}
+            isLoading={list.isLoading}
+            isRefreshing={list.isFetching && !list.isLoading}
+            selectedIds={selectedIds}
+            onToggle={toggleProduct}
+            onToggleAll={toggleAllOnPage}
+            onPageChange={(page) => changeFilters({ page })}
+            onPageSizeChange={(pageSize) => changeFilters({ pageSize, page: DEFAULT_PAGE })}
+          />
         )}
 
-        <div className="sticky bottom-[var(--bottom-bar-inset)] z-20 -mx-4 border-t border-line bg-surface px-4 py-3 md:mx-0 md:rounded-panel md:border md:shadow-float">
-          <div className="flex items-center justify-between gap-3">
-            <span className="text-label text-ink-muted">{t("selectedCount", { count: selectedIds.length })}</span>
-            <Button type="button" onClick={() => setStep("prepare")} disabled={selectedIds.length === 0}>
-              {t("next")}
-              <ArrowRight className="size-5 rtl:-scale-x-100" aria-hidden="true" />
-            </Button>
-          </div>
-        </div>
+        <LabelSelectBar
+          count={selectedIds.length}
+          onClear={() => setSelectedIds([])}
+          onNext={() => setStep("prepare")}
+        />
       </div>
     </PageContainer>
   );

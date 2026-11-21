@@ -1,4 +1,6 @@
-import type { ProductPrintState } from "@store/shared/types/product";
+import type { ReactNode } from "react";
+import type { ProductPrintState, ProductSummary } from "@store/shared/types/product";
+import type { Pagination } from "@store/shared/types/common";
 import type { LabelPrintMode } from "@store/shared/types/setting";
 
 // The products list filters minus price range and sort.
@@ -7,6 +9,7 @@ export interface LabelListFilters {
   categoryId: string | null;
   printState: ProductPrintState;
   page: number;
+  pageSize: number;
 }
 
 export interface LabelLine {
@@ -18,6 +21,8 @@ export interface LabelLine {
   name: string;
   // Null for a simple product or a numbered shawl's parent.
   subtitle: string | null;
+  // The variant's own photo, else the product's (a numbered shawl's carries its numbers).
+  thumbnailUrl: string | null;
   // The barcode, else the SKU; null when there is nothing to encode.
   code: string | null;
   // The piece's stock, or zero for a supplier-coded piece; only a proposal.
@@ -55,3 +60,74 @@ export interface LabelGeometry {
 
 // Two steps, not a wizard: pick the products, then set counts and print.
 export type LabelStep = "select" | "prepare";
+
+export interface LabelFiltersValue {
+  categoryId: string | null;
+}
+
+export interface LabelCategoryFilterProps {
+  value: string | null;
+  onChange: (categoryId: string | null) => void;
+}
+
+export interface LabelFiltersProps {
+  value: LabelFiltersValue;
+  onApply: (value: LabelFiltersValue) => void;
+}
+
+export interface LabelFilterChipsProps {
+  value: LabelFiltersValue;
+  onChange: (value: LabelFiltersValue) => void;
+}
+
+export interface LabelTableProps {
+  products: readonly ProductSummary[];
+  meta: Pagination | null;
+  isLoading: boolean;
+  isRefreshing: boolean;
+  selectedIds: readonly string[];
+  onToggle: (productId: string) => void;
+  onToggleAll: (select: boolean) => void;
+  onPageChange: (page: number) => void;
+  onPageSizeChange: (pageSize: number) => void;
+}
+
+export interface LabelSelectBarProps {
+  count: number;
+  onClear: () => void;
+  onNext: () => void;
+}
+
+export interface LabelCopiesListProps {
+  lines: readonly LabelLine[];
+  copies: Record<string, string>;
+  onChange: (key: string, value: string) => void;
+}
+
+export interface LabelCopiesRowProps {
+  line: LabelLine;
+  value: string;
+  onChange: (key: string, value: string) => void;
+}
+
+export interface LabelSheetCardProps {
+  geometry: LabelGeometry;
+  totalLabels: number;
+  canPrint: boolean;
+  onPrint: () => void;
+  children?: ReactNode;
+}
+
+export interface LabelPrintBarProps {
+  totalLabels: number;
+  canPrint: boolean;
+  onPrint: () => void;
+}
+
+export interface LabelPrintedModalProps {
+  open: boolean;
+  isPending: boolean;
+  errorCode: string | null;
+  onConfirm: () => void;
+  onClose: () => void;
+}

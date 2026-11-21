@@ -392,6 +392,21 @@ hover:text-primary-700` (or `group` on the link + `group-hover:text-primary-700`
 - A client-only field check (password mismatch) needs a FULL message key as its zod message; FormField
   translates `errorKey` from the root, so a page-local key like `form.password.mismatch` shows raw.
 
+- **Labels (user, 2026-11-21): two steps, rebuilt.** Step 1 = print-state segments + toolbar + a selectable
+  `Table` (photo, name, "last printed" date or badge) and a `StickyActions` "N selected · Clear · Next"; step 2 = two
+  columns: a "Copies" `DetailCard` (one bordered list, a heading row per product with variants, a stepper per line)
+  and a preview card | a sticky side card (sheet from Settings, warnings, total, Print). The after-print question
+  is a `Modal`, never an inline alert; test it by dispatching `afterprint` and patching `fetch` for both answers.
+- A selection that outlives paging and filters: the head checkbox adds or removes only this page's ids, and the bar
+  counts every ticked one. A Table row click and its checkbox both toggle, so a selectable Table has no `onRowClick`.
+- When the desktop side card holds the page's action, phones get it in a `StickyActions` wrapped in `lg:hidden`.
+- **A muted line that joins parts (category · count · SKU) wraps each part in `<bdi>`**: an Arabic category in the
+  English UI otherwise drags the next number into its direction ("9 جكيتات · variants").
+- Every `{count}` in a message is an ICU plural, multi-value lines too (`{products, plural, …} · {labels, plural, …}`);
+  Arabic "2 منتجات" and "17 ملصق" are bugs (منتجان, 17 ملصقًا).
+- "Module not found: @/constants/…" from `shared/dist` in the console is a dev server that read the build between
+  `tsc` and `tsc-alias`; check `grep 'require("@/' shared/dist` and the timestamp before treating it as current.
+
 ## Done
 
 - admin `products/[id]` (record) — 2026-11-21; rebuilt 2026-11-21: gallery + viewer, details card, no tabs
@@ -405,3 +420,4 @@ hover:text-primary-700` (or `group` on the link + `group-hover:text-primary-700`
 - admin `settings` (form, two columns, staged logo + new favicon upload) — 2026-11-21
 - admin `users` (list: role select + filter drawer with sort/status, chips, sortable Table; create/edit in a Modal) — 2026-11-21
 - admin + pos `profile` (new: details + SaveBar, devices, password modal, language, notifications) — 2026-11-21
+- admin `labels` (two steps: selectable Table + StickyActions; copies list + sticky sheet card; printed Modal) — 2026-11-21
