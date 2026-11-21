@@ -247,6 +247,25 @@ Reference implementation: the clinic app at `/Users/suhaibbaba/Projects/clinic-m
   `gap-4`. The header card leads with an icon tile (`size-14 bg-primary-50`), and its facts are a tinted
   strip (`bg-sunken`, bordered cells with an icon each, the money cell `bg-primary-50`), 2 per row on phones.
   Totals sit inside the pieces card, the final total on a `bg-primary-50` row.
+- **Section and fact icons are `text-primary-700` (user, 2026-11-21)** — not `text-ink` (read as black) and not
+  `primary-900` (too dark). It measures 7:1 on white, the sunken strip and `bg-primary-50`.
+- **Keyboard focus is a darker colour, never an outline or ring (user, 2026-11-21).** `base.css` turns outlines
+  off everywhere, so every focusable thing needs one of: `Button`/`buttonClassName` (already darker than hover),
+  `focus-link` for a text link (darker ink, tint, thick underline), `focus-darken` for cards, tiles, chips, photos
+  and icon buttons, or explicit `focus-visible:` tokens a shade or two darker than its hover. On the dark rail
+  darker is invisible: use `focus-visible:bg-rail-active text-rail-ink-active`. Radix highlights
+  (`data-highlighted:`) are `bg-primary-100 text-primary-900` (danger: `bg-danger-100 text-danger-800`). A ring
+  that marks *selection* (chosen variant, primary photo) is not focus and stays.
+- **Phone / WhatsApp / email are `@store/ui` `PhoneLink` / `WhatsAppLink` / `EmailLink` with `value` (user,
+  2026-11-21)** — never a hand-built `<a href="tel:">`. WhatsApp opens `wa.me` (a `tel:` link dials instead);
+  `WhatsAppLink` shows the number when given no `label`. Copy-able text keeps `{...SELECTABLE}` on its wrapper.
+- **Repeated row markup becomes one component (user, 2026-11-21)**: two rows with the same classes is the sign
+  (e.g. `CustomerContactRow` for the customer card: icon beside the link, `multiline` for an address). Its props
+  type goes in `types/`, not in the component file.
+- A step indicator (order progress) marks the current step `aria-current="step"`, shows a tick on finished steps
+  and an `sr-only` "done" / "current step", so state never rests on colour alone (WCAG 1.4.1).
+- Before calling a page done, check contrast of every token pair it uses: text 4.5:1, icons and control edges
+  3:1. Watch the badge tones — warning (4.60) and info (4.62) sit just over the line on their tinted fills.
 
 ## Done
 - admin `products/[id]` (record) — 2026-11-21
