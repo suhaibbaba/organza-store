@@ -5,7 +5,7 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useLocale, useTranslations } from "next-intl";
-import { Alert, Button, Input, SaveBar, Section, Select, Switch, TranslatedField } from "@store/ui";
+import { Alert, Button, Input, SaveBar, Section, Select, Switch, TranslatedField, Typography } from "@store/ui";
 import { PRODUCT_FORM_SECTIONS, type ProductFormSectionName } from "@/constants/products";
 import { SUPPORTED_LANGUAGES, DEFAULT_LANGUAGE } from "@store/shared/constants/languages";
 import { NUMBER_VARIANT_TYPE_SLUG } from "@store/shared/constants/variantType";
@@ -435,6 +435,12 @@ export function ProductForm({ mode, product, onDiscard }: ProductFormProps) {
       setSubmitError(describeError(err));
     }
   }
+
+  const progressMessage = saveStep
+    ? saveStep.kind === "images"
+      ? t("progress.images", { done: saveStep.done, total: saveStep.total })
+      : t(saveStep.kind === "product" ? "progress.product" : "progress.variants")
+    : undefined;
 
   return (
     <form ref={formRef} onSubmit={handleSubmit(onSubmit)} noValidate className="flex flex-col gap-5">
@@ -916,18 +922,37 @@ export function ProductForm({ mode, product, onDiscard }: ProductFormProps) {
         </div>
       </div>
 
-      {canSave && !partialFailure && (
+      {canSave && !partialFailure && mode === "create" && (
+        // Create ends the form with its own buttons; only an edit needs a bar that follows the scroll.
+        <div
+          className="flex flex-wrap items-center justify-end gap-3 border-t border-line pt-5"
+          data-test-selector="product-create-actions"
+        >
+          {saveStep && (
+            <Typography variant="small" tone="muted" as="p" className="me-auto" aria-live="polite">
+              {progressMessage}
+            </Typography>
+          )}
+          <Button
+            variant="secondary"
+            data-test-selector="product-create-cancel"
+            disabled={isBusy}
+            onClick={() => (onDiscard ? onDiscard() : router.push("/products"))}
+          >
+            {tCommon("cancel")}
+          </Button>
+          <Button type="submit" data-test-selector="product-create-submit" isLoading={isBusy}>
+            {isBusy ? t("creating") : t("create")}
+          </Button>
+        </div>
+      )}
+
+      {canSave && !partialFailure && mode === "edit" && (
         <SaveBar
           data-testid="product-save"
-          visible={mode === "create" || hasChanges || isBusy}
+          visible={hasChanges || isBusy}
           saving={isBusy}
-          message={
-            saveStep
-              ? saveStep.kind === "images"
-                ? t("progress.images", { done: saveStep.done, total: saveStep.total })
-                : t(saveStep.kind === "product" ? "progress.product" : "progress.variants")
-              : undefined
-          }
+          message={progressMessage}
           onSave={() => void handleSubmit(onSubmit)()}
           onDiscard={() => (onDiscard ? onDiscard() : router.push(product ? `/products/${product.id}` : "/products"))}
         />

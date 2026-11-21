@@ -55,24 +55,9 @@ export const NAV_ITEMS: readonly NavItem[] = [
   { key: "settings", href: "/settings", icon: Settings, action: "settings.manage" },
 ] as const;
 
-// Bottom nav (mobile) shows these directly; everything else lives in the
-// "More" sheet, reachable via one extra tap. Orders earns a slot over
-// Categories: incoming orders are checked many times a day, while the
-// category tree is set up once and rarely revisited.
-//
-// A tuple, not a string[], so the solid-icon table can be typed against it:
-// every tab here MUST have a drawn solid twin (components/icons/
-// nav-solid-icons.tsx) or the build fails. Outline vs solid is how this bar
-// says which tab you are on — a difference you can see across a room, unlike a
-// tint — and that only holds if the solid is legible, which only holds if
-// somebody drew it.
 // The phone menu's headings; the design system link goes last in "manage".
 export const NAV_GROUPS: readonly NavGroup[] = [
   { key: "sales", items: ["dashboard", "orders", "collection", "reports", "expenses"] },
   { key: "catalogue", items: ["products", "inventory", "labels", "categories"] },
   { key: "manage", items: ["changeRequests", "users", "permissions", "settings"] },
 ];
-
-export const PRIMARY_NAV_KEYS = ["dashboard", "orders", "products", "inventory"] as const;
-
-export type PrimaryNavKey = (typeof PRIMARY_NAV_KEYS)[number];
