@@ -10,11 +10,7 @@ import { SORT_DIRECTIONS } from "@/constants/pagination";
 export const createUserSchema = z.object({
   name: z.string().min(1, ERROR_CODES.VALIDATION_REQUIRED),
   email: z.string().email(ERROR_CODES.VALIDATION_INVALID_EMAIL),
-  // Optional since the shop went live on email-based setup: leaving it out
-  // creates the account with NO usable password and emails the person a
-  // single-use "set your password" link, so nobody but them ever knows it.
-  // Passing one is still supported — the admin-set fallback for a member of
-  // staff whose mailbox is unreachable (CLAUDE.md rule 17).
+  // Optional: left out, the account gets no password and its owner sets one from an emailed link (rule 17).
   password: z.string().min(PASSWORD_MIN_LENGTH, ERROR_CODES.VALIDATION_PASSWORD_TOO_SHORT).optional(),
   role: z.enum(ROLES),
   phone: phoneSchema,

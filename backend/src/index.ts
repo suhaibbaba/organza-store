@@ -36,19 +36,10 @@ import { ERROR_CODES } from "@/constants";
 
 const app = express();
 
-// Whether this process can actually keep an uploaded photo, established once
-// at startup and reported by /health (see the listen callback at the bottom).
-// Optimistic until proven otherwise so /health answers during the moment
-// between listening and the check completing.
+// Whether uploads can be written, checked once at startup and reported by /health; optimistic until the check lands.
 let uploadsWritable = true;
 
-// Behind the VPS's TLS-terminating reverse proxy, req.ip is the proxy unless
-// express is told how many hops to look through — and the password endpoints'
-// rate limit is only worth anything if it counts real callers rather than
-// counting nginx once. Off unless configured, because trusting
-// X-Forwarded-For with nothing in front of the app lets any caller claim any
-// address. Parsed in lib/proxyTrust.ts, which owns both halves of this
-// question and says out loud what it decided (see the listen callback).
+// Trust X-Forwarded-For only when configured (lib/proxyTrust.ts), so rate limits count real callers, not nginx.
 if (TRUST_PROXY_SETTING !== null) {
   app.set("trust proxy", TRUST_PROXY_SETTING);
 }
@@ -63,32 +54,12 @@ app.use(
 );
 app.use(helmet());
 
-// Better Auth handles its own request body parsing, so it must be mounted
-// before express.json() touches the request stream.
+// Better Auth parses its own bodies, so it is mounted before express.json().
 app.all("/api/auth/*", toNodeHandler(auth));
 
 app.use(express.json());
 
-// Processed product/variant images (thumbnail/medium/full WebP) and the
-// originals they were cut from, served directly off disk — CLAUDE.md: images
-// stored locally on the VPS.
-//
-// Cross-Origin-Resource-Policy is set back to `cross-origin` for this mount
-// and this mount only. helmet's default is `same-origin`, which tells a
-// BROWSER to refuse the bytes when the page asking for them is on another
-// origin — and every page in this system is: the admin, the POS and (later)
-// the storefront all live somewhere else.
-//
-// It went unnoticed for as long as it did because nothing loaded these URLs
-// directly. Product photos are drawn with next/image, which fetches them
-// SERVER-side, where CORP does not apply. The admin's photo editor is the
-// first thing to put one in an <img> in the browser (spec.md "Editing a
-// photograph on upload") — and what CORP does there is not an error message
-// but a blank picture, which is exactly how it was reported: the editor comes
-// up black.
-//
-// Safe to relax here: these files are public product photographs, already
-// served without authentication, and there is nothing else under this path.
+// Images served from disk; CORP is cross-origin on this mount only, because the admin and POS load them from another origin.
 app.use(
   "/uploads",
   (_req, res, next) => {
@@ -99,23 +70,7 @@ app.use(
 );
 
 app.get("/health", async (_req, res) => {
-  // `uploads` is the one piece of state a container cannot rebuild for
-  // itself, so it is worth being able to ask after a deploy — from the
-  // outside, without an upload and without shell access. A boolean and
-  // nothing more: this route is public, and the absolute path on the VPS is
-  // not the internet's business.
-  //
-  // `backup` is here for the mirror-image reason. The uploads volume can be
-  // lost by a deploy; everything in the stack can be lost by the disk, and
-  // the only thing standing between the shop and that is a cron entry on the
-  // host that nothing in this codebase can see. A schedule that stopped
-  // firing raises no error anywhere — so the age of the last successful run
-  // is served next to the thing every uptime check already reads. Two fields,
-  // no figures from the shop's books, no path and no bucket.
-  //
-  // Read live rather than cached, and never allowed to fail the route: if the
-  // database is unreachable, that is a much louder problem than a backup
-  // question, and /health still has to answer it (see lib/backups.ts).
+  // Public health facts: uploads writable and backup staleness, as booleans only, never paths.
   let backup: { lastSuccessAt: string | null; stale: boolean } | null = null;
   try {
     const health = await getBackupHealth();
@@ -147,9 +102,7 @@ app.use("/api/cash-sessions", cashSessionsRouter);
 app.use("/api/reports", reportsRouter);
 app.use("/api/users", usersRouter);
 app.use("/api/me", meRouter);
-// Unauthenticated by design — somebody with no password cannot sign in to
-// ask for one. Every route on it is rate-limited and none of them confirms
-// that an account exists (see routes/passwordSetup.ts).
+// Unauthenticated by design and rate-limited; never confirms that an account exists.
 app.use("/api/password-setup", passwordSetupRouter);
 app.use("/api/settings", settingsRouter);
 app.use("/api/permissions", permissionsRouter);
@@ -166,31 +119,13 @@ const port = Number(process.env.PORT ?? 4000);
 app.listen(port, async () => {
   console.log(`Organza Store API listening on port ${port}`);
 
-  // WHO MAY DO WHAT, read into memory before the first request arrives
-  // (lib/permissionConfig.ts). Awaited rather than fired off: until it lands,
-  // `can()` answers from the shipped defaults, and a shop that has switched an
-  // Employee permission off should not get one request's worth of it back
-  // every time the API restarts. A failure here is reported and NOT fatal —
-  // the defaults are a working shop, and the next request's freshness check
-  // tries again.
+  // Permission rules loaded before the first request; a failure falls back to the shipped defaults.
   await loadPermissionConfig();
 
-  // The one alarm nothing else can raise. ops/backup.sh reports its own
-  // failures, but a backup that stopped being *run* — a cron entry lost in a
-  // server move, a host rebuilt without it — fails silently by definition,
-  // because nothing runs to fail. This is the process that is always up, so
-  // this is where the question gets asked (lib/backups.ts). Started before
-  // the uploads check below, which returns early on the happy path.
+  // Raises the alarm when backups stop being run at all, which nothing else can notice (lib/backups.ts).
   startBackupStalenessWatch();
 
-  // WHO THE CALLERS LOOK LIKE, said out loud on every start — next to the
-  // uploads path below, and for the same reason: it is a question that cannot
-  // be answered from outside the process, whose wrong answer breaks nothing
-  // visibly, and whose symptom arrives weeks later as "nobody can sign in".
-  //
-  // A deployed build that has been told nothing gets the paragraph and an
-  // entry in error tracking, because at that point every per-caller rate
-  // limit in the system is one shared bucket (lib/proxyTrust.ts).
+  // Logs how callers are identified on every start; a wrong answer only shows weeks later as failed sign-ins.
   const proxyTrust = describeProxyTrust();
   if (proxyTrust.level === "warn") {
     console.error(proxyTrust.lines.join("\n"));
@@ -202,10 +137,7 @@ app.listen(port, async () => {
     console.log(proxyTrust.lines.join("\n"));
   }
 
-  // Where the photographs go, said out loud on every start. One line in
-  // `docker compose logs backend` that answers "is the volume actually
-  // mounted where the app is writing?" — the question behind every uploaded
-  // image the shop has lost.
+  // Logs where photographs are written on every start, to confirm the volume is mounted.
   const uploads = await checkUploadDirWritable();
   uploadsWritable = uploads.ok;
 
@@ -214,9 +146,7 @@ app.listen(port, async () => {
     return;
   }
 
-  // Not fatal (see checkUploadDirWritable) — but it must be impossible to
-  // miss, and it goes to error tracking as well, because the alternative is
-  // finding out from a member of staff a week later.
+  // Not fatal, but reported to error tracking so a lost upload volume is noticed at once.
   captureException(uploads.error, {
     uploadDir: UPLOAD_DIR,
     hint:

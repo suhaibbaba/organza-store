@@ -1,6 +1,6 @@
 // A person's own account (/api/me): what they may change, and that it never reaches anybody else's.
 import { afterAll, describe, expect, it } from "vitest";
-import { apiRequest, uniqueId } from "@tests/support/client";
+import { apiRequest, rawRequest, uniqueId } from "@tests/support/client";
 import { getSession, signIn } from "@tests/support/auth";
 import { randomPalestinePhone, samePhoneUnderOtherPrefix } from "@tests/support/phone";
 import { SEEDED_PASSWORD } from "@tests/constants";
@@ -155,5 +155,24 @@ describe("My profile", () => {
     expect((await apiRequest("/api/me", { token: third })).status).toBe(401);
     const list = await apiRequest<ProfileSession[]>("/api/me/sessions", { token });
     expect(list.data!.map((session) => session.current)).toEqual([true]);
+  });
+
+  it("closes Better Auth's own update-user and change-password, so /api/me is the only way in", async () => {
+    const account = await createStaff("me-closed");
+    const token = await signInAs(account.email);
+
+    const update = await rawRequest("/api/auth/update-user", { method: "POST", token, body: { name: "Vitest bypass" } });
+    expect(update.status).toBe(404);
+
+    const change = await rawRequest("/api/auth/change-password", {
+      method: "POST",
+      token,
+      body: { currentPassword: SEEDED_PASSWORD, newPassword: NEW_PASSWORD, revokeOtherSessions: false },
+    });
+    expect(change.status).toBe(404);
+
+    const me = await apiRequest<Profile>("/api/me", { token });
+    expect(me.data!.name).toBe(account.name);
+    expect((await signIn(account.email, SEEDED_PASSWORD)).session, "the password is unchanged").toBeTruthy();
   });
 });

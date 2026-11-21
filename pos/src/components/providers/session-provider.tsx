@@ -31,9 +31,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     queryKey: SESSION_QUERY_KEY,
     queryFn: fetchSession,
     staleTime: 5 * 60 * 1000,
-    // Only thrown errors retry here — a rejected token comes back as a plain
-    // null, not a throw. So this is purely "the phone's connection blinked",
-    // which on shop mobile data it regularly does.
+    // Only a dropped connection throws here (a rejected token is null), so one retry is enough.
     retry: 1,
   });
 
