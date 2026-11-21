@@ -3,7 +3,7 @@
 import { useTranslations } from "next-intl";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { Pagination } from "@organza/shared/types/common";
-import { Button } from "@store/ui";
+import { Button, Typography } from "@store/ui";
 
 interface OrderPaginationProps {
   meta: Pagination;
@@ -28,9 +28,9 @@ export function OrderPagination({ meta, onPageChange }: OrderPaginationProps) {
         {t("previous")}
       </Button>
 
-      <span className="text-label text-ink-muted">
+      <Typography variant="small" tone="muted" as="span">
         {t("pageOf", { page: meta.page, totalPages: meta.totalPages })}
-      </span>
+      </Typography>
 
       <Button
         data-test-selector="orders-page-next"

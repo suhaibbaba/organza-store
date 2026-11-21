@@ -1772,7 +1772,11 @@
       "small": "صغير",
       "withIcon": "إضافة منتج",
       "iconDelete": "حذف",
-      "iconClose": "إغلاق"
+      "iconClose": "إغلاق",
+      "outbound": "افتح في الخرائط",
+      "card": "بطاقة للنقر",
+      "cardSelected": "بطاقة محددة",
+      "cardHint": "البطاقة كلها زر واحد"
     },
     "badges": {
       "inStock": "متوفر",

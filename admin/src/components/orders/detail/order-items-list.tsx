@@ -1,7 +1,7 @@
 import { useLocale, useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 import { Package, Undo2, Zap } from "lucide-react";
-import { Table, type Column } from "@store/ui";
+import { Table, type Column, Typography } from "@store/ui";
 import type { OrderItem } from "@organza/shared/types/order";
 import { testSelectorFor } from "@organza/shared/lib/testSelector";
 import { SELECTABLE } from "@organza/shared/lib/nativeGestures";
@@ -26,13 +26,13 @@ export function OrderItemsList({ items, footer }: { items: OrderItem[]; footer?:
     if (item.discountType === null || Number(item.discountAmount) <= 0) return null;
     return (
       <div className="flex flex-col whitespace-nowrap">
-        <span className="tabular-nums text-success-700" dir="ltr">
+        <Typography variant="body" tone="success" as="span" className="tabular-nums" dir="ltr">
           −{formatMoney(item.discountAmount)}
-        </span>
+        </Typography>
         {item.discountType === "PERCENT" && (
-          <span className="text-label text-ink-muted">
+          <Typography variant="small" tone="muted" as="span">
             {tDiscount("percentValue", { value: Number(item.discountValue ?? 0) })}
-          </span>
+          </Typography>
         )}
       </div>
     );
@@ -62,7 +62,7 @@ export function OrderItemsList({ items, footer }: { items: OrderItem[]; footer?:
                 {photo}
               </Link>
             ) : (
-              <span className="shrink-0">{photo}</span>
+              <Typography variant="body" as="span" className="shrink-0">{photo}</Typography>
             )}
             <div className="flex min-w-0 flex-col gap-0.5">
               {item.productId ? (
@@ -73,26 +73,26 @@ export function OrderItemsList({ items, footer }: { items: OrderItem[]; footer?:
                   {name}
                 </Link>
               ) : (
-                <span className="text-value font-normal text-ink">{name}</span>
+                <Typography variant="body" as="span" className="font-normal">{name}</Typography>
               )}
               {item.variantName && (
-                <span className="text-label font-normal text-ink-muted">{localize(item.variantName, locale)}</span>
+                <Typography variant="small" tone="muted" as="span" className="font-normal">{localize(item.variantName, locale)}</Typography>
               )}
-              <span className="text-label font-normal text-ink-muted" dir="ltr" {...SELECTABLE}>
+              <Typography variant="small" tone="muted" as="span" className="font-normal" dir="ltr" {...SELECTABLE}>
                 {item.sku ?? t("noSku")}
-              </span>
+              </Typography>
               {/* Typed at the counter (spec.md "Quick sell"): this line's cost, and its profit, may still be missing. */}
               {item.quickSold && (
-                <span className="inline-flex items-center gap-1 text-label font-normal text-primary-600">
+                <Typography variant="small" tone="brand" as="span" className="inline-flex items-center gap-1 font-normal">
                   <Zap className="size-3.5 shrink-0" aria-hidden="true" />
                   {t("quickSold")}
-                </span>
+                </Typography>
               )}
               {item.returnedQuantity > 0 && (
-                <span className="inline-flex items-center gap-1 text-label font-normal text-warning-700">
+                <Typography variant="small" as="span" className="inline-flex items-center gap-1 font-normal text-warning-700">
                   <Undo2 className="size-3.5 rtl:-scale-x-100" aria-hidden="true" />
                   {t("returned", { count: item.returnedQuantity })}
-                </span>
+                </Typography>
               )}
             </div>
           </div>
@@ -104,16 +104,16 @@ export function OrderItemsList({ items, footer }: { items: OrderItem[]; footer?:
       header: "orders.detail.items.quantityHeader",
       align: "numeric",
       render: (item) => (
-        <span className="tabular-nums" dir="ltr">
+        <Typography variant="body" as="span" className="tabular-nums" dir="ltr">
           {tCard("quantity", { count: item.quantity })}
-        </span>
+        </Typography>
       ),
     },
     {
       key: "unitPrice",
       header: "orders.detail.items.unitPriceHeader",
       align: "numeric",
-      render: (item) => <span className="whitespace-nowrap tabular-nums">{formatMoney(item.unitPrice)}</span>,
+      render: (item) => <Typography variant="body" as="span" className="whitespace-nowrap tabular-nums">{formatMoney(item.unitPrice)}</Typography>,
     },
     {
       key: "discount",
@@ -125,7 +125,7 @@ export function OrderItemsList({ items, footer }: { items: OrderItem[]; footer?:
       header: "orders.detail.items.lineTotalHeader",
       align: "numeric",
       render: (item) => (
-        <span className="whitespace-nowrap font-medium tabular-nums text-ink">{formatMoney(item.lineTotal)}</span>
+        <Typography variant="body" weight="medium" as="span" className="whitespace-nowrap tabular-nums">{formatMoney(item.lineTotal)}</Typography>
       ),
     },
   ];

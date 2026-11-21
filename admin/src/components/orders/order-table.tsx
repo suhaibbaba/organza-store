@@ -1,7 +1,7 @@
 "use client";
 
 import { useLocale, useTranslations } from "next-intl";
-import { Table, type Column, type TableSort } from "@store/ui";
+import { Table, type Column, type TableSort, Typography } from "@store/ui";
 import type { OrderPreviewItem, OrderSummary } from "@organza/shared/types/order";
 import type { Pagination } from "@organza/shared/types/common";
 import { PAGE_SIZE_OPTIONS } from "@organza/shared/constants/pagination";
@@ -62,13 +62,10 @@ export function OrderTable({ orders, meta, isRefreshing, sort, onPageChange, onP
               sizes={ORDER_THUMB_SIZES}
             />
             {more > 0 && index === order.previewItems.length - 1 && (
-              <span
-                data-test-selector="order-pieces-more"
-                dir="ltr"
-                className="absolute inset-0 flex items-center justify-center rounded-control bg-ink/55 text-value font-medium text-ink-inverse tabular-nums"
-              >
+              <Typography variant="body" weight="medium" as="span" className="absolute inset-0 flex items-center justify-center rounded-control bg-ink/55 text-ink-inverse tabular-nums" data-test-selector="order-pieces-more"
+                dir="ltr">
                 {t("card.morePieces", { count: more })}
-              </span>
+              </Typography>
             )}
           </span>
         ))}
@@ -92,11 +89,11 @@ export function OrderTable({ orders, meta, isRefreshing, sort, onPageChange, onP
             <OrderTypeBadge type={order.type} />
             {order.hasQuickSale && <QuickSaleBadge />}
           </div>
-          <span data-test-selector="order-pieces-names" className="line-clamp-2 text-label font-normal text-ink-muted">
+          <Typography variant="small" tone="muted" as="span" className="line-clamp-2 font-normal" data-test-selector="order-pieces-names">
             {order.previewItems.map(pieceName).join(" · ")}
             {order.itemCount > order.previewItems.length &&
               ` · ${t("card.morePieces", { count: order.itemCount - order.previewItems.length })}`}
-          </span>
+          </Typography>
         </div>
       </div>
     );
@@ -138,8 +135,8 @@ export function OrderTable({ orders, meta, isRefreshing, sort, onPageChange, onP
       sortKey: "createdAt",
       render: (order) => (
         <div className="flex flex-col whitespace-nowrap tabular-nums">
-          <span className="text-ink">{formatDate(order.createdAt, locale)}</span>
-          <span className="text-label text-ink-muted">{formatTime(order.createdAt, locale)}</span>
+          <Typography variant="body" as="span">{formatDate(order.createdAt, locale)}</Typography>
+          <Typography variant="small" tone="muted" as="span">{formatTime(order.createdAt, locale)}</Typography>
         </div>
       ),
     },
@@ -149,7 +146,7 @@ export function OrderTable({ orders, meta, isRefreshing, sort, onPageChange, onP
       sortKey: "total",
       align: "numeric",
       render: (order) => (
-        <span className="whitespace-nowrap font-medium tabular-nums text-ink">{formatMoney(order.total)}</span>
+        <Typography variant="body" weight="medium" as="span" className="whitespace-nowrap tabular-nums">{formatMoney(order.total)}</Typography>
       ),
     },
     {

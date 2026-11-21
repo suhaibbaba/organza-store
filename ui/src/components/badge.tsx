@@ -5,7 +5,8 @@ import { parts, type TestIdProps } from "@ui/lib/testid";
 
 export type BadgeTone = "neutral" | "success" | "warning" | "danger" | "info";
 
-export type BadgeVariant = BadgeTone | "wash";
+// Violet marks a gift on every screen.
+export type BadgeVariant = BadgeTone | "wash" | "violet";
 
 const TONES: Record<BadgeVariant, string> = {
   neutral: "bg-sunken text-ink-muted",
@@ -14,6 +15,7 @@ const TONES: Record<BadgeVariant, string> = {
   danger: "bg-danger-100 text-danger-600",
   info: "bg-primary-100 text-primary-600",
   wash: "tag-wash text-primary-900",
+  violet: "bg-tint-3-bg text-tint-3-ink",
 };
 
 const PILL_BOX = cn(

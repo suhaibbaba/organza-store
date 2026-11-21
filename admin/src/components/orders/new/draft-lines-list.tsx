@@ -108,7 +108,11 @@ export function DraftLinesList({ draft, isGift, onLineDiscountClick }: DraftLine
                     aria-label={t("discountFor", { name: label })}
                     data-testid={testSelectorFor("order-line-discount", line.key)}
                   >
-                    {appliedDiscount ?? <span className="max-sm:sr-only">{t("addDiscount")}</span>}
+                    {appliedDiscount ?? (
+                      <Typography as="span" variant="small" tone="inherit" weight="medium" className="max-sm:sr-only">
+                        {t("addDiscount")}
+                      </Typography>
+                    )}
                   </Button>
                 )}
               </div>

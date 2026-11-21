@@ -2,7 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { ArrowRight, Check, ListChecks, PackageMinus } from "lucide-react";
-import { Button, useToast } from "@store/ui";
+import { Button, useToast, Typography } from "@store/ui";
 import { ERROR_CODES } from "@organza/shared/constants/errors";
 import { ONLINE_STOCK_DEDUCTION_STATUS, ORDER_STATUS_TRANSITIONS } from "@organza/shared/constants/order";
 import type { Order, OrderStatus } from "@organza/shared/types/order";
@@ -49,20 +49,24 @@ export function OrderStatusActions({ order }: { order: Order }) {
                 aria-current={isCurrent ? "step" : undefined}
                 className="flex min-w-0 flex-1 flex-col items-center gap-1.5"
               >
-                <span
+                <div
                   aria-hidden="true"
                   className={cn("h-1.5 w-full rounded-pill", reached ? "bg-primary-600" : "bg-neutral-300")}
                 />
-                <span
-                  className={cn(
-                    "inline-flex items-center gap-1 text-center text-micro",
-                    isCurrent ? "font-semibold text-primary-700" : "text-ink-muted"
-                  )}
+                <Typography
+                  variant="caption"
+                  tone={isCurrent ? "brand" : "muted"}
+                  weight={isCurrent ? "semibold" : undefined}
+                  className="inline-flex items-center gap-1 text-center"
                 >
                   {reached && !isCurrent && <Check className="size-3 shrink-0" aria-hidden="true" />}
                   {tStatus(status)}
-                  {reached && <span className="sr-only">{isCurrent ? t("stepCurrent") : t("stepDone")}</span>}
-                </span>
+                  {reached && (
+                    <Typography as="span" variant="caption" tone="inherit" className="sr-only">
+                      {isCurrent ? t("stepCurrent") : t("stepDone")}
+                    </Typography>
+                  )}
+                </Typography>
               </li>
             );
           })}
@@ -84,10 +88,10 @@ export function OrderStatusActions({ order }: { order: Order }) {
               {t(`advanceTo.${status}`)}
             </Button>
             {deductsStock && (
-              <p className="flex items-start gap-2 rounded-panel bg-warning-50 p-3 text-label text-warning-700">
+              <Typography variant="small" className="flex items-start gap-2 rounded-panel bg-warning-50 p-3 text-warning-700">
                 <PackageMinus className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
                 {t("stockDeductionNotice")}
-              </p>
+              </Typography>
             )}
           </div>
         );

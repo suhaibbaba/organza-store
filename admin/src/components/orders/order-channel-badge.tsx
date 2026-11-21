@@ -1,35 +1,26 @@
 import { useTranslations } from "next-intl";
-import { Globe, MessageCircle, Store } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+import { Badge, type BadgeVariant, type IconName } from "@store/ui";
 import type { OrderChannel } from "@organza/shared/types/order";
 import { cn } from "@/lib/utils";
 
-const CHANNEL_BADGE_STYLES: Record<OrderChannel, string> = {
-  STORE: "bg-sunken text-ink-muted",
-  WHATSAPP: "bg-success-100 text-success-900",
-  WEBSITE: "bg-tint-3-bg text-tint-3-ink",
+const CHANNEL_BADGE_TONES: Record<OrderChannel, BadgeVariant> = {
+  STORE: "neutral",
+  WHATSAPP: "success",
+  WEBSITE: "info",
 };
 
-const CHANNEL_ICONS: Record<OrderChannel, LucideIcon> = {
-  STORE: Store,
-  WHATSAPP: MessageCircle,
-  WEBSITE: Globe,
+const CHANNEL_ICONS: Record<OrderChannel, IconName> = {
+  STORE: "store",
+  WHATSAPP: "whatsapp",
+  WEBSITE: "globe",
 };
 
 export function OrderChannelBadge({ channel, className }: { channel: OrderChannel; className?: string }) {
   const t = useTranslations("orders.channel");
-  const Icon = CHANNEL_ICONS[channel];
 
   return (
-    <span
-      className={cn(
-        "inline-flex h-6 shrink-0 items-center gap-1 rounded-pill px-2.5 text-micro font-medium",
-        CHANNEL_BADGE_STYLES[channel],
-        className
-      )}
-    >
-      <Icon className="size-3.5" aria-hidden="true" />
+    <Badge tone={CHANNEL_BADGE_TONES[channel]} icon={CHANNEL_ICONS[channel]} className={cn("shrink-0", className)}>
       {t(channel)}
-    </span>
+    </Badge>
   );
 }

@@ -5,7 +5,10 @@ import { useTranslations } from "next-intl";
 import {
   Badge,
   Button,
+  CardButton,
   IconButton,
+  OutboundLink,
+  Typography,
   Checkbox,
   Chip,
   ChipGroup,
@@ -93,6 +96,17 @@ export function Controls() {
           </Button>
           <IconButton label={t("buttons.iconDelete")} icon={<Icon name="trash" />} tone="danger" />
           <IconButton label={t("buttons.iconClose")} icon={<Icon name="x" />} />
+          <OutboundLink href="https://www.google.com/maps">{t("buttons.outbound")}</OutboundLink>
+        </ShowcaseRow>
+        <ShowcaseRow>
+          <CardButton className="w-44 flex-col gap-1 p-3">
+            <Typography variant="small" as="span">{t("buttons.card")}</Typography>
+            <Typography variant="caption" tone="muted">{t("buttons.cardHint")}</Typography>
+          </CardButton>
+          <CardButton selected className="w-44 flex-col gap-1 p-3">
+            <Typography variant="small" as="span">{t("buttons.cardSelected")}</Typography>
+            <Typography variant="caption" tone="muted">{t("buttons.cardHint")}</Typography>
+          </CardButton>
         </ShowcaseRow>
       </ShowcaseSection>
 

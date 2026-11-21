@@ -25,32 +25,32 @@ export function DraftTotalsCard({ totals, orderDiscount, isGift, onOrderDiscount
   return (
     <div className="flex flex-col gap-2 text-label" data-test-selector="order-draft-totals">
       <div className="flex items-center justify-between gap-3">
-        <span className="text-ink-muted">{t("subtotal", { count: totals.itemCount })}</span>
-        <span className="tabular-nums text-ink">{formatMoney(totals.subtotal)}</span>
+        <Typography variant="small" tone="muted" as="span">{t("subtotal", { count: totals.itemCount })}</Typography>
+        <Typography variant="small" as="span" className="tabular-nums">{formatMoney(totals.subtotal)}</Typography>
       </div>
 
       {!isGift && Number(totals.itemDiscountTotal) > 0 && (
         <div className="flex items-center justify-between gap-3">
-          <span className="text-ink-muted">{t("itemDiscounts")}</span>
-          <span className="tabular-nums text-success-700">
+          <Typography variant="small" tone="muted" as="span">{t("itemDiscounts")}</Typography>
+          <Typography variant="small" tone="success" as="span" className="tabular-nums">
             −{formatMoney(totals.itemDiscountTotal)}
-          </span>
+          </Typography>
         </div>
       )}
 
       {hasOrderDiscount && (
         <div className="flex items-center justify-between gap-3">
-          <span className="text-ink-muted">
+          <Typography variant="small" tone="muted" as="span">
             {t("orderDiscount", {
               label:
                 orderDiscount.type === "PERCENT"
                   ? tDiscount("percentValue", { value: Number(orderDiscount.value) })
                   : formatMoney(orderDiscount.value ?? "0"),
             })}
-          </span>
-          <span className="tabular-nums text-success-700">
+          </Typography>
+          <Typography variant="small" tone="success" as="span" className="tabular-nums">
             −{formatMoney(totals.orderDiscountAmount)}
-          </span>
+          </Typography>
         </div>
       )}
 
@@ -71,7 +71,7 @@ export function DraftTotalsCard({ totals, orderDiscount, isGift, onOrderDiscount
       )}
 
       <div className="-mx-5 -mb-5 mt-2 flex items-center justify-between gap-3 rounded-b-card bg-primary-50 px-5 py-4">
-        <span className="font-semibold text-ink">{t("total")}</span>
+        <Typography variant="small" weight="semibold" as="span">{t("total")}</Typography>
         <Typography variant="h1" weight="bold" as="span" className="tabular-nums">{formatMoney(isGift ? GIFT_LINE_TOTAL : totals.total)}</Typography>
       </div>
     </div>

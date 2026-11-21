@@ -27,7 +27,7 @@ export function useOrderRowMenu() {
     confirm({
       title: "orders.rowMenu.confirmTitle",
       titleValues: { number: order.orderNumber },
-      consequences: [t("confirmConsequence", { amount: formatMoney(order.total) })],
+      consequences: [t("confirmConsequence", { amount: formatMoney(order.outstanding ?? order.total) })],
       confirmLabel: "orders.rowMenu.confirmAction",
       tone: "primary",
       onConfirm: async () => {

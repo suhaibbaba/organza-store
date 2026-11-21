@@ -1,5 +1,6 @@
 "use client";
 
+import { toCents, fromCents } from "@/lib/money";
 import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { ERROR_CODES } from "@organza/shared/constants/errors";
@@ -11,7 +12,7 @@ import { COLLECTION_ORDER_FILTERS } from "@/constants/orders";
 import { useCollectOrdersMutation, useCollectionSummaryQuery, useOrdersQuery } from "@/hooks/use-orders";
 import { useTranslateError } from "@/hooks/use-translate-error";
 import { ApiError } from "@/lib/api/errors";
-import { Alert, Button, EmptyState } from "@store/ui";
+import { Alert, Button, EmptyState, Typography } from "@store/ui";
 import { OrderListError, OrderListLoading, OrderListSpinnerOverlay } from "@/components/orders/order-list-states";
 import { OrderPagination } from "@/components/orders/order-pagination";
 import { CollectionSummaryCard } from "@/components/orders/collection/collection-summary-card";
@@ -46,9 +47,7 @@ function OrderCollectionPageContent() {
     () => orders.filter((order) => selectedIds.includes(order.id)),
     [orders, selectedIds]
   );
-  const selectedAmount = selectedOnPage
-    .reduce((sum, order) => sum + Number(order.total), 0)
-    .toFixed(2);
+  const selectedAmount = fromCents(selectedOnPage.reduce((sum, order) => sum + toCents(order.outstanding ?? order.total), 0));
 
   function toggle(id: string) {
     setSelectedIds((ids) => (ids.includes(id) ? ids.filter((one) => one !== id) : [...ids, id]));
@@ -77,24 +76,19 @@ function OrderCollectionPageContent() {
 
   return (
     <PageContainer>
-
       <PageHeader name="collection" title={t("title")} description={t("subtitle")} />
-
       <div className="flex flex-col gap-4">
         {summaryQuery.data && <CollectionSummaryCard summary={summaryQuery.data} />}
-
         {mutation.isError && (
           <Alert tone="danger" data-testid="alert-destructive">
             {translateError(mutation.error instanceof ApiError ? mutation.error.code : ERROR_CODES.INTERNAL)}
           </Alert>
         )}
-
         {mutation.isSuccess && !mutation.isPending && (
           <Alert tone="success" data-testid="alert-success">
             {t("marked", { count: mutation.data.collectedIds.length })}
           </Alert>
         )}
-
         {isLoading ? (
           <OrderListLoading />
         ) : isError ? (
@@ -109,7 +103,7 @@ function OrderCollectionPageContent() {
         ) : (
           <>
             <div className="flex items-center justify-between gap-3">
-              <span className="text-label text-ink-muted">{t("listLabel")}</span>
+              <Typography variant="small" tone="muted" as="span">{t("listLabel")}</Typography>
               <Button
                 type="button"
                 variant="secondary"
@@ -118,9 +112,7 @@ function OrderCollectionPageContent() {
                 {allOnPageSelected ? t("actions.clear") : t("actions.selectAll")}
               </Button>
             </div>
-
             {isFetching && <OrderListSpinnerOverlay />}
-
             {/* Several across on a desk, so the whole batch is visible while being ticked. */}
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
               {orders.map((order) => (
@@ -132,14 +124,10 @@ function OrderCollectionPageContent() {
                 />
               ))}
             </div>
-
             {data?.meta && <OrderPagination meta={data.meta} onPageChange={changePage} />}
-
-            {/* Room for the fixed action bar over the last row. */}
             {selectedOnPage.length > 0 && <div className="h-32" aria-hidden="true" />}
           </>
         )}
-
         <CollectionActionBar
           count={selectedOnPage.length}
           amount={selectedAmount}

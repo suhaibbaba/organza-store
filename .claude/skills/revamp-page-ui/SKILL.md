@@ -170,6 +170,9 @@ clinic app (`/Users/suhaibbaba/Projects/clinic-management-system/apps/web/src/mo
 - **Links never underline.** Hover changes the colour to the dark brand shade: `transition-colors
   hover:text-primary-700` (or `group` on the link + `group-hover:text-primary-700` on the name span
   when the text inside carries `text-ink`); a link already `primary-700` goes to `primary-900`.
+- A whole tappable card (product tile, variant choice) is `CardButton`; a link that opens another site is
+  `OutboundLink`; a selectable list card holds a ui `Checkbox` (never a native input inside a `<label>`).
+- A search box inside a form stops Enter (`onKeyDown` preventDefault), or Enter submits the form.
 - **Text is `Typography`** (`@store/ui`, ported from operate-web): `variant` display/h1–h4/body/small/caption/label sets
   size + weight + tag, `tone` muted/subtle/brand/error/success, `weight`, `as` for the tag. Never a raw
   `<p className="text-meta text-ink-muted">`; hints are `caption` + `muted`.
@@ -314,3 +317,4 @@ clinic app (`/Users/suhaibbaba/Projects/clinic-management-system/apps/web/src/mo
 - admin `orders` (list) — 2026-11-21
 - admin `orders/[id]` (record, two columns) — 2026-11-21
 - admin `orders/new` (channel segments + gift switch) — 2026-11-21
+- admin `orders/collection` (ui Checkbox rows, Typography) + whole orders area audited at 375/768/1024/1280 — 2026-11-21

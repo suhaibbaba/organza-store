@@ -1,3 +1,4 @@
+import { Typography } from "@store/ui";
 import { useTranslations } from "next-intl";
 import type { Order } from "@organza/shared/types/order";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
@@ -13,29 +14,29 @@ export function OrderTotals({ order }: { order: Order }) {
   return (
     <div className="flex flex-col gap-1 overflow-hidden rounded-panel border border-line text-value" data-test-selector="order-totals">
       <div className="flex items-center justify-between gap-3 px-5 pt-3">
-        <span className="text-ink-muted">{t("subtotal")}</span>
-        <span className="tabular-nums text-ink">{formatMoney(order.subtotal)}</span>
+        <Typography variant="body" tone="muted" as="span">{t("subtotal")}</Typography>
+        <Typography variant="body" as="span" className="tabular-nums">{formatMoney(order.subtotal)}</Typography>
       </div>
 
       {hasOrderDiscount && (
         <div className="flex items-center justify-between gap-3 px-5">
-          <span className="text-ink-muted">
+          <Typography variant="body" tone="muted" as="span">
             {t("orderDiscount", {
               label:
                 order.discountType === "PERCENT"
                   ? tDiscount("percentValue", { value: Number(order.discountValue ?? 0) })
                   : formatMoney(order.discountValue ?? "0"),
             })}
-          </span>
-          <span className="tabular-nums text-success-700" dir="ltr">
+          </Typography>
+          <Typography variant="body" tone="success" as="span" className="tabular-nums" dir="ltr">
             −{formatMoney(order.discountAmount)}
-          </span>
+          </Typography>
         </div>
       )}
 
       <div className="mt-2 flex items-center justify-between gap-3 bg-primary-50 px-5 py-3">
-        <span className="font-semibold text-primary-900">{t("total")}</span>
-        <span className="text-heading font-semibold tabular-nums text-primary-900">{formatMoney(order.total)}</span>
+        <Typography variant="body" weight="semibold" as="span">{t("total")}</Typography>
+        <Typography variant="h2" weight="semibold" as="span" className="tabular-nums text-primary-900">{formatMoney(order.total)}</Typography>
       </div>
     </div>
   );

@@ -184,7 +184,7 @@ export function CartPanel({
             icon={<Gift className="size-4" aria-hidden="true" />}
             className={cn(
               CONTROL_HEIGHT,
-              "border-tint-5-ink/30 text-tint-5-ink hover:border-tint-5-ink hover:bg-tint-5-bg hover:text-tint-5-ink"
+              "border-tint-3-ink/30 text-tint-3-ink hover:border-tint-3-ink hover:bg-tint-3-bg hover:text-tint-3-ink"
             )}
           >
             {t("checkout.giftOrder")}

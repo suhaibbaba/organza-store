@@ -6,7 +6,7 @@ import type { Variant } from "@organza/shared/types/variant";
 import type { DiscountType } from "@organza/shared/types/order";
 import { clampQuantity } from "@organza/shared/constants/quantity";
 import { MIN_ORDER_QUANTITY } from "@/constants/orders";
-import { computeDraftTotals, orderLineKey, toDraftLine } from "@/lib/order-draft";
+import { computeDraftTotals, toDraftLine } from "@/lib/order-draft";
 import type { DiscountState, OrderDraftLine, OrderDraftTotals } from "@/types/order";
 
 const NO_DISCOUNT: DiscountState = { type: null, value: null };
@@ -16,8 +16,7 @@ export interface OrderDraft {
   orderDiscount: DiscountState;
   totals: OrderDraftTotals;
   isEmpty: boolean;
-  // Returns the resulting line so the caller can confirm what just landed in
-  // the order.
+  // Returns the resulting line so the caller can confirm what just landed in the order.
   addItem: (product: Product, variant: Variant | null) => OrderDraftLine;
   setQuantity: (key: string, quantity: number) => void;
   incrementQuantity: (key: string) => void;
@@ -28,16 +27,12 @@ export interface OrderDraft {
   clear: () => void;
 }
 
-// Quantity can never leave [1, what's on the shelf]: below one the line should
-// have been removed, above stock the backend would reject the order anyway
-// (ORDER_INSUFFICIENT_STOCK) and the user would only find out on save.
+// Quantity stays in [1, stock]: above stock the backend would refuse the order on save anyway.
 function clampLineQuantity(quantity: number, line: OrderDraftLine): number {
   return clampQuantity(quantity, MIN_ORDER_QUANTITY, Math.max(MIN_ORDER_QUANTITY, line.availableStock));
 }
 
-// The order being written down. Held in component state on purpose: a
-// half-entered WhatsApp order belongs to the person typing it right now, and
-// abandoning it should cost nothing more than leaving the screen.
+// Component state on purpose: abandoning a half-entered WhatsApp order should cost nothing but leaving the screen.
 export function useOrderDraft(): OrderDraft {
   const [lines, setLines] = useState<OrderDraftLine[]>([]);
   const [orderDiscount, setOrderDiscountState] = useState<DiscountState>(NO_DISCOUNT);
@@ -58,9 +53,7 @@ export function useOrderDraft(): OrderDraft {
         return [incoming, ...current];
       }
 
-      // Adding an item the order already holds bumps that line instead of
-      // stacking a duplicate — and refreshes its price/stock snapshot from
-      // this lookup, which is newer than the one it was added with.
+      // Re-adding bumps the existing line and refreshes its price/stock snapshot from this newer lookup.
       const refreshed: OrderDraftLine = {
         ...existing,
         unitPrice: incoming.unitPrice,
@@ -103,8 +96,7 @@ export function useOrderDraft(): OrderDraft {
 
   const setLineDiscount = useCallback(
     (key: string, type: DiscountType | null, value: string | null) => {
-      // Both halves move together — the create-order schema refuses a
-      // half-set pair (isDiscountConsistent).
+      // Both halves move together — the create-order schema refuses a half-set pair (isDiscountConsistent).
       const applied =
         type && value
           ? { discountType: type, discountValue: value }
@@ -141,4 +133,3 @@ export function useOrderDraft(): OrderDraft {
   };
 }
 
-export { orderLineKey };

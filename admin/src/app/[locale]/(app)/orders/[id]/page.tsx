@@ -8,6 +8,8 @@ import { useSession } from "@/components/providers/session-provider";
 import { RoleGuard } from "@/components/auth/role-guard";
 import { PageContainer } from "@/components/layout/page-container";
 import { useOrderQuery } from "@/hooks/use-orders";
+import { ApiError } from "@/lib/api/errors";
+import { ERROR_CODES } from "@organza/shared/constants/errors";
 import { Alert, EmptyState, Skeleton } from "@store/ui";
 import { OrderListError } from "@/components/orders/order-list-states";
 import { OrderItemsList } from "@/components/orders/detail/order-items-list";
@@ -45,7 +47,7 @@ function OrderDetailPageContent({ params }: { params: Promise<{ id: string }> })
     );
   }
 
-  if (isError) {
+  if (isError && !(error instanceof ApiError && error.code === ERROR_CODES.ORDER_NOT_FOUND)) {
     return (
       <PageContainer>
         <OrderListError error={error} onRetry={() => void refetch()} />

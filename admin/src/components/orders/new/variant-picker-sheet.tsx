@@ -1,7 +1,8 @@
 "use client";
 
 import { useLocale, useTranslations } from "next-intl";
-import { Drawer, Typography } from "@store/ui";
+import { CardButton, Drawer, Typography } from "@store/ui";
+import { testSelectorFor } from "@organza/shared/lib/testSelector";
 import type { Product } from "@organza/shared/types/product";
 import type { Variant } from "@organza/shared/types/variant";
 import { localize } from "@/lib/i18n-content";
@@ -38,15 +39,15 @@ export function VariantPickerSheet({ product, onOpenChange, onPick }: VariantPic
 
               return (
                 <li key={variant.id}>
-                  <button
-                    type="button"
+                  <CardButton
+                    data-testid={testSelectorFor("order-variant-option", variant.id)}
                     // Sold-out variants stay visible but can't be picked: seeing a size is finished beats wondering if it was ever stocked.
                     disabled={soldOut}
                     onClick={() => {
                       onPick(product, variant);
                       onOpenChange(false);
                     }}
-                    className="flex min-h-16 w-full cursor-pointer items-center justify-between gap-3 rounded-panel border border-line bg-surface p-3 text-start transition-colors not-disabled:hover:bg-row-hover focus-visible:bg-inset disabled:cursor-not-allowed disabled:opacity-50"
+                    className="min-h-16 items-center justify-between gap-3 p-3"
                   >
                     <span className="min-w-0">
                       <Typography variant="h3" as="span" className="block truncate">{name}</Typography>
@@ -57,7 +58,7 @@ export function VariantPickerSheet({ product, onOpenChange, onPick }: VariantPic
                     <Typography variant="small" tone="muted" as="span" className="shrink-0">
                       {soldOut ? t("soldOut") : formatMoney(variant.resolvedPrice)}
                     </Typography>
-                  </button>
+                  </CardButton>
                 </li>
               );
             })}

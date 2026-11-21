@@ -1,10 +1,6 @@
 import { ERROR_CODES } from "@organza/shared/constants/errors";
 
-// Backend error codes (e.g. "error.validation.required") can't be used as
-// next-intl message paths directly — "error.validation" is both a leaf code
-// and the parent of "error.validation.required", which nested JSON can't
-// represent. This maps each backend code to a flat, collision-free message
-// key instead. Keep in sync with ERROR_CODES and messages/*.json#errors.
+// Flat message keys per backend code: nested JSON can't hold a code that is both leaf and parent. Sync with ERROR_CODES.
 export const ERROR_MESSAGE_KEYS: Record<string, string> = {
   [ERROR_CODES.NOT_FOUND]: "errors.notFound",
   [ERROR_CODES.VALIDATION]: "errors.validation",

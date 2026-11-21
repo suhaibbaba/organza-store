@@ -25,10 +25,7 @@ import {
   PERCENT_MIN,
 } from "@/constants/order";
 
-// A discount is always a (type, value) pair: either both are given or
-// neither is. A PERCENT value is additionally bounded to 0-100 — the amount
-// itself is computed on the server, so this is the only thing worth checking
-// up front.
+// A discount is a (type, value) pair, both or neither; PERCENT is bounded 0-100, the amount is computed server-side.
 interface DiscountFields {
   discountType?: string | null;
   discountValue?: string | null;
@@ -51,9 +48,7 @@ const discountShape = {
 
 const DISCOUNT_REFINEMENT = { message: ERROR_CODES.ORDER_DISCOUNT_INVALID } as const;
 
-// Optional map pin for a delivery (spec.md "Customer information"). Half a
-// coordinate points nowhere, so latitude and longitude arrive together or
-// not at all.
+// Optional delivery map pin: half a coordinate points nowhere, so latitude and longitude come together or not at all.
 const locationShape = {
   customerLatitude: z.coerce
     .number()
@@ -80,22 +75,7 @@ export function isLocationConsistent(value: LocationFields): boolean {
 
 const LOCATION_REFINEMENT = { message: ERROR_CODES.ORDER_LOCATION_INVALID } as const;
 
-// Note what is deliberately absent from every input schema below: unitPrice,
-// lineTotal, subtotal and total. Money is derived server-side from the
-// catalogue and these discounts, never accepted from the caller.
-/**
- * A piece being sold that is not in the catalogue at all (spec.md "Quick
- * sell") — stock that reached the shop floor before it reached the system.
- *
- * This is the ONE place a price is accepted from the caller, and it is worth
- * being blunt about why the rule above does not apply here: there is no
- * catalogue entry to read a price from. Nothing is being overridden — the
- * figure typed at the counter IS the piece's first price, and it becomes the
- * new product's basePrice as well as the line's unitPrice, so the two cannot
- * disagree. Cost is deliberately absent: nobody at the till knows it, and the
- * reports' missing-cost warning is what carries that forward (CLAUDE.md rule
- * 19 keeps cost Admin-only anyway).
- */
+// Money is never taken from the caller except a quick sale's price, which has no catalogue entry (spec.md "Quick sell").
 export const quickSellItemSchema = z.object({
   name: z.string().trim().min(1, ERROR_CODES.VALIDATION_REQUIRED).max(QUICK_SELL_NAME_MAX_LENGTH),
   price: decimalInput,
@@ -104,12 +84,7 @@ export const quickSellItemSchema = z.object({
 });
 export type QuickSellItemInput = z.infer<typeof quickSellItemSchema>;
 
-/**
- * One line names EITHER something in the catalogue or a quick sale, never
- * both and never neither. Checked here rather than left to the backend so the
- * POS can say which line is wrong before the customer is waiting on a
- * refused checkout.
- */
+// Exactly one of a catalogue product or a quick sale, checked here so the POS can flag the line before checkout.
 export function isOrderItemSourceValid(value: {
   productId?: string;
   quickSell?: unknown;
@@ -121,11 +96,9 @@ const ITEM_SOURCE_REFINEMENT = { message: ERROR_CODES.ORDER_ITEM_SOURCE_INVALID 
 
 export const createOrderItemSchema = z
   .object({
-    // Optional ONLY because of quick sell below: an ordinary line still names
-    // a product, and the refinement refuses a line that names neither.
+    // Optional ONLY because of quick sell: the refinement refuses a line that names neither.
     productId: z.string().min(1, ERROR_CODES.VALIDATION_REQUIRED).optional(),
-    // Required when the product has variants — the variant is the thing
-    // actually sold, and it owns the price and the stock.
+    // Required when the product has variants — the variant owns the price and the stock.
     variantId: z.string().min(1).optional(),
     quickSell: quickSellItemSchema.optional(),
     quantity: z.coerce.number().int().min(1, ERROR_CODES.VALIDATION_INVALID_NUMBER),
@@ -138,9 +111,7 @@ export type CreateOrderItemInput = z.infer<typeof createOrderItemSchema>;
 export const createOrderSchema = z
   .object({
     channel: z.enum(ORDER_CHANNELS),
-    // SALE unless the shop says otherwise. A GIFT needs order.createGift
-    // (Admin/Manager), which is checked on the backend — the type here only
-    // says what is being asked for.
+    // A GIFT needs order.createGift, checked on the backend — the type here only says what is asked for.
     type: z.enum(ORDER_TYPES).default("SALE"),
     paymentMethod: z.enum(PAYMENT_METHODS).default("CASH"),
     items: z.array(createOrderItemSchema).min(1, ERROR_CODES.ORDER_ITEMS_REQUIRED),
@@ -154,8 +125,7 @@ export const createOrderSchema = z
   })
   .refine(isDiscountConsistent, DISCOUNT_REFINEMENT)
   .refine(isLocationConsistent, LOCATION_REFINEMENT)
-  // An order taken over WhatsApp or the website has to be deliverable back to
-  // someone; a STORE sale is handed over at the counter and needs nobody.
+  // An online order must be deliverable back to someone; a STORE sale is handed over at the counter.
   .refine(
     (v) =>
       !(ONLINE_ORDER_CHANNELS as readonly string[]).includes(v.channel) ||
@@ -165,13 +135,7 @@ export const createOrderSchema = z
 
   export type CreateOrderInput = z.infer<typeof createOrderSchema>;
 
-// Editing reprices an existing order: contact details, the note, the payment
-// method and the discounts (order- and item-level). Adding or removing lines
-// is deliberately not supported — cancel the order and take a new one, so the
-// stock already committed against it stays traceable.
-//
-// An entry here replaces that line's discount outright: `{ id }` on its own
-// clears it. Lines left out of `items` keep whatever they had.
+// No adding/removing lines (cancel and re-take so committed stock stays traceable); `{ id }` alone clears a line's discount.
 export const updateOrderItemSchema = z
   .object({
     id: z.string().min(1, ERROR_CODES.VALIDATION_REQUIRED),
@@ -206,8 +170,7 @@ export const updateOrderStatusSchema = z.object({
 });
 export type UpdateOrderStatusInput = z.infer<typeof updateOrderStatusSchema>;
 
-// Omit `items` to return the whole order (every line, in whatever quantity is
-// still outstanding); pass them to return specific lines partially.
+// Omit `items` to return the whole order; pass them to return specific lines partially.
 export const returnOrderItemSchema = z.object({
   orderItemId: z.string().min(1, ERROR_CODES.VALIDATION_REQUIRED),
   quantity: z.coerce.number().int().min(1, ERROR_CODES.VALIDATION_INVALID_NUMBER),
@@ -219,9 +182,7 @@ export const returnOrderSchema = z.object({
 });
 export type ReturnOrderInput = z.infer<typeof returnOrderSchema>;
 
-// Settling up with the delivery company: the ids of the orders it has just
-// paid for. One id or a whole run of them — the shop is normally handed a
-// batch — but always a bounded list.
+// Settling up with the delivery company: the ids of the orders it just paid for, always a bounded list.
 export const collectOrdersSchema = z.object({
   orderIds: z
     .array(z.string().min(1, ERROR_CODES.VALIDATION_REQUIRED))
@@ -230,10 +191,7 @@ export const collectOrdersSchema = z.object({
 });
 export type CollectOrdersInput = z.infer<typeof collectOrdersSchema>;
 
-// Looking a repeat customer up by the digits the cashier has typed so far.
-// Not a paginated list: it is an autocomplete, capped at
-// CUSTOMER_SUGGESTION_LIMIT entries server-side, and a cashier who needs to
-// page through matches is better off typing another digit.
+// Autocomplete, not a paginated list: capped at CUSTOMER_SUGGESTION_LIMIT server-side.
 export const customerSuggestionsQuerySchema = z.object({
   q: z
     .string()
@@ -244,20 +202,13 @@ export type CustomerSuggestionsQuery = z.infer<typeof customerSuggestionsQuerySc
 export const listOrdersQuerySchema = paginationSchema.extend({
   status: z.enum(ORDER_STATUSES).optional(),
   channel: z.enum(ORDER_CHANNELS).optional(),
-  // Sales or gifts. Unset means both — the orders list is the record of
-  // everything that left the shop, however it left.
+  // Sales or gifts; unset means both — the list records everything that left the shop.
   type: z.enum(ORDER_TYPES).optional(),
-  // Drives the "still owed by the delivery company" view: the outstanding
-  // list is this filter set to PENDING_COLLECTION.
+  // Drives the outstanding view: this filter set to PENDING_COLLECTION.
   paymentStatus: z.enum(PAYMENT_STATUSES).optional(),
-  // Narrows a payment-status filter to the sales that can still be settled —
-  // a cancelled or fully returned order owes nothing, so it must not sit in
-  // the outstanding list looking like money on its way.
+  // A cancelled or fully returned order owes nothing, so it must not sit in the outstanding list.
   collectableOnly: booleanInput.optional(),
-  // "Show me the sales that were rung up before the piece existed" (spec.md
-  // "Quick sell") — the after-the-season review list. True narrows to them;
-  // unset lists everything, since a quick sale is an ordinary sale in every
-  // other respect.
+  // The quick-sale review list (spec.md "Quick sell"); unset lists everything.
   hasQuickSale: booleanInput.optional(),
   // Inclusive date range over createdAt.
   dateFrom: z.coerce.date().optional(),

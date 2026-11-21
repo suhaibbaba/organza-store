@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { CalendarDays, Coins, CreditCard, ShoppingCart, Undo2, UserRound } from "lucide-react";
-import { Button, MenuItem, RowMenu, useConfirm, useToast } from "@store/ui";
+import { Button, MenuItem, RowMenu, useConfirm, useToast, Typography } from "@store/ui";
 import { can } from "@organza/shared/lib/permissions";
 import { isOrderCollectable } from "@organza/shared/lib/orders";
 import { ERROR_CODES } from "@organza/shared/constants/errors";
@@ -110,13 +110,13 @@ export function OrderHeader({ order }: { order: Order }) {
     <header className="rounded-card border border-line bg-surface p-5 shadow-card" data-test-selector="order-header">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="flex min-w-0 items-start gap-4">
-          <span className="flex size-14 shrink-0 items-center justify-center rounded-panel bg-primary-50 text-primary-700">
+          <div className="flex size-14 shrink-0 items-center justify-center rounded-panel bg-primary-50 text-primary-700">
             <ShoppingCart className="size-6" aria-hidden="true" />
-          </span>
+          </div>
           <div className="flex min-w-0 flex-col gap-2.5">
-            <h1 className="truncate text-title font-semibold text-ink">
+            <Typography variant="h1" weight="semibold" className="truncate">
               {t("card.orderNumber", { number: String(order.orderNumber) })}
-            </h1>
+            </Typography>
             <div className="flex flex-wrap items-center gap-2">
               <OrderStatusBadge status={order.status} />
               <OrderChannelBadge channel={order.channel} />
@@ -175,15 +175,15 @@ export function OrderHeader({ order }: { order: Order }) {
             >
               <fact.icon className="mt-0.5 size-5 shrink-0 text-primary-700" aria-hidden="true" />
               <div className="min-w-0">
-                <dt className="text-label text-ink-muted">{fact.label}</dt>
-                <dd
-                  className={cn(
-                    "mt-1 tabular-nums text-ink",
-                    isTotal ? "text-heading font-semibold text-primary-900" : "text-value"
-                  )}
+                <Typography variant="small" tone="muted" as="dt">{fact.label}</Typography>
+                <Typography
+                  as="dd"
+                  variant={isTotal ? "h2" : "body"}
+                  weight={isTotal ? "semibold" : undefined}
+                  className={cn("mt-1 tabular-nums", isTotal && "text-primary-900")}
                 >
                   {fact.value}
-                </dd>
+                </Typography>
               </div>
             </div>
           );

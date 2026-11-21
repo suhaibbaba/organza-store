@@ -114,6 +114,8 @@ export interface OrderSummary {
   subtotal: string;
   discountAmount: string;
   total: string;
+  // What the courier still owes after partial returns; null once collected.
+  outstanding: string | null;
   itemCount: number;
   // The dearest few lines, highest unit price first; itemCount says how many there are in all.
   previewItems: OrderPreviewItem[];

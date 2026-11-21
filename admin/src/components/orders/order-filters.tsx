@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { SlidersHorizontal } from "lucide-react";
-import { Button, Chip, ChipGroup, DateRangePicker, Drawer, FormField, Select, Switch } from "@store/ui";
+import { Button, Chip, ChipGroup, DateRangePicker, Drawer, FormField, Select, Switch, Typography } from "@store/ui";
 import { ORDER_CHANNELS, ORDER_STATUSES, PAYMENT_STATUSES } from "@organza/shared/constants/order";
 import { fieldTestSelector } from "@organza/shared/lib/testSelector";
 import { DEFAULT_ORDER_FILTERS, ORDER_SORT_OPTIONS } from "@/constants/orders";
@@ -80,9 +80,9 @@ export function OrderFilters({ value, sort, onApply }: OrderFiltersProps) {
       >
         {t("trigger")}
         {activeCount > 0 && (
-          <span className="absolute -end-1.5 -top-1.5 flex size-5 items-center justify-center rounded-pill bg-primary-600 text-micro text-ink-inverse">
+          <Typography variant="caption" className="absolute -end-1.5 -top-1.5 flex size-5 items-center justify-center rounded-pill bg-primary-600 text-ink-inverse">
             {activeCount}
-          </span>
+          </Typography>
         )}
       </Button>
 

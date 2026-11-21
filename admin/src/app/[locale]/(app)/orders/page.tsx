@@ -131,9 +131,9 @@ export default function OrdersPage() {
               onApply={(next, sort) => changeFilters({ ...next, ...sort, page: DEFAULT_PAGE })}
             />
             {data?.meta && (
-              <span className="ms-auto flex h-(--control-h) items-center">
+              <div className="ms-auto flex h-(--control-h) items-center">
                 <TotalBadge data-testid="orders-count" total={data.meta.total} />
-              </span>
+              </div>
             )}
           </div>
           <OrderFilterChips value={filtersValue} onChange={(next) => changeFilters({ ...next, page: DEFAULT_PAGE })} />

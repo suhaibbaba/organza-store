@@ -70,6 +70,8 @@ export const MANUAL_ORDER_PAYMENT_METHOD = "CASH" as const;
 export const MIN_ORDER_QUANTITY = 1;
 
 export const ORDER_PRODUCT_SEARCH_DEBOUNCE_MS = 250;
+// A pasted short Maps link resolves at once in practice; typing one waits for the pause.
+export const MAP_LINK_RESOLVE_DEBOUNCE_MS = 400;
 export const ORDER_PRODUCT_SEARCH_PAGE = DEFAULT_PAGE;
 export const ORDER_PRODUCT_SEARCH_PAGE_SIZE = 12;
 export const ORDER_PRODUCT_SEARCH_MIN_QUERY_LENGTH = 1;
@@ -77,7 +79,5 @@ export const ORDER_PRODUCT_SEARCH_MIN_QUERY_LENGTH = 1;
 // Hidden products are not for sale, so the picker never shows them.
 export const ORDER_PRODUCT_SEARCH_STATUS = "active" as const;
 
-// A plain coordinate URL: no API key, no third-party script, opens in any maps app.
-export const MAP_LINK_TEMPLATE = "https://www.google.com/maps/search/?api=1&query=";
 
 export const COORDINATE_DECIMALS = 6;

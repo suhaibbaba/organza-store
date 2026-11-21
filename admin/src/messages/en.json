@@ -1772,7 +1772,11 @@
       "small": "Small",
       "withIcon": "Add product",
       "iconDelete": "Delete",
-      "iconClose": "Close"
+      "iconClose": "Close",
+      "outbound": "Open in Maps",
+      "card": "A card to tap",
+      "cardSelected": "Selected card",
+      "cardHint": "The whole card is one button"
     },
     "badges": {
       "inStock": "In stock",

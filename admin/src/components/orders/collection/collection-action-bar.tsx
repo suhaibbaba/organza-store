@@ -2,7 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { HandCoins } from "lucide-react";
-import { Button } from "@store/ui";
+import { Button, Typography } from "@store/ui";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
 
 interface CollectionActionBarProps {
@@ -30,8 +30,8 @@ export function CollectionActionBar({
     <div className="fixed inset-x-0 bottom-[var(--bottom-bar-inset)] z-30 border-t border-line bg-surface px-4 py-3 shadow-float md:px-6">
       <div className="mx-auto flex max-w-3xl flex-col gap-2">
         <div className="flex items-center justify-between gap-3">
-          <span className="text-label text-ink-muted">{t("selected", { count })}</span>
-          <span className="text-section font-semibold tabular-nums text-ink">{formatMoney(amount)}</span>
+          <Typography variant="small" tone="muted" as="span">{t("selected", { count })}</Typography>
+          <Typography variant="h3" weight="semibold" as="span" className="tabular-nums">{formatMoney(amount)}</Typography>
         </div>
 
         <div className="flex gap-3">

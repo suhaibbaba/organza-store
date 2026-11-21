@@ -1,5 +1,6 @@
 "use client";
 
+import { Typography } from "@store/ui";
 import { useLocale, useTranslations } from "next-intl";
 import type { CollectionSummary } from "@organza/shared/types/order";
 import { StatCard } from "@/components/layout/stat-card";
@@ -21,7 +22,7 @@ export function CollectionSummaryCard({ summary }: { summary: CollectionSummary 
         <>
           {t("orders", { count: summary.orderCount })}
           {summary.oldestCreatedAt && (
-            <span className="block">{t("oldest", { date: formatDate(summary.oldestCreatedAt, locale) })}</span>
+            <Typography variant="caption" className="block">{t("oldest", { date: formatDate(summary.oldestCreatedAt, locale) })}</Typography>
           )}
         </>
       }

@@ -1,53 +1,100 @@
 "use client";
 
+import { useCallback, useEffect, useState } from "react";
 import { Controller, useWatch } from "react-hook-form";
 import { useTranslations } from "next-intl";
 import { CheckCircle2, ExternalLink, MapPin } from "lucide-react";
-import { Checkbox, FormField, Input, PhoneCountryProvider, PhoneInput, Spinner, Textarea, Typography } from "@store/ui";
+import {
+  Checkbox,
+  FormField,
+  Input,
+  OutboundLink,
+  PhoneCountryProvider,
+  PhoneInput,
+  Spinner,
+  Textarea,
+  Typography,
+} from "@store/ui";
 import { splitPhone } from "@store/ui/lib/support/phone";
 import { ERROR_CODES } from "@organza/shared/constants/errors";
-import { coordinatesFromMapLink, googleMapsUrl, isShortMapLink } from "@organza/shared/lib/mapLink";
-import { fieldErrorTestSelector, fieldTestSelector } from "@organza/shared/lib/testSelector";
+import {
+  coordinatesFromMapLink,
+  googleMapsUrl,
+  isShortMapLink,
+} from "@organza/shared/lib/mapLink";
+import {
+  fieldErrorTestSelector,
+  fieldTestSelector,
+} from "@organza/shared/lib/testSelector";
 import { useSettingsQuery } from "@/hooks/use-settings";
+import { useDebouncedValue } from "@/hooks/use-debounced-value";
+import { MAP_LINK_RESOLVE_DEBOUNCE_MS } from "@/constants/orders";
 import { useResolveMapLinkMutation } from "@/hooks/use-orders";
 import { useTranslateError } from "@/hooks/use-translate-error";
 import { ApiError } from "@/lib/api/errors";
 import type { CustomerFormProps } from "@/types/order";
 
-function FieldMessage({ field, children }: { field: string; children: string }) {
+function FieldMessage({
+  field,
+  children,
+}: {
+  field: string;
+  children: string;
+}) {
   return (
-    <Typography variant="caption" tone="error" as="p" role="alert" data-test-selector={fieldErrorTestSelector(field)}>
+    <Typography
+      variant="caption"
+      tone="error"
+      as="p"
+      role="alert"
+      data-test-selector={fieldErrorTestSelector(field)}
+    >
       {children}
     </Typography>
   );
 }
 
 // Only an online order is delivered back to somebody; snapshotted onto the order (spec.md "Customer information").
-export function CustomerForm({ register, control, setValue, errors }: CustomerFormProps) {
+export function CustomerForm({
+  register,
+  control,
+  setValue,
+  errors,
+}: CustomerFormProps) {
   const t = useTranslations("orders.new.customer");
   const translateError = useTranslateError();
   const { data: settings } = useSettingsQuery();
   const defaultCountry = splitPhone(settings?.defaultCountryCode).country;
   const resolve = useResolveMapLinkMutation();
+  const [shortLink, setShortLink] = useState("");
+  const pendingShortLink = useDebouncedValue(shortLink, MAP_LINK_RESOLVE_DEBOUNCE_MS);
 
   const hasWhatsapp = useWatch({ control, name: "hasWhatsapp" });
   const latitude = useWatch({ control, name: "latitude" });
   const longitude = useWatch({ control, name: "longitude" });
   const hasPoint = latitude !== "" && longitude !== "";
 
-  function setPoint(point: { latitude: number; longitude: number } | null) {
-    setValue("latitude", point ? String(point.latitude) : "");
-    setValue("longitude", point ? String(point.longitude) : "", { shouldValidate: !!point });
-  }
+  const setPoint = useCallback(
+    (point: { latitude: number; longitude: number } | null) => {
+      setValue("latitude", point ? String(point.latitude) : "");
+      setValue("longitude", point ? String(point.longitude) : "", { shouldValidate: !!point });
+    },
+    [setValue]
+  );
+
+  const { mutate: resolveLink } = resolve;
+  // A short link is resolved once typing pauses; only the latest call's onSuccess runs, so a stale link never wins.
+  useEffect(() => {
+    if (pendingShortLink) resolveLink(pendingShortLink, { onSuccess: setPoint });
+  }, [pendingShortLink, resolveLink, setPoint]);
 
   // A full Maps link carries its point; a short maps.app.goo.gl link has to be opened by the backend first.
   function handleLocationChange(value: string) {
     resolve.reset();
     const point = coordinatesFromMapLink(value);
+
     setPoint(point);
-    if (point || !isShortMapLink(value)) return;
-    // reset() above drops a stale link's callback, so only the latest paste can set the point.
-    resolve.mutate(value.trim(), { onSuccess: setPoint });
+    setShortLink(!point && isShortMapLink(value) ? value.trim() : "");
   }
 
   const locationError = resolve.isError
@@ -69,7 +116,9 @@ export function CustomerForm({ register, control, setValue, errors }: CustomerFo
               {...register("name")}
             />
             {errors.name && (
-              <FieldMessage field="customer-name">{translateError(errors.name.message ?? "")}</FieldMessage>
+              <FieldMessage field="customer-name">
+                {translateError(errors.name.message ?? "")}
+              </FieldMessage>
             )}
           </FormField>
 
@@ -90,7 +139,9 @@ export function CustomerForm({ register, control, setValue, errors }: CustomerFo
               )}
             />
             {errors.phone && (
-              <FieldMessage field="customer-phone">{translateError(errors.phone.message ?? "")}</FieldMessage>
+              <FieldMessage field="customer-phone">
+                {translateError(errors.phone.message ?? "")}
+              </FieldMessage>
             )}
           </FormField>
         </div>
@@ -112,14 +163,19 @@ export function CustomerForm({ register, control, setValue, errors }: CustomerFo
 
           {hasWhatsapp && (
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <FormField label="orders.new.customer.whatsapp" htmlFor="customer-whatsapp">
+              <FormField
+                label="orders.new.customer.whatsapp"
+                htmlFor="customer-whatsapp"
+              >
                 <Controller
                   control={control}
                   name="whatsapp"
                   render={({ field }) => (
                     <PhoneInput
                       id="customer-whatsapp"
-                      data-test-selector={fieldTestSelector("customer-whatsapp")}
+                      data-test-selector={fieldTestSelector(
+                        "customer-whatsapp",
+                      )}
                       placeholder={t("phonePlaceholder")}
                       value={field.value}
                       onChange={(value) => field.onChange(value ?? "")}
@@ -129,14 +185,15 @@ export function CustomerForm({ register, control, setValue, errors }: CustomerFo
                   )}
                 />
                 {errors.whatsapp && (
-                  <FieldMessage field="customer-whatsapp">{translateError(errors.whatsapp.message ?? "")}</FieldMessage>
+                  <FieldMessage field="customer-whatsapp">
+                    {translateError(errors.whatsapp.message ?? "")}
+                  </FieldMessage>
                 )}
               </FormField>
             </div>
           )}
         </div>
       </PhoneCountryProvider>
-
       <FormField label="orders.new.customer.address" htmlFor="customer-address">
         <Textarea
           id="customer-address"
@@ -148,7 +205,10 @@ export function CustomerForm({ register, control, setValue, errors }: CustomerFo
       </FormField>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <FormField label="orders.new.customer.location" htmlFor="customer-location">
+        <FormField
+          label="orders.new.customer.location"
+          htmlFor="customer-location"
+        >
           <Input
             id="customer-location"
             type="url"
@@ -158,36 +218,52 @@ export function CustomerForm({ register, control, setValue, errors }: CustomerFo
             data-test-selector={fieldTestSelector("customer-location")}
             placeholder={t("locationPlaceholder")}
             hasError={!!locationError}
-            {...register("location", { onChange: (event) => handleLocationChange(event.target.value) })}
+            {...register("location", {
+              onChange: (event) => handleLocationChange(event.target.value),
+            })}
           />
           {resolve.isPending ? (
-            <Typography variant="caption" tone="muted" as="p" className="flex items-center gap-2">
+            <Typography
+              variant="caption"
+              tone="muted"
+              as="p"
+              className="flex items-center gap-2"
+            >
               <Spinner />
               {t("locationResolving")}
             </Typography>
           ) : locationError ? (
-            <FieldMessage field="customer-location">{translateError(locationError)}</FieldMessage>
+            <FieldMessage field="customer-location">
+              {translateError(locationError)}
+            </FieldMessage>
           ) : hasPoint ? (
-            <Typography variant="caption" as="p" className="flex flex-wrap items-center gap-x-3 gap-y-1" data-test-selector="customer-location-found">
-              <span className="flex items-center gap-1 text-success-700">
+            <Typography
+              variant="caption"
+              as="p"
+              className="flex flex-wrap items-center gap-x-3 gap-y-1"
+              data-test-selector="customer-location-found"
+            >
+              <Typography variant="caption" tone="success" className="flex items-center gap-1">
                 <CheckCircle2 className="size-4" aria-hidden="true" />
-                <span dir="ltr" className="tabular-nums">
+                <Typography variant="caption" className="tabular-nums" dir="ltr">
                   {latitude}, {longitude}
-                </span>
-              </span>
-              <a
-                href={googleMapsUrl({ latitude: Number(latitude), longitude: Number(longitude) })}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-1 text-primary-600 transition-colors hover:text-primary-700 focus-link"
+                </Typography>
+              </Typography>
+              <OutboundLink
+                href={googleMapsUrl({
+                  latitude: Number(latitude),
+                  longitude: Number(longitude),
+                })}
               >
                 <MapPin className="size-4" aria-hidden="true" />
                 {t("openInMaps")}
                 <ExternalLink className="size-3.5" aria-hidden="true" />
-              </a>
+              </OutboundLink>
             </Typography>
           ) : (
-            <Typography variant="caption" tone="muted" as="p">{t("locationHint")}</Typography>
+            <Typography variant="caption" tone="muted" as="p">
+              {t("locationHint")}
+            </Typography>
           )}
         </FormField>
       </div>

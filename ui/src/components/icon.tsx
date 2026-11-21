@@ -35,6 +35,11 @@ import {
   Copy,
   CreditCard,
   FileText,
+  Gift,
+  Zap,
+  Wallet,
+  Store,
+  BanknoteArrowDown,
   Fingerprint,
   Globe,
   Image as ImageIcon,
@@ -108,6 +113,11 @@ export type IconName =
   | "edit"
   | "error"
   | "file"
+  | "gift"
+  | "banknote"
+  | "store"
+  | "wallet"
+  | "zap"
   | "gear"
   | "grip"
   | "move-horizontal"
@@ -210,6 +220,11 @@ const ICONS: Record<IconName, LucideIcon> = {
   edit: Pencil,
   error: XCircle,
   file: FileText,
+  gift: Gift,
+  banknote: BanknoteArrowDown,
+  store: Store,
+  wallet: Wallet,
+  zap: Zap,
   gear: Settings,
   grip: GripVertical,
   "move-horizontal": MoveHorizontal,

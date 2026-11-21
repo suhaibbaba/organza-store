@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { lineView } from "@/lib/reports";
 import { money, roundMoney, ZERO_MONEY } from "@/lib/money";
@@ -29,6 +30,21 @@ export async function queryCollectionSummary(): Promise<CollectionSummaryRow | u
     WHERE payment_status = 'PENDING_COLLECTION'
   `;
   return rows[0];
+}
+
+// What each order still owes after partial returns, from the same per-line view as the summary.
+export async function queryOutstandingByOrder(ids: string[]): Promise<Map<string, string>> {
+  if (ids.length === 0) return new Map();
+  const rows = await prisma.$queryRaw<{ orderId: string; amount: Prisma.Decimal | null }[]>`
+    WITH line AS (${lineView(null)})
+    SELECT order_id AS "orderId", COALESCE(SUM(unit_net_price * net_units), 0) AS amount
+    FROM line
+    WHERE order_id IN (${Prisma.join(ids)})
+    GROUP BY order_id
+  `;
+  return new Map(
+    rows.map((row) => [row.orderId, roundMoney(row.amount === null ? ZERO_MONEY() : money(row.amount)).toFixed(MONEY_DECIMAL_PLACES)])
+  );
 }
 
 export function toCollectionSummary(row: CollectionSummaryRow | undefined): CollectionSummary {

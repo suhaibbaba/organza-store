@@ -43,7 +43,7 @@ import {
 import { serializeOrder, serializeOrderSummary } from "@/lib/orderSerialize";
 import { MAIN_IMAGE_ONLY } from "@/constants/images";
 import { ORDER_SUMMARY_PREVIEW_LINES } from "@/constants/order";
-import { queryCollectionSummary, toCollectionSummary } from "@/lib/orderCollection";
+import { queryCollectionSummary, toCollectionSummary, queryOutstandingByOrder } from "@/lib/orderCollection";
 import { findCustomerSuggestions } from "@/lib/orderCustomers";
 import { resolveMapLink } from "@/lib/mapLink";
 import { scheduleSaleNotification } from "@/lib/saleNotifications";
@@ -96,6 +96,36 @@ type OrderWithItems = Prisma.OrderGetPayload<{ include: typeof orderInclude }>;
 // Soft-deleted orders are invisible to every route; only the audit log still holds them.
 async function loadOrder(id: string): Promise<OrderWithItems> {
   const order = await prisma.order.findFirst({ where: { id, deletedAt: null }, include: orderInclude });
+  if (!order) throw new AppError(404, ERROR_CODES.ORDER_NOT_FOUND);
+  return order;
+}
+
+// Only what serializeOrderSummary sends: the list never needs the address, note or coordinates.
+const ORDER_SUMMARY_COLUMNS = {
+  id: true,
+  orderNumber: true,
+  channel: true,
+  type: true,
+  status: true,
+  paymentMethod: true,
+  paymentStatus: true,
+  collectedAt: true,
+  customerName: true,
+  customerPhone: true,
+  subtotal: true,
+  discountAmount: true,
+  total: true,
+  hasQuickSale: true,
+  stockDeductedAt: true,
+  createdById: true,
+  createdAt: true,
+  updatedAt: true,
+} satisfies Prisma.OrderSelect;
+
+// Row-locks the order for this transaction, so two staff acting at once can never move its stock twice.
+async function lockOrder(tx: Prisma.TransactionClient, id: string): Promise<OrderWithItems> {
+  await tx.$queryRaw`SELECT id FROM "Order" WHERE id = ${id} FOR UPDATE`;
+  const order = await tx.order.findFirst({ where: { id, deletedAt: null }, include: orderInclude });
   if (!order) throw new AppError(404, ERROR_CODES.ORDER_NOT_FOUND);
   return order;
 }
@@ -161,7 +191,8 @@ router.get(
       prisma.order.count({ where }),
       prisma.order.findMany({
         where,
-        include: {
+        select: {
+          ...ORDER_SUMMARY_COLUMNS,
           _count: { select: { items: true } },
           items: {
             orderBy: [{ unitPrice: "desc" }, { createdAt: "asc" }],
@@ -182,7 +213,11 @@ router.get(
       }),
     ]);
 
-    sendOk(res, orders.map(serializeOrderSummary), {
+    const outstanding = await queryOutstandingByOrder(
+      orders.filter((order) => order.paymentStatus === "PENDING_COLLECTION").map((order) => order.id)
+    );
+
+    sendOk(res, orders.map((order) => serializeOrderSummary(order, outstanding)), {
       page: query.page,
       pageSize: query.pageSize,
       total,
@@ -233,24 +268,29 @@ router.post(
     const { orderIds } = req.body as CollectOrdersInput;
     const ids = [...new Set(orderIds)];
 
-    const orders = await prisma.order.findMany({ where: { id: { in: ids }, deletedAt: null } });
-    const found = new Set(orders.map((order) => order.id));
-    if (ids.some((id) => !found.has(id))) throw new AppError(404, ERROR_CODES.ORDER_NOT_FOUND);
-
-    // A cancelled or fully returned sale has no money on it to collect.
-    if (orders.some((order) => !isOrderCollectable(order.status))) {
-      throw new AppError(409, ERROR_CODES.ORDER_NOT_COLLECTABLE);
-    }
-
-    const pending = orders.filter((order) => order.paymentStatus === "PENDING_COLLECTION");
     const collectedAt = new Date();
 
-    if (pending.length > 0) {
-      await prisma.order.updateMany({
-        where: { id: { in: pending.map((order) => order.id) } },
-        data: { paymentStatus: "COLLECTED" as PaymentStatus, collectedAt },
-      });
-    }
+    // Rows are locked first, so two people collecting the same orders at once record each payment only once.
+    const { orders, pending } = await prisma.$transaction(async (tx) => {
+      await tx.$queryRaw`SELECT id FROM "Order" WHERE id IN (${Prisma.join(ids)}) FOR UPDATE`;
+      const orders = await tx.order.findMany({ where: { id: { in: ids }, deletedAt: null } });
+      const found = new Set(orders.map((order) => order.id));
+      if (ids.some((id) => !found.has(id))) throw new AppError(404, ERROR_CODES.ORDER_NOT_FOUND);
+
+      // A cancelled or fully returned sale has no money on it to collect.
+      if (orders.some((order) => !isOrderCollectable(order.status))) {
+        throw new AppError(409, ERROR_CODES.ORDER_NOT_COLLECTABLE);
+      }
+
+      const pending = orders.filter((order) => order.paymentStatus === "PENDING_COLLECTION");
+      if (pending.length > 0) {
+        await tx.order.updateMany({
+          where: { id: { in: pending.map((order) => order.id) }, paymentStatus: "PENDING_COLLECTION" },
+          data: { paymentStatus: "COLLECTED" as PaymentStatus, collectedAt },
+        });
+      }
+      return { orders, pending };
+    });
 
     // One audit entry per order, so "who said order 412 was paid" is answerable on its own (rule 6).
     for (const order of pending) {
@@ -550,7 +590,6 @@ router.patch(
   requirePermission("order.updateStatus"),
   validateBody(updateOrderStatusSchema),
   asyncHandler(async (req, res) => {
-    const existing = await loadOrder(req.params.id);
     const target = (req.body as UpdateOrderStatusInput).status;
 
     // RETURNED only comes from POST /:id/return, so stock and returnedQuantity move with it.
@@ -559,18 +598,20 @@ router.patch(
     const cancelling = target === "CANCELLED";
     if (cancelling && !can(req.user!, "order.cancel")) throw new AppError(403, ERROR_CODES.FORBIDDEN);
 
-    const allowed = ORDER_STATUS_TRANSITIONS[existing.status as OrderStatus] ?? [];
-    if (!allowed.includes(target)) throw new AppError(400, ERROR_CODES.ORDER_INVALID_STATUS_TRANSITION);
+    const { existing, updated } = await prisma.$transaction(async (tx) => {
+      const existing = await lockOrder(tx, req.params.id);
 
-    // stockDeductedAt is the one source of truth, so re-entering a state never double-deducts or double-restores.
-    const deductNow = target === ONLINE_STOCK_DEDUCTION_STATUS && existing.stockDeductedAt === null;
-    const restoreNow = cancelling && existing.stockDeductedAt !== null;
+      const allowed = ORDER_STATUS_TRANSITIONS[existing.status as OrderStatus] ?? [];
+      if (!allowed.includes(target)) throw new AppError(400, ERROR_CODES.ORDER_INVALID_STATUS_TRANSITION);
 
-    const updated = await prisma.$transaction(async (tx) => {
+      // stockDeductedAt is the one source of truth, so re-entering a state never double-deducts or double-restores.
+      const deductNow = target === ONLINE_STOCK_DEDUCTION_STATUS && existing.stockDeductedAt === null;
+      const restoreNow = cancelling && existing.stockDeductedAt !== null;
+
       if (deductNow) await deductStock(tx, outstandingMovements(existing));
       if (restoreNow) await restoreStock(tx, outstandingMovements(existing));
 
-      return tx.order.update({
+      const updated = await tx.order.update({
         where: { id: existing.id },
         data: {
           status: target,
@@ -579,6 +620,7 @@ router.patch(
         },
         include: orderInclude,
       });
+      return { existing, updated };
     });
 
     await writeAudit({
@@ -601,61 +643,62 @@ router.post(
   requirePermission("order.return"),
   validateBody(returnOrderSchema),
   asyncHandler(async (req, res) => {
-    const existing = await loadOrder(req.params.id);
     const body = req.body as ReturnOrderInput;
 
-    if (!(RETURNABLE_ORDER_STATUSES as readonly string[]).includes(existing.status)) {
-      throw new AppError(409, ERROR_CODES.ORDER_NOT_RETURNABLE);
-    }
+    const { existing, updated, returnedById } = await prisma.$transaction(async (tx) => {
+      const existing = await lockOrder(tx, req.params.id);
 
-    const itemsById = new Map(existing.items.map((item) => [item.id, item]));
-
-    // No items = every line, in whatever quantity is still outstanding.
-    const requested = body.items
-      ? body.items.map((entry) => {
-          const item = itemsById.get(entry.orderItemId);
-          if (!item) throw new AppError(400, ERROR_CODES.ORDER_ITEM_NOT_FOUND);
-          if (entry.quantity > item.quantity - item.returnedQuantity) {
-            throw new AppError(400, ERROR_CODES.ORDER_RETURN_QUANTITY_EXCEEDED);
-          }
-          return { item, quantity: entry.quantity };
-        })
-      : existing.items
-          .map((item) => ({ item, quantity: item.quantity - item.returnedQuantity }))
-          .filter((line) => line.quantity > 0);
-
-    // Nothing left to take back.
-    if (requested.length === 0) throw new AppError(409, ERROR_CODES.ORDER_NOT_RETURNABLE);
-
-    const returnedById = new Map<string, number>();
-    for (const line of requested) {
-      returnedById.set(line.item.id, (returnedById.get(line.item.id) ?? 0) + line.quantity);
-    }
-    // Two entries for the same line must not add up past what was sold.
-    for (const [itemId, quantity] of returnedById) {
-      const item = itemsById.get(itemId)!;
-      if (quantity > item.quantity - item.returnedQuantity) {
-        throw new AppError(400, ERROR_CODES.ORDER_RETURN_QUANTITY_EXCEEDED);
+      if (!(RETURNABLE_ORDER_STATUSES as readonly string[]).includes(existing.status)) {
+        throw new AppError(409, ERROR_CODES.ORDER_NOT_RETURNABLE);
       }
-    }
 
-    // Only goods that left the shelf go back on it.
-    const movements = existing.stockDeductedAt
-      ? toStockMovements(
-          [...returnedById].map(([itemId, quantity]) => ({
-            productId: itemsById.get(itemId)!.productId,
-            variantId: itemsById.get(itemId)!.variantId,
-            quantity,
-          }))
-        )
-      : [];
+      const itemsById = new Map(existing.items.map((item) => [item.id, item]));
 
-    // Every line back in full makes the order RETURNED; a partial return only records quantities.
-    const fullyReturned = existing.items.every(
-      (item) => item.returnedQuantity + (returnedById.get(item.id) ?? 0) >= item.quantity
-    );
+      // No items = every line, in whatever quantity is still outstanding.
+      const requested = body.items
+        ? body.items.map((entry) => {
+            const item = itemsById.get(entry.orderItemId);
+            if (!item) throw new AppError(400, ERROR_CODES.ORDER_ITEM_NOT_FOUND);
+            if (entry.quantity > item.quantity - item.returnedQuantity) {
+              throw new AppError(400, ERROR_CODES.ORDER_RETURN_QUANTITY_EXCEEDED);
+            }
+            return { item, quantity: entry.quantity };
+          })
+        : existing.items
+            .map((item) => ({ item, quantity: item.quantity - item.returnedQuantity }))
+            .filter((line) => line.quantity > 0);
 
-    const updated = await prisma.$transaction(async (tx) => {
+      // Nothing left to take back.
+      if (requested.length === 0) throw new AppError(409, ERROR_CODES.ORDER_NOT_RETURNABLE);
+
+      const returnedById = new Map<string, number>();
+      for (const line of requested) {
+        returnedById.set(line.item.id, (returnedById.get(line.item.id) ?? 0) + line.quantity);
+      }
+      // Two entries for the same line must not add up past what was sold.
+      for (const [itemId, quantity] of returnedById) {
+        const item = itemsById.get(itemId)!;
+        if (quantity > item.quantity - item.returnedQuantity) {
+          throw new AppError(400, ERROR_CODES.ORDER_RETURN_QUANTITY_EXCEEDED);
+        }
+      }
+
+      // Only goods that left the shelf go back on it.
+      const movements = existing.stockDeductedAt
+        ? toStockMovements(
+            [...returnedById].map(([itemId, quantity]) => ({
+              productId: itemsById.get(itemId)!.productId,
+              variantId: itemsById.get(itemId)!.variantId,
+              quantity,
+            }))
+          )
+        : [];
+
+      // Every line back in full makes the order RETURNED; a partial return only records quantities.
+      const fullyReturned = existing.items.every(
+        (item) => item.returnedQuantity + (returnedById.get(item.id) ?? 0) >= item.quantity
+      );
+
       for (const [itemId, quantity] of returnedById) {
         await tx.orderItem.update({
           where: { id: itemId },
@@ -665,11 +708,12 @@ router.post(
 
       if (movements.length) await restoreStock(tx, movements);
 
-      return tx.order.update({
+      const updated = await tx.order.update({
         where: { id: existing.id },
         data: fullyReturned ? { status: "RETURNED", stockDeductedAt: null } : {},
         include: orderInclude,
       });
+      return { existing, updated, returnedById };
     });
 
     await writeAudit({
@@ -694,16 +738,16 @@ router.delete(
   "/:id",
   requirePermission("order.delete"),
   asyncHandler(async (req, res) => {
-    const existing = await loadOrder(req.params.id);
-    const restoreNow = existing.stockDeductedAt !== null;
-
-    const deleted = await prisma.$transaction(async (tx) => {
+    const { existing, deleted } = await prisma.$transaction(async (tx) => {
+      const existing = await lockOrder(tx, req.params.id);
+      const restoreNow = existing.stockDeductedAt !== null;
       if (restoreNow) await restoreStock(tx, outstandingMovements(existing));
 
-      return tx.order.update({
+      const deleted = await tx.order.update({
         where: { id: existing.id },
         data: { deletedAt: new Date(), ...(restoreNow ? { stockDeductedAt: null } : {}) },
       });
+      return { existing, deleted };
     });
 
     await writeAudit({

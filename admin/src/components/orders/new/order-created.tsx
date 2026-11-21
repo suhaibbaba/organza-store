@@ -37,7 +37,7 @@ export function OrderCreated({ order, onNewOrder }: OrderCreatedProps) {
         <Typography variant="small" tone="muted">{t("orderNumber", { number: String(order.orderNumber) })}</Typography>
       </div>
 
-      <p className="text-kpi font-bold tabular-nums text-ink">{formatMoney(order.total)}</p>
+      <Typography variant="display" as="p" className="text-kpi tabular-nums">{formatMoney(order.total)}</Typography>
 
       <Typography variant="small" tone="muted">{t(nextStepKey)}</Typography>
 

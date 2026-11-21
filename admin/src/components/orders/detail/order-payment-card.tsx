@@ -2,7 +2,7 @@
 
 import { useLocale, useTranslations } from "next-intl";
 import { CircleCheck, HandCoins } from "lucide-react";
-import { Button, useConfirm, useToast } from "@store/ui";
+import { Button, useConfirm, useToast, Typography } from "@store/ui";
 import { can } from "@organza/shared/lib/permissions";
 import { isOrderCollectable } from "@organza/shared/lib/orders";
 import { ERROR_CODES } from "@organza/shared/constants/errors";
@@ -50,13 +50,13 @@ export function OrderPaymentCard({ order }: { order: Order }) {
 
   return (
     <DetailCard icon={isPending ? HandCoins : CircleCheck} title={t("title")} data-testid="order-payment-card">
-      <p className="rounded-panel bg-sunken px-4 py-3 text-value text-ink">
+      <Typography variant="body" className="rounded-panel bg-sunken px-4 py-3">
         {!isPending
           ? t("collectedOn", { date: order.collectedAt ? formatDateTime(order.collectedAt, locale) : "—" })
           : isCollectable
             ? t("pendingExplainer", { amount: formatMoney(order.total) })
             : t("nothingToCollect")}
-      </p>
+      </Typography>
       {canCollect && (
         <Button
           className="w-full"

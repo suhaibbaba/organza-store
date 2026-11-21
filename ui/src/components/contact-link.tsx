@@ -1,4 +1,4 @@
-import type { JSX } from "react";
+import type { JSX, ReactNode } from "react";
 import { Icon } from "@ui/components/icon";
 import { Ltr } from "@ui/components/ltr";
 import { cn } from "@ui/lib/cn";
@@ -94,6 +94,28 @@ export function WhatsAppLink({
     >
       <Icon name="whatsapp" className="size-4 shrink-0 text-success-700" />
       {label ?? <Ltr className="tabular-nums">{value}</Ltr>}
+    </a>
+  );
+}
+
+export interface OutboundLinkProps extends TestIdProps {
+  readonly href: string;
+  readonly children: ReactNode;
+  readonly className?: string | undefined;
+}
+
+// A link that opens another site (a map, a document) in a new tab.
+export function OutboundLink({ href, children, className, "data-testid": testId }: OutboundLinkProps): JSX.Element {
+  return (
+    <a
+      data-part="outbound-link"
+      {...testid(testId)}
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={cn(LINK_CLASS, "inline-flex items-center gap-1", className)}
+    >
+      {children}
     </a>
   );
 }

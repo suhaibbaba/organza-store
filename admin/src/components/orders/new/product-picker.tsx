@@ -2,7 +2,7 @@
 
 import { useLocale, useTranslations } from "next-intl";
 import { Plus } from "lucide-react";
-import { Alert, Input, Spinner, Typography } from "@store/ui";
+import { Alert, CardButton, Input, Spinner, Typography } from "@store/ui";
 import type { ProductSummary } from "@organza/shared/types/product";
 import { testSelectorFor } from "@organza/shared/lib/testSelector";
 import { localize } from "@/lib/i18n-content";
@@ -41,6 +41,10 @@ export function ProductPicker({ query, onQueryChange, pendingId, onSelect }: Pro
         aria-label={t("label")}
         autoComplete="off"
         enterKeyHint="search"
+        // The picker sits inside the order form: Enter searches, it must never create the order.
+        onKeyDown={(event) => {
+          if (event.key === "Enter") event.preventDefault();
+        }}
       />
 
       {search.isError && (
@@ -71,12 +75,11 @@ export function ProductPicker({ query, onQueryChange, pendingId, onSelect }: Pro
 
             return (
               <li key={product.id}>
-                <button
-                  data-test-selector={testSelectorFor("order-product-result", product.id)}
-                  type="button"
+                <CardButton
+                  data-testid={testSelectorFor("order-product-result", product.id)}
                   disabled={soldOut || pendingId !== null}
                   onClick={() => onSelect(product)}
-                  className="group flex h-full w-full cursor-pointer flex-col overflow-hidden rounded-panel border border-line bg-surface text-start transition-colors not-disabled:hover:border-primary-300 focus-darken disabled:cursor-not-allowed disabled:opacity-60"
+                  className="h-full flex-col overflow-hidden"
                 >
                   <span className="relative block aspect-square w-full bg-sunken">
                     <ProductImage
@@ -96,12 +99,12 @@ export function ProductPicker({ query, onQueryChange, pendingId, onSelect }: Pro
                     <Typography variant="small" weight="semibold" as="span">{formatMoney(product.basePrice)}</Typography>
                     <Typography variant="caption" tone="muted">
                       {product.hasVariants && <>{t("variantCount", { count: product.variantCount })} · </>}
-                      <span className={soldOut ? "text-danger-600" : undefined}>
+                      <Typography as="span" variant="caption" tone={soldOut ? "error" : "inherit"}>
                         {soldOut ? t("soldOut") : t("inStock", { count: product.stock })}
-                      </span>
+                      </Typography>
                     </Typography>
                   </span>
-                </button>
+                </CardButton>
               </li>
             );
           })}

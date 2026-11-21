@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Undo2 } from "lucide-react";
-import { Alert, Button, Drawer } from "@store/ui";
+import { Alert, Button, Drawer, Typography } from "@store/ui";
 import { ERROR_CODES } from "@organza/shared/constants/errors";
 import type { Order } from "@organza/shared/types/order";
 import { useReturnOrderMutation } from "@/hooks/use-orders";
@@ -82,7 +82,7 @@ function ReturnForm({ order, onDone }: { order: Order; onDone: () => void }) {
 
   return (
     <div className="flex min-h-full flex-col gap-4">
-      <p className="text-label text-ink-muted">{t("description")}</p>
+      <Typography variant="small" tone="muted">{t("description")}</Typography>
 
       {mutation.isError && (
         <Alert tone="danger" data-testid="alert-destructive">
@@ -102,13 +102,13 @@ function ReturnForm({ order, onDone }: { order: Order; onDone: () => void }) {
       </Button>
 
       <div className="flex items-center gap-3">
-        <span className="h-px flex-1 bg-line" />
-        <span className="text-micro text-ink-muted">{t("or")}</span>
-        <span className="h-px flex-1 bg-line" />
+        <div aria-hidden="true" className="h-px flex-1 bg-line" />
+        <Typography variant="caption" tone="muted">{t("or")}</Typography>
+        <div aria-hidden="true" className="h-px flex-1 bg-line" />
       </div>
 
       <div className="flex flex-col gap-3">
-        <p className="text-label font-medium text-ink">{t("pickItems")}</p>
+        <Typography variant="small" weight="medium">{t("pickItems")}</Typography>
 
         {returnable.map(({ item, outstanding }) => {
           const name = localize(item.name, locale);
@@ -118,9 +118,9 @@ function ReturnForm({ order, onDone }: { order: Order; onDone: () => void }) {
           return (
             <div key={item.id} className="flex items-center justify-between gap-3 rounded-panel border border-line p-3">
               <div className="min-w-0">
-                <p className="truncate text-label font-medium text-ink">{name}</p>
-                {variantName && <p className="truncate text-micro text-ink-muted">{variantName}</p>}
-                <p className="text-micro text-ink-muted">{t("outstanding", { count: outstanding })}</p>
+                <Typography variant="small" weight="medium" className="truncate">{name}</Typography>
+                {variantName && <Typography variant="caption" tone="muted" as="p" className="truncate">{variantName}</Typography>}
+                <Typography variant="caption" tone="muted" as="p">{t("outstanding", { count: outstanding })}</Typography>
               </div>
               <QuantityStepper
                 value={quantities[item.id] ?? 0}

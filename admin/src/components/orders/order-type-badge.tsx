@@ -1,5 +1,5 @@
 import { useTranslations } from "next-intl";
-import { Gift } from "lucide-react";
+import { Badge } from "@store/ui";
 import { GIFT_ORDER_TYPE } from "@organza/shared/constants/order";
 import type { OrderType } from "@organza/shared/types/order";
 import { cn } from "@/lib/utils";
@@ -11,14 +11,8 @@ export function OrderTypeBadge({ type, className }: { type: OrderType; className
   if (type !== GIFT_ORDER_TYPE) return null;
 
   return (
-    <span
-      className={cn(
-        "inline-flex h-6 shrink-0 items-center gap-1 rounded-pill bg-tint-5-bg px-2.5 text-micro font-medium text-tint-5-ink",
-        className
-      )}
-    >
-      <Gift className="size-3.5" aria-hidden="true" />
+    <Badge tone="violet" icon="gift" className={cn("shrink-0", className)} data-testid="order-gift-badge">
       {t(GIFT_ORDER_TYPE)}
-    </span>
+    </Badge>
   );
 }

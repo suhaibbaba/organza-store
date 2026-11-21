@@ -1772,7 +1772,11 @@
       "small": "קטן",
       "withIcon": "הוספת מוצר",
       "iconDelete": "מחיקה",
-      "iconClose": "סגירה"
+      "iconClose": "סגירה",
+      "outbound": "פתיחה במפות",
+      "card": "כרטיס ללחיצה",
+      "cardSelected": "כרטיס נבחר",
+      "cardHint": "הכרטיס כולו כפתור אחד"
     },
     "badges": {
       "inStock": "במלאי",
