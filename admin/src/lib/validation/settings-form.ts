@@ -58,7 +58,7 @@ export function settingsToFormValues(setting: Setting): SettingsFormValues {
     saleNotificationsEnabled: setting.saleNotificationsEnabled,
     // A mode from a newer build falls back to the first one this build understands.
     saleNotificationMode: IMPLEMENTED_SALE_NOTIFICATION_MODES.includes(
-      setting.saleNotificationMode as (typeof IMPLEMENTED_SALE_NOTIFICATION_MODES)[number]
+      setting.saleNotificationMode as (typeof IMPLEMENTED_SALE_NOTIFICATION_MODES)[number],
     )
       ? (setting.saleNotificationMode as SettingsFormValues["saleNotificationMode"])
       : IMPLEMENTED_SALE_NOTIFICATION_MODES[0],

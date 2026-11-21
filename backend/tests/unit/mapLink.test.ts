@@ -9,10 +9,22 @@ describe("coordinatesFromMapLink", () => {
   });
 
   it("reads a query, a search path and a centre", () => {
-    expect(coordinatesFromMapLink("https://maps.google.com/?q=32.313,35.028")).toEqual({ latitude: 32.313, longitude: 35.028 });
-    expect(coordinatesFromMapLink("https://www.google.com/maps/search/?api=1&query=31.9%2C35.2")).toEqual({ latitude: 31.9, longitude: 35.2 });
-    expect(coordinatesFromMapLink("https://www.google.com/maps/search/32.1,+35.3")).toEqual({ latitude: 32.1, longitude: 35.3 });
-    expect(coordinatesFromMapLink("https://www.google.com/maps/@-33.86,151.2,12z")).toEqual({ latitude: -33.86, longitude: 151.2 });
+    expect(coordinatesFromMapLink("https://maps.google.com/?q=32.313,35.028")).toEqual({
+      latitude: 32.313,
+      longitude: 35.028,
+    });
+    expect(coordinatesFromMapLink("https://www.google.com/maps/search/?api=1&query=31.9%2C35.2")).toEqual({
+      latitude: 31.9,
+      longitude: 35.2,
+    });
+    expect(coordinatesFromMapLink("https://www.google.com/maps/search/32.1,+35.3")).toEqual({
+      latitude: 32.1,
+      longitude: 35.3,
+    });
+    expect(coordinatesFromMapLink("https://www.google.com/maps/@-33.86,151.2,12z")).toEqual({
+      latitude: -33.86,
+      longitude: 151.2,
+    });
   });
 
   it("takes a bare coordinate pair", () => {

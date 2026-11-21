@@ -23,10 +23,7 @@ export function EmptyState({
   const part = parts("empty-state", testId);
 
   return (
-    <div
-      {...part()}
-      className="rounded-card border border-dashed border-line-strong bg-surface px-6 py-12 text-center"
-    >
+    <div {...part()} className="rounded-card border border-dashed border-line-strong bg-surface px-6 py-12 text-center">
       <span
         {...part("icon")}
         className="mx-auto mb-3 flex size-11 items-center justify-center rounded-field bg-primary-100 text-primary-700"

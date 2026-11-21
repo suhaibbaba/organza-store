@@ -158,7 +158,7 @@ describe("Users", () => {
     expect(row?.hasPassword).toBe(false);
 
     // The password is never on the wire in any shape, not even as a length.
-    expect(JSON.stringify(row)).not.toContain("password\":\"");
+    expect(JSON.stringify(row)).not.toContain('password":"');
 
     // Setting one from the Admin's own box flips it — the same flag the
     // emailed link flips (tests/api/passwordSetup.test.ts).

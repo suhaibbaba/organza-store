@@ -27,11 +27,11 @@ export const PRODUCTS_INDEX_SETTINGS = {
 // Words the shop treats as the same. Write them as people type them; they are normalized before being applied.
 // Each entry: a word, and the words a search for it should also find.
 export const PRODUCT_SYNONYMS: Record<string, string[]> = {
-  "عباية": ["عباءة"],
-  "عباءة": ["عباية"],
-  "جاكيت": ["جاكت", "جكيت"],
-  "جاكت": ["جاكيت", "جكيت"],
-  "جكيت": ["جاكيت", "جاكت"],
-  "بنطلون": ["بنطال"],
-  "بنطال": ["بنطلون"],
+  عباية: ["عباءة"],
+  عباءة: ["عباية"],
+  جاكيت: ["جاكت", "جكيت"],
+  جاكت: ["جاكيت", "جكيت"],
+  جكيت: ["جاكيت", "جاكت"],
+  بنطلون: ["بنطال"],
+  بنطال: ["بنطلون"],
 };

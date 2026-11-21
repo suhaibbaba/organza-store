@@ -17,7 +17,9 @@ export type MoneyLike = string | number | null | undefined;
 /** The scaled integer an amount really is: "162.00" -> 16200. */
 export function agorot(value: MoneyLike): number {
   const numeric = Number(value ?? 0);
-  if (!Number.isFinite(numeric)) throw new Error(`Not an amount: ${JSON.stringify(value)}`);
+  if (!Number.isFinite(numeric)) {
+    throw new Error(`Not an amount: ${JSON.stringify(value)}`);
+  }
   return Math.round(numeric * MONEY_SCALE);
 }
 
@@ -56,7 +58,7 @@ export function expectMoney(actual: MoneyLike, expected: MoneyLike, label: strin
 export function expectPrice(actual: MoneyLike, expected: MoneyLike, label: string): void {
   expect(
     typeof actual,
-    `${label}: a price must cross the API as a string (Decimal, never Float) — got a ${typeof actual}: ${JSON.stringify(actual)}`
+    `${label}: a price must cross the API as a string (Decimal, never Float) — got a ${typeof actual}: ${JSON.stringify(actual)}`,
   ).toBe("string");
   expect(agorot(actual), describe(label, actual, expected)).toBe(agorot(expected));
 }
@@ -70,11 +72,11 @@ export function expectAmount(actual: MoneyLike, expected: MoneyLike, label: stri
 export function expectMoneyShape(actual: MoneyLike, label: string): void {
   expect(
     typeof actual,
-    `${label}: money must cross the API as a 2dp string (Decimal, never Float) — got a ${typeof actual}: ${JSON.stringify(actual)}`
+    `${label}: money must cross the API as a 2dp string (Decimal, never Float) — got a ${typeof actual}: ${JSON.stringify(actual)}`,
   ).toBe("string");
   expect(
     MONEY_STRING_PATTERN.test(String(actual)),
-    `${label}: money must be a plain 2dp string — got ${JSON.stringify(actual)}`
+    `${label}: money must be a plain 2dp string — got ${JSON.stringify(actual)}`,
   ).toBe(true);
 }
 

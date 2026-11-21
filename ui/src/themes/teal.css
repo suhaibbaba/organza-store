@@ -76,7 +76,9 @@
   --shadow-card-hover: 0 8px 24px rgb(16 63 70 / 0.08);
   --shadow-nav-active: 0 6px 16px -8px rgb(4 24 28 / 0.45);
   --shadow-float: 0 12px 32px -8px rgb(16 63 70 / 0.18);
-  --shadow-glass: 0 18px 40px -18px rgb(16 63 70 / 0.4), 0 2px 8px -4px rgb(16 63 70 / 0.14), inset 0 1px 0 rgb(255 255 255 / 0.75), inset 0 -1px 0 rgb(255 255 255 / 0.2);
+  --shadow-glass:
+    0 18px 40px -18px rgb(16 63 70 / 0.4), 0 2px 8px -4px rgb(16 63 70 / 0.14), inset 0 1px 0 rgb(255 255 255 / 0.75),
+    inset 0 -1px 0 rgb(255 255 255 / 0.2);
   --shadow-drawer: calc(20px * var(--drawer-direction, 1)) 0 48px -16px rgb(16 63 70 / 0.28);
   --shadow-now: 0 10px 22px -14px rgb(22 131 74 / 0.5);
   --shadow-pill: 0 1px 2px rgb(16 42 58 / 0.08);

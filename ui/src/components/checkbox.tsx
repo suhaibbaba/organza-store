@@ -37,7 +37,10 @@ export function Checkbox({
   return (
     <label
       {...part()}
-      className={cn("flex w-fit cursor-pointer items-center select-none", small ? "gap-1.5" : "min-h-(--control-h-sm) gap-2.5")}
+      className={cn(
+        "flex w-fit cursor-pointer items-center select-none",
+        small ? "gap-1.5" : "min-h-(--control-h-sm) gap-2.5",
+      )}
     >
       <span className={cn("relative grid shrink-0 place-items-center", small ? "size-4" : "size-5")}>
         <input

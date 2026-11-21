@@ -22,7 +22,8 @@ const VARIANTS: Record<ButtonVariant, string> = {
     "border border-line bg-surface text-ink hover:bg-inset hover:border-primary-600 hover:text-primary-700 active:bg-neutral-200 focus-visible:border-primary-800 focus-visible:bg-neutral-200 focus-visible:text-primary-900",
   ghost:
     "bg-primary-100 text-primary-700 hover:bg-primary-200 active:bg-primary-300 focus-visible:bg-primary-300 focus-visible:text-primary-900",
-  quiet: "text-ink-muted hover:bg-inset hover:text-ink active:bg-neutral-200 focus-visible:bg-neutral-300 focus-visible:text-ink",
+  quiet:
+    "text-ink-muted hover:bg-inset hover:text-ink active:bg-neutral-200 focus-visible:bg-neutral-300 focus-visible:text-ink",
   danger: "bg-danger-600 text-ink-inverse hover:bg-danger-700 active:bg-danger-800 focus-visible:bg-danger-800",
 };
 

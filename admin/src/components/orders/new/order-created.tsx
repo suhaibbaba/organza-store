@@ -33,16 +33,27 @@ export function OrderCreated({ order, onNewOrder }: OrderCreatedProps) {
       <CheckCircle2 className="size-12 text-success-700" aria-hidden="true" />
 
       <div className="flex flex-col gap-1">
-        <Typography variant="h1" weight="semibold" as="p">{t("title")}</Typography>
-        <Typography variant="small" tone="muted">{t("orderNumber", { number: String(order.orderNumber) })}</Typography>
+        <Typography variant="h1" weight="semibold" as="p">
+          {t("title")}
+        </Typography>
+        <Typography variant="small" tone="muted">
+          {t("orderNumber", { number: String(order.orderNumber) })}
+        </Typography>
       </div>
 
-      <Typography variant="display" as="p" className="text-kpi tabular-nums">{formatMoney(order.total)}</Typography>
+      <Typography variant="display" as="p" className="text-kpi tabular-nums">
+        {formatMoney(order.total)}
+      </Typography>
 
-      <Typography variant="small" tone="muted">{t(nextStepKey)}</Typography>
+      <Typography variant="small" tone="muted">
+        {t(nextStepKey)}
+      </Typography>
 
       <div className="flex w-full max-w-xs flex-col gap-2">
-        <Link href={`/orders/${order.id}`} className={buttonClassName({ className: "w-full sm:w-auto sm:self-center" })}>
+        <Link
+          href={`/orders/${order.id}`}
+          className={buttonClassName({ className: "w-full sm:w-auto sm:self-center" })}
+        >
           {t("openOrder")}
         </Link>
         <Button

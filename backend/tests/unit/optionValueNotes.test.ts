@@ -29,7 +29,7 @@ describe("which notes a variant carries", () => {
     // A dress in red/M with something to say about both: the picker has to be
     // able to show which note is the colour's and which is the size's.
     const notes = variantValueNotes(
-      variant([value("red", "Red", { ar: "أغمق من الصورة" }), value("m", "M", { ar: "يناسب ٣٨-٤٠" })])
+      variant([value("red", "Red", { ar: "أغمق من الصورة" }), value("m", "M", { ar: "يناسب ٣٨-٤٠" })]),
     );
 
     expect(notes.map((note) => note.valueId)).toEqual(["red", "m"]);
@@ -38,9 +38,7 @@ describe("which notes a variant carries", () => {
   });
 
   it("drops the values that have nothing to say, and keeps the ones that do", () => {
-    const notes = variantValueNotes(
-      variant([value("red", "Red", null), value("m", "M", { ar: "الطول ١٤٠ سم" })])
-    );
+    const notes = variantValueNotes(variant([value("red", "Red", null), value("m", "M", { ar: "الطول ١٤٠ سم" })]));
     expect(notes).toHaveLength(1);
     expect(notes[0].valueId).toBe("m");
   });

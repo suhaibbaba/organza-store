@@ -5,11 +5,7 @@ import { useTranslations } from "next-intl";
 import Cropper, { type Area, type MediaSize } from "react-easy-crop";
 import { Button, Spinner } from "@store/ui";
 import { FlipHorizontal2, FlipVertical2, RotateCw, X, ZoomIn, ZoomOut } from "lucide-react";
-import {
-  IMAGE_ZOOM,
-  PRODUCT_IMAGE_ASPECT,
-  PRODUCT_IMAGE_ASPECT_RATIO,
-} from "@store/shared/constants/image";
+import { IMAGE_ZOOM, PRODUCT_IMAGE_ASPECT, PRODUCT_IMAGE_ASPECT_RATIO } from "@store/shared/constants/image";
 import {
   rotateClockwise,
   rotatedFrameSize,
@@ -65,29 +61,36 @@ export function ImageEditorSheet({
       .then((result) => result ?? (fallbackSrc ? loadEditorSource(fallbackSrc, { crossOrigin: true }) : null))
       .then((result) => {
         if (cancelled) {
-          if (result?.owned) URL.revokeObjectURL(result.url);
+          if (result?.owned) {
+            URL.revokeObjectURL(result.url);
+          }
           return;
         }
         if (!result) {
           setSource("failed");
           return;
         }
-        if (result.owned) owned = result.url;
+        if (result.owned) {
+          owned = result.url;
+        }
         setSource({ url: result.url });
       });
 
     return () => {
       cancelled = true;
-      if (owned) URL.revokeObjectURL(owned);
+      if (owned) {
+        URL.revokeObjectURL(owned);
+      }
     };
   }, [src, crossOrigin, fallbackSrc]);
-
 
   /** Zoom at which the box covers the ENTIRE photo — not 1 for a turned picture; mirrors the cropper's getCropSize. */
   const wholePhotoZoom = useCallback(
     (rotation: ImageEdit["rotation"]): number => {
       const frame = canvasRef.current?.getBoundingClientRect();
-      if (!frame || !drawnSize) return IMAGE_ZOOM.min;
+      if (!frame || !drawnSize) {
+        return IMAGE_ZOOM.min;
+      }
       const picture = rotatedFrameSize(drawnSize, rotation);
       const aspect = picture.width / picture.height;
       const fittingWidth = Math.min(picture.width, frame.width);
@@ -95,7 +98,7 @@ export function ImageEditorSheet({
       const boxWidth = fittingWidth > fittingHeight * aspect ? fittingHeight * aspect : fittingWidth;
       return Math.min(IMAGE_ZOOM.min, boxWidth / picture.width);
     },
-    [drawnSize]
+    [drawnSize],
   );
 
   const handleCropComplete = useCallback((percentages: Area) => {
@@ -155,45 +158,45 @@ export function ImageEditorSheet({
         )}
 
         {source !== null && source !== "failed" && (
-        <Cropper
-          image={source.url}
-          crop={offset}
-          zoom={zoom}
-          rotation={working.rotation}
-          aspect={constrained ? PRODUCT_IMAGE_ASPECT_RATIO : wholeFrameAspect}
-          minZoom={constrained ? IMAGE_ZOOM.min : Math.min(IMAGE_ZOOM.min, zoom)}
-          maxZoom={IMAGE_ZOOM.max}
-          objectFit="contain"
-          showGrid
-          initialCroppedAreaPercentages={
-            edit.crop
-              ? {
-                  x: edit.crop.x * 100,
-                  y: edit.crop.y * 100,
-                  width: edit.crop.width * 100,
-                  height: edit.crop.height * 100,
-                }
-              : undefined
-          }
-          onMediaLoaded={(size: MediaSize) => setDrawnSize({ width: size.width, height: size.height })}
-          onCropChange={setOffset}
-          onZoomChange={setZoom}
-          onCropComplete={handleCropComplete}
-          transform={[
-            `translate(${offset.x}px, ${offset.y}px)`,
-            `rotate(${working.rotation}deg)`,
-            `rotateY(${working.flipHorizontal ? 180 : 0}deg)`,
-            `rotateX(${working.flipVertical ? 180 : 0}deg)`,
-            `scale(${zoom})`,
-          ].join(" ")}
-        />
+          <Cropper
+            image={source.url}
+            crop={offset}
+            zoom={zoom}
+            rotation={working.rotation}
+            aspect={constrained ? PRODUCT_IMAGE_ASPECT_RATIO : wholeFrameAspect}
+            minZoom={constrained ? IMAGE_ZOOM.min : Math.min(IMAGE_ZOOM.min, zoom)}
+            maxZoom={IMAGE_ZOOM.max}
+            objectFit="contain"
+            showGrid
+            initialCroppedAreaPercentages={
+              edit.crop
+                ? {
+                    x: edit.crop.x * 100,
+                    y: edit.crop.y * 100,
+                    width: edit.crop.width * 100,
+                    height: edit.crop.height * 100,
+                  }
+                : undefined
+            }
+            onMediaLoaded={(size: MediaSize) => setDrawnSize({ width: size.width, height: size.height })}
+            onCropChange={setOffset}
+            onZoomChange={setZoom}
+            onCropComplete={handleCropComplete}
+            transform={[
+              `translate(${offset.x}px, ${offset.y}px)`,
+              `rotate(${working.rotation}deg)`,
+              `rotateY(${working.flipHorizontal ? 180 : 0}deg)`,
+              `rotateX(${working.flipVertical ? 180 : 0}deg)`,
+              `scale(${zoom})`,
+            ].join(" ")}
+          />
         )}
       </div>
 
       <div
         className={cn(
           "mx-auto flex w-full max-w-xl flex-col gap-4 px-4 pb-[calc(var(--safe-bottom)+1rem)] pt-4 text-ink-inverse",
-          source === null || source === "failed" ? "pointer-events-none opacity-40" : ""
+          source === null || source === "failed" ? "pointer-events-none opacity-40" : "",
         )}
       >
         <label className="flex items-center gap-3">
@@ -221,7 +224,9 @@ export function ImageEditorSheet({
             onClick={() =>
               setWorking((current) => {
                 const rotation = rotateClockwise(current.rotation);
-                if (!constrained) setZoom(wholePhotoZoom(rotation));
+                if (!constrained) {
+                  setZoom(wholePhotoZoom(rotation));
+                }
                 return { ...current, rotation };
               })
             }
@@ -328,7 +333,9 @@ function ShapeChoice({
       data-test-selector={`image-editor-aspect-${name}`}
       className={cn(
         "inline-flex h-9 cursor-pointer items-center rounded-pill px-3 text-label transition-colors",
-        isActive ? "bg-surface text-ink focus-darken" : "bg-ink-inverse/10 text-ink-inverse hover:bg-ink-inverse/20 focus-visible:bg-ink-inverse/35"
+        isActive
+          ? "bg-surface text-ink focus-darken"
+          : "bg-ink-inverse/10 text-ink-inverse hover:bg-ink-inverse/20 focus-visible:bg-ink-inverse/35",
       )}
     >
       {label}

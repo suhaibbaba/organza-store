@@ -32,9 +32,13 @@ export function variantNumber(variant: Variant, numberTypeId: string): string | 
 // to those rather than guessing one.
 export function variantsByNumber(product: Product, typed: string): Variant[] {
   const numberTypeId = numberVariantTypeId(product);
-  if (!numberTypeId) return [];
+  if (!numberTypeId) {
+    return [];
+  }
   const wanted = typed.trim();
-  if (!wanted) return [];
+  if (!wanted) {
+    return [];
+  }
   return product.variants.filter((variant) => variantNumber(variant, numberTypeId) === wanted);
 }
 

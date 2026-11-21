@@ -5,7 +5,10 @@ import type { I18n, SupportedLanguage } from "@/types/common";
 
 // The shop's own name lives in Settings, never in code: the system serves more than one shop.
 export async function loadStoreName(): Promise<I18n> {
-  const setting = await prisma.setting.findUnique({ where: { id: SETTINGS_SINGLETON_ID }, select: { storeName: true } });
+  const setting = await prisma.setting.findUnique({
+    where: { id: SETTINGS_SINGLETON_ID },
+    select: { storeName: true },
+  });
   return (setting?.storeName as I18n | null) ?? BOOTSTRAP_SETTING.storeName;
 }
 

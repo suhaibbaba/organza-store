@@ -21,12 +21,24 @@ function isZodError(err: unknown): err is ZodError {
 
 function codeForUniqueViolation(target: unknown): ErrorCode {
   const fields = Array.isArray(target) ? target.join(",") : String(target ?? "");
-  if (fields.includes("sku")) return ERROR_CODES.SKU_DUPLICATE;
-  if (fields.includes("barcode")) return ERROR_CODES.BARCODE_DUPLICATE;
-  if (fields.includes("slug")) return ERROR_CODES.SLUG_DUPLICATE;
-  if (fields.includes("email")) return ERROR_CODES.EMAIL_DUPLICATE;
-  if (fields.includes("phone")) return ERROR_CODES.PHONE_DUPLICATE;
-  if (fields.includes("whatsapp")) return ERROR_CODES.WHATSAPP_DUPLICATE;
+  if (fields.includes("sku")) {
+    return ERROR_CODES.SKU_DUPLICATE;
+  }
+  if (fields.includes("barcode")) {
+    return ERROR_CODES.BARCODE_DUPLICATE;
+  }
+  if (fields.includes("slug")) {
+    return ERROR_CODES.SLUG_DUPLICATE;
+  }
+  if (fields.includes("email")) {
+    return ERROR_CODES.EMAIL_DUPLICATE;
+  }
+  if (fields.includes("phone")) {
+    return ERROR_CODES.PHONE_DUPLICATE;
+  }
+  if (fields.includes("whatsapp")) {
+    return ERROR_CODES.WHATSAPP_DUPLICATE;
+  }
   return ERROR_CODES.DUPLICATE;
 }
 

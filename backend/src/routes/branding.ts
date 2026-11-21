@@ -23,7 +23,7 @@ router.get(
       faviconUrls: faviconUrls(setting?.faviconFilename ?? null),
     };
     sendOk(res, branding);
-  })
+  }),
 );
 
 export default router;

@@ -29,15 +29,7 @@ interface BarcodeFieldProps {
 }
 
 // Reversible: switching back to ours restores the code we minted, so a label already stuck on keeps working (rule 13).
-export function BarcodeField({
-  id,
-  source,
-  value,
-  onChange,
-  currentCode,
-  disabled,
-  compact,
-}: BarcodeFieldProps) {
+export function BarcodeField({ id, source, value, onChange, currentCode, disabled, compact }: BarcodeFieldProps) {
   const t = useTranslations("products.form.barcode");
   const translateError = useTranslateError();
   const [cameraOpen, setCameraOpen] = useState(false);
@@ -125,7 +117,10 @@ export function BarcodeField({
             />
           </div>
 
-          <p id={`${id}-hint`} className={cn("flex items-start gap-1.5 text-ink-muted", compact ? "text-micro" : "text-label")}>
+          <p
+            id={`${id}-hint`}
+            className={cn("flex items-start gap-1.5 text-ink-muted", compact ? "text-micro" : "text-label")}
+          >
             <ScanLine className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
             {t("supplier.entryHint")}
           </p>
@@ -197,7 +192,7 @@ function SourceChoice({ isSelected, disabled, onSelect, title, hint }: SourceCho
         "focus-darken disabled:cursor-not-allowed disabled:opacity-50",
         isSelected
           ? "bg-selected border-selected-line ring-2 ring-primary-600"
-          : "border-line bg-surface text-ink not-disabled:hover:bg-row-hover"
+          : "border-line bg-surface text-ink not-disabled:hover:bg-row-hover",
       )}
     >
       <span className="text-value font-medium text-ink">{title}</span>

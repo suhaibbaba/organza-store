@@ -66,7 +66,7 @@ export async function createQuickSoldProduct(
     discountValue?: string | null;
   },
   actor: { id: string },
-  soldAt: Date
+  soldAt: Date,
 ): Promise<QuickSoldProduct> {
   const name = asI18n(input.quickSell.name);
   const detail = input.quickSell.detail?.trim() || null;

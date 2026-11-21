@@ -75,7 +75,7 @@ describe("Barcode labels", () => {
       const afterSecond = await readProduct(admin.token, product.id);
       expect(afterSecond.labelsPrintedAt).toBe(second.data!.labelsPrintedAt);
       expect(new Date(afterSecond.labelsPrintedAt!).getTime()).toBeGreaterThanOrEqual(
-        new Date(afterFirst.labelsPrintedAt!).getTime()
+        new Date(afterFirst.labelsPrintedAt!).getTime(),
       );
     });
 
@@ -114,7 +114,7 @@ describe("Barcode labels", () => {
       const ids = async (printState: string): Promise<string[]> => {
         const res = await apiRequest<ProductSummaryDto[]>(
           `/api/products?q=${encodeURIComponent(nonce)}&printState=${printState}`,
-          { token: admin.token }
+          { token: admin.token },
         );
         expect(res.status).toBe(200);
         return res.data!.map((p) => p.id);

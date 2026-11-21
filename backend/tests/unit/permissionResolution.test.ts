@@ -95,7 +95,7 @@ describe("can()", () => {
 
     for (const action of CONFIGURABLE_ACTIONS) {
       expect(can({ role: "MANAGER" }, action), `MANAGER / ${action}`).toBe(
-        DEFAULT_ROLE_PERMISSIONS.MANAGER.includes(action)
+        DEFAULT_ROLE_PERMISSIONS.MANAGER.includes(action),
       );
     }
   });

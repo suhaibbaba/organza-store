@@ -250,7 +250,7 @@ export const PROTECTED_ACTIONS = [] as const satisfies readonly Action[];
  * neither list.
  */
 export const CONFIGURABLE_ACTIONS = PERMISSION_ACTIONS.filter(
-  (action) => !(PROTECTED_ACTIONS as readonly string[]).includes(action)
+  (action) => !(PROTECTED_ACTIONS as readonly string[]).includes(action),
 ) as readonly Exclude<Action, (typeof PROTECTED_ACTIONS)[number]>[];
 
 // The split is exhaustive by construction (CONFIGURABLE is the complement),

@@ -24,7 +24,12 @@ export function CollectionActionBar({ count, amount, isPending, onConfirm, onCle
         </>
       }
     >
-      <Button variant="quiet" className={STICKY_SECONDARY_CLASS} onClick={onClear} data-test-selector="collection-actions-clear">
+      <Button
+        variant="quiet"
+        className={STICKY_SECONDARY_CLASS}
+        onClick={onClear}
+        data-test-selector="collection-actions-clear"
+      >
         {t("clear")}
       </Button>
       <Button

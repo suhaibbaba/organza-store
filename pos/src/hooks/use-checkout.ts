@@ -50,7 +50,9 @@ export function useCheckout() {
     },
     onSuccess: (order) => {
       // Stock left the shelf (sale or gift), so cached product views overstate it; a WhatsApp order holds nothing yet.
-      if (order.stockDeductedAt === null) return;
+      if (order.stockDeductedAt === null) {
+        return;
+      }
       void queryClient.invalidateQueries({ queryKey: PRODUCT_SEARCH_QUERY_KEY });
       // The browser's grid shows the same stock badges, so it must be refreshed too.
       void queryClient.invalidateQueries({ queryKey: PRODUCT_BROWSE_QUERY_KEY });

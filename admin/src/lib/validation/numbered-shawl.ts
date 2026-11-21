@@ -55,7 +55,9 @@ export function initPointNotes(product: Product): OptionValueNoteMap {
   const notes: OptionValueNoteMap = {};
   for (const point of initShawlPoints(product.variants)) {
     const note = point.valueId ? byValueId[point.valueId] : undefined;
-    if (note) notes[point.id] = note;
+    if (note) {
+      notes[point.id] = note;
+    }
   }
   return notes;
 }

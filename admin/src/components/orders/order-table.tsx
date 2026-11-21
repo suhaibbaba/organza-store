@@ -66,8 +66,12 @@ export function OrderTable({ orders, meta, isRefreshing, sort, onPageChange, onP
       sortKey: "createdAt",
       render: (order) => (
         <div className="flex flex-col whitespace-nowrap tabular-nums">
-          <Typography variant="body" as="span">{formatDate(order.createdAt, locale)}</Typography>
-          <Typography variant="small" tone="muted" as="span">{formatTime(order.createdAt, locale)}</Typography>
+          <Typography variant="body" as="span">
+            {formatDate(order.createdAt, locale)}
+          </Typography>
+          <Typography variant="small" tone="muted" as="span">
+            {formatTime(order.createdAt, locale)}
+          </Typography>
         </div>
       ),
     },
@@ -77,7 +81,9 @@ export function OrderTable({ orders, meta, isRefreshing, sort, onPageChange, onP
       sortKey: "total",
       align: "numeric",
       render: (order) => (
-        <Typography variant="body" weight="medium" as="span" className="whitespace-nowrap tabular-nums">{formatMoney(order.total)}</Typography>
+        <Typography variant="body" weight="medium" as="span" className="whitespace-nowrap tabular-nums">
+          {formatMoney(order.total)}
+        </Typography>
       ),
     },
     {

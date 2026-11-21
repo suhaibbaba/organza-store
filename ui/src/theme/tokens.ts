@@ -2,8 +2,7 @@ type ScaleStop = "50" | "100" | "200" | "300" | "400" | "500" | "600" | "700" | 
 
 type Scale<Family extends string> = `${Family}-${ScaleStop}`;
 
-export type PaletteToken =
-  Scale<"primary"> | Scale<"success"> | Scale<"danger"> | Scale<"warning"> | Scale<"neutral">;
+export type PaletteToken = Scale<"primary"> | Scale<"success"> | Scale<"danger"> | Scale<"warning"> | Scale<"neutral">;
 
 export type SurfaceToken =
   | "surface"
@@ -37,8 +36,7 @@ export type TintToken = `tint-${1 | 2 | 3 | 4 | 5 | 6}-${"bg" | "ink"}`;
 
 export type ColorToken = PaletteToken | SurfaceToken | TintToken;
 
-export type RadiusToken =
-  "card" | "panel" | "brand" | "field" | "nav" | "control" | "chip" | "pill";
+export type RadiusToken = "card" | "panel" | "brand" | "field" | "nav" | "control" | "chip" | "pill";
 
 export type ShadowToken =
   | "card"
@@ -59,5 +57,4 @@ export type TextToken =
 
 export type ControlToken = "h" | "h-sm";
 
-export type AnimationToken =
-  "menu-in" | "menu-out" | "fade-in" | "fade-out" | "drawer-in" | "drawer-out";
+export type AnimationToken = "menu-in" | "menu-out" | "fade-in" | "fade-out" | "drawer-in" | "drawer-out";

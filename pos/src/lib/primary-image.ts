@@ -5,6 +5,8 @@ import type { ProductImageRef } from "@store/shared/types/variant";
 // variant with no photos of its own falls back to its product's (schema:
 // "empty => falls back to product images"), and that is the caller's call.
 export function primaryImage(images: readonly ProductImageRef[] | undefined): ProductImageRef | null {
-  if (!images || images.length === 0) return null;
+  if (!images || images.length === 0) {
+    return null;
+  }
   return images.find((image) => image.isPrimary) ?? [...images].sort((a, b) => a.sortOrder - b.sortOrder)[0];
 }

@@ -31,10 +31,12 @@ import type { DbClient } from "@/types";
 export async function assertOptionValueNotesUsable(
   notes: OptionValueNoteInput[] | undefined,
   variantTypeIds: string[],
-  client: DbClient = prisma
+  client: DbClient = prisma,
 ): Promise<void> {
   const optionValueIds = [...new Set((notes ?? []).map((entry) => entry.optionValueId))];
-  if (optionValueIds.length === 0) return;
+  if (optionValueIds.length === 0) {
+    return;
+  }
 
   const values = await client.variantOptionValue.findMany({
     where: { id: { in: optionValueIds } },
@@ -48,7 +50,9 @@ export async function assertOptionValueNotesUsable(
     const variantTypeId = found.get(id);
     // A value that does not exist at all is the same mistake reported the way
     // every other unknown value is.
-    if (!variantTypeId) throw new AppError(400, ERROR_CODES.VARIANT_TYPE_VALUE_NOT_FOUND);
+    if (!variantTypeId) {
+      throw new AppError(400, ERROR_CODES.VARIANT_TYPE_VALUE_NOT_FOUND);
+    }
     if (!usableTypes.has(variantTypeId)) {
       throw new AppError(400, ERROR_CODES.PRODUCT_OPTION_NOTE_VALUE_NOT_USED);
     }
@@ -66,9 +70,11 @@ export async function applyOptionValueNotes(
   productId: string,
   notes: OptionValueNoteInput[] | undefined,
   variantTypeIds: string[],
-  client: DbClient = prisma
+  client: DbClient = prisma,
 ): Promise<void> {
-  if (!notes?.length) return;
+  if (!notes?.length) {
+    return;
+  }
 
   // Last entry wins if the same value is sent twice, rather than two writes
   // racing to be the one that stuck.

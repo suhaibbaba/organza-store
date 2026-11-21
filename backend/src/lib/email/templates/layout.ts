@@ -30,11 +30,7 @@ import type { EmailLayoutInput } from "@/types/email";
 //     transports/resend.ts.
 
 function escapeHtml(value: string): string {
-  return value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
+  return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
 
 export { escapeHtml };
@@ -50,8 +46,8 @@ export function renderLayout(input: EmailLayoutInput): string {
     .map(
       (text) =>
         `<p style="margin:0 0 16px 0;font-size:16px;line-height:1.7;color:${BRAND_COLORS.text};text-align:${start};">${escapeHtml(
-          text
-        )}</p>`
+          text,
+        )}</p>`,
     )
     .join("");
 
@@ -76,7 +72,7 @@ export function renderLayout(input: EmailLayoutInput): string {
 <!-- Preview text: what the inbox list shows next to the subject. Hidden in the
      body itself, then padded so the client does not pull the next line in. -->
 <div style="display:none;font-size:1px;color:${BRAND_COLORS.background};line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;">${escapeHtml(
-    preheader
+    preheader,
   )}&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;</div>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:${BRAND_COLORS.background};">
   <tr>
@@ -89,7 +85,7 @@ export function renderLayout(input: EmailLayoutInput): string {
         <tr>
           <td align="center" class="mail-pad" style="padding:28px 32px 20px 32px;background-color:${BRAND_COLORS.teal};border-radius:${EMAIL_CARD_RADIUS_PX}px ${EMAIL_CARD_RADIUS_PX}px 0 0;">
             <img src="${escapeHtml(input.logoUrl)}" width="${EMAIL_LOGO_HEIGHT_PX}" height="${EMAIL_LOGO_HEIGHT_PX}" alt="${escapeHtml(
-              brandName
+              brandName,
             )}" style="display:block;border:0;outline:none;text-decoration:none;height:${EMAIL_LOGO_HEIGHT_PX}px;width:${EMAIL_LOGO_HEIGHT_PX}px;margin:0 auto 10px auto;" />
             <div style="font-size:20px;font-weight:bold;color:#FFFFFF;line-height:1.4;">${escapeHtml(brandName)}</div>
           </td>
@@ -98,7 +94,7 @@ export function renderLayout(input: EmailLayoutInput): string {
         <tr>
           <td class="mail-pad" style="padding:32px;">
             <h1 style="margin:0 0 16px 0;font-size:22px;line-height:1.4;color:${BRAND_COLORS.tealDark};text-align:${start};">${escapeHtml(
-              heading
+              heading,
             )}</h1>
             ${paragraphHtml}
 
@@ -109,28 +105,28 @@ export function renderLayout(input: EmailLayoutInput): string {
               <tr>
                 <td align="center" bgcolor="${BRAND_COLORS.teal}" style="background-color:${BRAND_COLORS.teal};border-radius:${EMAIL_BUTTON_RADIUS_PX}px;">
                   <a class="mail-button" href="${escapeHtml(action.url)}" target="_blank" rel="noopener" style="display:inline-block;padding:16px 34px;font-family:${EMAIL_FONT_STACK};font-size:17px;font-weight:bold;line-height:1.2;color:#FFFFFF;text-decoration:none;border-radius:${EMAIL_BUTTON_RADIUS_PX}px;">${escapeHtml(
-                    action.label
+                    action.label,
                   )}</a>
                 </td>
               </tr>
             </table>
 
             <p style="margin:0 0 8px 0;font-size:14px;line-height:1.6;color:${BRAND_COLORS.muted};text-align:${start};">${escapeHtml(
-              action.fallbackIntro
+              action.fallbackIntro,
             )}</p>
             <!-- The raw link, always. A button is a link somebody's client may
                  have eaten; this is the copy they can paste. Left-to-right and
                  word-broken even in an RTL mail, because a URL is not Arabic. -->
             <p dir="ltr" style="margin:0 0 20px 0;font-size:13px;line-height:1.6;color:${BRAND_COLORS.teal};word-break:break-all;text-align:left;">
               <a href="${escapeHtml(action.url)}" target="_blank" rel="noopener" style="color:${BRAND_COLORS.teal};text-decoration:underline;">${escapeHtml(
-                action.url
+                action.url,
               )}</a>
             </p>
 
             <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:${BRAND_COLORS.light};border-radius:8px;">
               <tr>
                 <td style="padding:14px 18px;font-size:14px;line-height:1.6;color:${BRAND_COLORS.tealDark};text-align:${start};">${escapeHtml(
-                  action.note
+                  action.note,
                 )}</td>
               </tr>
             </table>
@@ -138,7 +134,7 @@ export function renderLayout(input: EmailLayoutInput): string {
             ${
               footNote
                 ? `<p style="margin:20px 0 0 0;font-size:14px;line-height:1.6;color:${BRAND_COLORS.muted};text-align:${start};">${escapeHtml(
-                    footNote
+                    footNote,
                   )}</p>`
                 : ""
             }
@@ -148,10 +144,10 @@ export function renderLayout(input: EmailLayoutInput): string {
         <tr>
           <td class="mail-pad" style="padding:20px 32px 26px 32px;border-top:1px solid ${BRAND_COLORS.border};">
             <p style="margin:0 0 6px 0;font-size:14px;line-height:1.6;color:${BRAND_COLORS.text};text-align:${start};">${escapeHtml(
-              t(language, "common.signature", { storeName: brandName })
+              t(language, "common.signature", { storeName: brandName }),
             )}</p>
             <p style="margin:0;font-size:12px;line-height:1.6;color:${BRAND_COLORS.muted};text-align:${start};">${escapeHtml(
-              t(language, "common.replyNote")
+              t(language, "common.replyNote"),
             )}</p>
           </td>
         </tr>

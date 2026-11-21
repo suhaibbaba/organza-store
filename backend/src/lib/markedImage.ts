@@ -67,7 +67,12 @@ ${markers.join("\n")}
 </svg>`;
 }
 
-async function render(sourceFile: string, base: string, points: Point[], colors: Colors): Promise<Record<ImageSize, string>> {
+async function render(
+  sourceFile: string,
+  base: string,
+  points: Point[],
+  colors: Colors,
+): Promise<Record<ImageSize, string>> {
   const source = await fs.readFile(path.join(UPLOAD_DIR, sourceFile));
   const urls = {} as Record<ImageSize, string>;
   for (const [size, maxDimension] of Object.entries(IMAGE_SIZES) as [ImageSize, number][]) {
@@ -86,11 +91,13 @@ async function render(sourceFile: string, base: string, points: Point[], colors:
 }
 
 async function deleteMarkedFiles(stored: StoredMarkedImage | null): Promise<void> {
-  if (!stored?.filename) return;
+  if (!stored?.filename) {
+    return;
+  }
   await Promise.all(
     (Object.keys(IMAGE_SIZES) as ImageSize[]).map((size) =>
-      fs.unlink(path.join(UPLOAD_DIR, `${stored.filename}-${size}.webp`)).catch(() => undefined)
-    )
+      fs.unlink(path.join(UPLOAD_DIR, `${stored.filename}-${size}.webp`)).catch(() => undefined),
+    ),
   );
 }
 
@@ -100,8 +107,13 @@ async function storeMarked(productId: string, value: StoredMarkedImage | null): 
 }
 
 async function refreshOne(productId: string): Promise<void> {
-  const product = (await prisma.product.findUnique({ where: { id: productId }, include: MARKING_INCLUDE })) as AnyRecord | null;
-  if (!product) return;
+  const product = (await prisma.product.findUnique({
+    where: { id: productId },
+    include: MARKING_INCLUDE,
+  })) as AnyRecord | null;
+  if (!product) {
+    return;
+  }
   const current = (product.markedImage ?? null) as StoredMarkedImage | null;
   const primary = product.images?.[0] as AnyRecord | undefined;
   const points = product.deletedAt ? [] : summarizePoints(product);
@@ -118,10 +130,20 @@ async function refreshOne(productId: string): Promise<void> {
   const colors = { text: resolved.text, background: resolved.background };
   const signature = crypto
     .createHash("sha256")
-    .update(JSON.stringify({ image: primary.filename, points, colors, sizes: MARKED_IMAGE_MARKER_WIDTH_PERCENT, layout: MARKED_IMAGE_LAYOUT_VERSION }))
+    .update(
+      JSON.stringify({
+        image: primary.filename,
+        points,
+        colors,
+        sizes: MARKED_IMAGE_MARKER_WIDTH_PERCENT,
+        layout: MARKED_IMAGE_LAYOUT_VERSION,
+      }),
+    )
     .digest("hex")
     .slice(0, 16);
-  if (current?.signature === signature) return;
+  if (current?.signature === signature) {
+    return;
+  }
 
   const base = `${primary.filename}${MARKED_IMAGE_FILE_INFIX}${signature}`;
   const fresh = { filename: base, signature } as StoredMarkedImage;
@@ -130,10 +152,14 @@ async function refreshOne(productId: string): Promise<void> {
     await storeMarked(productId, { ...fresh, url: urls.full, mediumUrl: urls.medium, thumbnailUrl: urls.thumbnail });
   } catch (error) {
     // A half-drawn set is removed at once, so a failed redraw never leaves files behind.
-    if (current?.filename !== base) await deleteMarkedFiles(fresh);
+    if (current?.filename !== base) {
+      await deleteMarkedFiles(fresh);
+    }
     throw error;
   }
-  if (current && current.filename !== base) await deleteMarkedFiles(current);
+  if (current && current.filename !== base) {
+    await deleteMarkedFiles(current);
+  }
 }
 
 // One rebuild per product at a time, so two saves in a row cannot write their files in the wrong order.
@@ -146,7 +172,9 @@ function refreshSerial(productId: string): Promise<void> {
     .catch((error) => captureException(error, { area: "marked-image", productId }));
   running.set(productId, next);
   void next.finally(() => {
-    if (running.get(productId) === next) running.delete(productId);
+    if (running.get(productId) === next) {
+      running.delete(productId);
+    }
   });
   return next;
 }
@@ -162,8 +190,14 @@ let timer: NodeJS.Timeout | null = null;
 
 // Batched version for sales and stock moves: returns at once, rebuilds shortly after.
 export function queueMarkedImages(ids: (string | null | undefined)[]): void {
-  for (const id of ids) if (id) pending.add(id);
-  if (!pending.size || timer) return;
+  for (const id of ids) {
+    if (id) {
+      pending.add(id);
+    }
+  }
+  if (!pending.size || timer) {
+    return;
+  }
   timer = setTimeout(() => {
     timer = null;
     const batch = [...pending];
@@ -178,7 +212,9 @@ export async function rebuildAllMarkedImages(): Promise<number> {
     where: { OR: [{ isNumbered: true }, { NOT: { markedImage: { equals: Prisma.DbNull } } }] },
     select: { id: true },
   });
-  for (const { id } of products) await refreshSerial(id);
+  for (const { id } of products) {
+    await refreshSerial(id);
+  }
   await sweepOrphanedMarkedFiles();
   return products.length;
 }
@@ -194,12 +230,18 @@ export async function sweepOrphanedMarkedFiles(): Promise<number> {
   const cutoff = Date.now() - MARKED_IMAGE_SWEEP_GRACE_MS;
   let deleted = 0;
   for (const entry of entries) {
-    if (!entry.includes(MARKED_IMAGE_FILE_INFIX)) continue;
-    if (claimed.has(entry.replace(/-(thumbnail|medium|full)\.webp$/, ""))) continue;
+    if (!entry.includes(MARKED_IMAGE_FILE_INFIX)) {
+      continue;
+    }
+    if (claimed.has(entry.replace(/-(thumbnail|medium|full)\.webp$/, ""))) {
+      continue;
+    }
     const target = path.join(UPLOAD_DIR, entry);
     const stat = await fs.stat(target).catch(() => null);
     // A file the running server is drawing right now is not yet in the database.
-    if (!stat?.isFile() || stat.mtimeMs > cutoff) continue;
+    if (!stat?.isFile() || stat.mtimeMs > cutoff) {
+      continue;
+    }
     await fs.unlink(target).catch(() => undefined);
     deleted += 1;
   }
@@ -209,6 +251,8 @@ export async function sweepOrphanedMarkedFiles(): Promise<number> {
 // The URLs a client reads; the stored base name and signature stay on the server.
 export function serializeMarkedImage(value: unknown): { url: string; mediumUrl: string; thumbnailUrl: string } | null {
   const stored = value as StoredMarkedImage | null;
-  if (!stored?.url) return null;
+  if (!stored?.url) {
+    return null;
+  }
   return { url: stored.url, mediumUrl: stored.mediumUrl, thumbnailUrl: stored.thumbnailUrl };
 }

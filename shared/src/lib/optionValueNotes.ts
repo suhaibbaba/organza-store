@@ -44,7 +44,9 @@ export function variantValueNotes(variant: Pick<Variant, "values">): VariantValu
  * answer, rather than a row full of empty strings every screen has to test.
  */
 export function normalizeOptionValueNote(note: I18n | null | undefined): I18n | null {
-  if (!note) return null;
+  if (!note) {
+    return null;
+  }
   const entries = Object.entries(note)
     .map(([language, text]) => [language, (text ?? "").trim()] as const)
     .filter(([, text]) => text.length > 0);

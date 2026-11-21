@@ -35,7 +35,9 @@ function problemsOf(raw: unknown): string {
   try {
     parseStaffAccounts(raw, SOURCE);
   } catch (error) {
-    if (error instanceof StaffFileError) return error.message;
+    if (error instanceof StaffFileError) {
+      return error.message;
+    }
     throw error;
   }
   throw new Error("expected the roster to be refused, but it was accepted");
@@ -50,7 +52,7 @@ describe("Staff roster file", () => {
           entry({ email: "two@example.com", role: "MANAGER", name: "Two", phone: "+972599000102" }),
           entry({ email: "three@example.com", role: "EMPLOYEE", name: "Three", phone: "+970599000103" }),
         ],
-        SOURCE
+        SOURCE,
       );
 
       expect(accounts).toEqual([
@@ -187,8 +189,8 @@ describe("Staff roster file", () => {
       expect(() =>
         parseStaffAccounts(
           [entry({ phone: "+970599000101" }), entry({ email: "two@example.com", phone: "+972599000999" })],
-          SOURCE
-        )
+          SOURCE,
+        ),
       ).not.toThrow();
     });
   });
@@ -222,7 +224,10 @@ describe("Staff roster file", () => {
       // created two of four would leave a shop nothing could finish building.
       let thrown: unknown;
       try {
-        parseStaffAccounts([entry(), entry({ email: "two@example.com", role: "OWNER", phone: "+970599000102" })], SOURCE);
+        parseStaffAccounts(
+          [entry(), entry({ email: "two@example.com", role: "OWNER", phone: "+970599000102" })],
+          SOURCE,
+        );
       } catch (error) {
         thrown = error;
       }
@@ -244,7 +249,7 @@ describe("Staff roster file", () => {
           names: new Map([["one@example.com", "Corrected Name"]]),
           phones: new Map([["two@example.com", "+972599000202"]]),
         },
-        SOURCE
+        SOURCE,
       );
       expect(updated[0]).toMatchObject({ name: "Corrected Name", phone: "+970599000101" });
       expect(updated[1]).toMatchObject({ name: "Two", phone: "+972599000202" });
@@ -259,19 +264,19 @@ describe("Staff roster file", () => {
       // Silently doing nothing would mean the correction you thought you made
       // did not happen.
       expect(() =>
-        applyStaffOverrides(accounts, { phones: new Map([["typo@example.com", "+970599000103"]]) }, SOURCE)
+        applyStaffOverrides(accounts, { phones: new Map([["typo@example.com", "+970599000103"]]) }, SOURCE),
       ).toThrow(/--phone names an address that is not in staff\.json/);
     });
 
     it("holds an overridden number to the same rules as a file one", () => {
       expect(() =>
-        applyStaffOverrides(accounts, { phones: new Map([["one@example.com", "0599123456"]]) }, SOURCE)
+        applyStaffOverrides(accounts, { phones: new Map([["one@example.com", "0599123456"]]) }, SOURCE),
       ).toThrow(/not a valid international number/);
     });
 
     it("refuses an override that collides with another account's number", () => {
       expect(() =>
-        applyStaffOverrides(accounts, { phones: new Map([["one@example.com", "+972599000102"]]) }, SOURCE)
+        applyStaffOverrides(accounts, { phones: new Map([["one@example.com", "+972599000102"]]) }, SOURCE),
       ).toThrow(/already used by/);
     });
 
@@ -283,8 +288,11 @@ describe("Staff roster file", () => {
   describe("where the file is", () => {
     const original = process.env[STAFF_FILE_ENV];
     afterEach(() => {
-      if (original === undefined) delete process.env[STAFF_FILE_ENV];
-      else process.env[STAFF_FILE_ENV] = original;
+      if (original === undefined) {
+        delete process.env[STAFF_FILE_ENV];
+      } else {
+        process.env[STAFF_FILE_ENV] = original;
+      }
     });
 
     it("defaults to staff.json beside the repo, not inside backend/", () => {
@@ -305,7 +313,7 @@ describe("Staff roster file", () => {
     it("resolves a relative path against the working directory", () => {
       delete process.env[STAFF_FILE_ENV];
       expect(resolveStaffFilePath([INIT_FLAGS.accounts, "./staff.json"], "/opt/store")).toBe(
-        path.resolve("./staff.json")
+        path.resolve("./staff.json"),
       );
     });
   });

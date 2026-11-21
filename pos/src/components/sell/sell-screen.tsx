@@ -97,17 +97,24 @@ export function SellScreen() {
   const addToCart = useCallback(
     (product: Product, variant: Variant | null) => {
       const line = cart.addItem(product, variant);
-      toasts.show("success", "sell.feedback.added", { name: lineName(line, locale), quantity: line.quantity }, line.key);
+      toasts.show(
+        "success",
+        "sell.feedback.added",
+        { name: lineName(line, locale), quantity: line.quantity },
+        line.key,
+      );
       scanFlash.markScanned(line.key);
       scanFeedback.play("success");
     },
-    [cart, locale, scanFeedback, scanFlash, toasts]
+    [cart, locale, scanFeedback, scanFlash, toasts],
   );
 
   // A handful from the variant picker: each variant its own line at quantity 1, told once.
   const addManyToCart = useCallback(
     (product: Product, variants: Variant[]) => {
-      if (variants.length === 0) return;
+      if (variants.length === 0) {
+        return;
+      }
       // One is not "many": it keeps the named, counting toast a scan would get.
       if (variants.length === 1) {
         addToCart(product, variants[0]);
@@ -120,7 +127,7 @@ export function SellScreen() {
       scanFlash.markScanned(lines[lines.length - 1].key);
       scanFeedback.play("success");
     },
-    [addToCart, cart, locale, scanFeedback, scanFlash, toasts]
+    [addToCart, cart, locale, scanFeedback, scanFlash, toasts],
   );
 
   const handleCodeOutcome = useCallback(
@@ -142,7 +149,7 @@ export function SellScreen() {
       scanFlash.markFailed();
       scanFeedback.play("destructive");
     },
-    [scanFeedback, scanFlash, scannerOpen, toasts]
+    [scanFeedback, scanFlash, scannerOpen, toasts],
   );
 
   const { submitCode, isLooking, resetScanHistory } = useAddByCode({
@@ -151,8 +158,7 @@ export function SellScreen() {
   });
 
   // While one of these is up a scan would land in a cart nobody can see (or change a gift list already read).
-  const isAskingSomethingElse =
-    whatsappOpen || giftOpen || orderDiscountOpen || discountLineKey !== null;
+  const isAskingSomethingElse = whatsappOpen || giftOpen || orderDiscountOpen || discountLineKey !== null;
   // Sheets that are part of finding what is sold: the counter scanner keeps working, keyboard shortcuts do not.
   const isFindingSheetOpen = pickerProduct !== null || scannerOpen;
 
@@ -171,14 +177,18 @@ export function SellScreen() {
     enabled: canSell && completedOrder === null && !isAskingSomethingElse && !isFindingSheetOpen,
     onFocusSearch: () => {
       const input = searchInputRef.current;
-      if (!input) return;
+      if (!input) {
+        return;
+      }
       input.focus();
       // Selected: reaching for the search box means a new search, not a longer one.
       input.select();
     },
     onScan: openScanner,
     onCheckout: () => {
-      if (cart.isEmpty || checkout.isPending) return;
+      if (cart.isEmpty || checkout.isPending) {
+        return;
+      }
       submitOrder();
     },
     onClear: () => {
@@ -212,7 +222,7 @@ export function SellScreen() {
         setPendingProductId(null);
       }
     },
-    [addToCart, queryClient, toasts]
+    [addToCart, queryClient, toasts],
   );
 
   // Counter sale, WhatsApp order (customer) or gift; a sheet's failure is shown inside the sheet that covers the screen.
@@ -244,7 +254,7 @@ export function SellScreen() {
           }
           toasts.show("destructive", errorMessageKey(code));
         },
-      }
+      },
     );
   }
 
@@ -338,7 +348,7 @@ export function SellScreen() {
         <aside
           className={cn(
             "sticky top-[calc(var(--top-bar-inset)+1rem)] hidden h-[calc(100dvh-var(--top-bar-inset)-2rem)] w-[22.25rem] shrink-0",
-            "desk:flex wide:w-[23.25rem]"
+            "desk:flex wide:w-[23.25rem]",
           )}
         >
           <CartPanel {...cartPanelProps} className="w-full" />
@@ -365,7 +375,9 @@ export function SellScreen() {
         open={whatsappOpen}
         onOpenChange={(open) => {
           setWhatsappOpen(open);
-          if (!open) setWhatsappErrorCode(null);
+          if (!open) {
+            setWhatsappErrorCode(null);
+          }
         }}
         total={cart.totals.total}
         isSubmitting={checkout.isPending}
@@ -378,7 +390,9 @@ export function SellScreen() {
           open={giftOpen}
           onOpenChange={(open) => {
             setGiftOpen(open);
-            if (!open) setGiftErrorCode(null);
+            if (!open) {
+              setGiftErrorCode(null);
+            }
           }}
           lines={cart.lines}
           itemCount={cart.totals.itemCount}
@@ -398,11 +412,12 @@ export function SellScreen() {
         vibration={scanFeedback.vibration}
       />
 
-
       <VariantPickerSheet
         product={pickerProduct}
         onOpenChange={(open) => {
-          if (open) return;
+          if (open) {
+            return;
+          }
           setPickerProduct(null);
           if (resumeScanAfterPick) {
             setResumeScanAfterPick(false);
@@ -419,7 +434,9 @@ export function SellScreen() {
         <DiscountSheet
           open
           onOpenChange={(open) => {
-            if (!open) setDiscountLineKey(null);
+            if (!open) {
+              setDiscountLineKey(null);
+            }
           }}
           title={localize(discountLine.name, locale)}
           baseAmount={fromCents(lineGrossCents(discountLine))}

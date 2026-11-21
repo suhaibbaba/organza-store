@@ -35,7 +35,9 @@ describe("Reports", () => {
 
   async function createOrder(token: string, body: unknown) {
     const res = await apiRequest<OrderDto>("/api/orders", { method: "POST", token, body });
-    if (res.data?.id) openedOrderIds.push(res.data.id);
+    if (res.data?.id) {
+      openedOrderIds.push(res.data.id);
+    }
     return res;
   }
 
@@ -296,16 +298,13 @@ describe("Reports", () => {
 
       const report = await salesReport(admin.token);
       for (const totals of [report.totals, ...report.byChannel]) {
-        expect(num(totals.collectedRevenue) + num(totals.pendingCollectionAmount)).toBeCloseTo(
-          num(totals.revenue),
-          2
-        );
+        expect(num(totals.collectedRevenue) + num(totals.pendingCollectionAmount)).toBeCloseTo(num(totals.revenue), 2);
       }
 
       const summary = await salesSummary(admin.token);
       for (const period of ["today", "week", "month"] as const) {
         expect(
-          num(summary[period].totals.collectedRevenue) + num(summary[period].totals.pendingCollectionAmount)
+          num(summary[period].totals.collectedRevenue) + num(summary[period].totals.pendingCollectionAmount),
         ).toBeCloseTo(num(summary[period].totals.revenue), 2);
       }
     });
@@ -388,13 +387,10 @@ describe("Reports", () => {
       // And the identities hold outright, not just as deltas.
       expect(num(money.grossProfit)).toBeCloseTo(num(money.sold) - num(money.cogs), 2);
       expect(num(money.receivedGrossProfit)).toBeCloseTo(num(money.received) - num(money.receivedCogs), 2);
-      expect(num(money.netProfit)).toBeCloseTo(
-        num(money.grossProfit) - num(money.expenses) - num(money.giftCost),
-        2
-      );
+      expect(num(money.netProfit)).toBeCloseTo(num(money.grossProfit) - num(money.expenses) - num(money.giftCost), 2);
       expect(num(money.receivedNetProfit)).toBeCloseTo(
         num(money.receivedGrossProfit) - num(money.expenses) - num(money.giftCost),
-        2
+        2,
       );
     });
 

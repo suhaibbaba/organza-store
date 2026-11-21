@@ -35,10 +35,14 @@ function withoutProclitic(word: string): string | null {
 function indexForms(word: string): string[] {
   const forms = new Set([word]);
   const bare = withoutProclitic(word);
-  if (bare) forms.add(bare);
+  if (bare) {
+    forms.add(bare);
+  }
   for (const form of [...forms]) {
     const stem = withoutArticle(form);
-    if (stem) forms.add(stem);
+    if (stem) {
+      forms.add(stem);
+    }
   }
   return [...forms];
 }
@@ -60,7 +64,9 @@ export function normalizeQuery(query: string): string {
 }
 
 export function normalizedValues(field: unknown): string[] {
-  if (!field || typeof field !== "object") return [];
+  if (!field || typeof field !== "object") {
+    return [];
+  }
   return Object.values(field as I18n)
     .filter((v): v is string => typeof v === "string" && Boolean(v.trim()))
     .map(normalize);

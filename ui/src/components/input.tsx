@@ -44,18 +44,9 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
   const clearable = onClear !== undefined && !disabled && String(props.value ?? "") !== "";
 
   return (
-    <div
-      data-part={part}
-      {...testid(testId)}
-      className={cn(fieldShell({ hasError, disabled }), className)}
-    >
+    <div data-part={part} {...testid(testId)} className={cn(fieldShell({ hasError, disabled }), className)}>
       {adornment !== undefined && (
-        <FieldIcon
-          name={adornment}
-          hasError={hasError}
-          disabled={disabled}
-          {...testid(testId, "icon")}
-        />
+        <FieldIcon name={adornment} hasError={hasError} disabled={disabled} {...testid(testId, "icon")} />
       )}
       {adornment !== undefined && <FieldDivider />}
 
@@ -97,11 +88,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
 
       {suffix !== undefined && <FieldDivider />}
       {suffix !== undefined && (
-        <span
-          data-part="input-suffix"
-          {...testid(testId, "suffix")}
-          className="shrink-0 text-value text-ink-muted"
-        >
+        <span data-part="input-suffix" {...testid(testId, "suffix")} className="shrink-0 text-value text-ink-muted">
           {suffix}
         </span>
       )}

@@ -12,7 +12,10 @@ export function ProfileHeader({ profile }: { profile: Profile }) {
   const locale = useLocale();
 
   return (
-    <header data-test-selector="pos-profile-header" className="rounded-card border border-line bg-surface p-4 shadow-card">
+    <header
+      data-test-selector="pos-profile-header"
+      className="rounded-card border border-line bg-surface p-4 shadow-card"
+    >
       <div className="flex min-w-0 items-center gap-3">
         <Avatar name={profile.name} tintKey={profile.id} size={PROFILE_AVATAR_SIZE} />
         <div className="flex min-w-0 flex-col items-start gap-1">

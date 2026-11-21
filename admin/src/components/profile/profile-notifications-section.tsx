@@ -23,7 +23,10 @@ export function ProfileNotificationsSection() {
         </Alert>
       ) : (
         <div className="flex flex-col gap-3">
-          <Alert tone={isSubscribed ? "success" : "neutral"} data-testid={isSubscribed ? "alert-success" : "alert-default"}>
+          <Alert
+            tone={isSubscribed ? "success" : "neutral"}
+            data-testid={isSubscribed ? "alert-success" : "alert-default"}
+          >
             {t(isSubscribed ? "state.on" : "state.off")}
           </Alert>
           <Button
@@ -32,7 +35,9 @@ export function ProfileNotificationsSection() {
             onClick={() => void (isSubscribed ? disable() : enable())}
             isLoading={isPending}
             className="self-start"
-            icon={isSubscribed ? <BellOff className="size-4" aria-hidden /> : <BellRing className="size-4" aria-hidden />}
+            icon={
+              isSubscribed ? <BellOff className="size-4" aria-hidden /> : <BellRing className="size-4" aria-hidden />
+            }
           >
             {t(isSubscribed ? "turnOff" : "turnOn")}
           </Button>

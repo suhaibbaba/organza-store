@@ -82,13 +82,17 @@ export interface ChangeRequestApplier {
 
 function requestedValue(request: AppliedChangeRequestRow): ChangeRequestValue {
   const value = request.newValue as ChangeRequestValue | null;
-  if (!value) throw new AppError(409, ERROR_CODES.CHANGE_REQUEST_NOT_APPLICABLE);
+  if (!value) {
+    throw new AppError(409, ERROR_CODES.CHANGE_REQUEST_NOT_APPLICABLE);
+  }
   return value;
 }
 
 function requestedDetail(request: AppliedChangeRequestRow): ChangeRequestValueDetail {
   const detail = requestedValue(request).detail;
-  if (!detail) throw new AppError(409, ERROR_CODES.CHANGE_REQUEST_NOT_APPLICABLE);
+  if (!detail) {
+    throw new AppError(409, ERROR_CODES.CHANGE_REQUEST_NOT_APPLICABLE);
+  }
   return detail;
 }
 
@@ -97,13 +101,17 @@ function requestedDetail(request: AppliedChangeRequestRow): ChangeRequestValueDe
 // about something nobody can sell.
 async function liveProduct(tx: DbClient, id: string) {
   const product = await tx.product.findFirst({ where: { id, deletedAt: null } });
-  if (!product) throw new AppError(409, ERROR_CODES.CHANGE_REQUEST_TARGET_MISSING);
+  if (!product) {
+    throw new AppError(409, ERROR_CODES.CHANGE_REQUEST_TARGET_MISSING);
+  }
   return product;
 }
 
 async function liveVariant(tx: DbClient, id: string) {
   const variant = await tx.variant.findFirst({ where: { id, product: { deletedAt: null } } });
-  if (!variant) throw new AppError(409, ERROR_CODES.CHANGE_REQUEST_TARGET_MISSING);
+  if (!variant) {
+    throw new AppError(409, ERROR_CODES.CHANGE_REQUEST_TARGET_MISSING);
+  }
   return variant;
 }
 
@@ -140,7 +148,9 @@ const productStockApplier: ChangeRequestApplier = {
     // for no longer means anything, since the parent's own stock is ignored
     // on a variant-bearing product.
     const variantCount = await tx.variant.count({ where: { productId: product.id } });
-    if (variantCount > 0) throw new AppError(409, ERROR_CODES.CHANGE_REQUEST_NOT_APPLICABLE);
+    if (variantCount > 0) {
+      throw new AppError(409, ERROR_CODES.CHANGE_REQUEST_NOT_APPLICABLE);
+    }
 
     const stock = Number(requestedValue(request).value);
     await tx.product.update({ where: { id: product.id }, data: { stock } });
@@ -186,13 +196,17 @@ const productVariantSetApplier: ChangeRequestApplier = {
     const product = await liveProduct(tx, request.entityId);
 
     if (detail.action === CHANGE_REQUEST_VARIANT_SET_ACTIONS.REMOVE) {
-      if (!detail.variantId) throw new AppError(409, ERROR_CODES.CHANGE_REQUEST_NOT_APPLICABLE);
+      if (!detail.variantId) {
+        throw new AppError(409, ERROR_CODES.CHANGE_REQUEST_NOT_APPLICABLE);
+      }
       const variant = await tx.variant.findFirst({
         where: { id: detail.variantId, productId: product.id },
       });
       // Already gone — nothing left to approve, and saying so beats pretending
       // the approval did something.
-      if (!variant) throw new AppError(409, ERROR_CODES.CHANGE_REQUEST_TARGET_MISSING);
+      if (!variant) {
+        throw new AppError(409, ERROR_CODES.CHANGE_REQUEST_TARGET_MISSING);
+      }
 
       await tx.variant.delete({ where: { id: variant.id } });
       return {
@@ -207,7 +221,9 @@ const productVariantSetApplier: ChangeRequestApplier = {
       };
     }
 
-    if (!detail.optionSelections?.length) throw new AppError(409, ERROR_CODES.CHANGE_REQUEST_NOT_APPLICABLE);
+    if (!detail.optionSelections?.length) {
+      throw new AppError(409, ERROR_CODES.CHANGE_REQUEST_NOT_APPLICABLE);
+    }
 
     // Re-validated at approval time, not trusted from when it was asked for:
     // an option value may have been removed in the meantime, and the request
@@ -218,7 +234,13 @@ const productVariantSetApplier: ChangeRequestApplier = {
       where: { id: product.id },
       include: { variants: { include: { values: true } } },
     });
-    const { createdSkus } = await generateVariantsForProduct(tx, full, detail.optionSelections, valueMap, detail.comboStocks);
+    const { createdSkus } = await generateVariantsForProduct(
+      tx,
+      full,
+      detail.optionSelections,
+      valueMap,
+      detail.comboStocks,
+    );
 
     return {
       audits: [
@@ -305,7 +327,9 @@ const productCompletionApplier: ChangeRequestApplier = {
     // products have no photograph, and cost is Admin-only (CLAUDE.md rule 19),
     // so a Manager completing a piece leaves it blank and the reports keep
     // saying so.
-    if (!product.categoryId) throw new AppError(409, ERROR_CODES.PRODUCT_COMPLETION_INCOMPLETE);
+    if (!product.categoryId) {
+      throw new AppError(409, ERROR_CODES.PRODUCT_COMPLETION_INCOMPLETE);
+    }
 
     await tx.product.update({
       where: { id: product.id },
@@ -367,7 +391,9 @@ const productCompletionApplier: ChangeRequestApplier = {
 const imageDeletionApplier: ChangeRequestApplier = {
   apply: async (tx, request) => {
     const image = await tx.productImage.findUnique({ where: { id: request.entityId } });
-    if (!image) throw new AppError(409, ERROR_CODES.CHANGE_REQUEST_TARGET_MISSING);
+    if (!image) {
+      throw new AppError(409, ERROR_CODES.CHANGE_REQUEST_TARGET_MISSING);
+    }
 
     await tx.productImage.delete({ where: { id: image.id } });
     return {
@@ -397,10 +423,12 @@ async function decideExpense(
   tx: DbClient,
   request: AppliedChangeRequestRow,
   ctx: ApplyContext,
-  status: ExpenseApprovalStatus
+  status: ExpenseApprovalStatus,
 ): Promise<ApplyOutcome> {
   const expense = await tx.expense.findFirst({ where: { id: request.entityId, deletedAt: null } });
-  if (!expense) throw new AppError(409, ERROR_CODES.CHANGE_REQUEST_TARGET_MISSING);
+  if (!expense) {
+    throw new AppError(409, ERROR_CODES.CHANGE_REQUEST_TARGET_MISSING);
+  }
   // Deciding one that is no longer pending is not a no-op: it would silently
   // overwrite who signed off what, which is the one thing the record exists
   // to hold (the rule the old /approve endpoint enforced, kept intact).
@@ -441,8 +469,7 @@ const expenseApprovalApplier: ChangeRequestApplier = {
 //  no new table, no new endpoint, no new approval screen.
 // ---------------------------------------------------------------------------
 const APPLIERS: Record<string, ChangeRequestApplier> = {
-  [`${CHANGE_REQUEST_ENTITIES.PRODUCT}:${CHANGE_REQUEST_FIELDS.PRODUCT_BASE_PRICE}`]:
-    productMoneyApplier("basePrice"),
+  [`${CHANGE_REQUEST_ENTITIES.PRODUCT}:${CHANGE_REQUEST_FIELDS.PRODUCT_BASE_PRICE}`]: productMoneyApplier("basePrice"),
   [`${CHANGE_REQUEST_ENTITIES.PRODUCT}:${CHANGE_REQUEST_FIELDS.PRODUCT_COMPARE_AT_PRICE}`]:
     productMoneyApplier("compareAtPrice"),
   [`${CHANGE_REQUEST_ENTITIES.PRODUCT}:${CHANGE_REQUEST_FIELDS.PRODUCT_STOCK}`]: productStockApplier,
@@ -464,7 +491,9 @@ const APPLIERS: Record<string, ChangeRequestApplier> = {
  */
 export function applierFor(entityType: string, field: string): ChangeRequestApplier {
   const applier = APPLIERS[`${entityType}:${field}`];
-  if (!applier) throw new AppError(409, ERROR_CODES.CHANGE_REQUEST_NOT_APPLICABLE);
+  if (!applier) {
+    throw new AppError(409, ERROR_CODES.CHANGE_REQUEST_NOT_APPLICABLE);
+  }
   return applier;
 }
 

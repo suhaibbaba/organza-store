@@ -8,17 +8,18 @@ import { SERVICE_WORKER_READY_TIMEOUT_MS } from "@/constants/pwa";
 /** Everything push needs, present. Safari on an un-installed iPhone has none of it. */
 export function isPushSupported(): boolean {
   return (
-    typeof window !== "undefined" &&
-    "serviceWorker" in navigator &&
-    "PushManager" in window &&
-    "Notification" in window
+    typeof window !== "undefined" && "serviceWorker" in navigator && "PushManager" in window && "Notification" in window
   );
 }
 
 export function isIOSDevice(): boolean {
-  if (typeof navigator === "undefined") return false;
+  if (typeof navigator === "undefined") {
+    return false;
+  }
   // iPadOS reports itself as a Mac, so the touch check catches it too.
-  return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  return (
+    /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1)
+  );
 }
 
 /**
@@ -32,7 +33,9 @@ function toApplicationServerKey(base64Url: string): Uint8Array<ArrayBuffer> {
   // Backed by a plain ArrayBuffer on purpose: `applicationServerKey` accepts
   // a BufferSource, which a possibly-shared buffer doesn't satisfy.
   const bytes = new Uint8Array(new ArrayBuffer(raw.length));
-  for (let i = 0; i < raw.length; i += 1) bytes[i] = raw.charCodeAt(i);
+  for (let i = 0; i < raw.length; i += 1) {
+    bytes[i] = raw.charCodeAt(i);
+  }
   return bytes;
 }
 
@@ -47,15 +50,21 @@ async function readyRegistration(): Promise<ServiceWorkerRegistration> {
       }),
     ]);
   } finally {
-    if (timer) clearTimeout(timer);
+    if (timer) {
+      clearTimeout(timer);
+    }
   }
 }
 
 /** This device's existing subscription, if it has one. */
 export async function getExistingSubscription(): Promise<PushSubscription | null> {
-  if (!isPushSupported()) return null;
+  if (!isPushSupported()) {
+    return null;
+  }
   const registration = await navigator.serviceWorker.getRegistration();
-  if (!registration) return null;
+  if (!registration) {
+    return null;
+  }
   return registration.pushManager.getSubscription();
 }
 
@@ -93,7 +102,9 @@ export async function createSubscription(publicKey: string, locale: string): Pro
 
 function hasKey(subscription: PushSubscription, publicKey: string): boolean {
   const existing = subscription.options.applicationServerKey;
-  if (!existing) return false;
+  if (!existing) {
+    return false;
+  }
   const wanted = toApplicationServerKey(publicKey);
   const actual = new Uint8Array(existing as ArrayBuffer);
   return actual.length === wanted.length && actual.every((byte, index) => byte === wanted[index]);
@@ -102,7 +113,9 @@ function hasKey(subscription: PushSubscription, publicKey: string): boolean {
 /** Drop this device's registration in the browser. The API side is the caller's job. */
 export async function dropSubscription(): Promise<string | null> {
   const subscription = await getExistingSubscription();
-  if (!subscription) return null;
+  if (!subscription) {
+    return null;
+  }
   const { endpoint } = subscription;
   await subscription.unsubscribe().catch(() => undefined);
   return endpoint;

@@ -53,10 +53,14 @@ export function NumberedPhoto({ product, chosenIds, onToggle }: NumberedPhotoPro
 
   useEffect(() => {
     const box = boxRef.current;
-    if (!box) return;
+    if (!box) {
+      return;
+    }
     const observer = new ResizeObserver((entries) => {
       const width = entries[0]?.contentRect.width;
-      if (width) setBoxWidth(width);
+      if (width) {
+        setBoxWidth(width);
+      }
     });
     observer.observe(box);
     return () => observer.disconnect();
@@ -72,19 +76,21 @@ export function NumberedPhoto({ product, chosenIds, onToggle }: NumberedPhotoPro
       })
     : [];
 
-  if (!image || !src || failed || placed.length === 0) return null;
+  if (!image || !src || failed || placed.length === 0) {
+    return null;
+  }
 
   const colors = resolvePointColors(product, image.brightness);
   const markerWidth = clamp(
     NUMBER_MARKER_MIN_WIDTH_PX,
     (boxWidth * POINT_MARKER_WIDTH_PERCENT) / 100,
-    NUMBER_MARKER_MAX_WIDTH_PX
+    NUMBER_MARKER_MAX_WIDTH_PX,
   );
   const markerHeight = markerWidth / POINT_MARKER_ASPECT_RATIO;
   const borderWidth = clamp(
     NUMBER_MARKER_MIN_BORDER_PX,
     (boxWidth * POINT_MARKER_BORDER_PERCENT) / 100,
-    NUMBER_MARKER_MAX_BORDER_PX
+    NUMBER_MARKER_MAX_BORDER_PX,
   );
   const markerStyle: CSSProperties = {
     width: `${markerWidth}px`,
@@ -118,7 +124,9 @@ export function NumberedPhoto({ product, chosenIds, onToggle }: NumberedPhotoPro
           draggable={false}
           onLoad={(event) => {
             const img = event.currentTarget;
-            if (img.naturalWidth && img.naturalHeight) setRatio(img.naturalWidth / img.naturalHeight);
+            if (img.naturalWidth && img.naturalHeight) {
+              setRatio(img.naturalWidth / img.naturalHeight);
+            }
           }}
           onError={() => {
             markImageFailed(src);

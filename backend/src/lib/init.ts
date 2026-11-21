@@ -21,7 +21,7 @@ export class InitRefusedError extends Error {
         "`init` only ever populates an EMPTY database. Adding one more member",
         "of staff is the admin's Users screen; starting over is",
         "`npm run db:reset` followed by migrate, bootstrap, and this.",
-      ].join("\n")
+      ].join("\n"),
     );
     this.name = "InitRefusedError";
     this.existingUsers = existingUsers;
@@ -39,11 +39,13 @@ export class InitRefusedError extends Error {
  */
 export async function createInitialStaff(
   accounts: InitAccountDetails[],
-  deps: InitDependencies
+  deps: InitDependencies,
 ): Promise<InitAccountResult[]> {
   const existing = await deps.countUsers();
   // Checked before anything is written, so a refusal leaves nothing behind.
-  if (existing > 0) throw new InitRefusedError(existing);
+  if (existing > 0) {
+    throw new InitRefusedError(existing);
+  }
 
   const results: InitAccountResult[] = [];
   for (const account of accounts) {

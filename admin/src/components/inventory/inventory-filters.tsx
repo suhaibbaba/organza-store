@@ -31,7 +31,9 @@ export function InventoryFilters({ value, onApply }: InventoryFiltersProps) {
   const activeCount = (value.categoryId ? 1 : 0) + (value.lowStock ? 1 : 0);
 
   function handleOpenChange(next: boolean) {
-    if (next) setDraft(value);
+    if (next) {
+      setDraft(value);
+    }
     setOpen(next);
   }
 
@@ -89,7 +91,11 @@ export function InventoryFilters({ value, onApply }: InventoryFiltersProps) {
             />
           </FormField>
 
-          <FormField label="inventory.filters.lowStockOnly" hint="inventory.filters.lowStockHint" htmlFor="low-stock-toggle">
+          <FormField
+            label="inventory.filters.lowStockOnly"
+            hint="inventory.filters.lowStockHint"
+            htmlFor="low-stock-toggle"
+          >
             <Switch
               id="low-stock-toggle"
               data-testid={fieldTestSelector("low-stock-toggle")}
@@ -118,7 +124,9 @@ export function InventoryFilterChips({ value, onChange }: InventoryFilterChipsPr
     ? (categoryTree ? flattenCategoryTree(categoryTree) : []).find((c) => c.id === value.categoryId)
     : undefined;
 
-  if (!value.categoryId && !value.lowStock) return null;
+  if (!value.categoryId && !value.lowStock) {
+    return null;
+  }
 
   const chips: { key: string; label: string; clear: InventoryFiltersValue }[] = [];
   if (value.categoryId) {

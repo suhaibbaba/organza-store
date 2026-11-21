@@ -26,8 +26,11 @@ const ORIGINAL = Object.fromEntries(TOUCHED.map((key) => [key, process.env[key]]
 
 afterEach(() => {
   for (const key of TOUCHED) {
-    if (ORIGINAL[key] === undefined) delete process.env[key];
-    else process.env[key] = ORIGINAL[key];
+    if (ORIGINAL[key] === undefined) {
+      delete process.env[key];
+    } else {
+      process.env[key] = ORIGINAL[key];
+    }
   }
 });
 
@@ -41,8 +44,11 @@ function setValidRun(overrides: Record<string, string | undefined> = {}): void {
     ...overrides,
   };
   for (const [key, value] of Object.entries(values)) {
-    if (value === undefined) delete process.env[key];
-    else process.env[key] = value;
+    if (value === undefined) {
+      delete process.env[key];
+    } else {
+      process.env[key] = value;
+    }
   }
 }
 
@@ -97,9 +103,7 @@ describe("Production import — the source", () => {
   it("hands back a source connection that is read-only at the server", () => {
     setValidRun();
     const { sourceUrl } = resolveImportEndpoints();
-    expect(decodeURIComponent(new URL(sourceUrl).searchParams.get("options") ?? "")).toBe(
-      READ_ONLY_CONNECTION_OPTION
-    );
+    expect(decodeURIComponent(new URL(sourceUrl).searchParams.get("options") ?? "")).toBe(READ_ONLY_CONNECTION_OPTION);
   });
 
   it("never names the password in what it prints", () => {

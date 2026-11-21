@@ -21,9 +21,14 @@ function read(): string {
 
 function remember(pathname: string, query: string) {
   const map = JSON.parse(read()) as Record<string, string>;
-  if ((map[pathname] ?? "") === query) return;
-  if (query) map[pathname] = query;
-  else delete map[pathname];
+  if ((map[pathname] ?? "") === query) {
+    return;
+  }
+  if (query) {
+    map[pathname] = query;
+  } else {
+    delete map[pathname];
+  }
   cache = JSON.stringify(map);
   try {
     sessionStorage.setItem(RETURN_QUERIES_KEY, cache);
@@ -53,6 +58,6 @@ export function useReturnHref(): (href: string) => string {
       const saved = (JSON.parse(snapshot) as Record<string, string>)[href];
       return saved ? `${href}?${saved}` : href;
     },
-    [snapshot]
+    [snapshot],
   );
 }

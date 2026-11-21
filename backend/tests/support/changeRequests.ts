@@ -24,11 +24,11 @@ export async function pendingChangeFor(
   token: string,
   entityType: string,
   entityId: string,
-  field?: string
+  field?: string,
 ): Promise<ChangeRequestDto | undefined> {
   const res = await listChangeRequests(
     token,
-    `?status=PENDING&entityType=${entityType}&entityId=${encodeURIComponent(entityId)}&pageSize=100`
+    `?status=PENDING&entityType=${entityType}&entityId=${encodeURIComponent(entityId)}&pageSize=100`,
   );
   const rows = res.data ?? [];
   return field ? rows.find((r) => r.field === field) : rows[0];
@@ -47,11 +47,11 @@ export async function changeRequestsFor(
   token: string,
   entityType: string,
   entityId: string,
-  field?: string
+  field?: string,
 ): Promise<ChangeRequestDto[]> {
   const res = await listChangeRequests(
     token,
-    `?entityType=${entityType}&entityId=${encodeURIComponent(entityId)}&pageSize=100`
+    `?entityType=${entityType}&entityId=${encodeURIComponent(entityId)}&pageSize=100`,
   );
   const rows = res.data ?? [];
   return field ? rows.filter((r) => r.field === field) : rows;
@@ -94,16 +94,20 @@ export function cancelChange(token: string, id: string): Promise<ApiResult<{ id:
  */
 export async function approveExpense(adminToken: string, expenseId: string): Promise<ApiResult<ChangeRequestDto>> {
   const pending = await pendingChangeFor(adminToken, "Expense", expenseId);
-  if (!pending) throw new Error(`No pending change request found for expense ${expenseId}`);
+  if (!pending) {
+    throw new Error(`No pending change request found for expense ${expenseId}`);
+  }
   return approveChange(adminToken, pending.id);
 }
 
 export async function rejectExpense(
   adminToken: string,
   expenseId: string,
-  note?: string
+  note?: string,
 ): Promise<ApiResult<ChangeRequestDto>> {
   const pending = await pendingChangeFor(adminToken, "Expense", expenseId);
-  if (!pending) throw new Error(`No pending change request found for expense ${expenseId}`);
+  if (!pending) {
+    throw new Error(`No pending change request found for expense ${expenseId}`);
+  }
   return rejectChange(adminToken, pending.id, note);
 }

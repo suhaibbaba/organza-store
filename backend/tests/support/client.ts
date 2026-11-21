@@ -21,8 +21,12 @@ export const API_ORIGIN = new URL(API_BASE_URL).origin;
 
 export async function rawRequest(path: string, options: RequestOptions = {}): Promise<{ status: number; body: any }> {
   const headers: Record<string, string> = { Origin: API_ORIGIN };
-  if (options.body !== undefined) headers["Content-Type"] = "application/json";
-  if (options.token) headers.Authorization = `Bearer ${options.token}`;
+  if (options.body !== undefined) {
+    headers["Content-Type"] = "application/json";
+  }
+  if (options.token) {
+    headers.Authorization = `Bearer ${options.token}`;
+  }
 
   const response = await fetch(`${API_BASE_URL}${path}`, {
     method: options.method ?? "GET",

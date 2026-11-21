@@ -55,7 +55,10 @@ export function Foundations() {
             </li>
           ))}
         </ul>
-        <ul className="mt-6 flex flex-col gap-3 border-t border-line pt-6" data-test-selector="design-system-typography">
+        <ul
+          className="mt-6 flex flex-col gap-3 border-t border-line pt-6"
+          data-test-selector="design-system-typography"
+        >
           {DESIGN_SYSTEM_TYPOGRAPHY_VARIANTS.map((variant) => (
             <li key={variant} className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
               <code className="w-60 shrink-0 whitespace-nowrap text-meta text-ink-muted" dir="ltr">

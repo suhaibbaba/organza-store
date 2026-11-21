@@ -54,7 +54,9 @@ export function useHardwareScanner({ enabled, onScan }: UseHardwareScannerOption
   }, [onScan]);
 
   useEffect(() => {
-    if (!enabled) return;
+    if (!enabled) {
+      return;
+    }
 
     // Both live for the length of one burst. Refs would outlive the listener
     // for no reason: nothing renders from them, and a burst never spans a
@@ -65,8 +67,12 @@ export function useHardwareScanner({ enabled, onScan }: UseHardwareScannerOption
     // Whatever has focus is being typed into — a search box, a discount, a
     // phone number — and its keys are its own.
     function isTypingInto(target: EventTarget | null): boolean {
-      if (!(target instanceof HTMLElement)) return false;
-      if (target.isContentEditable) return true;
+      if (!(target instanceof HTMLElement)) {
+        return false;
+      }
+      if (target.isContentEditable) {
+        return true;
+      }
       return ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName);
     }
 
@@ -86,7 +92,9 @@ export function useHardwareScanner({ enabled, onScan }: UseHardwareScannerOption
       // Shift on its own, which a scanner presses before every capital in a
       // SKU. Neither a character nor the end of the burst — leave the buffer
       // exactly as it is and wait for the letter it belongs to.
-      if (isModifierKey(event)) return;
+      if (isModifierKey(event)) {
+        return;
+      }
 
       // The event's own clock, so every gap is measured against the same one
       // and a busy main thread cannot stretch one keystroke into a "person".
@@ -97,7 +105,9 @@ export function useHardwareScanner({ enabled, onScan }: UseHardwareScannerOption
         buffer = "";
         // Too short to be a code, or the trigger came in long after the last
         // character: not a scan, and the key goes on to whatever wanted it.
-        if (code.length < HARDWARE_SCAN_MIN_LENGTH || gap > HARDWARE_SCAN_MAX_KEY_GAP_MS) return;
+        if (code.length < HARDWARE_SCAN_MIN_LENGTH || gap > HARDWARE_SCAN_MAX_KEY_GAP_MS) {
+          return;
+        }
         // Claimed outright: nothing else on the screen should also treat this
         // as an Enter — Tab in particular would move focus somewhere the
         // cashier never asked to be.

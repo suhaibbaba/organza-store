@@ -28,7 +28,9 @@ export function DraftLinesList({ draft, isGift, onLineDiscountClick }: DraftLine
   if (draft.isEmpty) {
     return (
       <div className="rounded-panel border border-dashed border-line py-10 text-center">
-        <Typography variant="small" tone="muted">{t("empty")}</Typography>
+        <Typography variant="small" tone="muted">
+          {t("empty")}
+        </Typography>
       </div>
     );
   }
@@ -49,8 +51,7 @@ export function DraftLinesList({ draft, isGift, onLineDiscountClick }: DraftLine
           : null;
         // Spell the money out for a percentage, or for a flat sum clamped to what the line was worth.
         const showResolvedAmount =
-          hasDiscount &&
-          (line.discountType === "PERCENT" || discountCents !== toCents(line.discountValue));
+          hasDiscount && (line.discountType === "PERCENT" || discountCents !== toCents(line.discountValue));
 
         return (
           <li
@@ -61,8 +62,14 @@ export function DraftLinesList({ draft, isGift, onLineDiscountClick }: DraftLine
             <ProductImage src={line.imageUrl} alt={name} className="size-14 shrink-0 rounded-control" sizes="56px" />
 
             <div className="min-w-0 flex-1 basis-0 self-start sm:basis-40">
-              <Typography variant="small" weight="medium">{name}</Typography>
-              {variantName && <Typography variant="caption" tone="muted" as="p" className="truncate">{variantName}</Typography>}
+              <Typography variant="small" weight="medium">
+                {name}
+              </Typography>
+              {variantName && (
+                <Typography variant="caption" tone="muted" as="p" className="truncate">
+                  {variantName}
+                </Typography>
+              )}
               <Typography variant="caption" tone="muted" as="p" className="truncate">
                 {t("unitPrice", { price: formatMoney(line.unitPrice) })}
               </Typography>
@@ -122,7 +129,9 @@ export function DraftLinesList({ draft, isGift, onLineDiscountClick }: DraftLine
               className="flex w-full items-center justify-between gap-2 border-t border-line pt-2 sm:w-auto sm:border-0 sm:pt-0"
               data-test-selector="order-draft-line-total"
             >
-              <Typography variant="caption" tone="muted" className="sm:sr-only">{t("lineTotal")}</Typography>
+              <Typography variant="caption" tone="muted" className="sm:sr-only">
+                {t("lineTotal")}
+              </Typography>
               <Typography variant="h2" weight="bold" as="span" className="tabular-nums">
                 {formatMoney(isGift ? GIFT_LINE_TOTAL : lineTotal(line))}
               </Typography>

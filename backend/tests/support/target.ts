@@ -27,7 +27,9 @@ function bareHost(host: string): string {
 
 function productionHost(): string | null {
   const raw = process.env[PRODUCTION_API_URL_ENV]?.trim();
-  if (!raw) return null;
+  if (!raw) {
+    return null;
+  }
   try {
     return bareHost(new URL(raw).hostname);
   } catch {
@@ -39,9 +41,15 @@ const SANDBOX_API_URL = process.env[SANDBOX_API_URL_ENV]?.trim() || DEFAULT_API_
 
 export function classify(host: string, liveHost: string | null = productionHost()): TargetKind {
   const lower = host.toLowerCase();
-  if (liveHost && bareHost(lower) === liveHost) return "production";
-  if (SANDBOX_HOST_PATTERN.test(lower)) return "sandbox";
-  if ((LOCAL_HOSTS as readonly string[]).includes(lower)) return "local";
+  if (liveHost && bareHost(lower) === liveHost) {
+    return "production";
+  }
+  if (SANDBOX_HOST_PATTERN.test(lower)) {
+    return "sandbox";
+  }
+  if ((LOCAL_HOSTS as readonly string[]).includes(lower)) {
+    return "local";
+  }
   // Never heard of it. Treated as the live shop until someone says otherwise
   // — a typo'd URL must not be assumed harmless.
   return "unrecognised";
@@ -58,7 +66,7 @@ function resolve(): ResolvedTarget {
   } catch {
     throw new Error(
       `API_URL is not a valid URL: ${JSON.stringify(raw)}.\n` +
-        `Leave it unset to target ${SANDBOX_API_URL_ENV} (${SANDBOX_API_URL}), or set a full origin such as http://localhost:4000.`
+        `Leave it unset to target ${SANDBOX_API_URL_ENV} (${SANDBOX_API_URL}), or set a full origin such as http://localhost:4000.`,
     );
   }
 
@@ -167,13 +175,19 @@ let announced = false;
 
 export function assertSafeTarget(target: ResolvedTarget = TARGET): void {
   if (isSafeTarget(target)) {
-    if (!announced) console.info(targetBanner(target));
+    if (!announced) {
+      console.info(targetBanner(target));
+    }
     announced = true;
     return;
   }
 
-  if (!target.overridden) throw new Error(refusalMessage(target));
+  if (!target.overridden) {
+    throw new Error(refusalMessage(target));
+  }
 
-  if (!announced) console.warn(warningBanner(target));
+  if (!announced) {
+    console.warn(warningBanner(target));
+  }
   announced = true;
 }

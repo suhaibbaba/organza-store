@@ -25,7 +25,9 @@ export async function deductStock(tx: Tx, movements: readonly StockMovement[]): 
           data: { stock: { decrement: movement.quantity } },
         });
 
-    if (result.count === 0) throw new AppError(409, ERROR_CODES.ORDER_INSUFFICIENT_STOCK);
+    if (result.count === 0) {
+      throw new AppError(409, ERROR_CODES.ORDER_INSUFFICIENT_STOCK);
+    }
   }
 }
 

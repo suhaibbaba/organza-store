@@ -67,7 +67,7 @@ export function useCart(): Cart {
     (key: string, update: (line: CartLine) => CartLine) => {
       commit(linesRef.current.map((line) => (line.key === key ? update(line) : line)));
     },
-    [commit]
+    [commit],
   );
 
   const addItem = useCallback(
@@ -94,7 +94,7 @@ export function useCart(): Cart {
       commit(linesRef.current.map((line) => (line.key === updated.key ? updated : line)));
       return updated;
     },
-    [commit]
+    [commit],
   );
 
   const addQuickSellItem = useCallback(
@@ -103,45 +103,46 @@ export function useCart(): Cart {
       commit([line, ...linesRef.current]);
       return line;
     },
-    [commit]
+    [commit],
   );
 
   const setQuantity = useCallback(
     (key: string, quantity: number) => {
       updateLine(key, (line) => ({ ...line, quantity: clampLineQuantity(quantity, line) }));
     },
-    [updateLine]
+    [updateLine],
   );
 
   const incrementQuantity = useCallback(
     (key: string) => {
       updateLine(key, (line) => ({ ...line, quantity: clampLineQuantity(line.quantity + 1, line) }));
     },
-    [updateLine]
+    [updateLine],
   );
 
   const decrementQuantity = useCallback(
     (key: string) => {
       updateLine(key, (line) => ({ ...line, quantity: clampLineQuantity(line.quantity - 1, line) }));
     },
-    [updateLine]
+    [updateLine],
   );
 
   const removeLine = useCallback(
     (key: string) => {
       commit(linesRef.current.filter((line) => line.key !== key));
     },
-    [commit]
+    [commit],
   );
 
   const setLineDiscount = useCallback(
     (key: string, type: DiscountType | null, value: string | null) => {
       // Both halves move together — the create-order schema refuses a
       // half-set pair (isDiscountConsistent).
-      const applied = type && value ? { discountType: type, discountValue: value } : { discountType: null, discountValue: null };
+      const applied =
+        type && value ? { discountType: type, discountValue: value } : { discountType: null, discountValue: null };
       updateLine(key, (line) => ({ ...line, ...applied }));
     },
-    [updateLine]
+    [updateLine],
   );
 
   const setOrderDiscount = useCallback((type: DiscountType | null, value: string | null) => {

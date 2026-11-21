@@ -39,7 +39,9 @@ export { buildSearchText, normalize } from "@/lib/search/normalize";
 let lastReportedAt = 0;
 function reportSearchFailure(error: unknown, context: Record<string, unknown>): void {
   const now = Date.now();
-  if (now - lastReportedAt < SEARCH_ERROR_REPORT_INTERVAL_MS) return;
+  if (now - lastReportedAt < SEARCH_ERROR_REPORT_INTERVAL_MS) {
+    return;
+  }
   lastReportedAt = now;
   captureException(error, { area: "search", ...context });
 }
@@ -82,17 +84,29 @@ async function syncProducts(config: MeilisearchConfig, ids: string[], waitMs?: n
   const liveIds = new Set(live.map((r) => r.id));
   const gone = ids.filter((id) => !liveIds.has(id));
   const tasks = [
-    ...(live.length ? [await meiliUpsert(config, config.index, live.map((r) => toSearchDocument(r, categories)))] : []),
+    ...(live.length
+      ? [
+          await meiliUpsert(
+            config,
+            config.index,
+            live.map((r) => toSearchDocument(r, categories)),
+          ),
+        ]
+      : []),
     ...(gone.length ? [await meiliDelete(config, config.index, gone)] : []),
   ];
-  if (waitMs !== undefined) await Promise.all(tasks.map((task) => waitForTask(config, task, waitMs)));
+  if (waitMs !== undefined) {
+    await Promise.all(tasks.map((task) => waitForTask(config, task, waitMs)));
+  }
 }
 
 // Re-indexes these products now and waits briefly so a save is searchable on return; never rejects, so it can never fail a save.
 export async function indexProducts(ids: (string | null | undefined)[]): Promise<void> {
   const config = meilisearchConfig();
   const unique = [...new Set(ids.filter((id): id is string => Boolean(id)))];
-  if (!config || !unique.length) return;
+  if (!config || !unique.length) {
+    return;
+  }
   try {
     await syncProducts(config, unique, INDEX_SYNC_WAIT_MS);
   } catch (error) {
@@ -108,24 +122,36 @@ function flushQueue(): void {
   const config = meilisearchConfig();
   const ids = [...pending];
   pending.clear();
-  if (!config || !ids.length) return;
+  if (!config || !ids.length) {
+    return;
+  }
   syncProducts(config, ids).catch((error) => reportSearchFailure(error, { op: "sync", ids }));
 }
 
 // Queues products whose stock, price, visibility, images or variants changed; call after commit, returns at once.
 export function queueProductSync(ids: (string | null | undefined)[]): void {
-  if (!meilisearchConfig()) return;
-  for (const id of ids) if (id) pending.add(id);
-  if (pending.size && !flushTimer) flushTimer = setTimeout(flushQueue, SEARCH_SYNC_BATCH_MS);
+  if (!meilisearchConfig()) {
+    return;
+  }
+  for (const id of ids) {
+    if (id) {
+      pending.add(id);
+    }
+  }
+  if (pending.size && !flushTimer) {
+    flushTimer = setTimeout(flushQueue, SEARCH_SYNC_BATCH_MS);
+  }
 }
 
 // A renamed category changes the documents of every product filed under it or under its children.
 export async function queueCategorySync(categoryId: string): Promise<void> {
-  if (!meilisearchConfig()) return;
+  if (!meilisearchConfig()) {
+    return;
+  }
   try {
     const categories = await loadCategories();
     const branch = new Set([categoryId]);
-    for (let grew = true; grew; ) {
+    for (let grew = true; grew;) {
       grew = false;
       for (const node of categories.values()) {
         if (node.parentId && branch.has(node.parentId) && !branch.has(node.id)) {
@@ -146,8 +172,12 @@ export async function queueCategorySync(categoryId: string): Promise<void> {
 
 // An image or a variant belongs to a product one way or another; this finds it.
 export async function queueOwnerSync(owner: { productId?: string | null; variantId?: string | null }): Promise<void> {
-  if (owner.productId) return queueProductSync([owner.productId]);
-  if (!owner.variantId || !meilisearchConfig()) return;
+  if (owner.productId) {
+    return queueProductSync([owner.productId]);
+  }
+  if (!owner.variantId || !meilisearchConfig()) {
+    return;
+  }
   try {
     const variant = await prisma.variant.findUnique({ where: { id: owner.variantId }, select: { productId: true } });
     queueProductSync([variant?.productId]);
@@ -159,7 +189,9 @@ export async function queueOwnerSync(owner: { productId?: string | null; variant
 // Applies the versioned index settings (constants/searchIndex.ts) to the live index.
 export async function applySearchSettings(): Promise<{ engine: string; version: number }> {
   const config = meilisearchConfig();
-  if (!config) return { engine: SEARCH_ENGINES.POSTGRES, version: PRODUCTS_INDEX_VERSION };
+  if (!config) {
+    return { engine: SEARCH_ENGINES.POSTGRES, version: PRODUCTS_INDEX_VERSION };
+  }
   await waitForTask(config, await meiliApplySettings(config, config.index));
   return { engine: SEARCH_ENGINES.MEILISEARCH, version: PRODUCTS_INDEX_VERSION };
 }
@@ -167,7 +199,9 @@ export async function applySearchSettings(): Promise<{ engine: string; version: 
 // Builds a fresh index beside the live one and swaps it in, so search keeps answering and stale entries vanish.
 export async function reindexAllProducts(): Promise<ReindexSummary> {
   const config = meilisearchConfig();
-  if (!config) return { engine: SEARCH_ENGINES.POSTGRES, indexed: 0 };
+  if (!config) {
+    return { engine: SEARCH_ENGINES.POSTGRES, indexed: 0 };
+  }
 
   const staging = `${config.index}${REINDEX_SUFFIX}`;
   const startedAt = new Date();
@@ -186,8 +220,17 @@ export async function reindexAllProducts(): Promise<ReindexSummary> {
       take: REINDEX_BATCH_SIZE,
       ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
     });
-    if (!rows.length) break;
-    await waitForTask(config, await meiliUpsert(config, staging, rows.map((r) => toSearchDocument(r, categories))));
+    if (!rows.length) {
+      break;
+    }
+    await waitForTask(
+      config,
+      await meiliUpsert(
+        config,
+        staging,
+        rows.map((r) => toSearchDocument(r, categories)),
+      ),
+    );
     indexed += rows.length;
     cursor = rows[rows.length - 1].id;
   }
@@ -196,12 +239,19 @@ export async function reindexAllProducts(): Promise<ReindexSummary> {
   await meiliDeleteIndex(config, staging);
   // Saves made while the copy was being built went to the index that was just swapped out.
   const touched = await prisma.product.findMany({ where: { updatedAt: { gte: startedAt } }, select: { id: true } });
-  if (touched.length) await syncProducts(config, touched.map((p) => p.id));
+  if (touched.length) {
+    await syncProducts(
+      config,
+      touched.map((p) => p.id),
+    );
+  }
   return { engine: SEARCH_ENGINES.MEILISEARCH, indexed };
 }
 
 export async function searchEngineStatus(): Promise<SearchEngineStatus> {
   const config = meilisearchConfig();
-  if (!config) return { engine: SEARCH_ENGINES.POSTGRES, reachable: true };
+  if (!config) {
+    return { engine: SEARCH_ENGINES.POSTGRES, reachable: true };
+  }
   return { engine: SEARCH_ENGINES.MEILISEARCH, reachable: await meiliHealthy(config) };
 }

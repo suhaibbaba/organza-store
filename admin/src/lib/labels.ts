@@ -132,7 +132,9 @@ export function buildLabelLines(product: Product, locale: string): LabelLine[] {
 // way while being typed), so an empty or half-typed field reads as zero
 // rather than crashing the preview.
 export function parseCopies(value: string | undefined): number {
-  if (value === undefined || !isNonNegativeIntegerString(value)) return 0;
+  if (value === undefined || !isNonNegativeIntegerString(value)) {
+    return 0;
+  }
   return clampQuantity(Number(value), 0, LABEL_COPIES_MAX);
 }
 
@@ -197,7 +199,9 @@ export function mmToPx(mm: number): number {
 // of the sheet — a column count that overflows the paper is the one geometry
 // mistake that silently clips labels off the right-hand edge.
 export function gridOverflowsPage(geometry: LabelGeometry): boolean {
-  if (geometry.printMode !== "A4_GRID") return false;
+  if (geometry.printMode !== "A4_GRID") {
+    return false;
+  }
   const usableWidth = A4_WIDTH_MM - geometry.pageMarginLeftMm - geometry.pageMarginRightMm;
   const usableHeight = A4_HEIGHT_MM - geometry.pageMarginTopMm - geometry.pageMarginBottomMm;
   const neededWidth = geometry.columns * geometry.widthMm + (geometry.columns - 1) * geometry.gapXMm;

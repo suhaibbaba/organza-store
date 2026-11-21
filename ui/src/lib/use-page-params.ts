@@ -9,10 +9,7 @@ export interface PageParams {
   readonly resetPage: () => void;
 }
 
-export function usePageParams(
-  options: readonly number[] = PER_PAGE_OPTIONS,
-  scope?: string,
-): PageParams {
+export function usePageParams(options: readonly number[] = PER_PAGE_OPTIONS, scope?: string): PageParams {
   const [params, setParams] = useSearchParams();
   const pageKey = scope === undefined ? "page" : `${scope}Page`;
   const perPageKey = scope === undefined ? "perPage" : `${scope}PerPage`;

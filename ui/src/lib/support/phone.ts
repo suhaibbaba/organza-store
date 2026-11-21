@@ -20,10 +20,7 @@ export const PHONE_COUNTRIES = [
 
 export type PhoneCountry = (typeof PHONE_COUNTRIES)[number]["country"];
 
-export const PHONE_COUNTRY_CODES = PHONE_COUNTRIES.map((entry) => entry.country) as [
-  PhoneCountry,
-  ...PhoneCountry[],
-];
+export const PHONE_COUNTRY_CODES = PHONE_COUNTRIES.map((entry) => entry.country) as [PhoneCountry, ...PhoneCountry[]];
 
 export const DEFAULT_PHONE_COUNTRY: PhoneCountry = "PS";
 
@@ -51,10 +48,7 @@ export function joinPhone(country: PhoneCountry, local: string): string | null {
   return national === "" ? null : `${dialCodeOf(country)}${national}`;
 }
 
-export function normalizePhone(
-  value: string,
-  country: PhoneCountry = DEFAULT_PHONE_COUNTRY,
-): string {
+export function normalizePhone(value: string, country: PhoneCountry = DEFAULT_PHONE_COUNTRY): string {
   const trimmed = value.trim();
 
   if (!trimmed.startsWith("+") && !trimmed.startsWith("00")) {
@@ -64,9 +58,7 @@ export function normalizePhone(
   const international = `+${digitsOf(trimmed).replace(/^00/, "")}`;
   const known = BY_DIAL_LENGTH.find((entry) => international.startsWith(entry.dial));
 
-  return known
-    ? `${known.dial}${international.slice(known.dial.length).replace(/^0/, "")}`
-    : international;
+  return known ? `${known.dial}${international.slice(known.dial.length).replace(/^0/, "")}` : international;
 }
 
 export function splitPhone(
@@ -107,15 +99,12 @@ export function phoneDigitVariants(phone: string): string[] {
   const digits = phone.replace(/\D/g, "").replace(/^00/, "");
   const dial = SHARED_NUMBERING_DIALS.find((code) => digits.startsWith(code));
 
-  return dial
-    ? SHARED_NUMBERING_DIALS.map((code) => `${code}${digits.slice(dial.length)}`)
-    : [digits];
+  return dial ? SHARED_NUMBERING_DIALS.map((code) => `${code}${digits.slice(dial.length)}`) : [digits];
 }
 
 export const canonicalPhoneDigits = (phone: string): string => phoneDigitVariants(phone)[0] ?? "";
 
-export const isSamePhone = (a: string, b: string): boolean =>
-  canonicalPhoneDigits(a) === canonicalPhoneDigits(b);
+export const isSamePhone = (a: string, b: string): boolean => canonicalPhoneDigits(a) === canonicalPhoneDigits(b);
 
 const MOBILE_NATIONAL_PATTERNS: Readonly<Record<string, RegExp>> = {
   "+970": /^5\d{8}$/,

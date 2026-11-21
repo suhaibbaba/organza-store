@@ -83,7 +83,6 @@ export const ORDER_PRODUCT_SEARCH_MIN_QUERY_LENGTH = 1;
 // Hidden products are not for sale, so the picker never shows them.
 export const ORDER_PRODUCT_SEARCH_STATUS = "active" as const;
 
-
 export const COORDINATE_DECIMALS = 6;
 
 export const ORDER_LIST_URL_PARAMS: UrlParams<OrderListFilters> = {

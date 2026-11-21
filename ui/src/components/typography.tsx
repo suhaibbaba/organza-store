@@ -3,10 +3,11 @@ import { cn } from "@ui/lib/cn";
 
 // The type scale as roles (ported from operate-web): variant sets size, weight and the default tag.
 export type TypographyVariant = "display" | "h1" | "h2" | "h3" | "h4" | "body" | "small" | "caption" | "label";
-export type TypographyTone = "ink" | "muted" | "subtle" | "brand" | "error" | "success" | "inverse" | "inverseMuted" | "inherit";
+export type TypographyTone =
+  "ink" | "muted" | "subtle" | "brand" | "error" | "success" | "inverse" | "inverseMuted" | "inherit";
 export type TypographyWeight = "regular" | "medium" | "semibold" | "bold";
 export type TypographyTag =
-  | "h1" | "h2" | "h3" | "h4" | "h5" | "h6" | "p" | "span" | "div" | "label" | "legend" | "strong" | "dt" | "dd";
+  "h1" | "h2" | "h3" | "h4" | "h5" | "h6" | "p" | "span" | "div" | "label" | "legend" | "strong" | "dt" | "dd";
 
 const VARIANTS: Record<TypographyVariant, string> = {
   display: "text-headline font-bold",
@@ -73,5 +74,7 @@ export function typographyClassName({
 
 export function Typography({ variant = "body", tone, weight, as, className, ...props }: TypographyProps): JSX.Element {
   const Tag = as ?? TAGS[variant];
-  return <Tag data-slot="typography" className={typographyClassName({ variant, tone, weight, className })} {...props} />;
+  return (
+    <Tag data-slot="typography" className={typographyClassName({ variant, tone, weight, className })} {...props} />
+  );
 }

@@ -105,15 +105,15 @@ what its destructive-command guards read.
 
 ### The files in each folder
 
-| File | Used for |
-|---|---|
-| `favicon.ico` | Legacy tab icon. A single 16×16. |
-| `icon-32.png` | The tab on any current screen, which draws it at 32 real pixels. **Derived.** |
-| `icon-180.png` | iOS home screen (`apple-touch-icon`). iOS ignores the manifest entirely. |
-| `icon-192.png` | Android launcher icon, and the icon on a pushed notification. |
-| `icon-512.png` | Chrome's install prompt and its generated splash. |
+| File                    | Used for                                                                             |
+| ----------------------- | ------------------------------------------------------------------------------------ |
+| `favicon.ico`           | Legacy tab icon. A single 16×16.                                                     |
+| `icon-32.png`           | The tab on any current screen, which draws it at 32 real pixels. **Derived.**        |
+| `icon-180.png`          | iOS home screen (`apple-touch-icon`). iOS ignores the manifest entirely.             |
+| `icon-192.png`          | Android launcher icon, and the icon on a pushed notification.                        |
+| `icon-512.png`          | Chrome's install prompt and its generated splash.                                    |
 | `icon-maskable-512.png` | Android adaptive icon — mark inside the safe zone, so a circular mask can't clip it. |
-| `icon-mark-512.png` | The mark on transparency, for the in-app boot splash. **Derived.** |
+| `icon-mark-512.png`     | The mark on transparency, for the in-app boot splash. **Derived.**                   |
 
 The two marked **Derived** are generated from `icon-512.png` in the same folder. After
 replacing any artwork, regenerate them (needs `backend/`'s dependencies installed, for

@@ -6,7 +6,9 @@ import { SIDEBAR_COLLAPSED_EVENT, SIDEBAR_COLLAPSED_KEY } from "@/constants/stor
 let inMemory: boolean | null = null;
 
 function read(): boolean {
-  if (inMemory !== null) return inMemory;
+  if (inMemory !== null) {
+    return inMemory;
+  }
   try {
     return window.localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === "true";
   } catch {

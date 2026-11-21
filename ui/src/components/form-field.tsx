@@ -40,19 +40,14 @@ export function FormField({
 }: FormFieldProps): JSX.Element {
   const { t } = useTranslation();
   const derived = validationMessageKey(error);
-  const messageKey =
-    derived === "ui.validation.required" ? derived : error ? (errorKey ?? derived) : undefined;
+  const messageKey = derived === "ui.validation.required" ? derived : error ? (errorKey ?? derived) : undefined;
   const errorId = `${htmlFor}-error`;
   const part = parts("form-field", testId ?? `${htmlFor}-field`);
 
   return (
     <div {...part()} className="flex flex-col gap-1.5">
       <div className="flex items-center gap-1">
-        <Label
-          htmlFor={htmlFor}
-          {...part("label")}
-          className="cursor-pointer text-label text-ink"
-        >
+        <Label htmlFor={htmlFor} {...part("label")} className="cursor-pointer text-label text-ink">
           {t(label, labelValues ?? {})}
           {required && (
             <span {...part("required")} aria-hidden="true" className="ms-1 text-danger-600">

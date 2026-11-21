@@ -18,12 +18,7 @@ import path from "node:path";
 import { prisma } from "@/lib/prisma";
 import { UPLOAD_DIR } from "@/lib/image";
 import { claimedImageBases, deleteOrphanedUploads } from "@/lib/uploads";
-import {
-  assertDestructiveConfirmed,
-  describeAppEnv,
-  describeDatabase,
-  isProductionEnv,
-} from "@/lib/dangerousCommands";
+import { assertDestructiveConfirmed, describeAppEnv, describeDatabase, isProductionEnv } from "@/lib/dangerousCommands";
 import { DANGEROUS_COMMAND_ENV } from "@/constants";
 
 const RULE = "═".repeat(74);
@@ -38,7 +33,7 @@ const RULE = "═".repeat(74);
  */
 async function deleteUploadsBelongingToNothing(): Promise<{ deleted: number; kept: number }> {
   const claimed = claimedImageBases(
-    await prisma.productImage.findMany({ select: { filename: true, originalFilename: true } })
+    await prisma.productImage.findMany({ select: { filename: true, originalFilename: true } }),
   );
   return deleteOrphanedUploads(claimed);
 }

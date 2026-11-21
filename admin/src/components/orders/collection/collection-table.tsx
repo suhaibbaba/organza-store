@@ -42,7 +42,12 @@ export function CollectionTable({
       // The customer's name is how a courier's sheet is matched against the list.
       render: (order) => <OrderTitle order={order} subtitle={order.customerName} />,
     },
-    { key: "photos", header: "orders.table.photos", hideOnMobile: true, render: (order) => <OrderPhotos order={order} /> },
+    {
+      key: "photos",
+      header: "orders.table.photos",
+      hideOnMobile: true,
+      render: (order) => <OrderPhotos order={order} />,
+    },
     {
       key: "status",
       header: "orders.table.status",
@@ -98,7 +103,8 @@ export function CollectionTable({
           isSelected: (order) => selectedIds.includes(order.id),
           onToggle: (order) => onToggle(order.id),
           onToggleAll,
-          rowLabel: (order) => t("selectOrder", { number: String(order.orderNumber), amount: formatMoney(owed(order)) }),
+          rowLabel: (order) =>
+            t("selectOrder", { number: String(order.orderNumber), amount: formatMoney(owed(order)) }),
           allLabel: t("actions.selectAllLabel"),
         }}
         {...(meta && {

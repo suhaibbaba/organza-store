@@ -131,8 +131,8 @@ async function main() {
   // into existence by anywhere in this system — and given their password
   // through Better Auth's own context, so the hash is one sign-in accepts.
   const staff = [
-    { email: "admin@store.test",    name: "Admin",    role: Role.ADMIN,    phone: "+970599000001" },
-    { email: "manager@store.test",  name: "Manager",  role: Role.MANAGER,  phone: "+970599000002" },
+    { email: "admin@store.test", name: "Admin", role: Role.ADMIN, phone: "+970599000001" },
+    { email: "manager@store.test", name: "Manager", role: Role.MANAGER, phone: "+970599000002" },
     { email: "employee@store.test", name: "Employee", role: Role.EMPLOYEE, phone: "+970599000003" },
   ];
   for (const s of staff) {
@@ -372,10 +372,7 @@ async function main() {
       select: { variantNumber: true, barcode: true, barcodeSource: true, generatedBarcode: true },
     });
     const variantBarcodes = new Map(
-      previousVariants.map((v) => [
-        v.variantNumber,
-        v.barcodeSource === "SUPPLIER" ? v.generatedBarcode : v.barcode,
-      ])
+      previousVariants.map((v) => [v.variantNumber, v.barcodeSource === "SUPPLIER" ? v.generatedBarcode : v.barcode]),
     );
     await prisma.variant.deleteMany({ where: { productId: product.id } });
 
@@ -397,7 +394,9 @@ async function main() {
       // note nor silently reverts one somebody edited in the admin.
       for (const [comboKey, note] of Object.entries(opts.optionNotes ?? {})) {
         const optionValueId = valueId[comboKey];
-        if (!optionValueId) continue;
+        if (!optionValueId) {
+          continue;
+        }
         await prisma.productOptionValueNote.upsert({
           where: { productId_optionValueId: { productId: product.id, optionValueId } },
           update: { note },
@@ -439,7 +438,7 @@ async function main() {
   // still make the next insert (seed or API) fail with P2002. Point it at
   // max + 1; on an empty table that's 1, i.e. exactly the default.
   await prisma.$executeRawUnsafe(
-    `SELECT setval(pg_get_serial_sequence('"Product"', 'productNumber'), COALESCE((SELECT MAX("productNumber") FROM "Product"), 0) + 1, false)`
+    `SELECT setval(pg_get_serial_sequence('"Product"', 'productNumber'), COALESCE((SELECT MAX("productNumber") FROM "Product"), 0) + 1, false)`,
   );
 
   // 1) Simple product (no variants) — SKU/stock on the parent
@@ -475,8 +474,8 @@ async function main() {
     // something else against the very same global values — which is the whole
     // point of scoping a note to the product (spec.md).
     optionNotes: {
-      "size:m": { ar: "الطول ١٤٠ سم", en: "Length 140 cm", he: "אורך 140 ס\"מ" },
-      "size:l": { ar: "الطول ١٤٥ سم", en: "Length 145 cm", he: "אורך 145 ס\"מ" },
+      "size:m": { ar: "الطول ١٤٠ سم", en: "Length 140 cm", he: 'אורך 140 ס"מ' },
+      "size:l": { ar: "الطول ١٤٥ سم", en: "Length 145 cm", he: 'אורך 145 ס"מ' },
     },
   });
 
@@ -491,7 +490,12 @@ async function main() {
     cost: 90,
     variants: [
       // red — one with an override price, others inherit basePrice
-      { combo: ["color:red", "size:m"], name: { ar: "أحمر / M", en: "Red / M", he: "אדום / M" }, stock: 4, priceOverride: 220 },
+      {
+        combo: ["color:red", "size:m"],
+        name: { ar: "أحمر / M", en: "Red / M", he: "אדום / M" },
+        stock: 4,
+        priceOverride: 220,
+      },
       { combo: ["color:red", "size:l"], name: { ar: "أحمر / L", en: "Red / L", he: "אדום / L" }, stock: 4 },
       // blue — inherits basePrice + parent cost
       { combo: ["color:blue", "size:m"], name: { ar: "أزرق / M", en: "Blue / M", he: "כחול / M" }, stock: 6 },
@@ -659,7 +663,9 @@ async function main() {
   // first, then the order discount against their sum.
   const round2 = (n: number) => Math.round(n * 100) / 100;
   const discountOf = (base: number, type?: "PERCENT" | "AMOUNT", value?: number) => {
-    if (!type || value === undefined) return 0;
+    if (!type || value === undefined) {
+      return 0;
+    }
     return round2(Math.min(base, type === "PERCENT" ? (base * value) / 100 : value));
   };
 
@@ -706,8 +712,8 @@ async function main() {
         unitPrice,
         unitCost: unitCost === null || unitCost === undefined ? null : round2(Number(unitCost)),
         quantity: line.quantity,
-        discountType: isGift ? null : line.discountType ?? null,
-        discountValue: isGift ? null : line.discountValue ?? null,
+        discountType: isGift ? null : (line.discountType ?? null),
+        discountValue: isGift ? null : (line.discountValue ?? null),
         discountAmount,
         lineTotal: round2(gross - discountAmount),
         returnedQuantity: line.returnedQuantity ?? 0,
@@ -731,8 +737,8 @@ async function main() {
       customerLongitude: opts.customerLongitude ?? null,
       note: opts.note ?? null,
       subtotal,
-      discountType: isGift ? null : opts.discountType ?? null,
-      discountValue: isGift ? null : opts.discountValue ?? null,
+      discountType: isGift ? null : (opts.discountType ?? null),
+      discountValue: isGift ? null : (opts.discountValue ?? null),
       discountAmount,
       total: round2(subtotal - discountAmount),
       stockDeductedAt: opts.stockDeducted ? new Date("2026-01-01T10:00:00.000Z") : null,
@@ -983,8 +989,7 @@ async function main() {
   // `pendingKey` is what makes superseding impossible to get wrong: unique
   // while PENDING, null once decided. Set it exactly as lib/changeRequests.ts
   // does, or a re-seed will collide with itself.
-  const pendingKey = (entityType: string, entityId: string, field: string) =>
-    `${entityType}:${entityId}:${field}`;
+  const pendingKey = (entityType: string, entityId: string, field: string) => `${entityType}:${entityId}:${field}`;
 
   const seedChangeRequests = [
     {

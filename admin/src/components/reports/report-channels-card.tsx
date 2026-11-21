@@ -35,12 +35,8 @@ export function ReportChannelsCard({ byChannel }: { byChannel: ChannelSales[] })
 
               {/* Separate spans, not one string: bidi would reorder a separator into the number. */}
               <span className="flex shrink-0 items-baseline gap-3">
-                <span className="text-section font-semibold tabular-nums text-ink">
-                  {formatMoney(entry.revenue)}
-                </span>
-                <span className="text-meta text-ink-muted">
-                  {t("orders", { count: entry.orderCount })}
-                </span>
+                <span className="text-section font-semibold tabular-nums text-ink">{formatMoney(entry.revenue)}</span>
+                <span className="text-meta text-ink-muted">{t("orders", { count: entry.orderCount })}</span>
               </span>
             </li>
           ))}

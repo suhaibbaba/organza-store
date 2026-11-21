@@ -20,7 +20,7 @@ function numberTypeIds(product: AnyRecord): Set<string> {
   return new Set<string>(
     (product.variantTypes ?? [])
       .filter((pvt: AnyRecord) => pvt.variantType?.slug === NUMBER_VARIANT_TYPE_SLUG)
-      .map((pvt: AnyRecord) => pvt.variantType.id as string)
+      .map((pvt: AnyRecord) => pvt.variantType.id as string),
   );
 }
 
@@ -35,21 +35,29 @@ export function assertOptionTypesMatchMode(isNumbered: boolean, typeSlugs: strin
   const usesNumbers = typeSlugs.some((slug) => slug === NUMBER_VARIANT_TYPE_SLUG);
   const usesOthers = typeSlugs.some((slug) => slug !== NUMBER_VARIANT_TYPE_SLUG);
 
-  if (isNumbered && usesOthers) throw new AppError(400, ERROR_CODES.PRODUCT_NUMBERED_ONLY_NUMBERS);
-  if (!isNumbered && usesNumbers) throw new AppError(400, ERROR_CODES.PRODUCT_NUMBERS_REQUIRE_NUMBERED);
+  if (isNumbered && usesOthers) {
+    throw new AppError(400, ERROR_CODES.PRODUCT_NUMBERED_ONLY_NUMBERS);
+  }
+  if (!isNumbered && usesNumbers) {
+    throw new AppError(400, ERROR_CODES.PRODUCT_NUMBERS_REQUIRE_NUMBERED);
+  }
 }
 
 // Counted from the distinct Number values rather than from the variant rows:
 // the flag says the product is numbered, this says how many numbers it
 // actually offers (0 on one whose points haven't been placed yet).
 export function summarizeNumbers(product: AnyRecord): { isNumbered: boolean; numberCount: number } {
-  if (!isNumberedProduct(product)) return { isNumbered: false, numberCount: 0 };
+  if (!isNumberedProduct(product)) {
+    return { isNumbered: false, numberCount: 0 };
+  }
 
   const typeIds = numberTypeIds(product);
   const numberValueIds = new Set<string>();
   for (const variant of (product.variants ?? []) as AnyRecord[]) {
     for (const vv of (variant.values ?? []) as AnyRecord[]) {
-      if (typeIds.has(vv.optionValue.variantTypeId)) numberValueIds.add(vv.optionValue.id);
+      if (typeIds.has(vv.optionValue.variantTypeId)) {
+        numberValueIds.add(vv.optionValue.id);
+      }
     }
   }
   return { isNumbered: true, numberCount: numberValueIds.size };
@@ -65,7 +73,9 @@ export function summarizeNumbers(product: AnyRecord): { isNumbered: boolean; num
 // once, in one place. `cost` is deliberately not carried over: picking a
 // number needs the sale price, and cost is Admin/Manager-only (rule 19).
 export function buildNumberOptions(product: AnyRecord, serializedVariants: AnyRecord[]): AnyRecord[] {
-  if (!isNumberedProduct(product)) return [];
+  if (!isNumberedProduct(product)) {
+    return [];
+  }
 
   const typeIds = numberTypeIds(product);
   const serializedById = new Map<string, AnyRecord>(serializedVariants.map((v: AnyRecord) => [v.id, v]));
@@ -74,9 +84,13 @@ export function buildNumberOptions(product: AnyRecord, serializedVariants: AnyRe
   for (const variant of (product.variants ?? []) as AnyRecord[]) {
     const numberValue = (variant.values ?? []).find((vv: AnyRecord) => typeIds.has(vv.optionValue.variantTypeId));
     // A combination that carries no number isn't one of the numbers.
-    if (!numberValue) continue;
+    if (!numberValue) {
+      continue;
+    }
     const dto = serializedById.get(variant.id);
-    if (!dto) continue;
+    if (!dto) {
+      continue;
+    }
 
     options.push({
       variantId: dto.id,
@@ -107,14 +121,25 @@ export function buildNumberOptions(product: AnyRecord, serializedVariants: AnyRe
 
 // The placed numbers burned into the photo by lib/markedImage.ts, in number order.
 export function summarizePoints(product: AnyRecord): { label: string; x: number; y: number; soldOut: boolean }[] {
-  if (!isNumberedProduct(product)) return [];
+  if (!isNumberedProduct(product)) {
+    return [];
+  }
   const typeIds = numberTypeIds(product);
   const points: { label: string; x: number; y: number; soldOut: boolean }[] = [];
   for (const variant of (product.variants ?? []) as AnyRecord[]) {
-    if (variant.imageX == null || variant.imageY == null) continue;
+    if (variant.imageX == null || variant.imageY == null) {
+      continue;
+    }
     const numberValue = (variant.values ?? []).find((vv: AnyRecord) => typeIds.has(vv.optionValue.variantTypeId));
-    if (!numberValue) continue;
-    points.push({ label: String(numberValue.optionValue.key), x: variant.imageX, y: variant.imageY, soldOut: variant.stock <= 0 });
+    if (!numberValue) {
+      continue;
+    }
+    points.push({
+      label: String(numberValue.optionValue.key),
+      x: variant.imageX,
+      y: variant.imageY,
+      soldOut: variant.stock <= 0,
+    });
   }
   return points.sort((a, b) => Number(a.label) - Number(b.label));
 }

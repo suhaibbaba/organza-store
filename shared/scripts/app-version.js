@@ -35,7 +35,9 @@ const FALLBACK_BASE = "0.0";
 
 /** `<major>.<minor>` of a semver-ish string; null when it isn't one. */
 function baseVersion(version) {
-  if (typeof version !== "string") return null;
+  if (typeof version !== "string") {
+    return null;
+  }
   const match = version.trim().match(/^(\d+)\.(\d+)/);
   return match ? `${match[1]}.${match[2]}` : null;
 }
@@ -82,7 +84,9 @@ function resolveAppVersion(options = {}) {
   // available inside a container, and the only one that can be trusted to
   // match what every other part of the same deploy reports.
   const provided = typeof options.envValue === "string" ? options.envValue.trim() : "";
-  if (provided) return provided;
+  if (provided) {
+    return provided;
+  }
 
   const base = readPackageVersion(projectDir) ?? FALLBACK_BASE;
   return `${base}.${commitCount(projectDir) ?? FALLBACK_PATCH}`;

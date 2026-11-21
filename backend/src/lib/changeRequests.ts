@@ -77,7 +77,7 @@ export function variantSetValue(count: number, detail: ChangeRequestValueDetail)
  */
 export function quickSellValue(
   price: Prisma.Decimal | string | number,
-  detail: ChangeRequestValueDetail
+  detail: ChangeRequestValueDetail,
 ): ChangeRequestValue {
   return { kind: CHANGE_REQUEST_VALUE_KINDS.QUICK_SELL, value: formatMoney(price), detail };
 }
@@ -136,10 +136,7 @@ async function upsertPending(actor: ChangeRequestActorRef, draft: ChangeRequestD
  * client so the screen can say "waiting for approval" against the value the
  * user typed — their edit is visibly held, never silently dropped.
  */
-export async function fileChangeRequest(
-  actor: ChangeRequestActorRef,
-  draft: ChangeRequestDraft
-): Promise<AnyRecord> {
+export async function fileChangeRequest(actor: ChangeRequestActorRef, draft: ChangeRequestDraft): Promise<AnyRecord> {
   // A field nothing knows how to apply must never become a pending row: it
   // would sit on the approval screen forever, and approving it would fail.
   if (!isGatedField(draft.entityType, draft.field)) {
@@ -205,7 +202,7 @@ export async function fileChangeRequest(
 export async function fileChangeRequestInTransaction(
   tx: DbClient,
   actor: ChangeRequestActorRef,
-  draft: ChangeRequestDraft
+  draft: ChangeRequestDraft,
 ): Promise<AnyRecord> {
   if (!isGatedField(draft.entityType, draft.field)) {
     throw new Error(`No change-request applier registered for ${draft.entityType}.${draft.field}`);
@@ -237,10 +234,7 @@ export async function fileChangeRequestInTransaction(
  * `fileChangeRequest` writes for itself, so the two read identically in the
  * trail (CLAUDE.md rule 6).
  */
-export async function announceFiledChangeRequest(
-  request: AnyRecord,
-  actor: ChangeRequestActorRef
-): Promise<void> {
+export async function announceFiledChangeRequest(request: AnyRecord, actor: ChangeRequestActorRef): Promise<void> {
   await writeAudit({
     userId: actor.id,
     action: AuditAction.REQUEST,
@@ -266,10 +260,12 @@ export async function announceFiledChangeRequest(
 /** Files several drafts at once — one save that touched a price AND the visibility. */
 export async function fileChangeRequests(
   actor: ChangeRequestActorRef,
-  drafts: ChangeRequestDraft[]
+  drafts: ChangeRequestDraft[],
 ): Promise<AnyRecord[]> {
   const filed: AnyRecord[] = [];
-  for (const draft of drafts) filed.push(await fileChangeRequest(actor, draft));
+  for (const draft of drafts) {
+    filed.push(await fileChangeRequest(actor, draft));
+  }
   return filed;
 }
 
@@ -297,9 +293,7 @@ export async function findPendingChangesForProduct(product: {
       OR: [
         { entityType: CHANGE_REQUEST_ENTITIES.PRODUCT, entityId: product.id },
         ...(variantIds.length ? [{ entityType: CHANGE_REQUEST_ENTITIES.VARIANT, entityId: { in: variantIds } }] : []),
-        ...(imageIds.length
-          ? [{ entityType: CHANGE_REQUEST_ENTITIES.PRODUCT_IMAGE, entityId: { in: imageIds } }]
-          : []),
+        ...(imageIds.length ? [{ entityType: CHANGE_REQUEST_ENTITIES.PRODUCT_IMAGE, entityId: { in: imageIds } }] : []),
       ],
     },
     include: changeRequestInclude,
@@ -314,10 +308,12 @@ export async function findPendingChangesForProduct(product: {
  * whole page rather than one per row.
  */
 export async function findPendingChangesByEntity(
-  targets: { entityType: string; entityId: string }[]
+  targets: { entityType: string; entityId: string }[],
 ): Promise<Map<string, AnyRecord[]>> {
   const grouped = new Map<string, AnyRecord[]>();
-  if (targets.length === 0) return grouped;
+  if (targets.length === 0) {
+    return grouped;
+  }
 
   const byType = new Map<string, string[]>();
   for (const target of targets) {
@@ -346,9 +342,11 @@ export async function findPendingChangesByEntity(
 /** Clears anything still pending on entities that have just ceased to exist. */
 export async function cancelPendingChangesFor(
   client: DbClient,
-  targets: { entityType: string; entityId: string }[]
+  targets: { entityType: string; entityId: string }[],
 ): Promise<void> {
-  if (targets.length === 0) return;
+  if (targets.length === 0) {
+    return;
+  }
   await client.changeRequest.deleteMany({
     where: {
       status: PENDING_CHANGE_REQUEST_STATUS as never,

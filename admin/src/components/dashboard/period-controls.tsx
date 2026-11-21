@@ -44,9 +44,11 @@ export function PeriodControls({ period, onPeriodChange, summary }: PeriodContro
         [t("cogs.label"), profit.cogs],
         [t("expenses.label"), profit.overheads],
         [t("profitAll.label"), profit.netProfit],
-        [t("profitReceived.label"), profit.receivedNetProfit]
+        [t("profitReceived.label"), profit.receivedNetProfit],
       );
-      if (profit.netMargin !== null) rows.push([t("margin.label"), profit.netMargin]);
+      if (profit.netMargin !== null) {
+        rows.push([t("margin.label"), profit.netMargin]);
+      }
     }
 
     downloadCsv(exportFilename(period, new Date()), toCsv(rows));
@@ -54,12 +56,7 @@ export function PeriodControls({ period, onPeriodChange, summary }: PeriodContro
 
   return (
     <>
-      <Tabs
-        tabs={DASHBOARD_PERIOD_TABS}
-        value={period}
-        onChange={onPeriodChange}
-        label="dashboard.period.choose"
-      />
+      <Tabs tabs={DASHBOARD_PERIOD_TABS} value={period} onChange={onPeriodChange} label="dashboard.period.choose" />
 
       {canExport && (
         <Button

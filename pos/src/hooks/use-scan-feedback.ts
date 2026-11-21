@@ -38,7 +38,7 @@ export function useScanFeedback(): ScanFeedback {
       playSound(variant);
       vibrate(variant);
     },
-    [playSound, vibrate]
+    [playSound, vibrate],
   );
 
   return { sound, vibration, play, unlock: sound.unlock };

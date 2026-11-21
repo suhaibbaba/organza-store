@@ -28,14 +28,16 @@ export function PeriodSection({ summary }: { summary: SalesSummary }) {
       </div>
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard name="sold"
+        <StatCard
+          name="sold"
           label={t("sold.label")}
           tooltip={tFigures("sold.help")}
           value={formatMoney(totals.revenue)}
           hint={t("sold.hint")}
         />
 
-        <StatCard name="received"
+        <StatCard
+          name="received"
           tone="success"
           label={t("received.label")}
           tooltip={tFigures("received.help")}
@@ -43,7 +45,8 @@ export function PeriodSection({ summary }: { summary: SalesSummary }) {
           hint={t("received.hint")}
         />
 
-        <StatCard name="owed"
+        <StatCard
+          name="owed"
           tone="warning"
           label={tFigures("owed.label")}
           tooltip={tFigures("owed.help")}
@@ -53,14 +56,16 @@ export function PeriodSection({ summary }: { summary: SalesSummary }) {
 
         {profit && (
           <>
-            <StatCard name="cogs"
+            <StatCard
+              name="cogs"
               label={t("cogs.label")}
               tooltip={t("cogs.help")}
               value={formatMoney(profit.cogs)}
               hint={t("cogs.hint")}
             />
 
-            <StatCard name="expenses"
+            <StatCard
+              name="expenses"
               label={t("expenses.label")}
               tooltip={t("expenses.help")}
               value={formatMoney(profit.overheads)}
@@ -68,14 +73,16 @@ export function PeriodSection({ summary }: { summary: SalesSummary }) {
             />
 
             {/* Both profits side by side: one counts money the delivery company still holds, one does not. */}
-            <StatCard name="profit-all"
+            <StatCard
+              name="profit-all"
               label={t("profitAll.label")}
               tooltip={t("profitAll.help")}
               value={formatMoney(profit.netProfit)}
               hint={t("profitAll.hint")}
             />
 
-            <StatCard name="profit-received"
+            <StatCard
+              name="profit-received"
               tone="success"
               label={t("profitReceived.label")}
               tooltip={t("profitReceived.help")}
@@ -83,7 +90,8 @@ export function PeriodSection({ summary }: { summary: SalesSummary }) {
               hint={t("profitReceived.hint")}
             />
 
-            <StatCard name="margin"
+            <StatCard
+              name="margin"
               label={t("margin.label")}
               tooltip={t("margin.help")}
               // Null when nothing sold; a 0% would read as a loss.

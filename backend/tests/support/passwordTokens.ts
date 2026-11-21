@@ -26,14 +26,18 @@ export function createInMemoryTokenStore(): PasswordTokenStore & { all(): Stored
 
     async findByHash(tokenHash) {
       for (const row of rows.values()) {
-        if (row.tokenHash === tokenHash) return { ...row };
+        if (row.tokenHash === tokenHash) {
+          return { ...row };
+        }
       }
       return null;
     },
 
     async markUsed(id, usedAt) {
       const row = rows.get(id);
-      if (!row || row.usedAt !== null) return false;
+      if (!row || row.usedAt !== null) {
+        return false;
+      }
       row.usedAt = usedAt;
       return true;
     },

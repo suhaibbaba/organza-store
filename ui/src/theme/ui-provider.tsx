@@ -12,12 +12,7 @@ export interface UiProviderProps {
 
 const STYLE_ID = "store-ui-theme";
 
-export function UiProvider({
-  theme,
-  direction = "rtl",
-  lang,
-  children,
-}: UiProviderProps): JSX.Element {
+export function UiProvider({ theme, direction = "rtl", lang, children }: UiProviderProps): JSX.Element {
   useInsertionEffect(() => {
     if (theme === undefined) {
       return;

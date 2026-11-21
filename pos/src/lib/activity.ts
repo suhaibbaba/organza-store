@@ -32,12 +32,16 @@ import { INACTIVE_AFTER_BLUR_MS } from "@/constants/polling";
 // (`refetchOnWindowFocus`), and the stock queries are always stale.
 export function trackTillActivity(): () => void {
   focusManager.setEventListener((setFocused) => {
-    if (typeof window === "undefined" || typeof document === "undefined") return;
+    if (typeof window === "undefined" || typeof document === "undefined") {
+      return;
+    }
 
     let blurTimer: ReturnType<typeof setTimeout> | undefined;
 
     function cancelBlurTimer() {
-      if (blurTimer === undefined) return;
+      if (blurTimer === undefined) {
+        return;
+      }
       clearTimeout(blurTimer);
       blurTimer = undefined;
     }
@@ -57,14 +61,19 @@ export function trackTillActivity(): () => void {
       // swiped away on a phone — and it takes effect at once rather than
       // waiting out the blur delay, because none of those are "glanced away
       // from".
-      if (document.visibilityState === "hidden") inactive();
-      else active();
+      if (document.visibilityState === "hidden") {
+        inactive();
+      } else {
+        active();
+      }
     }
 
     function handleBlur() {
       // A hidden window is already handled, and handling it twice would only
       // replace an immediate stop with a delayed one.
-      if (document.visibilityState === "hidden") return;
+      if (document.visibilityState === "hidden") {
+        return;
+      }
       cancelBlurTimer();
       blurTimer = setTimeout(() => setFocused(false), INACTIVE_AFTER_BLUR_MS);
     }
@@ -113,7 +122,9 @@ export function trackTillActivity(): () => void {
 
 // react-query's stock listener, restored on teardown.
 function defaultFocusListener(handleFocus: (focused?: boolean) => void): (() => void) | undefined {
-  if (typeof window === "undefined" || !window.addEventListener) return;
+  if (typeof window === "undefined" || !window.addEventListener) {
+    return;
+  }
   const listener = () => handleFocus();
   window.addEventListener("visibilitychange", listener, false);
   return () => window.removeEventListener("visibilitychange", listener);

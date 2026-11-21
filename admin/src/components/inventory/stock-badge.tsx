@@ -25,7 +25,7 @@ export function StockBadge({ stock, trackLowStock, threshold, className }: Stock
       className={cn(
         "pill-text inline-flex items-center gap-1 rounded-pill px-2.5 py-1 text-meta font-medium",
         tone,
-        className
+        className,
       )}
     >
       <Icon className="size-3.5 shrink-0" aria-hidden="true" />

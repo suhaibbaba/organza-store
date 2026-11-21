@@ -22,9 +22,7 @@ export function validationMessageKey(error: FieldError | undefined): string | un
 
   switch (error.type) {
     case "too_small":
-      return NOTHING_GIVEN.test(error.message ?? "")
-        ? "ui.validation.required"
-        : "ui.validation.tooSmall";
+      return NOTHING_GIVEN.test(error.message ?? "") ? "ui.validation.required" : "ui.validation.tooSmall";
     case "too_big":
       return "ui.validation.tooBig";
     case "invalid_type":

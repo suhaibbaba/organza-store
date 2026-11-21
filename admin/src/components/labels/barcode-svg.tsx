@@ -30,7 +30,9 @@ const SVG_NS = "http://www.w3.org/2000/svg";
 const markupCache = new Map<string, string | null>();
 
 function drawBarcode(value: string): string | null {
-  if (!SAFE_CODE_PATTERN.test(value)) return null;
+  if (!SAFE_CODE_PATTERN.test(value)) {
+    return null;
+  }
 
   const svg = document.createElementNS(SVG_NS, "svg");
   const options = {
@@ -56,7 +58,9 @@ function drawBarcode(value: string): string | null {
   } catch {
     return null;
   }
-  if (!svg.childNodes.length) return null;
+  if (!svg.childNodes.length) {
+    return null;
+  }
 
   // JsBarcode sizes the SVG with fixed width/height attributes. Swapping
   // those for a viewBox lets one rendering scale to any label size while
@@ -75,7 +79,9 @@ function drawBarcode(value: string): string | null {
 }
 
 function getBarcodeMarkup(value: string): string | null {
-  if (markupCache.has(value)) return markupCache.get(value) ?? null;
+  if (markupCache.has(value)) {
+    return markupCache.get(value) ?? null;
+  }
   const markup = drawBarcode(value);
   markupCache.set(value, markup);
   return markup;

@@ -50,7 +50,7 @@ export function StockBadge({
         className={cn(
           "inline-flex max-w-full items-center gap-1.5 rounded-pill px-2 py-0.5 text-micro font-semibold shadow-chip",
           STOCK_PILL_STYLES[status].tone,
-          className
+          className,
         )}
         data-test-selector="pos-stock-pill"
       >
@@ -70,7 +70,7 @@ export function StockBadge({
       className={cn(
         "max-w-full font-semibold",
         size === "sm" ? "h-auto gap-0.5 px-1.5 py-0.5 text-micro" : "h-auto gap-1 px-2 py-0.5 text-micro",
-        className
+        className,
       )}
     >
       {label}

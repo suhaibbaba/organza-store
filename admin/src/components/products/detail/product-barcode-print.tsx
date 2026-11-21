@@ -24,14 +24,16 @@ export function ProductBarcodePrint({ product }: ProductBarcodePrintProps) {
   const lines = useMemo(() => buildLabelLines(product, locale), [product, locale]);
   const copies = useMemo(
     () => Object.fromEntries(lines.map((line) => [line.key, overrides[line.key] ?? "1"])),
-    [lines, overrides]
+    [lines, overrides],
   );
   const total = countLabels(lines, copies);
   const tooMany = total > LABEL_RUN_MAX;
   const items = useMemo(() => (tooMany ? [] : expandLabels(lines, copies)), [lines, copies, tooMany]);
   const geometry = settings ? toLabelGeometry(settings) : null;
 
-  if (lines.length === 0) return null;
+  if (lines.length === 0) {
+    return null;
+  }
 
   return (
     <>
@@ -60,7 +62,11 @@ export function ProductBarcodePrint({ product }: ProductBarcodePrintProps) {
       >
         <div className="flex flex-col gap-4">
           {lines.length > 1 && (
-            <LabelCopiesList lines={lines} copies={copies} onChange={(key, value) => setOverrides((prev) => ({ ...prev, [key]: value }))} />
+            <LabelCopiesList
+              lines={lines}
+              copies={copies}
+              onChange={(key, value) => setOverrides((prev) => ({ ...prev, [key]: value }))}
+            />
           )}
           {tooMany && (
             <Alert tone="danger" data-testid="alert-destructive">

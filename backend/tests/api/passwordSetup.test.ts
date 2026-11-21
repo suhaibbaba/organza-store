@@ -35,7 +35,9 @@ describe("Password setup by email", () => {
         ...overrides,
       },
     });
-    if (res.data?.id) createdUserIds.push(res.data.id);
+    if (res.data?.id) {
+      createdUserIds.push(res.data.id);
+    }
     return res;
   }
 

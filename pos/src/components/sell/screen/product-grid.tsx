@@ -56,7 +56,10 @@ export function ProductGrid({
           {t("browse.loading")}
         </p>
       ) : products && products.length === 0 ? (
-        <div className="flex flex-col items-center gap-3 px-4 py-14 text-center" data-test-selector="pos-products-empty">
+        <div
+          className="flex flex-col items-center gap-3 px-4 py-14 text-center"
+          data-test-selector="pos-products-empty"
+        >
           <p className="text-label text-ink-muted">{isSearching ? t("browse.emptySearch") : t("browse.empty")}</p>
           <div className="flex flex-wrap justify-center gap-2">
             {isFiltered && (
@@ -71,7 +74,7 @@ export function ProductGrid({
                 icon={<Zap className="size-4" aria-hidden="true" />}
                 className={cn(
                   CONTROL_HEIGHT,
-                  "border-warning-300 bg-warning-50 px-4 text-warning-800 hover:border-warning-500 hover:bg-warning-100 hover:text-warning-800"
+                  "border-warning-300 bg-warning-50 px-4 text-warning-800 hover:border-warning-500 hover:bg-warning-100 hover:text-warning-800",
                 )}
               >
                 {t("quickSell.open")}

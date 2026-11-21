@@ -40,7 +40,9 @@ describe("Password setup tokens", () => {
       expect(tokens.size).toBe(50);
       // 32 bytes of randomness -> 43 url-safe characters, and nothing in it
       // that would need escaping in a URL.
-      for (const token of tokens) expect(token).toMatch(/^[A-Za-z0-9_-]{43}$/);
+      for (const token of tokens) {
+        expect(token).toMatch(/^[A-Za-z0-9_-]{43}$/);
+      }
     });
   });
 

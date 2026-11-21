@@ -37,7 +37,9 @@ export const TRUST_PROXY_SETTING: number | string | null = readTrustProxy();
 
 function readTrustProxy(): number | string | null {
   const raw = process.env.TRUST_PROXY?.trim();
-  if (!raw) return null;
+  if (!raw) {
+    return null;
+  }
   return /^\d+$/.test(raw) ? Number(raw) : raw;
 }
 

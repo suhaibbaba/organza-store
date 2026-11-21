@@ -47,7 +47,9 @@ export function PermissionsProvider({ children }: { children: ReactNode }) {
   });
 
   const matrix = useMemo(() => {
-    if (data) applyPermissionMatrixPayload(data);
+    if (data) {
+      applyPermissionMatrixPayload(data);
+    }
     return data ?? null;
   }, [data]);
 

@@ -33,7 +33,9 @@ export function PermissionsEditor({ matrix }: PermissionsEditorProps) {
 
   const held = useMemo(() => {
     const map = {} as Record<Role, Set<string>>;
-    for (const role of PERMISSION_MATRIX_ROLES) map[role] = new Set(matrix.roles?.[role] ?? []);
+    for (const role of PERMISSION_MATRIX_ROLES) {
+      map[role] = new Set(matrix.roles?.[role] ?? []);
+    }
     return map;
   }, [matrix]);
 
@@ -41,17 +43,20 @@ export function PermissionsEditor({ matrix }: PermissionsEditorProps) {
 
   function toggle(role: Role, action: PermissionAction, granted: boolean) {
     setPending({ role, action });
-    mutation.mutate(
-      { role, changes: [{ action, granted }] },
-      { onSettled: () => setPending(null) }
-    );
+    mutation.mutate({ role, changes: [{ action, granted }] }, { onSettled: () => setPending(null) });
   }
 
   /** Why this cell cannot be tapped — or null when it can. */
   function lockedReason(role: Role, action: PermissionAction): PermissionLockReason | null {
-    if (isProtectedAction(action)) return "protected";
-    if (role === ownRole) return "ownRole";
-    if (isFixedRole(role)) return "adminRole";
+    if (isProtectedAction(action)) {
+      return "protected";
+    }
+    if (role === ownRole) {
+      return "ownRole";
+    }
+    if (isFixedRole(role)) {
+      return "adminRole";
+    }
     return null;
   }
 

@@ -13,7 +13,9 @@ import { runBootstrap } from "@/lib/bootstrap";
 async function main(): Promise<void> {
   const summary = await runBootstrap();
   console.log(`created: ${summary.created.length}`);
-  for (const key of summary.created) console.log(`  + ${key}`);
+  for (const key of summary.created) {
+    console.log(`  + ${key}`);
+  }
   console.log(`adopted (already present): ${summary.adopted.length}`);
   console.log(`skipped (bootstrapped earlier): ${summary.skipped.length}`);
   console.log("Essential data is in place.");

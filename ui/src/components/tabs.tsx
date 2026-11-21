@@ -101,12 +101,7 @@ export interface TabPanelProps extends TestIdProps {
   readonly className?: string | undefined;
 }
 
-export function TabPanel({
-  id,
-  children,
-  className,
-  "data-testid": testId,
-}: TabPanelProps): JSX.Element {
+export function TabPanel({ id, children, className, "data-testid": testId }: TabPanelProps): JSX.Element {
   return (
     <div
       {...parts("tab-panel", testId ?? `panel-${id}`)()}

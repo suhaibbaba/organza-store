@@ -13,7 +13,9 @@ interface ProductPaginationProps {
 export function ProductPagination({ meta, onPageChange }: ProductPaginationProps) {
   const t = useTranslations("products.pagination");
 
-  if (meta.totalPages <= 1) return null;
+  if (meta.totalPages <= 1) {
+    return null;
+  }
 
   return (
     <div className="flex items-center justify-between gap-3 pt-2">
@@ -27,9 +29,7 @@ export function ProductPagination({ meta, onPageChange }: ProductPaginationProps
         {t("previous")}
       </Button>
 
-      <span className="text-label text-ink-muted">
-        {t("pageOf", { page: meta.page, totalPages: meta.totalPages })}
-      </span>
+      <span className="text-label text-ink-muted">{t("pageOf", { page: meta.page, totalPages: meta.totalPages })}</span>
 
       <Button
         data-test-selector="products-page-next"

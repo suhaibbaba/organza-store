@@ -35,7 +35,9 @@ export function hashToken(token: string): string {
 export function tokenHashesMatch(a: string, b: string): boolean {
   const left = Buffer.from(a, "utf8");
   const right = Buffer.from(b, "utf8");
-  if (left.length !== right.length) return false;
+  if (left.length !== right.length) {
+    return false;
+  }
   return crypto.timingSafeEqual(left, right);
 }
 
@@ -45,7 +47,9 @@ export function expiryFor(purpose: PasswordTokenPurpose, from: Date): Date {
 
 /** A token is usable only while unredeemed AND unexpired. Both, every time. */
 export function isTokenUsable(token: StoredPasswordToken, now: Date): boolean {
-  if (token.usedAt !== null) return false;
+  if (token.usedAt !== null) {
+    return false;
+  }
   return token.expiresAt.getTime() > now.getTime();
 }
 
@@ -68,19 +72,27 @@ export function createPasswordTokenService(options: PasswordTokenServiceOptions)
   }
 
   async function inspect(token: string): Promise<StoredPasswordToken | null> {
-    if (!token) return null;
+    if (!token) {
+      return null;
+    }
     const stored = await store.findByHash(hashToken(token));
-    if (!stored) return null;
+    if (!stored) {
+      return null;
+    }
     // The hash came back from a unique-index lookup, so it already matches;
     // comparing in constant time anyway keeps the one place a secret is
     // compared free of an early-exit byte comparison.
-    if (!tokenHashesMatch(stored.tokenHash, hashToken(token))) return null;
+    if (!tokenHashesMatch(stored.tokenHash, hashToken(token))) {
+      return null;
+    }
     return isTokenUsable(stored, now()) ? stored : null;
   }
 
   async function redeem(token: string): Promise<StoredPasswordToken | null> {
     const stored = await inspect(token);
-    if (!stored) return null;
+    if (!stored) {
+      return null;
+    }
     // The conditional update is the single-use gate, not the check above:
     // two redemptions racing each other both pass `inspect`, and exactly one
     // wins here.

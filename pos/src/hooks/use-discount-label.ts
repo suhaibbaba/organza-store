@@ -23,9 +23,11 @@ export function useDiscountLabel(): (type: DiscountType | null, value: string | 
 
   return useCallback(
     (type: DiscountType | null, value: string | null) => {
-      if (!type || !value) return null;
+      if (!type || !value) {
+        return null;
+      }
       return type === "PERCENT" ? formatPercent(value, locale) : formatMoney(value);
     },
-    [formatMoney, locale]
+    [formatMoney, locale],
   );
 }

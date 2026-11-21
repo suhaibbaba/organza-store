@@ -50,7 +50,7 @@ app.use(
   cors({
     origin: corsOrigins,
     credentials: true,
-  })
+  }),
 );
 app.use(helmet());
 
@@ -66,7 +66,7 @@ app.use(
     res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
     next();
   },
-  express.static(UPLOAD_DIR)
+  express.static(UPLOAD_DIR),
 );
 
 app.get("/health", async (_req, res) => {

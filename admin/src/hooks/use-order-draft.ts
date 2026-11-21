@@ -73,21 +73,21 @@ export function useOrderDraft(): OrderDraft {
     (key: string, quantity: number) => {
       updateLine(key, (line) => ({ ...line, quantity: clampLineQuantity(quantity, line) }));
     },
-    [updateLine]
+    [updateLine],
   );
 
   const incrementQuantity = useCallback(
     (key: string) => {
       updateLine(key, (line) => ({ ...line, quantity: clampLineQuantity(line.quantity + 1, line) }));
     },
-    [updateLine]
+    [updateLine],
   );
 
   const decrementQuantity = useCallback(
     (key: string) => {
       updateLine(key, (line) => ({ ...line, quantity: clampLineQuantity(line.quantity - 1, line) }));
     },
-    [updateLine]
+    [updateLine],
   );
 
   const removeLine = useCallback((key: string) => {
@@ -98,12 +98,10 @@ export function useOrderDraft(): OrderDraft {
     (key: string, type: DiscountType | null, value: string | null) => {
       // Both halves move together — the create-order schema refuses a half-set pair (isDiscountConsistent).
       const applied =
-        type && value
-          ? { discountType: type, discountValue: value }
-          : { discountType: null, discountValue: null };
+        type && value ? { discountType: type, discountValue: value } : { discountType: null, discountValue: null };
       updateLine(key, (line) => ({ ...line, ...applied }));
     },
-    [updateLine]
+    [updateLine],
   );
 
   const setOrderDiscount = useCallback((type: DiscountType | null, value: string | null) => {
@@ -132,4 +130,3 @@ export function useOrderDraft(): OrderDraft {
     clear,
   };
 }
-

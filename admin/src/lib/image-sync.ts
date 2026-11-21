@@ -27,7 +27,7 @@ export async function syncGallery(
   gallery: Gallery,
   // Called after each upload attempt, successful or not, so the form can
   // count photos through ("Uploading photos (2 of 5)").
-  onUploadSettled?: () => void
+  onUploadSettled?: () => void,
 ): Promise<ImageSyncOutcome> {
   const { slots, saved } = gallery;
   let errorCode: string | null = null;
@@ -48,7 +48,9 @@ export async function syncGallery(
     try {
       const created = await uploadImage(owner, slot.file, slot.edit);
       URL.revokeObjectURL(slot.previewUrl);
-      if (slot.sourceUrl !== slot.previewUrl) URL.revokeObjectURL(slot.sourceUrl);
+      if (slot.sourceUrl !== slot.previewUrl) {
+        URL.revokeObjectURL(slot.sourceUrl);
+      }
       onServer.set(created.id, created);
       working.push({ kind: "existing", id: created.id, image: created, isPrimary: slot.isPrimary });
     } catch (err) {
@@ -64,13 +66,17 @@ export async function syncGallery(
   //    retry sends it again — and never blocks the rest of the save: an
   //    unsaved crop is a smaller loss than a reorder that did not happen.
   for (const [index, slot] of working.entries()) {
-    if (slot.kind !== "existing" || !slot.edit) continue;
+    if (slot.kind !== "existing" || !slot.edit) {
+      continue;
+    }
     try {
       const updated = await editImage(slot.id, slot.edit);
       onServer.set(updated.id, updated);
       // The locally drawn preview has done its job; from here the tile shows
       // what the server actually produced.
-      if (slot.previewUrl) URL.revokeObjectURL(slot.previewUrl);
+      if (slot.previewUrl) {
+        URL.revokeObjectURL(slot.previewUrl);
+      }
       working[index] = { ...slot, image: updated, edit: null, previewUrl: null };
     } catch (err) {
       errorCode ??= errorCodeOf(err);
@@ -89,7 +95,9 @@ export async function syncGallery(
   //    for something that worked as designed.
   let awaitingApproval = 0;
   for (const image of saved) {
-    if (keptIds.has(image.id)) continue;
+    if (keptIds.has(image.id)) {
+      continue;
+    }
     try {
       const result = await deleteImage(image.id);
       if (result.deleted) {
@@ -125,7 +133,9 @@ export async function syncGallery(
   // shows next is what the server actually stored.
   const byId = new Map(images.map((i) => [i.id, i]));
   const settled: GallerySlot[] = working.map((slot) => {
-    if (slot.kind !== "existing") return slot;
+    if (slot.kind !== "existing") {
+      return slot;
+    }
     const stored = byId.get(slot.id);
     return stored ? { ...slot, image: stored, isPrimary: stored.isPrimary } : slot;
   });

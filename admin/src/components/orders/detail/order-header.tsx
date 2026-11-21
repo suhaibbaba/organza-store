@@ -41,8 +41,7 @@ export function OrderHeader({ order }: { order: Order }) {
 
   const canReturn =
     can(user, "order.return") && (RETURNABLE_ORDER_STATUSES as readonly string[]).includes(order.status);
-  const canCancel =
-    (ORDER_STATUS_TRANSITIONS[order.status] ?? []).includes("CANCELLED") && can(user, "order.cancel");
+  const canCancel = (ORDER_STATUS_TRANSITIONS[order.status] ?? []).includes("CANCELLED") && can(user, "order.cancel");
   const canDelete = can(user, "order.delete");
   const hasQuickSale = order.hasQuickSale || order.items.some((item) => item.quickSold);
 
@@ -51,7 +50,11 @@ export function OrderHeader({ order }: { order: Order }) {
       title: "orders.detail.statusActions.cancelTitle",
       titleValues: { number: order.orderNumber },
       consequences: [
-        t(order.stockDeductedAt ? "detail.statusActions.cancelConsequenceStock" : "detail.statusActions.cancelConsequence"),
+        t(
+          order.stockDeductedAt
+            ? "detail.statusActions.cancelConsequenceStock"
+            : "detail.statusActions.cancelConsequence",
+        ),
       ],
       confirmLabel: "orders.detail.statusActions.cancelOrder",
       tone: "danger",
@@ -170,12 +173,14 @@ export function OrderHeader({ order }: { order: Order }) {
                 index % 2 === 1 && "border-s",
                 index >= 2 && "border-t lg:border-t-0",
                 index === 2 && "lg:border-s",
-                isTotal && "bg-primary-50"
+                isTotal && "bg-primary-50",
               )}
             >
               <fact.icon className="mt-0.5 size-5 shrink-0 text-primary-700" aria-hidden="true" />
               <div className="min-w-0">
-                <Typography variant="small" tone="muted" as="dt">{fact.label}</Typography>
+                <Typography variant="small" tone="muted" as="dt">
+                  {fact.label}
+                </Typography>
                 <Typography
                   as="dd"
                   variant={isTotal ? "h2" : "body"}

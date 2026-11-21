@@ -6,7 +6,9 @@ import { cn } from "@/lib/utils";
 export function EnvironmentBadge({ className }: { className?: string }) {
   const t = useTranslations("app");
 
-  if (!IS_SANDBOX) return null;
+  if (!IS_SANDBOX) {
+    return null;
+  }
 
   return (
     <span
@@ -14,7 +16,7 @@ export function EnvironmentBadge({ className }: { className?: string }) {
       className={cn(
         // No uppercase/letter-spacing: both break Arabic and Hebrew joins.
         "pill-text inline-flex h-6 shrink-0 items-center rounded-pill border border-warning-300 bg-warning-50 px-2 text-micro font-semibold text-warning-800",
-        className
+        className,
       )}
     >
       {t("sandbox")}

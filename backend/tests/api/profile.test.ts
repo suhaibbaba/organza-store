@@ -39,7 +39,9 @@ describe("My profile", () => {
 
   afterAll(async () => {
     const admin = await getSession("ADMIN");
-    for (const id of strays) await apiRequest(`/api/users/${id}`, { method: "DELETE", token: admin.token });
+    for (const id of strays) {
+      await apiRequest(`/api/users/${id}`, { method: "DELETE", token: admin.token });
+    }
   });
 
   it("needs a session", async () => {
@@ -161,7 +163,11 @@ describe("My profile", () => {
     const account = await createStaff("me-closed");
     const token = await signInAs(account.email);
 
-    const update = await rawRequest("/api/auth/update-user", { method: "POST", token, body: { name: "Vitest bypass" } });
+    const update = await rawRequest("/api/auth/update-user", {
+      method: "POST",
+      token,
+      body: { name: "Vitest bypass" },
+    });
     expect(update.status).toBe(404);
 
     const change = await rawRequest("/api/auth/change-password", {

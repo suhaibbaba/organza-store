@@ -87,5 +87,6 @@ export function StickyActions({
 }
 
 // The quiet glass button that sits before the main action in the pill.
-export const STICKY_SECONDARY_CLASS = "rounded-pill border border-surface/70 bg-surface/40 text-ink hover:bg-surface/70";
+export const STICKY_SECONDARY_CLASS =
+  "rounded-pill border border-surface/70 bg-surface/40 text-ink hover:bg-surface/70";
 export const STICKY_PRIMARY_CLASS = "rounded-pill px-4 shadow-pill ring-1 ring-surface/30 ring-inset";

@@ -36,7 +36,7 @@ export function SaleSuccess({ order, onNewSale }: SaleSuccessProps) {
       role="status"
       className={cn(
         "flex flex-col items-center gap-4 rounded-panel border px-6 py-12 text-center",
-        isGift ? "border-tint-3-ink/30 bg-tint-3-bg" : "border-success-300 bg-success-50"
+        isGift ? "border-tint-3-ink/30 bg-tint-3-bg" : "border-success-300 bg-success-50",
       )}
     >
       {isGift ? (
@@ -69,7 +69,12 @@ export function SaleSuccess({ order, onNewSale }: SaleSuccessProps) {
       {isGift && <p className="max-w-xs text-sm text-ink-muted">{t("giftNextStep")}</p>}
       {!isGift && !isCounterSale && <p className="max-w-xs text-sm text-ink-muted">{t("whatsappNextStep")}</p>}
 
-      <Button type="button" onClick={onNewSale} data-testid="pos-new-sale" className={`${SHEET_ACTION} w-full max-w-xs`}>
+      <Button
+        type="button"
+        onClick={onNewSale}
+        data-testid="pos-new-sale"
+        className={`${SHEET_ACTION} w-full max-w-xs`}
+      >
         {t("newSale")}
       </Button>
     </div>

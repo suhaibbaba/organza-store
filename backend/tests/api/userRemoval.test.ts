@@ -48,7 +48,6 @@ describe("Staff account removal", () => {
     return res.data!;
   }
 
-
   /**
    * A fixture account that has ACTUALLY WORKED — it signs in and rings up a
    * sale of its own.
@@ -59,7 +58,9 @@ describe("Staff account removal", () => {
    * it never touched — and reactivating afterwards would not bring the
    * revoked token back.
    */
-  async function createWorkingStaff(label: string): Promise<{ account: StaffAccountView; token: string; orderId: string }> {
+  async function createWorkingStaff(
+    label: string,
+  ): Promise<{ account: StaffAccountView; token: string; orderId: string }> {
     const admin = await getSession("ADMIN");
     const account = await createStaff(label);
 
@@ -100,7 +101,7 @@ describe("Staff account removal", () => {
       const token = signedIn.session!.token;
       expect(
         (await apiRequest("/api/categories", { token })).status,
-        "the fixture must be genuinely signed in first"
+        "the fixture must be genuinely signed in first",
       ).toBe(200);
 
       const off = await apiRequest(`/api/users/${staff.id}`, {
@@ -176,7 +177,7 @@ describe("Staff account removal", () => {
       // reason deactivation exists at all.
       const order = await apiRequest<{ id: string; createdById: string; createdBy: { name: string } | null }>(
         `/api/orders/${orderId}`,
-        { token: admin.token }
+        { token: admin.token },
       );
       expect(order.status).toBe(200);
       expect(order.data!.createdById).toBe(account.id);
@@ -327,7 +328,9 @@ describe("Staff account removal", () => {
       expect(admins.status).toBe(200);
       // Only meaningful while there is exactly one; with two, demoting one is
       // a legitimate thing to allow.
-      if ((admins.data ?? []).length !== 1) return;
+      if ((admins.data ?? []).length !== 1) {
+        return;
+      }
 
       const res = await apiRequest(`/api/users/${admin.userId}`, {
         method: "PATCH",
@@ -389,7 +392,7 @@ describe("Staff account removal", () => {
       const admin = await getSession("ADMIN");
       const res = await apiRequest<StaffAccountView[]>(
         `/api/users?q=${encodeURIComponent(SEEDED_ACCOUNTS.EMPLOYEE.email)}`,
-        { token: admin.token }
+        { token: admin.token },
       );
       expect(res.status).toBe(200);
 

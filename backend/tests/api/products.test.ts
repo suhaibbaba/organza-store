@@ -9,7 +9,9 @@ const skuPattern = new RegExp(`^${SKU_PREFIX}\\d{${SKU_PAD_LENGTH}}$`);
 const ean13Pattern = /^\d{13}$/;
 
 function isValidEan13(barcode: string): boolean {
-  if (!ean13Pattern.test(barcode)) return false;
+  if (!ean13Pattern.test(barcode)) {
+    return false;
+  }
   const digits = barcode.split("").map(Number);
   const checkDigit = digits.pop()!;
   const sum = digits.reduce((acc, digit, i) => acc + (i % 2 === 0 ? digit : digit * 3), 0);
@@ -228,7 +230,7 @@ describe("Products", () => {
 
       const res = await apiRequest<ProductVariantDto & { pendingChanges: ChangeRequestDto[] }>(
         `/api/products/${created.data!.id}/variants/${variant.id}`,
-        { method: "PATCH", token: employee.token, body: { priceOverride: "1" } }
+        { method: "PATCH", token: employee.token, body: { priceOverride: "1" } },
       );
       expect(res.status).toBe(200);
       const request = res.data!.pendingChanges.find((c) => c.field === "priceOverride");
@@ -304,7 +306,7 @@ describe("Products", () => {
       const target = product.variants[1];
       const res = await apiRequest<ProductLookupDto>(
         `/api/products/lookup?code=${encodeURIComponent(target.barcode!)}`,
-        { token: admin.token }
+        { token: admin.token },
       );
 
       expect(res.status).toBe(200);
@@ -337,20 +339,20 @@ describe("Products", () => {
       // (CLAUDE.md rule 19) — the same gate as every other product read.
       const asEmployee = await apiRequest<ProductLookupDto>(
         `/api/products/lookup?code=${encodeURIComponent(product.barcode!)}`,
-        { token: employee.token }
+        { token: employee.token },
       );
       expect(asEmployee.status).toBe(200);
       expect(asEmployee.data!.product).not.toHaveProperty("cost");
 
       const asManager = await apiRequest<ProductLookupDto>(
         `/api/products/lookup?code=${encodeURIComponent(product.barcode!)}`,
-        { token: manager.token }
+        { token: manager.token },
       );
       expect(asManager.data!.product).not.toHaveProperty("cost");
 
       const asAdmin = await apiRequest<ProductLookupDto>(
         `/api/products/lookup?code=${encodeURIComponent(product.barcode!)}`,
-        { token: admin.token }
+        { token: admin.token },
       );
       expect(asAdmin.data!.product).toHaveProperty("cost");
       expect(Number(asAdmin.data!.product.cost)).toBe(25);

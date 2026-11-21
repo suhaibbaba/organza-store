@@ -16,7 +16,11 @@ export function ProductDetailGallery({ photos, name }: ProductDetailGalleryProps
   const active = photos[index] ?? null;
 
   const caption = (photo: GalleryPhoto) =>
-    photo.kind === "numbered" ? t("numbered") : photo.kind === "variant" ? t("variant", { name: photo.variantName ?? "" }) : null;
+    photo.kind === "numbered"
+      ? t("numbered")
+      : photo.kind === "variant"
+        ? t("variant", { name: photo.variantName ?? "" })
+        : null;
 
   if (!active) {
     return (
@@ -24,7 +28,9 @@ export function ProductDetailGallery({ photos, name }: ProductDetailGalleryProps
         <div className="aspect-square w-full overflow-hidden rounded-card border border-line bg-sunken">
           <ProductImage src={null} alt={name} fit="contain" className="size-full" sizes={PRODUCT_DETAIL_IMAGE_SIZES} />
         </div>
-        <Typography variant="caption" tone="muted" className="text-center">{t("none")}</Typography>
+        <Typography variant="caption" tone="muted" className="text-center">
+          {t("none")}
+        </Typography>
       </div>
     );
   }
@@ -39,7 +45,14 @@ export function ProductDetailGallery({ photos, name }: ProductDetailGalleryProps
         onClick={() => setViewerOpen(true)}
         className="relative aspect-square cursor-zoom-in overflow-hidden rounded-card bg-sunken"
       >
-        <ProductImage src={active.url} alt={name} fit="contain" className="size-full" sizes={PRODUCT_DETAIL_IMAGE_SIZES} eager />
+        <ProductImage
+          src={active.url}
+          alt={name}
+          fit="contain"
+          className="size-full"
+          sizes={PRODUCT_DETAIL_IMAGE_SIZES}
+          eager
+        />
         <span className="absolute end-3 top-3 flex size-9 items-center justify-center rounded-pill bg-surface/90 text-primary-700 shadow-card transition-colors group-hover:bg-surface group-focus-visible:bg-primary-50">
           <Maximize2 className="size-4" aria-hidden="true" />
         </span>
@@ -61,7 +74,13 @@ export function ProductDetailGallery({ photos, name }: ProductDetailGalleryProps
                 onClick={() => setIndex(position)}
                 className="aspect-square overflow-hidden rounded-control bg-sunken p-0.5"
               >
-                <ProductImage src={photo.thumbnailUrl} alt="" fit="contain" className="size-full rounded-chip" sizes={PRODUCT_DETAIL_THUMB_SIZES} />
+                <ProductImage
+                  src={photo.thumbnailUrl}
+                  alt=""
+                  fit="contain"
+                  className="size-full rounded-chip"
+                  sizes={PRODUCT_DETAIL_THUMB_SIZES}
+                />
               </CardButton>
             </li>
           ))}

@@ -23,7 +23,7 @@ export const EMPTY_ORDER_FILTERS: OrderFiltersValue = {
 
 export function countOrderFilters(value: OrderFiltersValue): number {
   return [value.status, value.channel, value.paymentStatus, value.hasQuickSale, value.dateFrom || value.dateTo].filter(
-    Boolean
+    Boolean,
   ).length;
 }
 
@@ -62,7 +62,10 @@ export function OrderFilters({ value, sort, onApply, omit = [] }: OrderFiltersPr
       >
         {t("trigger")}
         {activeCount > 0 && (
-          <Typography variant="caption" className="absolute -end-1.5 -top-1.5 flex size-5 items-center justify-center rounded-pill bg-primary-600 text-ink-inverse">
+          <Typography
+            variant="caption"
+            className="absolute -end-1.5 -top-1.5 flex size-5 items-center justify-center rounded-pill bg-primary-600 text-ink-inverse"
+          >
             {activeCount}
           </Typography>
         )}
@@ -76,7 +79,11 @@ export function OrderFilters({ value, sort, onApply, omit = [] }: OrderFiltersPr
         descriptionKey="orders.filters.title"
         footer={
           <>
-            <Button variant="secondary" onClick={() => apply(EMPTY_ORDER_FILTERS)} data-test-selector="order-filters-reset">
+            <Button
+              variant="secondary"
+              onClick={() => apply(EMPTY_ORDER_FILTERS)}
+              data-test-selector="order-filters-reset"
+            >
               {t("reset")}
             </Button>
             <Button onClick={() => apply(draft)} data-test-selector="order-filters-apply">
@@ -94,7 +101,9 @@ export function OrderFilters({ value, sort, onApply, omit = [] }: OrderFiltersPr
               options={ORDER_SORT_OPTIONS.map((option) => ({ value: option.value, label: tSort(option.labelKey) }))}
               onChange={(e) => {
                 const option = ORDER_SORT_OPTIONS.find((o) => o.value === e.target.value);
-                if (option) setDraftSort({ sortBy: option.sortBy, sortDir: option.sortDir });
+                if (option) {
+                  setDraftSort({ sortBy: option.sortBy, sortDir: option.sortDir });
+                }
               }}
             />
           </FormField>
@@ -126,25 +135,25 @@ export function OrderFilters({ value, sort, onApply, omit = [] }: OrderFiltersPr
           </FormField>
 
           {!omit.includes("paymentStatus") && (
-          <FormField
-            label="orders.filters.paymentStatus"
-            hint="orders.filters.paymentStatusHint"
-            htmlFor="order-filter-payment"
-          >
-            <Select
-              id="order-filter-payment"
-              data-testid={fieldTestSelector("order-filter-payment")}
-              placeholder={t("paymentStatusAll")}
-              value={draft.paymentStatus ?? ""}
-              options={PAYMENT_STATUSES.map((status) => ({ value: status, label: tPayment(status) }))}
-              onChange={(e) =>
-                setDraft((d) => ({
-                  ...d,
-                  paymentStatus: (e.target.value || null) as OrderFiltersValue["paymentStatus"],
-                }))
-              }
-            />
-          </FormField>
+            <FormField
+              label="orders.filters.paymentStatus"
+              hint="orders.filters.paymentStatusHint"
+              htmlFor="order-filter-payment"
+            >
+              <Select
+                id="order-filter-payment"
+                data-testid={fieldTestSelector("order-filter-payment")}
+                placeholder={t("paymentStatusAll")}
+                value={draft.paymentStatus ?? ""}
+                options={PAYMENT_STATUSES.map((status) => ({ value: status, label: tPayment(status) }))}
+                onChange={(e) =>
+                  setDraft((d) => ({
+                    ...d,
+                    paymentStatus: (e.target.value || null) as OrderFiltersValue["paymentStatus"],
+                  }))
+                }
+              />
+            </FormField>
           )}
 
           <FormField label="orders.filters.dateRange" hint="orders.filters.dateRangeHint" htmlFor="order-filter-dates">
@@ -157,7 +166,11 @@ export function OrderFilters({ value, sort, onApply, omit = [] }: OrderFiltersPr
             />
           </FormField>
 
-          <FormField label="orders.filters.quickSale" hint="orders.filters.quickSaleHint" htmlFor="order-filter-quick-sale">
+          <FormField
+            label="orders.filters.quickSale"
+            hint="orders.filters.quickSaleHint"
+            htmlFor="order-filter-quick-sale"
+          >
             <Switch
               id="order-filter-quick-sale"
               data-testid={fieldTestSelector("order-filter-quick-sale")}
@@ -180,13 +193,19 @@ export function OrderFilterChips({ value, onChange }: OrderFilterChipsProps) {
   const tPayment = useTranslations("orders.paymentStatus");
   const locale = useLocale();
 
-  if (countOrderFilters(value) === 0) return null;
+  if (countOrderFilters(value) === 0) {
+    return null;
+  }
 
   // Date inputs are calendar days; read them as local midnight so the chip shows the day picked.
   const day = (date: string) => formatDate(`${date}T00:00:00`, locale);
   const chips: { key: string; label: string; clear: OrderFiltersValue }[] = [];
   if (value.status) {
-    chips.push({ key: "status", label: t("chipStatus", { name: tStatus(value.status) }), clear: { ...value, status: null } });
+    chips.push({
+      key: "status",
+      label: t("chipStatus", { name: tStatus(value.status) }),
+      clear: { ...value, status: null },
+    });
   }
   if (value.channel) {
     chips.push({

@@ -25,7 +25,10 @@ export function AuthGuard({ children }: { children: ReactNode }) {
 
   if (isError) {
     return (
-      <div className="flex min-h-dvh flex-col items-center justify-center gap-4 bg-canvas px-6 text-center" data-test-selector="auth-offline">
+      <div
+        className="flex min-h-dvh flex-col items-center justify-center gap-4 bg-canvas px-6 text-center"
+        data-test-selector="auth-offline"
+      >
         <p className="text-section font-semibold text-ink">{tOffline("title")}</p>
         <p className="max-w-sm text-label leading-relaxed text-ink-muted">{tOffline("message")}</p>
         <Button onClick={() => void refresh()}>{t("retry")}</Button>

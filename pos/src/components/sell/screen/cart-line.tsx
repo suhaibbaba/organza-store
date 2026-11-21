@@ -49,7 +49,7 @@ export function CartLine({ line, flash, onQuantityChange, onRemove }: CartLinePr
     <li
       className={cn(
         "relative flex flex-col gap-2 border-b border-line py-3 transition-colors last:border-b-0",
-        flash && "-mx-2 rounded-control bg-primary-50 px-2"
+        flash && "-mx-2 rounded-control bg-primary-50 px-2",
       )}
       data-test-selector={testSelectorFor("pos-cart-line", line.key)}
     >
@@ -78,7 +78,9 @@ export function CartLine({ line, flash, onQuantityChange, onRemove }: CartLinePr
             </span>
           )}
           {appliedDiscount && (
-            <span className="text-micro font-medium text-success-700">{t("cart.discountValue", { value: appliedDiscount })}</span>
+            <span className="text-micro font-medium text-success-700">
+              {t("cart.discountValue", { value: appliedDiscount })}
+            </span>
           )}
           <div className="mt-1 flex w-full items-center gap-2">
             <QuantityStepper
@@ -101,7 +103,7 @@ export function CartLine({ line, flash, onQuantityChange, onRemove }: CartLinePr
               // Matches the 40px stepper beside it; hit-area keeps 44px.
               className={cn(
                 "hit-area flex size-10 shrink-0 cursor-pointer items-center justify-center rounded-control border border-line bg-surface text-ink-muted transition-colors",
-                "hover:border-danger-500 hover:bg-danger-50 hover:text-danger-600 focus-visible:border-danger-600 focus-visible:bg-danger-100 focus-visible:text-danger-700"
+                "hover:border-danger-500 hover:bg-danger-50 hover:text-danger-600 focus-visible:border-danger-600 focus-visible:bg-danger-100 focus-visible:text-danger-700",
               )}
             >
               <Trash2 className="size-4" aria-hidden="true" />

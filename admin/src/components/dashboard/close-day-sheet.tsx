@@ -53,11 +53,12 @@ function CloseDayForm({ session, onDone }: { session: CashSession; onDone: () =>
   const [errorCode, setErrorCode] = useState<string | null>(null);
 
   const noteRequired = step === "reveal";
-  const canSubmit =
-    counted.trim() !== "" && !mutation.isPending && (!noteRequired || note.trim() !== "");
+  const canSubmit = counted.trim() !== "" && !mutation.isPending && (!noteRequired || note.trim() !== "");
 
   async function submit() {
-    if (!canSubmit) return;
+    if (!canSubmit) {
+      return;
+    }
     setErrorCode(null);
 
     try {
@@ -234,14 +235,12 @@ function ComparisonRow({
 }) {
   return (
     <div className="flex items-baseline justify-between gap-3">
-      <p className={cn("text-label", emphasis ? "font-semibold text-ink" : "text-ink-muted")}>
-        {label}
-      </p>
+      <p className={cn("text-label", emphasis ? "font-semibold text-ink" : "text-ink-muted")}>{label}</p>
       <p
         className={cn(
           "shrink-0 tabular-nums",
           emphasis ? "text-heading font-bold text-ink" : "text-label text-ink",
-          emphasis && tone === "off" && "text-warning-700"
+          emphasis && tone === "off" && "text-warning-700",
         )}
       >
         {value}

@@ -16,12 +16,7 @@ interface LabelFiltersProps {
 }
 
 // Toggles, not a dropdown: which labels are still owed is this screen's question, so it stays one tap away.
-export function LabelFilters({
-  printState,
-  categoryId,
-  onPrintStateChange,
-  onCategoryChange,
-}: LabelFiltersProps) {
+export function LabelFilters({ printState, categoryId, onPrintStateChange, onCategoryChange }: LabelFiltersProps) {
   const t = useTranslations("labels.filters");
   const locale = useLocale();
   const { data: categoryTree } = useCategoriesQuery();

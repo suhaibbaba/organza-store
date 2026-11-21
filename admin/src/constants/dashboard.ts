@@ -13,9 +13,10 @@ export const NEEDS_ATTENTION_STALE_TIME_MS = 60 * 1000;
 // The month is what rent is paid out of — the figure the owner checks first.
 export const DEFAULT_DASHBOARD_PERIOD: ReportPeriod = "month";
 
-export const DASHBOARD_PERIOD_TABS: readonly { id: ReportPeriod; label: string }[] = REPORT_PERIODS.map(
-  (key) => ({ id: key, label: `dashboard.period.periods.${key}` })
-);
+export const DASHBOARD_PERIOD_TABS: readonly { id: ReportPeriod; label: string }[] = REPORT_PERIODS.map((key) => ({
+  id: key,
+  label: `dashboard.period.periods.${key}`,
+}));
 
 // CSV, not .xlsx: Excel opens it natively and it needs no library.
 export const EXPORT_FILE_PREFIX = "store";

@@ -82,9 +82,7 @@ export function Img({
           }}
           onLoad={() => settle("loaded")}
           onError={() => settle("failed")}
-          {...(priority
-            ? { loading: "eager" as const, fetchPriority: "high" as const }
-            : { loading: "lazy" as const })}
+          {...(priority ? { loading: "eager" as const, fetchPriority: "high" as const } : { loading: "lazy" as const })}
           decoding="async"
           className={cn(
             "size-full transition-opacity duration-[120ms]",
@@ -94,9 +92,7 @@ export function Img({
         />
       )}
 
-      {!missing && state === "loading" && (
-        <Skeleton className="absolute inset-0 size-full rounded-none" />
-      )}
+      {!missing && state === "loading" && <Skeleton className="absolute inset-0 size-full rounded-none" />}
 
       {showFallback &&
         (fallback ?? (

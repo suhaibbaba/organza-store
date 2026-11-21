@@ -42,7 +42,9 @@ function auditFields(user: User) {
 
 async function loadSelf(userId: string): Promise<User> {
   const user = await prisma.user.findUnique({ where: { id: userId } });
-  if (!user) throw new AppError(404, ERROR_CODES.USER_NOT_FOUND);
+  if (!user) {
+    throw new AppError(404, ERROR_CODES.USER_NOT_FOUND);
+  }
   return user;
 }
 
@@ -51,7 +53,7 @@ router.get(
   "/",
   asyncHandler(async (req, res) => {
     sendOk(res, toProfile(await loadSelf(req.user!.id)));
-  })
+  }),
 );
 
 // PATCH /api/me
@@ -83,7 +85,7 @@ router.patch(
     });
 
     sendOk(res, toProfile(updated));
-  })
+  }),
 );
 
 // POST /api/me/password — the current password is required, and every other device is signed out.
@@ -110,7 +112,7 @@ router.post(
     });
 
     sendOk(res, { changed: true });
-  })
+  }),
 );
 
 // GET /api/me/sessions
@@ -137,7 +139,7 @@ router.get(
       total,
       totalPages: Math.max(1, Math.ceil(total / PROFILE_SESSIONS_LIMIT)),
     });
-  })
+  }),
 );
 
 // DELETE /api/me/sessions — every device but this one.
@@ -155,7 +157,7 @@ router.delete(
       newValue: { scope: "others" },
     });
     sendOk(res, { revoked: true });
-  })
+  }),
 );
 
 // DELETE /api/me/sessions/:id — one other device; this one signs out through the normal sign-out.
@@ -164,7 +166,9 @@ router.delete(
   asyncHandler(async (req, res) => {
     const userId = req.user!.id;
     const session = await prisma.session.findFirst({ where: { id: req.params.id, userId } });
-    if (!session || session.id === req.sessionId) throw new AppError(404, ERROR_CODES.PROFILE_SESSION_NOT_FOUND);
+    if (!session || session.id === req.sessionId) {
+      throw new AppError(404, ERROR_CODES.PROFILE_SESSION_NOT_FOUND);
+    }
 
     const ctx = await auth.$context;
     await ctx.internalAdapter.deleteSession(session.token);
@@ -177,7 +181,7 @@ router.delete(
       newValue: null,
     });
     sendOk(res, { revoked: true });
-  })
+  }),
 );
 
 export default router;

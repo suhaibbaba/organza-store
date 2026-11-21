@@ -50,15 +50,8 @@ interface VitestRun {
 function runVitest(extraArgs: string[]): number {
   const result = spawnSync(
     "npx",
-    [
-      "vitest",
-      "run",
-      "--reporter=default",
-      "--reporter=json",
-      `--outputFile.json=${VERIFY_RESULT_JSON}`,
-      ...extraArgs,
-    ],
-    { cwd: BACKEND_DIR, stdio: "inherit", shell: true, env: { ...process.env, API_URL: TARGET.url } }
+    ["vitest", "run", "--reporter=default", "--reporter=json", `--outputFile.json=${VERIFY_RESULT_JSON}`, ...extraArgs],
+    { cwd: BACKEND_DIR, stdio: "inherit", shell: true, env: { ...process.env, API_URL: TARGET.url } },
   );
   // A signal (Ctrl-C) has no exit code; treat it as a failure rather than a pass.
   return result.status ?? 1;
@@ -88,7 +81,9 @@ function summarise(run: VitestRun, vitestExitCode: number): VerifyRunSummary {
 
   // Every declared area is seeded, so one that ran NOTHING shows up as an
   // empty row rather than silently disappearing from the summary.
-  for (const area of VERIFY_AREAS) byKey.set(area.key, blank(area));
+  for (const area of VERIFY_AREAS) {
+    byKey.set(area.key, blank(area));
+  }
 
   for (const file of run.testResults ?? []) {
     const area = areaFor(file.name);
@@ -96,7 +91,9 @@ function summarise(run: VitestRun, vitestExitCode: number): VerifyRunSummary {
     byKey.set(area.key, result);
 
     const base = path.basename(file.name);
-    if (!result.files.includes(base)) result.files.push(base);
+    if (!result.files.includes(base)) {
+      result.files.push(base);
+    }
 
     for (const test of file.assertionResults ?? []) {
       result.durationMs += test.duration ?? 0;
@@ -147,9 +144,15 @@ const BOLD = "[1m";
 const RESET = "[0m";
 
 function verdict(area: AreaResult): string {
-  if (area.failed > 0) return `${RED}FAIL${RESET}`;
-  if (area.passed === 0) return `${YELLOW}NONE${RESET}`;
-  if (area.skipped > 0) return `${YELLOW}PASS${RESET}`;
+  if (area.failed > 0) {
+    return `${RED}FAIL${RESET}`;
+  }
+  if (area.passed === 0) {
+    return `${YELLOW}NONE${RESET}`;
+  }
+  if (area.skipped > 0) {
+    return `${YELLOW}PASS${RESET}`;
+  }
   return `${GREEN}PASS${RESET}`;
 }
 
@@ -175,7 +178,9 @@ function printSummary(summary: VerifyRunSummary): void {
     lines.push(`        ${DIM}${area.claim}${RESET}`);
     for (const failure of area.failures) {
       lines.push(`        ${RED}✗ ${failure.name}${RESET}`);
-      if (failure.message) lines.push(`          ${failure.message}`);
+      if (failure.message) {
+        lines.push(`          ${failure.message}`);
+      }
     }
   }
 
@@ -187,12 +192,12 @@ function printSummary(summary: VerifyRunSummary): void {
       : `${RED}${BOLD}FAIL${RESET}`;
   const skipped = summary.skipped ? `, ${summary.skipped} skipped` : "";
   lines.push(
-    `  ${overall} — ${summary.passed} passed, ${summary.failed} failed${skipped} in ${seconds(summary.durationMs)}`
+    `  ${overall} — ${summary.passed} passed, ${summary.failed} failed${skipped} in ${seconds(summary.durationMs)}`,
   );
   if (summary.incomplete) {
     lines.push(
       `  ${RED}The run ended badly without any assertion failing — a test file could not load,${RESET}`,
-      `  ${RED}or the target API could not be reached. Nothing below is a verdict. See above.${RESET}`
+      `  ${RED}or the target API could not be reached. Nothing below is a verdict. See above.${RESET}`,
     );
   }
   lines.push(`  Report: backend/${VERIFY_REPORT_FILE}`);
@@ -234,7 +239,7 @@ function writeReport(summary: VerifyRunSummary): void {
     "|---|---|---:|---:|---:|---|",
     ...summary.areas.map(
       (area) =>
-        `| ${area.title} | ${status(area)} | ${area.passed} | ${area.failed} | ${area.skipped} | ${area.claim} |`
+        `| ${area.title} | ${status(area)} | ${area.passed} | ${area.failed} | ${area.skipped} | ${area.claim} |`,
     ),
     "",
   ];
@@ -264,7 +269,7 @@ function writeReport(summary: VerifyRunSummary): void {
       "suite never opens one on a real trading day; see `STORE_ALLOW_TODAY_DRAWER`).",
       "",
       ...partial.map((area) => `- ${area.title}: ${area.skipped} skipped`),
-      ""
+      "",
     );
   }
 
@@ -272,7 +277,7 @@ function writeReport(summary: VerifyRunSummary): void {
     "## Files",
     "",
     ...summary.areas.map((area) => `- **${area.title}** — ${area.files.join(", ") || "(none ran)"}`),
-    ""
+    "",
   );
 
   fs.writeFileSync(path.join(BACKEND_DIR, VERIFY_REPORT_FILE), lines.join("\n"), "utf8");
@@ -300,7 +305,7 @@ function main(): void {
   if (!fs.existsSync(resultPath)) {
     console.error(
       `\n${RED}The test run produced no result file (${VERIFY_RESULT_JSON}).${RESET}\n` +
-        "Nothing could be summarised — see the output above for why the run did not start.\n"
+        "Nothing could be summarised — see the output above for why the run did not start.\n",
     );
     process.exit(exitCode || 1);
   }

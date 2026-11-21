@@ -8,8 +8,7 @@ import { BARCODE_TERMINATOR_CODES } from "@/constants/barcode";
 import { fieldTestSelector } from "@store/shared/lib/testSelector";
 import { Input } from "@store/ui";
 
-interface BarcodeInputProps
-  extends Omit<React.ComponentProps<"input">, "type" | "value" | "onChange" | "onKeyDown"> {
+interface BarcodeInputProps extends Omit<React.ComponentProps<"input">, "type" | "value" | "onChange" | "onKeyDown"> {
   value: string;
   onChange: (value: string) => void;
   // The scanner pressed Enter; the value is already in the field either way.
@@ -20,10 +19,14 @@ interface BarcodeInputProps
 export function BarcodeInput({ value, onChange, onScanComplete, ...props }: BarcodeInputProps) {
   function handleKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {
     // Shortcuts and IME composition come back through onChange, which normalizes.
-    if (event.ctrlKey || event.metaKey || event.altKey || event.nativeEvent.isComposing) return;
+    if (event.ctrlKey || event.metaKey || event.altKey || event.nativeEvent.isComposing) {
+      return;
+    }
 
     // Shift alone: a scanner presses it before every capital.
-    if (isModifierKey(event.nativeEvent)) return;
+    if (isModifierKey(event.nativeEvent)) {
+      return;
+    }
 
     if (BARCODE_TERMINATOR_CODES.includes(event.code)) {
       // Claimed outright, so the form is not submitted by a scanner's Enter.
@@ -34,7 +37,9 @@ export function BarcodeInput({ value, onChange, onScanComplete, ...props }: Barc
 
     const char = physicalKeyChar(event.nativeEvent);
     // Non-character keys do the right thing natively.
-    if (char === null) return;
+    if (char === null) {
+      return;
+    }
 
     // A space is never part of a barcode; swallowed so the field never flickers.
     if (char.trim() === "") {
@@ -50,7 +55,12 @@ export function BarcodeInput({ value, onChange, onScanComplete, ...props }: Barc
 
     event.preventDefault();
     // setRangeText keeps the caret after the insertion, so typing mid-code works.
-    input.setRangeText(char, input.selectionStart ?? input.value.length, input.selectionEnd ?? input.value.length, "end");
+    input.setRangeText(
+      char,
+      input.selectionStart ?? input.value.length,
+      input.selectionEnd ?? input.value.length,
+      "end",
+    );
     onChange(normalizeBarcode(input.value));
   }
 

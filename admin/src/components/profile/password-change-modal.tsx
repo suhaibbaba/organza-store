@@ -10,11 +10,7 @@ import { useChangePasswordMutation } from "@/hooks/use-profile";
 import { useTranslateError } from "@/hooks/use-translate-error";
 import { fieldErrorKey } from "@/lib/field-error-key";
 import { ApiError } from "@/lib/api/errors";
-import {
-  EMPTY_PASSWORD_CHANGE,
-  passwordChangeSchema,
-  type PasswordChangeValues,
-} from "@/lib/validation/profile-form";
+import { EMPTY_PASSWORD_CHANGE, passwordChangeSchema, type PasswordChangeValues } from "@/lib/validation/profile-form";
 import type { PasswordChangeModalProps } from "@/types/profile";
 
 const FORM_ID = "password-change-form";
@@ -31,7 +27,10 @@ export function PasswordChangeModal({ open, onOpenChange }: PasswordChangeModalP
     handleSubmit,
     reset,
     formState: { errors },
-  } = useForm<PasswordChangeValues>({ resolver: zodResolver(passwordChangeSchema), defaultValues: EMPTY_PASSWORD_CHANGE });
+  } = useForm<PasswordChangeValues>({
+    resolver: zodResolver(passwordChangeSchema),
+    defaultValues: EMPTY_PASSWORD_CHANGE,
+  });
 
   useEffect(() => {
     if (open) {
@@ -111,7 +110,13 @@ export function PasswordChangeModal({ open, onOpenChange }: PasswordChangeModalP
           />
         </FormField>
 
-        <FormField label="profile.password.confirm" htmlFor="confirm" error={errors.confirm} errorKey={fieldErrorKey(errors.confirm)} required>
+        <FormField
+          label="profile.password.confirm"
+          htmlFor="confirm"
+          error={errors.confirm}
+          errorKey={fieldErrorKey(errors.confirm)}
+          required
+        >
           <PasswordInput
             id="confirm"
             autoComplete="new-password"

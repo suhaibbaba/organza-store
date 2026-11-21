@@ -106,7 +106,7 @@ describe("Verify · discounts, totals and rounding", () => {
       const order = await sell(
         admin,
         [{ productId: product.id, quantity: 2, discountType: "PERCENT", discountValue: ITEM_PERCENT }],
-        { discountType: "PERCENT", discountValue: ORDER_PERCENT }
+        { discountType: "PERCENT", discountValue: ORDER_PERCENT },
       );
 
       expectMoney(order.items[0].discountAmount, "20.00", "line discount");
@@ -127,7 +127,7 @@ describe("Verify · discounts, totals and rounding", () => {
           { productId: product.id, quantity: 3, discountType: "PERCENT", discountValue: ITEM_PERCENT },
           { productId: product.id, quantity: 1, discountType: "AMOUNT", discountValue: ITEM_AMOUNT },
         ],
-        { discountType: "AMOUNT", discountValue: ORDER_AMOUNT }
+        { discountType: "AMOUNT", discountValue: ORDER_AMOUNT },
       );
 
       const [lineA, lineB] = order.items;
@@ -152,10 +152,12 @@ describe("Verify · discounts, totals and rounding", () => {
       const penny = await createPricedProduct(admin, { basePrice: DRIFT_UNIT_PRICE, cost: "0.05" });
       const order = await sell(
         admin,
-        Array.from({ length: DRIFT_QUANTITY }, () => ({ productId: penny.id, quantity: 1 }))
+        Array.from({ length: DRIFT_QUANTITY }, () => ({ productId: penny.id, quantity: 1 })),
       );
 
-      for (const item of order.items) expectMoney(item.lineTotal, "0.10", "each 0.10 line");
+      for (const item of order.items) {
+        expectMoney(item.lineTotal, "0.10", "each 0.10 line");
+      }
       expectMoney(order.subtotal, DRIFT_EXPECTED_LINE_TOTAL, "subtotal of three 0.10 lines");
       expectMoney(order.total, DRIFT_EXPECTED_LINE_TOTAL, "order total of three 0.10 lines");
     });
@@ -174,7 +176,7 @@ describe("Verify · discounts, totals and rounding", () => {
       const order = await sell(
         admin,
         [{ productId: product.id, quantity: 2, discountType: "PERCENT", discountValue: ITEM_PERCENT }],
-        { discountType: "AMOUNT", discountValue: ORDER_AMOUNT }
+        { discountType: "AMOUNT", discountValue: ORDER_AMOUNT },
       );
 
       expectMoneyShape(order.subtotal, "order.subtotal");
@@ -200,7 +202,7 @@ describe("Verify · discounts, totals and rounding", () => {
             discountAmount: "199.00",
             grandTotal: "1.00",
           },
-        }
+        },
       );
 
       // This used to be a 201 with every one of those fields quietly dropped.

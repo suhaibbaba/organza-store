@@ -29,12 +29,17 @@ const LOGIN_ERROR_MESSAGE_KEYS: Record<LoginErrorKind, string> = {
 };
 
 function loginErrorKind(error: unknown): LoginErrorKind {
-  if (!(error instanceof AuthError)) return "invalid";
-  if (error.status === HTTP_TOO_MANY_REQUESTS) return "rateLimited";
-  if (error.code === ACCOUNT_INACTIVE_AUTH_CODE) return "deactivated";
+  if (!(error instanceof AuthError)) {
+    return "invalid";
+  }
+  if (error.status === HTTP_TOO_MANY_REQUESTS) {
+    return "rateLimited";
+  }
+  if (error.code === ACCOUNT_INACTIVE_AUTH_CODE) {
+    return "deactivated";
+  }
   return "invalid";
 }
-
 
 export function LoginForm() {
   const t = useTranslations("auth.login");
@@ -66,12 +71,7 @@ export function LoginForm() {
   };
 
   return (
-    <form
-      method="post"
-      onSubmit={handleSubmit(onSubmit)}
-      noValidate
-      className="flex flex-col gap-5"
-    >
+    <form method="post" onSubmit={handleSubmit(onSubmit)} noValidate className="flex flex-col gap-5">
       {/* method="post" is a fallback: a native submit before hydration keeps credentials out of the URL. */}
       {formError && <Alert tone="danger">{t(LOGIN_ERROR_MESSAGE_KEYS[formError])}</Alert>}
 
@@ -107,12 +107,7 @@ export function LoginForm() {
         )}
       </FormField>
 
-      <Button
-        type="submit"
-        data-test-selector="login-submit"
-        isLoading={isSubmitting}
-        className="mt-2 w-full"
-      >
+      <Button type="submit" data-test-selector="login-submit" isLoading={isSubmitting} className="mt-2 w-full">
         {isSubmitting ? t("submitting") : t("submit")}
       </Button>
 

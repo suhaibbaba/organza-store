@@ -107,7 +107,9 @@ export function parseStaffAccounts(raw: unknown, source: string): InitAccountDet
     }
 
     for (const key of Object.keys(entry)) {
-      if (key.startsWith(STAFF_COMMENT_PREFIX)) continue;
+      if (key.startsWith(STAFF_COMMENT_PREFIX)) {
+        continue;
+      }
       if (!(STAFF_ENTRY_FIELDS as readonly string[]).includes(key)) {
         add(`unknown field — only ${STAFF_ENTRY_FIELDS.join(", ")} are accepted`, key);
       }
@@ -118,18 +120,25 @@ export function parseStaffAccounts(raw: unknown, source: string): InitAccountDet
     const phone = requiredString(entry.phone);
     const role = requiredString(entry.role);
 
-    if (!email) add("missing", "email");
-    else if (!EMAIL_SHAPE.test(email)) add(`not an email address: ${JSON.stringify(email)}`, "email");
+    if (!email) {
+      add("missing", "email");
+    } else if (!EMAIL_SHAPE.test(email)) {
+      add(`not an email address: ${JSON.stringify(email)}`, "email");
+    }
 
-    if (!name) add("missing", "name");
+    if (!name) {
+      add("missing", "name");
+    }
 
-    if (!role) add(`missing — one of ${ROLES.join(", ")}`, "role");
-    else if (!(ROLES as readonly string[]).includes(role)) {
+    if (!role) {
+      add(`missing — one of ${ROLES.join(", ")}`, "role");
+    } else if (!(ROLES as readonly string[]).includes(role)) {
       add(`unknown role ${JSON.stringify(role)} — one of ${ROLES.join(", ")}`, "role");
     }
 
-    if (!phone) add("missing — an international number such as +970599123456", "phone");
-    else if (!isValidE164(phone)) {
+    if (!phone) {
+      add("missing — an international number such as +970599123456", "phone");
+    } else if (!isValidE164(phone)) {
       // Stored exactly as entered, prefix never rewritten (CLAUDE.md rule 18),
       // so it has to be right in the file.
       add(`not a valid international number: ${JSON.stringify(phone)} (E.164, e.g. +970599123456)`, "phone");
@@ -138,8 +147,11 @@ export function parseStaffAccounts(raw: unknown, source: string): InitAccountDet
     if (email && EMAIL_SHAPE.test(email)) {
       const key = email.toLowerCase();
       const first = emailSeen.get(key);
-      if (first) add(`already used by ${first}`, "email");
-      else emailSeen.set(key, label);
+      if (first) {
+        add(`already used by ${first}`, "email");
+      } else {
+        emailSeen.set(key, label);
+      }
     }
 
     if (phone && isValidE164(phone)) {
@@ -148,10 +160,11 @@ export function parseStaffAccounts(raw: unknown, source: string): InitAccountDet
       if (first) {
         // Spelled differently but the same line: worth saying out loud, or the
         // clash looks like a false positive on two numbers that plainly differ.
-        const viaPrefix =
-          first.phone !== phone ? " — the same line written under the other prefix (+970/+972)" : "";
+        const viaPrefix = first.phone !== phone ? " — the same line written under the other prefix (+970/+972)" : "";
         add(`already used by ${first.label}${viaPrefix}`, "phone");
-      } else phoneSeen.set(key, { label, phone });
+      } else {
+        phoneSeen.set(key, { label, phone });
+      }
     }
 
     if (email && name && phone && role && (ROLES as readonly string[]).includes(role) && isValidE164(phone)) {
@@ -159,7 +172,9 @@ export function parseStaffAccounts(raw: unknown, source: string): InitAccountDet
     }
   });
 
-  if (problems.length > 0) throw new StaffFileError(source, problems);
+  if (problems.length > 0) {
+    throw new StaffFileError(source, problems);
+  }
   return accounts;
 }
 
@@ -173,7 +188,7 @@ export function parseStaffAccounts(raw: unknown, source: string): InitAccountDet
 export function applyStaffOverrides(
   accounts: InitAccountDetails[],
   overrides: StaffOverrides,
-  source: string
+  source: string,
 ): InitAccountDetails[] {
   const byEmail = new Map(accounts.map((account) => [account.email.toLowerCase(), account]));
   const problems: StaffFileProblem[] = [];
@@ -202,7 +217,9 @@ export function applyStaffOverrides(
   // column as a file value, so it faces the same rules.
   const phoneSeen = new Map<string, string>();
   for (const account of updated) {
-    if (!account.name) problems.push({ entry: account.email, field: "name", message: `${INIT_FLAGS.name} is empty` });
+    if (!account.name) {
+      problems.push({ entry: account.email, field: "name", message: `${INIT_FLAGS.name} is empty` });
+    }
     if (!isValidE164(account.phone)) {
       problems.push({
         entry: account.email,
@@ -213,11 +230,16 @@ export function applyStaffOverrides(
     }
     const key = phoneIdentityKey(account.phone);
     const first = phoneSeen.get(key);
-    if (first) problems.push({ entry: account.email, field: "phone", message: `already used by ${first}` });
-    else phoneSeen.set(key, account.email);
+    if (first) {
+      problems.push({ entry: account.email, field: "phone", message: `already used by ${first}` });
+    } else {
+      phoneSeen.set(key, account.email);
+    }
   }
 
-  if (problems.length > 0) throw new StaffFileError(source, problems);
+  if (problems.length > 0) {
+    throw new StaffFileError(source, problems);
+  }
   return updated;
 }
 

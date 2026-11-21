@@ -16,7 +16,9 @@ export function usePublishedHeight<T extends HTMLElement>(property: string) {
 
   useEffect(() => {
     const element = ref.current;
-    if (!element) return;
+    if (!element) {
+      return;
+    }
 
     const root = document.documentElement;
     const observer = new ResizeObserver(() => {

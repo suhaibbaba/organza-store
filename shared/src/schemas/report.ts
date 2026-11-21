@@ -49,7 +49,10 @@ export const salesReportQuerySchema = z
       .default(DEFAULT_TOP_SELLERS_LIMIT),
   })
   .refine((v) => v.from <= v.to, { message: ERROR_CODES.REPORT_RANGE_INVALID })
-  .refine((v) => (Date.parse(`${v.to}T00:00:00Z`) - Date.parse(`${v.from}T00:00:00Z`)) / MS_PER_DAY < MAX_REPORT_RANGE_DAYS, {
-    message: ERROR_CODES.REPORT_RANGE_TOO_LONG,
-  });
+  .refine(
+    (v) => (Date.parse(`${v.to}T00:00:00Z`) - Date.parse(`${v.from}T00:00:00Z`)) / MS_PER_DAY < MAX_REPORT_RANGE_DAYS,
+    {
+      message: ERROR_CODES.REPORT_RANGE_TOO_LONG,
+    },
+  );
 export type SalesReportQuery = z.infer<typeof salesReportQuerySchema>;

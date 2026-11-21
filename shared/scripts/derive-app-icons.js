@@ -96,9 +96,7 @@ async function extractMark(sourcePath, outputPath) {
   const background = palette[0].rgb;
   const foregrounds = palette
     .filter(
-      (color) =>
-        color.share >= MIN_FLAT_COLOR_SHARE &&
-        distanceSq(color.rgb, background) > MIN_FOREGROUND_DISTANCE_SQ
+      (color) => color.share >= MIN_FLAT_COLOR_SHARE && distanceSq(color.rgb, background) > MIN_FOREGROUND_DISTANCE_SQ,
     )
     .map((color) => color.rgb);
 
@@ -115,15 +113,11 @@ async function extractMark(sourcePath, outputPath) {
     let bestAlpha = 0;
     let bestError = Infinity;
     for (const foreground of foregrounds) {
-      const axis = [
-        foreground[0] - background[0],
-        foreground[1] - background[1],
-        foreground[2] - background[2],
-      ];
+      const axis = [foreground[0] - background[0], foreground[1] - background[1], foreground[2] - background[2]];
       const axisLengthSq = axis[0] ** 2 + axis[1] ** 2 + axis[2] ** 2;
       const alpha = Math.min(
         1,
-        Math.max(0, (offset[0] * axis[0] + offset[1] * axis[1] + offset[2] * axis[2]) / axisLengthSq)
+        Math.max(0, (offset[0] * axis[0] + offset[1] * axis[1] + offset[2] * axis[2]) / axisLengthSq),
       );
       // How far off that blend line the pixel actually sits.
       const error = [0, 1, 2].reduce((sum, channel) => sum + (offset[channel] - alpha * axis[channel]) ** 2, 0);

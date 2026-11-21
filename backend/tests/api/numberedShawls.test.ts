@@ -39,7 +39,7 @@ describe("Numbered shawls", () => {
 
     const res = await apiRequest<ProductLookupDto>(
       `/api/products/lookup?code=${encodeURIComponent(product.barcode!)}`,
-      { token: employee.token }
+      { token: employee.token },
     );
 
     expect(res.status).toBe(200);
@@ -73,10 +73,9 @@ describe("Numbered shawls", () => {
     createdProductIds.push(product.id);
 
     const target = numbers[1];
-    const res = await apiRequest<ProductLookupDto>(
-      `/api/products/lookup?code=${encodeURIComponent(target.barcode!)}`,
-      { token: admin.token }
-    );
+    const res = await apiRequest<ProductLookupDto>(`/api/products/lookup?code=${encodeURIComponent(target.barcode!)}`, {
+      token: admin.token,
+    });
 
     expect(res.status).toBe(200);
     // A number scanned on its own label IS one piece — no choice to make.

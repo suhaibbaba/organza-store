@@ -32,7 +32,10 @@ export function StatCard({ label, value, hint, tooltip, tone = "default", name, 
 
   return (
     <div
-      className={cn("flex min-w-0 flex-col rounded-card border border-line bg-surface p-[18px_20px] shadow-card", className)}
+      className={cn(
+        "flex min-w-0 flex-col rounded-card border border-line bg-surface p-[18px_20px] shadow-card",
+        className,
+      )}
       data-test-selector={testSelectorFor("stat-card", name)}
     >
       <ExplainedLabel

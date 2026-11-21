@@ -12,13 +12,15 @@ export function NumberedBadge({ count, className }: NumberedBadgeProps) {
   const t = useTranslations("products.card");
 
   // A count of 0 only means the numbers aren't generated yet; "· 0" would read as a bug.
-  if (count <= 0) return null;
+  if (count <= 0) {
+    return null;
+  }
 
   return (
     <span
       className={cn(
         "inline-flex shrink-0 items-center gap-1 rounded-pill bg-inset px-2 py-0.5 text-micro font-medium text-ink",
-        className
+        className,
       )}
     >
       <Hash className="size-3 shrink-0" aria-hidden="true" />

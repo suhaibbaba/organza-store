@@ -13,11 +13,7 @@ import { PASSWORD_TOKEN_QUERY_KEY } from "@/constants/api";
 import { useTranslateError } from "@/hooks/use-translate-error";
 import { completePasswordSetup, verifyPasswordToken } from "@/lib/api/password-setup";
 import { ApiError } from "@/lib/api/errors";
-import {
-  setPasswordSchema,
-  SET_PASSWORD_MISMATCH,
-  type SetPasswordValues,
-} from "@/lib/validation/set-password";
+import { setPasswordSchema, SET_PASSWORD_MISMATCH, type SetPasswordValues } from "@/lib/validation/set-password";
 import { fieldTestSelector } from "@store/shared/lib/testSelector";
 import { Alert, Button, buttonClassName, FormField, PasswordInput, Spinner } from "@store/ui";
 import { AuthFieldError } from "@/components/auth/auth-field-error";

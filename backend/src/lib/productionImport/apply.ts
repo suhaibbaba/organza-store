@@ -100,7 +100,9 @@ function categoryLayers(categories: CatalogueSnapshot["categories"]): CatalogueS
       layers.push(remaining);
       break;
     }
-    for (const row of layer) placed.add(row.id);
+    for (const row of layer) {
+      placed.add(row.id);
+    }
     layers.push(layer);
     remaining = remaining.filter((row) => !placed.has(row.id));
   }
@@ -124,12 +126,12 @@ async function realignSequences(tx: Tx): Promise<void> {
        pg_get_serial_sequence('${PRODUCT_NUMBER_SEQUENCE.table}', '${PRODUCT_NUMBER_SEQUENCE.column}'),
        COALESCE((SELECT MAX("${PRODUCT_NUMBER_SEQUENCE.column}") FROM ${PRODUCT_NUMBER_SEQUENCE.table}), 1),
        (SELECT MAX("${PRODUCT_NUMBER_SEQUENCE.column}") FROM ${PRODUCT_NUMBER_SEQUENCE.table}) IS NOT NULL
-     )`
+     )`,
   );
   await tx.$executeRawUnsafe(
     `SELECT setval(
        pg_get_serial_sequence('${ORDER_NUMBER_SEQUENCE.table}', '${ORDER_NUMBER_SEQUENCE.column}'), 1, false
-     )`
+     )`,
   );
 }
 
@@ -155,18 +157,18 @@ export async function applyCatalogue(snapshot: CatalogueSnapshot): Promise<Appli
       let categories = 0;
       for (const layer of categoryLayers(snapshot.categories)) {
         categories += await insertAll(layer, (chunk) =>
-          tx.category.createMany({ data: chunk.map((row) => ({ ...row, name: requiredJson(row.name) })) })
+          tx.category.createMany({ data: chunk.map((row) => ({ ...row, name: requiredJson(row.name) })) }),
         );
       }
 
       const variantTypes = await insertAll(snapshot.variantTypes, (chunk) =>
-        tx.variantType.createMany({ data: chunk.map((row) => ({ ...row, name: requiredJson(row.name) })) })
+        tx.variantType.createMany({ data: chunk.map((row) => ({ ...row, name: requiredJson(row.name) })) }),
       );
 
       const variantOptionValues = await insertAll(snapshot.variantOptionValues, (chunk) =>
         tx.variantOptionValue.createMany({
           data: chunk.map((row) => ({ ...row, value: requiredJson(row.value) })),
-        })
+        }),
       );
 
       const products = await insertAll(snapshot.products, (chunk) =>
@@ -183,19 +185,19 @@ export async function applyCatalogue(snapshot: CatalogueSnapshot): Promise<Appli
             // Production's burned-in pictures are not copied; images:mark rebuilds them here.
             markedImage: Prisma.DbNull,
           })),
-        })
+        }),
       );
 
       const variants = await insertAll(snapshot.variants, (chunk) =>
-        tx.variant.createMany({ data: chunk.map((row) => ({ ...row, name: requiredJson(row.name) })) })
+        tx.variant.createMany({ data: chunk.map((row) => ({ ...row, name: requiredJson(row.name) })) }),
       );
 
       const productVariantTypes = await insertAll(snapshot.productVariantTypes, (chunk) =>
-        tx.productVariantType.createMany({ data: chunk })
+        tx.productVariantType.createMany({ data: chunk }),
       );
 
       const variantValues = await insertAll(snapshot.variantValues, (chunk) =>
-        tx.variantValue.createMany({ data: chunk })
+        tx.variantValue.createMany({ data: chunk }),
       );
 
       const productImages = await insertAll(snapshot.productImages, (chunk) =>
@@ -204,7 +206,7 @@ export async function applyCatalogue(snapshot: CatalogueSnapshot): Promise<Appli
         // shows the same framing production does — and Prisma wants a
         // missing one spelled DbNull rather than null, like every other
         // nullable Json column here.
-        tx.productImage.createMany({ data: chunk.map((row) => ({ ...row, edit: nullableJson(row.edit) })) })
+        tx.productImage.createMany({ data: chunk.map((row) => ({ ...row, edit: nullableJson(row.edit) })) }),
       );
 
       await realignSequences(tx);
@@ -223,6 +225,6 @@ export async function applyCatalogue(snapshot: CatalogueSnapshot): Promise<Appli
         },
       };
     },
-    { timeout: IMPORT_TRANSACTION_TIMEOUT_MS, maxWait: IMPORT_TRANSACTION_MAX_WAIT_MS }
+    { timeout: IMPORT_TRANSACTION_TIMEOUT_MS, maxWait: IMPORT_TRANSACTION_MAX_WAIT_MS },
   );
 }

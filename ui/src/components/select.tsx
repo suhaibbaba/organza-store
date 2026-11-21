@@ -24,8 +24,7 @@ export interface SelectOption {
   readonly icon?: ReactNode | undefined;
 }
 
-export interface SelectProps
-  extends Omit<SelectHTMLAttributes<HTMLSelectElement>, "onChange" | "value">, TestIdProps {
+export interface SelectProps extends Omit<SelectHTMLAttributes<HTMLSelectElement>, "onChange" | "value">, TestIdProps {
   options: readonly SelectOption[];
   placeholder?: string | undefined;
   value?: string | undefined;
@@ -70,8 +69,7 @@ function PlainSelect({
   const part = parts("select", testId);
   const dialogLayer = useDialogLayer();
   const empty = value === "" || value === undefined;
-  const shown =
-    renderValue && !empty ? options.find((option) => option.value === value) : undefined;
+  const shown = renderValue && !empty ? options.find((option) => option.value === value) : undefined;
 
   const emit = (next: string): void => {
     const chosen = next === NONE ? "" : next;
@@ -114,9 +112,7 @@ function PlainSelect({
             disabled ? "text-ink-faint" : empty ? "text-ink-subtle" : "text-ink",
           )}
         >
-          <SelectPrimitive.Value placeholder={placeholder}>
-            {shown && renderValue?.(shown)}
-          </SelectPrimitive.Value>
+          <SelectPrimitive.Value placeholder={placeholder}>{shown && renderValue?.(shown)}</SelectPrimitive.Value>
         </span>
 
         {disabled ? (
@@ -150,18 +146,10 @@ function PlainSelect({
           )}
         >
           <SelectPrimitive.Viewport className="scroll-lane overscroll-contain">
-            {placeholder !== undefined && (
-              <Row value={NONE} label={placeholder} muted testId={testId} />
-            )}
+            {placeholder !== undefined && <Row value={NONE} label={placeholder} muted testId={testId} />}
 
             {options.map((option) => (
-              <Row
-                key={option.value}
-                value={option.value}
-                label={option.label}
-                icon={option.icon}
-                testId={testId}
-              />
+              <Row key={option.value} value={option.value} label={option.label} icon={option.icon} testId={testId} />
             ))}
           </SelectPrimitive.Viewport>
         </SelectPrimitive.Content>
@@ -292,16 +280,16 @@ function SearchableSelect({
     } else if (event.key === "Enter") {
       event.preventDefault();
       const option = shown[active];
-      if (option) choose(option.value);
-      else if (onCreate && active === shown.length) create();
+      if (option) {
+        choose(option.value);
+      } else if (onCreate && active === shown.length) {
+        create();
+      }
     }
   };
 
   return (
-    <PopoverPrimitive.Root
-      open={open}
-      onOpenChange={(next) => (next ? openList() : setOpen(false))}
-    >
+    <PopoverPrimitive.Root open={open} onOpenChange={(next) => (next ? openList() : setOpen(false))}>
       <PopoverPrimitive.Trigger
         id={id}
         type="button"
@@ -335,11 +323,7 @@ function SearchableSelect({
         {disabled ? (
           <FieldLock {...testid(testId, "lock")} />
         ) : (
-          <Icon
-            name="chevron-down"
-            {...part("chevron")}
-            className="size-4 shrink-0 text-ink-faint"
-          />
+          <Icon name="chevron-down" {...part("chevron")} className="size-4 shrink-0 text-ink-faint" />
         )}
       </PopoverPrimitive.Trigger>
 
@@ -400,9 +384,7 @@ function SearchableSelect({
                   {option.icon}
                   <span className="truncate [unicode-bidi:plaintext]">{option.label}</span>
                 </span>
-                {option.value === value && (
-                  <Icon name="check" className="size-4 shrink-0 text-primary-600" />
-                )}
+                {option.value === value && <Icon name="check" className="size-4 shrink-0 text-primary-600" />}
               </li>
             ))}
             {onCreate && (

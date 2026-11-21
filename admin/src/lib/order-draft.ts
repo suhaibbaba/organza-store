@@ -59,10 +59,7 @@ export function lineTotal(line: OrderDraftLine): string {
 // total = subtotal - the order-level discount resolved against it. Same order
 // of operations as backend/src/lib/orderPricing.ts, so the figure on screen
 // matches the one the saved order carries.
-export function computeDraftTotals(
-  lines: readonly OrderDraftLine[],
-  orderDiscount: DiscountState
-): OrderDraftTotals {
+export function computeDraftTotals(lines: readonly OrderDraftLine[], orderDiscount: DiscountState): OrderDraftTotals {
   let subtotalCents = 0;
   let itemDiscountCents = 0;
   let itemCount = 0;

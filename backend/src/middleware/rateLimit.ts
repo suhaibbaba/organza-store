@@ -21,10 +21,14 @@ export function createRateLimiter(options: RateLimitOptions): RateLimiter {
   let lastSweep = 0;
 
   function sweep(now: number): void {
-    if (now - lastSweep < RATE_LIMIT_SWEEP_INTERVAL_MS) return;
+    if (now - lastSweep < RATE_LIMIT_SWEEP_INTERVAL_MS) {
+      return;
+    }
     lastSweep = now;
     for (const [key, bucket] of hits) {
-      if (bucket.resetAt <= now) hits.delete(key);
+      if (bucket.resetAt <= now) {
+        hits.delete(key);
+      }
     }
   }
 
@@ -37,7 +41,9 @@ export function createRateLimiter(options: RateLimitOptions): RateLimiter {
         hits.set(key, { count: 1, resetAt: now + options.windowMs });
         return true;
       }
-      if (bucket.count >= options.limit) return false;
+      if (bucket.count >= options.limit) {
+        return false;
+      }
       bucket.count += 1;
       return true;
     },

@@ -43,7 +43,7 @@ export async function fetchPermissionMatrix(): Promise<PermissionMatrixResponse>
 export async function patchRolePermissions(
   role: Role | string,
   changes: PermissionChangeRequestBody[],
-  options: { token?: string } = {}
+  options: { token?: string } = {},
 ) {
   const token = options.token ?? (await getSession("ADMIN")).token;
   return apiRequest<PermissionMatrixResponse>("/api/permissions", {
@@ -80,7 +80,7 @@ export async function applyDefaultPermissions(): Promise<void> {
     const defaults = DEFAULT_ROLE_PERMISSIONS[role] as readonly PermissionAction[];
     await setRolePermissions(
       role,
-      CONFIGURABLE_ACTIONS.map((action) => ({ action, granted: defaults.includes(action) }))
+      CONFIGURABLE_ACTIONS.map((action) => ({ action, granted: defaults.includes(action) })),
     );
   }
 }
@@ -97,7 +97,7 @@ export async function withRolePermission<T>(
   role: SettableRole,
   action: PermissionAction,
   granted: boolean,
-  body: () => Promise<T>
+  body: () => Promise<T>,
 ): Promise<T> {
   await setRolePermission(role, action, granted);
   try {

@@ -20,7 +20,9 @@ function loadImage(src: string, crossOrigin: boolean): Promise<HTMLImageElement>
     // Only for a photo already on the API host: without this the canvas below
     // is tainted and refuses to hand back a preview. A blob: URL is
     // same-origin and must NOT carry it — Safari fails such a request.
-    if (crossOrigin) image.crossOrigin = "anonymous";
+    if (crossOrigin) {
+      image.crossOrigin = "anonymous";
+    }
     image.onload = () => resolve(image);
     image.onerror = () => reject(new Error("image failed to load"));
     image.src = src;
@@ -45,12 +47,14 @@ function loadImage(src: string, crossOrigin: boolean): Promise<HTMLImageElement>
 export async function renderCropPreview(
   src: string,
   edit: ImageEdit,
-  { crossOrigin = false }: { crossOrigin?: boolean } = {}
+  { crossOrigin = false }: { crossOrigin?: boolean } = {},
 ): Promise<string | null> {
   try {
     const image = await loadImage(src, crossOrigin);
     const natural = { width: image.naturalWidth, height: image.naturalHeight };
-    if (!natural.width || !natural.height) return null;
+    if (!natural.width || !natural.height) {
+      return null;
+    }
 
     const ops = resolveImageEditOps(edit, natural);
     const region = ops.extract ?? { left: 0, top: 0, width: natural.width, height: natural.height };
@@ -64,7 +68,9 @@ export async function renderCropPreview(
     canvas.width = Math.max(1, Math.round(turned.width * scale));
     canvas.height = Math.max(1, Math.round(turned.height * scale));
     const context = canvas.getContext("2d");
-    if (!context) return null;
+    if (!context) {
+      return null;
+    }
 
     // The same order the server works in — mirror, then turn — with the crop
     // already resolved into the file's own coordinates by the shared
@@ -81,7 +87,7 @@ export async function renderCropPreview(
       -region.width / 2,
       -region.height / 2,
       region.width,
-      region.height
+      region.height,
     );
 
     return await new Promise<string | null>((resolve) => {
@@ -141,7 +147,7 @@ export interface EditorSource {
  */
 export async function loadEditorSource(
   src: string,
-  { crossOrigin = false }: { crossOrigin?: boolean } = {}
+  { crossOrigin = false }: { crossOrigin?: boolean } = {},
 ): Promise<EditorSource | null> {
   let image: HTMLImageElement | null = null;
   try {
@@ -162,8 +168,12 @@ export async function loadEditorSource(
   }
 
   const longest = Math.max(image.naturalWidth, image.naturalHeight);
-  if (!longest) return null;
-  if (longest <= EDITOR_SOURCE_MAX_PX) return { url: src, owned: false };
+  if (!longest) {
+    return null;
+  }
+  if (longest <= EDITOR_SOURCE_MAX_PX) {
+    return { url: src, owned: false };
+  }
 
   try {
     const scale = EDITOR_SOURCE_MAX_PX / longest;
@@ -171,7 +181,9 @@ export async function loadEditorSource(
     canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
     canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
     const context = canvas.getContext("2d");
-    if (!context) return { url: src, owned: false };
+    if (!context) {
+      return { url: src, owned: false };
+    }
     context.drawImage(image, 0, 0, canvas.width, canvas.height);
     const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.9));
     return blob ? { url: URL.createObjectURL(blob), owned: true } : { url: src, owned: false };

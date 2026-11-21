@@ -13,7 +13,9 @@ describe("Gift orders", () => {
 
   async function createOrder(token: string, body: unknown) {
     const res = await apiRequest<OrderDto>("/api/orders", { method: "POST", token, body });
-    if (res.data?.id) openedOrderIds.push(res.data.id);
+    if (res.data?.id) {
+      openedOrderIds.push(res.data.id);
+    }
     return res;
   }
 
@@ -112,7 +114,9 @@ describe("Gift orders", () => {
         token: admin.token,
       });
       expect(gifts.data!.some((order) => order.id === gift.data!.id)).toBe(true);
-      for (const order of gifts.data!) expect(order.type).toBe("GIFT");
+      for (const order of gifts.data!) {
+        expect(order.type).toBe("GIFT");
+      }
 
       const sales = await apiRequest<{ id: string }[]>("/api/orders?type=SALE&pageSize=100", {
         token: admin.token,

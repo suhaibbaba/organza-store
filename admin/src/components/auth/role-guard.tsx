@@ -26,8 +26,12 @@ export function RoleGuard({
   const target = landingHref(user);
 
   useEffect(() => {
-    if (onDenied !== "redirect" || isLoading || !user || allowed) return;
-    if (target) router.replace(target);
+    if (onDenied !== "redirect" || isLoading || !user || allowed) {
+      return;
+    }
+    if (target) {
+      router.replace(target);
+    }
   }, [onDenied, isLoading, user, allowed, target, router]);
 
   if (!allowed) {

@@ -74,9 +74,7 @@ export function RadioGroup<TValue extends string>({
             </span>
             <span className="flex flex-col">
               <span className="text-label font-medium text-ink">{option.label}</span>
-              {option.description && (
-                <span className="text-meta text-ink-muted">{option.description}</span>
-              )}
+              {option.description && <span className="text-meta text-ink-muted">{option.description}</span>}
             </span>
           </button>
         );

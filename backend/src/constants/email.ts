@@ -46,8 +46,7 @@ export const EMAIL_CARD_RADIUS_PX = 12;
  * "Segoe UI" covers Windows/Outlook, Tahoma is the classic Arabic-safe
  * fallback, and Arial/sans-serif closes it out.
  */
-export const EMAIL_FONT_STACK =
-  "'Segoe UI', Tahoma, Arial, 'Helvetica Neue', Helvetica, sans-serif";
+export const EMAIL_FONT_STACK = "'Segoe UI', Tahoma, Arial, 'Helvetica Neue', Helvetica, sans-serif";
 
 /**
  * The shop's mark, served by the admin app out of its own `public/` folder.

@@ -58,7 +58,11 @@ export function Switch({
         className={cn(
           "block rounded-full bg-surface shadow-pill transition-transform",
           small ? "absolute top-0.5 start-0.5 size-3.5" : "absolute top-0.5 start-0.5 size-5",
-          checked ? (small ? "rtl:-translate-x-3.5 ltr:translate-x-3.5" : "rtl:-translate-x-5 ltr:translate-x-5") : "translate-x-0",
+          checked
+            ? small
+              ? "rtl:-translate-x-3.5 ltr:translate-x-3.5"
+              : "rtl:-translate-x-5 ltr:translate-x-5"
+            : "translate-x-0",
         )}
       />
     </SwitchPrimitive.Root>

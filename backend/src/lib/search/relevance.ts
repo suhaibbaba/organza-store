@@ -9,7 +9,7 @@ export function rankOf(ranked: string[]): (id: string) => number {
 
 export function isRelevanceSort(
   query: { sortBy: string; sortDir: string },
-  defaultSort: { sortBy: string; sortDir: string }
+  defaultSort: { sortBy: string; sortDir: string },
 ): boolean {
   return query.sortBy === defaultSort.sortBy && query.sortDir === defaultSort.sortDir;
 }
@@ -20,7 +20,7 @@ export async function pageByRelevance<T extends { id: string }>(
   where: Prisma.ProductWhereInput,
   page: number,
   pageSize: number,
-  load: (ids: string[]) => Promise<T[]>
+  load: (ids: string[]) => Promise<T[]>,
 ): Promise<{ total: number; products: T[] }> {
   const rank = rankOf(ranked);
   const matching = await prisma.product.findMany({ where, select: { id: true } });

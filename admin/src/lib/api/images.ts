@@ -20,14 +20,20 @@ function ownerBody(owner: ImageOwner): { productId?: string; variantId?: string 
 export async function uploadImage(
   owner: ImageOwner,
   file: File,
-  edit: ImageEdit | null = null
+  edit: ImageEdit | null = null,
 ): Promise<ProductImageRef> {
   const formData = new FormData();
   formData.append("file", file);
-  if (edit) formData.append("edit", JSON.stringify(edit));
+  if (edit) {
+    formData.append("edit", JSON.stringify(edit));
+  }
   const ownerField = ownerBody(owner);
-  if (ownerField.productId) formData.append("productId", ownerField.productId);
-  if (ownerField.variantId) formData.append("variantId", ownerField.variantId);
+  if (ownerField.productId) {
+    formData.append("productId", ownerField.productId);
+  }
+  if (ownerField.variantId) {
+    formData.append("variantId", ownerField.variantId);
+  }
 
   const { data } = await apiFetch<ProductImageRef>("/api/images", { method: "POST", body: formData });
   return data;

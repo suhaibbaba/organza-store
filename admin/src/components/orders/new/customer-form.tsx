@@ -17,15 +17,8 @@ import {
 } from "@store/ui";
 import { splitPhone } from "@store/ui/lib/support/phone";
 import { ERROR_CODES } from "@store/shared/constants/errors";
-import {
-  coordinatesFromMapLink,
-  googleMapsUrl,
-  isShortMapLink,
-} from "@store/shared/lib/mapLink";
-import {
-  fieldErrorTestSelector,
-  fieldTestSelector,
-} from "@store/shared/lib/testSelector";
+import { coordinatesFromMapLink, googleMapsUrl, isShortMapLink } from "@store/shared/lib/mapLink";
+import { fieldErrorTestSelector, fieldTestSelector } from "@store/shared/lib/testSelector";
 import { useSettingsQuery } from "@/hooks/use-settings";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { MAP_LINK_RESOLVE_DEBOUNCE_MS } from "@/constants/orders";
@@ -34,33 +27,16 @@ import { useTranslateError } from "@/hooks/use-translate-error";
 import { ApiError } from "@/lib/api/errors";
 import type { CustomerFormProps } from "@/types/order";
 
-function FieldMessage({
-  field,
-  children,
-}: {
-  field: string;
-  children: string;
-}) {
+function FieldMessage({ field, children }: { field: string; children: string }) {
   return (
-    <Typography
-      variant="caption"
-      tone="error"
-      as="p"
-      role="alert"
-      data-test-selector={fieldErrorTestSelector(field)}
-    >
+    <Typography variant="caption" tone="error" as="p" role="alert" data-test-selector={fieldErrorTestSelector(field)}>
       {children}
     </Typography>
   );
 }
 
 // Only an online order is delivered back to somebody; snapshotted onto the order (spec.md "Customer information").
-export function CustomerForm({
-  register,
-  control,
-  setValue,
-  errors,
-}: CustomerFormProps) {
+export function CustomerForm({ register, control, setValue, errors }: CustomerFormProps) {
   const t = useTranslations("orders.new.customer");
   const translateError = useTranslateError();
   const { data: settings } = useSettingsQuery();
@@ -79,13 +55,15 @@ export function CustomerForm({
       setValue("latitude", point ? String(point.latitude) : "");
       setValue("longitude", point ? String(point.longitude) : "", { shouldValidate: !!point });
     },
-    [setValue]
+    [setValue],
   );
 
   const { mutate: resolveLink } = resolve;
   // A short link is resolved once typing pauses; only the latest call's onSuccess runs, so a stale link never wins.
   useEffect(() => {
-    if (pendingShortLink) resolveLink(pendingShortLink, { onSuccess: setPoint });
+    if (pendingShortLink) {
+      resolveLink(pendingShortLink, { onSuccess: setPoint });
+    }
   }, [pendingShortLink, resolveLink, setPoint]);
 
   // A full Maps link carries its point; a short maps.app.goo.gl link has to be opened by the backend first.
@@ -116,9 +94,7 @@ export function CustomerForm({
               {...register("name")}
             />
             {errors.name && (
-              <FieldMessage field="customer-name">
-                {translateError(errors.name.message ?? "")}
-              </FieldMessage>
+              <FieldMessage field="customer-name">{translateError(errors.name.message ?? "")}</FieldMessage>
             )}
           </FormField>
 
@@ -139,9 +115,7 @@ export function CustomerForm({
               )}
             />
             {errors.phone && (
-              <FieldMessage field="customer-phone">
-                {translateError(errors.phone.message ?? "")}
-              </FieldMessage>
+              <FieldMessage field="customer-phone">{translateError(errors.phone.message ?? "")}</FieldMessage>
             )}
           </FormField>
         </div>
@@ -163,19 +137,14 @@ export function CustomerForm({
 
           {hasWhatsapp && (
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <FormField
-                label="orders.new.customer.whatsapp"
-                htmlFor="customer-whatsapp"
-              >
+              <FormField label="orders.new.customer.whatsapp" htmlFor="customer-whatsapp">
                 <Controller
                   control={control}
                   name="whatsapp"
                   render={({ field }) => (
                     <PhoneInput
                       id="customer-whatsapp"
-                      data-test-selector={fieldTestSelector(
-                        "customer-whatsapp",
-                      )}
+                      data-test-selector={fieldTestSelector("customer-whatsapp")}
                       placeholder={t("phonePlaceholder")}
                       value={field.value}
                       onChange={(value) => field.onChange(value ?? "")}
@@ -185,9 +154,7 @@ export function CustomerForm({
                   )}
                 />
                 {errors.whatsapp && (
-                  <FieldMessage field="customer-whatsapp">
-                    {translateError(errors.whatsapp.message ?? "")}
-                  </FieldMessage>
+                  <FieldMessage field="customer-whatsapp">{translateError(errors.whatsapp.message ?? "")}</FieldMessage>
                 )}
               </FormField>
             </div>
@@ -205,10 +172,7 @@ export function CustomerForm({
       </FormField>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <FormField
-          label="orders.new.customer.location"
-          htmlFor="customer-location"
-        >
+        <FormField label="orders.new.customer.location" htmlFor="customer-location">
           <Input
             id="customer-location"
             type="url"
@@ -223,19 +187,12 @@ export function CustomerForm({
             })}
           />
           {resolve.isPending ? (
-            <Typography
-              variant="caption"
-              tone="muted"
-              as="p"
-              className="flex items-center gap-2"
-            >
+            <Typography variant="caption" tone="muted" as="p" className="flex items-center gap-2">
               <Spinner />
               {t("locationResolving")}
             </Typography>
           ) : locationError ? (
-            <FieldMessage field="customer-location">
-              {translateError(locationError)}
-            </FieldMessage>
+            <FieldMessage field="customer-location">{translateError(locationError)}</FieldMessage>
           ) : hasPoint ? (
             <Typography
               variant="caption"

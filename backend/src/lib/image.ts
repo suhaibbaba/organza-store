@@ -97,7 +97,9 @@ export async function checkUploadDirWritable(): Promise<{ ok: true } | { ok: fal
 export async function measureBrightness(image: Sharp): Promise<number> {
   const { channels } = await image.stats();
   const [r, g, b] = channels;
-  if (!r || !g || !b) throw new Error("no channel statistics");
+  if (!r || !g || !b) {
+    throw new Error("no channel statistics");
+  }
   const luma = (BRIGHTNESS_WEIGHTS.r * r.mean + BRIGHTNESS_WEIGHTS.g * g.mean + BRIGHTNESS_WEIGHTS.b * b.mean) / 255;
   return Math.min(IMAGE_BRIGHTNESS_MAX, Math.max(IMAGE_BRIGHTNESS_MIN, Math.round(luma * IMAGE_BRIGHTNESS_MAX)));
 }
@@ -121,7 +123,9 @@ export async function measureBrightness(image: Sharp): Promise<number> {
  * on a portrait phone photo would be cut out of a landscape one.
  */
 async function readImageMetadata(buffer: Buffer): Promise<{ width: number; height: number; format: string }> {
-  const metadata = await sharp(buffer).metadata().catch(() => null);
+  const metadata = await sharp(buffer)
+    .metadata()
+    .catch(() => null);
   if (!metadata?.format || !metadata.width || !metadata.height) {
     throw new AppError(400, ERROR_CODES.IMAGE_INVALID_TYPE);
   }
@@ -162,7 +166,9 @@ async function readImageMetadata(buffer: Buffer): Promise<{ width: number; heigh
  */
 function editedPipeline(buffer: Buffer, ops: ImageEditOps, maxDimension: number | null): Sharp {
   let pipeline = sharp(buffer).autoOrient();
-  if (ops.extract) pipeline = pipeline.extract(ops.extract);
+  if (ops.extract) {
+    pipeline = pipeline.extract(ops.extract);
+  }
   if (maxDimension !== null) {
     pipeline = pipeline.resize({
       width: maxDimension,
@@ -171,9 +177,15 @@ function editedPipeline(buffer: Buffer, ops: ImageEditOps, maxDimension: number 
       withoutEnlargement: true,
     });
   }
-  if (ops.flop) pipeline = pipeline.flop();
-  if (ops.flip) pipeline = pipeline.flip();
-  if (ops.rotation) pipeline = pipeline.rotate(ops.rotation);
+  if (ops.flop) {
+    pipeline = pipeline.flop();
+  }
+  if (ops.flip) {
+    pipeline = pipeline.flip();
+  }
+  if (ops.rotation) {
+    pipeline = pipeline.rotate(ops.rotation);
+  }
   return pipeline;
 }
 
@@ -227,7 +239,9 @@ function unturned(buffer: Buffer, ops: ImageEditOps): Sharp {
  */
 async function writeOriginal(buffer: Buffer, filename: string, format: string): Promise<string | null> {
   const extension = IMAGE_ORIGINAL_EXTENSIONS[format];
-  if (!extension) return null;
+  if (!extension) {
+    return null;
+  }
   const originalName = `${filename}-${IMAGE_ORIGINAL_SUFFIX}.${extension}`;
   await fs.writeFile(path.join(UPLOAD_DIR, originalName), buffer);
   return originalName;
@@ -304,10 +318,12 @@ export async function storeProductImage(buffer: Buffer, edit: ImageEdit | null =
  */
 export async function recropProductImage(
   source: { filename: string; isOriginal: boolean },
-  edit: ImageEdit
+  edit: ImageEdit,
 ): Promise<StoredImage> {
   const buffer = await fs.readFile(path.join(UPLOAD_DIR, source.filename)).catch(() => null);
-  if (!buffer) throw new AppError(404, ERROR_CODES.IMAGE_ORIGINAL_MISSING);
+  if (!buffer) {
+    throw new AppError(404, ERROR_CODES.IMAGE_ORIGINAL_MISSING);
+  }
 
   const metadata = await readImageMetadata(buffer);
   const ops = resolveImageEditOps(edit, metadata);
@@ -320,7 +336,7 @@ export async function recropProductImage(
   // measured against become the original, before anything is cut from them.
   const originalFilename = source.isOriginal
     ? source.filename
-    : (await writeOriginal(buffer, filename, metadata.format)) ?? source.filename;
+    : ((await writeOriginal(buffer, filename, metadata.format)) ?? source.filename);
 
   const urls = await writeSizes(buffer, filename, ops);
 
@@ -340,12 +356,11 @@ export function largestStoredFileName(filename: string): string {
 }
 
 // Best-effort; the kept original goes too, named by the caller since a re-crop gives it a different base name.
-export async function deleteProductImageFiles(
-  filename: string,
-  originalFilename?: string | null
-): Promise<void> {
+export async function deleteProductImageFiles(filename: string, originalFilename?: string | null): Promise<void> {
   const files = (Object.keys(IMAGE_SIZES) as ImageSize[]).map((size) => `${filename}-${size}.webp`);
-  if (originalFilename) files.push(originalFilename);
+  if (originalFilename) {
+    files.push(originalFilename);
+  }
   await Promise.all(files.map((file) => fs.unlink(path.join(UPLOAD_DIR, file)).catch(() => undefined)));
 }
 
@@ -382,11 +397,16 @@ export async function storeFavicon(buffer: Buffer): Promise<string> {
       const opaque = size === FAVICON_OPAQUE_SIZE;
       const resized = sharp(buffer)
         .autoOrient()
-        .resize({ width: size, height: size, fit: "contain", background: opaque ? FAVICON_OPAQUE_BACKGROUND : FAVICON_CLEAR_BACKGROUND });
+        .resize({
+          width: size,
+          height: size,
+          fit: "contain",
+          background: opaque ? FAVICON_OPAQUE_BACKGROUND : FAVICON_CLEAR_BACKGROUND,
+        });
       return (opaque ? resized.flatten({ background: FAVICON_OPAQUE_BACKGROUND }).removeAlpha() : resized)
         .png()
         .toFile(path.join(UPLOAD_DIR, faviconFile(base, size)));
-    })
+    }),
   );
   return base;
 }
@@ -394,11 +414,13 @@ export async function storeFavicon(buffer: Buffer): Promise<string> {
 export async function deleteFaviconFiles(base: string): Promise<void> {
   const safe = path.basename(base);
   await Promise.all(
-    FAVICON_SIZES.map((size) => fs.unlink(path.join(UPLOAD_DIR, faviconFile(safe, size))).catch(() => undefined))
+    FAVICON_SIZES.map((size) => fs.unlink(path.join(UPLOAD_DIR, faviconFile(safe, size))).catch(() => undefined)),
   );
 }
 
 export function faviconUrls(base: string | null): FaviconUrls | null {
-  if (!base) return null;
+  if (!base) {
+    return null;
+  }
   return Object.fromEntries(FAVICON_SIZES.map((size) => [size, `/uploads/${faviconFile(base, size)}`])) as FaviconUrls;
 }

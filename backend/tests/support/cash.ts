@@ -55,10 +55,7 @@ export function dayAfter(date: string): string {
 
 // --- sessions --------------------------------------------------------------
 
-export function openSessionRequest(
-  token: string,
-  body: Record<string, unknown>
-): Promise<ApiResult<CashSessionDto>> {
+export function openSessionRequest(token: string, body: Record<string, unknown>): Promise<ApiResult<CashSessionDto>> {
   return apiRequest<CashSessionDto>("/api/cash-sessions", { method: "POST", token, body });
 }
 
@@ -68,12 +65,14 @@ export function openSessionRequest(
 // collision rather than on the thing under test.
 export async function openSyntheticSession(
   token: string,
-  body: Record<string, unknown> = {}
+  body: Record<string, unknown> = {},
 ): Promise<{ session: CashSessionDto; date: string }> {
   for (let attempt = 0; attempt < 5; attempt++) {
     const date = allocateDate();
     const res = await openSessionRequest(token, { date, tzOffset: 0, ...body });
-    if (res.status === 201 && res.data) return { session: res.data, date };
+    if (res.status === 201 && res.data) {
+      return { session: res.data, date };
+    }
     if (res.status !== 409) {
       throw new Error(`Could not open a cash session (HTTP ${res.status}, ${res.error?.code}).`);
     }
@@ -84,14 +83,16 @@ export async function openSyntheticSession(
 export function closeSession(
   token: string,
   id: string,
-  body: Record<string, unknown>
+  body: Record<string, unknown>,
 ): Promise<ApiResult<CashSessionDto>> {
   return apiRequest<CashSessionDto>(`/api/cash-sessions/${id}/close`, { method: "POST", token, body });
 }
 
 export async function readSession(token: string, id: string): Promise<CashSessionDto> {
   const res = await apiRequest<CashSessionDto>(`/api/cash-sessions/${id}`, { token });
-  if (res.status !== 200 || !res.data) throw new Error(`Could not read cash session ${id} (HTTP ${res.status}).`);
+  if (res.status !== 200 || !res.data) {
+    throw new Error(`Could not read cash session ${id} (HTTP ${res.status}).`);
+  }
   return res.data;
 }
 
@@ -125,26 +126,38 @@ export async function todaysOpenSession(token: string): Promise<CashSessionDto |
   const tzOffset = 720 - utcMinutes;
   const date = new Date(now.getTime() + tzOffset * 60_000).toISOString().slice(0, 10);
 
-  const existing = await apiRequest<CashSessionDto[]>(
-    `/api/cash-sessions?dateFrom=${date}&dateTo=${date}&pageSize=1`,
-    { token }
-  );
+  const existing = await apiRequest<CashSessionDto[]>(`/api/cash-sessions?dateFrom=${date}&dateTo=${date}&pageSize=1`, {
+    token,
+  });
   const found = existing.data?.[0];
-  if (found) return found.status === "OPEN" ? found : null;
+  if (found) {
+    return found.status === "OPEN" ? found : null;
+  }
 
-  if (!mayOpenTodaysDrawer()) return null;
+  if (!mayOpenTodaysDrawer()) {
+    return null;
+  }
 
   const opened = await openSessionRequest(token, { date, tzOffset });
-  if (opened.status === 201 && opened.data) return opened.data;
+  if (opened.status === 201 && opened.data) {
+    return opened.data;
+  }
   // Someone opened it in the split second since the list was read.
-  if (opened.status === 409) return null;
+  if (opened.status === 409) {
+    return null;
+  }
   throw new Error(`Could not open today's drawer (HTTP ${opened.status}, ${opened.error?.code}).`);
 }
 
 // vitest's skip() throws, so the `return true` is belt and braces for the
 // caller's own early return rather than something that runs.
-export function skipWithoutTodaysDrawer(ctx: { skip: () => void }, session: CashSessionDto | null): session is CashSessionDto {
-  if (session) return true;
+export function skipWithoutTodaysDrawer(
+  ctx: { skip: () => void },
+  session: CashSessionDto | null,
+): session is CashSessionDto {
+  if (session) {
+    return true;
+  }
   console.warn(
     [
       "",
@@ -158,7 +171,7 @@ export function skipWithoutTodaysDrawer(ctx: { skip: () => void }, session: Cash
       `   On a disposable database, set ${ALLOW_TODAY_DRAWER_ENV}=1 to let it`,
       "   open one itself. Never do that against real data.",
       "",
-    ].join("\n")
+    ].join("\n"),
   );
   ctx.skip();
   return false;
@@ -172,7 +185,9 @@ export async function expenseCategoryId(token: string, key = "utilities"): Promi
     throw new Error("No expense categories available — ensure the target API has been seeded via `npm run seed`.");
   }
   const found = res.data.find((category) => category.key === key);
-  if (!found) throw new Error(`Seeded expense category "${key}" is required for this test.`);
+  if (!found) {
+    throw new Error(`Seeded expense category "${key}" is required for this test.`);
+  }
   return found.id;
 }
 

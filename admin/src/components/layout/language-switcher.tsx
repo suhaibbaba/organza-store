@@ -38,7 +38,7 @@ export function LanguageSwitcher({ className, variant = "list" }: LanguageSwitch
           className={cn(
             "flex h-(--control-h) shrink-0 cursor-pointer items-center gap-1.5 rounded-control border border-line bg-surface px-2.5",
             "text-label font-medium text-ink transition-colors duration-150 hover:bg-primary-50 data-[state=open]:bg-primary-50",
-            className
+            className,
           )}
         >
           <Languages className="size-4 shrink-0 text-ink-muted" aria-hidden="true" />
@@ -81,7 +81,7 @@ export function LanguageSwitcher({ className, variant = "list" }: LanguageSwitch
               className={cn(
                 "flex min-h-11 cursor-pointer select-none items-center gap-2 rounded-control px-3 py-2 lg:min-h-9",
                 "text-value text-ink-muted outline-none transition-colors duration-150 data-highlighted:bg-inset",
-                "data-[state=checked]:font-semibold data-[state=checked]:text-ink"
+                "data-[state=checked]:font-semibold data-[state=checked]:text-ink",
               )}
             >
               <span className="flex-1 truncate text-start">{LOCALE_LABELS[loc]}</span>
@@ -110,7 +110,7 @@ export function LanguageSwitcher({ className, variant = "list" }: LanguageSwitch
             "pill-text min-h-11 cursor-pointer rounded-pill px-3 text-label font-medium transition-colors duration-150",
             loc === locale
               ? "bg-primary-100 text-primary-700 focus-visible:bg-primary-300 focus-visible:text-primary-900"
-              : "text-ink-muted hover:bg-inset hover:text-ink focus-visible:bg-neutral-200 focus-visible:text-ink"
+              : "text-ink-muted hover:bg-inset hover:text-ink focus-visible:bg-neutral-200 focus-visible:text-ink",
           )}
         >
           {LOCALE_LABELS[loc]}

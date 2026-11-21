@@ -57,7 +57,7 @@ function loadParser() {
     return require("acorn");
   } catch {
     console.error(
-      "check-browser-target: acorn is not installed. It is a devDependency of admin/ and pos/ — run `npm install` at the workspace root."
+      "check-browser-target: acorn is not installed. It is a devDependency of admin/ and pos/ — run `npm install` at the workspace root.",
     );
     process.exit(1);
   }
@@ -68,8 +68,11 @@ function collectScripts(dir) {
   const found = [];
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
     const full = path.join(dir, entry.name);
-    if (entry.isDirectory()) found.push(...collectScripts(full));
-    else if (entry.isFile() && entry.name.endsWith(".js")) found.push(full);
+    if (entry.isDirectory()) {
+      found.push(...collectScripts(full));
+    } else if (entry.isFile() && entry.name.endsWith(".js")) {
+      found.push(full);
+    }
   }
   return found;
 }
@@ -87,14 +90,22 @@ function snippet(source, index) {
  * dependency in the build image is worth twelve lines.
  */
 function walk(node, visit) {
-  if (node === null || typeof node !== "object") return;
-  if (Array.isArray(node)) {
-    for (const child of node) walk(child, visit);
+  if (node === null || typeof node !== "object") {
     return;
   }
-  if (typeof node.type === "string") visit(node);
+  if (Array.isArray(node)) {
+    for (const child of node) {
+      walk(child, visit);
+    }
+    return;
+  }
+  if (typeof node.type === "string") {
+    visit(node);
+  }
   for (const key of Object.keys(node)) {
-    if (key === "type" || key === "start" || key === "end" || key === "loc") continue;
+    if (key === "type" || key === "start" || key === "end" || key === "loc") {
+      continue;
+    }
     walk(node[key], visit);
   }
 }
@@ -171,7 +182,7 @@ function main() {
   console.error(
     `check-browser-target: ${failures.length} use(s) of syntax iOS 15 Safari cannot parse.\n` +
       "A phone that meets this refuses the whole chunk and the app never starts.\n" +
-      "Check the `browserslist` field in the app's package.json.\n"
+      "Check the `browserslist` field in the app's package.json.\n",
   );
   for (const failure of failures) {
     console.error(`  ${failure.file}\n    ${failure.feature}\n    …${failure.snippet}…\n`);

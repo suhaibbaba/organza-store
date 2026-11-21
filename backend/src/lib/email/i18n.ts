@@ -30,7 +30,9 @@ export function resolveLanguage(requested: string | null | undefined): Supported
 function lookup(catalogue: unknown, key: string): string | null {
   let node: unknown = catalogue;
   for (const part of key.split(".")) {
-    if (typeof node !== "object" || node === null) return null;
+    if (typeof node !== "object" || node === null) {
+      return null;
+    }
     node = (node as Record<string, unknown>)[part];
   }
   return typeof node === "string" ? node : null;
@@ -42,13 +44,7 @@ function lookup(catalogue: unknown, key: string): string | null {
  * (CLAUDE.md rule 9), and — if even that is missing — to the key itself,
  * which makes the gap obvious in a preview instead of rendering "undefined".
  */
-export function t(
-  language: SupportedLanguage,
-  key: string,
-  values: Record<string, string | number> = {}
-): string {
+export function t(language: SupportedLanguage, key: string, values: Record<string, string | number> = {}): string {
   const template = lookup(CATALOGUES[language], key) ?? lookup(CATALOGUES[DEFAULT_LANGUAGE], key) ?? key;
-  return template.replace(/\{(\w+)\}/g, (match, name: string) =>
-    name in values ? String(values[name]) : match
-  );
+  return template.replace(/\{(\w+)\}/g, (match, name: string) => (name in values ? String(values[name]) : match));
 }

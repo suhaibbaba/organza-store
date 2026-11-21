@@ -26,13 +26,17 @@ const seen = new Set<string>();
 
 function remember(kind: FixtureKind, id: string): void {
   const key = `${kind}:${id}`;
-  if (seen.has(key)) return;
+  if (seen.has(key)) {
+    return;
+  }
   seen.add(key);
   records.push({ kind, id });
 }
 
 export function registerFixture(kind: FixtureKind, id: string): void {
-  if (typeof id === "string" && id.length > 0) remember(kind, id);
+  if (typeof id === "string" && id.length > 0) {
+    remember(kind, id);
+  }
 }
 
 // When this process started. A change request older than that was not asked
@@ -59,10 +63,14 @@ function askedForByThisRun(entry: { requestedAt?: unknown }): boolean {
  * the shop's approval list and on its navigation badge.
  */
 function harvestChangeRequests(value: unknown, depth = 0): void {
-  if (depth > 6 || value === null || typeof value !== "object") return;
+  if (depth > 6 || value === null || typeof value !== "object") {
+    return;
+  }
 
   if (Array.isArray(value)) {
-    for (const entry of value) harvestChangeRequests(entry, depth + 1);
+    for (const entry of value) {
+      harvestChangeRequests(entry, depth + 1);
+    }
     return;
   }
 
@@ -79,7 +87,9 @@ function harvestChangeRequests(value: unknown, depth = 0): void {
 
   // Nested one level down as well: a product carries its own pendingChanges,
   // and a change request's approval response carries the entity it touched.
-  for (const nested of Object.values(record)) harvestChangeRequests(nested, depth + 1);
+  for (const nested of Object.values(record)) {
+    harvestChangeRequests(nested, depth + 1);
+  }
 }
 
 /** Called by apiRequest for every response — the only entry point that matters. */

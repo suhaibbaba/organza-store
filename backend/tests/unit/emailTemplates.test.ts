@@ -15,7 +15,14 @@ const STORE_NAME = "متجر التجربة";
 const TOKEN = "test-token-abc123";
 
 function render(language: SupportedLanguage, purpose: (typeof PASSWORD_TOKEN_PURPOSES)[number]) {
-  return renderPasswordSetupEmail({ language, name: "Rawand", storeName: STORE_NAME, token: TOKEN, purpose, adminUrl: ADMIN_URL });
+  return renderPasswordSetupEmail({
+    language,
+    name: "Rawand",
+    storeName: STORE_NAME,
+    token: TOKEN,
+    purpose,
+    adminUrl: ADMIN_URL,
+  });
 }
 
 describe("Password setup email", () => {

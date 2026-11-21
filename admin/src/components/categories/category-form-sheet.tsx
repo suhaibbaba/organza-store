@@ -45,13 +45,10 @@ export function CategoryFormSheet({ open, onOpenChange, mode, category, tree }: 
   const locale = useLocale();
   const translateError = useTranslateError();
 
-  const excludedIds = useMemo(
-    () => (category ? new Set(collectSubtreeIds(category)) : new Set<string>()),
-    [category]
-  );
+  const excludedIds = useMemo(() => (category ? new Set(collectSubtreeIds(category)) : new Set<string>()), [category]);
   const parentOptions = useMemo(
     () => flattenCategoryTree(tree).filter((option) => !excludedIds.has(option.id)),
-    [tree, excludedIds]
+    [tree, excludedIds],
   );
 
   const {
@@ -67,7 +64,9 @@ export function CategoryFormSheet({ open, onOpenChange, mode, category, tree }: 
 
   // The drawer stays mounted while closed, so the form re-syncs with its target on every open.
   useEffect(() => {
-    if (open) reset(mode === "edit" && category ? categoryToFormValues(category) : DEFAULT_CATEGORY_FORM_VALUES);
+    if (open) {
+      reset(mode === "edit" && category ? categoryToFormValues(category) : DEFAULT_CATEGORY_FORM_VALUES);
+    }
   }, [open, mode, category, reset]);
 
   const createMutation = useCreateCategoryMutation();
@@ -96,9 +95,7 @@ export function CategoryFormSheet({ open, onOpenChange, mode, category, tree }: 
       descriptionKey="categories.subtitle"
       footer={
         <Button type="submit" form={FORM_ID} data-test-selector="category-save" isLoading={mutation.isPending}>
-          {mutation.isPending
-            ? t(mode === "create" ? "creating" : "saving")
-            : t(mode === "create" ? "create" : "save")}
+          {mutation.isPending ? t(mode === "create" ? "creating" : "saving") : t(mode === "create" ? "create" : "save")}
         </Button>
       }
     >

@@ -12,7 +12,9 @@ import { ERROR_CODES } from "@/constants";
  * endpoint and with the geometry that reads it (CLAUDE.md rule 8).
  */
 const jsonImageEdit = z.preprocess((value) => {
-  if (typeof value !== "string") return value;
+  if (typeof value !== "string") {
+    return value;
+  }
   try {
     return JSON.parse(value);
   } catch {

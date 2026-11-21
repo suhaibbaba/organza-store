@@ -43,7 +43,9 @@ export function ProductPicker({ query, onQueryChange, pendingId, onSelect }: Pro
         enterKeyHint="search"
         // The picker sits inside the order form: Enter searches, it must never create the order.
         onKeyDown={(event) => {
-          if (event.key === "Enter") event.preventDefault();
+          if (event.key === "Enter") {
+            event.preventDefault();
+          }
         }}
       />
 
@@ -61,7 +63,9 @@ export function ProductPicker({ query, onQueryChange, pendingId, onSelect }: Pro
       )}
 
       {search.isActive && !isLoading && products.length === 0 && (
-        <Typography variant="small" tone="muted" className="py-6 text-center">{t("empty")}</Typography>
+        <Typography variant="small" tone="muted" className="py-6 text-center">
+          {t("empty")}
+        </Typography>
       )}
 
       {search.isActive && !isLoading && products.length > 0 && (
@@ -82,15 +86,30 @@ export function ProductPicker({ query, onQueryChange, pendingId, onSelect }: Pro
                   className="h-full flex-col overflow-hidden"
                 >
                   <span className="relative block aspect-square w-full bg-sunken">
-                    <ProductPhoto product={product} alt={name} fit="contain" className="size-full" sizes="(max-width: 640px) 45vw, 160px" />
+                    <ProductPhoto
+                      product={product}
+                      alt={name}
+                      fit="contain"
+                      className="size-full"
+                      sizes="(max-width: 640px) 45vw, 160px"
+                    />
                     <span className="absolute end-2 top-2 flex size-8 items-center justify-center rounded-pill bg-surface/90 text-primary-700 shadow-card">
                       {pendingId === product.id ? <Spinner /> : <Plus className="size-4" aria-hidden="true" />}
                     </span>
                   </span>
 
                   <span className="flex flex-1 flex-col gap-1 p-2.5">
-                    <Typography variant="small" weight="medium" as="span" className="line-clamp-2 group-hover:text-primary-700">{name}</Typography>
-                    <Typography variant="small" weight="semibold" as="span">{formatMoney(product.basePrice)}</Typography>
+                    <Typography
+                      variant="small"
+                      weight="medium"
+                      as="span"
+                      className="line-clamp-2 group-hover:text-primary-700"
+                    >
+                      {name}
+                    </Typography>
+                    <Typography variant="small" weight="semibold" as="span">
+                      {formatMoney(product.basePrice)}
+                    </Typography>
                     <Typography variant="caption" tone="muted">
                       {product.hasVariants && <>{t("variantCount", { count: product.variantCount })} · </>}
                       <Typography as="span" variant="caption" tone={soldOut ? "error" : "inherit"}>

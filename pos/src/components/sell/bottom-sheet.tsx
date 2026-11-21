@@ -49,7 +49,7 @@ export function BottomSheet({
           className={cn(
             "fixed inset-0 z-50 bg-ink/40",
             "data-[state=open]:animate-[fade-in_200ms_ease-out]",
-            "data-[state=closed]:animate-[fade-out_150ms_ease-in]"
+            "data-[state=closed]:animate-[fade-out_150ms_ease-in]",
           )}
         />
         <Dialog.Content
@@ -67,9 +67,8 @@ export function BottomSheet({
             "fixed inset-x-0 bottom-0 z-50 flex max-h-[90dvh] flex-col gap-4 rounded-t-card border-t border-line bg-surface pb-[var(--safe-bottom)] shadow-float outline-none",
             "data-[state=open]:animate-in data-[state=open]:slide-in-from-bottom data-[state=open]:duration-300",
             "data-[state=closed]:animate-out data-[state=closed]:slide-out-to-bottom data-[state=closed]:duration-200",
-            compact &&
-              "sm:inset-0 sm:m-auto sm:h-fit sm:w-full sm:max-w-md sm:max-h-[85dvh] sm:rounded-card sm:border",
-            className
+            compact && "sm:inset-0 sm:m-auto sm:h-fit sm:w-full sm:max-w-md sm:max-h-[85dvh] sm:rounded-card sm:border",
+            className,
           )}
         >
           <div className={cn("flex items-center gap-3 p-5 pe-16", headerClassName)}>
@@ -90,7 +89,7 @@ export function BottomSheet({
             className={cn(
               "absolute end-3 top-3 inline-flex size-11 cursor-pointer items-center justify-center rounded-control",
               "text-ink-muted transition-colors hover:bg-inset hover:text-ink",
-              "focus-visible:bg-neutral-200 focus-visible:text-ink"
+              "focus-visible:bg-neutral-200 focus-visible:text-ink",
             )}
           >
             <Icon name="x" className="size-5" />

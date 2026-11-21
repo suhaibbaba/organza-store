@@ -4,10 +4,7 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { Zap } from "lucide-react";
 import type { QuickSellItemInput } from "@store/shared/schemas/order";
-import {
-  QUICK_SELL_DETAIL_MAX_LENGTH,
-  QUICK_SELL_NAME_MAX_LENGTH,
-} from "@store/shared/constants/quickSell";
+import { QUICK_SELL_DETAIL_MAX_LENGTH, QUICK_SELL_NAME_MAX_LENGTH } from "@store/shared/constants/quickSell";
 import { isNonNegativeDecimalString } from "@/lib/validation/numeric";
 import { useCurrencySymbol } from "@/hooks/use-currency-symbol";
 import { Alert, Button, Input } from "@store/ui";
@@ -40,28 +37,21 @@ export function QuickSellSheet({ open, onOpenChange, onAdd }: QuickSellSheetProp
       }
       description={t("subtitle")}
     >
-
-        {/* Created fresh on each open so the next piece starts empty. */}
-        {open && (
-          <QuickSellForm
-            onAdd={(input) => {
-              onAdd(input);
-              onOpenChange(false);
-            }}
-            onCancel={() => onOpenChange(false)}
-          />
-        )}
+      {/* Created fresh on each open so the next piece starts empty. */}
+      {open && (
+        <QuickSellForm
+          onAdd={(input) => {
+            onAdd(input);
+            onOpenChange(false);
+          }}
+          onCancel={() => onOpenChange(false)}
+        />
+      )}
     </BottomSheet>
   );
 }
 
-function QuickSellForm({
-  onAdd,
-  onCancel,
-}: {
-  onAdd: (input: QuickSellItemInput) => void;
-  onCancel: () => void;
-}) {
+function QuickSellForm({ onAdd, onCancel }: { onAdd: (input: QuickSellItemInput) => void; onCancel: () => void }) {
   const t = useTranslations("sell.quickSell");
   const currency = useCurrencySymbol();
 
@@ -76,7 +66,9 @@ function QuickSellForm({
   const showPriceError = trimmedPrice !== "" && !priceIsValid;
 
   function submit() {
-    if (!canAdd) return;
+    if (!canAdd) {
+      return;
+    }
     onAdd({
       name: trimmedName,
       price: trimmedPrice,
@@ -93,7 +85,9 @@ function QuickSellForm({
       }}
     >
       <div className="flex flex-col gap-2">
-        <label htmlFor="pos-quick-sell-name" className="text-label text-ink">{t("nameLabel")}</label>
+        <label htmlFor="pos-quick-sell-name" className="text-label text-ink">
+          {t("nameLabel")}
+        </label>
         {/* Autofocus: the sheet was opened to type this, and the keyboard coming up with it is the second this feature saves. */}
         <Input
           id="pos-quick-sell-name"
@@ -133,7 +127,9 @@ function QuickSellForm({
       </div>
 
       <div className="flex flex-col gap-2">
-        <label htmlFor="pos-quick-sell-detail" className="text-label text-ink">{t("detailLabel")}</label>
+        <label htmlFor="pos-quick-sell-detail" className="text-label text-ink">
+          {t("detailLabel")}
+        </label>
         <Input
           id="pos-quick-sell-detail"
           data-testid={fieldTestSelector("pos-quick-sell-detail")}
@@ -147,11 +143,19 @@ function QuickSellForm({
         <p className="text-micro text-ink-muted">{t("detailHint")}</p>
       </div>
 
-      <Alert tone="neutral" data-testid="alert-default">{t("afterwards")}</Alert>
+      <Alert tone="neutral" data-testid="alert-default">
+        {t("afterwards")}
+      </Alert>
 
       {/* Primary action at the start edge: a stray tap here only adds a cart line, unlike the gift sheet. */}
       <div className="flex items-stretch gap-3">
-        <Button type="submit" disabled={!canAdd} data-testid="pos-quick-sell-add" className={`${SHEET_ACTION} min-w-0 flex-[2]`} icon={<Zap aria-hidden="true" />}>
+        <Button
+          type="submit"
+          disabled={!canAdd}
+          data-testid="pos-quick-sell-add"
+          className={`${SHEET_ACTION} min-w-0 flex-[2]`}
+          icon={<Zap aria-hidden="true" />}
+        >
           {t("add")}
         </Button>
         <Button

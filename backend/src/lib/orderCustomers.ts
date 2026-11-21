@@ -32,7 +32,9 @@ const suggestionSelect = {
 // carries that zero.
 function searchCandidates(query: string): string[] {
   const digits = nationalPhoneDigits(query.trim());
-  if (!digits) return [];
+  if (!digits) {
+    return [];
+  }
   const withoutTrunkZero = digits.replace(/^0+/, "");
   return withoutTrunkZero && withoutTrunkZero !== digits ? [digits, withoutTrunkZero] : [digits];
 }
@@ -44,7 +46,9 @@ function searchCandidates(query: string): string[] {
 // with a long history can't turn this into an unbounded read.
 export async function findCustomerSuggestions(query: string): Promise<CustomerSuggestion[]> {
   const candidates = searchCandidates(query);
-  if (candidates.length === 0) return [];
+  if (candidates.length === 0) {
+    return [];
+  }
 
   const orders = await prisma.order.findMany({
     where: {
@@ -62,12 +66,16 @@ export async function findCustomerSuggestions(query: string): Promise<CustomerSu
     const phone = order.customerPhone;
     // A STORE sale has no customer on it at all; `contains` can't match a
     // null, but a caller could still widen the query one day.
-    if (!phone) continue;
+    if (!phone) {
+      continue;
+    }
 
     const key = phoneIdentityKey(phone);
     // The rows arrive newest-first, so the first one seen for a number is
     // already the latest snapshot of that customer.
-    if (byCustomer.has(key)) continue;
+    if (byCustomer.has(key)) {
+      continue;
+    }
 
     byCustomer.set(key, {
       phone,
@@ -79,7 +87,9 @@ export async function findCustomerSuggestions(query: string): Promise<CustomerSu
       lastOrderAt: order.createdAt.toISOString(),
     });
 
-    if (byCustomer.size >= CUSTOMER_SUGGESTION_LIMIT) break;
+    if (byCustomer.size >= CUSTOMER_SUGGESTION_LIMIT) {
+      break;
+    }
   }
 
   return [...byCustomer.values()];

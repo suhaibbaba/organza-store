@@ -36,11 +36,14 @@ function UsersPageContent() {
   const [searchInput, setSearchInput] = useUrlSearch(
     filters.q,
     (q) => changeFilters({ q, page: DEFAULT_PAGE }),
-    USER_SEARCH_DEBOUNCE_MS
+    USER_SEARCH_DEBOUNCE_MS,
   );
   const { data, isLoading, isFetching, isError, error, refetch } = useUsersQuery(filters);
 
-  const [form, setForm] = useState<{ open: boolean; mode: "create" | "edit"; user?: User }>({ open: false, mode: "create" });
+  const [form, setForm] = useState<{ open: boolean; mode: "create" | "edit"; user?: User }>({
+    open: false,
+    mode: "create",
+  });
   const [removingUser, setRemovingUser] = useState<User | null>(null);
   const menu = useUserRowMenu({
     onEdit: (user) => setForm({ open: true, mode: "edit", user }),
@@ -58,7 +61,7 @@ function UsersPageContent() {
       changeFilters(
         key === null
           ? { sortBy: DEFAULT_USER_FILTERS.sortBy, sortDir: DEFAULT_USER_FILTERS.sortDir, page: DEFAULT_PAGE }
-          : { sortBy: key as UserListFilters["sortBy"], sortDir: dir, page: DEFAULT_PAGE }
+          : { sortBy: key as UserListFilters["sortBy"], sortDir: dir, page: DEFAULT_PAGE },
       ),
   };
 
@@ -127,7 +130,11 @@ function UsersPageContent() {
         mode={form.mode}
         user={form.user}
       />
-      <UserRemoveModal user={removingUser} open={removingUser !== null} onOpenChange={(open) => !open && setRemovingUser(null)} />
+      <UserRemoveModal
+        user={removingUser}
+        open={removingUser !== null}
+        onOpenChange={(open) => !open && setRemovingUser(null)}
+      />
       {menu.dialog}
     </PageContainer>
   );

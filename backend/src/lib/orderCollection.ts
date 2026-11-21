@@ -36,7 +36,9 @@ export async function queryCollectionSummary(): Promise<CollectionSummaryRow | u
 
 // What each order still owes after partial returns, from the same per-line view as the summary.
 export async function queryOutstandingByOrder(ids: string[]): Promise<Map<string, string>> {
-  if (ids.length === 0) return new Map();
+  if (ids.length === 0) {
+    return new Map();
+  }
   const rows = await prisma.$queryRaw<{ orderId: string; amount: Prisma.Decimal | null }[]>`
     WITH line AS (${lineView(null)})
     SELECT order_id AS "orderId", COALESCE(SUM(unit_net_price * net_units), 0) AS amount

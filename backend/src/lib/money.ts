@@ -22,7 +22,9 @@ export function roundMoney(value: Money): Money {
 // floats can't hold every 2dp value exactly, and a string round-trips into
 // the frontend's own formatter untouched.
 export function formatMoney(value: Prisma.Decimal.Value | null | undefined): string | null {
-  if (value === null || value === undefined) return null;
+  if (value === null || value === undefined) {
+    return null;
+  }
   return roundMoney(money(value)).toFixed(MONEY_DECIMAL_PLACES);
 }
 
@@ -30,12 +32,13 @@ export function formatMoney(value: Prisma.Decimal.Value | null | undefined): str
 // permission gates that refuse a *change* rather than the field itself
 // (product.editPrice), so a form resending a value untouched still saves.
 // `undefined` means the field wasn't sent at all; `null` means "clear it".
-export function moneyChanged(
-  input: Prisma.Decimal.Value | null | undefined,
-  current: Prisma.Decimal | null
-): boolean {
-  if (input === undefined) return false;
-  if (input === null || current === null) return input !== current;
+export function moneyChanged(input: Prisma.Decimal.Value | null | undefined, current: Prisma.Decimal | null): boolean {
+  if (input === undefined) {
+    return false;
+  }
+  if (input === null || current === null) {
+    return input !== current;
+  }
   return !money(input).equals(current);
 }
 
@@ -45,9 +48,11 @@ export function moneyChanged(
 export function resolveDiscountAmount(
   base: Money,
   type: DiscountType | null | undefined,
-  value: Prisma.Decimal.Value | null | undefined
+  value: Prisma.Decimal.Value | null | undefined,
 ): Money {
-  if (!type || value === null || value === undefined) return ZERO_MONEY();
+  if (!type || value === null || value === undefined) {
+    return ZERO_MONEY();
+  }
 
   const raw = type === "PERCENT" ? base.mul(money(value)).div(100) : money(value);
   const clamped = raw.lessThan(0) ? ZERO_MONEY() : raw.greaterThan(base) ? base : raw;

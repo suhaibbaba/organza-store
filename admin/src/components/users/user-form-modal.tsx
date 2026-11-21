@@ -44,7 +44,11 @@ type PhoneCountry = ComponentProps<typeof PhoneCountryProvider>["country"];
 
 function FormGroup({ name, title, children }: { name: string; title: string; children: ReactNode }) {
   return (
-    <section aria-labelledby={`user-form-${name}`} data-test-selector={`user-form-${name}`} className="flex flex-col gap-4 py-5 first:pt-0 last:pb-0">
+    <section
+      aria-labelledby={`user-form-${name}`}
+      data-test-selector={`user-form-${name}`}
+      className="flex flex-col gap-4 py-5 first:pt-0 last:pb-0"
+    >
       <Typography variant="h4" as="h3" id={`user-form-${name}`}>
         {title}
       </Typography>
@@ -77,7 +81,9 @@ export function UserFormModal({ open, onOpenChange, mode, user }: UserFormModalP
 
   // The modal stays mounted while closed, so the form re-syncs with its target on every open.
   useEffect(() => {
-    if (open) reset(mode === "edit" && user ? userToFormValues(user) : DEFAULT_USER_FORM_VALUES);
+    if (open) {
+      reset(mode === "edit" && user ? userToFormValues(user) : DEFAULT_USER_FORM_VALUES);
+    }
   }, [open, mode, user, reset]);
 
   const createMutation = useCreateUserMutation();
@@ -139,7 +145,13 @@ export function UserFormModal({ open, onOpenChange, mode, user }: UserFormModalP
 
           <FormGroup name="account" title={t("groups.account")}>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <FormField label="users.form.name" htmlFor="name" error={errors.name} errorKey={fieldErrorKey(errors.name)} required>
+              <FormField
+                label="users.form.name"
+                htmlFor="name"
+                error={errors.name}
+                errorKey={fieldErrorKey(errors.name)}
+                required
+              >
                 <Input
                   id="name"
                   data-test-selector={fieldTestSelector("name")}
@@ -201,7 +213,13 @@ export function UserFormModal({ open, onOpenChange, mode, user }: UserFormModalP
 
           <FormGroup name="contact" title={t("groups.contact")}>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <FormField label="users.form.phone" htmlFor="phone" error={errors.phone} errorKey={fieldErrorKey(errors.phone)} required>
+              <FormField
+                label="users.form.phone"
+                htmlFor="phone"
+                error={errors.phone}
+                errorKey={fieldErrorKey(errors.phone)}
+                required
+              >
                 <Controller
                   control={control}
                   name="phone"

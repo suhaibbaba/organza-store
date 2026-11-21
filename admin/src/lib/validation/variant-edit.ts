@@ -16,7 +16,7 @@ export function initVariantEdits(variants: Variant[]): Record<string, VariantEdi
       barcodeSource: variant.barcodeSource,
       // Only a supplier code is editable; ours is shown read-only from the
       // variant itself.
-      barcode: variant.barcodeSource === BARCODE_SOURCE.SUPPLIER ? variant.barcode ?? "" : "",
+      barcode: variant.barcodeSource === BARCODE_SOURCE.SUPPLIER ? (variant.barcode ?? "") : "",
     };
   }
   return map;
@@ -37,7 +37,7 @@ export function diffVariantEdit(
   original: Variant,
   edits: VariantEditValues,
   abilities: ProductEditAbilities,
-  baseline?: VariantEditValues
+  baseline?: VariantEditValues,
 ): UpdateVariantInput | null {
   const patch: UpdateVariantInput = {};
   let changed = false;
@@ -45,7 +45,12 @@ export function diffVariantEdit(
 
   // Stock is an integer, never a decimal (CLAUDE.md "Mobile input" rules).
   const stock = Number(edits.stock);
-  if (abilities.canEditStock && touched("stock") && isNonNegativeIntegerString(edits.stock) && stock !== original.stock) {
+  if (
+    abilities.canEditStock &&
+    touched("stock") &&
+    isNonNegativeIntegerString(edits.stock) &&
+    stock !== original.stock
+  ) {
     patch.stock = stock;
     changed = true;
   }
@@ -86,12 +91,18 @@ function barcodeChange(original: Variant, edits: VariantEditValues): UpdateVaria
     // An empty or malformed code is left out entirely rather than sent to be
     // refused — the row shows the problem inline, and the form refuses to
     // submit while one is outstanding (see the product form's onSubmit).
-    if (!isValidBarcode(code)) return null;
-    if (original.barcodeSource === BARCODE_SOURCE.SUPPLIER && original.barcode === code) return null;
+    if (!isValidBarcode(code)) {
+      return null;
+    }
+    if (original.barcodeSource === BARCODE_SOURCE.SUPPLIER && original.barcode === code) {
+      return null;
+    }
     return { barcodeSource: BARCODE_SOURCE.SUPPLIER, barcode: code };
   }
 
-  if (original.barcodeSource === BARCODE_SOURCE.GENERATED) return null;
+  if (original.barcodeSource === BARCODE_SOURCE.GENERATED) {
+    return null;
+  }
   // Back to ours: the API restores the code it parked when the supplier code
   // was set, so a label already printed for this variant still scans.
   return { barcodeSource: BARCODE_SOURCE.GENERATED };

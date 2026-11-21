@@ -21,7 +21,9 @@ export function CardButton({
       aria-pressed={selected || undefined}
       className={cn(
         "group flex w-full cursor-pointer rounded-panel border bg-surface text-start transition-colors",
-        selected ? "border-selected-line bg-selected" : "border-line not-disabled:hover:border-primary-300 not-disabled:hover:bg-row-hover",
+        selected
+          ? "border-selected-line bg-selected"
+          : "border-line not-disabled:hover:border-primary-300 not-disabled:hover:bg-row-hover",
         "focus-visible:border-primary-600 focus-visible:bg-inset",
         "disabled:cursor-not-allowed disabled:opacity-50",
         className,

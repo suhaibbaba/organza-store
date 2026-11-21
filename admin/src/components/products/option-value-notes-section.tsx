@@ -22,13 +22,7 @@ interface OptionValueNotesSectionProps {
 }
 
 // One language switch for the whole block, not tabs per row: a dozen sizes would otherwise be thirty-six inputs (spec.md "Notes on a product's options").
-export function OptionValueNotesSection({
-  groups,
-  notes,
-  onChange,
-  disabled,
-  hint,
-}: OptionValueNotesSectionProps) {
+export function OptionValueNotesSection({ groups, notes, onChange, disabled, hint }: OptionValueNotesSectionProps) {
   const t = useTranslations("products.form.optionNotes");
   const tCommon = useTranslations("common");
   const written = countNotes(notes);
@@ -36,7 +30,9 @@ export function OptionValueNotesSection({
   const [open, setOpen] = useState(written > 0);
   const [language, setLanguage] = useState<keyof I18nFormValue>(DEFAULT_LANGUAGE);
 
-  if (groups.length === 0) return null;
+  if (groups.length === 0) {
+    return null;
+  }
 
   return (
     <div className="rounded-panel border border-line bg-surface">
@@ -53,7 +49,10 @@ export function OptionValueNotesSection({
             {written > 0 ? t("countWritten", { count: written }) : t("subtitle")}
           </span>
         </span>
-        <ChevronDown className={cn("size-5 shrink-0 text-ink-muted transition-transform", open && "rotate-180")} aria-hidden="true" />
+        <ChevronDown
+          className={cn("size-5 shrink-0 text-ink-muted transition-transform", open && "rotate-180")}
+          aria-hidden="true"
+        />
       </button>
 
       {open && (

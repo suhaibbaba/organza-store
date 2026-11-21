@@ -109,7 +109,11 @@ export function ProductFilters({ value, sort, onApply }: ProductFiltersProps) {
         descriptionKey="products.filters.title"
         footer={
           <>
-            <Button variant="secondary" onClick={() => apply(EMPTY_PRODUCT_FILTERS)} data-test-selector="product-filters-reset">
+            <Button
+              variant="secondary"
+              onClick={() => apply(EMPTY_PRODUCT_FILTERS)}
+              data-test-selector="product-filters-reset"
+            >
               {t("reset")}
             </Button>
             <Button onClick={() => apply(draft)} data-test-selector="product-filters-apply">
@@ -127,7 +131,9 @@ export function ProductFilters({ value, sort, onApply }: ProductFiltersProps) {
               options={PRODUCT_SORT_OPTIONS.map((option) => ({ value: option.value, label: tSort(option.labelKey) }))}
               onChange={(event) => {
                 const option = PRODUCT_SORT_OPTIONS.find((one) => one.value === event.target.value);
-                if (option) setDraftSort({ sortBy: option.sortBy, sortDir: option.sortDir });
+                if (option) {
+                  setDraftSort({ sortBy: option.sortBy, sortDir: option.sortDir });
+                }
               }}
             />
           </FormField>
@@ -203,7 +209,9 @@ export function ProductFilterChips({ value, onChange }: ProductFilterChipsProps)
   const formatMoney = useMoneyFormatter();
   const categories = useCategoryOptions();
 
-  if (countProductFilters(value) === 0) return null;
+  if (countProductFilters(value) === 0) {
+    return null;
+  }
 
   const chips: { key: string; label: string; clear: ProductFiltersValue }[] = [];
   if (value.categoryId) {

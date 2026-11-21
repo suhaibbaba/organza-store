@@ -63,7 +63,7 @@ router.get(
   "/",
   asyncHandler(async (_req, res) => {
     sendOk(res, serializeSetting(await getOrCreateSettings()));
-  })
+  }),
 );
 
 router.patch(
@@ -122,7 +122,7 @@ router.patch(
     });
 
     sendOk(res, serializeSetting(updated));
-  })
+  }),
 );
 
 // Logo and favicon: replacing one deletes the old file(s) only after the row points at the new one.
@@ -130,18 +130,25 @@ function brandFileRoutes(
   route: string,
   field: "logoFilename" | "faviconFilename",
   store: (buffer: Buffer) => Promise<string>,
-  removeFiles: (filename: string) => Promise<void>
+  removeFiles: (filename: string) => Promise<void>,
 ) {
   router.post(
     route,
     requirePermission("settings.manage"),
     handleImageUpload,
     asyncHandler(async (req, res) => {
-      if (!req.file) throw new AppError(400, ERROR_CODES.IMAGE_FILE_REQUIRED);
+      if (!req.file) {
+        throw new AppError(400, ERROR_CODES.IMAGE_FILE_REQUIRED);
+      }
       const existing = await getOrCreateSettings();
       const filename = await store(req.file.buffer);
-      const updated = await prisma.setting.update({ where: { id: SETTINGS_SINGLETON_ID }, data: { [field]: filename } });
-      if (existing[field]) await removeFiles(existing[field]);
+      const updated = await prisma.setting.update({
+        where: { id: SETTINGS_SINGLETON_ID },
+        data: { [field]: filename },
+      });
+      if (existing[field]) {
+        await removeFiles(existing[field]);
+      }
       await writeAudit({
         userId: req.user!.id,
         action: AuditAction.UPDATE,
@@ -151,7 +158,7 @@ function brandFileRoutes(
         newValue: { [field]: updated[field] },
       });
       sendOk(res, serializeSetting(updated));
-    })
+    }),
   );
 
   router.delete(
@@ -172,7 +179,7 @@ function brandFileRoutes(
         });
       }
       sendOk(res, serializeSetting(updated));
-    })
+    }),
   );
 }
 

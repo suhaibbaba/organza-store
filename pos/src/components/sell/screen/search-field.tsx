@@ -27,11 +27,18 @@ export function SearchField({ value, onChange, onSubmitCode, isLooking, inputRef
   function handleSubmit(event: FormEvent) {
     event.preventDefault();
     const code = value.trim();
-    if (code) onSubmitCode(code);
+    if (code) {
+      onSubmitCode(code);
+    }
   }
 
   return (
-    <form onSubmit={handleSubmit} role="search" className={cn("relative min-w-0", className)} data-test-selector="pos-search">
+    <form
+      onSubmit={handleSubmit}
+      role="search"
+      className={cn("relative min-w-0", className)}
+      data-test-selector="pos-search"
+    >
       <Search
         className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-ink-faint"
         aria-hidden="true"
@@ -50,7 +57,7 @@ export function SearchField({ value, onChange, onSubmitCode, isLooking, inputRef
         className={cn(
           CONTROL_HEIGHT,
           "w-full rounded-control border border-line-strong bg-surface ps-9 pe-10 text-field text-ink hover:border-neutral-400",
-          "placeholder:text-ink-subtle transition-[border-color,box-shadow] focus-visible:border-primary-600 focus-visible:shadow-field-focus focus-visible:outline-none"
+          "placeholder:text-ink-subtle transition-[border-color,box-shadow] focus-visible:border-primary-600 focus-visible:shadow-field-focus focus-visible:outline-none",
         )}
       />
       {isLooking ? (

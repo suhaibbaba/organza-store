@@ -17,12 +17,7 @@ const LINK_CLASS = cn(
   "after:absolute after:inset-x-0 after:top-1/2 after:h-(--control-h) after:-translate-y-1/2 after:content-[''] lg:after:hidden",
 );
 
-export function PhoneLink({
-  value,
-  className,
-  fallback = "—",
-  "data-testid": testId,
-}: ContactLinkProps): JSX.Element {
+export function PhoneLink({ value, className, fallback = "—", "data-testid": testId }: ContactLinkProps): JSX.Element {
   if (value === null || value === undefined || value.trim() === "") {
     return <>{fallback}</>;
   }
@@ -40,12 +35,7 @@ export function PhoneLink({
   );
 }
 
-export function EmailLink({
-  value,
-  className,
-  fallback = "—",
-  "data-testid": testId,
-}: ContactLinkProps): JSX.Element {
+export function EmailLink({ value, className, fallback = "—", "data-testid": testId }: ContactLinkProps): JSX.Element {
   if (value === null || value === undefined || value.trim() === "") {
     return <>{fallback}</>;
   }

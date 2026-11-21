@@ -56,7 +56,7 @@ async function lookup(token: string, code: string) {
 async function inNotPrintedQueue(token: string, productId: string): Promise<boolean> {
   const res = await apiRequest<ProductSummaryDto[]>(
     `/api/products?printState=not_printed&pageSize=100&q=${encodeURIComponent("Vitest Barcode")}`,
-    { token }
+    { token },
   );
   return (res.data ?? []).some((product) => product.id === productId);
 }
@@ -185,7 +185,7 @@ describe("Supplier barcodes", () => {
       expect(back.data!.barcodeSource).toBe("GENERATED");
       expect(
         back.data!.barcode,
-        "the code we minted comes back, so a label already stuck on the piece still scans"
+        "the code we minted comes back, so a label already stuck on the piece still scans",
       ).toBe(ours);
 
       // Reversible any number of times, and it is the toggle that decides —
@@ -244,7 +244,7 @@ describe("Supplier barcodes", () => {
       const code = supplierCode();
       const patched = await apiRequest<ProductDto["variants"][number]>(
         `/api/products/${created.id}/variants/${first.id}`,
-        { method: "PATCH", token: admin.token, body: { barcodeSource: "SUPPLIER", barcode: code } }
+        { method: "PATCH", token: admin.token, body: { barcodeSource: "SUPPLIER", barcode: code } },
       );
       expect(patched.status).toBe(200);
       expect(patched.data!.barcode).toBe(code);
@@ -263,7 +263,7 @@ describe("Supplier barcodes", () => {
       // And the variant toggles back to its own printed code, like the parent.
       const back = await apiRequest<ProductDto["variants"][number]>(
         `/api/products/${created.id}/variants/${first.id}`,
-        { method: "PATCH", token: admin.token, body: { barcodeSource: "GENERATED" } }
+        { method: "PATCH", token: admin.token, body: { barcodeSource: "GENERATED" } },
       );
       expect(back.data!.barcode).toBe(ours);
     });
@@ -383,7 +383,7 @@ describe("Supplier barcodes", () => {
       expect(scan.data!.kind).toBe(PRODUCT_LOOKUP_KIND.VARIANT_SELECTION);
       expect(scan.data!.variant, "nothing sellable comes back").toBeNull();
       expect(scan.data!.product.variants.length, "the picker has every size to choose from").toBe(
-        created.variants.length
+        created.variants.length,
       );
       // `numbers` is the numbered flavour of the same answer, and this product
       // is not numbered.
@@ -394,7 +394,9 @@ describe("Supplier barcodes", () => {
         token: admin.token,
         body: { channel: "STORE", items: [{ productId: created.id, quantity: 1 }] },
       });
-      if (sold.data?.id) openedOrderIds.push(sold.data.id);
+      if (sold.data?.id) {
+        openedOrderIds.push(sold.data.id);
+      }
       expect(sold.status, "a sale on the parent alone deducts stock from the wrong place").toBe(400);
       expect(sold.error?.code).toBe(ERROR_CODES.ORDER_VARIANT_REQUIRED);
 
@@ -407,7 +409,9 @@ describe("Supplier barcodes", () => {
           items: [{ productId: created.id, variantId: created.variants[0].id, quantity: 1 }],
         },
       });
-      if (withVariant.data?.id) openedOrderIds.push(withVariant.data.id);
+      if (withVariant.data?.id) {
+        openedOrderIds.push(withVariant.data.id);
+      }
       expect(withVariant.status).toBe(201);
     });
 
@@ -496,7 +500,7 @@ describe("Supplier barcodes", () => {
       expect(back.status).toBe(200);
       expect(
         back.data!.labelsPrintedAt,
-        "whatever label is on the piece now carries a different number, so one is owed again"
+        "whatever label is on the piece now carries a different number, so one is owed again",
       ).toBeNull();
       expect(await inNotPrintedQueue(admin.token, created.id)).toBe(true);
     });
@@ -523,7 +527,7 @@ describe("Supplier barcodes", () => {
 
       const stillOwed = await apiRequest<ProductSummaryDto[]>(
         `/api/products?printState=not_printed&pageSize=100&q=${encodeURIComponent("Vitest Numbered")}`,
-        { token: admin.token }
+        { token: admin.token },
       );
       const row = (stillOwed.data ?? []).find((entry) => entry.id === shawl.id);
       expect(row, "the collection label is still owed").toBeTruthy();
@@ -538,7 +542,7 @@ describe("Supplier barcodes", () => {
       expect(parentSupplier.status).toBe(200);
       const after = await apiRequest<ProductSummaryDto[]>(
         `/api/products?printState=not_printed&pageSize=100&q=${encodeURIComponent("Vitest Numbered")}`,
-        { token: admin.token }
+        { token: admin.token },
       );
       expect((after.data ?? []).some((entry) => entry.id === shawl.id)).toBe(false);
     });
@@ -560,14 +564,14 @@ describe("Supplier barcodes", () => {
         const isLast = index === variants.length - 1;
         expect(
           await inNotPrintedQueue(admin.token, created.id),
-          isLast ? "with every size barcoded, nothing is owed" : "sizes still on our own code owe a label"
+          isLast ? "with every size barcoded, nothing is owed" : "sizes still on our own code owe a label",
         ).toBe(!isLast);
       }
 
       // Which is also what the list row reports, so the screen can say so.
       const summary = await apiRequest<ProductSummaryDto[]>(
         `/api/products?printState=all&pageSize=100&q=${encodeURIComponent("Vitest Barcode")}`,
-        { token: admin.token }
+        { token: admin.token },
       );
       expect((summary.data ?? []).find((row) => row.id === created.id)?.needsLabel).toBe(false);
     });

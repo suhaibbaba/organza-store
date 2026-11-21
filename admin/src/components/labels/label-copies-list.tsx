@@ -21,8 +21,11 @@ export function LabelCopiesList({ lines, copies, onChange }: LabelCopiesListProp
   const groups: { productId: string; name: string; lines: LabelLine[] }[] = [];
   for (const line of lines) {
     const last = groups[groups.length - 1];
-    if (last && last.productId === line.productId) last.lines.push(line);
-    else groups.push({ productId: line.productId, name: line.name, lines: [line] });
+    if (last && last.productId === line.productId) {
+      last.lines.push(line);
+    } else {
+      groups.push({ productId: line.productId, name: line.name, lines: [line] });
+    }
   }
 
   return (
@@ -98,9 +101,7 @@ function CopiesCell({
       </div>
 
       {/* Why the count starts at zero; our own label over a supplier's code is allowed, just not proposed. */}
-      {line.supplierBarcode && (
-        <p className="text-meta font-medium text-ink-muted">{t("supplierBarcode")}</p>
-      )}
+      {line.supplierBarcode && <p className="text-meta font-medium text-ink-muted">{t("supplierBarcode")}</p>}
 
       {cappedStock !== null && (
         <p className="flex items-start gap-1.5 text-meta font-medium text-warning-700">

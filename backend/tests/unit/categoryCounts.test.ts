@@ -19,7 +19,7 @@ describe("rollUpCategoryCounts", () => {
         ["dresses", 4],
         ["evening", 2],
         ["shawls", 7],
-      ])
+      ]),
     );
     expect(totals.get("evening")).toBe(2);
     expect(totals.get("dresses")).toBe(6);
@@ -42,7 +42,7 @@ describe("rollUpCategoryCounts", () => {
       new Map([
         ["a", 1],
         ["b", 2],
-      ])
+      ]),
     );
     expect(totals.get("a")).toBe(3);
     expect(totals.get("b")).toBe(3);

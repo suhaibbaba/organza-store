@@ -187,7 +187,7 @@ describe("Verify · the cash drawer", () => {
       expectMoney(
         tomorrow.data!.openingFloat,
         DRAWER_CLOSING_BALANCE,
-        "tomorrow's opening float (the COUNTED figure less the withdrawal, not the expected one)"
+        "tomorrow's opening float (the COUNTED figure less the withdrawal, not the expected one)",
       );
       expectMoney(tomorrow.data!.expected, DRAWER_CLOSING_BALANCE, "and nothing has moved in it yet");
     });
@@ -278,7 +278,9 @@ describe("Verify · the cash drawer", () => {
   describe("a cash sale reaching the drawer", () => {
     it("adds exactly what was rung up: opening + 500.00 of cash sales", async (ctx) => {
       const drawer = await todaysOpenSession(admin);
-      if (!skipWithoutTodaysDrawer(ctx, drawer)) return;
+      if (!skipWithoutTodaysDrawer(ctx, drawer)) {
+        return;
+      }
 
       const before = await readSession(admin, drawer.id);
       const product = await createPricedProduct(admin, {
@@ -288,9 +290,7 @@ describe("Verify · the cash drawer", () => {
 
       // 2 x 250.00, paid in cash, at the counter — collected the moment it is
       // rung up, so it lands in this window.
-      const order = await sell(admin, [
-        { productId: product.id, quantity: DRAWER_CASH_SALE_QUANTITY },
-      ]);
+      const order = await sell(admin, [{ productId: product.id, quantity: DRAWER_CASH_SALE_QUANTITY }]);
       expectMoney(order.total, DRAWER_CASH_SALE_TOTAL, "the sale's own total");
       expect(order.paymentStatus, "a counter sale is paid on the spot").toBe("COLLECTED");
 
@@ -299,18 +299,15 @@ describe("Verify · the cash drawer", () => {
       expectDelta(after.expected, before.expected, DRAWER_CASH_SALE_TOTAL, "what the drawer should hold");
 
       // ...and the whole equation still adds up, on the absolute figures.
-      const expected =
-        Number(after.openingFloat) + Number(after.cashSales) - Number(after.cashExpenses);
-      expectMoney(
-        after.expected,
-        expected.toFixed(2),
-        "expected must equal openingFloat + cash sales − cash expenses"
-      );
+      const expected = Number(after.openingFloat) + Number(after.cashSales) - Number(after.cashExpenses);
+      expectMoney(after.expected, expected.toFixed(2), "expected must equal openingFloat + cash sales − cash expenses");
     });
 
     it("counts an online sale's cash on the day it is COLLECTED, not the day it was sold", async (ctx) => {
       const drawer = await todaysOpenSession(admin);
-      if (!skipWithoutTodaysDrawer(ctx, drawer)) return;
+      if (!skipWithoutTodaysDrawer(ctx, drawer)) {
+        return;
+      }
 
       const product = await createPricedProduct(admin, { basePrice: "120.00", stock: 10 });
 
@@ -329,13 +326,13 @@ describe("Verify · the cash drawer", () => {
         afterCollection.cashSales,
         whileOwed.cashSales,
         "120.00",
-        "cash sales once the delivery company settled up"
+        "cash sales once the delivery company settled up",
       );
       expectDelta(
         afterCollection.expected,
         whileOwed.expected,
         "120.00",
-        "what the drawer should hold once the money arrived"
+        "what the drawer should hold once the money arrived",
       );
     });
   });

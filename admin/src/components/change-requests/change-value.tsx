@@ -28,7 +28,9 @@ function useValueText(): (value: ChangeRequestValue | null) => string {
   const money = useMoneyFormatter();
 
   return (value) => {
-    if (!value) return t("none");
+    if (!value) {
+      return t("none");
+    }
     switch (value.kind) {
       case CHANGE_REQUEST_VALUE_KINDS.MONEY:
         return value.value === null ? t("none") : money(String(value.value));
@@ -91,9 +93,7 @@ export function ChangeValueDiff({
       {/* A variant-set change names its combinations: a count alone doesn't say what is being agreed to. */}
       {variants.length > 0 && (
         <p className="text-meta text-ink-muted">
-          <span className="font-medium">
-            {detail?.action === "remove" ? t("removing") : t("adding")}
-          </span>{" "}
+          <span className="font-medium">{detail?.action === "remove" ? t("removing") : t("adding")}</span>{" "}
           {variants.map((v) => localize(v.name, locale)).join(t("listSeparator"))}
         </p>
       )}

@@ -26,11 +26,17 @@ import type { AnyRecord } from "@/types";
 //
 // Printing anyway is always possible — this decides a queue, never a lock.
 export function needsLabel(product: AnyRecord): boolean {
-  if (product.barcodeSource === BARCODE_SOURCE.SUPPLIER) return false;
-  if (product.isNumbered === true) return true;
+  if (product.barcodeSource === BARCODE_SOURCE.SUPPLIER) {
+    return false;
+  }
+  if (product.isNumbered === true) {
+    return true;
+  }
 
   const variants = (product.variants ?? []) as AnyRecord[];
-  if (variants.length === 0) return true;
+  if (variants.length === 0) {
+    return true;
+  }
   return variants.some((variant) => variant.barcodeSource !== BARCODE_SOURCE.SUPPLIER);
 }
 

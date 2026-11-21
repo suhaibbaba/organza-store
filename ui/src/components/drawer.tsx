@@ -73,10 +73,7 @@ export function Drawer({
                 ],
           )}
         >
-          <div
-            {...part("header")}
-            className="flex items-start justify-between gap-3 border-b border-line px-4 py-3"
-          >
+          <div {...part("header")} className="flex items-start justify-between gap-3 border-b border-line px-4 py-3">
             <Dialog.Title {...part("title")} className="text-section font-medium text-ink">
               {title}
             </Dialog.Title>

@@ -45,15 +45,21 @@ const ORIGINAL = Object.fromEntries(TOUCHED.map((key) => [key, process.env[key]]
 
 afterEach(() => {
   for (const key of TOUCHED) {
-    if (ORIGINAL[key] === undefined) delete process.env[key];
-    else process.env[key] = ORIGINAL[key];
+    if (ORIGINAL[key] === undefined) {
+      delete process.env[key];
+    } else {
+      process.env[key] = ORIGINAL[key];
+    }
   }
 });
 
 function setEnv(values: Record<string, string | undefined>): void {
   for (const [key, value] of Object.entries(values)) {
-    if (value === undefined) delete process.env[key];
-    else process.env[key] = value;
+    if (value === undefined) {
+      delete process.env[key];
+    } else {
+      process.env[key] = value;
+    }
   }
 }
 

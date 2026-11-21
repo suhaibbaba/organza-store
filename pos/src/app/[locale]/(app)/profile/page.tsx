@@ -28,9 +28,15 @@ export default function ProfilePage() {
   return (
     <>
       <TopBar />
-      <main className={cn("mx-auto flex w-full max-w-5xl flex-col gap-5 px-3 py-5 tab:px-4 desk:px-5", POS_CONTROL_HEIGHT)}>
+      <main
+        className={cn("mx-auto flex w-full max-w-5xl flex-col gap-5 px-3 py-5 tab:px-4 desk:px-5", POS_CONTROL_HEIGHT)}
+      >
         <div className="flex flex-col items-start gap-3">
-          <Link href={SELL_HREF} className={buttonClassName({ variant: "secondary" })} data-test-selector="pos-profile-back">
+          <Link
+            href={SELL_HREF}
+            className={buttonClassName({ variant: "secondary" })}
+            data-test-selector="pos-profile-back"
+          >
             <ArrowLeft className="size-4 rtl:rotate-180" aria-hidden="true" />
             {t("back")}
           </Link>

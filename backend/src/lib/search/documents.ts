@@ -18,13 +18,16 @@ function categoryNames(categoryId: string | null, categories: Map<string, Search
   return names;
 }
 
-export function toSearchDocument(row: SearchProductRow, categories: Map<string, SearchCategoryNode>): ProductSearchDocument {
+export function toSearchDocument(
+  row: SearchProductRow,
+  categories: Map<string, SearchCategoryNode>,
+): ProductSearchDocument {
   const name = (row.name ?? {}) as Record<string, unknown>;
   const names = Object.fromEntries(
     SUPPORTED_LANGUAGES.map((lang) => {
       const value = name[lang];
       return [`name_${lang}`, typeof value === "string" ? withArticleVariants(normalize(value)) : ""];
-    })
+    }),
   );
   const inStock = row.variants.length ? row.variants.some((v) => v.stock > 0) : row.stock > 0;
 
@@ -38,7 +41,7 @@ export function toSearchDocument(row: SearchProductRow, categories: Map<string, 
       row.variants.flatMap((v) => [
         ...normalizedValues(v.name),
         ...v.values.flatMap((value) => normalizedValues(value.optionValue.value)),
-      ])
+      ]),
     ),
     description: searchable(normalizedValues(row.description)),
     categoryId: row.categoryId,

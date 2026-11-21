@@ -27,11 +27,7 @@ import {
   placedShawlPoints,
   roundPercent,
 } from "@/lib/validation/numbered-shawl";
-import {
-  diffOptionValueNotes,
-  setNoteLanguage,
-  type OptionValueNoteMap,
-} from "@/lib/option-value-notes";
+import { diffOptionValueNotes, setNoteLanguage, type OptionValueNoteMap } from "@/lib/option-value-notes";
 import { isNonNegativeIntegerString } from "@/lib/validation/numeric";
 import { ImagePointCanvas } from "@/components/products/numbered-shawl/image-point-canvas";
 import { PointDetailsList } from "@/components/products/numbered-shawl/point-details-list";
@@ -85,8 +81,7 @@ export function NumberedShawlEditor({ product, variantTypes, currency }: Numbere
     deleteVariantMutation.isPending ||
     updateProductMutation.isPending;
 
-  const colorsChanged =
-    textColor !== product.pointTextColor || backgroundColor !== product.pointBackgroundColor;
+  const colorsChanged = textColor !== product.pointTextColor || backgroundColor !== product.pointBackgroundColor;
   // Point keys only: must be answerable before any value id is resolved.
   const notesChanged = diffOptionValueNotes(initialNotes, notes).length > 0;
 
@@ -96,7 +91,9 @@ export function NumberedShawlEditor({ product, variantTypes, currency }: Numbere
     points.some((p) => !p.variantId) ||
     removedVariantIds.size > 0 ||
     points.some((p) => {
-      if (!p.variantId) return false;
+      if (!p.variantId) {
+        return false;
+      }
       const original = product.variants.find((v) => v.id === p.variantId);
       return original ? Boolean(diffShawlPoint(original, p)) : false;
     });
@@ -111,7 +108,9 @@ export function NumberedShawlEditor({ product, variantTypes, currency }: Numbere
     // An existing unplaced number is placed first; only then does a tap create a new one.
     const unplaced = firstUnplacedPoint(points);
     if (unplaced) {
-      setPoints((prev) => prev.map((p) => (p.id === unplaced.id ? { ...p, x: roundPercent(x), y: roundPercent(y) } : p)));
+      setPoints((prev) =>
+        prev.map((p) => (p.id === unplaced.id ? { ...p, x: roundPercent(x), y: roundPercent(y) } : p)),
+      );
       setSelectedId(unplaced.id);
       return;
     }
@@ -133,7 +132,9 @@ export function NumberedShawlEditor({ product, variantTypes, currency }: Numbere
   function handleConfirmDelete(id: string) {
     markDirty();
     const point = points.find((p) => p.id === id);
-    if (point?.variantId) setRemovedVariantIds((prev) => new Set(prev).add(point.variantId as string));
+    if (point?.variantId) {
+      setRemovedVariantIds((prev) => new Set(prev).add(point.variantId as string));
+    }
     setPoints((prev) => prev.filter((p) => p.id !== id));
     setSelectedId(null);
     setConfirmDeleteId(null);
@@ -141,8 +142,11 @@ export function NumberedShawlEditor({ product, variantTypes, currency }: Numbere
 
   function handleColorChange(field: "textColor" | "backgroundColor", value: string) {
     markDirty();
-    if (field === "textColor") setTextColor(value);
-    else setBackgroundColor(value);
+    if (field === "textColor") {
+      setTextColor(value);
+    } else {
+      setBackgroundColor(value);
+    }
   }
 
   // Both halves at once: "use the suggestion" is one decision.
@@ -167,7 +171,9 @@ export function NumberedShawlEditor({ product, variantTypes, currency }: Numbere
     setSaved(false);
     try {
       const numberType = variantTypes.find((vt) => vt.slug === NUMBER_VARIANT_TYPE_SLUG);
-      if (!numberType) throw new ApiError(500, ERROR_CODES.INTERNAL);
+      if (!numberType) {
+        throw new ApiError(500, ERROR_CODES.INTERNAL);
+      }
 
       // Sequential, so two new numbers never race to create the same value (rule 2).
       const valueIdByKey = new Map(numberType.values.map((v) => [v.key, v.id]));
@@ -202,14 +208,16 @@ export function NumberedShawlEditor({ product, variantTypes, currency }: Numbere
               valueIds: newPoints.map((p) => p.valueId as string),
               // A new point is only ever made by a tap, so it is always placed.
               imagePoints: Object.fromEntries(
-                placedShawlPoints(newPoints).map((p) => [p.valueId as string, { imageX: p.x, imageY: p.y }])
+                placedShawlPoints(newPoints).map((p) => [p.valueId as string, { imageX: p.x, imageY: p.y }]),
               ),
             },
           ],
         });
         for (const variant of updated.variants) {
           const valueId = variant.values[0]?.id;
-          if (valueId) createdVariantIdByValueId.set(valueId, variant.id);
+          if (valueId) {
+            createdVariantIdByValueId.set(valueId, variant.id);
+          }
         }
       }
 
@@ -217,34 +225,40 @@ export function NumberedShawlEditor({ product, variantTypes, currency }: Numbere
 
       // Colours and notes live on the PRODUCT, so they travel in one PATCH with only what changed.
       const valueIdByPointId = new Map(resolved.map((point) => [point.id, point.valueId]));
-      const noteChanges = diffOptionValueNotes(
-        initialNotes,
-        notes,
-        (pointId) => valueIdByPointId.get(pointId) ?? null
-      );
+      const noteChanges = diffOptionValueNotes(initialNotes, notes, (pointId) => valueIdByPointId.get(pointId) ?? null);
       if (colorsChanged || noteChanges.length > 0) {
         calls.push(
           updateProductMutation.mutateAsync({
             ...(colorsChanged ? { pointTextColor: textColor, pointBackgroundColor: backgroundColor } : {}),
             ...(noteChanges.length > 0 ? { optionValueNotes: noteChanges } : {}),
-          })
+          }),
         );
       }
 
       for (const point of existingPoints) {
         const original = product.variants.find((v) => v.id === point.variantId);
         const patch = original ? diffShawlPoint(original, point) : null;
-        if (patch) calls.push(updateVariantMutation.mutateAsync({ variantId: point.variantId as string, input: patch }));
+        if (patch) {
+          calls.push(updateVariantMutation.mutateAsync({ variantId: point.variantId as string, input: patch }));
+        }
       }
 
       for (const point of newPoints) {
         const variantId = createdVariantIdByValueId.get(point.valueId as string);
-        if (!variantId) continue;
+        if (!variantId) {
+          continue;
+        }
         const patch: UpdateVariantInput = {};
         const stock = Number(point.stock);
-        if (isNonNegativeIntegerString(point.stock) && stock !== 1) patch.stock = stock;
-        if (point.priceOverride.trim() !== "") patch.priceOverride = point.priceOverride.trim();
-        if (Object.keys(patch).length > 0) calls.push(updateVariantMutation.mutateAsync({ variantId, input: patch }));
+        if (isNonNegativeIntegerString(point.stock) && stock !== 1) {
+          patch.stock = stock;
+        }
+        if (point.priceOverride.trim() !== "") {
+          patch.priceOverride = point.priceOverride.trim();
+        }
+        if (Object.keys(patch).length > 0) {
+          calls.push(updateVariantMutation.mutateAsync({ variantId, input: patch }));
+        }
       }
 
       for (const variantId of removedVariantIds) {
@@ -264,7 +278,7 @@ export function NumberedShawlEditor({ product, variantTypes, currency }: Numbere
     return <p className="text-label text-ink-muted">{t("needsImage")}</p>;
   }
 
-  const selectedPoint = selectedId ? points.find((p) => p.id === selectedId) ?? null : null;
+  const selectedPoint = selectedId ? (points.find((p) => p.id === selectedId) ?? null) : null;
 
   const numberType = variantTypes.find((vt) => vt.slug === NUMBER_VARIANT_TYPE_SLUG);
   const noteGroups = [
@@ -281,7 +295,7 @@ export function NumberedShawlEditor({ product, variantTypes, currency }: Numbere
   const suggestion = suggestPointColors(image.brightness);
   const colors = resolvePointColors(
     { pointTextColor: textColor, pointBackgroundColor: backgroundColor },
-    image.brightness
+    image.brightness,
   );
 
   return (
@@ -323,7 +337,9 @@ export function NumberedShawlEditor({ product, variantTypes, currency }: Numbere
 
           {selectedPoint && (
             <div className="flex items-center justify-between gap-3 rounded-panel border border-line bg-surface p-3">
-              <span className="text-label font-medium text-ink">{t("pointLabel", { number: selectedPoint.number })}</span>
+              <span className="text-label font-medium text-ink">
+                {t("pointLabel", { number: selectedPoint.number })}
+              </span>
               {confirmDeleteId === selectedPoint.id ? (
                 <div className="flex items-center gap-2">
                   <Button variant="danger" onClick={() => handleConfirmDelete(selectedPoint.id)}>
@@ -352,12 +368,7 @@ export function NumberedShawlEditor({ product, variantTypes, currency }: Numbere
           />
 
           {/* Notes go here, not on the photo, where markers are tight and text over a picture isn't reliably readable. */}
-          <OptionValueNotesSection
-            groups={noteGroups}
-            notes={notes}
-            onChange={handleNoteChange}
-            disabled={isSaving}
-          />
+          <OptionValueNotesSection groups={noteGroups} notes={notes} onChange={handleNoteChange} disabled={isSaving} />
         </>
       )}
 

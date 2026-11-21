@@ -23,7 +23,13 @@ export function BrandImageField({ kind, current, change, onChange, tabLabel }: B
   const hasImage = change?.kind === "replace" || (current !== null && change?.kind !== "remove");
 
   const status =
-    change?.kind === "replace" ? t("pendingReplace") : change?.kind === "remove" ? t("pendingRemove") : !current ? t("builtIn") : null;
+    change?.kind === "replace"
+      ? t("pendingReplace")
+      : change?.kind === "remove"
+        ? t("pendingRemove")
+        : !current
+          ? t("builtIn")
+          : null;
 
   return (
     <div className="flex flex-col gap-3" data-test-selector={`settings-${kind}`}>
@@ -39,7 +45,12 @@ export function BrandImageField({ kind, current, change, onChange, tabLabel }: B
       {kind === "logo" ? (
         <div className="flex h-24 items-center justify-center rounded-panel border border-line bg-inset p-3">
           {/* eslint-disable-next-line @next/next/no-img-element -- a local preview or an already-optimised API image */}
-          <img src={large} alt="" className="h-full max-w-full object-contain" data-test-selector="settings-logo-preview" />
+          <img
+            src={large}
+            alt=""
+            className="h-full max-w-full object-contain"
+            data-test-selector="settings-logo-preview"
+          />
         </div>
       ) : (
         <div className="flex items-end gap-4 rounded-panel border border-line bg-inset p-3">
@@ -49,7 +60,12 @@ export function BrandImageField({ kind, current, change, onChange, tabLabel }: B
             </Typography>
             <div className="flex h-9 min-w-0 items-center gap-2 rounded-t-control bg-surface px-3 shadow-chip">
               {/* eslint-disable-next-line @next/next/no-img-element -- a local preview or an already-optimised API image */}
-              <img src={small} alt="" className="size-4 shrink-0 object-contain" data-test-selector="settings-favicon-tab" />
+              <img
+                src={small}
+                alt=""
+                className="size-4 shrink-0 object-contain"
+                data-test-selector="settings-favicon-tab"
+              />
               <Typography variant="caption" className="truncate">
                 {tabLabel}
               </Typography>
@@ -86,7 +102,9 @@ export function BrandImageField({ kind, current, change, onChange, tabLabel }: B
         onChange={(event) => {
           const file = event.target.files?.[0];
           event.target.value = "";
-          if (file) onChange({ kind: "replace", file, previewUrl: URL.createObjectURL(file) });
+          if (file) {
+            onChange({ kind: "replace", file, previewUrl: URL.createObjectURL(file) });
+          }
         }}
       />
       <div className="flex flex-wrap gap-2">

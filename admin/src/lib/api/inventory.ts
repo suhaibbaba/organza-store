@@ -9,14 +9,20 @@ function buildInventoryListQuery(filters: InventoryListFilters): string {
   params.set("pageSize", String(filters.pageSize));
   params.set("sortBy", filters.sortBy);
   params.set("sortDir", filters.sortDir);
-  if (filters.q.trim()) params.set("q", filters.q.trim());
-  if (filters.categoryId) params.set("categoryId", filters.categoryId);
-  if (filters.lowStock) params.set("lowStock", "true");
+  if (filters.q.trim()) {
+    params.set("q", filters.q.trim());
+  }
+  if (filters.categoryId) {
+    params.set("categoryId", filters.categoryId);
+  }
+  if (filters.lowStock) {
+    params.set("lowStock", "true");
+  }
   return params.toString();
 }
 
 export async function fetchInventory(
-  filters: InventoryListFilters
+  filters: InventoryListFilters,
 ): Promise<{ items: InventoryItem[]; meta: Pagination | null }> {
   const query = buildInventoryListQuery(filters);
   const { data, meta } = await apiFetch<InventoryItem[]>(`/api/inventory?${query}`);

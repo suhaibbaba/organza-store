@@ -21,12 +21,20 @@ export const orderCustomerFormSchema = z
     note: z.string(),
   })
   .superRefine((v, ctx) => {
-    if (!(ONLINE_ORDER_CHANNELS as readonly string[]).includes(v.channel)) return;
+    if (!(ONLINE_ORDER_CHANNELS as readonly string[]).includes(v.channel)) {
+      return;
+    }
     const fail = (path: keyof typeof v, message: string) =>
       ctx.addIssue({ code: z.ZodIssueCode.custom, path: [path], message });
-    if (v.name.trim() === "") fail("name", ERROR_CODES.VALIDATION_REQUIRED);
-    if (!isValidE164(v.phone)) fail("phone", ERROR_CODES.VALIDATION_INVALID_PHONE);
-    if (v.hasWhatsapp && !isValidE164(v.whatsapp)) fail("whatsapp", ERROR_CODES.VALIDATION_INVALID_PHONE);
+    if (v.name.trim() === "") {
+      fail("name", ERROR_CODES.VALIDATION_REQUIRED);
+    }
+    if (!isValidE164(v.phone)) {
+      fail("phone", ERROR_CODES.VALIDATION_INVALID_PHONE);
+    }
+    if (v.hasWhatsapp && !isValidE164(v.whatsapp)) {
+      fail("whatsapp", ERROR_CODES.VALIDATION_INVALID_PHONE);
+    }
     // A pasted link only counts once its point has been read.
     if (v.location.trim() !== "" && (v.latitude === "" || v.longitude === "")) {
       fail("location", ERROR_CODES.ORDER_LOCATION_LINK_INVALID);

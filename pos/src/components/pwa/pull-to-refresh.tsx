@@ -58,31 +58,45 @@ export function PullToRefresh({ children }: { children: ReactNode }) {
   }, [queryClient]);
 
   useEffect(() => {
-    if (!enabled) return;
+    if (!enabled) {
+      return;
+    }
 
     // Surfaces that own their touches (touch-action: none, the opt-out attribute, a dialog) never start a pull.
     function ownsItsTouches(target: EventTarget | null): boolean {
       let node = target instanceof Element ? target : null;
       for (let depth = 0; node && depth < PULL_REFRESH_SURFACE_SEARCH_DEPTH; depth += 1) {
-        if (node.hasAttribute(PULL_REFRESH_IGNORE_ATTRIBUTE) || node.getAttribute("role") === "dialog") return true;
-        if (window.getComputedStyle(node).touchAction === "none") return true;
+        if (node.hasAttribute(PULL_REFRESH_IGNORE_ATTRIBUTE) || node.getAttribute("role") === "dialog") {
+          return true;
+        }
+        if (window.getComputedStyle(node).touchAction === "none") {
+          return true;
+        }
         node = node.parentElement;
       }
       return false;
     }
 
     function handleTouchStart(event: TouchEvent) {
-      if (refreshingRef.current || event.touches.length !== 1) return;
+      if (refreshingRef.current || event.touches.length !== 1) {
+        return;
+      }
       // Only from the very top: mid-page this is an ordinary scroll.
-      if (window.scrollY > 0) return;
-      if (ownsItsTouches(event.target)) return;
+      if (window.scrollY > 0) {
+        return;
+      }
+      if (ownsItsTouches(event.target)) {
+        return;
+      }
       const touch = event.touches[0];
       startRef.current = { x: touch.clientX, y: touch.clientY };
     }
 
     function handleTouchMove(event: TouchEvent) {
       const start = startRef.current;
-      if (!start || refreshingRef.current) return;
+      if (!start || refreshingRef.current) {
+        return;
+      }
 
       const touch = event.touches[0];
       const dy = touch.clientY - start.y;
@@ -91,7 +105,9 @@ export function PullToRefresh({ children }: { children: ReactNode }) {
       if (!pullingRef.current) {
         // Scrolling up or swiping sideways: not ours for the rest of this gesture.
         if (dy <= PULL_REFRESH_DEAD_ZONE_PX || Math.abs(dx) > Math.abs(dy)) {
-          if (dy < 0 || Math.abs(dx) > Math.abs(dy)) startRef.current = null;
+          if (dy < 0 || Math.abs(dx) > Math.abs(dy)) {
+            startRef.current = null;
+          }
           return;
         }
         pullingRef.current = true;
@@ -99,9 +115,13 @@ export function PullToRefresh({ children }: { children: ReactNode }) {
       }
 
       const pulled = Math.min(PULL_REFRESH_MAX_PX, (dy - PULL_REFRESH_DEAD_ZONE_PX) * PULL_REFRESH_RESISTANCE);
-      if (pulled <= 0) return;
+      if (pulled <= 0) {
+        return;
+      }
       // Stops the page itself from rubber-banding behind the pull.
-      if (event.cancelable) event.preventDefault();
+      if (event.cancelable) {
+        event.preventDefault();
+      }
       distanceRef.current = pulled;
       setDistance(pulled);
     }
@@ -111,7 +131,9 @@ export function PullToRefresh({ children }: { children: ReactNode }) {
       const wasPulling = pullingRef.current;
       startRef.current = null;
       pullingRef.current = false;
-      if (!wasPulling) return;
+      if (!wasPulling) {
+        return;
+      }
 
       setIsSettling(true);
       if (pulled >= PULL_REFRESH_THRESHOLD_PX) {
@@ -135,7 +157,9 @@ export function PullToRefresh({ children }: { children: ReactNode }) {
     };
   }, [enabled, refresh]);
 
-  if (!enabled) return <>{children}</>;
+  if (!enabled) {
+    return <>{children}</>;
+  }
 
   const isReleasable = distance >= PULL_REFRESH_THRESHOLD_PX;
   const label = isRefreshing ? t("refreshing") : isReleasable ? t("release") : t("pull");

@@ -50,7 +50,11 @@ function ChangeRequestsPageContent() {
 
   return (
     <PageContainer>
-      <PageHeader name="change-requests" title={t("title")} description={canDecide ? t("subtitle") : t("subtitleOwn")} />
+      <PageHeader
+        name="change-requests"
+        title={t("title")}
+        description={canDecide ? t("subtitle") : t("subtitleOwn")}
+      />
 
       <div className="flex flex-col gap-4">
         {/* Tab ids are the selector spelling (tab-pending), mapped back to the status. */}
@@ -64,7 +68,9 @@ function ChangeRequestsPageContent() {
           value={toSelectorName(filters.status)}
           onChange={(id) => {
             const status = CHANGE_REQUEST_STATUS_TABS.find((value) => toSelectorName(value) === id);
-            if (status) setFilters({ status: status as ChangeRequestStatus, page: DEFAULT_PAGE });
+            if (status) {
+              setFilters({ status: status as ChangeRequestStatus, page: DEFAULT_PAGE });
+            }
           }}
         />
 
@@ -85,15 +91,10 @@ function ChangeRequestsPageContent() {
                   <QuickSoldCard key={request.id} request={request} canDecide={canComplete} />
                 ) : (
                   <ChangeRequestCard key={request.id} request={request} canDecide={canDecide} />
-                )
+                ),
               )}
             </div>
-            {data?.meta && (
-              <ChangeRequestPagination
-                meta={data.meta}
-                onPageChange={(page) => setFilters({ page })}
-              />
-            )}
+            {data?.meta && <ChangeRequestPagination meta={data.meta} onPageChange={(page) => setFilters({ page })} />}
           </>
         )}
       </div>

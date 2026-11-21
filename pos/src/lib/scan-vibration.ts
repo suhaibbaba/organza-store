@@ -25,7 +25,9 @@ export function vibrateScan(variant: FeedbackVariant): void {
 }
 
 function playPattern(pattern: VibrationPattern): void {
-  if (!isScanVibrationSupported()) return;
+  if (!isScanVibrationSupported()) {
+    return;
+  }
   try {
     // A pattern already running is cut off by the next call, which is what a
     // run of fast scans should feel like: the newest read is the one being

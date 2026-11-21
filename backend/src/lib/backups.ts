@@ -149,7 +149,9 @@ export async function reportBackupStaleness(now: Date = new Date()): Promise<Bac
   }
 
   const throttleMs = BACKUP_STALE_REPORT_EVERY_HOURS * MS_PER_HOUR;
-  if (lastStaleReportAt !== null && now.getTime() - lastStaleReportAt < throttleMs) return health;
+  if (lastStaleReportAt !== null && now.getTime() - lastStaleReportAt < throttleMs) {
+    return health;
+  }
   lastStaleReportAt = now.getTime();
 
   const age = health.lastSuccessAt

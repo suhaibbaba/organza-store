@@ -1,9 +1,5 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import {
-  REPORTS_SALES_QUERY_KEY,
-  REPORTS_STALE_TIME_MS,
-  REPORTS_SUMMARY_QUERY_KEY,
-} from "@/constants/reports";
+import { REPORTS_SALES_QUERY_KEY, REPORTS_STALE_TIME_MS, REPORTS_SUMMARY_QUERY_KEY } from "@/constants/reports";
 import { fetchSalesReport, fetchSalesSummary } from "@/lib/api/reports";
 
 // The dashboard's Sales & Profit block: today / this week / this month.

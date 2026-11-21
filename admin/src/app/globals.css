@@ -4,7 +4,6 @@
 @import "tw-animate-css";
 
 @theme inline {
-
   /* ------------------------------------------------------------------
      LINE HEIGHTS — sized for Arabic, which is the script this app is
      written in.
@@ -73,7 +72,6 @@
      the home-indicator strip it pads itself with. Scrollable content pads by
      this, and anything anchored above the nav is offset by it. */
   --bottom-bar-inset: calc(var(--bottom-nav-height) + var(--safe-bottom));
-
 }
 
 /* From md up the bottom nav is gone (the sidebar takes over), so the only
@@ -87,7 +85,6 @@
 }
 
 @layer base {
-
   html {
     -webkit-text-size-adjust: 100%;
     /* Tailwind's preflight sets 1.5 here, and every element that carries no

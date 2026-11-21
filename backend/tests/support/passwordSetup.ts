@@ -10,6 +10,8 @@ import { PASSWORD_SETUP_TOKEN_PARAM } from "@store/shared/constants/passwordSetu
  */
 export function tokenFromSetupUrl(url: string): string {
   const token = new URL(url).searchParams.get(PASSWORD_SETUP_TOKEN_PARAM);
-  if (!token) throw new Error(`No ${PASSWORD_SETUP_TOKEN_PARAM} in setup URL: ${url}`);
+  if (!token) {
+    throw new Error(`No ${PASSWORD_SETUP_TOKEN_PARAM} in setup URL: ${url}`);
+  }
   return token;
 }

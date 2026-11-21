@@ -23,7 +23,9 @@ export function OrderItemsList({ items, footer }: { items: OrderItem[]; footer?:
   const formatMoney = useMoneyFormatter();
 
   function renderDiscount(item: OrderItem) {
-    if (item.discountType === null || Number(item.discountAmount) <= 0) return null;
+    if (item.discountType === null || Number(item.discountAmount) <= 0) {
+      return null;
+    }
     return (
       <div className="flex flex-col whitespace-nowrap">
         <Typography variant="body" tone="success" as="span" className="tabular-nums" dir="ltr">
@@ -62,7 +64,9 @@ export function OrderItemsList({ items, footer }: { items: OrderItem[]; footer?:
                 {photo}
               </Link>
             ) : (
-              <Typography variant="body" as="span" className="shrink-0">{photo}</Typography>
+              <Typography variant="body" as="span" className="shrink-0">
+                {photo}
+              </Typography>
             )}
             <div className="flex min-w-0 flex-col gap-0.5">
               {item.productId ? (
@@ -73,23 +77,36 @@ export function OrderItemsList({ items, footer }: { items: OrderItem[]; footer?:
                   {name}
                 </Link>
               ) : (
-                <Typography variant="body" as="span" className="font-normal">{name}</Typography>
+                <Typography variant="body" as="span" className="font-normal">
+                  {name}
+                </Typography>
               )}
               {item.variantName && (
-                <Typography variant="small" tone="muted" as="span" className="font-normal">{localize(item.variantName, locale)}</Typography>
+                <Typography variant="small" tone="muted" as="span" className="font-normal">
+                  {localize(item.variantName, locale)}
+                </Typography>
               )}
               <Typography variant="small" tone="muted" as="span" className="font-normal" dir="ltr" {...SELECTABLE}>
                 {item.sku ?? t("noSku")}
               </Typography>
               {/* Typed at the counter (spec.md "Quick sell"): this line's cost, and its profit, may still be missing. */}
               {item.quickSold && (
-                <Typography variant="small" tone="brand" as="span" className="inline-flex items-center gap-1 font-normal">
+                <Typography
+                  variant="small"
+                  tone="brand"
+                  as="span"
+                  className="inline-flex items-center gap-1 font-normal"
+                >
                   <Zap className="size-3.5 shrink-0" aria-hidden="true" />
                   {t("quickSold")}
                 </Typography>
               )}
               {item.returnedQuantity > 0 && (
-                <Typography variant="small" as="span" className="inline-flex items-center gap-1 font-normal text-warning-700">
+                <Typography
+                  variant="small"
+                  as="span"
+                  className="inline-flex items-center gap-1 font-normal text-warning-700"
+                >
                   <Undo2 className="size-3.5 rtl:-scale-x-100" aria-hidden="true" />
                   {t("returned", { count: item.returnedQuantity })}
                 </Typography>
@@ -113,7 +130,11 @@ export function OrderItemsList({ items, footer }: { items: OrderItem[]; footer?:
       key: "unitPrice",
       header: "orders.detail.items.unitPriceHeader",
       align: "numeric",
-      render: (item) => <Typography variant="body" as="span" className="whitespace-nowrap tabular-nums">{formatMoney(item.unitPrice)}</Typography>,
+      render: (item) => (
+        <Typography variant="body" as="span" className="whitespace-nowrap tabular-nums">
+          {formatMoney(item.unitPrice)}
+        </Typography>
+      ),
     },
     {
       key: "discount",
@@ -125,7 +146,9 @@ export function OrderItemsList({ items, footer }: { items: OrderItem[]; footer?:
       header: "orders.detail.items.lineTotalHeader",
       align: "numeric",
       render: (item) => (
-        <Typography variant="body" weight="medium" as="span" className="whitespace-nowrap tabular-nums">{formatMoney(item.lineTotal)}</Typography>
+        <Typography variant="body" weight="medium" as="span" className="whitespace-nowrap tabular-nums">
+          {formatMoney(item.lineTotal)}
+        </Typography>
       ),
     },
   ];

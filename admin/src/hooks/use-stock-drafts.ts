@@ -16,8 +16,11 @@ export function useStockDrafts() {
     const value = clampQuantity(next);
     setDrafts((prev) => {
       const updated = { ...prev };
-      if (value === item.stock) delete updated[item.id];
-      else updated[item.id] = { item, value, failed: false };
+      if (value === item.stock) {
+        delete updated[item.id];
+      } else {
+        updated[item.id] = { item, value, failed: false };
+      }
       return updated;
     });
   }
@@ -26,12 +29,14 @@ export function useStockDrafts() {
     const pending = Object.values(drafts);
     setSaving(true);
     const results = await Promise.allSettled(
-      pending.map((draft) => mutation.mutateAsync({ item: draft.item, stock: draft.value }))
+      pending.map((draft) => mutation.mutateAsync({ item: draft.item, stock: draft.value })),
     );
     const failed: Record<string, StockDraft> = {};
     results.forEach((result, index) => {
       const draft = pending[index];
-      if (result.status === "rejected" && draft) failed[draft.item.id] = { ...draft, failed: true };
+      if (result.status === "rejected" && draft) {
+        failed[draft.item.id] = { ...draft, failed: true };
+      }
     });
     setDrafts(failed);
     setSaving(false);

@@ -47,7 +47,9 @@ export async function twoByTwoOptionSelections(token: string): Promise<OptionSel
 
 // The seeded global "number" variant type (spec.md: numbered shawls reuse it
 // as-is), with its first two option value ids.
-export async function firstTwoNumberValueIds(token: string): Promise<{ variantTypeId: string; valueIds: [string, string] }> {
+export async function firstTwoNumberValueIds(
+  token: string,
+): Promise<{ variantTypeId: string; valueIds: [string, string] }> {
   const res = await apiRequest<VariantTypeDto[]>("/api/variant-types", { token });
   if (!res.success || !res.data) {
     throw new Error("Could not load variant types — ensure the target API has been seeded via `npm run seed`.");

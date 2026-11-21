@@ -14,13 +14,11 @@ export function useMediaQuery(query: string): boolean {
       list.addEventListener("change", onChange);
       return () => list.removeEventListener("change", onChange);
     },
-    () =>
-      typeof window !== "undefined" && window.matchMedia ? window.matchMedia(query).matches : false,
+    () => (typeof window !== "undefined" && window.matchMedia ? window.matchMedia(query).matches : false),
     () => false,
   );
 }
 
 export const useIsMobile = (): boolean => useMediaQuery(`(max-width: ${MD_BREAKPOINT - 1}px)`);
 
-export const useIsCompactLayout = (): boolean =>
-  useMediaQuery(`not all and (min-width: ${RAIL_BREAKPOINT}px)`);
+export const useIsCompactLayout = (): boolean => useMediaQuery(`not all and (min-width: ${RAIL_BREAKPOINT}px)`);

@@ -29,9 +29,15 @@ const LOGIN_ERROR_MESSAGE_KEYS: Record<LoginErrorKind, string> = {
 };
 
 function loginErrorKind(error: unknown): LoginErrorKind {
-  if (!(error instanceof AuthError)) return "invalid";
-  if (error.status === HTTP_TOO_MANY_REQUESTS) return "rateLimited";
-  if (error.code === ACCOUNT_INACTIVE_AUTH_CODE) return "deactivated";
+  if (!(error instanceof AuthError)) {
+    return "invalid";
+  }
+  if (error.status === HTTP_TOO_MANY_REQUESTS) {
+    return "rateLimited";
+  }
+  if (error.code === ACCOUNT_INACTIVE_AUTH_CODE) {
+    return "deactivated";
+  }
   return "invalid";
 }
 

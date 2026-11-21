@@ -4,9 +4,7 @@ export type BrandImageKind = "logo" | "favicon";
 
 // What Save will do to one branding image: upload a picked file, delete the current one, or nothing.
 export type BrandImageChange =
-  | { readonly kind: "replace"; readonly file: File; readonly previewUrl: string }
-  | { readonly kind: "remove" }
-  | null;
+  { readonly kind: "replace"; readonly file: File; readonly previewUrl: string } | { readonly kind: "remove" } | null;
 
 export type BrandImageChanges = Record<BrandImageKind, BrandImageChange>;
 

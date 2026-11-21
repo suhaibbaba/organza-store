@@ -10,7 +10,7 @@ export function toSlug(text: string): string {
 // "evening-dress-2", "evening-dress-3", ...
 export async function generateUniqueSlug(
   base: string,
-  exists: (candidate: string) => Promise<boolean>
+  exists: (candidate: string) => Promise<boolean>,
 ): Promise<string> {
   const root = toSlug(base);
   let candidate = root;

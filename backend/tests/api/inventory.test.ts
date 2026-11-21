@@ -58,7 +58,9 @@ describe("Inventory", () => {
 
   afterAll(async () => {
     const admin = await getSession("ADMIN");
-    if (productId) await apiRequest(`/api/products/${productId}`, { method: "DELETE", token: admin.token });
+    if (productId) {
+      await apiRequest(`/api/products/${productId}`, { method: "DELETE", token: admin.token });
+    }
     if (untrackedProductId) {
       await apiRequest(`/api/products/${untrackedProductId}`, { method: "DELETE", token: admin.token });
     }
@@ -115,7 +117,7 @@ describe("Inventory", () => {
     const admin = await getSession("ADMIN");
     const res = await apiRequest<StockItem[]>(
       `/api/inventory?lowStock=true&q=${encodeURIComponent(`Vitest Inventory ${nonce}`)}`,
-      { token: admin.token }
+      { token: admin.token },
     );
     expect(res.status).toBe(200);
     const row = res.data!.find((i) => i.id === productId);
@@ -132,7 +134,7 @@ describe("Inventory", () => {
     const admin = await getSession("ADMIN");
     const res = await apiRequest<StockItem[]>(
       `/api/inventory?lowStock=true&q=${encodeURIComponent(`Vitest Untracked Inventory ${nonce}`)}`,
-      { token: admin.token }
+      { token: admin.token },
     );
     expect(res.status).toBe(200);
     expect(res.data!.some((i) => i.id === untrackedProductId)).toBe(false);
@@ -142,7 +144,7 @@ describe("Inventory", () => {
     const admin = await getSession("ADMIN");
     const res = await apiRequest<StockItem[]>(
       `/api/inventory?q=${encodeURIComponent(`Vitest Untracked Inventory ${nonce}`)}`,
-      { token: admin.token }
+      { token: admin.token },
     );
     expect(res.status).toBe(200);
     const row = res.data!.find((i) => i.id === untrackedProductId);
@@ -165,7 +167,7 @@ describe("Inventory", () => {
 
     const listed = await apiRequest<StockItem[]>(
       `/api/inventory?lowStock=true&q=${encodeURIComponent(`Vitest Untracked Inventory ${nonce}`)}`,
-      { token: admin.token }
+      { token: admin.token },
     );
     expect(listed.data!.some((i) => i.id === untrackedProductId)).toBe(true);
 
@@ -221,7 +223,7 @@ describe("Inventory", () => {
     try {
       const listed = await apiRequest<StockItem[]>(
         `/api/inventory?q=${encodeURIComponent(`Vitest Variant Track ${nonce}`)}`,
-        { token: admin.token }
+        { token: admin.token },
       );
       expect(listed.status).toBe(200);
       const rows = listed.data!.filter((i) => i.productId === trackedVariantProductId);
@@ -232,7 +234,7 @@ describe("Inventory", () => {
       // And the mirror case: the untracked simple product's rows stay false.
       const untracked = await apiRequest<StockItem[]>(
         `/api/inventory?q=${encodeURIComponent(`Vitest Untracked Inventory ${nonce}`)}`,
-        { token: admin.token }
+        { token: admin.token },
       );
       const untrackedRows = untracked.data!.filter((i) => i.productId === untrackedProductId);
       expect(untrackedRows.length).toBeGreaterThan(0);

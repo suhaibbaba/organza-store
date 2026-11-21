@@ -24,7 +24,7 @@ export const updateRolePermissionsSchema = z.object({
       z.object({
         action: permissionAction,
         granted: z.boolean(),
-      })
+      }),
     )
     .min(1)
     // No more entries than there are actions to switch. A body repeating the
@@ -32,10 +32,9 @@ export const updateRolePermissionsSchema = z.object({
     .max(CONFIGURABLE_ACTIONS.length)
     // ...and not the same action twice in one request either, which would
     // make "what did this change do" unanswerable from the audit trail.
-    .refine(
-      (changes) => new Set(changes.map((change) => change.action)).size === changes.length,
-      { message: "duplicate action" }
-    ),
+    .refine((changes) => new Set(changes.map((change) => change.action)).size === changes.length, {
+      message: "duplicate action",
+    }),
 });
 
 export type UpdateRolePermissionsInput = z.infer<typeof updateRolePermissionsSchema>;

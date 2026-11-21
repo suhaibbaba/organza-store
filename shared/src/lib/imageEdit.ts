@@ -52,18 +52,19 @@ export const IDENTITY_IMAGE_EDIT: ImageEdit = {
 };
 
 export function isIdentityImageEdit(edit: ImageEdit | null | undefined): boolean {
-  if (!edit) return true;
+  if (!edit) {
+    return true;
+  }
   const untouched = edit.rotation === 0 && !edit.flipHorizontal && !edit.flipVertical;
   const wholeFrame =
-    !edit.crop ||
-    (edit.crop.x <= 0 && edit.crop.y <= 0 && edit.crop.width >= 1 && edit.crop.height >= 1);
+    !edit.crop || (edit.crop.x <= 0 && edit.crop.y <= 0 && edit.crop.width >= 1 && edit.crop.height >= 1);
   return untouched && wholeFrame;
 }
 
 /** The size of the frame the editor showed, given the file's own dimensions. */
 export function rotatedFrameSize(
   size: { width: number; height: number },
-  rotation: ImageRotation
+  rotation: ImageRotation,
 ): { width: number; height: number } {
   return rotation === 90 || rotation === 270
     ? { width: size.height, height: size.width }
@@ -116,7 +117,7 @@ function clamp(value: number, min: number, max: number): number {
 function toOriginalPoint(
   point: { x: number; y: number },
   size: { width: number; height: number },
-  edit: ImageEdit
+  edit: ImageEdit,
 ): { x: number; y: number } {
   const { width: w, height: h } = size;
   let x: number;
@@ -143,8 +144,12 @@ function toOriginalPoint(
   }
 
   // Un-mirror.
-  if (edit.flipHorizontal) x = w - x;
-  if (edit.flipVertical) y = h - y;
+  if (edit.flipHorizontal) {
+    x = w - x;
+  }
+  if (edit.flipVertical) {
+    y = h - y;
+  }
 
   return { x, y };
 }
@@ -157,10 +162,7 @@ function toOriginalPoint(
  * swapped by hand — same answer, and it stays right for every combination of
  * turn and mirror without four more branches to get wrong.
  */
-export function resolveImageEditOps(
-  edit: ImageEdit,
-  size: { width: number; height: number }
-): ImageEditOps {
+export function resolveImageEditOps(edit: ImageEdit, size: { width: number; height: number }): ImageEditOps {
   const ops: ImageEditOps = {
     extract: null,
     flop: edit.flipHorizontal,
@@ -168,7 +170,9 @@ export function resolveImageEditOps(
     rotation: edit.rotation,
   };
 
-  if (!edit.crop) return ops;
+  if (!edit.crop) {
+    return ops;
+  }
 
   const frame = rotatedFrameSize(size, edit.rotation);
   const cropped = {
@@ -189,7 +193,9 @@ export function resolveImageEditOps(
   // A crop that covers the whole file is not a crop; skipping it saves sharp
   // a pass and keeps "uploaded without editing" byte-identical to what it
   // was before any of this existed.
-  if (left === 0 && top === 0 && width === size.width && height === size.height) return ops;
+  if (left === 0 && top === 0 && width === size.width && height === size.height) {
+    return ops;
+  }
 
   ops.extract = { left, top, width, height };
   return ops;

@@ -86,12 +86,18 @@ export function isFixedRole(role: string): boolean {
 export function sanitizeConfigurableMatrix(matrix: ConfigurablePermissionMatrix): ConfigurablePermissionMatrix {
   const clean: ConfigurablePermissionMatrix = {};
   for (const role of ROLES) {
-    if (isFixedRole(role)) continue;
+    if (isFixedRole(role)) {
+      continue;
+    }
     const grants = matrix[role];
-    if (!grants) continue;
+    if (!grants) {
+      continue;
+    }
     const kept: Partial<Record<ConfigurableAction, boolean>> = {};
     for (const [action, granted] of Object.entries(grants)) {
-      if (typeof granted === "boolean" && isConfigurableAction(action)) kept[action] = granted;
+      if (typeof granted === "boolean" && isConfigurableAction(action)) {
+        kept[action] = granted;
+      }
     }
     clean[role] = kept;
   }
@@ -115,8 +121,12 @@ function holdsByDefault(role: string, action: PermissionAction): boolean {
  *     to the same defaults wherever the config has nothing to say.
  */
 export function can(user: PermissionSubject | null | undefined, action: PermissionAction): boolean {
-  if (!user) return false;
-  if (isFixedRole(user.role) || isProtectedAction(action)) return holdsByDefault(user.role, action);
+  if (!user) {
+    return false;
+  }
+  if (isFixedRole(user.role) || isProtectedAction(action)) {
+    return holdsByDefault(user.role, action);
+  }
 
   const stored = storedConfig?.[user.role as Role]?.[action as ConfigurableAction];
   return stored ?? holdsByDefault(user.role, action);
@@ -136,7 +146,9 @@ export function effectiveActionsFor(role: Role): PermissionAction[] {
 /** The whole picture, as the API serves it. */
 export function buildPermissionMatrixPayload(): PermissionMatrixPayload {
   const roles = {} as PermissionMatrixPayload["roles"];
-  for (const role of ROLES) roles[role] = effectiveActionsFor(role);
+  for (const role of ROLES) {
+    roles[role] = effectiveActionsFor(role);
+  }
   return { roles, protectedActions: PROTECTED_ACTIONS, configurableActions: CONFIGURABLE_ACTIONS };
 }
 
@@ -154,7 +166,9 @@ export function configurableMatrixFromPayload(payload: PermissionMatrixPayload):
   for (const role of ROLES) {
     const held = new Set(payload.roles?.[role] ?? []);
     const grants: Partial<Record<ConfigurableAction, boolean>> = {};
-    for (const action of payload.configurableActions ?? []) grants[action] = held.has(action);
+    for (const action of payload.configurableActions ?? []) {
+      grants[action] = held.has(action);
+    }
     matrix[role] = grants;
   }
   return matrix;

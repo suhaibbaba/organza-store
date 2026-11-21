@@ -30,20 +30,26 @@ export interface OptionSelectionInput {
 export async function validateOptionSelections(
   selections: OptionSelectionInput[],
   isNumbered: boolean,
-  client: DbClient = prisma
+  client: DbClient = prisma,
 ): Promise<Map<string, OptionValueLookup>> {
   const valueMap = new Map<string, OptionValueLookup>();
   const typeSlugs: string[] = [];
   for (const sel of selections) {
     const vt = await client.variantType.findUnique({ where: { id: sel.variantTypeId }, include: { values: true } });
-    if (!vt) throw new AppError(400, ERROR_CODES.VARIANT_TYPE_NOT_FOUND);
+    if (!vt) {
+      throw new AppError(400, ERROR_CODES.VARIANT_TYPE_NOT_FOUND);
+    }
     typeSlugs.push(vt.slug);
     const validIds = new Set(vt.values.map((v) => v.id));
     for (const valueId of sel.valueIds) {
-      if (!validIds.has(valueId)) throw new AppError(400, ERROR_CODES.VARIANT_TYPE_VALUE_NOT_FOUND);
+      if (!validIds.has(valueId)) {
+        throw new AppError(400, ERROR_CODES.VARIANT_TYPE_VALUE_NOT_FOUND);
+      }
     }
     for (const v of vt.values) {
-      if (sel.valueIds.includes(v.id)) valueMap.set(v.id, { id: v.id, value: v.value as I18n });
+      if (sel.valueIds.includes(v.id)) {
+        valueMap.set(v.id, { id: v.id, value: v.value as I18n });
+      }
     }
   }
   // Refused loudly rather than filtered out: someone who picked colours for a
@@ -67,10 +73,10 @@ export interface GeneratableProduct {
  */
 export function previewComboNames(
   selections: OptionSelectionInput[],
-  valueMap: Map<string, OptionValueLookup>
+  valueMap: Map<string, OptionValueLookup>,
 ): I18n[] {
   return cartesianProduct(selections.map((s) => s.valueIds)).map((combo) =>
-    buildComboName(combo.map((valueId) => valueMap.get(valueId)!))
+    buildComboName(combo.map((valueId) => valueMap.get(valueId)!)),
   );
 }
 
@@ -93,7 +99,7 @@ export async function generateVariantsForProduct(
   product: GeneratableProduct,
   selections: OptionSelectionInput[],
   valueMap: Map<string, OptionValueLookup>,
-  comboStocks: { valueIds: string[]; stock: number }[] = []
+  comboStocks: { valueIds: string[]; stock: number }[] = [],
 ): Promise<{ createdSkus: string[] }> {
   const stockFor = comboStockLookup(comboStocks);
   const typeIds = [...new Set(selections.map((s) => s.variantTypeId))];
@@ -103,7 +109,12 @@ export async function generateVariantsForProduct(
   });
 
   const existingCombos = new Set(
-    product.variants.map((v) => v.values.map((vv) => vv.optionValueId).sort().join(","))
+    product.variants.map((v) =>
+      v.values
+        .map((vv) => vv.optionValueId)
+        .sort()
+        .join(","),
+    ),
   );
 
   const combos = cartesianProduct(selections.map((s) => s.valueIds));
@@ -113,7 +124,9 @@ export async function generateVariantsForProduct(
 
   for (const combo of combos) {
     const key = [...combo].sort().join(",");
-    if (existingCombos.has(key)) continue; // already generated — leave as-is
+    if (existingCombos.has(key)) {
+      continue;
+    } // already generated — leave as-is
 
     nextNumber += 1;
     const values = combo.map((valueId) => valueMap.get(valueId)!);

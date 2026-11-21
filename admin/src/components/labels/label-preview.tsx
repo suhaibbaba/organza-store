@@ -45,9 +45,7 @@ export function LabelPreview({ items, geometry }: { items: readonly LabelPrintIt
       </div>
 
       {isTruncated && (
-        <p className="text-label text-ink-muted">
-          {t("truncated", { shown: shownPages.length, total: pages.length })}
-        </p>
+        <p className="text-label text-ink-muted">{t("truncated", { shown: shownPages.length, total: pages.length })}</p>
       )}
     </div>
   );

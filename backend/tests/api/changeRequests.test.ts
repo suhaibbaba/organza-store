@@ -12,13 +12,7 @@ import {
   rejectChange,
 } from "@tests/support/changeRequests";
 import { createExpense, expenseCategoryId } from "@tests/support/cash";
-import type {
-  ChangeRequestCountDto,
-  ChangeRequestDto,
-  ExpenseDto,
-  OrderDto,
-  ProductDto,
-} from "@tests/types";
+import type { ChangeRequestCountDto, ChangeRequestDto, ExpenseDto, OrderDto, ProductDto } from "@tests/types";
 import { ERROR_CODES } from "@/constants";
 
 // The generic change-approval flow (spec.md "Employee change approvals").
@@ -41,7 +35,7 @@ import { ERROR_CODES } from "@/constants";
 // process into the three sizes, which is all the photo-deletion case needs.
 const ONE_PIXEL_PNG = Buffer.from(
   "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
-  "base64"
+  "base64",
 );
 
 describe("Change requests", () => {
@@ -58,11 +52,7 @@ describe("Change requests", () => {
     }
   });
 
-  async function product(
-    token: string,
-    label: string,
-    body: Record<string, unknown> = {}
-  ): Promise<ProductDto> {
+  async function product(token: string, label: string, body: Record<string, unknown> = {}): Promise<ProductDto> {
     const categoryId = await anyCategoryId(token);
     const name = `Vitest CR ${label} ${uniqueId()}`;
     const res = await apiRequest<ProductDto>("/api/products", {
@@ -104,8 +94,9 @@ describe("Change requests", () => {
       expect(request.entityLabel?.ar).toContain("Vitest CR Price");
       expect(request.productId).toBe(created.id);
 
-      expect(Number((await apiRequest<ProductDto>(`/api/products/${created.id}`, { token: admin.token })).data!
-        .basePrice)).toBe(100);
+      expect(
+        Number((await apiRequest<ProductDto>(`/api/products/${created.id}`, { token: admin.token })).data!.basePrice),
+      ).toBe(100);
     });
 
     it("holds a manual stock change", async () => {
@@ -185,7 +176,7 @@ describe("Change requests", () => {
       const variant = withVariants.variants[0];
       const remove = await apiRequest<{ id: string; deleted: boolean; pendingChange: ChangeRequestDto }>(
         `/api/products/${withVariants.id}/variants/${variant.id}`,
-        { method: "DELETE", token: employee.token }
+        { method: "DELETE", token: employee.token },
       );
       expect(remove.status).toBe(202);
       expect(remove.data!.deleted).toBe(false);
@@ -214,7 +205,7 @@ describe("Change requests", () => {
 
       const res = await apiRequest<{ id: string; deleted: boolean; pendingChange: ChangeRequestDto }>(
         `/api/images/${image.id}`,
-        { method: "DELETE", token: employee.token }
+        { method: "DELETE", token: employee.token },
       );
       expect(res.status).toBe(202);
       expect(res.data!.deleted).toBe(false);
@@ -280,7 +271,7 @@ describe("Change requests", () => {
 
       const listed = await listChangeRequests(
         admin.token,
-        `?status=PENDING&entityType=Product&entityId=${created.id}&pageSize=100`
+        `?status=PENDING&entityType=Product&entityId=${created.id}&pageSize=100`,
       );
       expect(listed.data!.filter((c) => c.field === "basePrice")).toHaveLength(1);
 
@@ -509,10 +500,7 @@ describe("Change requests", () => {
       expect(asEmployee.data!.every((c) => c.requestedById === employee.userId)).toBe(true);
       expect(asEmployee.data!.map((c) => c.id)).toContain(requestId);
 
-      const asAdmin = await listChangeRequests(
-        admin.token,
-        `?status=PENDING&entityId=${created.id}&pageSize=100`
-      );
+      const asAdmin = await listChangeRequests(admin.token, `?status=PENDING&entityId=${created.id}&pageSize=100`);
       expect(asAdmin.data!.map((c) => c.id)).toContain(requestId);
 
       // ...and reading someone else's directly is refused too.
@@ -654,7 +642,7 @@ describe("Change requests", () => {
         for (const status of ["PENDING", "APPROVED", "REJECTED"] as const) {
           const tab = await listChangeRequests(
             admin.token,
-            `?status=${status}&entityType=Product&entityId=${productId}&pageSize=100`
+            `?status=${status}&entityType=Product&entityId=${productId}&pageSize=100`,
           );
           expect(tab.data!.map((c) => c.id).includes(id)).toBe(status === belongs);
         }
@@ -810,14 +798,14 @@ describe("Change requests", () => {
       // its own request branch is unreachable until that widens.
       const variantEdit = await apiRequest<{ pendingChanges: ChangeRequestDto[] }>(
         `/api/products/${created.id}/variants/${firstVariant.id}`,
-        { method: "PATCH", token: employee.token, body: { priceOverride: "12", stock: 3 } }
+        { method: "PATCH", token: employee.token, body: { priceOverride: "12", stock: 3 } },
       );
       expect(variantEdit.status).toBe(200);
 
       // Removing a combination — the variant-set field.
       const variantSet = await apiRequest<{ pendingChange: ChangeRequestDto }>(
         `/api/products/${created.id}/variants/${firstVariant.id}`,
-        { method: "DELETE", token: employee.token }
+        { method: "DELETE", token: employee.token },
       );
       expect(variantSet.status).toBe(202);
 
@@ -845,7 +833,7 @@ describe("Change requests", () => {
 
       // One of every gated shape a product can produce.
       expect(filed.map((c) => c.field).sort()).toEqual(
-        ["basePrice", "deletion", "isActive", "priceOverride", "stock", "variantSet"].sort()
+        ["basePrice", "deletion", "isActive", "priceOverride", "stock", "variantSet"].sort(),
       );
 
       // THE ASSERTION: whatever the entity is, the card can name the piece.

@@ -15,7 +15,9 @@
   "scripts": {
     "build": "npm run build -w shared && npm run build -w backend && npm run build -w admin && npm run build -w pos",
     "typecheck": "npm run build -w shared && npm run typecheck --workspaces --if-present",
-    "lint": "npm run lint --workspaces --if-present",
+    "lint": "eslint backend shared ui && npm run lint --workspaces --if-present",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "dev:backend": "npm run dev -w backend",
     "dev:admin": "npm run dev -w admin",
     "dev:pos": "npm run dev -w pos",

@@ -83,7 +83,7 @@ export function OrderBuilder() {
       draft.addItem(product, variant);
       setQuery("");
     },
-    [draft]
+    [draft],
   );
 
   // The list DTO carries no variants, so the full product is fetched before deciding whether to ask which one.
@@ -108,17 +108,21 @@ export function OrderBuilder() {
         setPendingProductId(null);
       }
     },
-    [addItem, queryClient]
+    [addItem, queryClient],
   );
 
   function onSubmit(values: OrderCustomerFormValues) {
-    if (draft.isEmpty) return;
+    if (draft.isEmpty) {
+      return;
+    }
 
     const customer = toCustomerDraft(values);
     const note = customer.note.trim();
     // A gift is priced at zero on the server, so a discount would describe money that never existed.
     const gift = values.gift && canGift;
-    const lines = gift ? draft.lines.map((line) => ({ ...line, discountType: null, discountValue: null })) : draft.lines;
+    const lines = gift
+      ? draft.lines.map((line) => ({ ...line, discountType: null, discountValue: null }))
+      : draft.lines;
 
     const input: CreateOrderInput = {
       channel: values.channel,
@@ -222,17 +226,22 @@ export function OrderBuilder() {
               >
                 {t("save")}
               </Button>
-              {draft.isEmpty && <Typography variant="caption" tone="muted" as="p">{t("needItems")}</Typography>}
+              {draft.isEmpty && (
+                <Typography variant="caption" tone="muted" as="p">
+                  {t("needItems")}
+                </Typography>
+              )}
             </div>
           </div>
         </div>
-
       </form>
 
       <VariantPickerSheet
         product={pickerProduct}
         onOpenChange={(open) => {
-          if (!open) setPickerProduct(null);
+          if (!open) {
+            setPickerProduct(null);
+          }
         }}
         onPick={addItem}
       />
@@ -241,7 +250,9 @@ export function OrderBuilder() {
         <OrderDiscountSheet
           open
           onOpenChange={(open) => {
-            if (!open) setDiscountLineKey(null);
+            if (!open) {
+              setDiscountLineKey(null);
+            }
           }}
           title={localize(discountLine.name, locale)}
           baseAmount={fromCents(lineGrossCents(discountLine))}

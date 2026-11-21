@@ -18,10 +18,7 @@ export interface ConfirmDialogProps extends TestIdProps {
   readonly tone?: "danger" | "primary" | undefined;
   readonly toggle?: { readonly label: string } | undefined;
   readonly note?: { readonly label: string; readonly placeholder?: string } | undefined;
-  readonly onConfirm: (choice: {
-    readonly toggled: boolean;
-    readonly note: string;
-  }) => Promise<void>;
+  readonly onConfirm: (choice: { readonly toggled: boolean; readonly note: string }) => Promise<void>;
 }
 
 const NOTE_MIN = 3;
@@ -139,19 +136,12 @@ export function ConfirmDialog({
     >
       <div className="flex flex-col gap-4">
         {hasConsequences && (
-          <ul
-            id={consequencesId}
-            {...testid(testId, "consequences")}
-            className="flex flex-col gap-1.5"
-          >
+          <ul id={consequencesId} {...testid(testId, "consequences")} className="flex flex-col gap-1.5">
             {consequences.map((line, index) => (
               <li key={index} className="flex items-start gap-2 text-value text-ink-muted">
                 <Icon
                   name={tone === "danger" ? "alert" : "info"}
-                  className={cn(
-                    "mt-0.5 size-4 shrink-0",
-                    tone === "danger" ? "text-danger-600" : "text-primary-600",
-                  )}
+                  className={cn("mt-0.5 size-4 shrink-0", tone === "danger" ? "text-danger-600" : "text-primary-600")}
                 />
                 <span>{line}</span>
               </li>
@@ -192,14 +182,7 @@ export function ConfirmDialog({
 
 export type ConfirmRequest = Pick<
   ConfirmDialogProps,
-  | "title"
-  | "titleValues"
-  | "consequences"
-  | "confirmLabel"
-  | "tone"
-  | "toggle"
-  | "note"
-  | "onConfirm"
+  "title" | "titleValues" | "consequences" | "confirmLabel" | "tone" | "toggle" | "note" | "onConfirm"
 >;
 
 export function useConfirm(testId?: string): {

@@ -26,7 +26,9 @@ export function VariantList({ variants, variantTypes, currency }: VariantListPro
 
   const typeNameById = useMemo(() => {
     const map = new Map<string, string>();
-    for (const type of variantTypes) map.set(type.id, localize(type.name, locale));
+    for (const type of variantTypes) {
+      map.set(type.id, localize(type.name, locale));
+    }
     return map;
   }, [variantTypes, locale]);
 

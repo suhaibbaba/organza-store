@@ -5,13 +5,7 @@ import { anyCategoryId } from "@tests/support/fixtures";
 import { approveChange, pendingChangeFor, rejectChange } from "@tests/support/changeRequests";
 import { num, salesReport } from "@tests/support/reports";
 import { CHANGE_REQUEST_ENTITIES, CHANGE_REQUEST_FIELDS, ERROR_CODES } from "@/constants";
-import type {
-  ChangeRequestDto,
-  OrderDto,
-  OrderSummaryDto,
-  ProductDto,
-  ProductSummaryDto,
-} from "@tests/types";
+import type { ChangeRequestDto, OrderDto, OrderSummaryDto, ProductDto, ProductSummaryDto } from "@tests/types";
 
 // Quick sell (spec.md "Quick sell") — selling a piece the catalogue has never
 // heard of, and reviewing it afterwards.
@@ -39,7 +33,7 @@ describe("Quick sell", () => {
   /** Rings up one quick-sold piece at the counter, exactly as the POS does. */
   async function quickSell(
     token: string,
-    options: { name?: string; price?: string; detail?: string; quantity?: number } = {}
+    options: { name?: string; price?: string; detail?: string; quantity?: number } = {},
   ) {
     const name = options.name ?? `Vitest QuickSell ${uniqueId()}`;
     const res = await apiRequest<OrderDto>("/api/orders", {
@@ -61,7 +55,9 @@ describe("Quick sell", () => {
       },
     });
     const productId = res.data?.items?.[0]?.productId ?? null;
-    if (productId) createdProductIds.push(productId);
+    if (productId) {
+      createdProductIds.push(productId);
+    }
     return { res, name, productId };
   }
 
@@ -70,9 +66,11 @@ describe("Quick sell", () => {
       token,
       CHANGE_REQUEST_ENTITIES.PRODUCT,
       productId,
-      CHANGE_REQUEST_FIELDS.PRODUCT_COMPLETION
+      CHANGE_REQUEST_FIELDS.PRODUCT_COMPLETION,
     );
-    if (!pending) throw new Error(`No completion request found for quick-sold product ${productId}.`);
+    if (!pending) {
+      throw new Error(`No completion request found for quick-sold product ${productId}.`);
+    }
     return pending;
   }
 
@@ -156,9 +154,7 @@ describe("Quick sell", () => {
       body: {
         channel: "STORE",
         paymentMethod: "CASH",
-        items: [
-          { productId: "does-not-matter", quantity: 1, quickSell: { name: "x", price: "10" } },
-        ],
+        items: [{ productId: "does-not-matter", quantity: 1, quickSell: { name: "x", price: "10" } }],
       },
     });
     expect(both.status).toBe(400);
@@ -298,10 +294,9 @@ describe("Quick sell", () => {
     // The ordinary list must not lose it. It has no category, so every
     // category-filtered view drops it — which is exactly why it has to be
     // marked rather than left to be noticed.
-    const listed = await apiRequest<ProductSummaryDto[]>(
-      `/api/products?pageSize=100&completeness=needs_completing`,
-      { token: admin.token }
-    );
+    const listed = await apiRequest<ProductSummaryDto[]>(`/api/products?pageSize=100&completeness=needs_completing`, {
+      token: admin.token,
+    });
     expect(listed.status).toBe(200);
     const row = listed.data?.find((p) => p.id === productId);
     expect(row).toBeDefined();
@@ -314,7 +309,7 @@ describe("Quick sell", () => {
     await rejectChange(admin.token, request.id);
     const afterDecision = await apiRequest<ProductSummaryDto[]>(
       `/api/products?pageSize=100&completeness=needs_completing`,
-      { token: admin.token }
+      { token: admin.token },
     );
     expect(afterDecision.data?.some((p) => p.id === productId)).toBe(false);
   });

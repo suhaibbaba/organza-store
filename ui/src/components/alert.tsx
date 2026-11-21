@@ -49,22 +49,24 @@ export function Alert({
         <span
           {...part("icon")}
           aria-hidden="true"
-          className={cn(
-            "flex shrink-0 items-center",
-            !compact && "h-6 sm:h-[27px]",
-            notice.icon,
-          )}
+          className={cn("flex shrink-0 items-center", !compact && "h-6 sm:h-[27px]", notice.icon)}
         >
           <Icon name={glyph} className={cn("[stroke-width:2]", compact ? "size-5" : "size-6")} />
         </span>
       )}
       <div {...part("body")} className="flex min-w-0 flex-1 flex-col gap-1.5">
         {title !== undefined && (
-          <p className={cn("text-base leading-[1.5] font-semibold sm:text-lg sm:leading-[1.5]", notice.title)}>{title}</p>
+          <p className={cn("text-base leading-[1.5] font-semibold sm:text-lg sm:leading-[1.5]", notice.title)}>
+            {title}
+          </p>
         )}
         {children !== undefined && <div className="[&_a]:underline">{children}</div>}
       </div>
-      {action !== undefined && <div {...part("action")} className="shrink-0 self-center">{action}</div>}
+      {action !== undefined && (
+        <div {...part("action")} className="shrink-0 self-center">
+          {action}
+        </div>
+      )}
     </div>
   );
 }

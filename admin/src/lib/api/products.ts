@@ -17,21 +17,37 @@ function buildProductListQuery(filters: ProductListFilters, pageSize: number): s
   params.set("pageSize", String(pageSize));
   params.set("sortBy", filters.sortBy);
   params.set("sortDir", filters.sortDir);
-  if (filters.q.trim()) params.set("q", filters.q.trim());
-  if (filters.categoryId) params.set("categoryId", filters.categoryId);
-  if (filters.status) params.set("status", filters.status);
-  if (filters.stock) params.set("stock", filters.stock);
-  if (filters.priceMin.trim()) params.set("priceMin", filters.priceMin.trim());
-  if (filters.priceMax.trim()) params.set("priceMax", filters.priceMax.trim());
+  if (filters.q.trim()) {
+    params.set("q", filters.q.trim());
+  }
+  if (filters.categoryId) {
+    params.set("categoryId", filters.categoryId);
+  }
+  if (filters.status) {
+    params.set("status", filters.status);
+  }
+  if (filters.stock) {
+    params.set("stock", filters.stock);
+  }
+  if (filters.priceMin.trim()) {
+    params.set("priceMin", filters.priceMin.trim());
+  }
+  if (filters.priceMax.trim()) {
+    params.set("priceMax", filters.priceMax.trim());
+  }
   // "all" is the backend's default, so it stays off the query string.
-  if (filters.printState !== "all") params.set("printState", filters.printState);
-  if (filters.completeness !== "all") params.set("completeness", filters.completeness);
+  if (filters.printState !== "all") {
+    params.set("printState", filters.printState);
+  }
+  if (filters.completeness !== "all") {
+    params.set("completeness", filters.completeness);
+  }
   return params.toString();
 }
 
 export async function fetchProducts(
   filters: ProductListFilters,
-  pageSize: number
+  pageSize: number,
 ): Promise<{ products: ProductSummary[]; meta: Pagination | null }> {
   const query = buildProductListQuery(filters, pageSize);
   const { data, meta } = await apiFetch<ProductSummary[]>(`/api/products?${query}`);
@@ -84,11 +100,11 @@ export async function deleteProduct(id: string): Promise<{ id: string; deletedAt
 // Removes a variant, or files a change request without product.editVariantSet; `deleted` says which.
 export async function deleteVariant(
   id: string,
-  variantId: string
+  variantId: string,
 ): Promise<{ id: string; deleted: boolean; pendingChange?: ChangeRequest | null }> {
   const { data } = await apiFetch<{ id: string; deleted?: boolean; pendingChange?: ChangeRequest | null }>(
     `/api/products/${id}/variants/${variantId}`,
-    { method: "DELETE" }
+    { method: "DELETE" },
   );
   // Older backends answered without the flag, and they only ever deleted.
   return { id: data.id, deleted: data.deleted ?? true, pendingChange: data.pendingChange ?? null };

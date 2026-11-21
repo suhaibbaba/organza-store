@@ -11,7 +11,9 @@ export function OrderCustomerCard({ order }: { order: Order }) {
   const t = useTranslations("orders.detail.customer");
 
   const hasLocation = order.customerLatitude !== null && order.customerLongitude !== null;
-  const mapUrl = hasLocation ? googleMapsUrl({ latitude: Number(order.customerLatitude), longitude: Number(order.customerLongitude) }) : null;
+  const mapUrl = hasLocation
+    ? googleMapsUrl({ latitude: Number(order.customerLatitude), longitude: Number(order.customerLongitude) })
+    : null;
 
   return (
     <DetailCard icon={UserRound} title={t("title")} className="gap-3" data-testid="order-customer-card">
@@ -25,13 +27,17 @@ export function OrderCustomerCard({ order }: { order: Order }) {
       {order.customerWhatsapp && (
         <CustomerContactRow>
           <WhatsAppLink value={order.customerWhatsapp} data-testid="order-customer-whatsapp" />
-          <Typography variant="caption" tone="muted">{t("whatsappLabel")}</Typography>
+          <Typography variant="caption" tone="muted">
+            {t("whatsappLabel")}
+          </Typography>
         </CustomerContactRow>
       )}
 
       {order.customerAddress && (
         <CustomerContactRow icon={MapPin} multiline className="text-ink-muted">
-          <Typography variant="small" as="span" className="min-w-0 whitespace-pre-line">{order.customerAddress}</Typography>
+          <Typography variant="small" as="span" className="min-w-0 whitespace-pre-line">
+            {order.customerAddress}
+          </Typography>
         </CustomerContactRow>
       )}
 
@@ -42,15 +48,20 @@ export function OrderCustomerCard({ order }: { order: Order }) {
           </OutboundLink>
           {/* The raw pair too: a driver reading it out over the phone needs the numbers. */}
           <Typography variant="caption" tone="muted" className="tabular-nums" dir="ltr">
-            {order.customerLatitude?.toFixed(COORDINATE_DECIMALS)}, {order.customerLongitude?.toFixed(COORDINATE_DECIMALS)}
+            {order.customerLatitude?.toFixed(COORDINATE_DECIMALS)},{" "}
+            {order.customerLongitude?.toFixed(COORDINATE_DECIMALS)}
           </Typography>
         </CustomerContactRow>
       )}
 
       {order.note && (
         <div className="border-t border-line pt-3">
-          <Typography variant="small" tone="muted">{t("note")}</Typography>
-          <Typography variant="body" className="mt-1 whitespace-pre-line">{order.note}</Typography>
+          <Typography variant="small" tone="muted">
+            {t("note")}
+          </Typography>
+          <Typography variant="body" className="mt-1 whitespace-pre-line">
+            {order.note}
+          </Typography>
         </div>
       )}
     </DetailCard>

@@ -45,10 +45,14 @@ export function BarcodeCamera({ onDetected }: BarcodeCameraProps) {
 
     async function start() {
       // Camera access needs HTTPS or localhost; iOS Safari refuses otherwise.
-      if (!window.isSecureContext) throw new ScannerFaultError("insecureContext");
+      if (!window.isSecureContext) {
+        throw new ScannerFaultError("insecureContext");
+      }
 
       const { Html5Qrcode, Html5QrcodeSupportedFormats } = await import("html5-qrcode");
-      if (cancelled) return null;
+      if (cancelled) {
+        return null;
+      }
 
       const scanner = new Html5Qrcode(SCANNER_ELEMENT_ID, {
         verbose: false,
@@ -70,7 +74,7 @@ export function BarcodeCamera({ onDetected }: BarcodeCameraProps) {
         { fps: SCANNER_FPS, qrbox: scanRegion },
         (decodedText) => onDetectedRef.current(decodedText),
         // Fires on every frame without a code — normal while aiming.
-        () => undefined
+        () => undefined,
       );
 
       return scanner;
@@ -79,7 +83,9 @@ export function BarcodeCamera({ onDetected }: BarcodeCameraProps) {
     // Awaited before cleanup so stop() never hits a still-starting scanner (React mounts effects twice in dev).
     const running = start()
       .then((scanner) => {
-        if (!cancelled && scanner) setIsStarting(false);
+        if (!cancelled && scanner) {
+          setIsStarting(false);
+        }
         return scanner;
       })
       .catch((error: unknown) => {
@@ -93,7 +99,9 @@ export function BarcodeCamera({ onDetected }: BarcodeCameraProps) {
     return () => {
       cancelled = true;
       void running.then(async (scanner) => {
-        if (!scanner) return;
+        if (!scanner) {
+          return;
+        }
         try {
           await scanner.stop();
           scanner.clear();
@@ -135,7 +143,9 @@ function scanRegion(viewfinderWidth: number, viewfinderHeight: number) {
 
 // html5-qrcode rejects with a STRING, so the reason is read from the text too, or every refusal looks like "no camera".
 function toFault(error: unknown): ScannerFault {
-  if (error instanceof ScannerFaultError) return error.fault;
+  if (error instanceof ScannerFaultError) {
+    return error.fault;
+  }
 
   const described =
     typeof error === "string"

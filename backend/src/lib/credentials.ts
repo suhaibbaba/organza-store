@@ -27,7 +27,9 @@ export async function createStaffUser(input: {
     isActive: true,
   });
 
-  if (!created) throw new Error("Better Auth's internal adapter did not return the created user");
+  if (!created) {
+    throw new Error("Better Auth's internal adapter did not return the created user");
+  }
   return created as User;
 }
 
@@ -76,7 +78,9 @@ export async function hasUsablePassword(userId: string): Promise<boolean> {
 
 /** The same question for a whole page of staff, in one query. */
 export async function usersWithPassword(userIds: string[]): Promise<Set<string>> {
-  if (userIds.length === 0) return new Set();
+  if (userIds.length === 0) {
+    return new Set();
+  }
   const accounts = await prisma.account.findMany({
     where: { userId: { in: userIds }, providerId: AUTH_PROVIDER_CREDENTIAL, NOT: { password: null } },
     select: { userId: true },
@@ -89,7 +93,9 @@ export async function verifyUserPassword(userId: string, password: string): Prom
   const ctx = await auth.$context;
   const accounts = await ctx.internalAdapter.findAccounts(userId);
   const hash = accounts.find((account) => account.providerId === AUTH_PROVIDER_CREDENTIAL)?.password;
-  if (!hash) return false;
+  if (!hash) {
+    return false;
+  }
   return ctx.password.verify({ hash, password });
 }
 
@@ -99,5 +105,7 @@ export async function revokeOtherSessions(userId: string, keepSessionId: string 
     where: { userId, ...(keepSessionId ? { id: { not: keepSessionId } } : {}) },
     select: { token: true },
   });
-  if (sessions.length > 0) await ctx.internalAdapter.deleteSessions(sessions.map((session) => session.token));
+  if (sessions.length > 0) {
+    await ctx.internalAdapter.deleteSessions(sessions.map((session) => session.token));
+  }
 }

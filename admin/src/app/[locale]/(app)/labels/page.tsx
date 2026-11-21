@@ -70,18 +70,25 @@ function LabelsPageContent() {
   const [searchInput, handleSearchChange] = useUrlSearch(
     filters.q,
     (q) => setFilters({ q, page: DEFAULT_PAGE }),
-    LABEL_SEARCH_DEBOUNCE_MS
+    LABEL_SEARCH_DEBOUNCE_MS,
   );
+
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+
   // Only counts the user changed; the rest fall back to the suggestion so none goes stale.
   const [copyOverrides, setCopyOverrides] = useState<Record<string, string>>({});
+
   // The browser never says whether anything printed, so we ask once its dialog closes.
   const [printDialogClosed, setPrintDialogClosed] = useState(false);
 
   const list = useProductsQuery(toProductListFilters(filters));
   const settingsQuery = useSettingsQuery();
-  const { products: selectedProducts, isLoading: detailsLoading, error: detailsError } =
-    useSelectedProductsQueries(selectedIds);
+  const {
+    products: selectedProducts,
+    isLoading: detailsLoading,
+    error: detailsError,
+  } = useSelectedProductsQueries(selectedIds);
+
   const retryDetails = useRefetchSelectedProducts(selectedIds);
   const markPrinted = useMarkLabelsPrintedMutation();
 
@@ -91,13 +98,13 @@ function LabelsPageContent() {
   // Memoised down to the sheet: a run can be hundreds of labels, not rebuilt per keystroke.
   const lines = useMemo(
     () => selectedProducts.flatMap((product) => buildLabelLines(product, locale)),
-    [selectedProducts, locale]
+    [selectedProducts, locale],
   );
 
   // Suggested counts, with the user's own edits layered on top.
   const copies = useMemo(
     () => Object.fromEntries(lines.map((line) => [line.key, copyOverrides[line.key] ?? String(line.suggestedCopies)])),
-    [lines, copyOverrides]
+    [lines, copyOverrides],
   );
 
   const totalLabels = countLabels(lines, copies);
@@ -207,7 +214,10 @@ function LabelsPageContent() {
             <LabelListLoading />
           ) : (
             <>
-              <div className="rounded-card border border-line bg-surface p-4 shadow-card" data-test-selector="label-sheet-summary">
+              <div
+                className="rounded-card border border-line bg-surface p-4 shadow-card"
+                data-test-selector="label-sheet-summary"
+              >
                 <p className="text-label font-medium text-ink">{t("sheet.title")}</p>
                 <p className="mt-0.5 text-label text-ink-muted">
                   {geometry.printMode === "A4_GRID"
@@ -220,7 +230,10 @@ function LabelsPageContent() {
                     : t("sheet.thermal", { width: geometry.widthMm, height: geometry.heightMm })}
                 </p>
                 {can(user, "settings.manage") && (
-                  <Link href="/settings" className="mt-2 inline-block text-label font-medium text-primary-600 underline hover:text-primary-700 focus-link">
+                  <Link
+                    href="/settings"
+                    className="mt-2 inline-block text-label font-medium text-primary-600 underline hover:text-primary-700 focus-link"
+                  >
                     {t("sheet.change")}
                   </Link>
                 )}
@@ -345,7 +358,6 @@ function LabelsPageContent() {
             </Button>
           </div>
         </div>
-
       </div>
     </PageContainer>
   );

@@ -12,13 +12,15 @@ export function NavPendingBadge({ className }: { className?: string }) {
   const locale = useLocale();
   const { data } = useChangeRequestCountQuery();
   const count = data?.pending ?? 0;
-  if (count <= 0) return null;
+  if (count <= 0) {
+    return null;
+  }
 
   return (
     <span
       className={cn(
         "inline-flex min-w-5 items-center justify-center rounded-pill bg-primary-600 px-1.5 py-0.5 text-micro font-semibold leading-none text-ink-inverse",
-        className
+        className,
       )}
       aria-label={t("badgeLabel", { count })}
     >

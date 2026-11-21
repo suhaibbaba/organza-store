@@ -34,7 +34,7 @@ export default function OrdersPage() {
   const [searchInput, setSearchInput] = useUrlSearch(
     filters.q,
     (q) => changeFilters({ q, page: DEFAULT_PAGE }),
-    ORDER_SEARCH_DEBOUNCE_MS
+    ORDER_SEARCH_DEBOUNCE_MS,
   );
 
   const { data, isLoading, isFetching, isError, error, refetch } = useOrdersQuery(filters);
@@ -58,7 +58,7 @@ export default function OrdersPage() {
       changeFilters(
         key === null
           ? { sortBy: DEFAULT_ORDER_FILTERS.sortBy, sortDir: DEFAULT_ORDER_FILTERS.sortDir, page: DEFAULT_PAGE }
-          : { sortBy: key as OrderListFilters["sortBy"], sortDir: dir, page: DEFAULT_PAGE }
+          : { sortBy: key as OrderListFilters["sortBy"], sortDir: dir, page: DEFAULT_PAGE },
       ),
   };
 

@@ -19,7 +19,9 @@ const RULE = COMMAND_RULE;
 
 /** Never prints the password. `postgres://user:pw@host:5432/db` -> `host:5432/db`. */
 export function describeDatabase(url = process.env.DATABASE_URL): string {
-  if (!url) return "(DATABASE_URL is not set)";
+  if (!url) {
+    return "(DATABASE_URL is not set)";
+  }
   try {
     const parsed = new URL(url);
     return `${parsed.hostname}${parsed.port ? `:${parsed.port}` : ""}${parsed.pathname}`;

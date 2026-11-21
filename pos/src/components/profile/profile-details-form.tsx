@@ -56,7 +56,13 @@ export function ProfileDetailsForm({ profile }: { profile: Profile }) {
           </Alert>
         )}
 
-        <FormField label="profile.details.name" htmlFor="name" error={errors.name} errorKey={fieldErrorKey(errors.name)} required>
+        <FormField
+          label="profile.details.name"
+          htmlFor="name"
+          error={errors.name}
+          errorKey={fieldErrorKey(errors.name)}
+          required
+        >
           <Input
             id="name"
             data-test-selector={fieldTestSelector("name")}
@@ -67,12 +73,24 @@ export function ProfileDetailsForm({ profile }: { profile: Profile }) {
         </FormField>
 
         <div className="grid grid-cols-1 gap-4 tab:grid-cols-2">
-          <FormField label="profile.details.phone" htmlFor="phone" error={errors.phone} errorKey={fieldErrorKey(errors.phone)} required>
+          <FormField
+            label="profile.details.phone"
+            htmlFor="phone"
+            error={errors.phone}
+            errorKey={fieldErrorKey(errors.phone)}
+            required
+          >
             <Controller
               control={control}
               name="phone"
               render={({ field }) => (
-                <ShopPhoneInput id="phone" value={field.value} onChange={field.onChange} onBlur={field.onBlur} invalid={!!errors.phone} />
+                <ShopPhoneInput
+                  id="phone"
+                  value={field.value}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                  invalid={!!errors.phone}
+                />
               )}
             />
           </FormField>
@@ -102,7 +120,15 @@ export function ProfileDetailsForm({ profile }: { profile: Profile }) {
         </div>
 
         <FormField label="profile.details.email" htmlFor="email" note="profile.details.emailNote">
-          <Input id="email" type="email" dir="ltr" data-test-selector={fieldTestSelector("email")} value={profile.email} disabled readOnly />
+          <Input
+            id="email"
+            type="email"
+            dir="ltr"
+            data-test-selector={fieldTestSelector("email")}
+            value={profile.email}
+            disabled
+            readOnly
+          />
         </FormField>
       </form>
 

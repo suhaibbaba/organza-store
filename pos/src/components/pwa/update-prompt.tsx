@@ -19,7 +19,12 @@ export function UpdatePrompt({ onUpdate, isUpdating }: UpdatePromptProps) {
   return (
     // Below sheets and dialogs (z-50), so an open one still owns the screen.
     <div role="status" className="fixed inset-x-0 top-[var(--top-bar-inset)] z-40 px-3 pt-3">
-      <div className={cn("mx-auto flex max-w-md flex-col gap-3 rounded-card border border-line bg-surface p-4 shadow-float", POS_CONTROL_HEIGHT)}>
+      <div
+        className={cn(
+          "mx-auto flex max-w-md flex-col gap-3 rounded-card border border-line bg-surface p-4 shadow-float",
+          POS_CONTROL_HEIGHT,
+        )}
+      >
         <div className="flex items-start gap-3">
           <ArrowDownToLine className="mt-0.5 size-5 shrink-0 text-primary-600" aria-hidden="true" />
           <div className="flex flex-col gap-0.5">

@@ -4,11 +4,13 @@ Rules for working in this repo. Read this before making any change.
 Full product logic lives in `spec.md` — this file is the operating manual.
 
 ## What this project is
+
 Custom e-commerce + POS system for clothing shops, run by each shop as a client. **Not** Medusa or any e-commerce framework.
 Build it from scratch with the stack below. If something is ambiguous, check `spec.md`;
 if it's still unclear, **ask before assuming** — do not invent product behavior.
 
 ## Repo structure (4 separate projects + shared, one npm workspace)
+
 ```
 store-management/
 ├── package.json      workspace root — declares the workspaces, holds the only lockfile
@@ -19,6 +21,7 @@ store-management/
 ├── shared/      Shared TypeScript types + Zod schemas — published as @store/shared
 └── ui/          Store Management's design system — published as @store/ui (TypeScript source)
 ```
+
 The system is **Store Management**; each shop that runs it is a **client**, and nothing in the code
 names one — the shop's name, logo and favicon are Settings data.
 `@store/ui` is its design system (ported from the clinic system's `@clinic/ui`). Client looks are
@@ -32,6 +35,7 @@ through `node_modules` like any package — not copied, symlinked or aliased by 
 (`frontend/`) has to be added to the root `workspaces` array to exist.
 
 ## Non-negotiable stack choices
+
 - **Language:** TypeScript everywhere.
 - **All frontends:** Next.js. Never plain React, never another framework.
 - **DB:** PostgreSQL via Prisma. The schema in `backend/prisma/schema.prisma` is the source of truth.
@@ -47,6 +51,7 @@ through `node_modules` like any package — not copied, symlinked or aliased by 
 - **i18n:** UI via `next-intl`; product content translated via JSON fields. Languages: ar (default), en, he.
 
 ## Scope of the CURRENT phase (Phase 2 — Orders)
+
 Phase 1 is DONE and tested: products, variants, categories, inventory, users/roles, settings,
 images, audit log, plus the full admin UI.
 **Current work: Orders** (see "Phase 2: Orders" in `spec.md`) — order model, status flow, stock
@@ -64,11 +69,12 @@ photo grid, and the cart as a side panel from 1000px or a bottom bar + sheet bel
 selling screen layout" in `spec.md`); its favourite categories are flagged from the admin's
 category screen.
 **Still deferred:** the customer storefront (Phase 3), real Customer accounts, and the
-numbered-shawls WhatsApp export. WhatsApp order entry is built (admin *and* POS): a cart can be
+numbered-shawls WhatsApp export. WhatsApp order entry is built (admin _and_ POS): a cart can be
 filed as a WHATSAPP order with a customer snapshot, and the phone box suggests repeat customers
 from past orders — there is still no Customer table behind it.
 
 ## Hard rules — do not break these
+
 1. **SKU is frozen at creation.** Format `ORG-<productNumber>` (simple) or
    `ORG-<productNumber>-<variantNumber>` (variant). Never regenerate it when category/options change.
 2. **Variant → option value is a reference (ID), not copied text.** Renaming a value must
@@ -84,9 +90,9 @@ from past orders — there is still no Customer table behind it.
      **Cannot** delete/hide products, **cannot** delete/edit/cancel orders, no users/settings,
      and **no shop-wide money view at all** — no dashboard, no Reports, no outstanding total.
      They see the orders they take, never every order added up.
-   Five Employee actions are neither applied nor refused but **held for approval** (rule 21).
-   That table is the shop's **starting point**: every Manager/Employee grant is editable per shop
-   from the admin's Permissions screen; the Admin role never is — see rule 22.
+     Five Employee actions are neither applied nor refused but **held for approval** (rule 21).
+     That table is the shop's **starting point**: every Manager/Employee grant is editable per shop
+     from the admin's Permissions screen; the Admin role never is — see rule 22.
 6. **Every mutation writes an Audit Log entry** (userId, action, entityType, entityId, old/new).
 7. **stock default = 1** for products and variants.
 8. **Validate all inputs with Zod** (shared schemas where possible).
@@ -140,7 +146,7 @@ from past orders — there is still no Customer table behind it.
     single hard-coded string is a bug.
 13. **Barcodes are auto-generated & unique** (EAN-13), for both products and variants — not the SKU.
     A garment that arrives **already barcoded** may keep the supplier's printed code instead: the
-    field is editable (typed or scanned) on create and on edit, per product *and* per variant, and
+    field is editable (typed or scanned) on create and on edit, per product _and_ per variant, and
     which of the two a piece uses is **stored** (`barcodeSource`), never inferred from the code.
     The toggle is reversible — switching back restores the code we minted, so a label already stuck
     on the piece keeps working. Uniqueness is enforced across the whole store (products and
@@ -191,7 +197,7 @@ from past orders — there is still no Customer table behind it.
 21. **One generic change-approval mechanism** (see "Employee change approvals" in `spec.md`).
     Gated Employee actions — product price, manual stock, image deletion, hide/unhide, and a
     product's variant set — file a `ChangeRequest` `(entityType, entityId, field, oldValue,
-    newValue)` instead of applying; Admin/Manager edits apply immediately. **Automatic stock
+newValue)` instead of applying; Admin/Manager edits apply immediately. **Automatic stock
     deduction from a sale is never gated** — a sale always completes. A newer request for the same
     field on the same entity **replaces** the pending one (enforced by the unique `pendingKey`
     column, never by a sweep). Approving applies the change atomically; rejecting discards it;
@@ -222,7 +228,7 @@ from past orders — there is still no Customer table behind it.
     product, the order and a `(Product, completion)` change request are written in ONE transaction,
     so an abandoned checkout cannot leave a nameless half-product behind. That request is the one
     that reads backwards — the sale has already happened, so it says "this was sold, complete its
-    details" and offers *complete* / *one-off*, never *approve* / *reject*: **rejecting must never
+    details" and offers _complete_ / _one-off_, never _approve_ / _reject_: **rejecting must never
     look like it undoes a sale**, and it never does (an order's lines are snapshots). Empty is a
     supported state, not a broken record: `Product.categoryId` is nullable ONLY for this, `cost` is
     absent rather than zero (which is what the reports' missing-cost warning counts), and every
@@ -233,15 +239,18 @@ from past orders — there is still no Customer table behind it.
     shipped).
 
 ## Workflow
+
 - Build **one stage at a time** (see the build order in `spec.md`). Test a stage before the next.
 - Run Prisma migrations for any schema change; never edit the DB by hand.
 - Keep shared types in `shared/` — don't redefine the Product/Variant shape in each project.
 - Prefer small, reviewable changes over large sweeps.
 
 ## Commands (fill in real ones as they're set up)
+
 The repo is one npm workspace: install once at the root, then drive each project with `-w`
 (the flag takes the directory name). Running a script from inside a project directory works too
 — it is the same install either way.
+
 ```
 # once, at the repo root — installs all four projects and compiles shared/
 npm install
@@ -262,9 +271,12 @@ npm run test -w admin
 # everything at once
 npm run build          # shared, then backend, admin, pos
 npm run typecheck
+npm run lint           # eslint everywhere; every if/else/loop body is braced (curly: all)
+npm run format         # prettier: double quotes, 2 spaces, width 120 (.prettierrc.json)
 ```
 
 ## Deployment
+
 Hosted on the user's own VPS via GitHub Actions. Do not add third-party hosting/paid services
 (Sentry's free tier and Resend's free tier are the only external services, and both sit behind a
 swappable layer — GlitchTip for Sentry, another transport in `backend/src/lib/email/transports/`
@@ -303,10 +315,12 @@ or change `STACK_NAME` in a stack's env file (the compose `name:` reads it): bot
 volume name, and changing either points the stack at a new empty volume. See `ops/README.md` for backups — the volumes survive redeploys, not disks.
 
 ## When unsure
+
 Check `spec.md` first. If the answer isn't there, ask the user. Never silently guess product
 behavior — guessing is what broke the previous attempt.
 
 ## Code organization (apply everywhere, backend + frontends)
+
 - **Use path aliases, not relative paths.** Within a project, import local modules with `@/`
   (e.g. `@/lib/auth`, `@/routes/products`) — never `../../lib/auth`. Configure that alias in each
   project's `tsconfig.json` (and the bundler/runtime resolver) so it works at build and runtime.
@@ -331,6 +345,7 @@ behavior — guessing is what broke the previous attempt.
   behavior — and keep `tsc` type-check and the build passing.
 
 ## Test selectors — naming what is on the screen
+
 Every element worth diagnosing carries **`data-test-selector`**, a stable name saying WHAT IT IS.
 "The button in the corner" is not a description on a screen that mirrors itself in Arabic, and a
 Tailwind class is not a name — it changes the next time the design does.

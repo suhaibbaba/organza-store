@@ -23,13 +23,7 @@ const STATUS_BADGE_ICONS: Record<ChangeRequestStatus, LucideIcon> = {
   [REJECTED_CHANGE_REQUEST_STATUS]: X,
 };
 
-export function ChangeRequestStatusBadge({
-  status,
-  className,
-}: {
-  status: ChangeRequestStatus;
-  className?: string;
-}) {
+export function ChangeRequestStatusBadge({ status, className }: { status: ChangeRequestStatus; className?: string }) {
   const t = useTranslations("changeRequests.status");
   const Icon = STATUS_BADGE_ICONS[status];
 
@@ -38,7 +32,7 @@ export function ChangeRequestStatusBadge({
       className={cn(
         "pill-text inline-flex h-6 shrink-0 items-center gap-1.5 rounded-pill px-2.5 text-meta font-medium",
         STATUS_BADGE_STYLES[status],
-        className
+        className,
       )}
     >
       <Icon className="size-3.5 shrink-0" aria-hidden="true" />

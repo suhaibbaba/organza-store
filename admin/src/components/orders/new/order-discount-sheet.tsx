@@ -87,7 +87,9 @@ function DiscountForm({ baseAmount, current, onApply }: DiscountFormProps) {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-1.5">
-        <Typography variant="small" weight="medium" as="span">{t("typeLabel")}</Typography>
+        <Typography variant="small" weight="medium" as="span">
+          {t("typeLabel")}
+        </Typography>
         <SegmentedControl
           data-testid="segmented"
           label={t("typeLabel")}
@@ -126,12 +128,7 @@ function DiscountForm({ baseAmount, current, onApply }: DiscountFormProps) {
       </FormField>
       <div className="mt-2 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
         {current.type && (
-          <Button
-            type="button"
-            variant="danger"
-            onClick={() => onApply(null, null)}
-            className="w-full sm:w-auto"
-          >
+          <Button type="button" variant="danger" onClick={() => onApply(null, null)} className="w-full sm:w-auto">
             {t("remove")}
           </Button>
         )}

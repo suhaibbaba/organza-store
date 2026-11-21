@@ -11,12 +11,7 @@ export interface InfoTipProps extends TestIdProps {
   readonly children: ReactNode;
 }
 
-export function InfoTip({
-  label,
-  className,
-  children,
-  "data-testid": testId,
-}: InfoTipProps): JSX.Element {
+export function InfoTip({ label, className, children, "data-testid": testId }: InfoTipProps): JSX.Element {
   const dialogLayer = useDialogLayer();
   const [open, setOpen] = useState(false);
   const hovered = useRef(false);

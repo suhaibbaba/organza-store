@@ -97,11 +97,7 @@ export function CashDrawerSection({ current }: { current: CurrentCashSession }) 
         </Card>
       )}
 
-      <OpenDaySheet
-        open={opening}
-        onOpenChange={setOpening}
-        suggestedOpeningFloat={current.suggestedOpeningFloat}
-      />
+      <OpenDaySheet open={opening} onOpenChange={setOpening} suggestedOpeningFloat={current.suggestedOpeningFloat} />
 
       {/* Mounted from local state so it survives `current` losing the drawer on save. */}
       {countingSession && (
@@ -110,7 +106,9 @@ export function CashDrawerSection({ current }: { current: CurrentCashSession }) 
           session={countingSession}
           open
           onOpenChange={(next) => {
-            if (!next) setCountingSession(null);
+            if (!next) {
+              setCountingSession(null);
+            }
           }}
         />
       )}
@@ -178,10 +176,7 @@ function CalculationRow({ label, value, description, toggleLabel, sign, emphasis
         labelClassName={emphasis ? "font-semibold text-ink" : undefined}
         trailing={
           <span
-            className={cn(
-              "tabular-nums",
-              emphasis ? "text-section font-bold text-ink" : "text-label text-ink-muted"
-            )}
+            className={cn("tabular-nums", emphasis ? "text-section font-bold text-ink" : "text-label text-ink-muted")}
           >
             {value}
           </span>

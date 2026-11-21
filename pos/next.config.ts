@@ -26,7 +26,7 @@ const buildId = process.env.BUILD_ID ?? String(Date.now());
 // always wins. It is stamped into the client bundle via `env` below, exactly
 // like the build id.
 const { resolveAppVersion } = createRequire(__filename)(
-  path.join(__dirname, "..", "shared", "scripts", "app-version.js")
+  path.join(__dirname, "..", "shared", "scripts", "app-version.js"),
 ) as { resolveAppVersion: (options: { projectDir?: string; envValue?: string }) => string };
 
 const appVersion = resolveAppVersion({

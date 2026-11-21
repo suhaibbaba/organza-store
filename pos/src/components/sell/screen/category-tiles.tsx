@@ -53,10 +53,7 @@ export function CategoryTiles({ selectedId, onSelect }: CategoryTilesProps) {
         <p className="text-label text-ink-muted">{t("browse.categoriesError")}</p>
       ) : (
         // The last tile is cut by the screen's edge, which is what says there is more.
-        <ul
-          className="scrollbar-none flex gap-2 overflow-x-auto"
-          data-test-selector="pos-category-tiles"
-        >
+        <ul className="scrollbar-none flex gap-2 overflow-x-auto" data-test-selector="pos-category-tiles">
           {tiles.map((tile) => {
             const selected = tile.id === selectedId;
             return (
@@ -71,7 +68,7 @@ export function CategoryTiles({ selectedId, onSelect }: CategoryTilesProps) {
                     "focus-darken",
                     selected
                       ? "border-selected-line bg-selected text-primary-700"
-                      : "border-line bg-surface text-ink shadow-pill hover:border-line-strong hover:bg-row-hover"
+                      : "border-line bg-surface text-ink shadow-pill hover:border-line-strong hover:bg-row-hover",
                   )}
                 >
                   <span className="max-w-40 truncate text-label font-semibold">{tile.label}</span>

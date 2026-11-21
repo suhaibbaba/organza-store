@@ -37,7 +37,7 @@ router.get(
       orderBy: { createdAt: "asc" },
     });
     sendOk(res, types);
-  })
+  }),
 );
 
 router.post(
@@ -63,7 +63,7 @@ router.post(
     });
 
     sendOk(res, type, null, 201);
-  })
+  }),
 );
 
 router.post(
@@ -72,7 +72,9 @@ router.post(
   validateBody(addOptionValueSchema),
   asyncHandler(async (req, res) => {
     const type = await prisma.variantType.findUnique({ where: { id: req.params.id } });
-    if (!type) throw new AppError(404, ERROR_CODES.VARIANT_TYPE_NOT_FOUND);
+    if (!type) {
+      throw new AppError(404, ERROR_CODES.VARIANT_TYPE_NOT_FOUND);
+    }
 
     const body = req.body as AddOptionValueInput;
     const key = toSlug(body.value.ar);
@@ -80,7 +82,9 @@ router.post(
     const existing = await prisma.variantOptionValue.findUnique({
       where: { variantTypeId_key: { variantTypeId: type.id, key } },
     });
-    if (existing) throw new AppError(409, ERROR_CODES.VARIANT_TYPE_VALUE_DUPLICATE);
+    if (existing) {
+      throw new AppError(409, ERROR_CODES.VARIANT_TYPE_VALUE_DUPLICATE);
+    }
 
     const sortOrder = await prisma.variantOptionValue.count({ where: { variantTypeId: type.id } });
     const value = await prisma.variantOptionValue.create({
@@ -96,7 +100,7 @@ router.post(
     });
 
     sendOk(res, value, null, 201);
-  })
+  }),
 );
 
 export default router;

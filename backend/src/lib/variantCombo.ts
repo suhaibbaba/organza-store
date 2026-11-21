@@ -14,11 +14,17 @@ export interface ImagePoint {
 
 // Numbered shawls (spec.md): flattens every selection's optional per-value
 // image points into a single optionValueId -> point lookup.
-export function buildImagePointMap(selections: { imagePoints?: Record<string, ImagePoint> }[]): Map<string, ImagePoint> {
+export function buildImagePointMap(
+  selections: { imagePoints?: Record<string, ImagePoint> }[],
+): Map<string, ImagePoint> {
   const map = new Map<string, ImagePoint>();
   for (const selection of selections) {
-    if (!selection.imagePoints) continue;
-    for (const [valueId, point] of Object.entries(selection.imagePoints)) map.set(valueId, point);
+    if (!selection.imagePoints) {
+      continue;
+    }
+    for (const [valueId, point] of Object.entries(selection.imagePoints)) {
+      map.set(valueId, point);
+    }
   }
   return map;
 }
@@ -29,7 +35,9 @@ export function buildImagePointMap(selections: { imagePoints?: Record<string, Im
 export function resolveComboImagePoint(combo: string[], pointMap: Map<string, ImagePoint>): ImagePoint | undefined {
   for (const valueId of combo) {
     const point = pointMap.get(valueId);
-    if (point) return point;
+    if (point) {
+      return point;
+    }
   }
   return undefined;
 }

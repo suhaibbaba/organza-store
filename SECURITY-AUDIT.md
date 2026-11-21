@@ -7,7 +7,7 @@ model, every Zod schema, the money/stock/cash libraries, the auth and password-t
 the upload path, all raw SQL, the ops scripts, and a dependency audit. Findings below are
 ordered by severity.
 
-Findings are stated as *issue / severity / where / how to reproduce*.
+Findings are stated as _issue / severity / where / how to reproduce_.
 
 ---
 
@@ -22,12 +22,12 @@ Better Auth is configured with `emailAndPassword: { enabled: true }` and **no
 surface is mounted publicly:
 
 ```ts
-app.all("/api/auth/*", toNodeHandler(auth));   // index.ts:62
+app.all("/api/auth/*", toNodeHandler(auth)); // index.ts:62
 ```
 
 so `POST /api/auth/sign-up/email` is reachable, unauthenticated, from the open internet.
 
-The file's own comment says *"public sign-up stays disabled"* — that sentence describes an
+The file's own comment says _"public sign-up stays disabled"_ — that sentence describes an
 intent that was never expressed in the config.
 
 `role` carries `input: false`, so the attacker cannot pick their role — they get the
@@ -65,7 +65,7 @@ Better Auth resolves the caller's address with `getIp()`
 with no `advanced.ipAddress.trustedProxies` configured it takes this branch:
 
 ```js
-if (forwardedIps.length !== 1) return null;   // more than one hop -> give up
+if (forwardedIps.length !== 1) return null; // more than one hop -> give up
 ```
 
 Behind **Cloudflare → nginx → API** the header arriving at Express carries at least two
@@ -73,7 +73,7 @@ entries (Cloudflare appends the client, nginx appends Cloudflare), so `getIp` re
 and the rate-limit key becomes the literal string:
 
 ```js
-createRateLimitKey("no-trusted-ip", "/sign-in/email")
+createRateLimitKey("no-trusted-ip", "/sign-in/email");
 ```
 
 — the **same key for every caller on earth**. The configured limit
@@ -151,15 +151,15 @@ curl -s -X POST $PRODUCTION_API_URL/api/password-setup/request \
 
 `npm audit`: **7 vulnerabilities (1 critical, 4 high, 2 moderate)**.
 
-| Package | Version | Advisory | Ships in runtime image? |
-|---|---|---|---|
-| `sharp` (nested under `next`) | 0.34.5 | [GHSA-f88m-g3jw-g9cj](https://github.com/advisories/GHSA-f88m-g3jw-g9cj) — libvips CVE-2026-33327/33328/35590/35591 — **high** | **Yes** — Next's image optimizer |
-| `postcss` (nested under `next`) | ≤8.5.22 | [GHSA-6g55-p6wh-862q](https://github.com/advisories/GHSA-6g55-p6wh-862q), [GHSA-r28c-9q8g-f849](https://github.com/advisories/GHSA-r28c-9q8g-f849) — arbitrary file read / path traversal via `sourceMappingURL` — **high** | Build stage |
-| `next` | 16.2.12 | pulls both of the above | Yes |
-| `vitest` | ≤3.2.5 | [GHSA-5xrq-8626-4rwp](https://github.com/advisories/GHSA-5xrq-8626-4rwp) — arbitrary file read/execute when the UI server listens — **critical** | No (`--omit=dev`, multi-stage) |
-| `vite` / `vite-node` / `esbuild` | — | dev-server advisories — high/moderate | No |
+| Package                          | Version | Advisory                                                                                                                                                                                                                    | Ships in runtime image?          |
+| -------------------------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------- |
+| `sharp` (nested under `next`)    | 0.34.5  | [GHSA-f88m-g3jw-g9cj](https://github.com/advisories/GHSA-f88m-g3jw-g9cj) — libvips CVE-2026-33327/33328/35590/35591 — **high**                                                                                              | **Yes** — Next's image optimizer |
+| `postcss` (nested under `next`)  | ≤8.5.22 | [GHSA-6g55-p6wh-862q](https://github.com/advisories/GHSA-6g55-p6wh-862q), [GHSA-r28c-9q8g-f849](https://github.com/advisories/GHSA-r28c-9q8g-f849) — arbitrary file read / path traversal via `sourceMappingURL` — **high** | Build stage                      |
+| `next`                           | 16.2.12 | pulls both of the above                                                                                                                                                                                                     | Yes                              |
+| `vitest`                         | ≤3.2.5  | [GHSA-5xrq-8626-4rwp](https://github.com/advisories/GHSA-5xrq-8626-4rwp) — arbitrary file read/execute when the UI server listens — **critical**                                                                            | No (`--omit=dev`, multi-stage)   |
+| `vite` / `vite-node` / `esbuild` | —       | dev-server advisories — high/moderate                                                                                                                                                                                       | No                               |
 
-The **backend's own** `sharp` is `0.35.3` and is *not* affected — the vulnerable copy is the
+The **backend's own** `sharp` is `0.35.3` and is _not_ affected — the vulnerable copy is the
 one Next installs for its image optimizer, which is enabled and allow-listed to the API origin
 in both `admin/next.config.ts` and `pos/next.config.ts`. The `vitest` critical is real but not
 exposed: it needs the Vitest UI server listening, and no runtime image contains vitest.
@@ -177,7 +177,7 @@ There is not a single `.strict()` in the codebase (36 `z.object` declarations, 0
 default is `.strip()`, so an unknown key is silently discarded.
 
 **This is not currently exploitable, and I verified that rather than assuming it.** Every route
-reads the *parsed* `result.data` (`middleware/validate.ts:13`), no route spreads `req.body`
+reads the _parsed_ `result.data` (`middleware/validate.ts:13`), no route spreads `req.body`
 into a Prisma `data:` (grepped: zero occurrences of `...req.body` / `...body`), and none of the
 dangerous fields appears in any schema — `role`, `approvalStatus`, `stockDeductedAt`,
 `collectedAt`, `unitPrice`, `subtotal`, `lineTotal`, `total`. All are dropped. The mass
@@ -191,7 +191,7 @@ curl -X PATCH .../api/orders/<id> -d '{"collectedAt":"2020-01-01"}'
 curl -X PATCH .../api/products/<id> -d '{"stockDeductedAt":null}'
 ```
 
-What it fails is the requirement itself — the brief asks for *rejection* — and the safety
+What it fails is the requirement itself — the brief asks for _rejection_ — and the safety
 margin. The whole defence rests on nobody ever writing `data: { ...body }`, which is one
 plausible refactor away. It also means a client typo (`discountVal` for `discountValue`) is
 accepted with a 200 and quietly does nothing.
@@ -213,7 +213,7 @@ export async function signOut(): Promise<void> {
 }
 ```
 
-The local token is cleared *before* the server is told, and any failure of that request —
+The local token is cleared _before_ the server is told, and any failure of that request —
 offline, flaky mobile data, a 502 during a deploy — is swallowed. The screen says "signed
 out"; the server-side session stays valid for the full `SESSION_EXPIRES_IN_DAYS` (default 7).
 
@@ -306,7 +306,7 @@ decode — and that throw reaches `errorHandler` as an unclassified fault: HTTP 
   client's filename is never touched.
 - Files are not executable — three fixed `-thumbnail/-medium/-full.webp` names under
   `UPLOAD_DIR`, served by `express.static` behind `helmet()`, so `X-Content-Type-Options:
-  nosniff` and a default CSP are on every response.
+nosniff` and a default CSP are on every response.
 - Size is capped server-side by multer (`UPLOAD_MAX_SIZE_MB`, default 10) before the buffer is
   read.
 
@@ -361,7 +361,7 @@ figure. `idNumber` is only serialized inside the Admin-gated users router. I fou
 which a Manager or Employee receives a cost-derived figure.
 
 **Object-level access.** Change requests are narrowed to the requester unless the caller holds
-`changeRequest.approve` — on the list, the count *and* the detail route (`routes/changeRequests.ts:70,116,131`);
+`changeRequest.approve` — on the list, the count _and_ the detail route (`routes/changeRequests.ts:70,116,131`);
 cancel is requester-only with no Admin override. Push subscriptions take `userId` from the
 session on every query, never from the body. Variant and order-item lookups are scoped to their
 parent's id, so a guessed id from another product resolves to 404.
@@ -373,7 +373,7 @@ reports, cash, expenses, collection). The two `$executeRawUnsafe` calls
 fragment chosen from a validated enum.
 
 **Password links.** 32 random bytes; only the SHA-256 is stored; constant-time compare; TTL per
-purpose (SET 72h, RESET 2h); single-use enforced by a *conditional* `markUsed` write, so two
+purpose (SET 72h, RESET 2h); single-use enforced by a _conditional_ `markUsed` write, so two
 racing redemptions have exactly one winner; issuing revokes all prior links; redeeming revokes
 every session and every other link. The token travels in a request body throughout, never in a
 URL or a log. Password hashing goes through Better Auth's own context in `lib/credentials.ts`
@@ -404,7 +404,7 @@ public by design). The session token cookie mirror carries `Secure` (on https) a
 An Employee holding `order.view` can page through **every** order in the shop and read each
 one's total, customer name and phone. I checked this against spec.md rather than assuming, and
 it is deliberate: the roles table grants "Create order + hand to courier" to Employees, and the
-security rationale draws the line at *aggregates* — "Reading one order is not reading every
+security rationale draws the line at _aggregates_ — "Reading one order is not reading every
 order added up", which is why reports, the dashboard and the outstanding total each got their
 own permission. The list is not an aggregate and no total is computed across it.
 
@@ -466,13 +466,13 @@ One check in `validateBody` (`backend/src/middleware/validate.ts`) rather than `
 thirty-odd schemas: it compares the raw body against the parsed one, and anything Zod stripped
 is a 400 `error.validation` naming the path — including nested ones (`items.0.unitPrice`). Done
 in the middleware because it cannot be forgotten on the next schema, and because `.strict()` has
-to be applied to a ZodObject *before* `.refine()` wraps it, which most of these schemas do.
+to be applied to a ZodObject _before_ `.refine()` wraps it, which most of these schemas do.
 
 Query strings are deliberately left stripping: they collect cache-busters and link trackers that
 are nobody's attempt to set anything, and no write on this API reads a value from the query.
 
 **This changed five existing tests**, which asserted the old contract — that a tampered `total`,
-`approvalStatus` or `key` was *ignored*. They now assert refusal, and each keeps a second
+`approvalStatus` or `key` was _ignored_. They now assert refusal, and each keeps a second
 assertion that the server-computed value is still correct, so the guarantee underneath is still
 covered rather than replaced.
 

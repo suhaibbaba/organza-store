@@ -22,7 +22,11 @@ interface ResolveStockStatusInput {
 // Out of stock is never opt-in: nothing left is nothing left, whether or not
 // anybody asked to be warned about it.
 export function resolveStockStatus({ stock, trackLowStock, threshold }: ResolveStockStatusInput): StockStatus {
-  if (stock <= 0) return "OUT";
-  if (trackLowStock && stock <= threshold) return "LOW";
+  if (stock <= 0) {
+    return "OUT";
+  }
+  if (trackLowStock && stock <= threshold) {
+    return "LOW";
+  }
   return "IN";
 }

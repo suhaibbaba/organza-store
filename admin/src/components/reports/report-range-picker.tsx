@@ -36,7 +36,7 @@ export function ReportRangePicker({ value, onChange }: ReportRangePickerProps) {
               "h-11 shrink-0 cursor-pointer whitespace-nowrap rounded-pill border-[1.5px] px-4 text-label font-medium transition-colors",
               value.preset === preset
                 ? "border-primary-600 bg-primary-600 text-ink-inverse focus-visible:border-primary-800 focus-visible:bg-primary-800"
-                : "border-line-strong bg-surface text-ink-muted hover:bg-inset hover:text-ink focus-visible:bg-neutral-200 focus-visible:text-ink active:bg-inset"
+                : "border-line-strong bg-surface text-ink-muted hover:bg-inset hover:text-ink focus-visible:bg-neutral-200 focus-visible:text-ink active:bg-inset",
             )}
           >
             {t(preset)}

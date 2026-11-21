@@ -32,7 +32,7 @@ export function PermissionLock({
     <span
       className={cn(
         "pill-text inline-flex items-center gap-1.5 rounded-pill bg-sunken px-2.5 py-1 text-meta font-medium text-ink-muted",
-        className
+        className,
       )}
     >
       <Lock className="size-3.5 shrink-0" aria-hidden="true" />

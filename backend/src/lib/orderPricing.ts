@@ -28,7 +28,7 @@ interface DiscountInput {
 export function priceLine(
   unitPrice: Prisma.Decimal.Value,
   quantity: number,
-  discount: DiscountInput
+  discount: DiscountInput,
 ): { discountAmount: string; lineTotal: string } {
   const gross = roundMoney(money(unitPrice).mul(quantity));
   const discountAmount = resolveDiscountAmount(gross, discount.discountType, discount.discountValue);
@@ -40,10 +40,7 @@ export function priceLine(
 
 // subtotal = sum of line totals (item discounts already applied);
 // total = subtotal - the order-level discount resolved against it.
-export function computeOrderTotals(
-  lineTotals: readonly string[],
-  discount: DiscountInput
-): OrderTotals {
+export function computeOrderTotals(lineTotals: readonly string[], discount: DiscountInput): OrderTotals {
   const subtotal = lineTotals.reduce((sum, line) => sum.add(money(line)), ZERO_MONEY());
   const rounded = roundMoney(subtotal);
   const discountAmount = resolveDiscountAmount(rounded, discount.discountType, discount.discountValue);
@@ -67,14 +64,18 @@ export async function priceRequestedItems(items: readonly RequestedItem[]): Prom
       where: { id: item.productId, deletedAt: null },
       include: { variants: true },
     });
-    if (!product) throw new AppError(400, ERROR_CODES.ORDER_PRODUCT_UNAVAILABLE);
+    if (!product) {
+      throw new AppError(400, ERROR_CODES.ORDER_PRODUCT_UNAVAILABLE);
+    }
 
     let variant: AnyRecord | null = null;
     if (item.variantId) {
       variant = product.variants.find((v) => v.id === item.variantId) ?? null;
       // A variant id that isn't this product's is a caller mistake, not a
       // missing row — refuse rather than silently selling the parent.
-      if (!variant) throw new AppError(400, ERROR_CODES.ORDER_PRODUCT_UNAVAILABLE);
+      if (!variant) {
+        throw new AppError(400, ERROR_CODES.ORDER_PRODUCT_UNAVAILABLE);
+      }
     } else if (product.variants.length > 0) {
       // The parent of a variant-bearing product isn't purchasable: it owns
       // neither the price nor the stock that would be sold.
@@ -129,15 +130,19 @@ export function asGiftLines(lines: readonly PricedOrderItem[]): PricedOrderItem[
 // twice in one order has to be checked and deducted as one total, or the
 // second line could oversell what the first already took.
 export function toStockMovements(
-  lines: readonly { productId: string | null; variantId: string | null; quantity: number }[]
+  lines: readonly { productId: string | null; variantId: string | null; quantity: number }[],
 ): StockMovement[] {
   const byTarget = new Map<string, StockMovement>();
 
   for (const line of lines) {
-    if (line.quantity <= 0) continue;
+    if (line.quantity <= 0) {
+      continue;
+    }
     // Products that are no longer in the catalogue (variant hard-deleted)
     // have nothing left to move stock against.
-    if (!line.variantId && !line.productId) continue;
+    if (!line.variantId && !line.productId) {
+      continue;
+    }
 
     const key = line.variantId ? `variant:${line.variantId}` : `product:${line.productId}`;
     const existing = byTarget.get(key);

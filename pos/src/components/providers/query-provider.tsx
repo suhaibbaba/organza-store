@@ -25,7 +25,7 @@ export function QueryProvider({ children }: { children: ReactNode }) {
             refetchOnReconnect: true,
           },
         },
-      })
+      }),
   );
 
   // Teaches react-query what "this till is in use" means before deciding to

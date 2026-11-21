@@ -8,10 +8,12 @@ import type { ProductSearchOptions } from "@/types/search";
 export async function postgresSearchProductIds(
   query: string,
   limit: number,
-  options: ProductSearchOptions = {}
+  options: ProductSearchOptions = {},
 ): Promise<string[]> {
   const q = normalize(query);
-  if (!q) return [];
+  if (!q) {
+    return [];
+  }
   const activeOnly = options.activeOnly ? Prisma.sql`AND "isActive" = true` : Prisma.empty;
   const rows = await prisma.$queryRaw<{ id: string }[]>`
     SELECT id FROM "Product"

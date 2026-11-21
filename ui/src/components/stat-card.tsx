@@ -77,10 +77,7 @@ export function StatCard({
                 delta.isGood ? "text-success-700" : "text-danger-700",
               )}
             >
-              <Icon
-                name={delta.direction === "up" ? "trend-up" : "trend-down"}
-                className="size-3.5"
-              />
+              <Icon name={delta.direction === "up" ? "trend-up" : "trend-down"} className="size-3.5" />
               {delta.text}
             </span>
           )}

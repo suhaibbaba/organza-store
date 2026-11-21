@@ -48,7 +48,9 @@ import type { PricedProduct, ProductDto } from "@tests/types";
  * leak would hide.
  */
 function leakedPaths(value: unknown, forbidden: readonly string[], path = "$"): string[] {
-  if (value === null || typeof value !== "object") return [];
+  if (value === null || typeof value !== "object") {
+    return [];
+  }
 
   if (Array.isArray(value)) {
     return value.flatMap((entry, index) => leakedPaths(entry, forbidden, `${path}[${index}]`));
@@ -56,7 +58,9 @@ function leakedPaths(value: unknown, forbidden: readonly string[], path = "$"): 
 
   const found: string[] = [];
   for (const [key, nested] of Object.entries(value as Record<string, unknown>)) {
-    if (forbidden.includes(key)) found.push(`${path}.${key} = ${JSON.stringify(nested)}`);
+    if (forbidden.includes(key)) {
+      found.push(`${path}.${key} = ${JSON.stringify(nested)}`);
+    }
     found.push(...leakedPaths(nested, forbidden, `${path}.${key}`));
   }
   return found;
@@ -318,10 +322,7 @@ describe("Verify · permissions and data exposure", () => {
         expect(res.status, `${path} must answer this role (or be refused outright, not half-answered)`).toBe(200);
 
         const leaks = leakedPaths(res.data, COST_BEARING_KEYS);
-        expect(
-          leaks,
-          `${path} leaked cost-derived data:\n   ${leaks.join("\n   ")}`
-        ).toEqual([]);
+        expect(leaks, `${path} leaked cost-derived data:\n   ${leaks.join("\n   ")}`).toEqual([]);
       }
 
       for (const { path, status } of moneyReads(role, range)) {
@@ -335,10 +336,7 @@ describe("Verify · permissions and data exposure", () => {
         }
 
         const leaks = leakedPaths(res.data, COST_BEARING_KEYS);
-        expect(
-          leaks,
-          `${path} leaked cost-derived data:\n   ${leaks.join("\n   ")}`
-        ).toEqual([]);
+        expect(leaks, `${path} leaked cost-derived data:\n   ${leaks.join("\n   ")}`).toEqual([]);
       }
     });
 
@@ -371,12 +369,12 @@ describe("Verify · permissions and data exposure", () => {
 
       const report = await apiRequest<Record<string, unknown>>(
         `/api/reports/sales?from=${range}&to=${range}&tzOffset=0`,
-        { token: admin }
+        { token: admin },
       );
       expect(report.data!.profit, "the profit block, to an Admin").toBeDefined();
       expect(
         leakedPaths(report.data, COST_BEARING_KEYS).length,
-        "an Admin's report must be full of exactly the figures the others are refused"
+        "an Admin's report must be full of exactly the figures the others are refused",
       ).toBeGreaterThan(0);
     });
 
@@ -522,7 +520,7 @@ describe("Verify · permissions and data exposure", () => {
       expect(theirs.status).toBe(200);
       expect(
         (theirs.data ?? []).every((change) => change.requestedById === employeeId),
-        "an Employee sees what they asked for, and nothing else"
+        "an Employee sees what they asked for, and nothing else",
       ).toBe(true);
 
       const all = await apiRequest<{ id: string }[]>("/api/change-requests?pageSize=100&status=PENDING", {

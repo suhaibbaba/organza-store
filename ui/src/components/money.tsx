@@ -30,11 +30,7 @@ export function Money({
   return (
     <span
       {...part()}
-      className={cn(
-        "tabular-nums",
-        signed && !zero && (negative ? "text-success-700" : "text-danger-700"),
-        className,
-      )}
+      className={cn("tabular-nums", signed && !zero && (negative ? "text-success-700" : "text-danger-700"), className)}
     >
       <Ltr {...part("figure")}>
         {cents ? formatCentsMoney(amount, separators) : formatWholeMoney(amount, separators)}

@@ -25,13 +25,19 @@ export function DraftTotalsCard({ totals, orderDiscount, isGift, onOrderDiscount
   return (
     <div className="flex flex-col gap-2 text-label" data-test-selector="order-draft-totals">
       <div className="flex items-center justify-between gap-3">
-        <Typography variant="small" tone="muted" as="span">{t("subtotal", { count: totals.itemCount })}</Typography>
-        <Typography variant="small" as="span" className="tabular-nums">{formatMoney(totals.subtotal)}</Typography>
+        <Typography variant="small" tone="muted" as="span">
+          {t("subtotal", { count: totals.itemCount })}
+        </Typography>
+        <Typography variant="small" as="span" className="tabular-nums">
+          {formatMoney(totals.subtotal)}
+        </Typography>
       </div>
 
       {!isGift && Number(totals.itemDiscountTotal) > 0 && (
         <div className="flex items-center justify-between gap-3">
-          <Typography variant="small" tone="muted" as="span">{t("itemDiscounts")}</Typography>
+          <Typography variant="small" tone="muted" as="span">
+            {t("itemDiscounts")}
+          </Typography>
           <Typography variant="small" tone="success" as="span" className="tabular-nums">
             −{formatMoney(totals.itemDiscountTotal)}
           </Typography>
@@ -71,8 +77,12 @@ export function DraftTotalsCard({ totals, orderDiscount, isGift, onOrderDiscount
       )}
 
       <div className="-mx-5 -mb-5 mt-2 flex items-center justify-between gap-3 rounded-b-card bg-primary-50 px-5 py-4">
-        <Typography variant="small" weight="semibold" as="span">{t("total")}</Typography>
-        <Typography variant="h1" weight="bold" as="span" className="tabular-nums">{formatMoney(isGift ? GIFT_LINE_TOTAL : totals.total)}</Typography>
+        <Typography variant="small" weight="semibold" as="span">
+          {t("total")}
+        </Typography>
+        <Typography variant="h1" weight="bold" as="span" className="tabular-nums">
+          {formatMoney(isGift ? GIFT_LINE_TOTAL : totals.total)}
+        </Typography>
       </div>
     </div>
   );

@@ -1,23 +1,5 @@
 import type { PhoneCountry } from "@ui/lib/support";
-import {
-  AE,
-  BH,
-  DE,
-  EG,
-  GB,
-  IL,
-  IQ,
-  JO,
-  KW,
-  LB,
-  OM,
-  PS,
-  QA,
-  SA,
-  SY,
-  TR,
-  US,
-} from "country-flag-icons/react/3x2";
+import { AE, BH, DE, EG, GB, IL, IQ, JO, KW, LB, OM, PS, QA, SA, SY, TR, US } from "country-flag-icons/react/3x2";
 import type { JSX } from "react";
 import { cn } from "@ui/lib/cn";
 
@@ -50,10 +32,5 @@ export function Flag({
 }): JSX.Element {
   const Svg = FLAGS[country];
 
-  return (
-    <Svg
-      aria-hidden="true"
-      className={cn("h-3.5 w-5 shrink-0 rounded-[2px] ring-1 ring-line", className)}
-    />
-  );
+  return <Svg aria-hidden="true" className={cn("h-3.5 w-5 shrink-0 rounded-[2px] ring-1 ring-line", className)} />;
 }

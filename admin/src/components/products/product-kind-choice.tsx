@@ -20,7 +20,9 @@ export function ProductKindChoice({ value, onChange, lockedReason, disabled }: P
   const [showLockWarning, setShowLockWarning] = useState(false);
 
   function choose(next: boolean) {
-    if (next === value) return;
+    if (next === value) {
+      return;
+    }
     // Locked: say why, and leave the saved answer exactly as it is.
     if (lockedReason) {
       setShowLockWarning(true);
@@ -47,7 +49,6 @@ export function ProductKindChoice({ value, onChange, lockedReason, disabled }: P
 
   return (
     <div className="flex flex-col gap-3">
-
       <div role="radiogroup" aria-label={t("legend")} className="flex flex-col gap-3 sm:flex-row">
         {options.map((option) => {
           const selected = option.isNumbered === value;
@@ -63,7 +64,9 @@ export function ProductKindChoice({ value, onChange, lockedReason, disabled }: P
                 "flex min-h-24 flex-1 flex-col items-start gap-1 rounded-panel border p-4 text-start transition-colors",
                 "focus-darken",
                 "disabled:cursor-not-allowed disabled:opacity-50",
-                selected ? "bg-selected border-selected-line" : "border-line bg-surface not-disabled:hover:bg-row-hover"
+                selected
+                  ? "bg-selected border-selected-line"
+                  : "border-line bg-surface not-disabled:hover:bg-row-hover",
               )}
             >
               <span className="flex items-center gap-2 text-value font-medium text-ink">
@@ -77,9 +80,7 @@ export function ProductKindChoice({ value, onChange, lockedReason, disabled }: P
       </div>
 
       {showLockWarning && lockedReason && (
-        <Alert tone="danger">
-          {lockedReason === "numbers" ? t("lockedByNumbers") : t("lockedByOptions")}
-        </Alert>
+        <Alert tone="danger">{lockedReason === "numbers" ? t("lockedByNumbers") : t("lockedByOptions")}</Alert>
       )}
     </div>
   );

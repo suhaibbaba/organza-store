@@ -14,6 +14,6 @@ export function useMoneyFormatter(): (amount: string | number) => string {
 
   return useCallback(
     (amount: string | number) => (currency ? formatMoney(amount, currency, locale) : ""),
-    [currency, locale]
+    [currency, locale],
   );
 }

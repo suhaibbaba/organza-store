@@ -6,10 +6,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { ArrowUpRight, PackageX, Receipt, Zap } from "lucide-react";
 import type { ChangeRequest } from "@store/shared/types/changeRequest";
 import { testSelectorFor } from "@store/shared/lib/testSelector";
-import {
-  APPROVED_CHANGE_REQUEST_STATUS,
-  PENDING_CHANGE_REQUEST_STATUS,
-} from "@store/shared/constants/changeRequest";
+import { APPROVED_CHANGE_REQUEST_STATUS, PENDING_CHANGE_REQUEST_STATUS } from "@store/shared/constants/changeRequest";
 import { Button, Textarea, buttonClassName } from "@store/ui";
 import { ChangeRequestStatusBadge } from "@/components/change-requests/change-request-status-badge";
 import { useDecideChangeRequestMutation } from "@/hooks/use-change-requests";

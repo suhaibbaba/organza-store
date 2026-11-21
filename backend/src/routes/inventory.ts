@@ -123,10 +123,16 @@ router.get(
 
     const rank = nameMatchIds && isRelevanceSort(query, RELEVANCE_DEFAULT_SORT.INVENTORY) ? rankOf(nameMatchIds) : null;
     filtered.sort((a, b) => {
-      if (rank) return rank(a.productId) - rank(b.productId);
+      if (rank) {
+        return rank(a.productId) - rank(b.productId);
+      }
       const dir = query.sortDir === "asc" ? 1 : -1;
-      if (query.sortBy === "sku") return dir * (a.sku ?? "").localeCompare(b.sku ?? "");
-      if (query.sortBy === "createdAt") return dir * (a.createdAt.getTime() - b.createdAt.getTime());
+      if (query.sortBy === "sku") {
+        return dir * (a.sku ?? "").localeCompare(b.sku ?? "");
+      }
+      if (query.sortBy === "createdAt") {
+        return dir * (a.createdAt.getTime() - b.createdAt.getTime());
+      }
       return dir * (a.stock - b.stock);
     });
 
@@ -137,10 +143,9 @@ router.get(
     // Pending stock requests for the shown rows, in one query for the page, never one per row.
     const pendingByEntity = await findPendingChangesByEntity(
       page.map((item) => ({
-        entityType:
-          item.type === "variant" ? CHANGE_REQUEST_ENTITIES.VARIANT : CHANGE_REQUEST_ENTITIES.PRODUCT,
+        entityType: item.type === "variant" ? CHANGE_REQUEST_ENTITIES.VARIANT : CHANGE_REQUEST_ENTITIES.PRODUCT,
         entityId: item.id,
-      }))
+      })),
     );
     const rows = page.map((item) => ({
       ...item,
@@ -153,7 +158,7 @@ router.get(
       total,
       totalPages: Math.max(1, Math.ceil(total / query.pageSize)),
     });
-  })
+  }),
 );
 
 // A stock figure you may not set files a request instead of being refused (spec.md "Employee change approvals").
@@ -162,7 +167,9 @@ function mayAdjustDirectly(user: { role: string }): boolean {
 }
 
 function assertMayRequest(user: { role: string }): void {
-  if (!can(user, "changeRequest.create")) throw new AppError(403, ERROR_CODES.FORBIDDEN);
+  if (!can(user, "changeRequest.create")) {
+    throw new AppError(403, ERROR_CODES.FORBIDDEN);
+  }
 }
 
 // PATCH /api/inventory/products/:id — set a simple product's stock
@@ -175,8 +182,12 @@ router.patch(
       where: { id: req.params.id, deletedAt: null },
       include: { variants: { select: { id: true } } },
     });
-    if (!product) throw new AppError(404, ERROR_CODES.PRODUCT_NOT_FOUND);
-    if (product.variants.length > 0) throw new AppError(400, ERROR_CODES.INVENTORY_PARENT_HAS_VARIANTS);
+    if (!product) {
+      throw new AppError(404, ERROR_CODES.PRODUCT_NOT_FOUND);
+    }
+    if (product.variants.length > 0) {
+      throw new AppError(400, ERROR_CODES.INVENTORY_PARENT_HAS_VARIANTS);
+    }
 
     const body = req.body as AdjustStockInput;
 
@@ -214,7 +225,7 @@ router.patch(
     queueMarkedImages([updated.id]);
 
     sendOk(res, { id: updated.id, stock: updated.stock });
-  })
+  }),
 );
 
 // PATCH /api/inventory/variants/:id — set a variant's stock
@@ -228,7 +239,9 @@ router.patch(
       // The product's name heads the approval card; a stock request on "1" names nothing on its own.
       include: { product: { select: { id: true, name: true } } },
     });
-    if (!variant) throw new AppError(404, ERROR_CODES.VARIANT_NOT_FOUND);
+    if (!variant) {
+      throw new AppError(404, ERROR_CODES.VARIANT_NOT_FOUND);
+    }
 
     const body = req.body as AdjustStockInput;
 
@@ -265,7 +278,7 @@ router.patch(
     queueMarkedImages([variant.productId]);
 
     sendOk(res, { id: updated.id, stock: updated.stock });
-  })
+  }),
 );
 
 export default router;

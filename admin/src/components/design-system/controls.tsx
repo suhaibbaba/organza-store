@@ -102,12 +102,20 @@ export function Controls() {
         </ShowcaseRow>
         <ShowcaseRow>
           <CardButton className="w-44 flex-col gap-1 p-3">
-            <Typography variant="small" as="span">{t("buttons.card")}</Typography>
-            <Typography variant="caption" tone="muted">{t("buttons.cardHint")}</Typography>
+            <Typography variant="small" as="span">
+              {t("buttons.card")}
+            </Typography>
+            <Typography variant="caption" tone="muted">
+              {t("buttons.cardHint")}
+            </Typography>
           </CardButton>
           <CardButton selected className="w-44 flex-col gap-1 p-3">
-            <Typography variant="small" as="span">{t("buttons.cardSelected")}</Typography>
-            <Typography variant="caption" tone="muted">{t("buttons.cardHint")}</Typography>
+            <Typography variant="small" as="span">
+              {t("buttons.cardSelected")}
+            </Typography>
+            <Typography variant="caption" tone="muted">
+              {t("buttons.cardHint")}
+            </Typography>
           </CardButton>
         </ShowcaseRow>
       </ShowcaseSection>
@@ -230,7 +238,11 @@ export function Controls() {
             tone="green"
             collapsible
           >
-            <Input id="ds-section-field" aria-label={t("fields.sectionTitle")} placeholder={t("fields.namePlaceholder")} />
+            <Input
+              id="ds-section-field"
+              aria-label={t("fields.sectionTitle")}
+              placeholder={t("fields.namePlaceholder")}
+            />
           </Section>
           <fieldset className="flex flex-col gap-1.5">
             <legend className="mb-1.5 text-label text-ink">{t("fields.translated")}</legend>

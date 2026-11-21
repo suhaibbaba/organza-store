@@ -17,7 +17,11 @@ import { PageContainer } from "@/components/layout/page-container";
 import { PageHeader } from "@/components/layout/page-header";
 import { CategoryTree } from "@/components/categories/category-tree";
 import { CategoryFormSheet } from "@/components/categories/category-form-sheet";
-import { CategoryListEmpty, CategoryListError, CategoryListLoading } from "@/components/categories/category-list-states";
+import {
+  CategoryListEmpty,
+  CategoryListError,
+  CategoryListLoading,
+} from "@/components/categories/category-list-states";
 import { ApiError } from "@/lib/api/errors";
 
 export default function CategoriesPage() {

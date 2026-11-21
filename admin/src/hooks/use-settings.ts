@@ -31,7 +31,9 @@ export function useSaveSettingsMutation() {
       }
       for (const kind of BRAND_IMAGE_KINDS) {
         const change = images[kind];
-        if (!change) continue;
+        if (!change) {
+          continue;
+        }
         keep(change.kind === "replace" ? await uploadBrandImage(kind, change.file) : await removeBrandImage(kind));
         onImageSaved(kind);
       }

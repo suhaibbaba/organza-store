@@ -12,13 +12,17 @@ export function useFitScale(contentWidthPx: number) {
 
   const measure = useCallback(() => {
     const element = ref.current;
-    if (!element || contentWidthPx <= 0) return;
+    if (!element || contentWidthPx <= 0) {
+      return;
+    }
     setScale(Math.min(1, element.clientWidth / contentWidthPx));
   }, [contentWidthPx]);
 
   useEffect(() => {
     const element = ref.current;
-    if (!element) return;
+    if (!element) {
+      return;
+    }
     // observe() delivers a first measurement of its own, so there is no need
     // to measure synchronously here as well.
     const observer = new ResizeObserver(measure);

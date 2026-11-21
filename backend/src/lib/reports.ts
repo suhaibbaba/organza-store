@@ -51,9 +51,7 @@ import type {
 // the same sales. A null range means "every sale ever", which is what an
 // outstanding balance is.
 export function lineView(range: ReportRange | null): Prisma.Sql {
-  const window = range
-    ? Prisma.sql`AND o."createdAt" >= ${range.from} AND o."createdAt" < ${range.to}`
-    : Prisma.empty;
+  const window = range ? Prisma.sql`AND o."createdAt" >= ${range.from} AND o."createdAt" < ${range.to}` : Prisma.empty;
 
   return Prisma.sql`
     SELECT
@@ -97,9 +95,7 @@ export function lineView(range: ReportRange | null): Prisma.Sql {
 // compute, and the retail price of something given away is not money the
 // shop ever had.
 function giftLineView(range: ReportRange | null): Prisma.Sql {
-  const window = range
-    ? Prisma.sql`AND o."createdAt" >= ${range.from} AND o."createdAt" < ${range.to}`
-    : Prisma.empty;
+  const window = range ? Prisma.sql`AND o."createdAt" >= ${range.from} AND o."createdAt" < ${range.to}` : Prisma.empty;
 
   return Prisma.sql`
     SELECT
@@ -183,7 +179,7 @@ export async function queryChannelTotals(range: ReportRange): Promise<ChannelAgg
 export async function queryTopSellers(
   range: ReportRange,
   by: "revenue" | "quantity",
-  limit: number
+  limit: number,
 ): Promise<TopSellerRow[]> {
   const orderBy = by === "revenue" ? Prisma.sql`"revenue" DESC` : Prisma.sql`"quantity" DESC`;
   return prisma.$queryRaw<TopSellerRow[]>`
@@ -218,8 +214,14 @@ function amount(value: Prisma.Decimal | null): string {
 // profit / revenue, as a percentage. Null rather than 0 when nothing was
 // sold: there is no margin on no sales, and a 0% would read as a loss.
 function marginOf(revenue: Prisma.Decimal, profit: Prisma.Decimal): string | null {
-  if (revenue.isZero()) return null;
-  return profit.div(revenue).mul(100).toDecimalPlaces(MARGIN_DECIMAL_PLACES, Prisma.Decimal.ROUND_HALF_UP).toFixed(MARGIN_DECIMAL_PLACES);
+  if (revenue.isZero()) {
+    return null;
+  }
+  return profit
+    .div(revenue)
+    .mul(100)
+    .toDecimalPlaces(MARGIN_DECIMAL_PLACES, Prisma.Decimal.ROUND_HALF_UP)
+    .toFixed(MARGIN_DECIMAL_PLACES);
 }
 
 // Turns one aggregate row into the DTO. `canViewCost` is the real gate for
@@ -244,7 +246,7 @@ export function toSalesTotals(row: SalesAggregateRow | undefined, canViewCost: b
     pendingCollectionOrderCount: Number(row?.pendingCollectionOrderCount ?? 0),
     discountAmount: roundMoney(grossRevenue.sub(revenue)).toFixed(MONEY_DECIMAL_PLACES),
     averageOrderValue: (orderCount === 0 ? ZERO_MONEY() : roundMoney(revenue.div(orderCount))).toFixed(
-      MONEY_DECIMAL_PLACES
+      MONEY_DECIMAL_PLACES,
     ),
   };
 
@@ -279,7 +281,7 @@ export function toSalesTotals(row: SalesAggregateRow | undefined, canViewCost: b
 export function toProfitTotals(
   row: SalesAggregateRow | undefined,
   gifts: GiftAggregateRow | undefined,
-  expenses: Prisma.Decimal
+  expenses: Prisma.Decimal,
 ): ProfitTotals {
   const sold = roundMoney(decimal(row?.revenue ?? null));
   const received = roundMoney(decimal(row?.collectedRevenue ?? null));

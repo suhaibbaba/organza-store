@@ -3,10 +3,7 @@ import { forwardRef, type InputHTMLAttributes } from "react";
 import { Input } from "@ui/components/input";
 import { cn } from "@ui/lib/cn";
 
-export interface MoneyInputProps extends Omit<
-  InputHTMLAttributes<HTMLInputElement>,
-  "type" | "inputMode" | "dir"
-> {
+export interface MoneyInputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, "type" | "inputMode" | "dir"> {
   hasError?: boolean | undefined;
   currency?: string | undefined;
   cents?: boolean | undefined;

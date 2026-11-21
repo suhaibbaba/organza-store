@@ -31,7 +31,9 @@ const GROUP_ICONS: Record<GlobalSearchGroupKey, LucideIcon> = {
 const DESKTOP_QUERY = "(min-width: 768px)";
 
 function isTypingTarget(target: EventTarget | null): boolean {
-  if (!(target instanceof HTMLElement)) return false;
+  if (!(target instanceof HTMLElement)) {
+    return false;
+  }
   return target.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName);
 }
 
@@ -66,7 +68,9 @@ export function GlobalSearch() {
     function onKeyDown(event: globalThis.KeyboardEvent) {
       const command = (event.metaKey || event.ctrlKey) && event.key.toLowerCase() === GLOBAL_SEARCH_COMMAND_KEY;
       const slash = event.key === GLOBAL_SEARCH_SHORTCUT && !isTypingTarget(event.target);
-      if (!command && !slash) return;
+      if (!command && !slash) {
+        return;
+      }
       event.preventDefault();
       if (window.matchMedia(DESKTOP_QUERY).matches) {
         desktopInputRef.current?.focus();
@@ -80,9 +84,13 @@ export function GlobalSearch() {
   }, []);
 
   useEffect(() => {
-    if (!open) return;
+    if (!open) {
+      return;
+    }
     function onPointerDown(event: PointerEvent) {
-      if (!containerRef.current?.contains(event.target as Node)) setOpen(false);
+      if (!containerRef.current?.contains(event.target as Node)) {
+        setOpen(false);
+      }
     }
     document.addEventListener("pointerdown", onPointerDown);
     return () => document.removeEventListener("pointerdown", onPointerDown);
@@ -117,8 +125,11 @@ export function GlobalSearch() {
       event.preventDefault();
       go(flat[active]!);
     } else if (event.key === "Escape") {
-      if (value) change("");
-      else event.currentTarget.blur();
+      if (value) {
+        change("");
+      } else {
+        event.currentTarget.blur();
+      }
       setOpen(false);
       setMobileOpen(false);
     }
@@ -153,11 +164,7 @@ export function GlobalSearch() {
 
   return (
     <>
-      <div
-        ref={containerRef}
-        className="relative hidden w-full max-w-xl md:block"
-        data-test-selector="global-search"
-      >
+      <div ref={containerRef} className="relative hidden w-full max-w-xl md:block" data-test-selector="global-search">
         <SearchField
           ref={desktopInputRef}
           data-testid="global-search-input"
@@ -185,25 +192,26 @@ export function GlobalSearch() {
 
       {mobileOpen &&
         createPortal(
-        <div
-          className="fixed inset-0 z-50 flex flex-col bg-canvas pt-[var(--safe-top)] md:hidden"
-          data-test-selector="global-search-sheet"
-        >
-          <div className="flex items-center gap-2 border-b border-line bg-surface p-3">
-            <SearchField data-testid="global-search-sheet-input" className="flex-1" autoFocus {...comboboxProps} />
-            <button
-              type="button"
-              onClick={() => setMobileOpen(false)}
-              aria-label={t("close")}
-              data-test-selector="global-search-close"
-              className="flex size-10 shrink-0 cursor-pointer items-center justify-center rounded-control text-ink-muted transition-colors hover:bg-inset hover:text-primary-700 focus-visible:bg-neutral-200 focus-visible:text-primary-800"
-            >
-              <X className="size-5" aria-hidden="true" />
-            </button>
-          </div>
-          {value.trim() !== "" && <div className="min-h-0 flex-1 overflow-y-auto bg-surface">{results}</div>}
-        </div>
-      , document.body)}
+          <div
+            className="fixed inset-0 z-50 flex flex-col bg-canvas pt-[var(--safe-top)] md:hidden"
+            data-test-selector="global-search-sheet"
+          >
+            <div className="flex items-center gap-2 border-b border-line bg-surface p-3">
+              <SearchField data-testid="global-search-sheet-input" className="flex-1" autoFocus {...comboboxProps} />
+              <button
+                type="button"
+                onClick={() => setMobileOpen(false)}
+                aria-label={t("close")}
+                data-test-selector="global-search-close"
+                className="flex size-10 shrink-0 cursor-pointer items-center justify-center rounded-control text-ink-muted transition-colors hover:bg-inset hover:text-primary-700 focus-visible:bg-neutral-200 focus-visible:text-primary-800"
+              >
+                <X className="size-5" aria-hidden="true" />
+              </button>
+            </div>
+            {value.trim() !== "" && <div className="min-h-0 flex-1 overflow-y-auto bg-surface">{results}</div>}
+          </div>,
+          document.body,
+        )}
     </>
   );
 }
@@ -235,11 +243,17 @@ function SearchResults({ query, search, active, listboxId, onHover, onNavigate }
   }
 
   const offsets = search.groups.map((_, groupIndex) =>
-    search.groups.slice(0, groupIndex).reduce((sum, group) => sum + group.items.length, 0)
+    search.groups.slice(0, groupIndex).reduce((sum, group) => sum + group.items.length, 0),
   );
 
   return (
-    <div id={listboxId} role="listbox" aria-label={t("label")} data-test-selector="global-search-results" className="py-1">
+    <div
+      id={listboxId}
+      role="listbox"
+      aria-label={t("label")}
+      data-test-selector="global-search-results"
+      className="py-1"
+    >
       {search.groups.map((group, groupIndex) => (
         <ResultGroup key={group.key} group={group} onNavigate={onNavigate}>
           {group.items.map((item, itemIndex) => {
@@ -264,7 +278,10 @@ function SearchResults({ query, search, active, listboxId, onHover, onNavigate }
 
 function SearchMessage({ children }: { children: React.ReactNode }) {
   return (
-    <p className="flex items-center gap-2 px-4 py-6 text-label text-ink-muted" data-test-selector="global-search-message">
+    <p
+      className="flex items-center gap-2 px-4 py-6 text-label text-ink-muted"
+      data-test-selector="global-search-message"
+    >
       {children}
     </p>
   );
@@ -283,7 +300,11 @@ function ResultGroup({
   const hasMore = group.seeAllHref !== undefined && group.total > group.items.length;
 
   return (
-    <div role="group" aria-label={t(`groups.${group.key}`)} data-test-selector={testSelectorFor("global-search-group", group.key)}>
+    <div
+      role="group"
+      aria-label={t(`groups.${group.key}`)}
+      data-test-selector={testSelectorFor("global-search-group", group.key)}
+    >
       <div className="flex items-center justify-between gap-3 px-4 pb-1 pt-3">
         <span className="text-micro font-medium text-ink-subtle">{t(`groups.${group.key}`)}</span>
         {hasMore && (
@@ -327,12 +348,17 @@ function ResultRow({ id, group, item, isActive, onHover, onNavigate }: ResultRow
       data-test-selector={testSelectorFor(`global-search-${group}-option`, item.id)}
       className={cn(
         "mx-1.5 flex items-center gap-3 rounded-control px-2.5 py-2 transition-colors",
-        isActive ? "bg-primary-50" : "hover:bg-row-hover"
+        isActive ? "bg-primary-50" : "hover:bg-row-hover",
       )}
     >
       {hasPhoto ? (
         item.product ? (
-          <ProductPhoto product={item.product} alt="" className="size-10 shrink-0 rounded-control" sizes={GLOBAL_SEARCH_THUMB_SIZES} />
+          <ProductPhoto
+            product={item.product}
+            alt=""
+            className="size-10 shrink-0 rounded-control"
+            sizes={GLOBAL_SEARCH_THUMB_SIZES}
+          />
         ) : (
           <ProductImage
             src={item.thumbnailUrl}

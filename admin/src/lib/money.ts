@@ -32,9 +32,13 @@ function divideRoundHalfUp(numerator: number, denominator: number): number {
 // Anything unparseable is worth zero rather than NaN: a malformed discount
 // must not be able to poison the total on screen.
 export function toCents(value: string | number | null | undefined): number {
-  if (value === null || value === undefined) return 0;
+  if (value === null || value === undefined) {
+    return 0;
+  }
   const parsed = Number(value);
-  if (!Number.isFinite(parsed)) return 0;
+  if (!Number.isFinite(parsed)) {
+    return 0;
+  }
   return Math.round(parsed * CENTS_PER_UNIT);
 }
 
@@ -54,13 +58,17 @@ export function multiplyCents(unitCents: number, quantity: number): number {
 export function resolveDiscountCents(
   baseCents: number,
   type: DiscountType | null | undefined,
-  value: string | null | undefined
+  value: string | null | undefined,
 ): number {
-  if (!type || value === null || value === undefined || value === "") return 0;
+  if (!type || value === null || value === undefined || value === "") {
+    return 0;
+  }
 
   const raw = type === "PERCENT" ? divideRoundHalfUp(baseCents * toCents(value), PERCENT_BASIS) : toCents(value);
 
-  if (raw < 0) return 0;
+  if (raw < 0) {
+    return 0;
+  }
   return raw > baseCents ? baseCents : raw;
 }
 
@@ -72,11 +80,17 @@ export function resolveDiscountCents(
 // watching a number stop moving for no visible reason.
 export function isDiscountValueInRange(type: DiscountType, value: string, baseAmount?: string): boolean {
   const parsed = Number(value);
-  if (!Number.isFinite(parsed) || parsed < 0) return false;
-  if (type === "PERCENT") return parsed <= PERCENT_MAX;
+  if (!Number.isFinite(parsed) || parsed < 0) {
+    return false;
+  }
+  if (type === "PERCENT") {
+    return parsed <= PERCENT_MAX;
+  }
   // No base given means the caller has nothing to measure against (an order
   // discount before anything is in the cart) — the clamp still applies later.
-  if (baseAmount === undefined) return true;
+  if (baseAmount === undefined) {
+    return true;
+  }
   return toCents(value) <= toCents(baseAmount);
 }
 

@@ -45,7 +45,7 @@ export function setNoteLanguage(
   notes: OptionValueNoteMap,
   key: string,
   language: keyof I18nFormValue,
-  text: string
+  text: string,
 ): OptionValueNoteMap {
   return { ...notes, [key]: { ...noteFor(notes, key), [language]: text } };
 }
@@ -67,7 +67,7 @@ export function countNotes(notes: OptionValueNoteMap): number {
 export function diffOptionValueNotes(
   initial: OptionValueNoteMap,
   current: OptionValueNoteMap,
-  resolveOptionValueId: (key: string) => string | null = (key) => key
+  resolveOptionValueId: (key: string) => string | null = (key) => key,
 ): OptionValueNoteInput[] {
   const changes: OptionValueNoteInput[] = [];
 
@@ -75,12 +75,16 @@ export function diffOptionValueNotes(
     const before = noteFor(initial, key);
     const after = noteFor(current, key);
     const sameInEveryLanguage = (["ar", "en", "he"] as const).every(
-      (language) => before[language].trim() === after[language].trim()
+      (language) => before[language].trim() === after[language].trim(),
     );
-    if (sameInEveryLanguage) continue;
+    if (sameInEveryLanguage) {
+      continue;
+    }
 
     const optionValueId = resolveOptionValueId(key);
-    if (!optionValueId) continue;
+    if (!optionValueId) {
+      continue;
+    }
 
     changes.push({
       optionValueId,
@@ -89,7 +93,7 @@ export function diffOptionValueNotes(
         : Object.fromEntries(
             (["ar", "en", "he"] as const)
               .map((language) => [language, after[language].trim()] as const)
-              .filter(([, text]) => text.length > 0)
+              .filter(([, text]) => text.length > 0),
           ),
     });
   }
@@ -104,7 +108,7 @@ export function diffOptionValueNotes(
 export function noteGroupsFromSelections(
   variantTypes: VariantType[],
   selections: VariantSelectionMap,
-  locale: string
+  locale: string,
 ): OptionValueNoteGroup[] {
   return variantTypes
     .filter((type) => (selections[type.id] ?? []).length > 0)

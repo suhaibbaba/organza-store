@@ -13,7 +13,6 @@ export default function NewOrderPage() {
     // UI convenience only; the backend refuses the POST regardless (rule 5).
     <RoleGuard action="order.create">
       <PageContainer>
-
         <PageHeader name="order-new" title={t("title")} description={t("subtitle")} />
 
         <OrderBuilder />

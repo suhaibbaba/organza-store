@@ -90,7 +90,9 @@ export class PermissionCache {
 
   /** Read the table and publish it to `can()`, whatever the version says. */
   async reload(): Promise<void> {
-    if (this.pending) return this.pending;
+    if (this.pending) {
+      return this.pending;
+    }
     this.pending = (async () => {
       try {
         const [matrix, version] = await Promise.all([this.loadMatrix(), this.loadVersion()]);
@@ -118,13 +120,19 @@ export class PermissionCache {
    * answer is "no change".
    */
   async ensureFresh(): Promise<void> {
-    if (this.pending) return this.pending;
+    if (this.pending) {
+      return this.pending;
+    }
     // One attempt per window, whether the last one SUCCEEDED OR FAILED. The
     // failed case is the one that matters: a database that is refusing
     // connections must not be asked again by every request that arrives while
     // it is down, which is exactly when it can least afford the company.
-    if (this.hasProbed && this.now() - this.lastProbeAt < this.ttlMs) return;
-    if (!this.loaded) return this.reload();
+    if (this.hasProbed && this.now() - this.lastProbeAt < this.ttlMs) {
+      return;
+    }
+    if (!this.loaded) {
+      return this.reload();
+    }
 
     this.pending = (async () => {
       try {
@@ -189,7 +197,9 @@ async function loadStoredMatrix(): Promise<ConfigurablePermissionMatrix> {
   const rows = await prisma.rolePermission.findMany({ select: { role: true, action: true, granted: true } });
   const matrix: ConfigurablePermissionMatrix = {};
   for (const row of rows) {
-    if (!isConfigurableAction(row.action)) continue;
+    if (!isConfigurableAction(row.action)) {
+      continue;
+    }
     const forRole = (matrix[row.role] ??= {} as Partial<Record<ConfigurableAction, boolean>>);
     forRole[row.action] = row.granted;
   }

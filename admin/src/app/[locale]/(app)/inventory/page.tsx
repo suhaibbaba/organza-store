@@ -9,7 +9,11 @@ import { RoleGuard } from "@/components/auth/role-guard";
 import { PageContainer } from "@/components/layout/page-container";
 import { PageHeader } from "@/components/layout/page-header";
 import { useSession } from "@/components/providers/session-provider";
-import { DEFAULT_INVENTORY_FILTERS, INVENTORY_LIST_URL_PARAMS, INVENTORY_SEARCH_DEBOUNCE_MS } from "@/constants/inventory";
+import {
+  DEFAULT_INVENTORY_FILTERS,
+  INVENTORY_LIST_URL_PARAMS,
+  INVENTORY_SEARCH_DEBOUNCE_MS,
+} from "@/constants/inventory";
 import { useUrlFilters } from "@/hooks/use-url-filters";
 import { useUrlSearch } from "@/hooks/use-url-search";
 import { useInventoryQuery } from "@/hooks/use-inventory";
@@ -22,7 +26,11 @@ import {
   type InventoryFiltersValue,
 } from "@/components/inventory/inventory-filters";
 import { InventoryTable } from "@/components/inventory/inventory-table";
-import { InventoryListEmpty, InventoryListError, InventoryListLoading } from "@/components/inventory/inventory-list-states";
+import {
+  InventoryListEmpty,
+  InventoryListError,
+  InventoryListLoading,
+} from "@/components/inventory/inventory-list-states";
 import type { InventoryRow } from "@/types/inventory";
 
 // Admin/Manager only (rule 5): /api/inventory 403s for an Employee.
@@ -43,7 +51,7 @@ function InventoryPageContent() {
   const [searchInput, setSearchInput] = useUrlSearch(
     filters.q,
     (q) => changeFilters({ q, page: DEFAULT_PAGE }),
-    INVENTORY_SEARCH_DEBOUNCE_MS
+    INVENTORY_SEARCH_DEBOUNCE_MS,
   );
 
   const { data, isLoading, isFetching, isError, error, refetch } = useInventoryQuery(filters);
@@ -75,10 +83,7 @@ function InventoryPageContent() {
         <div className="flex flex-col gap-3">
           <div className="flex flex-wrap items-center gap-2">
             <div className="min-w-64 flex-1 sm:max-w-md">
-              <InventorySearch
-                value={searchInput}
-                onChange={setSearchInput}
-              />
+              <InventorySearch value={searchInput} onChange={setSearchInput} />
             </div>
             <InventoryFilters value={filtersValue} onApply={(next) => changeFilters({ ...next, page: DEFAULT_PAGE })} />
             {data?.meta && (

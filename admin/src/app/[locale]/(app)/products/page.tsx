@@ -31,7 +31,7 @@ export default function ProductsPage() {
   const [searchInput, setSearchInput] = useUrlSearch(
     filters.q,
     (q) => changeFilters({ q, page: DEFAULT_PAGE }),
-    PRODUCT_SEARCH_DEBOUNCE_MS
+    PRODUCT_SEARCH_DEBOUNCE_MS,
   );
 
   const { data, isLoading, isFetching, isError, error, refetch } = useProductsQuery(filters);
@@ -57,7 +57,7 @@ export default function ProductsPage() {
       changeFilters(
         key === null
           ? { sortBy: DEFAULT_PRODUCT_FILTERS.sortBy, sortDir: DEFAULT_PRODUCT_FILTERS.sortDir, page: DEFAULT_PAGE }
-          : { sortBy: key as ProductListFilters["sortBy"], sortDir: dir, page: DEFAULT_PAGE }
+          : { sortBy: key as ProductListFilters["sortBy"], sortDir: dir, page: DEFAULT_PAGE },
       ),
   };
 
@@ -70,7 +70,11 @@ export default function ProductsPage() {
         title={t("title")}
         description={t("subtitle")}
         actions={
-          <Link href="/products/new" data-test-selector="add-product" className={buttonClassName({ className: "shrink-0" })}>
+          <Link
+            href="/products/new"
+            data-test-selector="add-product"
+            className={buttonClassName({ className: "shrink-0" })}
+          >
             <Plus className="size-4" aria-hidden="true" />
             {t("addProduct")}
           </Link>
@@ -93,7 +97,10 @@ export default function ProductsPage() {
                 },
               ]}
               onChange={(value) =>
-                changeFilters({ completeness: value === "needs-completing" ? "needs_completing" : "all", page: DEFAULT_PAGE })
+                changeFilters({
+                  completeness: value === "needs-completing" ? "needs_completing" : "all",
+                  page: DEFAULT_PAGE,
+                })
               }
             />
             {needsCompleting && (
@@ -107,10 +114,7 @@ export default function ProductsPage() {
         <div className="flex flex-col gap-3">
           <div className="flex flex-wrap items-center gap-2">
             <div className="min-w-64 flex-1 sm:max-w-md">
-              <ProductSearch
-                value={searchInput}
-                onChange={setSearchInput}
-              />
+              <ProductSearch value={searchInput} onChange={setSearchInput} />
             </div>
             <ProductCategoryFilter
               value={filters.categoryId}
@@ -127,7 +131,10 @@ export default function ProductsPage() {
               </div>
             )}
           </div>
-          <ProductFilterChips value={filtersValue} onChange={(next) => changeFilters({ ...next, page: DEFAULT_PAGE })} />
+          <ProductFilterChips
+            value={filtersValue}
+            onChange={(next) => changeFilters({ ...next, page: DEFAULT_PAGE })}
+          />
         </div>
 
         {isError ? (

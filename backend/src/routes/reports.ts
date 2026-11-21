@@ -78,7 +78,7 @@ router.get(
           canViewCost ? queryExpenseTotals(range) : undefined,
         ]);
         return { totals, gifts, expenses };
-      })
+      }),
     );
 
     const summary = REPORT_PERIODS.reduce((acc, period, index) => {
@@ -91,7 +91,7 @@ router.get(
     }, {} as SalesSummary);
 
     sendOk(res, summary);
-  })
+  }),
 );
 
 // ---------------------------------------------------------------------------
@@ -137,7 +137,7 @@ router.get(
     }
 
     sendOk(res, report);
-  })
+  }),
 );
 
 export default router;

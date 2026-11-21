@@ -1,13 +1,5 @@
 import * as ToastPrimitive from "@radix-ui/react-toast";
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useMemo,
-  useState,
-  type JSX,
-  type ReactNode,
-} from "react";
+import { createContext, useCallback, useContext, useMemo, useState, type JSX, type ReactNode } from "react";
 import { useTranslation } from "@ui/lib/i18n";
 import { Icon } from "@ui/components/icon";
 import { NOTICE_TONES, type NoticeTone } from "@ui/components/tone";
@@ -54,12 +46,7 @@ interface ToastMessage {
 }
 
 type Values = Record<string, string | number>;
-type Notify = (
-  messageKey: string,
-  values?: Values,
-  descriptionKey?: string,
-  action?: ToastAction,
-) => void;
+type Notify = (messageKey: string, values?: Values, descriptionKey?: string, action?: ToastAction) => void;
 
 interface ToastApi {
   success: Notify;
@@ -86,13 +73,7 @@ export function ToastProvider({ children }: { children: ReactNode }): JSX.Elemen
   const [messages, setMessages] = useState<ToastMessage[]>([]);
 
   const push = useCallback(
-    (
-      messageKey: string,
-      tone: ToastTone,
-      values?: Values,
-      descriptionKey?: string,
-      action?: ToastAction,
-    ) => {
+    (messageKey: string, tone: ToastTone, values?: Values, descriptionKey?: string, action?: ToastAction) => {
       setMessages((current) => [
         ...current,
         {
@@ -110,16 +91,11 @@ export function ToastProvider({ children }: { children: ReactNode }): JSX.Elemen
 
   const api = useMemo<ToastApi>(
     () => ({
-      success: (messageKey, values, description, action) =>
-        push(messageKey, "success", values, description, action),
-      warning: (messageKey, values, description, action) =>
-        push(messageKey, "warning", values, description, action),
-      error: (messageKey, values, description, action) =>
-        push(messageKey, "error", values, description, action),
-      info: (messageKey, values, description, action) =>
-        push(messageKey, "info", values, description, action),
-      neutral: (messageKey, values, description, action) =>
-        push(messageKey, "neutral", values, description, action),
+      success: (messageKey, values, description, action) => push(messageKey, "success", values, description, action),
+      warning: (messageKey, values, description, action) => push(messageKey, "warning", values, description, action),
+      error: (messageKey, values, description, action) => push(messageKey, "error", values, description, action),
+      info: (messageKey, values, description, action) => push(messageKey, "info", values, description, action),
+      neutral: (messageKey, values, description, action) => push(messageKey, "neutral", values, description, action),
     }),
     [push],
   );

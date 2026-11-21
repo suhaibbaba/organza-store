@@ -38,17 +38,25 @@ export function useSellShortcuts({ enabled, onFocusSearch, onScan, onCheckout, o
   }, [onFocusSearch, onScan, onCheckout, onClear]);
 
   useEffect(() => {
-    if (!enabled) return;
+    if (!enabled) {
+      return;
+    }
 
     function isTypingInto(target: EventTarget | null): boolean {
-      if (!(target instanceof HTMLElement)) return false;
-      if (target.isContentEditable) return true;
+      if (!(target instanceof HTMLElement)) {
+        return false;
+      }
+      if (target.isContentEditable) {
+        return true;
+      }
       return ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName);
     }
 
     function handleKeyDown(event: KeyboardEvent) {
       // Browser and OS shortcuts stay the browser's and the OS's.
-      if (event.ctrlKey || event.metaKey || event.altKey || event.isComposing) return;
+      if (event.ctrlKey || event.metaKey || event.altKey || event.isComposing) {
+        return;
+      }
 
       const handlers = handlersRef.current;
       const typing = isTypingInto(event.target);
@@ -63,7 +71,9 @@ export function useSellShortcuts({ enabled, onFocusSearch, onScan, onCheckout, o
       // somewhere else entirely, the key printed "/" is still the one the
       // cashier will reach for.
       if (event.key === SELL_SHORTCUT_FOCUS_SEARCH || event.code === SELL_SHORTCUT_FOCUS_SEARCH_CODE) {
-        if (typing) return;
+        if (typing) {
+          return;
+        }
         // Or it would land in the box it just focused.
         event.preventDefault();
         handlers.onFocusSearch();

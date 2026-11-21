@@ -29,7 +29,7 @@ assertSafeTarget();
 if (!Role || typeof Role.ADMIN !== "string" || typeof Role.MANAGER !== "string" || typeof Role.EMPLOYEE !== "string") {
   throw new Error(
     "@prisma/client's Role enum is undefined or incomplete — the Prisma client hasn't been generated. " +
-      "Run `npx prisma generate` (or `npm run prisma:generate`) before running the API test suite."
+      "Run `npx prisma generate` (or `npm run prisma:generate`) before running the API test suite.",
   );
 }
 

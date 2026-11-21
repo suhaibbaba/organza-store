@@ -91,14 +91,18 @@ function VariantPicker({ product, isNumbered, onPick, onClose }: VariantPickerPr
   const [notFound, setNotFound] = useState(false);
 
   const visibleVariants = useMemo(() => {
-    if (!isNumbered || !numberQuery.trim()) return product.variants;
+    if (!isNumbered || !numberQuery.trim()) {
+      return product.variants;
+    }
     const matches = variantsByNumber(product, numberQuery);
     return matches.length > 0 ? matches : product.variants;
   }, [product, isNumbered, numberQuery]);
 
   // Exactly one sellable variant for the typed number, or nothing.
   const typedMatch = useMemo(() => {
-    if (!isNumbered || !numberQuery.trim()) return null;
+    if (!isNumbered || !numberQuery.trim()) {
+      return null;
+    }
     const matches = variantsByNumber(product, numberQuery).filter((variant) => variant.stock > 0);
     return matches.length === 1 ? matches[0] : null;
   }, [product, isNumbered, numberQuery]);
@@ -106,7 +110,9 @@ function VariantPicker({ product, isNumbered, onPick, onClose }: VariantPickerPr
   // A number still in the box counts as chosen: typing 4 then reaching for Add means the 4.
   const chosen = useMemo(() => {
     const ids = [...selectedIds];
-    if (typedMatch && !ids.includes(typedMatch.id)) ids.push(typedMatch.id);
+    if (typedMatch && !ids.includes(typedMatch.id)) {
+      ids.push(typedMatch.id);
+    }
     return ids
       .map((id) => product.variants.find((variant) => variant.id === id))
       .filter((variant): variant is Variant => variant !== undefined && variant.stock > 0);
@@ -115,7 +121,9 @@ function VariantPicker({ product, isNumbered, onPick, onClose }: VariantPickerPr
   const chosenIds = useMemo(() => new Set(chosen.map((variant) => variant.id)), [chosen]);
 
   function toggle(variant: Variant) {
-    if (variant.stock <= 0) return;
+    if (variant.stock <= 0) {
+      return;
+    }
     setNotFound(false);
 
     // Chosen only because the box holds it, so un-choosing clears the box.
@@ -125,9 +133,7 @@ function VariantPicker({ product, isNumbered, onPick, onClose }: VariantPickerPr
     }
 
     setSelectedIds((previous) =>
-      previous.includes(variant.id)
-        ? previous.filter((id) => id !== variant.id)
-        : [...previous, variant.id]
+      previous.includes(variant.id) ? previous.filter((id) => id !== variant.id) : [...previous, variant.id],
     );
   }
 
@@ -138,22 +144,24 @@ function VariantPicker({ product, isNumbered, onPick, onClose }: VariantPickerPr
       setNotFound(true);
       return;
     }
-    setSelectedIds((previous) =>
-      previous.includes(typedMatch.id) ? previous : [...previous, typedMatch.id]
-    );
+    setSelectedIds((previous) => (previous.includes(typedMatch.id) ? previous : [...previous, typedMatch.id]));
     setNumberQuery("");
     setNotFound(false);
   }
 
   function addChosen() {
-    if (chosen.length === 0) return;
+    if (chosen.length === 0) {
+      return;
+    }
     onPick(product, chosen);
     setSelectedIds([]);
     setNumberQuery("");
     setNotFound(false);
 
     // The toast reports what landed; nothing is refocused on purpose.
-    if (!isNumbered) onClose();
+    if (!isNumbered) {
+      onClose();
+    }
   }
 
   return (
@@ -181,7 +189,11 @@ function VariantPicker({ product, isNumbered, onPick, onClose }: VariantPickerPr
           </form>
         )}
 
-        {notFound && <Alert tone="danger" data-testid="alert-destructive">{t("numberNotFound")}</Alert>}
+        {notFound && (
+          <Alert tone="danger" data-testid="alert-destructive">
+            {t("numberNotFound")}
+          </Alert>
+        )}
 
         <ul
           data-test-selector="pos-variant-picker"
@@ -189,7 +201,7 @@ function VariantPicker({ product, isNumbered, onPick, onClose }: VariantPickerPr
             "grid gap-2",
             isNumbered
               ? "grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6"
-              : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+              : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4",
           )}
         >
           {visibleVariants.map((variant) => {
@@ -214,7 +226,7 @@ function VariantPicker({ product, isNumbered, onPick, onClose }: VariantPickerPr
                     // A chosen tile must be unmistakable at arm's length: fill, border, weight and a tick together.
                     isChosen
                       ? "border-selected-line bg-selected font-semibold text-ink ring-2 ring-primary-600"
-                      : "border-line bg-surface not-disabled:hover:bg-row-hover"
+                      : "border-line bg-surface not-disabled:hover:bg-row-hover",
                   )}
                 >
                   {isChosen && (
@@ -238,7 +250,7 @@ function VariantPicker({ product, isNumbered, onPick, onClose }: VariantPickerPr
                     className={cn(
                       "font-medium",
                       isNumbered ? "text-xl text-ink" : "text-base text-ink",
-                      soldOut && "line-through decoration-1"
+                      soldOut && "line-through decoration-1",
                     )}
                   >
                     {name}
@@ -270,7 +282,10 @@ function VariantPicker({ product, isNumbered, onPick, onClose }: VariantPickerPr
             onClick={addChosen}
             disabled={chosen.length === 0}
             data-testid="pos-variant-picker-add"
-            className={cn(CONTROL_HEIGHT, "hit-area min-h-0 min-w-0 flex-1 rounded-control py-0 text-sm tab:min-w-48 tab:flex-none")}
+            className={cn(
+              CONTROL_HEIGHT,
+              "hit-area min-h-0 min-w-0 flex-1 rounded-control py-0 text-sm tab:min-w-48 tab:flex-none",
+            )}
           >
             {chosen.length === 0 && t("add")}
             {chosen.length === 1 && t("addNamed", { name: localize(chosen[0].name, locale) })}

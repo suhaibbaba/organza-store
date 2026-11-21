@@ -57,10 +57,14 @@ export function BarcodeScanner({ onDetected, pulse, onStarted }: BarcodeScannerP
 
     async function start() {
       // Camera access needs a secure context (HTTPS or localhost); say so plainly.
-      if (!window.isSecureContext) throw new ScannerFaultError("insecureContext");
+      if (!window.isSecureContext) {
+        throw new ScannerFaultError("insecureContext");
+      }
 
       const { Html5Qrcode, Html5QrcodeSupportedFormats } = await import("html5-qrcode");
-      if (cancelled) return null;
+      if (cancelled) {
+        return null;
+      }
 
       const scanner = new Html5Qrcode(SCANNER_ELEMENT_ID, {
         verbose: false,
@@ -81,7 +85,7 @@ export function BarcodeScanner({ onDetected, pulse, onStarted }: BarcodeScannerP
         { fps: SCANNER_FPS, qrbox: scanRegion },
         (decodedText) => onDetectedRef.current(decodedText),
         // Fires for every frame without a code: normal while aiming.
-        () => undefined
+        () => undefined,
       );
 
       return scanner;
@@ -107,18 +111,23 @@ export function BarcodeScanner({ onDetected, pulse, onStarted }: BarcodeScannerP
     return () => {
       cancelled = true;
       void running.then(async (scanner) => {
-        if (!scanner) return;
+        if (!scanner) {
+          return;
+        }
         try {
           await scanner.stop();
           scanner.clear();
-        } catch {
-        }
+        } catch {}
       });
     };
   }, []);
 
   if (fault) {
-    return <Alert tone="danger" data-testid="alert-destructive">{t(`fault.${fault}`)}</Alert>;
+    return (
+      <Alert tone="danger" data-testid="alert-destructive">
+        {t(`fault.${fault}`)}
+      </Alert>
+    );
   }
 
   return (
@@ -134,9 +143,7 @@ export function BarcodeScanner({ onDetected, pulse, onStarted }: BarcodeScannerP
             key={pulse.token}
             className={cn(
               "animate-scan-pulse pointer-events-none absolute inset-0 rounded-panel ring-4 ring-inset",
-              pulse.variant === "success"
-                ? "bg-success-400/25 ring-success-400"
-                : "bg-danger-500/25 ring-danger-500"
+              pulse.variant === "success" ? "bg-success-400/25 ring-success-400" : "bg-danger-500/25 ring-danger-500",
             )}
             style={{ animationDuration: `${SCAN_PULSE_MS}ms` }}
             aria-hidden="true"
@@ -166,7 +173,9 @@ function scanRegion(viewfinderWidth: number, viewfinderHeight: number) {
 
 // html5-qrcode rejects with a string, so a refused permission is read from the text as well as the name.
 function toFault(error: unknown): ScannerFault {
-  if (error instanceof ScannerFaultError) return error.fault;
+  if (error instanceof ScannerFaultError) {
+    return error.fault;
+  }
 
   const described =
     typeof error === "string"

@@ -11,7 +11,13 @@ export function ProfileSection({ name, children }: { name: ProfileSectionName; c
   const t = useTranslations(`profile.sections.${name}`);
   const { icon, tone } = PROFILE_SECTIONS[name];
   return (
-    <Section data-testid={`pos-profile-${name}`} title={t("title")} description={t("description")} icon={icon} tone={tone}>
+    <Section
+      data-testid={`pos-profile-${name}`}
+      title={t("title")}
+      description={t("description")}
+      icon={icon}
+      tone={tone}
+    >
       {children}
     </Section>
   );

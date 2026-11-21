@@ -47,13 +47,17 @@ router.get(
     // isn't drowned out by the many one-off pieces that sit at stock = 1.
     for (const product of products) {
       if (product.variants.length === 0) {
-        if (product.trackLowStock && product.stock <= threshold) lowStockCount += 1;
+        if (product.trackLowStock && product.stock <= threshold) {
+          lowStockCount += 1;
+        }
         const unitPrice = canViewCost ? (product.cost ?? product.basePrice) : product.basePrice;
         inventoryValue = inventoryValue.add(unitPrice.mul(product.stock));
         continue;
       }
       for (const variant of product.variants) {
-        if (product.trackLowStock && variant.stock <= threshold) lowStockCount += 1;
+        if (product.trackLowStock && variant.stock <= threshold) {
+          lowStockCount += 1;
+        }
         const unitPrice = canViewCost
           ? (variant.cost ?? product.cost ?? variant.priceOverride ?? product.basePrice)
           : (variant.priceOverride ?? product.basePrice);
@@ -76,7 +80,7 @@ router.get(
     };
 
     sendOk(res, summary);
-  })
+  }),
 );
 
 export default router;

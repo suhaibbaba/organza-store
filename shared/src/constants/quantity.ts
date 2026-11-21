@@ -28,7 +28,9 @@ export function clampQuantity(value: number, min: number = QUANTITY_MIN, max: nu
   const ceiling = Math.min(max, QUANTITY_MAX);
   // A caller whose own ceiling is below the floor (no stock left, say) gets
   // the floor rather than an inverted range.
-  if (ceiling < floor) return floor;
+  if (ceiling < floor) {
+    return floor;
+  }
   return Math.min(Math.max(value, floor), ceiling);
 }
 

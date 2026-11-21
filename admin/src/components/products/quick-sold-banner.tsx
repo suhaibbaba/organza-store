@@ -29,11 +29,13 @@ export function QuickSoldBanner({ product }: { product: Product }) {
   const [rejecting, setRejecting] = useState(false);
 
   const request = (product.pendingChanges ?? []).find(
-    (change) => isQuickSoldRequest(change) && change.status === PENDING_CHANGE_REQUEST_STATUS
+    (change) => isQuickSoldRequest(change) && change.status === PENDING_CHANGE_REQUEST_STATUS,
   );
 
   // Nothing to say about an ordinary product, or about one already decided.
-  if (!product.needsCompleting) return null;
+  if (!product.needsCompleting) {
+    return null;
+  }
 
   const canComplete = can(user, "product.complete");
   const hasCategory = Boolean(product.category);
@@ -93,7 +95,7 @@ export function QuickSoldBanner({ product }: { product: Product }) {
                   ? decide.mutate(
                       { id: request.id, decision: "reject" },
                       // A one-off is soft-deleted, so this screen is about to 404.
-                      { onSuccess: () => router.replace("/products") }
+                      { onSuccess: () => router.replace("/products") },
                     )
                   : setRejecting(true)
               }

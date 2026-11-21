@@ -32,7 +32,12 @@ import { buildSearchText, indexProducts, queueProductSync, searchProductIds } fr
 import { queueMarkedImages, refreshMarkedImages } from "@/lib/markedImage";
 import { isRelevanceSort, pageByRelevance } from "@/lib/search/relevance";
 import { cartesianProduct, buildComboName, buildImagePointMap, resolveComboImagePoint } from "@/lib/variantCombo";
-import { comboStockLookup, generateVariantsForProduct, previewComboNames, validateOptionSelections } from "@/lib/variants";
+import {
+  comboStockLookup,
+  generateVariantsForProduct,
+  previewComboNames,
+  validateOptionSelections,
+} from "@/lib/variants";
 import { serializeProduct, serializeProductSummary, serializeVariant } from "@/lib/pricing";
 import { applyOptionValueNotes, assertOptionValueNotesUsable } from "@/lib/optionValueNotes";
 import { moneyChanged } from "@/lib/money";
@@ -100,7 +105,9 @@ async function serializeProductWithPending(product: AnyRecord, role: Role) {
  * flow looked like before requests existed.
  */
 function assertMayRequest(user: { role: string }): void {
-  if (!can(user, "changeRequest.create")) throw new AppError(403, ERROR_CODES.FORBIDDEN);
+  if (!can(user, "changeRequest.create")) {
+    throw new AppError(403, ERROR_CODES.FORBIDDEN);
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -128,7 +135,9 @@ router.get(
         ? { in: await collectCategorySubtreeIds(query.categoryId) }
         : query.categoryId;
     }
-    if (query.status) where.isActive = query.status === "active";
+    if (query.status) {
+      where.isActive = query.status === "active";
+    }
 
     if (query.priceMin !== undefined || query.priceMax !== undefined) {
       where.basePrice = {
@@ -168,19 +177,20 @@ router.get(
     // for the same reason printState is: this clause has to survive alongside
     // whatever the stock filter and the label queue already put on `where`.
     if (query.completeness !== DEFAULT_PRODUCT_COMPLETENESS_FILTER) {
-      const clause =
-        query.completeness === "needs_completing" ? NEEDS_COMPLETING_WHERE : QUICK_SOLD_WHERE;
+      const clause = query.completeness === "needs_completing" ? NEEDS_COMPLETING_WHERE : QUICK_SOLD_WHERE;
       where.AND = [...(Array.isArray(where.AND) ? where.AND : where.AND ? [where.AND] : []), clause];
     }
 
     const ranked = query.q ? await searchProductIds(query.q) : null;
-    if (ranked) where.id = { in: ranked.length ? ranked : ["__none_matched__"] };
+    if (ranked) {
+      where.id = { in: ranked.length ? ranked : ["__none_matched__"] };
+    }
 
     // A search on the default sort comes back closest match first; every other filter still applies in the database.
     const { total, products } =
       ranked && isRelevanceSort(query, RELEVANCE_DEFAULT_SORT.PRODUCTS)
         ? await pageByRelevance(ranked, where, query.page, query.pageSize, (ids) =>
-            prisma.product.findMany({ where: { id: { in: ids } }, include: productInclude })
+            prisma.product.findMany({ where: { id: { in: ids } }, include: productInclude }),
           )
         : await Promise.all([
             prisma.product.count({ where }),
@@ -201,9 +211,9 @@ router.get(
         pageSize: query.pageSize,
         total,
         totalPages: Math.max(1, Math.ceil(total / query.pageSize)),
-      }
+      },
     );
-  })
+  }),
 );
 
 // ---------------------------------------------------------------------------
@@ -254,17 +264,15 @@ router.get(
     });
 
     const product = await prisma.product.findFirst({
-      where: variant
-        ? { id: variant.productId }
-        : { deletedAt: null, OR: [{ barcode: code }, { sku: code }] },
+      where: variant ? { id: variant.productId } : { deletedAt: null, OR: [{ barcode: code }, { sku: code }] },
       include: productInclude,
     });
-    if (!product) throw new AppError(404, ERROR_CODES.PRODUCT_NOT_FOUND);
+    if (!product) {
+      throw new AppError(404, ERROR_CODES.PRODUCT_NOT_FOUND);
+    }
 
     const serialized = serializeProduct(product, req.user!.role);
-    const matched = variant
-      ? serialized.variants.find((v: AnyRecord) => v.id === variant.id) ?? null
-      : null;
+    const matched = variant ? (serialized.variants.find((v: AnyRecord) => v.id === variant.id) ?? null) : null;
 
     // A variant scanned on its own label is an ordinary hit — it IS one piece.
     // A parent code is only a question when there is something to ask about:
@@ -284,7 +292,7 @@ router.get(
       // branches on).
       numbers,
     });
-  })
+  }),
 );
 
 // ---------------------------------------------------------------------------
@@ -319,7 +327,9 @@ router.post(
     });
     // All or nothing: a half-applied print run would leave the queue lying
     // about which labels are still owed.
-    if (existing.length !== ids.length) throw new AppError(404, ERROR_CODES.PRODUCT_NOT_FOUND);
+    if (existing.length !== ids.length) {
+      throw new AppError(404, ERROR_CODES.PRODUCT_NOT_FOUND);
+    }
 
     const labelsPrintedAt = new Date();
     await prisma.product.updateMany({
@@ -341,7 +351,7 @@ router.post(
     }
 
     sendOk(res, { productIds: ids, labelsPrintedAt });
-  })
+  }),
 );
 
 // ---------------------------------------------------------------------------
@@ -355,9 +365,11 @@ router.get(
       where: { id: req.params.id, deletedAt: null },
       include: productInclude,
     });
-    if (!product) throw new AppError(404, ERROR_CODES.PRODUCT_NOT_FOUND);
+    if (!product) {
+      throw new AppError(404, ERROR_CODES.PRODUCT_NOT_FOUND);
+    }
     sendOk(res, await serializeProductWithPending(product, req.user!.role));
-  })
+  }),
 );
 
 // ---------------------------------------------------------------------------
@@ -371,7 +383,9 @@ router.post(
     const body = req.body as CreateProductInput;
 
     const category = await prisma.category.findUnique({ where: { id: body.categoryId } });
-    if (!category) throw new AppError(400, ERROR_CODES.CATEGORY_NOT_FOUND);
+    if (!category) {
+      throw new AppError(400, ERROR_CODES.CATEGORY_NOT_FOUND);
+    }
 
     // Which kind of product this is, chosen here and never inferred later
     // (spec.md "Numbered shawls"): a numbered product's variants are its
@@ -386,7 +400,9 @@ router.post(
 
     if (body.sku) {
       const dupe = await prisma.product.findUnique({ where: { sku: body.sku } });
-      if (dupe) throw new AppError(409, ERROR_CODES.SKU_DUPLICATE);
+      if (dupe) {
+        throw new AppError(409, ERROR_CODES.SKU_DUPLICATE);
+      }
     }
 
     // A note against a value this product will not use is refused here, with
@@ -437,7 +453,7 @@ router.post(
         pointTextColor: body.pointTextColor ?? null,
         pointBackgroundColor: body.pointBackgroundColor ?? null,
         ...barcodeFields,
-        stock: hasVariants ? DEFAULT_STOCK : body.stock ?? DEFAULT_STOCK,
+        stock: hasVariants ? DEFAULT_STOCK : (body.stock ?? DEFAULT_STOCK),
         createdById: req.user!.id,
       },
     });
@@ -445,7 +461,7 @@ router.post(
     // Product.sku needs productNumber, which only exists once the row has
     // been inserted (it's a DB autoincrement) — frozen at creation, so this
     // second write happens before the client ever sees the product.
-    const finalSku = hasVariants ? null : body.sku ?? productSku(created.productNumber);
+    const finalSku = hasVariants ? null : (body.sku ?? productSku(created.productNumber));
     await prisma.product.update({ where: { id: created.id }, data: { sku: finalSku } });
 
     if (hasVariants) {
@@ -498,7 +514,7 @@ router.post(
     await refreshMarkedImages([created.id]);
 
     sendOk(res, serializeProduct(full, req.user!.role), null, 201);
-  })
+  }),
 );
 
 // ---------------------------------------------------------------------------
@@ -514,7 +530,9 @@ router.patch(
       where: { id: req.params.id, deletedAt: null },
       include: productInclude,
     });
-    if (!existing) throw new AppError(404, ERROR_CODES.PRODUCT_NOT_FOUND);
+    if (!existing) {
+      throw new AppError(404, ERROR_CODES.PRODUCT_NOT_FOUND);
+    }
 
     const body = req.body as UpdateProductInput;
 
@@ -566,8 +584,7 @@ router.patch(
 
     // Stock is ignored outright on a variant-bearing product (each variant
     // carries its own), so it's only a change worth gating on a simple one.
-    const stockChanged =
-      existing.variants.length === 0 && body.stock !== undefined && body.stock !== existing.stock;
+    const stockChanged = existing.variants.length === 0 && body.stock !== undefined && body.stock !== existing.stock;
     if (!canAdjustStock && stockChanged) {
       assertMayRequest(req.user!);
       drafts.push({
@@ -601,12 +618,16 @@ router.patch(
 
     if (body.categoryId) {
       const category = await prisma.category.findUnique({ where: { id: body.categoryId } });
-      if (!category) throw new AppError(400, ERROR_CODES.CATEGORY_NOT_FOUND);
+      if (!category) {
+        throw new AppError(400, ERROR_CODES.CATEGORY_NOT_FOUND);
+      }
     }
 
     if (body.sku && body.sku !== existing.sku) {
       const dupe = await prisma.product.findUnique({ where: { sku: body.sku } });
-      if (dupe) throw new AppError(409, ERROR_CODES.SKU_DUPLICATE);
+      if (dupe) {
+        throw new AppError(409, ERROR_CODES.SKU_DUPLICATE);
+      }
     }
 
     // Which code this piece carries, and whether it is ours or the
@@ -628,15 +649,18 @@ router.patch(
 
     const searchText =
       nameChanged || descChanged
-        ? buildSearchText((body.name ?? existing.name) as I18n, (body.description === undefined
-            ? existing.description
-            : body.description) as I18n | null)
+        ? buildSearchText(
+            (body.name ?? existing.name) as I18n,
+            (body.description === undefined ? existing.description : body.description) as I18n | null,
+          )
         : undefined;
 
     let slug: string | undefined;
     if (nameChanged) {
       slug = await generateUniqueSlug(body.name!.ar, async (candidate) => {
-        if (candidate === existing.slug) return false;
+        if (candidate === existing.slug) {
+          return false;
+        }
         const found = await prisma.product.findUnique({ where: { slug: candidate } });
         return Boolean(found);
       });
@@ -661,7 +685,7 @@ router.patch(
         existing.id,
         body.optionValueNotes,
         existing.variantTypes.map((pvt) => pvt.variantTypeId),
-        tx
+        tx,
       );
 
       return tx.product.update({
@@ -718,10 +742,12 @@ router.patch(
 
     // Filed after the save, so a request only ever exists alongside a change
     // that actually went through.
-    if (drafts.length) await fileChangeRequests(req.user!, drafts);
+    if (drafts.length) {
+      await fileChangeRequests(req.user!, drafts);
+    }
 
     sendOk(res, await serializeProductWithPending(updated, req.user!.role));
-  })
+  }),
 );
 
 // ---------------------------------------------------------------------------
@@ -735,7 +761,9 @@ router.delete(
       where: { id: req.params.id, deletedAt: null },
       include: { variants: { select: { id: true } }, images: { select: { id: true } } },
     });
-    if (!existing) throw new AppError(404, ERROR_CODES.PRODUCT_NOT_FOUND);
+    if (!existing) {
+      throw new AppError(404, ERROR_CODES.PRODUCT_NOT_FOUND);
+    }
 
     const deleted = await prisma.$transaction(async (tx) => {
       const product = await tx.product.update({
@@ -765,7 +793,7 @@ router.delete(
     await refreshMarkedImages([deleted.id]);
 
     sendOk(res, { id: deleted.id, deletedAt: deleted.deletedAt });
-  })
+  }),
 );
 
 // ---------------------------------------------------------------------------
@@ -785,7 +813,9 @@ router.post(
       where: { id: req.params.id, deletedAt: null },
       include: { variants: { include: { values: true } } },
     });
-    if (!product) throw new AppError(404, ERROR_CODES.PRODUCT_NOT_FOUND);
+    if (!product) {
+      throw new AppError(404, ERROR_CODES.PRODUCT_NOT_FOUND);
+    }
 
     const body = req.body as GenerateVariantsInput;
     // Validated either way, before anything else: a request to add colours to
@@ -832,7 +862,13 @@ router.post(
       return;
     }
 
-    const { createdSkus } = await generateVariantsForProduct(prisma, product, body.optionSelections, valueMap, body.comboStocks);
+    const { createdSkus } = await generateVariantsForProduct(
+      prisma,
+      product,
+      body.optionSelections,
+      valueMap,
+      body.comboStocks,
+    );
 
     await writeAudit({
       userId: req.user!.id,
@@ -846,7 +882,7 @@ router.post(
 
     const full = await fetchFullProduct(product.id);
     sendOk(res, await serializeProductWithPending(full, req.user!.role), null, 201);
-  })
+  }),
 );
 
 // ---------------------------------------------------------------------------
@@ -862,13 +898,17 @@ router.patch(
       where: { id: req.params.variantId, productId: req.params.id },
       include: { values: { include: { optionValue: true } } },
     });
-    if (!variant) throw new AppError(404, ERROR_CODES.VARIANT_NOT_FOUND);
+    if (!variant) {
+      throw new AppError(404, ERROR_CODES.VARIANT_NOT_FOUND);
+    }
 
     const product = await prisma.product.findUnique({
       where: { id: req.params.id },
       include: { images: { orderBy: { sortOrder: "asc" } } },
     });
-    if (!product) throw new AppError(404, ERROR_CODES.PRODUCT_NOT_FOUND);
+    if (!product) {
+      throw new AppError(404, ERROR_CODES.PRODUCT_NOT_FOUND);
+    }
 
     const body = req.body as UpdateVariantInput;
 
@@ -918,7 +958,9 @@ router.patch(
 
     if (body.sku && body.sku !== variant.sku) {
       const dupe = await prisma.variant.findUnique({ where: { sku: body.sku } });
-      if (dupe) throw new AppError(409, ERROR_CODES.SKU_DUPLICATE);
+      if (dupe) {
+        throw new AppError(409, ERROR_CODES.SKU_DUPLICATE);
+      }
     }
 
     // Each variant's barcode is its own (see the product update above for the
@@ -958,7 +1000,9 @@ router.patch(
       newValue: updated,
     });
 
-    if (drafts.length) await fileChangeRequests(req.user!, drafts);
+    if (drafts.length) {
+      await fileChangeRequests(req.user!, drafts);
+    }
     queueProductSync([product.id]);
     queueMarkedImages([product.id]);
 
@@ -967,7 +1011,7 @@ router.patch(
       ...serializeVariant(updated, product, req.user!.role),
       pendingChanges: serializeChangeRequests(pending),
     });
-  })
+  }),
 );
 
 // ---------------------------------------------------------------------------
@@ -984,13 +1028,17 @@ router.delete(
     const variant = await prisma.variant.findFirst({
       where: { id: req.params.variantId, productId: req.params.id },
     });
-    if (!variant) throw new AppError(404, ERROR_CODES.VARIANT_NOT_FOUND);
+    if (!variant) {
+      throw new AppError(404, ERROR_CODES.VARIANT_NOT_FOUND);
+    }
 
     const product = await prisma.product.findFirst({
       where: { id: req.params.id, deletedAt: null },
       include: { variants: { select: { id: true, sku: true, name: true } } },
     });
-    if (!product) throw new AppError(404, ERROR_CODES.PRODUCT_NOT_FOUND);
+    if (!product) {
+      throw new AppError(404, ERROR_CODES.PRODUCT_NOT_FOUND);
+    }
 
     if (!can(req.user!, "product.editVariantSet")) {
       assertMayRequest(req.user!);
@@ -1023,9 +1071,7 @@ router.delete(
       await tx.variant.delete({ where: { id: variant.id } });
       // Anything anyone was waiting on for this variant is moot now — better
       // cleared than left on the approval screen pointing at nothing.
-      await cancelPendingChangesFor(tx, [
-        { entityType: CHANGE_REQUEST_ENTITIES.VARIANT, entityId: variant.id },
-      ]);
+      await cancelPendingChangesFor(tx, [{ entityType: CHANGE_REQUEST_ENTITIES.VARIANT, entityId: variant.id }]);
     });
 
     await writeAudit({
@@ -1039,7 +1085,7 @@ router.delete(
     queueMarkedImages([variant.productId]);
 
     sendOk(res, { id: variant.id, deleted: true });
-  })
+  }),
 );
 
 export default router;

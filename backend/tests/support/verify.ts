@@ -39,10 +39,7 @@ export interface PricedProductOptions {
 }
 
 /** A simple (variant-less) product at a price and cost the caller chose. */
-export async function createPricedProduct(
-  token: string,
-  options: PricedProductOptions = {}
-): Promise<PricedProduct> {
+export async function createPricedProduct(token: string, options: PricedProductOptions = {}): Promise<PricedProduct> {
   const basePrice = options.basePrice ?? UNIT_PRICE;
   const cost = options.cost === undefined ? UNIT_COST : options.cost;
   const stock = options.stock ?? STOCK_ON_HAND;
@@ -90,7 +87,7 @@ export interface PricedVariantOptions extends PricedProductOptions {
  */
 export async function createVariantProduct(
   token: string,
-  options: PricedVariantOptions
+  options: PricedVariantOptions,
 ): Promise<PricedVariantProduct> {
   const basePrice = options.basePrice ?? UNIT_PRICE;
   const cost = options.cost === undefined ? UNIT_COST : options.cost;
@@ -129,7 +126,9 @@ export async function createVariantProduct(
     token,
     body: { stock },
   });
-  if (stocked.status !== 200) throw new Error(`Could not stock the inheriting variant (HTTP ${stocked.status}).`);
+  if (stocked.status !== 200) {
+    throw new Error(`Could not stock the inheriting variant (HTTP ${stocked.status}).`);
+  }
 
   const reloaded = await readProduct(token, created.data.id);
   const overridden = reloaded.variants.find((variant) => variant.id === first.id)!;
@@ -140,7 +139,9 @@ export async function createVariantProduct(
 
 export async function readProduct(token: string, id: string): Promise<ProductDto> {
   const res = await apiRequest<ProductDto>(`/api/products/${id}`, { token });
-  if (res.status !== 200 || !res.data) throw new Error(`Could not read product ${id} (HTTP ${res.status}).`);
+  if (res.status !== 200 || !res.data) {
+    throw new Error(`Could not read product ${id} (HTTP ${res.status}).`);
+  }
   return res.data;
 }
 
@@ -148,11 +149,15 @@ export async function readProduct(token: string, id: string): Promise<ProductDto
 export async function readStock(token: string, productId: string, variantId?: string): Promise<number> {
   const product = await readProduct(token, productId);
   if (!variantId) {
-    if (product.stock === undefined) throw new Error(`Product ${productId} has variants — ask for one of them.`);
+    if (product.stock === undefined) {
+      throw new Error(`Product ${productId} has variants — ask for one of them.`);
+    }
     return product.stock;
   }
   const variant = product.variants.find((entry) => entry.id === variantId);
-  if (!variant || variant.stock === undefined) throw new Error(`Variant ${variantId} is not on product ${productId}.`);
+  if (!variant || variant.stock === undefined) {
+    throw new Error(`Variant ${variantId} is not on product ${productId}.`);
+  }
   return variant.stock;
 }
 
@@ -172,11 +177,7 @@ export function onlineCustomer(): { customerName: string; customerPhone: string 
   return { customerName: `[${MARKER}] customer ${uniqueId()}`, customerPhone: randomPalestinePhone() };
 }
 
-export function sellRequest(
-  token: string,
-  items: SoldItem[],
-  options: SaleOptions = {}
-): Promise<ApiResult<OrderDto>> {
+export function sellRequest(token: string, items: SoldItem[], options: SaleOptions = {}): Promise<ApiResult<OrderDto>> {
   const channel = options.channel ?? "STORE";
   return apiRequest<OrderDto>("/api/orders", {
     method: "POST",
@@ -207,7 +208,9 @@ export function readOrderRequest(token: string, id: string): Promise<ApiResult<O
 
 export async function readOrder(token: string, id: string): Promise<OrderDto> {
   const res = await readOrderRequest(token, id);
-  if (res.status !== 200 || !res.data) throw new Error(`Could not read order ${id} (HTTP ${res.status}).`);
+  if (res.status !== 200 || !res.data) {
+    throw new Error(`Could not read order ${id} (HTTP ${res.status}).`);
+  }
   return res.data;
 }
 
@@ -219,7 +222,9 @@ export function setStatus(token: string, id: string, status: string): Promise<Ap
 export async function handToCourier(token: string, id: string): Promise<OrderDto> {
   for (const status of ["PREPARING", "HANDED_TO_COURIER"]) {
     const res = await setStatus(token, id, status);
-    if (res.status !== 200) throw new Error(`Could not move order ${id} to ${status} (HTTP ${res.status}).`);
+    if (res.status !== 200) {
+      throw new Error(`Could not move order ${id} to ${status} (HTTP ${res.status}).`);
+    }
   }
   return readOrder(token, id);
 }
@@ -227,7 +232,7 @@ export async function handToCourier(token: string, id: string): Promise<OrderDto
 export function returnOrderRequest(
   token: string,
   id: string,
-  items?: { orderItemId: string; quantity: number }[]
+  items?: { orderItemId: string; quantity: number }[],
 ): Promise<ApiResult<OrderDto>> {
   return apiRequest<OrderDto>(`/api/orders/${id}/return`, {
     method: "POST",
@@ -236,7 +241,10 @@ export function returnOrderRequest(
   });
 }
 
-export function collect(token: string, orderIds: string[]): Promise<ApiResult<{ collectedIds: string[]; alreadyCollectedIds: string[] }>> {
+export function collect(
+  token: string,
+  orderIds: string[],
+): Promise<ApiResult<{ collectedIds: string[]; alreadyCollectedIds: string[] }>> {
   return apiRequest("/api/orders/collect", { method: "POST", token, body: { orderIds } });
 }
 

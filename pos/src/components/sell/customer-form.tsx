@@ -1,6 +1,12 @@
 "use client";
 
-import { Controller, type Control, type FieldErrors, type UseFormRegister, type UseFormSetValue } from "react-hook-form";
+import {
+  Controller,
+  type Control,
+  type FieldErrors,
+  type UseFormRegister,
+  type UseFormSetValue,
+} from "react-hook-form";
 import { useTranslations } from "next-intl";
 import { ChevronDown, MapPin } from "lucide-react";
 import { FormField, Input, Textarea } from "@store/ui";
@@ -37,7 +43,9 @@ export function CustomerForm({ register, control, setValue, errors, onPickSugges
   // A pasted WhatsApp location ("32.313, 35.028") fills both coordinates.
   function handleLatitudeChange(value: string) {
     const pair = splitCoordinatePair(value);
-    if (!pair) return;
+    if (!pair) {
+      return;
+    }
     setValue("latitude", pair.latitude, { shouldValidate: true });
     setValue("longitude", pair.longitude, { shouldValidate: true });
   }
@@ -72,7 +80,9 @@ export function CustomerForm({ register, control, setValue, errors, onPickSugges
             />
           )}
         />
-        {errors.phone && <FieldMessage field="customer-phone">{translateError(errors.phone.message ?? "")}</FieldMessage>}
+        {errors.phone && (
+          <FieldMessage field="customer-phone">{translateError(errors.phone.message ?? "")}</FieldMessage>
+        )}
       </FormField>
 
       <FormField label="sell.whatsapp.customer.address" htmlFor="customer-address">

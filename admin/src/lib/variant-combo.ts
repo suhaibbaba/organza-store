@@ -34,11 +34,15 @@ export interface VariantPreviewRow {
 // e.g. Color[أحمر, أزرق] x Size[M, L] -> 4 rows (spec.md).
 export function buildVariantPreview(variantTypes: VariantType[], selections: VariantSelectionMap): VariantPreviewRow[] {
   const activeSelections = Object.values(selections).filter((ids) => ids.length > 0);
-  if (activeSelections.length === 0) return [];
+  if (activeSelections.length === 0) {
+    return [];
+  }
 
   const valueLookup = new Map<string, { value: I18n }>();
   for (const type of variantTypes) {
-    for (const value of type.values) valueLookup.set(value.id, { value: value.value });
+    for (const value of type.values) {
+      valueLookup.set(value.id, { value: value.value });
+    }
   }
 
   return cartesianProduct(activeSelections).map((valueIds) => ({

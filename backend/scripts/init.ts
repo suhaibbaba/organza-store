@@ -43,10 +43,14 @@ const REPO_ROOT = path.resolve(__dirname, "..", "..");
 function parseKeyedFlags(argv: string[], flag: string): Map<string, string> {
   const out = new Map<string, string>();
   for (let i = 0; i < argv.length; i++) {
-    if (argv[i] !== flag) continue;
+    if (argv[i] !== flag) {
+      continue;
+    }
     const pair = argv[i + 1] ?? "";
     const at = pair.indexOf("=");
-    if (at > 0) out.set(pair.slice(0, at).trim().toLowerCase(), pair.slice(at + 1).trim());
+    if (at > 0) {
+      out.set(pair.slice(0, at).trim().toLowerCase(), pair.slice(at + 1).trim());
+    }
   }
   return out;
 }
@@ -68,7 +72,7 @@ async function main(): Promise<void> {
   const details = applyStaffOverrides(
     loadStaffAccounts(staffFile),
     { names: parseKeyedFlags(argv, INIT_FLAGS.name), phones: parseKeyedFlags(argv, INIT_FLAGS.phone) },
-    staffFile
+    staffFile,
   );
 
   // The refusal, before anything is written. createInitialStaff checks it
@@ -86,7 +90,7 @@ async function main(): Promise<void> {
         ...new InitRefusedError(existing).message.split("\n").map((line) => `  ${line}`),
         RULE,
         "",
-      ].join("\n")
+      ].join("\n"),
     );
     process.exitCode = 1;
     return;
@@ -102,7 +106,7 @@ async function main(): Promise<void> {
     console.warn(
       "\n  ⚠️  No RESEND_API_KEY is set, so the set-password emails will NOT be delivered.\n" +
         "     The accounts will still be created; send the links afterwards from the\n" +
-        "     admin's Users screen once email is configured.\n"
+        "     admin's Users screen once email is configured.\n",
     );
   }
 
@@ -130,7 +134,9 @@ async function main(): Promise<void> {
           idNumber: null,
         });
       } catch (error) {
-        if (error instanceof APIError) throw new Error(`Could not create ${account.email}: ${error.message}`);
+        if (error instanceof APIError) {
+          throw new Error(`Could not create ${account.email}: ${error.message}`);
+        }
         throw error;
       }
     },
@@ -144,7 +150,7 @@ async function main(): Promise<void> {
   const verb = isEmailConfigured() ? "link sent" : "link created (NOT emailed)";
   for (const result of results) {
     console.log(
-      `  ✓ ${result.role.padEnd(8)} ${result.email} — ${verb}, valid until ${result.expiresAt.toISOString()}`
+      `  ✓ ${result.role.padEnd(8)} ${result.email} — ${verb}, valid until ${result.expiresAt.toISOString()}`,
     );
   }
 

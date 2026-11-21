@@ -7,12 +7,7 @@ import { asyncHandler } from "@/middleware/asyncHandler";
 import { requireAuth, requirePermission } from "@/middleware/auth";
 import { validateBody } from "@/middleware/validate";
 import { AppError, sendOk } from "@/lib/response";
-import {
-  deleteProductImageFiles,
-  largestStoredFileName,
-  recropProductImage,
-  storeProductImage,
-} from "@/lib/image";
+import { deleteProductImageFiles, largestStoredFileName, recropProductImage, storeProductImage } from "@/lib/image";
 import type { ImageEdit } from "@store/shared/lib/imageEdit";
 import {
   editImageSchema,
@@ -74,17 +69,23 @@ router.post(
   handleImageUpload,
   validateBody(uploadImageSchema),
   asyncHandler(async (req, res) => {
-    if (!req.file) throw new AppError(400, ERROR_CODES.IMAGE_FILE_REQUIRED);
+    if (!req.file) {
+      throw new AppError(400, ERROR_CODES.IMAGE_FILE_REQUIRED);
+    }
     const body = req.body as UploadImageInput;
 
     if (body.productId) {
       const product = await prisma.product.findFirst({ where: { id: body.productId, deletedAt: null } });
-      if (!product) throw new AppError(404, ERROR_CODES.PRODUCT_NOT_FOUND);
+      if (!product) {
+        throw new AppError(404, ERROR_CODES.PRODUCT_NOT_FOUND);
+      }
     } else {
       const variant = await prisma.variant.findFirst({
         where: { id: body.variantId, product: { deletedAt: null } },
       });
-      if (!variant) throw new AppError(404, ERROR_CODES.VARIANT_NOT_FOUND);
+      if (!variant) {
+        throw new AppError(404, ERROR_CODES.VARIANT_NOT_FOUND);
+      }
     }
 
     const where = ownerWhere(body);
@@ -125,7 +126,7 @@ router.post(
     queueMarkedImages([created.productId]);
 
     sendOk(res, serializeImage(created), null, 201);
-  })
+  }),
 );
 
 // ---------------------------------------------------------------------------
@@ -144,10 +145,12 @@ router.patch(
     const existingIds = new Set(existing.map((i) => i.id));
     const requestedIds = new Set(body.imageIds);
     const sameSet = existingIds.size === requestedIds.size && [...existingIds].every((id) => requestedIds.has(id));
-    if (!sameSet) throw new AppError(400, ERROR_CODES.IMAGE_REORDER_MISMATCH);
+    if (!sameSet) {
+      throw new AppError(400, ERROR_CODES.IMAGE_REORDER_MISMATCH);
+    }
 
     await prisma.$transaction(
-      body.imageIds.map((id, index) => prisma.productImage.update({ where: { id }, data: { sortOrder: index } }))
+      body.imageIds.map((id, index) => prisma.productImage.update({ where: { id }, data: { sortOrder: index } })),
     );
 
     const updated = await prisma.productImage.findMany({ where, orderBy: { sortOrder: "asc" } });
@@ -164,7 +167,7 @@ router.patch(
     queueMarkedImages([body.productId]);
 
     sendOk(res, updated.map(serializeImage));
-  })
+  }),
 );
 
 // ---------------------------------------------------------------------------
@@ -178,7 +181,9 @@ router.patch(
   validateBody(setPrimaryImageSchema),
   asyncHandler(async (req, res) => {
     const image = await prisma.productImage.findUnique({ where: { id: req.params.id } });
-    if (!image) throw new AppError(404, ERROR_CODES.IMAGE_NOT_FOUND);
+    if (!image) {
+      throw new AppError(404, ERROR_CODES.IMAGE_NOT_FOUND);
+    }
 
     const body = req.body as SetPrimaryImageInput;
 
@@ -206,7 +211,7 @@ router.patch(
     queueMarkedImages([image.productId]);
 
     sendOk(res, serializeImage(updated));
-  })
+  }),
 );
 
 // ---------------------------------------------------------------------------
@@ -228,7 +233,9 @@ router.patch(
   validateBody(editImageSchema),
   asyncHandler(async (req, res) => {
     const image = await prisma.productImage.findUnique({ where: { id: req.params.id } });
-    if (!image) throw new AppError(404, ERROR_CODES.IMAGE_NOT_FOUND);
+    if (!image) {
+      throw new AppError(404, ERROR_CODES.IMAGE_NOT_FOUND);
+    }
 
     // A photo from before the editor existed has no original — and is
     // re-framed anyway, from the largest size it does have, which then
@@ -278,7 +285,7 @@ router.patch(
     queueMarkedImages([image.productId]);
 
     sendOk(res, serializeImage(updated));
-  })
+  }),
 );
 
 // ---------------------------------------------------------------------------
@@ -295,10 +302,14 @@ router.delete(
   requirePermission("images.edit"),
   asyncHandler(async (req, res) => {
     const image = await prisma.productImage.findUnique({ where: { id: req.params.id } });
-    if (!image) throw new AppError(404, ERROR_CODES.IMAGE_NOT_FOUND);
+    if (!image) {
+      throw new AppError(404, ERROR_CODES.IMAGE_NOT_FOUND);
+    }
 
     if (!can(req.user!, "images.delete")) {
-      if (!can(req.user!, "changeRequest.create")) throw new AppError(403, ERROR_CODES.FORBIDDEN);
+      if (!can(req.user!, "changeRequest.create")) {
+        throw new AppError(403, ERROR_CODES.FORBIDDEN);
+      }
 
       // The photo belongs to a product or to one of its variants; either way
       // the approval screen wants the product's name to show WHICH gallery
@@ -335,9 +346,7 @@ router.delete(
     await prisma.$transaction(async (tx) => {
       await tx.productImage.delete({ where: { id: image.id } });
       // A photo that has gone cannot still be waiting to go.
-      await cancelPendingChangesFor(tx, [
-        { entityType: CHANGE_REQUEST_ENTITIES.PRODUCT_IMAGE, entityId: image.id },
-      ]);
+      await cancelPendingChangesFor(tx, [{ entityType: CHANGE_REQUEST_ENTITIES.PRODUCT_IMAGE, entityId: image.id }]);
     });
     // Only once the row is gone: file deletion cannot be rolled back.
     await deleteProductImageFiles(image.filename, image.originalFilename);
@@ -353,7 +362,7 @@ router.delete(
     queueMarkedImages([image.productId]);
 
     sendOk(res, { id: image.id, deleted: true });
-  })
+  }),
 );
 
 export default router;

@@ -1,8 +1,4 @@
-import {
-  ALLOW_ZOOM_ATTRIBUTE,
-  GESTURE_OPT_OUT_SEARCH_DEPTH,
-  SELECTABLE_ATTRIBUTE,
-} from "../constants/gestures";
+import { ALLOW_ZOOM_ATTRIBUTE, GESTURE_OPT_OUT_SEARCH_DEPTH, SELECTABLE_ATTRIBUTE } from "../constants/gestures";
 
 /**
  * STOP THE PAGE ZOOMING. All of it, everywhere, in both apps.
@@ -94,7 +90,9 @@ function asElement(target: unknown): ElementLike | null {
 function allowsZoom(target: unknown): boolean {
   let node = asElement(target);
   for (let depth = 0; node && depth < GESTURE_OPT_OUT_SEARCH_DEPTH; depth += 1) {
-    if (node.getAttribute(ALLOW_ZOOM_ATTRIBUTE) === "true") return true;
+    if (node.getAttribute(ALLOW_ZOOM_ATTRIBUTE) === "true") {
+      return true;
+    }
     node = node.parentElement;
   }
   return false;
@@ -111,7 +109,9 @@ function allowsZoom(target: unknown): boolean {
  */
 export function installZoomGuards(doc: GestureEventTarget): () => void {
   const cancel = (event: GuardedEvent) => {
-    if (allowsZoom(event.target)) return;
+    if (allowsZoom(event.target)) {
+      return;
+    }
     event.preventDefault();
   };
 
@@ -119,9 +119,15 @@ export function installZoomGuards(doc: GestureEventTarget): () => void {
     // One finger is a scroll, a tap or a drag — every one of which the app
     // still needs. Two or more is a pinch, and nothing in either app does
     // anything with two fingers except the photo editor, which opts out.
-    if (event.touches.length < 2) return;
-    if (allowsZoom(event.target)) return;
-    if (event.cancelable !== false) event.preventDefault();
+    if (event.touches.length < 2) {
+      return;
+    }
+    if (allowsZoom(event.target)) {
+      return;
+    }
+    if (event.cancelable !== false) {
+      event.preventDefault();
+    }
   };
 
   // Safari's pinch, in three parts. `gesturestart` alone is enough on paper;
@@ -135,10 +141,14 @@ export function installZoomGuards(doc: GestureEventTarget): () => void {
     ["touchmove", cancelMultiTouch],
   ];
 
-  for (const [type, listener] of listeners) doc.addEventListener(type, listener, { passive: false });
+  for (const [type, listener] of listeners) {
+    doc.addEventListener(type, listener, { passive: false });
+  }
 
   return () => {
-    for (const [type, listener] of listeners) doc.removeEventListener(type, listener);
+    for (const [type, listener] of listeners) {
+      doc.removeEventListener(type, listener);
+    }
   };
 }
 

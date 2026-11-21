@@ -21,13 +21,15 @@ export const TEST_SELECTOR_ATTRIBUTE = "data-test-selector";
  * one convention holds however the name was assembled.
  */
 export function toSelectorName(value: string): string {
-  return value
-    // camelCase and PascalCase become separate words before everything is
-    // lowered, so `basePrice` is not flattened to `baseprice`.
-    .replace(/([a-z0-9])([A-Z])/g, "$1-$2")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
+  return (
+    value
+      // camelCase and PascalCase become separate words before everything is
+      // lowered, so `basePrice` is not flattened to `baseprice`.
+      .replace(/([a-z0-9])([A-Z])/g, "$1-$2")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+  );
 }
 
 /**

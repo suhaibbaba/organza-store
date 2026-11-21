@@ -57,8 +57,7 @@ const CELL_WIDTHS = ["w-28", "w-20", "w-32", "w-24"] as const;
 
 const cellWidth = (index: number): string => CELL_WIDTHS[index % CELL_WIDTHS.length] ?? "w-24";
 
-const endAligned = (align: Column<never>["align"]): boolean =>
-  align === "numeric" || align === "end";
+const endAligned = (align: Column<never>["align"]): boolean => align === "numeric" || align === "end";
 
 export function SkeletonTable<TRow>({
   columns,
@@ -73,9 +72,7 @@ export function SkeletonTable<TRow>({
         <tr key={row} aria-hidden="true">
           {columns.map((column, index) => (
             <td key={column.key} className={cn("px-4 py-3 align-middle", column.className)}>
-              <Skeleton
-                className={cn("h-3", cellWidth(index + row), endAligned(column.align) && "ms-auto")}
-              />
+              <Skeleton className={cn("h-3", cellWidth(index + row), endAligned(column.align) && "ms-auto")} />
             </td>
           ))}
         </tr>
@@ -92,18 +89,12 @@ export function SkeletonTableCards<TRow>({
   readonly cards?: number;
 }): JSX.Element {
   const hasPrimary = columns.some((column) => column.primary === true);
-  const details = columns.filter(
-    (column) => column.primary !== true && column.actions !== true,
-  ).length;
+  const details = columns.filter((column) => column.primary !== true && column.actions !== true).length;
 
   return (
     <>
       {Array.from({ length: cards }, (_, card) => (
-        <div
-          key={card}
-          aria-hidden="true"
-          className="border border-line rounded-card bg-surface p-4 shadow-card"
-        >
+        <div key={card} aria-hidden="true" className="border border-line rounded-card bg-surface p-4 shadow-card">
           {hasPrimary && <Skeleton className="mb-3 h-4 w-1/2" />}
 
           <div className="flex flex-col gap-3">
@@ -214,32 +205,17 @@ const LINE_COUNTS = [4, 3, 5, 2, 4, 3, 5] as const;
 
 const lineCount = (index: number): number => LINE_COUNTS[index % LINE_COUNTS.length] ?? 3;
 
-function SkeletonLines({
-  count,
-  tall = false,
-}: {
-  readonly count: number;
-  readonly tall?: boolean;
-}) {
+function SkeletonLines({ count, tall = false }: { readonly count: number; readonly tall?: boolean }) {
   return (
     <>
       {Array.from({ length: count }, (_, line) => (
-        <Skeleton
-          key={line}
-          className={cn("w-full rounded-panel", tall ? "h-(--control-h)" : "h-(--control-h-sm)")}
-        />
+        <Skeleton key={line} className={cn("w-full rounded-panel", tall ? "h-(--control-h)" : "h-(--control-h-sm)")} />
       ))}
     </>
   );
 }
 
-export function SkeletonWeekRows({
-  days,
-  rows = 2,
-}: {
-  readonly days: number;
-  readonly rows?: number;
-}): JSX.Element {
+export function SkeletonWeekRows({ days, rows = 2 }: { readonly days: number; readonly rows?: number }): JSX.Element {
   const columns = { gridTemplateColumns: `11rem repeat(${days}, minmax(10rem, 1fr))` };
 
   return (
@@ -278,10 +254,7 @@ export function SkeletonDayColumns({ columns = 2 }: { readonly columns?: number 
       <SkeletonStatus />
       <div aria-hidden="true" className="flex min-w-max">
         {Array.from({ length: columns }, (_, column) => (
-          <div
-            key={column}
-            className="flex min-w-60 flex-1 flex-col border-s border-line first:border-s-0"
-          >
+          <div key={column} className="flex min-w-60 flex-1 flex-col border-s border-line first:border-s-0">
             <span className="flex items-center gap-2 border-b border-line px-3 py-2.5">
               <Skeleton className="size-[26px]" />
               <Skeleton className="h-3.5 w-24" />

@@ -26,7 +26,9 @@ export function OrderStatusActions({ order }: { order: Order }) {
   const currentStep = ONLINE_ORDER_FLOW.indexOf(order.status as (typeof ONLINE_ORDER_FLOW)[number]);
   const showFlow = currentStep !== -1;
 
-  if (!showFlow && forwardStatuses.length === 0) return null;
+  if (!showFlow && forwardStatuses.length === 0) {
+    return null;
+  }
 
   function move(status: OrderStatus) {
     mutation.mutate(status, {
@@ -88,7 +90,10 @@ export function OrderStatusActions({ order }: { order: Order }) {
               {t(`advanceTo.${status}`)}
             </Button>
             {deductsStock && (
-              <Typography variant="small" className="flex items-start gap-2 rounded-panel bg-warning-50 p-3 text-warning-700">
+              <Typography
+                variant="small"
+                className="flex items-start gap-2 rounded-panel bg-warning-50 p-3 text-warning-700"
+              >
                 <PackageMinus className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
                 {t("stockDeductionNotice")}
               </Typography>

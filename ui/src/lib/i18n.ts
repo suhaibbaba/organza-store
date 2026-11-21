@@ -21,10 +21,7 @@ export function useTranslation(): UiTranslation {
   const language = useLocale();
 
   // An empty key means no text (e.g. a headerless column), as under i18next.
-  const t = useCallback<UiTranslate>(
-    (key, values) => (key === "" ? "" : translate(key, values)),
-    [translate],
-  );
+  const t = useCallback<UiTranslate>((key, values) => (key === "" ? "" : translate(key, values)), [translate]);
 
   return { t, i18n: { language } };
 }

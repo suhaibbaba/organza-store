@@ -8,7 +8,9 @@ import { cn } from "@/lib/utils";
 export function OrderTypeBadge({ type, className }: { type: OrderType; className?: string }) {
   const t = useTranslations("orders.type");
 
-  if (type !== GIFT_ORDER_TYPE) return null;
+  if (type !== GIFT_ORDER_TYPE) {
+    return null;
+  }
 
   return (
     <Badge tone="violet" icon="gift" className={cn("shrink-0", className)} data-testid="order-gift-badge">

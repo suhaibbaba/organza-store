@@ -52,11 +52,14 @@ export function SortableImageThumb({
       className={cn(
         "group relative aspect-square touch-none overflow-hidden rounded-control border bg-inset",
         isPrimary ? "border-primary-600 ring-2 ring-primary-600/25" : "border-line",
-        isDragging && "z-10 opacity-60 shadow-float"
+        isDragging && "z-10 opacity-60 shadow-float",
       )}
     >
       {isNew ? (
-        <div className="size-full bg-contain bg-center bg-no-repeat" style={{ backgroundImage: `url(${thumbnailUrl})` }} />
+        <div
+          className="size-full bg-contain bg-center bg-no-repeat"
+          style={{ backgroundImage: `url(${thumbnailUrl})` }}
+        />
       ) : (
         <ProductImage src={thumbnailUrl} alt="" fit="contain" className="size-full" sizes={IMAGE_GRID_THUMB_SIZES} />
       )}
@@ -67,11 +70,20 @@ export function SortableImageThumb({
         </span>
       )}
       {isEdited && (
-        <span aria-hidden="true" className="absolute end-1.5 top-1.5 z-10 size-2.5 rounded-pill bg-primary-600 ring-2 ring-surface" />
+        <span
+          aria-hidden="true"
+          className="absolute end-1.5 top-1.5 z-10 size-2.5 rounded-pill bg-primary-600 ring-2 ring-surface"
+        />
       )}
 
       <div className="absolute inset-x-1.5 bottom-1.5 z-10 flex items-center justify-between gap-0.5 rounded-pill bg-ink/65 p-0.5 backdrop-blur-sm">
-        <button type="button" {...attributes} {...listeners} aria-label={t("dragHandle")} className={cn(tool, "cursor-grab")}>
+        <button
+          type="button"
+          {...attributes}
+          {...listeners}
+          aria-label={t("dragHandle")}
+          className={cn(tool, "cursor-grab")}
+        >
           <GripVertical className="size-3.5" aria-hidden="true" />
         </button>
         <button
@@ -97,7 +109,13 @@ export function SortableImageThumb({
           </button>
         )}
         {canDelete && (
-          <button type="button" onClick={() => onRemove(id)} disabled={isBusy} aria-label={t("delete")} className={tool}>
+          <button
+            type="button"
+            onClick={() => onRemove(id)}
+            disabled={isBusy}
+            aria-label={t("delete")}
+            className={tool}
+          >
             <Trash2 className="size-3.5" aria-hidden="true" />
           </button>
         )}

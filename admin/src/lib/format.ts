@@ -14,7 +14,9 @@ export function formatMoney(amount: string | number, currency: string, locale: s
 }
 
 export function formatNumber(value: number, locale: string): string {
-  if (!Number.isFinite(value)) return "";
+  if (!Number.isFinite(value)) {
+    return "";
+  }
   try {
     return new Intl.NumberFormat(locale, NUMBER_FORMAT_BASE).format(value);
   } catch {
@@ -25,7 +27,9 @@ export function formatNumber(value: number, locale: string): string {
 // The symbol from the same formatter as the prices, so a label naming the currency never drifts from them.
 export function currencySymbol(currency: string, locale: string): string {
   try {
-    const parts = new Intl.NumberFormat(locale, { ...NUMBER_FORMAT_BASE, style: "currency", currency }).formatToParts(0);
+    const parts = new Intl.NumberFormat(locale, { ...NUMBER_FORMAT_BASE, style: "currency", currency }).formatToParts(
+      0,
+    );
     return parts.find((part) => part.type === "currency")?.value ?? currency;
   } catch {
     return currency;
@@ -34,20 +38,30 @@ export function currencySymbol(currency: string, locale: string): string {
 
 // Gregorian calendar and western digits, so a date matches the counter screen and the courier's paperwork.
 export function formatDateTime(value: string | null | undefined, locale: string): string {
-  if (!value) return "";
+  if (!value) {
+    return "";
+  }
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "";
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
   try {
-    return new Intl.DateTimeFormat(locale, { ...DATE_FORMAT_BASE, dateStyle: "medium", timeStyle: "short" }).format(date);
+    return new Intl.DateTimeFormat(locale, { ...DATE_FORMAT_BASE, dateStyle: "medium", timeStyle: "short" }).format(
+      date,
+    );
   } catch {
     return date.toISOString();
   }
 }
 
 export function formatDate(value: string | null | undefined, locale: string): string {
-  if (!value) return "";
+  if (!value) {
+    return "";
+  }
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "";
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
   try {
     return new Intl.DateTimeFormat(locale, { ...DATE_FORMAT_BASE, dateStyle: "medium" }).format(date);
   } catch {
@@ -56,9 +70,13 @@ export function formatDate(value: string | null | undefined, locale: string): st
 }
 
 export function formatTime(value: string | null | undefined, locale: string): string {
-  if (!value) return "";
+  if (!value) {
+    return "";
+  }
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "";
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
   try {
     return new Intl.DateTimeFormat(locale, { ...DATE_FORMAT_BASE, timeStyle: "short" }).format(date);
   } catch {

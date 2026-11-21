@@ -50,7 +50,7 @@ function ReturnForm({ order, onDone }: { order: Order; onDone: () => void }) {
       order.items
         .map((item) => ({ item, outstanding: item.quantity - item.returnedQuantity }))
         .filter((entry) => entry.outstanding > 0),
-    [order.items]
+    [order.items],
   );
 
   const selectedCount = Object.values(quantities).reduce((sum, quantity) => sum + quantity, 0);
@@ -68,7 +68,9 @@ function ReturnForm({ order, onDone }: { order: Order; onDone: () => void }) {
     const items = Object.entries(quantities)
       .filter(([, quantity]) => quantity > 0)
       .map(([orderItemId, quantity]) => ({ orderItemId, quantity }));
-    if (items.length === 0) return;
+    if (items.length === 0) {
+      return;
+    }
     mutation.mutate({ items }, { onSuccess: onDone });
   }
 
@@ -82,7 +84,9 @@ function ReturnForm({ order, onDone }: { order: Order; onDone: () => void }) {
 
   return (
     <div className="flex min-h-full flex-col gap-4">
-      <Typography variant="small" tone="muted">{t("description")}</Typography>
+      <Typography variant="small" tone="muted">
+        {t("description")}
+      </Typography>
 
       {mutation.isError && (
         <Alert tone="danger" data-testid="alert-destructive">
@@ -103,12 +107,16 @@ function ReturnForm({ order, onDone }: { order: Order; onDone: () => void }) {
 
       <div className="flex items-center gap-3">
         <div aria-hidden="true" className="h-px flex-1 bg-line" />
-        <Typography variant="caption" tone="muted">{t("or")}</Typography>
+        <Typography variant="caption" tone="muted">
+          {t("or")}
+        </Typography>
         <div aria-hidden="true" className="h-px flex-1 bg-line" />
       </div>
 
       <div className="flex flex-col gap-3">
-        <Typography variant="small" weight="medium">{t("pickItems")}</Typography>
+        <Typography variant="small" weight="medium">
+          {t("pickItems")}
+        </Typography>
 
         {returnable.map(({ item, outstanding }) => {
           const name = localize(item.name, locale);
@@ -118,9 +126,17 @@ function ReturnForm({ order, onDone }: { order: Order; onDone: () => void }) {
           return (
             <div key={item.id} className="flex items-center justify-between gap-3 rounded-panel border border-line p-3">
               <div className="min-w-0">
-                <Typography variant="small" weight="medium" className="truncate">{name}</Typography>
-                {variantName && <Typography variant="caption" tone="muted" as="p" className="truncate">{variantName}</Typography>}
-                <Typography variant="caption" tone="muted" as="p">{t("outstanding", { count: outstanding })}</Typography>
+                <Typography variant="small" weight="medium" className="truncate">
+                  {name}
+                </Typography>
+                {variantName && (
+                  <Typography variant="caption" tone="muted" as="p" className="truncate">
+                    {variantName}
+                  </Typography>
+                )}
+                <Typography variant="caption" tone="muted" as="p">
+                  {t("outstanding", { count: outstanding })}
+                </Typography>
               </div>
               <QuantityStepper
                 value={quantities[item.id] ?? 0}

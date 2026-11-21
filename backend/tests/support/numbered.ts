@@ -17,7 +17,7 @@ export interface NumberedShawl {
 // that is sold out (it must still be listed, just flagged unavailable).
 export async function createNumberedShawl(
   adminToken: string,
-  options: { basePrice?: string; stocks?: [number, number] } = {}
+  options: { basePrice?: string; stocks?: [number, number] } = {},
 ): Promise<NumberedShawl> {
   const nonce = uniqueId();
   const categoryId = await anyCategoryId(adminToken);

@@ -41,11 +41,15 @@ function buildTree(categories: Category[]): CategoryNode[] {
 // True if `candidateParentId` is `categoryId` itself or one of its
 // descendants — reparenting onto either would create a cycle.
 function wouldCreateCycle(categories: Category[], categoryId: string, candidateParentId: string): boolean {
-  if (candidateParentId === categoryId) return true;
+  if (candidateParentId === categoryId) {
+    return true;
+  }
   const byId = new Map(categories.map((c) => [c.id, c]));
   let current = byId.get(candidateParentId);
   while (current?.parentId) {
-    if (current.parentId === categoryId) return true;
+    if (current.parentId === categoryId) {
+      return true;
+    }
     current = byId.get(current.parentId);
   }
   return false;
@@ -75,7 +79,7 @@ router.get(
     ]);
     const totals = rollUpCategoryCounts(
       rows,
-      new Map(direct.flatMap((row) => (row.categoryId ? [[row.categoryId, row._count._all] as const] : [])))
+      new Map(direct.flatMap((row) => (row.categoryId ? [[row.categoryId, row._count._all] as const] : []))),
     );
     const categories = rows.map((category) => ({ ...category, productCount: totals.get(category.id) ?? 0 }));
     if (req.query.flat === "true") {
@@ -83,7 +87,7 @@ router.get(
       return;
     }
     sendOk(res, buildTree(categories));
-  })
+  }),
 );
 
 // ---------------------------------------------------------------------------
@@ -98,7 +102,9 @@ router.post(
 
     if (body.parentId) {
       const parent = await prisma.category.findUnique({ where: { id: body.parentId } });
-      if (!parent) throw new AppError(400, ERROR_CODES.CATEGORY_NOT_FOUND);
+      if (!parent) {
+        throw new AppError(400, ERROR_CODES.CATEGORY_NOT_FOUND);
+      }
     }
 
     const slug = await generateUniqueSlug(body.name.ar, async (candidate) => {
@@ -124,7 +130,7 @@ router.post(
     });
 
     sendOk(res, created, null, 201);
-  })
+  }),
 );
 
 // ---------------------------------------------------------------------------
@@ -136,14 +142,18 @@ router.patch(
   validateBody(updateCategorySchema),
   asyncHandler(async (req, res) => {
     const existing = await prisma.category.findUnique({ where: { id: req.params.id } });
-    if (!existing) throw new AppError(404, ERROR_CODES.CATEGORY_NOT_FOUND);
+    if (!existing) {
+      throw new AppError(404, ERROR_CODES.CATEGORY_NOT_FOUND);
+    }
 
     const body = req.body as UpdateCategoryInput;
 
     let slug: string | undefined;
     if (body.name) {
       slug = await generateUniqueSlug(body.name.ar, async (candidate) => {
-        if (candidate === existing.slug) return false;
+        if (candidate === existing.slug) {
+          return false;
+        }
         const found = await prisma.category.findUnique({ where: { slug: candidate } });
         return Boolean(found);
       });
@@ -151,7 +161,9 @@ router.patch(
 
     if (body.parentId !== undefined && body.parentId !== null) {
       const parent = await prisma.category.findUnique({ where: { id: body.parentId } });
-      if (!parent) throw new AppError(400, ERROR_CODES.CATEGORY_NOT_FOUND);
+      if (!parent) {
+        throw new AppError(400, ERROR_CODES.CATEGORY_NOT_FOUND);
+      }
 
       const all = await prisma.category.findMany();
       if (wouldCreateCycle(all, existing.id, body.parentId)) {
@@ -182,7 +194,7 @@ router.patch(
     await queueCategorySync(updated.id);
 
     sendOk(res, updated);
-  })
+  }),
 );
 
 // ---------------------------------------------------------------------------
@@ -196,14 +208,20 @@ router.delete(
   requirePermission("category.manage"),
   asyncHandler(async (req, res) => {
     const existing = await prisma.category.findUnique({ where: { id: req.params.id } });
-    if (!existing) throw new AppError(404, ERROR_CODES.CATEGORY_NOT_FOUND);
+    if (!existing) {
+      throw new AppError(404, ERROR_CODES.CATEGORY_NOT_FOUND);
+    }
 
     const [childCount, productCount] = await Promise.all([
       prisma.category.count({ where: { parentId: existing.id } }),
       prisma.product.count({ where: { categoryId: existing.id, deletedAt: null } }),
     ]);
-    if (childCount > 0) throw new AppError(409, ERROR_CODES.CATEGORY_HAS_CHILDREN);
-    if (productCount > 0) throw new AppError(409, ERROR_CODES.CATEGORY_HAS_PRODUCTS);
+    if (childCount > 0) {
+      throw new AppError(409, ERROR_CODES.CATEGORY_HAS_CHILDREN);
+    }
+    if (productCount > 0) {
+      throw new AppError(409, ERROR_CODES.CATEGORY_HAS_PRODUCTS);
+    }
 
     await prisma.category.delete({ where: { id: existing.id } });
 
@@ -216,7 +234,7 @@ router.delete(
     });
 
     sendOk(res, { id: existing.id });
-  })
+  }),
 );
 
 export default router;

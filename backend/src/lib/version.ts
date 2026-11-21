@@ -33,10 +33,14 @@ function loadResolver(): AppVersionResolver | null {
 // shelling out to git on every request would be silly.
 const version: string = (() => {
   const envValue = process.env[APP_VERSION_ENV_VAR]?.trim();
-  if (envValue) return envValue;
+  if (envValue) {
+    return envValue;
+  }
 
   const resolver = loadResolver();
-  if (!resolver) return FALLBACK_APP_VERSION;
+  if (!resolver) {
+    return FALLBACK_APP_VERSION;
+  }
 
   // The backend's own package.json supplies major.minor.
   return resolver.resolveAppVersion({ projectDir: path.resolve(__dirname, "..", "..") });

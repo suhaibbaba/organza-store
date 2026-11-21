@@ -22,14 +22,7 @@ import { getSession } from "@tests/support/auth";
 import { expectCountDelta, expectDelta, expectMoney, expectSum } from "@tests/support/money";
 import { salesReport } from "@tests/support/reports";
 import { createExpense, expenseCategoryId } from "@tests/support/cash";
-import {
-  collect,
-  createPricedProduct,
-  returnOrderRequest,
-  sell,
-  sellOnCredit,
-  setStatus,
-} from "@tests/support/verify";
+import { collect, createPricedProduct, returnOrderRequest, sell, sellOnCredit, setStatus } from "@tests/support/verify";
 import { UNIT_COST, UNIT_PRICE } from "@tests/constants";
 import type { PricedProduct, SalesReport } from "@tests/types";
 
@@ -48,7 +41,9 @@ describe("Verify · profit", () => {
   });
 
   function profit(report: SalesReport) {
-    if (!report.profit) throw new Error("The Admin's report must carry the profit block.");
+    if (!report.profit) {
+      throw new Error("The Admin's report must carry the profit block.");
+    }
     return report.profit;
   }
 
@@ -69,7 +64,7 @@ describe("Verify · profit", () => {
         profit(after).receivedGrossProfit,
         profit(before).receivedGrossProfit,
         "120.00",
-        "gross profit on the received part"
+        "gross profit on the received part",
       );
     });
 
@@ -83,7 +78,7 @@ describe("Verify · profit", () => {
         profit(owed).receivedGrossProfit,
         profit(before).receivedGrossProfit,
         "0.00",
-        "gross profit on the received part (nothing has been received)"
+        "gross profit on the received part (nothing has been received)",
       );
       expectDelta(profit(owed).receivedCogs, profit(before).receivedCogs, "0.00", "COGS on the received part");
 
@@ -94,13 +89,13 @@ describe("Verify · profit", () => {
         profit(received).receivedGrossProfit,
         profit(owed).receivedGrossProfit,
         UNIT_GROSS,
-        "gross profit on the received part, once it was paid for"
+        "gross profit on the received part, once it was paid for",
       );
       expectDelta(
         profit(received).grossProfit,
         profit(owed).grossProfit,
         "0.00",
-        "gross profit on all sales (unchanged — being paid is not a sale)"
+        "gross profit on all sales (unchanged — being paid is not a sale)",
       );
     });
 
@@ -114,12 +109,12 @@ describe("Verify · profit", () => {
       expectSum(
         [report.receivedGrossProfit, report.receivedCogs],
         report.received,
-        "received = received gross profit + received COGS"
+        "received = received gross profit + received COGS",
       );
       expectSum(
         [report.receivedNetProfit, report.overheads],
         report.receivedGrossProfit,
-        "received gross profit = received net profit + overheads"
+        "received gross profit = received net profit + overheads",
       );
     });
   });
@@ -146,7 +141,7 @@ describe("Verify · profit", () => {
         profit(after).receivedNetProfit,
         profit(before).receivedNetProfit,
         "-30.00",
-        "net profit on the received part"
+        "net profit on the received part",
       );
     });
 
@@ -217,12 +212,14 @@ describe("Verify · profit", () => {
       expectMoney(
         profit(afterRepricing).receivedGrossProfit,
         profit(afterSale).receivedGrossProfit,
-        "received gross profit after re-costing"
+        "received gross profit after re-costing",
       );
 
       // ...and so must the line it came from.
       const top = afterRepricing.topByRevenue.find((seller) => seller.productId === item.id);
-      if (top) expectMoney(top.revenue, "300.00", "the product's revenue among the best sellers");
+      if (top) {
+        expectMoney(top.revenue, "300.00", "the product's revenue among the best sellers");
+      }
     });
   });
 
@@ -254,11 +251,16 @@ describe("Verify · profit", () => {
         profit(afterReturn).grossProfit,
         profit(afterSale).grossProfit,
         "-60.00",
-        "gross profit after one unit came back"
+        "gross profit after one unit came back",
       );
       // Net of everything: 2 units still sold.
       expectDelta(profit(afterReturn).sold, profit(before).sold, "200.00", "sold, net of the return");
-      expectDelta(profit(afterReturn).grossProfit, profit(before).grossProfit, "120.00", "gross profit, net of the return");
+      expectDelta(
+        profit(afterReturn).grossProfit,
+        profit(before).grossProfit,
+        "120.00",
+        "gross profit, net of the return",
+      );
     });
 
     it("counts a costless line as zero COGS and flags it as missingCostItems", async () => {
@@ -271,12 +273,17 @@ describe("Verify · profit", () => {
       const after = await salesReport(admin);
       expectDelta(profit(after).sold, profit(before).sold, "100.00", "sold");
       expectDelta(profit(after).cogs, profit(before).cogs, "0.00", "COGS (nothing was recorded)");
-      expectDelta(profit(after).grossProfit, profit(before).grossProfit, "100.00", "gross profit (flattered by the gap)");
+      expectDelta(
+        profit(after).grossProfit,
+        profit(before).grossProfit,
+        "100.00",
+        "gross profit (flattered by the gap)",
+      );
       expectCountDelta(
         profit(after).missingCostItems,
         profit(before).missingCostItems,
         1,
-        "lines flagged as having no cost"
+        "lines flagged as having no cost",
       );
     });
   });

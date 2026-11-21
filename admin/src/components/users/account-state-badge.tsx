@@ -5,7 +5,9 @@ import { Badge } from "@store/ui";
 export function AccountStateBadge({ hasPassword }: { hasPassword: boolean }) {
   const t = useTranslations("users.accountState");
 
-  if (hasPassword) return null;
+  if (hasPassword) {
+    return null;
+  }
 
   return <Badge tone="warning">{t("pending")}</Badge>;
 }

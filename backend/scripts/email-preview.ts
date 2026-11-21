@@ -58,7 +58,9 @@ async function main(): Promise<void> {
   }
 
   console.log(`Rendered ${written.length} file(s) into ${outDir}\n`);
-  for (const file of written) console.log(`  ${file}`);
+  for (const file of written) {
+    console.log(`  ${file}`);
+  }
   console.log("\nOpen the .html files in a browser — the ar/he ones should read right-to-left.");
 }
 

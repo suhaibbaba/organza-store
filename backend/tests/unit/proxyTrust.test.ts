@@ -17,8 +17,11 @@ const KEYS = ["TRUST_PROXY", "TRUSTED_PROXY_IPS", "NODE_ENV"] as const;
 
 async function loadWith(env: Partial<Record<(typeof KEYS)[number], string | undefined>>) {
   for (const key of KEYS) {
-    if (env[key] === undefined) delete process.env[key];
-    else process.env[key] = env[key];
+    if (env[key] === undefined) {
+      delete process.env[key];
+    } else {
+      process.env[key] = env[key];
+    }
   }
   vi.resetModules();
   return import("@/lib/proxyTrust");
@@ -33,8 +36,11 @@ describe("proxy trust", () => {
 
   afterEach(() => {
     for (const key of KEYS) {
-      if (original[key] === undefined) delete process.env[key];
-      else process.env[key] = original[key];
+      if (original[key] === undefined) {
+        delete process.env[key];
+      } else {
+        process.env[key] = original[key];
+      }
     }
     vi.resetModules();
   });

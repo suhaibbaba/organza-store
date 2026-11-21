@@ -39,7 +39,9 @@ export async function browseProducts({ categoryId, query, page }: BrowseProducts
     params.set("includeSubcategories", "true");
   }
   const trimmed = query.trim();
-  if (trimmed) params.set("q", trimmed);
+  if (trimmed) {
+    params.set("q", trimmed);
+  }
 
   const { data, meta } = await apiFetch<ProductSummary[]>(`/api/products?${params.toString()}`);
   return { products: data, meta };

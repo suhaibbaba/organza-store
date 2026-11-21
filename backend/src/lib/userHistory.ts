@@ -80,7 +80,9 @@ export async function hasUserHistory(userId: string, client: HistoryClient = pri
       where: { [relation.field]: userId },
       select: { id: true },
     });
-    if (found) return true;
+    if (found) {
+      return true;
+    }
   }
   return false;
 }
@@ -94,7 +96,9 @@ export async function hasUserHistory(userId: string, client: HistoryClient = pri
  * that actually appear rather than every matching row.
  */
 export async function findUsersWithHistory(userIds: readonly string[]): Promise<Set<string>> {
-  if (userIds.length === 0) return new Set();
+  if (userIds.length === 0) {
+    return new Set();
+  }
 
   const perRelation = await Promise.all(
     USER_HISTORY_RELATIONS.map(async (relation) => {
@@ -109,7 +113,7 @@ export async function findUsersWithHistory(userIds: readonly string[]): Promise<
       })) as Record<string, string | null>[];
 
       return rows.map((row) => row[relation.field]).filter((id): id is string => Boolean(id));
-    })
+    }),
   );
 
   return new Set(perRelation.flat());

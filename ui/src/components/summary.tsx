@@ -38,12 +38,7 @@ const VALUE: Record<SummaryEmphasis, string> = {
   total: "text-heading",
 };
 
-export function Summary({
-  rows,
-  divided = false,
-  className,
-  "data-testid": testId,
-}: SummaryProps): JSX.Element {
+export function Summary({ rows, divided = false, className, "data-testid": testId }: SummaryProps): JSX.Element {
   const part = parts("summary", testId);
 
   return (

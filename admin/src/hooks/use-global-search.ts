@@ -65,10 +65,14 @@ export function useGlobalSearch(query: string) {
   const customers: GlobalSearchItem[] = [];
   const seenPhones = new Set<string>();
   for (const order of orderRows) {
-    if (!order.customerPhone || seenPhones.has(order.customerPhone)) continue;
+    if (!order.customerPhone || seenPhones.has(order.customerPhone)) {
+      continue;
+    }
     const matches =
       order.customerPhone.includes(q) || (order.customerName ?? "").toLocaleLowerCase(locale).includes(needle);
-    if (!matches) continue;
+    if (!matches) {
+      continue;
+    }
     seenPhones.add(order.customerPhone);
     customers.push({
       id: order.id,

@@ -8,8 +8,7 @@ import type { I18n } from "@/types/common";
 
 export type ChangeRequestStatus = (typeof CHANGE_REQUEST_STATUSES)[number];
 export type ChangeRequestEntityType = (typeof CHANGE_REQUEST_ENTITIES)[keyof typeof CHANGE_REQUEST_ENTITIES];
-export type ChangeRequestValueKind =
-  (typeof CHANGE_REQUEST_VALUE_KINDS)[keyof typeof CHANGE_REQUEST_VALUE_KINDS];
+export type ChangeRequestValueKind = (typeof CHANGE_REQUEST_VALUE_KINDS)[keyof typeof CHANGE_REQUEST_VALUE_KINDS];
 export type ChangeRequestVariantSetAction =
   (typeof CHANGE_REQUEST_VARIANT_SET_ACTIONS)[keyof typeof CHANGE_REQUEST_VARIANT_SET_ACTIONS];
 

@@ -11,11 +11,20 @@ export function buildGalleryPhotos(product: Product, locale: string): GalleryPho
   }
   for (const image of product.images) {
     seen.add(image.id);
-    photos.push({ id: image.id, url: image.url, mediumUrl: image.mediumUrl, thumbnailUrl: image.thumbnailUrl, kind: "product", variantName: null });
+    photos.push({
+      id: image.id,
+      url: image.url,
+      mediumUrl: image.mediumUrl,
+      thumbnailUrl: image.thumbnailUrl,
+      kind: "product",
+      variantName: null,
+    });
   }
   for (const variant of product.variants) {
     for (const image of variant.images) {
-      if (seen.has(image.id)) continue;
+      if (seen.has(image.id)) {
+        continue;
+      }
       seen.add(image.id);
       photos.push({
         id: image.id,

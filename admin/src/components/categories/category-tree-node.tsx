@@ -59,7 +59,7 @@ export function CategoryTreeNode(props: CategoryTreeNodeProps) {
           aria-label={expanded ? t("collapse") : t("expand")}
           className={cn(
             "inline-flex size-11 shrink-0 items-center justify-center rounded-control text-ink-muted hover:bg-inset hover:text-ink focus-visible:bg-neutral-200 focus-visible:text-ink",
-            !hasChildren && "invisible"
+            !hasChildren && "invisible",
           )}
         >
           {expanded ? (
@@ -88,7 +88,7 @@ export function CategoryTreeNode(props: CategoryTreeNodeProps) {
               disabled={isTogglingFavorite}
               className={cn(
                 "inline-flex size-11 items-center justify-center rounded-control not-disabled:hover:bg-inset focus-visible:bg-neutral-200 disabled:cursor-not-allowed disabled:opacity-50",
-                node.isFavorite ? "text-warning-700" : "text-ink-muted hover:text-ink"
+                node.isFavorite ? "text-warning-700" : "text-ink-muted hover:text-ink",
               )}
             >
               {isTogglingFavorite ? <Spinner className="size-4" /> : <Star className="size-4" aria-hidden="true" />}
@@ -123,7 +123,11 @@ export function CategoryTreeNode(props: CategoryTreeNodeProps) {
             >
               {t("confirmDelete")}
             </button>
-            <button type="button" onClick={onCancelDelete} className="min-h-11 rounded-control text-meta text-ink-muted focus-link">
+            <button
+              type="button"
+              onClick={onCancelDelete}
+              className="min-h-11 rounded-control text-meta text-ink-muted focus-link"
+            >
               {t("cancelDelete")}
             </button>
           </div>

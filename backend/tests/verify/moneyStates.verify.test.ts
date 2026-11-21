@@ -92,14 +92,14 @@ describe("Verify · sold vs received vs owed", () => {
       expectSum(
         [report.totals.collectedRevenue, report.totals.pendingCollectionAmount],
         report.totals.revenue,
-        "revenue = collected + pending"
+        "revenue = collected + pending",
       );
 
       for (const channel of report.byChannel) {
         expectSum(
           [channel.collectedRevenue, channel.pendingCollectionAmount],
           channel.revenue,
-          `${channel.channel}: revenue = collected + pending`
+          `${channel.channel}: revenue = collected + pending`,
         );
       }
     });
@@ -172,7 +172,7 @@ describe("Verify · sold vs received vs owed", () => {
 
       expect(
         (await readOrder(admin, order.id)).paymentStatus,
-        "and the good order in it must NOT have been settled"
+        "and the good order in it must NOT have been settled",
       ).toBe("PENDING_COLLECTION");
     });
   });
@@ -200,7 +200,7 @@ describe("Verify · sold vs received vs owed", () => {
       }
       expect(
         (await readOrder(admin, afterwards.id)).paymentStatus,
-        "an order created after the batch was drawn up stays pending"
+        "an order created after the batch was drawn up stays pending",
       ).toBe("PENDING_COLLECTION");
     });
 
@@ -223,28 +223,28 @@ describe("Verify · sold vs received vs owed", () => {
         afterReport.totals.pendingCollectionAmount,
         beforeReport.totals.pendingCollectionAmount,
         "200.00",
-        "pending amount on the report"
+        "pending amount on the report",
       );
 
       // The outstanding view must actually list it.
       const outstanding = await apiRequest<OrderSummaryDto[]>(
         "/api/orders?paymentStatus=PENDING_COLLECTION&collectableOnly=true&pageSize=100&sortBy=createdAt&sortDir=desc",
-        { token: admin }
+        { token: admin },
       );
       expect(
         outstanding.data?.some((entry) => entry.id === order.id),
-        "the new order must appear in the outstanding list"
+        "the new order must appear in the outstanding list",
       ).toBe(true);
 
       // ...and stop listing it once it is settled.
       await collect(admin, [order.id]);
       const settledList = await apiRequest<OrderSummaryDto[]>(
         "/api/orders?paymentStatus=PENDING_COLLECTION&collectableOnly=true&pageSize=100",
-        { token: admin }
+        { token: admin },
       );
       expect(
         settledList.data?.some((entry) => entry.id === order.id),
-        "and disappear from it once collected"
+        "and disappear from it once collected",
       ).toBe(false);
     });
 
@@ -263,11 +263,11 @@ describe("Verify · sold vs received vs owed", () => {
 
       const outstanding = await apiRequest<OrderSummaryDto[]>(
         "/api/orders?paymentStatus=PENDING_COLLECTION&collectableOnly=true&pageSize=100",
-        { token: admin }
+        { token: admin },
       );
       expect(
         outstanding.data?.some((entry) => entry.id === order.id),
-        "a cancelled sale owes nothing, so it must not be chased"
+        "a cancelled sale owes nothing, so it must not be chased",
       ).toBe(false);
     });
   });

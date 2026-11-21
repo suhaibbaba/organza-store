@@ -66,7 +66,9 @@ export function useAddByCode({ onAdd, onOutcome }: UseAddByCodeOptions) {
       // typed perfectly correctly. Both scanners send ASCII already, so this
       // only ever changes the hand-typed path.
       const code = toLatinDigits(rawCode.trim());
-      if (!code) return;
+      if (!code) {
+        return;
+      }
 
       // Only what the camera keeps re-reading is held back, and only that
       // one code: the moment a different barcode comes into frame it is
@@ -76,14 +78,18 @@ export function useAddByCode({ onAdd, onOutcome }: UseAddByCodeOptions) {
       // window the cart line's little bar is counting down.
       if (options.dedupe) {
         if (heldCode.current !== null) {
-          if (heldCode.current === code) return;
+          if (heldCode.current === code) {
+            return;
+          }
           // Something else came into frame: the cashier has moved on.
           heldCode.current = null;
         }
 
         const previous = lastScan.current;
         const now = Date.now();
-        if (previous && previous.code === code && now - previous.at < SCAN_DEDUPE_MS) return;
+        if (previous && previous.code === code && now - previous.at < SCAN_DEDUPE_MS) {
+          return;
+        }
         lastScan.current = { code, at: now };
       }
 
@@ -97,7 +103,9 @@ export function useAddByCode({ onAdd, onOutcome }: UseAddByCodeOptions) {
         if (kind === PRODUCT_LOOKUP_KIND.VARIANT_SELECTION) {
           // See heldCode above: the camera is about to be handed back after
           // the cashier answers, with this same tag still in front of it.
-          if (options.dedupe) heldCode.current = code;
+          if (options.dedupe) {
+            heldCode.current = code;
+          }
           onOutcome({ status: "pick", product });
           return;
         }
@@ -113,7 +121,7 @@ export function useAddByCode({ onAdd, onOutcome }: UseAddByCodeOptions) {
         setIsLooking(false);
       }
     },
-    [onAdd, onOutcome]
+    [onAdd, onOutcome],
   );
 
   // Called when the cashier opens the scanner themselves: whatever they

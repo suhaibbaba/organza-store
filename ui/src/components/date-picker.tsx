@@ -4,13 +4,7 @@ import { useState, type JSX } from "react";
 import { useTranslation } from "@ui/lib/i18n";
 import { Button } from "@ui/components/button";
 import { Calendar, dateLocale } from "@ui/components/calendar";
-import {
-  FIELD_BUTTON,
-  FIELD_TEXT,
-  FieldDivider,
-  FieldLock,
-  fieldShell,
-} from "@ui/components/field";
+import { FIELD_BUTTON, FIELD_TEXT, FieldDivider, FieldLock, fieldShell } from "@ui/components/field";
 import { Icon } from "@ui/components/icon";
 import { openOnArrowDown, usePickerOpen } from "@ui/lib/picker-open";
 import { Popover } from "@ui/components/popover";
@@ -105,10 +99,7 @@ export function DatePicker({
       title={label}
       {...part("popover")}
       anchor={
-        <div
-          {...part()}
-          className={cn(fieldShell({ hasError: hasError || outOfRange, disabled }), className)}
-        >
+        <div {...part()} className={cn(fieldShell({ hasError: hasError || outOfRange, disabled }), className)}>
           <input
             id={id}
             {...part("input")}
@@ -148,10 +139,7 @@ export function DatePicker({
       <Calendar
         mode="single"
         {...(selected && { selected, defaultMonth: selected })}
-        disabled={[
-          ...(earliest ? [{ before: earliest }] : []),
-          ...(latest ? [{ after: latest }] : []),
-        ]}
+        disabled={[...(earliest ? [{ before: earliest }] : []), ...(latest ? [{ after: latest }] : [])]}
         {...(earliest && { startMonth: earliest })}
         {...(latest && { endMonth: latest })}
         onSelect={(date: Date | undefined) => {
@@ -194,9 +182,7 @@ export function DatePicker({
         </Button>
       </div>
 
-      <p className="sr-only">
-        {selected ? format(selected, "PPP", { locale: dateLocale(i18n.language) }) : ""}
-      </p>
+      <p className="sr-only">{selected ? format(selected, "PPP", { locale: dateLocale(i18n.language) }) : ""}</p>
     </Popover>
   );
 }

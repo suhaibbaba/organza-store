@@ -32,11 +32,13 @@ import type { ImageSyncSummary } from "@/types";
 export async function syncImageFiles(
   sourceDir: string | null,
   images: ImageFileRef[],
-  keepFiles: string[] = []
+  keepFiles: string[] = [],
 ): Promise<ImageSyncSummary> {
   const claimed = claimedImageBases(images);
   // Files the sandbox keeps of its own (its settings stay), e.g. the shop logo.
-  for (const file of keepFiles) claimed.add(file);
+  for (const file of keepFiles) {
+    claimed.add(file);
+  }
 
   if (sourceDir === null) {
     // Still worth clearing up after the catalogue that was just wiped: those
@@ -65,7 +67,9 @@ export async function syncImageFiles(
         copied += 1;
       } catch {
         missing += 1;
-        if (missingExamples.length < MISSING_IMAGE_EXAMPLES) missingExamples.push(file);
+        if (missingExamples.length < MISSING_IMAGE_EXAMPLES) {
+          missingExamples.push(file);
+        }
       }
     }
   }

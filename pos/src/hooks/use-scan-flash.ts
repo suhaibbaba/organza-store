@@ -38,7 +38,9 @@ export function useScanFlash(): ScanFlashState {
     setLineKey(key);
     setFlash(key ? next : null);
 
-    if (timer.current) clearTimeout(timer.current);
+    if (timer.current) {
+      clearTimeout(timer.current);
+    }
     timer.current = setTimeout(() => {
       setLineKey(null);
       setFlash(null);
@@ -51,9 +53,11 @@ export function useScanFlash(): ScanFlashState {
 
   useEffect(
     () => () => {
-      if (timer.current) clearTimeout(timer.current);
+      if (timer.current) {
+        clearTimeout(timer.current);
+      }
     },
-    []
+    [],
   );
 
   return { lineKey, flash, pulse, markScanned, markFailed };

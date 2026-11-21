@@ -39,7 +39,9 @@ export async function signIn(email: string, password: string): Promise<SignInAtt
   let lastAttempt: SignInAttempt = { status: 0 };
   for (let attempt = 0; attempt < AUTH_RATE_LIMIT_MAX_ATTEMPTS; attempt++) {
     lastAttempt = await signInOnce(email, password);
-    if (lastAttempt.status !== 429) return lastAttempt;
+    if (lastAttempt.status !== 429) {
+      return lastAttempt;
+    }
     if (attempt < AUTH_RATE_LIMIT_MAX_ATTEMPTS - 1) {
       await sleep(AUTH_RATE_LIMIT_BASE_DELAY_MS * 2 ** attempt);
     }
@@ -58,11 +60,11 @@ export function getSession(role: SeededRole): Promise<Session> {
         if (!result.session) {
           throw new Error(
             `Seeded ${role} login failed (HTTP ${result.status}). ` +
-              "Make sure the target API has been demo-seeded via `npm run seed:demo` (see backend/README.md)."
+              "Make sure the target API has been demo-seeded via `npm run seed:demo` (see backend/README.md).",
           );
         }
         return result.session;
-      })
+      }),
     );
   }
   return sessionCache.get(role)!;

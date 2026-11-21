@@ -81,10 +81,7 @@ export function Avatar({
           {...part("initials")}
           aria-hidden="true"
           style={{ fontSize }}
-          className={cn(
-            "absolute inset-0 flex items-center justify-center font-medium leading-none",
-            tint,
-          )}
+          className={cn("absolute inset-0 flex items-center justify-center font-medium leading-none", tint)}
         >
           {initials}
         </span>

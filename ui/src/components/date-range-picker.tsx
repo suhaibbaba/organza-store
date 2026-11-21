@@ -40,9 +40,7 @@ export function DateRangePicker({
 
   const from = fromIsoDate(value.from);
   const to = fromIsoDate(value.to);
-  const dates = [from ? format(from, "dd/MM/yyyy") : "…", to ? format(to, "dd/MM/yyyy") : "…"].join(
-    " — ",
-  );
+  const dates = [from ? format(from, "dd/MM/yyyy") : "…", to ? format(to, "dd/MM/yyyy") : "…"].join(" — ");
 
   return (
     <Popover

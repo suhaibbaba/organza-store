@@ -12,10 +12,17 @@ export function OrderTotals({ order }: { order: Order }) {
   const hasOrderDiscount = order.discountType !== null && Number(order.discountAmount) > 0;
 
   return (
-    <div className="flex flex-col gap-1 overflow-hidden rounded-panel border border-line text-value" data-test-selector="order-totals">
+    <div
+      className="flex flex-col gap-1 overflow-hidden rounded-panel border border-line text-value"
+      data-test-selector="order-totals"
+    >
       <div className="flex items-center justify-between gap-3 px-5 pt-3">
-        <Typography variant="body" tone="muted" as="span">{t("subtotal")}</Typography>
-        <Typography variant="body" as="span" className="tabular-nums">{formatMoney(order.subtotal)}</Typography>
+        <Typography variant="body" tone="muted" as="span">
+          {t("subtotal")}
+        </Typography>
+        <Typography variant="body" as="span" className="tabular-nums">
+          {formatMoney(order.subtotal)}
+        </Typography>
       </div>
 
       {hasOrderDiscount && (
@@ -35,8 +42,12 @@ export function OrderTotals({ order }: { order: Order }) {
       )}
 
       <div className="mt-2 flex items-center justify-between gap-3 bg-primary-50 px-5 py-3">
-        <Typography variant="body" weight="semibold" as="span">{t("total")}</Typography>
-        <Typography variant="h2" weight="semibold" as="span" className="tabular-nums text-primary-900">{formatMoney(order.total)}</Typography>
+        <Typography variant="body" weight="semibold" as="span">
+          {t("total")}
+        </Typography>
+        <Typography variant="h2" weight="semibold" as="span" className="tabular-nums text-primary-900">
+          {formatMoney(order.total)}
+        </Typography>
       </div>
     </div>
   );

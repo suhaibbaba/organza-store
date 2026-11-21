@@ -45,9 +45,7 @@ const PWA_BASE_SHORT_NAME = "POS";
  * does that job goes through t() (components/layout/environment-badge.tsx).
  */
 export const PWA_NAME = IS_SANDBOX ? `${PWA_BASE_NAME} (${SANDBOX_NAME_SUFFIX})` : PWA_BASE_NAME;
-export const PWA_SHORT_NAME = IS_SANDBOX
-  ? `${PWA_BASE_SHORT_NAME} ${SANDBOX_NAME_SUFFIX}`
-  : PWA_BASE_SHORT_NAME;
+export const PWA_SHORT_NAME = IS_SANDBOX ? `${PWA_BASE_SHORT_NAME} ${SANDBOX_NAME_SUFFIX}` : PWA_BASE_SHORT_NAME;
 export const PWA_DESCRIPTION = "Store Management point of sale";
 
 // Not a locale-prefixed path: launching from the home screen lands on "/",

@@ -46,15 +46,16 @@ export function ServiceWorkerRegistrar() {
   useEffect(() => {
     // Dev serves uncompiled, constantly-changing chunks; caching those just
     // fights hot reload.
-    if (process.env.NODE_ENV !== "production") return;
-    if (!("serviceWorker" in navigator)) return;
+    if (process.env.NODE_ENV !== "production") {
+      return;
+    }
+    if (!("serviceWorker" in navigator)) {
+      return;
+    }
 
     // Default locale first: the worker uses OFFLINE_URLS[0] when it can't
     // tell which language a failed navigation was headed for.
-    const locales = [
-      routing.defaultLocale,
-      ...routing.locales.filter((locale) => locale !== routing.defaultLocale),
-    ];
+    const locales = [routing.defaultLocale, ...routing.locales.filter((locale) => locale !== routing.defaultLocale)];
 
     const query = new URLSearchParams({
       [SERVICE_WORKER_VERSION_PARAM]: process.env.NEXT_PUBLIC_BUILD_ID ?? "dev",
@@ -80,12 +81,16 @@ export function ServiceWorkerRegistrar() {
     // controlling this page. On a first-ever install there is nothing stale to
     // escape from, and the worker taking over quietly is exactly right.
     const offerIfWaiting = (worker: ServiceWorker | null) => {
-      if (worker && navigator.serviceWorker.controller) setWaitingWorker(worker);
+      if (worker && navigator.serviceWorker.controller) {
+        setWaitingWorker(worker);
+      }
     };
 
     const watchInstalling = (worker: ServiceWorker) => {
       worker.addEventListener("statechange", () => {
-        if (worker.state === "installed") offerIfWaiting(worker);
+        if (worker.state === "installed") {
+          offerIfWaiting(worker);
+        }
       });
     };
 
@@ -98,9 +103,13 @@ export function ServiceWorkerRegistrar() {
         // Already waiting when this page loaded — the update was downloaded
         // during an earlier visit and never taken up.
         offerIfWaiting(result.waiting);
-        if (result.installing) watchInstalling(result.installing);
+        if (result.installing) {
+          watchInstalling(result.installing);
+        }
         result.addEventListener("updatefound", () => {
-          if (result.installing) watchInstalling(result.installing);
+          if (result.installing) {
+            watchInstalling(result.installing);
+          }
         });
       })
       // Offline, private mode, or an unsupported browser. The app works
@@ -110,7 +119,9 @@ export function ServiceWorkerRegistrar() {
     // The new worker has taken control: everything the page loads from here on
     // is the new build, so the page itself has to be reloaded to match.
     const onControllerChange = () => {
-      if (!hadController || hasReloaded.current) return;
+      if (!hadController || hasReloaded.current) {
+        return;
+      }
       hasReloaded.current = true;
       window.location.reload();
     };
@@ -132,7 +143,9 @@ export function ServiceWorkerRegistrar() {
   }, []);
 
   const applyUpdate = useCallback(() => {
-    if (!waitingWorker) return;
+    if (!waitingWorker) {
+      return;
+    }
     setIsUpdating(true);
     // The worker answers by calling skipWaiting(), which makes it the
     // controller and fires controllerchange above — that is what reloads the
@@ -148,6 +161,8 @@ export function ServiceWorkerRegistrar() {
     }, UPDATE_RELOAD_FALLBACK_MS);
   }, [waitingWorker]);
 
-  if (!waitingWorker) return null;
+  if (!waitingWorker) {
+    return null;
+  }
   return <UpdatePrompt onUpdate={applyUpdate} isUpdating={isUpdating} />;
 }

@@ -30,7 +30,9 @@ export function VariantPickerSheet({ product, onOpenChange, onPick }: VariantPic
     >
       {product && (
         <div className="flex flex-col gap-3">
-          <Typography variant="small" tone="muted">{t("subtitle")}</Typography>
+          <Typography variant="small" tone="muted">
+            {t("subtitle")}
+          </Typography>
 
           <ul className="flex flex-col gap-2">
             {product.variants.map((variant) => {
@@ -50,7 +52,9 @@ export function VariantPickerSheet({ product, onOpenChange, onPick }: VariantPic
                     className="min-h-16 items-center justify-between gap-3 p-3"
                   >
                     <span className="min-w-0">
-                      <Typography variant="h3" as="span" className="block truncate">{name}</Typography>
+                      <Typography variant="h3" as="span" className="block truncate">
+                        {name}
+                      </Typography>
                       <Typography variant="caption" tone="muted" className="block truncate" dir="ltr">
                         {variant.sku}
                       </Typography>

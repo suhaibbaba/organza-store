@@ -51,7 +51,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       queryClient.setQueryData(SESSION_QUERY_KEY, session.user);
       return session.user;
     },
-    [queryClient]
+    [queryClient],
   );
 
   const logout = useCallback(async () => {
@@ -68,6 +68,8 @@ export function SessionProvider({ children }: { children: ReactNode }) {
 
 export function useSession(): SessionContextValue {
   const ctx = useContext(SessionContext);
-  if (!ctx) throw new Error("useSession must be used within a SessionProvider");
+  if (!ctx) {
+    throw new Error("useSession must be used within a SessionProvider");
+  }
   return ctx;
 }

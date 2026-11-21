@@ -28,26 +28,28 @@ export function OrderKindFields({ control, channel, isGift, canGift }: OrderKind
             />
           )}
         />
-        <Typography variant="caption" tone="muted" as="p">{t(isGift ? `giftHints.${channel}` : `hints.${channel}`)}</Typography>
+        <Typography variant="caption" tone="muted" as="p">
+          {t(isGift ? `giftHints.${channel}` : `hints.${channel}`)}
+        </Typography>
       </div>
 
       {canGift && (
         <div className="pt-4">
           <FormField label="orders.new.kind.gift" htmlFor="order-gift" note="orders.new.kind.giftHint">
-          <Controller
-            control={control}
-            name="gift"
-            render={({ field }) => (
-              <Switch
-                id="order-gift"
-                data-testid={fieldTestSelector("order-gift")}
-                label={t("gift")}
-                hideLabel
-                checked={field.value}
-                onCheckedChange={field.onChange}
-              />
-            )}
-          />
+            <Controller
+              control={control}
+              name="gift"
+              render={({ field }) => (
+                <Switch
+                  id="order-gift"
+                  data-testid={fieldTestSelector("order-gift")}
+                  label={t("gift")}
+                  hideLabel
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              )}
+            />
           </FormField>
         </div>
       )}

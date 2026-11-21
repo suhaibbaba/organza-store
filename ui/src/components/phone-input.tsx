@@ -1,10 +1,4 @@
-import {
-  DEFAULT_PHONE_COUNTRY,
-  foldDigits,
-  joinPhone,
-  splitPhone,
-  type PhoneCountry,
-} from "@ui/lib/support";
+import { DEFAULT_PHONE_COUNTRY, foldDigits, joinPhone, splitPhone, type PhoneCountry } from "@ui/lib/support";
 import { createContext, useContext, useEffect, useState, type JSX, type ReactNode } from "react";
 import { useTranslation } from "@ui/lib/i18n";
 import { Input, type InputProps } from "@ui/components/input";
@@ -25,9 +19,7 @@ export function PhoneCountryProvider({
 }
 
 export interface PhoneInputProps
-  extends
-    Omit<InputProps, "type" | "inputMode" | "dir" | "value" | "defaultValue" | "onChange">,
-    TestIdProps {
+  extends Omit<InputProps, "type" | "inputMode" | "dir" | "value" | "defaultValue" | "onChange">, TestIdProps {
   readonly value: string | null | undefined;
   readonly onChange: (value: string | null) => void;
 }

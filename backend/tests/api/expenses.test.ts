@@ -22,7 +22,9 @@ describe("Expenses", () => {
 
   async function expense(token: string, body: Record<string, unknown>) {
     const res = await createExpense(token, body);
-    if (res.data?.id) openedExpenseIds.push(res.data.id);
+    if (res.data?.id) {
+      openedExpenseIds.push(res.data.id);
+    }
     return res;
   }
 
@@ -268,7 +270,7 @@ describe("Expenses", () => {
 
       const res = await apiRequest<ExpenseDto[]>(
         `/api/expenses?categoryId=${categoryId}&paidInCash=false&page=1&pageSize=5&sortBy=amount&sortDir=asc`,
-        { token: admin.token }
+        { token: admin.token },
       );
       expect(res.status).toBe(200);
       expect(res.meta?.pageSize).toBe(5);

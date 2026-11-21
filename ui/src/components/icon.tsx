@@ -284,9 +284,7 @@ const ICONS: Record<IconName, LucideIcon> = {
   x: X,
 };
 
-const DIRECTIONAL: Partial<
-  Record<IconName, { readonly rtl: LucideIcon; readonly ltr: LucideIcon }>
-> = {
+const DIRECTIONAL: Partial<Record<IconName, { readonly rtl: LucideIcon; readonly ltr: LucideIcon }>> = {
   "chevron-end": { rtl: ChevronLeft, ltr: ChevronRight },
   "chevron-start": { rtl: ChevronRight, ltr: ChevronLeft },
 };

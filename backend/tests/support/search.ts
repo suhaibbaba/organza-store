@@ -9,10 +9,12 @@ export async function searchUntil(token: string, query: string, expected: (ids: 
   for (;;) {
     const res = await apiRequest<ProductSummaryDto[]>(
       `/api/products?pageSize=${MAX_PAGE_SIZE}&q=${encodeURIComponent(query)}`,
-      { token }
+      { token },
     );
     const ids = (res.data ?? []).map((p) => p.id);
-    if (res.status !== 200 || expected(ids) || Date.now() > deadline) return { status: res.status, ids };
+    if (res.status !== 200 || expected(ids) || Date.now() > deadline) {
+      return { status: res.status, ids };
+    }
     await new Promise((resolve) => setTimeout(resolve, SEARCH_INDEX_POLL_MS));
   }
 }

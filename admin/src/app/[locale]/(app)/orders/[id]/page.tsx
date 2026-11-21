@@ -99,4 +99,3 @@ function OrderDetailPageContent({ params }: { params: Promise<{ id: string }> })
     </PageContainer>
   );
 }
-

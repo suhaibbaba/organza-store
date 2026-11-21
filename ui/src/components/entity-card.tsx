@@ -118,24 +118,16 @@ export function EntityCard({
             label={progress.label}
             {...(progress.tone && { tone: progress.tone })}
           />
-          {progress.caption !== undefined && (
-            <p className="mt-2 text-meta text-ink-muted">{progress.caption}</p>
-          )}
+          {progress.caption !== undefined && <p className="mt-2 text-meta text-ink-muted">{progress.caption}</p>}
         </div>
       )}
       {children}
       {(meta ?? []).length > 0 && (
-        <dl
-          {...part("meta")}
-          className="mt-3 grid grid-cols-[minmax(5.5rem,auto)_minmax(0,1fr)] border-t border-line"
-        >
+        <dl {...part("meta")} className="mt-3 grid grid-cols-[minmax(5.5rem,auto)_minmax(0,1fr)] border-t border-line">
           {(meta ?? []).map((entry, index) => (
             <div key={entry.label} className="contents">
               <dt
-                className={cn(
-                  "py-2 pe-4 text-label leading-value text-ink-muted",
-                  index > 0 && "border-t border-line",
-                )}
+                className={cn("py-2 pe-4 text-label leading-value text-ink-muted", index > 0 && "border-t border-line")}
               >
                 {entry.label}
               </dt>
@@ -162,10 +154,7 @@ export function EntityGrid({
   "data-testid": testId,
 }: { readonly children: ReactNode } & TestIdProps): JSX.Element {
   return (
-    <div
-      {...parts("entity-grid", testId)()}
-      className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3"
-    >
+    <div {...parts("entity-grid", testId)()} className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
       {children}
     </div>
   );

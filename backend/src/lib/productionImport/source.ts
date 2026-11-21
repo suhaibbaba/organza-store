@@ -25,7 +25,7 @@ async function assertSessionIsReadOnly(client: PrismaClient, describedUrl: strin
     throw new Error(
       `The production connection to ${describedUrl} is NOT read-only ` +
         `(transaction_read_only = ${rows[0]?.value ?? "unknown"}). ` +
-        `Expected the server to have applied "${READ_ONLY_CONNECTION_OPTION}". Refusing to continue.`
+        `Expected the server to have applied "${READ_ONLY_CONNECTION_OPTION}". Refusing to continue.`,
     );
   }
 
@@ -44,7 +44,7 @@ async function assertSessionIsReadOnly(client: PrismaClient, describedUrl: strin
   if (wrote) {
     throw new Error(
       `The production connection to ${describedUrl} accepted a write. ` +
-        "This command may only ever read from the live shop. Refusing to continue."
+        "This command may only ever read from the live shop. Refusing to continue.",
     );
   }
 }
@@ -61,10 +61,7 @@ async function assertSessionIsReadOnly(client: PrismaClient, describedUrl: strin
  * a shop's catalogue is thousands of rows, not millions, and it means a
  * source that goes away mid-read leaves the sandbox exactly as it was.
  */
-export async function readProductionCatalogue(
-  readOnlyUrl: string,
-  describedUrl: string
-): Promise<CatalogueSnapshot> {
+export async function readProductionCatalogue(readOnlyUrl: string, describedUrl: string): Promise<CatalogueSnapshot> {
   const client = new PrismaClient({ datasources: { db: { url: readOnlyUrl } } });
 
   try {
@@ -86,7 +83,7 @@ export async function readProductionCatalogue(
         }),
         productImages: await tx.productImage.findMany({ orderBy: { id: "asc" } }),
       }),
-      { isolationLevel: "RepeatableRead", timeout: SOURCE_SNAPSHOT_TIMEOUT_MS }
+      { isolationLevel: "RepeatableRead", timeout: SOURCE_SNAPSHOT_TIMEOUT_MS },
     );
   } finally {
     await client.$disconnect();

@@ -17,12 +17,14 @@ import type { CreateUserInput, UpdateUserInput } from "@store/shared/schemas/use
 export const userFormSchema = z.object({
   name: z.string().min(1, ERROR_CODES.VALIDATION_REQUIRED),
   email: z.string().min(1, ERROR_CODES.VALIDATION_REQUIRED).email(ERROR_CODES.VALIDATION_INVALID_EMAIL),
-  password: z
-    .string()
-    .refine((v) => v.trim() === "" || v.length >= PASSWORD_MIN_LENGTH, { message: ERROR_CODES.VALIDATION_PASSWORD_TOO_SHORT }),
+  password: z.string().refine((v) => v.trim() === "" || v.length >= PASSWORD_MIN_LENGTH, {
+    message: ERROR_CODES.VALIDATION_PASSWORD_TOO_SHORT,
+  }),
   role: z.enum(ROLES),
   phone: z.string().refine(isValidE164, { message: ERROR_CODES.VALIDATION_INVALID_PHONE }),
-  whatsapp: z.string().refine((v) => v.trim() === "" || isValidE164(v), { message: ERROR_CODES.VALIDATION_INVALID_PHONE }),
+  whatsapp: z
+    .string()
+    .refine((v) => v.trim() === "" || isValidE164(v), { message: ERROR_CODES.VALIDATION_INVALID_PHONE }),
   idNumber: z.string(),
 });
 export type UserFormValues = z.infer<typeof userFormSchema>;

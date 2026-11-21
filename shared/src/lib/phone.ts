@@ -5,7 +5,9 @@ import { PALESTINE_PHONE_PREFIXES } from "@/constants/phone";
 // reformatted/rewritten, so WhatsApp keeps reaching the number on its real
 // prefix. This only validates the format.
 export function isValidE164(value: string): boolean {
-  if (!value.startsWith("+")) return false;
+  if (!value.startsWith("+")) {
+    return false;
+  }
   const parsed = parsePhoneNumberFromString(value);
   return Boolean(parsed?.isValid() && parsed.number === value);
 }
@@ -15,7 +17,9 @@ export function isValidE164(value: string): boolean {
 // unchanged if it isn't a Palestine number.
 export function dualPrefixCandidates(value: string): string[] {
   const prefix = PALESTINE_PHONE_PREFIXES.find((p) => value.startsWith(p));
-  if (!prefix) return [value];
+  if (!prefix) {
+    return [value];
+  }
   const national = value.slice(prefix.length);
   return PALESTINE_PHONE_PREFIXES.map((p) => `${p}${national}`);
 }
@@ -39,10 +43,16 @@ export function phoneDigits(value: string): string {
 // one with no prefix at all.
 export function splitE164(value: string): { prefix: string; national: string } | null {
   const known = PALESTINE_PHONE_PREFIXES.find((p) => value.startsWith(p));
-  if (known) return { prefix: known, national: phoneDigits(value.slice(known.length)) };
-  if (!value.startsWith("+")) return null;
+  if (known) {
+    return { prefix: known, national: phoneDigits(value.slice(known.length)) };
+  }
+  if (!value.startsWith("+")) {
+    return null;
+  }
   const parsed = parsePhoneNumberFromString(value);
-  if (!parsed) return null;
+  if (!parsed) {
+    return null;
+  }
   return { prefix: `+${parsed.countryCallingCode}`, national: parsed.nationalNumber };
 }
 

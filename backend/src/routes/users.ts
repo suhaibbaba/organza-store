@@ -55,28 +55,31 @@ function serializeUserWithState(user: SerializableUser, hasPassword: boolean, ha
 
 // Single-account routes only; the list asks both questions once per page.
 async function serializeUserForResponse(user: SerializableUser) {
-  const [hasPassword, hasHistory] = await Promise.all([
-    hasUsablePassword(user.id),
-    hasUserHistory(user.id),
-  ]);
+  const [hasPassword, hasHistory] = await Promise.all([hasUsablePassword(user.id), hasUserHistory(user.id)]);
   return serializeUserWithState(user, hasPassword, hasHistory);
 }
 
 // Refuses leaving the shop with no ACTIVE Admin: afterwards nothing in the app could undo it.
 async function assertNotLastAdmin(
   existing: { id: string; role: Role; isActive: boolean },
-  body: { role?: Role; isActive?: boolean }
+  body: { role?: Role; isActive?: boolean },
 ): Promise<void> {
   const wasActiveAdmin = existing.role === Role.ADMIN && existing.isActive;
-  if (!wasActiveAdmin) return;
+  if (!wasActiveAdmin) {
+    return;
+  }
 
   const stillActiveAdmin = (body.role ?? existing.role) === Role.ADMIN && (body.isActive ?? existing.isActive);
-  if (stillActiveAdmin) return;
+  if (stillActiveAdmin) {
+    return;
+  }
 
   const others = await prisma.user.count({
     where: { role: Role.ADMIN, isActive: true, id: { not: existing.id } },
   });
-  if (others === 0) throw new AppError(409, ERROR_CODES.USER_LAST_ADMIN);
+  if (others === 0) {
+    throw new AppError(409, ERROR_CODES.USER_LAST_ADMIN);
+  }
 }
 
 // GET /api/users
@@ -113,13 +116,17 @@ router.get(
     const ids = users.map((user) => user.id);
     const [activated, withHistory] = await Promise.all([usersWithPassword(ids), findUsersWithHistory(ids)]);
 
-    sendOk(res, users.map((user) => serializeUserWithState(user, activated.has(user.id), withHistory.has(user.id))), {
-      page: query.page,
-      pageSize: query.pageSize,
-      total,
-      totalPages: Math.max(1, Math.ceil(total / query.pageSize)),
-    });
-  })
+    sendOk(
+      res,
+      users.map((user) => serializeUserWithState(user, activated.has(user.id), withHistory.has(user.id))),
+      {
+        page: query.page,
+        pageSize: query.pageSize,
+        total,
+        totalPages: Math.max(1, Math.ceil(total / query.pageSize)),
+      },
+    );
+  }),
 );
 
 // GET /api/users/:id
@@ -127,9 +134,11 @@ router.get(
   "/:id",
   asyncHandler(async (req, res) => {
     const user = await prisma.user.findUnique({ where: { id: req.params.id } });
-    if (!user) throw new AppError(404, ERROR_CODES.USER_NOT_FOUND);
+    if (!user) {
+      throw new AppError(404, ERROR_CODES.USER_NOT_FOUND);
+    }
     sendOk(res, await serializeUserForResponse(user));
-  })
+  }),
 );
 
 // POST /api/users
@@ -142,7 +151,9 @@ router.post(
     // Compared in the same spelling the account is stored and signed in under.
     const email = normalizeEmail(body.email);
     const emailTaken = await prisma.user.findUnique({ where: { email } });
-    if (emailTaken) throw new AppError(409, ERROR_CODES.EMAIL_DUPLICATE);
+    if (emailTaken) {
+      throw new AppError(409, ERROR_CODES.EMAIL_DUPLICATE);
+    }
     await assertPhonesAvailable(body);
 
     // Internal adapter, not the disabled public sign-up; no password means no credential row (rule 17).
@@ -157,7 +168,9 @@ router.post(
         idNumber: body.idNumber ?? null,
       });
     } catch (err) {
-      if (err instanceof APIError) throw new AppError(400, ERROR_CODES.AUTH_SIGNUP_FAILED);
+      if (err instanceof APIError) {
+        throw new AppError(400, ERROR_CODES.AUTH_SIGNUP_FAILED);
+      }
       throw err;
     }
 
@@ -180,7 +193,7 @@ router.post(
 
     // A brand-new account has no history by construction.
     sendOk(res, serializeUserWithState(created, Boolean(body.password), false), null, 201);
-  })
+  }),
 );
 
 // POST /api/users/:id/password-reset — the link is also returned so it can be passed on when a mailbox is unreachable.
@@ -188,7 +201,9 @@ router.post(
   "/:id/password-reset",
   asyncHandler(async (req, res) => {
     const user = await prisma.user.findUnique({ where: { id: req.params.id } });
-    if (!user) throw new AppError(404, ERROR_CODES.USER_NOT_FOUND);
+    if (!user) {
+      throw new AppError(404, ERROR_CODES.USER_NOT_FOUND);
+    }
 
     const invite = await sendPasswordSetupEmail(user, "RESET");
 
@@ -202,7 +217,7 @@ router.post(
     });
 
     sendOk(res, { email: user.email, url: invite.url, expiresAt: invite.expiresAt });
-  })
+  }),
 );
 
 // POST /api/users/:id/resend-invite — the 72h set-up link; refused once a password exists or the account is inactive.
@@ -210,9 +225,15 @@ router.post(
   "/:id/resend-invite",
   asyncHandler(async (req, res) => {
     const user = await prisma.user.findUnique({ where: { id: req.params.id } });
-    if (!user) throw new AppError(404, ERROR_CODES.USER_NOT_FOUND);
-    if (!user.isActive) throw new AppError(409, ERROR_CODES.ACCOUNT_INACTIVE);
-    if (await hasUsablePassword(user.id)) throw new AppError(409, ERROR_CODES.USER_ALREADY_ACTIVATED);
+    if (!user) {
+      throw new AppError(404, ERROR_CODES.USER_NOT_FOUND);
+    }
+    if (!user.isActive) {
+      throw new AppError(409, ERROR_CODES.ACCOUNT_INACTIVE);
+    }
+    if (await hasUsablePassword(user.id)) {
+      throw new AppError(409, ERROR_CODES.USER_ALREADY_ACTIVATED);
+    }
 
     const invite = await sendPasswordSetupEmail(user, "SET");
 
@@ -227,7 +248,7 @@ router.post(
 
     // Returned for the same reason as the reset's.
     sendOk(res, { email: user.email, url: invite.url, expiresAt: invite.expiresAt });
-  })
+  }),
 );
 
 // PATCH /api/users/:id
@@ -236,7 +257,9 @@ router.patch(
   validateBody(updateUserSchema),
   asyncHandler(async (req, res) => {
     const existing = await prisma.user.findUnique({ where: { id: req.params.id } });
-    if (!existing) throw new AppError(404, ERROR_CODES.USER_NOT_FOUND);
+    if (!existing) {
+      throw new AppError(404, ERROR_CODES.USER_NOT_FOUND);
+    }
 
     const body = req.body as UpdateUserInput;
     await assertPhonesAvailable(body, existing.id);
@@ -289,7 +312,7 @@ router.patch(
     });
 
     sendOk(res, await serializeUserForResponse(updated));
-  })
+  }),
 );
 
 // DELETE /api/users/:id — only for an account with no history (lib/userHistory.ts); `user.delete`, not `user.manage`.
@@ -298,10 +321,14 @@ router.delete(
   requirePermission("user.delete"),
   asyncHandler(async (req, res) => {
     const existing = await prisma.user.findUnique({ where: { id: req.params.id } });
-    if (!existing) throw new AppError(404, ERROR_CODES.USER_NOT_FOUND);
+    if (!existing) {
+      throw new AppError(404, ERROR_CODES.USER_NOT_FOUND);
+    }
 
     // Deleting your own account is refused, like deactivating it.
-    if (existing.id === req.user!.id) throw new AppError(409, ERROR_CODES.USER_SELF_REMOVAL);
+    if (existing.id === req.user!.id) {
+      throw new AppError(409, ERROR_CODES.USER_SELF_REMOVAL);
+    }
 
     // Unreachable today; kept for the day `user.delete` is widened.
     await assertNotLastAdmin(existing, { isActive: false });
@@ -332,7 +359,7 @@ router.delete(
     }
 
     sendOk(res, { id: existing.id, deleted: true });
-  })
+  }),
 );
 
 export default router;

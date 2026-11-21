@@ -1,6 +1,7 @@
 # Store Management — Specification (Phase 1)
 
 ## Overview
+
 E-commerce and point-of-sale system for clothing shops; each shop that runs it is a client whose
 name, logo and theme are data, never code.
 Custom build — **not** Medusa or any e-commerce framework.
@@ -12,6 +13,7 @@ and sales/profit reporting.
 **Phase 3 (later):** Customer storefront + real Customer accounts.
 
 ## Architecture — 4 separate projects
+
 ```
 store-management/
 ├── backend/     API (Node + Express + TypeScript + Prisma + PostgreSQL)
@@ -20,6 +22,7 @@ store-management/
 ├── frontend/    Customer storefront (Next.js — later)
 └── shared/      Shared TypeScript types + Zod schemas (imported by all)
 ```
+
 - **API style:** REST.
 - **All frontends are Next.js** (not plain React, not any other framework).
 - **Auth:** JWT.
@@ -30,7 +33,9 @@ store-management/
 ## Products & Variants
 
 ### Product (parent)
+
 Holds the shared/general info:
+
 - `name`, auto-generated `slug`, `description`
 - `category` (nested categories supported: e.g. Women > Dresses > Evening; a category may be
   flagged `isFavorite` to pin it at the front of the POS category tiles — see "POS selling screen layout")
@@ -44,7 +49,9 @@ Holds the shared/general info:
 When a product HAS variants, the parent's `sku`/`stock` are disabled in the UI (variants own them).
 
 ### Variant (child)
+
 The actual purchasable item:
+
 - `name` — auto-suggested from its option combination (e.g. "أحمر / M"), editable
 - `sku` — auto-generated, editable
 - `barcode` — per variant (needed for POS scanning)
@@ -58,10 +65,12 @@ The actual purchasable item:
 from the parent. The variant only overrides when a value is explicitly set.
 
 ### Variant Types & Values (GLOBAL, shared)
+
 A central pool of option types and their values, shared across all products:
+
 - `Color` → [أحمر, أزرق, أصفر, ...]
-- `Size`  → [S, M, L, XL]
-- `Number`→ [38, 40, 42, ...]   ← just another option type, same logic
+- `Size` → [S, M, L, XL]
+- `Number`→ [38, 40, 42, ...] ← just another option type, same logic
 
 **"Number/الأرقام" is not special — it's a normal variant type.**
 
@@ -70,17 +79,20 @@ The system generates variants from the **cartesian product** of the chosen value
 Example: Color[أحمر, أزرق] × Size[M, L] → 4 variants. You can delete combinations you don't stock.
 
 ### The reference relationship (important)
+
 A variant does **not** store the text "أحمر" inside itself. It stores a **reference (ID)** to the
 "أحمر" row in the global values table. So renaming "أحمر" → "أحمر خمري" in one place updates it
 everywhere automatically. (Same approach as Shopify / WooCommerce / Medusa.)
 
 ### Inline add (to make data entry fast)
+
 From inside the product screen the user can:
+
 1. **Add a new value to an existing type** — type "أصفر" under Color; on save it's added to the
    global Color values and becomes available to all products.
 2. **Add a whole new variant type** — e.g. "Material"; created as a new global type.
-Both auto-save to the global tables the moment the product is saved. A dedicated
-management screen for variant types still exists (for cleanup/edit/delete) but is optional to use.
+   Both auto-save to the global tables the moment the product is saved. A dedicated
+   management screen for variant types still exists (for cleanup/edit/delete) but is optional to use.
 
 Adding this way is open to every role that can add a product, Employees included — it only ever
 appends, so nothing already on the shelf changes. Renaming or deleting an existing type/value is
@@ -88,6 +100,7 @@ Admin/Manager only: it reaches every product using that value at once (see the r
 above), which is exactly what makes it dangerous in the wrong hands.
 
 ### Notes on a product's options
+
 A short, optional note written against **this product's use of** one option value.
 
 "S" means something different on a pair of trousers than on an abaya, so the shop writes
@@ -126,6 +139,7 @@ numbers ("حرير طبيعي" against number 4).
 ---
 
 ## SKU (auto-generated)
+
 - Fixed store prefix: **`ORG-`**
 - Pattern:
   - Simple product: `ORG-00042` (`00042` = zero-padded `productNumber`)
@@ -137,21 +151,25 @@ numbers ("حرير طبيعي" against number 4).
 ---
 
 ## Settings (store-wide config)
+
 A singleton `Setting` row holds: `storeName` (translatable), `defaultLanguage` (ar, configurable),
 `supportedLanguages`, `currency`, `lowStockThreshold`. Managed from the admin Settings screen (Admin only).
 
 ## Currency
+
 - Default: **ILS (شيكل)**. Not changeable right now, but stored as a field so **multi-currency can be
   added later** without restructuring. Prices are stored as `Decimal` in the store currency.
 - The currency symbol/format shown in the UI comes from settings, never hard-coded.
 
 ## Barcode (auto-generated, or the supplier's own)
+
 - **Every product and variant gets a system-generated, unique barcode** (not the SKU). Use a
   standard format (**EAN-13**) so any scanner/label printer works.
 - Generated once at creation and unique across the store. This is the default and covers every
   piece that arrives with nothing printed on it.
 
 ### Supplier barcodes
+
 Many garments arrive **already barcoded**. Printing our own label over a perfectly good one wastes
 a label and a minute per piece, so the shop can scan the supplier's code and keep it instead.
 
@@ -189,26 +207,32 @@ a label and a minute per piece, so the shop can scan the supplier's code and kee
   actions.
 
 ## Slug conflicts
+
 Slugs are generated from the default-language name. On collision, append an incrementing numeric
 suffix: `evening-dress`, `evening-dress-2`, `evening-dress-3`, …
 
 ## Lists: filtering, pagination, sorting
+
 All list endpoints (products, inventory, search, later orders) support **pagination + filtering +
 sorting**. Products filter by: category, active/hidden, in/out of stock, price range, and search
 query. Default page size sensible (e.g. 20). Never return unbounded lists.
 
 ## Unified API response shape
+
 Every endpoint returns a consistent envelope so admin + pos handle them identically:
+
 ```
 // success
 { "success": true, "data": ..., "meta": { pagination... } }
 // error
 { "success": false, "error": { "code": "error.sku.duplicate", "details": ... } }
 ```
+
 **Errors return a translation KEY (`error.*`), not a human sentence.** The frontend translates the
 key into the user's language.
 
 ## Auth (details)
+
 - **Library: Better Auth** — central auth in the separate backend, serving admin + pos (and later
   the storefront). Free, self-hosted on the VPS. Chosen over NextAuth (which suits a fullstack
   Next.js app, not a separate API) and Lucia (discontinued). OTP/passkey can be added later as
@@ -242,7 +266,7 @@ belongs to, and an Admin never has to invent one and read it out across a counte
   reset decorative.
 - **The password is written through Better Auth itself**, never by hand. The hash lives on the
   credential `Account` row, and sign-in reads it back with Better Auth's own verifier against
-  *every* credential row it finds — so the password is hashed with `ctx.password.hash` and stored
+  _every_ credential row it finds — so the password is hashed with `ctx.password.hash` and stored
   with `ctx.internalAdapter`, rather than with a hasher imported on the side and a row picked by
   our own query. The three ways those two ends could disagree — a different hash format, a row
   Better Auth does not consult, and a second stale credential row shadowing the fresh one — are
@@ -275,7 +299,7 @@ belongs to, and an Admin never has to invent one and read it out across a counte
   decision and has its own button.
 - **Being refused for trying too often must not read as "wrong password".** Better Auth
   rate-limits sign-in, and its own default — three attempts per ten seconds, per client IP, or
-  for *everybody at once* when no trusted client address can be resolved behind the proxy — is
+  for _everybody at once_ when no trusted client address can be resolved behind the proxy — is
   spent by ordinary use: somebody who has just chosen a password, mistypes it twice on a phone
   keyboard and then types it correctly is refused on the attempt that was right. The window is
   therefore widened to something a person cannot reach by hand but a script still trips over, and
@@ -302,6 +326,7 @@ verified domain, with a **reply-to that reaches the shop**, because somebody rep
 person trying to get hold of the shop.
 
 ## Phone numbers
+
 - **`phone` and `whatsapp` are both required-unique / optional-unique respectively**, and both are
   **stored exactly as entered** in E.164 (e.g. `+970599123456` or `+972599123456`) — we do NOT
   rewrite the prefix, so WhatsApp messages reach the number on its real prefix.
@@ -315,6 +340,7 @@ person trying to get hold of the shop.
   needed for staff (Admin creates their accounts).
 
 ## Sensitive fields (never exposed broadly)
+
 - **`cost`** (purchase cost) **and everything derived from it** — COGS, gross profit, net profit,
   margin, the inventory valuation at cost: **Admin only**. Never returned by the API to a Manager
   or an Employee — enforced on the backend, not just hidden in the UI. A Manager runs the shop
@@ -322,14 +348,17 @@ person trying to get hold of the shop.
 - **`idNumber`** (staff ID): **Admin only**. Optional field. Never returned by the API to others.
 
 ## No static text — everything is translated
+
 **No user-facing string may be hard-coded, anywhere.** Every label, button, title, placeholder,
 confirmation, validation message, and toast goes through the translation function `t()`.
+
 - Frontend (admin + pos): all UI strings via `next-intl` keys.
 - Backend: returns **translation keys** (e.g. `error.product.not_found`), never literal sentences;
   the frontend renders them in the user's language.
-This is a hard rule — a single hard-coded string is a bug.
+  This is a hard rule — a single hard-coded string is a bug.
 
 ## Error tracking
+
 - **Sentry** (free tier) captures technical errors/exceptions across backend + admin + pos, with
   stack traces, grouping, and email alerts. This is separate from the Audit Log (which is a
   business record shown in the admin).
@@ -339,13 +368,16 @@ This is a hard rule — a single hard-coded string is a bug.
 ---
 
 ## Languages & translation (i18n)
+
 Two separate layers:
 
 ### 1. UI language (interface text)
+
 Buttons, menus, labels ("Add product", "Inventory"...). Handled with **`next-intl`**
 translation files. Does not touch the database.
 
 ### 2. Product content (data) — affects the schema
+
 Translatable fields: product `name` + `description`, category `name`,
 variant type `name`, and option `value`.
 
@@ -360,6 +392,7 @@ Supported languages at launch: **Arabic (default), English, Hebrew.** Adding a l
 just another key in the JSON — no schema change.
 
 ## Search (smart, cross-language, typo-tolerant)
+
 The search must be **cross-language**: typing "فستان" while on the English UI still finds the
 product, because all translations live in the same record. Rules:
 
@@ -407,6 +440,7 @@ next-intl is open-source, translations live in the DB. No paid search or transla
 ---
 
 ## Images — storage & optimization
+
 - **Stored locally on the VPS** (no external service like Cloudinary).
 - **On upload (backend):** process with **`sharp`** before saving:
   - compress + resize
@@ -480,7 +514,7 @@ garment in the other — so the browser's default reflexes are wrong for them:
   mid-sale is not something a cashier with a customer waiting will stop and
   undo. Three things together: `maximum-scale=1, user-scalable=no` in the
   viewport (honoured by Chrome and the Android WebView), `touch-action:
-  manipulation` (drops double-tap-to-zoom without touching taps or fast
+manipulation` (drops double-tap-to-zoom without touching taps or fast
   repeated taps), and cancelling Safari's `gesture*` events plus any
   multi-touch `touchmove`, because iOS has ignored `user-scalable=no` since
   iOS 10. In the **installed** app that holds; in plain Safari the same
@@ -500,6 +534,7 @@ garment in the other — so the browser's default reflexes are wrong for them:
 ---
 
 ## Barcode / QR scanning (POS)
+
 - Library: **`html5-qrcode`** — broad browser support incl. **mobile** (iOS Safari + Android Chrome),
   rear-camera support, reads both 1D barcodes and QR.
 - Fallback if 1D accuracy is poor: **`@zxing/library`**.
@@ -509,6 +544,7 @@ garment in the other — so the browser's default reflexes are wrong for them:
 ---
 
 ## POS selling screen layout (picking by eye)
+
 The selling screen follows the POS Figma file ("4 sizes": Desktop 1440, Lenovo Miix 320
 1280×800, Tablet 1080, Small tablet 768, Mobile 390). The camera, the counter's hand scanner, the
 search box and the photo grid all end in the same cart, through the same lookup.
@@ -519,7 +555,7 @@ search box and the photo grid all end in the same cart, through the same lookup.
 - **Categories card:** a sideways-scrolling row of tiles, "All" first, then the shop's
   **favourites** (`Category.isFavorite`, starred in the admin — server-side, so every till agrees),
   then every other category. Each tile shows its **product count**: active, non-deleted products on
-  that category *and everything under it* (`productCount` on `GET /api/categories`), so the number
+  that category _and everything under it_ (`productCount` on `GET /api/categories`), so the number
   matches what selecting it lists. "All" uses the product list's own total.
 - **Products card:** title (no filter — the shop does not want one) and the grid: 2 per row under
   600px, 3 from 600px, 4 from 1200px, 5 from 1400px. Each product is a **card of its own** — white,
@@ -550,35 +586,36 @@ search box and the photo grid all end in the same cart, through the same lookup.
 ---
 
 ## Roles & Permissions
+
 Three fixed roles.
 
-| Capability                        | Admin | Manager | Employee |
-|-----------------------------------|:-----:|:-------:|:--------:|
-| POS — make sales                  |  ✅   |   ✅    |    ✅    |
-| Add products                      |  ✅   |   ✅    |    ✅    |
-| Edit product images               |  ✅   |   ✅    |    ✅    |
-| Edit product details (name, etc.) |  ✅   |   ✅    |    ✅    |
-| Edit product **price**            |  ✅   |   ✅    | ✅ (needs approval) |
-| Add option type/value (inline)    |  ✅   |   ✅    |    ✅    |
-| **Rename / delete** option value  |  ✅   |   ✅    |    ❌    |
-| **Delete** product                |  ✅   |   ✅    |    ❌    |
-| **Hide / publish** product        |  ✅   |   ✅    | ✅ (needs approval) |
-| Create order + hand to courier    |  ✅   |   ✅    |    ✅    |
-| **Delete / edit / cancel** order  |  ✅   |   ✅    |    ❌    |
-| **Mark money collected**          |  ✅   |   ✅    |    ❌    |
-| **Give stock away** (GIFT order)  |  ✅   |   ✅    |    ❌    |
-| Manage stock (full)               |  ✅   |   ✅    | ✅ (needs approval) |
-| **Delete** a product photo        |  ✅   |   ✅    | ✅ (needs approval) |
-| Change a product's **variant set**|  ✅   |   ✅    | ✅ (needs approval) |
-| Record an expense                 |  ✅   |   ✅    | ✅ (needs approval) |
-| Read / edit expenses              |  ✅   |   ✅    |    ❌    |
-| **Approve** a pending change      |  ✅   |   ❌    |    ❌    |
-| Open + close the cash drawer      |  ✅   |   ✅    |    ❌    |
-| **See cost, COGS, profit, margin**|  ✅   |   ❌    |    ❌    |
-| **Open the Reports screen**       |  ✅   |   ❌    |    ❌    |
-| Dashboard (sold / received / owed)|  ✅   |   ✅    |    ❌    |
-| Manage users                      |  ✅   |   ❌    |    ❌    |
-| Settings                          |  ✅   |   ❌    |    ❌    |
+| Capability                         | Admin | Manager |      Employee       |
+| ---------------------------------- | :---: | :-----: | :-----------------: |
+| POS — make sales                   |  ✅   |   ✅    |         ✅          |
+| Add products                       |  ✅   |   ✅    |         ✅          |
+| Edit product images                |  ✅   |   ✅    |         ✅          |
+| Edit product details (name, etc.)  |  ✅   |   ✅    |         ✅          |
+| Edit product **price**             |  ✅   |   ✅    | ✅ (needs approval) |
+| Add option type/value (inline)     |  ✅   |   ✅    |         ✅          |
+| **Rename / delete** option value   |  ✅   |   ✅    |         ❌          |
+| **Delete** product                 |  ✅   |   ✅    |         ❌          |
+| **Hide / publish** product         |  ✅   |   ✅    | ✅ (needs approval) |
+| Create order + hand to courier     |  ✅   |   ✅    |         ✅          |
+| **Delete / edit / cancel** order   |  ✅   |   ✅    |         ❌          |
+| **Mark money collected**           |  ✅   |   ✅    |         ❌          |
+| **Give stock away** (GIFT order)   |  ✅   |   ✅    |         ❌          |
+| Manage stock (full)                |  ✅   |   ✅    | ✅ (needs approval) |
+| **Delete** a product photo         |  ✅   |   ✅    | ✅ (needs approval) |
+| Change a product's **variant set** |  ✅   |   ✅    | ✅ (needs approval) |
+| Record an expense                  |  ✅   |   ✅    | ✅ (needs approval) |
+| Read / edit expenses               |  ✅   |   ✅    |         ❌          |
+| **Approve** a pending change       |  ✅   |   ❌    |         ❌          |
+| Open + close the cash drawer       |  ✅   |   ✅    |         ❌          |
+| **See cost, COGS, profit, margin** |  ✅   |   ❌    |         ❌          |
+| **Open the Reports screen**        |  ✅   |   ❌    |         ❌          |
+| Dashboard (sold / received / owed) |  ✅   |   ✅    |         ❌          |
+| Manage users                       |  ✅   |   ❌    |         ❌          |
+| Settings                           |  ✅   |   ❌    |         ❌          |
 
 **Security rationale:** Employee can create orders and hand them to the courier but **cannot
 delete or edit them**, so a sale can't be erased to cover theft — and **cannot mark its money
@@ -590,7 +627,7 @@ nicer name. Every action is tied to its author via the Audit Log.
 **Reports are Admin only** (`report.view`). The Reports screen is the owner's read of the
 business — what the shop sold, through which channel, what it cost and what it earned — and it is
 gated on its own permission rather than on `order.view`, which every role holds so that whoever
-takes an order can follow it. Reading *one* order is not reading *every* order added up. A Manager
+takes an order can follow it. Reading _one_ order is not reading _every_ order added up. A Manager
 still gets what running the floor needs from the **dashboard** (sold / received / still owed, with
 every cost-derived figure absent from their payload); an **Employee** reaches neither screen, so no
 shop-wide sales figure of any kind is computed for them — a 403, never a partial or zeroed one.
@@ -664,7 +701,7 @@ A database read per call is not an option, so each API process holds the table i
 
 - the process that **makes** a change re-reads immediately, inside the request that made it, so
   whoever just tapped the box is never shown the state they replaced;
-- every **other** process checks a *version* rather than the table — a digest of the whole
+- every **other** process checks a _version_ rather than the table — a digest of the whole
   (role, action, granted) set, one row back, asked for at most once every few seconds on the way
   through `requireAuth`. Unchanged (the normal case) it does nothing; moved, it re-reads once.
   A digest rather than a timestamp, because a timestamp is only as precise as its column and two
@@ -720,13 +757,13 @@ it is **ask**.
 
 **What is gated.** Five things an Employee may ask for but not do:
 
-| Change | Requested via | Applied by |
-|---|---|---|
-| A product's **price** (`basePrice`, `compareAtPrice`, a variant's `priceOverride`) | the product form | `product.editPrice` |
-| A **manual stock** figure | the product form / the stock screen | `inventory.adjust` |
-| **Deleting a photo** | the gallery | `images.delete` |
-| **Hiding or unhiding** a product | the product form | `product.hide` |
-| A product's **variant set** (adding combinations, removing one) | the options section | `product.editVariantSet` |
+| Change                                                                             | Requested via                       | Applied by               |
+| ---------------------------------------------------------------------------------- | ----------------------------------- | ------------------------ |
+| A product's **price** (`basePrice`, `compareAtPrice`, a variant's `priceOverride`) | the product form                    | `product.editPrice`      |
+| A **manual stock** figure                                                          | the product form / the stock screen | `inventory.adjust`       |
+| **Deleting a photo**                                                               | the gallery                         | `images.delete`          |
+| **Hiding or unhiding** a product                                                   | the product form                    | `product.hide`           |
+| A product's **variant set** (adding combinations, removing one)                    | the options section                 | `product.editVariantSet` |
 
 Admin and Manager hold every one of those permissions, so their edits apply immediately and no
 request is ever filed. An Employee's edit is neither applied nor discarded: it is **held**, and
@@ -734,8 +771,8 @@ the screen says so against the value still in force ("waiting for approval — 3
 edit that silently disappears is an edit somebody types again.
 
 **Automatic stock deduction is never gated.** Stock leaving the shelf because something was
-*sold* — or coming back on a return — happens on the spot, whoever rang it up. There is a customer
-standing there. Only *manual* stock edits go through approval.
+_sold_ — or coming back on a return — happens on the spot, whoever rang it up. There is a customer
+standing there. Only _manual_ stock edits go through approval.
 
 **One mechanism, not several.** A request is `(entity type, entity id, field, old value,
 requested value)` plus who asked and who decided. Nothing about it is product-shaped, which is why
@@ -756,7 +793,7 @@ nothing (an expense is the one exception: a refused expense is marked `REJECTED`
 with who refused it, rather than sitting pending forever). Nobody decides their own request.
 Approval is **Admin only** for now, modelled as a permission (`changeRequest.approve`) so it can
 be widened later without touching the flow. **A Manager cannot decide a request** — deliberately,
-and it is the whole reason the gate exists. Note that a Manager *does* hold `expense.approve`,
+and it is the whole reason the gate exists. Note that a Manager _does_ hold `expense.approve`,
 which is a different thing entirely: it means "the spending I record myself counts immediately",
 never "I may sign off somebody else's". If a request ever shows a Manager as its decider it is
 historical data, not a decision this API would accept today — the migration that lifted expense
@@ -774,7 +811,7 @@ expense-approval backfill does not end up listing one refusal twice under two di
 held by every role) — somebody who typed the wrong price should not have to occupy an Admin's
 attention to undo it. Two conditions, both enforced on the backend: it must be **your own**
 request, and it must still be **pending**. There is deliberately no Admin override — an Admin who
-disagrees *rejects*, which stays on the record with their name on it — and a decided request can
+disagrees _rejects_, which stays on the record with their name on it — and a decided request can
 never be withdrawn, because that would erase somebody else's answer. Withdrawing removes the row
 (freeing the pending slot, so the same field can be asked about again immediately) and writes a
 `CANCEL` audit entry carrying what was asked for, exactly the way a superseded request survives.
@@ -785,7 +822,7 @@ what they themselves asked for, enforced on the backend — an Employee has to b
 their own request, and nothing more. Both get a count on the navigation.
 
 **What a card says.** The **product's name** heads every request that has one, because that is the
-question an approver actually asks — *which piece is this about?* The entity's own label sits
+question an approver actually asks — _which piece is this about?_ The entity's own label sits
 underneath as secondary detail, which matters on a variant: the entity there is the combination
 (`أحمر / M`), and on its own it named nothing. Both are snapshots taken when the request is filed
 (`productLabel` / `entityLabel`), so a card still reads correctly after the product is renamed or
@@ -810,7 +847,7 @@ At the height of the season, stock reaches the shop floor before it reaches the 
 is holding a piece that nobody has entered yet, there is a queue behind them, and the honest choice
 is between selling it and writing it on paper. So the POS sells it.
 
-**Sell first, tidy up later.** A cashier taps *Quick sell* and types what the sale genuinely needs:
+**Sell first, tidy up later.** A cashier taps _Quick sell_ and types what the sale genuinely needs:
 a **name**, a **selling price**, and optionally one short **colour / size / number**. No category,
 no cost, no barcode, no photograph, no variants. The line joins the cart like any other, discounts
 and totals the same way, and the sale completes **immediately** — nothing about it waits for
@@ -818,22 +855,22 @@ approval, and stock behaves exactly as it does for any other sale.
 
 **What the sale creates.** In the same transaction as the order:
 
-* a **Product**, deliberately incomplete — `categoryId` null, `cost` null, no images, no variants,
+- a **Product**, deliberately incomplete — `categoryId` null, `cost` null, no images, no variants,
   `isActive` false (it has no business being browsed to yet), a barcode of ours so the piece can be
   labelled the moment somebody shelves it, and `stock` equal to what is leaving, so the sale's own
   deduction lands it at zero. `quickSoldAt` is stamped.
-* an **OrderItem** with `quickSold` true and `unitCost` **null** — nobody at the till knows what the
+- an **OrderItem** with `quickSold` true and `unitCost` **null** — nobody at the till knows what the
   piece cost.
-* a **ChangeRequest** on `(Product, completion)`, through the same mechanism as every other gated
+- a **ChangeRequest** on `(Product, completion)`, through the same mechanism as every other gated
   change (CLAUDE.md rule 21). No second `approvalStatus` column anywhere.
 
 Because all three commit together, an abandoned or failed checkout can never leave a nameless
 half-product behind.
 
 **The request reads the other way round.** Every other request on the approvals screen asks
-permission *before* the fact. This one is a review *after* it: the sale has happened and the money
+permission _before_ the fact. This one is a review _after_ it: the sale has happened and the money
 is in the till. So it gets a card of its own that says what happened first — "already sold for
-150 · order 412" — and offers *Complete the details* and *It was a one-off* rather than approve and
+150 · order 412" — and offers _Complete the details_ and _It was a one-off_ rather than approve and
 reject. Getting that wrong would invite the conclusion that refusing undoes a sale.
 
 **Completing** is done on the product's own edit form, where the missing half actually lives: the
@@ -858,7 +895,7 @@ itself (and per line, since an order of six may have one), with a filter for "qu
 The catalogue side has the **needs completing** queue: a tab on the products screen, carrying its
 own count, listing exactly the pieces that are quick-sold and not yet decided. It has to be a tab
 rather than a filter inside the sheet, because these products have no category — the filter
-somebody *would* reach for cannot see them. Rows carry an "incomplete" badge wherever they appear.
+somebody _would_ reach for cannot see them. Rows carry an "incomplete" badge wherever they appear.
 
 **Permissions.** `product.quickSell` — every role as shipped, which is the point: it happens when
 the shop is busiest and that is exactly when an Employee is at the till. `product.complete` —
@@ -880,12 +917,14 @@ any other change.
 ---
 
 ## Soft delete
+
 Products are never hard-deleted (they may be linked to past orders). Deleting sets `deletedAt`
 and hides the product from all normal views. Role-gated (Manager/Admin only).
 
 ---
 
 ## Audit Log
+
 Every meaningful action is recorded: who (`userId`), what (`action`), on which entity
 (`entityType` + `entityId`), and the `oldValue` / `newValue`. Covers create/update/delete,
 publish/hide, stock changes, price changes, and — for gated changes — who **requested** one, whose
@@ -894,6 +933,7 @@ request **superseded** an earlier one, and who **approved** or **rejected** it.
 ---
 
 ## Admin dashboard — what's available
+
 - **Dashboard:** today/month sales summary, top products, low-stock alerts
 - **Orders:** list/filter/search, order detail, status flow, returns
 - **Collection:** money still with the delivery company — the outstanding total and the orders it
@@ -914,6 +954,7 @@ request **superseded** an earlier one, and who **approved** or **rejected** it.
 ## Libraries per project
 
 ### backend/
+
 - `express` — server
 - `prisma` + `@prisma/client` — DB & ORM
 - `zod` — input validation
@@ -927,6 +968,7 @@ request **superseded** an earlier one, and who **approved** or **rejected** it.
 - dev: `typescript`, `tsx`, `@types/*`
 
 ### admin/
+
 - `next`, `react`, `react-dom`
 - `tailwindcss` + `shadcn/ui` — styling & components
 - `@tanstack/react-table` — data tables (products, inventory)
@@ -941,11 +983,13 @@ request **superseded** an earlier one, and who **approved** or **rejected** it.
 - `@sentry/nextjs` — error tracking
 
 ### pos/
+
 - same base as admin (`next`, `tailwind`, `shadcn/ui`, `@tanstack/react-query`, `react-hook-form`, `next-intl`)
 - `html5-qrcode` — camera barcode/QR scanning (fallback: `@zxing/library`)
 - distinct UI: fast screen, large buttons, instant search
 
 ### shared/
+
 - `zod` — shared type/schema definitions imported by all projects
 
 ---
@@ -964,7 +1008,7 @@ be given one by accident.
   stronger than merely idempotent: each item is created **at most once in the life of the
   database**, recorded in a `BootstrapRecord` row. An upsert-based version would be idempotent
   and still wrong — the shop retires a colour it never stocks, the next push puts it back, and
-  the shop learns the system overrules them. A genuinely *new* default added in a later release
+  the shop learns the system overrules them. A genuinely _new_ default added in a later release
   still lands. An item that already exists (from the old dev seed) is adopted and left untouched.
 - **`npm run init` — the real staff accounts, once, by hand.** Never on a deploy. It creates the
   accounts with no password and emails each of them a set-password link, and it **refuses
@@ -983,6 +1027,7 @@ be given one by accident.
   reported at once, naming the entry it is in. Nothing is created until the file is clean: a
   typo in the fourth entry must never leave the first three accounts made, because `init` would
   then refuse to finish the job.
+
 - **`npm run db:reset` — destructive, manual only.** Drops every table, re-applies every
   migration, and deletes uploaded images that no longer belong to anything. It seeds nothing. It
   refuses without an explicit confirmation typed out in full, every run, and needs a second,
@@ -997,9 +1042,11 @@ own password by email → start entering real stock.**
 ---
 
 ## Seed data (dev/testing)
+
 `backend/prisma/dev/demo-seed.ts` provides idempotent test data (run: `npm run seed:demo`, with
 the disposable-database declaration above). It must be **idempotent** (upsert-based, safe to
 re-run) and **dev-only**. It covers every rule:
+
 - one user per role (admin/manager/employee @store.test, password `password123`)
 - global variant types + values in ar/en/he (Color, Size, Number)
 - nested categories (Women > Dresses > Evening; Women > Abayas)
@@ -1008,6 +1055,7 @@ re-run) and **dev-only**. It covers every rule:
 - a compare-at price, an out-of-stock variant, a hidden product, a soft-deleted product
 
 ## Build order (for Claude Code — one stage at a time)
+
 1. `backend/` — Prisma schema + migrations + demo seed (`prisma/dev/demo-seed.ts`, idempotent,
    covers all rules; quarantined — see "Going live" above).
 2. Auth (JWT) + role middleware.
@@ -1017,18 +1065,20 @@ re-run) and **dev-only**. It covers every rule:
 6. Audit log wired into all mutations.
 7. `admin/` UI on top of the API.
 8. `pos/` screen + scanner.
-**Test each stage before moving to the next.**
+   **Test each stage before moving to the next.**
 
 ---
 
 ---
 
 ## Planned feature: Numbered shawls (variant-based, deferred)
+
 A way to sell shawls over WhatsApp: one product per collection with a **single image** showing all
 colors, and **numbers drawn on the image**. Each number is one purchasable item with its own
 stock/price. Send one numbered image on WhatsApp; the customer replies with a number.
 
 **Design — reuses the EXISTING variant system (no new product type):**
+
 - The "الأرقام / Number" variant type already exists (global, like Color/Size). A numbered shawl is
   just a normal product using the **Number** variant type: choosing numbers 1–6 generates variants
   1–6 exactly like any other variant. Stock, price (+ override), SKU, barcode, audit — all reused
@@ -1097,6 +1147,7 @@ All three live in `shared/` (`constants/numberedShawl.ts`, `lib/pointColors.ts`)
 app's CSS, so the burned-in WhatsApp copy resolves exactly the same colours.
 
 **Admin input (two-step, to avoid mis-linking):**
+
 1. Place points on the image first — auto-numbered 1, 2, 3… (creates the Number values/variants).
 2. Review/drag/delete misplaced points BEFORE committing.
 3. Then set quantity (and optional price) per number.
@@ -1117,9 +1168,11 @@ type + quantity (+ optional price) per number.
 ## Phase 2: Orders
 
 ### Channel (where the sale came from)
+
 Every order records its **channel**: `STORE` (sold in the shop via POS), `WHATSAPP`, or `WEBSITE`.
 
 ### Status flow
+
 - **STORE (in-shop sale):** completed immediately — a direct sale, no pipeline at all.
 - **Online (WHATSAPP / WEBSITE):** `NEW` → `PREPARING` → `HANDED_TO_COURIER`
   ("تم تسليمه لشركة التوصيل"), which is the **final** state.
@@ -1138,20 +1191,24 @@ before the parcel has left. There is deliberately no `HANDED_TO_COURIER → COMP
 states together rather than chaining them.
 
 ### Customer information
+
 Customers are still **deferred as an entity** — there is no `Customer` table. Instead, customer
 details are stored **directly on the order** (a snapshot):
+
 - **STORE:** no customer info needed (all fields empty).
 - **WHATSAPP / WEBSITE:** capture name, phone, and location/address info (optional map coordinates).
   The admin takes the location as the **Google Maps link the customer sends**: a full link is read in
   the browser; a short `maps.app.goo.gl` link is opened by the backend (`POST /api/orders/map-link`),
   which follows Google's map hosts only and stores just the coordinates. No Google API key is used.
   The WhatsApp number is asked only when it differs from the phone.
-This keeps Phase 3 (real customer accounts) open without blocking orders now.
+  This keeps Phase 3 (real customer accounts) open without blocking orders now.
 
 ### Payment
+
 **Cash only** for now, but modeled as a field (`paymentMethod`) so more methods can be added later.
 
 ### Payment collection (money arrives later)
+
 Selling and being paid are **two different moments** in this shop, and conflating them is what
 makes profit figures lie. A counter sale is cash in the till. An order handed to the delivery
 company is money that company holds — sometimes for weeks — and hands over in a batch later.
@@ -1180,19 +1237,23 @@ cancelled sales excluded — so the orders screen and the reports screen can nev
 amounts for the same sales.
 
 ### Discounts
+
 Supported at **two levels**: per **line item** and on the **order total**. Each stores its type
 (percentage or fixed amount) and value.
 
 ### Stock deduction
+
 - **STORE:** stock is deducted **immediately** at sale.
 - **Online:** stock is deducted when the order moves to **PREPARING**.
 - An order records when its stock was deducted, so it's never double-deducted.
 
 ### Returns
+
 Returns are supported: an order (or specific items with quantities) can be returned, which
 **restores stock** and is recorded in the audit log.
 
 ### Reports: sold vs. collected
+
 Sales reporting must never let "what we sold" be read as "what we hold". Every totals block
 therefore splits revenue three ways:
 
@@ -1201,7 +1262,7 @@ therefore splits revenue three ways:
 - `pendingCollectionAmount` (+ `pendingCollectionOrderCount`) — the part still owed by the
   delivery company.
 
-The two parts always add back up to `revenue`. Profit is unaffected by *when* the money lands —
+The two parts always add back up to `revenue`. Profit is unaffected by _when_ the money lands —
 it is a sales figure — but the pending total sits next to it so the shop can see the difference
 between a good month and a month that has been paid for. These are sales figures rather than
 costs, so every role that may read the block at all sees them — the Reports screen is Admin only
@@ -1209,11 +1270,13 @@ and the dashboard is Admin/Manager, while cost/profit/margin stay **Admin only**
 the sensitive-fields rule.
 
 ### Price & cost snapshots (important)
+
 Each order item stores a **snapshot** of the unit **price** and unit **cost** at the moment of sale.
 Prices and costs change over time, so profit reports must use what was true at sale time, not the
 product's current values. This is what makes the sales/profit dashboard accurate.
 
 ### Roles (already defined in the permissions layer)
+
 Employee can **create** orders and advance them as far as the courier handover, but **cannot
 delete, edit, or cancel** them, and **cannot mark their money collected** (anti-theft).
 Admin/Manager have full control. Every mutation writes an audit entry.
@@ -1236,10 +1299,10 @@ difference = counted − expected            (negative = short, positive = over)
 tomorrow's openingFloat = counted − withdrawn
 ```
 
-- **Admin and Manager only**, both reading and writing. The count *is* the shop's cash position,
+- **Admin and Manager only**, both reading and writing. The count _is_ the shop's cash position,
   so the person standing at the till must not be the one who declares what should have been in it
   — the same anti-theft reasoning as "mark money collected".
-- **Cash sales** are sales paid in cash whose money was actually *collected* inside the day's
+- **Cash sales** are sales paid in cash whose money was actually _collected_ inside the day's
   window. A counter sale counts the moment it is rung up; a courier order counts on the day the
   delivery company settles it, because that is the day the notes reach the drawer. Computed from
   the same per-line view the reports use, so the drawer and the reports can never disagree.
@@ -1247,10 +1310,10 @@ tomorrow's openingFloat = counted − withdrawn
   transfer expense is just as real a cost, but the drawer never held that money.
 - **Closing records the count and any withdrawal.** What is left (`counted − withdrawn`) becomes
   the next day's opening float **automatically** — nobody has to remember a number overnight. Note
-  it carries the *counted* figure, not the expected one: the next day opens on the money that is
+  it carries the _counted_ figure, not the expected one: the next day opens on the money that is
   really there.
 - **A difference is never a reason to refuse the close.** The money in the drawer is a fact, and a
-  system that won't record it only teaches people to fudge the count. It is always saved. What *is*
+  system that won't record it only teaches people to fudge the count. It is always saved. What _is_
   required is a **note** explaining it, and the shop may **carry it forward** as a follow-up
   reminder that stays on the list until someone signs it off. Carrying moves no money — the next
   day already opens on what was counted — it is purely the reminder that a day did not add up.
@@ -1262,7 +1325,7 @@ tomorrow's openingFloat = counted − withdrawn
   returns the three figures with the refusal, so the screen can reveal them without ever having
   been told the answer in advance. The count itself is fixed once revealed.)
 - **One drawer per day**, and that is the only restriction. Yesterday's session still being open
-  does *not* stop today's from starting: money is attributed to a day by that day's window, never
+  does _not_ stop today's from starting: money is attributed to a day by that day's window, never
   by "whichever drawer happens to be open", so nothing can be double-counted — and refusing to let
   the shop trade because someone forgot to count last night is exactly the kind of block this
   feature rejects everywhere else. An uncounted day stays visible as an open session in the list.
@@ -1276,7 +1339,7 @@ tomorrow's openingFloat = counted − withdrawn
   Manager's own expense is approved as it is written, since they hold `expense.approve` and could
   approve it anyway. Rejected expenses stay on the record, with who turned them down and why.
 - **The approval itself is an ordinary change request** (see "Employee change approvals"): the
-  expense's `approvalStatus`/`approvedBy` columns are the *applied* state — which every money
+  expense's `approvalStatus`/`approvedBy` columns are the _applied_ state — which every money
   query still filters on — while the thing an Admin acts on lives in the one approval flow the
   whole shop uses. Deciding it is **Admin only**; a Manager records spending that counts
   immediately, but does not sign off somebody else's.
@@ -1292,7 +1355,7 @@ tomorrow's openingFloat = counted − withdrawn
 The shop's own list, not an enum — seeded with **utilities, salaries, supplies, maintenance,
 delivery** and extendable from the admin. Identity is a stable `key`; the display name is
 translatable, so renaming it in three languages can never orphan a past expense. Every role may
-*read* the list (picking one is part of recording an expense); changing it is Admin/Manager. A
+_read_ the list (picking one is part of recording an expense); changing it is Admin/Manager. A
 category with expenses filed under it cannot be deleted — retire it instead, so the past keeps
 making sense.
 
@@ -1352,13 +1415,13 @@ the delivery company).
 
 Two rules govern the wording, and they are what the whole screen is for:
 
-- **Never one vague "revenue".** Every block says *Sold*, *Received* and *Still owed* separately,
+- **Never one vague "revenue".** Every block says _Sold_, _Received_ and _Still owed_ separately,
   with "still owed" in a warning tone so it can never be mistaken for takings.
 - **Never one vague "profit".** Profit is always given twice — on all sales, and on the received
   part alone — so it is never ambiguous whether the money is actually in hand.
 
 The drawer is shown as the sum it is, line by line, so that when a count disagrees it is obvious
-*where* the expectation came from. Every label carries a **(?)** that expands a plain-language
+_where_ the expectation came from. Every label carries a **(?)** that expands a plain-language
 explanation inline beneath it — tapped, not hovered (there is no hover on a phone), and in normal
 flow so it can never clip at the edge of a narrow screen.
 
@@ -1374,7 +1437,7 @@ The owner is not at the counter all day, and the question they actually want ans
 **Employee** pushes a notification to the **Admins'** phones.
 
 - **Nobody is told about their own sale.** An Admin who rings something up at the counter
-  was standing there; being told what *someone else* sold is the whole point.
+  was standing there; being told what _someone else_ sold is the whole point.
 - **Transport is the free Web Push standard** — the browser's own push service delivers it,
   identified by a VAPID key pair the deployment generates once. No paid notification
   service, in line with the hosting rules.
@@ -1392,6 +1455,7 @@ The owner is not at the counter all day, and the question they actually want ans
   person at the till. A subscription the push service reports as gone is cleaned up.
 
 ### Settings
+
 Two store-wide settings (Admin only), on top of the per-device opt-in:
 
 - an **on/off switch** for sale notifications;

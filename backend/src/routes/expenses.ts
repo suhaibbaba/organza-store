@@ -70,13 +70,17 @@ const expenseInclude = {
 
 async function loadExpense(id: string) {
   const expense = await prisma.expense.findFirst({ where: { id, deletedAt: null }, include: expenseInclude });
-  if (!expense) throw new AppError(404, ERROR_CODES.EXPENSE_NOT_FOUND);
+  if (!expense) {
+    throw new AppError(404, ERROR_CODES.EXPENSE_NOT_FOUND);
+  }
   return expense;
 }
 
 async function requireCategory(categoryId: string): Promise<void> {
   const category = await prisma.expenseCategory.findUnique({ where: { id: categoryId } });
-  if (!category) throw new AppError(400, ERROR_CODES.EXPENSE_CATEGORY_NOT_FOUND);
+  if (!category) {
+    throw new AppError(400, ERROR_CODES.EXPENSE_CATEGORY_NOT_FOUND);
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -90,11 +94,21 @@ router.get(
     const query = req.validatedQuery as ListExpensesQuery;
     const where: Prisma.ExpenseWhereInput = { deletedAt: null };
 
-    if (query.categoryId) where.categoryId = query.categoryId;
-    if (query.approvalStatus) where.approvalStatus = query.approvalStatus;
-    if (query.paidInCash !== undefined) where.paidInCash = query.paidInCash;
-    if (query.isRecurring !== undefined) where.isRecurring = query.isRecurring;
-    if (query.q) where.note = { contains: query.q, mode: "insensitive" };
+    if (query.categoryId) {
+      where.categoryId = query.categoryId;
+    }
+    if (query.approvalStatus) {
+      where.approvalStatus = query.approvalStatus;
+    }
+    if (query.paidInCash !== undefined) {
+      where.paidInCash = query.paidInCash;
+    }
+    if (query.isRecurring !== undefined) {
+      where.isRecurring = query.isRecurring;
+    }
+    if (query.q) {
+      where.note = { contains: query.q, mode: "insensitive" };
+    }
 
     if (query.dateFrom || query.dateTo) {
       where.date = {
@@ -120,7 +134,7 @@ router.get(
       total,
       totalPages: Math.max(1, Math.ceil(total / query.pageSize)),
     });
-  })
+  }),
 );
 
 // ---------------------------------------------------------------------------
@@ -131,7 +145,7 @@ router.get(
   requirePermission("expense.view"),
   asyncHandler(async (req, res) => {
     sendOk(res, serializeExpense(await loadExpense(req.params.id)));
-  })
+  }),
 );
 
 // ---------------------------------------------------------------------------
@@ -200,9 +214,9 @@ router.post(
       res,
       { ...serializeExpense(created), pendingChange: pendingChange ? serializeChangeRequest(pendingChange) : null },
       null,
-      201
+      201,
     );
-  })
+  }),
 );
 
 // ---------------------------------------------------------------------------
@@ -217,7 +231,9 @@ router.patch(
     const existing = await loadExpense(req.params.id);
     const body = req.body as UpdateExpenseInput;
 
-    if (body.categoryId) await requireCategory(body.categoryId);
+    if (body.categoryId) {
+      await requireCategory(body.categoryId);
+    }
 
     const updated = await prisma.expense.update({
       where: { id: existing.id },
@@ -242,7 +258,7 @@ router.patch(
     });
 
     sendOk(res, serializeExpense(updated));
-  })
+  }),
 );
 
 // ---------------------------------------------------------------------------
@@ -259,9 +275,7 @@ router.delete(
       const row = await tx.expense.update({ where: { id: existing.id }, data: { deletedAt: new Date() } });
       // A deleted expense is not waiting on anybody: leaving its approval on
       // the screen would offer an Admin a decision about a hidden record.
-      await cancelPendingChangesFor(tx, [
-        { entityType: CHANGE_REQUEST_ENTITIES.EXPENSE, entityId: existing.id },
-      ]);
+      await cancelPendingChangesFor(tx, [{ entityType: CHANGE_REQUEST_ENTITIES.EXPENSE, entityId: existing.id }]);
       return row;
     });
 
@@ -275,7 +289,7 @@ router.delete(
     });
 
     sendOk(res, { id: deleted.id, deletedAt: deleted.deletedAt });
-  })
+  }),
 );
 
 export default router;

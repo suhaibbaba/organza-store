@@ -66,7 +66,7 @@ function renderShellHeader() {
       <QueryClientProvider client={queryClient}>
         <TopBar />
       </QueryClientProvider>
-    </NextIntlClientProvider>
+    </NextIntlClientProvider>,
   );
 }
 
@@ -163,7 +163,6 @@ describe("The app shell names whoever is signed in", () => {
     expect(screen.getByTestId("account-menu")).not.toHaveTextContent("usr_4");
   });
 });
-
 
 // The language is its own pill in the header, beside the account, for every role.
 describe("The language is a pill beside the account", () => {

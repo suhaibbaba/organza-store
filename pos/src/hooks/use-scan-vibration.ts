@@ -32,7 +32,7 @@ export function useScanVibration(): ScanVibration {
   const isMuted = useSyncExternalStore(
     subscribeToScanVibrationMuted,
     isScanVibrationMuted,
-    isScanVibrationMutedOnServer
+    isScanVibrationMutedOnServer,
   );
 
   const toggleMute = useCallback(() => {
@@ -41,15 +41,19 @@ export function useScanVibration(): ScanVibration {
     // Turning it back on buzzes once, then and there: the cashier asked for
     // the cue, so show them what they just switched on rather than making
     // them scan something to find out.
-    if (!next) vibrateScan("success");
+    if (!next) {
+      vibrateScan("success");
+    }
   }, []);
 
   const vibrate = useCallback(
     (variant: FeedbackVariant) => {
-      if (isMuted) return;
+      if (isMuted) {
+        return;
+      }
       vibrateScan(variant);
     },
-    [isMuted]
+    [isMuted],
   );
 
   return { isSupported, isMuted, toggleMute, vibrate };

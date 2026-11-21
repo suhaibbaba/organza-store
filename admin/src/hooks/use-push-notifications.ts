@@ -44,7 +44,9 @@ export function usePushNotifications(): PushNotificationState {
     async function read() {
       const canPush = isPushSupported();
       const existing = canPush ? await getExistingSubscription() : null;
-      if (cancelled) return;
+      if (cancelled) {
+        return;
+      }
 
       setSupported(canPush);
       setPermission(canPush ? Notification.permission : null);
@@ -61,7 +63,9 @@ export function usePushNotifications(): PushNotificationState {
   }, []);
 
   const enable = useCallback(async () => {
-    if (!publicKey) return;
+    if (!publicKey) {
+      return;
+    }
     setAction("pending");
     try {
       // Asked from the button's own click, which is the only moment a
@@ -89,7 +93,9 @@ export function usePushNotifications(): PushNotificationState {
       const endpoint = await dropSubscription();
       // Told to the API too, so it stops pushing at a device that has gone
       // quiet — rather than waiting to learn from the push service.
-      if (endpoint) await unsubscribeFromPush({ endpoint }).catch(() => undefined);
+      if (endpoint) {
+        await unsubscribeFromPush({ endpoint }).catch(() => undefined);
+      }
       setIsSubscribed(false);
       setAction("idle");
     } catch {
@@ -126,9 +132,17 @@ function resolveBlockedReason(state: {
   configured: boolean;
   permission: NotificationPermission | null;
 }): PushBlockedReason | null {
-  if (state.isIOS && !state.isInstalled) return "needs-install";
-  if (!state.supported) return "unsupported";
-  if (!state.configured) return "not-configured";
-  if (state.permission === "denied") return "denied";
+  if (state.isIOS && !state.isInstalled) {
+    return "needs-install";
+  }
+  if (!state.supported) {
+    return "unsupported";
+  }
+  if (!state.configured) {
+    return "not-configured";
+  }
+  if (state.permission === "denied") {
+    return "denied";
+  }
   return null;
 }

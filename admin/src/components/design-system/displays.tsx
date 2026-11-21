@@ -180,21 +180,35 @@ export function Displays() {
           <Button variant="secondary" onClick={() => toast.success("designSystem.feedback.toastSuccess")}>
             {t("feedback.showSuccess")}
           </Button>
-          <Button variant="secondary" onClick={() => toast.warning("designSystem.feedback.toastWarning", undefined, "designSystem.feedback.toastWarningBody")}>
+          <Button
+            variant="secondary"
+            onClick={() =>
+              toast.warning("designSystem.feedback.toastWarning", undefined, "designSystem.feedback.toastWarningBody")
+            }
+          >
             {t("feedback.showWarning")}
           </Button>
-          <Button variant="secondary" onClick={() => toast.error("designSystem.feedback.toastError", undefined, "designSystem.feedback.toastErrorBody")}>
+          <Button
+            variant="secondary"
+            onClick={() =>
+              toast.error("designSystem.feedback.toastError", undefined, "designSystem.feedback.toastErrorBody")
+            }
+          >
             {t("feedback.showError")}
           </Button>
           <Button
             variant="secondary"
-            onClick={() => toast.info("designSystem.feedback.toastInfo", undefined, "designSystem.feedback.toastInfoBody")}
+            onClick={() =>
+              toast.info("designSystem.feedback.toastInfo", undefined, "designSystem.feedback.toastInfoBody")
+            }
           >
             {t("feedback.showInfo")}
           </Button>
           <Button
             variant="secondary"
-            onClick={() => toast.neutral("designSystem.feedback.toastNeutral", undefined, "designSystem.feedback.toastNeutralBody")}
+            onClick={() =>
+              toast.neutral("designSystem.feedback.toastNeutral", undefined, "designSystem.feedback.toastNeutralBody")
+            }
           >
             {t("feedback.showNeutral")}
           </Button>
@@ -202,10 +216,16 @@ export function Displays() {
         </ShowcaseRow>
         <ShowcaseRow label={t("feedback.alerts")}>
           <div className="flex w-full flex-col gap-3">
-            <Alert tone="danger" title={t("feedback.alertDangerTitle")}>{t("feedback.alertDangerBody")}</Alert>
-            <Alert tone="warning" title={t("feedback.alertWarningTitle")}>{t("feedback.alertWarningBody")}</Alert>
+            <Alert tone="danger" title={t("feedback.alertDangerTitle")}>
+              {t("feedback.alertDangerBody")}
+            </Alert>
+            <Alert tone="warning" title={t("feedback.alertWarningTitle")}>
+              {t("feedback.alertWarningBody")}
+            </Alert>
             <Alert tone="success" title={t("feedback.alertSuccessTitle")} />
-            <Alert tone="info" title={t("feedback.alertInfoTitle")}>{t("feedback.alertInfoBody")}</Alert>
+            <Alert tone="info" title={t("feedback.alertInfoTitle")}>
+              {t("feedback.alertInfoBody")}
+            </Alert>
             <Alert tone="neutral">{t("feedback.alertNeutralBody")}</Alert>
           </div>
         </ShowcaseRow>
@@ -306,7 +326,12 @@ export function Displays() {
         onOpenChange={setViewerOpen}
         index={viewerIndex}
         onIndexChange={setViewerIndex}
-        images={DESIGN_SYSTEM_VIEWER_IMAGES.map((src, position) => ({ id: src, src, thumbnailSrc: src, alt: t("overlays.imageAlt", { number: position + 1 }) }))}
+        images={DESIGN_SYSTEM_VIEWER_IMAGES.map((src, position) => ({
+          id: src,
+          src,
+          thumbnailSrc: src,
+          alt: t("overlays.imageAlt", { number: position + 1 }),
+        }))}
       />
       <Modal
         open={modalOpen}

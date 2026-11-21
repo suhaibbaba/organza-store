@@ -10,7 +10,9 @@ export function BrandIconSync(): null {
   const faviconUrls = useSettingsQuery().data?.faviconUrls;
 
   useEffect(() => {
-    if (faviconUrls === undefined) return;
+    if (faviconUrls === undefined) {
+      return;
+    }
     const [tabSize] = PWA_FAVICON_PNG_SIZES;
     const tab = faviconUrls ? resolveImageUrl(faviconUrls[tabSize]) : pwaIconPath(tabSize);
     const apple = faviconUrls ? resolveImageUrl(faviconUrls[PWA_APPLE_ICON_SIZE]) : pwaIconPath(PWA_APPLE_ICON_SIZE);

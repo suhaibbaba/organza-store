@@ -6,18 +6,12 @@ import { Check, Undo2, X } from "lucide-react";
 import { can } from "@store/shared/lib/permissions";
 import type { ChangeRequest } from "@store/shared/types/changeRequest";
 import { testSelectorFor } from "@store/shared/lib/testSelector";
-import {
-  APPROVED_CHANGE_REQUEST_STATUS,
-  PENDING_CHANGE_REQUEST_STATUS,
-} from "@store/shared/constants/changeRequest";
+import { APPROVED_CHANGE_REQUEST_STATUS, PENDING_CHANGE_REQUEST_STATUS } from "@store/shared/constants/changeRequest";
 import { Button, Textarea } from "@store/ui";
 import { useSession } from "@/components/providers/session-provider";
 import { ChangeValueDiff } from "@/components/change-requests/change-value";
 import { ChangeRequestStatusBadge } from "@/components/change-requests/change-request-status-badge";
-import {
-  useCancelChangeRequestMutation,
-  useDecideChangeRequestMutation,
-} from "@/hooks/use-change-requests";
+import { useCancelChangeRequestMutation, useDecideChangeRequestMutation } from "@/hooks/use-change-requests";
 import { useTranslateError } from "@/hooks/use-translate-error";
 import { useActorName } from "@/lib/user-display";
 import { ApiError } from "@/lib/api/errors";
@@ -166,9 +160,7 @@ export function ChangeRequestCard({ request, canDecide }: ChangeRequestCardProps
               isLoading={busy && cancelling}
               icon={<Undo2 className="size-4 rtl:-scale-x-100" aria-hidden="true" />}
               onClick={() =>
-                cancelling
-                  ? cancel.mutate({ id: request.id, productId: request.productId })
-                  : setCancelling(true)
+                cancelling ? cancel.mutate({ id: request.id, productId: request.productId }) : setCancelling(true)
               }
             >
               {cancelling ? t("card.confirmCancelRequest") : t("card.cancelRequest")}

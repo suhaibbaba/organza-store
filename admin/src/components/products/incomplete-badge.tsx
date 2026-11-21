@@ -10,7 +10,7 @@ export function IncompleteBadge({ className }: { className?: string }) {
     <span
       className={cn(
         "inline-flex shrink-0 items-center gap-1 rounded-pill bg-primary-50 px-2 py-0.5 text-micro font-medium text-primary-600",
-        className
+        className,
       )}
       data-test-selector="product-incomplete-badge"
     >

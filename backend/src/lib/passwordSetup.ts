@@ -28,7 +28,7 @@ export interface PasswordSetupInvite {
  */
 export async function sendPasswordSetupEmail(
   user: { id: string; name: string; email: string },
-  purpose: PasswordTokenPurpose
+  purpose: PasswordTokenPurpose,
 ): Promise<PasswordSetupInvite> {
   const config = emailConfig();
   const issued = await passwordTokens.issue(user.id, purpose);
@@ -50,7 +50,7 @@ export async function sendPasswordSetupEmail(
     { to: user.email, subject: rendered.subject, html: rendered.html, text: rendered.text },
     // Enough to find the user in the audit log, and nothing that would put a
     // working link into an error report.
-    { userId: user.id, purpose }
+    { userId: user.id, purpose },
   );
 
   return {

@@ -15,8 +15,12 @@ import type { OrderCustomerDraft } from "@/types/customer";
 // the map pin is optional (spec.md "Customer information").
 function isCoordinate(value: string, min: number, max: number): boolean {
   const trimmed = value.trim();
-  if (trimmed === "") return true;
-  if (!SIGNED_DECIMAL_REGEX.test(trimmed)) return false;
+  if (trimmed === "") {
+    return true;
+  }
+  if (!SIGNED_DECIMAL_REGEX.test(trimmed)) {
+    return false;
+  }
   const parsed = Number(trimmed);
   return Number.isFinite(parsed) && parsed >= min && parsed <= max;
 }
@@ -70,7 +74,11 @@ export function toCustomerDraft(values: OrderCustomerFormValues): OrderCustomerD
 // a bad number. Returns null when there is no pair to split.
 export function splitCoordinatePair(value: string): { latitude: string; longitude: string } | null {
   const parts = value.split(",").map((part) => part.trim());
-  if (parts.length !== 2) return null;
-  if (parts.some((part) => part === "" || !SIGNED_DECIMAL_REGEX.test(part))) return null;
+  if (parts.length !== 2) {
+    return null;
+  }
+  if (parts.some((part) => part === "" || !SIGNED_DECIMAL_REGEX.test(part))) {
+    return null;
+  }
   return { latitude: parts[0], longitude: parts[1] };
 }

@@ -43,9 +43,7 @@ export async function deleteOrphanedUploads(claimed: Set<string>): Promise<{ del
   let deleted = 0;
   let kept = 0;
   for (const entry of entries) {
-    const base = entry
-      .replace(/-(thumbnail|medium|full)\.webp$/, "")
-      .replace(IMAGE_ORIGINAL_FILE_PATTERN, "");
+    const base = entry.replace(/-(thumbnail|medium|full)\.webp$/, "").replace(IMAGE_ORIGINAL_FILE_PATTERN, "");
     if (claimed.has(base)) {
       kept += 1;
       continue;
@@ -54,7 +52,9 @@ export async function deleteOrphanedUploads(claimed: Set<string>): Promise<{ del
     const stat = await fs.stat(target).catch(() => null);
     // Only files. A directory in here is not something these commands
     // invented and not something they will remove.
-    if (!stat?.isFile()) continue;
+    if (!stat?.isFile()) {
+      continue;
+    }
     await fs.unlink(target).catch(() => undefined);
     deleted += 1;
   }
@@ -65,7 +65,9 @@ export async function deleteOrphanedUploads(claimed: Set<string>): Promise<{ del
 /** Every file one stored image is made of — its three sizes and its original. */
 export function imageFileNames(image: ImageFileRef): string[] {
   const files = (Object.keys(IMAGE_SIZES) as ImageSize[]).map((size) => `${image.filename}-${size}.webp`);
-  if (image.originalFilename) files.push(image.originalFilename);
+  if (image.originalFilename) {
+    files.push(image.originalFilename);
+  }
   return files;
 }
 

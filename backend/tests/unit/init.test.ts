@@ -67,7 +67,9 @@ describe("init — the go-live staff command", () => {
 
     it("reports when each link stops working", async () => {
       const results = await createInitialStaff(ACCOUNTS, recordingDeps(0));
-      for (const result of results) expect(result.expiresAt).toBeInstanceOf(Date);
+      for (const result of results) {
+        expect(result.expiresAt).toBeInstanceOf(Date);
+      }
     });
   });
 });

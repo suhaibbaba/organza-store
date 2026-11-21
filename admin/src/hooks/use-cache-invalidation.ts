@@ -2,14 +2,15 @@
 
 import { useMemo } from "react";
 import { useQueryClient, type QueryClient } from "@tanstack/react-query";
-import { DASHBOARD_SUMMARY_QUERY_KEY, CATEGORIES_QUERY_KEY, SETTINGS_QUERY_KEY, VARIANT_TYPES_QUERY_KEY } from "@/constants/api";
+import {
+  DASHBOARD_SUMMARY_QUERY_KEY,
+  CATEGORIES_QUERY_KEY,
+  SETTINGS_QUERY_KEY,
+  VARIANT_TYPES_QUERY_KEY,
+} from "@/constants/api";
 import { PRODUCT_LIST_QUERY_KEY } from "@/constants/products";
 import { INVENTORY_LIST_QUERY_KEY } from "@/constants/inventory";
-import {
-  ORDER_COLLECTION_SUMMARY_QUERY_KEY,
-  ORDER_DETAIL_QUERY_KEY,
-  ORDER_LIST_QUERY_KEY,
-} from "@/constants/orders";
+import { ORDER_COLLECTION_SUMMARY_QUERY_KEY, ORDER_DETAIL_QUERY_KEY, ORDER_LIST_QUERY_KEY } from "@/constants/orders";
 import { REPORTS_SALES_QUERY_KEY, REPORTS_SUMMARY_QUERY_KEY } from "@/constants/reports";
 import { USERS_LIST_QUERY_KEY } from "@/constants/users";
 
@@ -30,7 +31,9 @@ import { USERS_LIST_QUERY_KEY } from "@/constants/users";
 
 function invalidateProductViews(queryClient: QueryClient, productId?: string) {
   void queryClient.invalidateQueries({ queryKey: [PRODUCT_LIST_QUERY_KEY] });
-  if (productId) void queryClient.invalidateQueries({ queryKey: [PRODUCT_LIST_QUERY_KEY, productId] });
+  if (productId) {
+    void queryClient.invalidateQueries({ queryKey: [PRODUCT_LIST_QUERY_KEY, productId] });
+  }
   // Stock counts and the low-stock badge are read from the product rows.
   void queryClient.invalidateQueries({ queryKey: [INVENTORY_LIST_QUERY_KEY] });
   // Product/category counts, inventory value and the low-stock tile.
@@ -107,6 +110,6 @@ export function useCacheInvalidation(): CacheInvalidation {
         void queryClient.invalidateQueries({ queryKey: [USERS_LIST_QUERY_KEY] });
       },
     }),
-    [queryClient]
+    [queryClient],
   );
 }

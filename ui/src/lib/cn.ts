@@ -15,28 +15,9 @@ export const FONT_SIZE_KEYS = [
   "field",
 ] as const;
 
-export const LEADING_KEYS = [
-  "micro",
-  "meta",
-  "label",
-  "value",
-  "section",
-  "heading",
-  "title",
-  "kpi",
-  "field",
-] as const;
+export const LEADING_KEYS = ["micro", "meta", "label", "value", "section", "heading", "title", "kpi", "field"] as const;
 
-export const RADIUS_KEYS = [
-  "brand",
-  "card",
-  "chip",
-  "control",
-  "field",
-  "nav",
-  "panel",
-  "pill",
-] as const;
+export const RADIUS_KEYS = ["brand", "card", "chip", "control", "field", "nav", "panel", "pill"] as const;
 
 const merge = extendTailwindMerge({
   extend: {

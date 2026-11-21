@@ -6,9 +6,7 @@ import { documentDirection } from "@ui/lib/direction";
 import { parts, testid, type TestIdProps } from "@ui/lib/testid";
 
 export function Menu({ children }: { readonly children: ReactNode }): JSX.Element {
-  return (
-    <DropdownMenuPrimitive.Root dir={documentDirection()}>{children}</DropdownMenuPrimitive.Root>
-  );
+  return <DropdownMenuPrimitive.Root dir={documentDirection()}>{children}</DropdownMenuPrimitive.Root>;
 }
 
 export const MenuTrigger = DropdownMenuPrimitive.Trigger;
@@ -86,11 +84,7 @@ export function MenuItem({
       )}
     >
       <Icon name={icon} className={tone === "danger" ? "text-danger-600" : "text-ink-muted"} />
-      <span
-        data-part="menu-item-label"
-        {...testid(testId, "label")}
-        className="flex-1 truncate text-start"
-      >
+      <span data-part="menu-item-label" {...testid(testId, "label")} className="flex-1 truncate text-start">
         {children}
       </span>
       {trailing}
@@ -114,9 +108,7 @@ export function MenuLabel({
 }
 
 export function MenuSeparator(): JSX.Element {
-  return (
-    <DropdownMenuPrimitive.Separator data-part="menu-separator" className="my-1.5 h-px bg-line" />
-  );
+  return <DropdownMenuPrimitive.Separator data-part="menu-separator" className="my-1.5 h-px bg-line" />;
 }
 
 export interface RowMenuProps extends TestIdProps {
@@ -125,12 +117,7 @@ export interface RowMenuProps extends TestIdProps {
   readonly size?: "row" | "target" | undefined;
 }
 
-export function RowMenu({
-  label,
-  children,
-  size = "row",
-  "data-testid": testId,
-}: RowMenuProps): JSX.Element {
+export function RowMenu({ label, children, size = "row", "data-testid": testId }: RowMenuProps): JSX.Element {
   return (
     <Menu>
       <MenuTrigger

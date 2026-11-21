@@ -86,10 +86,7 @@ export interface Gallery {
 // Which part of the one Save is running, for the single progress line the
 // user sees. The three stages are forced by the API: the product row, then
 // its variants, then the photos that hang on them.
-export type SaveStep =
-  | { kind: "product" }
-  | { kind: "variants" }
-  | { kind: "images"; done: number; total: number };
+export type SaveStep = { kind: "product" } | { kind: "variants" } | { kind: "images"; done: number; total: number };
 
 // What one gallery's save attempt actually achieved. Deliberately not an
 // exception: a photo that didn't upload must not undo the product that did

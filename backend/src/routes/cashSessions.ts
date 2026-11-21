@@ -55,7 +55,9 @@ const sessionInclude = {
 
 async function loadSession(id: string) {
   const session = await prisma.cashSession.findUnique({ where: { id }, include: sessionInclude });
-  if (!session) throw new AppError(404, ERROR_CODES.CASH_SESSION_NOT_FOUND);
+  if (!session) {
+    throw new AppError(404, ERROR_CODES.CASH_SESSION_NOT_FOUND);
+  }
   return session;
 }
 
@@ -107,7 +109,7 @@ router.get(
     };
 
     sendOk(res, current);
-  })
+  }),
 );
 
 // ---------------------------------------------------------------------------
@@ -121,10 +123,14 @@ router.get(
     const query = req.validatedQuery as ListCashSessionsQuery;
     const where: Prisma.CashSessionWhereInput = {};
 
-    if (query.status) where.status = query.status;
+    if (query.status) {
+      where.status = query.status;
+    }
     // The follow-up list: closed days whose difference was carried forward
     // and never signed off.
-    if (query.openFollowUpOnly) Object.assign(where, openFollowUpWhere());
+    if (query.openFollowUpOnly) {
+      Object.assign(where, openFollowUpWhere());
+    }
 
     if (query.dateFrom || query.dateTo) {
       where.date = {
@@ -147,7 +153,7 @@ router.get(
     // A list may hold at most one OPEN session, so at most one of these
     // recomputes anything; the rest read their frozen columns back.
     const serialized = await Promise.all(
-      sessions.map(async (session) => serializeCashSession(session, await figuresFor(session)))
+      sessions.map(async (session) => serializeCashSession(session, await figuresFor(session))),
     );
 
     sendOk(res, serialized, {
@@ -156,7 +162,7 @@ router.get(
       total,
       totalPages: Math.max(1, Math.ceil(total / query.pageSize)),
     });
-  })
+  }),
 );
 
 // ---------------------------------------------------------------------------
@@ -168,7 +174,7 @@ router.get(
   asyncHandler(async (req, res) => {
     const session = await loadSession(req.params.id);
     sendOk(res, serializeCashSession(session, await figuresFor(session)));
-  })
+  }),
 );
 
 // ---------------------------------------------------------------------------
@@ -197,15 +203,15 @@ router.post(
     // exactly the kind of block this feature rejects everywhere else. An
     // uncounted day stays visible as an OPEN row in the list.
     const taken = await prisma.cashSession.findUnique({ where: { date: dateValue } });
-    if (taken) throw new AppError(409, ERROR_CODES.CASH_SESSION_DATE_TAKEN);
+    if (taken) {
+      throw new AppError(409, ERROR_CODES.CASH_SESSION_DATE_TAKEN);
+    }
 
     // The previous day's remainder: the newest session closed BEFORE this
     // one's date, not merely the newest closed row — so opening a day that
     // was missed carries what that day should actually have started with.
     const openingFloat =
-      body.openingFloat === undefined
-        ? await suggestedOpeningFloat(dateValue)
-        : roundMoney(money(body.openingFloat));
+      body.openingFloat === undefined ? await suggestedOpeningFloat(dateValue) : roundMoney(money(body.openingFloat));
 
     const created = await prisma.cashSession.create({
       data: {
@@ -230,7 +236,7 @@ router.post(
     });
 
     sendOk(res, serializeCashSession(created, figures), null, 201);
-  })
+  }),
 );
 
 // ---------------------------------------------------------------------------
@@ -245,7 +251,9 @@ router.post(
   validateBody(closeCashSessionSchema),
   asyncHandler(async (req, res) => {
     const existing = await loadSession(req.params.id);
-    if (existing.status === "CLOSED") throw new AppError(409, ERROR_CODES.CASH_SESSION_ALREADY_CLOSED);
+    if (existing.status === "CLOSED") {
+      throw new AppError(409, ERROR_CODES.CASH_SESSION_ALREADY_CLOSED);
+    }
 
     const body = req.body as CloseCashSessionInput;
     const counted = roundMoney(money(body.countedAmount));
@@ -316,7 +324,7 @@ router.post(
     });
 
     sendOk(res, serializeCashSession(updated, storedFigures(updated)));
-  })
+  }),
 );
 
 // ---------------------------------------------------------------------------
@@ -348,7 +356,7 @@ router.post(
     });
 
     sendOk(res, serializeCashSession(updated, storedFigures(updated)));
-  })
+  }),
 );
 
 export default router;

@@ -33,15 +33,19 @@ export function useScanSound(): ScanSound {
     // The tap that turns the sound back on is itself the gesture iOS wants,
     // so take it — otherwise the next scan is silent anyway and the switch
     // looks broken.
-    if (!next) unlockScanSound();
+    if (!next) {
+      unlockScanSound();
+    }
   }, []);
 
   const play = useCallback(
     (variant: FeedbackVariant) => {
-      if (isMuted) return;
+      if (isMuted) {
+        return;
+      }
       playScanTones(variant === "success" ? SCAN_SUCCESS_TONES : SCAN_ERROR_TONES);
     },
-    [isMuted]
+    [isMuted],
   );
 
   return { isMuted, toggleMute, play, unlock: unlockScanSound };

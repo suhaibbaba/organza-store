@@ -52,19 +52,14 @@ export function Badge({
       className={cn(
         wraps ? PILL_BOX : PILL_BASE,
         "min-w-0",
-        wraps &&
-          "h-auto min-h-(--control-h-sm) whitespace-normal py-1 rounded-[calc(var(--control-h-sm)/2)]",
+        wraps && "h-auto min-h-(--control-h-sm) whitespace-normal py-1 rounded-[calc(var(--control-h-sm)/2)]",
         TONES[tone],
         className,
       )}
     >
       {icon !== undefined && <Icon name={icon} className="size-3.5 shrink-0" />}
       {!plain && icon === undefined && (
-        <span
-          {...part("dot")}
-          aria-hidden="true"
-          className="size-1.5 shrink-0 rounded-pill bg-current"
-        />
+        <span {...part("dot")} aria-hidden="true" className="size-1.5 shrink-0 rounded-pill bg-current" />
       )}
       <span {...part("label")} className={cn("min-w-0", wraps ? "line-clamp-2" : "truncate")}>
         {children}
@@ -143,7 +138,10 @@ export function Chip({
   );
 }
 
-export function ChipGroup({ children, "data-testid": testId }: TestIdProps & { readonly children: ReactNode }): JSX.Element {
+export function ChipGroup({
+  children,
+  "data-testid": testId,
+}: TestIdProps & { readonly children: ReactNode }): JSX.Element {
   return (
     <div {...parts("chip-group", testId)()} className="flex flex-wrap items-center gap-2">
       {children}

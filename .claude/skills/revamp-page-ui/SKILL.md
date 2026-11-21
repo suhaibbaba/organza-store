@@ -17,6 +17,7 @@ clinic app (`/Users/suhaibbaba/Projects/clinic-management-system/apps/web/src/mo
 — when `@store/ui` lacks something, operate or the clinic usually has it already (`Typography` was ported from operate).
 
 ## Workflow
+
 1. **Look and take stock.** Open the page (admin :3000, POS :3001, demo-seed accounts) at 1280px in Arabic,
    screenshot every scroll position, and at 375px (a 375px iframe — Chrome's window stops near 600px).
    Write two lists: what the page must keep doing (from the code), and every element that is not a
@@ -49,6 +50,7 @@ clinic app (`/Users/suhaibbaba/Projects/clinic-management-system/apps/web/src/mo
 ## Patterns
 
 ### Record page (one thing: a product, an order, a user)
+
 - **Header card** — `<header className="rounded-card border border-line bg-surface p-4 shadow-card">`:
   - start: thumbnail/avatar (`size-14 rounded-panel`), `h1` `text-title font-medium text-primary-900`
     (truncate), badges row under it (`Badge` tones: category `info`, active `success`,
@@ -72,6 +74,7 @@ clinic app (`/Users/suhaibbaba/Projects/clinic-management-system/apps/web/src/mo
   "money received" (`tone: "primary"` confirm), customer (online only), details. One column on phones.
 
 ### Form page (create / edit one thing)
+
 - Grid `grid-cols-1 items-start gap-5 lg:grid-cols-[minmax(0,1fr)_22rem]`: **main** column holds
   the content (info, pricing, photos, child rows); **side** column holds status switches,
   kind/type choices, codes (barcode) and stock/SKU facts. One column on phones.
@@ -117,6 +120,7 @@ clinic app (`/Users/suhaibbaba/Projects/clinic-management-system/apps/web/src/mo
 - Rows being added that carry a quantity (stock) get a `QuantityStepper` per row, before saving.
 
 ### List page (many things: inventory, products, orders …) — chosen by the user 2026-11-21
+
 - **Toolbar, one wrapping row:** `SearchField` (`min-w-64 flex-1 sm:max-w-md` — it keeps its width and
   the buttons drop to the next line on phones, never a squeezed "ابحث بالا…"), a secondary **Filters** button
   (sliders icon + a count bubble of active filters), and `TotalBadge` pushed to the end (`ms-auto`).
@@ -146,8 +150,8 @@ clinic app (`/Users/suhaibbaba/Projects/clinic-management-system/apps/web/src/mo
 - **Pagination is the Table's own** (`pagination` prop): page numbers + "per page", the size sent
   to the API as `pageSize` and shown from `meta.pageSize`; options from shared `PAGE_SIZE_OPTIONS`.
 - **Filters, sort, search, page and page size live in the URL** (user, 2026-11-21): `useUrlFilters(DEFAULTS, <LIST>_URL_PARAMS)`
-  + `useUrlSearch` (box types freely, `q` written once typing pauses); a param map per list in `constants/`, built
-  from `urlParam.*` so a bad value falls back to the default; defaults are left out of the URL; `replace`, not push.
+  - `useUrlSearch` (box types freely, `q` written once typing pauses); a param map per list in `constants/`, built
+    from `urlParam.*` so a bad value falls back to the default; defaults are left out of the URL; `replace`, not push.
 - **Back from a record returns to the list as it was left (user, 2026-11-21)**: the breadcrumb's ← and parent crumb use
   `useReturnHref` (each page's last query string, per tab), never `router.back()` — a shared link or an edit page in
   between would send Back somewhere else.
@@ -182,7 +186,7 @@ clinic app (`/Users/suhaibbaba/Projects/clinic-management-system/apps/web/src/mo
   the garment is cut; small row thumbnails stay `cover`. Only a numbered-shawl photo keeps its own
   shape, because its point markers are placed by percentage.
 - **Links never underline.** Hover changes the colour to the dark brand shade: `transition-colors
-  hover:text-primary-700` (or `group` on the link + `group-hover:text-primary-700` on the name span
+hover:text-primary-700` (or `group` on the link + `group-hover:text-primary-700` on the name span
   when the text inside carries `text-ink`); a link already `primary-700` goes to `primary-900`.
 - A whole tappable card (product tile, variant choice) is `CardButton`; a link that opens another site is
   `OutboundLink`; a selectable list card holds a ui `Checkbox` (never a native input inside a `<label>`).
@@ -213,6 +217,7 @@ clinic app (`/Users/suhaibbaba/Projects/clinic-management-system/apps/web/src/mo
 - Wording (ar): variants are **متغيرات**, never تركيبات.
 
 ## Learned so far
+
 - Product page: status lived in a bespoke pill → `Badge`; price/barcode/stock were loose blocks →
   one facts grid; description/variants/photos were stacked → tabs; delete card → menu + confirm.
 - Variants are a `Table` with `data-testid="variant"`, so rows stay `variant-row-<id>`.
@@ -294,7 +299,7 @@ clinic app (`/Users/suhaibbaba/Projects/clinic-management-system/apps/web/src/mo
   and icon buttons, or explicit `focus-visible:` tokens a shade or two darker than its hover. On the dark rail
   darker is invisible: use `focus-visible:bg-rail-active text-rail-ink-active`. Radix highlights
   (`data-highlighted:`) are `bg-primary-100 text-primary-900` (danger: `bg-danger-100 text-danger-800`). A ring
-  that marks *selection* (chosen variant, primary photo) is not focus and stays.
+  that marks _selection_ (chosen variant, primary photo) is not focus and stays.
 - **Phone / WhatsApp / email are `@store/ui` `PhoneLink` / `WhatsAppLink` / `EmailLink` with `value` (user,
   2026-11-21)** — never a hand-built `<a href="tel:">`. WhatsApp opens `wa.me` (a `tel:` link dials instead);
   `WhatsAppLink` shows the number when given no `label`. Copy-able text keeps `{...SELECTABLE}` on its wrapper.
@@ -307,8 +312,7 @@ clinic app (`/Users/suhaibbaba/Projects/clinic-management-system/apps/web/src/mo
   3:1. Watch the badge tones — warning (4.60) and info (4.62) sit just over the line on their tinted fills.
 - **New order: channel is a `SegmentedControl` (WhatsApp | in the shop), gift is a `Switch` on either (user,
   2026-11-21)** — never a third "type". The switch shows only with `order.createGift`; the line under the segments
-  explains the chosen combination. Contact + location only for an online channel; a gift hides discounts and shows
-  0. Check a submit's payload by patching `fetch` to answer the POST itself — nothing is written.
+  explains the chosen combination. Contact + location only for an online channel; a gift hides discounts and shows 0. Check a submit's payload by patching `fetch` to answer the POST itself — nothing is written.
 - **New order is a form page (user, 2026-11-21: "current ui very bad")**: main = pieces + customer `Section`s, side =
   order type, summary (final total on a `bg-primary-50` strip), note, then a plain "Create order" Button (no
   icon, no SaveBar — see "Create vs edit"). Search results show only while there is a query (cached data outlives a cleared box), in one
@@ -389,6 +393,7 @@ clinic app (`/Users/suhaibbaba/Projects/clinic-management-system/apps/web/src/mo
   translates `errorKey` from the root, so a page-local key like `form.password.mismatch` shows raw.
 
 ## Done
+
 - admin `products/[id]` (record) — 2026-11-21; rebuilt 2026-11-21: gallery + viewer, details card, no tabs
 - admin `products/[id]/edit` + `products/new` (form, shared `product-form.tsx`) — 2026-11-21
 - admin `inventory` (list — first list pattern) — 2026-11-21

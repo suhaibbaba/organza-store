@@ -10,13 +10,17 @@ function randomLocalNumber(): string {
   return String(Math.floor(min + Math.random() * (max - min)));
 }
 
-export function randomPalestinePhone(prefix: (typeof PALESTINE_PHONE_PREFIXES)[number] = PALESTINE_PHONE_PREFIXES[0]): string {
+export function randomPalestinePhone(
+  prefix: (typeof PALESTINE_PHONE_PREFIXES)[number] = PALESTINE_PHONE_PREFIXES[0],
+): string {
   return `${prefix}${TEST_MOBILE_PREFIX}${randomLocalNumber()}`;
 }
 
 export function samePhoneUnderOtherPrefix(phone: string): string {
   const prefix = PALESTINE_PHONE_PREFIXES.find((p) => phone.startsWith(p));
-  if (!prefix) throw new Error(`${phone} does not start with a known Palestine prefix`);
+  if (!prefix) {
+    throw new Error(`${phone} does not start with a known Palestine prefix`);
+  }
   const other = PALESTINE_PHONE_PREFIXES.find((p) => p !== prefix)!;
   return `${other}${phone.slice(prefix.length)}`;
 }

@@ -47,10 +47,7 @@ export function PageHeader({
       </div>
 
       {(actions !== undefined || inRow !== undefined || count !== undefined) && (
-        <div
-          {...part("actions")}
-          className="flex shrink-0 flex-col gap-2.5 sm:ms-auto sm:flex-row sm:items-center"
-        >
+        <div {...part("actions")} className="flex shrink-0 flex-col gap-2.5 sm:ms-auto sm:flex-row sm:items-center">
           {(inRow !== undefined || actions !== undefined) && (
             <div className="flex flex-col gap-2.5 [&>*]:w-full sm:flex-row sm:items-center sm:[&>*]:w-auto">
               {inRow}

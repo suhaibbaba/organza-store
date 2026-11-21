@@ -39,7 +39,14 @@ describe("search normalization", () => {
     expect(PRODUCTS_INDEX_SETTINGS.typoTolerance.disableOnNumbers).toBe(true);
     expect(PRODUCTS_INDEX_SETTINGS.searchableAttributes[0]).toBe("name_ar");
     expect(PRODUCTS_INDEX_SETTINGS.searchableAttributes.at(-1)).toBe("description");
-    expect(PRODUCTS_INDEX_SETTINGS.rankingRules).toEqual(["words", "typo", "proximity", "attribute", "sort", "exactness"]);
+    expect(PRODUCTS_INDEX_SETTINGS.rankingRules).toEqual([
+      "words",
+      "typo",
+      "proximity",
+      "attribute",
+      "sort",
+      "exactness",
+    ]);
   });
 
   it("indexes each word with and without the article and an attached و/ب/ل", () => {
@@ -79,7 +86,13 @@ describe("search normalization", () => {
       createdAt: new Date("2026-01-01T00:00:00Z"),
       images: [{ thumbnailUrl: "/uploads/p1-thumb.webp" }],
       variants: [
-        { name: { ar: "أحمر" }, sku: "ORG-00001-1", barcode: null, stock: 0, values: [{ optionValue: { value: { ar: "أحمر", en: "Red" } } }] },
+        {
+          name: { ar: "أحمر" },
+          sku: "ORG-00001-1",
+          barcode: null,
+          stock: 0,
+          values: [{ optionValue: { value: { ar: "أحمر", en: "Red" } } }],
+        },
         { name: { ar: "أسود" }, sku: "ORG-00001-2", barcode: "2000000000024", stock: 3, values: [] },
       ],
     } as unknown as SearchProductRow;
@@ -115,8 +128,11 @@ describe("search engine selection", () => {
   });
   afterEach(() => {
     for (const key of ENV_KEYS) {
-      if (saved[key] === undefined) delete process.env[key];
-      else process.env[key] = saved[key];
+      if (saved[key] === undefined) {
+        delete process.env[key];
+      } else {
+        process.env[key] = saved[key];
+      }
     }
     vi.unstubAllGlobals();
     vi.doUnmock("@/lib/search/postgres");
@@ -156,7 +172,12 @@ describe("search engine selection", () => {
 
   it("falls back to pg_trgm when Meilisearch is unreachable, so the till never loses search", async () => {
     process.env.MEILI_HOST = "http://search.test:7700";
-    vi.stubGlobal("fetch", vi.fn(async () => { throw new TypeError("fetch failed"); }));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => {
+        throw new TypeError("fetch failed");
+      }),
+    );
     const { search, postgres } = await loadSearch();
     expect(await search.searchProductIds("فستان")).toEqual(["from-postgres"]);
     expect(postgres).toHaveBeenCalledOnce();
@@ -164,7 +185,10 @@ describe("search engine selection", () => {
 
   it("falls back on an error answer too", async () => {
     process.env.MEILI_HOST = "http://search.test:7700";
-    vi.stubGlobal("fetch", vi.fn(async () => new Response("{}", { status: 500 })));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response("{}", { status: 500 })),
+    );
     const { search, postgres } = await loadSearch();
     expect(await search.searchProductIds("فستان")).toEqual(["from-postgres"]);
     expect(postgres).toHaveBeenCalledOnce();

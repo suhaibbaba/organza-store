@@ -38,7 +38,9 @@ const categoryInclude = { _count: { select: { expenses: true } } } satisfies Pri
 
 async function loadCategory(id: string) {
   const category = await prisma.expenseCategory.findUnique({ where: { id }, include: categoryInclude });
-  if (!category) throw new AppError(404, ERROR_CODES.EXPENSE_CATEGORY_NOT_FOUND);
+  if (!category) {
+    throw new AppError(404, ERROR_CODES.EXPENSE_CATEGORY_NOT_FOUND);
+  }
   return category;
 }
 
@@ -61,7 +63,7 @@ router.get(
     });
 
     sendOk(res, categories.map(serializeExpenseCategory));
-  })
+  }),
 );
 
 // ---------------------------------------------------------------------------
@@ -77,7 +79,9 @@ router.post(
     // Identity is the key, never the translated name (CLAUDE.md rule 9), so
     // this is the only uniqueness that matters.
     const existing = await prisma.expenseCategory.findUnique({ where: { key: body.key } });
-    if (existing) throw new AppError(409, ERROR_CODES.EXPENSE_CATEGORY_KEY_DUPLICATE);
+    if (existing) {
+      throw new AppError(409, ERROR_CODES.EXPENSE_CATEGORY_KEY_DUPLICATE);
+    }
 
     const created = await prisma.expenseCategory.create({
       data: {
@@ -98,7 +102,7 @@ router.post(
     });
 
     sendOk(res, serializeExpenseCategory(created), null, 201);
-  })
+  }),
 );
 
 // ---------------------------------------------------------------------------
@@ -134,7 +138,7 @@ router.patch(
     });
 
     sendOk(res, serializeExpenseCategory(updated));
-  })
+  }),
 );
 
 // ---------------------------------------------------------------------------
@@ -147,7 +151,9 @@ router.delete(
   requirePermission("expenseCategory.manage"),
   asyncHandler(async (req, res) => {
     const existing = await loadCategory(req.params.id);
-    if (existing._count.expenses > 0) throw new AppError(409, ERROR_CODES.EXPENSE_CATEGORY_HAS_EXPENSES);
+    if (existing._count.expenses > 0) {
+      throw new AppError(409, ERROR_CODES.EXPENSE_CATEGORY_HAS_EXPENSES);
+    }
 
     await prisma.expenseCategory.delete({ where: { id: existing.id } });
 
@@ -160,7 +166,7 @@ router.delete(
     });
 
     sendOk(res, { id: existing.id });
-  })
+  }),
 );
 
 export default router;

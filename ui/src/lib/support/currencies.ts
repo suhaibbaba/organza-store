@@ -24,10 +24,7 @@ export const CURRENCY_DEFINITIONS = [
 
 export type Currency = (typeof CURRENCY_DEFINITIONS)[number]["code"];
 
-export const CURRENCIES = CURRENCY_DEFINITIONS.map((currency) => currency.code) as [
-  Currency,
-  ...Currency[],
-];
+export const CURRENCIES = CURRENCY_DEFINITIONS.map((currency) => currency.code) as [Currency, ...Currency[]];
 
 export const CURRENCY_SYMBOLS: Readonly<Record<string, string>> = Object.fromEntries(
   CURRENCY_DEFINITIONS.map((currency) => [currency.code, currency.symbol]),

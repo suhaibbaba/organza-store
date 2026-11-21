@@ -7,9 +7,13 @@ import type { CategoryNode } from "@/types";
 
 function findNode(nodes: CategoryNode[], id: string): CategoryNode | undefined {
   for (const node of nodes) {
-    if (node.id === id) return node;
+    if (node.id === id) {
+      return node;
+    }
     const found = findNode(node.children ?? [], id);
-    if (found) return found;
+    if (found) {
+      return found;
+    }
   }
   return undefined;
 }
@@ -25,9 +29,15 @@ describe("Categories", () => {
     // Products first: a category with anything filed under it refuses to be
     // deleted (CATEGORY_HAS_PRODUCTS), so the shelf can only be cleared once
     // what is on it has gone.
-    if (childProductId) await apiRequest(`/api/products/${childProductId}`, { method: "DELETE", token: admin.token });
-    if (childId) await apiRequest(`/api/categories/${childId}`, { method: "DELETE", token: admin.token });
-    if (parentId) await apiRequest(`/api/categories/${parentId}`, { method: "DELETE", token: admin.token });
+    if (childProductId) {
+      await apiRequest(`/api/products/${childProductId}`, { method: "DELETE", token: admin.token });
+    }
+    if (childId) {
+      await apiRequest(`/api/categories/${childId}`, { method: "DELETE", token: admin.token });
+    }
+    if (parentId) {
+      await apiRequest(`/api/categories/${parentId}`, { method: "DELETE", token: admin.token });
+    }
   });
 
   it("creates a parent category (Admin/Manager)", async () => {
@@ -126,7 +136,7 @@ describe("Categories", () => {
 
     const wholeBranch = await apiRequest<{ id: string }[]>(
       `/api/products?categoryId=${parentId}&includeSubcategories=true`,
-      { token: admin.token }
+      { token: admin.token },
     );
     expect(wholeBranch.data!.some((p) => p.id === childProductId)).toBe(true);
   });

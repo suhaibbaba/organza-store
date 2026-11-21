@@ -4,7 +4,6 @@
 @import "tw-animate-css";
 
 @theme inline {
-
   /* ------------------------------------------------------------------
      LINE HEIGHTS — sized for Arabic, which is the script this app is
      written in.
@@ -97,7 +96,6 @@
      fallback, deliberately on the generous side: too much room under the
      last cart line is a smaller sin than a line trapped under the bar. */
   --checkout-bar-height: 18rem;
-
 }
 
 /* From `desk` (1000px) the selling screen's top bar holds the search and its
@@ -132,7 +130,6 @@
 }
 
 @layer base {
-
   html {
     -webkit-text-size-adjust: 100%;
     /* Tailwind's preflight sets 1.5 here, and every element that carries no

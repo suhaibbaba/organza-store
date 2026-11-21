@@ -74,15 +74,13 @@ function sleep(ms: number): Promise<void> {
  * out), so "was it notified" is a question with a delay attached — hence
  * polling rather than a single read.
  */
-export async function waitForAttempt(
-  token: string,
-  device: FakeDevice,
-  since: string | null
-): Promise<string | null> {
+export async function waitForAttempt(token: string, device: FakeDevice, since: string | null): Promise<string | null> {
   const deadline = Date.now() + PUSH_ATTEMPT_TIMEOUT_MS;
   while (Date.now() < deadline) {
     const current = await readDevice(token, device);
-    if (current && current.lastAttemptAt !== since) return current.lastAttemptAt;
+    if (current && current.lastAttemptAt !== since) {
+      return current.lastAttemptAt;
+    }
     await sleep(PUSH_ATTEMPT_POLL_INTERVAL_MS);
   }
   return null;

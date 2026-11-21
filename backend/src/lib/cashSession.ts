@@ -168,6 +168,8 @@ export function storedFigures(session: AnyRecord): CashSessionFigures {
 // An OPEN session's figures are live; a CLOSED one's are whatever was true
 // when it was signed off.
 export async function figuresFor(session: AnyRecord): Promise<CashSessionFigures> {
-  if (session.status === "CLOSED") return storedFigures(session);
+  if (session.status === "CLOSED") {
+    return storedFigures(session);
+  }
   return computeFigures(session as { date: Date; tzOffset: number; openingFloat: Prisma.Decimal });
 }

@@ -8,12 +8,7 @@ import { ROLES } from "@store/shared/constants/roles";
 import type { Role } from "@store/shared/types/role";
 import { fieldTestSelector } from "@store/shared/lib/testSelector";
 import { USER_SORT_OPTIONS, USER_STATUS_OPTIONS } from "@/constants/users";
-import type {
-  UserFilterChipsProps,
-  UserFiltersProps,
-  UserFiltersValue,
-  UserRoleFilterProps,
-} from "@/types/user";
+import type { UserFilterChipsProps, UserFiltersProps, UserFiltersValue, UserRoleFilterProps } from "@/types/user";
 
 export const EMPTY_USER_FILTERS: UserFiltersValue = { role: null, isActive: null };
 
@@ -103,7 +98,11 @@ export function UserFilters({ value, sort, onApply }: UserFiltersProps) {
         descriptionKey="users.filters.title"
         footer={
           <>
-            <Button variant="secondary" onClick={() => apply(EMPTY_USER_FILTERS)} data-test-selector="user-filters-reset">
+            <Button
+              variant="secondary"
+              onClick={() => apply(EMPTY_USER_FILTERS)}
+              data-test-selector="user-filters-reset"
+            >
               {t("reset")}
             </Button>
             <Button onClick={() => apply(draft)} data-test-selector="user-filters-apply">
@@ -121,7 +120,9 @@ export function UserFilters({ value, sort, onApply }: UserFiltersProps) {
               options={USER_SORT_OPTIONS.map((option) => ({ value: option.value, label: tSort(option.labelKey) }))}
               onChange={(event) => {
                 const option = USER_SORT_OPTIONS.find((one) => one.value === event.target.value);
-                if (option) setDraftSort({ sortBy: option.sortBy, sortDir: option.sortDir });
+                if (option) {
+                  setDraftSort({ sortBy: option.sortBy, sortDir: option.sortDir });
+                }
               }}
             />
           </FormField>
@@ -162,7 +163,9 @@ export function UserFilterChips({ value, onChange }: UserFilterChipsProps) {
   const t = useTranslations("users.filters");
   const tRole = useTranslations("users.role");
 
-  if (countUserFilters(value) === 0) return null;
+  if (countUserFilters(value) === 0) {
+    return null;
+  }
 
   const chips: { key: string; label: string; clear: UserFiltersValue }[] = [];
   if (value.role) {

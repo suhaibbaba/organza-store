@@ -56,9 +56,6 @@ export function rovingKeyDown<TValue extends string>(
   items[values.indexOf(next)]?.focus();
 }
 
-export function rovingStop<TValue extends string>(
-  values: readonly TValue[],
-  current: TValue,
-): TValue | undefined {
+export function rovingStop<TValue extends string>(values: readonly TValue[], current: TValue): TValue | undefined {
   return values.includes(current) ? current : values[0];
 }

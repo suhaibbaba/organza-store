@@ -23,7 +23,15 @@ const TONE_CLASS: Record<FigureTone, string> = {
   warning: "text-warning-700",
 };
 
-export function FigureCard({ label, description, toggleLabel, value, subtitle, tone = "default", name }: FigureCardProps) {
+export function FigureCard({
+  label,
+  description,
+  toggleLabel,
+  value,
+  subtitle,
+  tone = "default",
+  name,
+}: FigureCardProps) {
   return (
     <div
       className="flex min-w-0 flex-col rounded-card border border-line bg-surface p-[18px_20px] shadow-card"

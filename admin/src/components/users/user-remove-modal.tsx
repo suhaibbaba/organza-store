@@ -13,9 +13,24 @@ import type { UserRemoveModalProps } from "@/types/user";
 
 type Removal = "deactivate" | "delete";
 
-function RemovalOption({ name, icon, heading, body, children }: { name: string; icon: IconName; heading: string; body: string; children?: ReactNode }) {
+function RemovalOption({
+  name,
+  icon,
+  heading,
+  body,
+  children,
+}: {
+  name: string;
+  icon: IconName;
+  heading: string;
+  body: string;
+  children?: ReactNode;
+}) {
   return (
-    <section data-test-selector={`user-remove-${name}`} className="flex flex-col gap-3 rounded-panel border border-line p-4">
+    <section
+      data-test-selector={`user-remove-${name}`}
+      className="flex flex-col gap-3 rounded-panel border border-line p-4"
+    >
       <div className="flex items-start gap-3">
         <Icon name={icon} className="mt-0.5 size-5 shrink-0 text-primary-700" />
         <div className="flex flex-col gap-1">
@@ -62,11 +77,16 @@ export function UserRemoveModal({ user, open, onOpenChange }: UserRemoveModalPro
   const pending = deactivate.isPending || remove.isPending;
 
   async function run(kind: Removal) {
-    if (!user) return;
+    if (!user) {
+      return;
+    }
     setError(null);
     try {
-      if (kind === "deactivate") await deactivate.mutateAsync({ id: user.id, isActive: false });
-      else await remove.mutateAsync(user.id);
+      if (kind === "deactivate") {
+        await deactivate.mutateAsync({ id: user.id, isActive: false });
+      } else {
+        await remove.mutateAsync(user.id);
+      }
       toast.success(kind === "deactivate" ? "users.remove.deactivate.success" : "users.remove.delete.success");
       onOpenChange(false);
     } catch (err) {
@@ -122,43 +142,53 @@ export function UserRemoveModal({ user, open, onOpenChange }: UserRemoveModalPro
             </Alert>
           ) : (
             <>
-              <RemovalOption name="deactivate" icon="lock" heading={t("deactivate.heading")} body={t("deactivate.body")}>
+              <RemovalOption
+                name="deactivate"
+                icon="lock"
+                heading={t("deactivate.heading")}
+                body={t("deactivate.body")}
+              >
                 {confirming === "deactivate" ? (
                   confirmRow("deactivate", t("deactivate.confirm", { name }))
                 ) : (
-                  <Button type="button" className="self-start" disabled={pending} onClick={() => setConfirming("deactivate")}>
+                  <Button
+                    type="button"
+                    className="self-start"
+                    disabled={pending}
+                    onClick={() => setConfirming("deactivate")}
+                  >
                     {t("deactivate.action")}
                   </Button>
                 )}
               </RemovalOption>
 
               {canDelete && (
-              <RemovalOption
-                name="delete"
-                icon="trash"
-                heading={t("delete.heading")}
-                body={mayDelete ? t("delete.body") : t("delete.unavailable")}
-              >
-                {mayDelete &&
-                  (confirming === "delete" ? (
-                    <div className="flex flex-col gap-3">
-                      <Alert tone="danger" data-testid="user-remove-delete-warning">
-                        {t("delete.confirmQuestion", { email: user.email })}
-                      </Alert>
-                      {confirmRow("delete", t("delete.confirm", { name }))}
-                    </div>
-                  ) : (
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      className="self-start"
-                      disabled={pending}
-                      onClick={() => setConfirming("delete")}
-                    >
-                      {t("delete.action")}
-                    </Button>
-                  ))}
-              </RemovalOption>
+                <RemovalOption
+                  name="delete"
+                  icon="trash"
+                  heading={t("delete.heading")}
+                  body={mayDelete ? t("delete.body") : t("delete.unavailable")}
+                >
+                  {mayDelete &&
+                    (confirming === "delete" ? (
+                      <div className="flex flex-col gap-3">
+                        <Alert tone="danger" data-testid="user-remove-delete-warning">
+                          {t("delete.confirmQuestion", { email: user.email })}
+                        </Alert>
+                        {confirmRow("delete", t("delete.confirm", { name }))}
+                      </div>
+                    ) : (
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        className="self-start"
+                        disabled={pending}
+                        onClick={() => setConfirming("delete")}
+                      >
+                        {t("delete.action")}
+                      </Button>
+                    ))}
+                </RemovalOption>
               )}
             </>
           )}

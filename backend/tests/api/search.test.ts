@@ -34,7 +34,9 @@ describe("Search", () => {
   });
 
   afterAll(async () => {
-    if (!productId) return;
+    if (!productId) {
+      return;
+    }
     const admin = await getSession("ADMIN");
     await apiRequest(`/api/products/${productId}`, { method: "DELETE", token: admin.token });
   });
@@ -75,7 +77,11 @@ describe("Search", () => {
     const created = await apiRequest<ProductDto>("/api/products", {
       method: "POST",
       token: admin.token,
-      body: { name: { ar: `محذوف${nonce}`, en: `Deleted ${nonce}` }, categoryId: await anyCategoryId(admin.token), basePrice: "10" },
+      body: {
+        name: { ar: `محذوف${nonce}`, en: `Deleted ${nonce}` },
+        categoryId: await anyCategoryId(admin.token),
+        basePrice: "10",
+      },
     });
     expect(created.status).toBe(201);
     const id = created.data!.id;
@@ -116,7 +122,9 @@ describe("Search — closest match first", () => {
 
   afterAll(async () => {
     const admin = await getSession("ADMIN");
-    for (const id of created) await apiRequest(`/api/products/${id}`, { method: "DELETE", token: admin.token });
+    for (const id of created) {
+      await apiRequest(`/api/products/${id}`, { method: "DELETE", token: admin.token });
+    }
   });
 
   it("is answered by Meilisearch (the cases below are what the pg_trgm fallback cannot do)", async () => {
@@ -135,10 +143,12 @@ describe("Search — closest match first", () => {
       if (query.includes(" ")) {
         for (const id of fewerWordIds) {
           const other = res.ids.indexOf(id);
-          if (other >= 0) expect(target).toBeLessThan(other);
+          if (other >= 0) {
+            expect(target).toBeLessThan(other);
+          }
         }
       }
-    }
+    },
   );
 
   it("matches an SKU exactly, never a neighbouring code", async () => {

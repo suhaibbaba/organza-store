@@ -60,7 +60,9 @@ function walk(node, keyPath, report) {
     return;
   }
   if (node && typeof node === "object") {
-    for (const [key, value] of Object.entries(node)) walk(value, keyPath ? `${keyPath}.${key}` : key, report);
+    for (const [key, value] of Object.entries(node)) {
+      walk(value, keyPath ? `${keyPath}.${key}` : key, report);
+    }
   }
 }
 
@@ -90,8 +92,12 @@ function main() {
 
   if (problems.length > 0) {
     console.error(`check-messages: ${problems.length} message(s) would take their digits from the device:\n`);
-    for (const line of problems.slice(0, 20)) console.error(`  ${line}`);
-    if (problems.length > 20) console.error(`  …and ${problems.length - 20} more`);
+    for (const line of problems.slice(0, 20)) {
+      console.error(`  ${line}`);
+    }
+    if (problems.length > 20) {
+      console.error(`  …and ${problems.length - 20} more`);
+    }
     console.error("\nSee @store/shared/constants/formatting.ts for the named formats and why they exist.");
     process.exit(1);
   }

@@ -46,7 +46,7 @@ export function ExplainedLabel({
               aria-hidden="true"
               className={cn(
                 "inline-flex size-5 items-center justify-center rounded-pill border border-current text-[11px] font-semibold leading-none transition-colors",
-                open && "bg-ink text-ink-inverse"
+                open && "bg-ink text-ink-inverse",
               )}
             >
               ?

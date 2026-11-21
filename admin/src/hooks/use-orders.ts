@@ -1,11 +1,7 @@
 import { keepPreviousData, useMutation, useQuery } from "@tanstack/react-query";
 import type { OrderStatus } from "@store/shared/types/order";
 import type { CreateOrderInput, ReturnOrderInput } from "@store/shared/schemas/order";
-import {
-  ORDER_COLLECTION_SUMMARY_QUERY_KEY,
-  ORDER_DETAIL_QUERY_KEY,
-  ORDER_LIST_QUERY_KEY,
-} from "@/constants/orders";
+import { ORDER_COLLECTION_SUMMARY_QUERY_KEY, ORDER_DETAIL_QUERY_KEY, ORDER_LIST_QUERY_KEY } from "@/constants/orders";
 import {
   collectOrders,
   createOrder,

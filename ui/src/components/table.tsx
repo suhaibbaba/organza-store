@@ -5,12 +5,7 @@ import { Checkbox } from "@ui/components/checkbox";
 import { Icon, type IconName } from "@ui/components/icon";
 import { Ltr } from "@ui/components/ltr";
 import { Select } from "@ui/components/select";
-import {
-  RefreshBar,
-  SkeletonStatus,
-  SkeletonTable,
-  SkeletonTableCards,
-} from "@ui/components/skeleton";
+import { RefreshBar, SkeletonStatus, SkeletonTable, SkeletonTableCards } from "@ui/components/skeleton";
 import { FIELD_TEXT, fieldShell } from "@ui/components/field";
 import { cn } from "@ui/lib/cn";
 import { useDelayedLoading } from "@ui/lib/use-delayed-loading";
@@ -106,8 +101,7 @@ export function Table<TRow>({
   const showSkeleton = useDelayedLoading(isLoading);
   const showRows = !isLoading && !showSkeleton;
 
-  const rowId = (row: TRow): string | undefined =>
-    testId === undefined ? undefined : `${testId}-row-${rowKey(row)}`;
+  const rowId = (row: TRow): string | undefined => (testId === undefined ? undefined : `${testId}-row-${rowKey(row)}`);
 
   const selectedCount = selection === undefined ? 0 : rows.filter(selection.isSelected).length;
   const allSelected = rows.length > 0 && selectedCount === rows.length;
@@ -136,9 +130,7 @@ export function Table<TRow>({
   const mobileColumns = columns.filter((column) => column.hideOnMobile !== true);
   const primary = mobileColumns.find((column) => column.primary === true);
   const actions = mobileColumns.find((column) => column.actions === true);
-  const detail = mobileColumns.filter(
-    (column) => column.primary !== true && column.actions !== true,
-  );
+  const detail = mobileColumns.filter((column) => column.primary !== true && column.actions !== true);
 
   if (isMobile) {
     return (
@@ -180,7 +172,9 @@ export function Table<TRow>({
                 <>
                   {primary && (
                     <div className={cn("flex items-start justify-between gap-3", shown.length > 0 && "mb-3")}>
-                      {selection !== undefined && <div className="relative z-10 shrink-0 pt-0.5">{rowCheckbox(row, "md")}</div>}
+                      {selection !== undefined && (
+                        <div className="relative z-10 shrink-0 pt-0.5">{rowCheckbox(row, "md")}</div>
+                      )}
                       <div
                         data-part="table-card-title"
                         {...testid(rowId(row), "title")}
@@ -261,13 +255,7 @@ export function Table<TRow>({
               );
 
               return onRowClick === undefined ? (
-                <div
-                  key={rowKey(row)}
-                  data-row
-                  data-part="table-card"
-                  {...testid(rowId(row))}
-                  className={cardClass}
-                >
+                <div key={rowKey(row)} data-row data-part="table-card" {...testid(rowId(row))} className={cardClass}>
                   {body}
                 </div>
               ) : (
@@ -298,11 +286,7 @@ export function Table<TRow>({
             {...testid(testId, "pagination")}
             className="mt-3 overflow-hidden border border-line rounded-card bg-surface shadow-card"
           >
-            <Pagination
-              {...pagination}
-              className="border-t-0"
-              {...testid(testId, "pagination-nav")}
-            />
+            <Pagination {...pagination} className="border-t-0" {...testid(testId, "pagination-nav")} />
           </div>
         )}
       </>
@@ -314,10 +298,7 @@ export function Table<TRow>({
       data-part="table"
       data-density={density}
       {...testid(testId)}
-      className={cn(
-        "relative overflow-hidden bg-surface",
-        !compact && "border border-line rounded-card shadow-card",
-      )}
+      className={cn("relative overflow-hidden bg-surface", !compact && "border border-line rounded-card shadow-card")}
     >
       {header !== undefined && (
         <div
@@ -361,11 +342,7 @@ export function Table<TRow>({
                   {...(column.sortKey !== undefined &&
                     sort !== undefined && {
                       "aria-sort":
-                        sort.key === column.sortKey
-                          ? sort.dir === "asc"
-                            ? "ascending"
-                            : "descending"
-                          : "none",
+                        sort.key === column.sortKey ? (sort.dir === "asc" ? "ascending" : "descending") : "none",
                     })}
                   className={cn(
                     "whitespace-nowrap border-b border-line bg-table-head",
@@ -405,15 +382,13 @@ export function Table<TRow>({
                     ...(rowLabel && { "aria-label": rowLabel(row) }),
                     onClick: () => onRowClick(row),
                     onKeyDown: (event: KeyboardEvent<HTMLTableRowElement>) => {
-                      if (
-                        event.target === event.currentTarget &&
-                        (event.key === "Enter" || event.key === " ")
-                      ) {
+                      if (event.target === event.currentTarget && (event.key === "Enter" || event.key === " ")) {
                         event.preventDefault();
                         onRowClick(row);
                       }
                     },
-                    className: "cursor-pointer transition-colors duration-150 hover:bg-row-hover focus-visible:bg-neutral-200",
+                    className:
+                      "cursor-pointer transition-colors duration-150 hover:bg-row-hover focus-visible:bg-neutral-200",
                   })}
                   {...(!onRowClick && {
                     className: cn(
@@ -432,12 +407,9 @@ export function Table<TRow>({
                       key={column.key}
                       data-part="table-body-cell"
                       {...testid(rowId(row), column.key)}
-                      {...(column.actions === true &&
-                        onRowClick && { onClick: (event) => event.stopPropagation() })}
+                      {...(column.actions === true && onRowClick && { onClick: (event) => event.stopPropagation() })}
                       className={cn(
-                        compact
-                          ? "h-(--control-h-sm) px-3 py-1 align-middle"
-                          : "px-[18px] py-[13px] align-middle",
+                        compact ? "h-(--control-h-sm) px-3 py-1 align-middle" : "px-[18px] py-[13px] align-middle",
                         alignClass(column.align),
                         column.className,
                       )}
@@ -511,16 +483,9 @@ function SortButton({
   );
 }
 
-function PanelHead({
-  children,
-  "data-testid": testId,
-}: { readonly children: ReactNode } & TestIdProps): JSX.Element {
+function PanelHead({ children, "data-testid": testId }: { readonly children: ReactNode } & TestIdProps): JSX.Element {
   return (
-    <div
-      data-part="table-header"
-      {...testid(testId)}
-      className="flex flex-wrap items-center justify-between gap-3"
-    >
+    <div data-part="table-header" {...testid(testId)} className="flex flex-wrap items-center justify-between gap-3">
       {children}
     </div>
   );
@@ -577,12 +542,7 @@ export function Pagination({
       aria-label={t("ui.pagination.label")}
     >
       {perPage !== undefined && onPerPageChange !== undefined && (
-        <label
-          className={cn(
-            "flex items-center gap-2 text-meta text-ink-muted",
-            isMobile && "order-last",
-          )}
-        >
+        <label className={cn("flex items-center gap-2 text-meta text-ink-muted", isMobile && "order-last")}>
           <span className={cn(isMobile && "sr-only")}>{t("ui.pagination.perPage")}</span>
           <Select
             className="w-[5.5rem]"
@@ -597,11 +557,7 @@ export function Pagination({
         </label>
       )}
 
-      <div
-        data-part="pagination-pages"
-        {...testid(testId, "pages")}
-        className="flex items-center gap-1.5"
-      >
+      <div data-part="pagination-pages" {...testid(testId, "pages")} className="flex items-center gap-1.5">
         {previous}
 
         {isMobile ? (
@@ -677,11 +633,7 @@ function PageField({
   };
 
   return (
-    <div
-      data-part="pagination-field"
-      {...testid(testId)}
-      className="flex items-center gap-1.5 px-1"
-    >
+    <div data-part="pagination-field" {...testid(testId)} className="flex items-center gap-1.5 px-1">
       <div className={cn(fieldShell({}), "w-14 px-2")}>
         <input
           {...testid(testId, "input")}
@@ -759,7 +711,5 @@ function pageWindow(page: number, totalPages: number): readonly (number | null)[
   const around = [page - 1, page, page + 1].filter((entry) => entry > 1 && entry < last);
   const shown = [1, ...around, last];
 
-  return shown.flatMap((entry, index) =>
-    index > 0 && entry - shown[index - 1]! > 1 ? [null, entry] : [entry],
-  );
+  return shown.flatMap((entry, index) => (index > 0 && entry - shown[index - 1]! > 1 ? [null, entry] : [entry]));
 }

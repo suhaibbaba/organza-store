@@ -43,16 +43,30 @@ export function useProductRowMenu() {
   }
 
   function renderMenu(product: ProductSummary) {
-    if (!canEdit && !canDelete) return null;
+    if (!canEdit && !canDelete) {
+      return null;
+    }
     return (
-      <RowMenu data-testid={`product-menu-${product.id}`} label={t("rowMenu.label", { name: localize(product.name, locale) })}>
+      <RowMenu
+        data-testid={`product-menu-${product.id}`}
+        label={t("rowMenu.label", { name: localize(product.name, locale) })}
+      >
         {canEdit && (
-          <MenuItem icon="edit" data-testid="product-menu-edit" onSelect={() => router.push(`/products/${product.id}/edit`)}>
+          <MenuItem
+            icon="edit"
+            data-testid="product-menu-edit"
+            onSelect={() => router.push(`/products/${product.id}/edit`)}
+          >
             {t("rowMenu.edit")}
           </MenuItem>
         )}
         {canDelete && (
-          <MenuItem icon="trash" tone="danger" data-testid="product-menu-delete" onSelect={() => requestDelete(product)}>
+          <MenuItem
+            icon="trash"
+            tone="danger"
+            data-testid="product-menu-delete"
+            onSelect={() => requestDelete(product)}
+          >
             {t("rowMenu.delete")}
           </MenuItem>
         )}

@@ -20,10 +20,15 @@ export async function collectCategorySubtreeIds(rootId: string): Promise<string[
 
   const childrenByParent = new Map<string, string[]>();
   for (const category of categories) {
-    if (!category.parentId) continue;
+    if (!category.parentId) {
+      continue;
+    }
     const siblings = childrenByParent.get(category.parentId);
-    if (siblings) siblings.push(category.id);
-    else childrenByParent.set(category.parentId, [category.id]);
+    if (siblings) {
+      siblings.push(category.id);
+    } else {
+      childrenByParent.set(category.parentId, [category.id]);
+    }
   }
 
   const ids: string[] = [rootId];
@@ -34,7 +39,9 @@ export async function collectCategorySubtreeIds(rootId: string): Promise<string[
   const seen = new Set<string>([rootId]);
   for (let index = 0; index < ids.length; index += 1) {
     for (const childId of childrenByParent.get(ids[index]) ?? []) {
-      if (seen.has(childId)) continue;
+      if (seen.has(childId)) {
+        continue;
+      }
       seen.add(childId);
       ids.push(childId);
     }
@@ -58,14 +65,19 @@ export async function collectCategorySubtreeIds(rootId: string): Promise<string[
  */
 export function rollUpCategoryCounts(
   categories: ReadonlyArray<{ id: string; parentId: string | null }>,
-  directCounts: ReadonlyMap<string, number>
+  directCounts: ReadonlyMap<string, number>,
 ): Map<string, number> {
   const childrenByParent = new Map<string, string[]>();
   for (const category of categories) {
-    if (!category.parentId) continue;
+    if (!category.parentId) {
+      continue;
+    }
     const siblings = childrenByParent.get(category.parentId);
-    if (siblings) siblings.push(category.id);
-    else childrenByParent.set(category.parentId, [category.id]);
+    if (siblings) {
+      siblings.push(category.id);
+    } else {
+      childrenByParent.set(category.parentId, [category.id]);
+    }
   }
 
   const totals = new Map<string, number>();
@@ -76,7 +88,9 @@ export function rollUpCategoryCounts(
     for (let index = 0; index < queue.length; index += 1) {
       total += directCounts.get(queue[index]) ?? 0;
       for (const childId of childrenByParent.get(queue[index]) ?? []) {
-        if (seen.has(childId)) continue;
+        if (seen.has(childId)) {
+          continue;
+        }
         seen.add(childId);
         queue.push(childId);
       }

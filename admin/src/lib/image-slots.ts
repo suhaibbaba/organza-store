@@ -57,7 +57,7 @@ function primaryFirst(slots: GallerySlot[]): GallerySlot[] {
 
 export function appendFiles(
   slots: GallerySlot[],
-  files: File[]
+  files: File[],
 ): { slots: GallerySlot[]; rejectedCode: string | null } {
   const added: GallerySlot[] = [];
   let rejectedCode: string | null = null;
@@ -85,46 +85,62 @@ export function appendFiles(
 
 export function removeSlot(slots: GallerySlot[], id: string): GallerySlot[] {
   const removed = slots.find((s) => s.id === id);
-  if (removed) revokeSlotUrls(removed);
+  if (removed) {
+    revokeSlotUrls(removed);
+  }
   return primaryFirst(slots.filter((s) => s.id !== id));
 }
 
 function revokeSlotUrls(slot: GallerySlot): void {
   if (slot.kind === "new") {
-    if (slot.previewUrl !== slot.sourceUrl) URL.revokeObjectURL(slot.previewUrl);
+    if (slot.previewUrl !== slot.sourceUrl) {
+      URL.revokeObjectURL(slot.previewUrl);
+    }
     URL.revokeObjectURL(slot.sourceUrl);
     return;
   }
-  if (slot.previewUrl) URL.revokeObjectURL(slot.previewUrl);
+  if (slot.previewUrl) {
+    URL.revokeObjectURL(slot.previewUrl);
+  }
 }
 
 export function applyEditToSlot(
   slots: GallerySlot[],
   id: string,
   edit: ImageEdit | null,
-  preview: string | null
+  preview: string | null,
 ): GallerySlot[] {
   return slots.map((slot) => {
-    if (slot.id !== id) return slot;
+    if (slot.id !== id) {
+      return slot;
+    }
     if (slot.kind === "new") {
-      if (slot.previewUrl !== slot.sourceUrl) URL.revokeObjectURL(slot.previewUrl);
+      if (slot.previewUrl !== slot.sourceUrl) {
+        URL.revokeObjectURL(slot.previewUrl);
+      }
       return { ...slot, edit, previewUrl: preview ?? slot.sourceUrl };
     }
-    if (slot.previewUrl) URL.revokeObjectURL(slot.previewUrl);
+    if (slot.previewUrl) {
+      URL.revokeObjectURL(slot.previewUrl);
+    }
     return { ...slot, edit, previewUrl: preview };
   });
 }
 
 export function setPrimarySlot(slots: GallerySlot[], id: string): GallerySlot[] {
   const chosen = slots.find((s) => s.id === id);
-  if (!chosen) return slots;
+  if (!chosen) {
+    return slots;
+  }
   return primaryFirst([chosen, ...slots.filter((s) => s.id !== id)]);
 }
 
 export function moveSlot(slots: GallerySlot[], fromId: string, toId: string): GallerySlot[] {
   const from = slots.findIndex((s) => s.id === fromId);
   const to = slots.findIndex((s) => s.id === toId);
-  if (from === -1 || to === -1 || from === to) return slots;
+  if (from === -1 || to === -1 || from === to) {
+    return slots;
+  }
   const next = [...slots];
   const [moved] = next.splice(from, 1);
   next.splice(to, 0, moved);

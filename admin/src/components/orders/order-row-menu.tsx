@@ -43,8 +43,7 @@ export function useOrderRowMenu() {
   }
 
   function renderMenu(order: OrderSummary) {
-    const collectable =
-      canCollect && order.paymentStatus === "PENDING_COLLECTION" && isOrderCollectable(order.status);
+    const collectable = canCollect && order.paymentStatus === "PENDING_COLLECTION" && isOrderCollectable(order.status);
     return (
       <RowMenu data-testid={`order-menu-${order.id}`} label={t("label", { number: order.orderNumber })}>
         <MenuItem icon="eye" data-testid="order-menu-open" onSelect={() => router.push(`/orders/${order.id}`)}>

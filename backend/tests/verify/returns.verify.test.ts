@@ -37,9 +37,7 @@ describe("Verify · returns", () => {
       const order = await sell(admin, [{ productId: product.id, quantity: 5 }]);
       expectCount(await readStock(admin, product.id), 5, "stock after selling 5 of 10");
 
-      const returned = await returnOrderRequest(admin, order.id, [
-        { orderItemId: order.items[0].id, quantity: 2 },
-      ]);
+      const returned = await returnOrderRequest(admin, order.id, [{ orderItemId: order.items[0].id, quantity: 2 }]);
 
       expect(returned.status, "a partial return must succeed").toBe(200);
       expectCount(returned.data!.items[0].returnedQuantity, 2, "returnedQuantity on the line");
@@ -97,9 +95,7 @@ describe("Verify · returns", () => {
       const product = await createPricedProduct(admin, { stock: 10 });
       const order = await sell(admin, [{ productId: product.id, quantity: 2 }]);
 
-      const tooMany = await returnOrderRequest(admin, order.id, [
-        { orderItemId: order.items[0].id, quantity: 3 },
-      ]);
+      const tooMany = await returnOrderRequest(admin, order.id, [{ orderItemId: order.items[0].id, quantity: 3 }]);
       expect(tooMany.status, "returning 3 of a sale of 2 must be refused").toBe(400);
       expect(tooMany.error?.code).toBe("error.order.return_quantity_exceeded");
       expectCount(await readStock(admin, product.id), 8, "stock after the refused return");
@@ -155,9 +151,7 @@ describe("Verify · returns", () => {
       const mine = await sell(admin, [{ productId: product.id, quantity: 1 }]);
       const theirs = await sell(admin, [{ productId: product.id, quantity: 1 }]);
 
-      const res = await returnOrderRequest(admin, mine.id, [
-        { orderItemId: theirs.items[0].id, quantity: 1 },
-      ]);
+      const res = await returnOrderRequest(admin, mine.id, [{ orderItemId: theirs.items[0].id, quantity: 1 }]);
       expect(res.status, "a line from another order is not this order's to return").toBe(400);
       expect(res.error?.code).toBe("error.order.item_not_found");
       expectCount(await readStock(admin, product.id), 8, "stock after the refused return");
@@ -187,11 +181,7 @@ describe("Verify · returns", () => {
 
       // ...and the returns block says what came back.
       expectDelta(afterReturn.returns.amount, afterSale.returns.amount, "100.00", "returned amount");
-      expectCount(
-        afterReturn.returns.itemCount - afterSale.returns.itemCount,
-        1,
-        "returned item count"
-      );
+      expectCount(afterReturn.returns.itemCount - afterSale.returns.itemCount, 1, "returned item count");
     });
 
     it("nets a fully returned order back to exactly nothing", async () => {
@@ -208,7 +198,7 @@ describe("Verify · returns", () => {
       expectCount(
         after.totals.orderCount - before.totals.orderCount,
         0,
-        "order count (a fully returned order sold nothing)"
+        "order count (a fully returned order sold nothing)",
       );
     });
 
@@ -222,7 +212,7 @@ describe("Verify · returns", () => {
         owed.totals.pendingCollectionAmount,
         before.totals.pendingCollectionAmount,
         "200.00",
-        "money owed after the parcel left"
+        "money owed after the parcel left",
       );
 
       await returnOrderRequest(admin, order.id);
@@ -231,12 +221,12 @@ describe("Verify · returns", () => {
         after.totals.pendingCollectionAmount,
         owed.totals.pendingCollectionAmount,
         "-200.00",
-        "money owed after the parcel came back"
+        "money owed after the parcel came back",
       );
       expectMoney(
         after.profit!.owed,
         after.totals.pendingCollectionAmount,
-        "the profit block and the totals must quote the same owed figure"
+        "the profit block and the totals must quote the same owed figure",
       );
     });
   });

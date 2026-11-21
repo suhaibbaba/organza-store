@@ -39,13 +39,9 @@ export function changeRequestLabelKey(entityType: string, field: string): string
  * sale behind a quick-sold request has already completed, and a screen that
  * called it "approve this change" would imply refusing undoes it.
  */
-export function isQuickSoldRequest(request: {
-  entityType: string;
-  field: string;
-}): boolean {
+export function isQuickSoldRequest(request: { entityType: string; field: string }): boolean {
   return (
-    request.entityType === CHANGE_REQUEST_ENTITIES.PRODUCT &&
-    request.field === CHANGE_REQUEST_FIELDS.PRODUCT_COMPLETION
+    request.entityType === CHANGE_REQUEST_ENTITIES.PRODUCT && request.field === CHANGE_REQUEST_FIELDS.PRODUCT_COMPLETION
   );
 }
 
@@ -68,9 +64,13 @@ export function isQuickSoldRequest(request: {
  */
 export function resolveRequestedValue(
   newValue: ChangeRequestValue | null,
-  status: ChangeRequestStatus
+  status: ChangeRequestStatus,
 ): ChangeRequestValue | null {
-  if (!newValue || newValue.kind !== CHANGE_REQUEST_VALUE_KINDS.APPROVAL) return newValue;
-  if (status === PENDING_CHANGE_REQUEST_STATUS) return newValue;
+  if (!newValue || newValue.kind !== CHANGE_REQUEST_VALUE_KINDS.APPROVAL) {
+    return newValue;
+  }
+  if (status === PENDING_CHANGE_REQUEST_STATUS) {
+    return newValue;
+  }
   return { ...newValue, value: status };
 }

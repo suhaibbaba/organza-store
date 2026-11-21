@@ -43,7 +43,7 @@ export function ProductCard({ product, isPending, isBusy, onAdd }: ProductCardPr
         "cursor-pointer transition-[border-color,box-shadow] not-disabled:hover:border-line-strong not-disabled:hover:shadow-card-hover",
         "focus-visible:border-primary-600 focus-darken",
         "disabled:cursor-not-allowed",
-        isBusy && !soldOut && "cursor-wait"
+        isBusy && !soldOut && "cursor-wait",
       )}
     >
       {/* A numbered shawl is sold by its numbers, so its burned-in photo shows whole. */}
@@ -75,7 +75,7 @@ export function ProductCard({ product, isPending, isBusy, onAdd }: ProductCardPr
             // Drawn, not a second button, so it can be smaller than the 44px floor.
             className={cn(
               "inline-flex h-9 shrink-0 items-center justify-center gap-1 rounded-control border border-primary-200 bg-primary-50 px-2.5 text-micro font-semibold text-primary-600 transition-colors",
-              "group-not-disabled:group-hover:border-primary-600 group-not-disabled:group-hover:bg-primary-600 group-not-disabled:group-hover:text-ink-inverse"
+              "group-not-disabled:group-hover:border-primary-600 group-not-disabled:group-hover:bg-primary-600 group-not-disabled:group-hover:text-ink-inverse",
             )}
           >
             {isPending ? <Spinner className="text-current" /> : <Plus className="size-4" />}

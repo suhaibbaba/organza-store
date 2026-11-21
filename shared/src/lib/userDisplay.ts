@@ -46,7 +46,9 @@ export function looksLikeInternalId(token: string): boolean {
  * cope with that, it is cleaned once, here.
  */
 export function cleanUserName(name: string | null | undefined): string | null {
-  if (!name) return null;
+  if (!name) {
+    return null;
+  }
   const kept = name
     .trim()
     .split(/\s+/)
@@ -57,9 +59,13 @@ export function cleanUserName(name: string | null | undefined): string | null {
 
 /** The part of an email before the @, tidied into something readable. */
 export function emailLocalPart(email: string | null | undefined): string | null {
-  if (!email) return null;
+  if (!email) {
+    return null;
+  }
   const local = email.split("@")[0]?.trim();
-  if (!local) return null;
+  if (!local) {
+    return null;
+  }
   // "suhaib.baba" and "suhaib_baba" are one person's name written with the
   // punctuation an address forces on it — the separators are not part of it.
   const spaced = local.replace(/[._-]+/g, " ").trim();
@@ -80,7 +86,9 @@ export interface DisplayableUser {
  * lib/user-display.ts.
  */
 export function userDisplayName(user: DisplayableUser | null | undefined): string | null {
-  if (!user) return null;
+  if (!user) {
+    return null;
+  }
   return cleanUserName(user.name) ?? emailLocalPart(user.email);
 }
 

@@ -84,7 +84,9 @@ export async function signInWithEmail(email: string, password: string): Promise<
  */
 export async function signOut(): Promise<{ revoked: boolean }> {
   const token = getStoredToken();
-  if (!token) return { revoked: true };
+  if (!token) {
+    return { revoked: true };
+  }
 
   try {
     const res = await fetch(`${API_BASE_URL}${AUTH_ENDPOINTS.SIGN_OUT}`, {

@@ -18,11 +18,17 @@ type AudioContextConstructor = new () => AudioContext;
 let context: AudioContext | null = null;
 
 function audioContext(): AudioContext | null {
-  if (typeof window === "undefined") return null;
+  if (typeof window === "undefined") {
+    return null;
+  }
   const withWebkit = window as typeof window & { webkitAudioContext?: AudioContextConstructor };
   const Ctor = window.AudioContext ?? withWebkit.webkitAudioContext;
-  if (!Ctor) return null;
-  if (!context) context = new Ctor();
+  if (!Ctor) {
+    return null;
+  }
+  if (!context) {
+    context = new Ctor();
+  }
   return context;
 }
 
@@ -39,8 +45,12 @@ function audioContext(): AudioContext | null {
 // underneath us and can leave the context interrupted.
 export function unlockScanSound(): void {
   const ctx = audioContext();
-  if (!ctx) return;
-  if (ctx.state !== "running") void ctx.resume().catch(() => {});
+  if (!ctx) {
+    return;
+  }
+  if (ctx.state !== "running") {
+    void ctx.resume().catch(() => {});
+  }
   primeOutput(ctx);
 }
 
@@ -67,7 +77,9 @@ function primeOutput(ctx: AudioContext): void {
 // the clock is running again.
 export function playScanTones(tones: readonly ScanTone[]): void {
   const ctx = audioContext();
-  if (!ctx) return;
+  if (!ctx) {
+    return;
+  }
 
   if (ctx.state === "running") {
     schedule(ctx, tones);

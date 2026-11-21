@@ -15,14 +15,7 @@ export const GIFT_ORDER_CHANNEL = "STORE";
 // Remote channels: customer contact details are required, and stock is only committed once preparation starts.
 export const ONLINE_ORDER_CHANNELS = ["WHATSAPP", "WEBSITE"] as const;
 
-export const ORDER_STATUSES = [
-  "NEW",
-  "PREPARING",
-  "HANDED_TO_COURIER",
-  "COMPLETED",
-  "CANCELLED",
-  "RETURNED",
-] as const;
+export const ORDER_STATUSES = ["NEW", "PREPARING", "HANDED_TO_COURIER", "COMPLETED", "CANCELLED", "RETURNED"] as const;
 
 // Cash only for now, modeled as an enum so card/transfer can be added later without restructuring.
 export const PAYMENT_METHODS = ["CASH"] as const;

@@ -52,7 +52,7 @@ router.get(
   asyncHandler(async (_req, res) => {
     const config: PushConfig = { configured: isPushConfigured(), publicKey: getPushPublicKey() };
     sendOk(res, config);
-  })
+  }),
 );
 
 // ---------------------------------------------------------------------------
@@ -68,7 +68,7 @@ router.get(
       orderBy: { createdAt: "asc" },
     });
     sendOk(res, subscriptions.map(serialize));
-  })
+  }),
 );
 
 // ---------------------------------------------------------------------------
@@ -84,7 +84,9 @@ router.post(
   "/subscriptions",
   validateBody(pushSubscribeSchema),
   asyncHandler(async (req, res) => {
-    if (!isPushConfigured()) throw new AppError(503, ERROR_CODES.PUSH_NOT_CONFIGURED);
+    if (!isPushConfigured()) {
+      throw new AppError(503, ERROR_CODES.PUSH_NOT_CONFIGURED);
+    }
 
     const body = req.body as PushSubscribeInput;
     const data = {
@@ -104,7 +106,7 @@ router.post(
     });
 
     sendOk(res, serialize(subscription), null, 201);
-  })
+  }),
 );
 
 // ---------------------------------------------------------------------------
@@ -120,10 +122,12 @@ router.delete(
     const deleted = await prisma.pushSubscription.deleteMany({
       where: { endpoint, userId: req.user!.id },
     });
-    if (deleted.count === 0) throw new AppError(404, ERROR_CODES.PUSH_SUBSCRIPTION_NOT_FOUND);
+    if (deleted.count === 0) {
+      throw new AppError(404, ERROR_CODES.PUSH_SUBSCRIPTION_NOT_FOUND);
+    }
 
     sendOk(res, { endpoint });
-  })
+  }),
 );
 
 export default router;

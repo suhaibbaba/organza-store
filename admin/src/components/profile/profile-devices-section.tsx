@@ -6,11 +6,7 @@ import { Alert, Badge, Button, Skeleton, Typography, useConfirm, useToast } from
 import type { ProfileSession } from "@store/shared/types/profile";
 import { ERROR_CODES } from "@store/shared/constants/errors";
 import { ProfileSection } from "@/components/profile/profile-section";
-import {
-  useProfileSessionsQuery,
-  useRevokeOtherSessionsMutation,
-  useRevokeSessionMutation,
-} from "@/hooks/use-profile";
+import { useProfileSessionsQuery, useRevokeOtherSessionsMutation, useRevokeSessionMutation } from "@/hooks/use-profile";
 import { useTranslateError } from "@/hooks/use-translate-error";
 import { describeUserAgent } from "@/lib/user-agent";
 import { formatDateTime } from "@/lib/format";
@@ -35,7 +31,10 @@ function DeviceRow({ session, onSignOut }: { session: ProfileSession; onSignOut:
       : (device.browser ?? device.system ?? t("unknownDevice"));
 
   return (
-    <li data-test-selector={`profile-device-${session.id}`} className="flex flex-wrap items-center gap-3 py-3 first:pt-0 last:pb-0">
+    <li
+      data-test-selector={`profile-device-${session.id}`}
+      className="flex flex-wrap items-center gap-3 py-3 first:pt-0 last:pb-0"
+    >
       <span className="flex size-10 shrink-0 items-center justify-center rounded-panel bg-sunken text-ink-muted">
         <DeviceIcon className="size-5" aria-hidden="true" />
       </span>

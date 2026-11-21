@@ -64,7 +64,9 @@ router.use(requireAuth);
 
 async function loadRequest(id: string) {
   const request = await prisma.changeRequest.findUnique({ where: { id }, include: changeRequestInclude });
-  if (!request) throw new AppError(404, ERROR_CODES.CHANGE_REQUEST_NOT_FOUND);
+  if (!request) {
+    throw new AppError(404, ERROR_CODES.CHANGE_REQUEST_NOT_FOUND);
+  }
   return request;
 }
 
@@ -83,24 +85,30 @@ async function loadRequest(id: string) {
  * scoped correctly for free.
  */
 function visibleRequestScope(user: { id: string; role: string }): Prisma.ChangeRequestWhereInput | null {
-  if (can(user, "changeRequest.approve")) return null;
+  if (can(user, "changeRequest.approve")) {
+    return null;
+  }
 
   const decidable = DECIDER_PERMISSIONS.filter(
-    (action) => action !== "changeRequest.approve" && can(user, action)
+    (action) => action !== "changeRequest.approve" && can(user, action),
   ).flatMap(fieldsDecidableBy);
 
   return {
-    OR: [
-      { requestedById: user.id },
-      ...decidable.map(({ entityType, field }) => ({ entityType, field })),
-    ],
+    OR: [{ requestedById: user.id }, ...decidable.map(({ entityType, field }) => ({ entityType, field }))],
   };
 }
 
 /** ...and whether they may read this ONE request. Same rule, one row. */
-function mayReadRequest(user: { id: string; role: string }, request: { entityType: string; field: string; requestedById: string }): boolean {
-  if (can(user, "changeRequest.approve")) return true;
-  if (request.requestedById === user.id) return true;
+function mayReadRequest(
+  user: { id: string; role: string },
+  request: { entityType: string; field: string; requestedById: string },
+): boolean {
+  if (can(user, "changeRequest.approve")) {
+    return true;
+  }
+  if (request.requestedById === user.id) {
+    return true;
+  }
   return can(user, decisionPermissionFor(request.entityType, request.field));
 }
 
@@ -115,16 +123,24 @@ router.get(
     const query = req.validatedQuery as ListChangeRequestsQuery;
     const where: Prisma.ChangeRequestWhereInput = {};
 
-    if (query.status) where.status = query.status as ChangeRequestStatus;
-    if (query.entityType) where.entityType = query.entityType;
-    if (query.entityId) where.entityId = query.entityId;
+    if (query.status) {
+      where.status = query.status as ChangeRequestStatus;
+    }
+    if (query.entityType) {
+      where.entityType = query.entityType;
+    }
+    if (query.entityId) {
+      where.entityId = query.entityId;
+    }
 
     // Enforced here, not in the UI: someone who cannot decide requests may
     // only ever read their own, whatever they ask for. `mine` narrows to your
     // own regardless of what you hold, which is what the "my requests" view
     // asks for.
     const scope = query.mine ? { requestedById: req.user!.id } : visibleRequestScope(req.user!);
-    if (scope) Object.assign(where, scope);
+    if (scope) {
+      Object.assign(where, scope);
+    }
 
     const orderBy: Prisma.ChangeRequestOrderByWithRelationInput =
       query.sortBy === "entityType"
@@ -151,7 +167,7 @@ router.get(
       total,
       totalPages: Math.max(1, Math.ceil(total / query.pageSize)),
     });
-  })
+  }),
 );
 
 // ---------------------------------------------------------------------------
@@ -177,7 +193,7 @@ router.get(
       },
     });
     sendOk(res, { pending });
-  })
+  }),
 );
 
 // ---------------------------------------------------------------------------
@@ -188,9 +204,11 @@ router.get(
   requirePermission("changeRequest.view"),
   asyncHandler(async (req, res) => {
     const request = await loadRequest(req.params.id);
-    if (!mayReadRequest(req.user!, request)) throw new AppError(403, ERROR_CODES.FORBIDDEN);
+    if (!mayReadRequest(req.user!, request)) {
+      throw new AppError(403, ERROR_CODES.FORBIDDEN);
+    }
     sendOk(res, serializeChangeRequest(request));
-  })
+  }),
 );
 
 // The half both decisions share: check it is still open, check the decider
@@ -201,7 +219,7 @@ async function decide(
   requestId: string,
   decider: { id: string; role: string },
   status: typeof APPROVED_CHANGE_REQUEST_STATUS | typeof REJECTED_CHANGE_REQUEST_STATUS,
-  note: string | undefined
+  note: string | undefined,
 ) {
   const existing = await loadRequest(requestId);
 
@@ -291,14 +309,18 @@ async function decide(
 
   // Only now, with everything committed: deleting an image's files cannot be
   // rolled back, so it must never run inside the transaction that might.
-  if (outcome.afterCommit) await outcome.afterCommit();
+  if (outcome.afterCommit) {
+    await outcome.afterCommit();
+  }
 
   // Whatever the decision changed (price, stock, visibility, variants, an image, a one-off) is re-indexed.
   await queueOwnerSync({
     productId: request.productId ?? (request.entityType === CHANGE_REQUEST_ENTITIES.PRODUCT ? request.entityId : null),
     variantId: request.entityType === CHANGE_REQUEST_ENTITIES.VARIANT ? request.entityId : null,
   });
-  queueMarkedImages([request.productId ?? (request.entityType === CHANGE_REQUEST_ENTITIES.PRODUCT ? request.entityId : null)]);
+  queueMarkedImages([
+    request.productId ?? (request.entityType === CHANGE_REQUEST_ENTITIES.PRODUCT ? request.entityId : null),
+  ]);
 
   return request;
 }
@@ -320,7 +342,7 @@ router.post(
     const body = req.body as DecideChangeRequestInput;
     const request = await decide(req.params.id, req.user!, APPROVED_CHANGE_REQUEST_STATUS, body.note);
     sendOk(res, serializeChangeRequest(request));
-  })
+  }),
 );
 
 // ---------------------------------------------------------------------------
@@ -336,7 +358,7 @@ router.post(
     const body = req.body as DecideChangeRequestInput;
     const request = await decide(req.params.id, req.user!, REJECTED_CHANGE_REQUEST_STATUS, body.note);
     sendOk(res, serializeChangeRequest(request));
-  })
+  }),
 );
 
 // ---------------------------------------------------------------------------
@@ -394,7 +416,7 @@ router.post(
     });
 
     sendOk(res, { id: existing.id, cancelled: true });
-  })
+  }),
 );
 
 export default router;

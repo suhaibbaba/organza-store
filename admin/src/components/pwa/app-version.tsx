@@ -40,7 +40,7 @@ export function AppVersion({ className }: AppVersionProps) {
         "flex w-full cursor-pointer flex-col items-start gap-0.5 rounded-control px-2 py-1.5 text-start",
         "text-meta text-ink-subtle transition-colors duration-150 hover:bg-inset",
         "focus-visible:bg-neutral-200 focus-visible:text-ink",
-        className
+        className,
       )}
     >
       <span className="select-all font-mono">{appLine}</span>

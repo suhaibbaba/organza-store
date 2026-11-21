@@ -30,13 +30,7 @@ export const EXPENSE_SORT_FIELDS = ["date", "amount", "createdAt"] as const;
 // by key). They are ordinary rows, not an enum: the list is the shop's to
 // extend, rename and translate — the keys below are only what the seed
 // guarantees exists.
-export const DEFAULT_EXPENSE_CATEGORY_KEYS = [
-  "utilities",
-  "salaries",
-  "supplies",
-  "maintenance",
-  "delivery",
-] as const;
+export const DEFAULT_EXPENSE_CATEGORY_KEYS = ["utilities", "salaries", "supplies", "maintenance", "delivery"] as const;
 
 // Identity of a category is its key, never its translated name (CLAUDE.md
 // rule 9): renaming "Supplies" in three languages must not orphan a single

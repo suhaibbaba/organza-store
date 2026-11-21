@@ -104,13 +104,19 @@ function rng(key: string) {
 
 // A local wall-clock time on a local date, as a real instant.
 function localInstant(day: string, minutesIntoDay: number): Date {
-  return new Date(new Date(`${day}T00:00:00.000Z`).getTime() + (minutesIntoDay - SHOP_TZ_OFFSET_MINUTES) * MS_PER_MINUTE);
+  return new Date(
+    new Date(`${day}T00:00:00.000Z`).getTime() + (minutesIntoDay - SHOP_TZ_OFFSET_MINUTES) * MS_PER_MINUTE,
+  );
 }
 
 function localDays(from: string, until: Date): string[] {
   const today = new Date(until.getTime() + SHOP_TZ_OFFSET_MINUTES * MS_PER_MINUTE).toISOString().slice(0, 10);
   const days: string[] = [];
-  for (let d = new Date(`${from}T00:00:00.000Z`); d.toISOString().slice(0, 10) <= today; d.setUTCDate(d.getUTCDate() + 1)) {
+  for (
+    let d = new Date(`${from}T00:00:00.000Z`);
+    d.toISOString().slice(0, 10) <= today;
+    d.setUTCDate(d.getUTCDate() + 1)
+  ) {
     days.push(d.toISOString().slice(0, 10));
   }
   return days;
@@ -133,12 +139,16 @@ async function main() {
     include: { variants: { where: { isActive: true }, orderBy: { variantNumber: "asc" } } },
     orderBy: { id: "asc" },
   });
-  if (products.length === 0) throw new Error("No priced products to sell — run `npm run seed:demo` first.");
+  if (products.length === 0) {
+    throw new Error("No priced products to sell — run `npm run seed:demo` first.");
+  }
 
   const categories = await prisma.expenseCategory.findMany();
   const categoryId = (key: string) => {
     const found = categories.find((c) => c.key === key);
-    if (!found) throw new Error(`Expense category "${key}" is missing — run \`npm run seed:demo\` first.`);
+    if (!found) {
+      throw new Error(`Expense category "${key}" is missing — run \`npm run seed:demo\` first.`);
+    }
     return found.id;
   };
 
@@ -243,13 +253,19 @@ async function main() {
     const randomMinute = () => r.int(OPEN_HOUR * 60, CLOSE_HOUR * 60 - 1);
 
     let count = r.int(STORE_SALES_PER_DAY.min, STORE_SALES_PER_DAY.max);
-    if (weekday === BUSY_DAY) count += 2;
-    if (weekday === QUIET_DAY) count = Math.max(1, count - 2);
+    if (weekday === BUSY_DAY) {
+      count += 2;
+    }
+    if (weekday === QUIET_DAY) {
+      count = Math.max(1, count - 2);
+    }
 
     const minutes = Array.from({ length: count }, randomMinute).sort((a, b) => a - b);
     for (let i = 0; i < minutes.length; i++) {
       const createdAt = at(minutes[i]);
-      if (!happened(createdAt)) continue;
+      if (!happened(createdAt)) {
+        continue;
+      }
       await writeOrder({
         id: `${ID_PREFIX}-${day}-store-${i + 1}`,
         r,
@@ -268,7 +284,13 @@ async function main() {
         // Delivered and paid once the courier has had it long enough; before
         // that it walks back through the flow the younger it is.
         const delivered = ageDays >= COURIER_DAYS;
-        const status = delivered ? "COMPLETED" : ageDays >= 1 ? "HANDED_TO_COURIER" : r.chance(0.5) ? "PREPARING" : "NEW";
+        const status = delivered
+          ? "COMPLETED"
+          : ageDays >= 1
+            ? "HANDED_TO_COURIER"
+            : r.chance(0.5)
+              ? "PREPARING"
+              : "NEW";
         const collectedAt = delivered ? localInstant(day, (COURIER_DAYS * 24 + 12) * 60) : null;
         await writeOrder({
           id: `${ID_PREFIX}-${day}-whatsapp`,
@@ -304,8 +326,24 @@ async function main() {
     if (day.endsWith("-01")) {
       const morning = at(OPEN_HOUR * 60);
       if (happened(morning)) {
-        await writeExpense({ id: `${ID_PREFIX}-${day}-salaries`, date: morning, key: "salaries", amount: 3500, paidInCash: false, isRecurring: true, note: "رواتب الشهر" });
-        await writeExpense({ id: `${ID_PREFIX}-${day}-utilities`, date: morning, key: "utilities", amount: 1200, paidInCash: false, isRecurring: true, note: "إيجار وكهرباء" });
+        await writeExpense({
+          id: `${ID_PREFIX}-${day}-salaries`,
+          date: morning,
+          key: "salaries",
+          amount: 3500,
+          paidInCash: false,
+          isRecurring: true,
+          note: "رواتب الشهر",
+        });
+        await writeExpense({
+          id: `${ID_PREFIX}-${day}-utilities`,
+          date: morning,
+          key: "utilities",
+          amount: 1200,
+          paidInCash: false,
+          isRecurring: true,
+          note: "إيجار وكهرباء",
+        });
         expenses += 2;
       }
     }
@@ -314,7 +352,15 @@ async function main() {
       const date = at(randomMinute());
       if (happened(date)) {
         const key = r.pick(["supplies", "delivery", "maintenance"] as const);
-        await writeExpense({ id: `${ID_PREFIX}-${day}-cash`, date, key, amount: r.int(2, 12) * 10, paidInCash: true, isRecurring: false, note: "مصروف نقدي" });
+        await writeExpense({
+          id: `${ID_PREFIX}-${day}-cash`,
+          date,
+          key,
+          amount: r.int(2, 12) * 10,
+          paidInCash: true,
+          isRecurring: false,
+          note: "مصروف نقدي",
+        });
         expenses++;
       }
     }

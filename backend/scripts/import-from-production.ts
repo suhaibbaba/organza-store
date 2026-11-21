@@ -52,7 +52,9 @@ import type { ProductionImportSummary } from "@/types";
  * afterwards costs another full run.
  */
 async function resolveUploadSource(argv: string[]): Promise<string | null> {
-  if (argv.includes(PRODUCTION_IMPORT_FLAGS.skipImages)) return null;
+  if (argv.includes(PRODUCTION_IMPORT_FLAGS.skipImages)) {
+    return null;
+  }
 
   const configured = process.env[PRODUCTION_IMPORT_ENV.uploadDir]?.trim();
   if (!configured) {
@@ -67,14 +69,14 @@ async function resolveUploadSource(argv: string[]): Promise<string | null> {
         "",
         "  Or import the rows without the pictures, knowingly:",
         `      npm run import:prod -- ${PRODUCTION_IMPORT_FLAGS.skipImages}`,
-      ].join("\n")
+      ].join("\n"),
     );
   }
 
   const directory = path.resolve(configured);
   if (!(await canReadUploadDir(directory))) {
     throw new Error(
-      `${PRODUCTION_IMPORT_ENV.uploadDir} points at ${directory}, which is not a readable directory here.`
+      `${PRODUCTION_IMPORT_ENV.uploadDir} points at ${directory}, which is not a readable directory here.`,
     );
   }
   return directory;
@@ -121,7 +123,9 @@ function report(summary: ProductionImportSummary, uploadSource: string | null): 
     console.log(`    to                   ${UPLOAD_DIR}`);
     console.log(`    copied               ${String(images.copied).padStart(7)} file(s)`);
     console.log(`    missing in production ${String(images.missing).padStart(6)} file(s)`);
-    for (const example of images.missingExamples) console.log(`        · ${example}`);
+    for (const example of images.missingExamples) {
+      console.log(`        · ${example}`);
+    }
     if (images.missing > images.missingExamples.length) {
       console.log(`        · …and ${images.missing - images.missingExamples.length} more`);
     }

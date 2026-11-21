@@ -28,7 +28,9 @@ export function useProductBrowse({ categoryId, query }: UseProductBrowseOptions)
     initialPageParam: 1,
     getNextPageParam: (lastPage) => {
       const meta = lastPage.meta;
-      if (!meta || meta.page >= meta.totalPages) return undefined;
+      if (!meta || meta.page >= meta.totalPages) {
+        return undefined;
+      }
       return meta.page + 1;
     },
     // Same reasoning as the search list: every card shows a stock badge, and

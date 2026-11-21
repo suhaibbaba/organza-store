@@ -33,9 +33,7 @@ function SellerRow({ seller, rank }: { seller: TopSeller; rank: number }) {
         </span>
         <span className="tabular-nums text-ink-muted">{t("quantity", { count: seller.quantity })}</span>
         {seller.profit !== undefined && (
-          <span className="tabular-nums text-ink-muted">
-            {t("profit", { amount: formatMoney(seller.profit) })}
-          </span>
+          <span className="tabular-nums text-ink-muted">{t("profit", { amount: formatMoney(seller.profit) })}</span>
         )}
       </div>
     </li>

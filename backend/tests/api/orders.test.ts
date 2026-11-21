@@ -21,7 +21,9 @@ describe("Orders", () => {
 
   async function createOrder(token: string, body: unknown) {
     const res = await apiRequest<OrderDto>("/api/orders", { method: "POST", token, body });
-    if (res.data?.id) openedOrderIds.push(res.data.id);
+    if (res.data?.id) {
+      openedOrderIds.push(res.data.id);
+    }
     return res;
   }
 
@@ -802,7 +804,7 @@ describe("Orders", () => {
       // The outstanding view is the order list filtered on the same fact.
       const outstanding = await apiRequest<OrderSummaryDto[]>(
         "/api/orders?paymentStatus=PENDING_COLLECTION&collectableOnly=true&pageSize=100",
-        { token: admin.token }
+        { token: admin.token },
       );
       expect(outstanding.status).toBe(200);
       expect(outstanding.data!.every((o) => o.paymentStatus === "PENDING_COLLECTION")).toBe(true);
@@ -820,7 +822,7 @@ describe("Orders", () => {
 
       const stillOutstanding = await apiRequest<OrderSummaryDto[]>(
         "/api/orders?paymentStatus=PENDING_COLLECTION&collectableOnly=true&pageSize=100",
-        { token: admin.token }
+        { token: admin.token },
       );
       expect(stillOutstanding.data!.some((o) => o.id === order.id)).toBe(false);
     });
@@ -848,7 +850,7 @@ describe("Orders", () => {
 
       const outstanding = await apiRequest<OrderSummaryDto[]>(
         "/api/orders?paymentStatus=PENDING_COLLECTION&collectableOnly=true&pageSize=100",
-        { token: admin.token }
+        { token: admin.token },
       );
       expect(outstanding.data!.some((o) => o.id === order.id)).toBe(false);
     });
@@ -1120,10 +1122,10 @@ describe("Orders", () => {
       });
       expect(await readStock(admin.token, product.id)).toBe(7);
 
-      const removed = await apiRequest<{ id: string; deletedAt: string | null }>(
-        `/api/orders/${created.data!.id}`,
-        { method: "DELETE", token: admin.token }
-      );
+      const removed = await apiRequest<{ id: string; deletedAt: string | null }>(`/api/orders/${created.data!.id}`, {
+        method: "DELETE",
+        token: admin.token,
+      });
       expect(removed.status).toBe(200);
       expect(removed.data!.deletedAt).not.toBeNull();
       expect(await readStock(admin.token, product.id)).toBe(10);
@@ -1204,7 +1206,7 @@ describe("Orders", () => {
 
       const inRange = await apiRequest<OrderSummaryDto[]>(
         `/api/orders?dateFrom=${yesterday}&dateTo=${tomorrow}&pageSize=100`,
-        { token: admin.token }
+        { token: admin.token },
       );
       expect(inRange.data!.some((o) => o.id === created.data!.id)).toBe(true);
 
@@ -1231,7 +1233,7 @@ describe("Orders", () => {
 
       const byName = await apiRequest<OrderSummaryDto[]>(
         `/api/orders?q=${encodeURIComponent("فاطمة الزهراء")}&pageSize=100`,
-        { token: admin.token }
+        { token: admin.token },
       );
       expect(byName.data!.some((o) => o.id === created.data!.id)).toBe(true);
 

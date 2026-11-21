@@ -14,12 +14,14 @@ import {
 
 export const listChangeRequestsQuerySchema = paginationSchema.extend({
   status: z.enum(CHANGE_REQUEST_STATUSES).optional(),
-  entityType: z.enum([
-    CHANGE_REQUEST_ENTITIES.PRODUCT,
-    CHANGE_REQUEST_ENTITIES.VARIANT,
-    CHANGE_REQUEST_ENTITIES.PRODUCT_IMAGE,
-    CHANGE_REQUEST_ENTITIES.EXPENSE,
-  ]).optional(),
+  entityType: z
+    .enum([
+      CHANGE_REQUEST_ENTITIES.PRODUCT,
+      CHANGE_REQUEST_ENTITIES.VARIANT,
+      CHANGE_REQUEST_ENTITIES.PRODUCT_IMAGE,
+      CHANGE_REQUEST_ENTITIES.EXPENSE,
+    ])
+    .optional(),
   entityId: z.string().min(1).optional(),
   // "Only the ones I asked for" — what an Employee's own screens filter on.
   // Anyone without changeRequest.approve is held to it regardless (see

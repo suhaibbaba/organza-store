@@ -65,7 +65,9 @@ export function VariantEditList({
 
   const typeNameById = useMemo(() => {
     const map = new Map<string, string>();
-    for (const type of variantTypes) map.set(type.id, localize(type.name, locale));
+    for (const type of variantTypes) {
+      map.set(type.id, localize(type.name, locale));
+    }
     return map;
   }, [variantTypes, locale]);
 
@@ -86,8 +88,11 @@ export function VariantEditList({
   function toggleChecked(id: string, on: boolean) {
     setCheckedIds((current) => {
       const next = new Set(current);
-      if (on) next.add(id);
-      else next.delete(id);
+      if (on) {
+        next.add(id);
+      } else {
+        next.delete(id);
+      }
       return next;
     });
   }
@@ -95,12 +100,16 @@ export function VariantEditList({
   function applyStockToChecked(stock: number) {
     for (const id of checked) {
       const values = edits[id];
-      if (values) onEditChange(id, { ...values, stock: String(stock) });
+      if (values) {
+        onEditChange(id, { ...values, stock: String(stock) });
+      }
     }
   }
 
   function removeChecked() {
-    for (const id of checked) onRemove(id);
+    for (const id of checked) {
+      onRemove(id);
+    }
     setCheckedIds(new Set());
   }
 
@@ -109,137 +118,138 @@ export function VariantEditList({
   return (
     <>
       <div className="divide-y divide-line overflow-hidden rounded-control border border-line bg-surface">
-      {selectable && liveIds.length > 1 && (
-        <VariantBulkBar
-          name="variant"
-          total={liveIds.length}
-          checked={checked.length}
-          onCheckAll={(on) => setCheckedIds(new Set(on ? liveIds : []))}
-          onSetStock={inlineStock ? applyStockToChecked : undefined}
-          onRemove={canRemoveSelected ? removeChecked : undefined}
-        />
-      )}
-      <ul data-test-selector="variant-edit-list" className="divide-y divide-line">
-      {variants.map((variant) => {
-        const name = localize(variant.name, locale);
-        const groups = labeledValues(variant);
-        const values = edits[variant.id];
-        const isRemoved = removedIds.has(variant.id);
+        {selectable && liveIds.length > 1 && (
+          <VariantBulkBar
+            name="variant"
+            total={liveIds.length}
+            checked={checked.length}
+            onCheckAll={(on) => setCheckedIds(new Set(on ? liveIds : []))}
+            onSetStock={inlineStock ? applyStockToChecked : undefined}
+            onRemove={canRemoveSelected ? removeChecked : undefined}
+          />
+        )}
+        <ul data-test-selector="variant-edit-list" className="divide-y divide-line">
+          {variants.map((variant) => {
+            const name = localize(variant.name, locale);
+            const groups = labeledValues(variant);
+            const values = edits[variant.id];
+            const isRemoved = removedIds.has(variant.id);
 
-        if (!values) return null;
+            if (!values) {
+              return null;
+            }
 
-        const chips = (
-          <span className="flex min-w-0 flex-wrap items-center gap-1.5">
-            {groups.length > 0 ? (
-              groups.map((g) => (
-                <span
-                  key={g.key}
-                  className={cn(
-                    "inline-flex items-baseline gap-1 rounded-chip bg-inset px-2 py-0.5 text-label text-ink",
-                    isRemoved && "text-ink-muted line-through"
-                  )}
-                >
-                  <span className="text-micro text-ink-muted">{g.typeName}</span>
-                  {g.value}
-                </span>
-              ))
-            ) : (
-              <span className={cn("truncate text-label text-ink", isRemoved && "line-through")}>{name}</span>
-            )}
-          </span>
-        );
-        const sku = (
-          <span className="text-micro text-ink-muted tabular-nums" dir="ltr">
-            {variant.sku}
-          </span>
-        );
-
-        if (isRemoved) {
-          return (
-            <li key={variant.id} className="flex min-h-14 items-center gap-3 bg-inset px-3 py-2">
-              <span className="flex min-w-0 flex-1 flex-col gap-1">
-                {chips}
-                {sku}
-              </span>
-              <Button variant="secondary" onClick={() => onRestore(variant.id)}>
-                {t("undo")}
-              </Button>
-            </li>
-          );
-        }
-
-        const hasProblem = variantBarcodeIncomplete(values);
-        const open = () => setEditingId(variant.id);
-        const effectivePrice = isNonNegativeDecimalString(values.priceOverride)
-          ? values.priceOverride
-          : variant.resolvedPrice;
-        return (
-          <li key={variant.id} data-test-selector={testSelectorFor("variant-edit-row", variant.id)}>
-            <div className="flex min-h-14 flex-wrap items-center gap-x-3 gap-y-2 px-3 py-2 transition-colors hover:bg-row-hover">
-              {selectable && liveIds.length > 1 && (
-                <Checkbox
-                  size="sm"
-                  hideLabel
-                  data-testid={testSelectorFor("variant-select", variant.id)}
-                  label={t("selectRow", { name })}
-                  checked={checkedIds.has(variant.id)}
-                  onCheckedChange={(on) => toggleChecked(variant.id, on)}
-                />
-              )}
-              <button
-                type="button"
-                onClick={open}
-                className="flex min-w-0 flex-1 cursor-pointer flex-col items-start gap-1 rounded-control text-start focus-visible:bg-inset sm:basis-0"
-              >
-                {chips}
-                <span className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
-                  {sku}
-                  {!values.isActive && <span className="text-micro text-ink-muted">· {t("hidden")}</span>}
-                  {hasProblem && (
-                    <span className="inline-flex items-center gap-1 text-micro text-danger-600">
-                      <TriangleAlert className="size-3.5" aria-hidden="true" />
-                      {t("barcodeIncomplete")}
+            const chips = (
+              <span className="flex min-w-0 flex-wrap items-center gap-1.5">
+                {groups.length > 0 ? (
+                  groups.map((g) => (
+                    <span
+                      key={g.key}
+                      className={cn(
+                        "inline-flex items-baseline gap-1 rounded-chip bg-inset px-2 py-0.5 text-label text-ink",
+                        isRemoved && "text-ink-muted line-through",
+                      )}
+                    >
+                      <span className="text-micro text-ink-muted">{g.typeName}</span>
+                      {g.value}
                     </span>
+                  ))
+                ) : (
+                  <span className={cn("truncate text-label text-ink", isRemoved && "line-through")}>{name}</span>
+                )}
+              </span>
+            );
+            const sku = (
+              <span className="text-micro text-ink-muted tabular-nums" dir="ltr">
+                {variant.sku}
+              </span>
+            );
+
+            if (isRemoved) {
+              return (
+                <li key={variant.id} className="flex min-h-14 items-center gap-3 bg-inset px-3 py-2">
+                  <span className="flex min-w-0 flex-1 flex-col gap-1">
+                    {chips}
+                    {sku}
+                  </span>
+                  <Button variant="secondary" onClick={() => onRestore(variant.id)}>
+                    {t("undo")}
+                  </Button>
+                </li>
+              );
+            }
+
+            const hasProblem = variantBarcodeIncomplete(values);
+            const open = () => setEditingId(variant.id);
+            const effectivePrice = isNonNegativeDecimalString(values.priceOverride)
+              ? values.priceOverride
+              : variant.resolvedPrice;
+            return (
+              <li key={variant.id} data-test-selector={testSelectorFor("variant-edit-row", variant.id)}>
+                <div className="flex min-h-14 flex-wrap items-center gap-x-3 gap-y-2 px-3 py-2 transition-colors hover:bg-row-hover">
+                  {selectable && liveIds.length > 1 && (
+                    <Checkbox
+                      size="sm"
+                      hideLabel
+                      data-testid={testSelectorFor("variant-select", variant.id)}
+                      label={t("selectRow", { name })}
+                      checked={checkedIds.has(variant.id)}
+                      onCheckedChange={(on) => toggleChecked(variant.id, on)}
+                    />
                   )}
-                </span>
-              </button>
+                  <button
+                    type="button"
+                    onClick={open}
+                    className="flex min-w-0 flex-1 cursor-pointer flex-col items-start gap-1 rounded-control text-start focus-visible:bg-inset sm:basis-0"
+                  >
+                    {chips}
+                    <span className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+                      {sku}
+                      {!values.isActive && <span className="text-micro text-ink-muted">· {t("hidden")}</span>}
+                      {hasProblem && (
+                        <span className="inline-flex items-center gap-1 text-micro text-danger-600">
+                          <TriangleAlert className="size-3.5" aria-hidden="true" />
+                          {t("barcodeIncomplete")}
+                        </span>
+                      )}
+                    </span>
+                  </button>
 
-              <span className="flex w-full items-center gap-3 sm:w-auto">
-              {inlineStock ? (
-                <QuantityStepper
-                  name={`variant-${variant.id}`}
-                  value={parseQuantity(values.stock)}
-                  onChange={(stock) => onEditChange(variant.id, { ...values, stock: String(stock) })}
-                  decreaseLabel={tCommon("quantity.decrease", { name })}
-                  increaseLabel={tCommon("quantity.increase", { name })}
-                  valueLabel={tCommon("quantity.value", { name })}
-                />
-              ) : (
-                <span className="text-label text-ink-muted tabular-nums">
-                  {t("summaryStock", { count: parseQuantity(values.stock) })}
-                </span>
-              )}
+                  <span className="flex w-full items-center gap-3 sm:w-auto">
+                    {inlineStock ? (
+                      <QuantityStepper
+                        name={`variant-${variant.id}`}
+                        value={parseQuantity(values.stock)}
+                        onChange={(stock) => onEditChange(variant.id, { ...values, stock: String(stock) })}
+                        decreaseLabel={tCommon("quantity.decrease", { name })}
+                        increaseLabel={tCommon("quantity.increase", { name })}
+                        valueLabel={tCommon("quantity.value", { name })}
+                      />
+                    ) : (
+                      <span className="text-label text-ink-muted tabular-nums">
+                        {t("summaryStock", { count: parseQuantity(values.stock) })}
+                      </span>
+                    )}
 
-              <span className="ms-auto w-24 shrink-0 text-end text-value text-ink tabular-nums" dir="ltr">
-                {formatMoney(effectivePrice, currency, locale)}
-              </span>
+                    <span className="ms-auto w-24 shrink-0 text-end text-value text-ink tabular-nums" dir="ltr">
+                      {formatMoney(effectivePrice, currency, locale)}
+                    </span>
 
-              <button
-                type="button"
-                onClick={open}
-                aria-label={t("toggleDetails", { name })}
-                data-test-selector={testSelectorFor("variant-edit-open", variant.id)}
-                className="inline-flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-control text-ink-muted hover:bg-inset hover:text-ink focus-visible:bg-neutral-200 focus-visible:text-ink"
-              >
-                <Pencil className="size-4" aria-hidden="true" />
-              </button>
-              </span>
-            </div>
-
-          </li>
-        );
-      })}
-      </ul>
+                    <button
+                      type="button"
+                      onClick={open}
+                      aria-label={t("toggleDetails", { name })}
+                      data-test-selector={testSelectorFor("variant-edit-open", variant.id)}
+                      className="inline-flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-control text-ink-muted hover:bg-inset hover:text-ink focus-visible:bg-neutral-200 focus-visible:text-ink"
+                    >
+                      <Pencil className="size-4" aria-hidden="true" />
+                    </button>
+                  </span>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
       </div>
       <VariantEditDrawer
         variant={editing ?? null}

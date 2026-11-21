@@ -58,7 +58,7 @@ export async function runBootstrap(): Promise<BootstrapSummary> {
     async () => (await prisma.setting.findUnique({ where: { id: SETTING_SINGLETON_ID } })) !== null,
     async () => {
       await prisma.setting.create({ data: { id: SETTING_SINGLETON_ID, ...BOOTSTRAP_SETTING } });
-    }
+    },
   );
 
   // --- global variant types + their starting values ---
@@ -68,13 +68,15 @@ export async function runBootstrap(): Promise<BootstrapSummary> {
       async () => (await prisma.variantType.findUnique({ where: { slug: type.slug } })) !== null,
       async () => {
         await prisma.variantType.create({ data: { slug: type.slug, name: type.name } });
-      }
+      },
     );
 
     // The type may have been deleted deliberately after being bootstrapped;
     // in that case there is nothing to hang values off, and nothing to do.
     const stored = await prisma.variantType.findUnique({ where: { slug: type.slug } });
-    if (!stored) continue;
+    if (!stored) {
+      continue;
+    }
 
     for (let i = 0; i < type.values.length; i++) {
       const value = type.values[i];
@@ -88,7 +90,7 @@ export async function runBootstrap(): Promise<BootstrapSummary> {
           await prisma.variantOptionValue.create({
             data: { variantTypeId: stored.id, key: value.key, value: value.value, sortOrder: i },
           });
-        }
+        },
       );
     }
   }
@@ -103,7 +105,7 @@ export async function runBootstrap(): Promise<BootstrapSummary> {
         await prisma.expenseCategory.create({
           data: { key: category.key, name: category.name, sortOrder: i, isActive: true },
         });
-      }
+      },
     );
   }
 
@@ -118,18 +120,19 @@ export async function runBootstrap(): Promise<BootstrapSummary> {
   // for it would do nothing except suggest, to whoever reads the database
   // later, that it does something.
   for (const role of ROLES) {
-    if (isFixedRole(role)) continue;
+    if (isFixedRole(role)) {
+      continue;
+    }
     const defaults = DEFAULT_ROLE_PERMISSIONS[role];
     for (const action of CONFIGURABLE_ACTIONS) {
       await once(
         BOOTSTRAP_KEYS.rolePermission(role, action),
-        async () =>
-          (await prisma.rolePermission.findUnique({ where: { role_action: { role, action } } })) !== null,
+        async () => (await prisma.rolePermission.findUnique({ where: { role_action: { role, action } } })) !== null,
         async () => {
           await prisma.rolePermission.create({
             data: { role, action, granted: defaults.includes(action) },
           });
-        }
+        },
       );
     }
   }

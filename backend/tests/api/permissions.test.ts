@@ -281,24 +281,26 @@ describe("Role permissions", () => {
       // The worst case the screen can produce: every action granted to
       // everybody, permission.manage included. The Admin row is still out of
       // everybody's reach.
-      await patchRolePermissions("MANAGER", CONFIGURABLE_ACTIONS.map((action) => ({ action, granted: true })));
-      await patchRolePermissions("EMPLOYEE", CONFIGURABLE_ACTIONS.map((action) => ({ action, granted: true })));
+      await patchRolePermissions(
+        "MANAGER",
+        CONFIGURABLE_ACTIONS.map((action) => ({ action, granted: true })),
+      );
+      await patchRolePermissions(
+        "EMPLOYEE",
+        CONFIGURABLE_ACTIONS.map((action) => ({ action, granted: true })),
+      );
 
       try {
         // A Manager holding permission.manage may edit the Employee's row...
-        const managerEdit = await patchRolePermissions(
-          "EMPLOYEE",
-          [{ action: "inventory.view", granted: false }],
-          { token: managerToken }
-        );
+        const managerEdit = await patchRolePermissions("EMPLOYEE", [{ action: "inventory.view", granted: false }], {
+          token: managerToken,
+        });
         expect(managerEdit.status).toBe(200);
 
         // ...never their own...
-        const managerSelf = await patchRolePermissions(
-          "MANAGER",
-          [{ action: "inventory.view", granted: false }],
-          { token: managerToken }
-        );
+        const managerSelf = await patchRolePermissions("MANAGER", [{ action: "inventory.view", granted: false }], {
+          token: managerToken,
+        });
         expect(managerSelf.status).toBe(409);
         expect(managerSelf.error?.code).toBe(ERROR_CODES.PERMISSION_SELF_ROLE);
 
@@ -396,7 +398,7 @@ describe("Role permissions", () => {
     it("accepts the whole configurable list in one request", async () => {
       const res = await patchRolePermissions(
         "MANAGER",
-        CONFIGURABLE_ACTIONS.map((action) => ({ action, granted: true }))
+        CONFIGURABLE_ACTIONS.map((action) => ({ action, granted: true })),
       );
       expect(res.status).toBe(200);
 

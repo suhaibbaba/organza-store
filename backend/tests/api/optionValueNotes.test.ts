@@ -17,7 +17,7 @@ import { ERROR_CODES } from "@/constants";
 async function createProduct(
   token: string,
   optionSelections: OptionSelection[],
-  body: Record<string, unknown> = {}
+  body: Record<string, unknown> = {},
 ): Promise<ProductDto> {
   const nonce = uniqueId();
   const name = `Vitest Notes ${nonce}`;
@@ -43,7 +43,9 @@ async function createProduct(
 function noteOnValue(product: ProductDto, optionValueId: string) {
   for (const variant of product.variants) {
     const value = variant.values.find((candidate) => candidate.id === optionValueId);
-    if (value) return value.note;
+    if (value) {
+      return value.note;
+    }
   }
   return undefined;
 }
@@ -262,7 +264,7 @@ describe("Notes on a product's options", () => {
     // What the cashier gets when the collection label is scanned.
     const lookup = await apiRequest<ProductLookupDto>(
       `/api/products/lookup?code=${encodeURIComponent(product.barcode!)}`,
-      { token: employee.token }
+      { token: employee.token },
     );
     expect(lookup.status).toBe(200);
 

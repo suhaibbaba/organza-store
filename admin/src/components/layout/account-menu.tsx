@@ -31,7 +31,7 @@ export function AccountMenu({ className }: AccountMenuProps) {
           "group flex h-(--control-h) min-w-0 cursor-pointer items-center gap-1.5 rounded-control border border-line bg-surface ps-1 pe-1 sm:pe-2.5",
           "text-label font-medium text-ink transition-colors duration-150",
           "hover:bg-primary-50 data-[state=open]:bg-primary-50",
-          className
+          className,
         )}
       >
         <Avatar name={name} tintKey={user?.id} size={26} />

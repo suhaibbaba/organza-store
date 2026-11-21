@@ -91,11 +91,13 @@ function isPlainObject(value: unknown): value is AnyRecord {
 function unknownFieldPaths(raw: unknown, parsed: unknown, path: string[] = []): string[][] {
   if (Array.isArray(raw) && Array.isArray(parsed)) {
     return raw.flatMap((entry, index) =>
-      index < parsed.length ? unknownFieldPaths(entry, parsed[index], [...path, String(index)]) : []
+      index < parsed.length ? unknownFieldPaths(entry, parsed[index], [...path, String(index)]) : [],
     );
   }
 
-  if (!isPlainObject(raw) || !isPlainObject(parsed)) return [];
+  if (!isPlainObject(raw) || !isPlainObject(parsed)) {
+    return [];
+  }
 
   const found: string[][] = [];
   for (const key of Object.keys(raw)) {
@@ -115,13 +117,11 @@ function unknownFieldPaths(raw: unknown, parsed: unknown, path: string[] = []): 
  * this needs no new message and no new translation.
  */
 function unknownFieldError(paths: string[][]): ZodError {
-  const issues = paths.map(
-    (path): ZodIssue => ({
-      code: "unrecognized_keys",
-      keys: [path[path.length - 1]!],
-      path: path.slice(0, -1),
-      message: UNKNOWN_FIELD_MESSAGE,
-    })
-  );
+  const issues = paths.map((path): ZodIssue => ({
+    code: "unrecognized_keys",
+    keys: [path[path.length - 1]!],
+    path: path.slice(0, -1),
+    message: UNKNOWN_FIELD_MESSAGE,
+  }));
   return new ZodError(issues);
 }

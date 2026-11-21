@@ -1,8 +1,5 @@
 import { keepPreviousData, useMutation, useQuery } from "@tanstack/react-query";
-import {
-  DEFAULT_PRODUCT_FILTERS,
-  PRODUCT_LIST_QUERY_KEY,
-} from "@/constants/products";
+import { DEFAULT_PRODUCT_FILTERS, PRODUCT_LIST_QUERY_KEY } from "@/constants/products";
 import {
   fetchProducts,
   fetchProduct,
@@ -30,10 +27,7 @@ export function useNeedsCompletingCountQuery(enabled: boolean) {
   return useQuery({
     queryKey: [PRODUCT_LIST_QUERY_KEY, "needsCompletingCount"],
     queryFn: async () => {
-      const { meta } = await fetchProducts(
-        { ...DEFAULT_PRODUCT_FILTERS, completeness: "needs_completing" },
-        1
-      );
+      const { meta } = await fetchProducts({ ...DEFAULT_PRODUCT_FILTERS, completeness: "needs_completing" }, 1);
       return meta?.total ?? 0;
     },
     enabled,

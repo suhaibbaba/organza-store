@@ -33,5 +33,4 @@ export function numberSeparators(numberLocale: string | null | undefined): Numbe
   return separators;
 }
 
-export const groupDigits = (whole: string, group: string): string =>
-  whole.replace(/\B(?=(\d{3})+$)/g, group);
+export const groupDigits = (whole: string, group: string): string => whole.replace(/\B(?=(\d{3})+$)/g, group);

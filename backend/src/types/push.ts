@@ -1,4 +1,10 @@
-import type { PushConfig, PushPayloadType, PushSubscriptionDto, SaleNotificationMode, SaleNotificationPayload } from "@store/shared/types/push";
+import type {
+  PushConfig,
+  PushPayloadType,
+  PushSubscriptionDto,
+  SaleNotificationMode,
+  SaleNotificationPayload,
+} from "@store/shared/types/push";
 
 export type { PushConfig, PushPayloadType, PushSubscriptionDto, SaleNotificationMode, SaleNotificationPayload };
 

@@ -12,12 +12,7 @@ import {
 import { isRtlLanguage } from "@ui/lib/support";
 import { ar, enGB, tr, type Locale } from "date-fns/locale";
 import { useEffect, useRef, useState, type JSX, type ReactNode } from "react";
-import {
-  DayPicker,
-  type DayButtonProps,
-  type DayPickerProps,
-  type Modifiers,
-} from "react-day-picker";
+import { DayPicker, type DayButtonProps, type DayPickerProps, type Modifiers } from "react-day-picker";
 import { useTranslation } from "@ui/lib/i18n";
 import { Icon } from "@ui/components/icon";
 import { useLocaleFormat } from "@ui/components/locale-format";
@@ -41,8 +36,13 @@ interface DayState {
 const DAY_STATES = {
   plain: { button: "text-ink hover:bg-inset focus-visible:bg-neutral-300" },
   outside: { button: "text-ink-subtle hover:bg-inset focus-visible:bg-neutral-300 focus-visible:text-ink" },
-  disabled: { button: "cursor-not-allowed text-ink-faint line-through decoration-ink-faint focus-visible:bg-neutral-200" },
-  today: { button: "border-[1.5px] border-success-600 text-success-800 hover:bg-success-50 focus-visible:bg-success-100 focus-visible:text-success-900" },
+  disabled: {
+    button: "cursor-not-allowed text-ink-faint line-through decoration-ink-faint focus-visible:bg-neutral-200",
+  },
+  today: {
+    button:
+      "border-[1.5px] border-success-600 text-success-800 hover:bg-success-50 focus-visible:bg-success-100 focus-visible:text-success-900",
+  },
   selected: { button: "bg-primary-600 text-ink-inverse hover:bg-primary-700 focus-visible:bg-primary-900" },
   todaySelected: {
     button: cn(
@@ -50,7 +50,10 @@ const DAY_STATES = {
       "hover:from-success-800 hover:to-success-900 focus-darken",
     ),
   },
-  rangeMiddle: { cell: "bg-selected", button: "text-ink hover:bg-primary-200 focus-visible:bg-primary-300 focus-visible:text-primary-900" },
+  rangeMiddle: {
+    cell: "bg-selected",
+    button: "text-ink hover:bg-primary-200 focus-visible:bg-primary-300 focus-visible:text-primary-900",
+  },
 } satisfies Record<string, DayState>;
 
 const TODAY_DOT = cn(
@@ -88,10 +91,7 @@ function dayInk(modifiers: Modifiers): string {
     return cn(DAY_STATES.today.button, "rounded-control");
   }
 
-  return cn(
-    modifiers["outside"] === true ? DAY_STATES.outside.button : DAY_STATES.plain.button,
-    "rounded-control",
-  );
+  return cn(modifiers["outside"] === true ? DAY_STATES.outside.button : DAY_STATES.plain.button, "rounded-control");
 }
 
 function CalendarDayButton({ day, modifiers, className, ...props }: DayButtonProps): JSX.Element {
@@ -186,11 +186,7 @@ function CalendarHeader({ label, zoomOut, previous, next }: CalendarHeaderProps)
           <Icon name="chevron-down" className="size-4 text-ink-subtle" />
         </button>
       ) : (
-        <span
-          data-part="calendar-caption"
-          data-testid="calendar-caption"
-          className="text-value font-medium text-ink"
-        >
+        <span data-part="calendar-caption" data-testid="calendar-caption" className="text-value font-medium text-ink">
           {label}
         </span>
       )}
@@ -228,10 +224,7 @@ function periodInk(option: PeriodOption): string {
   }
 
   if (option.isSelected) {
-    return cn(
-      option.isCurrent ? DAY_STATES.todaySelected.button : DAY_STATES.selected.button,
-      "font-medium",
-    );
+    return cn(option.isCurrent ? DAY_STATES.todaySelected.button : DAY_STATES.selected.button, "font-medium");
   }
 
   return option.isCurrent ? DAY_STATES.today.button : DAY_STATES.plain.button;
@@ -245,13 +238,7 @@ interface PeriodGridProps {
   readonly scrolls?: boolean | undefined;
 }
 
-function PeriodGrid({
-  label,
-  columns,
-  options,
-  onPick,
-  scrolls = false,
-}: PeriodGridProps): JSX.Element {
+function PeriodGrid({ label, columns, options, onPick, scrolls = false }: PeriodGridProps): JSX.Element {
   const list = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -303,13 +290,10 @@ export function Calendar(props: DayPickerProps): JSX.Element {
   const lastYear = new Date().getFullYear() + 1;
   const firstMonth = startOfMonth(props.startMonth ?? new Date(FIRST_YEAR, 0, 1));
   const lastMonth = startOfMonth(props.endMonth ?? endOfYear(new Date(lastYear, 0, 1)));
-  const within = (date: Date): Date =>
-    latestOf([firstMonth, earliestOf([lastMonth, startOfMonth(date)])]);
+  const within = (date: Date): Date => latestOf([firstMonth, earliestOf([lastMonth, startOfMonth(date)])]);
 
   const [view, setView] = useState<CalendarView>("days");
-  const [shown, setShown] = useState(() =>
-    startOfMonth(props.month ?? props.defaultMonth ?? new Date()),
-  );
+  const [shown, setShown] = useState(() => startOfMonth(props.month ?? props.defaultMonth ?? new Date()));
   const month = within(shown);
   const goToMonth = (date: Date): void => setShown(within(date));
 

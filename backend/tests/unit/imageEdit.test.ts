@@ -46,9 +46,7 @@ function sourceImage(): Promise<Buffer> {
 }
 
 function frameSize(rotation: number): { width: number; height: number } {
-  return rotation === 90 || rotation === 270
-    ? { width: HEIGHT, height: WIDTH }
-    : { width: WIDTH, height: HEIGHT };
+  return rotation === 90 || rotation === 270 ? { width: HEIGHT, height: WIDTH } : { width: WIDTH, height: HEIGHT };
 }
 
 /**
@@ -91,7 +89,9 @@ function referenceFrame(edit: ImageEdit): string[][] {
 /** The frame, cut down to the crop the editor sent. */
 function croppedReference(edit: ImageEdit): string[][] {
   const frame = referenceFrame(edit);
-  if (!edit.crop) return frame;
+  if (!edit.crop) {
+    return frame;
+  }
   const size = frameSize(edit.rotation);
   const top = Math.round(edit.crop.y * size.height);
   const left = Math.round(edit.crop.x * size.width);
@@ -159,7 +159,7 @@ describe("Image edits (crop, turn, mirror)", () => {
   it("leaves a photo uploaded without editing completely alone", () => {
     const ops = resolveImageEditOps(
       { crop: { x: 0, y: 0, width: 1, height: 1 }, rotation: 0, flipHorizontal: false, flipVertical: false },
-      { width: WIDTH, height: HEIGHT }
+      { width: WIDTH, height: HEIGHT },
     );
     // No extract, no mirror, no turn: the pipeline is what it was before any
     // of this existed, so an un-edited upload cannot be changed by it.
@@ -174,7 +174,7 @@ describe("Image edits (crop, turn, mirror)", () => {
     for (const rotation of IMAGE_ROTATIONS) {
       const ops = resolveImageEditOps(
         { crop: { x: 0.5, y: 0.5, width: 0.5, height: 0.5 }, rotation, flipHorizontal: true, flipVertical: true },
-        { width: WIDTH, height: HEIGHT }
+        { width: WIDTH, height: HEIGHT },
       );
       expect(ops.extract).not.toBeNull();
       expect(ops.extract!.left + ops.extract!.width).toBeLessThanOrEqual(WIDTH);

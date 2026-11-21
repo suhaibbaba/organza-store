@@ -124,7 +124,7 @@ describe("Security", () => {
         expect(session.body?.user?.role).toBe("EMPLOYEE");
         expect(session.body?.user?.idNumber ?? null).not.toBe("999999999");
         expect(session.body?.user?.isActive).toBe(true);
-      }
+      },
     );
   });
 
@@ -299,7 +299,7 @@ describe("Security", () => {
         // here is the regression this guards, and one that disappears is a
         // screen that has quietly lost a value it reads.
         expect(Object.keys(res.data!).sort()).toEqual([...EXPECTED_FIELDS].sort());
-      }
+      },
     );
   });
 
@@ -353,13 +353,15 @@ describe("Security", () => {
 
       const admins = await apiRequest<{ id: string; isActive: boolean }[]>(
         "/api/users?role=ADMIN&isActive=true&pageSize=50",
-        { token: admin.token }
+        { token: admin.token },
       );
       expect(admins.status).toBe(200);
 
       // The seeded database has exactly one Admin; if a run ever has more,
       // the rule genuinely does not apply and there is nothing to assert.
-      if ((admins.data ?? []).length !== 1) return;
+      if ((admins.data ?? []).length !== 1) {
+        return;
+      }
 
       // Two different guards, and which one answers depends on what was
       // attempted — so both are named rather than asserting whichever fires:

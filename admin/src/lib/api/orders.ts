@@ -26,19 +26,35 @@ function buildOrderListQuery(filters: OrderListFilters): string {
   params.set("pageSize", String(filters.pageSize));
   params.set("sortBy", filters.sortBy);
   params.set("sortDir", filters.sortDir);
-  if (filters.q.trim()) params.set("q", filters.q.trim());
-  if (filters.status) params.set("status", filters.status);
-  if (filters.channel) params.set("channel", filters.channel);
-  if (filters.paymentStatus) params.set("paymentStatus", filters.paymentStatus);
-  if (filters.collectableOnly) params.set("collectableOnly", "true");
-  if (filters.hasQuickSale) params.set("hasQuickSale", "true");
-  if (filters.dateFrom) params.set("dateFrom", startOfDayIso(filters.dateFrom));
-  if (filters.dateTo) params.set("dateTo", endOfDayIso(filters.dateTo));
+  if (filters.q.trim()) {
+    params.set("q", filters.q.trim());
+  }
+  if (filters.status) {
+    params.set("status", filters.status);
+  }
+  if (filters.channel) {
+    params.set("channel", filters.channel);
+  }
+  if (filters.paymentStatus) {
+    params.set("paymentStatus", filters.paymentStatus);
+  }
+  if (filters.collectableOnly) {
+    params.set("collectableOnly", "true");
+  }
+  if (filters.hasQuickSale) {
+    params.set("hasQuickSale", "true");
+  }
+  if (filters.dateFrom) {
+    params.set("dateFrom", startOfDayIso(filters.dateFrom));
+  }
+  if (filters.dateTo) {
+    params.set("dateTo", endOfDayIso(filters.dateTo));
+  }
   return params.toString();
 }
 
 export async function fetchOrders(
-  filters: OrderListFilters
+  filters: OrderListFilters,
 ): Promise<{ orders: OrderSummary[]; meta: Pagination | null }> {
   const query = buildOrderListQuery(filters);
   const { data, meta } = await apiFetch<OrderSummary[]>(`/api/orders?${query}`);

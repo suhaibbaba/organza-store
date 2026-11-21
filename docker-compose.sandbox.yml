@@ -91,7 +91,7 @@ services:
       # everything except `down -v` and an explicit `docker volume rm`.
       - sandbox_uploads:/app/uploads
     ports:
-      - "127.0.0.1:14000:4000"           # sandbox range (leaves 4000 free for prod later)
+      - "127.0.0.1:14000:4000" # sandbox range (leaves 4000 free for prod later)
 
   meilisearch:
     image: getmeili/meilisearch:v1.55.1

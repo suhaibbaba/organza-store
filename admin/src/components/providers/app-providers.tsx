@@ -15,11 +15,7 @@ export function AppProviders({ children }: { children: ReactNode }) {
   const locale = useLocale() as AppLocale;
 
   return (
-    <UiProvider
-      theme={tealTheme}
-      direction={getTextDirection(locale)}
-      lang={locale}
-    >
+    <UiProvider theme={tealTheme} direction={getTextDirection(locale)} lang={locale}>
       <ToastProvider>
         <QueryProvider>
           {/* Inside SessionProvider: the rules are per shop, not per person, but

@@ -26,14 +26,19 @@ export function useToasts(): ToastQueue {
         const now = Date.now();
         const last = recent.current.get(key);
         // A tag lying under the camera is one problem, not five.
-        if (last && last.signature === signature && now - last.at < FEEDBACK_TIMEOUT_MS) return;
+        if (last && last.signature === signature && now - last.at < FEEDBACK_TIMEOUT_MS) {
+          return;
+        }
         recent.current.set(key, { signature, at: now });
       }
 
-      if (variant === "success") toast.success(messageKey, values);
-      else toast.error(messageKey, values);
+      if (variant === "success") {
+        toast.success(messageKey, values);
+      } else {
+        toast.error(messageKey, values);
+      }
     },
-    [toast]
+    [toast],
   );
 
   const clear = useCallback(() => recent.current.clear(), []);

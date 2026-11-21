@@ -42,7 +42,9 @@ describe("Cash drawer", () => {
 
   async function expense(token: string, body: Record<string, unknown>) {
     const res = await createExpense(token, body);
-    if (res.data?.id) openedExpenseIds.push(res.data.id);
+    if (res.data?.id) {
+      openedExpenseIds.push(res.data.id);
+    }
     return res;
   }
 
@@ -372,7 +374,9 @@ describe("Cash drawer", () => {
       const admin = await getSession("ADMIN");
 
       const before = await todaysOpenSession(admin.token);
-      if (!skipWithoutTodaysDrawer(ctx, before)) return;
+      if (!skipWithoutTodaysDrawer(ctx, before)) {
+        return;
+      }
 
       const product = await sellableProduct(admin.token, { basePrice: "60", stock: 5 });
 
@@ -393,7 +397,9 @@ describe("Cash drawer", () => {
     it("counts an online order's cash on the day it is collected, not the day it was sold", async (ctx) => {
       const admin = await getSession("ADMIN");
       const opened = await todaysOpenSession(admin.token);
-      if (!skipWithoutTodaysDrawer(ctx, opened)) return;
+      if (!skipWithoutTodaysDrawer(ctx, opened)) {
+        return;
+      }
 
       const product = await sellableProduct(admin.token, { basePrice: "45", stock: 5 });
 

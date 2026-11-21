@@ -63,7 +63,9 @@ export function useRememberLocale() {
   const queryClient = useQueryClient();
   return useCallback(
     (locale: SupportedLanguage) => {
-      if (!user || user.locale === locale) return;
+      if (!user || user.locale === locale) {
+        return;
+      }
       updateProfile({ locale })
         .then((profile) => {
           queryClient.setQueryData(PROFILE_QUERY_KEY, profile);
@@ -71,6 +73,6 @@ export function useRememberLocale() {
         })
         .catch(() => undefined);
     },
-    [user, queryClient]
+    [user, queryClient],
   );
 }

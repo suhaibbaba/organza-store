@@ -38,7 +38,7 @@ router.get(
   "/",
   asyncHandler(async (_req, res) => {
     sendOk(res, buildPermissionMatrixPayload());
-  })
+  }),
 );
 
 router.patch(
@@ -107,8 +107,7 @@ router.patch(
     const applied = body.changes
       .map((change) => {
         const action = change.action as ConfigurableAction;
-        const before =
-          currentByAction.get(action) ?? DEFAULT_ROLE_PERMISSIONS[role].includes(action);
+        const before = currentByAction.get(action) ?? DEFAULT_ROLE_PERMISSIONS[role].includes(action);
         return { action, before, after: change.granted };
       })
       // A tick that changes nothing is not an error — the screen may re-send
@@ -123,8 +122,8 @@ router.patch(
             where: { role_action: { role, action: change.action } },
             create: { role, action: change.action, granted: change.after, updatedById: actor.id },
             update: { granted: change.after, updatedById: actor.id },
-          })
-        )
+          }),
+        ),
       );
 
       // ONE ENTRY PER GRANT (CLAUDE.md rule 6): who, which role, which action,
@@ -154,7 +153,7 @@ router.patch(
       // instead of diffing two matrices to find out.
       changed: applied.map((change) => ({ action: change.action, granted: change.after })),
     });
-  })
+  }),
 );
 
 export default router;

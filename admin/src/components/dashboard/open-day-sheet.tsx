@@ -41,13 +41,7 @@ export function OpenDaySheet({ open, onOpenChange, suggestedOpeningFloat }: Open
   );
 }
 
-function OpenDayForm({
-  suggestedOpeningFloat,
-  onDone,
-}: {
-  suggestedOpeningFloat: string;
-  onDone: () => void;
-}) {
+function OpenDayForm({ suggestedOpeningFloat, onDone }: { suggestedOpeningFloat: string; onDone: () => void }) {
   const t = useTranslations("dashboard.drawer.openDay");
   const translateError = useTranslateError();
   const formatMoney = useMoneyFormatter();
@@ -59,22 +53,22 @@ function OpenDayForm({
   const canSubmit = openingFloat.trim() !== "" && !mutation.isPending;
 
   function submit() {
-    if (!canSubmit) return;
+    if (!canSubmit) {
+      return;
+    }
     mutation.mutate(
       {
         tzOffset: timezoneOffsetMinutes(),
         openingFloat: openingFloat.trim(),
         ...(note.trim() ? { note: note.trim() } : {}),
       },
-      { onSuccess: onDone }
+      { onSuccess: onDone },
     );
   }
 
   return (
     <div className="flex flex-col gap-4">
-      <p className="text-label text-ink-muted">
-        {t("description", { amount: formatMoney(suggestedOpeningFloat) })}
-      </p>
+      <p className="text-label text-ink-muted">{t("description", { amount: formatMoney(suggestedOpeningFloat) })}</p>
 
       {mutation.isError && (
         <Alert tone="danger">
@@ -83,11 +77,7 @@ function OpenDayForm({
       )}
 
       <FormField label="dashboard.drawer.openDay.openingFloat" htmlFor="opening-float">
-        <MoneyField
-          id="opening-float"
-          value={openingFloat}
-          onChange={(event) => setOpeningFloat(event.target.value)}
-        />
+        <MoneyField id="opening-float" value={openingFloat} onChange={(event) => setOpeningFloat(event.target.value)} />
       </FormField>
 
       <FormField label="dashboard.drawer.openDay.note" htmlFor="open-note">
@@ -100,13 +90,7 @@ function OpenDayForm({
         />
       </FormField>
 
-      <Button
-        type="button"
-        className="w-full"
-        disabled={!canSubmit}
-        isLoading={mutation.isPending}
-        onClick={submit}
-      >
+      <Button type="button" className="w-full" disabled={!canSubmit} isLoading={mutation.isPending} onClick={submit}>
         {t("submit")}
       </Button>
     </div>

@@ -74,7 +74,9 @@ export function BootSplash() {
   const isBooting = isLoading && !hasWaitedLongEnough;
 
   useEffect(() => {
-    if (phase !== "visible" || isBooting) return;
+    if (phase !== "visible" || isBooting) {
+      return;
+    }
 
     const remaining = BOOT_SPLASH_MIN_VISIBLE_MS - (performance.now() - shownAt.current);
     const timer = window.setTimeout(() => setPhase("leaving"), Math.max(0, remaining));
@@ -82,13 +84,17 @@ export function BootSplash() {
   }, [phase, isBooting]);
 
   useEffect(() => {
-    if (phase !== "leaving") return;
+    if (phase !== "leaving") {
+      return;
+    }
 
     const timer = window.setTimeout(() => setPhase("gone"), BOOT_SPLASH_FADE_OUT_MS);
     return () => window.clearTimeout(timer);
   }, [phase]);
 
-  if (phase === "gone") return null;
+  if (phase === "gone") {
+    return null;
+  }
 
   return (
     <div

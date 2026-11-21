@@ -43,10 +43,7 @@ export function getPushPublicKey(): string | null {
 }
 
 function isGone(error: unknown): boolean {
-  return (
-    error instanceof WebPushError &&
-    (PUSH_GONE_STATUS_CODES as readonly number[]).includes(error.statusCode)
-  );
+  return error instanceof WebPushError && (PUSH_GONE_STATUS_CODES as readonly number[]).includes(error.statusCode);
 }
 
 /**
@@ -65,7 +62,7 @@ async function sendToTarget(target: PushTarget, payload: unknown): Promise<PushO
     await webpush.sendNotification(
       { endpoint: target.endpoint, keys: { p256dh: target.p256dh, auth: target.auth } },
       JSON.stringify(payload),
-      { TTL: PUSH_TTL_SECONDS }
+      { TTL: PUSH_TTL_SECONDS },
     );
     await touch(target.id, { lastAttemptAt: attemptedAt, lastSuccessAt: attemptedAt });
     return "sent";
@@ -99,12 +96,16 @@ async function touch(id: string, data: { lastAttemptAt: Date; lastSuccessAt?: Da
  */
 export async function sendPushToTargets(
   targets: PushTarget[],
-  buildPayload: (target: PushTarget) => unknown
+  buildPayload: (target: PushTarget) => unknown,
 ): Promise<PushDeliveryReport> {
   const report: PushDeliveryReport = { sent: 0, gone: 0, failed: 0 };
-  if (!configured || targets.length === 0) return report;
+  if (!configured || targets.length === 0) {
+    return report;
+  }
 
   const outcomes = await Promise.all(targets.map((target) => sendToTarget(target, buildPayload(target))));
-  for (const outcome of outcomes) report[outcome] += 1;
+  for (const outcome of outcomes) {
+    report[outcome] += 1;
+  }
   return report;
 }

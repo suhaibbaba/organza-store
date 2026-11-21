@@ -29,8 +29,7 @@ function mm(value: number, fallback: number): string {
 // feature lives here, built from the configured sheet.
 function pageRule(geometry: LabelGeometry): string {
   const { widthMm, heightMm } = printedPageSizeMm(geometry);
-  const size =
-    geometry.printMode === "A4_GRID" ? "A4" : `${mm(widthMm, 50)} ${mm(heightMm, 30)}`;
+  const size = geometry.printMode === "A4_GRID" ? "A4" : `${mm(widthMm, 50)} ${mm(heightMm, 30)}`;
   // margin: 0 — the sheet draws its own margins, so the browser must not add
   // any of its own on top and push the grid off the paper.
   return `@page { size: ${size}; margin: 0; }`;
@@ -53,13 +52,15 @@ export function LabelPrintPortal({ geometry, children }: { geometry: LabelGeomet
     return () => document.body.classList.remove(LABEL_PRINTING_BODY_CLASS);
   }, []);
 
-  if (!isClient) return null;
+  if (!isClient) {
+    return null;
+  }
 
   return createPortal(
     <div id={LABEL_PRINT_ROOT_ID}>
       <style>{pageRule(geometry)}</style>
       {children}
     </div>,
-    document.body
+    document.body,
   );
 }

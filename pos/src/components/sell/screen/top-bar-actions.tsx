@@ -38,7 +38,7 @@ export function TopBarActions({ onScan, onQuickSell }: TopBarActionsProps) {
           className={cn(
             CONTROL_HEIGHT,
             "shrink-0 border-warning-300 bg-warning-50 px-3 text-warning-800",
-            "hover:border-warning-500 hover:bg-warning-100 hover:text-warning-800"
+            "hover:border-warning-500 hover:bg-warning-100 hover:text-warning-800",
           )}
         >
           {t("quickSell.open")}

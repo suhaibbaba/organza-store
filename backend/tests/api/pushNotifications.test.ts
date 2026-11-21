@@ -48,7 +48,7 @@ beforeAll(async () => {
     console.warn(
       "\n⚠️  Sale-notification tests SKIPPED: the target API has no VAPID keys.\n" +
         "   Set VAPID_PUBLIC_KEY / VAPID_PRIVATE_KEY (see backend/.env.example) on the\n" +
-        "   deployment being tested — until then it cannot send notifications at all.\n"
+        "   deployment being tested — until then it cannot send notifications at all.\n",
     );
   }
 });
@@ -58,7 +58,9 @@ beforeAll(async () => {
 // vitest's skip() throws, so the `return true` is belt and braces for the
 // caller's own early return rather than something that runs.
 function skipUnlessConfigured(ctx: { skip: () => void }): boolean {
-  if (pushConfig.configured) return false;
+  if (pushConfig.configured) {
+    return false;
+  }
   ctx.skip();
   return true;
 }
@@ -73,7 +75,9 @@ describe("Push subscriptions", () => {
 
   it("hands out the server's VAPID public key to a signed-in caller", () => {
     expect(typeof pushConfig.configured).toBe("boolean");
-    if (pushConfig.configured) expect(pushConfig.publicKey).toBeTruthy();
+    if (pushConfig.configured) {
+      expect(pushConfig.publicKey).toBeTruthy();
+    }
   });
 
   it("requires a session", async () => {
@@ -93,7 +97,9 @@ describe("Push subscriptions", () => {
   });
 
   it("registers a device, lists it, and removes it again", async (ctx) => {
-    if (skipUnlessConfigured(ctx)) return;
+    if (skipUnlessConfigured(ctx)) {
+      return;
+    }
     const admin = await getSession("ADMIN");
 
     const created = await registerDevice(admin.token, device);
@@ -239,7 +245,9 @@ describe("Sale notifications", () => {
   }
 
   beforeAll(async () => {
-    if (!pushConfig.configured) return;
+    if (!pushConfig.configured) {
+      return;
+    }
     const admin = await getSession("ADMIN");
 
     await setNotifications(true);
@@ -260,7 +268,9 @@ describe("Sale notifications", () => {
     otherAdmin.id = created.data!.id;
 
     const signedIn = await signIn(otherAdmin.email, SEEDED_PASSWORD);
-    if (!signedIn.session) throw new Error(`Second Admin sign-in failed (HTTP ${signedIn.status}).`);
+    if (!signedIn.session) {
+      throw new Error(`Second Admin sign-in failed (HTTP ${signedIn.status}).`);
+    }
     otherAdmin.token = signedIn.session.token;
 
     expect((await registerDevice(otherAdmin.token, otherDevice, "en")).status).toBe(201);
@@ -269,7 +279,9 @@ describe("Sale notifications", () => {
   afterAll(async () => {
     const admin = await getSession("ADMIN");
     await unregisterDevice(admin.token, device);
-    if (otherAdmin.token) await unregisterDevice(otherAdmin.token, otherDevice);
+    if (otherAdmin.token) {
+      await unregisterDevice(otherAdmin.token, otherDevice);
+    }
     // There is no delete endpoint for staff (see users.test.ts), so the test
     // Admin is deactivated — which also takes it out of any later run's
     // notification recipients.
@@ -280,7 +292,9 @@ describe("Sale notifications", () => {
         body: { isActive: false },
       });
     }
-    if (pushConfig.configured) await setNotifications(true);
+    if (pushConfig.configured) {
+      await setNotifications(true);
+    }
 
     for (const id of openedOrderIds) {
       await apiRequest(`/api/orders/${id}`, { method: "DELETE", token: admin.token });
@@ -291,7 +305,9 @@ describe("Sale notifications", () => {
   });
 
   it("notifies every Admin's device when a Manager makes a sale", async (ctx) => {
-    if (skipUnlessConfigured(ctx)) return;
+    if (skipUnlessConfigured(ctx)) {
+      return;
+    }
     const manager = await getSession("MANAGER");
     const before = await lastAttempt();
     const otherBefore = await otherLastAttempt();
@@ -302,7 +318,9 @@ describe("Sale notifications", () => {
   });
 
   it("notifies every Admin's device when an Employee makes a sale", async (ctx) => {
-    if (skipUnlessConfigured(ctx)) return;
+    if (skipUnlessConfigured(ctx)) {
+      return;
+    }
     const employee = await getSession("EMPLOYEE");
     const before = await lastAttempt();
     const otherBefore = await otherLastAttempt();
@@ -313,7 +331,9 @@ describe("Sale notifications", () => {
   });
 
   it("does not notify an Admin about their own sale", async (ctx) => {
-    if (skipUnlessConfigured(ctx)) return;
+    if (skipUnlessConfigured(ctx)) {
+      return;
+    }
     const before = await lastAttempt();
     const otherBefore = await otherLastAttempt();
 
@@ -336,7 +356,9 @@ describe("Sale notifications", () => {
   });
 
   it("sends nothing while the shop has notifications switched off", async (ctx) => {
-    if (skipUnlessConfigured(ctx)) return;
+    if (skipUnlessConfigured(ctx)) {
+      return;
+    }
     await setNotifications(false);
     const before = await lastAttempt();
     const otherBefore = await otherLastAttempt();
@@ -356,7 +378,9 @@ describe("Sale notifications", () => {
   });
 
   it("completes the sale even though every push fails", async (ctx) => {
-    if (skipUnlessConfigured(ctx)) return;
+    if (skipUnlessConfigured(ctx)) {
+      return;
+    }
     // The registered devices are unreachable, so every notification in this
     // suite has already failed to be delivered — and none of that has been
     // allowed anywhere near the sale.

@@ -7,8 +7,12 @@ export async function resolveMapLink(link: string): Promise<Coordinates | null> 
   let current = link;
   for (let hop = 0; hop <= MAP_LINK_MAX_REDIRECTS; hop += 1) {
     const point = coordinatesFromMapLink(current);
-    if (point) return { latitude: roundCoordinate(point.latitude), longitude: roundCoordinate(point.longitude) };
-    if (!isGoogleMapsLink(current)) return null;
+    if (point) {
+      return { latitude: roundCoordinate(point.latitude), longitude: roundCoordinate(point.longitude) };
+    }
+    if (!isGoogleMapsLink(current)) {
+      return null;
+    }
 
     let next: string | null;
     try {
@@ -17,7 +21,9 @@ export async function resolveMapLink(link: string): Promise<Coordinates | null> 
     } catch {
       return null;
     }
-    if (!next) return null;
+    if (!next) {
+      return null;
+    }
     current = new URL(next, current).toString();
   }
   return null;

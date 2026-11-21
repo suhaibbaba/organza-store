@@ -83,11 +83,23 @@ export function OrderTitle({ order, subtitle }: { order: OrderSummary; subtitle?
           {order.hasQuickSale && <QuickSaleBadge />}
         </div>
         {subtitle && (
-          <Typography variant="small" weight="medium" as="span" className="truncate" data-test-selector="order-customer-name">
+          <Typography
+            variant="small"
+            weight="medium"
+            as="span"
+            className="truncate"
+            data-test-selector="order-customer-name"
+          >
             {subtitle}
           </Typography>
         )}
-        <Typography variant="small" tone="muted" as="span" className="line-clamp-2" data-test-selector="order-pieces-names">
+        <Typography
+          variant="small"
+          tone="muted"
+          as="span"
+          className="line-clamp-2"
+          data-test-selector="order-pieces-names"
+        >
           {order.previewItems.map(pieceName).join(" · ")}
           {order.itemCount > order.previewItems.length &&
             ` · ${t("morePieces", { count: order.itemCount - order.previewItems.length })}`}

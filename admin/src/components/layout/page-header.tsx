@@ -19,7 +19,10 @@ export function PageHeader({ title, description, actions, name, className }: Pag
       data-test-selector={testSelectorFor("page-header", name)}
     >
       <div className="min-w-0">
-        <h1 className="text-title font-medium text-primary-900" data-test-selector={testSelectorFor("page-title", name)}>
+        <h1
+          className="text-title font-medium text-primary-900"
+          data-test-selector={testSelectorFor("page-title", name)}
+        >
           {title}
         </h1>
         {description && <p className="mt-1 text-value text-ink-muted">{description}</p>}

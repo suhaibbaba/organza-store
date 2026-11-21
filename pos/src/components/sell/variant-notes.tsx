@@ -15,7 +15,9 @@ interface VariantNotesProps {
 export function VariantNotes({ variant, className }: VariantNotesProps) {
   const locale = useLocale();
   const notes = variantValueNotes(variant);
-  if (notes.length === 0) return null;
+  if (notes.length === 0) {
+    return null;
+  }
 
   const showValueLabels = notes.length > 1;
 
@@ -23,9 +25,7 @@ export function VariantNotes({ variant, className }: VariantNotesProps) {
     <ul className={cn("flex w-full flex-col gap-0.5", className)}>
       {notes.map((entry) => (
         <li key={entry.valueId} className="line-clamp-2 text-micro text-ink-muted">
-          {showValueLabels && (
-            <span className="font-medium text-ink/80">{localize(entry.value, locale)}: </span>
-          )}
+          {showValueLabels && <span className="font-medium text-ink/80">{localize(entry.value, locale)}: </span>}
           {localize(entry.note, locale)}
         </li>
       ))}

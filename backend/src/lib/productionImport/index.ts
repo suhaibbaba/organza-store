@@ -39,9 +39,7 @@ export interface ProductionImportOptions {
  * unreachable, or a run that is refused, leaves the sandbox untouched rather
  * than emptied and waiting.
  */
-export async function runProductionImport(
-  options: ProductionImportOptions
-): Promise<ProductionImportSummary> {
+export async function runProductionImport(options: ProductionImportOptions): Promise<ProductionImportSummary> {
   const endpoints: ResolvedEndpoints = resolveImportEndpoints();
   assertConfirmedTarget(endpoints);
   options.onResolved?.(endpoints);
@@ -57,7 +55,7 @@ export async function runProductionImport(
   const images = await syncImageFiles(
     options.productionUploadDir,
     snapshot.productImages,
-    setting?.logoFilename ? [setting.logoFilename] : []
+    setting?.logoFilename ? [setting.logoFilename] : [],
   );
 
   return {

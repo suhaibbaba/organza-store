@@ -72,7 +72,7 @@ export function readOnlyConnectionUrl(url: string): string {
   const existing = parsed.searchParams.get("options");
   parsed.searchParams.set(
     "options",
-    existing ? `${existing} ${READ_ONLY_CONNECTION_OPTION}` : READ_ONLY_CONNECTION_OPTION
+    existing ? `${existing} ${READ_ONLY_CONNECTION_OPTION}` : READ_ONLY_CONNECTION_OPTION,
   );
   parsed.search = parsed.searchParams.toString().replace(/\+/g, "%20");
   return parsed.toString();
@@ -188,7 +188,9 @@ export function resolveImportEndpoints(): ResolvedEndpoints {
  */
 export function assertConfirmedTarget(endpoints: ResolvedEndpoints): void {
   const given = process.env[PRODUCTION_IMPORT_ENV.confirm]?.trim();
-  if (given === endpoints.targetDatabase) return;
+  if (given === endpoints.targetDatabase) {
+    return;
+  }
 
   const lines = [
     `  ⛔  REFUSING TO RUN — ${COMMAND}`,
@@ -200,7 +202,9 @@ export function assertConfirmedTarget(endpoints: ResolvedEndpoints): void {
     "  expense, cash session, approval and audit entry in the target, then",
     "  copies production's catalogue in. Staff accounts are left alone.",
   ];
-  if (given) lines.push(`  The confirmation given ("${given}") is not this database's name.`);
+  if (given) {
+    lines.push(`  The confirmation given ("${given}") is not this database's name.`);
+  }
   lines.push("", "  Name the database being wiped, in full:");
   lines.push(`      ${PRODUCTION_IMPORT_ENV.confirm}=${endpoints.targetDatabase} npm run ${COMMAND}`);
   refuseCommand(lines);

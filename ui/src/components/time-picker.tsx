@@ -1,12 +1,6 @@
 import type { JSX } from "react";
 import { useTranslation } from "@ui/lib/i18n";
-import {
-  FIELD_BUTTON,
-  FIELD_TEXT,
-  FieldDivider,
-  FieldLock,
-  fieldShell,
-} from "@ui/components/field";
+import { FIELD_BUTTON, FIELD_TEXT, FieldDivider, FieldLock, fieldShell } from "@ui/components/field";
 import { Icon } from "@ui/components/icon";
 import { openOnArrowDown, usePickerOpen } from "@ui/lib/picker-open";
 import { Popover } from "@ui/components/popover";
@@ -101,11 +95,7 @@ export function TimePicker({
           aria-invalid={hasError || undefined}
           {...picker.opens(true)}
           onKeyDown={openOnArrowDown(picker.show)}
-          className={cn(
-            fieldShell({ hasError, disabled }),
-            "cursor-pointer disabled:cursor-not-allowed",
-            className,
-          )}
+          className={cn(fieldShell({ hasError, disabled }), "cursor-pointer disabled:cursor-not-allowed", className)}
         >
           <span
             {...part("value")}

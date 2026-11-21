@@ -63,18 +63,18 @@ export function VariantEditDrawer({
       footer={
         canEditDetails &&
         canRemove && (
-            <Button
-              variant="quiet"
-              data-testid="variant-edit-remove"
-              className="text-danger-600 hover:bg-danger-50 hover:text-danger-600"
-              icon={<Trash2 className="size-4" aria-hidden="true" />}
-              onClick={() => {
-                onRemove();
-                onClose();
-              }}
-            >
-              {t("removeCombo")}
-            </Button>
+          <Button
+            variant="quiet"
+            data-testid="variant-edit-remove"
+            className="text-danger-600 hover:bg-danger-50 hover:text-danger-600"
+            icon={<Trash2 className="size-4" aria-hidden="true" />}
+            onClick={() => {
+              onRemove();
+              onClose();
+            }}
+          >
+            {t("removeCombo")}
+          </Button>
         )
       }
     >
@@ -109,7 +109,9 @@ export function VariantEditDrawer({
                 </Field>
               ) : (
                 <Field label={t("priceOverride")}>
-                  <p className="text-value text-ink tabular-nums">{formatMoney(variant.resolvedPrice, currency, locale)}</p>
+                  <p className="text-value text-ink tabular-nums">
+                    {formatMoney(variant.resolvedPrice, currency, locale)}
+                  </p>
                 </Field>
               )}
               {canSeeCost && (

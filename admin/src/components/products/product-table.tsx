@@ -21,7 +21,15 @@ const TABLE_NAME = "products";
 const THUMB_SIZES = "(max-width: 767px) 80px, 64px";
 const VARIANT_THUMB_SIZES = "32px";
 
-export function ProductTable({ products, meta, isLoading, isRefreshing, sort, onPageChange, onPageSizeChange }: ProductTableProps) {
+export function ProductTable({
+  products,
+  meta,
+  isLoading,
+  isRefreshing,
+  sort,
+  onPageChange,
+  onPageSizeChange,
+}: ProductTableProps) {
   const locale = useLocale();
   const t = useTranslations("products");
   const formatMoney = useMoneyFormatter();
@@ -39,7 +47,12 @@ export function ProductTable({ products, meta, isLoading, isRefreshing, sort, on
       <div className="flex items-start gap-3">
         {/* Many pieces share a name, so the photo is how the shop tells them apart. */}
         <Link href={href} tabIndex={-1} aria-hidden="true" className="shrink-0" data-test-selector="product-photo">
-          <ProductPhoto product={product} alt={name} className="size-20 rounded-control md:size-16" sizes={THUMB_SIZES} />
+          <ProductPhoto
+            product={product}
+            alt={name}
+            className="size-20 rounded-control md:size-16"
+            sizes={THUMB_SIZES}
+          />
         </Link>
         <div className="flex min-w-0 flex-col gap-1">
           <Link
@@ -48,13 +61,25 @@ export function ProductTable({ products, meta, isLoading, isRefreshing, sort, on
           >
             {name}
           </Link>
-          <Typography variant="small" tone="muted" as="span" className="line-clamp-1" data-test-selector="product-details">
+          <Typography
+            variant="small"
+            tone="muted"
+            as="span"
+            className="line-clamp-1"
+            data-test-selector="product-details"
+          >
             {details.join(" · ")}
           </Typography>
           {product.variantImages.length > 0 && (
             <div className="flex items-center gap-1" data-test-selector="product-variant-photos">
               {product.variantImages.map((image) => (
-                <ProductImage key={image.id} src={image.thumbnailUrl} alt="" className="size-8 rounded-chip" sizes={VARIANT_THUMB_SIZES} />
+                <ProductImage
+                  key={image.id}
+                  src={image.thumbnailUrl}
+                  alt=""
+                  className="size-8 rounded-chip"
+                  sizes={VARIANT_THUMB_SIZES}
+                />
               ))}
             </div>
           )}

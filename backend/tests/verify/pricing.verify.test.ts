@@ -100,7 +100,11 @@ describe("Verify · pricing", () => {
       expectPrice(inheriting.resolvedPrice, REPRICED_BASE_PRICE, "inheriting variant's price after the parent moved");
       expectPrice(inheriting.resolvedCost, REPRICED_COST, "inheriting variant's cost after the parent moved");
       // ...and the one with its own figures did not.
-      expectPrice(overridden.resolvedPrice, VARIANT_PRICE_OVERRIDE, "overriding variant's price after the parent moved");
+      expectPrice(
+        overridden.resolvedPrice,
+        VARIANT_PRICE_OVERRIDE,
+        "overriding variant's price after the parent moved",
+      );
       expectPrice(overridden.resolvedCost, VARIANT_COST_OVERRIDE, "overriding variant's cost after the parent moved");
     });
   });
@@ -139,7 +143,9 @@ describe("Verify · pricing", () => {
         costOverride: VARIANT_COST_OVERRIDE,
       });
       const skus = fixture.product.variants.map((variant) => variant.sku);
-      for (const sku of skus) expect(sku, "variant SKUs are ORG-#####-N").toMatch(/^ORG-\d{5}-\d+$/);
+      for (const sku of skus) {
+        expect(sku, "variant SKUs are ORG-#####-N").toMatch(/^ORG-\d{5}-\d+$/);
+      }
 
       await apiRequest(`/api/products/${fixture.id}/variants/${fixture.overridden.id}`, {
         method: "PATCH",
@@ -155,7 +161,7 @@ describe("Verify · pricing", () => {
       const after = await readProduct(admin, fixture.id);
       expect(
         after.variants.map((variant) => variant.sku),
-        `variant SKUs must be frozen at creation — they were ${skus.join(", ")}`
+        `variant SKUs must be frozen at creation — they were ${skus.join(", ")}`,
       ).toEqual(skus);
     });
   });
@@ -198,10 +204,9 @@ describe("Verify · pricing", () => {
         body: { basePrice: "999.99", cost: "888.88" },
       });
 
-      const after = await apiRequest<{ items: { unitPrice: string; unitCost: string }[] }>(
-        `/api/orders/${order.id}`,
-        { token: admin }
-      );
+      const after = await apiRequest<{ items: { unitPrice: string; unitCost: string }[] }>(`/api/orders/${order.id}`, {
+        token: admin,
+      });
       expectMoney(after.data!.items[0].unitPrice, UNIT_PRICE, "snapshotted unit price after the product was re-priced");
       expectMoney(after.data!.items[0].unitCost, UNIT_COST, "snapshotted unit cost after the product was re-costed");
       expectCount(after.data!.items.length, 1, "the order still has exactly its one line");

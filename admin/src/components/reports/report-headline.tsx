@@ -20,14 +20,16 @@ export function ReportHeadline({ totals }: { totals: SalesTotals }) {
       <h2 className="text-section font-semibold text-ink">{t("title")}</h2>
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard name="sold"
+        <StatCard
+          name="sold"
           label={tFigures("sold.label")}
           tooltip={tFigures("sold.help")}
           value={formatMoney(totals.revenue)}
           hint={t("soldHint", { orders: totals.orderCount, items: totals.itemCount })}
         />
 
-        <StatCard name="received"
+        <StatCard
+          name="received"
           tone="success"
           label={tFigures("received.label")}
           tooltip={tFigures("received.help")}
@@ -35,7 +37,8 @@ export function ReportHeadline({ totals }: { totals: SalesTotals }) {
         />
 
         {/* Amber: "still owed" is the figure to chase and must never look like takings. */}
-        <StatCard name="owed"
+        <StatCard
+          name="owed"
           tone="warning"
           label={tFigures("owed.label")}
           tooltip={tFigures("owed.help")}
@@ -47,13 +50,15 @@ export function ReportHeadline({ totals }: { totals: SalesTotals }) {
           }
         />
 
-        <StatCard name="average-order"
+        <StatCard
+          name="average-order"
           label={t("averageOrder.label")}
           tooltip={t("averageOrder.help")}
           value={formatMoney(totals.averageOrderValue)}
         />
 
-        <StatCard name="discounts"
+        <StatCard
+          name="discounts"
           label={t("discounts.label")}
           tooltip={t("discounts.help")}
           value={formatMoney(totals.discountAmount)}
@@ -63,7 +68,8 @@ export function ReportHeadline({ totals }: { totals: SalesTotals }) {
           <>
             <StatCard name="cost" label={t("cost.label")} tooltip={t("cost.help")} value={formatMoney(totals.cost!)} />
 
-            <StatCard name="profit"
+            <StatCard
+              name="profit"
               label={t("profit.label")}
               tooltip={t("profit.help")}
               value={formatMoney(totals.profit!)}

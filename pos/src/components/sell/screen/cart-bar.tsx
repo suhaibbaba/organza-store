@@ -28,14 +28,17 @@ export function CartBar({ totals, onOpen, className }: CartBarProps) {
       ref={ref}
       className={cn(
         "fixed inset-x-0 bottom-0 z-40 border-t border-line bg-surface pb-[var(--safe-bottom)] shadow-float",
-        className
+        className,
       )}
       data-test-selector="pos-cart-bar"
     >
       <div className="flex items-center justify-between gap-3 px-3 py-2.5 tab:px-4">
         <div className="flex min-w-0 items-center gap-3">
           <span
-            className={cn(CONTROL_SIZE, "relative flex shrink-0 items-center justify-center rounded-control bg-primary-50 text-primary-700")}
+            className={cn(
+              CONTROL_SIZE,
+              "relative flex shrink-0 items-center justify-center rounded-control bg-primary-50 text-primary-700",
+            )}
             role="img"
             aria-label={t("screen.cartCount", { count: totals.itemCount })}
           >
@@ -51,7 +54,10 @@ export function CartBar({ totals, onOpen, className }: CartBarProps) {
           </span>
           <span className="flex min-w-0 flex-col">
             <span className="text-micro text-ink-muted">{t("checkout.total")}</span>
-            <span className="truncate text-heading font-bold text-ink tabular-nums" data-test-selector="pos-cart-bar-total">
+            <span
+              className="truncate text-heading font-bold text-ink tabular-nums"
+              data-test-selector="pos-cart-bar-total"
+            >
               {formatMoney(totals.total)}
             </span>
           </span>

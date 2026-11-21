@@ -10,9 +10,15 @@ function buildUserListQuery(filters: UserListFilters): string {
   params.set("pageSize", String(filters.pageSize));
   params.set("sortBy", filters.sortBy);
   params.set("sortDir", filters.sortDir);
-  if (filters.q.trim()) params.set("q", filters.q.trim());
-  if (filters.role) params.set("role", filters.role);
-  if (filters.isActive !== null) params.set("isActive", String(filters.isActive));
+  if (filters.q.trim()) {
+    params.set("q", filters.q.trim());
+  }
+  if (filters.role) {
+    params.set("role", filters.role);
+  }
+  if (filters.isActive !== null) {
+    params.set("isActive", String(filters.isActive));
+  }
   return params.toString();
 }
 

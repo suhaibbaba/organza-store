@@ -41,7 +41,9 @@ export function ImageViewer({
   const count = images.length;
   const current = images[Math.min(Math.max(index, 0), Math.max(count - 1, 0))];
   const go = (step: number): void => {
-    if (count > 1) onIndexChange((index + step + count) % count);
+    if (count > 1) {
+      onIndexChange((index + step + count) % count);
+    }
   };
 
   return (
@@ -62,28 +64,41 @@ export function ImageViewer({
           onKeyDown={(event) => {
             // Arrows follow the reading direction: in Arabic the next photo is to the left.
             const rtl = documentDirection() === "rtl";
-            if (event.key === "ArrowRight") go(rtl ? -1 : 1);
-            else if (event.key === "ArrowLeft") go(rtl ? 1 : -1);
+            if (event.key === "ArrowRight") {
+              go(rtl ? -1 : 1);
+            } else if (event.key === "ArrowLeft") {
+              go(rtl ? 1 : -1);
+            }
           }}
           className={cn(
             "fixed inset-0 z-50 flex flex-col items-center gap-3 p-4 outline-none sm:p-6",
             "data-[state=open]:animate-[fade-in_160ms_ease-out]",
           )}
           onClick={(event) => {
-            if (event.target === event.currentTarget) onOpenChange(false);
+            if (event.target === event.currentTarget) {
+              onOpenChange(false);
+            }
           }}
         >
           <Dialog.Title className="sr-only">{t("ui.common.imageViewer.title")}</Dialog.Title>
 
           <div className="flex w-full items-center justify-between gap-2">
             {count > 1 ? (
-              <span {...part("counter")} className="rounded-pill bg-ink/55 px-3 py-1 text-meta text-ink-inverse tabular-nums">
+              <span
+                {...part("counter")}
+                className="rounded-pill bg-ink/55 px-3 py-1 text-meta text-ink-inverse tabular-nums"
+              >
                 {t("ui.common.imageViewer.counter", { current: index + 1, total: count })}
               </span>
             ) : (
               <span />
             )}
-            <Dialog.Close {...part("close")} aria-label={t("ui.common.close")} title={t("ui.common.close")} className={ROUND_TOOL}>
+            <Dialog.Close
+              {...part("close")}
+              aria-label={t("ui.common.close")}
+              title={t("ui.common.close")}
+              className={ROUND_TOOL}
+            >
               <Icon name="x" />
             </Dialog.Close>
           </div>
@@ -91,7 +106,9 @@ export function ImageViewer({
           <div
             className="relative flex min-h-0 w-full flex-1 items-center justify-center"
             onClick={(event) => {
-              if (event.target === event.currentTarget) onOpenChange(false);
+              if (event.target === event.currentTarget) {
+                onOpenChange(false);
+              }
             }}
           >
             {current && (
@@ -141,7 +158,9 @@ export function ImageViewer({
                   onClick={() => onIndexChange(position)}
                   className={cn(
                     "size-14 shrink-0 cursor-pointer overflow-hidden rounded-control bg-surface ring-2 ring-offset-2 ring-offset-ink/0 transition-opacity sm:size-16",
-                    position === index ? "ring-ink-inverse" : "opacity-60 ring-transparent hover:opacity-100 focus-visible:opacity-100",
+                    position === index
+                      ? "ring-ink-inverse"
+                      : "opacity-60 ring-transparent hover:opacity-100 focus-visible:opacity-100",
                   )}
                 >
                   <img src={image.thumbnailSrc} alt="" className="size-full object-contain" />

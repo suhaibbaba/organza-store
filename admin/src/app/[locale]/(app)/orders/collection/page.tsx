@@ -40,7 +40,7 @@ function OrderCollectionPageContent() {
   const [searchInput, setSearchInput] = useUrlSearch(
     filters.q,
     (q) => changeFilters({ q, page: DEFAULT_PAGE }),
-    ORDER_SEARCH_DEBOUNCE_MS
+    ORDER_SEARCH_DEBOUNCE_MS,
   );
 
   const { data, isLoading, isFetching, isError, error, refetch } = useOrdersQuery(filters);
@@ -51,7 +51,9 @@ function OrderCollectionPageContent() {
 
   // Only what is on screen counts: a page-1 selection must never be settled from page 2.
   const selectedOnPage = useMemo(() => orders.filter((order) => selectedIds.includes(order.id)), [orders, selectedIds]);
-  const selectedAmount = fromCents(selectedOnPage.reduce((sum, order) => sum + toCents(order.outstanding ?? order.total), 0));
+  const selectedAmount = fromCents(
+    selectedOnPage.reduce((sum, order) => sum + toCents(order.outstanding ?? order.total), 0),
+  );
 
   function changeFilters(next: Partial<OrderListFilters>) {
     setSelectedIds([]);
@@ -71,7 +73,7 @@ function OrderCollectionPageContent() {
           // Settled orders leave the list, which can empty this page.
           setUrlFilters({ page: DEFAULT_PAGE });
         },
-      }
+      },
     );
   }
 
@@ -95,7 +97,11 @@ function OrderCollectionPageContent() {
     dir: filters.sortDir,
     onChange: (key, dir) =>
       key === null
-        ? changeFilters({ sortBy: COLLECTION_ORDER_FILTERS.sortBy, sortDir: COLLECTION_ORDER_FILTERS.sortDir, page: DEFAULT_PAGE })
+        ? changeFilters({
+            sortBy: COLLECTION_ORDER_FILTERS.sortBy,
+            sortDir: COLLECTION_ORDER_FILTERS.sortDir,
+            page: DEFAULT_PAGE,
+          })
         : changeFilters({ sortBy: key as OrderListFilters["sortBy"], sortDir: dir, page: DEFAULT_PAGE }),
   };
 

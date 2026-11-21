@@ -47,7 +47,13 @@ export function CollectionSummaryCards({ summary }: { summary: CollectionSummary
         icon="clock"
         tone={summary.overdueCount > 0 ? "danger" : "primary"}
         // The card sets figures left-to-right; a count with a word must follow the page's direction.
-        value={oldest ? <span dir={getTextDirection(locale as AppLocale)}>{t("oldestDays", { count: daysSince(oldest) })}</span> : t("none")}
+        value={
+          oldest ? (
+            <span dir={getTextDirection(locale as AppLocale)}>{t("oldestDays", { count: daysSince(oldest) })}</span>
+          ) : (
+            t("none")
+          )
+        }
         caption={
           oldest
             ? `${formatDate(oldest, locale)} · ${t("overdue", { count: summary.overdueCount, days: COLLECTION_OVERDUE_DAYS })}`

@@ -41,11 +41,7 @@ import { initVariantEdits, diffVariantEdit, variantBarcodeIncomplete } from "@/l
 import { galleryChanged, initGalleries, pendingCount } from "@/lib/image-slots";
 import { syncGallery } from "@/lib/image-sync";
 import { useCacheInvalidation } from "@/hooks/use-cache-invalidation";
-import {
-  PRODUCT_GALLERY_KEY,
-  variantGalleryKey,
-  variantIdFromGalleryKey,
-} from "@/constants/images";
+import { PRODUCT_GALLERY_KEY, variantGalleryKey, variantIdFromGalleryKey } from "@/constants/images";
 import { showNumberedShawlEditor } from "@/lib/validation/numbered-shawl";
 import {
   diffOptionValueNotes,
@@ -129,10 +125,10 @@ export function ProductForm({ mode, product, onDiscard }: ProductFormProps) {
   const [excludedCombos, setExcludedCombos] = useState<Set<string>>(new Set());
   const [comboStocks, setComboStocks] = useState<Record<string, number>>({});
   const [variantEdits, setVariantEdits] = useState<Record<string, VariantEditValues>>(() =>
-    product ? initVariantEdits(product.variants) : {}
+    product ? initVariantEdits(product.variants) : {},
   );
   const [variantBaseline, setVariantBaseline] = useState<Record<string, VariantEditValues>>(() =>
-    product ? initVariantEdits(product.variants) : {}
+    product ? initVariantEdits(product.variants) : {},
   );
   const [removedVariantIds, setRemovedVariantIds] = useState<Set<string>>(new Set());
   const [optionNotes, setOptionNotes] = useState<OptionValueNoteMap>(() => initOptionValueNotes(product));
@@ -156,7 +152,9 @@ export function ProductForm({ mode, product, onDiscard }: ProductFormProps) {
   });
 
   function describeError(err: unknown): string {
-    if (!(err instanceof ApiError)) return translateError(ERROR_CODES.INTERNAL);
+    if (!(err instanceof ApiError)) {
+      return translateError(ERROR_CODES.INTERNAL);
+    }
     const conflict = barcodeConflictSku(err);
     const message = translateError(err.code);
     return conflict ? `${message} ${t("barcode.duplicateConflict", { sku: conflict })}` : message;
@@ -170,7 +168,7 @@ export function ProductForm({ mode, product, onDiscard }: ProductFormProps) {
   const generateMutation = useGenerateVariantsMutation(product?.id ?? "");
 
   const isNumbered = watch("isNumbered");
-  const savedVariantCount = mode === "edit" ? product?.variants.length ?? 0 : 0;
+  const savedVariantCount = mode === "edit" ? (product?.variants.length ?? 0) : 0;
   const kindLockedReason = savedVariantCount === 0 ? null : product?.isNumbered ? "numbers" : "options";
 
   const newOptionSelections = toOptionSelections(selections);
@@ -179,7 +177,7 @@ export function ProductForm({ mode, product, onDiscard }: ProductFormProps) {
 
   const ordinaryVariantTypes = useMemo(
     () => (variantTypes ?? []).filter((type) => type.slug !== NUMBER_VARIANT_TYPE_SLUG),
-    [variantTypes]
+    [variantTypes],
   );
 
   const noteGroups = useMemo(
@@ -189,12 +187,12 @@ export function ProductForm({ mode, product, onDiscard }: ProductFormProps) {
         : product
           ? noteGroupsFromProduct(product, locale)
           : [],
-    [mode, variantTypes, selections, product, locale]
+    [mode, variantTypes, selections, product, locale],
   );
 
   const noteRowKeys = useMemo(
     () => new Set(noteGroups.flatMap((group) => group.rows.map((row) => row.key))),
-    [noteGroups]
+    [noteGroups],
   );
   const chosenValueNotes = (initial: OptionValueNoteMap) =>
     diffOptionValueNotes(initial, optionNotes, (key) => (noteRowKeys.has(key) ? key : null));
@@ -205,7 +203,7 @@ export function ProductForm({ mode, product, onDiscard }: ProductFormProps) {
 
   const previewRows = useMemo(
     () => buildVariantPreview(ordinaryVariantTypes, selections),
-    [ordinaryVariantTypes, selections]
+    [ordinaryVariantTypes, selections],
   );
   const comboStocksPayload = previewRows
     .filter((row) => !excludedCombos.has(row.key))
@@ -218,8 +216,11 @@ export function ProductForm({ mode, product, onDiscard }: ProductFormProps) {
   function toggleExcludedCombo(key: string) {
     setExcludedCombos((prev) => {
       const next = new Set(prev);
-      if (next.has(key)) next.delete(key);
-      else next.add(key);
+      if (next.has(key)) {
+        next.delete(key);
+      } else {
+        next.add(key);
+      }
       return next;
     });
   }
@@ -250,7 +251,9 @@ export function ProductForm({ mode, product, onDiscard }: ProductFormProps) {
     const map: Record<string, GallerySlot[]> = {};
     for (const [key, gallery] of Object.entries(galleries)) {
       const variantId = variantIdFromGalleryKey(key);
-      if (variantId) map[variantId] = gallery.slots;
+      if (variantId) {
+        map[variantId] = gallery.slots;
+      }
     }
     return map;
   }, [galleries]);
@@ -260,10 +263,12 @@ export function ProductForm({ mode, product, onDiscard }: ProductFormProps) {
   }
 
   async function saveGalleries(
-    productId: string
+    productId: string,
   ): Promise<{ pending: number; awaiting: number; errorCode: string | null }> {
     const jobs = Object.entries(galleries).filter(([, gallery]) => galleryChanged(gallery));
-    if (jobs.length === 0) return { pending: 0, awaiting: 0, errorCode: null };
+    if (jobs.length === 0) {
+      return { pending: 0, awaiting: 0, errorCode: null };
+    }
 
     const total = jobs.reduce((sum, [, gallery]) => sum + pendingCount(gallery.slots), 0);
     let uploaded = 0;
@@ -294,7 +299,7 @@ export function ProductForm({ mode, product, onDiscard }: ProductFormProps) {
   function finishSave(
     productId: string,
     result: { pending: number; awaiting: number; errorCode: string | null },
-    requestsFiled = 0
+    requestsFiled = 0,
   ) {
     setSaveStep(null);
     const waiting = requestsFiled + result.awaiting;
@@ -313,7 +318,9 @@ export function ProductForm({ mode, product, onDiscard }: ProductFormProps) {
   }
 
   async function handleRetryImages() {
-    if (!savedProductId) return;
+    if (!savedProductId) {
+      return;
+    }
     setPartialFailure(null);
     setSubmitError(null);
     try {
@@ -347,9 +354,7 @@ export function ProductForm({ mode, product, onDiscard }: ProductFormProps) {
 
         if (created.hasVariants && excludedCombos.size > 0) {
           setSaveStep({ kind: "variants" });
-          const toDelete = created.variants.filter((v) =>
-            excludedCombos.has(comboKey(v.values.map((val) => val.id)))
-          );
+          const toDelete = created.variants.filter((v) => excludedCombos.has(comboKey(v.values.map((val) => val.id))));
           await Promise.all(toDelete.map((v) => deleteVariant(created.id, v.id)));
         }
 
@@ -357,27 +362,28 @@ export function ProductForm({ mode, product, onDiscard }: ProductFormProps) {
         return;
       }
 
-      if (!product) return;
+      if (!product) {
+        return;
+      }
 
       const filedRequests = new Set<string>();
 
       if (canEditDetails) {
         setSaveStep({ kind: "product" });
         const saved = await updateMutation.mutateAsync(
-          toUpdatePayload(
-            values,
-            willHaveVariants,
-            abilities,
-            chosenValueNotes(initOptionValueNotes(product))
-          )
+          toUpdatePayload(values, willHaveVariants, abilities, chosenValueNotes(initOptionValueNotes(product))),
         );
-        for (const change of saved.pendingChanges ?? []) filedRequests.add(change.id);
+        for (const change of saved.pendingChanges ?? []) {
+          filedRequests.add(change.id);
+        }
 
         const patches = Object.entries(variantEdits)
           .filter(([id]) => !removedVariantIds.has(id))
           .flatMap(([variantId, edits]) => {
             const original = product.variants.find((v) => v.id === variantId);
-            if (!original) return [];
+            if (!original) {
+              return [];
+            }
             const patch = diffVariantEdit(original, edits, abilities, variantBaseline[variantId]);
             return patch ? [{ variantId, patch }] : [];
           });
@@ -385,17 +391,21 @@ export function ProductForm({ mode, product, onDiscard }: ProductFormProps) {
         if (patches.length > 0 || removedVariantIds.size > 0) {
           setSaveStep({ kind: "variants" });
           const patched = await Promise.all(
-            patches.map(({ variantId, patch }) => updateVariantMutation.mutateAsync({ variantId, input: patch }))
+            patches.map(({ variantId, patch }) => updateVariantMutation.mutateAsync({ variantId, input: patch })),
           );
           for (const variant of patched) {
-            for (const change of variant.pendingChanges ?? []) filedRequests.add(change.id);
+            for (const change of variant.pendingChanges ?? []) {
+              filedRequests.add(change.id);
+            }
           }
           setVariantBaseline(variantEdits);
           const removals = await Promise.all(
-            [...removedVariantIds].map((variantId) => deleteVariantMutation.mutateAsync(variantId))
+            [...removedVariantIds].map((variantId) => deleteVariantMutation.mutateAsync(variantId)),
           );
           for (const removal of removals) {
-            if (removal.pendingChange) filedRequests.add(removal.pendingChange.id);
+            if (removal.pendingChange) {
+              filedRequests.add(removal.pendingChange.id);
+            }
           }
         }
       }
@@ -409,10 +419,12 @@ export function ProductForm({ mode, product, onDiscard }: ProductFormProps) {
           optionSelections: newOptionSelections,
           comboStocks: comboStocksPayload,
         });
-        for (const change of generated.pendingChanges ?? []) filedRequests.add(change.id);
+        for (const change of generated.pendingChanges ?? []) {
+          filedRequests.add(change.id);
+        }
         const unwanted = generated.variants.filter(
           (variant) =>
-            !existingIds.has(variant.id) && excludedCombos.has(comboKey(variant.values.map((value) => value.id)))
+            !existingIds.has(variant.id) && excludedCombos.has(comboKey(variant.values.map((value) => value.id))),
         );
         await Promise.all(unwanted.map((variant) => deleteVariantMutation.mutateAsync(variant.id)));
       }
@@ -427,60 +439,70 @@ export function ProductForm({ mode, product, onDiscard }: ProductFormProps) {
   return (
     <form ref={formRef} onSubmit={handleSubmit(onSubmit)} noValidate className="flex flex-col gap-5">
       <div ref={noticeRef} className="flex flex-col gap-3 empty:hidden">
-      {submitError && <Alert tone="danger">{submitError}</Alert>}
+        {submitError && <Alert tone="danger">{submitError}</Alert>}
 
-      {awaitingApproval > 0 && savedProductId && (
-        <Alert tone="info" title={t("awaitingApproval.title")}>
-          <div className="flex flex-col gap-3">
-            <p>{t("awaitingApproval.detail", { count: awaitingApproval })}</p>
-            <Button className="w-full sm:w-auto sm:self-start" onClick={() => router.push(`/products/${savedProductId}`)}>
-              {t("awaitingApproval.viewProduct")}
-            </Button>
-          </div>
-        </Alert>
-      )}
-        {partialFailure && (
-        <Alert tone="danger" title={t("partial.title")}>
-          <div className="flex flex-col gap-3">
-            <div className="flex flex-col gap-1">
-              {partialFailure.pending > 0 ? (
-                <p>{t("partial.detail", { count: partialFailure.pending })}</p>
-              ) : (
-                partialFailure.errorCode && <p>{translateError(partialFailure.errorCode)}</p>
-              )}
-            </div>
-            <div className="flex flex-col gap-2">
-              <Button onClick={() => void handleRetryImages()} isLoading={isBusy} className="w-full sm:w-auto sm:self-start">
-                {isBusy ? t("partial.retrying") : t("partial.retry")}
-              </Button>
+        {awaitingApproval > 0 && savedProductId && (
+          <Alert tone="info" title={t("awaitingApproval.title")}>
+            <div className="flex flex-col gap-3">
+              <p>{t("awaitingApproval.detail", { count: awaitingApproval })}</p>
               <Button
-                variant="secondary"
-                disabled={isBusy}
                 className="w-full sm:w-auto sm:self-start"
-                onClick={() => savedProductId && router.push(`/products/${savedProductId}`)}
+                onClick={() => router.push(`/products/${savedProductId}`)}
               >
-                {t("partial.continue")}
+                {t("awaitingApproval.viewProduct")}
               </Button>
             </div>
-          </div>
-        </Alert>
+          </Alert>
+        )}
+        {partialFailure && (
+          <Alert tone="danger" title={t("partial.title")}>
+            <div className="flex flex-col gap-3">
+              <div className="flex flex-col gap-1">
+                {partialFailure.pending > 0 ? (
+                  <p>{t("partial.detail", { count: partialFailure.pending })}</p>
+                ) : (
+                  partialFailure.errorCode && <p>{translateError(partialFailure.errorCode)}</p>
+                )}
+              </div>
+              <div className="flex flex-col gap-2">
+                <Button
+                  onClick={() => void handleRetryImages()}
+                  isLoading={isBusy}
+                  className="w-full sm:w-auto sm:self-start"
+                >
+                  {isBusy ? t("partial.retrying") : t("partial.retry")}
+                </Button>
+                <Button
+                  variant="secondary"
+                  disabled={isBusy}
+                  className="w-full sm:w-auto sm:self-start"
+                  onClick={() => savedProductId && router.push(`/products/${savedProductId}`)}
+                >
+                  {t("partial.continue")}
+                </Button>
+              </div>
+            </div>
+          </Alert>
         )}
       </div>
 
       <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-[minmax(0,1fr)_22rem]">
         <div className="flex min-w-0 flex-col gap-5">
-      {mode === "edit" && !canEditDetails && product && (
-        <section data-test-selector="product-form-read-only" className="flex flex-col gap-4 rounded-card border border-line bg-surface p-4 shadow-card">
-          <div className="flex flex-col gap-1">
-            <p className="text-heading font-semibold text-ink">{localize(product.name, locale)}</p>
-            {product.category && (
-              <p className="text-label text-ink-muted">{localize(product.category.name, locale)}</p>
-            )}
-            <p className="text-value font-semibold text-ink">{formatMoney(product.basePrice, currency, locale)}</p>
-            <p className="mt-2 text-label text-ink-muted">{t("employeeReadOnlyHint")}</p>
-          </div>
-        </section>
-      )}
+          {mode === "edit" && !canEditDetails && product && (
+            <section
+              data-test-selector="product-form-read-only"
+              className="flex flex-col gap-4 rounded-card border border-line bg-surface p-4 shadow-card"
+            >
+              <div className="flex flex-col gap-1">
+                <p className="text-heading font-semibold text-ink">{localize(product.name, locale)}</p>
+                {product.category && (
+                  <p className="text-label text-ink-muted">{localize(product.category.name, locale)}</p>
+                )}
+                <p className="text-value font-semibold text-ink">{formatMoney(product.basePrice, currency, locale)}</p>
+                <p className="mt-2 text-label text-ink-muted">{t("employeeReadOnlyHint")}</p>
+              </div>
+            </section>
+          )}
 
           {canEditDetails && (
             <>
@@ -524,271 +546,287 @@ export function ProductForm({ mode, product, onDiscard }: ProductFormProps) {
                   <label htmlFor="categoryId" className="text-label text-ink">
                     {t("category")}
                   </label>
-                <Controller
-                  control={control}
-                  name="categoryId"
-                  render={({ field }) => (
-                    <Select
-                      id="categoryId"
-                      data-testid={fieldTestSelector("categoryId")}
-                      hasError={!!errors.categoryId}
-                      value={field.value}
-                      onChange={(event) => field.onChange(event.target.value)}
-                      onBlur={field.onBlur}
-                      placeholder={t("selectCategory")}
-                      options={categoryOptions.map((c) => ({
-                        value: c.id,
-                        label: `${"  ".repeat(c.depth)}${localize(c.name, locale)}`,
-                      }))}
-                    />
-                  )}
-                />
-                {errors.categoryId && (
-                  <FieldErrorText field="categoryId">{translateError(errors.categoryId.message ?? "")}</FieldErrorText>
-                )}
-                </div>
-              </FormSection>
-
-              <FormSection name="pricing" title={t("pricing")} forceOpen={!!errors.basePrice || !!errors.compareAtPrice || !!errors.cost}>
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-              {canEditPrice ? (
-                <>
-                  <div className="flex flex-col gap-2">
-                    <label htmlFor="basePrice" className="text-label text-ink">
-                      {t("basePrice")}
-                    </label>
-                    <MoneyField
-                      id="basePrice"
-                      aria-invalid={!!errors.basePrice}
-                      {...register("basePrice")}
-                    />
-                    {errors.basePrice && (
-                      <FieldErrorText field="basePrice">{translateError(errors.basePrice.message ?? "")}</FieldErrorText>
+                  <Controller
+                    control={control}
+                    name="categoryId"
+                    render={({ field }) => (
+                      <Select
+                        id="categoryId"
+                        data-testid={fieldTestSelector("categoryId")}
+                        hasError={!!errors.categoryId}
+                        value={field.value}
+                        onChange={(event) => field.onChange(event.target.value)}
+                        onBlur={field.onBlur}
+                        placeholder={t("selectCategory")}
+                        options={categoryOptions.map((c) => ({
+                          value: c.id,
+                          label: `${"  ".repeat(c.depth)}${localize(c.name, locale)}`,
+                        }))}
+                      />
                     )}
-                  </div>
-
-                  <div className="flex flex-col gap-2">
-                    <label htmlFor="compareAtPrice" className="text-label text-ink">
-                      {t("compareAtPrice")}
-                    </label>
-                    <MoneyField
-                      id="compareAtPrice"
-                      placeholder={t("optional")}
-                      aria-invalid={!!errors.compareAtPrice}
-                      {...register("compareAtPrice")}
-                    />
-                    {errors.compareAtPrice && (
-                      <FieldErrorText field="compareAtPrice">{translateError(errors.compareAtPrice.message ?? "")}</FieldErrorText>
-                    )}
-                  </div>
-
-                  {priceNeedsApproval && (
-                    <p className="text-label text-ink-muted">{t("needsApproval.price")}</p>
-                  )}
-                </>
-              ) : (
-                product && (
-                  <div className="flex flex-col gap-1">
-                    <span className="text-label text-ink">{t("basePrice")}</span>
-                    <p className="text-value font-semibold text-ink">
-                      {formatMoney(product.basePrice, currency, locale)}
-                    </p>
-                    <p className="text-label text-ink-muted">{t("priceReadOnlyHint")}</p>
-                  </div>
-                )
-              )}
-              {canSeeCost && (
-                <div className="flex flex-col gap-2">
-                  <label htmlFor="cost" className="text-label text-ink">
-                    {t("cost")}
-                  </label>
-                  <MoneyField
-                    id="cost"
-                    placeholder={t("optional")}
-                    aria-invalid={!!errors.cost}
-                    {...register("cost")}
                   />
-                  {errors.cost && <FieldErrorText field="cost">{translateError(errors.cost.message ?? "")}</FieldErrorText>}
-                </div>
-              )}
+                  {errors.categoryId && (
+                    <FieldErrorText field="categoryId">
+                      {translateError(errors.categoryId.message ?? "")}
+                    </FieldErrorText>
+                  )}
                 </div>
               </FormSection>
 
+              <FormSection
+                name="pricing"
+                title={t("pricing")}
+                forceOpen={!!errors.basePrice || !!errors.compareAtPrice || !!errors.cost}
+              >
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                  {canEditPrice ? (
+                    <>
+                      <div className="flex flex-col gap-2">
+                        <label htmlFor="basePrice" className="text-label text-ink">
+                          {t("basePrice")}
+                        </label>
+                        <MoneyField id="basePrice" aria-invalid={!!errors.basePrice} {...register("basePrice")} />
+                        {errors.basePrice && (
+                          <FieldErrorText field="basePrice">
+                            {translateError(errors.basePrice.message ?? "")}
+                          </FieldErrorText>
+                        )}
+                      </div>
+
+                      <div className="flex flex-col gap-2">
+                        <label htmlFor="compareAtPrice" className="text-label text-ink">
+                          {t("compareAtPrice")}
+                        </label>
+                        <MoneyField
+                          id="compareAtPrice"
+                          placeholder={t("optional")}
+                          aria-invalid={!!errors.compareAtPrice}
+                          {...register("compareAtPrice")}
+                        />
+                        {errors.compareAtPrice && (
+                          <FieldErrorText field="compareAtPrice">
+                            {translateError(errors.compareAtPrice.message ?? "")}
+                          </FieldErrorText>
+                        )}
+                      </div>
+
+                      {priceNeedsApproval && <p className="text-label text-ink-muted">{t("needsApproval.price")}</p>}
+                    </>
+                  ) : (
+                    product && (
+                      <div className="flex flex-col gap-1">
+                        <span className="text-label text-ink">{t("basePrice")}</span>
+                        <p className="text-value font-semibold text-ink">
+                          {formatMoney(product.basePrice, currency, locale)}
+                        </p>
+                        <p className="text-label text-ink-muted">{t("priceReadOnlyHint")}</p>
+                      </div>
+                    )
+                  )}
+                  {canSeeCost && (
+                    <div className="flex flex-col gap-2">
+                      <label htmlFor="cost" className="text-label text-ink">
+                        {t("cost")}
+                      </label>
+                      <MoneyField
+                        id="cost"
+                        placeholder={t("optional")}
+                        aria-invalid={!!errors.cost}
+                        {...register("cost")}
+                      />
+                      {errors.cost && (
+                        <FieldErrorText field="cost">{translateError(errors.cost.message ?? "")}</FieldErrorText>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </FormSection>
             </>
           )}
 
           <FormSection name="photos" title={t("images.productTitle")}>
-          <ImageManager
-            slots={galleries[PRODUCT_GALLERY_KEY]?.slots ?? []}
-            onChange={(slots) => setGallerySlots(PRODUCT_GALLERY_KEY, slots)}
-            canDelete={canDeleteImages}
-            isBusy={isBusy}
-          />
+            <ImageManager
+              slots={galleries[PRODUCT_GALLERY_KEY]?.slots ?? []}
+              onChange={(slots) => setGallerySlots(PRODUCT_GALLERY_KEY, slots)}
+              canDelete={canDeleteImages}
+              isBusy={isBusy}
+            />
           </FormSection>
 
           {showVariantsCard && (
             <FormSection name="variants" title={t("variants.title")}>
-          <div className="flex flex-col gap-4">
-            {mode === "edit" && product?.hasVariants && (
-              <VariantEditList
-                variants={product.variants.filter((v) => v.imageX == null || v.imageY == null)}
-                variantTypes={variantTypes ?? []}
-                currency={currency}
-                canSeeCost={canSeeCost}
-                canEditDetails={canEditDetails}
-                canEditPrice={canEditPrice}
-                canEditStock={canEditStock}
-                canHide={showActiveToggle}
-                canRemoveCombos={canRemoveCombos}
-                canDeleteImages={canDeleteImages}
-                edits={variantEdits}
-                onEditChange={(id, v) => setVariantEdits((prev) => ({ ...prev, [id]: v }))}
-                imageSlots={variantImageSlots}
-                onImageSlotsChange={(variantId, slots) => setGallerySlots(variantGalleryKey(variantId), slots)}
-                isSaving={isBusy}
-                removedIds={removedVariantIds}
-                onRemove={(id) => setRemovedVariantIds((prev) => new Set(prev).add(id))}
-                onRestore={(id) =>
-                  setRemovedVariantIds((prev) => {
-                    const next = new Set(prev);
-                    next.delete(id);
-                    return next;
-                  })
-                }
-              />
-            )}
+              <div className="flex flex-col gap-4">
+                {mode === "edit" && product?.hasVariants && (
+                  <VariantEditList
+                    variants={product.variants.filter((v) => v.imageX == null || v.imageY == null)}
+                    variantTypes={variantTypes ?? []}
+                    currency={currency}
+                    canSeeCost={canSeeCost}
+                    canEditDetails={canEditDetails}
+                    canEditPrice={canEditPrice}
+                    canEditStock={canEditStock}
+                    canHide={showActiveToggle}
+                    canRemoveCombos={canRemoveCombos}
+                    canDeleteImages={canDeleteImages}
+                    edits={variantEdits}
+                    onEditChange={(id, v) => setVariantEdits((prev) => ({ ...prev, [id]: v }))}
+                    imageSlots={variantImageSlots}
+                    onImageSlotsChange={(variantId, slots) => setGallerySlots(variantGalleryKey(variantId), slots)}
+                    isSaving={isBusy}
+                    removedIds={removedVariantIds}
+                    onRemove={(id) => setRemovedVariantIds((prev) => new Set(prev).add(id))}
+                    onRestore={(id) =>
+                      setRemovedVariantIds((prev) => {
+                        const next = new Set(prev);
+                        next.delete(id);
+                        return next;
+                      })
+                    }
+                  />
+                )}
 
-            {mode === "create" && variantTypes && (
-              <>
-                <VariantTypePicker variantTypes={ordinaryVariantTypes} value={selections} onChange={setSelections} />
-                <VariantPreviewList
-                  rows={previewRows}
-                  excluded={excludedCombos}
-                  onToggleExcluded={toggleExcludedCombo}
-                  stocks={comboStocks}
-                  onStockChange={setComboStock}
-                />
-              </>
-            )}
+                {mode === "create" && variantTypes && (
+                  <>
+                    <VariantTypePicker
+                      variantTypes={ordinaryVariantTypes}
+                      value={selections}
+                      onChange={setSelections}
+                    />
+                    <VariantPreviewList
+                      rows={previewRows}
+                      excluded={excludedCombos}
+                      onToggleExcluded={toggleExcludedCombo}
+                      stocks={comboStocks}
+                      onStockChange={setComboStock}
+                    />
+                  </>
+                )}
 
-            {mode === "edit" && product && variantTypes && canEditDetails && (
-              <AddVariantsSection
-                variantTypes={ordinaryVariantTypes}
-                selections={selections}
-                onSelectionsChange={setSelections}
-                excluded={excludedCombos}
-                onToggleExcluded={toggleExcludedCombo}
-                stocks={comboStocks}
-                {...(canEditStock && { onStockChange: setComboStock })}
-              />
-            )}
+                {mode === "edit" && product && variantTypes && canEditDetails && (
+                  <AddVariantsSection
+                    variantTypes={ordinaryVariantTypes}
+                    selections={selections}
+                    onSelectionsChange={setSelections}
+                    excluded={excludedCombos}
+                    onToggleExcluded={toggleExcludedCombo}
+                    stocks={comboStocks}
+                    {...(canEditStock && { onStockChange: setComboStock })}
+                  />
+                )}
 
-            {canEditDetails && (
-              <OptionValueNotesSection
-                groups={noteGroups}
-                notes={optionNotes}
-                onChange={handleNoteChange}
-                disabled={isBusy}
-                hint={mode === "create" ? t("optionNotes.createHint") : undefined}
-              />
-            )}
-          </div>
+                {canEditDetails && (
+                  <OptionValueNotesSection
+                    groups={noteGroups}
+                    notes={optionNotes}
+                    onChange={handleNoteChange}
+                    disabled={isBusy}
+                    hint={mode === "create" ? t("optionNotes.createHint") : undefined}
+                  />
+                )}
+              </div>
             </FormSection>
           )}
 
-      {isNumbered && canEditDetails && (mode === "create" || !product?.isNumbered) && (
-        <FormSection name="numbered-hint" title={t("numberedShawl.title")}>
-          <div>
-            <p className="text-label text-ink-muted">{t("kind.placeNumbersAfterSave")}</p>
-          </div>
-        </FormSection>
-      )}
+          {isNumbered && canEditDetails && (mode === "create" || !product?.isNumbered) && (
+            <FormSection name="numbered-hint" title={t("numberedShawl.title")}>
+              <div>
+                <p className="text-label text-ink-muted">{t("kind.placeNumbersAfterSave")}</p>
+              </div>
+            </FormSection>
+          )}
 
-      {mode === "edit" && canEditDetails && canEditPrice && canEditStock && product && variantTypes && isNumbered && showNumberedShawlEditor(product) && (
-        <FormSection name="numbered-shawl" title={t("numberedShawl.title")}>
-          <div>
-            <NumberedShawlEditor product={product} variantTypes={variantTypes} currency={currency} />
-          </div>
-        </FormSection>
-      )}
+          {mode === "edit" &&
+            canEditDetails &&
+            canEditPrice &&
+            canEditStock &&
+            product &&
+            variantTypes &&
+            isNumbered &&
+            showNumberedShawlEditor(product) && (
+              <FormSection name="numbered-shawl" title={t("numberedShawl.title")}>
+                <div>
+                  <NumberedShawlEditor product={product} variantTypes={variantTypes} currency={currency} />
+                </div>
+              </FormSection>
+            )}
         </div>
 
         <div className="flex min-w-0 flex-col gap-5">
           {canEditDetails && (showActiveToggle || canTrackLowStock) && (
             <FormSection name="status" title={t("statusTitle")}>
               <div className="flex flex-col divide-y divide-line">
-          {showActiveToggle && (
-            <div className="py-3 first:pt-0 last:pb-0">
-              <div className="flex items-center justify-between gap-3">
-                <div>
-                  <label htmlFor="isActive" className="text-label text-ink">
-                    {t("isActive")}
-                  </label>
-                  <p className="text-label text-ink-muted">
-                    {visibilityNeedsApproval ? t("needsApproval.visibility") : t("isActiveHint")}
-                  </p>
-                </div>
-                <Controller
-                  control={control}
-                  name="isActive"
-                  render={({ field }) => (
-                    <Switch
-                      id="isActive"
-                      data-testid={fieldTestSelector("isActive")}
-                      label={t("isActive")}
-                      hideLabel
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  )}
-                />
-              </div>
-            </div>
-          )}
-          {canTrackLowStock && (
-            <div className="py-3 first:pt-0 last:pb-0">
-              <div className="flex items-center justify-between gap-3">
-                <div>
-                  <label htmlFor="trackLowStock" className="text-label text-ink">
-                    {t("trackLowStock")}
-                  </label>
-                  <p className="text-label text-ink-muted">{t("trackLowStockHint")}</p>
-                </div>
-                <Controller
-                  control={control}
-                  name="trackLowStock"
-                  render={({ field }) => (
-                    <Switch
-                      id="trackLowStock"
-                      data-testid={fieldTestSelector("trackLowStock")}
-                      label={t("trackLowStock")}
-                      hideLabel
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  )}
-                />
-              </div>
-            </div>
-          )}
+                {showActiveToggle && (
+                  <div className="py-3 first:pt-0 last:pb-0">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <label htmlFor="isActive" className="text-label text-ink">
+                          {t("isActive")}
+                        </label>
+                        <p className="text-label text-ink-muted">
+                          {visibilityNeedsApproval ? t("needsApproval.visibility") : t("isActiveHint")}
+                        </p>
+                      </div>
+                      <Controller
+                        control={control}
+                        name="isActive"
+                        render={({ field }) => (
+                          <Switch
+                            id="isActive"
+                            data-testid={fieldTestSelector("isActive")}
+                            label={t("isActive")}
+                            hideLabel
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        )}
+                      />
+                    </div>
+                  </div>
+                )}
+                {canTrackLowStock && (
+                  <div className="py-3 first:pt-0 last:pb-0">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <label htmlFor="trackLowStock" className="text-label text-ink">
+                          {t("trackLowStock")}
+                        </label>
+                        <p className="text-label text-ink-muted">{t("trackLowStockHint")}</p>
+                      </div>
+                      <Controller
+                        control={control}
+                        name="trackLowStock"
+                        render={({ field }) => (
+                          <Switch
+                            id="trackLowStock"
+                            data-testid={fieldTestSelector("trackLowStock")}
+                            label={t("trackLowStock")}
+                            hideLabel
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        )}
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
             </FormSection>
           )}
 
           {canEditDetails && (
             <FormSection name="kind" title={t("kind.title")}>
-            <Controller
-              control={control}
-              name="isNumbered"
-              render={({ field }) => (
-                <ProductKindChoice
-                  value={field.value}
-                  onChange={field.onChange}
-                  lockedReason={kindLockedReason}
-                  disabled={isBusy}
-                />
-              )}
-            />
+              <Controller
+                control={control}
+                name="isNumbered"
+                render={({ field }) => (
+                  <ProductKindChoice
+                    value={field.value}
+                    onChange={field.onChange}
+                    lockedReason={kindLockedReason}
+                    disabled={isBusy}
+                  />
+                )}
+              />
             </FormSection>
           )}
 
@@ -820,7 +858,9 @@ export function ProductForm({ mode, product, onDiscard }: ProductFormProps) {
                   )}
                 />
                 {errors.barcode && (
-                  <FieldErrorText field="product-barcode">{translateError(errors.barcode.message ?? "")}</FieldErrorText>
+                  <FieldErrorText field="product-barcode">
+                    {translateError(errors.barcode.message ?? "")}
+                  </FieldErrorText>
                 )}
                 {willHaveVariants && <p className="text-label text-ink-muted">{t("barcode.parentSharedHint")}</p>}
               </div>
@@ -829,42 +869,48 @@ export function ProductForm({ mode, product, onDiscard }: ProductFormProps) {
 
           {canEditDetails && (
             <>
-          {!willHaveVariants && (
-            <FormSection name="inventory" title={t("inventory")} forceOpen={!!errors.stock}>
-              <div className="flex flex-col gap-4">
-                {isNumbered && <p className="text-label text-ink-muted">{t("kind.stockPerNumber")}</p>}
-                {canEditStock && !isNumbered && (
-                  <div className="flex flex-col gap-2">
-                    <span className="text-label text-ink">{t("stock")}</span>
-                    <Controller
-                      control={control}
-                      name="stock"
-                      render={({ field }) => (
-                        <QuantityStepper
-                          value={parseQuantity(field.value)}
-                          onChange={(quantity) => field.onChange(String(quantity))}
-                          decreaseLabel={tCommon("quantity.decrease", { name: t("stock") })}
-                          increaseLabel={tCommon("quantity.increase", { name: t("stock") })}
-                          valueLabel={tCommon("quantity.value", { name: t("stock") })}
+              {!willHaveVariants && (
+                <FormSection name="inventory" title={t("inventory")} forceOpen={!!errors.stock}>
+                  <div className="flex flex-col gap-4">
+                    {isNumbered && <p className="text-label text-ink-muted">{t("kind.stockPerNumber")}</p>}
+                    {canEditStock && !isNumbered && (
+                      <div className="flex flex-col gap-2">
+                        <span className="text-label text-ink">{t("stock")}</span>
+                        <Controller
+                          control={control}
+                          name="stock"
+                          render={({ field }) => (
+                            <QuantityStepper
+                              value={parseQuantity(field.value)}
+                              onChange={(quantity) => field.onChange(String(quantity))}
+                              decreaseLabel={tCommon("quantity.decrease", { name: t("stock") })}
+                              increaseLabel={tCommon("quantity.increase", { name: t("stock") })}
+                              valueLabel={tCommon("quantity.value", { name: t("stock") })}
+                            />
+                          )}
                         />
-                      )}
-                    />
-                    {errors.stock && <FieldErrorText field="stock">{translateError(errors.stock.message ?? "")}</FieldErrorText>}
-                    {stockNeedsApproval && (
-                      <p className="text-label text-ink-muted">{t("needsApproval.stock")}</p>
+                        {errors.stock && (
+                          <FieldErrorText field="stock">{translateError(errors.stock.message ?? "")}</FieldErrorText>
+                        )}
+                        {stockNeedsApproval && <p className="text-label text-ink-muted">{t("needsApproval.stock")}</p>}
+                      </div>
                     )}
-                  </div>
-                )}
 
-                <div className="flex flex-col gap-1.5">
-                  <label htmlFor="sku" className="text-label text-ink">
-                    {t("sku")}
-                  </label>
-                  <Input id="sku" data-test-selector={fieldTestSelector("sku")} value={product?.sku ?? t("autoGenerated")} disabled readOnly />
-                </div>
-              </div>
-            </FormSection>
-          )}
+                    <div className="flex flex-col gap-1.5">
+                      <label htmlFor="sku" className="text-label text-ink">
+                        {t("sku")}
+                      </label>
+                      <Input
+                        id="sku"
+                        data-test-selector={fieldTestSelector("sku")}
+                        value={product?.sku ?? t("autoGenerated")}
+                        disabled
+                        readOnly
+                      />
+                    </div>
+                  </div>
+                </FormSection>
+              )}
             </>
           )}
         </div>
@@ -925,4 +971,3 @@ function FormSection({
     </Section>
   );
 }
-

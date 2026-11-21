@@ -38,7 +38,14 @@ export const PERMISSION_GROUPS: readonly PermissionGroup[] = [
   },
   {
     key: "catalogue",
-    actions: ["category.view", "category.manage", "variantType.create", "variantType.manage", "images.edit", "images.delete"],
+    actions: [
+      "category.view",
+      "category.manage",
+      "variantType.create",
+      "variantType.manage",
+      "images.edit",
+      "images.delete",
+    ],
   },
   {
     key: "inventory",
@@ -93,7 +100,7 @@ const duplicated = grouped.filter((action, index) => grouped.indexOf(action) !==
 if (missing.length > 0 || duplicated.length > 0) {
   throw new Error(
     `PERMISSION_GROUPS must list every action exactly once. Missing: [${missing.join(", ")}]. ` +
-      `Duplicated: [${duplicated.join(", ")}].`
+      `Duplicated: [${duplicated.join(", ")}].`,
   );
 }
 

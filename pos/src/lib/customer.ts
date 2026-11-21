@@ -32,7 +32,7 @@ export function toCustomerFields(customer: OrderCustomerDraft) {
 // alone: it belongs to this order, not to the customer.
 export function suggestionToFormValues(
   suggestion: CustomerSuggestion,
-  current: OrderCustomerFormValues
+  current: OrderCustomerFormValues,
 ): OrderCustomerFormValues {
   return {
     ...current,

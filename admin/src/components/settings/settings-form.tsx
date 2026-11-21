@@ -13,7 +13,12 @@ import { fieldTestSelector } from "@store/shared/lib/testSelector";
 import type { Setting } from "@store/shared/types/setting";
 import { useTranslateError } from "@/hooks/use-translate-error";
 import { useSaveSettingsMutation } from "@/hooks/use-settings";
-import { settingsFormSchema, settingsToFormValues, toUpdatePayload, type SettingsFormValues } from "@/lib/validation/settings-form";
+import {
+  settingsFormSchema,
+  settingsToFormValues,
+  toUpdatePayload,
+  type SettingsFormValues,
+} from "@/lib/validation/settings-form";
 import { LOCALE_LABELS } from "@/constants/locale";
 import { fieldErrorKey } from "@/lib/field-error-key";
 import type { AppLocale } from "@/i18n/routing";
@@ -38,7 +43,6 @@ const A4_SHEET_FIELDS = [
   "labelGapXMm",
   "labelGapYMm",
 ] as const satisfies readonly (keyof SettingsFormValues)[];
-
 
 function localeLabel(code: string): string {
   return LOCALE_LABELS[code as AppLocale] ?? code;
@@ -116,14 +120,18 @@ export function SettingsForm({ setting }: { setting: Setting }) {
   useEffect(
     () => () => {
       for (const change of Object.values(imagesRef.current)) {
-        if (change?.kind === "replace") URL.revokeObjectURL(change.previewUrl);
+        if (change?.kind === "replace") {
+          URL.revokeObjectURL(change.previewUrl);
+        }
       }
     },
-    []
+    [],
   );
 
   useEffect(() => {
-    if (save.isError) noticeRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    if (save.isError) {
+      noticeRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
   }, [save.isError]);
 
   const labelPrintMode = useWatch({ control, name: "labelPrintMode" });
@@ -139,7 +147,9 @@ export function SettingsForm({ setting }: { setting: Setting }) {
   function setImage(kind: BrandImageKind, change: BrandImageChange) {
     setImages((current) => {
       const previous = current[kind];
-      if (previous?.kind === "replace" && previous !== change) URL.revokeObjectURL(previous.previewUrl);
+      if (previous?.kind === "replace" && previous !== change) {
+        URL.revokeObjectURL(previous.previewUrl);
+      }
       return { ...current, [kind]: change };
     });
   }
@@ -288,7 +298,10 @@ export function SettingsForm({ setting }: { setting: Setting }) {
                     <Select
                       id="labelPrintMode"
                       data-testid={fieldTestSelector("labelPrintMode")}
-                      options={LABEL_PRINT_MODES.map((mode) => ({ value: mode, label: t(`labelPrintModeOption.${mode}`) }))}
+                      options={LABEL_PRINT_MODES.map((mode) => ({
+                        value: mode,
+                        label: t(`labelPrintModeOption.${mode}`),
+                      }))}
                       value={field.value}
                       onChange={(e) => field.onChange(e.target.value)}
                     />

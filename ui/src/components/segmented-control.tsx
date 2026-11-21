@@ -49,8 +49,7 @@ interface Thumb {
 
 function measureOverflow(track: HTMLElement): Overflow {
   const max = track.scrollWidth - track.clientWidth;
-  const fromLeft =
-    getComputedStyle(track).direction === "rtl" ? track.scrollLeft + max : track.scrollLeft;
+  const fromLeft = getComputedStyle(track).direction === "rtl" ? track.scrollLeft + max : track.scrollLeft;
 
   return { left: fromLeft > 1, right: fromLeft < max - 1 };
 }
@@ -156,11 +155,7 @@ export function SegmentedControl<TValue extends string>({
           "relative isolate inline-flex max-w-full overflow-x-auto rounded-pill bg-inset",
           "[scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
           SIZES[size].track,
-          overflow.left && overflow.right
-            ? "fade-x"
-            : overflow.left
-              ? "fade-l"
-              : overflow.right && "fade-r",
+          overflow.left && overflow.right ? "fade-x" : overflow.left ? "fade-l" : overflow.right && "fade-r",
         )}
       >
         {thumb && (
@@ -206,9 +201,7 @@ export function SegmentedControl<TValue extends string>({
                   className={cn(
                     "pill-text inline-flex h-4 min-w-4 items-center justify-center",
                     "rounded-pill px-[7px] text-micro font-medium tabular-nums",
-                    isSelected
-                      ? "bg-primary-100 text-primary-700"
-                      : "bg-danger-100 text-danger-600",
+                    isSelected ? "bg-primary-100 text-primary-700" : "bg-danger-100 text-danger-600",
                   )}
                 >
                   {option.count}

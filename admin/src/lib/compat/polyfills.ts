@@ -40,9 +40,15 @@
  * RFC 4122 version-4 UUID, so nothing downstream can tell the difference.
  */
 function installRandomUuid(): void {
-  if (typeof crypto === "undefined") return;
-  if (typeof crypto.randomUUID === "function") return;
-  if (typeof crypto.getRandomValues !== "function") return;
+  if (typeof crypto === "undefined") {
+    return;
+  }
+  if (typeof crypto.randomUUID === "function") {
+    return;
+  }
+  if (typeof crypto.getRandomValues !== "function") {
+    return;
+  }
 
   const HEX = "0123456789abcdef";
   const UUID_BYTES = 16;
@@ -65,7 +71,9 @@ function installRandomUuid(): void {
       for (let index = 0; index < UUID_BYTES; index += 1) {
         const byte = bytes[index];
         out += HEX[byte >> 4] + HEX[byte & 0x0f];
-        if (DASH_AFTER.has(index)) out += "-";
+        if (DASH_AFTER.has(index)) {
+          out += "-";
+        }
       }
       return out as `${string}-${string}-${string}-${string}-${string}`;
     },

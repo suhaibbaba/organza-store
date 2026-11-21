@@ -15,7 +15,9 @@ export function AppBreadcrumb() {
   const crumbs = buildBreadcrumb(pathname, t);
   const returnHref = useReturnHref();
 
-  if (crumbs.length < 2) return null;
+  if (crumbs.length < 2) {
+    return null;
+  }
   const parent = crumbs[crumbs.length - 2]!;
 
   return (
@@ -50,7 +52,10 @@ export function AppBreadcrumb() {
                     {crumb.label}
                   </span>
                 ) : (
-                  <Link href={returnHref(crumb.href)} className="truncate text-ink-muted transition-colors hover:text-primary-700 focus-link">
+                  <Link
+                    href={returnHref(crumb.href)}
+                    className="truncate text-ink-muted transition-colors hover:text-primary-700 focus-link"
+                  >
                     {crumb.label}
                   </Link>
                 )}

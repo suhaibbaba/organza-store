@@ -1,8 +1,4 @@
-import type {
-  ChangeRequest,
-  ChangeRequestCancelled,
-  ChangeRequestCount,
-} from "@store/shared/types/changeRequest";
+import type { ChangeRequest, ChangeRequestCancelled, ChangeRequestCount } from "@store/shared/types/changeRequest";
 import type { Pagination } from "@store/shared/types/common";
 import { apiFetch } from "@/lib/api/client";
 import type { ChangeRequestListFilters } from "@/types/changeRequest";
@@ -22,7 +18,7 @@ function buildListQuery(filters: ChangeRequestListFilters, pageSize: number): st
 
 export async function fetchChangeRequests(
   filters: ChangeRequestListFilters,
-  pageSize: number
+  pageSize: number,
 ): Promise<{ items: ChangeRequest[]; meta: Pagination | null }> {
   const { data, meta } = await apiFetch<ChangeRequest[]>(`/api/change-requests?${buildListQuery(filters, pageSize)}`);
   return { items: data, meta };

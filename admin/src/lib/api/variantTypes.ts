@@ -12,10 +12,7 @@ export async function createVariantType(input: CreateVariantTypeInput): Promise<
   return data;
 }
 
-export async function addOptionValue(
-  variantTypeId: string,
-  input: AddOptionValueInput
-): Promise<VariantOptionValue> {
+export async function addOptionValue(variantTypeId: string, input: AddOptionValueInput): Promise<VariantOptionValue> {
   const { data } = await apiFetch<VariantOptionValue>(`/api/variant-types/${variantTypeId}/values`, {
     method: "POST",
     body: input,

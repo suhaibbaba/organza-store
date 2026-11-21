@@ -28,27 +28,39 @@ export function createDeviceFlag(storageKey: string): DeviceFlag {
 
   function handleStorageChange(event: StorageEvent) {
     // key === null is a whole-storage clear, which counts.
-    if (event.key !== null && event.key !== storageKey) return;
+    if (event.key !== null && event.key !== storageKey) {
+      return;
+    }
     cache = readStorage();
     listeners.forEach((listener) => listener());
   }
 
   return {
     subscribe(onChange: () => void) {
-      if (typeof window === "undefined") return () => {};
+      if (typeof window === "undefined") {
+        return () => {};
+      }
       listeners.add(onChange);
       // The same till can have the POS open in two tabs; muting in one should
       // not leave the other beeping.
-      if (listeners.size === 1) window.addEventListener("storage", handleStorageChange);
+      if (listeners.size === 1) {
+        window.addEventListener("storage", handleStorageChange);
+      }
       return () => {
         listeners.delete(onChange);
-        if (listeners.size === 0) window.removeEventListener("storage", handleStorageChange);
+        if (listeners.size === 0) {
+          window.removeEventListener("storage", handleStorageChange);
+        }
       };
     },
 
     read() {
-      if (typeof window === "undefined") return false;
-      if (cache === null) cache = readStorage();
+      if (typeof window === "undefined") {
+        return false;
+      }
+      if (cache === null) {
+        cache = readStorage();
+      }
       return cache;
     },
 

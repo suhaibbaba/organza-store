@@ -25,7 +25,9 @@ import type { ProductDto, ProductLookupDto } from "@tests/types";
 // EAN-13's own check digit: the 13th is derived from the first 12, weighted
 // 1,3,1,3,... A barcode that fails this would not scan in the shop.
 function isValidEan13(code: string): boolean {
-  if (!/^\d{13}$/.test(code)) return false;
+  if (!/^\d{13}$/.test(code)) {
+    return false;
+  }
   const digits = code.split("").map(Number);
   const sum = digits.slice(0, 12).reduce((total, digit, index) => total + digit * (index % 2 === 0 ? 1 : 3), 0);
   return (10 - (sum % 10)) % 10 === digits[12];
@@ -46,9 +48,7 @@ describe("Verify · edge cases", () => {
       // for this to come out at one, and a read-then-write would let several
       // through.
       const attempts = await Promise.all(
-        Array.from({ length: CONCURRENT_BUYERS }, () =>
-          sellRequest(admin, [{ productId: product.id, quantity: 1 }])
-        )
+        Array.from({ length: CONCURRENT_BUYERS }, () => sellRequest(admin, [{ productId: product.id, quantity: 1 }])),
       );
 
       const sold = attempts.filter((res) => res.status === 201);
@@ -56,7 +56,9 @@ describe("Verify · edge cases", () => {
 
       expectCount(sold.length, 1, "sales that succeeded for the last piece");
       expectCount(refused.length, CONCURRENT_BUYERS - 1, "sales refused for want of stock");
-      for (const res of refused) expect(res.error?.code).toBe("error.order.insufficient_stock");
+      for (const res of refused) {
+        expect(res.error?.code).toBe("error.order.insufficient_stock");
+      }
       expectCount(await readStock(admin, product.id), 0, "stock afterwards (zero, never negative)");
     });
 
@@ -64,9 +66,7 @@ describe("Verify · edge cases", () => {
       const product = await createPricedProduct(admin, { basePrice: UNIT_PRICE, stock: 3 });
 
       const attempts = await Promise.all(
-        Array.from({ length: CONCURRENT_BUYERS }, () =>
-          sellRequest(admin, [{ productId: product.id, quantity: 1 }])
-        )
+        Array.from({ length: CONCURRENT_BUYERS }, () => sellRequest(admin, [{ productId: product.id, quantity: 1 }])),
       );
 
       expectCount(attempts.filter((res) => res.status === 201).length, 3, "sales that succeeded");
@@ -129,7 +129,7 @@ describe("Verify · edge cases", () => {
       for (const fixture of created) {
         const scan = await apiRequest<ProductLookupDto>(
           `/api/products/lookup?code=${encodeURIComponent(fixture.product.barcode!)}`,
-          { token: admin }
+          { token: admin },
         );
         expect(scan.status, "a scan must resolve").toBe(200);
         expect(scan.data!.product.id, "and resolve to the right product").toBe(fixture.id);
@@ -152,7 +152,7 @@ describe("Verify · edge cases", () => {
       expect(created.status).toBe(201);
       expect(
         created.data!.barcode,
-        "a code with no source is not a decision — generation stays the default (CLAUDE.md rule 13)"
+        "a code with no source is not a decision — generation stays the default (CLAUDE.md rule 13)",
       ).not.toBe("1234567890128");
       expect(isValidEan13(created.data!.barcode!), "and the generated one is a valid EAN-13").toBe(true);
       expect(created.data!.barcodeSource, "which is what the stored source says").toBe("GENERATED");
@@ -184,7 +184,7 @@ describe("Verify · edge cases", () => {
 
       const scan = await apiRequest<ProductLookupDto>(
         `/api/products/lookup?code=${encodeURIComponent(shawl.product.barcode!)}`,
-        { token: admin }
+        { token: admin },
       );
       expect(scan.status).toBe(200);
       expect(scan.data!.kind, "the parent label asks which number").toBe("VARIANT_SELECTION");
@@ -206,14 +206,12 @@ describe("Verify · edge cases", () => {
 
       const scan = await apiRequest<ProductLookupDto>(
         `/api/products/lookup?code=${encodeURIComponent(chosen.barcode!)}`,
-        { token: admin }
+        { token: admin },
       );
       expect(scan.data!.kind, "one number's own label IS a sellable item").toBe("ITEM");
       expect(scan.data!.variant?.id).toBe(chosen.id);
 
-      const sold = await sellRequest(admin, [
-        { productId: shawl.product.id, variantId: chosen.id, quantity: 2 },
-      ]);
+      const sold = await sellRequest(admin, [{ productId: shawl.product.id, variantId: chosen.id, quantity: 2 }]);
       expect(sold.status).toBe(201);
 
       expectCount(await readStock(admin, shawl.product.id, chosen.id), 1, "the chosen number's stock");

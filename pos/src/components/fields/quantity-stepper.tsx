@@ -49,12 +49,16 @@ export function QuantityStepper({
       return;
     }
     const clamped = clampQuantity(next, floor, ceiling);
-    if (clamped !== value) onChange(clamped);
+    if (clamped !== value) {
+      onChange(clamped);
+    }
   }
 
   function commit(raw: string) {
     setDraft(null);
-    if (!isNonNegativeIntegerString(raw)) return;
+    if (!isNonNegativeIntegerString(raw)) {
+      return;
+    }
     step(Number(raw));
   }
 
@@ -69,7 +73,7 @@ export function QuantityStepper({
       className={cn(
         "flex items-center",
         compact ? "rounded-control border border-line bg-surface" : "gap-1",
-        className
+        className,
       )}
       data-test-selector={testSelectorFor("pos-quantity-stepper", name)}
     >

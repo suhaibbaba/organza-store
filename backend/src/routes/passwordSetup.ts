@@ -84,7 +84,7 @@ router.post(
 
     // Always the same body, always 200.
     sendOk(res, { requested: true });
-  })
+  }),
 );
 
 // ---------------------------------------------------------------------------
@@ -101,17 +101,21 @@ router.post(
   asyncHandler(async (req, res) => {
     const { token } = req.body as { token: string };
     const stored = await passwordTokens.inspect(token);
-    if (!stored) throw new AppError(400, ERROR_CODES.PASSWORD_TOKEN_INVALID);
+    if (!stored) {
+      throw new AppError(400, ERROR_CODES.PASSWORD_TOKEN_INVALID);
+    }
 
     const user = await prisma.user.findUnique({ where: { id: stored.userId } });
-    if (!user || !user.isActive) throw new AppError(400, ERROR_CODES.PASSWORD_TOKEN_INVALID);
+    if (!user || !user.isActive) {
+      throw new AppError(400, ERROR_CODES.PASSWORD_TOKEN_INVALID);
+    }
 
     // The email is echoed back deliberately: whoever holds this token already
     // has a working key to the account, so naming the mailbox it belongs to
     // reveals nothing they could not already take — and it is what lets the
     // screen say WHOSE password is being set.
     sendOk(res, { email: user.email, name: user.name, purpose: stored.purpose, expiresAt: stored.expiresAt });
-  })
+  }),
 );
 
 // ---------------------------------------------------------------------------
@@ -127,10 +131,14 @@ router.post(
     // redeem() marks the token used in the same conditional write that checks
     // it, so a link double-clicked (or replayed) can only ever succeed once.
     const redeemed = await passwordTokens.redeem(token);
-    if (!redeemed) throw new AppError(400, ERROR_CODES.PASSWORD_TOKEN_INVALID);
+    if (!redeemed) {
+      throw new AppError(400, ERROR_CODES.PASSWORD_TOKEN_INVALID);
+    }
 
     const user = await prisma.user.findUnique({ where: { id: redeemed.userId } });
-    if (!user || !user.isActive) throw new AppError(400, ERROR_CODES.PASSWORD_TOKEN_INVALID);
+    if (!user || !user.isActive) {
+      throw new AppError(400, ERROR_CODES.PASSWORD_TOKEN_INVALID);
+    }
 
     await setUserPassword(user.id, password);
     // Redeeming a link proves the person reads that mailbox.
@@ -153,7 +161,7 @@ router.post(
     });
 
     sendOk(res, { email: user.email });
-  })
+  }),
 );
 
 export default router;

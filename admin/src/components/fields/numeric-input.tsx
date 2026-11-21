@@ -29,28 +29,32 @@ export function sanitizeNumeric(value: string, allowDecimal: boolean): string {
 // Uses the prototype setter so React's value tracker sees the change.
 function writeValue(input: HTMLInputElement, value: string) {
   const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")?.set;
-  if (setter) setter.call(input, value);
-  else input.value = value;
+  if (setter) {
+    setter.call(input, value);
+  } else {
+    input.value = value;
+  }
   input.dispatchEvent(new Event("input", { bubbles: true }));
 }
 
 // Never type="number" (mobile keypad, "e", iOS stranding): text + inputMode, cleaned on typing, paste/drop and change.
-function NumericInput({
-  allowDecimal = false,
-  onChange,
-  onBeforeInput,
-  onPaste,
-  onDrop,
-  ...props
-}: NumericInputProps) {
+function NumericInput({ allowDecimal = false, onChange, onBeforeInput, onPaste, onDrop, ...props }: NumericInputProps) {
   function handleBeforeInput(e: React.InputEvent<HTMLInputElement>) {
     onBeforeInput?.(e);
-    if (e.defaultPrevented) return;
+    if (e.defaultPrevented) {
+      return;
+    }
     const native = e.nativeEvent;
     // Only single insertions here; paste/drop and everything else are handled below.
-    if (native.inputType !== "insertText" && native.inputType !== "insertCompositionText") return;
-    if (native.data == null) return;
-    if (sanitizeNumeric(native.data, allowDecimal) === native.data) return;
+    if (native.inputType !== "insertText" && native.inputType !== "insertCompositionText") {
+      return;
+    }
+    if (native.data == null) {
+      return;
+    }
+    if (sanitizeNumeric(native.data, allowDecimal) === native.data) {
+      return;
+    }
     // A disallowed char (e.g. "." in integer mode, or a second ".") — reject.
     e.preventDefault();
   }
@@ -68,14 +72,18 @@ function NumericInput({
 
   function handlePaste(e: React.ClipboardEvent<HTMLInputElement>) {
     onPaste?.(e);
-    if (e.defaultPrevented) return;
+    if (e.defaultPrevented) {
+      return;
+    }
     e.preventDefault();
     insertSanitized(e.currentTarget, e.clipboardData.getData("text"));
   }
 
   function handleDrop(e: React.DragEvent<HTMLInputElement>) {
     onDrop?.(e);
-    if (e.defaultPrevented) return;
+    if (e.defaultPrevented) {
+      return;
+    }
     e.preventDefault();
     // Inserted at the caret, not under the pointer: the drop caret isn't readable the same way in every engine.
     insertSanitized(e.currentTarget, e.dataTransfer.getData("text"));
@@ -83,7 +91,9 @@ function NumericInput({
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     const sanitized = sanitizeNumeric(e.target.value, allowDecimal);
-    if (sanitized !== e.target.value) e.target.value = sanitized;
+    if (sanitized !== e.target.value) {
+      e.target.value = sanitized;
+    }
     onChange?.(e);
   }
 

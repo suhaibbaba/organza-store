@@ -28,7 +28,6 @@ export default function EditProductPage() {
 
   return (
     <PageContainer>
-
       <PageHeader name="product-edit" title={canEditDetails ? t("editTitle") : t("images.manageTitle")} />
 
       <div className="flex flex-col gap-4">

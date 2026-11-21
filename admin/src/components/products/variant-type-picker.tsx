@@ -26,13 +26,17 @@ export function VariantTypePicker({ variantTypes, value, onChange }: VariantType
     const current = value[typeId] ?? [];
     const nextValues = checked ? [...current, valueId] : current.filter((id) => id !== valueId);
     const next = { ...value, [typeId]: nextValues };
-    if (nextValues.length === 0) delete next[typeId];
+    if (nextValues.length === 0) {
+      delete next[typeId];
+    }
     onChange(next);
   }
 
   function setAll(typeId: string, valueIds: string[]) {
     const next = { ...value, [typeId]: valueIds };
-    if (valueIds.length === 0) delete next[typeId];
+    if (valueIds.length === 0) {
+      delete next[typeId];
+    }
     onChange(next);
   }
 
@@ -108,14 +112,15 @@ function AddValueInline({ typeId, onAdded }: { typeId: string; onAdded: (valueId
 
   async function handleAdd() {
     const trimmed = text.trim();
-    if (!trimmed) return;
+    if (!trimmed) {
+      return;
+    }
     try {
       const created = await mutation.mutateAsync({ variantTypeId: typeId, value: { ar: trimmed } });
       onAdded(created.id);
       setText("");
       setOpen(false);
-    } catch {
-    }
+    } catch {}
   }
 
   if (!open) {
@@ -141,11 +146,7 @@ function AddValueInline({ typeId, onAdded }: { typeId: string; onAdded: (valueId
           className="w-full min-w-0 sm:flex-1"
         />
         <div className="flex items-center gap-2">
-          <Button
-            onClick={() => void handleAdd()}
-            isLoading={mutation.isPending}
-            className="flex-1 sm:flex-none"
-          >
+          <Button onClick={() => void handleAdd()} isLoading={mutation.isPending} className="flex-1 sm:flex-none">
             {t("add")}
           </Button>
           <Button
@@ -178,14 +179,15 @@ function AddTypeInline({ onCreated }: { onCreated: (typeId: string) => void }) {
 
   async function handleAdd() {
     const trimmed = text.trim();
-    if (!trimmed) return;
+    if (!trimmed) {
+      return;
+    }
     try {
       const created = await mutation.mutateAsync({ name: { ar: trimmed } });
       onCreated(created.id);
       setText("");
       setOpen(false);
-    } catch {
-    }
+    } catch {}
   }
 
   if (!open) {
@@ -211,11 +213,7 @@ function AddTypeInline({ onCreated }: { onCreated: (typeId: string) => void }) {
           className="w-full min-w-0 sm:flex-1"
         />
         <div className="flex items-center gap-2">
-          <Button
-            onClick={() => void handleAdd()}
-            isLoading={mutation.isPending}
-            className="flex-1 sm:flex-none"
-          >
+          <Button onClick={() => void handleAdd()} isLoading={mutation.isPending} className="flex-1 sm:flex-none">
             {t("add")}
           </Button>
           <Button

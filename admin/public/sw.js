@@ -80,7 +80,7 @@ self.addEventListener("install", (event) => {
           if (isStorable(response)) {
             await cache.put(url, response);
           }
-        })
+        }),
       );
       // Deliberately NOT skipWaiting() here: taking over silently swaps the
       // build underneath a page that is already running the old one. This
@@ -88,7 +88,7 @@ self.addEventListener("install", (event) => {
       // (components/pwa/update-prompt.tsx), and the message below is how the
       // user's "update now" tap gets here. Staff leave the app open for days,
       // so without that prompt they simply stay on yesterday's build.
-    })()
+    })(),
   );
 });
 
@@ -108,31 +108,39 @@ self.addEventListener("activate", (event) => {
     (async () => {
       const names = await caches.keys();
       await Promise.all(
-        names
-          .filter((name) => name !== SHELL_CACHE && name !== ASSET_CACHE)
-          .map((name) => caches.delete(name))
+        names.filter((name) => name !== SHELL_CACHE && name !== ASSET_CACHE).map((name) => caches.delete(name)),
       );
       await trimCache(ASSET_CACHE, MAX_ASSET_ENTRIES);
       await self.clients.claim();
-    })()
+    })(),
   );
 });
 
 self.addEventListener("fetch", (event) => {
   const request = event.request;
-  if (request.method !== "GET") return;
+  if (request.method !== "GET") {
+    return;
+  }
 
   const url = new URL(request.url);
 
   // The backend API is a different origin (NEXT_PUBLIC_API_URL): letting it
   // fall through to the network, uncached, is the whole point.
-  if (url.origin !== self.location.origin) return;
-  if (url.pathname.startsWith("/api/")) return;
+  if (url.origin !== self.location.origin) {
+    return;
+  }
+  if (url.pathname.startsWith("/api/")) {
+    return;
+  }
   // React Server Component payloads — the data path for client-side
   // navigation. Always fresh.
-  if (url.searchParams.has("_rsc")) return;
+  if (url.searchParams.has("_rsc")) {
+    return;
+  }
   // next/image proxies product photos from the API. Same rule as the API.
-  if (url.pathname.startsWith("/_next/image")) return;
+  if (url.pathname.startsWith("/_next/image")) {
+    return;
+  }
 
   if (request.mode === "navigate") {
     event.respondWith(handleNavigation(event));
@@ -164,17 +172,19 @@ async function handleNavigation(event) {
     // arrives here as an opaque redirect that only the browser can follow.
     if (isStorable(response)) {
       const copy = response.clone();
-      event.waitUntil(
-        caches.open(SHELL_CACHE).then((cache) => cache.put(request, copy))
-      );
+      event.waitUntil(caches.open(SHELL_CACHE).then((cache) => cache.put(request, copy)));
     }
     return response;
   } catch {
     const cached = await caches.match(request, { cacheName: SHELL_CACHE });
-    if (cached) return cached;
+    if (cached) {
+      return cached;
+    }
 
     const offline = await matchOfflinePage(request);
-    if (offline) return offline;
+    if (offline) {
+      return offline;
+    }
 
     throw new Error("Offline and nothing cached for this navigation");
   }
@@ -184,7 +194,9 @@ async function handleNavigation(event) {
 async function cacheFirst(event) {
   const request = event.request;
   const cached = await caches.match(request, { cacheName: ASSET_CACHE });
-  if (cached) return cached;
+  if (cached) {
+    return cached;
+  }
 
   const response = await fetch(request);
   if (isStorable(response)) {
@@ -215,7 +227,9 @@ async function staleWhileRevalidate(event) {
   }
 
   const response = await network;
-  if (response) return response;
+  if (response) {
+    return response;
+  }
   throw new Error("Offline and no cached copy of this asset");
 }
 
@@ -232,7 +246,9 @@ async function matchOfflinePage(request) {
   // Falls back to the first entry, which the registrar puts in the app's
   // default language.
   const url = forLocale || OFFLINE_URLS[0];
-  if (!url) return undefined;
+  if (!url) {
+    return undefined;
+  }
   return caches.match(url, { cacheName: SHELL_CACHE });
 }
 
@@ -246,7 +262,9 @@ async function matchOfflinePage(request) {
  * what the old behaviour was.
  */
 async function storedLocale() {
-  if (!LOCALE_COOKIE_NAME || !self.cookieStore) return undefined;
+  if (!LOCALE_COOKIE_NAME || !self.cookieStore) {
+    return undefined;
+  }
   try {
     const cookie = await self.cookieStore.get(LOCALE_COOKIE_NAME);
     return cookie ? cookie.value : undefined;
@@ -302,7 +320,9 @@ self.addEventListener("push", (event) => {
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
   const url = event.notification.data && event.notification.data.url;
-  if (url) event.waitUntil(openApp(url));
+  if (url) {
+    event.waitUntil(openApp(url));
+  }
 });
 
 async function handlePush(data) {
@@ -316,7 +336,9 @@ async function handlePush(data) {
   // key), so anything unreadable is a version mismatch, not an attack —
   // there is nothing truthful to draw, so nothing is drawn. A type this build
   // has never heard of is the same case.
-  if (!payload) return;
+  if (!payload) {
+    return;
+  }
 
   const locale = payload.locale || payload.defaultLanguage;
   const messages = await loadPushMessages(locale);
@@ -325,7 +347,9 @@ async function handlePush(data) {
     await showChangeRequest(payload, messages, locale);
     return;
   }
-  if (payload.type !== SALE_PAYLOAD_TYPE) return;
+  if (payload.type !== SALE_PAYLOAD_TYPE) {
+    return;
+  }
 
   const values = {
     items: describeItems(payload, messages, locale),
@@ -440,7 +464,9 @@ function orderUrl(locale, orderId) {
  * kept in the shell cache as the safety net.
  */
 async function loadPushMessages(locale) {
-  if (!PUSH_MESSAGES_BASE_PATH) return {};
+  if (!PUSH_MESSAGES_BASE_PATH) {
+    return {};
+  }
   const url = `${PUSH_MESSAGES_BASE_PATH}/${locale}`;
 
   try {
@@ -456,7 +482,9 @@ async function loadPushMessages(locale) {
   }
 
   const cached = await caches.match(url, { cacheName: SHELL_CACHE });
-  if (!cached) return {};
+  if (!cached) {
+    return {};
+  }
   return cached.json().catch(() => ({}));
 }
 
@@ -470,24 +498,32 @@ async function loadPushMessages(locale) {
  */
 function describeItems(payload, messages, locale) {
   const separator = messages["push.sale.itemSeparator"] || " ";
-  const names = (payload.itemNames || []).map((name) => localize(name, locale, payload.defaultLanguage)).filter(Boolean);
+  const names = (payload.itemNames || [])
+    .map((name) => localize(name, locale, payload.defaultLanguage))
+    .filter(Boolean);
   const listed = names.join(separator);
 
-  if (!payload.extraItemCount) return listed;
+  if (!payload.extraItemCount) {
+    return listed;
+  }
   const more = fill(messages["push.sale.moreItems"], { count: payload.extraItemCount });
   return more ? `${listed}${separator}${more}` : listed;
 }
 
 /** Same fallback chain as the app's localize() (CLAUDE.md rule 9). */
 function localize(value, locale, defaultLanguage) {
-  if (!value || typeof value !== "object") return "";
+  if (!value || typeof value !== "object") {
+    return "";
+  }
   return value[locale] || value[defaultLanguage] || Object.values(value).find(Boolean) || "";
 }
 
 /** Currency comes from the shop's settings, never from a symbol written here. */
 function formatCurrency(amount, currency, locale) {
   const value = Number(amount);
-  if (!Number.isFinite(value) || !currency) return String(amount ?? "");
+  if (!Number.isFinite(value) || !currency) {
+    return String(amount ?? "");
+  }
   try {
     return new Intl.NumberFormat(locale, { style: "currency", currency }).format(value);
   } catch {
@@ -497,15 +533,21 @@ function formatCurrency(amount, currency, locale) {
 
 /** Fills {placeholders} in a message with the sale's own figures. */
 function fill(template, values) {
-  if (typeof template !== "string") return "";
+  if (typeof template !== "string") {
+    return "";
+  }
   return template.replace(/\{(\w+)\}/g, (match, key) => (key in values ? String(values[key]) : match));
 }
 
 /** cache.keys() is insertion-ordered, so the front of the list is the oldest. */
 async function trimCache(cacheName, maxEntries) {
-  if (!(await caches.has(cacheName))) return;
+  if (!(await caches.has(cacheName))) {
+    return;
+  }
   const cache = await caches.open(cacheName);
   const keys = await cache.keys();
-  if (keys.length <= maxEntries) return;
+  if (keys.length <= maxEntries) {
+    return;
+  }
   await Promise.all(keys.slice(0, keys.length - maxEntries).map((key) => cache.delete(key)));
 }

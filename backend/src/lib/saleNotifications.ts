@@ -51,9 +51,11 @@ export interface SaleActor {
  */
 export function shouldNotifyForSale(
   setting: Pick<Setting, "saleNotificationsEnabled" | "saleNotificationMode" | "saleNotificationMinAmount">,
-  total: string
+  total: string,
 ): boolean {
-  if (!setting.saleNotificationsEnabled) return false;
+  if (!setting.saleNotificationsEnabled) {
+    return false;
+  }
 
   switch (setting.saleNotificationMode) {
     case "EVERY_SALE":
@@ -85,7 +87,7 @@ function buildPayload(
   order: SaleNotificationOrder,
   setting: Pick<Setting, "currency" | "defaultLanguage">,
   staffName: string,
-  locale: string | null
+  locale: string | null,
 ): SaleNotificationPayload {
   const { itemNames, extraItemCount } = summarizeItems(order.items);
   return {
@@ -128,20 +130,30 @@ async function findAdminTargets(excludeUserId: string): Promise<PushTarget[]> {
  * future caller that wants to await it — the sale path does not.
  */
 export async function sendSaleNotification(order: SaleNotificationOrder, actor: SaleActor): Promise<void> {
-  if (!isNotifiableActor(actor)) return;
+  if (!isNotifiableActor(actor)) {
+    return;
+  }
   // Nothing to send with, so nothing to look up either.
-  if (!isPushConfigured()) return;
+  if (!isPushConfigured()) {
+    return;
+  }
 
   const setting = await prisma.setting.findUnique({ where: { id: SETTINGS_SINGLETON_ID } });
   // No settings row yet means a shop that hasn't been set up; the sale is
   // still fine, there is just nobody configured to tell.
-  if (!setting) return;
+  if (!setting) {
+    return;
+  }
 
   const total = formatMoney((order.total as AnyRecord)?.toString()) ?? "0";
-  if (!shouldNotifyForSale(setting, total)) return;
+  if (!shouldNotifyForSale(setting, total)) {
+    return;
+  }
 
   const targets = await findAdminTargets(actor.id);
-  if (targets.length === 0) return;
+  if (targets.length === 0) {
+    return;
+  }
 
   const staffName = order.createdBy?.name ?? "";
   await sendPushToTargets(targets, (target) => buildPayload(order, setting, staffName, target.locale));

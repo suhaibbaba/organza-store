@@ -32,7 +32,9 @@ function randomCandidate(): string {
 export async function generateUniqueBarcode(client: DbClient = prisma): Promise<string> {
   for (let attempt = 0; attempt < BARCODE_MAX_ATTEMPTS; attempt++) {
     const candidate = randomCandidate();
-    if (await isCodeUnused(candidate, {}, client)) return candidate;
+    if (await isCodeUnused(candidate, {}, client)) {
+      return candidate;
+    }
   }
   throw new Error("Failed to generate a unique EAN-13 barcode after multiple attempts");
 }
@@ -91,7 +93,7 @@ async function isCodeUnused(code: string, owner: BarcodeOwner, client: DbClient)
 export async function assertBarcodeAvailable(
   code: string,
   owner: BarcodeOwner = {},
-  client: DbClient = prisma
+  client: DbClient = prisma,
 ): Promise<void> {
   const [product, variant] = await findBarcodeHolders(code, owner, client);
 
@@ -117,10 +119,7 @@ export async function assertBarcodeAvailable(
 
 // A brand-new piece's barcode. Nothing given ⇒ ours, minted here, which is
 // what every product got before supplier codes existed.
-export async function resolveNewBarcode(
-  input: BarcodeInput,
-  client: DbClient = prisma
-): Promise<BarcodePatch> {
+export async function resolveNewBarcode(input: BarcodeInput, client: DbClient = prisma): Promise<BarcodePatch> {
   if (input.barcodeSource === BARCODE_SOURCE.SUPPLIER && input.barcode) {
     await assertBarcodeAvailable(input.barcode, {}, client);
     // No generated code is minted alongside it: there is no label of ours in
@@ -148,15 +147,21 @@ export async function resolveBarcodeChange(
   existing: BarcodeState,
   input: BarcodeInput,
   owner: BarcodeOwner,
-  client: DbClient = prisma
+  client: DbClient = prisma,
 ): Promise<BarcodeUpdate | null> {
-  if (!input.barcodeSource) return null;
+  if (!input.barcodeSource) {
+    return null;
+  }
 
   if (input.barcodeSource === BARCODE_SOURCE.SUPPLIER) {
     const code = input.barcode;
     // Guaranteed by the schema's refinement; this keeps the invariant local.
-    if (!code) throw new AppError(400, ERROR_CODES.BARCODE_REQUIRED);
-    if (existing.barcodeSource === BARCODE_SOURCE.SUPPLIER && existing.barcode === code) return null;
+    if (!code) {
+      throw new AppError(400, ERROR_CODES.BARCODE_REQUIRED);
+    }
+    if (existing.barcodeSource === BARCODE_SOURCE.SUPPLIER && existing.barcode === code) {
+      return null;
+    }
 
     await assertBarcodeAvailable(code, owner, client);
     return {
@@ -172,7 +177,9 @@ export async function resolveBarcodeChange(
     };
   }
 
-  if (existing.barcodeSource === BARCODE_SOURCE.GENERATED) return null;
+  if (existing.barcodeSource === BARCODE_SOURCE.GENERATED) {
+    return null;
+  }
 
   const parked = existing.generatedBarcode;
   // Parked codes are reserved (see findBarcodeHolders), so this is normally a

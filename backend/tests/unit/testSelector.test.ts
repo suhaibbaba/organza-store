@@ -37,9 +37,7 @@ describe("the house spelling", () => {
 describe("naming one of many", () => {
   it("gives the family its own name and each member the family's name plus an id", () => {
     expect(testSelectorFor("product-card")).toBe("product-card");
-    expect(testSelectorFor("product-card", "cmt0dazje00197duhnjd8cmhk")).toBe(
-      "product-card-cmt0dazje00197duhnjd8cmhk"
-    );
+    expect(testSelectorFor("product-card", "cmt0dazje00197duhnjd8cmhk")).toBe("product-card-cmt0dazje00197duhnjd8cmhk");
     // A numbered shawl's marker is named by the number drawn on it, which is
     // what anybody reporting one will say.
     expect(testSelectorFor("shawl-point", 4)).toBe("shawl-point-4");

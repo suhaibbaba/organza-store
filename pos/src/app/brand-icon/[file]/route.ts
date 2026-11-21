@@ -14,7 +14,9 @@ function iconSize(file: string): FaviconSize | null {
 
 export async function GET(request: NextRequest, ctx: RouteContext<"/brand-icon/[file]">) {
   const size = iconSize((await ctx.params).file);
-  if (size === null) return new NextResponse(null, { status: 404 });
+  if (size === null) {
+    return new NextResponse(null, { status: 404 });
+  }
 
   const uploaded = (await fetchBranding())?.faviconUrls?.[size];
   const target = uploaded ? new URL(uploaded, API_BASE_URL) : new URL(pwaIconPath(size), request.url);

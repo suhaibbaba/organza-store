@@ -34,10 +34,16 @@ interface DiscountFields {
 export function isDiscountConsistent(value: DiscountFields): boolean {
   const hasType = value.discountType !== undefined && value.discountType !== null;
   const hasValue = value.discountValue !== undefined && value.discountValue !== null;
-  if (hasType !== hasValue) return false;
-  if (!hasType) return true;
+  if (hasType !== hasValue) {
+    return false;
+  }
+  if (!hasType) {
+    return true;
+  }
   const amount = Number(value.discountValue);
-  if (value.discountType === "PERCENT") return amount >= PERCENT_MIN && amount <= PERCENT_MAX;
+  if (value.discountType === "PERCENT") {
+    return amount >= PERCENT_MIN && amount <= PERCENT_MAX;
+  }
   return amount >= 0;
 }
 
@@ -85,10 +91,7 @@ export const quickSellItemSchema = z.object({
 export type QuickSellItemInput = z.infer<typeof quickSellItemSchema>;
 
 // Exactly one of a catalogue product or a quick sale, checked here so the POS can flag the line before checkout.
-export function isOrderItemSourceValid(value: {
-  productId?: string;
-  quickSell?: unknown;
-}): boolean {
+export function isOrderItemSourceValid(value: { productId?: string; quickSell?: unknown }): boolean {
   return Boolean(value.productId) !== Boolean(value.quickSell);
 }
 
@@ -128,12 +131,11 @@ export const createOrderSchema = z
   // An online order must be deliverable back to someone; a STORE sale is handed over at the counter.
   .refine(
     (v) =>
-      !(ONLINE_ORDER_CHANNELS as readonly string[]).includes(v.channel) ||
-      Boolean(v.customerName && v.customerPhone),
-    { message: ERROR_CODES.ORDER_CUSTOMER_REQUIRED }
+      !(ONLINE_ORDER_CHANNELS as readonly string[]).includes(v.channel) || Boolean(v.customerName && v.customerPhone),
+    { message: ERROR_CODES.ORDER_CUSTOMER_REQUIRED },
   );
 
-  export type CreateOrderInput = z.infer<typeof createOrderSchema>;
+export type CreateOrderInput = z.infer<typeof createOrderSchema>;
 
 // No adding/removing lines (cancel and re-take so committed stock stays traceable); `{ id }` alone clears a line's discount.
 export const updateOrderItemSchema = z

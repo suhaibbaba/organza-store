@@ -66,9 +66,7 @@ function AttentionRow({ label, value, highlight, href }: AttentionRowProps) {
   const content = (
     <>
       <p className="min-w-0 flex-1 text-label text-ink">{label}</p>
-      <p className={cn("shrink-0 font-semibold tabular-nums", highlight ? "text-ink" : "text-ink-subtle")}>
-        {value}
-      </p>
+      <p className={cn("shrink-0 font-semibold tabular-nums", highlight ? "text-ink" : "text-ink-subtle")}>{value}</p>
       {href && <ChevronIcon className="size-4 shrink-0 text-ink-subtle" aria-hidden="true" />}
     </>
   );

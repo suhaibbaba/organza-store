@@ -10,7 +10,6 @@ export default function NewProductPage() {
 
   return (
     <PageContainer>
-
       <PageHeader name="product-new" title={t("createTitle")} />
 
       <ProductForm mode="create" />

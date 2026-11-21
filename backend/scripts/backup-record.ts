@@ -32,15 +32,21 @@ function readFlag(name: string): string | undefined {
   const argv = process.argv.slice(2);
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i];
-    if (arg === name) return argv[i + 1];
-    if (arg.startsWith(`${name}=`)) return arg.slice(name.length + 1);
+    if (arg === name) {
+      return argv[i + 1];
+    }
+    if (arg.startsWith(`${name}=`)) {
+      return arg.slice(name.length + 1);
+    }
   }
   return undefined;
 }
 
 function readNumberFlag(name: string): number | null {
   const raw = readFlag(name);
-  if (raw === undefined || raw.trim() === "") return null;
+  if (raw === undefined || raw.trim() === "") {
+    return null;
+  }
   const value = Number(raw);
   return Number.isFinite(value) ? value : null;
 }
@@ -49,9 +55,7 @@ function readStatus(): BackupRunStatus {
   const raw = (readFlag(BACKUP_RECORD_FLAGS.status) ?? "").trim().toUpperCase();
   const allowed = Object.values(BACKUP_RUN_STATUS) as string[];
   if (!allowed.includes(raw)) {
-    throw new Error(
-      `${BACKUP_RECORD_FLAGS.status} must be one of ${allowed.join(", ")} — got ${raw || "(nothing)"}`
-    );
+    throw new Error(`${BACKUP_RECORD_FLAGS.status} must be one of ${allowed.join(", ")} — got ${raw || "(nothing)"}`);
   }
   return raw as BackupRunStatus;
 }
@@ -70,7 +74,9 @@ function readStage(): BackupStage | null {
 /** Defaults to now, so a caller that never got as far as a start time still records. */
 function readStartedAt(): Date {
   const raw = readFlag(BACKUP_RECORD_FLAGS.startedAt);
-  if (!raw) return new Date();
+  if (!raw) {
+    return new Date();
+  }
   const parsed = new Date(raw);
   return Number.isNaN(parsed.getTime()) ? new Date() : parsed;
 }
@@ -80,8 +86,7 @@ async function main(): Promise<void> {
   const startedAt = readStartedAt();
   const stage = readStage();
   const error = readFlag(BACKUP_RECORD_FLAGS.error)?.trim() || null;
-  const destination =
-    readFlag(BACKUP_RECORD_FLAGS.destination)?.trim() || process.env[BACKUP_ENV.destination] || null;
+  const destination = readFlag(BACKUP_RECORD_FLAGS.destination)?.trim() || process.env[BACKUP_ENV.destination] || null;
 
   const databaseBytes = readNumberFlag(BACKUP_RECORD_FLAGS.databaseBytes);
   const imageCount = readNumberFlag(BACKUP_RECORD_FLAGS.imageCount);

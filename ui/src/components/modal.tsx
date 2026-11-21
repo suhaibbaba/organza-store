@@ -96,15 +96,10 @@ export function Modal({
               {t(description)}
             </Dialog.Description>
           ) : (
-            <Dialog.Description className="sr-only">
-              {t(title, titleValues ?? {})}
-            </Dialog.Description>
+            <Dialog.Description className="sr-only">{t(title, titleValues ?? {})}</Dialog.Description>
           )}
 
-          <div
-            {...part("body")}
-            className="scroll-lane -mx-1.5 mt-4 flex-1 overflow-y-auto px-1.5 py-1.5"
-          >
+          <div {...part("body")} className="scroll-lane -mx-1.5 mt-4 flex-1 overflow-y-auto px-1.5 py-1.5">
             <DialogLayerProvider container={layer}>{children}</DialogLayerProvider>
           </div>
 

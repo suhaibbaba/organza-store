@@ -43,7 +43,9 @@ export const productBasicFormSchema = z
   // field the user is looking at, rather than as a whole-form failure after a
   // round trip.
   .superRefine((values, ctx) => {
-    if (values.barcodeSource !== BARCODE_SOURCE.SUPPLIER) return;
+    if (values.barcodeSource !== BARCODE_SOURCE.SUPPLIER) {
+      return;
+    }
     const code = normalizeBarcode(values.barcode);
     if (code.length === 0) {
       ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["barcode"], message: ERROR_CODES.BARCODE_REQUIRED });
@@ -112,7 +114,7 @@ export function productToFormValues(product: Product): ProductBasicFormValues {
     barcodeSource: product.barcodeSource,
     // Only a supplier code belongs in the editable box; ours is shown
     // read-only from the product itself.
-    barcode: product.barcodeSource === BARCODE_SOURCE.SUPPLIER ? product.barcode ?? "" : "",
+    barcode: product.barcodeSource === BARCODE_SOURCE.SUPPLIER ? (product.barcode ?? "") : "",
   };
 }
 
@@ -131,7 +133,7 @@ export function toCreatePayload(
   // What each chosen value means on this product (spec.md "Notes on a
   // product's options") — omitted entirely when nothing was written, which is
   // the usual case.
-  optionValueNotes: OptionValueNoteInput[] = []
+  optionValueNotes: OptionValueNoteInput[] = [],
 ): CreateProductInput {
   const hasVariants = optionSelections.length > 0;
   return {
@@ -163,7 +165,7 @@ export function toUpdatePayload(
   abilities: ProductEditAbilities,
   // Only the notes this save changed. A value left out keeps whatever note it
   // had, and a cleared one is sent as an explicit null.
-  optionValueNotes: OptionValueNoteInput[] = []
+  optionValueNotes: OptionValueNoteInput[] = [],
 ): UpdateProductInput {
   return {
     name: sanitizeName(values.name),

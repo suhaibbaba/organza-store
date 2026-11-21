@@ -67,7 +67,12 @@ export function ForgotPasswordForm() {
         {errors.email && <AuthFieldError field="email">{translateError(errors.email.message ?? "")}</AuthFieldError>}
       </FormField>
 
-      <Button type="submit" data-test-selector="forgot-password-submit" isLoading={isSubmitting} className="mt-2 w-full">
+      <Button
+        type="submit"
+        data-test-selector="forgot-password-submit"
+        isLoading={isSubmitting}
+        className="mt-2 w-full"
+      >
         {isSubmitting ? t("submitting") : t("submit")}
       </Button>
 

@@ -23,7 +23,7 @@ export function findPendingChange(
   changes: ChangeRequest[] | undefined,
   entityType: string,
   entityId: string,
-  field: string
+  field: string,
 ): ChangeRequest | undefined {
   return changes?.find((c) => c.entityType === entityType && c.entityId === entityId && c.field === field);
 }
@@ -38,13 +38,15 @@ export function PendingChangeBadge({
 }: PendingChangeBadgeProps) {
   const t = useTranslations("changeRequests.pending");
   const change = findPendingChange(changes, entityType, entityId, field);
-  if (!change) return null;
+  if (!change) {
+    return null;
+  }
 
   return (
     <span
       className={cn(
         "inline-flex items-center gap-1.5 rounded-pill bg-warning-50 px-2.5 py-1 text-meta font-medium text-warning-700",
-        className
+        className,
       )}
     >
       <Clock className="size-3.5 shrink-0" aria-hidden="true" />

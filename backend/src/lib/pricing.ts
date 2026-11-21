@@ -42,7 +42,7 @@ function serializeImage(image: AnyRecord) {
 // so a product with thirty variants does not scan the list thirty times.
 function noteByOptionValueId(product: AnyRecord): Map<string, AnyRecord> {
   return new Map(
-    ((product.optionValueNotes ?? []) as AnyRecord[]).map((row) => [row.optionValueId as string, row.note])
+    ((product.optionValueNotes ?? []) as AnyRecord[]).map((row) => [row.optionValueId as string, row.note]),
   );
 }
 
@@ -51,7 +51,7 @@ export function serializeVariant(variant: AnyRecord, product: AnyRecord, role: R
   const resolvedCost = variant.cost ?? product.cost ?? null;
   // Fallback rule: a variant with no images of its own uses the parent
   // product's gallery, resolved at read time (never copied).
-  const images: AnyRecord[] = variant.images?.length ? variant.images : product.images ?? [];
+  const images: AnyRecord[] = variant.images?.length ? variant.images : (product.images ?? []);
 
   const notes = noteByOptionValueId(product);
 
@@ -227,10 +227,14 @@ function variantPreviewImages(product: AnyRecord, primary: AnyRecord | undefined
   const images: AnyRecord[] = [];
   for (const variant of (product.variants ?? []) as AnyRecord[]) {
     const own = variant.images?.[0];
-    if (!own || seen.has(own.id)) continue;
+    if (!own || seen.has(own.id)) {
+      continue;
+    }
     seen.add(own.id);
     images.push(serializeImage(own));
-    if (images.length === VARIANT_IMAGE_PREVIEW_LIMIT) break;
+    if (images.length === VARIANT_IMAGE_PREVIEW_LIMIT) {
+      break;
+    }
   }
   return images;
 }

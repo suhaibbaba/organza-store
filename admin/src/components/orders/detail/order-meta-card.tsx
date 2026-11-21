@@ -24,8 +24,12 @@ export function OrderMetaCard({ order }: { order: Order }) {
       <dl className="flex flex-col divide-y divide-line">
         {rows.map((row) => (
           <div key={row.key} className="py-3 first:pt-0 last:pb-0">
-            <Typography variant="body" tone="muted" as="dt">{row.label}</Typography>
-            <Typography variant="body" as="dd" className="mt-0.5 tabular-nums">{row.value}</Typography>
+            <Typography variant="body" tone="muted" as="dt">
+              {row.label}
+            </Typography>
+            <Typography variant="body" as="dd" className="mt-0.5 tabular-nums">
+              {row.value}
+            </Typography>
           </div>
         ))}
       </dl>

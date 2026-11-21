@@ -16,7 +16,7 @@ export function createConsoleTransport(): EmailTransport {
     name: "console",
     async send(message: EmailMessage): Promise<void> {
       console.warn(
-        `[email] NOT SENT (no provider configured) — to=${message.to} subject=${JSON.stringify(message.subject)}`
+        `[email] NOT SENT (no provider configured) — to=${message.to} subject=${JSON.stringify(message.subject)}`,
       );
     },
   };

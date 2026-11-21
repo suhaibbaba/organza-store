@@ -45,9 +45,13 @@ export function readUrlFilters<T extends object>(search: URLSearchParams, defaul
   const result = { ...defaults };
   for (const key of Object.keys(params) as (keyof T & string)[]) {
     const raw = search.get(key);
-    if (raw === null) continue;
+    if (raw === null) {
+      continue;
+    }
     const parsed = params[key].parse(raw);
-    if (parsed !== undefined) result[key] = parsed;
+    if (parsed !== undefined) {
+      result[key] = parsed;
+    }
   }
   return result;
 }
@@ -56,13 +60,16 @@ export function writeUrlFilters<T extends object>(
   search: URLSearchParams,
   filters: T,
   defaults: T,
-  params: UrlParams<T>
+  params: UrlParams<T>,
 ): URLSearchParams {
   const next = new URLSearchParams(search);
   for (const key of Object.keys(params) as (keyof T & string)[]) {
     const written = filters[key] === defaults[key] ? null : params[key].write(filters[key]);
-    if (written === null) next.delete(key);
-    else next.set(key, written);
+    if (written === null) {
+      next.delete(key);
+    } else {
+      next.set(key, written);
+    }
   }
   return next;
 }

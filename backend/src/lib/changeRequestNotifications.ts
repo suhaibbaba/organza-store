@@ -62,7 +62,7 @@ function buildPayload(
   defaultLanguage: string,
   staffName: string,
   pendingCount: number,
-  locale: string | null
+  locale: string | null,
 ): ChangeRequestNotificationPayload {
   return {
     type: PUSH_PAYLOAD_TYPES.CHANGE_REQUEST,
@@ -86,15 +86,19 @@ function buildPayload(
 /** Do the work: gather, count, send. Exported so a caller can await it. */
 export async function sendChangeRequestNotification(
   request: NotifiableChangeRequest,
-  actor: ChangeRequestActorRef
+  actor: ChangeRequestActorRef,
 ): Promise<void> {
   // Nothing to send with, so nothing to look up either. This is also the
   // clean hook the whole feature hangs on: with no VAPID keys configured the
   // flow is unchanged and silent, and configuring them turns it on.
-  if (!isPushConfigured()) return;
+  if (!isPushConfigured()) {
+    return;
+  }
 
   const targets = await findApproverTargets(actor.id);
-  if (targets.length === 0) return;
+  if (targets.length === 0) {
+    return;
+  }
 
   const [setting, pendingCount] = await Promise.all([
     prisma.setting.findUnique({ where: { id: SETTINGS_SINGLETON_ID } }),
@@ -102,11 +106,13 @@ export async function sendChangeRequestNotification(
   ]);
   // No settings row yet means a shop that hasn't been set up; the request is
   // still filed, there is just no default language to render it against.
-  if (!setting) return;
+  if (!setting) {
+    return;
+  }
 
   const staffName = request.requestedBy?.name ?? "";
   await sendPushToTargets(targets, (target) =>
-    buildPayload(request, setting.defaultLanguage, staffName, pendingCount, target.locale)
+    buildPayload(request, setting.defaultLanguage, staffName, pendingCount, target.locale),
   );
 }
 

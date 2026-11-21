@@ -76,37 +76,40 @@ export function WhatsappOrderSheet({
       className="max-h-[92dvh]"
       headerClassName="pb-0"
     >
+      <form onSubmit={handleSubmit(submit)} noValidate className="flex min-h-0 flex-1 flex-col">
+        <div className="min-h-0 flex-1 overflow-y-auto px-5 pb-5">
+          <CustomerForm
+            register={register}
+            control={control}
+            setValue={setValue}
+            errors={errors}
+            onPickSuggestion={applySuggestion}
+          />
+        </div>
 
-        <form onSubmit={handleSubmit(submit)} noValidate className="flex min-h-0 flex-1 flex-col">
-          <div className="min-h-0 flex-1 overflow-y-auto px-5 pb-5">
-            <CustomerForm
-              register={register}
-              control={control}
-              setValue={setValue}
-              errors={errors}
-              onPickSuggestion={applySuggestion}
-            />
+        <div className="flex flex-col gap-3 border-t border-line px-5 pt-4">
+          {errorCode && (
+            <Alert tone="danger" data-testid="alert-destructive">
+              {translateError(errorCode)}
+            </Alert>
+          )}
+
+          <div className="flex items-center justify-between text-lg font-bold text-ink">
+            <span>{t("total")}</span>
+            <span className="tabular-nums">{formatMoney(total)}</span>
           </div>
 
-          <div className="flex flex-col gap-3 border-t border-line px-5 pt-4">
-            {errorCode && <Alert tone="danger" data-testid="alert-destructive">{translateError(errorCode)}</Alert>}
-
-            <div className="flex items-center justify-between text-lg font-bold text-ink">
-              <span>{t("total")}</span>
-              <span className="tabular-nums">{formatMoney(total)}</span>
-            </div>
-
-            <Button
-              type="submit"
-              data-testid="pos-whatsapp-order-submit"
-              isLoading={isSubmitting}
-              icon={<Send aria-hidden="true" />}
-              className={`${SHEET_ACTION_TALL} w-full`}
-            >
-              {isSubmitting ? t("saving") : t("save")}
-            </Button>
-          </div>
-        </form>
+          <Button
+            type="submit"
+            data-testid="pos-whatsapp-order-submit"
+            isLoading={isSubmitting}
+            icon={<Send aria-hidden="true" />}
+            className={`${SHEET_ACTION_TALL} w-full`}
+          >
+            {isSubmitting ? t("saving") : t("save")}
+          </Button>
+        </div>
+      </form>
     </BottomSheet>
   );
 }

@@ -16,16 +16,22 @@ function prefersReducedMotion() {
 function scrollActiveSegmentIntoView(row: HTMLElement) {
   // A row whose segments all fit is not a scroll container in practice, and
   // must never be nudged.
-  if (row.scrollWidth <= row.clientWidth) return;
+  if (row.scrollWidth <= row.clientWidth) {
+    return;
+  }
   const active = row.querySelector<HTMLElement>(ACTIVE_SEGMENT_SELECTOR);
-  if (!active) return;
+  if (!active) {
+    return;
+  }
 
   const rowBox = row.getBoundingClientRect();
   const activeBox = active.getBoundingClientRect();
   const beforeStart = activeBox.left - rowBox.left - SEGMENT_SCROLL_PADDING_PX;
   const pastEnd = activeBox.right - rowBox.right + SEGMENT_SCROLL_PADDING_PX;
   const delta = beforeStart < 0 ? beforeStart : pastEnd > 0 ? pastEnd : 0;
-  if (delta === 0) return;
+  if (delta === 0) {
+    return;
+  }
 
   // Measured and moved in physical pixels along the x axis — which is what
   // scrollBy takes whichever way the page runs, so this needs to know nothing
@@ -51,7 +57,9 @@ export function useActiveSegmentInView<T extends HTMLElement>() {
 
   useEffect(() => {
     const row = ref.current;
-    if (!row) return;
+    if (!row) {
+      return;
+    }
 
     const check = () => scrollActiveSegmentIntoView(row);
     check();

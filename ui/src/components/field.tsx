@@ -15,16 +15,12 @@ export function fieldShell({ hasError = false, disabled = false }: FieldState): 
     disabled && "cursor-not-allowed border-dashed border-line-strong bg-surface",
     !disabled && "bg-surface",
     !disabled && hasError && "border-danger-600 shadow-field-error",
-    !disabled &&
-      !hasError &&
-      "border-line-strong hover:border-neutral-400 focus-within:border-primary-600",
+    !disabled && !hasError && "border-line-strong hover:border-neutral-400 focus-within:border-primary-600",
   );
 }
 
 export function FieldDivider(): JSX.Element {
-  return (
-    <span data-part="field-divider" aria-hidden="true" className="h-5 w-px shrink-0 bg-line" />
-  );
+  return <span data-part="field-divider" aria-hidden="true" className="h-5 w-px shrink-0 bg-line" />;
 }
 
 export const FIELD_TEXT = cn(
@@ -114,11 +110,7 @@ export interface FieldClearProps extends TestIdProps {
   readonly onClear: () => void;
 }
 
-export function FieldClear({
-  label,
-  onClear,
-  "data-testid": testId,
-}: FieldClearProps): JSX.Element {
+export function FieldClear({ label, onClear, "data-testid": testId }: FieldClearProps): JSX.Element {
   return (
     <button
       type="button"

@@ -89,12 +89,12 @@ describe("Verify · quantities and stock", () => {
       expectCount(
         await readStock(admin, fixture.id, fixture.overridden.id),
         2,
-        "variant stock after two lines totalling 3 of 5"
+        "variant stock after two lines totalling 3 of 5",
       );
       expectCount(
         await readStock(admin, fixture.id, fixture.inheriting.id),
         5,
-        "the other variant must not have moved"
+        "the other variant must not have moved",
       );
     });
   });
@@ -248,12 +248,10 @@ describe("Verify · quantities and stock", () => {
       // is how a staff member would find it too.
       const inventory = await apiRequest<{ type: string; productId: string; stock: number }[]>(
         `/api/inventory?q=${encodeURIComponent(product.product.sku!)}&pageSize=100`,
-        { token: admin }
+        { token: admin },
       );
       expect(inventory.status, "the inventory list must answer an Admin").toBe(200);
-      const row = (inventory.data ?? []).find(
-        (entry) => entry.productId === product.id && entry.type === "product"
-      );
+      const row = (inventory.data ?? []).find((entry) => entry.productId === product.id && entry.type === "product");
       expect(row, `the product must appear in the inventory view under SKU ${product.product.sku}`).toBeDefined();
       expectCount(row!.stock, 3, "stock in the inventory view");
     });

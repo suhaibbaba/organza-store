@@ -15,7 +15,9 @@ export function isNonNegativeIntegerString(value: string): boolean {
 // is clamped into it, so a stored 1200 is displayed as the 999 it will be
 // saved as instead of a number no button can reach.
 export function parseQuantity(value: string | undefined, min = QUANTITY_MIN, max = QUANTITY_MAX): number {
-  if (value === undefined || !isNonNegativeIntegerString(value)) return clampQuantity(0, min, max);
+  if (value === undefined || !isNonNegativeIntegerString(value)) {
+    return clampQuantity(0, min, max);
+  }
   return clampQuantity(Number(value), min, max);
 }
 

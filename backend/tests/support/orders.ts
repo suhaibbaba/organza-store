@@ -15,7 +15,7 @@ export interface SellableProduct {
 // instead of from whatever the seed happens to hold.
 export async function createSellableProduct(
   token: string,
-  options: { basePrice?: string; cost?: string; stock?: number } = {}
+  options: { basePrice?: string; cost?: string; stock?: number } = {},
 ): Promise<SellableProduct> {
   const nonce = uniqueId();
   const categoryId = await anyCategoryId(token);

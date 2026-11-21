@@ -41,13 +41,17 @@ function harness(options: { ttlMs?: number; failWith?: () => Error | null } = {}
     onError: (error) => errors.push(error),
     loadVersion: async () => {
       const error = fail();
-      if (error) throw error;
+      if (error) {
+        throw error;
+      }
       counts.version++;
       return version;
     },
     loadMatrix: async () => {
       const error = fail();
-      if (error) throw error;
+      if (error) {
+        throw error;
+      }
       counts.matrix++;
       return matrix;
     },
@@ -85,7 +89,9 @@ describe("PermissionCache", () => {
     const afterFirst = { ...h.counts };
 
     h.advance(4_999);
-    for (let i = 0; i < 50; i++) await h.cache.ensureFresh();
+    for (let i = 0; i < 50; i++) {
+      await h.cache.ensureFresh();
+    }
 
     expect(h.counts).toEqual(afterFirst);
   });
@@ -178,7 +184,9 @@ describe("PermissionCache", () => {
     const attempts = h.errors.length;
 
     h.advance(1_000);
-    for (let i = 0; i < 25; i++) await h.cache.ensureFresh();
+    for (let i = 0; i < 25; i++) {
+      await h.cache.ensureFresh();
+    }
     expect(h.errors.length).toBe(attempts);
 
     // ...and it does try again once the window is up, rather than giving up.

@@ -56,7 +56,7 @@ export function NavLink({
             ? "nav-active-wash text-ink-inverse shadow-nav-active focus-darken"
             : onRail
               ? "text-rail-ink hover:bg-rail-hover hover:text-rail-hover-ink focus-visible:bg-rail-active focus-visible:text-rail-ink-active"
-              : "text-ink-muted hover:bg-primary-100 hover:text-primary-700 focus-visible:bg-primary-200 focus-visible:text-primary-800"
+              : "text-ink-muted hover:bg-primary-100 hover:text-primary-700 focus-visible:bg-primary-200 focus-visible:text-primary-800",
         )}
       >
         <Icon className="size-[19px] shrink-0" aria-hidden="true" />
@@ -81,7 +81,9 @@ export function DesignSystemNavLink({
   collapsed?: boolean;
 }) {
   const t = useTranslations();
-  if (!useShowsDesignSystem()) return null;
+  if (!useShowsDesignSystem()) {
+    return null;
+  }
 
   return (
     <NavLink

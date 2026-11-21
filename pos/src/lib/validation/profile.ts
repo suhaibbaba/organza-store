@@ -9,7 +9,9 @@ import { PASSWORD_MISMATCH_KEY } from "@/constants/profile";
 export const profileFormSchema = z.object({
   name: z.string().trim().min(1, ERROR_CODES.VALIDATION_REQUIRED),
   phone: z.string().refine(isValidE164, { message: ERROR_CODES.VALIDATION_INVALID_PHONE }),
-  whatsapp: z.string().refine((v) => v.trim() === "" || isValidE164(v), { message: ERROR_CODES.VALIDATION_INVALID_PHONE }),
+  whatsapp: z
+    .string()
+    .refine((v) => v.trim() === "" || isValidE164(v), { message: ERROR_CODES.VALIDATION_INVALID_PHONE }),
 });
 export type ProfileFormValues = z.infer<typeof profileFormSchema>;
 

@@ -24,7 +24,9 @@ const RECENT_RUNS = 5;
 
 /** Bytes as something a person reads, not as a number they have to divide. */
 function humanBytes(bytes: bigint | null): string {
-  if (bytes === null) return "—";
+  if (bytes === null) {
+    return "—";
+  }
   const units = ["B", "KB", "MB", "GB", "TB"];
   let value = Number(bytes);
   let unit = 0;
@@ -56,8 +58,8 @@ async function main(): Promise<void> {
           },
         },
         null,
-        2
-      )
+        2,
+      ),
     );
     process.exitCode = health.stale ? 1 : 0;
     return;
@@ -92,7 +94,7 @@ async function main(): Promise<void> {
       console.log(
         `    ${mark} ${run.finishedAt.toISOString()}  db ${size}  ${images}` +
           `${run.destination ? `  -> ${run.destination}` : ""}` +
-          `${run.status === BACKUP_RUN_STATUS.failed ? `  [${run.failedStage ?? "?"}]` : ""}`
+          `${run.status === BACKUP_RUN_STATUS.failed ? `  [${run.failedStage ?? "?"}]` : ""}`,
       );
     }
   }

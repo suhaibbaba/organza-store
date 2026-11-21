@@ -31,13 +31,17 @@ export function fetchSalesSummary(token: string): Promise<ApiResult<SalesSummary
 
 export async function salesReport(token: string, topLimit = 50): Promise<SalesReport> {
   const res = await fetchSalesReport(token, topLimit);
-  if (res.status !== 200 || !res.data) throw new Error(`Could not read the sales report (HTTP ${res.status}).`);
+  if (res.status !== 200 || !res.data) {
+    throw new Error(`Could not read the sales report (HTTP ${res.status}).`);
+  }
   return res.data;
 }
 
 export async function salesSummary(token: string): Promise<SalesSummary> {
   const res = await fetchSalesSummary(token);
-  if (res.status !== 200 || !res.data) throw new Error(`Could not read the sales summary (HTTP ${res.status}).`);
+  if (res.status !== 200 || !res.data) {
+    throw new Error(`Could not read the sales summary (HTTP ${res.status}).`);
+  }
   return res.data;
 }
 
@@ -77,6 +81,8 @@ export function totalsDelta(after: SalesTotals, before: SalesTotals): TotalsDelt
 
 export function channelTotals(report: SalesReport, channel: string): SalesTotals {
   const found = report.byChannel.find((entry) => entry.channel === channel);
-  if (!found) throw new Error(`The report is missing the ${channel} channel.`);
+  if (!found) {
+    throw new Error(`The report is missing the ${channel} channel.`);
+  }
   return found;
 }

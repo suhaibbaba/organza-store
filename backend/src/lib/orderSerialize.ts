@@ -100,7 +100,7 @@ export function serializeOrderSummary(order: AnyRecord, outstanding?: Map<string
     total: formatMoney(order.total?.toString()),
     // Net of partial returns; only an order still waiting for its money has one.
     outstanding: order.paymentStatus === "PENDING_COLLECTION" ? (outstanding?.get(order.id) ?? formatMoney("0")) : null,
-    itemCount: order._count?.items ?? (order.items?.length ?? 0),
+    itemCount: order._count?.items ?? order.items?.length ?? 0,
     previewItems: (order.items ?? []).map(serializePreviewItem),
     hasQuickSale: order.hasQuickSale ?? false,
     stockDeductedAt: order.stockDeductedAt,

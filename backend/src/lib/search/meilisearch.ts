@@ -27,7 +27,7 @@ async function request<T>(
   method: string,
   path: string,
   timeoutMs: number,
-  body?: unknown
+  body?: unknown,
 ): Promise<T> {
   const res = await fetch(`${config.host}${path}`, {
     method,
@@ -61,10 +61,12 @@ export async function meiliSearchIds(
   config: MeilisearchConfig,
   query: string,
   limit: number,
-  options: ProductSearchOptions = {}
+  options: ProductSearchOptions = {},
 ): Promise<string[]> {
   const q = normalizeQuery(query);
-  if (!q) return [];
+  if (!q) {
+    return [];
+  }
   const result = await request<{ hits: { id: string }[] }>(
     config,
     "POST",
@@ -76,7 +78,7 @@ export async function meiliSearchIds(
       attributesToRetrieve: [SEARCH_PRIMARY_KEY],
       matchingStrategy: CODE_QUERY_PATTERN.test(q) ? CODE_MATCHING_STRATEGY : MATCHING_STRATEGY,
       ...(options.activeOnly ? { filter: ACTIVE_ONLY_FILTER } : {}),
-    }
+    },
   );
   return result.hits.map((hit) => hit.id);
 }
@@ -87,12 +89,18 @@ export function meiliUpsert(config: MeilisearchConfig, index: string, docs: Prod
     "POST",
     `${indexPath(index)}/documents?primaryKey=${SEARCH_PRIMARY_KEY}`,
     SEARCH_WRITE_TIMEOUT_MS,
-    docs
+    docs,
   );
 }
 
 export function meiliDelete(config: MeilisearchConfig, index: string, ids: string[]) {
-  return request<MeilisearchTask>(config, "POST", `${indexPath(index)}/documents/delete-batch`, SEARCH_WRITE_TIMEOUT_MS, ids);
+  return request<MeilisearchTask>(
+    config,
+    "POST",
+    `${indexPath(index)}/documents/delete-batch`,
+    SEARCH_WRITE_TIMEOUT_MS,
+    ids,
+  );
 }
 
 // Settings PATCH creates the index when it does not exist yet.
@@ -105,9 +113,14 @@ export function meiliApplySettings(config: MeilisearchConfig, index: string) {
 
 export async function meiliDeleteIndex(config: MeilisearchConfig, index: string): Promise<void> {
   try {
-    await waitForTask(config, await request<MeilisearchTask>(config, "DELETE", indexPath(index), SEARCH_WRITE_TIMEOUT_MS));
+    await waitForTask(
+      config,
+      await request<MeilisearchTask>(config, "DELETE", indexPath(index), SEARCH_WRITE_TIMEOUT_MS),
+    );
   } catch (error) {
-    if (!String(error).includes("index_not_found")) throw error;
+    if (!String(error).includes("index_not_found")) {
+      throw error;
+    }
   }
 }
 
@@ -118,14 +131,21 @@ export function meiliSwapIndexes(config: MeilisearchConfig, a: string, b: string
 export async function waitForTask(
   config: MeilisearchConfig,
   task: MeilisearchTask,
-  timeoutMs: number = TASK_WAIT_TIMEOUT_MS
+  timeoutMs: number = TASK_WAIT_TIMEOUT_MS,
 ): Promise<void> {
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
-    const status = await request<MeilisearchTaskStatus>(config, "GET", `/tasks/${task.taskUid}`, SEARCH_WRITE_TIMEOUT_MS);
+    const status = await request<MeilisearchTaskStatus>(
+      config,
+      "GET",
+      `/tasks/${task.taskUid}`,
+      SEARCH_WRITE_TIMEOUT_MS,
+    );
     if ((TASK_DONE_STATUSES as readonly string[]).includes(status.status)) {
       if (status.status !== "succeeded") {
-        throw new Error(`Meilisearch task ${task.taskUid} ${status.status}: ${status.error?.code ?? ""} ${status.error?.message ?? ""}`);
+        throw new Error(
+          `Meilisearch task ${task.taskUid} ${status.status}: ${status.error?.code ?? ""} ${status.error?.message ?? ""}`,
+        );
       }
       return;
     }
