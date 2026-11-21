@@ -24,6 +24,13 @@ export type NavKey =
   | "permissions"
   | "settings";
 
+export type NavGroupKey = "sales" | "catalogue" | "manage";
+
+export interface NavGroup {
+  key: NavGroupKey;
+  items: readonly NavKey[];
+}
+
 export interface NavItem {
   key: NavKey;
   href: string;

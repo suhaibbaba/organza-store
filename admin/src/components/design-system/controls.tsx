@@ -7,6 +7,7 @@ import {
   Button,
   Checkbox,
   Chip,
+  ChipGroup,
   DatePicker,
   DateRangePicker,
   FormField,
@@ -111,6 +112,15 @@ export function Controls() {
               {t(`badges.${key}`)}
             </Chip>
           ))}
+        </ShowcaseRow>
+        <ShowcaseRow>
+          <ChipGroup>
+            {(["dresses", "shawls"] as const).map((key) => (
+              <Chip key={key} onRemove={() => undefined} removeLabel={t("chips.remove", { name: t(`badges.${key}`) })}>
+                {t(`badges.${key}`)}
+              </Chip>
+            ))}
+          </ChipGroup>
         </ShowcaseRow>
       </ShowcaseSection>
 

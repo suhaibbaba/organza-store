@@ -1,6 +1,6 @@
 export { Alert, type AlertProps, type AlertTone } from "@ui/components/alert";
 export { Avatar } from "@ui/components/avatar";
-export { Badge, Chip, type BadgeTone } from "@ui/components/badge";
+export { Badge, Chip, ChipGroup, type BadgeTone, type ChipProps } from "@ui/components/badge";
 export { Button, buttonClassName, type ButtonSize, type ButtonVariant } from "@ui/components/button";
 export { Card } from "@ui/components/card";
 export { Checkbox } from "@ui/components/checkbox";

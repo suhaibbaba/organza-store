@@ -29,6 +29,7 @@ import {
   SETTINGS_SINGLETON_ID,
 } from "@/constants";
 import type { StockItem } from "@/types";
+import { MAIN_IMAGE_ONLY } from "@/constants/inventory";
 
 // Inventory is a read/adjust layer over Product (simple products) and
 // Variant (variant-bearing products) stock — it doesn't own its own table.
@@ -97,7 +98,10 @@ router.get(
             }
           : {}),
       },
-      include: { variants: true },
+      include: {
+        images: MAIN_IMAGE_ONLY,
+        variants: { include: { images: MAIN_IMAGE_ONLY } },
+      },
     });
 
     const items: StockItem[] = [];
@@ -113,6 +117,7 @@ router.get(
           categoryId: product.categoryId,
           stock: product.stock,
           trackLowStock: product.trackLowStock,
+          thumbnailUrl: product.images[0]?.thumbnailUrl ?? null,
           createdAt: product.createdAt,
         });
       } else {
@@ -130,6 +135,7 @@ router.get(
             // product is tracked with it.
             trackLowStock: product.trackLowStock,
             stock: variant.stock,
+            thumbnailUrl: variant.images[0]?.thumbnailUrl ?? product.images[0]?.thumbnailUrl ?? null,
             createdAt: variant.createdAt,
           });
         }

@@ -73,11 +73,16 @@ export function Badge({
 
 export interface ChipProps extends ButtonHTMLAttributes<HTMLButtonElement>, TestIdProps {
   readonly selected?: boolean | undefined;
+  // Given, the chip is a removable value (e.g. an applied filter) with its own ✕ instead of a toggle.
+  readonly onRemove?: (() => void) | undefined;
+  readonly removeLabel?: string | undefined;
   readonly children: ReactNode;
 }
 
 export function Chip({
   selected = false,
+  onRemove,
+  removeLabel,
   className,
   children,
   type = "button",
@@ -85,11 +90,38 @@ export function Chip({
   ...props
 }: ChipProps): JSX.Element {
   const disabled = props.disabled === true;
+  const part = parts("chip", testId);
+
+  if (onRemove) {
+    return (
+      <span
+        {...part()}
+        className={cn(
+          PILL_BASE,
+          "h-(--control-h) max-w-full shrink-0 gap-1 border-[1.5px] border-primary-600 bg-primary-100 pe-1 text-primary-700",
+          className,
+        )}
+      >
+        <span {...part("label")} className="min-w-0 truncate">
+          {children}
+        </span>
+        <button
+          type="button"
+          {...part("remove")}
+          onClick={onRemove}
+          aria-label={removeLabel}
+          className="inline-flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-pill transition-colors hover:bg-primary-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+        >
+          <Icon name="x" className="size-3.5" />
+        </button>
+      </span>
+    );
+  }
 
   return (
     <button
       type={type}
-      {...parts("chip", testId)()}
+      {...part()}
       aria-pressed={selected}
       className={cn(
         PILL_BASE,
@@ -106,5 +138,13 @@ export function Chip({
     >
       {children}
     </button>
+  );
+}
+
+export function ChipGroup({ children, "data-testid": testId }: TestIdProps & { readonly children: ReactNode }): JSX.Element {
+  return (
+    <div {...parts("chip-group", testId)()} className="flex flex-wrap items-center gap-2">
+      {children}
+    </div>
   );
 }

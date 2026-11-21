@@ -3,10 +3,10 @@ import type { Pagination } from "@organza/shared/types/common";
 import { apiFetch } from "@/lib/api/client";
 import type { InventoryListFilters } from "@/types/inventory";
 
-function buildInventoryListQuery(filters: InventoryListFilters, pageSize: number): string {
+function buildInventoryListQuery(filters: InventoryListFilters): string {
   const params = new URLSearchParams();
   params.set("page", String(filters.page));
-  params.set("pageSize", String(pageSize));
+  params.set("pageSize", String(filters.pageSize));
   params.set("sortBy", filters.sortBy);
   params.set("sortDir", filters.sortDir);
   if (filters.q.trim()) params.set("q", filters.q.trim());
@@ -16,10 +16,9 @@ function buildInventoryListQuery(filters: InventoryListFilters, pageSize: number
 }
 
 export async function fetchInventory(
-  filters: InventoryListFilters,
-  pageSize: number
+  filters: InventoryListFilters
 ): Promise<{ items: InventoryItem[]; meta: Pagination | null }> {
-  const query = buildInventoryListQuery(filters, pageSize);
+  const query = buildInventoryListQuery(filters);
   const { data, meta } = await apiFetch<InventoryItem[]>(`/api/inventory?${query}`);
   return { items: data, meta };
 }

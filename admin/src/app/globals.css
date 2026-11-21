@@ -100,8 +100,7 @@
      Everything in this block exists because these two apps are used on a
      shop counter — a phone held in one hand, a garment in the other, a
      customer waiting — where a browser's default reflexes are all wrong.
-     The JavaScript half is components/pwa/native-gesture-guard.tsx and the
-     viewport half is in app/[locale]/layout.tsx; this is the rest.
+     The admin still zooms (see app/[locale]/layout.tsx); only double-tap zoom is dropped here.
      ================================================================== */
 
   html {

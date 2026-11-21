@@ -18,6 +18,7 @@ interface QuantityStepperProps {
   increaseLabel: string;
   valueLabel: string;
   name?: string;
+  testName?: string;
   className?: string;
 }
 
@@ -30,6 +31,7 @@ export function QuantityStepper({
   increaseLabel,
   valueLabel,
   name,
+  testName = "quantity",
   className,
 }: QuantityStepperProps) {
   const [draft, setDraft] = useState<string | null>(null);
@@ -54,14 +56,14 @@ export function QuantityStepper({
   return (
     <div
       className={cn(fieldShell({}), "w-36 gap-1 px-1", className)}
-      data-test-selector={testSelectorFor("quantity-stepper", name)}
+      data-test-selector={testSelectorFor(`${testName}-stepper`, name)}
     >
       <button
         type="button"
         onClick={() => step(value - 1)}
         disabled={value <= floor}
         aria-label={decreaseLabel}
-        data-test-selector={testSelectorFor("quantity-decrease", name)}
+        data-test-selector={testSelectorFor(`${testName}-decrease`, name)}
         className={button}
       >
         <Minus className="size-4" aria-hidden="true" />
@@ -77,7 +79,7 @@ export function QuantityStepper({
         onBlur={(event) => commit(event.target.value)}
         maxLength={QUANTITY_MAX_LENGTH}
         aria-label={valueLabel}
-        data-test-selector={testSelectorFor("quantity-value", name)}
+        data-test-selector={testSelectorFor(`${testName}-value`, name)}
         className={cn(FIELD_TEXT, "text-center tabular-nums")}
       />
       <FieldDivider />
@@ -86,7 +88,7 @@ export function QuantityStepper({
         onClick={() => step(value + 1)}
         disabled={value >= ceiling}
         aria-label={increaseLabel}
-        data-test-selector={testSelectorFor("quantity-increase", name)}
+        data-test-selector={testSelectorFor(`${testName}-increase`, name)}
         className={button}
       >
         <Plus className="size-4" aria-hidden="true" />

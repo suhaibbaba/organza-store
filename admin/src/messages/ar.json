@@ -61,9 +61,15 @@
     "reports": "التقارير",
     "users": "المستخدمون",
     "settings": "الإعدادات",
-    "more": "المزيد",
     "changeRequests": "الموافقات",
-    "permissions": "الصلاحيات"
+    "permissions": "الصلاحيات",
+    "menu": "القائمة",
+    "openMenu": "فتح القائمة",
+    "groups": {
+      "sales": "المبيعات",
+      "catalogue": "الكتالوج",
+      "manage": "الإدارة"
+    }
   },
   "auth": {
     "login": {
@@ -967,16 +973,21 @@
       "category": "القسم",
       "allCategories": "كل الأقسام",
       "lowStockOnly": "عرض المخزون المنخفض فقط",
-      "lowStockCount": "{count} عنصر بحاجة لإعادة تعبئة"
+      "lowStockCount": "{count} عنصر بحاجة لإعادة تعبئة",
+      "trigger": "تصفية",
+      "title": "تصفية المخزون",
+      "reset": "مسح التصفية",
+      "apply": "عرض النتائج",
+      "lowStockHint": "فقط القطع التي وصلت حدّ المخزون المنخفض أو أقل.",
+      "chipCategory": "القسم: {name}",
+      "removeFilter": "إزالة التصفية: {name}",
+      "chipLowStock": "مخزون منخفض"
     },
     "card": {
-      "noSku": "بدون رمز",
-      "stockLabel": "الكمية",
-      "outsideFilter": "لم يعد ضمن التصفية الحالية"
+      "stockLabel": "الكمية"
     },
     "table": {
       "item": "المنتج",
-      "sku": "الرمز",
       "status": "الحالة",
       "stock": "الكمية"
     },
@@ -984,14 +995,7 @@
       "decrease": "إنقاص الكمية",
       "increase": "زيادة الكمية",
       "edit": "تعديل الكمية",
-      "quantity": "الكمية",
-      "save": "حفظ",
-      "cancel": "إلغاء",
-      "saved": "تم الحفظ",
-      "unsaved": "لم يُحفظ بعد",
-      "saving": "جارٍ الحفظ…",
-      "savedValue": "تم الحفظ: {count}",
-      "revertedTo": "أُعيدت الكمية إلى {count}."
+      "quantity": "الكمية"
     },
     "empty": {
       "noItemsTitle": "لا يوجد مخزون بعد",
@@ -999,13 +1003,10 @@
       "noMatchesTitle": "لا نتائج مطابقة",
       "noMatchesDescription": "جرّب بحثًا مختلفًا أو أزل التصفية."
     },
-    "pagination": {
-      "previous": "السابق",
-      "next": "التالي",
-      "pageOf": "صفحة {page} من {totalPages}"
-    },
-    "outsideFilterNotice": "{count, plural, zero {لا شيء} one {صنف واحد لم يعد ضمن التصفية، وبقي هنا حتى لا يختفي أثناء العمل} two {صنفان لم يعودا ضمن التصفية، وبقيا هنا حتى لا يختفيا أثناء العمل} other {{count, number, plain} أصناف لم تعد ضمن التصفية، وبقيت هنا حتى لا تختفي أثناء العمل}}",
-    "refreshList": "تحديث القائمة"
+    "save": {
+      "changed": "{count, plural, zero {لا تغييرات} one {تغيّرت كمية واحدة} two {تغيّرت كميتان} few {تغيّرت {count} كميات} many {تغيّرت {count} كمية} other {تغيّرت {count} كمية}}",
+      "failed": "{count, plural, one {تعذّر حفظ كمية واحدة، وبقيت هنا لإعادة المحاولة.} two {تعذّر حفظ كميتين، وبقيتا هنا لإعادة المحاولة.} few {تعذّر حفظ {count} كميات، وبقيت هنا لإعادة المحاولة.} many {تعذّر حفظ {count} كمية، وبقيت هنا لإعادة المحاولة.} other {تعذّر حفظ {count} كمية، وبقيت هنا لإعادة المحاولة.}}"
+    }
   },
   "labels": {
     "title": "ملصقات الباركود",
@@ -1794,7 +1795,9 @@
       "edit": "تعديل",
       "duplicate": "تكرار",
       "delete": "حذف",
-      "close": "إغلاق"
+      "close": "إغلاق",
+      "openNavDrawer": "قائمة جانبية",
+      "navDrawerDescription": "القائمة: ضيّقة ومن بداية السطر."
     },
     "table": {
       "product": "المنتج",
@@ -1805,6 +1808,9 @@
       "rowB": "عباية كتان",
       "rowC": "حجاب قطن",
       "empty": "لا توجد منتجات مطابقة"
+    },
+    "chips": {
+      "remove": "إزالة {name}"
     }
   }
 }

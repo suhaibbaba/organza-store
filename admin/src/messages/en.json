@@ -61,9 +61,15 @@
     "reports": "Reports",
     "users": "Users",
     "settings": "Settings",
-    "more": "More",
     "changeRequests": "Approvals",
-    "permissions": "Permissions"
+    "permissions": "Permissions",
+    "menu": "Menu",
+    "openMenu": "Open menu",
+    "groups": {
+      "sales": "Sales",
+      "catalogue": "Catalogue",
+      "manage": "Management"
+    }
   },
   "auth": {
     "login": {
@@ -967,16 +973,21 @@
       "category": "Category",
       "allCategories": "All categories",
       "lowStockOnly": "Show low stock only",
-      "lowStockCount": "{count} items need restocking"
+      "lowStockCount": "{count} items need restocking",
+      "trigger": "Filters",
+      "title": "Filter inventory",
+      "reset": "Clear filters",
+      "apply": "Show results",
+      "lowStockHint": "Only pieces at or under the low-stock threshold.",
+      "chipCategory": "Category: {name}",
+      "removeFilter": "Remove filter: {name}",
+      "chipLowStock": "Low stock"
     },
     "card": {
-      "noSku": "No SKU",
-      "stockLabel": "Stock",
-      "outsideFilter": "No longer matches the current filter"
+      "stockLabel": "Stock"
     },
     "table": {
       "item": "Item",
-      "sku": "SKU",
       "status": "Status",
       "stock": "Stock"
     },
@@ -984,14 +995,7 @@
       "decrease": "Decrease quantity",
       "increase": "Increase quantity",
       "edit": "Edit quantity",
-      "quantity": "Quantity",
-      "save": "Save",
-      "cancel": "Cancel",
-      "saved": "Saved",
-      "unsaved": "Not saved yet",
-      "saving": "Saving…",
-      "savedValue": "Saved: {count}",
-      "revertedTo": "Put back to {count}."
+      "quantity": "Quantity"
     },
     "empty": {
       "noItemsTitle": "No inventory yet",
@@ -999,13 +1003,10 @@
       "noMatchesTitle": "No matching items",
       "noMatchesDescription": "Try a different search or clear your filters."
     },
-    "pagination": {
-      "previous": "Previous",
-      "next": "Next",
-      "pageOf": "Page {page} of {totalPages}"
-    },
-    "outsideFilterNotice": "{count, plural, one {1 item no longer matches the filter — kept here so it doesn't vanish while you work} other {{count, number, plain} items no longer match the filter — kept here so they don't vanish while you work}}",
-    "refreshList": "Refresh the list"
+    "save": {
+      "changed": "{count, plural, one {1 quantity changed} other {{count} quantities changed}}",
+      "failed": "{count, plural, one {1 quantity could not be saved and is kept here to try again.} other {{count} quantities could not be saved and are kept here to try again.}}"
+    }
   },
   "labels": {
     "title": "Barcode labels",
@@ -1794,7 +1795,9 @@
       "edit": "Edit",
       "duplicate": "Duplicate",
       "delete": "Delete",
-      "close": "Close"
+      "close": "Close",
+      "openNavDrawer": "Open navigation drawer",
+      "navDrawerDescription": "Navigation: narrow, from the inline start."
     },
     "table": {
       "product": "Product",
@@ -1805,6 +1808,9 @@
       "rowB": "Linen abaya",
       "rowC": "Cotton hijab",
       "empty": "No products match"
+    },
+    "chips": {
+      "remove": "Remove {name}"
     }
   }
 }

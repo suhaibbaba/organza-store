@@ -97,10 +97,47 @@ Reference implementation: the clinic app at `/Users/suhaibbaba/Projects/clinic-m
 - No section has its own submit button: everything on the page is written by the one SaveBar.
 - Rows being added that carry a quantity (stock) get a `QuantityStepper` per row, before saving.
 
-### List page / dashboard
+### List page (many things: inventory, products, orders …) — chosen by the user 2026-11-21
+- **Toolbar, one wrapping row:** `SearchField` (`min-w-64 flex-1 sm:max-w-md` — it keeps its width and
+  the buttons drop to the next line on phones, never a squeezed "ابحث بالا…"), a secondary **Filters** button
+  (sliders icon + a count bubble of active filters), and `TotalBadge` pushed to the end (`ms-auto`).
+  Never stacked full-width filter rows or a switch in its own card.
+- **Filters live in a `Drawer`:** a draft copied on open, footer "Clear filters" + "Show results";
+  each filter is a `FormField`/`Switch` with a one-line hint. Applying resets to page 1.
+- **Active filters show as removable chips** under the toolbar: `@store/ui` `Chip` with `onRemove`
+  inside a `ChipGroup` (one general Chip — selectable or removable — never a page-local chip).
+  Short labels ("Low stock", "Category: X"); counts belong to the TotalBadge, not the chip.
+- **Every row shows its photo** before the name — `size-20` on phone cards, `size-16` in the md+
+  table (`sizes` says both). The name sits top-aligned with the photo (`items-start`), and the link
+  is `inline-flex` around photo + name only, so the empty rest of the row is not a click target.
+  The photo identifies the piece, so the list carries no SKU/code column (search still finds codes).
+  Phone cards are ONE row, two columns: photo | name + the row's main control (stepper) under it —
+  that column is `hideOnMobile` and rendered inside the primary cell with `md:hidden`; the photo is
+  its own `tabIndex={-1}` link so only photo + name are click targets: many
+  products share a name, so the picture is how the shop tells them apart. A variant row uses its
+  own main photo, else the product's — and if the list API doesn't send one, add `thumbnailUrl`.
+- Every label/hint comes from `FormField` (label + `hint` keys) or the component's own label prop —
+  never a hand-made `<p>`/`<label>` beside a control.
+- **Rows:** `@store/ui` `Table` at every width (it renders cards on phones itself); column `header` =
+  message KEY; `data-testid` = the old row family so rows keep `<name>-row-<id>`. Status badges sit
+  beside the figure they describe — no separate "status" column, no "›" chevrons in cells.
+- **Pagination is the Table's own** (`pagination` prop): page numbers + "per page", the size sent
+  to the API as `pageSize` and shown from `meta.pageSize`; options from shared `PAGE_SIZE_OPTIONS`.
+- **No auto-save on a list.** Inline edits (stock) are staged, outlined while changed, and written
+  together by a sticky `SaveBar` ("N changed" · Discard · Save); a failed row stays outlined red with
+  one Alert on top. No "kept here outside the filter" notices — staged rows don't move until Save.
+
+### Dashboard
 Not learned yet — ask, then write the pattern here.
 
 ## Rules that always apply
+- **Every product image is 1:1** — list thumbnails, gallery tiles and the product page's photo
+  alike (`aspect-square` / `size-*`). Tiles and the big photo use `fit="contain"` so nothing of
+  the garment is cut; small row thumbnails stay `cover`. Only a numbered-shawl photo keeps its own
+  shape, because its point markers are placed by percentage.
+- **Links never underline.** Hover changes the colour to the dark brand shade: `transition-colors
+  hover:text-primary-700` (or `group` on the link + `group-hover:text-primary-700` on the name span
+  when the text inside carries `text-ink`); a link already `primary-700` goes to `primary-900`.
 - Buttons are the standard 36px: no `size="sm"`, no `h-12/h-14` overrides (POS touch targets excepted).
 - `cn` comes from `@/lib/utils` (re-exports `@store/ui`'s, which knows `text-micro` etc. are sizes).
 - Field labels and field text are weight **400**: `text-label text-ink`, never `font-medium` on a
@@ -138,6 +175,21 @@ Not learned yet — ask, then write the pattern here.
   apply, verify in the browser, and only ask (AskUserQuestion with previews) when the layout is a
   real choice.
 
+- Inventory: low-stock filter returning 0 is the rule (only `trackLowStock` pieces count), not a bug.
+- Never press Save in a check, and never touch a control that writes on its own: the sandbox
+  database is shared with the user. Before and after a check, read the audit log for the last
+  minutes (`auditLog.findMany({ createdAt: { gte } })`) so any write is noticed and reported.
+
+- `Table` card titles are a `<div>` (not `<p>`): a cell with a photo inside a `<p>` is a hydration error on phones.
+
+- Phone shell (admin): header = ☰ + shop logo + sandbox chip | language + account. ☰ opens
+  `MenuSheet` — `Drawer side="start" size="sm"` (from the RIGHT in Arabic), logo in its title, pages
+  grouped by `NAV_GROUPS` under small headings, deepest matching href active, no language/sign-out
+  (the header has both). The bottom bar keeps 4 tabs, no "More".
+- `Drawer`: `side="end"` (default) for content panels, `side="start"` for navigation.
+- The ADMIN zooms (pinch / Ctrl+wheel) — only the POS till locks zoom (spec.md "An installed app").
+
 ## Done
 - admin `products/[id]` (record) — 2026-11-21
 - admin `products/[id]/edit` + `products/new` (form, shared `product-form.tsx`) — 2026-11-21
+- admin `inventory` (list — first list pattern) — 2026-11-21

@@ -33,9 +33,9 @@ export function OrderTable({ orders }: { orders: OrderSummary[] }) {
             {/* ::after stretches the link over its whole cell. */}
             <Link
               href={`/orders/${row.original.id}`}
-              className="flex min-w-0 items-center gap-2 rounded-control after:absolute after:inset-0 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+              className="flex min-w-0 items-center gap-2 rounded-control group after:absolute after:inset-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
             >
-              <span className="font-medium text-ink">
+              <span className="font-medium text-ink transition-colors group-hover:text-primary-700">
                 {t("orderNumber", { number: String(row.original.orderNumber) })}
               </span>
               <ChevronRight className="size-4 shrink-0 text-ink-muted rtl:-scale-x-100" aria-hidden="true" />

@@ -21,7 +21,7 @@ export function OrderCustomerCard({ order }: { order: Order }) {
       {order.customerPhone && (
         <a
           href={`tel:${order.customerPhone}`}
-          className="flex min-h-11 items-center gap-2 text-label text-primary-600 hover:underline"
+          className="flex min-h-11 items-center gap-2 text-label text-primary-600 transition-colors hover:text-primary-700"
         >
           <Phone className="size-4 shrink-0" aria-hidden="true" />
           <span dir="ltr" {...SELECTABLE}>
@@ -33,7 +33,7 @@ export function OrderCustomerCard({ order }: { order: Order }) {
       {order.customerWhatsapp && (
         <a
           href={`tel:${order.customerWhatsapp}`}
-          className="flex min-h-11 items-center gap-2 text-label text-primary-600 hover:underline"
+          className="flex min-h-11 items-center gap-2 text-label text-primary-600 transition-colors hover:text-primary-700"
         >
           <MessageCircle className="size-4 shrink-0" aria-hidden="true" />
           <span dir="ltr" {...SELECTABLE}>
@@ -57,7 +57,7 @@ export function OrderCustomerCard({ order }: { order: Order }) {
           href={mapUrl}
           target="_blank"
           rel="noreferrer"
-          className="flex min-h-11 items-center gap-2 text-label text-primary-600 hover:underline"
+          className="flex min-h-11 items-center gap-2 text-label text-primary-600 transition-colors hover:text-primary-700"
         >
           <MapPin className="size-4 shrink-0" aria-hidden="true" />
           {t("openMap")}

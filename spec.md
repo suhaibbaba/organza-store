@@ -449,7 +449,8 @@ its single Save (an Employee's deletion still becomes a change request).
 The admin and the POS are used on a shop counter — a phone in one hand and a
 garment in the other — so the browser's default reflexes are wrong for them:
 
-- **Nothing zooms.** An accidental pinch that leaves the screen askew at 1.4×
+- **The POS does not zoom** (the admin does — its tables, codes and photos are read closely, and
+  it is not a till mid-sale). An accidental pinch that leaves the screen askew at 1.4×
   mid-sale is not something a cashier with a customer waiting will stop and
   undo. Three things together: `maximum-scale=1, user-scalable=no` in the
   viewport (honoured by Chrome and the Android WebView), `touch-action:

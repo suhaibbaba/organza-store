@@ -41,6 +41,7 @@ export function Displays() {
 
   const [modalOpen, setModalOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [navDrawerOpen, setNavDrawerOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [page, setPage] = useState(1);
   const [tableLoading, setTableLoading] = useState(false);
@@ -201,6 +202,9 @@ export function Displays() {
           <Button variant="secondary" onClick={() => setDrawerOpen(true)}>
             {t("overlays.openDrawer")}
           </Button>
+          <Button variant="secondary" onClick={() => setNavDrawerOpen(true)}>
+            {t("overlays.openNavDrawer")}
+          </Button>
           <Button variant="danger" onClick={() => setConfirmOpen(true)}>
             {t("overlays.openConfirm")}
           </Button>
@@ -263,6 +267,16 @@ export function Displays() {
         descriptionKey="designSystem.overlays.drawerDescription"
       >
         <p className="text-value text-ink-muted">{t("overlays.drawerDescription")}</p>
+      </Drawer>
+      <Drawer
+        side="start"
+        size="sm"
+        open={navDrawerOpen}
+        onOpenChange={setNavDrawerOpen}
+        title={t("overlays.openNavDrawer")}
+        descriptionKey="designSystem.overlays.navDrawerDescription"
+      >
+        <p className="text-value text-ink-muted">{t("overlays.navDrawerDescription")}</p>
       </Drawer>
 
       <ConfirmDialog

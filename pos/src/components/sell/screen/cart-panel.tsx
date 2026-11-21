@@ -69,7 +69,7 @@ export function CartPanel({
             type="button"
             onClick={() => setConfirmingClear(true)}
             data-test-selector="pos-cart-clear"
-            className="hit-area shrink-0 cursor-pointer rounded-control px-1 text-label text-primary-600 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+            className="hit-area shrink-0 cursor-pointer rounded-control px-1 text-label text-primary-600 transition-colors hover:text-primary-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
           >
             {t("screen.clear")}
           </button>

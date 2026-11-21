@@ -11,8 +11,8 @@ export interface ContactLinkProps extends TestIdProps {
 }
 
 const LINK_CLASS = cn(
-  "text-primary-600 underline-offset-2 transition-colors duration-150",
-  "hover:text-primary-700 hover:underline",
+  "text-primary-600 transition-colors duration-150",
+  "hover:text-primary-700",
   "relative inline-block",
   "after:absolute after:inset-x-0 after:top-1/2 after:h-(--control-h) after:-translate-y-1/2 after:content-[''] lg:after:hidden",
 );

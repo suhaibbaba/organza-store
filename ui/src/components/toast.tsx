@@ -204,7 +204,7 @@ export function ToastProvider({ children }: { children: ReactNode }): JSX.Elemen
                   className={cn(
                     "mt-1 inline-flex min-h-(--control-h-sm) cursor-pointer items-center",
                     "text-label font-medium text-primary-700",
-                    "underline-offset-4 hover:underline",
+                    "transition-colors hover:text-primary-900",
                   )}
                 >
                   {t(message.action.labelKey)}

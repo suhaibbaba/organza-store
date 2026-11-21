@@ -142,14 +142,14 @@ export function Table<TRow>({
               const body = (
                 <>
                   {primary && (
-                    <div className="mb-3 flex items-center justify-between gap-3">
-                      <p
+                    <div className={cn("flex items-center justify-between gap-3", shown.length > 0 && "mb-3")}>
+                      <div
                         data-part="table-card-title"
                         {...testid(rowId(row), "title")}
                         className="min-w-0 flex-1 text-value font-medium text-ink"
                       >
                         {primary.render(row)}
-                      </p>
+                      </div>
                       {actionsInTitle && rowActions !== null && (
                         <div
                           data-part="table-row-actions"

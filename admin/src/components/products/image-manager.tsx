@@ -126,7 +126,7 @@ export function ImageManager({ slots, onChange, canDelete, isBusy = false, empty
               <label
                 data-test-selector="image-add-tile"
                 className={cn(
-                  "flex aspect-[2/3] cursor-pointer flex-col items-center justify-center gap-1.5 rounded-control border-2 border-dashed border-primary-300 bg-primary-50 px-2 text-center text-label text-primary-600 transition-colors hover:border-primary-600 hover:bg-primary-100",
+                  "flex aspect-square cursor-pointer flex-col items-center justify-center gap-1.5 rounded-control border-2 border-dashed border-primary-300 bg-primary-50 px-2 text-center text-label text-primary-600 transition-colors hover:border-primary-600 hover:bg-primary-100",
                   isBusy && "pointer-events-none opacity-50"
                 )}
               >

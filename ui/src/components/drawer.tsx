@@ -15,6 +15,10 @@ export interface DrawerProps extends TestIdProps {
   descriptionKey: string;
   children: ReactNode;
   footer?: ReactNode | undefined;
+  // "start" for navigation opened from a start-side ☰ (the right edge in Arabic); content panels stay "end".
+  side?: "start" | "end" | undefined;
+  // "sm" leaves the page visible beside a navigation drawer.
+  size?: "sm" | "md" | undefined;
 }
 
 export function Drawer({
@@ -24,6 +28,8 @@ export function Drawer({
   descriptionKey,
   children,
   footer,
+  side = "end",
+  size = "md",
   "data-testid": testId,
 }: DrawerProps): JSX.Element {
   const { t } = useTranslation();
@@ -52,10 +58,19 @@ export function Drawer({
           tabIndex={-1}
           dir={documentDirection()}
           className={cn(
-            "fixed inset-y-0 end-0 z-50 flex w-full max-w-md flex-col bg-surface shadow-float",
-            "border-s border-line",
-            "data-[state=open]:animate-[drawer-end-in_220ms_cubic-bezier(0.32,0.72,0,1)]",
-            "data-[state=closed]:animate-[drawer-end-out_180ms_ease-in]",
+            "fixed inset-y-0 z-50 flex w-full flex-col border-line bg-surface shadow-float",
+            size === "sm" ? "max-w-xs" : "max-w-md",
+            side === "start"
+              ? [
+                  "start-0 border-e",
+                  "data-[state=open]:animate-[drawer-in_220ms_cubic-bezier(0.32,0.72,0,1)]",
+                  "data-[state=closed]:animate-[drawer-out_180ms_ease-in]",
+                ]
+              : [
+                  "end-0 border-s",
+                  "data-[state=open]:animate-[drawer-end-in_220ms_cubic-bezier(0.32,0.72,0,1)]",
+                  "data-[state=closed]:animate-[drawer-end-out_180ms_ease-in]",
+                ],
           )}
         >
           <div

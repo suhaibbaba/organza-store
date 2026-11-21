@@ -50,7 +50,7 @@ export function SortableImageThumb({
       style={style}
       data-test-selector={`image-thumb-${id}`}
       className={cn(
-        "group relative aspect-[2/3] touch-none overflow-hidden rounded-control border bg-inset",
+        "group relative aspect-square touch-none overflow-hidden rounded-control border bg-inset",
         isPrimary ? "border-primary-600 ring-2 ring-primary-600/25" : "border-line",
         isDragging && "z-10 opacity-60 shadow-float"
       )}
@@ -58,7 +58,7 @@ export function SortableImageThumb({
       {isNew ? (
         <div className="size-full bg-contain bg-center bg-no-repeat" style={{ backgroundImage: `url(${thumbnailUrl})` }} />
       ) : (
-        <ProductImage src={thumbnailUrl} alt="" className="size-full" sizes={IMAGE_GRID_THUMB_SIZES} />
+        <ProductImage src={thumbnailUrl} alt="" fit="contain" className="size-full" sizes={IMAGE_GRID_THUMB_SIZES} />
       )}
 
       {isPrimary && (

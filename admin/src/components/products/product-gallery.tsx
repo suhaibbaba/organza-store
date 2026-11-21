@@ -17,13 +17,12 @@ export function ProductGallery({ images, alt }: ProductGalleryProps) {
 
   return (
     <div className="flex w-full max-w-sm flex-col gap-2">
-      {/* Row height is reserved so the price and Edit button don't jump when a photo of unknown size arrives. */}
-      <div className="flex h-[min(16rem,45vh)] items-center justify-center md:h-[min(18rem,45vh)]">
+      <div className="aspect-square w-full overflow-hidden rounded-panel bg-inset">
         <ProductImage
           src={active?.url}
           alt={alt}
-          fit="natural"
-          className="max-h-full"
+          fit="contain"
+          className="size-full"
           sizes={PRODUCT_DETAIL_IMAGE_SIZES}
           eager
         />

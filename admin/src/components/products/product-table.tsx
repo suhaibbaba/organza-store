@@ -34,19 +34,22 @@ export function ProductTable({ products, currency }: ProductTableProps) {
         render: (product) => {
           const name = localize(product.name, locale);
           return (
-            <Link href={`/products/${product.id}`} className="block hover:underline">
-              <div className="flex items-center gap-3">
+            <div className="flex min-w-0 flex-wrap items-start gap-x-3 gap-y-1">
+              <Link
+                href={`/products/${product.id}`}
+                className="group inline-flex min-w-0 max-w-full items-start gap-3 rounded-control focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+              >
                 <ProductImage
                   src={product.image?.thumbnailUrl}
                   alt={name}
                   className="size-11 shrink-0 rounded-chip"
                   sizes="44px"
                 />
-                <span className="truncate font-medium text-ink">{name}</span>
-                {product.needsCompleting && <IncompleteBadge />}
-                {product.isNumbered && <NumberedBadge count={product.numberCount} />}
-              </div>
-            </Link>
+                <span className="min-w-0 font-medium text-ink transition-colors group-hover:text-primary-700">{name}</span>
+              </Link>
+              {product.needsCompleting && <IncompleteBadge />}
+              {product.isNumbered && <NumberedBadge count={product.numberCount} />}
+            </div>
           );
         },
       },

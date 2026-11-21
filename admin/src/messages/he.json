@@ -61,9 +61,15 @@
     "reports": "דוחות",
     "users": "משתמשים",
     "settings": "הגדרות",
-    "more": "עוד",
     "changeRequests": "אישורים",
-    "permissions": "הרשאות"
+    "permissions": "הרשאות",
+    "menu": "תפריט",
+    "openMenu": "פתיחת התפריט",
+    "groups": {
+      "sales": "מכירות",
+      "catalogue": "קטלוג",
+      "manage": "ניהול"
+    }
   },
   "auth": {
     "login": {
@@ -967,16 +973,21 @@
       "category": "קטגוריה",
       "allCategories": "כל הקטגוריות",
       "lowStockOnly": "הצג מלאי נמוך בלבד",
-      "lowStockCount": "{count} פריטים דורשים חידוש מלאי"
+      "lowStockCount": "{count} פריטים דורשים חידוש מלאי",
+      "trigger": "סינון",
+      "title": "סינון המלאי",
+      "reset": "ניקוי הסינון",
+      "apply": "הצגת התוצאות",
+      "lowStockHint": "רק פריטים בסף המלאי הנמוך או מתחתיו.",
+      "chipCategory": "קטגוריה: {name}",
+      "removeFilter": "הסרת סינון: {name}",
+      "chipLowStock": "מלאי נמוך"
     },
     "card": {
-      "noSku": "אין מק\"ט",
-      "stockLabel": "מלאי",
-      "outsideFilter": "כבר לא תואם את הסינון הנוכחי"
+      "stockLabel": "מלאי"
     },
     "table": {
       "item": "פריט",
-      "sku": "מק\"ט",
       "status": "סטטוס",
       "stock": "מלאי"
     },
@@ -984,14 +995,7 @@
       "decrease": "הפחתת כמות",
       "increase": "הוספת כמות",
       "edit": "עריכת כמות",
-      "quantity": "כמות",
-      "save": "שמירה",
-      "cancel": "ביטול",
-      "saved": "נשמר",
-      "unsaved": "טרם נשמר",
-      "saving": "שומר…",
-      "savedValue": "נשמר: {count}",
-      "revertedTo": "הוחזר ל-{count}."
+      "quantity": "כמות"
     },
     "empty": {
       "noItemsTitle": "אין עדיין מלאי",
@@ -999,13 +1003,10 @@
       "noMatchesTitle": "לא נמצאו פריטים תואמים",
       "noMatchesDescription": "נסה/י חיפוש אחר או נקה/י את הסינון."
     },
-    "pagination": {
-      "previous": "הקודם",
-      "next": "הבא",
-      "pageOf": "עמוד {page} מתוך {totalPages}"
-    },
-    "outsideFilterNotice": "{count, plural, one {פריט אחד כבר לא תואם את הסינון — נשאר כאן כדי שלא ייעלם תוך כדי עבודה} two {{count, number, plain} פריטים כבר לא תואמים את הסינון — נשארו כאן כדי שלא ייעלמו תוך כדי עבודה} other {{count, number, plain} פריטים כבר לא תואמים את הסינון — נשארו כאן כדי שלא ייעלמו תוך כדי עבודה}}",
-    "refreshList": "רענון הרשימה"
+    "save": {
+      "changed": "{count, plural, one {כמות אחת שונתה} other {{count} כמויות שונו}}",
+      "failed": "{count, plural, one {כמות אחת לא נשמרה ונשארה כאן לניסיון נוסף.} other {{count} כמויות לא נשמרו ונשארו כאן לניסיון נוסף.}}"
+    }
   },
   "labels": {
     "title": "מדבקות ברקוד",
@@ -1794,7 +1795,9 @@
       "edit": "עריכה",
       "duplicate": "שכפול",
       "delete": "מחיקה",
-      "close": "סגירה"
+      "close": "סגירה",
+      "openNavDrawer": "פתיחת תפריט צד",
+      "navDrawerDescription": "ניווט: צר, מתחילת השורה."
     },
     "table": {
       "product": "מוצר",
@@ -1805,6 +1808,9 @@
       "rowB": "עבאיה פשתן",
       "rowC": "חיג׳אב כותנה",
       "empty": "אין מוצרים תואמים"
+    },
+    "chips": {
+      "remove": "הסרת {name}"
     }
   }
 }
