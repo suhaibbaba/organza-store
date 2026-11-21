@@ -1,15 +1,13 @@
 "use client";
 
 import { useLocale, useTranslations } from "next-intl";
-import { Plus, Search, X } from "lucide-react";
+import { Plus } from "lucide-react";
+import { Alert, Input, Spinner } from "@store/ui";
 import type { ProductSummary } from "@organza/shared/types/product";
 import { testSelectorFor } from "@organza/shared/lib/testSelector";
 import { localize } from "@/lib/i18n-content";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
 import { useProductSearch } from "@/hooks/use-product-search";
-import { Input } from "@/components/ui/input";
-import { Alert } from "@/components/ui/alert";
-import { Spinner } from "@/components/ui/spinner";
 import { ProductImage } from "@/components/products/product-image";
 
 interface ProductPickerProps {
@@ -20,9 +18,7 @@ interface ProductPickerProps {
   onSelect: (product: ProductSummary) => void;
 }
 
-// Finding what the customer asked for. Same cross-language, typo-tolerant
-// search the catalogue uses (CLAUDE.md rule 10), rendered as big rows: a
-// whole row is the tap target, never a small link inside one.
+// The catalogue's cross-language, typo-tolerant search (rule 10); a whole row is the tap target.
 export function ProductPicker({ query, onQueryChange, pendingId, onSelect }: ProductPickerProps) {
   const t = useTranslations("orders.new.search");
   const locale = useLocale();
@@ -34,44 +30,34 @@ export function ProductPicker({ query, onQueryChange, pendingId, onSelect }: Pro
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="relative">
-        <Search
-          className="pointer-events-none absolute start-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
-          aria-hidden="true"
-        />
-        <Input
-          type="search"
-          value={query}
-          onChange={(event) => onQueryChange(event.target.value)}
-          placeholder={t("placeholder")}
-          aria-label={t("label")}
-          autoComplete="off"
-          enterKeyHint="search"
-          className="ps-11 pe-11"
-        />
-        {query && (
-          <button
-            type="button"
-            onClick={() => onQueryChange("")}
-            aria-label={t("clear")}
-            className="absolute end-2 top-1/2 flex size-8 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-          >
-            <X className="size-4" aria-hidden="true" />
-          </button>
-        )}
-      </div>
+      <Input
+        type="search"
+        adornment="search"
+        value={query}
+        onChange={(event) => onQueryChange(event.target.value)}
+        onClear={() => onQueryChange("")}
+        clearLabel={t("clear")}
+        placeholder={t("placeholder")}
+        aria-label={t("label")}
+        autoComplete="off"
+        enterKeyHint="search"
+      />
 
-      {search.isError && <Alert variant="destructive">{t("error")}</Alert>}
+      {search.isError && (
+        <Alert tone="danger" data-testid="alert-destructive">
+          {t("error")}
+        </Alert>
+      )}
 
       {isLoading && (
-        <p className="flex items-center justify-center gap-2 py-6 text-sm text-muted-foreground">
+        <p className="flex items-center justify-center gap-2 py-6 text-label text-ink-muted">
           <Spinner />
           {t("searching")}
         </p>
       )}
 
       {search.isActive && !isLoading && products.length === 0 && (
-        <p className="py-6 text-center text-sm text-muted-foreground">{t("empty")}</p>
+        <p className="py-6 text-center text-label text-ink-muted">{t("empty")}</p>
       )}
 
       {!isLoading && products.length > 0 && (
@@ -87,30 +73,30 @@ export function ProductPicker({ query, onQueryChange, pendingId, onSelect }: Pro
                   type="button"
                   disabled={soldOut || pendingId !== null}
                   onClick={() => onSelect(product)}
-                  className="flex w-full items-center gap-3 rounded-xl border border-border bg-card p-3 text-start transition-colors not-disabled:hover:bg-accent/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-60"
+                  className="flex w-full cursor-pointer items-center gap-3 rounded-panel border border-line bg-surface p-3 text-start transition-colors not-disabled:hover:bg-row-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   <ProductImage
                     src={product.image?.thumbnailUrl}
                     alt={name}
-                    className="size-14 shrink-0 rounded-lg"
+                    className="size-14 shrink-0 rounded-control"
                     sizes="56px"
                   />
 
                   <span className="flex min-w-0 flex-1 flex-col gap-1">
-                    <span className="truncate text-sm font-medium">{name}</span>
-                    <span className="flex flex-wrap items-center gap-x-2 text-xs text-muted-foreground">
-                      <span className="font-semibold text-foreground">{formatMoney(product.basePrice)}</span>
+                    <span className="truncate text-label font-medium text-ink">{name}</span>
+                    <span className="flex flex-wrap items-center gap-x-2 text-micro text-ink-muted">
+                      <span className="font-semibold text-ink">{formatMoney(product.basePrice)}</span>
                       {product.hasVariants && <span>· {t("variantCount", { count: product.variantCount })}</span>}
-                      <span className={soldOut ? "text-destructive" : undefined}>
+                      <span className={soldOut ? "text-danger-600" : undefined}>
                         · {soldOut ? t("soldOut") : t("inStock", { count: product.stock })}
                       </span>
                     </span>
                   </span>
 
                   {pendingId === product.id ? (
-                    <Spinner className="text-muted-foreground" />
+                    <Spinner />
                   ) : (
-                    <Plus className="size-5 shrink-0 text-muted-foreground" aria-hidden="true" />
+                    <Plus className="size-5 shrink-0 text-ink-muted" aria-hidden="true" />
                   )}
                 </button>
               </li>

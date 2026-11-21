@@ -1,11 +1,14 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useLocale, useTranslations } from "next-intl";
+import { Alert, Button, Drawer, FormField, Input, SegmentedControl, Select } from "@store/ui";
 import { SUPPORTED_LANGUAGES, DEFAULT_LANGUAGE } from "@organza/shared/constants/languages";
 import type { CategoryNode } from "@organza/shared/types/category";
+import type { SupportedLanguage } from "@organza/shared/types/language";
+import { fieldErrorTestSelector, fieldTestSelector } from "@organza/shared/lib/testSelector";
 import { useTranslateError } from "@/hooks/use-translate-error";
 import { useCreateCategoryMutation, useUpdateCategoryMutation } from "@/hooks/use-categories";
 import { flattenCategoryTree } from "@/lib/api/categories";
@@ -19,16 +22,9 @@ import {
   toUpdatePayload,
   type CategoryFormValues,
 } from "@/lib/validation/category-form";
-import { FieldError } from "@/components/ui/field-error";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select } from "@/components/ui/select";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { Alert } from "@/components/ui/alert";
-import { Spinner } from "@/components/ui/spinner";
 import { ApiError } from "@/lib/api/errors";
+
+const FORM_ID = "category-form";
 
 interface CategoryFormSheetProps {
   open: boolean;
@@ -38,17 +34,14 @@ interface CategoryFormSheetProps {
   tree: CategoryNode[];
 }
 
-// A category can't become its own parent, nor the parent of any of its
-// current descendants (that would create a cycle the backend also rejects —
-// see wouldCreateCycle in backend/src/routes/categories.ts) — excluded here
-// so the picker never offers a choice that's guaranteed to fail.
+// A category's own subtree is never offered as its parent: the backend rejects the cycle (wouldCreateCycle).
 function collectSubtreeIds(node: CategoryNode): string[] {
   return [node.id, ...node.children.flatMap(collectSubtreeIds)];
 }
 
 export function CategoryFormSheet({ open, onOpenChange, mode, category, tree }: CategoryFormSheetProps) {
   const t = useTranslations("categories.form");
-  const tCommon = useTranslations("common");
+  const [nameLanguage, setNameLanguage] = useState<SupportedLanguage>(DEFAULT_LANGUAGE);
   const locale = useLocale();
   const translateError = useTranslateError();
 
@@ -72,9 +65,7 @@ export function CategoryFormSheet({ open, onOpenChange, mode, category, tree }: 
     defaultValues: DEFAULT_CATEGORY_FORM_VALUES,
   });
 
-  // Sheets stay mounted while closed (for the exit animation), so the form
-  // must be re-synced with the target category each time it opens rather
-  // than only once on mount.
+  // The drawer stays mounted while closed, so the form re-syncs with its target on every open.
   useEffect(() => {
     if (open) reset(mode === "edit" && category ? categoryToFormValues(category) : DEFAULT_CATEGORY_FORM_VALUES);
   }, [open, mode, category, reset]);
@@ -97,74 +88,72 @@ export function CategoryFormSheet({ open, onOpenChange, mode, category, tree }: 
   }
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent name="category-form" side="end" closeLabel={tCommon("close")}>
-        <SheetHeader>
-          <SheetTitle>{t(mode === "create" ? "createTitle" : "editTitle")}</SheetTitle>
-        </SheetHeader>
-
-        <form onSubmit={handleSubmit(onSubmit)} noValidate className="flex flex-1 flex-col gap-4 overflow-y-auto px-5 pb-5">
-          <div className="flex flex-col gap-2">
-            <Label>{t("name")}</Label>
-            <Tabs defaultValue={DEFAULT_LANGUAGE}>
-              <TabsList>
-                {SUPPORTED_LANGUAGES.map((lang) => (
-                  <TabsTrigger key={lang} value={lang}>
-                    {LOCALE_LABELS[lang]}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-              {SUPPORTED_LANGUAGES.map((lang) => (
-                <TabsContent key={lang} value={lang}>
-                  <Input
-                    aria-label={`${t("name")} — ${LOCALE_LABELS[lang]}`}
-                    placeholder={lang === DEFAULT_LANGUAGE ? t("required") : t("optional")}
-                    aria-invalid={lang === DEFAULT_LANGUAGE && !!errors.name?.ar}
-                    {...register(`name.${lang}` as "name.ar")}
-                  />
-                </TabsContent>
-              ))}
-            </Tabs>
-            {errors.name?.ar && <FieldError field="name">{translateError(errors.name.ar.message ?? "")}</FieldError>}
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="parentId">{t("parent")}</Label>
-            <Controller
-              control={control}
-              name="parentId"
-              render={({ field }) => (
-                <Select id="parentId" value={field.value} onChange={field.onChange}>
-                  <option value="">{t("noParent")}</option>
-                  {parentOptions.map((option) => (
-                    <option key={option.id} value={option.id}>
-                      {"  ".repeat(option.depth)}
-                      {localize(option.name, locale)}
-                    </option>
-                  ))}
-                </Select>
-              )}
+    <Drawer
+      open={open}
+      onOpenChange={onOpenChange}
+      data-testid="sheet-category-form"
+      title={t(mode === "create" ? "createTitle" : "editTitle")}
+      descriptionKey="categories.subtitle"
+      footer={
+        <Button type="submit" form={FORM_ID} data-test-selector="category-save" isLoading={mutation.isPending}>
+          {mutation.isPending
+            ? t(mode === "create" ? "creating" : "saving")
+            : t(mode === "create" ? "create" : "save")}
+        </Button>
+      }
+    >
+      <form id={FORM_ID} onSubmit={handleSubmit(onSubmit)} noValidate className="flex flex-col gap-4">
+        <FormField label="categories.form.name" htmlFor={`name-${nameLanguage}`}>
+          <SegmentedControl
+            data-testid="tab"
+            label={t("name")}
+            options={SUPPORTED_LANGUAGES.map((lang) => ({ value: lang, label: LOCALE_LABELS[lang] }))}
+            value={nameLanguage}
+            onChange={setNameLanguage}
+          />
+          <div data-test-selector={`tab-panel-${nameLanguage}`}>
+            <Input
+              key={nameLanguage}
+              id={`name-${nameLanguage}`}
+              aria-label={`${t("name")} — ${LOCALE_LABELS[nameLanguage]}`}
+              placeholder={nameLanguage === DEFAULT_LANGUAGE ? t("required") : t("optional")}
+              hasError={nameLanguage === DEFAULT_LANGUAGE && !!errors.name?.ar}
+              {...register(`name.${nameLanguage}` as "name.ar")}
             />
           </div>
-
-          {mutation.isError && (
-            <Alert variant="destructive">
-              {translateError(mutation.error instanceof ApiError ? mutation.error.code : "error.internal")}
-            </Alert>
+          {errors.name?.ar && (
+            <p className="text-meta text-danger-600" role="alert" data-test-selector={fieldErrorTestSelector("name")}>
+              {translateError(errors.name.ar.message ?? "")}
+            </p>
           )}
+        </FormField>
 
-          <Button type="submit" data-test-selector="category-save" disabled={mutation.isPending} className="mt-auto w-full">
-            {mutation.isPending ? (
-              <>
-                <Spinner />
-                {t(mode === "create" ? "creating" : "saving")}
-              </>
-            ) : (
-              t(mode === "create" ? "create" : "save")
+        <FormField label="categories.form.parent" htmlFor="parentId">
+          <Controller
+            control={control}
+            name="parentId"
+            render={({ field }) => (
+              <Select
+                id="parentId"
+                data-testid={fieldTestSelector("parentId")}
+                placeholder={t("noParent")}
+                options={parentOptions.map((option) => ({
+                  value: option.id,
+                  label: `${"\u00a0\u00a0".repeat(option.depth)}${localize(option.name, locale)}`,
+                }))}
+                value={field.value}
+                onChange={(e) => field.onChange(e.target.value)}
+              />
             )}
-          </Button>
-        </form>
-      </SheetContent>
-    </Sheet>
+          />
+        </FormField>
+
+        {mutation.isError && (
+          <Alert tone="danger" data-testid="alert-destructive">
+            {translateError(mutation.error instanceof ApiError ? mutation.error.code : "error.internal")}
+          </Alert>
+        )}
+      </form>
+    </Drawer>
   );
 }

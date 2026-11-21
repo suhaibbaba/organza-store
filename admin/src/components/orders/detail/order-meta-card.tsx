@@ -2,11 +2,9 @@ import { useLocale, useTranslations } from "next-intl";
 import type { Order } from "@organza/shared/types/order";
 import { formatDateTime } from "@/lib/format";
 import { useActorName } from "@/lib/user-display";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@store/ui";
 
-// Who took the order and when things happened to it. `stockDeductedAt` is
-// shown as its own line because it answers the question staff actually ask —
-// "has this been taken off the shelf yet?" — which the status alone doesn't.
+// `stockDeductedAt` gets its own line: "has this left the shelf yet?" is what staff ask, and the status alone doesn't say.
 export function OrderMetaCard({ order }: { order: Order }) {
   const t = useTranslations("orders.detail.meta");
   const locale = useLocale();
@@ -24,15 +22,13 @@ export function OrderMetaCard({ order }: { order: Order }) {
   ];
 
   return (
-    <Card>
-      <CardContent className="flex flex-col gap-2 p-5 text-sm">
+    <Card className="flex flex-col gap-2 text-label">
         {rows.map((row) => (
           <div key={row.key} className="flex items-start justify-between gap-3">
-            <span className="shrink-0 text-muted-foreground">{row.label}</span>
-            <span className="text-end text-foreground">{row.value}</span>
+            <span className="shrink-0 text-ink-muted">{row.label}</span>
+            <span className="text-end text-ink">{row.value}</span>
           </div>
         ))}
-      </CardContent>
     </Card>
   );
 }

@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { flexRender, getCoreRowModel, useReactTable, type ColumnDef } from "@tanstack/react-table";
+import { Table, type Column } from "@store/ui";
 import type { ProductSummary } from "@organza/shared/types/product";
 import { Link } from "@/i18n/navigation";
 import { localize } from "@/lib/i18n-content";
@@ -11,7 +11,6 @@ import { ProductImage } from "@/components/products/product-image";
 import { StatusBadge } from "@/components/products/status-badge";
 import { NumberedBadge } from "@/components/products/numbered-badge";
 import { IncompleteBadge } from "@/components/products/incomplete-badge";
-import { testSelectorFor } from "@organza/shared/lib/testSelector";
 import { cn } from "@/lib/utils";
 
 interface ProductTableProps {
@@ -19,98 +18,71 @@ interface ProductTableProps {
   currency: string;
 }
 
+// Rows are named `products-row-<id>` by the Table itself (its data-testid + "-row-" + rowKey).
+const TABLE_NAME = "products";
+
 export function ProductTable({ products, currency }: ProductTableProps) {
   const locale = useLocale();
   const t = useTranslations("products");
-  const tTable = useTranslations("products.table");
 
-  const columns = useMemo<ColumnDef<ProductSummary>[]>(
+  const columns = useMemo<Column<ProductSummary>[]>(
     () => [
       {
-        id: "product",
-        header: tTable("product"),
-        cell: ({ row }) => {
-          const product = row.original;
+        key: "product",
+        header: "products.table.product",
+        primary: true,
+        render: (product) => {
           const name = localize(product.name, locale);
           return (
-            <div className="flex items-center gap-3">
-              <ProductImage src={product.image?.thumbnailUrl} alt={name} className="size-11 shrink-0 rounded-md" sizes="44px" />
-              <span className="truncate font-medium text-foreground">{name}</span>
-              {product.needsCompleting && <IncompleteBadge />}
-              {product.isNumbered && <NumberedBadge count={product.numberCount} />}
-            </div>
+            <Link href={`/products/${product.id}`} className="block hover:underline">
+              <div className="flex items-center gap-3">
+                <ProductImage
+                  src={product.image?.thumbnailUrl}
+                  alt={name}
+                  className="size-11 shrink-0 rounded-chip"
+                  sizes="44px"
+                />
+                <span className="truncate font-medium text-ink">{name}</span>
+                {product.needsCompleting && <IncompleteBadge />}
+                {product.isNumbered && <NumberedBadge count={product.numberCount} />}
+              </div>
+            </Link>
           );
         },
       },
       {
-        id: "sku",
-        header: tTable("sku"),
-        cell: ({ row }) => (
-          <span className="text-muted-foreground">{row.original.sku ?? t("card.multipleSkus")}</span>
+        key: "sku",
+        header: "products.table.sku",
+        render: (product) => <span className="text-ink-muted">{product.sku ?? t("card.multipleSkus")}</span>,
+      },
+      {
+        key: "price",
+        header: "products.table.price",
+        align: "numeric",
+        render: (product) => formatMoney(product.basePrice, currency, locale),
+      },
+      {
+        key: "stock",
+        header: "products.table.stock",
+        align: "numeric",
+        render: (product) => (
+          <span className={cn("font-medium", product.stock <= 0 ? "text-danger-600" : "text-ink")}>
+            {product.stock}
+          </span>
         ),
       },
       {
-        id: "price",
-        header: tTable("price"),
-        cell: ({ row }) => formatMoney(row.original.basePrice, currency, locale),
-      },
-      {
-        id: "stock",
-        header: tTable("stock"),
-        cell: ({ row }) => {
-          const stock = row.original.stock;
-          return (
-            <span className={cn("font-medium", stock <= 0 ? "text-destructive" : "text-foreground")}>{stock}</span>
-          );
-        },
-      },
-      {
-        id: "status",
-        header: tTable("status"),
-        cell: ({ row }) => <StatusBadge isActive={row.original.isActive} />,
+        key: "status",
+        header: "products.table.status",
+        render: (product) => <StatusBadge isActive={product.isActive} />,
       },
     ],
-    [locale, currency, t, tTable]
+    [locale, currency, t]
   );
 
-  const table = useReactTable({ data: products, columns, getCoreRowModel: getCoreRowModel() });
-
   return (
-    <div className="overflow-hidden rounded-xl border border-border" data-test-selector="products-table">
-      <table className="w-full text-sm">
-        <thead className="bg-secondary text-secondary-foreground">
-          {table.getHeaderGroups().map((headerGroup) => (
-            <tr key={headerGroup.id}>
-              {headerGroup.headers.map((header) => (
-                <th key={header.id} className="px-4 py-3 text-start font-medium">
-                  {flexRender(header.column.columnDef.header, header.getContext())}
-                </th>
-              ))}
-            </tr>
-          ))}
-        </thead>
-        <tbody>
-          {table.getRowModel().rows.map((row) => (
-            <tr
-              key={row.id}
-              className="border-t border-border"
-              data-test-selector={testSelectorFor("products-row", row.original.id)}
-            >
-              {row.getVisibleCells().map((cell) => (
-                <td key={cell.id} className="px-4 py-3">
-                  {cell.column.id === "product" ? (
-                    <Link href={`/products/${row.original.id}`} className="block hover:underline">
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </Link>
-                  ) : (
-                    flexRender(cell.column.columnDef.cell, cell.getContext())
-                  )}
-                </td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <div data-test-selector="products-table">
+      <Table data-testid={TABLE_NAME} columns={columns} rows={products} rowKey={(product) => product.id} />
     </div>
   );
 }

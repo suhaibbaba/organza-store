@@ -4,18 +4,7 @@ import { GIFT_ORDER_TYPE } from "@organza/shared/constants/order";
 import type { OrderType } from "@organza/shared/types/order";
 import { cn } from "@/lib/utils";
 
-// What the order IS, as opposed to where it came from (spec.md "Gifts"): a
-// SALE is money in, a GIFT is stock that walked out for nothing.
-//
-// Only a gift is badged. Almost every row in this list is a sale, so a badge
-// saying so would be on every row and read as decoration — and the row's own
-// total already says a sale took money. What has to stand out is the order
-// that took none, so the badge appears exactly where the figures need
-// explaining: a 0.00 total that is not a mistake.
-//
-// The violet is the POS's gift colour (globals.css), so the badge here is the
-// colour of the button that created the order. Icon as well as colour, and
-// the word as well as the icon — the same rule the channel badge follows.
+// Only a gift is badged (spec.md "Gifts"): it explains a 0.00 total that is not a mistake.
 export function OrderTypeBadge({ type, className }: { type: OrderType; className?: string }) {
   const t = useTranslations("orders.type");
 
@@ -24,7 +13,7 @@ export function OrderTypeBadge({ type, className }: { type: OrderType; className
   return (
     <span
       className={cn(
-        "inline-flex h-6 shrink-0 items-center gap-1 rounded-full bg-gift/10 px-2.5 text-xs font-medium text-gift",
+        "inline-flex h-6 shrink-0 items-center gap-1 rounded-pill bg-tint-5-bg px-2.5 text-micro font-medium text-tint-5-ink",
         className
       )}
     >

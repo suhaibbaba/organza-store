@@ -12,11 +12,11 @@ export default function NewProductPage() {
 
   return (
     <PageContainer>
-      {/* Above the header, not inside it: this is the way out of the screen,
-          not one of its actions. */}
+      {/* Above the header: the way out of the screen, not one of its actions. */}
       <Link
         href="/products"
-        className="mb-4 inline-flex w-fit items-center gap-1 text-sm text-muted-foreground"
+        data-test-selector="back-link"
+        className="mb-4 inline-flex w-fit items-center gap-1 text-label text-ink-muted transition-colors hover:text-primary-700"
       >
         <ChevronLeft className="size-4 rtl:-scale-x-100" aria-hidden="true" />
         {t("back")}

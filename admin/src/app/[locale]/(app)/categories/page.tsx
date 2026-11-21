@@ -12,10 +12,9 @@ import {
   useToggleCategoryFavoriteMutation,
 } from "@/hooks/use-categories";
 import { useTranslateError } from "@/hooks/use-translate-error";
-import { Button } from "@/components/ui/button";
+import { Alert, Button } from "@store/ui";
 import { PageContainer } from "@/components/layout/page-container";
 import { PageHeader } from "@/components/layout/page-header";
-import { Alert } from "@/components/ui/alert";
 import { CategoryTree } from "@/components/categories/category-tree";
 import { CategoryFormSheet } from "@/components/categories/category-form-sheet";
 import { CategoryListEmpty, CategoryListError, CategoryListLoading } from "@/components/categories/category-list-states";
@@ -65,10 +64,7 @@ export default function CategoriesPage() {
     }
   }
 
-  // Pinning a shelf to the front of the POS browser is a save like any
-  // other, so a refused one is said out loud in the same place a refused
-  // delete is — silently leaving the star where it was is how somebody ends
-  // up believing every till has been re-ordered when nothing has.
+  // A refused favourite toggle is said out loud, like a refused delete.
   async function toggleFavorite(node: CategoryNode) {
     setActionError(null);
     try {
@@ -98,15 +94,16 @@ export default function CategoriesPage() {
       />
 
       <div className="flex flex-col gap-4">
-        {/* The star on each row is the only control on this screen whose
-            effect is somewhere else entirely, so the screen says where. It
-            sits under the header rather than inside it: PageHeader carries
-            one description, and this is a second, conditional sentence. */}
-        {canManage && <p className="text-sm text-muted-foreground">{t("favoritesHint")}</p>}
+        {/* The star's effect is in the POS, so the screen says where. */}
+        {canManage && <p className="text-label text-ink-muted">{t("favoritesHint")}</p>}
 
-        {!canManage && <p className="text-sm text-muted-foreground">{t("readOnlyHint")}</p>}
+        {!canManage && <p className="text-label text-ink-muted">{t("readOnlyHint")}</p>}
 
-        {actionError && <Alert variant="destructive">{actionError}</Alert>}
+        {actionError && (
+          <Alert tone="danger" data-testid="alert-destructive">
+            {actionError}
+          </Alert>
+        )}
 
         {isLoading ? (
           <CategoryListLoading />

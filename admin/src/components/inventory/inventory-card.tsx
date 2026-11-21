@@ -25,41 +25,36 @@ export function InventoryCard({ row, threshold, canAdjust, onStockChange }: Inve
   const { item, stock } = row;
   const productName = localize(item.productName, locale);
   const variantName = item.variantName ? localize(item.variantName, locale) : null;
-  // Read from the row's effective quantity, not the server's: the badge and
-  // its colour move with the +/- presses instead of waiting for a round trip.
+  // The row's effective quantity, so the badge moves with +/- presses before the round trip.
   const status = resolveStockStatus({ stock, trackLowStock: item.trackLowStock, threshold });
 
   return (
     <div
-      className="relative flex flex-col gap-2 rounded-xl border border-border bg-card p-3 transition-colors has-[a:active]:bg-accent"
+      className="relative flex flex-col gap-2 rounded-card border border-line bg-surface p-3 shadow-card transition-colors has-[a:active]:bg-inset"
       data-test-selector={testSelectorFor("inventory-card", item.id)}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
-          {/* The link's ::after covers the whole card, so the entire card is
-              one big tap target. The stock stepper sits above it (z-10) and
-              keeps its own taps. */}
+          {/* The link's ::after makes the whole card one tap target; the stepper sits above it (z-10). */}
           <Link
             href={`/products/${item.productId}`}
-            className="block rounded-md after:absolute after:inset-0 after:rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="block rounded-control after:absolute after:inset-0 after:rounded-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
           >
             <span className="flex items-center gap-1">
-              <span className="truncate text-sm font-medium text-foreground">{productName}</span>
-              <ChevronRight className="size-4 shrink-0 text-muted-foreground rtl:-scale-x-100" aria-hidden="true" />
+              <span className="truncate text-label font-medium text-ink">{productName}</span>
+              <ChevronRight className="size-4 shrink-0 text-ink-muted rtl:-scale-x-100" aria-hidden="true" />
             </span>
-            {variantName && <span className="block truncate text-xs text-muted-foreground">{variantName}</span>}
+            {variantName && <span className="block truncate text-meta text-ink-muted">{variantName}</span>}
           </Link>
-          <p className="mt-0.5 truncate text-xs text-muted-foreground">{item.sku ?? t("noSku")}</p>
+          <p className="mt-0.5 truncate text-meta text-ink-muted">{item.sku ?? t("noSku")}</p>
         </div>
         <StockBadge stock={stock} trackLowStock={item.trackLowStock} threshold={threshold} className="shrink-0" />
       </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border pt-2">
-        <span className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-t border-line pt-2">
+        <span className="flex flex-wrap items-center gap-2 text-meta text-ink-muted">
           {t("stockLabel")}
-          {/* A quantity somebody has asked to change is spoken for, not
-              wrong — saying so here stops two people editing the same figure
-              (spec.md "Employee change approvals"). */}
+          {/* A pending request marks the figure as spoken for, so two people don't edit it (spec.md approvals). */}
           <PendingChangeBadge
             changes={item.pendingChanges}
             entityType={item.type === "variant" ? CHANGE_REQUEST_ENTITIES.VARIANT : CHANGE_REQUEST_ENTITIES.PRODUCT}
@@ -68,23 +63,17 @@ export function InventoryCard({ row, threshold, canAdjust, onStockChange }: Inve
           />
         </span>
         {canAdjust ? (
-          // Lifted above the card-wide link so +/- and the quantity field stay
-          // their own tap targets instead of navigating.
           <div className="relative z-10">
             <StockStepper item={item} stock={stock} edit={row.edit} onChange={onStockChange} />
           </div>
         ) : (
-          // The figure takes the status colour, so the number and the badge
-          // above it never disagree.
-          <span className={cn("text-base font-semibold", STOCK_FIGURE_TONES[status])}>{stock}</span>
+          <span className={cn("text-value font-semibold", STOCK_FIGURE_TONES[status])}>{stock}</span>
         )}
       </div>
 
-      {/* Held on screen on purpose: the user's own edit took it outside the
-          filter they are working under, and pulling the row away the instant
-          it saved is what made this screen impossible to work down. */}
+      {/* Kept on screen after the user's own edit moved it outside the filter, so the list can be worked down. */}
       {row.isOutsideFilter && (
-        <p className="border-t border-dashed border-border pt-2 text-xs text-muted-foreground">
+        <p className="border-t border-dashed border-line pt-2 text-meta text-ink-muted">
           {t("outsideFilter")}
         </p>
       )}

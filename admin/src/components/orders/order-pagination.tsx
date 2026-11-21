@@ -3,7 +3,7 @@
 import { useTranslations } from "next-intl";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { Pagination } from "@organza/shared/types/common";
-import { Button } from "@/components/ui/button";
+import { Button } from "@store/ui";
 
 interface OrderPaginationProps {
   meta: Pagination;
@@ -20,31 +20,30 @@ export function OrderPagination({ meta, onPageChange }: OrderPaginationProps) {
       <Button
         data-test-selector="orders-page-previous"
         type="button"
-        variant="outline"
+        variant="secondary"
         size="sm"
         disabled={meta.page <= 1}
         onClick={() => onPageChange(meta.page - 1)}
+        icon={<ChevronLeft className="size-4 rtl:-scale-x-100" aria-hidden="true" />}
       >
-        {/* The chevrons mirror with the writing direction, so "previous"
-            always points backwards in the reading order. */}
-        <ChevronLeft className="size-4 rtl:-scale-x-100" aria-hidden="true" />
         {t("previous")}
       </Button>
 
-      <span className="text-sm text-muted-foreground">
+      <span className="text-label text-ink-muted">
         {t("pageOf", { page: meta.page, totalPages: meta.totalPages })}
       </span>
 
       <Button
         data-test-selector="orders-page-next"
         type="button"
-        variant="outline"
+        variant="secondary"
         size="sm"
         disabled={meta.page >= meta.totalPages}
         onClick={() => onPageChange(meta.page + 1)}
+        iconPosition="end"
+        icon={<ChevronRight className="size-4 rtl:-scale-x-100" aria-hidden="true" />}
       >
         {t("next")}
-        <ChevronRight className="size-4 rtl:-scale-x-100" aria-hidden="true" />
       </Button>
     </div>
   );

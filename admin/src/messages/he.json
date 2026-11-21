@@ -238,7 +238,8 @@
         "hint": "רווח ÷ נמכר",
         "value": "{value, number, percent}",
         "none": "—"
-      }
+      },
+      "choose": "תקופה"
     },
     "attention": {
       "title": "דורש טיפול",

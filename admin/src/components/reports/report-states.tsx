@@ -1,18 +1,17 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { TrendingUp } from "lucide-react";
-import { Alert } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
+import { Alert, Button, EmptyState, Skeleton, SkeletonStatus } from "@store/ui";
 import { useTranslateError } from "@/hooks/use-translate-error";
 import { ApiError } from "@/lib/api/errors";
 
 export function ReportLoading() {
   return (
     <div className="flex flex-col gap-4" aria-busy="true">
-      <div className="h-40 animate-pulse rounded-xl bg-muted" />
-      <div className="h-56 animate-pulse rounded-xl bg-muted" />
-      <div className="h-56 animate-pulse rounded-xl bg-muted" />
+      <SkeletonStatus />
+      <Skeleton className="h-40 rounded-card" />
+      <Skeleton className="h-56 rounded-card" />
+      <Skeleton className="h-56 rounded-card" />
     </div>
   );
 }
@@ -23,28 +22,28 @@ export function ReportError({ error, onRetry }: { error: unknown; onRetry: () =>
   const code = error instanceof ApiError ? error.code : undefined;
 
   return (
-    <Alert variant="destructive" className="flex-col items-center gap-3 text-center" data-test-selector="reports-error">
-      <p>{code ? translateError(code) : t("retry")}</p>
-      <Button type="button" variant="outline" size="sm" onClick={onRetry}>
-        {t("retry")}
-      </Button>
+    <Alert
+      tone="danger"
+      data-testid="reports-error"
+      action={
+        <Button type="button" variant="secondary" size="sm" onClick={onRetry}>
+          {t("retry")}
+        </Button>
+      }
+    >
+      {code ? translateError(code) : t("retry")}
     </Alert>
   );
 }
 
-// Nothing sold in the picked range — said plainly, so nobody reads a screen
-// of zeros as a broken page.
+// Nothing sold in the range — said plainly so a screen of zeros never reads as broken.
 export function ReportEmpty() {
-  const t = useTranslations("reports.empty");
-
   return (
-    <div
-      className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-border bg-card p-6 text-center"
-      data-test-selector="reports-empty"
-    >
-      <TrendingUp className="size-8 text-muted-foreground" aria-hidden="true" />
-      <p className="font-medium text-foreground">{t("title")}</p>
-      <p className="text-sm text-muted-foreground">{t("description")}</p>
-    </div>
+    <EmptyState
+      data-testid="reports-empty"
+      icon="trend-up"
+      title="reports.empty.title"
+      hint="reports.empty.description"
+    />
   );
 }

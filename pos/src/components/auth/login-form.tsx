@@ -4,32 +4,23 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslations } from "next-intl";
+import { Alert, Button, FormField, Input, PasswordInput, buttonClassName } from "@store/ui";
 import { PASSWORD_MIN_LENGTH } from "@organza/shared/constants/validation";
+import { ACCOUNT_INACTIVE_AUTH_CODE } from "@organza/shared/constants/auth";
+import { fieldErrorTestSelector, fieldTestSelector, testSelectorFor } from "@organza/shared/lib/testSelector";
 import { Link, useRouter } from "@/i18n/navigation";
 import { useSession } from "@/components/providers/session-provider";
 import { AuthError } from "@/lib/auth/client";
 import { HTTP_TOO_MANY_REQUESTS } from "@/constants/api";
-import { ACCOUNT_INACTIVE_AUTH_CODE } from "@organza/shared/constants/auth";
 import { FORGOT_PASSWORD_PATH } from "@/constants/auth";
+import { POS_CONTROL_HEIGHT } from "@/constants/controls";
 import { useTranslateError } from "@/hooks/use-translate-error";
 import { loginSchema, type LoginInput } from "@/lib/validation/login";
-import { FieldError } from "@/components/ui/field-error";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { PasswordInput } from "@/components/ui/password-input";
-import { Label } from "@/components/ui/label";
-import { Alert } from "@/components/ui/alert";
-import { Spinner } from "@/components/ui/spinner";
+import { cn } from "@/lib/utils";
 
-// Which failure to name. Bad credentials is the default, because that is all
-// the endpoint tells us about most of them — but two are distinguishable and
-// both matter enough to say out loud, since each sends the person somewhere
-// different: "wait a moment" rather than to the reset form, and "ask an
-// admin" rather than to either.
+// Rate-limited and deactivated are named apart from bad credentials: each sends the person somewhere different.
 type LoginErrorKind = "invalid" | "rateLimited" | "deactivated";
 
-// The message key for each, in one table rather than a chain of ternaries in
-// the JSX — so adding a third distinguishable failure is one line here.
 const LOGIN_ERROR_MESSAGE_KEYS: Record<LoginErrorKind, string> = {
   invalid: "error",
   rateLimited: "tooManyAttempts",
@@ -42,7 +33,6 @@ function loginErrorKind(error: unknown): LoginErrorKind {
   if (error.code === ACCOUNT_INACTIVE_AUTH_CODE) return "deactivated";
   return "invalid";
 }
-
 
 export function LoginForm() {
   const t = useTranslations("auth.login");
@@ -66,81 +56,67 @@ export function LoginForm() {
       await login(values.email, values.password);
       router.replace("/sell");
     } catch (error) {
-      // Better Auth's sign-in endpoint doesn't use our error-code envelope
-      // (see lib/auth/client.ts), so this reads its own status and code. Two
-      // failures are worth telling apart from "wrong password":
-      //
-      //   429 — you have tried too often. Saying "wrong password" to that is
-      //         how a password somebody has just set appears not to work.
-      //   ACCOUNT_INACTIVE — the account was deactivated (the backend refuses
-      //         to create the session at all). Their password is fine and no
-      //         amount of resetting it will help; somebody has to switch the
-      //         account back on.
+      // Better Auth's sign-in doesn't use our error envelope (lib/auth/client.ts), so its status and code are read here.
       setFormError(loginErrorKind(error));
     }
   };
 
   return (
+    // method="post" so a native submit before hydration never puts credentials in the URL.
     <form
       method="post"
       onSubmit={handleSubmit(onSubmit)}
       noValidate
-      className="flex flex-col gap-5"
+      className={cn("flex flex-col gap-5", POS_CONTROL_HEIGHT)}
     >
-      {/* method="post" is a fallback only: if this ever submits natively
-          before React hydrates, credentials go in the request body instead
-          of leaking into the URL/history the way a default GET would. */}
-      {formError && <Alert variant="destructive">{t(LOGIN_ERROR_MESSAGE_KEYS[formError])}</Alert>}
+      {formError && (
+        <Alert tone="danger" icon={false} data-testid={testSelectorFor("alert", "destructive")}>
+          {t(LOGIN_ERROR_MESSAGE_KEYS[formError])}
+        </Alert>
+      )}
 
-      <div className="flex flex-col gap-2">
-        <Label htmlFor="email">{t("emailLabel")}</Label>
+      <FormField label="auth.login.emailLabel" htmlFor="email">
         <Input
           id="email"
           type="email"
           inputMode="email"
           autoComplete="email"
           placeholder={t("emailPlaceholder")}
-          aria-invalid={!!errors.email}
+          hasError={!!errors.email}
+          data-testid={fieldTestSelector("email")}
           {...register("email")}
         />
         {errors.email && (
-          <FieldError field="email">{translateError(errors.email.message ?? "")}</FieldError>
+          <p className="text-meta text-danger-600" role="alert" data-test-selector={fieldErrorTestSelector("email")}>
+            {translateError(errors.email.message ?? "")}
+          </p>
         )}
-      </div>
+      </FormField>
 
-      <div className="flex flex-col gap-2">
-        <Label htmlFor="password">{t("passwordLabel")}</Label>
+      <FormField label="auth.login.passwordLabel" htmlFor="password">
         <PasswordInput
           id="password"
           autoComplete="current-password"
           placeholder={t("passwordPlaceholder")}
-          aria-invalid={!!errors.password}
+          hasError={!!errors.password}
+          data-testid={fieldTestSelector("password")}
           {...register("password")}
         />
         {errors.password && (
-          <FieldError field="password">
+          <p className="text-meta text-danger-600" role="alert" data-test-selector={fieldErrorTestSelector("password")}>
             {translateError(errors.password.message ?? "", { min: PASSWORD_MIN_LENGTH })}
-          </FieldError>
+          </p>
         )}
-      </div>
+      </FormField>
 
-      <Button type="submit" data-test-selector="pos-login-submit" disabled={isSubmitting} className="mt-2 w-full">
-        {isSubmitting ? (
-          <>
-            <Spinner />
-            {t("submitting")}
-          </>
-        ) : (
-          t("submit")
-        )}
+      <Button type="submit" data-test-selector="pos-login-submit" isLoading={isSubmitting} className="mt-2 w-full">
+        {isSubmitting ? t("submitting") : t("submit")}
       </Button>
 
-      {/* Resets are self-service by email (spec.md "Auth (details)"), so
-          somebody locked out at the till does not have to find an Admin
-          before they can start their shift. */}
-      <Button asChild variant="ghost" className="w-full">
-        <Link href={FORGOT_PASSWORD_PATH}>{tForgot("link")}</Link>
-      </Button>
+      {/* Resets are self-service by email, so a cashier locked out at the till needn't find an Admin first. */}
+      <Link href={FORGOT_PASSWORD_PATH} className={buttonClassName({ variant: "quiet", className: "w-full" })}>
+        {tForgot("link")}
+      </Link>
     </form>
   );
 }

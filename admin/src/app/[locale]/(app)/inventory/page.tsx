@@ -27,12 +27,10 @@ import {
   InventoryListLoading,
   InventoryListSpinnerOverlay,
 } from "@/components/inventory/inventory-list-states";
-import { Alert } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
+import { Alert, Button } from "@store/ui";
 import type { InventoryListFilters } from "@/types/inventory";
 
-// Admin/Manager only (CLAUDE.md rule 5): stock is theirs to see and to
-// change, so /api/inventory 403s for an Employee and the nav hides the entry.
+// Admin/Manager only (rule 5): /api/inventory 403s for an Employee.
 export default function InventoryPage() {
   return (
     <RoleGuard action="inventory.view">
@@ -46,8 +44,7 @@ function InventoryPageContent() {
   const { user } = useSession();
   const canAdjust = can(user, "inventory.adjust");
 
-  // Supports deep-linking from the dashboard's low-stock card
-  // (/inventory?lowStock=true) — read once on mount, not kept in sync after.
+  // ?lowStock=true deep link from the dashboard, read once on mount.
   const searchParams = useSearchParams();
   const [searchInput, setSearchInput] = useState("");
   const [filters, setFilters] = useState<InventoryListFilters>(() => ({
@@ -67,14 +64,12 @@ function InventoryPageContent() {
 
   // A run of +/- presses is one saved change, not one per press.
   const { edits, setStock } = useStockEdits();
-  // ...and the row it happened on keeps its place, even once the change moves
-  // it outside the filter the user is working under.
+  // ...and the edited row keeps its place even once it falls outside the filter.
   const { rows, pin, release, outsideFilterCount } = useInventoryRows(data?.items ?? [], edits);
 
   const hasAnyFilter = Boolean(filters.categoryId) || filters.lowStock || debouncedSearch.trim().length > 0;
 
-  // Every way of asking a different question of the list lets the held rows
-  // go: the user is no longer looking at the view they were pinned in.
+  // Any new question of the list lets the held rows go.
   function changeFilters(next: Partial<InventoryListFilters>) {
     release();
     setFilters((f) => ({ ...f, ...next }));
@@ -98,8 +93,7 @@ function InventoryPageContent() {
   }
 
   function handleStockChange(item: Parameters<typeof setStock>[0], next: number) {
-    // Remember where the row is BEFORE the change, so it can be put back
-    // there whatever the re-sorted, re-filtered next read says.
+    // Pin the row's position before the change so the next read can't move it.
     pin(item);
     setStock(item, next);
   }
@@ -114,7 +108,7 @@ function InventoryPageContent() {
       <PageHeader name="inventory" title={t("title")} description={t("subtitle")} />
 
       <div className="flex flex-col gap-4">
-        {!canAdjust && <p className="text-sm text-muted-foreground">{t("readOnlyHint")}</p>}
+        {!canAdjust && <p className="text-label text-ink-muted">{t("readOnlyHint")}</p>}
 
         <div className="flex flex-col gap-3">
           <InventorySearch value={searchInput} onChange={handleSearchChange} />
@@ -135,20 +129,21 @@ function InventoryPageContent() {
           <InventoryListEmpty hasFilters={hasAnyFilter} />
         ) : (
           <>
-            {/* Only while the user is waiting on a read they asked for. A
-                background refetch — including the one each save triggers —
-                must not put a spinner over rows somebody is working down. */}
+            {/* Never over rows being worked down: a save's background refetch shows no spinner. */}
             {isFetching && rows.length === 0 && <InventoryListSpinnerOverlay />}
 
-            {/* The explicit way out of the held state, offered only once
-                there is something being held. Pull-to-refresh does the same
-                thing on an installed phone (lib/manual-refresh.ts). */}
+            {/* The way out of the held state (pull-to-refresh does the same on an installed phone). */}
             {outsideFilterCount > 0 && (
-              <Alert className="flex-wrap items-center justify-between gap-3">
-                <p>{t("outsideFilterNotice", { count: outsideFilterCount })}</p>
-                <Button type="button" variant="outline" size="sm" onClick={refreshList}>
-                  {t("refreshList")}
-                </Button>
+              <Alert
+                tone="info"
+                data-testid="alert-default"
+                action={
+                  <Button type="button" variant="secondary" size="sm" onClick={refreshList}>
+                    {t("refreshList")}
+                  </Button>
+                }
+              >
+                {t("outsideFilterNotice", { count: outsideFilterCount })}
               </Alert>
             )}
 

@@ -3,13 +3,9 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { ERROR_CODES } from "@organza/shared/constants/errors";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { Alert } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { NumericInput } from "@/components/ui/numeric-input";
-import { Textarea } from "@/components/ui/textarea";
-import { Spinner } from "@/components/ui/spinner";
+import { fieldTestSelector } from "@organza/shared/lib/testSelector";
+import { Alert, Button, Drawer, FormField, Textarea } from "@store/ui";
+import { NumericInput } from "@/components/fields/numeric-input";
 import { useOpenCashSessionMutation } from "@/hooks/use-cash-sessions";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
 import { useTranslateError } from "@/hooks/use-translate-error";
@@ -19,34 +15,29 @@ import { timezoneOffsetMinutes } from "@/lib/report-range";
 interface OpenDaySheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  // What last night's count left in the drawer. Pre-filled rather than
-  // remembered by a person overnight — that carry-over is the whole reason
-  // the withdrawal is recorded at close.
+  // Last night's count, pre-filled — that carry-over is why the withdrawal is recorded at close.
   suggestedOpeningFloat: string;
 }
 
-// Starting the day's drawer. The float is editable because the owner
-// sometimes puts a different amount in by hand, but the common case is
-// tapping the button and accepting what is already there.
+// The float is editable because the owner sometimes puts in a different amount by hand.
 export function OpenDaySheet({ open, onOpenChange, suggestedOpeningFloat }: OpenDaySheetProps) {
-  const tCommon = useTranslations("common");
   const t = useTranslations("dashboard.drawer.openDay");
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent name="open-day" side="end" closeLabel={tCommon("close")}>
-        <SheetHeader>
-          <SheetTitle>{t("title")}</SheetTitle>
-        </SheetHeader>
-        {/* Keyed so the field starts from the suggestion again each time the
-            sheet is opened, rather than showing what was last abandoned. */}
-        <OpenDayForm
-          key={String(open)}
-          suggestedOpeningFloat={suggestedOpeningFloat}
-          onDone={() => onOpenChange(false)}
-        />
-      </SheetContent>
-    </Sheet>
+    <Drawer
+      open={open}
+      onOpenChange={onOpenChange}
+      title={t("title")}
+      descriptionKey="dashboard.drawer.openDay.title"
+      data-testid="sheet-open-day"
+    >
+      {/* Keyed so each opening starts from the suggestion, not what was last abandoned. */}
+      <OpenDayForm
+        key={String(open)}
+        suggestedOpeningFloat={suggestedOpeningFloat}
+        onDone={() => onOpenChange(false)}
+      />
+    </Drawer>
   );
 }
 
@@ -80,40 +71,43 @@ function OpenDayForm({
   }
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-5 pb-5">
-      <p className="text-sm text-muted-foreground">
+    <div className="flex flex-col gap-4">
+      <p className="text-label text-ink-muted">
         {t("description", { amount: formatMoney(suggestedOpeningFloat) })}
       </p>
 
       {mutation.isError && (
-        <Alert variant="destructive">
+        <Alert tone="danger">
           {translateError(mutation.error instanceof ApiError ? mutation.error.code : ERROR_CODES.INTERNAL)}
         </Alert>
       )}
 
-      <div className="flex flex-col gap-2">
-        <Label htmlFor="opening-float">{t("openingFloat")}</Label>
+      <FormField label="dashboard.drawer.openDay.openingFloat" htmlFor="opening-float">
         <NumericInput
           id="opening-float"
           allowDecimal
           value={openingFloat}
           onChange={(event) => setOpeningFloat(event.target.value)}
-          className="h-14 text-lg"
         />
-      </div>
+      </FormField>
 
-      <div className="flex flex-col gap-2">
-        <Label htmlFor="open-note">{t("note")}</Label>
+      <FormField label="dashboard.drawer.openDay.note" htmlFor="open-note">
         <Textarea
           id="open-note"
+          data-testid={fieldTestSelector("open-note")}
           value={note}
           onChange={(event) => setNote(event.target.value)}
           placeholder={t("notePlaceholder")}
         />
-      </div>
+      </FormField>
 
-      <Button type="button" className="mt-auto h-14 w-full text-base" disabled={!canSubmit} onClick={submit}>
-        {mutation.isPending && <Spinner />}
+      <Button
+        type="button"
+        className="w-full"
+        disabled={!canSubmit}
+        isLoading={mutation.isPending}
+        onClick={submit}
+      >
         {t("submit")}
       </Button>
     </div>

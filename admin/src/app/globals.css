@@ -4,34 +4,6 @@
 @import "tw-animate-css";
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-destructive: var(--destructive);
-  --color-destructive-foreground: var(--destructive-foreground);
-  --color-success: var(--success);
-  --color-warning: var(--warning);
-  --color-gift: var(--gift);
-  --color-gift-foreground: var(--gift-foreground);
-  --color-border: var(--border);
-  --color-input: var(--input);
-  --color-ring: var(--ring);
-  --color-photo-surface: var(--photo-surface);
-
-  --font-sans: var(--font-geist-sans);
-  --font-arabic: var(--font-cairo);
-  --font-hebrew: var(--font-noto-hebrew);
 
   /* ------------------------------------------------------------------
      LINE HEIGHTS — sized for Arabic, which is the script this app is
@@ -55,9 +27,6 @@
      falls back to the default language, CLAUDE.md rule 9) — a row that
      fits its text in one language and clips it in another is worse than a
      roomier line everywhere.
-
-     Change these with a screenshot in hand, not by taste: `ملاحظات على
-     الخيارات جحخي` inside a `truncate` box is the test.
      ------------------------------------------------------------------ */
   --text-xs--line-height: 1.85;
   --text-sm--line-height: 1.8;
@@ -77,13 +46,6 @@
 
 :root {
   --radius: 0.75rem;
-
-  /* ------------------------------------------------------------------
-     Fixed chrome — the one place that says how much of the viewport the
-     app's own bars occupy. The bars size themselves from these, and the
-     scrolling page reserves space with the same values, so a bar and the
-     room kept clear for it can never drift apart.
-     ------------------------------------------------------------------ */
 
   /* iOS notch / home indicator. Named once so every bar reads the same
      value (and so it can be forced to a non-zero number when checking the
@@ -109,110 +71,6 @@
      this, and anything anchored above the nav is offset by it. */
   --bottom-bar-inset: calc(var(--bottom-nav-height) + var(--safe-bottom));
 
-  /* ------------------------------------------------------------------
-     THE BRAND HUES ARE WRITTEN OUT IN FULL BELOW, on purpose.
-
-     Organza's two hues are 206.4 (dark teal, #235C63) and 177.6 (light mint,
-     #B5D3CB), and every brand tint in this file carries one of those two
-     numbers literally. They used to arrive through a custom property, so that
-     the whole theme could be re-hued from one line.
-
-     That one line cost the shop every button.
-
-     Every colour below is written ONCE, in oklch(). The sRGB copy the older
-     phones read is DERIVED from it at build time by
-     @csstools/postcss-oklab-function (see postcss.config.mjs), which puts the
-     plain colour in front and keeps this one inside an @supports — so the two
-     can never say different things, and nobody has to remember to update a
-     second palette. Never type a fallback by hand here; there is one colour
-     per token and this is it.
-
-     What that plugin cannot do is evaluate a colour whose hue arrives through
-     a custom property, because those are substituted in the browser, long
-     after the build has finished. It leaves such a colour exactly as it found
-     it — no fallback, no warning. Those six tokens per theme were therefore
-     the ONLY ones that ever shipped bare: primary, secondary, accent and the
-     focus ring. On a phone without oklch() they resolve to nothing,
-     `background-color: var(--primary)` computes to transparent, and every
-     button in both apps loses its background while its near-white label stays
-     near-white.
-
-     So the hue is a literal here. Re-hueing is a find-and-replace of one
-     number rather than an edit of one line, which is a small price for a
-     palette that cannot silently stop existing — and
-     shared/scripts/check-css-target.js fails the build if any token ever
-     ships without its fallback again.
-
-     One more thing that guard watches, because 15.4 is not the end of it:
-     Safari has known oklch() since 15.4, but 15.x reads the LIGHTNESS as a
-     percentage and throws the whole declaration away when it is a decimal —
-     oklch(44% .06 206.4) paints, oklch(0.44 .06 206.4) does not (it is why
-     Tailwind rewrote its own default theme). Decimals are fine to write here,
-     since the build normalises them to percentages on the way out; the guard
-     is what makes sure it still does.
-     ------------------------------------------------------------------ */
-
-  --background: oklch(0.99 0 0);
-  --foreground: oklch(0.18 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.18 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.18 0 0);
-
-  /* Organza teal — brand primary (#235C63) */
-  --primary: oklch(0.44 0.06 206.4);
-  --primary-foreground: oklch(0.98 0 0);
-
-  --secondary: oklch(0.96 0.012 206.4);
-  --secondary-foreground: oklch(0.28 0.03 206.4);
-
-  --muted: oklch(0.96 0 0);
-  --muted-foreground: oklch(0.48 0 0);
-
-  /* Organza mint — brand light accent (#B5D3CB) */
-  --accent: oklch(0.843 0.034 177.6);
-  --accent-foreground: oklch(0.28 0.03 206.4);
-
-  --destructive: oklch(0.55 0.22 27);
-  --destructive-foreground: oklch(0.98 0 0);
-
-  /* ------------------------------------------------------------------
-     Stock status — red / amber / green, and only ever these three.
-
-     The same two values as pos/src/app/globals.css, on purpose: a quantity
-     that is "nearly out" in the POS has to be the same amber here in the
-     inventory, or the colour stops meaning anything. They replace the
-     tailwind `amber-500/amber-600` literals that used to be written into
-     the inventory table and card by hand.
-
-     Both are lightnesses that carry text on the page background at >=4.5:1,
-     because that is what they are mostly used as — a word in colour, on a
-     10% wash of the same colour. The label is always spelled out next to
-     them, so nothing here is the only thing saying what the status is.
-     ------------------------------------------------------------------ */
-  --success: oklch(0.52 0.13 152);
-  --warning: oklch(0.56 0.13 70);
-
-  /* Giving stock away — an order of type GIFT (spec.md "Gifts"). The same
-     violet the POS gives the action itself, so the badge on an order in this
-     list is the colour of the button that created it. Deliberately none of
-     the colours already spoken for: not the brand teal a sale is drawn in,
-     not destructive red, and not the amber or green that now mean something
-     specific about stock. */
-  --gift: oklch(0.5 0.16 300);
-  --gift-foreground: oklch(0.99 0 0);
-
-  --border: oklch(0.9 0 0);
-  --input: oklch(0.9 0 0);
-  /* 0.65 alpha keeps the focus ring at >=3:1 against the page background. */
-  --ring: oklch(0.44 0.06 206.4 / 0.65);
-
-  /* The plate a whole product photo is shown on (the detail page), as opposed
-     to a thumbnail cropped to fill its box. White, because the shop's photos
-     are shot on white: on the old grey plate every photo carried a visible
-     white rectangle around the garment. Deliberately NOT re-stated in the
-     dark block below — a dark plate would bring that rectangle straight back. */
-  --photo-surface: oklch(1 0 0);
 }
 
 /* From md up the bottom nav is gone (the sidebar takes over), so the only
@@ -225,49 +83,7 @@
   }
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: oklch(0.16 0 0);
-    --foreground: oklch(0.96 0 0);
-    --card: oklch(0.2 0 0);
-    --card-foreground: oklch(0.96 0 0);
-    --popover: oklch(0.2 0 0);
-    --popover-foreground: oklch(0.96 0 0);
-
-    /* Same brand hue, lightened so it reads on a dark surface. */
-    --primary: oklch(0.74 0.07 206.4);
-    --primary-foreground: oklch(0.16 0 0);
-
-    --secondary: oklch(0.28 0.03 206.4);
-    --secondary-foreground: oklch(0.94 0.015 177.6);
-
-    --muted: oklch(0.27 0 0);
-    --muted-foreground: oklch(0.68 0 0);
-
-    --accent: oklch(0.32 0.04 206.4);
-    --accent-foreground: oklch(0.94 0.015 177.6);
-
-    --destructive: oklch(0.62 0.2 27);
-    --destructive-foreground: oklch(0.16 0 0);
-
-    /* Same two hues, re-stepped for a dark surface — lightened rather than
-       flipped, so amber is still amber and green still green. */
-    --success: oklch(0.76 0.15 152);
-    --warning: oklch(0.8 0.14 75);
-    --gift: oklch(0.75 0.14 300);
-    --gift-foreground: oklch(0.16 0 0);
-
-    --border: oklch(1 0 0 / 12%);
-    --input: oklch(1 0 0 / 18%);
-    --ring: oklch(0.74 0.07 206.4 / 0.6);
-  }
-}
-
 @layer base {
-  * {
-    border-color: var(--border);
-    outline-color: var(--ring);
-  }
 
   html {
     -webkit-text-size-adjust: 100%;
@@ -276,20 +92,6 @@
        box and let `truncate` slice its descenders. Same reasoning, and the
        same number, as the type scale above. */
     line-height: 1.8;
-  }
-
-  body {
-    background: var(--background);
-    color: var(--foreground);
-    font-family: var(--font-sans);
-  }
-
-  html[lang="ar"] body {
-    font-family: var(--font-arabic);
-  }
-
-  html[lang="he"] body {
-    font-family: var(--font-hebrew);
   }
 
   /* ==================================================================

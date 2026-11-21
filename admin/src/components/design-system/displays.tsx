@@ -34,8 +34,6 @@ import { DESIGN_SYSTEM_SAMPLE_ROWS } from "@/constants/design-system";
 import { ShowcaseRow, ShowcaseSection } from "@/components/design-system/showcase-section";
 import type { DesignSystemSampleRow } from "@/types/design-system";
 
-// Everything that shows rather than asks: cards, figures, feedback, the
-// overlays and the table.
 export function Displays() {
   const t = useTranslations("designSystem");
   const currency = useSettingsQuery().data?.currency;

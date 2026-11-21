@@ -38,8 +38,6 @@ type Channel = (typeof CHANNELS)[number];
 type Discount = (typeof DISCOUNTS)[number];
 type OrderTab = (typeof ORDER_TABS)[number];
 
-// Buttons, badges, every field and every choice control, each in the states a
-// screen actually puts it in.
 export function Controls() {
   const t = useTranslations("designSystem");
   const currency = useSettingsQuery().data?.currency;

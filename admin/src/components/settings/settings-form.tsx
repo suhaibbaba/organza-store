@@ -4,10 +4,12 @@ import { useEffect, useState } from "react";
 import { useForm, useWatch, Controller, type UseFormRegisterReturn } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslations } from "next-intl";
+import { Alert, Button, Card, FormField, Input, SegmentedControl, Select, Switch } from "@store/ui";
 import { can } from "@organza/shared/lib/permissions";
 import { PALESTINE_PHONE_PREFIXES } from "@organza/shared/constants/phone";
 import { LABEL_LIMITS, LABEL_PRINT_MODES } from "@organza/shared/constants/label";
 import { IMPLEMENTED_SALE_NOTIFICATION_MODES } from "@organza/shared/constants/push";
+import { fieldErrorTestSelector, fieldTestSelector } from "@organza/shared/lib/testSelector";
 import type { Setting } from "@organza/shared/types/setting";
 import { useSession } from "@/components/providers/session-provider";
 import { useTranslateError } from "@/hooks/use-translate-error";
@@ -15,17 +17,7 @@ import { useUpdateSettingsMutation } from "@/hooks/use-settings";
 import { settingsFormSchema, settingsToFormValues, toUpdatePayload, type SettingsFormValues } from "@/lib/validation/settings-form";
 import { LOCALE_LABELS } from "@/constants/locale";
 import type { AppLocale } from "@/i18n/routing";
-import { FieldError } from "@/components/ui/field-error";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { NumericInput } from "@/components/ui/numeric-input";
-import { Label } from "@/components/ui/label";
-import { Select } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { Alert } from "@/components/ui/alert";
-import { Spinner } from "@/components/ui/spinner";
+import { NumericInput } from "@/components/fields/numeric-input";
 import { ApiError } from "@/lib/api/errors";
 import { cn } from "@/lib/utils";
 
@@ -35,8 +27,7 @@ function localeLabel(code: string): string {
   return LOCALE_LABELS[code as AppLocale] ?? code;
 }
 
-// The fields that describe an A4 sticker sheet, and are therefore only on
-// screen in A4 mode.
+// Only on screen in A4 mode.
 const A4_SHEET_FIELDS = [
   "labelColumns",
   "labelRows",
@@ -48,11 +39,10 @@ const A4_SHEET_FIELDS = [
   "labelGapYMm",
 ] as const satisfies readonly (keyof SettingsFormValues)[];
 
-// One small measurement field (millimetres, or a count of labels). Defined at
-// module level so typing in it never remounts the input mid-keystroke.
+// Module level so typing never remounts the input mid-keystroke.
 function MeasureField({
   id,
-  label,
+  labelKey,
   error,
   disabled,
   registration,
@@ -60,7 +50,7 @@ function MeasureField({
   className,
 }: {
   id: string;
-  label: string;
+  labelKey: string;
   error?: string;
   disabled: boolean;
   registration: UseFormRegisterReturn;
@@ -68,20 +58,21 @@ function MeasureField({
   className?: string;
 }) {
   return (
-    <div className={cn("flex flex-col gap-2", className)}>
-      <Label htmlFor={id}>{label}</Label>
-      <NumericInput
-        id={id}
-        allowDecimal={allowDecimal}
-        disabled={disabled}
-        aria-invalid={!!error}
-        {...registration}
-      />
-      {error && (
-        <p className="text-sm text-destructive" data-test-selector="settings-form-error">
-          {error}
-        </p>
-      )}
+    <div className={cn("flex flex-col", className)}>
+      <FormField label={labelKey} htmlFor={id}>
+        <NumericInput
+          id={id}
+          allowDecimal={allowDecimal}
+          disabled={disabled}
+          aria-invalid={!!error}
+          {...registration}
+        />
+        {error && (
+          <p className="text-meta text-danger-600" role="alert" data-test-selector="settings-form-error">
+            {error}
+          </p>
+        )}
+      </FormField>
     </div>
   );
 }
@@ -93,6 +84,7 @@ export function SettingsForm({ setting }: { setting: Setting }) {
   const canManage = can(user, "settings.manage");
 
   const [showSaved, setShowSaved] = useState(false);
+  const [storeNameLanguage, setStoreNameLanguage] = useState("ar");
 
   const {
     register,
@@ -109,12 +101,9 @@ export function SettingsForm({ setting }: { setting: Setting }) {
     reset(settingsToFormValues(setting));
   }, [setting, reset]);
 
-  // The sheet fields below only describe A4 stickers, so they stay off the
-  // screen on a thermal roll — a shorter form is a clearer form on a phone.
   const labelPrintMode = useWatch({ control, name: "labelPrintMode" });
   const isA4Grid = labelPrintMode === "A4_GRID";
 
-  // With notifications off there is nothing to say about *which* sales.
   const saleNotificationsEnabled = useWatch({ control, name: "saleNotificationsEnabled" });
 
   const mutation = useUpdateSettingsMutation();
@@ -130,8 +119,7 @@ export function SettingsForm({ setting }: { setting: Setting }) {
     return typeof message === "string" ? translateError(message) : undefined;
   }
 
-  // A bad number in the sheet fields would otherwise block Save with nothing
-  // on screen to fix, since those fields are hidden on a thermal printer.
+  // Hidden A4 fields can still block Save, so their error is surfaced on a thermal printer too.
   const hasHiddenSheetError = !isA4Grid && A4_SHEET_FIELDS.some((name) => Boolean(errors[name]));
 
   async function onSubmit(values: SettingsFormValues) {
@@ -145,105 +133,101 @@ export function SettingsForm({ setting }: { setting: Setting }) {
     }
   }
 
+  const sectionTitle = "text-section font-semibold text-ink";
+  const hint = "text-label text-ink-muted";
+
   return (
     <form onSubmit={handleSubmit(onSubmit)} noValidate className="flex flex-col gap-4 pb-6">
-      {!canManage && <p className="text-sm text-muted-foreground">{t("readOnlyHint")}</p>}
+      {!canManage && <p className={hint}>{t("readOnlyHint")}</p>}
 
-      <Card>
-        <CardHeader>
-          <CardTitle>{t("storeInfoTitle")}</CardTitle>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-4">
-          <div className="flex flex-col gap-2">
-            <Label>{t("storeName")}</Label>
-            <Tabs defaultValue="ar">
-              <TabsList>
-                {setting.supportedLanguages.map((lang) => (
-                  <TabsTrigger key={lang} value={lang}>
-                    {localeLabel(lang)}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-              {setting.supportedLanguages.map((lang) => (
-                <TabsContent key={lang} value={lang}>
-                  <Input
-                    aria-label={`${t("storeName")} — ${localeLabel(lang)}`}
-                    placeholder={lang === setting.defaultLanguage ? t("required") : t("optional")}
-                    aria-invalid={lang === "ar" && !!errors.storeName?.ar}
-                    disabled={!canManage}
-                    {...register(`storeName.${lang}` as "storeName.ar")}
-                  />
-                </TabsContent>
-              ))}
-            </Tabs>
-            {errors.storeName?.ar && (
-              <FieldError field="storeName">{translateError(errors.storeName.ar.message ?? "")}</FieldError>
+      <Card className="flex flex-col gap-4">
+        <h2 className={sectionTitle}>{t("storeInfoTitle")}</h2>
+        <FormField label="settings.form.storeName" htmlFor={`storeName-${storeNameLanguage}`}>
+          <SegmentedControl
+            data-testid="tab"
+            label={t("storeName")}
+            options={setting.supportedLanguages.map((lang) => ({ value: lang, label: localeLabel(lang) }))}
+            value={storeNameLanguage}
+            onChange={setStoreNameLanguage}
+          />
+          <div data-test-selector={`tab-panel-${storeNameLanguage}`}>
+            <Input
+              key={storeNameLanguage}
+              id={`storeName-${storeNameLanguage}`}
+              aria-label={`${t("storeName")} — ${localeLabel(storeNameLanguage)}`}
+              placeholder={storeNameLanguage === setting.defaultLanguage ? t("required") : t("optional")}
+              hasError={storeNameLanguage === "ar" && !!errors.storeName?.ar}
+              disabled={!canManage}
+              {...register(`storeName.${storeNameLanguage}` as "storeName.ar")}
+            />
+          </div>
+          {errors.storeName?.ar && (
+            <p className="text-meta text-danger-600" role="alert" data-test-selector={fieldErrorTestSelector("storeName")}>
+              {translateError(errors.storeName.ar.message ?? "")}
+            </p>
+          )}
+        </FormField>
+      </Card>
+
+      <Card className="flex flex-col gap-4">
+        <h2 className={sectionTitle}>{t("regionalTitle")}</h2>
+        <FormField label="settings.form.defaultLanguage" htmlFor="defaultLanguage">
+          <Controller
+            control={control}
+            name="defaultLanguage"
+            render={({ field }) => (
+              <Select
+                id="defaultLanguage"
+                data-testid={fieldTestSelector("defaultLanguage")}
+                disabled={!canManage}
+                options={setting.supportedLanguages.map((lang) => ({ value: lang, label: localeLabel(lang) }))}
+                value={field.value}
+                onChange={(e) => field.onChange(e.target.value)}
+              />
             )}
-          </div>
-        </CardContent>
+          />
+        </FormField>
+
+        <FormField label="settings.form.currency" htmlFor="currency" note="settings.form.currencyHint">
+          <Input
+            id="currency"
+            data-test-selector={fieldTestSelector("currency")}
+            value={setting.currency}
+            disabled
+            readOnly
+          />
+        </FormField>
+
+        <FormField
+          label="settings.form.defaultCountryCode"
+          htmlFor="defaultCountryCode"
+          note="settings.form.defaultCountryCodeHint"
+        >
+          <Controller
+            control={control}
+            name="defaultCountryCode"
+            render={({ field }) => (
+              <Select
+                id="defaultCountryCode"
+                data-testid={fieldTestSelector("defaultCountryCode")}
+                disabled={!canManage}
+                options={PALESTINE_PHONE_PREFIXES.map((prefix) => ({ value: prefix, label: prefix }))}
+                renderValue={(option) => <span dir="ltr">{option.label}</span>}
+                value={field.value}
+                onChange={(e) => field.onChange(e.target.value)}
+              />
+            )}
+          />
+        </FormField>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>{t("regionalTitle")}</CardTitle>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-4">
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="defaultLanguage">{t("defaultLanguage")}</Label>
-            <Controller
-              control={control}
-              name="defaultLanguage"
-              render={({ field }) => (
-                <Select id="defaultLanguage" disabled={!canManage} value={field.value} onChange={field.onChange}>
-                  {setting.supportedLanguages.map((lang) => (
-                    <option key={lang} value={lang}>
-                      {localeLabel(lang)}
-                    </option>
-                  ))}
-                </Select>
-              )}
-            />
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="currency">{t("currency")}</Label>
-            <Input id="currency" value={setting.currency} disabled readOnly />
-            <p className="text-sm text-muted-foreground">{t("currencyHint")}</p>
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="defaultCountryCode">{t("defaultCountryCode")}</Label>
-            <Controller
-              control={control}
-              name="defaultCountryCode"
-              render={({ field }) => (
-                <Select
-                  id="defaultCountryCode"
-                  dir="ltr"
-                  className="text-end"
-                  disabled={!canManage}
-                  value={field.value}
-                  onChange={field.onChange}
-                >
-                  {PALESTINE_PHONE_PREFIXES.map((prefix) => (
-                    <option key={prefix} value={prefix}>
-                      {prefix}
-                    </option>
-                  ))}
-                </Select>
-              )}
-            />
-            <p className="text-sm text-muted-foreground">{t("defaultCountryCodeHint")}</p>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>{t("inventoryTitle")}</CardTitle>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-2">
-          <Label htmlFor="lowStockThreshold">{t("lowStockThreshold")}</Label>
+      <Card className="flex flex-col gap-4">
+        <h2 className={sectionTitle}>{t("inventoryTitle")}</h2>
+        <FormField
+          label="settings.form.lowStockThreshold"
+          htmlFor="lowStockThreshold"
+          note={errors.lowStockThreshold ? undefined : "settings.form.lowStockThresholdHint"}
+        >
           <NumericInput
             id="lowStockThreshold"
             disabled={!canManage}
@@ -251,228 +235,237 @@ export function SettingsForm({ setting }: { setting: Setting }) {
             {...register("lowStockThreshold")}
           />
           {errors.lowStockThreshold && (
-            <FieldError field="lowStockThreshold">{translateError(errors.lowStockThreshold.message ?? "")}</FieldError>
+            <p
+              className="text-meta text-danger-600"
+              role="alert"
+              data-test-selector={fieldErrorTestSelector("lowStockThreshold")}
+            >
+              {translateError(errors.lowStockThreshold.message ?? "")}
+            </p>
           )}
-          <p className="text-sm text-muted-foreground">{t("lowStockThresholdHint")}</p>
-        </CardContent>
+        </FormField>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>{t("saleNotificationsTitle")}</CardTitle>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-4">
-          <p className="text-sm text-muted-foreground">{t("saleNotificationsIntro")}</p>
+      <Card className="flex flex-col gap-4">
+        <h2 className={sectionTitle}>{t("saleNotificationsTitle")}</h2>
+        <p className={hint}>{t("saleNotificationsIntro")}</p>
 
-          <div className="flex items-center justify-between gap-4">
-            <Label htmlFor="saleNotificationsEnabled" className="flex-1">
-              {t("saleNotificationsEnabled")}
-            </Label>
+        <div className="flex items-center justify-between gap-4">
+          <label htmlFor="saleNotificationsEnabled" className="flex-1 cursor-pointer text-label font-medium text-ink">
+            {t("saleNotificationsEnabled")}
+          </label>
+          <Controller
+            control={control}
+            name="saleNotificationsEnabled"
+            render={({ field }) => (
+              <Switch
+                id="saleNotificationsEnabled"
+                data-testid={fieldTestSelector("saleNotificationsEnabled")}
+                label={t("saleNotificationsEnabled")}
+                hideLabel
+                disabled={!canManage}
+                checked={field.value}
+                onCheckedChange={field.onChange}
+              />
+            )}
+          />
+        </div>
+
+        {/* Only one mode today, so the picker stays hidden until notifications are on. */}
+        {saleNotificationsEnabled && (
+          <FormField
+            label="settings.form.saleNotificationMode"
+            htmlFor="saleNotificationMode"
+            note="settings.form.saleNotificationModeHint"
+          >
             <Controller
               control={control}
-              name="saleNotificationsEnabled"
+              name="saleNotificationMode"
               render={({ field }) => (
-                <Switch
-                  id="saleNotificationsEnabled"
+                <Select
+                  id="saleNotificationMode"
+                  data-testid={fieldTestSelector("saleNotificationMode")}
                   disabled={!canManage}
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
+                  options={IMPLEMENTED_SALE_NOTIFICATION_MODES.map((mode) => ({
+                    value: mode,
+                    label: t(`saleNotificationModeOption.${mode}`),
+                  }))}
+                  value={field.value}
+                  onChange={(e) => field.onChange(e.target.value)}
                 />
               )}
             />
-          </div>
-
-          {/* Which sales are worth a notification. Only one answer today, so
-              it stays off the screen until the switch is on — a select with
-              nothing to choose between is noise on a phone. */}
-          {saleNotificationsEnabled && (
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="saleNotificationMode">{t("saleNotificationMode")}</Label>
-              <Controller
-                control={control}
-                name="saleNotificationMode"
-                render={({ field }) => (
-                  <Select id="saleNotificationMode" disabled={!canManage} value={field.value} onChange={field.onChange}>
-                    {IMPLEMENTED_SALE_NOTIFICATION_MODES.map((mode) => (
-                      <option key={mode} value={mode}>
-                        {t(`saleNotificationModeOption.${mode}`)}
-                      </option>
-                    ))}
-                  </Select>
-                )}
-              />
-              <p className="text-sm text-muted-foreground">{t("saleNotificationModeHint")}</p>
-            </div>
-          )}
-        </CardContent>
+          </FormField>
+        )}
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>{t("labelsTitle")}</CardTitle>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-5">
-          <p className="text-sm text-muted-foreground">{t("labelsIntro")}</p>
+      <Card className="flex flex-col gap-5">
+        <h2 className={sectionTitle}>{t("labelsTitle")}</h2>
+        <p className={hint}>{t("labelsIntro")}</p>
 
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="labelPrintMode">{t("labelPrintMode")}</Label>
-            <Controller
-              control={control}
-              name="labelPrintMode"
-              render={({ field }) => (
-                <Select id="labelPrintMode" disabled={!canManage} value={field.value} onChange={field.onChange}>
-                  {LABEL_PRINT_MODES.map((mode) => (
-                    <option key={mode} value={mode}>
-                      {t(`labelPrintModeOption.${mode}`)}
-                    </option>
-                  ))}
-                </Select>
-              )}
+        <FormField
+          label="settings.form.labelPrintMode"
+          htmlFor="labelPrintMode"
+          note={isA4Grid ? "settings.form.labelPrintModeHintA4Grid" : "settings.form.labelPrintModeHintThermal"}
+        >
+          <Controller
+            control={control}
+            name="labelPrintMode"
+            render={({ field }) => (
+              <Select
+                id="labelPrintMode"
+                data-testid={fieldTestSelector("labelPrintMode")}
+                disabled={!canManage}
+                options={LABEL_PRINT_MODES.map((mode) => ({ value: mode, label: t(`labelPrintModeOption.${mode}`) }))}
+                value={field.value}
+                onChange={(e) => field.onChange(e.target.value)}
+              />
+            )}
+          />
+        </FormField>
+
+        <fieldset>
+          <legend className="mb-2 text-label font-medium text-ink">{t("labelSizeTitle")}</legend>
+          <div className="grid grid-cols-2 gap-3">
+            <MeasureField
+              id="labelWidthMm"
+              labelKey="settings.form.labelWidth"
+              disabled={!canManage}
+              error={fieldError("labelWidthMm")}
+              registration={register("labelWidthMm")}
             />
-            <p className="text-sm text-muted-foreground">
-              {isA4Grid ? t("labelPrintModeHintA4Grid") : t("labelPrintModeHintThermal")}
-            </p>
+            <MeasureField
+              id="labelHeightMm"
+              labelKey="settings.form.labelHeight"
+              disabled={!canManage}
+              error={fieldError("labelHeightMm")}
+              registration={register("labelHeightMm")}
+            />
           </div>
+          <p className={cn("mt-2", hint)}>
+            {t("labelSizeHint", { min: LABEL_LIMITS.minDimensionMm, max: LABEL_LIMITS.maxDimensionMm })}
+          </p>
+        </fieldset>
 
-          <fieldset>
-            <legend className="mb-2 text-sm font-medium">{t("labelSizeTitle")}</legend>
-            <div className="grid grid-cols-2 gap-3">
-              <MeasureField
-                id="labelWidthMm"
-                label={t("labelWidth")}
-                disabled={!canManage}
-                error={fieldError("labelWidthMm")}
-                registration={register("labelWidthMm")}
-              />
-              <MeasureField
-                id="labelHeightMm"
-                label={t("labelHeight")}
-                disabled={!canManage}
-                error={fieldError("labelHeightMm")}
-                registration={register("labelHeightMm")}
-              />
+        {isA4Grid && (
+          <div className="flex flex-col gap-5 border-t border-line pt-5">
+            <div>
+              <h3 className="text-value font-semibold text-ink">{t("labelSheetTitle")}</h3>
+              <p className={hint}>{t("labelSheetIntro")}</p>
             </div>
-            <p className="mt-2 text-sm text-muted-foreground">
-              {t("labelSizeHint", { min: LABEL_LIMITS.minDimensionMm, max: LABEL_LIMITS.maxDimensionMm })}
-            </p>
-          </fieldset>
 
-          {isA4Grid && (
-            <div className="flex flex-col gap-5 border-t border-border pt-5">
-              <div>
-                <h3 className="text-base font-semibold">{t("labelSheetTitle")}</h3>
-                <p className="text-sm text-muted-foreground">{t("labelSheetIntro")}</p>
+            <fieldset>
+              <legend className="mb-2 text-label font-medium text-ink">{t("labelGridTitle")}</legend>
+              <div className="grid grid-cols-2 gap-3">
+                <MeasureField
+                  id="labelColumns"
+                  labelKey="settings.form.labelColumns"
+                  allowDecimal={false}
+                  disabled={!canManage}
+                  error={fieldError("labelColumns")}
+                  registration={register("labelColumns")}
+                />
+                <MeasureField
+                  id="labelRows"
+                  labelKey="settings.form.labelRows"
+                  allowDecimal={false}
+                  disabled={!canManage}
+                  error={fieldError("labelRows")}
+                  registration={register("labelRows")}
+                />
               </div>
+              <p className={cn("mt-2", hint)}>
+                {t("labelGridHint", { min: LABEL_LIMITS.minGridCount, max: LABEL_LIMITS.maxGridCount })}
+              </p>
+            </fieldset>
 
-              <fieldset>
-                <legend className="mb-2 text-sm font-medium">{t("labelGridTitle")}</legend>
-                <div className="grid grid-cols-2 gap-3">
-                  <MeasureField
-                    id="labelColumns"
-                    label={t("labelColumns")}
-                    allowDecimal={false}
-                    disabled={!canManage}
-                    error={fieldError("labelColumns")}
-                    registration={register("labelColumns")}
-                  />
-                  <MeasureField
-                    id="labelRows"
-                    label={t("labelRows")}
-                    allowDecimal={false}
-                    disabled={!canManage}
-                    error={fieldError("labelRows")}
-                    registration={register("labelRows")}
-                  />
-                </div>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  {t("labelGridHint", { min: LABEL_LIMITS.minGridCount, max: LABEL_LIMITS.maxGridCount })}
-                </p>
-              </fieldset>
+            <fieldset>
+              <legend className="mb-2 text-label font-medium text-ink">{t("labelMarginsTitle")}</legend>
+              <div className="grid grid-cols-2 gap-3">
+                <MeasureField
+                  id="labelPageMarginTopMm"
+                  labelKey="settings.form.labelMarginTop"
+                  disabled={!canManage}
+                  error={fieldError("labelPageMarginTopMm")}
+                  registration={register("labelPageMarginTopMm")}
+                />
+                <MeasureField
+                  id="labelPageMarginBottomMm"
+                  labelKey="settings.form.labelMarginBottom"
+                  disabled={!canManage}
+                  error={fieldError("labelPageMarginBottomMm")}
+                  registration={register("labelPageMarginBottomMm")}
+                />
+                {/* Left/right are sides of the paper, so in RTL the left field moves past the right one. */}
+                <MeasureField
+                  id="labelPageMarginLeftMm"
+                  labelKey="settings.form.labelMarginLeft"
+                  className="rtl:order-1"
+                  disabled={!canManage}
+                  error={fieldError("labelPageMarginLeftMm")}
+                  registration={register("labelPageMarginLeftMm")}
+                />
+                <MeasureField
+                  id="labelPageMarginRightMm"
+                  labelKey="settings.form.labelMarginRight"
+                  disabled={!canManage}
+                  error={fieldError("labelPageMarginRightMm")}
+                  registration={register("labelPageMarginRightMm")}
+                />
+              </div>
+              <p className={cn("mt-2", hint)}>{t("labelMarginsHint")}</p>
+            </fieldset>
 
-              <fieldset>
-                <legend className="mb-2 text-sm font-medium">{t("labelMarginsTitle")}</legend>
-                <div className="grid grid-cols-2 gap-3">
-                  <MeasureField
-                    id="labelPageMarginTopMm"
-                    label={t("labelMarginTop")}
-                    disabled={!canManage}
-                    error={fieldError("labelPageMarginTopMm")}
-                    registration={register("labelPageMarginTopMm")}
-                  />
-                  <MeasureField
-                    id="labelPageMarginBottomMm"
-                    label={t("labelMarginBottom")}
-                    disabled={!canManage}
-                    error={fieldError("labelPageMarginBottomMm")}
-                    registration={register("labelPageMarginBottomMm")}
-                  />
-                  {/* Left/right are sides of the paper, not of the reading
-                      direction, so in RTL the left field is pushed past the
-                      right one to keep each on the side it names. */}
-                  <MeasureField
-                    id="labelPageMarginLeftMm"
-                    label={t("labelMarginLeft")}
-                    className="rtl:order-1"
-                    disabled={!canManage}
-                    error={fieldError("labelPageMarginLeftMm")}
-                    registration={register("labelPageMarginLeftMm")}
-                  />
-                  <MeasureField
-                    id="labelPageMarginRightMm"
-                    label={t("labelMarginRight")}
-                    disabled={!canManage}
-                    error={fieldError("labelPageMarginRightMm")}
-                    registration={register("labelPageMarginRightMm")}
-                  />
-                </div>
-                <p className="mt-2 text-sm text-muted-foreground">{t("labelMarginsHint")}</p>
-              </fieldset>
-
-              <fieldset>
-                <legend className="mb-2 text-sm font-medium">{t("labelGapsTitle")}</legend>
-                <div className="grid grid-cols-2 gap-3">
-                  <MeasureField
-                    id="labelGapXMm"
-                    label={t("labelGapX")}
-                    disabled={!canManage}
-                    error={fieldError("labelGapXMm")}
-                    registration={register("labelGapXMm")}
-                  />
-                  <MeasureField
-                    id="labelGapYMm"
-                    label={t("labelGapY")}
-                    disabled={!canManage}
-                    error={fieldError("labelGapYMm")}
-                    registration={register("labelGapYMm")}
-                  />
-                </div>
-                <p className="mt-2 text-sm text-muted-foreground">{t("labelGapsHint")}</p>
-              </fieldset>
-            </div>
-          )}
-        </CardContent>
+            <fieldset>
+              <legend className="mb-2 text-label font-medium text-ink">{t("labelGapsTitle")}</legend>
+              <div className="grid grid-cols-2 gap-3">
+                <MeasureField
+                  id="labelGapXMm"
+                  labelKey="settings.form.labelGapX"
+                  disabled={!canManage}
+                  error={fieldError("labelGapXMm")}
+                  registration={register("labelGapXMm")}
+                />
+                <MeasureField
+                  id="labelGapYMm"
+                  labelKey="settings.form.labelGapY"
+                  disabled={!canManage}
+                  error={fieldError("labelGapYMm")}
+                  registration={register("labelGapYMm")}
+                />
+              </div>
+              <p className={cn("mt-2", hint)}>{t("labelGapsHint")}</p>
+            </fieldset>
+          </div>
+        )}
       </Card>
 
       {canManage && (
         <>
-          {hasHiddenSheetError && <Alert variant="destructive">{t("labelSheetErrorHint")}</Alert>}
+          {hasHiddenSheetError && (
+            <Alert tone="danger" data-testid="alert-destructive">
+              {t("labelSheetErrorHint")}
+            </Alert>
+          )}
 
           {mutation.isError && (
-            <Alert variant="destructive">
+            <Alert tone="danger" data-testid="alert-destructive">
               {translateError(mutation.error instanceof ApiError ? mutation.error.code : "error.internal")}
             </Alert>
           )}
-          {showSaved && <Alert variant="success">{t("saved")}</Alert>}
+          {showSaved && (
+            <Alert tone="success" data-testid="alert-success">
+              {t("saved")}
+            </Alert>
+          )}
 
-          <Button type="submit" data-test-selector="settings-save" disabled={mutation.isPending} className="w-full sm:w-auto sm:self-start">
-            {mutation.isPending ? (
-              <>
-                <Spinner />
-                {t("saving")}
-              </>
-            ) : (
-              t("save")
-            )}
+          <Button
+            type="submit"
+            data-test-selector="settings-save"
+            isLoading={mutation.isPending}
+            className="w-full sm:w-auto sm:self-start"
+          >
+            {mutation.isPending ? t("saving") : t("save")}
           </Button>
         </>
       )}

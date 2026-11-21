@@ -3,12 +3,9 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { SlidersHorizontal } from "lucide-react";
+import { Button, Drawer, FormField, Input, Select } from "@store/ui";
 import { ORDER_CHANNELS, ORDER_STATUSES, PAYMENT_STATUSES } from "@organza/shared/constants/order";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { Select } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
+import { fieldTestSelector } from "@organza/shared/lib/testSelector";
 import { DEFAULT_ORDER_FILTERS } from "@/constants/orders";
 import type { OrderListFilters } from "@/types/order";
 
@@ -16,8 +13,7 @@ export interface OrderFiltersValue {
   status: OrderListFilters["status"];
   channel: OrderListFilters["channel"];
   paymentStatus: OrderListFilters["paymentStatus"];
-  // Quick sell's review list (spec.md "Quick sell"): the sales rung up before
-  // the piece existed, which are the ones whose profit is still incomplete.
+  // Quick sell's review list (spec.md "Quick sell"): sales whose profit is still incomplete.
   hasQuickSale: boolean;
   dateFrom: string;
   dateTo: string;
@@ -29,21 +25,15 @@ interface OrderFiltersSheetProps {
   activeCount: number;
 }
 
-// Status, channel and date range, in a sheet rather than a toolbar: on a
-// phone there is no room for four controls next to the search box, and
-// filtering is an occasional action while searching is the constant one.
 export function OrderFiltersSheet({ value, onApply, activeCount }: OrderFiltersSheetProps) {
   const t = useTranslations("orders.filters");
   const tStatus = useTranslations("orders.status");
   const tChannel = useTranslations("orders.channel");
   const tPayment = useTranslations("orders.paymentStatus");
-  const tCommon = useTranslations("common");
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState(value);
 
-  // Re-sync the draft with the applied filters on open, so reopening after
-  // Apply/Reset reflects the current state rather than a stale in-progress
-  // edit.
+  // Re-sync on open so reopening shows the applied filters, not an abandoned edit.
   function handleOpenChange(next: boolean) {
     if (next) setDraft(value);
     setOpen(next);
@@ -72,167 +62,130 @@ export function OrderFiltersSheet({ value, onApply, activeCount }: OrderFiltersS
     <>
       <Button
         type="button"
-        variant="outline"
+        variant="secondary"
         onClick={() => handleOpenChange(true)}
         data-test-selector="order-filters-open"
         className="relative shrink-0 px-4"
+        icon={<SlidersHorizontal className="size-5" aria-hidden="true" />}
       >
-        <SlidersHorizontal className="size-5" aria-hidden="true" />
         {t("trigger")}
         {activeCount > 0 && (
-          <span className="absolute -end-1.5 -top-1.5 flex size-5 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">
+          <span className="absolute -end-1.5 -top-1.5 flex size-5 items-center justify-center rounded-pill bg-primary-600 text-micro font-semibold text-ink-inverse">
             {activeCount}
           </span>
         )}
       </Button>
 
-      <Sheet open={open} onOpenChange={handleOpenChange}>
-        <SheetContent name="order-filters" side="end" closeLabel={tCommon("close")}>
-          <SheetHeader>
-            <SheetTitle>{t("title")}</SheetTitle>
-          </SheetHeader>
-
-          <div className="flex flex-1 flex-col gap-5 overflow-y-auto px-5">
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="order-filter-status">{t("status")}</Label>
-              <Select
-                id="order-filter-status"
-                value={draft.status ?? ""}
-                onChange={(e) =>
-                  setDraft((d) => ({ ...d, status: (e.target.value || null) as OrderFiltersValue["status"] }))
-                }
-              >
-                <option value="">{t("statusAll")}</option>
-                {ORDER_STATUSES.map((status) => (
-                  <option key={status} value={status}>
-                    {tStatus(status)}
-                  </option>
-                ))}
-              </Select>
-            </div>
-
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="order-filter-channel">{t("channel")}</Label>
-              <Select
-                id="order-filter-channel"
-                value={draft.channel ?? ""}
-                onChange={(e) =>
-                  setDraft((d) => ({ ...d, channel: (e.target.value || null) as OrderFiltersValue["channel"] }))
-                }
-              >
-                <option value="">{t("channelAll")}</option>
-                {ORDER_CHANNELS.map((channel) => (
-                  <option key={channel} value={channel}>
-                    {tChannel(channel)}
-                  </option>
-                ))}
-              </Select>
-            </div>
-
-            {/* Whether the money has arrived — the shop's other daily
-                question about an order, alongside where the goods are. */}
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="order-filter-payment">{t("paymentStatus")}</Label>
-              <Select
-                id="order-filter-payment"
-                value={draft.paymentStatus ?? ""}
-                onChange={(e) =>
-                  setDraft((d) => ({
-                    ...d,
-                    paymentStatus: (e.target.value || null) as OrderFiltersValue["paymentStatus"],
-                  }))
-                }
-              >
-                <option value="">{t("paymentStatusAll")}</option>
-                {PAYMENT_STATUSES.map((status) => (
-                  <option key={status} value={status}>
-                    {tPayment(status)}
-                  </option>
-                ))}
-              </Select>
-            </div>
-
-            {/* One question rather than a list to pick from, because it has
-                only one interesting answer: a quick sale is an ordinary sale
-                in every other respect, so "all sales" is what the screen is
-                already showing (spec.md "Quick sell"). A plain checkbox with
-                a 44px target, not a two-option select that would read as a
-                choice between two halves of the list. */}
-            <label
-              htmlFor="order-filter-quick-sale"
-              className="flex min-h-11 items-center gap-3 rounded-lg border border-border px-3"
-            >
-              <input
-                id="order-filter-quick-sale"
-                type="checkbox"
-                checked={draft.hasQuickSale}
-                onChange={(e) => setDraft((d) => ({ ...d, hasQuickSale: e.target.checked }))}
-                data-test-selector="field-order-filter-quick-sale"
-                className="size-5 shrink-0 accent-primary"
-              />
-              <span className="flex min-w-0 flex-col">
-                <span className="text-sm font-medium text-foreground">{t("quickSale")}</span>
-                <span className="text-xs text-muted-foreground">{t("quickSaleHint")}</span>
-              </span>
-            </label>
-
-            {/* Two dates, each with its OWN visible label. An empty date
-                input renders as an empty box on a phone — no "yyyy-mm-dd"
-                hint, nothing — so two of them stacked were two identical
-                blanks with no way to tell which one was "from". An aria-label
-                answered that for a screen reader only, which is the one
-                reader who wasn't confused. Same shape as the reports range
-                picker, so the two screens read alike.
-                They also used to push the sheet sideways on a phone; that is
-                fixed once for every date field in components/ui/input.tsx. */}
-            <div className="flex min-w-0 flex-col gap-2">
-              <Label>{t("dateRange")}</Label>
-              <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2">
-                <div className="flex min-w-0 flex-col gap-2">
-                  <Label htmlFor="order-filter-date-from" className="text-muted-foreground">
-                    {t("dateFrom")}
-                  </Label>
-                  {/* A native date input gets the OS date picker on a phone —
-                      no calendar library, no typing a format wrong. dir="ltr"
-                      keeps the y/m/d segments in their expected order inside
-                      an RTL page. */}
-                  <Input
-                    id="order-filter-date-from"
-                    type="date"
-                    dir="ltr"
-                    value={draft.dateFrom}
-                    max={draft.dateTo || undefined}
-                    onChange={(e) => setDraft((d) => ({ ...d, dateFrom: e.target.value }))}
-                  />
-                </div>
-
-                <div className="flex min-w-0 flex-col gap-2">
-                  <Label htmlFor="order-filter-date-to" className="text-muted-foreground">
-                    {t("dateTo")}
-                  </Label>
-                  <Input
-                    id="order-filter-date-to"
-                    type="date"
-                    dir="ltr"
-                    value={draft.dateTo}
-                    min={draft.dateFrom || undefined}
-                    onChange={(e) => setDraft((d) => ({ ...d, dateTo: e.target.value }))}
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex gap-3 p-5 pt-2">
-            <Button type="button" variant="outline" className="flex-1" onClick={handleReset} data-test-selector="order-filters-reset">
+      <Drawer
+        open={open}
+        onOpenChange={handleOpenChange}
+        title={t("title")}
+        descriptionKey="orders.filters.title"
+        data-testid="sheet-order-filters"
+        footer={
+          <>
+            <Button type="button" variant="secondary" onClick={handleReset} data-test-selector="order-filters-reset">
               {t("reset")}
             </Button>
-            <Button type="button" className="flex-1" onClick={handleApply} data-test-selector="order-filters-apply">
+            <Button type="button" onClick={handleApply} data-test-selector="order-filters-apply">
               {t("apply")}
             </Button>
-          </div>
-        </SheetContent>
-      </Sheet>
+          </>
+        }
+      >
+        <div className="flex flex-col gap-5">
+          <FormField label="orders.filters.status" htmlFor="order-filter-status">
+            <Select
+              id="order-filter-status"
+              data-testid={fieldTestSelector("order-filter-status")}
+              placeholder={t("statusAll")}
+              value={draft.status ?? ""}
+              options={ORDER_STATUSES.map((status) => ({ value: status, label: tStatus(status) }))}
+              onChange={(e) =>
+                setDraft((d) => ({ ...d, status: (e.target.value || null) as OrderFiltersValue["status"] }))
+              }
+            />
+          </FormField>
+
+          <FormField label="orders.filters.channel" htmlFor="order-filter-channel">
+            <Select
+              id="order-filter-channel"
+              data-testid={fieldTestSelector("order-filter-channel")}
+              placeholder={t("channelAll")}
+              value={draft.channel ?? ""}
+              options={ORDER_CHANNELS.map((channel) => ({ value: channel, label: tChannel(channel) }))}
+              onChange={(e) =>
+                setDraft((d) => ({ ...d, channel: (e.target.value || null) as OrderFiltersValue["channel"] }))
+              }
+            />
+          </FormField>
+
+          <FormField label="orders.filters.paymentStatus" htmlFor="order-filter-payment">
+            <Select
+              id="order-filter-payment"
+              data-testid={fieldTestSelector("order-filter-payment")}
+              placeholder={t("paymentStatusAll")}
+              value={draft.paymentStatus ?? ""}
+              options={PAYMENT_STATUSES.map((status) => ({ value: status, label: tPayment(status) }))}
+              onChange={(e) =>
+                setDraft((d) => ({
+                  ...d,
+                  paymentStatus: (e.target.value || null) as OrderFiltersValue["paymentStatus"],
+                }))
+              }
+            />
+          </FormField>
+
+          {/* A checkbox, not a two-option select: a quick sale is an ordinary sale otherwise, so "all" is the unfiltered list. */}
+          <label
+            htmlFor="order-filter-quick-sale"
+            className="flex min-h-11 cursor-pointer items-center gap-3 rounded-control border border-line px-3 has-[input:checked]:border-selected-line has-[input:checked]:bg-selected"
+          >
+            <input
+              id="order-filter-quick-sale"
+              type="checkbox"
+              checked={draft.hasQuickSale}
+              onChange={(e) => setDraft((d) => ({ ...d, hasQuickSale: e.target.checked }))}
+              data-test-selector="field-order-filter-quick-sale"
+              className="size-5 shrink-0 accent-primary-600"
+            />
+            <span className="flex min-w-0 flex-col">
+              <span className="text-label font-medium text-ink">{t("quickSale")}</span>
+              <span className="text-micro text-ink-muted">{t("quickSaleHint")}</span>
+            </span>
+          </label>
+
+          {/* Each date has its own visible label: an empty date input on a phone shows nothing to tell "from" from "to". */}
+          <fieldset className="flex min-w-0 flex-col gap-2">
+            <legend className="mb-2 text-label font-medium text-ink">{t("dateRange")}</legend>
+            <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2">
+              <FormField label="orders.filters.dateFrom" htmlFor="order-filter-date-from">
+                <Input
+                  id="order-filter-date-from"
+                  type="date"
+                  dir="ltr"
+                  data-test-selector={fieldTestSelector("order-filter-date-from")}
+                  value={draft.dateFrom}
+                  max={draft.dateTo || undefined}
+                  onChange={(e) => setDraft((d) => ({ ...d, dateFrom: e.target.value }))}
+                />
+              </FormField>
+
+              <FormField label="orders.filters.dateTo" htmlFor="order-filter-date-to">
+                <Input
+                  id="order-filter-date-to"
+                  type="date"
+                  dir="ltr"
+                  data-test-selector={fieldTestSelector("order-filter-date-to")}
+                  value={draft.dateTo}
+                  min={draft.dateFrom || undefined}
+                  onChange={(e) => setDraft((d) => ({ ...d, dateTo: e.target.value }))}
+                />
+              </FormField>
+            </div>
+          </fieldset>
+        </div>
+      </Drawer>
     </>
   );
 }

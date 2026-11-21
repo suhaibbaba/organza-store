@@ -8,8 +8,6 @@ interface ShowcaseSectionProps {
   children: ReactNode;
 }
 
-// One family of components on the review page: a heading, a line on what the
-// family is for, and the samples in a card.
 export function ShowcaseSection({ id, title, hint, children }: ShowcaseSectionProps) {
   return (
     <section

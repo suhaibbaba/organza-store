@@ -7,29 +7,17 @@ import { GIFT_ORDER_TYPE } from "@organza/shared/constants/order";
 import type { Order } from "@organza/shared/types/order";
 import { SELECTABLE } from "@organza/shared/lib/nativeGestures";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
-import { Button } from "@/components/ui/button";
+import { Button } from "@store/ui";
 import { POS_ORDER_CHANNEL, SALE_SUCCESS_RESET_MS } from "@/constants/pos";
 import { cn } from "@/lib/utils";
+import { SHEET_ACTION } from "@/components/sell/sheet-styles";
 
 interface SaleSuccessProps {
   order: Order;
   onNewSale: () => void;
 }
 
-// Confirmation the sale went through: the order number to read out, and the
-// amount taken. It clears itself after a few seconds so the till is never
-// left sitting on a finished sale when the next customer walks up — and
-// "new sale" is right there for whoever is quicker than the timer.
-//
-// A WhatsApp order is not finished, it is filed: it says so, names the
-// customer it goes to, and says what happens next, because the goods are
-// still on the shelf until someone starts preparing it.
-//
-// A gift is finished, but nothing was taken for it. Showing it the same way
-// as a sale would put a big "0.00" where the amount goes, which reads as a
-// sale that went wrong rather than as a piece deliberately given away — so it
-// gets the violet of the button that made it, and says the two things that
-// are actually true: the stock has left, and no money was taken.
+// Clears itself after a few seconds; a WhatsApp order is filed not finished, and a gift shows pieces gone, never a 0.00 that reads as a failed sale.
 export function SaleSuccess({ order, onNewSale }: SaleSuccessProps) {
   const t = useTranslations("sell.success");
   const formatMoney = useMoneyFormatter();
@@ -45,48 +33,43 @@ export function SaleSuccess({ order, onNewSale }: SaleSuccessProps) {
 
   return (
     <div
-      // A completed sale is worth announcing to a screen reader without
-      // stealing focus from whatever the cashier does next.
       role="status"
       className={cn(
         "flex flex-col items-center gap-4 rounded-panel border px-6 py-12 text-center",
-        isGift ? "border-gift/30 bg-gift/10" : "border-success/20 bg-success-soft"
+        isGift ? "border-tint-3-ink/30 bg-tint-3-bg" : "border-success-300 bg-success-50"
       )}
     >
       {isGift ? (
-        <Gift className="size-12 text-gift" aria-hidden="true" />
+        <Gift className="size-12 text-tint-3-ink" aria-hidden="true" />
       ) : (
-        <CheckCircle2 className="size-12 text-success" aria-hidden="true" />
+        <CheckCircle2 className="size-12 text-success-700" aria-hidden="true" />
       )}
 
       <div className="flex flex-col gap-1">
-        <p className="text-xl font-semibold">
+        <p className="text-xl font-semibold text-ink">
           {isGift ? t("giftTitle") : isCounterSale ? t("title") : t("whatsappTitle")}
         </p>
-        {/* A counter sale hands over a receipt; a WhatsApp order is quoted
-            back to the customer in the chat as an order number. A gift keeps
-            a number too — it is the record of what left the shop. */}
-        <p className="text-sm text-muted-foreground" {...SELECTABLE}>
+        <p className="text-sm text-ink-muted" {...SELECTABLE}>
           {isCounterSale
             ? t("orderNumber", { number: order.orderNumber })
             : t("whatsappOrderNumber", { number: order.orderNumber })}
         </p>
         {!isGift && !isCounterSale && order.customerName && (
-          <p className="text-sm text-muted-foreground">{t("customer", { name: order.customerName })}</p>
+          <p className="text-sm text-ink-muted">{t("customer", { name: order.customerName })}</p>
         )}
       </div>
 
       {isGift ? (
         // What a gift's headline figure is: pieces gone, not money in.
-        <p className="text-3xl font-bold tabular-nums text-gift">{t("giftCount", { count: giftedCount })}</p>
+        <p className="text-3xl font-bold tabular-nums text-tint-3-ink">{t("giftCount", { count: giftedCount })}</p>
       ) : (
-        <p className="text-3xl font-bold tabular-nums">{formatMoney(order.total)}</p>
+        <p className="text-3xl font-bold tabular-nums text-ink">{formatMoney(order.total)}</p>
       )}
 
-      {isGift && <p className="max-w-xs text-sm text-muted-foreground">{t("giftNextStep")}</p>}
-      {!isGift && !isCounterSale && <p className="max-w-xs text-sm text-muted-foreground">{t("whatsappNextStep")}</p>}
+      {isGift && <p className="max-w-xs text-sm text-ink-muted">{t("giftNextStep")}</p>}
+      {!isGift && !isCounterSale && <p className="max-w-xs text-sm text-ink-muted">{t("whatsappNextStep")}</p>}
 
-      <Button type="button" onClick={onNewSale} data-test-selector="pos-new-sale" className="w-full max-w-xs">
+      <Button type="button" onClick={onNewSale} data-testid="pos-new-sale" className={`${SHEET_ACTION} w-full max-w-xs`}>
         {t("newSale")}
       </Button>
     </div>

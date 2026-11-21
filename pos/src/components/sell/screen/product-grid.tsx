@@ -4,9 +4,8 @@ import { useTranslations } from "next-intl";
 import { Zap } from "lucide-react";
 import type { ProductSummary } from "@organza/shared/types/product";
 import { cn } from "@/lib/utils";
-import { Alert } from "@/components/ui/alert";
-import { Spinner } from "@/components/ui/spinner";
-import { CONTROL_HEIGHT, SECONDARY_ACTION } from "@/components/sell/screen/control-styles";
+import { Alert, Button, Spinner } from "@store/ui";
+import { CONTROL_HEIGHT } from "@/components/sell/screen/control-styles";
 import { ProductCard } from "@/components/sell/screen/product-card";
 import { SectionTitle } from "@/components/sell/screen/section-title";
 
@@ -23,16 +22,12 @@ interface ProductGridProps {
   onShowMore: () => void;
   pendingId: string | null;
   onAdd: (product: ProductSummary) => void;
-  // Offered when a search found nothing (spec.md "Quick sell"); absent for an
-  // account that may not quick-sell.
+  // Offered when a search found nothing (spec.md "Quick sell"); absent for an account that may not quick-sell.
   onQuickSell?: () => void;
 }
 
 const TITLE_ID = "pos-products-title";
 
-// The products card: its title and the grid — 2 per row
-// on a phone, 3 from 600px (and beside the cart from 1000px), 4 from 1200px
-// and 5 from 1400px.
 export function ProductGrid({
   products,
   isLoading,
@@ -54,37 +49,33 @@ export function ProductGrid({
       <SectionTitle id={TITLE_ID}>{t("screen.productsTitle")}</SectionTitle>
 
       {isError ? (
-        <Alert variant="destructive">{t("browse.error")}</Alert>
+        <Alert tone="danger">{t("browse.error")}</Alert>
       ) : isLoading ? (
-        <p className="flex items-center justify-center gap-2 py-16 text-sm text-muted-foreground">
+        <p className="flex items-center justify-center gap-2 py-16 text-label text-ink-muted">
           <Spinner />
           {t("browse.loading")}
         </p>
       ) : products && products.length === 0 ? (
         <div className="flex flex-col items-center gap-3 px-4 py-14 text-center" data-test-selector="pos-products-empty">
-          <p className="text-sm text-muted-foreground">{isSearching ? t("browse.emptySearch") : t("browse.empty")}</p>
+          <p className="text-label text-ink-muted">{isSearching ? t("browse.emptySearch") : t("browse.empty")}</p>
           <div className="flex flex-wrap justify-center gap-2">
             {isFiltered && (
-              <button
-                type="button"
-                onClick={onClearFilters}
-                className={cn(CONTROL_HEIGHT, SECONDARY_ACTION, "px-4")}
-              >
+              <Button variant="secondary" onClick={onClearFilters} className={cn(CONTROL_HEIGHT, "px-4")}>
                 {t("browse.clearFilters")}
-              </button>
+              </Button>
             )}
             {isSearching && onQuickSell && (
-              <button
-                type="button"
+              <Button
+                variant="secondary"
                 onClick={onQuickSell}
+                icon={<Zap className="size-4" aria-hidden="true" />}
                 className={cn(
                   CONTROL_HEIGHT,
-                  "inline-flex items-center gap-2 rounded-control border border-quick-border bg-quick px-4 text-sm font-medium text-quick-foreground"
+                  "border-warning-300 bg-warning-50 px-4 text-warning-800 hover:border-warning-500 hover:bg-warning-100 hover:text-warning-800"
                 )}
               >
-                <Zap className="size-4" aria-hidden="true" />
                 {t("quickSell.open")}
-              </button>
+              </Button>
             )}
           </div>
         </div>
@@ -108,15 +99,15 @@ export function ProductGrid({
 
           {/* Paged, never endless (CLAUDE.md rule 15). */}
           {hasNextPage && (
-            <button
-              type="button"
+            <Button
+              variant="secondary"
               onClick={onShowMore}
               disabled={isFetchingNextPage}
-              className={cn(CONTROL_HEIGHT, SECONDARY_ACTION, "mx-auto inline-flex items-center gap-2 px-5")}
+              isLoading={isFetchingNextPage}
+              className={cn(CONTROL_HEIGHT, "mx-auto px-5")}
             >
-              {isFetchingNextPage && <Spinner />}
               {t("browse.showMore")}
-            </button>
+            </Button>
           )}
         </>
       )}

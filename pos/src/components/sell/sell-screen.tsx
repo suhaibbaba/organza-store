@@ -23,7 +23,7 @@ import { useScanFeedback } from "@/hooks/use-scan-feedback";
 import { useScanFlash } from "@/hooks/use-scan-flash";
 import { useSellShortcuts } from "@/hooks/use-sell-shortcuts";
 import { useToasts } from "@/hooks/use-toasts";
-import { useTranslateError } from "@/hooks/use-translate-error";
+import { errorMessageKey } from "@/hooks/use-translate-error";
 import { TopBar } from "@/components/layout/top-bar";
 import { SearchField } from "@/components/sell/screen/search-field";
 import { TopBarActions } from "@/components/sell/screen/top-bar-actions";
@@ -39,8 +39,7 @@ import { GiftOrderSheet } from "@/components/sell/gift-order-sheet";
 import { QuickSellSheet } from "@/components/sell/quick-sell-sheet";
 import { ScannerSheet } from "@/components/sell/scanner/scanner-sheet";
 import { VariantPickerSheet } from "@/components/sell/variant-picker-sheet";
-import { Alert } from "@/components/ui/alert";
-import { Toaster } from "@/components/ui/toast";
+import { Alert } from "@store/ui";
 import type { OrderCustomerDraft } from "@/types/customer";
 import type { CartLine } from "@/types/cart";
 import { lineGrossCents } from "@/lib/cart";
@@ -48,28 +47,10 @@ import { fromCents } from "@/lib/money";
 import { DESK_MEDIA_QUERY } from "@/constants/layout";
 import { cn } from "@/lib/utils";
 
-// The selling screen. One screen, one job: get what the customer is holding
-// into the cart and take the money, in as few taps as possible.
-//
-// Four ways in, in the order they're reached for: the phone's camera (scan
-// the tag), the counter's plug-in scanner (pull the trigger), the search box
-// (when the tag is unreadable), and typing a number (numbered shawls — see
-// VariantPickerSheet). All four funnel into the same cart, through the same
-// submitCode, and answer the same way.
-//
-// Nothing any of them do interrupts the next one. An item that lands in the
-// cart says so with a beep and a toast that clears itself, the camera keeps
-// running until it is closed by hand, and the cart is one tap away from
-// wherever the cashier is.
-//
-// Laid out as the design "Organza POS — 4 sizes" draws it: a top bar with the
-// search and its two buttons, a row of category tiles, the product grid, and
-// the cart — a panel beside the grid from 1000px, a bar along the bottom (and
-// a sheet it opens) below that. See components/sell/screen.
+// Camera, counter scanner, search box and typed numbers all funnel through submitCode; nothing interrupts the next scan.
 export function SellScreen() {
   const t = useTranslations("sell");
   const locale = useLocale();
-  const translateError = useTranslateError();
   const queryClient = useQueryClient();
   const { user } = useSession();
 
@@ -81,15 +62,11 @@ export function SellScreen() {
 
   const [query, setQuery] = useState("");
   const [scannerOpen, setScannerOpen] = useState(false);
-  // The category tile in force (null = "All"), and whether the cart sheet is
-  // up — below 1000px the cart lives in a sheet behind the cart bar.
+  // null = "All".
   const [categoryId, setCategoryId] = useState<string | null>(null);
   const [cartOpen, setCartOpen] = useState(false);
   const [pickerProduct, setPickerProduct] = useState<Product | null>(null);
-  // Whether the picker interrupted a run of scans. Set when a scanned code
-  // turns out to need a choice, and used to put the camera back afterwards
-  // so the cashier carries on from where they were instead of hunting for
-  // the scan button again.
+  // Whether the picker interrupted a run of scans, so the camera goes back up afterwards.
   const [resumeScanAfterPick, setResumeScanAfterPick] = useState(false);
   const [pendingProductId, setPendingProductId] = useState<string | null>(null);
   const [discountLineKey, setDiscountLineKey] = useState<string | null>(null);
@@ -100,111 +77,72 @@ export function SellScreen() {
   const [quickSellOpen, setQuickSellOpen] = useState(false);
   const [giftErrorCode, setGiftErrorCode] = useState<string | null>(null);
   const [completedOrder, setCompletedOrder] = useState<Order | null>(null);
-  // Only ever focused by a deliberate keypress from the counter keyboard —
-  // never on mount, which on a phone would open the keyboard over the cart.
+  // Only focused by a deliberate keypress, never on mount (a phone would open its keyboard over the cart).
   const searchInputRef = useRef<HTMLInputElement | null>(null);
 
-  // The grid: the selected shelf, narrowed by the search box — the same
-  // cross-language backend search the box always ran (CLAUDE.md rule 10).
   const browse = useProductBrowse({ categoryId, query });
   const isSearching = query.trim().length > 0;
 
-  // Once the side panel exists (1000px and up) the sheet has nothing left to
-  // show that is not already on screen, so it is never open there.
+  // From 1000px the side panel shows the cart, so the sheet is never open there.
   const isDesk = useMediaQuery(DESK_MEDIA_QUERY);
 
-  // Every staff role can sell, Employee included (spec.md "Roles &
-  // Permissions"). Checked here so an account that somehow lacks it sees a
-  // plain explanation instead of a screen whose buttons all fail — the real
-  // gate is the backend's, on every request (CLAUDE.md rule 5).
+  // The real gate is the backend's (rule 5); this only explains instead of drawing buttons that all fail.
   const canSell = can(user, "order.create");
-  // Giving stock away is Admin/Manager only: an Employee who could file a
-  // sale as a gift could walk out with the piece (spec.md "Gifts"). This
-  // decides whether the action is drawn at all; the backend refuses the
-  // request either way.
+  // Admin/Manager only (spec.md "Gifts"); the backend refuses it either way.
   const canGift = can(user, "order.createGift");
-  // Selling a piece that isn't in the catalogue yet (spec.md "Quick sell").
-  // Every role holds it as shipped — it happens when the shop is busiest, and
-  // that is exactly when an Employee is the one at the till — but the shop can
-  // switch it off per role, so the button is drawn from the permission rather
-  // than always. The backend refuses the request either way (rule 5).
+  // Every role as shipped, switchable per role (spec.md "Quick sell"); the backend refuses it either way.
   const canQuickSell = can(user, "product.quickSell");
 
-  // One item in the cart, however it got there. All four answers land at
-  // once — the beep, the buzz, the toast naming it and its new quantity, and
-  // the lit cart line — because each covers for the others: the sound works
-  // while the phone is face down on the counter, the buzz works while the shop
-  // is too loud for the sound (or iOS has silenced it), the toast works over
-  // the open camera, and the line is what is still there afterwards.
+  // Beep, buzz, toast and lit line all land at once: each covers for the others when the shop is loud or the phone face down.
   const addToCart = useCallback(
     (product: Product, variant: Variant | null) => {
       const line = cart.addItem(product, variant);
-      // Keyed by the line, so scanning one item over and over rewrites a
-      // single toast that counts up rather than stacking a column of them.
-      toasts.show(
-        "success",
-        t("feedback.added", { name: lineName(line, locale), quantity: line.quantity }),
-        line.key
-      );
+      toasts.show("success", "sell.feedback.added", { name: lineName(line, locale), quantity: line.quantity }, line.key);
       scanFlash.markScanned(line.key);
       scanFeedback.play("success");
     },
-    [cart, locale, scanFeedback, scanFlash, t, toasts]
+    [cart, locale, scanFeedback, scanFlash, toasts]
   );
 
-  // A whole handful at once, from the variant picker: the same dress in M and
-  // L, three shawls off one photo. Each variant becomes its own line at
-  // quantity 1 (the cart is where a quantity is changed), and the cashier is
-  // told once — a toast per variant would push the others off the screen and
-  // still leave them counting ticks to check.
+  // A handful from the variant picker: each variant its own line at quantity 1, told once.
   const addManyToCart = useCallback(
     (product: Product, variants: Variant[]) => {
       if (variants.length === 0) return;
-      // One is not "many": it keeps the named, counting toast it would have
-      // had from a scan, which says more than a bare "1 added".
+      // One is not "many": it keeps the named, counting toast a scan would get.
       if (variants.length === 1) {
         addToCart(product, variants[0]);
         return;
       }
 
       const lines = variants.map((variant) => cart.addItem(product, variant));
-      toasts.show(
-        "success",
-        t("feedback.addedMany", { name: localize(product.name, locale), count: lines.length })
-      );
-      // The last one added sits at the top of the cart (addItem prepends), so
-      // that is the line worth lighting — the rest are right under it.
+      toasts.show("success", "sell.feedback.addedMany", { name: localize(product.name, locale), count: lines.length });
+      // addItem prepends, so the last one added is the line at the top worth lighting.
       scanFlash.markScanned(lines[lines.length - 1].key);
       scanFeedback.play("success");
     },
-    [addToCart, cart, locale, scanFeedback, scanFlash, t, toasts]
+    [addToCart, cart, locale, scanFeedback, scanFlash, toasts]
   );
 
   const handleCodeOutcome = useCallback(
     (outcome: CodeOutcome) => {
       if (outcome.status === "added") {
-        // addToCart has already said what landed; clearing the box readies
-        // it for the next item and drops out of the search view.
         setQuery("");
         return;
       }
       if (outcome.status === "pick") {
-        // The camera has to go: the choice is the whole screen, and it is
-        // put back the moment the choice is made.
+        // The camera goes while the choice is made, and comes back after.
         setResumeScanAfterPick(scannerOpen);
         setScannerOpen(false);
         setPickerProduct(outcome.product);
         setQuery("");
         return;
       }
-      // Keyed by the code as well: a tag the catalogue doesn't know gets
-      // read again and again while it sits under the camera, and that is
-      // one problem, not five.
-      toasts.show("destructive", translateError(outcome.code), outcome.code);
+      // Keyed by the code: an unknown tag under the camera is one problem, not five.
+      toasts.show("destructive", errorMessageKey(outcome.code), undefined, outcome.code);
       scanFlash.markFailed();
       scanFeedback.play("destructive");
     },
-    [scanFeedback, scanFlash, scannerOpen, toasts, translateError]
+    [scanFeedback, scanFlash, scannerOpen, toasts]
   );
 
   const { submitCode, isLooking, resetScanHistory } = useAddByCode({
@@ -212,47 +150,30 @@ export function SellScreen() {
     onOutcome: handleCodeOutcome,
   });
 
-  // Sheets that ask about something other than what is being scanned. While
-  // one of them has the screen, a scan would land in a cart nobody can see
-  // and a function key would answer a question that was not asked. The gift
-  // confirmation is the sharpest case of both: it lists what is about to be
-  // given away, and a scan landing behind it would change that list after the
-  // cashier read it.
+  // While one of these is up a scan would land in a cart nobody can see (or change a gift list already read).
   const isAskingSomethingElse =
     whatsappOpen || giftOpen || orderDiscountOpen || discountLineKey !== null;
-  // The sheets that ARE part of finding what is being sold: the picker a
-  // variant-bearing parent raises, the camera, and the product browser. None
-  // of them takes a text field's focus (SheetContent's onOpenAutoFocus), so
-  // the counter's scanner keeps working straight through — the next trigger
-  // pull just replaces what is on screen. What they do switch off is the
-  // keyboard shortcuts, which answer questions this screen is no longer the
-  // one asking.
+  // Sheets that are part of finding what is sold: the counter scanner keeps working, keyboard shortcuts do not.
   const isFindingSheetOpen = pickerProduct !== null || scannerOpen;
 
-  // The counter's plug-in scanner. What a scan does is the camera's behaviour
-  // verbatim — the same lookup, the same toast, the same beep, the same
-  // swallowing of repeats — because it is the same call.
+  // The counter's plug-in scanner: the same call as the camera.
   useHardwareScanner({
     enabled: canSell && completedOrder === null && !isAskingSomethingElse,
     onScan: (code) => {
-      // A keypress is a user gesture, and at the counter it is the only one
-      // there is: nobody taps the scan button, so without taking this one
-      // the browser would never let the first beep of the shift play.
+      // At the counter a keypress is the only user gesture there is to unlock the first beep.
       scanFeedback.unlock();
       void submitCode(code, { dedupe: true });
     },
   });
 
-  // Keys for the counter keyboard. Every one of them is also a button, and
-  // the phone — which has no keyboard — never sees any of this.
+  // Counter keyboard shortcuts; every one is also a button.
   useSellShortcuts({
     enabled: canSell && completedOrder === null && !isAskingSomethingElse && !isFindingSheetOpen,
     onFocusSearch: () => {
       const input = searchInputRef.current;
       if (!input) return;
       input.focus();
-      // Selected, not appended to: reaching for the search box means a new
-      // search, not a longer one.
+      // Selected: reaching for the search box means a new search, not a longer one.
       input.select();
     },
     onScan: openScanner,
@@ -262,21 +183,12 @@ export function SellScreen() {
     },
     onClear: () => {
       setQuery("");
-      // Focus goes back to the page, which is where the hardware scanner
-      // reads from — otherwise clearing the box would leave the cursor in it
-      // and the next trigger pull would type into it instead.
+      // Back to the page, where the hardware scanner reads from.
       searchInputRef.current?.blur();
     },
   });
 
-  // A tapped product, from the search results or from the browser's grid:
-  // the list DTO carries no variants, so the full product is fetched before
-  // deciding whether to ask which one.
-  //
-  // Answers whether the tap got anywhere — added, or opened the picker — so a
-  // caller that has something to close can close it. A failed lookup leaves
-  // everything where it was, with the toast over it, rather than shutting the
-  // drawer on a cashier who now has nothing to show for the tap.
+  // The list DTO carries no variants, so the full product is fetched first; answers whether the tap got anywhere.
   const selectSearchResult = useCallback(
     async (summary: ProductSummary): Promise<boolean> => {
       setPendingProductId(summary.id);
@@ -291,29 +203,19 @@ export function SellScreen() {
         } else {
           addToCart(product, null);
         }
-        // The search stays up either way. It is a place the cashier walked
-        // into and leaves by the door at the top (SearchView) — yanking it
-        // away mid-errand is the behaviour that made the cart feel lost in
-        // the first place, and a customer buying three dresses off one list
-        // would have to type the same word three times. The toast and the
-        // count on that door say what just went in.
+        // The search stays up: a customer buying three dresses off one list should not need it typed three times.
         return true;
       } catch (error) {
-        toasts.show("destructive", translateError(error instanceof ApiError ? error.code : ERROR_CODES.INTERNAL));
+        toasts.show("destructive", errorMessageKey(error instanceof ApiError ? error.code : ERROR_CODES.INTERNAL));
         return false;
       } finally {
         setPendingProductId(null);
       }
     },
-    [addToCart, queryClient, toasts, translateError]
+    [addToCart, queryClient, toasts]
   );
 
-  // Every ending of a cart goes through here: on its own it is a counter
-  // sale, with a customer it is a WhatsApp order for delivery, and with
-  // `gift` it is stock given away for nothing (spec.md "Gifts"). Only where
-  // the failure is shown differs — each sheet covers the screen, so its own
-  // message has to be inside it, or a refused save would look like nothing
-  // happening at all.
+  // Counter sale, WhatsApp order (customer) or gift; a sheet's failure is shown inside the sheet that covers the screen.
   function submitOrder(options: { customer?: OrderCustomerDraft; gift?: { note: string } } = {}) {
     const { customer, gift } = options;
     toasts.clear();
@@ -336,14 +238,11 @@ export function SellScreen() {
             setWhatsappErrorCode(code);
             return;
           }
-          // An Employee who reached this call at all is refused here (403),
-          // which is the gate that matters — the hidden button is only the
-          // courtesy in front of it.
           if (gift) {
             setGiftErrorCode(code);
             return;
           }
-          toasts.show("destructive", translateError(code));
+          toasts.show("destructive", errorMessageKey(code));
         },
       }
     );
@@ -356,12 +255,9 @@ export function SellScreen() {
   }
 
   function openScanner() {
-    // The tap that opens the camera is also the user gesture browsers
-    // require before any sound may be played — take it while it's here, or
-    // the first successful scan of the shift is silent.
+    // The tap is the user gesture browsers require before any sound may play.
     scanFeedback.unlock();
-    // Opening it by hand means "scan this now", whatever it is — including
-    // the tag that was last in front of the lens.
+    // Opening it by hand means "scan this now", including the tag last in front of the lens.
     resetScanHistory();
     setScannerOpen(true);
   }
@@ -373,14 +269,13 @@ export function SellScreen() {
       <>
         <TopBar />
         <main className="px-4 py-10">
-          <Alert variant="destructive">{t("noPermission")}</Alert>
+          <Alert tone="danger">{t("noPermission")}</Alert>
         </main>
       </>
     );
   }
 
-  // A finished sale takes over the screen: nothing else is worth looking at
-  // until the cashier starts the next one.
+  // A finished sale takes over the screen until the next one starts.
   if (completedOrder) {
     return (
       <>
@@ -420,11 +315,7 @@ export function SellScreen() {
         }
       />
 
-      {/* The finding side (categories, then products) at the start; from
-          1000px the cart is a panel at the end — left in Arabic, right in
-          English, from flex order alone. Below that the cart bar stands in
-          for it, and the page leaves room under the grid for the bar's own
-          measured height. */}
+      {/* From 1000px the cart is a panel at the end; below, the cart bar stands in and the grid leaves room for it. */}
       <div className="flex items-start gap-3 p-3 tab:gap-4 tab:p-4">
         <main className="flex min-w-0 flex-1 flex-col gap-3 pb-[var(--checkout-bar-height)] tab:gap-4 desk:pb-0">
           <CategoryTiles selectedId={categoryId} onSelect={setCategoryId} />
@@ -440,8 +331,6 @@ export function SellScreen() {
             onShowMore={() => void browse.fetchNextPage()}
             pendingId={pendingProductId}
             onAdd={(summary) => void selectSearchResult(summary)}
-            // "We searched and it isn't there" is the moment quick sell is
-            // for (spec.md "Quick sell").
             onQuickSell={canQuickSell ? () => setQuickSellOpen(true) : undefined}
           />
         </main>
@@ -459,20 +348,14 @@ export function SellScreen() {
       <CartBar totals={cart.totals} onOpen={() => setCartOpen(true)} className="desk:hidden" />
       <CartSheet open={cartOpen && !isDesk} onOpenChange={setCartOpen} {...cartPanelProps} />
 
-      {/* Only mounted for an account that may quick-sell, so there is nothing
-          behind the hidden button either. */}
       {canQuickSell && (
         <QuickSellSheet
           open={quickSellOpen}
           onOpenChange={setQuickSellOpen}
           onAdd={(input) => {
             const line = cart.addQuickSellItem(input, 1);
-            // The same feedback a scan gets: the cart is one tap away and the
-            // cashier has to know the piece landed in it.
             scanFlash.markScanned(line.key);
-            toasts.show("success", t("quickSell.added", { name: input.name }));
-            // ...and back to the resting screen, since the search that found
-            // nothing has been answered.
+            toasts.show("success", "sell.quickSell.added", { name: input.name });
             setQuery("");
           }}
         />
@@ -490,8 +373,6 @@ export function SellScreen() {
         onSubmit={(customer) => submitOrder({ customer })}
       />
 
-      {/* Only mounted for an account that may give stock away, so there is
-          nothing behind the hidden button either. */}
       {canGift && (
         <GiftOrderSheet
           open={giftOpen}
@@ -528,11 +409,7 @@ export function SellScreen() {
             setScannerOpen(true);
             return;
           }
-          // The camera is not going back up, so the reason the code that
-          // raised this question is being held — that the tag is still lying
-          // under the lens — has gone with it. At the counter the same tag
-          // is pulled again on purpose for the second piece, and holding it
-          // would swallow that scan and every repeat after it.
+          // The camera is not going back up, so stop holding the code: at the counter the same tag is pulled again on purpose.
           resetScanHistory();
         }}
         onPick={addManyToCart}
@@ -559,15 +436,11 @@ export function SellScreen() {
         current={cart.orderDiscount}
         onApply={cart.setOrderDiscount}
       />
-
-      <Toaster toasts={toasts.toasts} />
     </>
   );
 }
 
-// What to call a line out loud: the product, plus the variant when there is
-// one, because "Silk Scarf" alone tells a cashier nothing about which of the
-// eight they just scanned.
+// "Silk Scarf" alone does not say which of the eight was just scanned.
 function lineName(line: CartLine, locale: string): string {
   const name = localize(line.name, locale);
   const variantName = line.variantName ? localize(line.variantName, locale) : null;

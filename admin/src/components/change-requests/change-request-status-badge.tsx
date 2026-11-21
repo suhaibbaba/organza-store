@@ -9,25 +9,14 @@ import {
 import type { ChangeRequestStatus } from "@organza/shared/types/changeRequest";
 import { cn } from "@/lib/utils";
 
-// Where a request stands, drawn from the request's own status and from
-// nothing else.
-//
-// It exists because the values on a card cannot answer that question. Every
-// expense request asks for the same thing (PENDING → APPROVED), so a card
-// showing only what was ASKED for read "approved" whether it had been agreed
-// to or refused — the Rejected tab contradicting its own heading. Whatever
-// the field is, this chip says which of the three things actually happened.
-//
-// Colour carries the same meaning as everywhere else in the app: amber =
-// still waiting on somebody, green = done, red = didn't happen.
+// Drawn from the request's own status only: the requested value alone reads "approved" even on a refused expense request.
 const STATUS_BADGE_STYLES: Record<ChangeRequestStatus, string> = {
-  [PENDING_CHANGE_REQUEST_STATUS]: "bg-amber-500/10 text-amber-700 dark:text-amber-400",
-  [APPROVED_CHANGE_REQUEST_STATUS]: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400",
-  [REJECTED_CHANGE_REQUEST_STATUS]: "bg-destructive/10 text-destructive",
+  [PENDING_CHANGE_REQUEST_STATUS]: "bg-warning-50 text-warning-700",
+  [APPROVED_CHANGE_REQUEST_STATUS]: "bg-success-50 text-success-700",
+  [REJECTED_CHANGE_REQUEST_STATUS]: "bg-danger-50 text-danger-600",
 };
 
-// ...and a shape alongside the colour, so the three states are still telling
-// apart on a phone in daylight, or by someone who does not read colour.
+// A shape alongside the colour, for anyone who cannot rely on colour.
 const STATUS_BADGE_ICONS: Record<ChangeRequestStatus, LucideIcon> = {
   [PENDING_CHANGE_REQUEST_STATUS]: Clock,
   [APPROVED_CHANGE_REQUEST_STATUS]: Check,
@@ -47,7 +36,7 @@ export function ChangeRequestStatusBadge({
   return (
     <span
       className={cn(
-        "inline-flex h-6 shrink-0 items-center gap-1.5 rounded-full px-2.5 text-xs font-medium",
+        "pill-text inline-flex h-6 shrink-0 items-center gap-1.5 rounded-pill px-2.5 text-meta font-medium",
         STATUS_BADGE_STYLES[status],
         className
       )}

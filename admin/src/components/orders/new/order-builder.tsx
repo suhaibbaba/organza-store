@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useLocale, useTranslations } from "next-intl";
 import { useQueryClient } from "@tanstack/react-query";
 import { Save } from "lucide-react";
+import { Alert, Button } from "@store/ui";
 import { ERROR_CODES } from "@organza/shared/constants/errors";
 import { SALE_ORDER_TYPE } from "@organza/shared/constants/order";
 import type { Order } from "@organza/shared/types/order";
@@ -28,9 +29,6 @@ import {
 import { useOrderDraft } from "@/hooks/use-order-draft";
 import { useCreateOrderMutation } from "@/hooks/use-orders";
 import { useTranslateError } from "@/hooks/use-translate-error";
-import { Alert } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
-import { Spinner } from "@/components/ui/spinner";
 import { OrderChannelBadge } from "@/components/orders/order-channel-badge";
 import { ProductPicker } from "@/components/orders/new/product-picker";
 import { VariantPickerSheet } from "@/components/orders/new/variant-picker-sheet";
@@ -40,13 +38,7 @@ import { OrderDiscountSheet } from "@/components/orders/new/order-discount-sheet
 import { CustomerForm } from "@/components/orders/new/customer-form";
 import { OrderCreated } from "@/components/orders/new/order-created";
 
-// Writing down an order that came in over WhatsApp. One screen, top to
-// bottom: what they want, who they are, what it comes to, save — no wizard to
-// get lost in (CLAUDE.md "Few, clear steps").
-//
-// The order is filed under the WHATSAPP channel and opens NEW with no stock
-// taken off the shelf; it commits when someone starts preparing it (spec.md
-// "Stock deduction").
+// A WhatsApp order: filed under WHATSAPP and opens NEW with no stock taken until preparation starts (spec.md "Stock deduction").
 export function OrderBuilder() {
   const t = useTranslations("orders.new");
   const locale = useLocale();
@@ -79,15 +71,13 @@ export function OrderBuilder() {
   const addItem = useCallback(
     (product: Product, variant: Variant | null) => {
       draft.addItem(product, variant);
-      // Clearing the box readies it for the next item — the line appearing
-      // below is the confirmation that it landed.
+      // Clearing the box readies it for the next item; the new line below is the confirmation.
       setQuery("");
     },
     [draft]
   );
 
-  // A tapped search result: the list DTO carries no variants, so the full
-  // product is fetched before deciding whether to ask which one.
+  // The list DTO carries no variants, so the full product is fetched before deciding whether to ask which one.
   const selectSearchResult = useCallback(
     async (summary: ProductSummary) => {
       setPendingProductId(summary.id);
@@ -117,8 +107,7 @@ export function OrderBuilder() {
 
     const input: CreateOrderInput = {
       channel: MANUAL_ORDER_CHANNEL,
-      // Money in. Giving stock away is a GIFT order, rung up at the POS by
-      // an Admin/Manager — never something this form can produce.
+      // Money in; a GIFT order is POS-only and never produced by this form.
       type: SALE_ORDER_TYPE,
       paymentMethod: MANUAL_ORDER_PAYMENT_METHOD,
       items: toOrderItems(draft.lines),
@@ -141,8 +130,6 @@ export function OrderBuilder() {
 
   const discountLine = draft.lines.find((line) => line.key === discountLineKey) ?? null;
 
-  // A saved order takes over the screen — nothing else on it is worth looking
-  // at until the next one is started.
   if (createdOrder) {
     return <OrderCreated order={createdOrder} onNewOrder={startNewOrder} />;
   }
@@ -152,7 +139,7 @@ export function OrderBuilder() {
       <form onSubmit={handleSubmit(onSubmit)} noValidate className="flex flex-col gap-4">
         <div className="flex flex-col gap-3">
           <div className="flex items-center gap-2">
-            <h2 className="text-base font-semibold">{t("itemsTitle")}</h2>
+            <h2 className="text-section font-semibold text-ink">{t("itemsTitle")}</h2>
             <OrderChannelBadge channel={MANUAL_ORDER_CHANNEL} />
           </div>
 
@@ -163,7 +150,11 @@ export function OrderBuilder() {
             onSelect={(summary) => void selectSearchResult(summary)}
           />
 
-          {lookupErrorCode && <Alert variant="destructive">{translateError(lookupErrorCode)}</Alert>}
+          {lookupErrorCode && (
+            <Alert tone="danger" data-testid="alert-destructive">
+              {translateError(lookupErrorCode)}
+            </Alert>
+          )}
 
           <DraftLinesList draft={draft} onLineDiscountClick={setDiscountLineKey} />
         </div>
@@ -176,18 +167,27 @@ export function OrderBuilder() {
           onOrderDiscountClick={() => setOrderDiscountOpen(true)}
         />
 
-        {/* An order with no lines is the one failure the form itself can't
-            express — the customer fields may all be perfect. */}
-        {draft.isEmpty && <Alert>{t("needItems")}</Alert>}
+        {/* No lines is the one failure the form itself can't express. */}
+        {draft.isEmpty && (
+          <Alert tone="neutral" data-testid="alert-default">
+            {t("needItems")}
+          </Alert>
+        )}
 
         {mutation.isError && (
-          <Alert variant="destructive">
+          <Alert tone="danger" data-testid="alert-destructive">
             {translateError(mutation.error instanceof ApiError ? mutation.error.code : ERROR_CODES.INTERNAL)}
           </Alert>
         )}
 
-        <Button type="submit" data-test-selector="order-create-submit" className="h-14 w-full text-base sm:w-auto sm:self-start" disabled={mutation.isPending || draft.isEmpty}>
-          {mutation.isPending ? <Spinner /> : <Save className="size-5" aria-hidden="true" />}
+        <Button
+          type="submit"
+          data-test-selector="order-create-submit"
+          className="h-14 w-full text-section sm:w-auto sm:self-start"
+          isLoading={mutation.isPending}
+          disabled={draft.isEmpty}
+          icon={<Save className="size-5" aria-hidden="true" />}
+        >
           {mutation.isPending ? t("saving") : t("save")}
         </Button>
       </form>

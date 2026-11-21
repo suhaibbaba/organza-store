@@ -7,10 +7,8 @@ export function StatusBadge({ isActive }: { isActive: boolean }) {
   return (
     <span
       className={cn(
-        "inline-flex h-6 shrink-0 items-center rounded-full px-2.5 text-xs font-medium",
-        isActive
-          ? "bg-primary/10 text-primary"
-          : "bg-muted text-muted-foreground"
+        "inline-flex h-6 shrink-0 items-center rounded-pill px-2.5 text-micro font-medium",
+        isActive ? "bg-primary-50 text-primary-600" : "bg-inset text-ink-muted"
       )}
     >
       {isActive ? t("active") : t("hidden")}

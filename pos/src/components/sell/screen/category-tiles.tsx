@@ -7,7 +7,7 @@ import { useCategoriesQuery } from "@/hooks/use-categories";
 import { useProductCount } from "@/hooks/use-product-count";
 import { localize } from "@/lib/i18n-content";
 import { cn } from "@/lib/utils";
-import { Spinner } from "@/components/ui/spinner";
+import { Spinner } from "@store/ui";
 import { SectionTitle } from "@/components/sell/screen/section-title";
 
 interface CategoryTilesProps {
@@ -24,11 +24,7 @@ interface Tile {
 
 const TITLE_ID = "pos-categories-title";
 
-// The shelves, as one row of tiles that scrolls sideways: "All" first, then
-// the shelves the shop pinned in the admin (Category.isFavorite), then every
-// other category in the order the admin lists them. Each says how many
-// products tapping it will show (rolled up through its subcategories, the
-// same set the grid then lists).
+// "All", then the shelves pinned in the admin (Category.isFavorite), then the rest; counts roll up through subcategories.
 export function CategoryTiles({ selectedId, onSelect }: CategoryTilesProps) {
   const t = useTranslations("sell");
   const locale = useLocale();
@@ -54,10 +50,9 @@ export function CategoryTiles({ selectedId, onSelect }: CategoryTilesProps) {
       <SectionTitle id={TITLE_ID}>{t("screen.categoriesTitle")}</SectionTitle>
 
       {categories.isError ? (
-        <p className="text-sm text-muted-foreground">{t("browse.categoriesError")}</p>
+        <p className="text-label text-ink-muted">{t("browse.categoriesError")}</p>
       ) : (
-        // Scrolls under the finger; the last tile is cut by the screen's
-        // edge, which is what says there is more.
+        // The last tile is cut by the screen's edge, which is what says there is more.
         <ul
           className="scrollbar-none flex gap-2 overflow-x-auto"
           data-test-selector="pos-category-tiles"
@@ -72,15 +67,15 @@ export function CategoryTiles({ selectedId, onSelect }: CategoryTilesProps) {
                   aria-pressed={selected}
                   data-test-selector={testSelectorFor("pos-category-tile", tile.id ?? "all")}
                   className={cn(
-                    "flex min-h-11 min-w-24 flex-col items-start rounded-tile border px-3.5 py-1.5 text-start transition-[background-color,border-color,box-shadow] tab:min-w-27",
-                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                    "flex min-h-11 min-w-24 cursor-pointer flex-col items-start rounded-tile border px-3.5 py-1.5 text-start transition-[background-color,border-color,box-shadow] tab:min-w-27",
+                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2",
                     selected
-                      ? "border-primary bg-pale text-pale-foreground"
-                      : "border-border bg-card shadow-xs hover:border-border-strong hover:bg-soft"
+                      ? "border-selected-line bg-selected text-primary-700"
+                      : "border-line bg-surface text-ink shadow-pill hover:border-line-strong hover:bg-row-hover"
                   )}
                 >
-                  <span className="max-w-40 truncate text-sm font-semibold">{tile.label}</span>
-                  <span className="min-h-5 text-xs text-muted-foreground tabular-nums">
+                  <span className="max-w-40 truncate text-label font-semibold">{tile.label}</span>
+                  <span className="min-h-5 text-micro text-ink-muted tabular-nums">
                     {tile.count !== null && t("screen.productCount", { count: tile.count })}
                   </span>
                 </button>
@@ -88,9 +83,8 @@ export function CategoryTiles({ selectedId, onSelect }: CategoryTilesProps) {
             );
           })}
           {categories.isPending && (
-            <li className="flex shrink-0 items-center px-3 text-muted-foreground">
-              <Spinner />
-              <span className="sr-only">{t("browse.categoriesLoading")}</span>
+            <li className="flex shrink-0 items-center px-3">
+              <Spinner label={t("browse.categoriesLoading")} />
             </li>
           )}
         </ul>

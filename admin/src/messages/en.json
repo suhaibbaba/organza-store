@@ -238,7 +238,8 @@
         "hint": "profit ÷ sold",
         "value": "{value, number, percent}",
         "none": "—"
-      }
+      },
+      "choose": "Period"
     },
     "attention": {
       "title": "Needs attention",

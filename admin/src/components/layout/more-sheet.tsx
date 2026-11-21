@@ -2,15 +2,15 @@
 
 import { useTranslations } from "next-intl";
 import { LogOut } from "lucide-react";
-import { Link, usePathname } from "@/i18n/navigation";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { Separator } from "@/components/ui/separator";
+import { Drawer } from "@store/ui";
+import { usePathname } from "@/i18n/navigation";
 import { LanguageSwitcher } from "@/components/layout/language-switcher";
+import { DesignSystemNavLink, NavLink } from "@/components/layout/nav-link";
 import { useSession } from "@/components/providers/session-provider";
 import { AppVersion } from "@/components/pwa/app-version";
 import { NavPendingBadge } from "@/components/change-requests/nav-pending-badge";
+import { testSelectorFor } from "@organza/shared/lib/testSelector";
 import type { NavItem } from "@/types/nav";
-import { cn } from "@/lib/utils";
 
 interface MoreSheetProps {
   open: boolean;
@@ -23,67 +23,47 @@ export function MoreSheet({ open, onOpenChange, items }: MoreSheetProps) {
   const tCommon = useTranslations("common");
   const pathname = usePathname();
   const { logout } = useSession();
+  const close = () => onOpenChange(false);
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent name="more-menu" side="end" closeLabel={tCommon("close")}>
-        <SheetHeader>
-          <SheetTitle>{t("more")}</SheetTitle>
-        </SheetHeader>
-
-        <nav className="flex flex-col gap-1 px-3">
-          {items.map((item) => {
-            const isActive = pathname === item.href;
-            const Icon = item.icon;
-            return (
-              <Link
+    <Drawer open={open} onOpenChange={onOpenChange} title={t("more")} descriptionKey="nav.more" data-testid="sheet-more-menu">
+      <div className="flex min-h-full flex-col gap-4">
+        <nav>
+          <ul>
+            {items.map((item) => (
+              <NavLink
                 key={item.key}
                 href={item.href}
-                onClick={() => onOpenChange(false)}
-                className={cn(
-                  "flex min-h-12 items-center gap-3 rounded-lg px-3 text-base font-medium",
-                  isActive ? "bg-secondary text-secondary-foreground" : "text-foreground hover:bg-accent"
-                )}
-              >
-                <Icon className="size-5" aria-hidden="true" />
-                {t(item.key)}
-                {item.key === "changeRequests" && <NavPendingBadge className="ms-auto" />}
-              </Link>
-            );
-          })}
+                icon={item.icon}
+                label={t(item.key)}
+                isActive={pathname === item.href}
+                testSelector={testSelectorFor("more-item", item.key)}
+                onClick={close}
+                trailing={item.key === "changeRequests" ? <NavPendingBadge className="ms-auto" /> : undefined}
+              />
+            ))}
+            <DesignSystemNavLink pathname={pathname} onClick={close} />
+          </ul>
         </nav>
 
-        {/* The language and the way out, a second time.
-
-            Both also live in the shell's account menu, at every width and for
-            every role (components/layout/account-menu.tsx) — they cannot
-            depend on this sheet, which only exists when a role has more nav
-            items than the four bottom tabs hold. Kept here anyway: this is
-            where somebody on a phone already comes for everything else, and a
-            full-width row is a better target for a thumb than a menu in the
-            corner. Duplication a tap apart, not a second implementation —
-            both call the same `logout`, and the language is the same
-            LanguageSwitcher in its other variant. */}
-        <div className="mt-auto flex flex-col gap-3 p-3">
-          <Separator />
+        {/* Language and sign-out repeated from the account menu: a full-width row is an easier thumb target on a phone. */}
+        <div className="mt-auto flex flex-col gap-3 border-t border-line pt-3">
           <LanguageSwitcher className="px-1" />
           <button
             type="button"
+            data-test-selector="more-logout"
             onClick={() => {
-              onOpenChange(false);
+              close();
               void logout();
             }}
-            className="flex min-h-12 items-center gap-3 rounded-lg px-3 text-base font-medium text-destructive hover:bg-destructive/10"
+            className="flex min-h-11 items-center gap-[11px] rounded-nav px-3 text-label font-medium text-danger-700 transition-colors hover:bg-danger-50"
           >
-            <LogOut className="size-5" aria-hidden="true" />
+            <LogOut className="size-[19px]" aria-hidden="true" />
             {tCommon("logout")}
           </button>
-          {/* Which build this phone is running. Installed from a home screen
-              there is nowhere else to find it, and this sheet is where the
-              95% who are on a phone already come for everything else. */}
           <AppVersion className="px-1" />
         </div>
-      </SheetContent>
-    </Sheet>
+      </div>
+    </Drawer>
   );
 }

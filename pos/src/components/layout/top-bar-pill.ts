@@ -1,7 +1,6 @@
-// The top bar's two pills — the language and the account — drawn alike: a
-// white rounded pill with a hairline border, 44px tall for a thumb.
+// The top bar's language and account pills: white, hairline border, 44px tall for a thumb.
 export const TOP_BAR_PILL = [
-  "group flex min-h-11 min-w-0 items-center gap-2 rounded-full border border-border bg-card px-3 text-start text-foreground",
-  "transition-colors hover:bg-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-  "data-[state=open]:bg-soft",
+  "group flex min-h-11 min-w-0 cursor-pointer items-center gap-2 rounded-pill border border-line bg-surface px-3 text-start text-ink",
+  "transition-colors hover:bg-primary-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500",
+  "data-[state=open]:bg-primary-50",
 ].join(" ");

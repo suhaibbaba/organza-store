@@ -12,12 +12,7 @@ import { OrderTypeBadge } from "@/components/orders/order-type-badge";
 import { PaymentStatusBadge } from "@/components/orders/payment-status-badge";
 import { QuickSaleBadge } from "@/components/orders/quick-sale-badge";
 
-// One order, as a card. This is the primary (mobile) rendering — the table
-// below md is a convenience for desktop, not the other way round (CLAUDE.md
-// "Tables become cards on mobile").
-//
-// The whole card is one tap target: an untrained user should never have to
-// find a small link inside a row.
+// The primary (mobile) rendering of an order; the whole card is one tap target.
 export function OrderCard({ order }: { order: OrderSummary }) {
   const t = useTranslations("orders.card");
   const locale = useLocale();
@@ -25,54 +20,46 @@ export function OrderCard({ order }: { order: OrderSummary }) {
 
   return (
     <div
-      className="relative flex flex-col gap-2 rounded-xl border border-border bg-card p-3 transition-colors has-[a:active]:bg-accent"
+      className="relative flex flex-col gap-2 rounded-card border border-line bg-surface p-3 shadow-card transition-colors has-[a:active]:bg-inset"
       data-test-selector={testSelectorFor("order-card", order.id)}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <Link
             href={`/orders/${order.id}`}
-            className="block rounded-md after:absolute after:inset-0 after:rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="block rounded-control after:absolute after:inset-0 after:rounded-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
           >
             <span className="flex items-center gap-1">
-              <span className="truncate text-sm font-semibold text-foreground">
+              <span className="truncate text-label font-semibold text-ink">
                 {t("orderNumber", { number: String(order.orderNumber) })}
               </span>
-              <ChevronRight className="size-4 shrink-0 text-muted-foreground rtl:-scale-x-100" aria-hidden="true" />
+              <ChevronRight className="size-4 shrink-0 text-ink-muted rtl:-scale-x-100" aria-hidden="true" />
             </span>
           </Link>
-          {/* Only online orders carry a customer — a counter sale is handed
-              over to whoever is standing there (spec.md). */}
+          {/* Only online orders carry a customer (spec.md). */}
           {order.customerName && (
-            <p className="mt-0.5 truncate text-sm text-muted-foreground">{order.customerName}</p>
+            <p className="mt-0.5 truncate text-label text-ink-muted">{order.customerName}</p>
           )}
         </div>
 
         <div className="flex shrink-0 flex-col items-end gap-1">
           <OrderStatusBadge status={order.status} />
           <OrderChannelBadge channel={order.channel} />
-          {/* Renders nothing for an ordinary sale — see OrderTypeBadge. */}
           <OrderTypeBadge type={order.type} />
-          {/* Something on this sale was typed at the counter rather than
-              picked from the catalogue (spec.md "Quick sell") — so its cost,
-              and therefore its profit, may still be missing. */}
           {order.hasQuickSale && <QuickSaleBadge />}
-          {/* Money still with the delivery company is worth seeing from the
-              list; money already in hand is the unremarkable case and would
-              only add noise to every other row. A cancelled or returned sale
-              owes nothing, so it says nothing either. */}
+          {/* Only money still with the courier is flagged; a cancelled or returned sale owes nothing. */}
           {order.paymentStatus === "PENDING_COLLECTION" && isOrderCollectable(order.status) && (
             <PaymentStatusBadge status={order.paymentStatus} />
           )}
         </div>
       </div>
 
-      <div className="flex items-end justify-between gap-3 border-t border-border pt-2">
+      <div className="flex items-end justify-between gap-3 border-t border-line pt-2">
         <div className="min-w-0">
-          <p className="truncate text-xs text-muted-foreground">{formatDate(order.createdAt, locale)}</p>
-          <p className="truncate text-xs text-muted-foreground">{t("itemCount", { count: order.itemCount })}</p>
+          <p className="truncate text-micro text-ink-muted">{formatDate(order.createdAt, locale)}</p>
+          <p className="truncate text-micro text-ink-muted">{t("itemCount", { count: order.itemCount })}</p>
         </div>
-        <span className="shrink-0 text-base font-semibold tabular-nums text-foreground">
+        <span className="shrink-0 text-section font-semibold tabular-nums text-ink">
           {formatMoney(order.total)}
         </span>
       </div>

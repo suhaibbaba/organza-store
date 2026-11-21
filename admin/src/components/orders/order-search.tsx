@@ -1,46 +1,28 @@
 "use client";
 
-import { Search, X } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { Input } from "@/components/ui/input";
+import { Input } from "@store/ui";
 
 interface OrderSearchProps {
   value: string;
   onChange: (value: string) => void;
 }
 
-// Staff look an order up by whatever they have in front of them: the number
-// on the receipt, or the customer's name/phone from the chat — the backend
-// matches all three from this one box.
+// One box matches the receipt number, the customer's name or phone (backend searches all three).
 export function OrderSearch({ value, onChange }: OrderSearchProps) {
   const t = useTranslations("orders.search");
 
   return (
-    <div className="relative">
-      <Search
-        className="pointer-events-none absolute start-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
-        aria-hidden="true"
-      />
-      <Input
-        type="search"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={t("placeholder")}
-        aria-label={t("label")}
-        data-test-selector="orders-search"
-        className="ps-11 pe-11"
-      />
-      {value && (
-        <button
-          type="button"
-          onClick={() => onChange("")}
-          aria-label={t("clear")}
-          data-test-selector="orders-search-clear"
-          className="absolute end-2 top-1/2 flex size-8 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-        >
-          <X className="size-4" aria-hidden="true" />
-        </button>
-      )}
-    </div>
+    <Input
+      type="search"
+      adornment="search"
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      onClear={() => onChange("")}
+      clearLabel={t("clear")}
+      placeholder={t("placeholder")}
+      aria-label={t("label")}
+      data-testid="orders-search"
+    />
   );
 }

@@ -2,8 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
-import { Alert } from "@/components/ui/alert";
-import { Spinner } from "@/components/ui/spinner";
+import { Alert, Spinner } from "@store/ui";
 import {
   SCANNER_BOX_HEIGHT_RATIO,
   SCANNER_BOX_WIDTH_RATIO,
@@ -12,14 +11,11 @@ import {
 } from "@/constants/barcode";
 
 interface BarcodeCameraProps {
-  // Fires on the first successful read and then stops mattering — the caller
-  // closes the camera, since here a scan fills one field rather than starting
-  // a run of items (which is the POS's job).
+  // Fires on the first read; the caller closes the camera (one field, not a run of items as in the POS).
   onDetected: (code: string) => void;
 }
 
-// Reason the camera isn't running, as a message key — an instruction the user
-// can act on ("allow the camera"), never a browser exception.
+// A message key the user can act on, never a browser exception.
 type ScannerFault = "insecureContext" | "permission" | "unavailable";
 
 class ScannerFaultError extends Error {
@@ -32,24 +28,13 @@ class ScannerFaultError extends Error {
   }
 }
 
-// THE isolated scanner for the admin (spec.md "Barcode / QR scanning"):
-// html5-qrcode is imported, configured, started and torn down here and nowhere
-// else, so swapping the engine (the documented fallback is @zxing/library)
-// means rewriting this one file. It is deliberately the same engine, formats
-// and geometry as the POS's own scanner component — a tag that reads at the
-// counter has to read here too.
-//
-// The library is loaded with a dynamic import rather than a top-level one
-// because it reaches for `navigator`/`document` as it initialises: pulled into
-// the server bundle it would break the render, and it is dead weight on every
-// screen where nobody opens a camera.
+// The isolated admin scanner (spec.md "Barcode / QR scanning"): same engine, formats and geometry as the POS, loaded dynamically because it touches navigator.
 export function BarcodeCamera({ onDetected }: BarcodeCameraProps) {
   const t = useTranslations("products.form.barcode.camera");
   const [isStarting, setIsStarting] = useState(true);
   const [fault, setFault] = useState<ScannerFault | null>(null);
 
-  // Read through a ref so a parent re-render never restarts the camera, which
-  // on a phone shows as a black flash mid-aim.
+  // Read through a ref so a parent re-render never restarts the camera (a black flash mid-aim).
   const onDetectedRef = useRef(onDetected);
   useEffect(() => {
     onDetectedRef.current = onDetected;
@@ -59,9 +44,7 @@ export function BarcodeCamera({ onDetected }: BarcodeCameraProps) {
     let cancelled = false;
 
     async function start() {
-      // Camera access needs a secure context — HTTPS or localhost. On iOS
-      // Safari this is not negotiable, so say so plainly instead of letting
-      // the permission call fail with something cryptic.
+      // Camera access needs HTTPS or localhost; iOS Safari refuses otherwise.
       if (!window.isSecureContext) throw new ScannerFaultError("insecureContext");
 
       const { Html5Qrcode, Html5QrcodeSupportedFormats } = await import("html5-qrcode");
@@ -69,10 +52,7 @@ export function BarcodeCamera({ onDetected }: BarcodeCameraProps) {
 
       const scanner = new Html5Qrcode(SCANNER_ELEMENT_ID, {
         verbose: false,
-        // A supplier's tag is whatever the supplier printed, so this list is
-        // wider than our own EAN-13 (CLAUDE.md rule 13) — it is the same set
-        // the POS decodes, which is what makes "it scanned when I saved it"
-        // mean "it will scan at the till".
+        // Wider than our EAN-13 (rule 13) and the same set the POS decodes, so a code that scans here scans at the till.
         formatsToSupport: [
           Html5QrcodeSupportedFormats.EAN_13,
           Html5QrcodeSupportedFormats.EAN_8,
@@ -85,22 +65,18 @@ export function BarcodeCamera({ onDetected }: BarcodeCameraProps) {
       });
 
       await scanner.start(
-        // The rear camera on any phone that has one — a front-facing preview
-        // would have the user scanning blind.
+        // Rear camera: a front-facing preview would have the user scanning blind.
         { facingMode: "environment" },
         { fps: SCANNER_FPS, qrbox: scanRegion },
         (decodedText) => onDetectedRef.current(decodedText),
-        // Fires for every frame without a readable code, which is the normal
-        // state while aiming rather than an error worth showing.
+        // Fires on every frame without a code — normal while aiming.
         () => undefined
       );
 
       return scanner;
     }
 
-    // Resolved before the cleanup below tears anything down, so stop() is
-    // never called on a scanner that is still starting — React mounts effects
-    // twice in dev, and that overlap is exactly where html5-qrcode throws.
+    // Awaited before cleanup so stop() never hits a still-starting scanner (React mounts effects twice in dev).
     const running = start()
       .then((scanner) => {
         if (!cancelled && scanner) setIsStarting(false);
@@ -122,37 +98,34 @@ export function BarcodeCamera({ onDetected }: BarcodeCameraProps) {
           await scanner.stop();
           scanner.clear();
         } catch {
-          // The camera is going away with the component either way; a failed
-          // stop has nothing left to report to.
+          // The camera goes away with the component either way.
         }
       });
     };
   }, []);
 
   if (fault) {
-    return <Alert variant="destructive">{t(`fault.${fault}`)}</Alert>;
+    return <Alert tone="danger">{t(`fault.${fault}`)}</Alert>;
   }
 
   return (
     <div className="flex flex-col items-center gap-3">
-      {/* html5-qrcode owns this element's contents and empties it, so nothing
-          of ours may live inside it. */}
-      <div id={SCANNER_ELEMENT_ID} className="w-full overflow-hidden rounded-xl bg-black" />
+      {/* html5-qrcode owns and empties this element, so nothing of ours may live inside it. */}
+      <div id={SCANNER_ELEMENT_ID} className="w-full overflow-hidden rounded-panel bg-ink" />
 
       {isStarting ? (
-        <p className="flex items-center gap-2 text-sm text-muted-foreground">
+        <p className="flex items-center gap-2 text-label text-ink-muted">
           <Spinner />
           {t("starting")}
         </p>
       ) : (
-        <p className="text-center text-sm text-muted-foreground">{t("hint")}</p>
+        <p className="text-center text-label text-ink-muted">{t("hint")}</p>
       )}
     </div>
   );
 }
 
-// Only what falls inside this box is decoded, derived from the live viewfinder
-// rather than fixed: a box narrower than the barcode never resolves.
+// Derived from the live viewfinder: a box narrower than the barcode never resolves.
 function scanRegion(viewfinderWidth: number, viewfinderHeight: number) {
   return {
     width: Math.floor(viewfinderWidth * SCANNER_BOX_WIDTH_RATIO),
@@ -160,14 +133,7 @@ function scanRegion(viewfinderWidth: number, viewfinderHeight: number) {
   };
 }
 
-// Told apart so the user gets an instruction rather than a shrug: a refused
-// permission is fixable ("allow the camera"), a missing camera is not.
-//
-// html5-qrcode does not re-throw the DOMException getUserMedia gave it — it
-// rejects with a STRING it built from the message ("Error getting userMedia,
-// error = NotAllowedError: Permission denied"). So the reason has to be read out
-// of the text as well as off `name`, or every refusal is reported as "no camera
-// on this device" and the one person who could fix it is told not to bother.
+// html5-qrcode rejects with a STRING, so the reason is read from the text too, or every refusal looks like "no camera".
 function toFault(error: unknown): ScannerFault {
   if (error instanceof ScannerFaultError) return error.fault;
 

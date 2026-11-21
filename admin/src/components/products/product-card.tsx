@@ -24,32 +24,29 @@ export function ProductCard({ product, currency }: ProductCardProps) {
   return (
     <Link
       href={`/products/${product.id}`}
-      className="flex items-center gap-3 rounded-xl border border-border bg-card p-3 text-start transition-colors active:bg-accent"
-      // The row itself, and the id of the product it stands for — so one row
-      // out of forty can be named (CLAUDE.md "Test selectors"). The id, never
-      // the name or the price: this attribute ships to production.
+      className="flex items-center gap-3 rounded-card border border-line bg-surface p-3 text-start shadow-card transition-colors hover:bg-row-hover active:bg-inset"
       data-test-selector={testSelectorFor("product-card", product.id)}
     >
-      <ProductImage src={product.image?.thumbnailUrl} alt={name} className="size-16 shrink-0 rounded-lg" sizes="64px" />
+      <ProductImage src={product.image?.thumbnailUrl} alt={name} className="size-16 shrink-0 rounded-control" sizes="64px" />
 
       <div className="min-w-0 flex-1">
         <div className="flex items-start justify-between gap-2">
-          <p className="truncate text-sm font-medium text-foreground" data-test-selector="product-card-name">
+          <p className="truncate text-label font-medium text-ink" data-test-selector="product-card-name">
             {name}
           </p>
           <StatusBadge isActive={product.isActive} />
         </div>
         <div className="mt-0.5 flex items-center gap-2">
-          <p className="min-w-0 truncate text-xs text-muted-foreground">{product.sku ?? t("card.multipleSkus")}</p>
+          <p className="min-w-0 truncate text-micro text-ink-muted">{product.sku ?? t("card.multipleSkus")}</p>
           {product.needsCompleting && <IncompleteBadge />}
           {product.isNumbered && <NumberedBadge count={product.numberCount} />}
         </div>
         <div className="mt-1.5 flex items-center justify-between gap-2">
-          <span className="text-sm font-semibold text-foreground" data-test-selector="product-card-price">
+          <span className="text-label font-semibold text-ink" data-test-selector="product-card-price">
             {formatMoney(product.basePrice, currency, locale)}
           </span>
           <span
-            className={cn("text-xs font-medium", outOfStock ? "text-destructive" : "text-muted-foreground")}
+            className={cn("text-micro font-medium", outOfStock ? "text-danger-600" : "text-ink-muted")}
             data-test-selector="product-card-stock"
           >
             {outOfStock ? t("card.outOfStock") : t("card.stock", { count: product.stock })}

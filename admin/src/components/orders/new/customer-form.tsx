@@ -3,16 +3,13 @@
 import { Controller, type Control, type FieldErrors, type UseFormRegister, type UseFormSetValue } from "react-hook-form";
 import { useTranslations } from "next-intl";
 import { MapPin } from "lucide-react";
+import { Card, FormField, Input, PhoneCountryProvider, PhoneInput, Textarea } from "@store/ui";
+import { splitPhone } from "@store/ui/lib/support/phone";
+import { fieldErrorTestSelector, fieldTestSelector } from "@organza/shared/lib/testSelector";
 import { SIGNED_DECIMAL_INPUT_PATTERN } from "@/constants/numeric";
 import { useSettingsQuery } from "@/hooks/use-settings";
 import { useTranslateError } from "@/hooks/use-translate-error";
 import { splitCoordinatePair, type OrderCustomerFormValues } from "@/lib/validation/order-form";
-import { FieldError } from "@/components/ui/field-error";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { PhoneField } from "@/components/ui/phone-field";
 
 interface CustomerFormProps {
   register: UseFormRegister<OrderCustomerFormValues>;
@@ -21,17 +18,22 @@ interface CustomerFormProps {
   errors: FieldErrors<OrderCustomerFormValues>;
 }
 
-// Who the order goes to. Snapshotted onto the order itself — there is no
-// Customer entity yet (spec.md "Customer information") — so this is typed out
-// per order rather than picked from a list.
+function FieldMessage({ field, children }: { field: string; children: string }) {
+  return (
+    <p className="text-meta text-danger-600" role="alert" data-test-selector={fieldErrorTestSelector(field)}>
+      {children}
+    </p>
+  );
+}
+
+// Snapshotted onto the order (no Customer entity yet, spec.md "Customer information"), so typed per order.
 export function CustomerForm({ register, control, setValue, errors }: CustomerFormProps) {
   const t = useTranslations("orders.new.customer");
   const translateError = useTranslateError();
   const { data: settings } = useSettingsQuery();
+  const defaultCountry = splitPhone(settings?.defaultCountryCode).country;
 
-  // A WhatsApp location share is one "32.313, 35.028" string. Pasting it into
-  // the latitude box fills both fields instead of failing validation — that
-  // paste is exactly how these coordinates reach the shop.
+  // A WhatsApp location share is one "32.313, 35.028" string; pasting it into latitude fills both fields.
   function handleLatitudeChange(value: string) {
     const pair = splitCoordinatePair(value);
     if (!pair) return;
@@ -40,111 +42,118 @@ export function CustomerForm({ register, control, setValue, errors }: CustomerFo
   }
 
   return (
-    <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className="text-base">{t("title")}</CardTitle>
-      </CardHeader>
-      <CardContent className="flex flex-col gap-4">
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="customer-name">{t("name")}</Label>
-          <Input id="customer-name" aria-invalid={!!errors.name} {...register("name")} />
-          {errors.name && <FieldError field="customer-name">{translateError(errors.name.message ?? "")}</FieldError>}
-        </div>
+    <Card className="flex flex-col gap-4">
+      <h2 className="text-section font-medium text-ink">{t("title")}</h2>
 
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="customer-phone">{t("phone")}</Label>
+      <FormField label="orders.new.customer.name" htmlFor="customer-name">
+        <Input
+          id="customer-name"
+          data-test-selector={fieldTestSelector("customer-name")}
+          hasError={!!errors.name}
+          {...register("name")}
+        />
+        {errors.name && <FieldMessage field="customer-name">{translateError(errors.name.message ?? "")}</FieldMessage>}
+      </FormField>
+
+      <PhoneCountryProvider country={defaultCountry}>
+        <FormField label="orders.new.customer.phone" htmlFor="customer-phone">
           <Controller
             control={control}
             name="phone"
             render={({ field }) => (
-              <PhoneField
+              <PhoneInput
                 id="customer-phone"
+                data-test-selector={fieldTestSelector("customer-phone")}
                 value={field.value}
-                onChange={field.onChange}
+                onChange={(value) => field.onChange(value ?? "")}
                 onBlur={field.onBlur}
-                defaultCountryCode={settings?.defaultCountryCode}
-                ariaInvalid={!!errors.phone}
-                prefixAriaLabel={t("phonePrefixLabel")}
+                hasError={!!errors.phone}
               />
             )}
           />
-          {errors.phone && <FieldError field="customer-phone">{translateError(errors.phone.message ?? "")}</FieldError>}
-        </div>
+          {errors.phone && (
+            <FieldMessage field="customer-phone">{translateError(errors.phone.message ?? "")}</FieldMessage>
+          )}
+        </FormField>
 
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="customer-whatsapp">{t("whatsapp")}</Label>
+        <FormField label="orders.new.customer.whatsapp" htmlFor="customer-whatsapp">
           <Controller
             control={control}
             name="whatsapp"
             render={({ field }) => (
-              <PhoneField
+              <PhoneInput
                 id="customer-whatsapp"
+                data-test-selector={fieldTestSelector("customer-whatsapp")}
                 value={field.value}
-                onChange={field.onChange}
+                onChange={(value) => field.onChange(value ?? "")}
                 onBlur={field.onBlur}
-                defaultCountryCode={settings?.defaultCountryCode}
-                ariaInvalid={!!errors.whatsapp}
-                prefixAriaLabel={t("phonePrefixLabel")}
+                hasError={!!errors.whatsapp}
               />
             )}
           />
           {errors.whatsapp ? (
-            <FieldError field="customer-whatsapp">{translateError(errors.whatsapp.message ?? "")}</FieldError>
+            <FieldMessage field="customer-whatsapp">{translateError(errors.whatsapp.message ?? "")}</FieldMessage>
           ) : (
-            <p className="text-xs text-muted-foreground">{t("whatsappHint")}</p>
+            <p className="text-meta text-ink-muted">{t("whatsappHint")}</p>
           )}
-        </div>
+        </FormField>
+      </PhoneCountryProvider>
 
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="customer-address">{t("address")}</Label>
-          <Textarea id="customer-address" placeholder={t("addressPlaceholder")} {...register("address")} />
-        </div>
+      <FormField label="orders.new.customer.address" htmlFor="customer-address">
+        <Textarea
+          id="customer-address"
+          data-test-selector={fieldTestSelector("customer-address")}
+          placeholder={t("addressPlaceholder")}
+          {...register("address")}
+        />
+      </FormField>
 
+      <fieldset className="flex flex-col gap-1.5">
+        <legend className="flex items-center gap-1.5 text-label font-medium text-ink">
+          <MapPin className="size-4" aria-hidden="true" />
+          {t("location")}
+        </legend>
+        <p className="text-meta text-ink-muted">{t("locationHint")}</p>
         <div className="flex flex-col gap-2">
-          <Label className="flex items-center gap-1.5">
-            <MapPin className="size-4" aria-hidden="true" />
-            {t("location")}
-          </Label>
-          <p className="text-xs text-muted-foreground">{t("locationHint")}</p>
-          <div className="flex flex-col gap-2">
-            {/* Coordinates are Latin decimals that may be negative, so they
-                use a plain decimal keypad rather than the digits-only
-                NumericInput, and sit LTR so a minus sign stays in front. */}
-            <Input
-              type="text"
-              inputMode="decimal"
-              pattern={SIGNED_DECIMAL_INPUT_PATTERN}
-              dir="ltr"
-              data-test-selector="field-latitude"
-              placeholder={t("latitude")}
-              aria-label={t("latitude")}
-              aria-invalid={!!errors.latitude}
-              {...register("latitude", { onChange: (event) => handleLatitudeChange(event.target.value) })}
-            />
-            <Input
-              type="text"
-              inputMode="decimal"
-              pattern={SIGNED_DECIMAL_INPUT_PATTERN}
-              dir="ltr"
-              data-test-selector="field-longitude"
-              placeholder={t("longitude")}
-              aria-label={t("longitude")}
-              aria-invalid={!!errors.longitude}
-              {...register("longitude")}
-            />
-          </div>
-          {(errors.latitude || errors.longitude) && (
-            <FieldError field="coordinates">
-              {translateError((errors.latitude?.message ?? errors.longitude?.message) ?? "")}
-            </FieldError>
-          )}
+          {/* Coordinates may be negative decimals: a decimal keypad, LTR so the minus stays in front. */}
+          <Input
+            type="text"
+            inputMode="decimal"
+            pattern={SIGNED_DECIMAL_INPUT_PATTERN}
+            dir="ltr"
+            data-test-selector="field-latitude"
+            placeholder={t("latitude")}
+            aria-label={t("latitude")}
+            hasError={!!errors.latitude}
+            {...register("latitude", { onChange: (event) => handleLatitudeChange(event.target.value) })}
+          />
+          <Input
+            type="text"
+            inputMode="decimal"
+            pattern={SIGNED_DECIMAL_INPUT_PATTERN}
+            dir="ltr"
+            data-test-selector="field-longitude"
+            placeholder={t("longitude")}
+            aria-label={t("longitude")}
+            hasError={!!errors.longitude}
+            {...register("longitude")}
+          />
         </div>
+        {(errors.latitude || errors.longitude) && (
+          <FieldMessage field="coordinates">
+            {translateError((errors.latitude?.message ?? errors.longitude?.message) ?? "")}
+          </FieldMessage>
+        )}
+      </fieldset>
 
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="customer-note">{t("note")}</Label>
-          <Textarea id="customer-note" placeholder={t("notePlaceholder")} {...register("note")} />
-        </div>
-      </CardContent>
+      <FormField label="orders.new.customer.note" htmlFor="customer-note">
+        <Textarea
+          id="customer-note"
+          data-test-selector={fieldTestSelector("customer-note")}
+          placeholder={t("notePlaceholder")}
+          {...register("note")}
+        />
+      </FormField>
     </Card>
   );
 }

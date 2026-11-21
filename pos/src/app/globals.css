@@ -4,61 +4,6 @@
 @import "tw-animate-css";
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-primary-hover: var(--primary-hover);
-  --color-primary-active: var(--primary-active);
-  --color-primary-light: var(--primary-light);
-  --color-primary-soft: var(--primary-soft);
-  --color-primary-border: var(--primary-border);
-  --color-subtle-foreground: var(--subtle-foreground);
-  --color-disabled-foreground: var(--disabled-foreground);
-  --color-border-light: var(--border-light);
-  --color-border-strong: var(--border-strong);
-  --color-success-soft: var(--success-soft);
-  --color-warning-soft: var(--warning-soft);
-  --color-destructive-soft: var(--destructive-soft);
-  --color-info: var(--info);
-  --color-info-soft: var(--info-soft);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-destructive: var(--destructive);
-  --color-destructive-foreground: var(--destructive-foreground);
-  --color-success: var(--success);
-  --color-warning: var(--warning);
-  --color-gift: var(--gift);
-  --color-gift-foreground: var(--gift-foreground);
-  --color-page: var(--page);
-  --color-soft: var(--soft);
-  --color-pale: var(--pale);
-  --color-pale-foreground: var(--pale-foreground);
-  --color-blush: var(--blush);
-  --color-blush-foreground: var(--blush-foreground);
-  --color-quick: var(--quick);
-  --color-quick-border: var(--quick-border);
-  --color-quick-foreground: var(--quick-foreground);
-  --color-stock-in: var(--stock-in);
-  --color-stock-low: var(--stock-low);
-  --color-stock-low-foreground: var(--stock-low-foreground);
-  --color-stock-out: var(--stock-out);
-  --color-stock-out-foreground: var(--stock-out-foreground);
-  --color-border: var(--border);
-  --color-input: var(--input);
-  --color-ring: var(--ring);
-
-  --font-sans: var(--font-geist-sans);
-  --font-arabic: var(--font-cairo);
-  --font-hebrew: var(--font-noto-hebrew);
 
   /* ------------------------------------------------------------------
      LINE HEIGHTS — sized for Arabic, which is the script this app is
@@ -101,15 +46,8 @@
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
 
-  /* The POS's named corners — `rounded-card` (product cards, 16),
-     `rounded-panel` (the cart panel and every sheet/modal, 20),
-     `rounded-tile` (category tiles, 14), `rounded-control` (buttons and
-     fields, 12), `rounded-photo` (product photos, 12). Badges are
-     `rounded-full`. */
-  --radius-card: 16px;
-  --radius-panel: 20px;
+  /* POS-only corners; card/panel/control come from @store/ui. */
   --radius-tile: 14px;
-  --radius-control: 12px;
   --radius-photo: 12px;
 
   /* Motion: one speed for everything that changes colour or lift. Turned
@@ -130,29 +68,8 @@
   --breakpoint-xwide: 87.5rem;
 }
 
-/* ELEVATION — soft, slate-tinted, never dark. Product cards `shadow-sm`, the
-   cart panel `shadow-md`, the header `shadow-xs`, dropdowns `shadow-lg`,
-   sheets and modals `shadow-xl`; a focused field gets `shadow-focus` instead
-   of a hard ring; the checkout button `shadow-primary`. Fields carry none. */
-@theme {
-  --shadow-xs: 0 1px 2px 0 oklch(0.208 0.04 265.8 / 0.04);
-  --shadow-sm: 0 1px 3px oklch(0.208 0.04 265.8 / 0.05), 0 1px 2px oklch(0.208 0.04 265.8 / 0.03);
-  --shadow-md: 0 4px 12px oklch(0.208 0.04 265.8 / 0.06), 0 2px 4px oklch(0.208 0.04 265.8 / 0.03);
-  --shadow-lg: 0 10px 25px oklch(0.208 0.04 265.8 / 0.08), 0 4px 10px oklch(0.208 0.04 265.8 / 0.04);
-  --shadow-xl: 0 20px 40px oklch(0.208 0.04 265.8 / 0.1);
-  --shadow-focus: 0 0 0 3px oklch(0.596 0.127 163.2 / 0.16);
-  --shadow-primary: 0 4px 12px oklch(0.432 0.086 166.9 / 0.12);
-}
-
 :root {
   --radius: 0.75rem;
-
-  /* ------------------------------------------------------------------
-     Fixed chrome — the one place that says how much of the viewport the
-     app's own bars occupy. The bars size themselves from these, and the
-     scrolling page reserves space with the same values, so a bar and the
-     room kept clear for it can never drift apart.
-     ------------------------------------------------------------------ */
 
   /* iOS notch / home indicator. Named once so every bar reads the same
      value (and so it can be forced to a non-zero number when checking the
@@ -181,233 +98,6 @@
      last cart line is a smaller sin than a line trapped under the bar. */
   --checkout-bar-height: 18rem;
 
-  /* ------------------------------------------------------------------
-     THE BRAND HUES ARE WRITTEN OUT IN FULL BELOW, on purpose.
-
-     The POS's brand hue is 166.9 (deep emerald, #065F46) and every brand
-     tint in this file carries that number — or its close neighbours from the
-     same emerald family — literally. (The admin is still on the earlier
-     teal, 206.4.) They used to arrive through a custom property, so that
-     the whole theme could be re-hued from one line.
-
-     That one line cost the shop every button.
-
-     Every colour below is written ONCE, in oklch(). The sRGB copy the older
-     phones read is DERIVED from it at build time by
-     @csstools/postcss-oklab-function (see postcss.config.mjs), which puts the
-     plain colour in front and keeps this one inside an @supports — so the two
-     can never say different things, and nobody has to remember to update a
-     second palette. Never type a fallback by hand here; there is one colour
-     per token and this is it.
-
-     What that plugin cannot do is evaluate a colour whose hue arrives through
-     a custom property, because those are substituted in the browser, long
-     after the build has finished. It leaves such a colour exactly as it found
-     it — no fallback, no warning. Those six tokens per theme were therefore
-     the ONLY ones that ever shipped bare: primary, secondary, accent and the
-     focus ring. On a phone without oklch() they resolve to nothing,
-     `background-color: var(--primary)` computes to transparent, and every
-     button in both apps loses its background while its near-white label stays
-     near-white.
-
-     So the hue is a literal here. Re-hueing is a find-and-replace of one
-     number rather than an edit of one line, which is a small price for a
-     palette that cannot silently stop existing — and
-     shared/scripts/check-css-target.js fails the build if any token ever
-     ships without its fallback again.
-
-     One more thing that guard watches, because 15.4 is not the end of it:
-     Safari has known oklch() since 15.4, but 15.x reads the LIGHTNESS as a
-     percentage and throws the whole declaration away when it is a decimal —
-     oklch(44% .06 206.4) paints, oklch(0.44 .06 206.4) does not (it is why
-     Tailwind rewrote its own default theme). Decimals are fine to write here,
-     since the build normalises them to percentages on the way out; the guard
-     is what makes sure it still does.
-     ------------------------------------------------------------------ */
-
-  /* THE POS PALETTE — a clean retail look: a very light slate page, pure
-     white surfaces, deep emerald for the actions that matter, and slate
-     text. The brief's names are on the right; the tokens keep the names the
-     components already use.
-
-       --background / --page  #F8FAFC  bg-app
-       --card / --popover     #FFFFFF  bg-surface, bg-input
-       --soft / --muted       #F1F5F9  bg-muted, bg-disabled, bg-hover
-       --pale                 #E8F5F1  bg-selected (category, total)
-       --foreground           #0F172A  text-primary
-       --subtle-foreground    #475569  text-secondary
-       --muted-foreground     #64748B  text-muted
-       --disabled-foreground  #94A3B8  text-disabled
-       --border / --input     #E2E8F0  border-default
-       --border-light         #F1F5F9  border-light
-       --border-strong        #CBD5E1  border-strong
-       --ring                 #059669  border-focus */
-  --background: oklch(0.984 0.003 247.9);
-  --page: oklch(0.984 0.003 247.9);
-  --foreground: oklch(0.208 0.04 265.8);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.208 0.04 265.8);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.208 0.04 265.8);
-
-  /* Deep emerald — checkout, the selected thing, the important action.
-     #065F46, hover #047857, pressed #064E3B; light #D1FAE5, soft #ECFDF5,
-     border #A7F3D0. */
-  --primary: oklch(0.432 0.086 166.9);
-  --primary-foreground: oklch(1 0 0);
-  --primary-hover: oklch(0.508 0.105 165.6);
-  --primary-active: oklch(0.378 0.073 168.9);
-  --primary-light: oklch(0.95 0.051 163.1);
-  --primary-soft: oklch(0.979 0.021 166.1);
-  --primary-border: oklch(0.905 0.089 164.2);
-
-  --secondary: oklch(0.968 0.007 247.9);
-  --secondary-foreground: oklch(0.208 0.04 265.8);
-
-  --muted: oklch(0.968 0.007 247.9);
-  --muted-foreground: oklch(0.554 0.041 257.4);
-  --subtle-foreground: oklch(0.446 0.037 257.3);
-  --disabled-foreground: oklch(0.711 0.035 256.8);
-
-  /* Hover fill for quiet controls (menus, ghost and outline buttons). */
-  --accent: oklch(0.968 0.007 247.9);
-  --accent-foreground: oklch(0.208 0.04 265.8);
-
-  /* Soft fill (#F1F5F9): photo placeholders, option chips, hovers. Pale
-     emerald (#E8F5F1): the selected category, the total, the cart icon,
-     with the brand emerald on top of it. */
-  --soft: oklch(0.968 0.007 247.9);
-  --pale: oklch(0.959 0.015 175.7);
-  --pale-foreground: oklch(0.432 0.086 166.9);
-
-  /* Organza pink (#DBADB4): the cart count badge. */
-  --blush: oklch(0.791 0.054 8.2);
-  --blush-foreground: oklch(0.414 0.107 10.9);
-
-  /* Quick sell (spec.md "Quick sell"): fill #FBF1F3, border #EACDD3, text
-     #7A2E3D — the pink family, so it never reads as the emerald sale button. */
-  --quick: oklch(0.966 0.011 3.5);
-  --quick-border: oklch(0.874 0.033 3.7);
-  --quick-foreground: oklch(0.414 0.107 10.9);
-
-  /* The stock pill on a product photo: a white pill with a green (#16A34A)
-     or amber (#D97706, words #92400E) dot, or a dark pill (#0F172A) when
-     nothing is left. Always with the word — see StockBadge. */
-  --stock-in: oklch(0.627 0.17 149.2);
-  --stock-low: oklch(0.666 0.157 58.3);
-  --stock-low-foreground: oklch(0.473 0.125 46.2);
-  --stock-out: oklch(0.208 0.04 265.8);
-  --stock-out-foreground: oklch(1 0 0);
-
-  /* Error: text and solid #B91C1C, wash #FEE2E2. */
-  --destructive: oklch(0.505 0.19 27.5);
-  --destructive-foreground: oklch(1 0 0);
-  --destructive-soft: oklch(0.936 0.031 17.7);
-
-  /* ------------------------------------------------------------------
-     Semantic states — success, warning, error (above) and info, each a
-     word colour and a wash, and used for nothing else: stock, validation,
-     alerts, discounts, notices.
-
-     Every screen that shows a quantity or an availability reads them from
-     here (see components/ui/stock-badge.tsx and shared's resolveStockStatus),
-     so "nearly out" is the same amber in the POS search results, the variant
-     picker and the cart. The label is always spelled out next to them, so
-     nothing here is the only thing saying what the status is.
-
-     success #166534 on #DCFCE7, warning #92400E on #FEF3C7,
-     info #1D4ED8 on #DBEAFE.
-     ------------------------------------------------------------------ */
-  --success: oklch(0.448 0.108 151.3);
-  --success-soft: oklch(0.962 0.043 156.7);
-  --warning: oklch(0.473 0.125 46.2);
-  --warning-soft: oklch(0.962 0.058 95.6);
-  --info: oklch(0.488 0.217 264.4);
-  --info-soft: oklch(0.932 0.032 255.6);
-
-  /* Giving stock away — an order of type GIFT (spec.md "Gifts").
-     A violet that is deliberately none of the colours already in use: not
-     the brand emerald, which is what "complete the sale" is drawn in and the
-     one thing a gift must never be mistaken for; not destructive red,
-     because giving a piece to a bride is not an error; and not the amber or
-     green above, which mean something specific about stock. */
-  --gift: oklch(0.5 0.16 300);
-  --gift-foreground: oklch(0.99 0 0);
-
-  --border: oklch(0.929 0.013 255.5);
-  --border-light: oklch(0.968 0.007 247.9);
-  --border-strong: oklch(0.869 0.02 252.9);
-  --input: oklch(0.929 0.013 255.5);
-  /* Emerald #059669: the focused field's border and every focus outline
-     (3.8:1 on white). */
-  --ring: oklch(0.596 0.127 163.2);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: oklch(0.16 0 0);
-    --foreground: oklch(0.96 0 0);
-    --card: oklch(0.2 0 0);
-    --card-foreground: oklch(0.96 0 0);
-    --popover: oklch(0.2 0 0);
-    --popover-foreground: oklch(0.96 0 0);
-
-    /* Same emerald, lightened so it reads on a dark surface. */
-    --primary: oklch(0.773 0.153 163.2);
-    --primary-foreground: oklch(0.16 0 0);
-    --primary-hover: oklch(0.845 0.13 165);
-    --primary-active: oklch(0.7 0.14 163.2);
-    --primary-light: oklch(0.32 0.06 166.9);
-    --primary-soft: oklch(0.24 0.035 166.9);
-    --primary-border: oklch(0.45 0.08 166.9);
-    --subtle-foreground: oklch(0.8 0 0);
-    --disabled-foreground: oklch(0.5 0 0);
-
-    --secondary: oklch(0.28 0.03 166.9);
-    --secondary-foreground: oklch(0.94 0.015 166.1);
-
-    --muted: oklch(0.27 0 0);
-    --muted-foreground: oklch(0.68 0 0);
-
-    --accent: oklch(0.32 0.04 166.9);
-    --accent-foreground: oklch(0.94 0.015 166.1);
-
-    --destructive: oklch(0.62 0.2 27);
-    --destructive-foreground: oklch(0.16 0 0);
-    --destructive-soft: oklch(0.3 0.08 27);
-
-    /* Same two hues, re-stepped for a dark surface — lightened rather than
-       flipped, so amber is still amber and green still green. */
-    --success: oklch(0.76 0.15 152);
-    --warning: oklch(0.8 0.14 75);
-    --success-soft: oklch(0.28 0.06 152);
-    --warning-soft: oklch(0.3 0.06 75);
-    --info: oklch(0.75 0.12 255);
-    --info-soft: oklch(0.28 0.06 255);
-    --gift: oklch(0.75 0.14 300);
-    --gift-foreground: oklch(0.16 0 0);
-
-    --page: oklch(0.16 0 0);
-    --soft: oklch(0.27 0 0);
-    --pale: oklch(0.3 0.035 166.9);
-    --pale-foreground: oklch(0.82 0.06 166.9);
-    --blush: oklch(0.62 0.07 8.2);
-    --blush-foreground: oklch(0.2 0.04 10.9);
-    --quick: oklch(0.3 0.04 3.5);
-    --quick-border: oklch(0.42 0.06 3.7);
-    --quick-foreground: oklch(0.88 0.05 8.2);
-    --stock-in: oklch(0.72 0.12 165.7);
-    --stock-low: oklch(0.8 0.14 78.2);
-    --stock-low-foreground: oklch(0.85 0.12 75);
-    --stock-out: oklch(0.96 0 0);
-    --stock-out-foreground: oklch(0.16 0 0);
-
-    --border: oklch(1 0 0 / 12%);
-    --input: oklch(1 0 0 / 18%);
-    --border-light: oklch(1 0 0 / 8%);
-    --border-strong: oklch(1 0 0 / 24%);
-    --ring: oklch(0.773 0.153 163.2);
-  }
 }
 
 /* From `desk` (1000px) the selling screen's top bar holds the search and its
@@ -442,10 +132,6 @@
 }
 
 @layer base {
-  * {
-    border-color: var(--border);
-    outline-color: var(--ring);
-  }
 
   html {
     -webkit-text-size-adjust: 100%;
@@ -454,20 +140,6 @@
        box and let `truncate` slice its descenders. Same reasoning, and the
        same number, as the type scale above. */
     line-height: 1.8;
-  }
-
-  body {
-    background: var(--background);
-    color: var(--foreground);
-    font-family: var(--font-sans);
-  }
-
-  html[lang="ar"] body {
-    font-family: var(--font-arabic);
-  }
-
-  html[lang="he"] body {
-    font-family: var(--font-hebrew);
   }
 
   /* A placeholder longer than its box is otherwise chopped off mid-word
@@ -760,12 +432,6 @@ html[data-boot="failed"] .boot-failure {
   word-break: break-word;
 }
 
-/* ------------------------------------------------------------------
-   Scan acknowledgement — see hooks/use-scan-flash.ts. Both animations
-   are told their duration by the component (from constants/pos.ts), so
-   the numbers stay in one place; only the shapes live here.
-   ------------------------------------------------------------------ */
-
 /* The bar under a freshly scanned cart line. It runs down over exactly the
    window in which the same barcode is ignored, so "wait a moment before
    re-scanning this one" is something the cashier can see rather than count.
@@ -798,9 +464,6 @@ html[data-boot="failed"] .boot-failure {
   animation: scan-pulse ease-out forwards;
 }
 
-/* With motion turned down the acknowledgement stays — it just stops moving.
-   Both elements are removed by the component when the window is up, so a
-   still bar and a still frame say the same thing without animating. */
 /* Colour and lift changes are 150ms everywhere; under reduced motion they
    are instant instead. */
 @media (prefers-reduced-motion: reduce) {

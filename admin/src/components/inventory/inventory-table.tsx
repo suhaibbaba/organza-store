@@ -38,18 +38,16 @@ export function InventoryTable({ rows, threshold, canAdjust, onStockChange }: In
           const name = localize(item.productName, locale);
           const variantName = item.variantName ? localize(item.variantName, locale) : null;
           return (
-            // ::after stretches the link over its whole cell, so the item
-            // column is clickable end to end. A variant row opens its parent
-            // product — variants have no page of their own.
+            // A variant row opens its parent product: variants have no page of their own.
             <Link
               href={`/products/${item.productId}`}
-              className="flex min-w-0 items-center gap-2 rounded-md after:absolute after:inset-0 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="flex min-w-0 items-center gap-2 rounded-control after:absolute after:inset-0 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
             >
               <span className="min-w-0">
-                <span className="block truncate font-medium text-foreground">{name}</span>
-                {variantName && <span className="block truncate text-xs text-muted-foreground">{variantName}</span>}
+                <span className="block truncate font-medium text-ink">{name}</span>
+                {variantName && <span className="block truncate text-meta text-ink-muted">{variantName}</span>}
               </span>
-              <ChevronRight className="size-4 shrink-0 text-muted-foreground rtl:-scale-x-100" aria-hidden="true" />
+              <ChevronRight className="size-4 shrink-0 text-ink-muted rtl:-scale-x-100" aria-hidden="true" />
             </Link>
           );
         },
@@ -57,25 +55,21 @@ export function InventoryTable({ rows, threshold, canAdjust, onStockChange }: In
       {
         id: "sku",
         header: tTable("sku"),
-        cell: ({ row }) => <span className="text-muted-foreground">{row.original.item.sku ?? t("noSku")}</span>,
+        cell: ({ row }) => <span className="text-ink-muted">{row.original.item.sku ?? t("noSku")}</span>,
       },
       {
         id: "status",
         header: tTable("status"),
         cell: ({ row }) => (
           <span className="flex flex-col items-start gap-1">
-            {/* Reads the row's effective quantity, so the badge and its
-                colour move with the +/- presses rather than waiting for a
-                round trip. */}
             <StockBadge
               stock={row.original.stock}
               trackLowStock={row.original.item.trackLowStock}
               threshold={threshold}
             />
-            {/* Held on screen on purpose: the user's own edit took it outside
-                the filter they are working under. */}
+            {/* Kept on screen after the user's own edit moved it outside the filter. */}
             {row.original.isOutsideFilter && (
-              <span className="text-xs text-muted-foreground">{t("outsideFilter")}</span>
+              <span className="text-meta text-ink-muted">{t("outsideFilter")}</span>
             )}
           </span>
         ),
@@ -93,8 +87,6 @@ export function InventoryTable({ rows, threshold, canAdjust, onStockChange }: In
                 onChange={onStockChange}
               />
             ) : (
-              // The figure takes the status colour, so the number and the
-              // badge beside it never disagree.
               <span
                 className={cn(
                   "font-medium",
@@ -110,8 +102,6 @@ export function InventoryTable({ rows, threshold, canAdjust, onStockChange }: In
                 {row.original.stock}
               </span>
             )}
-            {/* Same rule as the mobile card: a figure somebody has asked to
-                change is spoken for, not wrong. */}
             <PendingChangeBadge
               changes={row.original.item.pendingChanges}
               entityType={
@@ -136,9 +126,9 @@ export function InventoryTable({ rows, threshold, canAdjust, onStockChange }: In
   const table = useReactTable({ data: rows, columns, getCoreRowModel: getCoreRowModel() });
 
   return (
-    <div className="overflow-hidden rounded-xl border border-border" data-test-selector="inventory-table">
-      <table className="w-full text-sm">
-        <thead className="bg-secondary text-secondary-foreground">
+    <div className="overflow-hidden rounded-card border border-line bg-surface shadow-card" data-test-selector="inventory-table">
+      <table className="w-full text-label">
+        <thead className="bg-table-head text-ink-muted">
           {table.getHeaderGroups().map((headerGroup) => (
             <tr key={headerGroup.id}>
               {headerGroup.headers.map((header) => (
@@ -153,11 +143,10 @@ export function InventoryTable({ rows, threshold, canAdjust, onStockChange }: In
           {table.getRowModel().rows.map((row) => (
             <tr
               key={row.id}
-              className="border-t border-border"
+              className="border-t border-line hover:bg-row-hover"
               data-test-selector={testSelectorFor("inventory-row", row.original.item.id)}
             >
-              {/* `relative` scopes the item link's stretched ::after to its own
-                  cell, so it never covers the stock stepper. */}
+              {/* `relative` keeps the item link's ::after inside its cell, off the stepper. */}
               {row.getVisibleCells().map((cell) => (
                 <td key={cell.id} className="relative px-4 py-3 align-middle">
                   {flexRender(cell.column.columnDef.cell, cell.getContext())}

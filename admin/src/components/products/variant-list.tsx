@@ -15,9 +15,7 @@ import { cn } from "@/lib/utils";
 
 interface VariantListProps {
   variants: Variant[];
-  // Needed to name the type each value belongs to: a variant only references
-  // the option value (CLAUDE.md rule 2), while the type name lives on the
-  // product, so "أحمر" alone can't say whether it's a colour, size or number.
+  // A variant only references its option value (rule 2); the type name lives on the product.
   variantTypes: ProductVariantTypeRef[];
   currency: string;
 }
@@ -33,41 +31,30 @@ export function VariantList({ variants, variantTypes, currency }: VariantListPro
     return map;
   }, [variantTypes, locale]);
 
-  // Each variant is a photo, a couple of values and two figures — never a
-  // screen's worth. Two across from the large-tablet width up, so a product
-  // with a dozen sizes is taken in rather than scrolled through; one column
-  // on a phone, unchanged.
   return (
     <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
       {variants.map((variant) => {
         const name = localize(variant.name, locale);
         const outOfStock = variant.stock <= 0;
         const showCost = variant.resolvedCost !== undefined;
-        // Each value paired with its variant type, so the row reads as
-        // "اللون / أحمر" instead of a bare "أحمر" — same information the edit
-        // screen shows, just quieter here.
         const groups = variant.values.map((value) => ({
           id: value.id,
           typeName: typeNameById.get(value.variantTypeId) ?? "",
           value: localize(value.value, locale),
-          // What this value means on THIS product (spec.md "Notes on a
-          // product's options") — "طول البنطلون ٩٥ سم" under the S it
-          // explains, so a note is never separated from the value it belongs
-          // to. Empty for almost every value, and nothing is rendered then:
-          // no gap, no placeholder, no shift.
+          // What this value means on THIS product (spec.md "Notes on a product's options").
           note: localize(value.note, locale),
         }));
 
         return (
           <div
             key={variant.id}
-            className="flex items-center gap-3 rounded-xl border border-border bg-card p-3"
+            className="flex items-center gap-3 rounded-panel border border-line bg-surface p-3"
             data-test-selector={testSelectorFor("variant-row", variant.id)}
           >
             <ProductImage
               src={variant.images[0]?.thumbnailUrl}
               alt={name}
-              className="size-14 shrink-0 rounded-lg"
+              className="size-14 shrink-0 rounded-control"
               sizes="56px"
             />
             <div className="min-w-0 flex-1">
@@ -77,29 +64,27 @@ export function VariantList({ variants, variantTypes, currency }: VariantListPro
                     {groups.map((group) => (
                       <div key={group.id} className="min-w-0">
                         {group.typeName && (
-                          <p className="truncate text-xs text-muted-foreground">
+                          <p className="truncate text-micro text-ink-muted">
                             {group.typeName}
                           </p>
                         )}
-                        <p className="truncate text-sm font-medium text-foreground">{group.value}</p>
+                        <p className="truncate text-label font-medium text-ink">{group.value}</p>
                         {group.note && (
-                          <p className="line-clamp-2 text-xs text-muted-foreground">{group.note}</p>
+                          <p className="line-clamp-2 text-micro text-ink-muted">{group.note}</p>
                         )}
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="truncate text-sm font-medium text-foreground">{name}</p>
+                  <p className="truncate text-label font-medium text-ink">{name}</p>
                 )}
                 <StatusBadge isActive={variant.isActive} />
               </div>
-              <p className="mt-0.5 truncate text-xs text-muted-foreground" {...SELECTABLE}>
+              <p className="mt-0.5 truncate text-micro text-ink-muted" {...SELECTABLE}>
                 {variant.sku}
               </p>
-              {/* The code a scan at the counter matches, and whose it is: a
-                  size carrying the supplier's own tag needs no label of ours. */}
               {variant.barcode && (
-                <p className="truncate text-xs text-muted-foreground" dir="ltr" {...SELECTABLE}>
+                <p className="truncate text-micro text-ink-muted" dir="ltr" {...SELECTABLE}>
                   {variant.barcode}
                   {variant.barcodeSource === BARCODE_SOURCE.SUPPLIER && (
                     <span dir="auto" className="ms-2 font-medium">
@@ -109,15 +94,15 @@ export function VariantList({ variants, variantTypes, currency }: VariantListPro
                 </p>
               )}
               <div className="mt-1.5 flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
-                <span className="text-sm font-semibold text-foreground">
+                <span className="text-label font-semibold text-ink">
                   {formatMoney(variant.resolvedPrice, currency, locale)}
                   {showCost && variant.resolvedCost && (
-                    <span className="ms-2 text-xs font-normal text-muted-foreground">
+                    <span className="ms-2 text-micro font-normal text-ink-muted">
                       {t("cost")}: {formatMoney(variant.resolvedCost, currency, locale)}
                     </span>
                   )}
                 </span>
-                <span className={cn("text-xs font-medium", outOfStock ? "text-destructive" : "text-muted-foreground")}>
+                <span className={cn("text-micro font-medium", outOfStock ? "text-danger-600" : "text-ink-muted")}>
                   {t("variantStock")}: {variant.stock}
                 </span>
               </div>

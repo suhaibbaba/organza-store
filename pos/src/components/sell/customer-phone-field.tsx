@@ -2,59 +2,62 @@
 
 import { useTranslations } from "next-intl";
 import { History } from "lucide-react";
+import { PhoneCountryProvider, PhoneInput, Spinner } from "@store/ui";
+import { DEFAULT_PHONE_COUNTRY, PHONE_COUNTRIES, type PhoneCountry } from "@store/ui/lib/support/phone";
 import type { CustomerSuggestion } from "@organza/shared/types/order";
+import { fieldTestSelector } from "@organza/shared/lib/testSelector";
 import { useCustomerSuggestions } from "@/hooks/use-customer-suggestions";
 import { useSettingsQuery } from "@/hooks/use-settings";
-import { PhoneField } from "@/components/ui/phone-field";
-import { Spinner } from "@/components/ui/spinner";
 
-interface CustomerPhoneFieldProps {
+interface ShopPhoneInputProps {
   id: string;
   value: string;
   onChange: (value: string) => void;
   onBlur: () => void;
   invalid: boolean;
+}
+
+function countryForDial(dial: string | undefined): PhoneCountry {
+  return PHONE_COUNTRIES.find((entry) => entry.dial === dial)?.country ?? DEFAULT_PHONE_COUNTRY;
+}
+
+// The form's convention is "" for no number; PhoneInput's is null. The default prefix comes from Settings.
+export function ShopPhoneInput({ id, value, onChange, onBlur, invalid }: ShopPhoneInputProps) {
+  const { data: settings } = useSettingsQuery();
+
+  return (
+    <PhoneCountryProvider country={countryForDial(settings?.defaultCountryCode)}>
+      <PhoneInput
+        id={id}
+        data-testid={fieldTestSelector(id)}
+        value={value || null}
+        onChange={(next) => onChange(next ?? "")}
+        onBlur={onBlur}
+        hasError={invalid}
+        className="[&_[data-part=input]]:h-12"
+      />
+    </PhoneCountryProvider>
+  );
+}
+
+interface CustomerPhoneFieldProps extends ShopPhoneInputProps {
   onPickSuggestion: (suggestion: CustomerSuggestion) => void;
 }
 
-// The phone box, plus "have we served this number before?" underneath it.
-//
-// Repeat customers are the normal case for WhatsApp orders, and there is no
-// Customer table to pick from (spec.md "Customer information") — so the shop's
-// own past orders stand in for one. Matches appear as the number is typed;
-// tapping one fills the rest of the form, and typing straight through it
-// still works, because a suggestion is an offer rather than a mode.
-export function CustomerPhoneField({
-  id,
-  value,
-  onChange,
-  onBlur,
-  invalid,
-  onPickSuggestion,
-}: CustomerPhoneFieldProps) {
+// The phone box plus past orders with the same number (no Customer table yet): tapping one fills the rest of the form.
+export function CustomerPhoneField({ onPickSuggestion, ...field }: CustomerPhoneFieldProps) {
   const t = useTranslations("sell.whatsapp.customer");
-  const { data: settings } = useSettingsQuery();
-  const { suggestions, isLooking } = useCustomerSuggestions(value);
+  const { suggestions, isLooking } = useCustomerSuggestions(field.value);
 
-  // Once a suggestion has been taken (or the whole number typed out), it is
-  // the field's value — offering it back is just a row in the way of the
-  // address box.
-  const offered = suggestions.filter((suggestion) => suggestion.phone !== value);
+  // A suggestion already taken is the field's value; offering it back is just in the way.
+  const offered = suggestions.filter((suggestion) => suggestion.phone !== field.value);
 
   return (
     <div className="flex flex-col gap-2">
-      <PhoneField
-        id={id}
-        value={value}
-        onChange={onChange}
-        onBlur={onBlur}
-        defaultCountryCode={settings?.defaultCountryCode}
-        ariaInvalid={invalid}
-        prefixAriaLabel={t("phonePrefixLabel")}
-      />
+      <ShopPhoneInput {...field} />
 
       {isLooking && (
-        <p className="flex items-center gap-2 text-sm text-muted-foreground">
+        <p className="flex items-center gap-2 text-label text-ink-muted">
           <Spinner />
           {t("searching")}
         </p>
@@ -62,25 +65,21 @@ export function CustomerPhoneField({
 
       {offered.length > 0 && (
         <div className="flex flex-col gap-2">
-          <p className="text-xs text-muted-foreground">{t("suggestionsHint")}</p>
+          <p className="text-micro text-ink-muted">{t("suggestionsHint")}</p>
           <ul className="flex flex-col gap-2">
             {offered.map((suggestion) => (
               <li key={suggestion.phone}>
                 <button
                   type="button"
                   onClick={() => onPickSuggestion(suggestion)}
-                  className="flex w-full items-center gap-3 rounded-lg border border-input bg-card px-4 py-3 text-start transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  className="flex w-full cursor-pointer items-center gap-3 rounded-control border border-line-strong bg-surface px-4 py-3 text-start transition-colors hover:bg-row-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
                 >
-                  <History className="size-5 shrink-0 text-muted-foreground" aria-hidden="true" />
+                  <History className="size-5 shrink-0 text-ink-muted" aria-hidden="true" />
                   <span className="flex min-w-0 flex-col">
-                    {/* The number leads, because that is what is being typed
-                        and compared; the name sits under it as the
-                        confirmation that this is the right person. Latin
-                        digits pinned LTR inside the RTL form. */}
-                    <span dir="ltr" className="truncate text-base font-semibold tabular-nums">
+                    <span dir="ltr" className="truncate text-value font-semibold tabular-nums text-ink">
                       {suggestion.phone}
                     </span>
-                    <span className="truncate text-sm text-muted-foreground">
+                    <span className="truncate text-label text-ink-muted">
                       {suggestion.name ?? t("unnamedCustomer")}
                     </span>
                   </span>

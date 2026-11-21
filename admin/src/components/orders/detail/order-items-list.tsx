@@ -1,14 +1,12 @@
 import { useLocale, useTranslations } from "next-intl";
 import { Undo2, Zap } from "lucide-react";
+import { Card } from "@store/ui";
 import type { OrderItem } from "@organza/shared/types/order";
 import { testSelectorFor } from "@organza/shared/lib/testSelector";
 import { localize } from "@/lib/i18n-content";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-// What was sold, one card-row per line. A line shows the four things needed
-// to check an order against a chat message: what it is, how many, what each
-// one cost, and what the line came to after its own discount.
+// One tile per sold line: what it is, how many, unit price and line total after its own discount.
 export function OrderItemsList({ items }: { items: OrderItem[] }) {
   const t = useTranslations("orders.detail.items");
   const tDiscount = useTranslations("orders.discount");
@@ -16,15 +14,9 @@ export function OrderItemsList({ items }: { items: OrderItem[] }) {
   const formatMoney = useMoneyFormatter();
 
   return (
-    <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className="text-base">{t("title", { count: items.length })}</CardTitle>
-      </CardHeader>
-      {/* A sold line is a name, a SKU and three short figures. One per row
-          left most of an order's card empty on anything wider than a phone,
-          so they flow — and a ten-line order is checked against a chat
-          message without scrolling. */}
-      <CardContent className="grid grid-cols-1 items-start gap-3 sm:grid-cols-2 xl:grid-cols-3">
+    <Card className="flex flex-col gap-3">
+      <h2 className="text-section font-medium text-ink">{t("title", { count: items.length })}</h2>
+      <div className="grid grid-cols-1 items-start gap-3 sm:grid-cols-2 xl:grid-cols-3">
         {items.map((item) => {
           const name = localize(item.name, locale);
           const variantName = item.variantName ? localize(item.variantName, locale) : null;
@@ -33,47 +25,38 @@ export function OrderItemsList({ items }: { items: OrderItem[] }) {
           return (
             <div
               key={item.id}
-              className="flex flex-col gap-1.5 rounded-lg border border-border p-3"
+              className="flex flex-col gap-1.5 rounded-panel border border-line p-3"
               data-test-selector={testSelectorFor("order-item", item.id)}
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-medium text-foreground">{name}</p>
-                  {/* Typed at the counter, not picked from the catalogue
-                      (spec.md "Quick sell") — so this line's cost, and the
-                      profit on it, may still be missing. Marked on the line
-                      itself as well as on the order, because an order of six
-                      lines may have one. */}
+                  <p className="truncate text-label font-medium text-ink">{name}</p>
+                  {/* Typed at the counter (spec.md "Quick sell"): this line's cost, and its profit, may still be missing. */}
                   {item.quickSold && (
-                    <p className="mt-0.5 inline-flex items-center gap-1 text-xs font-medium text-primary">
+                    <p className="mt-0.5 inline-flex items-center gap-1 text-micro font-medium text-primary-600">
                       <Zap className="size-3.5 shrink-0" aria-hidden="true" />
                       {t("quickSold")}
                     </p>
                   )}
-                  {variantName && <p className="truncate text-xs text-muted-foreground">{variantName}</p>}
-                  {/* SKU is Latin text (ORG-00042) — pinned LTR so it reads
-                      correctly inside an RTL page. */}
-                  <p className="truncate text-xs text-muted-foreground" dir="ltr">
+                  {variantName && <p className="truncate text-micro text-ink-muted">{variantName}</p>}
+                  <p className="truncate text-micro text-ink-muted" dir="ltr">
                     {item.sku ?? t("noSku")}
                   </p>
                 </div>
-                <span className="shrink-0 text-sm font-semibold tabular-nums text-foreground">
+                <span className="shrink-0 text-label font-semibold tabular-nums text-ink">
                   {formatMoney(item.lineTotal)}
                 </span>
               </div>
 
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-border pt-1.5 text-xs text-muted-foreground">
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-line pt-1.5 text-micro text-ink-muted">
                 <span>{t("quantity", { count: item.quantity })}</span>
                 <span aria-hidden="true">·</span>
                 <span>{t("unitPrice", { price: formatMoney(item.unitPrice) })}</span>
                 {hasDiscount && (
                   <>
                     <span aria-hidden="true">·</span>
-                    <span className="text-emerald-700 dark:text-emerald-400">
+                    <span className="text-success-700">
                       {t("itemDiscount", {
-                        // The stored (type, value) pair is shown as well as
-                        // the resolved amount, so "10%" doesn't have to be
-                        // reverse-engineered from the money it took off.
                         label:
                           item.discountType === "PERCENT"
                             ? tDiscount("percentValue", { value: Number(item.discountValue ?? 0) })
@@ -86,7 +69,7 @@ export function OrderItemsList({ items }: { items: OrderItem[] }) {
               </div>
 
               {item.returnedQuantity > 0 && (
-                <p className="flex items-center gap-1.5 text-xs font-medium text-amber-600 dark:text-amber-400">
+                <p className="flex items-center gap-1.5 text-micro font-medium text-warning-700">
                   <Undo2 className="size-3.5 rtl:-scale-x-100" aria-hidden="true" />
                   {t("returned", { count: item.returnedQuantity })}
                 </p>
@@ -94,7 +77,7 @@ export function OrderItemsList({ items }: { items: OrderItem[] }) {
             </div>
           );
         })}
-      </CardContent>
+      </div>
     </Card>
   );
 }

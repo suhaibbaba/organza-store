@@ -5,14 +5,9 @@ import { useTranslations } from "next-intl";
 import { EyeOff } from "lucide-react";
 import { ERROR_CODES } from "@organza/shared/constants/errors";
 import type { CashSession } from "@organza/shared/types/cash";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { Alert } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { NumericInput } from "@/components/ui/numeric-input";
-import { Switch } from "@/components/ui/switch";
-import { Textarea } from "@/components/ui/textarea";
-import { Spinner } from "@/components/ui/spinner";
+import { fieldTestSelector } from "@organza/shared/lib/testSelector";
+import { Alert, Button, Drawer, FormField, Switch, Textarea } from "@store/ui";
+import { NumericInput } from "@/components/fields/numeric-input";
 import { useCloseCashSessionMutation } from "@/hooks/use-cash-sessions";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
 import { useTranslateError } from "@/hooks/use-translate-error";
@@ -26,38 +21,21 @@ interface CloseDaySheetProps {
   onOpenChange: (open: boolean) => void;
 }
 
-// Counting the drawer, BLIND (spec.md "Cash drawer & expenses").
-//
-// The expected figure is deliberately absent from this screen while the money
-// is being counted. A count made with the answer in view is not a count — it
-// is a chance to make the drawer agree with the books, which is exactly what
-// counting exists to catch. So the flow is:
-//
-//   1. count    — enter what is physically there, and what is being taken out;
-//   2. reveal   — the server compares, and only now does the screen show
-//                 expected vs counted vs difference. A difference has to be
-//                 explained before it will save, and can be flagged to follow
-//                 up tomorrow;
-//   3. done     — closed, with the comparison left on screen.
-//
-// A drawer that balances goes 1 -> 3 in a single tap; only a disagreement
-// asks for anything more. The difference itself is NEVER a reason to refuse
-// the close — see the backend's close route.
+// Counted BLIND: the expected figure stays hidden until a count is committed, so nobody can make the drawer agree with the books; a difference needs a note but never refuses the close.
 export function CloseDaySheet({ session, open, onOpenChange }: CloseDaySheetProps) {
-  const tCommon = useTranslations("common");
   const t = useTranslations("dashboard.drawer.closeDay");
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent name="close-day" side="end" closeLabel={tCommon("close")}>
-        <SheetHeader>
-          <SheetTitle>{t("title")}</SheetTitle>
-        </SheetHeader>
-        {/* Keyed on `open` so a sheet reopened after being abandoned starts
-            from an empty count, never from half of yesterday's attempt. */}
-        <CloseDayForm key={String(open)} session={session} onDone={() => onOpenChange(false)} />
-      </SheetContent>
-    </Sheet>
+    <Drawer
+      open={open}
+      onOpenChange={onOpenChange}
+      title={t("title")}
+      descriptionKey="dashboard.drawer.closeDay.title"
+      data-testid="sheet-close-day"
+    >
+      {/* Keyed on `open` so a reopened sheet starts from an empty count. */}
+      <CloseDayForm key={String(open)} session={session} onDone={() => onOpenChange(false)} />
+    </Drawer>
   );
 }
 
@@ -90,8 +68,7 @@ function CloseDayForm({ session, onDone }: { session: CashSession; onDone: () =>
         carryDifference,
       });
 
-      // Saved. The comparison comes off the closed session, so what is shown
-      // is what was actually written, not what this screen believed.
+      // Shown from the closed session: what was written, not what this screen believed.
       setComparison({
         expected: closed.expected,
         counted: closed.countedAmount ?? counted,
@@ -101,9 +78,7 @@ function CloseDayForm({ session, onDone }: { session: CashSession; onDone: () =>
     } catch (error) {
       const apiError = error instanceof ApiError ? error : null;
 
-      // Not a failure — this is the blind count's second half. The count
-      // disagreed, and the refusal carries the figures precisely so they can
-      // be revealed here, now that a count has been committed to.
+      // Not a failure: the blind count's second half — the refusal carries the figures to reveal.
       if (apiError?.code === ERROR_CODES.CASH_SESSION_DIFFERENCE_NOTE_REQUIRED) {
         const details = apiError.details as Partial<CountComparison> | undefined;
         if (details?.expected && details.counted && details.difference) {
@@ -119,10 +94,10 @@ function CloseDayForm({ session, onDone }: { session: CashSession; onDone: () =>
 
   if (step === "done" && comparison) {
     return (
-      <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-5 pb-5">
-        <Alert variant="success">{t("saved")}</Alert>
+      <div className="flex flex-col gap-4">
+        <Alert tone="success">{t("saved")}</Alert>
         <ComparisonPanel comparison={comparison} />
-        <Button type="button" className="mt-auto h-14 w-full text-base" onClick={onDone}>
+        <Button type="button" className="w-full" onClick={onDone}>
           {t("done")}
         </Button>
       </div>
@@ -130,11 +105,10 @@ function CloseDayForm({ session, onDone }: { session: CashSession; onDone: () =>
   }
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-5 pb-5">
+    <div className="flex flex-col gap-4">
       {step === "counting" ? (
-        // Says out loud that the figure is being withheld, so it reads as a
-        // deliberate control rather than a missing number.
-        <div className="flex items-start gap-3 rounded-lg border border-border bg-secondary p-4 text-sm text-secondary-foreground">
+        // Says the figure is withheld on purpose, so it never reads as a missing number.
+        <div className="flex items-start gap-3 rounded-panel border border-line bg-inset p-4 text-label text-ink">
           <EyeOff className="mt-0.5 size-5 shrink-0" aria-hidden="true" />
           <p>{t("blindHint")}</p>
         </div>
@@ -142,108 +116,105 @@ function CloseDayForm({ session, onDone }: { session: CashSession; onDone: () =>
         comparison && <ComparisonPanel comparison={comparison} />
       )}
 
-      {errorCode && <Alert variant="destructive">{translateError(errorCode)}</Alert>}
+      {errorCode && <Alert tone="danger">{translateError(errorCode)}</Alert>}
 
-      {/* Once the comparison is up, the count is fixed — changing it after
-          seeing the answer is exactly what counting blind prevents. It isn't
-          shown as a locked field either: a greyed-out box reads like an empty
-          one, and the figure is already on the panel above. */}
+      {/* After the reveal the count is fixed — changing it after seeing the answer is what counting blind prevents. */}
       {step === "counting" && (
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="counted-amount">{t("counted")}</Label>
+        <FormField label="dashboard.drawer.closeDay.counted" htmlFor="counted-amount">
           <NumericInput
             id="counted-amount"
             allowDecimal
             value={counted}
             onChange={(event) => setCounted(event.target.value)}
-            className="h-14 text-lg"
             placeholder="0"
           />
-        </div>
+        </FormField>
       )}
 
-      {/* Still editable at the reveal: deciding how much to bank once you
-          know the drawer is short is a reasonable thing to do, and it hides
-          nothing — the count itself is already committed. */}
-      <div className="flex flex-col gap-2">
-        <Label htmlFor="withdrawn-amount">{t("withdrawn")}</Label>
+      {/* Still editable at the reveal: the count is already committed, so this hides nothing. */}
+      <FormField
+        label="dashboard.drawer.closeDay.withdrawn"
+        htmlFor="withdrawn-amount"
+        note="dashboard.drawer.closeDay.withdrawnHint"
+      >
         <NumericInput
           id="withdrawn-amount"
           allowDecimal
           value={withdrawn}
           onChange={(event) => setWithdrawn(event.target.value)}
-          className="h-14 text-lg"
           placeholder="0"
         />
-        <p className="text-xs text-muted-foreground">{t("withdrawnHint")}</p>
-      </div>
+      </FormField>
 
-      <div className="flex flex-col gap-2">
-        <Label htmlFor="close-note">{noteRequired ? t("noteRequired") : t("note")}</Label>
+      <FormField
+        label={noteRequired ? "dashboard.drawer.closeDay.noteRequired" : "dashboard.drawer.closeDay.note"}
+        htmlFor="close-note"
+      >
         <Textarea
           id="close-note"
+          data-testid={fieldTestSelector("close-note")}
           value={note}
           onChange={(event) => setNote(event.target.value)}
           placeholder={t("notePlaceholder")}
-          // Required, not "invalid": a red box on a field nobody has typed in
-          // yet reads as a telling-off. The label says (required), the hint
-          // says why, and the save button stays disabled until it is filled.
+          // Required, not "invalid": a red box before anyone typed reads as a telling-off.
           required={noteRequired}
           aria-describedby={noteRequired ? "close-note-hint" : undefined}
         />
         {noteRequired && (
-          <p id="close-note-hint" className="text-xs text-muted-foreground">
+          <p id="close-note-hint" className="text-label text-ink-muted">
             {t("noteRequiredHint")}
           </p>
         )}
-      </div>
+      </FormField>
 
-      {/* Only offered once there is something to carry — a balanced drawer
-          has nothing to follow up. */}
+      {/* Only offered once there is a difference to carry. */}
       {step === "reveal" && (
-        <div className="flex items-start justify-between gap-3 rounded-lg border border-border p-4">
+        <div className="flex items-start justify-between gap-3 rounded-panel border border-line p-4">
           <div className="min-w-0">
-            <Label htmlFor="carry-difference">{t("carry")}</Label>
-            <p className="mt-1 text-xs text-muted-foreground">{t("carryHint")}</p>
+            <label htmlFor="carry-difference" className="cursor-pointer text-label font-medium text-ink">
+              {t("carry")}
+            </label>
+            <p className="mt-1 text-meta text-ink-muted">{t("carryHint")}</p>
           </div>
-          <Switch
-            id="carry-difference"
-            checked={carryDifference}
-            onCheckedChange={setCarryDifference}
-            className="mt-1 shrink-0"
-          />
+          <div className="mt-1 shrink-0">
+            <Switch
+              id="carry-difference"
+              data-testid={fieldTestSelector("carry-difference")}
+              label={t("carry")}
+              hideLabel
+              checked={carryDifference}
+              onCheckedChange={setCarryDifference}
+            />
+          </div>
         </div>
       )}
 
       <Button
         type="button"
-        className="mt-auto h-14 w-full text-base"
+        className="w-full"
         disabled={!canSubmit}
+        isLoading={mutation.isPending}
         onClick={() => void submit()}
       >
-        {mutation.isPending && <Spinner />}
         {step === "reveal" ? t("saveWithNote") : t("submit")}
       </Button>
     </div>
   );
 }
 
-// Expected vs counted, and the gap between them. Shown only after a count has
-// been submitted — never before.
+// Shown only after a count has been submitted — never before.
 function ComparisonPanel({ comparison }: { comparison: CountComparison }) {
   const t = useTranslations("dashboard.drawer.closeDay");
   const formatMoney = useMoneyFormatter();
   const difference = Number(comparison.difference);
 
   return (
-    <div className="flex flex-col gap-2 rounded-lg border border-border bg-card p-4">
+    <div className="flex flex-col gap-2 rounded-panel border border-line bg-surface p-4">
       <ComparisonRow label={t("expected")} value={formatMoney(comparison.expected)} />
       <ComparisonRow label={t("countedShort")} value={formatMoney(comparison.counted)} />
       <ComparisonRow
         label={difference < 0 ? t("short") : difference > 0 ? t("over") : t("balanced")}
-        // The sign is carried by the wording as well as the figure: "short"
-        // and "over" are what someone says out loud, and a bare minus sign is
-        // easy to miss.
+        // "Short"/"over" carry the sign in words; a bare minus is easy to miss.
         value={formatMoney(Math.abs(difference))}
         tone={difference === 0 ? "balanced" : "off"}
         emphasis
@@ -265,14 +236,14 @@ function ComparisonRow({
 }) {
   return (
     <div className="flex items-baseline justify-between gap-3">
-      <p className={cn("text-sm", emphasis ? "font-semibold text-foreground" : "text-muted-foreground")}>
+      <p className={cn("text-label", emphasis ? "font-semibold text-ink" : "text-ink-muted")}>
         {label}
       </p>
       <p
         className={cn(
           "shrink-0 tabular-nums",
-          emphasis ? "text-lg font-bold" : "text-sm text-foreground",
-          emphasis && tone === "off" && "text-amber-600 dark:text-amber-400"
+          emphasis ? "text-heading font-bold text-ink" : "text-label text-ink",
+          emphasis && tone === "off" && "text-warning-700"
         )}
       >
         {value}

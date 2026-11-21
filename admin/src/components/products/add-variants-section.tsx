@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
+import { Alert, Button } from "@store/ui";
 import type { VariantType } from "@organza/shared/types/variant";
 import { useGenerateVariantsMutation } from "@/hooks/use-products";
 import { deleteVariant } from "@/lib/api/products";
@@ -9,9 +10,6 @@ import { buildVariantPreview, toOptionSelections, comboKey } from "@/lib/variant
 import { useTranslateError } from "@/hooks/use-translate-error";
 import { VariantTypePicker } from "@/components/products/variant-type-picker";
 import { VariantPreviewList } from "@/components/products/variant-preview-list";
-import { Button } from "@/components/ui/button";
-import { Alert } from "@/components/ui/alert";
-import { Spinner } from "@/components/ui/spinner";
 import { ApiError } from "@/lib/api/errors";
 import type { VariantSelectionMap } from "@/types/productForm";
 
@@ -20,11 +18,7 @@ interface AddVariantsSectionProps {
   variantTypes: VariantType[];
 }
 
-// Edit-mode only: generates additional combinations on top of a product's
-// existing variants (or turns a simple product into a variant one on first
-// use) — a separate, self-contained action from the main "Save" button,
-// since it hits its own endpoint (POST .../variants/generate) and existing
-// combinations are always left untouched (spec.md).
+// Separate from the form's Save: its own endpoint (POST .../variants/generate), and existing combinations are never touched (spec.md).
 export function AddVariantsSection({ productId, variantTypes }: AddVariantsSectionProps) {
   const t = useTranslations("products.form.variants");
   const translateError = useTranslateError();
@@ -65,15 +59,15 @@ export function AddVariantsSection({ productId, variantTypes }: AddVariantsSecti
   }
 
   return (
-    <div className="flex flex-col gap-3 rounded-xl border border-dashed border-border p-3">
-      <p className="text-sm font-medium text-foreground">{t("addMoreTitle")}</p>
+    <div className="flex flex-col gap-3 rounded-panel border border-dashed border-line p-3">
+      <p className="text-label font-medium text-ink">{t("addMoreTitle")}</p>
       <VariantTypePicker variantTypes={variantTypes} value={selections} onChange={setSelections} />
       <VariantPreviewList rows={previewRows} excluded={excluded} onToggleExcluded={toggleExcluded} />
-      {error && <Alert variant="destructive">{error}</Alert>}
-      {succeeded && <Alert>{t("addMoreSuccess")}</Alert>}
+      {error && <Alert tone="danger">{error}</Alert>}
+      {succeeded && <Alert tone="success">{t("addMoreSuccess")}</Alert>}
       {optionSelections.length > 0 && (
-        <Button type="button" onClick={() => void handleGenerate()} disabled={generateMutation.isPending}>
-          {generateMutation.isPending ? <Spinner /> : t("generate")}
+        <Button onClick={() => void handleGenerate()} isLoading={generateMutation.isPending}>
+          {t("generate")}
         </Button>
       )}
     </div>

@@ -10,7 +10,7 @@ import { useSession } from "@/components/providers/session-provider";
 import { DEFAULT_ORDER_FILTERS, ORDER_SEARCH_DEBOUNCE_MS } from "@/constants/orders";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { useOrdersQuery } from "@/hooks/use-orders";
-import { Button } from "@/components/ui/button";
+import { buttonClassName } from "@store/ui";
 import { PageContainer } from "@/components/layout/page-container";
 import { PageHeader } from "@/components/layout/page-header";
 import { OrderSearch } from "@/components/orders/order-search";
@@ -66,8 +66,7 @@ export default function OrdersPage() {
     setFilters((f) => ({ ...f, page }));
   }
 
-  // Any change to what is being looked at returns to page 1 — otherwise a
-  // narrower filter can land on a page that no longer exists.
+  // Back to page 1, or a narrower filter can land on a page that no longer exists.
   function applyFilters(next: OrderFiltersValue) {
     setFilters((f) => ({ ...f, ...next, page: DEFAULT_PAGE }));
   }
@@ -91,29 +90,27 @@ export default function OrdersPage() {
         description={t("subtitle")}
         actions={
           <>
-            {/* Employees may take an order, just not undo one (spec.md "Roles &
-                Permissions") — the backend is the real gate (CLAUDE.md rule 5). */}
             {canCreate && (
-              <Button asChild size="sm" className="shrink-0" data-test-selector="add-order">
-                <Link href="/orders/new">
-                  <Plus className="size-4" aria-hidden="true" />
-                  {t("newOrder")}
-                </Link>
-              </Button>
+              <Link
+                href="/orders/new"
+                data-test-selector="add-order"
+                className={buttonClassName({ size: "sm", className: "shrink-0" })}
+              >
+                <Plus className="size-4" aria-hidden="true" />
+                {t("newOrder")}
+              </Link>
             )}
 
-            {/* The shortest path to "who still owes us money" — the question
-                this screen can answer but doesn't lead with. Admin/Manager
-                only, since settling up is theirs to do. Still the full width
-                of the row on a phone: w-full takes a line of its own inside
-                the header's wrap. */}
+            {/* The shortest path to "who still owes us money"; full width on a phone. */}
             {canCollect && (
-              <Button asChild variant="outline" className="h-12 w-full justify-start sm:w-auto">
-                <Link href="/orders/collection">
-                  <HandCoins className="size-5" aria-hidden="true" />
-                  {t("collectionLink")}
-                </Link>
-              </Button>
+              <Link
+                href="/orders/collection"
+                data-test-selector="orders-collection-link"
+                className={buttonClassName({ variant: "secondary", className: "w-full justify-start sm:w-auto" })}
+              >
+                <HandCoins className="size-5" aria-hidden="true" />
+                {t("collectionLink")}
+              </Link>
             )}
           </>
         }

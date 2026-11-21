@@ -304,6 +304,9 @@ behavior — guessing is what broke the previous attempt.
   `constants/` directory (e.g. `constants/sku.ts`, `constants/images.ts`, `constants/errors.ts`)
   and import from there. This includes the `ORG-` prefix, image sizes, size/type limits, error
   keys, default page sizes, the +970/+972 prefixes, etc.
+- **Comments: one line, or none.** Write a comment only when it says something important about
+  the feature that the code cannot (a business rule, a non-obvious why) — and keep it to a single
+  line. No multi-line explanation blocks, no narrating what the code does, no history.
 - These are **structural rules**: when refactoring to satisfy them, move/rename only — never change
   behavior — and keep `tsc` type-check and the build passing.
 
@@ -329,12 +332,10 @@ Tailwind class is not a name — it changes the next time the design does.
 - **Kept in production builds.** The deployed app is where problems appear; an attribute stripped
   from the build is no use to whoever is describing one. They weigh nothing and expose nothing.
 
-**Applied at the shared-component level wherever possible, so new screens inherit it:**
-`Input`/`Textarea`/`Select`/`Checkbox`/`Switch` name themselves `field-<id>` from their own id;
-`FieldError` names the message under a field `field-<id>-error`; `Alert` names itself by kind;
-`SheetContent`, `StatCard`, `FigureCard`, `PageHeader`, `SegmentedControl` and `QuantityStepper`
-take a `name` prop and render `sheet-<name>`, `stat-card-<name>` and so on. Add the name to the
-shared component once; only reach for a literal attribute where the element is one of a kind.
+**Naming a `@store/ui` component:** pass the name as its `data-testid` prop; the component writes it
+to both `data-testid` and `data-test-selector` and names its parts `<name>-<part>` (an `Input`
+named `field-<id>` puts that on its wrapper and `field-<id>-control` on the `<input>`). Plain
+elements carry a literal `data-test-selector`.
 
 **What to cover:** cards and list rows, table rows, primary action buttons, form fields and their
 errors, sheets and dialogs, navigation items, empty and error states, and the numbered-shawl point

@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Input } from "@/components/ui/input";
+import { Input } from "@store/ui";
 import { DECIMAL_INPUT_PATTERN, INTEGER_INPUT_PATTERN } from "@/constants/numeric";
 
 interface NumericInputProps extends Omit<React.ComponentProps<"input">, "type" | "inputMode" | "pattern"> {

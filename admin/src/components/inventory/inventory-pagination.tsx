@@ -2,8 +2,8 @@
 
 import { useTranslations } from "next-intl";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { Button } from "@store/ui";
 import type { Pagination } from "@organza/shared/types/common";
-import { Button } from "@/components/ui/button";
 
 interface InventoryPaginationProps {
   meta: Pagination;
@@ -20,29 +20,30 @@ export function InventoryPagination({ meta, onPageChange }: InventoryPaginationP
       <Button
         data-test-selector="inventory-page-previous"
         type="button"
-        variant="outline"
+        variant="secondary"
         size="sm"
         disabled={meta.page <= 1}
         onClick={() => onPageChange(meta.page - 1)}
+        icon={<ChevronLeft className="size-4 rtl:-scale-x-100" aria-hidden="true" />}
       >
-        <ChevronLeft className="size-4 rtl:-scale-x-100" aria-hidden="true" />
         {t("previous")}
       </Button>
 
-      <span className="text-sm text-muted-foreground">
+      <span className="text-label text-ink-muted">
         {t("pageOf", { page: meta.page, totalPages: meta.totalPages })}
       </span>
 
       <Button
         data-test-selector="inventory-page-next"
         type="button"
-        variant="outline"
+        variant="secondary"
         size="sm"
         disabled={meta.page >= meta.totalPages}
         onClick={() => onPageChange(meta.page + 1)}
+        icon={<ChevronRight className="size-4 rtl:-scale-x-100" aria-hidden="true" />}
+        iconPosition="end"
       >
         {t("next")}
-        <ChevronRight className="size-4 rtl:-scale-x-100" aria-hidden="true" />
       </Button>
     </div>
   );

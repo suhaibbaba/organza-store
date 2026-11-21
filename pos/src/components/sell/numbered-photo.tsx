@@ -40,23 +40,7 @@ function clamp(min: number, value: number, max: number): number {
   return Math.min(max, Math.max(min, value));
 }
 
-// A numbered shawl's photo with its numbers ON it, in the variant picker —
-// the customer points at the photo or says "number 4", so the cashier has to
-// see the same picture they do. Each number is drawn where the shop placed it
-// in the admin (imageX/imageY, percentages of the photo's own box), in the
-// shop's chosen colours, at the admin's proportions, so the two apps show the
-// same thing.
-//
-// A number is also a button: tapping it chooses that shawl exactly as its
-// tile below does, and the tile and the marker light up together. Sold out
-// is drawn faded and cannot be chosen.
-//
-// The box takes the photo's NATURAL aspect ratio once it loads (object-contain,
-// no crop) — the percentages only mean anything against that box, which is
-// why this is not a ProductThumb.
-//
-// Renders nothing when the product has no photo or no number has been placed
-// yet; the tiles below still work on their own.
+// Numbers drawn where the admin placed them (percentages of the photo's natural-ratio box), each one a button that chooses that shawl; renders nothing until a number is placed.
 export function NumberedPhoto({ product, chosenIds, onToggle }: NumberedPhotoProps) {
   const t = useTranslations("sell.picker");
   const boxRef = useRef<HTMLDivElement>(null);
@@ -119,11 +103,9 @@ export function NumberedPhoto({ product, chosenIds, onToggle }: NumberedPhotoPro
     <div className="flex justify-center" data-test-selector="pos-numbered-photo">
       <div
         ref={boxRef}
-        // The photo's own ratio, capped by height and by width at once, so a
-        // tall photo leaves room for the grid and a wide one fills the sheet
-        // — and the percentages land where they were placed either way.
+        // The photo's own ratio, capped by height and width, so the percentages land where they were placed.
         style={{ aspectRatio: boxRatio, width: `min(100%, calc(${boxRatio} * ${NUMBERED_PHOTO_MAX_HEIGHT}))` }}
-        className="relative overflow-hidden rounded-photo bg-soft"
+        className="relative overflow-hidden rounded-photo bg-sunken"
         // The numbers are part of the picture: they must not flip in RTL.
         dir="ltr"
       >
@@ -160,9 +142,8 @@ export function NumberedPhoto({ product, chosenIds, onToggle }: NumberedPhotoPro
                   ...markerStyle,
                   left: `${x}%`,
                   top: `${y}%`,
-                  // The chosen ring is an outline: the badge's own edge is the
-                  // shop's colour and stays that way.
-                  outline: chosen ? `${borderWidth + 2}px solid var(--primary)` : undefined,
+                  // An outline, so the badge's own edge keeps the shop's colour.
+                  outline: chosen ? `${borderWidth + 2}px solid var(--color-primary-600)` : undefined,
                   outlineOffset: `${borderWidth}px`,
                 }}
                 className="absolute flex -translate-x-1/2 -translate-y-1/2 items-center justify-center border-solid font-bold leading-none tabular-nums disabled:cursor-not-allowed disabled:opacity-40 disabled:line-through"

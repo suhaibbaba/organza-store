@@ -14,20 +14,10 @@ import { ReportChannelsCard } from "@/components/reports/report-channels-card";
 import { ReportTopSellers } from "@/components/reports/report-top-sellers";
 import { ReportReturnsCard } from "@/components/reports/report-returns-card";
 import { ReportEmpty, ReportError, ReportLoading } from "@/components/reports/report-states";
-import { Spinner } from "@/components/ui/spinner";
+import { Spinner } from "@store/ui";
 import type { ReportRangeValue } from "@/types/report";
 
-// Sales & profit for a picked range (spec.md "Reports"). ADMIN ONLY.
-//
-// The gate is report.view, and the real one is on the backend: /api/reports/
-// sales 403s without it. This guard is what stops a typed URL or an old
-// bookmark from showing a signed-in Manager or Employee a broken-looking
-// screen — they get the same "you don't have permission" sentence the API
-// would have answered with, and a way back to a screen that is theirs.
-//
-// Figures only, no chart — the same choice as the dashboard (spec.md "The
-// admin dashboard"): the reader is standing at a counter with a phone in one
-// hand, and a number they can act on beats a trend they have to interpret.
+// Sales & profit, ADMIN only (report.view; the API 403s regardless). Figures, no chart: read standing at a counter.
 export default function ReportsPage() {
   return (
     <RoleGuard action="report.view">
@@ -59,11 +49,10 @@ function ReportsPageContent() {
           <ReportError error={error} onRetry={() => void refetch()} />
         ) : data ? (
           <>
-            {/* The previous range stays on screen while the next one loads, so
-                this spinner is the only thing that changes mid-fetch. */}
+            {/* The previous range stays on screen while the next one loads. */}
             {isFetching && (
-              <p className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
-                <Spinner className="size-4" />
+              <p className="flex items-center justify-center gap-2 text-label text-ink-muted">
+                <Spinner />
                 {t("updating")}
               </p>
             )}

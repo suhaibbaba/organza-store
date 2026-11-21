@@ -2,8 +2,9 @@
 
 import { useTranslations } from "next-intl";
 import { ScanBarcode, Zap } from "lucide-react";
+import { Button } from "@store/ui";
 import { cn } from "@/lib/utils";
-import { CONTROL_HEIGHT, SECONDARY_ACTION } from "@/components/sell/screen/control-styles";
+import { CONTROL_HEIGHT } from "@/components/sell/screen/control-styles";
 
 interface TopBarActionsProps {
   onScan: () => void;
@@ -11,44 +12,37 @@ interface TopBarActionsProps {
   onQuickSell?: () => void;
 }
 
-// "Scan barcode" and "Quick sell", beside the search. Below 600px the scan
-// button keeps its icon only (its name stays as the aria-label), which is how
-// the design fits both beside the search on a phone.
+// Below 600px the scan button keeps its icon only (its name stays as the aria-label).
 export function TopBarActions({ onScan, onQuickSell }: TopBarActionsProps) {
   const t = useTranslations("sell");
 
   return (
     <>
-      <button
-        type="button"
+      <Button
+        variant="secondary"
         onClick={onScan}
         aria-label={t("screen.scan")}
         data-test-selector="pos-scan-open"
-        className={cn(
-          CONTROL_HEIGHT,
-          SECONDARY_ACTION,
-          "inline-flex shrink-0 items-center justify-center gap-2 px-3",
-          "max-tab:w-11 max-tab:px-0"
-        )}
+        icon={<ScanBarcode className="size-4" aria-hidden="true" />}
+        className={cn(CONTROL_HEIGHT, "shrink-0 px-3", "max-tab:w-11 max-tab:px-0")}
       >
-        <ScanBarcode className="size-4" aria-hidden="true" />
         <span className="hidden tab:inline">{t("screen.scan")}</span>
-      </button>
+      </Button>
 
       {onQuickSell && (
-        <button
-          type="button"
+        <Button
+          variant="secondary"
           onClick={onQuickSell}
           data-test-selector="pos-quick-sell-open"
+          icon={<Zap className="size-4" aria-hidden="true" />}
           className={cn(
             CONTROL_HEIGHT,
-            "inline-flex shrink-0 items-center justify-center gap-2 rounded-control border border-quick-border bg-quick px-3 text-sm font-medium text-quick-foreground",
-            "transition-[filter] hover:brightness-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            "shrink-0 border-warning-300 bg-warning-50 px-3 text-warning-800",
+            "hover:border-warning-500 hover:bg-warning-100 hover:text-warning-800"
           )}
         >
-          <Zap className="size-4" aria-hidden="true" />
           {t("quickSell.open")}
-        </button>
+        </Button>
       )}
     </>
   );

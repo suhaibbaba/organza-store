@@ -4,9 +4,7 @@ import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Calculator, Check } from "lucide-react";
 import type { CashSession, CurrentCashSession } from "@organza/shared/types/cash";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
+import { Alert, Button, Card } from "@store/ui";
 import { ExplainedLabel } from "@/components/figures/explained-label";
 import { CloseDaySheet } from "@/components/dashboard/close-day-sheet";
 import { OpenDaySheet } from "@/components/dashboard/open-day-sheet";
@@ -15,19 +13,7 @@ import { formatDate } from "@/lib/format";
 import { toLocalDateString } from "@/lib/report-range";
 import { cn } from "@/lib/utils";
 
-// The cash drawer, shown as the sum it actually is (spec.md "Cash drawer &
-// expenses"):
-//
-//   Cash at open (this morning) + cash sales − cash expenses = expected now
-//
-// Written out line by line rather than as one total, because the whole point
-// of the drawer is being able to see WHERE the expectation came from when the
-// count disagrees. The wording separates the two figures people confuse: the
-// float the day STARTED with, and what should be in there NOW.
-//
-// Three states, and the section says which one it is in rather than leaving
-// it to be inferred: a drawer running, a day counted and closed, or no drawer
-// started yet.
+// Opening float + cash sales − cash expenses = expected now, written line by line so a disagreeing count shows WHERE the expectation came from.
 export function CashDrawerSection({ current }: { current: CurrentCashSession }) {
   const t = useTranslations("dashboard.drawer");
   const tFigures = useTranslations("figures");
@@ -35,11 +21,7 @@ export function CashDrawerSection({ current }: { current: CurrentCashSession }) 
   const formatMoney = useMoneyFormatter();
   const [opening, setOpening] = useState(false);
 
-  // The session being counted is held here rather than read from `current`
-  // while the sheet is up. Closing the day makes the server's "current"
-  // drawer null, and if the sheet's session came from there the whole sheet
-  // would unmount the instant it saved — taking the reveal (expected vs
-  // counted vs difference) with it, which is the one thing the count is for.
+  // Held locally: closing makes `current` null, which would unmount the sheet and its reveal the instant it saved.
   const [countingSession, setCountingSession] = useState<CashSession | null>(null);
 
   const session = current.session;
@@ -50,21 +32,16 @@ export function CashDrawerSection({ current }: { current: CurrentCashSession }) 
   return (
     <section className="flex flex-col gap-3">
       <div>
-        <h2 className="text-base font-semibold">{t("title")}</h2>
-        <p className="text-sm text-muted-foreground">{t("subtitle")}</p>
+        <h2 className="text-section font-semibold text-ink">{t("title")}</h2>
+        <p className="text-label text-ink-muted">{t("subtitle")}</p>
       </div>
 
       {session ? (
         <>
-          <Card className="flex flex-col gap-2 p-4">
-            {/* The drawer on screen is the newest one open — normally today's.
-                If an earlier day was never counted it is still this one, so
-                say which day it is rather than letting "today" quietly mean
-                last Thursday. */}
+          <Card className="flex flex-col gap-2">
+            {/* An earlier uncounted day is still the open drawer — name it rather than let "today" mean last Thursday. */}
             {session.date !== today && (
-              <p className="rounded-lg bg-amber-500/10 p-3 text-sm text-amber-700 dark:text-amber-400">
-                {t("staleDay", { date: formatDate(session.date, locale) })}
-              </p>
+              <Alert tone="warning">{t("staleDay", { date: formatDate(session.date, locale) })}</Alert>
             )}
 
             <CalculationRow
@@ -76,7 +53,7 @@ export function CashDrawerSection({ current }: { current: CurrentCashSession }) 
             <CalculationRow label={t("cashSales")} value={formatMoney(session.cashSales)} sign="+" />
             <CalculationRow label={t("cashExpenses")} value={formatMoney(session.cashExpenses)} sign="−" />
 
-            <Separator className="my-1" />
+            <hr className="my-1 border-line" />
 
             <CalculationRow
               label={t("expected.label")}
@@ -88,19 +65,18 @@ export function CashDrawerSection({ current }: { current: CurrentCashSession }) 
             />
           </Card>
 
-          {/* The day's status and the one action that changes it. Amber
-              because an uncounted drawer is an open loop, not an error. */}
-          <div className="flex flex-col gap-3 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 sm:flex-row sm:items-center sm:justify-between">
+          {/* Amber: an uncounted drawer is an open loop, not an error. */}
+          <div className="flex flex-col gap-3 rounded-card border border-warning-300 bg-warning-50 p-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="min-w-0">
-              <p className="font-semibold text-amber-700 dark:text-amber-400">{t("notClosed.title")}</p>
-              <p className="mt-1 text-sm text-muted-foreground">{t("notClosed.body")}</p>
+              <p className="font-semibold text-warning-800">{t("notClosed.title")}</p>
+              <p className="mt-1 text-label text-ink-muted">{t("notClosed.body")}</p>
             </div>
             <Button
               type="button"
-              className="h-12 w-full shrink-0 text-base sm:w-auto"
+              className="w-full shrink-0 sm:w-auto"
+              icon={<Calculator className="size-4" aria-hidden="true" />}
               onClick={() => setCountingSession(session)}
             >
-              <Calculator className="size-5" aria-hidden="true" />
               {t("notClosed.action")}
             </Button>
           </div>
@@ -108,14 +84,14 @@ export function CashDrawerSection({ current }: { current: CurrentCashSession }) 
       ) : closedToday ? (
         <ClosedDayCard session={closedToday} />
       ) : (
-        <Card className="flex flex-col gap-3 p-4">
+        <Card className="flex flex-col gap-3">
           <div>
-            <p className="font-semibold text-foreground">{t("notStarted.title")}</p>
-            <p className="mt-1 text-sm text-muted-foreground">
+            <p className="font-semibold text-ink">{t("notStarted.title")}</p>
+            <p className="mt-1 text-label text-ink-muted">
               {t("notStarted.body", { amount: formatMoney(current.suggestedOpeningFloat) })}
             </p>
           </div>
-          <Button type="button" className="h-12 w-full text-base sm:w-auto sm:self-start" onClick={() => setOpening(true)}>
+          <Button type="button" className="w-full sm:w-auto sm:self-start" onClick={() => setOpening(true)}>
             {t("notStarted.action")}
           </Button>
         </Card>
@@ -127,8 +103,7 @@ export function CashDrawerSection({ current }: { current: CurrentCashSession }) 
         suggestedOpeningFloat={current.suggestedOpeningFloat}
       />
 
-      {/* Mounted from local state, so it survives the drawer disappearing
-          from `current` the moment the count is saved. */}
+      {/* Mounted from local state so it survives `current` losing the drawer on save. */}
       {countingSession && (
         <CloseDaySheet
           key={countingSession.id}
@@ -143,20 +118,19 @@ export function CashDrawerSection({ current }: { current: CurrentCashSession }) 
   );
 }
 
-// The day, counted and signed off. Shows what it came to — a difference is
-// worth seeing again the next time someone opens the app, not buried.
+// A difference stays visible the next time someone opens the app, not buried.
 function ClosedDayCard({ session }: { session: CashSession }) {
   const t = useTranslations("dashboard.drawer");
   const formatMoney = useMoneyFormatter();
   const difference = Number(session.difference ?? 0);
 
   return (
-    <Card className="flex flex-col gap-3 p-4">
+    <Card className="flex flex-col gap-3">
       <div className="flex items-start gap-3">
-        <Check className="mt-0.5 size-5 shrink-0 text-primary" aria-hidden="true" />
+        <Check className="mt-0.5 size-5 shrink-0 text-primary-600" aria-hidden="true" />
         <div className="min-w-0">
-          <p className="font-semibold text-foreground">{t("closed.title")}</p>
-          <p className="mt-1 text-sm text-muted-foreground">
+          <p className="font-semibold text-ink">{t("closed.title")}</p>
+          <p className="mt-1 text-label text-ink-muted">
             {t("closed.body", {
               counted: formatMoney(session.countedAmount ?? "0"),
               carried: formatMoney(session.closingBalance ?? "0"),
@@ -166,12 +140,12 @@ function ClosedDayCard({ session }: { session: CashSession }) {
       </div>
 
       {difference !== 0 && (
-        <p className="rounded-lg bg-amber-500/10 p-3 text-sm text-amber-700 dark:text-amber-400">
+        <Alert tone="warning">
           {difference < 0
             ? t("closed.short", { amount: formatMoney(Math.abs(difference)) })
             : t("closed.over", { amount: formatMoney(difference) })}
           {session.note ? ` — ${session.note}` : ""}
-        </p>
+        </Alert>
       )}
     </Card>
   );
@@ -190,10 +164,9 @@ interface CalculationRowProps {
 function CalculationRow({ label, value, description, toggleLabel, sign, emphasis }: CalculationRowProps) {
   return (
     <div className="flex items-start gap-1.5">
-      {/* The operator sits outside the label so the labels themselves stay
-          aligned down the column, the way a written-out sum reads. */}
+      {/* Operator outside the label keeps the labels aligned like a written-out sum. */}
       {sign && (
-        <span aria-hidden="true" className="flex min-h-11 w-3 shrink-0 items-center text-sm text-muted-foreground">
+        <span aria-hidden="true" className="flex min-h-11 w-3 shrink-0 items-center text-label text-ink-muted">
           {sign}
         </span>
       )}
@@ -202,12 +175,12 @@ function CalculationRow({ label, value, description, toggleLabel, sign, emphasis
         label={label}
         description={description}
         toggleLabel={toggleLabel ?? label}
-        labelClassName={emphasis ? "font-semibold text-foreground" : undefined}
+        labelClassName={emphasis ? "font-semibold text-ink" : undefined}
         trailing={
           <span
             className={cn(
               "tabular-nums",
-              emphasis ? "text-base font-bold text-foreground" : "text-sm text-muted-foreground"
+              emphasis ? "text-section font-bold text-ink" : "text-label text-ink-muted"
             )}
           >
             {value}

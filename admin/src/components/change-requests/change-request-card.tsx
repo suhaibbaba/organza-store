@@ -10,9 +10,7 @@ import {
   APPROVED_CHANGE_REQUEST_STATUS,
   PENDING_CHANGE_REQUEST_STATUS,
 } from "@organza/shared/constants/changeRequest";
-import { Button } from "@/components/ui/button";
-import { Spinner } from "@/components/ui/spinner";
-import { Textarea } from "@/components/ui/textarea";
+import { Button, Textarea } from "@store/ui";
 import { useSession } from "@/components/providers/session-provider";
 import { ChangeValueDiff } from "@/components/change-requests/change-value";
 import { ChangeRequestStatusBadge } from "@/components/change-requests/change-request-status-badge";
@@ -27,14 +25,7 @@ import { formatDateTime } from "@/lib/format";
 import { localize } from "@/lib/i18n-content";
 import { changeRequestLabelKey } from "@/lib/change-requests";
 
-// One waiting change, as a card. Cards on every size — this is a list of
-// decisions, not a data table, and 95% of the people making them are on a
-// phone (CLAUDE.md "Frontend UX").
-//
-// The card itself is INFORMATIONAL: nothing on it navigates. It used to link
-// to the product, which put a whole-card tap target under two buttons that
-// approve and refuse changes — a mis-tap on a phone left the screen instead
-// of deciding. The only things you can touch here are the decisions.
+// Nothing on the card navigates: a whole-card link under approve/reject turned mis-taps into leaving the screen.
 
 interface ChangeRequestCardProps {
   request: ChangeRequest;
@@ -49,34 +40,26 @@ export function ChangeRequestCard({ request, canDecide }: ChangeRequestCardProps
   const { user } = useSession();
   const translateError = useTranslateError();
   const actorName = useActorName();
-  // Only a name reaches these cards — no address, no role — so the last
-  // resort is the word for a member of staff we cannot name.
   const tUnknown = t("card.unknownStaff");
   const decide = useDecideChangeRequestMutation();
   const cancel = useCancelChangeRequestMutation();
 
-  // Both destructive-ish actions ask twice. Approving needs no explanation;
-  // refusing usually does, and withdrawing throws away what you typed.
+  // Rejecting and withdrawing both ask twice.
   const [rejecting, setRejecting] = useState(false);
   const [cancelling, setCancelling] = useState(false);
   const [note, setNote] = useState("");
 
   const isPending = request.status === PENDING_CHANGE_REQUEST_STATUS;
 
-  // WHICH PIECE, first and largest. The product's name where there is one;
-  // an expense has no product, so its category names it instead.
+  // An expense has no product, so its category names it instead.
   const productLabel = request.productLabel ? localize(request.productLabel, locale) : null;
   const entityLabel = request.entityLabel ? localize(request.entityLabel, locale) : null;
   const heading = productLabel ?? entityLabel ?? t("card.unknownItem");
-  // ...and WHICH PART of it underneath, when the entity is not the piece
-  // itself: the combination on a variant request ("أحمر / M"). Dropped when
-  // it merely repeats the heading, which is the case for a product's own
-  // fields and for a photo.
+  // The variant combination underneath, dropped when it only repeats the heading.
   const detailLabel = entityLabel && entityLabel !== heading ? entityLabel : null;
 
   const busy = decide.isPending || cancel.isPending;
-  // Withdrawing is the ASKER's, and only while nobody has answered yet —
-  // the same two conditions the backend enforces (routes/changeRequests.ts).
+  // Same two conditions the backend enforces (routes/changeRequests.ts).
   const canWithdraw = isPending && can(user, "changeRequest.cancel") && request.requestedById === user?.id;
   const error = decide.error ?? cancel.error;
 
@@ -86,30 +69,26 @@ export function ChangeRequestCard({ request, canDecide }: ChangeRequestCardProps
 
   return (
     <article
-      className="flex flex-col gap-3 rounded-xl border border-border bg-card p-4"
+      className="flex flex-col gap-3 rounded-card border border-line bg-surface p-4 shadow-card"
       data-test-selector={testSelectorFor("change-request-card", request.id)}
     >
       <div className="flex flex-col gap-1">
-        {/* WHAT is changing, in plain words: "Price" / "Stock" / "Photo" —
-            and, beside it, where the request stands. The badge is drawn from
-            request.status on every card, in every tab, so a card can never
-            say one thing while the tab it is listed under says another. */}
         <div className="flex items-start justify-between gap-2">
-          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+          <p className="text-meta font-medium uppercase tracking-wide text-ink-muted">
             {t(changeRequestLabelKey(request.entityType, request.field))}
           </p>
           <ChangeRequestStatusBadge status={request.status} />
         </div>
-        <p className="text-base font-semibold text-foreground">{heading}</p>
-        {detailLabel && <p className="text-sm text-muted-foreground">{detailLabel}</p>}
+        <p className="text-value font-semibold text-ink">{heading}</p>
+        {detailLabel && <p className="text-label text-ink-muted">{detailLabel}</p>}
         {request.entityDetail && !request.entityDetail.startsWith("/") && (
-          <p className="text-xs text-muted-foreground">{request.entityDetail}</p>
+          <p className="text-meta text-ink-muted">{request.entityDetail}</p>
         )}
       </div>
 
       <ChangeValueDiff oldValue={request.oldValue} newValue={request.newValue} status={request.status} />
 
-      <p className="text-xs text-muted-foreground">
+      <p className="text-meta text-ink-muted">
         {t("card.askedBy", {
           name: actorName(request.requestedBy, tUnknown),
           when: formatDateTime(request.requestedAt, locale),
@@ -117,7 +96,7 @@ export function ChangeRequestCard({ request, canDecide }: ChangeRequestCardProps
       </p>
 
       {!isPending && (
-        <p className="text-xs text-muted-foreground">
+        <p className="text-meta text-ink-muted">
           {t(request.status === APPROVED_CHANGE_REQUEST_STATUS ? "card.approvedBy" : "card.rejectedBy", {
             name: actorName(request.decidedBy, tUnknown),
             when: formatDateTime(request.decidedAt, locale),
@@ -127,13 +106,13 @@ export function ChangeRequestCard({ request, canDecide }: ChangeRequestCardProps
       )}
 
       {error && (
-        <p className="text-sm text-destructive" data-test-selector="change-request-card-error">
+        <p className="text-label text-danger-600" role="alert" data-test-selector="change-request-card-error">
           {error instanceof ApiError ? translateError(error.code) : tCommon("retry")}
         </p>
       )}
 
       {isPending && canDecide && (
-        <div className="flex flex-col gap-2 border-t border-border pt-3">
+        <div className="flex flex-col gap-2 border-t border-line pt-3">
           {rejecting && (
             <Textarea
               value={note}
@@ -143,60 +122,59 @@ export function ChangeRequestCard({ request, canDecide }: ChangeRequestCardProps
               rows={2}
             />
           )}
-          {/* Two big, obvious buttons — the primary action first and reachable
-              by thumb, never a dense toolbar of icons. */}
           <div className="flex gap-2">
-            <Button type="button" className="flex-1" disabled={busy} onClick={() => run("approve")}>
-              {busy && !rejecting ? <Spinner className="size-5" /> : <Check aria-hidden="true" />}
+            <Button
+              type="button"
+              className="flex-1"
+              disabled={busy}
+              isLoading={busy && !rejecting}
+              icon={<Check className="size-4" aria-hidden="true" />}
+              onClick={() => run("approve")}
+            >
               {t("card.approve")}
             </Button>
             <Button
               type="button"
-              variant="outline"
+              variant="secondary"
               className="flex-1"
               disabled={busy}
+              isLoading={busy && rejecting}
+              icon={<X className="size-4" aria-hidden="true" />}
               onClick={() => (rejecting ? run("reject") : setRejecting(true))}
             >
-              {busy && rejecting ? <Spinner className="size-5" /> : <X aria-hidden="true" />}
               {rejecting ? t("card.confirmReject") : t("card.reject")}
             </Button>
           </div>
           {rejecting && (
-            <Button type="button" variant="ghost" size="sm" disabled={busy} onClick={() => setRejecting(false)}>
+            <Button type="button" variant="quiet" size="sm" disabled={busy} onClick={() => setRejecting(false)}>
               {tCommon("cancel")}
             </Button>
           )}
         </div>
       )}
 
-      {/* Taking your own ask back. Its own row rather than a third button
-          beside approve/reject: an Admin looking at somebody else's request
-          never sees it, and the person who DID ask is not choosing between
-          three things — they are undoing one. */}
+      {/* Withdrawing your own ask is its own row, not a third button beside approve/reject. */}
       {canWithdraw && (
-        <div className="flex flex-col gap-2 border-t border-border pt-3">
-          {cancelling && <p className="text-sm text-muted-foreground">{t("card.cancelConfirmPrompt")}</p>}
+        <div className="flex flex-col gap-2 border-t border-line pt-3">
+          {cancelling && <p className="text-label text-ink-muted">{t("card.cancelConfirmPrompt")}</p>}
           <div className="flex gap-2">
             <Button
               type="button"
-              variant={cancelling ? "destructive" : "outline"}
+              variant={cancelling ? "danger" : "secondary"}
               className="flex-1"
               disabled={busy}
+              isLoading={busy && cancelling}
+              icon={<Undo2 className="size-4 rtl:-scale-x-100" aria-hidden="true" />}
               onClick={() =>
                 cancelling
                   ? cancel.mutate({ id: request.id, productId: request.productId })
                   : setCancelling(true)
               }
             >
-              {busy && cancelling ? (
-                <Spinner className="size-5" />
-              ) : (
-                <Undo2 className="rtl:-scale-x-100" aria-hidden="true" />
-              )}
               {cancelling ? t("card.confirmCancelRequest") : t("card.cancelRequest")}
             </Button>
             {cancelling && (
-              <Button type="button" variant="ghost" disabled={busy} onClick={() => setCancelling(false)}>
+              <Button type="button" variant="quiet" disabled={busy} onClick={() => setCancelling(false)}>
                 {tCommon("cancel")}
               </Button>
             )}

@@ -1,9 +1,8 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { NumericInput } from "@/components/ui/numeric-input";
-import { QuantityStepper } from "@/components/ui/quantity-stepper";
-import { Label } from "@/components/ui/label";
+import { NumericInput } from "@/components/fields/numeric-input";
+import { QuantityStepper } from "@/components/fields/quantity-stepper";
 import { formatMoney } from "@/lib/format";
 import { parseQuantity } from "@/lib/validation/numeric";
 import { isPlacedShawlPoint } from "@/lib/validation/numbered-shawl";
@@ -18,22 +17,13 @@ interface PointDetailsListProps {
   onFieldChange: (id: string, field: "stock" | "priceOverride", value: string) => void;
 }
 
-// Edit-mode step 2: quantity + optional price override per placed number
-// (spec.md "Numbered shawls" — no sizes/colors, just Number + quantity).
-// A brand-new point and an existing, unoverridden one both fall back to the
-// product's own price (CLAUDE.md rule 3), so a single `basePrice` prop
-// covers the placeholder for every row.
-//
-// One number per cell, its two fields stacked inside it. A shawl carries
-// twenty or thirty numbers, and a full-width row each turned that into a
-// scroll on any screen wider than a phone; the phone still gets exactly the
-// one column it had.
+// Quantity + optional price override per number; an empty price falls back to the product's own (rule 3).
 export function PointDetailsList({ points, currency, locale, basePrice, onFieldChange }: PointDetailsListProps) {
   const t = useTranslations("products.form.numberedShawl");
   const tCommon = useTranslations("common");
 
   if (points.length === 0) {
-    return <p className="text-sm text-muted-foreground">{t("noPointsYet")}</p>;
+    return <p className="text-label text-ink-muted">{t("noPointsYet")}</p>;
   }
 
   return (
@@ -44,18 +34,17 @@ export function PointDetailsList({ points, currency, locale, basePrice, onFieldC
         return (
           <div
             key={point.id}
-            className="flex flex-col gap-3 rounded-xl border border-border bg-card p-3"
+            className="flex flex-col gap-3 rounded-panel border border-line bg-surface p-3"
             data-test-selector={testSelectorFor("shawl-point-details", point.number)}
           >
             <div className="flex flex-col">
-              <p className="text-sm font-semibold text-foreground">{pointName}</p>
-              {/* Still editable — it just has no marker yet. Said, so a
-                  number missing from the photo is not taken for a mistake. */}
-              {!isPlacedShawlPoint(point) && <p className="text-sm text-muted-foreground">{t("notPlaced")}</p>}
+              <p className="text-label font-semibold text-ink">{pointName}</p>
+              {/* Still editable, just not on the photo yet — said so it isn't taken for a mistake. */}
+              {!isPlacedShawlPoint(point) && <p className="text-label text-ink-muted">{t("notPlaced")}</p>}
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <span className="text-sm font-medium">{t("stock")}</span>
+              <span className="text-label font-medium text-ink">{t("stock")}</span>
               <QuantityStepper
                 name={`shawl-point-${point.number}`}
                 value={parseQuantity(point.stock)}
@@ -67,7 +56,9 @@ export function PointDetailsList({ points, currency, locale, basePrice, onFieldC
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor={`shawl-price-${point.id}`}>{t("priceOverride")}</Label>
+              <label htmlFor={`shawl-price-${point.id}`} className="text-label font-medium text-ink">
+                {t("priceOverride")}
+              </label>
               <NumericInput
                 id={`shawl-price-${point.id}`}
                 allowDecimal

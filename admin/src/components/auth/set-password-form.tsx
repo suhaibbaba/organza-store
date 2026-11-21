@@ -18,17 +18,12 @@ import {
   SET_PASSWORD_MISMATCH,
   type SetPasswordValues,
 } from "@/lib/validation/set-password";
-import { FieldError } from "@/components/ui/field-error";
-import { Button } from "@/components/ui/button";
-import { PasswordInput } from "@/components/ui/password-input";
-import { Label } from "@/components/ui/label";
-import { Alert } from "@/components/ui/alert";
-import { Spinner } from "@/components/ui/spinner";
+import { fieldTestSelector } from "@organza/shared/lib/testSelector";
+import { Alert, Button, buttonClassName, FormField, PasswordInput, Spinner } from "@store/ui";
+import { AuthFieldError } from "@/components/auth/auth-field-error";
 import type { PasswordTokenCheck } from "@/types/auth";
 
-// Where an emailed link lands. Three states, and the screen has to be honest
-// about all of them: checking, a link that no longer works, and the form.
-
+// Where an emailed link lands: checking, a dead link, or the form.
 export function SetPasswordForm() {
   const t = useTranslations("auth.setPassword");
   const translateError = useTranslateError();
@@ -38,11 +33,7 @@ export function SetPasswordForm() {
   const [done, setDone] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
 
-  // Checked before anything is typed, so somebody does not choose a password,
-  // confirm it, and only then be told the link died three days ago.
-  //
-  // Never retried: a rejected link is a settled answer, and hammering the
-  // redeem endpoint is exactly what its rate limit is there to stop.
+  // Checked before typing; never retried, since a rejected link is settled and the endpoint is rate-limited.
   const check = useQuery<PasswordTokenCheck>({
     queryKey: [PASSWORD_TOKEN_QUERY_KEY, token],
     queryFn: () => verifyPasswordToken(token),
@@ -63,8 +54,7 @@ export function SetPasswordForm() {
       await completePasswordSetup(token, values.password);
       setDone(true);
     } catch (error) {
-      // A link can expire between the check above and the submit, so the
-      // refusal is shown here too rather than assumed away.
+      // The link can expire between the check and the submit.
       setFormError(error instanceof ApiError ? error.code : "error.internal");
     }
   }
@@ -72,31 +62,29 @@ export function SetPasswordForm() {
   if (done) {
     return (
       <div className="flex flex-col gap-5">
-        <Alert variant="success">{t("successBody")}</Alert>
-        <Button asChild className="w-full sm:w-auto sm:self-start">
-          <Link href="/login">{t("goToLogin")}</Link>
-        </Button>
+        <Alert tone="success">{t("successBody")}</Alert>
+        <Link href="/login" className={buttonClassName({ className: "w-full" })}>
+          {t("goToLogin")}
+        </Link>
       </div>
     );
   }
 
-  // A link with no token at all — somebody pasted half of it out of their
-  // mail client. Worth saying so plainly rather than "expired", which would
-  // send them off asking for a replacement they already have.
+  // No token at all means a half-pasted link, said plainly rather than "expired".
   if (!token || check.isError) {
     return (
       <div className="flex flex-col gap-5">
-        <Alert variant="destructive">{t(!token ? "missingToken" : "invalidBody")}</Alert>
-        <Button asChild variant="outline" className="w-full sm:w-auto sm:self-start">
-          <Link href="/forgot-password">{t("requestNewLink")}</Link>
-        </Button>
+        <Alert tone="danger">{t(!token ? "missingToken" : "invalidBody")}</Alert>
+        <Link href="/forgot-password" className={buttonClassName({ variant: "secondary", className: "w-full" })}>
+          {t("requestNewLink")}
+        </Link>
       </div>
     );
   }
 
   if (!check.data) {
     return (
-      <p className="flex items-center gap-2 py-4 text-sm text-muted-foreground">
+      <p className="flex items-center gap-2 py-4 text-label text-ink-muted">
         <Spinner />
         {t("checking")}
       </p>
@@ -105,58 +93,51 @@ export function SetPasswordForm() {
 
   return (
     <form method="post" onSubmit={handleSubmit(onSubmit)} noValidate className="flex flex-col gap-5">
-      {/* method="post" is a fallback only, for the same reason as the login
-          form: if this ever submits natively before React hydrates, the
-          password goes in the body rather than into the URL and history. */}
-      <p className="text-sm text-muted-foreground" dir="ltr">
+      {/* method="post" is a fallback: a native submit before hydration keeps the password out of the URL. */}
+      <p className="text-label text-ink-muted" dir="ltr">
         {t("forAccount", { email: check.data.email })}
       </p>
 
-      {formError && <Alert variant="destructive">{translateError(formError)}</Alert>}
+      {formError && <Alert tone="danger">{translateError(formError)}</Alert>}
 
-      <div className="flex flex-col gap-2">
-        <Label htmlFor="password">{t("passwordLabel")}</Label>
+      <FormField label="auth.setPassword.passwordLabel" htmlFor="password">
         <PasswordInput
           id="password"
           autoComplete="new-password"
           placeholder={t("passwordPlaceholder")}
-          aria-invalid={!!errors.password}
+          hasError={!!errors.password}
+          aria-describedby={errors.password ? "password-error" : undefined}
+          data-testid={fieldTestSelector("password")}
           {...register("password")}
         />
         {errors.password && (
-          <FieldError field="password">
+          <AuthFieldError field="password">
             {translateError(errors.password.message ?? "", { min: PASSWORD_MIN_LENGTH })}
-          </FieldError>
+          </AuthFieldError>
         )}
-      </div>
+      </FormField>
 
-      <div className="flex flex-col gap-2">
-        <Label htmlFor="confirm">{t("confirmLabel")}</Label>
+      <FormField label="auth.setPassword.confirmLabel" htmlFor="confirm">
         <PasswordInput
           id="confirm"
           autoComplete="new-password"
           placeholder={t("confirmPlaceholder")}
-          aria-invalid={!!errors.confirm}
+          hasError={!!errors.confirm}
+          aria-describedby={errors.confirm ? "confirm-error" : undefined}
+          data-testid={fieldTestSelector("confirm")}
           {...register("confirm")}
         />
         {errors.confirm && (
-          <FieldError field="confirm">
+          <AuthFieldError field="confirm">
             {errors.confirm.message === SET_PASSWORD_MISMATCH
               ? t("mismatch")
               : translateError(errors.confirm.message ?? "", { min: PASSWORD_MIN_LENGTH })}
-          </FieldError>
+          </AuthFieldError>
         )}
-      </div>
+      </FormField>
 
-      <Button type="submit" data-test-selector="set-password-submit" disabled={isSubmitting} className="mt-2 w-full sm:w-auto sm:self-start">
-        {isSubmitting ? (
-          <>
-            <Spinner />
-            {t("submitting")}
-          </>
-        ) : (
-          t("submit")
-        )}
+      <Button type="submit" data-test-selector="set-password-submit" isLoading={isSubmitting} className="mt-2 w-full">
+        {isSubmitting ? t("submitting") : t("submit")}
       </Button>
     </form>
   );

@@ -5,20 +5,7 @@ import { StatCard } from "@/components/layout/stat-card";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
 import type { PeriodSummary } from "@/types/report";
 
-// What happened today, in the three states money can be in — never one vague
-// "revenue" (spec.md "Cash drawer & expenses" -> Reporting):
-//
-//   Sold      — what left the shop today;
-//   Received  — the part of it the shop is actually holding;
-//   Still owed — the part the delivery company is holding, in amber because
-//                it is the figure to chase, not takings.
-//
-// Sold = Received + Still owed, always, which is why all three are on screen
-// at once: any two of them invite the wrong subtraction.
-//
-// The profit card is ADMIN ONLY and is simply absent otherwise — `profit` is
-// missing from a Manager's payload (the backend never computes it), so there
-// is no empty card to render and nothing to un-hide.
+// Sold = Received + Still owed, all three always on screen; the profit card is Admin-only and simply absent from a Manager's payload.
 export function TodaySection({ summary }: { summary: PeriodSummary }) {
   const t = useTranslations("dashboard.today");
   const tFigures = useTranslations("figures");
@@ -27,7 +14,7 @@ export function TodaySection({ summary }: { summary: PeriodSummary }) {
 
   return (
     <section className="flex flex-col gap-3">
-      <h2 className="text-base font-semibold">{t("title")}</h2>
+      <h2 className="text-section font-semibold text-ink">{t("title")}</h2>
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard name="sold"

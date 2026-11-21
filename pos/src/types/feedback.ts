@@ -4,23 +4,6 @@
 // scan that sounds wrong also looks wrong, and vice versa.
 export type FeedbackVariant = "success" | "destructive";
 
-// One message in the toast queue. Short-lived by construction: it carries no
-// action and no dismiss requirement, because a cashier mid-sale must never
-// have to put an item down to clear something off the screen.
-export interface Toast {
-  // Monotonic, so re-showing the same text still animates as a new toast.
-  id: number;
-  // What this toast is about — a cart line, an error code. Two messages
-  // sharing a key are the same news told twice, and the second rewrites the
-  // first instead of stacking on it.
-  key?: string;
-  variant: FeedbackVariant;
-  text: string;
-  // On its way out: still rendered so it can slide back off the screen edge
-  // rather than vanishing. Removed for real once the slide is done.
-  leaving?: boolean;
-}
-
 // One step of an audible cue (lib/scan-sound.ts). A cue is a list of these
 // played back to back, which is what makes "added" and "didn't read"
 // distinguishable by ear alone: one blip versus a falling two-tone.

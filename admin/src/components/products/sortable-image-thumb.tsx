@@ -4,8 +4,8 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useTranslations } from "next-intl";
 import { Crop, GripVertical, Star, Trash2 } from "lucide-react";
+import { Spinner } from "@store/ui";
 import { ProductImage } from "@/components/products/product-image";
-import { Spinner } from "@/components/ui/spinner";
 import { IMAGE_GRID_THUMB_SIZES } from "@/constants/images";
 import { cn } from "@/lib/utils";
 
@@ -15,15 +15,10 @@ interface SortableImageThumbProps {
   isPrimary: boolean;
   isBusy: boolean;
   canDelete: boolean;
-  // Drawn from a local blob: URL — a staged pick, or a photo whose new
-  // framing has been previewed here but not saved yet. next/image cannot
-  // resolve either against the API origin, so it renders as a plain
-  // background instead.
+  // A local blob: URL (staged pick or unsaved re-framing), which next/image can't resolve, so it's a plain background.
   isNew?: boolean;
-  // Whether this photograph can be framed at all: a picked file always can, a
-  // stored one only if the API kept its original.
+  // A stored photo can be re-framed only if the API kept its original.
   canEdit?: boolean;
-  // Carrying a re-framing that has not been saved yet.
   isEdited?: boolean;
   onEdit?: (id: string) => void;
   onTogglePrimary: (id: string) => void;
@@ -53,12 +48,8 @@ export function SortableImageThumb({
       ref={setNodeRef}
       style={style}
       className={cn(
-        // 2:3, the shape a product photo is framed to (shared's
-        // PRODUCT_IMAGE_ASPECT). A square tile would show every crop
-        // letterboxed and make the one thing this gallery is now for — did
-        // this photograph come out the right shape? — the one thing it could
-        // not answer.
-        "relative aspect-[2/3] touch-none overflow-hidden rounded-xl border border-border bg-muted",
+        // 2:3, the framing shape (PRODUCT_IMAGE_ASPECT), so the tile shows whether the crop came out right.
+        "relative aspect-[2/3] touch-none overflow-hidden rounded-card border border-line bg-inset",
         isDragging && "z-10 opacity-60"
       )}
     >
@@ -73,7 +64,7 @@ export function SortableImageThumb({
         {...attributes}
         {...listeners}
         aria-label={t("dragHandle")}
-        className="absolute start-1 top-1 z-10 inline-flex size-8 items-center justify-center rounded-full bg-black/50 text-white"
+        className="absolute start-1 top-1 z-10 inline-flex size-8 items-center justify-center rounded-pill bg-ink/50 text-ink-inverse"
       >
         <GripVertical className="size-4" aria-hidden="true" />
       </button>
@@ -84,20 +75,12 @@ export function SortableImageThumb({
         disabled={isBusy}
         aria-pressed={isPrimary}
         aria-label={t("setPrimary")}
-        className="absolute end-1 top-1 z-10 inline-flex size-8 items-center justify-center rounded-full bg-black/50 text-white disabled:cursor-not-allowed disabled:opacity-50"
+        className="absolute end-1 top-1 z-10 inline-flex size-8 items-center justify-center rounded-pill bg-ink/50 text-ink-inverse disabled:cursor-not-allowed disabled:opacity-50"
       >
-        <Star className={cn("size-4", isPrimary && "fill-amber-400 text-amber-400")} aria-hidden="true" />
+        <Star className={cn("size-4", isPrimary && "fill-warning-500 text-warning-500")} aria-hidden="true" />
       </button>
 
-      {/* The bottom of the tile, as TWO rows rather than one.
-          
-          The controls share the upper row, at opposite ends, where a 36px hit
-          area each fits comfortably. The word "رئيسية" gets a row of its own,
-          the full width of the tile — because it did not fit beside them: a
-          tile is about a third of a phone's width, and once the photo shape
-          became 2:3 the label was left with forty pixels and was reported
-          from the shop floor as "مقصوصة". A label that has to be guessed at
-          is worse than no label, and truncating it was the bug. */}
+      {/* The primary label gets its own row: beside the controls it was truncated on phones. */}
       <div className="absolute inset-x-0 bottom-0 z-10 flex flex-col gap-1 p-1">
         <div className="flex items-end justify-between gap-1">
           {canEdit && onEdit ? (
@@ -108,11 +91,8 @@ export function SortableImageThumb({
               aria-label={t("edit")}
               data-test-selector={`image-edit-${id}`}
               className={cn(
-                "inline-flex size-9 shrink-0 items-center justify-center rounded-full text-white shadow-sm ring-1 ring-white/20 disabled:cursor-not-allowed disabled:opacity-50",
-                // A photo carrying an unsaved re-framing says so on the tile
-                // itself: the gallery is the only place that difference is
-                // visible until the form is saved.
-                isEdited ? "bg-primary" : "bg-black/60"
+                "inline-flex size-9 shrink-0 items-center justify-center rounded-pill text-ink-inverse shadow-pill ring-1 ring-ink-inverse/20 disabled:cursor-not-allowed disabled:opacity-50",
+                isEdited ? "bg-primary-600" : "bg-ink/60"
               )}
             >
               <Crop className="size-4" aria-hidden="true" />
@@ -126,22 +106,22 @@ export function SortableImageThumb({
               onClick={() => onRemove(id)}
               disabled={isBusy}
               aria-label={t("delete")}
-              className="inline-flex size-9 shrink-0 items-center justify-center rounded-full bg-black/60 text-white shadow-sm ring-1 ring-white/20 disabled:cursor-not-allowed disabled:opacity-50"
+              className="inline-flex size-9 shrink-0 items-center justify-center rounded-pill bg-ink/60 text-ink-inverse shadow-pill ring-1 ring-ink-inverse/20 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <Trash2 className="size-4" aria-hidden="true" />
             </button>
           )}
         </div>
         {isPrimary && (
-          <span className="rounded-full bg-primary px-2 py-0.5 text-center text-xs font-medium text-primary-foreground">
+          <span className="rounded-pill bg-primary-600 px-2 py-0.5 text-center text-micro font-medium text-ink-inverse">
             {t("primaryBadge")}
           </span>
         )}
       </div>
 
       {isBusy && (
-        <div className="absolute inset-0 z-30 flex items-center justify-center bg-black/30">
-          <Spinner className="size-5 text-white" />
+        <div className="absolute inset-0 z-30 flex items-center justify-center bg-ink/30">
+          <Spinner className="size-5 text-ink-inverse" />
         </div>
       )}
     </div>

@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
-import { ArrowLeft, Check, HandCoins } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { ERROR_CODES } from "@organza/shared/constants/errors";
 import { DEFAULT_PAGE } from "@organza/shared/constants/pagination";
 import { Link } from "@/i18n/navigation";
@@ -13,8 +13,7 @@ import { COLLECTION_ORDER_FILTERS } from "@/constants/orders";
 import { useCollectOrdersMutation, useCollectionSummaryQuery, useOrdersQuery } from "@/hooks/use-orders";
 import { useTranslateError } from "@/hooks/use-translate-error";
 import { ApiError } from "@/lib/api/errors";
-import { Alert } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
+import { Alert, Button, buttonClassName, EmptyState } from "@store/ui";
 import { OrderListError, OrderListLoading, OrderListSpinnerOverlay } from "@/components/orders/order-list-states";
 import { OrderPagination } from "@/components/orders/order-pagination";
 import { CollectionSummaryCard } from "@/components/orders/collection/collection-summary-card";
@@ -22,15 +21,7 @@ import { CollectionOrderRow } from "@/components/orders/collection/collection-or
 import { CollectionActionBar } from "@/components/orders/collection/collection-action-bar";
 import type { OrderListFilters } from "@/types/order";
 
-// "Money with the delivery company" (spec.md "Payment collection").
-//
-// One question, one screen: which sales has the shop not been paid for, how
-// much is that in total, and tick off the ones that have just been settled.
-// Oldest first, because the money owed longest is the money to chase.
-//
-// Admin/Manager only, on the permission that lets somebody settle the money:
-// the total here is every unpaid sale in the shop added up, which the backend
-// refuses an Employee outright (GET /api/orders/collection-summary).
+// Unpaid sales oldest first, to tick off as settled. Gated on order.markCollected: the shop-wide total is refused to an Employee (rule 19).
 export default function OrderCollectionPage() {
   return (
     <RoleGuard action="order.markCollected">
@@ -52,8 +43,7 @@ function OrderCollectionPageContent() {
 
   const orders = useMemo(() => data?.orders ?? [], [data]);
 
-  // What is ticked, out of what is currently on screen: a selection made on
-  // page 1 must not be settled invisibly after paging to page 2.
+  // Only what is on screen counts: a page-1 selection must never be settled from page 2.
   const selectedOnPage = useMemo(
     () => orders.filter((order) => selectedIds.includes(order.id)),
     [orders, selectedIds]
@@ -67,8 +57,6 @@ function OrderCollectionPageContent() {
   }
 
   function changePage(page: number) {
-    // Paging clears the selection for the same reason the totals above only
-    // count this page: nobody should settle orders they can no longer see.
     setSelectedIds([]);
     setFilters((f) => ({ ...f, page }));
   }
@@ -81,8 +69,7 @@ function OrderCollectionPageContent() {
     mutation.mutate(selectedOnPage.map((order) => order.id), {
       onSuccess: () => {
         setSelectedIds([]);
-        // The settled orders leave this list, which can empty the page —
-        // step back rather than stranding the user on a blank one.
+        // Settled orders leave the list, which can empty this page.
         setFilters((f) => ({ ...f, page: DEFAULT_PAGE }));
       },
     });
@@ -92,15 +79,15 @@ function OrderCollectionPageContent() {
 
   return (
     <PageContainer>
-      {/* Above the header, not inside it: this is the way out of the screen,
-          not one of its actions. */}
-      <Button asChild variant="ghost" size="sm" className="-ms-2 mb-4 self-start px-2">
-        <Link href="/orders">
-          {/* Points back in the reading direction — leftward only in LTR. */}
-          <ArrowLeft className="size-4 rtl:-scale-x-100" aria-hidden="true" />
-          {t("back")}
-        </Link>
-      </Button>
+      {/* Above the header: the way out of the screen, not one of its actions. */}
+      <Link
+        href="/orders"
+        data-test-selector="back-link"
+        className={buttonClassName({ variant: "quiet", size: "sm", className: "-ms-2 mb-4 self-start px-2" })}
+      >
+        <ArrowLeft className="size-4 rtl:-scale-x-100" aria-hidden="true" />
+        {t("back")}
+      </Link>
 
       <PageHeader name="collection" title={t("title")} description={t("subtitle")} />
 
@@ -108,14 +95,13 @@ function OrderCollectionPageContent() {
         {summaryQuery.data && <CollectionSummaryCard summary={summaryQuery.data} />}
 
         {mutation.isError && (
-          <Alert variant="destructive">
+          <Alert tone="danger" data-testid="alert-destructive">
             {translateError(mutation.error instanceof ApiError ? mutation.error.code : ERROR_CODES.INTERNAL)}
           </Alert>
         )}
 
         {mutation.isSuccess && !mutation.isPending && (
-          <Alert variant="success">
-            <Check className="size-4 shrink-0" aria-hidden="true" />
+          <Alert tone="success" data-testid="alert-success">
             {t("marked", { count: mutation.data.collectedIds.length })}
           </Alert>
         )}
@@ -125,20 +111,19 @@ function OrderCollectionPageContent() {
         ) : isError ? (
           <OrderListError error={error} onRetry={() => void refetch()} />
         ) : orders.length === 0 ? (
-          <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-border py-16 text-center">
-            <HandCoins className="size-10 text-muted-foreground" aria-hidden="true" />
-            <div>
-              <p className="font-medium text-foreground">{t("empty.title")}</p>
-              <p className="mt-1 text-sm text-muted-foreground">{t("empty.description")}</p>
-            </div>
-          </div>
+          <EmptyState
+            data-testid="collection-empty"
+            icon="coins"
+            title="orders.collection.empty.title"
+            hint="orders.collection.empty.description"
+          />
         ) : (
           <>
             <div className="flex items-center justify-between gap-3">
-              <span className="text-sm text-muted-foreground">{t("listLabel")}</span>
+              <span className="text-label text-ink-muted">{t("listLabel")}</span>
               <Button
                 type="button"
-                variant="outline"
+                variant="secondary"
                 size="sm"
                 onClick={() => (allOnPageSelected ? setSelectedIds([]) : selectAllOnPage())}
               >
@@ -148,9 +133,7 @@ function OrderCollectionPageContent() {
 
             {isFetching && <OrderListSpinnerOverlay />}
 
-            {/* Ticking off a batch: an order number, a date and an amount per
-                row. Several across on a desk screen means the whole batch is
-                visible while it is being ticked. */}
+            {/* Several across on a desk, so the whole batch is visible while being ticked. */}
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
               {orders.map((order) => (
                 <CollectionOrderRow
@@ -164,8 +147,7 @@ function OrderCollectionPageContent() {
 
             {data?.meta && <OrderPagination meta={data.meta} onPageChange={changePage} />}
 
-            {/* Room for the fixed action bar, so the last row is never stuck
-                underneath it. */}
+            {/* Room for the fixed action bar over the last row. */}
             {selectedOnPage.length > 0 && <div className="h-32" aria-hidden="true" />}
           </>
         )}

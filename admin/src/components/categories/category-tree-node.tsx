@@ -6,7 +6,7 @@ import { ChevronDown, ChevronRight, Pencil, Star, Trash2 } from "lucide-react";
 import type { CategoryNode } from "@organza/shared/types/category";
 import { testSelectorFor } from "@organza/shared/lib/testSelector";
 import { localize } from "@/lib/i18n-content";
-import { Spinner } from "@/components/ui/spinner";
+import { Spinner } from "@store/ui";
 import { cn } from "@/lib/utils";
 
 interface CategoryTreeNodeProps {
@@ -23,9 +23,7 @@ interface CategoryTreeNodeProps {
   deletingId: string | null;
 }
 
-// One row plus its own expand/collapse state — indentation comes from the
-// nested wrapper's border/padding, so it compounds naturally with recursion
-// instead of needing a depth counter threaded through every level.
+// Indentation comes from the nested wrapper's padding, so it compounds through recursion without a depth counter.
 export function CategoryTreeNode(props: CategoryTreeNodeProps) {
   const {
     node,
@@ -51,7 +49,7 @@ export function CategoryTreeNode(props: CategoryTreeNodeProps) {
   return (
     <div>
       <div
-        className="flex min-h-14 items-center gap-1 rounded-xl border border-border bg-card ps-1 pe-2"
+        className="flex min-h-14 items-center gap-1 rounded-card border border-line bg-surface ps-1 pe-2 shadow-card"
         data-test-selector={testSelectorFor("category-row", node.id)}
       >
         <button
@@ -60,7 +58,7 @@ export function CategoryTreeNode(props: CategoryTreeNodeProps) {
           disabled={!hasChildren}
           aria-label={expanded ? t("collapse") : t("expand")}
           className={cn(
-            "inline-flex size-11 shrink-0 items-center justify-center rounded-lg text-muted-foreground",
+            "inline-flex size-11 shrink-0 items-center justify-center rounded-control text-ink-muted hover:bg-inset hover:text-ink",
             !hasChildren && "invisible"
           )}
         >
@@ -71,24 +69,17 @@ export function CategoryTreeNode(props: CategoryTreeNodeProps) {
           )}
         </button>
 
-        <span className="min-w-0 flex-1 truncate text-sm font-medium text-foreground">{name}</span>
+        <span className="min-w-0 flex-1 truncate text-label font-medium text-ink">{name}</span>
 
-        {/* Says in words what the star says in colour, so "pinned" survives a
-            phone in the sun and eyes that can't separate amber from grey. It
-            is also what tells somebody who only has read access — no star
-            button of their own — why this shelf comes first at the till. */}
+        {/* Says in words what the star says in colour, also for read-only staff who have no star. */}
         {node.isFavorite && !isConfirming && (
-          <span className="shrink-0 rounded-full bg-secondary px-2 py-0.5 text-[11px] font-medium text-secondary-foreground">
+          <span className="shrink-0 pill-text rounded-pill bg-inset px-2 py-0.5 text-micro font-medium text-ink-muted">
             {t("pinned")}
           </span>
         )}
 
         {canManage && !isConfirming && (
           <div className="flex shrink-0 items-center gap-1">
-            {/* Outline star throughout — colour and the chip above carry the
-                state, never paint poured into a glyph. aria-pressed is what
-                makes it a toggle to a screen reader rather than two buttons
-                that happen to look alike. */}
             <button
               type="button"
               onClick={() => onToggleFavorite(node)}
@@ -96,8 +87,8 @@ export function CategoryTreeNode(props: CategoryTreeNodeProps) {
               aria-label={node.isFavorite ? t("unpin", { name }) : t("pin", { name })}
               disabled={isTogglingFavorite}
               className={cn(
-                "inline-flex size-11 items-center justify-center rounded-lg not-disabled:hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50",
-                node.isFavorite ? "text-warning" : "text-muted-foreground hover:text-accent-foreground"
+                "inline-flex size-11 items-center justify-center rounded-control not-disabled:hover:bg-inset disabled:cursor-not-allowed disabled:opacity-50",
+                node.isFavorite ? "text-warning-700" : "text-ink-muted hover:text-ink"
               )}
             >
               {isTogglingFavorite ? <Spinner className="size-4" /> : <Star className="size-4" aria-hidden="true" />}
@@ -106,7 +97,7 @@ export function CategoryTreeNode(props: CategoryTreeNodeProps) {
               type="button"
               onClick={() => onEdit(node)}
               aria-label={t("edit")}
-              className="inline-flex size-11 items-center justify-center rounded-lg text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+              className="inline-flex size-11 items-center justify-center rounded-control text-ink-muted hover:bg-inset hover:text-ink"
             >
               <Pencil className="size-4" aria-hidden="true" />
             </button>
@@ -115,7 +106,7 @@ export function CategoryTreeNode(props: CategoryTreeNodeProps) {
               onClick={() => onRequestDelete(node.id)}
               aria-label={t("delete")}
               disabled={isDeleting}
-              className="inline-flex size-11 items-center justify-center rounded-lg text-muted-foreground not-disabled:hover:bg-destructive/10 not-disabled:hover:text-destructive disabled:cursor-not-allowed disabled:opacity-50"
+              className="inline-flex size-11 items-center justify-center rounded-control text-ink-muted not-disabled:hover:bg-danger-50 not-disabled:hover:text-danger-600 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isDeleting ? <Spinner className="size-4" /> : <Trash2 className="size-4" aria-hidden="true" />}
             </button>
@@ -128,11 +119,11 @@ export function CategoryTreeNode(props: CategoryTreeNodeProps) {
               type="button"
               onClick={() => onConfirmDelete(node)}
               disabled={isDeleting}
-              className="text-xs font-semibold text-destructive"
+              className="min-h-11 text-meta font-semibold text-danger-600"
             >
               {t("confirmDelete")}
             </button>
-            <button type="button" onClick={onCancelDelete} className="text-xs text-muted-foreground">
+            <button type="button" onClick={onCancelDelete} className="min-h-11 text-meta text-ink-muted">
               {t("cancelDelete")}
             </button>
           </div>
@@ -140,7 +131,7 @@ export function CategoryTreeNode(props: CategoryTreeNodeProps) {
       </div>
 
       {hasChildren && expanded && (
-        <div className="mt-1 flex flex-col gap-1 border-s-2 border-border ps-4">
+        <div className="mt-1 flex flex-col gap-1 border-s-2 border-line ps-4">
           {node.children.map((child) => (
             <CategoryTreeNode key={child.id} {...props} node={child} />
           ))}

@@ -3,7 +3,7 @@
 import type { ReactNode } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { Card } from "@/components/ui/card";
+import { Card } from "@store/ui";
 import { Link } from "@/i18n/navigation";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
 import { useCollectionSummaryQuery } from "@/hooks/use-orders";
@@ -13,13 +13,7 @@ import { cn } from "@/lib/utils";
 import type { AppLocale } from "@/i18n/routing";
 import type { DashboardSummary } from "@/types/dashboard";
 
-// The three open loops, in one place: stock about to run out, money someone
-// spent that nobody has agreed to yet, and money the delivery company is
-// still holding.
-//
-// Every row is rendered even at zero. A list whose rows move around depending
-// on the day is a list an untrained user has to re-read each time; "0" in a
-// fixed position is read at a glance and is reassuring rather than noise.
+// Every row renders even at zero: a fixed "0" is read at a glance, rows that move must be re-read.
 export function NeedsAttentionSection({ summary }: { summary: DashboardSummary }) {
   const t = useTranslations("dashboard.attention");
   const formatMoney = useMoneyFormatter();
@@ -28,9 +22,9 @@ export function NeedsAttentionSection({ summary }: { summary: DashboardSummary }
 
   return (
     <section className="flex flex-col gap-3">
-      <h2 className="text-base font-semibold">{t("title")}</h2>
+      <h2 className="text-section font-semibold text-ink">{t("title")}</h2>
 
-      <Card className="divide-y divide-border">
+      <Card flush className="divide-y divide-line overflow-hidden">
         <AttentionRow
           label={t("lowStock")}
           value={summary.lowStock.count}
@@ -38,9 +32,7 @@ export function NeedsAttentionSection({ summary }: { summary: DashboardSummary }
           href="/inventory?lowStock=true"
         />
 
-        {/* No destination yet: expenses are backend-only so far, so this
-            reports the number without pretending there is a screen behind
-            it. It gets a link the moment that screen exists. */}
+        {/* No link until the expenses screen exists. */}
         <AttentionRow
           label={t("pendingApprovals")}
           value={pendingExpenses ?? 0}
@@ -73,16 +65,15 @@ function AttentionRow({ label, value, highlight, href }: AttentionRowProps) {
 
   const content = (
     <>
-      <p className="min-w-0 flex-1 text-sm text-foreground">{label}</p>
-      <p className={cn("shrink-0 font-semibold tabular-nums", highlight ? "text-foreground" : "text-muted-foreground")}>
+      <p className="min-w-0 flex-1 text-label text-ink">{label}</p>
+      <p className={cn("shrink-0 font-semibold tabular-nums", highlight ? "text-ink" : "text-ink-subtle")}>
         {value}
       </p>
-      {href && <ChevronIcon className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />}
+      {href && <ChevronIcon className="size-4 shrink-0 text-ink-subtle" aria-hidden="true" />}
     </>
   );
 
-  // min-h-14 on both branches so a row that happens to have nowhere to go is
-  // the same height as its neighbours.
+  // min-h-14 on both branches so a linkless row matches its neighbours.
   if (!href) {
     return <div className="flex min-h-14 items-center gap-3 px-4 py-2">{content}</div>;
   }
@@ -90,7 +81,7 @@ function AttentionRow({ label, value, highlight, href }: AttentionRowProps) {
   return (
     <Link
       href={href}
-      className="flex min-h-14 items-center gap-3 px-4 py-2 transition-colors active:bg-accent"
+      className="flex min-h-14 items-center gap-3 px-4 py-2 transition-colors hover:bg-row-hover active:bg-inset"
     >
       {content}
     </Link>

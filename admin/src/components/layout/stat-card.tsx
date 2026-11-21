@@ -9,66 +9,48 @@ import type { StatCardTone } from "@/types/layout";
 
 interface StatCardProps {
   label: string;
-  // Already formatted, in the store's currency where it is money (CLAUDE.md
-  // rule 14 — the symbol comes from Settings, never from here).
+  // Already formatted; money in the Settings currency (rule 14).
   value: ReactNode;
   hint?: ReactNode;
-  // Plain language, one or two sentences: what this figure means and what it
-  // does NOT mean. Omit it and no (?) is rendered.
+  // What the figure means and does not mean; omit for no (?).
   tooltip?: string;
   tone?: StatCardTone;
-  // Which figure this is — "sales-total", "orders-count". Rendered as
-  // `stat-card-<name>` with the figure itself under it, because "the third
-  // box" is not a description of a number somebody is querying.
+  // Rendered as `stat-card-<name>`, with `stat-card-value-<name>` for the figure.
   name?: string;
   className?: string;
 }
 
 const TONE_CLASS: Record<StatCardTone, string> = {
-  default: "text-foreground",
-  success: "text-success",
-  warning: "text-warning",
+  default: "text-ink",
+  success: "text-success-700",
+  warning: "text-warning-700",
 };
 
-// One figure, on a card: the label with its (?) explanation, the number, and
-// an optional line of context under it.
-//
-// The explanation is the app's existing ExplainedLabel — a 44px tap target
-// that expands the sentence inline rather than a hover tooltip, because ~95%
-// of use is on a phone where there is no hover and a floating bubble clips at
-// the edge of a narrow screen. The accessible name is the same `figures.explain`
-// sentence every figure in the app already uses.
-//
-// No fixed height: an Arabic label that wraps to two lines makes the card
-// taller, it does not get clipped.
+// The (?) expands inline rather than hovering: ~95% of use is on a phone.
 export function StatCard({ label, value, hint, tooltip, tone = "default", name, className }: StatCardProps) {
   const tFigures = useTranslations("figures");
 
   return (
     <div
-      className={cn("flex min-w-0 flex-col rounded-lg bg-muted/40 p-4", className)}
+      className={cn("flex min-w-0 flex-col rounded-card border border-line bg-surface p-[18px_20px] shadow-card", className)}
       data-test-selector={testSelectorFor("stat-card", name)}
     >
       <ExplainedLabel
         label={label}
         description={tooltip}
         toggleLabel={tFigures("explain", { label })}
-        // The (?) sits in the card's corner rather than tight against the
-        // label — `justify-between`, so it mirrors in Arabic on its own.
         rowClassName="justify-between gap-2"
       />
 
-      {/* break-words, not truncate: a long figure in a narrow column has to
-          wrap rather than be silently cut in half — a clipped amount is worse
-          than an ugly one. tabular-nums keeps the digits in step. */}
+      {/* break-words, not truncate: a clipped amount is worse than an ugly one. */}
       <p
-        className={cn("mt-1.5 break-words text-2xl font-medium tabular-nums", TONE_CLASS[tone])}
+        className={cn("mt-2 break-words text-title font-medium tabular-nums", TONE_CLASS[tone])}
         data-test-selector={testSelectorFor("stat-card-value", name)}
       >
         {value}
       </p>
 
-      {hint && <p className="mt-0.5 text-xs text-muted-foreground">{hint}</p>}
+      {hint && <p className="mt-[7px] text-meta text-ink-subtle">{hint}</p>}
     </div>
   );
 }

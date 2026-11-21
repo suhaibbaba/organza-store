@@ -1,9 +1,9 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { Select } from "@store/ui";
 import { ROLES } from "@organza/shared/constants/roles";
 import type { Role } from "@organza/shared/types/role";
-import { Select } from "@/components/ui/select";
 
 interface UserFiltersProps {
   role: Role | null;
@@ -21,27 +21,23 @@ export function UserFilters({ role, isActive, onRoleChange, onIsActiveChange }: 
       <div className="flex-1">
         <Select
           aria-label={t("role")}
+          placeholder={t("allRoles")}
+          options={ROLES.map((r) => ({ value: r, label: tRole(r) }))}
           value={role ?? ""}
           onChange={(e) => onRoleChange(e.target.value ? (e.target.value as Role) : null)}
-        >
-          <option value="">{t("allRoles")}</option>
-          {ROLES.map((r) => (
-            <option key={r} value={r}>
-              {tRole(r)}
-            </option>
-          ))}
-        </Select>
+        />
       </div>
       <div className="flex-1">
         <Select
           aria-label={t("status")}
+          placeholder={t("statusAll")}
+          options={[
+            { value: "active", label: t("statusActive") },
+            { value: "inactive", label: t("statusInactive") },
+          ]}
           value={isActive === null ? "" : isActive ? "active" : "inactive"}
           onChange={(e) => onIsActiveChange(e.target.value === "" ? null : e.target.value === "active")}
-        >
-          <option value="">{t("statusAll")}</option>
-          <option value="active">{t("statusActive")}</option>
-          <option value="inactive">{t("statusInactive")}</option>
-        </Select>
+        />
       </div>
     </div>
   );

@@ -12,8 +12,7 @@ import { DEFAULT_USER_FILTERS, USER_SEARCH_DEBOUNCE_MS } from "@/constants/users
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { useUsersQuery, useToggleUserActiveMutation } from "@/hooks/use-users";
 import { useTranslateError } from "@/hooks/use-translate-error";
-import { Button } from "@/components/ui/button";
-import { Alert } from "@/components/ui/alert";
+import { Alert, Button } from "@store/ui";
 import { UserSearch } from "@/components/users/user-search";
 import { UserFilters } from "@/components/users/user-filters";
 import { UserCard } from "@/components/users/user-card";
@@ -49,10 +48,7 @@ function UsersPageContent() {
   const [formOpen, setFormOpen] = useState(false);
   const [formMode, setFormMode] = useState<"create" | "edit">("create");
   const [editingUser, setEditingUser] = useState<User | undefined>(undefined);
-  // Reactivation only. Switching somebody OFF goes through the removal sheet,
-  // which is where the difference between deactivating and erasing gets
-  // explained — a list row cannot say it, and the two must never be one tap
-  // apart (components/users/user-remove-sheet.tsx).
+  // Reactivation only: switching off goes through the removal sheet, which explains deactivate vs erase.
   const [confirmActivateId, setConfirmActivateId] = useState<string | null>(null);
   const [activateError, setActivateError] = useState<string | null>(null);
   const [removingUser, setRemovingUser] = useState<User | null>(null);
@@ -147,7 +143,11 @@ function UsersPageContent() {
           />
         </div>
 
-        {activateError && <Alert variant="destructive">{activateError}</Alert>}
+        {activateError && (
+          <Alert tone="danger" data-testid="alert-destructive">
+            {activateError}
+          </Alert>
+        )}
 
         {isLoading ? (
           <UserListLoading />

@@ -5,24 +5,21 @@ import { useTranslations } from "next-intl";
 import { Search, X } from "lucide-react";
 import { TAB_MEDIA_QUERY } from "@/constants/layout";
 import { useMediaQuery } from "@/hooks/use-media-query";
-import { Spinner } from "@/components/ui/spinner";
+import { Spinner } from "@store/ui";
 import { cn } from "@/lib/utils";
 import { CONTROL_HEIGHT } from "@/components/sell/screen/control-styles";
 
 interface SearchFieldProps {
   value: string;
   onChange: (value: string) => void;
-  // Enter: whatever is in the box is treated as a code typed off a label —
-  // the same lookup a scan runs (useAddByCode).
+  // Enter looks the text up as a code typed off a label, the same lookup a scan runs.
   onSubmitCode: (code: string) => void;
   isLooking: boolean;
   inputRef?: RefObject<HTMLInputElement | null>;
   className?: string;
 }
 
-// The top bar's search. Typing narrows the product grid underneath (the same
-// cross-language backend search as before, CLAUDE.md rule 10); Enter looks
-// the text up as a barcode or SKU, which is how a hand-typed label is sold.
+// Typing narrows the grid (cross-language backend search, rule 10); Enter looks the text up as a barcode or SKU.
 export function SearchField({ value, onChange, onSubmitCode, isLooking, inputRef, className }: SearchFieldProps) {
   const t = useTranslations("sell");
   const isTab = useMediaQuery(TAB_MEDIA_QUERY);
@@ -36,7 +33,7 @@ export function SearchField({ value, onChange, onSubmitCode, isLooking, inputRef
   return (
     <form onSubmit={handleSubmit} role="search" className={cn("relative min-w-0", className)} data-test-selector="pos-search">
       <Search
-        className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
+        className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-ink-faint"
         aria-hidden="true"
       />
       <input
@@ -44,8 +41,7 @@ export function SearchField({ value, onChange, onSubmitCode, isLooking, inputRef
         type="search"
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        // The design's phone wording is shorter: the full sentence does not
-        // fit beside two buttons at 390px.
+        // The full sentence does not fit beside two buttons at 390px.
         placeholder={isTab ? t("screen.searchPlaceholder") : t("screen.searchPlaceholderShort")}
         aria-label={t("search.label")}
         autoComplete="off"
@@ -53,14 +49,13 @@ export function SearchField({ value, onChange, onSubmitCode, isLooking, inputRef
         data-test-selector="pos-search-input"
         className={cn(
           CONTROL_HEIGHT,
-          "w-full rounded-control border border-input bg-card ps-9 pe-10 text-base text-foreground",
-          "placeholder:text-muted-foreground transition-[border-color,box-shadow] focus-visible:border-ring focus-visible:shadow-focus focus-visible:outline-none"
+          "w-full rounded-control border border-line-strong bg-surface ps-9 pe-10 text-field text-ink hover:border-neutral-400",
+          "placeholder:text-ink-subtle transition-[border-color,box-shadow] focus-visible:border-primary-600 focus-visible:shadow-field-focus focus-visible:outline-none"
         )}
       />
       {isLooking ? (
-        <span className="absolute end-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-          <Spinner />
-          <span className="sr-only">{t("search.looking")}</span>
+        <span className="absolute end-3 top-1/2 -translate-y-1/2">
+          <Spinner label={t("search.looking")} />
         </span>
       ) : (
         value && (
@@ -69,7 +64,7 @@ export function SearchField({ value, onChange, onSubmitCode, isLooking, inputRef
             onClick={() => onChange("")}
             aria-label={t("search.clear")}
             data-test-selector="pos-search-clear"
-            className="hit-area absolute end-1 top-1/2 flex size-8 -translate-y-1/2 items-center justify-center rounded-lg text-muted-foreground hover:bg-soft"
+            className="hit-area absolute end-1 top-1/2 flex size-8 -translate-y-1/2 items-center justify-center cursor-pointer rounded-control text-ink-faint hover:bg-inset hover:text-ink"
           >
             <X className="size-4" aria-hidden="true" />
           </button>

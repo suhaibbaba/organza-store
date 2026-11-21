@@ -9,8 +9,7 @@ import { useSettingsQuery } from "@/hooks/use-settings";
 import { useTranslateError } from "@/hooks/use-translate-error";
 import { SettingsForm } from "@/components/settings/settings-form";
 import { NotificationsCard } from "@/components/settings/notifications-card";
-import { Alert } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
+import { Alert, Button, Skeleton } from "@store/ui";
 import { ApiError } from "@/lib/api/errors";
 import { AppVersion } from "@/components/pwa/app-version";
 
@@ -24,33 +23,30 @@ function SettingsPageContent() {
     <PageContainer>
       <PageHeader name="settings" title={t("title")} description={t("subtitle")} />
 
-      {/* A form screen, not a table one: the whole column — the device
-          card as well as the form under it — is held to a readable width so
-          the two line up instead of one running the span of a laptop. */}
       <FormContainer className="flex flex-col gap-4">
         {isLoading ? (
           <div className="flex flex-col gap-3">
             {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="h-32 animate-pulse rounded-xl bg-muted" />
+              <Skeleton key={i} className="h-32 rounded-card" />
             ))}
           </div>
         ) : isError || !setting ? (
-          <Alert variant="destructive" className="flex-col items-center gap-3 text-center">
-            <p>{translateError(error instanceof ApiError ? error.code : "error.internal")}</p>
-            <Button type="button" variant="outline" size="sm" onClick={() => void refetch()}>
-              {tCommon("retry")}
-            </Button>
+          <Alert
+            tone="danger"
+            data-testid="alert-destructive"
+            action={
+              <Button type="button" variant="secondary" size="sm" onClick={() => void refetch()}>
+                {tCommon("retry")}
+              </Button>
+            }
+          >
+            {translateError(error instanceof ApiError ? error.code : "error.internal")}
           </Alert>
         ) : (
           <>
-            {/* This phone's own notification permission sits above the shop-wide
-                settings: it is the part the Admin has to do on each device. */}
+            {/* This device's notification permission first: it is the part done per device. */}
             <NotificationsCard />
             <SettingsForm setting={setting} />
-            {/* Which build this device is running, at the foot of the page it
-                is most likely to be looked for on. The same line lives in the
-                account menu and the mobile "More" sheet, which is where every
-                other role finds it. */}
             <AppVersion className="w-auto items-center self-center" />
           </>
         )}

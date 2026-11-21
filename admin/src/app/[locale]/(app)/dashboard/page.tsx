@@ -15,22 +15,7 @@ import { PeriodSection } from "@/components/dashboard/period-section";
 import { NeedsAttentionSection } from "@/components/dashboard/needs-attention-section";
 import { DashboardError, DashboardLoading } from "@/components/dashboard/dashboard-states";
 
-// The dashboard (spec.md "Cash drawer & expenses" -> Reporting).
-//
-// Figures only — no chart. The people reading this are standing at a counter
-// with a phone in one hand, and what they need is a number they can act on,
-// not a trend they have to interpret.
-//
-// Four sections, always in this order, because it is the order of the day:
-// what happened today -> is the drawer right -> how the period is going ->
-// what still needs doing.
-//
-// Admin/Manager only (CLAUDE.md rule 5): /api/dashboard/summary and
-// /api/reports/sales-summary both 403 for an Employee. This is also the
-// screen everything else points at when it doesn't know the role yet (the
-// root redirect, the proxy, the login form), so an Employee landing here
-// asked for nothing — the guard sends them on to their own first screen
-// rather than telling them off for a redirect they didn't choose.
+// Figures only, in the order of the day (today, drawer, period, to-do). Admin/Manager; an Employee sent here is forwarded to their own first screen.
 export default function DashboardPage() {
   return (
     <RoleGuard action="dashboard.view" onDenied="redirect">
@@ -42,17 +27,14 @@ export default function DashboardPage() {
 function DashboardPageContent() {
   const t = useTranslations("dashboard");
   const { user } = useSession();
-  // "Welcome back, Suhaib" — the same name the account button shows, never a
-  // raw id (lib/user-display.ts).
+  // The same name the account button shows, never a raw id.
   const { name: displayName } = useUserDisplay()(user);
 
   const summaryQuery = useDashboardSummaryQuery();
   const salesQuery = useSalesSummaryQuery();
   const drawerQuery = useCurrentCashSessionQuery();
 
-  // The three requests run together and are only judged together: half a
-  // dashboard, with one section silently missing, is worse than saying it
-  // couldn't be loaded.
+  // Judged together: half a dashboard with a section silently missing is worse than an error.
   const isLoading = summaryQuery.isLoading || salesQuery.isLoading || drawerQuery.isLoading;
   const error = summaryQuery.error ?? salesQuery.error ?? drawerQuery.error;
 

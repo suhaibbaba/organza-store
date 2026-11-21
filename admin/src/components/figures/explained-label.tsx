@@ -5,37 +5,17 @@ import { cn } from "@/lib/utils";
 
 interface ExplainedLabelProps {
   label: string;
-  // Plain language, one or two sentences: what this figure means and what it
-  // does NOT mean. Omit it and the (?) simply isn't rendered.
+  // What the figure means and does NOT mean; omitted ⇒ no (?).
   description?: string;
-  // Accessible name for the toggle, e.g. "What does 'Still owed' mean?".
   toggleLabel: string;
-  // Rendered at the end of the label's own row — the amount, on the running
-  // calculation in the drawer. Keeping it in this row is what makes label and
-  // figure share a baseline without any hand-tuned offsets.
+  // Sits in the label's own row so label and amount share a baseline.
   trailing?: ReactNode;
   labelClassName?: string;
-  // The label's own row (label + the (?) beside it). Only for callers that
-  // need the two pushed apart — a stat card puts the (?) in the corner.
   rowClassName?: string;
   className?: string;
 }
 
-// A figure's label with a (?) beside it that expands a plain-language
-// explanation INLINE, underneath.
-//
-// Three deliberate choices, all from CLAUDE.md's "Frontend UX":
-//
-//   * It is a tap, not a hover. ~95% of use is on a phone, where there is no
-//     hover — a tooltip would be unreachable, and on the few devices that do
-//     fire one it lands under the finger.
-//   * It expands in place rather than floating. A popover has to be measured
-//     against the viewport and still clips at the edge of a narrow screen;
-//     text in normal flow simply wraps and pushes the card taller, so it can
-//     never overflow or be cut off however long the sentence or wide the
-//     Arabic.
-//   * The tap target is a full 44px even though the ring drawn inside it is
-//     small: the ring is what it looks like, the button is what it is.
+// A tap (not hover) expands the explanation inline, so it never clips on a phone; the 44px target is the button, the small ring is only its look.
 export function ExplainedLabel({
   label,
   description,
@@ -51,7 +31,7 @@ export function ExplainedLabel({
   return (
     <div className={cn("flex min-w-0 flex-col", className)}>
       <div className={cn("flex min-h-11 items-center gap-1", rowClassName)}>
-        <p className={cn("min-w-0 text-sm text-muted-foreground", labelClassName)}>{label}</p>
+        <p className={cn("min-w-0 text-label text-ink-muted", labelClassName)}>{label}</p>
 
         {description && (
           <button
@@ -60,13 +40,13 @@ export function ExplainedLabel({
             aria-expanded={open}
             aria-controls={id}
             aria-label={toggleLabel}
-            className="-mx-1 inline-flex size-11 shrink-0 items-center justify-center rounded-full text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="-mx-1 inline-flex size-11 shrink-0 items-center justify-center rounded-pill text-ink-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
           >
             <span
               aria-hidden="true"
               className={cn(
-                "inline-flex size-5 items-center justify-center rounded-full border border-current text-[11px] font-semibold leading-none transition-colors",
-                open && "bg-foreground text-background"
+                "inline-flex size-5 items-center justify-center rounded-pill border border-current text-[11px] font-semibold leading-none transition-colors",
+                open && "bg-ink text-ink-inverse"
               )}
             >
               ?
@@ -78,7 +58,7 @@ export function ExplainedLabel({
       </div>
 
       {description && open && (
-        <p id={id} className="mb-1 text-xs leading-relaxed text-muted-foreground">
+        <p id={id} className="mb-1 text-meta leading-relaxed text-ink-muted">
           {description}
         </p>
       )}

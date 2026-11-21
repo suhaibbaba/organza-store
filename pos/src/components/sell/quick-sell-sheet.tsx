@@ -10,12 +10,11 @@ import {
 } from "@organza/shared/constants/quickSell";
 import { isNonNegativeDecimalString } from "@/lib/validation/numeric";
 import { useCurrencySymbol } from "@/hooks/use-currency-symbol";
-import { Alert } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { NumericInput } from "@/components/ui/numeric-input";
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Alert, Button, Input } from "@store/ui";
+import { fieldErrorTestSelector, fieldTestSelector } from "@organza/shared/lib/testSelector";
+import { NumericInput } from "@/components/fields/numeric-input";
+import { BottomSheet } from "@/components/sell/bottom-sheet";
+import { SHEET_ACTION } from "@/components/sell/sheet-styles";
 
 interface QuickSellSheetProps {
   open: boolean;
@@ -23,39 +22,26 @@ interface QuickSellSheetProps {
   onAdd: (input: QuickSellItemInput) => void;
 }
 
-// Selling something the catalogue has never heard of (spec.md "Quick sell").
-//
-// Stock reaches the shop floor before it reaches the system, and at the
-// busiest hour of the season a queue must not wait on somebody choosing a
-// category and photographing a dress. So this asks for the two things the
-// SALE genuinely needs — what it is, and what the customer pays — and one
-// optional third that costs a second and saves an argument later.
-//
-// Everything it does NOT ask for is the design: no category, no cost, no
-// barcode, no photograph, no variants. Those are filled in afterwards, by
-// somebody who is not standing in front of a customer, from the approvals
-// screen in the admin.
-//
-// Two fields and a button, deliberately. Every extra box here is a second at
-// the till, multiplied by the queue.
+// Selling a piece the catalogue has never seen (spec.md "Quick sell"): only a name and a price, never a category, cost or photo, so the queue never waits.
 export function QuickSellSheet({ open, onOpenChange, onAdd }: QuickSellSheetProps) {
-  const tCommon = useTranslations("common");
   const t = useTranslations("sell.quickSell");
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent name="quick-sell" compact closeLabel={tCommon("close")}>
-        <SheetHeader>
-          <SheetTitle className="flex items-center gap-2">
-            <Zap className="size-5 shrink-0 text-primary" aria-hidden="true" />
-            {t("title")}
-          </SheetTitle>
-          <SheetDescription>{t("subtitle")}</SheetDescription>
-        </SheetHeader>
+    <BottomSheet
+      open={open}
+      onOpenChange={onOpenChange}
+      name="quick-sell"
+      compact
+      title={
+        <span className="flex items-center gap-2">
+          <Zap className="size-5 shrink-0 text-primary-600" aria-hidden="true" />
+          {t("title")}
+        </span>
+      }
+      description={t("subtitle")}
+    >
 
-        {/* The form is its own component so its fields are created fresh each
-            time the sheet opens — the next piece starts empty rather than
-            from whatever the last one was called. */}
+        {/* Created fresh on each open so the next piece starts empty. */}
         {open && (
           <QuickSellForm
             onAdd={(input) => {
@@ -65,8 +51,7 @@ export function QuickSellSheet({ open, onOpenChange, onAdd }: QuickSellSheetProp
             onCancel={() => onOpenChange(false)}
           />
         )}
-      </SheetContent>
-    </Sheet>
+    </BottomSheet>
   );
 }
 
@@ -88,8 +73,6 @@ function QuickSellForm({
   const trimmedPrice = price.trim();
   const priceIsValid = isNonNegativeDecimalString(trimmedPrice);
   const canAdd = trimmedName !== "" && priceIsValid;
-  // Only complain about something actually typed: an empty box is where
-  // everybody starts, not a mistake worth a red line under it.
   const showPriceError = trimmedPrice !== "" && !priceIsValid;
 
   function submit() {
@@ -110,12 +93,12 @@ function QuickSellForm({
       }}
     >
       <div className="flex flex-col gap-2">
-        <Label htmlFor="pos-quick-sell-name">{t("nameLabel")}</Label>
-        {/* Autofocus: the sheet was opened to type this. On a phone that
-            brings the keyboard up with the sheet rather than after a second
-            tap, which is the whole second this feature exists to save. */}
+        <label htmlFor="pos-quick-sell-name" className="text-label font-medium text-ink">{t("nameLabel")}</label>
+        {/* Autofocus: the sheet was opened to type this, and the keyboard coming up with it is the second this feature saves. */}
         <Input
           id="pos-quick-sell-name"
+          data-testid={fieldTestSelector("pos-quick-sell-name")}
+          className="h-12"
           value={name}
           onChange={(event) => setName(event.target.value)}
           placeholder={t("namePlaceholder")}
@@ -126,11 +109,9 @@ function QuickSellForm({
       </div>
 
       <div className="flex flex-col gap-2">
-        <Label htmlFor="pos-quick-sell-price">
+        <label htmlFor="pos-quick-sell-price" className="text-label font-medium text-ink">
           {currency ? t("priceLabelCurrency", { currency }) : t("priceLabel")}
-        </Label>
-        {/* A price, so decimals are allowed — but still the numeric keypad
-            and still no "e"/"+"/"-" (CLAUDE.md "Mobile input"). */}
+        </label>
         <NumericInput
           id="pos-quick-sell-price"
           allowDecimal
@@ -138,45 +119,47 @@ function QuickSellForm({
           onChange={(event) => setPrice(event.target.value)}
           placeholder={t("pricePlaceholder")}
           aria-invalid={showPriceError}
+          className="h-12"
         />
-        {showPriceError && <p className="text-sm text-destructive">{t("priceInvalid")}</p>}
+        {showPriceError && (
+          <p
+            className="text-meta text-danger-600"
+            role="alert"
+            data-test-selector={fieldErrorTestSelector("pos-quick-sell-price")}
+          >
+            {t("priceInvalid")}
+          </p>
+        )}
       </div>
 
       <div className="flex flex-col gap-2">
-        <Label htmlFor="pos-quick-sell-detail">{t("detailLabel")}</Label>
+        <label htmlFor="pos-quick-sell-detail" className="text-label font-medium text-ink">{t("detailLabel")}</label>
         <Input
           id="pos-quick-sell-detail"
+          data-testid={fieldTestSelector("pos-quick-sell-detail")}
+          className="h-12"
           value={detail}
           onChange={(event) => setDetail(event.target.value)}
           placeholder={t("detailPlaceholder")}
           maxLength={QUICK_SELL_DETAIL_MAX_LENGTH}
           autoComplete="off"
         />
-        <p className="text-xs text-muted-foreground">{t("detailHint")}</p>
+        <p className="text-micro text-ink-muted">{t("detailHint")}</p>
       </div>
 
-      {/* Said once, plainly, and before the button rather than after it: the
-          sale goes through now, and an Admin finishes the piece off later.
-          Nobody at the till should be left wondering whether they have just
-          created a mess. */}
-      <Alert>{t("afterwards")}</Alert>
+      <Alert tone="neutral" data-testid="alert-default">{t("afterwards")}</Alert>
 
-      {/* The primary action sits at the START edge, under where a thumb
-          rests on a phone held in the reading direction — the same way round
-          as the variant picker and the opposite of the gift sheet. The rule
-          is what a stray tap costs: adding a line to a cart is one tap to
-          undo, giving a piece away is not. */}
+      {/* Primary action at the start edge: a stray tap here only adds a cart line, unlike the gift sheet. */}
       <div className="flex items-stretch gap-3">
-        <Button type="submit" disabled={!canAdd} data-test-selector="pos-quick-sell-add" className="min-w-0 flex-[2]">
-          <Zap aria-hidden="true" />
+        <Button type="submit" disabled={!canAdd} data-testid="pos-quick-sell-add" className={`${SHEET_ACTION} min-w-0 flex-[2]`} icon={<Zap aria-hidden="true" />}>
           {t("add")}
         </Button>
         <Button
           type="button"
-          variant="outline"
+          variant="secondary"
           onClick={onCancel}
-          data-test-selector="pos-quick-sell-cancel"
-          className="min-w-24 flex-1"
+          data-testid="pos-quick-sell-cancel"
+          className={`${SHEET_ACTION} min-w-24 flex-1`}
         >
           {t("cancel")}
         </Button>

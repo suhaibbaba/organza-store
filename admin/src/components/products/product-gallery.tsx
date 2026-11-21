@@ -17,22 +17,7 @@ export function ProductGallery({ images, alt }: ProductGalleryProps) {
 
   return (
     <div className="flex w-full max-w-sm flex-col gap-2">
-      {/* The photo and nothing else: no card, no border, no plate behind it.
-          It is drawn at its own shape and scaled down to fit — so a portrait
-          shawl is exactly as wide as it is tall, with no empty bars either
-          side of it, and a landscape one takes no more height than it needs.
-          Capped by height, not given one: 16rem (18 from md up), and never
-          more than 45vh on a short screen — a phone held sideways — so the
-          photo can't push the price, the stock and the Edit button off the
-          first screenful. Width is bounded by the max-w-sm column.
-
-          The row itself is GIVEN that height, though the photo is not: a
-          photo with no known size is 0×0 until it arrives, so everything
-          under it — price, stock, the Edit button — used to jump down by a
-          quarter of the screen once it did, on a slow phone well after the
-          shop had started reading. Nearly every photo fills the height
-          anyway (only one wider than 3:2 is stopped by the width first), so
-          reserving it costs nothing visible. */}
+      {/* Row height is reserved so the price and Edit button don't jump when a photo of unknown size arrives. */}
       <div className="flex h-[min(16rem,45vh)] items-center justify-center md:h-[min(18rem,45vh)]">
         <ProductImage
           src={active?.url}
@@ -43,12 +28,7 @@ export function ProductGallery({ images, alt }: ProductGalleryProps) {
           eager
         />
       </div>
-      {/* The strip keeps its small even squares — they are an index of the
-          photos, not the photo itself, and they carry no card or plate of
-          their own: the only ring drawn is the one marking which photo is
-          being shown. Left-aligned rather than centred on purpose: a centred
-          scroll container puts its first item out of reach once there are
-          more thumbnails than fit. */}
+      {/* Start-aligned on purpose: a centred scroll strip puts its first thumbnail out of reach. */}
       {images.length > 1 && (
         <div className="flex gap-2 overflow-x-auto">
           {images.map((image, index) => (
@@ -57,8 +37,8 @@ export function ProductGallery({ images, alt }: ProductGalleryProps) {
               type="button"
               onClick={() => setActiveIndex(index)}
               className={cn(
-                "shrink-0 overflow-hidden rounded-lg ring-2 ring-offset-2 ring-offset-background",
-                index === activeIndex ? "ring-primary" : "ring-transparent",
+                "shrink-0 overflow-hidden rounded-control ring-2 ring-offset-2 ring-offset-surface",
+                index === activeIndex ? "ring-primary-600" : "ring-transparent",
               )}
             >
               <ProductImage

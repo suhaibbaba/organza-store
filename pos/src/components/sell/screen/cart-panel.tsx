@@ -6,13 +6,8 @@ import { Gift, MessageCircle, ScanLine } from "lucide-react";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
 import { fromCents, toCents } from "@/lib/money";
 import { cn } from "@/lib/utils";
-import { Spinner } from "@/components/ui/spinner";
-import {
-  CONTROL_HEIGHT,
-  PRIMARY_ACTION,
-  SCREEN_PANEL,
-  SECONDARY_ACTION,
-} from "@/components/sell/screen/control-styles";
+import { Button } from "@store/ui";
+import { CONTROL_HEIGHT, SCREEN_PANEL } from "@/components/sell/screen/control-styles";
 import { CartLine } from "@/components/sell/screen/cart-line";
 import { SectionTitle } from "@/components/sell/screen/section-title";
 import type { Cart } from "@/hooks/use-cart";
@@ -27,16 +22,14 @@ interface CartPanelProps {
   onDiscount: () => void;
   onCheckout: () => void;
   onWhatsappOrder: () => void;
-  // The bottom sheet passes its own title element, so the panel's heading is
-  // not drawn twice.
+  // The bottom sheet draws its own title.
   hideTitle?: boolean;
   className?: string;
 }
 
 const TITLE_ID = "pos-cart-title";
 
-// The sale: what is in it, what it comes to, and the two ways to finish it.
-// Beside the grid from 1000px; inside the bottom sheet below that.
+// The sale: beside the grid from 1000px, inside the bottom sheet below that.
 export function CartPanel({
   cart,
   scanFlash,
@@ -53,8 +46,7 @@ export function CartPanel({
   const [confirmingClear, setConfirmingClear] = useState(false);
 
   const { totals } = cart;
-  // Every discount on the sale, line and whole-sale together, as the design
-  // shows one "discount" row. Summed in cents — never in floats.
+  // Line and whole-sale discounts as one row, summed in cents — never in floats.
   const discountCents = toCents(totals.itemDiscountTotal) + toCents(totals.orderDiscountAmount);
   const canFinish = !cart.isEmpty && !isSubmitting;
 
@@ -68,7 +60,7 @@ export function CartPanel({
       <div className="flex items-center justify-between gap-3 px-4 pt-4 desk:px-5 desk:pt-5">
         <div className="flex min-w-0 items-baseline gap-2">
           {!hideTitle && <SectionTitle id={TITLE_ID}>{t("screen.cartTitle")}</SectionTitle>}
-          <span className="truncate text-xs text-muted-foreground" data-test-selector="pos-cart-count">
+          <span className="truncate text-micro text-ink-muted" data-test-selector="pos-cart-count">
             {t("search.cartCount", { count: totals.itemCount })}
           </span>
         </div>
@@ -77,7 +69,7 @@ export function CartPanel({
             type="button"
             onClick={() => setConfirmingClear(true)}
             data-test-selector="pos-cart-clear"
-            className="hit-area shrink-0 rounded-md px-1 text-sm text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="hit-area shrink-0 cursor-pointer rounded-control px-1 text-label text-primary-600 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
           >
             {t("screen.clear")}
           </button>
@@ -89,26 +81,22 @@ export function CartPanel({
           role="group"
           aria-label={t("screen.clearConfirmTitle")}
           data-test-selector="pos-cart-clear-confirm"
-          className="mx-4 mt-3 flex flex-wrap items-center gap-2 rounded-control border border-destructive/20 bg-destructive-soft p-2 desk:mx-5"
+          className="mx-4 mt-3 flex flex-wrap items-center gap-2 rounded-control border border-danger-200 bg-danger-50 p-2 desk:mx-5"
         >
-          <p className="min-w-0 flex-1 text-sm font-medium">{t("screen.clearConfirmTitle")}</p>
-          <button
-            type="button"
-            onClick={() => setConfirmingClear(false)}
-            className={cn(CONTROL_HEIGHT, SECONDARY_ACTION, "px-3")}
-          >
+          <p className="min-w-0 flex-1 text-label font-medium text-ink">{t("screen.clearConfirmTitle")}</p>
+          <Button variant="secondary" onClick={() => setConfirmingClear(false)} className={cn(CONTROL_HEIGHT, "px-3")}>
             {t("screen.clearConfirmKeep")}
-          </button>
-          <button
-            type="button"
+          </Button>
+          <Button
+            variant="danger"
             onClick={() => {
               cart.clear();
               setConfirmingClear(false);
             }}
-            className={cn(CONTROL_HEIGHT, "rounded-control bg-destructive px-3 text-sm font-semibold text-destructive-foreground hover:opacity-90")}
+            className={cn(CONTROL_HEIGHT, "px-3 font-semibold")}
           >
             {t("screen.clearConfirmYes")}
-          </button>
+          </Button>
         </div>
       )}
 
@@ -117,9 +105,9 @@ export function CartPanel({
           className="flex flex-1 flex-col items-center justify-center gap-2 px-6 py-12 text-center"
           data-test-selector="pos-cart-empty"
         >
-          <ScanLine className="size-8 text-muted-foreground" aria-hidden="true" />
-          <p className="text-base font-medium">{t("cart.emptyTitle")}</p>
-          <p className="text-sm text-muted-foreground">{t("cart.emptyHint")}</p>
+          <ScanLine className="size-8 text-ink-subtle" aria-hidden="true" />
+          <p className="text-section font-medium text-ink">{t("cart.emptyTitle")}</p>
+          <p className="text-label text-ink-muted">{t("cart.emptyHint")}</p>
         </div>
       ) : (
         <ul className="min-h-0 flex-1 overflow-y-auto px-4 desk:px-5" data-test-selector="pos-cart">
@@ -135,82 +123,72 @@ export function CartPanel({
         </ul>
       )}
 
-      <div className="flex flex-col gap-2 border-t border-border px-4 pb-4 pt-3 desk:px-5 desk:pb-5">
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-subtle-foreground">{t("screen.subtotal")}</span>
-          <span className="font-semibold tabular-nums">{formatMoney(totals.subtotal)}</span>
+      <div className="flex flex-col gap-2 border-t border-line px-4 pb-4 pt-3 desk:px-5 desk:pb-5">
+        <div className="flex items-center justify-between text-label">
+          <span className="text-ink-subtle">{t("screen.subtotal")}</span>
+          <span className="font-semibold text-ink tabular-nums">{formatMoney(totals.subtotal)}</span>
         </div>
-        {/* The whole row is the way to enter a discount on the sale: it is
-            where the cashier is looking when the customer asks for one. */}
+        {/* The whole row enters a discount on the sale: it is where the cashier is looking when asked for one. */}
         <button
           type="button"
           onClick={onDiscount}
           disabled={cart.isEmpty}
           aria-label={t("screen.editDiscount")}
           data-test-selector="pos-order-discount-button"
-          className="hit-area -mx-1 flex items-center justify-between rounded-md px-1 text-sm hover:bg-soft disabled:cursor-default disabled:hover:bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="hit-area -mx-1 flex cursor-pointer items-center justify-between rounded-control px-1 text-label hover:bg-primary-50 disabled:cursor-default disabled:hover:bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
         >
-          <span className="text-subtle-foreground">{t("screen.discount")}</span>
-          <span className={cn("font-semibold tabular-nums", discountCents > 0 && "text-success")}>
+          <span className="text-ink-subtle">{t("screen.discount")}</span>
+          <span className={cn("font-semibold text-ink tabular-nums", discountCents > 0 && "text-success-700")}>
             −&#x2009;{formatMoney(fromCents(discountCents))}
           </span>
         </button>
 
-        {/* What the customer pays, on its own pale-emerald band so it is the
-            first thing an eye finds in the panel. */}
-        <div className="mt-1 flex items-center justify-between gap-3 rounded-control bg-pale px-3.5 py-2.5">
-          <span className="text-base font-bold text-pale-foreground">{t("checkout.total")}</span>
-          <span className="text-2xl font-bold tabular-nums" data-test-selector="pos-cart-total">
+        {/* What the customer pays, on its own band so it is the first thing an eye finds. */}
+        <div className="mt-1 flex items-center justify-between gap-3 rounded-control bg-primary-50 px-3.5 py-2.5">
+          <span className="text-section font-bold text-primary-700">{t("checkout.total")}</span>
+          <span className="text-2xl font-bold text-ink tabular-nums" data-test-selector="pos-cart-total">
             {formatMoney(totals.total)}
           </span>
         </div>
 
         <div className="mt-1 flex items-center gap-2">
-          <button
-            type="button"
+          {/* 52px and bold: the one button on the screen that takes money. */}
+          <Button
             onClick={onCheckout}
             disabled={!canFinish}
+            isLoading={isSubmitting}
             data-test-selector="pos-checkout-button"
-            // 52px and bold: the one button on the screen that takes money.
-            className={cn(
-              PRIMARY_ACTION,
-              "inline-flex h-13 min-w-0 flex-1 items-center justify-center gap-2 px-4 text-base font-bold shadow-primary disabled:shadow-none"
-            )}
+            className="h-13 min-w-0 flex-1 px-4 text-section font-bold shadow-card aria-disabled:shadow-none"
           >
-            {isSubmitting && <Spinner />}
             {isSubmitting ? t("checkout.submitting") : t("checkout.submit")}
-          </button>
-          <button
-            type="button"
+          </Button>
+          <Button
+            variant="secondary"
             onClick={onWhatsappOrder}
             disabled={!canFinish}
             data-test-selector="pos-whatsapp-order-button"
-            className={cn(SECONDARY_ACTION, "inline-flex h-13 shrink-0 items-center justify-center gap-2 px-3")}
+            icon={<MessageCircle className="size-4" aria-hidden="true" />}
+            className="h-13 shrink-0 px-3"
           >
-            <MessageCircle className="size-4" aria-hidden="true" />
             {t("checkout.whatsappOrder")}
-          </button>
+          </Button>
         </div>
 
-        {/* Not in the design, which is drawn for an Employee: an Admin or a
-            Manager can still give a cart away (spec.md "Gifts"). In violet,
-            a row below the sale button, so it is never hit in its place. */}
+        {/* Admin/Manager only (spec.md "Gifts"); a row below the sale button so it is never hit in its place. */}
         {onGift && (
-          <button
-            type="button"
+          <Button
+            variant="secondary"
             onClick={onGift}
             disabled={!canFinish}
             data-test-selector="pos-gift-order-button"
+            icon={<Gift className="size-4" aria-hidden="true" />}
             className={cn(
               CONTROL_HEIGHT,
-              "inline-flex items-center justify-center gap-2 rounded-control border border-gift/40 bg-card px-3 text-sm font-medium text-gift",
-              "transition-colors not-disabled:hover:bg-gift/10 disabled:cursor-not-allowed disabled:opacity-50",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              "border-tint-5-ink/30 text-tint-5-ink hover:border-tint-5-ink hover:bg-tint-5-bg hover:text-tint-5-ink"
             )}
           >
-            <Gift className="size-4" aria-hidden="true" />
             {t("checkout.giftOrder")}
-          </button>
+          </Button>
         )}
       </div>
     </section>

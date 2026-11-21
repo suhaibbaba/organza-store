@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { ArrowLeft, ArrowRight, Printer, TriangleAlert } from "lucide-react";
+import { ArrowLeft, ArrowRight, Printer } from "lucide-react";
 import { can } from "@organza/shared/lib/permissions";
 import { DEFAULT_PAGE } from "@organza/shared/constants/pagination";
 import type { ProductPrintState } from "@organza/shared/types/product";
@@ -51,18 +51,10 @@ import {
   LabelListLoading,
   LabelListSpinnerOverlay,
 } from "@/components/labels/label-states";
-import { Alert } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
-import { Spinner } from "@/components/ui/spinner";
+import { Alert, Button } from "@store/ui";
 import type { LabelListFilters, LabelStep } from "@/types/label";
 
-// Barcode labels (CLAUDE.md rule 13: the store generates its own barcodes, so
-// every piece needs a printed label before it can go on the shelf).
-//
-// Two steps, because that is how the job is actually done: pick the pieces
-// whose labels are still owed, then set how many of each and print. The
-// sheet itself is described entirely by the Setting singleton, so the same
-// screen drives a thermal roll printer or an A4 sticker sheet.
+// Barcode labels (rule 13): pick the pieces still owed a label, then set copies and print; the sheet comes from Settings.
 
 function LabelsPageContent() {
   const t = useTranslations("labels");
@@ -74,11 +66,9 @@ function LabelsPageContent() {
   const [searchInput, setSearchInput] = useState("");
   const [filters, setFilters] = useState<LabelListFilters>(DEFAULT_LABEL_FILTERS);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  // Only the counts the user actually changed. Everything else falls back to
-  // the suggestion, so a selection change can never strand a stale number.
+  // Only counts the user changed; the rest fall back to the suggestion so none goes stale.
   const [copyOverrides, setCopyOverrides] = useState<Record<string, string>>({});
-  // Set when the browser's print dialog closes. The browser never tells us
-  // whether anything came out of the printer, so we ask instead of guessing.
+  // The browser never says whether anything printed, so we ask once its dialog closes.
   const [printDialogClosed, setPrintDialogClosed] = useState(false);
 
   const debouncedSearch = useDebouncedValue(searchInput, LABEL_SEARCH_DEBOUNCE_MS);
@@ -97,9 +87,7 @@ function LabelsPageContent() {
   const products = list.data?.products ?? [];
   const selectedSet = new Set(selectedIds);
 
-  // One line per thing that gets its own sticker. Held in memos all the way
-  // down to the sheet: a print run can be hundreds of labels, and it must not
-  // be rebuilt on every keystroke in a copies field.
+  // Memoised down to the sheet: a run can be hundreds of labels, not rebuilt per keystroke.
   const lines = useMemo(
     () => selectedProducts.flatMap((product) => buildLabelLines(product, locale)),
     [selectedProducts, locale]
@@ -116,8 +104,7 @@ function LabelsPageContent() {
   const runTooLarge = totalLabels > LABEL_RUN_MAX;
 
   const items = useMemo(() => (runTooLarge ? [] : expandLabels(lines, copies)), [lines, copies, runTooLarge]);
-  // The preview redraws a whole sheet; letting it trail the input by a moment
-  // keeps typing a count responsive on a phone.
+  // The preview trails the input so typing a count stays responsive on a phone.
   const previewItems = useDebouncedValue(items, PREVIEW_DEBOUNCE_MS);
 
   useEffect(() => {
@@ -160,8 +147,6 @@ function LabelsPageContent() {
   function handleMarkPrinted() {
     markPrinted.mutate(selectedIds, {
       onSuccess: () => {
-        // Back to a clean slate: the products just printed drop out of the
-        // "not printed yet" list on the refetch the mutation triggers.
         setSelectedIds([]);
         setCopyOverrides({});
         setPrintDialogClosed(false);
@@ -176,10 +161,9 @@ function LabelsPageContent() {
   if (step === "prepare") {
     return (
       <PageContainer>
-        {/* Above the header, not inside it: this steps back through the
-            screen's own two stages rather than acting on it. */}
+        {/* Above the header: steps back through the screen's own two stages. */}
         <div className="mb-4 flex items-center gap-2">
-          <Button type="button" variant="ghost" size="sm" onClick={() => setStep("select")}>
+          <Button type="button" variant="quiet" size="sm" className="-ms-2 px-2" onClick={() => setStep("select")}>
             <ArrowLeft className="size-4 rtl:-scale-x-100" aria-hidden="true" />
             {t("prepare.back")}
           </Button>
@@ -193,30 +177,28 @@ function LabelsPageContent() {
 
         <div className="flex flex-col gap-4">
           {markPrinted.isSuccess && (
-            <Alert variant="success">
-              <p>{t("print.marked")}</p>
+            <Alert tone="success" data-testid="alert-success">
+              {t("print.marked")}
             </Alert>
           )}
 
           {printDialogClosed && !markPrinted.isSuccess && (
-            <Alert className="flex-col items-stretch gap-3">
-              <div>
-                <p className="font-medium">{t("print.confirmTitle")}</p>
-                <p className="mt-1 text-muted-foreground">{t("print.confirmDescription")}</p>
-              </div>
-              {markPrinted.isError && (
-                <p className="text-destructive">
-                  {translateError(markPrinted.error instanceof ApiError ? markPrinted.error.code : "error.internal")}
-                </p>
-              )}
-              <div className="flex flex-col gap-2 sm:flex-row">
-                <Button type="button" onClick={handleMarkPrinted} disabled={markPrinted.isPending}>
-                  {markPrinted.isPending ? <Spinner className="size-4" /> : null}
-                  {t("print.confirmYes")}
-                </Button>
-                <Button type="button" variant="outline" onClick={() => setPrintDialogClosed(false)}>
-                  {t("print.confirmNo")}
-                </Button>
+            <Alert tone="info" data-testid="alert-default" title={t("print.confirmTitle")}>
+              <div className="flex flex-col gap-3">
+                <p>{t("print.confirmDescription")}</p>
+                {markPrinted.isError && (
+                  <p className="text-danger-600" role="alert">
+                    {translateError(markPrinted.error instanceof ApiError ? markPrinted.error.code : "error.internal")}
+                  </p>
+                )}
+                <div className="flex flex-col gap-2 sm:flex-row">
+                  <Button type="button" onClick={handleMarkPrinted} isLoading={markPrinted.isPending}>
+                    {t("print.confirmYes")}
+                  </Button>
+                  <Button type="button" variant="secondary" onClick={() => setPrintDialogClosed(false)}>
+                    {t("print.confirmNo")}
+                  </Button>
+                </div>
               </div>
             </Alert>
           )}
@@ -229,9 +211,9 @@ function LabelsPageContent() {
             <LabelListLoading />
           ) : (
             <>
-              <div className="rounded-xl border border-border bg-card p-3">
-                <p className="text-sm font-medium text-foreground">{t("sheet.title")}</p>
-                <p className="mt-0.5 text-sm text-muted-foreground">
+              <div className="rounded-card border border-line bg-surface p-4 shadow-card" data-test-selector="label-sheet-summary">
+                <p className="text-label font-medium text-ink">{t("sheet.title")}</p>
+                <p className="mt-0.5 text-label text-ink-muted">
                   {geometry.printMode === "A4_GRID"
                     ? t("sheet.a4", {
                         width: geometry.widthMm,
@@ -242,23 +224,21 @@ function LabelsPageContent() {
                     : t("sheet.thermal", { width: geometry.widthMm, height: geometry.heightMm })}
                 </p>
                 {can(user, "settings.manage") && (
-                  <Link href="/settings" className="mt-2 inline-block text-sm font-medium text-primary underline">
+                  <Link href="/settings" className="mt-2 inline-block text-label font-medium text-primary-600 underline hover:text-primary-700">
                     {t("sheet.change")}
                   </Link>
                 )}
               </div>
 
               {geometry.widthMm < MIN_SCANNABLE_LABEL_WIDTH_MM && (
-                <Alert>
-                  <TriangleAlert className="size-5 shrink-0" aria-hidden="true" />
-                  <p>{t("warnings.smallLabel", { width: MIN_SCANNABLE_LABEL_WIDTH_MM })}</p>
+                <Alert tone="warning" data-testid="alert-default">
+                  {t("warnings.smallLabel", { width: MIN_SCANNABLE_LABEL_WIDTH_MM })}
                 </Alert>
               )}
 
               {gridOverflowsPage(geometry) && (
-                <Alert variant="destructive">
-                  <TriangleAlert className="size-5 shrink-0" aria-hidden="true" />
-                  <p>{t("warnings.gridOverflow")}</p>
+                <Alert tone="danger" data-testid="alert-destructive">
+                  {t("warnings.gridOverflow")}
                 </Alert>
               )}
 
@@ -269,29 +249,26 @@ function LabelsPageContent() {
               />
 
               {runTooLarge ? (
-                <Alert variant="destructive">
-                  <TriangleAlert className="size-5 shrink-0" aria-hidden="true" />
-                  <p>{t("warnings.tooManyLabels", { max: LABEL_RUN_MAX })}</p>
+                <Alert tone="danger" data-testid="alert-destructive">
+                  {t("warnings.tooManyLabels", { max: LABEL_RUN_MAX })}
                 </Alert>
               ) : totalLabels === 0 ? (
-                <Alert>
-                  <p>{t("warnings.noLabels")}</p>
+                <Alert tone="info" data-testid="alert-default">
+                  {t("warnings.noLabels")}
                 </Alert>
               ) : (
                 <>
                   <LabelPreview items={previewItems} geometry={geometry} />
-                  {/* The copy the browser prints — same component, same props,
-                      rendered outside the app layout so nothing around it can
-                      shift or clip a label. */}
+                  {/* What the browser prints, rendered outside the app layout so nothing can clip a label. */}
                   <LabelPrintPortal geometry={geometry}>
                     <LabelSheet items={items} geometry={geometry} />
                   </LabelPrintPortal>
                 </>
               )}
 
-              <div className="sticky bottom-[var(--bottom-bar-inset)] z-20 -mx-4 border-t border-border bg-background px-4 py-3 md:mx-0 md:rounded-xl md:border">
+              <div className="sticky bottom-[var(--bottom-bar-inset)] z-20 -mx-4 border-t border-line bg-surface px-4 py-3 md:mx-0 md:rounded-panel md:border md:shadow-float">
                 <div className="flex items-center justify-between gap-3">
-                  <span className="text-sm text-muted-foreground">{t("prepare.totalLabels", { count: totalLabels })}</span>
+                  <span className="text-label text-ink-muted">{t("prepare.totalLabels", { count: totalLabels })}</span>
                   <Button type="button" onClick={handlePrint} disabled={totalLabels === 0 || runTooLarge}>
                     <Printer className="size-5" aria-hidden="true" />
                     {t("prepare.print")}
@@ -312,8 +289,8 @@ function LabelsPageContent() {
 
       <div className="flex flex-col gap-4">
         {markPrinted.isSuccess && (
-          <Alert variant="success">
-            <p>{t("print.marked")}</p>
+          <Alert tone="success" data-testid="alert-success">
+            {t("print.marked")}
           </Alert>
         )}
 
@@ -336,11 +313,11 @@ function LabelsPageContent() {
         ) : (
           <>
             <div className="flex items-center justify-between gap-3">
-              <Button type="button" variant="outline" size="sm" onClick={selectAllOnPage}>
+              <Button type="button" variant="secondary" size="sm" onClick={selectAllOnPage}>
                 {t("selectAll")}
               </Button>
               {selectedIds.length > 0 && (
-                <Button type="button" variant="ghost" size="sm" onClick={() => setSelectedIds([])}>
+                <Button type="button" variant="quiet" size="sm" onClick={() => setSelectedIds([])}>
                   {t("clearSelection")}
                 </Button>
               )}
@@ -348,8 +325,6 @@ function LabelsPageContent() {
 
             {list.isFetching && <LabelListSpinnerOverlay />}
 
-            {/* A pick-list of thumbnails and names: several fit across a desk
-                screen, one across a phone, exactly as before. */}
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
               {products.map((product) => (
                 <LabelProductRow
@@ -365,9 +340,9 @@ function LabelsPageContent() {
           </>
         )}
 
-        <div className="sticky bottom-[var(--bottom-bar-inset)] z-20 -mx-4 border-t border-border bg-background px-4 py-3 md:mx-0 md:rounded-xl md:border">
+        <div className="sticky bottom-[var(--bottom-bar-inset)] z-20 -mx-4 border-t border-line bg-surface px-4 py-3 md:mx-0 md:rounded-panel md:border md:shadow-float">
           <div className="flex items-center justify-between gap-3">
-            <span className="text-sm text-muted-foreground">{t("selectedCount", { count: selectedIds.length })}</span>
+            <span className="text-label text-ink-muted">{t("selectedCount", { count: selectedIds.length })}</span>
             <Button type="button" onClick={() => setStep("prepare")} disabled={selectedIds.length === 0}>
               {t("next")}
               <ArrowRight className="size-5 rtl:-scale-x-100" aria-hidden="true" />

@@ -10,9 +10,6 @@ import {
 } from "@/constants/design-system";
 import { ShowcaseSection } from "@/components/design-system/showcase-section";
 
-// The tokens themselves: every colour, the type scale, the corners and the
-// shadows, each drawn from its CSS variable so the page shows what the theme
-// actually paints.
 export function Foundations() {
   const t = useTranslations("designSystem");
 

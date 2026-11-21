@@ -8,11 +8,7 @@ import { Foundations } from "@/components/design-system/foundations";
 import { Controls } from "@/components/design-system/controls";
 import { Displays } from "@/components/design-system/displays";
 
-// The Store Management design system, as Organza's theme paints it: every
-// component of @store/ui in the states a screen puts it in, for reviewing the
-// look rather than using the shop. The ADMIN role only — it is not a
-// configurable permission (CLAUDE.md rule 22) because it carries no shop data
-// and no other role has a reason to open it.
+// ADMIN role only on purpose: not a configurable permission, it carries no shop data.
 export default function DesignSystemPage() {
   const { user } = useSession();
 

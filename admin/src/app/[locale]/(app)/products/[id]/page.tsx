@@ -2,7 +2,7 @@
 
 import { useParams } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
-import { ChevronLeft, PackageX, Pencil } from "lucide-react";
+import { ChevronLeft, Pencil } from "lucide-react";
 import type { Product } from "@organza/shared/types/product";
 import { BARCODE_SOURCE } from "@organza/shared/constants/barcode";
 import { can } from "@organza/shared/lib/permissions";
@@ -12,7 +12,7 @@ import { useSettingsQuery } from "@/hooks/use-settings";
 import { useSession } from "@/components/providers/session-provider";
 import { localize } from "@/lib/i18n-content";
 import { formatMoney } from "@/lib/format";
-import { Button } from "@/components/ui/button";
+import { buttonClassName, EmptyState } from "@store/ui";
 import { PageContainer } from "@/components/layout/page-container";
 import { PageHeader } from "@/components/layout/page-header";
 import { ProductGallery } from "@/components/products/product-gallery";
@@ -42,11 +42,11 @@ export default function ProductDetailPage() {
 
   return (
     <PageContainer>
-      {/* Above the header, not inside it: this is the way out of the screen,
-          not one of its actions. */}
+      {/* Above the header: the way out of the screen, not one of its actions. */}
       <Link
         href="/products"
-        className="mb-4 inline-flex w-fit items-center gap-1 text-sm text-muted-foreground"
+        data-test-selector="back-link"
+        className="mb-4 inline-flex w-fit items-center gap-1 text-label text-ink-muted transition-colors hover:text-primary-700"
       >
         <ChevronLeft className="size-4 rtl:-scale-x-100" aria-hidden="true" />
         {t("back")}
@@ -55,13 +55,12 @@ export default function ProductDetailPage() {
       {isLoading ? (
         <ProductListLoading />
       ) : notFound || !product ? (
-        <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-border py-16 text-center">
-          <PackageX className="size-10 text-muted-foreground" aria-hidden="true" />
-          <div>
-            <p className="font-medium text-foreground">{t("notFoundTitle")}</p>
-            <p className="mt-1 text-sm text-muted-foreground">{t("notFoundDescription")}</p>
-          </div>
-        </div>
+        <EmptyState
+          data-testid="product-not-found"
+          icon="package"
+          title="products.detail.notFoundTitle"
+          hint="products.detail.notFoundDescription"
+        />
       ) : isError ? (
         <ProductListError error={error} onRetry={() => void refetch()} />
       ) : (
@@ -74,11 +73,7 @@ export default function ProductDetailPage() {
 function ProductDetail({ product, currency, locale }: { product: Product; currency: string; locale: string }) {
   const t = useTranslations("products.detail");
   const { user } = useSession();
-  // One way in and one thing to press: Edit. Everything editable about a
-  // product — including its photos — lives on the edit screen, so this page
-  // only ever shows. What a given role may change once there is decided
-  // there (price, stock and visibility are gated separately — CLAUDE.md
-  // rule 5).
+  // This page only shows; everything editable (photos included) lives behind Edit, gated per field there (rule 5).
   const canEditDetails = can(user, "product.edit");
   const name = localize(product.name, locale);
   const description = localize(product.description, locale);
@@ -86,17 +81,13 @@ function ProductDetail({ product, currency, locale }: { product: Product; curren
 
   return (
     <div className="flex flex-col gap-5">
-      {/* A numbered shawl is its numbers: show the photo they were placed on,
-          with them on it. Any other product gets the ordinary gallery. */}
+      {/* A numbered shawl shows its points on the photo; anything else gets the gallery. */}
       {hasPlacedShawlPoints(product) ? (
         <NumberedShawlPreview product={product} />
       ) : (
         <ProductGallery images={product.images} alt={name} />
       )}
 
-      {/* The product's own name is this screen's title, and its category the
-          one line under it — so the page header sits below the photographs
-          rather than above them, which is where the name has always been. */}
       <PageHeader
         name="product-detail"
         className="mb-0"
@@ -105,16 +96,9 @@ function ProductDetail({ product, currency, locale }: { product: Product; curren
         actions={
           <>
             <StatusBadge isActive={product.isActive} />
-            {/* Sold before it was entered, and still missing the half the
-                cashier skipped (spec.md "Quick sell"). Said here as well as
-                in the list, because this page is where somebody lands from a
-                search and its blanks — no category under the title, no cost,
-                no photograph — would otherwise read as a broken record. */}
+            {/* Quick-sold and incomplete (rule 23): without the badge its blanks read as a broken record. */}
             {product.needsCompleting && <IncompleteBadge />}
-            {/* Their edit did not vanish — it is waiting (spec.md "Employee
-                change approvals"). Shown to everybody, not just the person
-                who asked: an Admin looking at the product should see that
-                somebody wants it hidden. */}
+            {/* A waiting change, shown to everybody so an Admin sees someone wants it hidden. */}
             <PendingChangeBadge
               changes={product.pendingChanges}
               entityType={CHANGE_REQUEST_ENTITIES.PRODUCT}
@@ -122,12 +106,14 @@ function ProductDetail({ product, currency, locale }: { product: Product; curren
               field={CHANGE_REQUEST_FIELDS.PRODUCT_IS_ACTIVE}
             />
             {canEditDetails && (
-              <Button asChild variant="outline" size="sm" data-test-selector="product-edit">
-                <Link href={`/products/${product.id}/edit`}>
-                  <Pencil className="size-4" aria-hidden="true" />
-                  {t("edit")}
-                </Link>
-              </Button>
+              <Link
+                href={`/products/${product.id}/edit`}
+                data-test-selector="product-edit"
+                className={buttonClassName({ variant: "secondary", size: "sm" })}
+              >
+                <Pencil className="size-4" aria-hidden="true" />
+                {t("edit")}
+              </Link>
             )}
           </>
         }
@@ -135,9 +121,9 @@ function ProductDetail({ product, currency, locale }: { product: Product; curren
 
       <div className="flex flex-col gap-2">
         <div className="flex flex-wrap items-baseline gap-2">
-          <span className="text-xl font-semibold text-foreground">{formatMoney(product.basePrice, currency, locale)}</span>
+          <span className="text-heading font-semibold text-ink">{formatMoney(product.basePrice, currency, locale)}</span>
           {product.compareAtPrice && (
-            <span className="text-sm text-muted-foreground line-through">
+            <span className="text-label text-ink-muted line-through">
               {formatMoney(product.compareAtPrice, currency, locale)}
             </span>
           )}
@@ -149,44 +135,40 @@ function ProductDetail({ product, currency, locale }: { product: Product; curren
           />
         </div>
         {showCost && product.cost && (
-          <p className="text-sm text-muted-foreground">
+          <p className="text-label text-ink-muted">
             {t("cost")}: {formatMoney(product.cost, currency, locale)}
           </p>
         )}
       </div>
 
-      {/* The barcode stands on its own, outside the simple-product block: a
-          product WITH variants can carry one too — a supplier's single code for
-          every size, stuck on the parent — and scanning it in the POS opens the
-          variant picker rather than selling anything. */}
-      <dl className="grid grid-cols-2 gap-3 rounded-xl border border-border bg-card p-4 text-sm">
+      {/* Outside the simple-product block: a parent can carry one supplier code for every variant (rule 13). */}
+      <dl className="grid grid-cols-2 gap-3 rounded-card border border-line bg-surface p-4 text-label shadow-card">
         <div>
-          <dt className="text-muted-foreground">{t("barcode")}</dt>
-          {/* Long-pressable on purpose (globals.css "An app, not a page"):
-              a barcode is one of the few strings here worth copying out. */}
-          <dd className="font-medium text-foreground" dir="ltr" {...SELECTABLE}>
+          <dt className="text-ink-muted">{t("barcode")}</dt>
+          {/* Selectable on purpose: a barcode is worth copying out. */}
+          <dd className="font-medium text-ink" dir="ltr" {...SELECTABLE}>
             {product.barcode ?? "—"}
           </dd>
         </div>
         <div>
-          <dt className="text-muted-foreground">{t("barcodeSource")}</dt>
-          <dd className="font-medium text-foreground">
+          <dt className="text-ink-muted">{t("barcodeSource")}</dt>
+          <dd className="font-medium text-ink">
             {product.barcodeSource === BARCODE_SOURCE.SUPPLIER ? t("barcodeSupplier") : t("barcodeGenerated")}
           </dd>
         </div>
       </dl>
 
       {!product.hasVariants && (
-        <dl className="grid grid-cols-2 gap-3 rounded-xl border border-border bg-card p-4 text-sm">
+        <dl className="grid grid-cols-2 gap-3 rounded-card border border-line bg-surface p-4 text-label shadow-card">
           <div>
-            <dt className="text-muted-foreground">{t("sku")}</dt>
-            <dd className="font-medium text-foreground" {...SELECTABLE}>
+            <dt className="text-ink-muted">{t("sku")}</dt>
+            <dd className="font-medium text-ink" {...SELECTABLE}>
               {product.sku ?? "—"}
             </dd>
           </div>
           <div>
-            <dt className="text-muted-foreground">{t("stock")}</dt>
-            <dd className="flex flex-wrap items-center gap-2 font-medium text-foreground">
+            <dt className="text-ink-muted">{t("stock")}</dt>
+            <dd className="flex flex-wrap items-center gap-2 font-medium text-ink">
               {product.stock ?? 0}
               <PendingChangeBadge
                 changes={product.pendingChanges}
@@ -201,14 +183,14 @@ function ProductDetail({ product, currency, locale }: { product: Product; curren
 
       {description && (
         <div>
-          <h2 className="text-sm font-medium text-foreground">{t("descriptionTitle")}</h2>
-          <p className="mt-1 text-sm text-muted-foreground">{description}</p>
+          <h2 className="text-label font-medium text-ink">{t("descriptionTitle")}</h2>
+          <p className="mt-1 text-label text-ink-muted">{description}</p>
         </div>
       )}
 
       {product.hasVariants && (
         <div>
-          <h2 className="mb-2 flex flex-wrap items-center gap-2 text-sm font-medium text-foreground">
+          <h2 className="mb-2 flex flex-wrap items-center gap-2 text-label font-medium text-ink">
             {t("variantsTitle")} · {t("variantsCount", { count: product.variants.length })}
             <PendingChangeBadge
               changes={product.pendingChanges}

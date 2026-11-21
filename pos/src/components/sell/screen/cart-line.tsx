@@ -12,8 +12,9 @@ import { lineTotal } from "@/lib/cart";
 import { localize } from "@/lib/i18n-content";
 import { cn } from "@/lib/utils";
 import { ProductThumb } from "@/components/sell/product-thumb";
-import { QuantityStepper } from "@/components/ui/quantity-stepper";
-import { CONTROL_HEIGHT, SECONDARY_ACTION } from "@/components/sell/screen/control-styles";
+import { QuantityStepper } from "@/components/fields/quantity-stepper";
+import { Button } from "@store/ui";
+import { CONTROL_HEIGHT } from "@/components/sell/screen/control-styles";
 import type { CartLine as CartLineData } from "@/types/cart";
 import type { ScanFlash } from "@/types/feedback";
 
@@ -25,22 +26,16 @@ interface CartLineProps {
   onRemove: () => void;
 }
 
-// A variant's name is its option values joined by " / " (backend
-// lib/variantCombo.ts) — "M / أخضر" — and the design draws each value as a
-// chip of its own.
+// A variant's name is its option values joined by " / " (backend lib/variantCombo.ts); each is drawn as a chip.
 const VARIANT_NAME_SEPARATOR = " / ";
 
-// One line of the sale: photo, name, the chosen options as chips, the
-// quantity stepper, delete, and what the line comes to.
 export function CartLine({ line, flash, onQuantityChange, onRemove }: CartLineProps) {
   const t = useTranslations("sell");
   const locale = useLocale();
   const formatMoney = useMoneyFormatter();
   const discountLabel = useDiscountLabel();
 
-  // Taking a line off the sale is asked about, inside the line — never in a
-  // dialog over the counter. Held as the quantity it was asked at, so a scan
-  // of the same piece while it is open withdraws the question.
+  // Removal is confirmed inside the line, keyed to the quantity asked at, so a scan of the same piece withdraws the question.
   const [confirmingAt, setConfirmingAt] = useState<number | null>(null);
   const confirmingRemove = confirmingAt === line.quantity;
 
@@ -53,8 +48,8 @@ export function CartLine({ line, flash, onQuantityChange, onRemove }: CartLinePr
   return (
     <li
       className={cn(
-        "relative flex flex-col gap-2 border-b border-border-light py-3 transition-colors last:border-b-0",
-        flash && "-mx-2 rounded-control bg-pale px-2"
+        "relative flex flex-col gap-2 border-b border-line py-3 transition-colors last:border-b-0",
+        flash && "-mx-2 rounded-control bg-primary-50 px-2"
       )}
       data-test-selector={testSelectorFor("pos-cart-line", line.key)}
     >
@@ -63,27 +58,27 @@ export function CartLine({ line, flash, onQuantityChange, onRemove }: CartLinePr
           src={line.imageUrl}
           alt={name}
           sizes={SELL_CART_THUMB_SIZES}
-          className="size-13 rounded-photo bg-soft"
+          className="size-13 rounded-photo bg-sunken"
         />
         <div className="flex min-w-0 flex-1 flex-col items-start gap-1">
-          <span className="w-full truncate text-sm font-semibold">{name}</span>
+          <span className="w-full truncate text-label font-semibold text-ink">{name}</span>
           {(chips.length > 0 || line.quickSell) && (
             <span className="flex flex-wrap gap-1">
               {line.quickSell && (
-                <span className="inline-flex items-center gap-1 rounded-md bg-quick px-1.5 text-xs text-quick-foreground">
+                <span className="inline-flex items-center gap-1 rounded-chip border border-warning-300 bg-warning-50 px-1.5 text-micro text-warning-800">
                   <Zap className="size-3" aria-hidden="true" />
                   {t("cart.quickSold")}
                 </span>
               )}
               {chips.map((chip) => (
-                <span key={chip} className="rounded-md bg-soft px-1.5 text-xs text-muted-foreground">
+                <span key={chip} className="rounded-chip bg-inset px-1.5 text-micro text-ink-muted">
                   {chip}
                 </span>
               ))}
             </span>
           )}
           {appliedDiscount && (
-            <span className="text-xs font-medium text-success">{t("cart.discountValue", { value: appliedDiscount })}</span>
+            <span className="text-micro font-medium text-success-700">{t("cart.discountValue", { value: appliedDiscount })}</span>
           )}
           <div className="mt-1 flex w-full items-center gap-2">
             <QuantityStepper
@@ -105,13 +100,13 @@ export function CartLine({ line, flash, onQuantityChange, onRemove }: CartLinePr
               data-test-selector={testSelectorFor("pos-cart-line-remove", line.key)}
               // Matches the 40px stepper beside it; hit-area keeps 44px.
               className={cn(
-                "hit-area flex size-10 shrink-0 items-center justify-center rounded-control border border-border text-muted-foreground transition-colors",
-                "hover:border-destructive/40 hover:bg-destructive/10 hover:text-destructive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                "hit-area flex size-10 shrink-0 cursor-pointer items-center justify-center rounded-control border border-line bg-surface text-ink-muted transition-colors",
+                "hover:border-danger-500 hover:bg-danger-50 hover:text-danger-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
               )}
             >
               <Trash2 className="size-4" aria-hidden="true" />
             </button>
-            <span className="ms-auto text-base font-bold tabular-nums">{formatMoney(lineTotal(line))}</span>
+            <span className="ms-auto text-section font-bold text-ink tabular-nums">{formatMoney(lineTotal(line))}</span>
           </div>
         </div>
       </div>
@@ -121,32 +116,23 @@ export function CartLine({ line, flash, onQuantityChange, onRemove }: CartLinePr
           role="group"
           aria-label={t("cart.removeConfirmTitle")}
           data-test-selector={testSelectorFor("pos-cart-line-remove-confirm", line.key)}
-          className="flex flex-wrap items-center gap-2 rounded-control border border-destructive/20 bg-destructive-soft p-2"
+          className="flex flex-wrap items-center gap-2 rounded-control border border-danger-200 bg-danger-50 p-2"
         >
-          <p className="min-w-0 flex-1 text-sm font-medium">{t("cart.removeConfirmTitle")}</p>
-          <button
-            type="button"
-            onClick={() => setConfirmingAt(null)}
-            className={cn(CONTROL_HEIGHT, SECONDARY_ACTION, "px-3")}
-          >
+          <p className="min-w-0 flex-1 text-label font-medium text-ink">{t("cart.removeConfirmTitle")}</p>
+          <Button variant="secondary" onClick={() => setConfirmingAt(null)} className={cn(CONTROL_HEIGHT, "px-3")}>
             {t("cart.removeConfirmKeep")}
-          </button>
-          <button
-            type="button"
-            onClick={onRemove}
-            className={cn(CONTROL_HEIGHT, "rounded-control bg-destructive px-3 text-sm font-semibold text-destructive-foreground hover:opacity-90")}
-          >
+          </Button>
+          <Button variant="danger" onClick={onRemove} className={cn(CONTROL_HEIGHT, "px-3 font-semibold")}>
             {t("cart.removeConfirmYes")}
-          </button>
+          </Button>
         </div>
       )}
 
-      {/* The read, acknowledged: drains over the window in which the same
-          barcode is ignored (use-scan-flash). */}
+      {/* Drains over the window in which the same barcode is ignored (use-scan-flash). */}
       {flash && (
         <span
           key={flash.token}
-          className="animate-scan-flash-bar absolute bottom-0 start-0 h-1 w-full rounded-full bg-primary"
+          className="animate-scan-flash-bar absolute bottom-0 start-0 h-1 w-full rounded-pill bg-primary-600"
           style={{ animationDuration: `${SCAN_FLASH_MS}ms` }}
           aria-hidden="true"
         />

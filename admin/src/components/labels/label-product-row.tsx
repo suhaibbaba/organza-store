@@ -5,7 +5,6 @@ import type { ProductSummary } from "@organza/shared/types/product";
 import { testSelectorFor } from "@organza/shared/lib/testSelector";
 import { localize } from "@/lib/i18n-content";
 import { formatDate } from "@/lib/format";
-import { Checkbox } from "@/components/ui/checkbox";
 import { ProductImage } from "@/components/products/product-image";
 import { NumberedBadge } from "@/components/products/numbered-badge";
 
@@ -15,8 +14,7 @@ interface LabelProductRowProps {
   onToggle: (productId: string, selected: boolean) => void;
 }
 
-// The whole row is the tap target — a checkbox alone is a poor target on a
-// phone, and this list is worked through in batches.
+// The whole row is the tap target — a checkbox alone is a poor target on a phone.
 export function LabelProductRow({ product, selected, onToggle }: LabelProductRowProps) {
   const locale = useLocale();
   const t = useTranslations("labels.row");
@@ -25,30 +23,30 @@ export function LabelProductRow({ product, selected, onToggle }: LabelProductRow
 
   return (
     <label
-      className="flex cursor-pointer items-center gap-3 rounded-xl border border-border bg-card p-3 transition-colors active:bg-accent has-[:checked]:border-primary"
+      className="flex cursor-pointer items-center gap-3 rounded-card border border-line bg-surface p-3 shadow-card transition-colors hover:bg-row-hover active:bg-inset has-[:checked]:border-selected-line has-[:checked]:bg-selected"
       data-test-selector={testSelectorFor("label-row", product.id)}
     >
-      <Checkbox
+      {/* Native input: the row is already the <label>, and a nested label would double-toggle. */}
+      <input
+        type="checkbox"
         checked={selected}
-        onCheckedChange={(checked) => onToggle(product.id, checked === true)}
+        onChange={(event) => onToggle(product.id, event.target.checked)}
         aria-label={t("select", { name })}
+        className="size-5 shrink-0 cursor-pointer rounded-chip accent-primary-600"
       />
 
-      <ProductImage src={product.image?.thumbnailUrl} alt="" className="size-12 shrink-0 rounded-lg" sizes="48px" />
+      <ProductImage src={product.image?.thumbnailUrl} alt="" className="size-12 shrink-0 rounded-chip" sizes="48px" />
 
       <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-medium text-foreground">{name}</p>
+        <p className="truncate text-label font-medium text-ink">{name}</p>
         <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1">
-          <span className="text-xs text-muted-foreground">
+          <span className="text-meta text-ink-muted">
             {product.hasVariants ? t("variants", { count: product.variantCount }) : (product.sku ?? "")}
           </span>
           {product.isNumbered && <NumberedBadge count={product.numberCount} />}
         </div>
-        {/* Helpful, never a block: a product that has been printed before can
-            always be printed again — and a piece that arrived already barcoded
-            says so instead of claiming a label is owed. It is still selectable:
-            printing our own label over the supplier's code is allowed. */}
-        <p className="mt-1 text-xs text-muted-foreground">
+        {/* Informational, never a block: reprints and our label over a supplier's code are allowed. */}
+        <p className="mt-1 text-meta text-ink-subtle">
           {!product.needsLabel
             ? t("supplierBarcode")
             : printedAt

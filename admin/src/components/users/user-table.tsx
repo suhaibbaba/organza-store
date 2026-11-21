@@ -15,8 +15,6 @@ type UserTableProps = Omit<UserRowActionsProps, "user" | "size"> & { users: User
 
 export function UserTable({ users, ...actions }: UserTableProps) {
   const tTable = useTranslations("users.table");
-  // Same rule as the card view of this list (lib/user-display.ts): the row
-  // reads as a name, never as an internal id.
   const display = useUserDisplay();
 
   const columns = useMemo<ColumnDef<User>[]>(
@@ -26,8 +24,8 @@ export function UserTable({ users, ...actions }: UserTableProps) {
         header: tTable("name"),
         cell: ({ row }) => (
           <div>
-            <p className="font-medium text-foreground">{display(row.original).name}</p>
-            <p className="text-xs text-muted-foreground" dir="ltr">
+            <p className="font-medium text-ink">{display(row.original).name}</p>
+            <p className="text-meta text-ink-muted" dir="ltr">
               {row.original.email}
             </p>
           </div>
@@ -42,7 +40,7 @@ export function UserTable({ users, ...actions }: UserTableProps) {
         id: "phone",
         header: tTable("phone"),
         cell: ({ row }) => (
-          <span dir="ltr" className="text-muted-foreground">
+          <span dir="ltr" className="text-ink-muted">
             {row.original.phone}
           </span>
         ),
@@ -69,9 +67,9 @@ export function UserTable({ users, ...actions }: UserTableProps) {
   const table = useReactTable({ data: users, columns, getCoreRowModel: getCoreRowModel() });
 
   return (
-    <div className="overflow-hidden rounded-xl border border-border" data-test-selector="users-table">
-      <table className="w-full text-sm">
-        <thead className="bg-secondary text-secondary-foreground">
+    <div className="overflow-hidden rounded-card border border-line bg-surface shadow-card" data-test-selector="users-table">
+      <table className="w-full text-label">
+        <thead className="bg-table-head text-ink-muted">
           {table.getHeaderGroups().map((headerGroup) => (
             <tr key={headerGroup.id}>
               {headerGroup.headers.map((header) => (
@@ -86,7 +84,7 @@ export function UserTable({ users, ...actions }: UserTableProps) {
           {table.getRowModel().rows.map((row) => (
             <tr
               key={row.id}
-              className="border-t border-border"
+              className="border-t border-line hover:bg-row-hover"
               data-test-selector={testSelectorFor("users-row", row.original.id)}
             >
               {row.getVisibleCells().map((cell) => (

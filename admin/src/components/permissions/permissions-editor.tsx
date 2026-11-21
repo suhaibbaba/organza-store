@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
-import { Lock, ShieldCheck } from "lucide-react";
+import { Alert, Card, SegmentedControl } from "@store/ui";
 import { isFixedRole, isProtectedAction } from "@organza/shared/lib/permissions";
 import type { PermissionAction, PermissionMatrixPayload } from "@organza/shared/types/permission";
 import type { Role } from "@organza/shared/types/role";
@@ -10,28 +10,12 @@ import { PERMISSION_GROUPS, PERMISSION_MATRIX_ROLES } from "@/constants/permissi
 import { useUpdateRolePermissionsMutation } from "@/hooks/use-permissions";
 import { useTranslateError } from "@/hooks/use-translate-error";
 import { useSession } from "@/components/providers/session-provider";
-import { Alert } from "@/components/ui/alert";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { SegmentedControl } from "@/components/ui/segmented-control";
 import { PermissionLock } from "@/components/permissions/permission-lock";
 import { PermissionToggle } from "@/components/permissions/permission-toggle";
 import { ApiError } from "@/lib/api/errors";
 import type { PermissionLockReason } from "@/types/permission";
 
-// The Permissions screen (spec.md "Editable role permissions").
-//
-// Two renderings of one model, because the two readers are different:
-//
-//   * a PHONE, which is ~95% of use (CLAUDE.md): one role at a time, picked
-//     with a segmented control, then a plain list of switches grouped by the
-//     part of the shop they belong to. A 3-by-45 grid on a 390px screen is
-//     not a matrix, it is a wall.
-//   * a DESKTOP (lg and up): the actual matrix — actions down, roles across —
-//     because that is where "who can do what" is a question you answer by
-//     comparing columns.
-//
-// Both are driven by PERMISSION_GROUPS and by the payload the API served, so
-// they cannot disagree about what is on or off.
+// Phone shows one role at a time, desktop the full matrix; both render the same payload so they cannot disagree.
 
 interface PermissionsEditorProps {
   matrix: PermissionMatrixPayload;
@@ -43,8 +27,7 @@ export function PermissionsEditor({ matrix }: PermissionsEditorProps) {
   const { user } = useSession();
   const mutation = useUpdateRolePermissionsMutation();
 
-  // The role the phone layout is showing. Starts on the one an Admin most
-  // often comes here to change — their own is not editable at all.
+  // Starts on the role an Admin most often changes; their own is not editable.
   const [selectedRole, setSelectedRole] = useState<Role>("EMPLOYEE");
   const [pending, setPending] = useState<{ role: Role; action: PermissionAction } | null>(null);
 
@@ -68,7 +51,6 @@ export function PermissionsEditor({ matrix }: PermissionsEditorProps) {
   function lockedReason(role: Role, action: PermissionAction): PermissionLockReason | null {
     if (isProtectedAction(action)) return "protected";
     if (role === ownRole) return "ownRole";
-    // An Admin holds everything, always — whoever is looking at the screen.
     if (isFixedRole(role)) return "adminRole";
     return null;
   }
@@ -79,25 +61,21 @@ export function PermissionsEditor({ matrix }: PermissionsEditorProps) {
 
   return (
     <div className="flex flex-col gap-4">
-      {/* What this screen will not do, said before anybody looks for it — so
-          the padlocks further down read as a design and not as a fault. */}
-      <Alert>
-        <ShieldCheck className="mt-0.5 size-5 shrink-0" aria-hidden="true" />
-        <div className="flex flex-col gap-1">
-          <p className="font-medium">{t("intro.title")}</p>
-          <p className="text-muted-foreground">{t("intro.body")}</p>
-        </div>
+      {/* Said up front so the padlocks below read as design, not a fault. */}
+      <Alert tone="info" icon="shield" title={t("intro.title")} data-testid="alert-default">
+        {t("intro.body")}
       </Alert>
 
       {failure && (
-        <Alert variant="destructive" role="alert">
-          <p>{failure}</p>
+        <Alert tone="danger" data-testid="alert-destructive">
+          {failure}
         </Alert>
       )}
 
       {/* ---------- phone: one role at a time ---------- */}
       <div className="flex flex-col gap-4 lg:hidden">
         <SegmentedControl
+          data-testid="segmented"
           label={t("rolePicker")}
           value={selectedRole}
           onChange={(role) => setSelectedRole(role as Role)}
@@ -105,34 +83,30 @@ export function PermissionsEditor({ matrix }: PermissionsEditorProps) {
         />
 
         {selectedRole === ownRole ? (
-          <Alert>
-            <Lock className="mt-0.5 size-5 shrink-0" aria-hidden="true" />
-            <p>{t("ownRole")}</p>
+          <Alert tone="neutral" icon="lock" data-testid="alert-default">
+            {t("ownRole")}
           </Alert>
         ) : (
           isFixedRole(selectedRole) && (
-            <Alert>
-              <Lock className="mt-0.5 size-5 shrink-0" aria-hidden="true" />
-              <p>{t("adminRole")}</p>
+            <Alert tone="neutral" icon="lock" data-testid="alert-default">
+              {t("adminRole")}
             </Alert>
           )
         )}
 
         {PERMISSION_GROUPS.map((group) => (
-          <Card key={group.key}>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base">{t(`groups.${group.key}`)}</CardTitle>
-            </CardHeader>
-            <CardContent className="flex flex-col divide-y divide-border">
+          <Card key={group.key} className="flex flex-col gap-3">
+            <h3 className="text-section font-semibold text-ink">{t(`groups.${group.key}`)}</h3>
+            <div className="flex flex-col divide-y divide-line">
               {group.actions.map((action) => {
                 const reason = lockedReason(selectedRole, action);
                 const label = t(`actions.${action}`);
                 return (
                   <div key={action} className="flex items-center justify-between gap-4 py-3 first:pt-0 last:pb-0">
                     <div className="flex min-w-0 flex-col gap-0.5">
-                      <span className="text-sm font-medium text-foreground">{label}</span>
+                      <span className="text-label font-medium text-ink">{label}</span>
                       {reason === "protected" && (
-                        <span className="text-xs text-muted-foreground">{t("locked.protected")}</span>
+                        <span className="text-meta text-ink-muted">{t("locked.protected")}</span>
                       )}
                     </div>
 
@@ -156,7 +130,7 @@ export function PermissionsEditor({ matrix }: PermissionsEditorProps) {
                   </div>
                 );
               })}
-            </CardContent>
+            </div>
           </Card>
         ))}
       </div>
@@ -164,14 +138,12 @@ export function PermissionsEditor({ matrix }: PermissionsEditorProps) {
       {/* ---------- desktop: the matrix ---------- */}
       <div className="hidden flex-col gap-4 lg:flex">
         {PERMISSION_GROUPS.map((group) => (
-          <Card key={group.key}>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base">{t(`groups.${group.key}`)}</CardTitle>
-            </CardHeader>
-            <CardContent className="overflow-x-auto p-0">
-              <table className="w-full text-sm">
+          <Card key={group.key} flush className="overflow-hidden">
+            <h3 className="px-5 pb-3 pt-4 text-section font-semibold text-ink">{t(`groups.${group.key}`)}</h3>
+            <div className="overflow-x-auto">
+              <table className="w-full text-label">
                 <thead>
-                  <tr className="border-b border-border text-xs uppercase tracking-wide text-muted-foreground">
+                  <tr className="border-b border-line bg-table-head text-meta uppercase tracking-wide text-ink-muted">
                     <th scope="col" className="px-5 py-2 text-start font-medium">
                       {t("table.action")}
                     </th>
@@ -187,15 +159,13 @@ export function PermissionsEditor({ matrix }: PermissionsEditorProps) {
                     const label = t(`actions.${action}`);
                     const isProtected = isProtectedAction(action);
                     return (
-                      <tr key={action} className="border-b border-border last:border-0">
-                        <th scope="row" className="px-5 py-3 text-start font-normal text-foreground">
+                      <tr key={action} className="border-b border-line last:border-0 hover:bg-row-hover">
+                        <th scope="row" className="px-5 py-3 text-start font-normal text-ink">
                           {label}
                         </th>
 
                         {isProtected ? (
-                          // One cell across the three roles, carrying the
-                          // reason — rather than three padlocks in a row,
-                          // which would look like three separate faults.
+                          // One cell across all roles: three padlocks in a row would look like three faults.
                           <td colSpan={PERMISSION_MATRIX_ROLES.length} className="px-5 py-3 text-center">
                             <PermissionLock reason="protected" />
                           </td>
@@ -227,11 +197,11 @@ export function PermissionsEditor({ matrix }: PermissionsEditorProps) {
                   })}
                 </tbody>
               </table>
-            </CardContent>
+            </div>
           </Card>
         ))}
 
-        <p className="text-sm text-muted-foreground">
+        <p className="text-label text-ink-muted">
           {ownRole && isFixedRole(ownRole) ? t("adminRole") : `${t("ownRole")} ${t("adminRole")}`}
         </p>
       </div>

@@ -29,6 +29,29 @@ const SIZES: Record<ButtonSize, string> = {
   md: "h-(--control-h) min-w-(--control-h) gap-2 px-3.5 text-label",
 };
 
+const BASE = cn(
+  "pill-text inline-flex items-center cursor-pointer justify-center rounded-control font-medium",
+  "whitespace-nowrap",
+  "[transition:background-color_250ms_ease-in-out,border-color_250ms_ease-in-out,color_250ms_ease-in-out,scale_120ms_ease-out]",
+  "active:scale-[0.98]",
+  "aria-disabled:cursor-not-allowed aria-disabled:border-transparent aria-disabled:bg-inset",
+  "aria-disabled:text-ink-subtle aria-disabled:shadow-none",
+  "aria-disabled:active:scale-100 aria-disabled:hover:bg-inset aria-disabled:hover:text-ink-subtle",
+);
+
+// The button's look for a non-<button>, e.g. a Next <Link>.
+export function buttonClassName({
+  variant = "primary",
+  size = "md",
+  className,
+}: {
+  readonly variant?: ButtonVariant | undefined;
+  readonly size?: ButtonSize | undefined;
+  readonly className?: string | undefined;
+} = {}): string {
+  return cn(BASE, VARIANTS[variant], SIZES[size], className);
+}
+
 export function Button({
   variant = "primary",
   size = "md",
@@ -51,18 +74,7 @@ export function Button({
     <button
       type={type}
       {...part()}
-      className={cn(
-        "pill-text inline-flex items-center cursor-pointer justify-center rounded-control font-medium",
-        "whitespace-nowrap",
-        "[transition:background-color_250ms_ease-in-out,border-color_250ms_ease-in-out,color_250ms_ease-in-out,scale_120ms_ease-out]",
-        "active:scale-[0.98]",
-        "aria-disabled:cursor-not-allowed aria-disabled:border-transparent aria-disabled:bg-inset",
-        "aria-disabled:text-ink-subtle aria-disabled:shadow-none",
-        "aria-disabled:active:scale-100 aria-disabled:hover:bg-inset aria-disabled:hover:text-ink-subtle",
-        VARIANTS[variant],
-        SIZES[size],
-        className,
-      )}
+      className={buttonClassName({ variant, size, className })}
       aria-disabled={inert || unavailable === true || unavailable === "true" || undefined}
       aria-busy={isLoading || undefined}
       {...props}

@@ -1,7 +1,4 @@
-// The design system review page (app/[locale]/(app)/design-system): the
-// token names it draws, in the order base.css declares them. Names only — the
-// values come from the stylesheet, so a swatch can never disagree with what a
-// component paints.
+// Token names only; values come from the stylesheet so swatches never drift.
 export const DESIGN_SYSTEM_COLOUR_GROUPS = [
   {
     key: "palette",
