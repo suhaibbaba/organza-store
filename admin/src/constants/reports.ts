@@ -1,4 +1,6 @@
-import type { ReportPresetKey, TopSellerRanking } from "@/types/report";
+import { urlParam } from "@/lib/url-filters";
+import type { ReportPresetKey, ReportRangeValue, TopSellerRanking } from "@/types/report";
+import type { UrlParams } from "@/types/urlFilters";
 
 export const REPORTS_SUMMARY_QUERY_KEY = ["reports", "salesSummary"] as const;
 export const REPORTS_SALES_QUERY_KEY = "reports.sales";
@@ -19,7 +21,18 @@ export const REPORT_PRESET_DAYS: Partial<Record<ReportPresetKey, number>> = {
 // Five fills a phone screen without scrolling past where anyone still reads.
 export const TOP_SELLERS_LIMIT = 5;
 
-export const TOP_SELLER_RANKING_TABS: readonly { id: TopSellerRanking; label: string }[] = [
-  { id: "revenue", label: "reports.topSellers.byRevenue" },
-  { id: "quantity", label: "reports.topSellers.byQuantity" },
+export const TOP_SELLER_RANKINGS: readonly { value: TopSellerRanking; labelKey: "byRevenue" | "byQuantity" }[] = [
+  { value: "revenue", labelKey: "byRevenue" },
+  { value: "quantity", labelKey: "byQuantity" },
 ];
+
+// Dates only travel in the URL for a custom range; a preset is worked out from today on every visit.
+export const DEFAULT_REPORT_RANGE: ReportRangeValue = { preset: DEFAULT_REPORT_PRESET, from: "", to: "" };
+
+export const REPORT_RANGE_URL_PARAMS: UrlParams<ReportRangeValue> = {
+  preset: urlParam.oneOf(REPORT_PRESETS),
+  from: urlParam.text(),
+  to: urlParam.text(),
+};
+
+export const REPORT_THUMB_SIZES = "(max-width: 767px) 64px, 48px";

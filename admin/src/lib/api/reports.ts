@@ -3,9 +3,7 @@ import { timezoneOffsetMinutes } from "@/lib/report-range";
 import { TOP_SELLERS_LIMIT } from "@/constants/reports";
 import type { SalesReport, SalesSummary } from "@/types/report";
 
-// Cost, profit and margin are simply absent from these responses for roles
-// without product.viewCost — the backend never puts them in (CLAUDE.md rule
-// 19), so the UI checks for their presence rather than for a role.
+// Cost and profit are absent for roles without product.viewCost (rule 19): check for presence, never for a role.
 
 export async function fetchSalesSummary(): Promise<SalesSummary> {
   const params = new URLSearchParams({ tzOffset: String(timezoneOffsetMinutes()) });

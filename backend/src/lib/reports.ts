@@ -275,7 +275,29 @@ export function toChannelSales(rows: ChannelAggregateRow[], canViewCost: boolean
   }));
 }
 
-export function toTopSellers(rows: TopSellerRow[], canViewCost: boolean): TopSeller[] {
+// A variant's own first photo, else its product's (as on order lines); one query for every ranked line.
+export async function queryTopSellerThumbnails(rows: TopSellerRow[]): Promise<Map<string, string>> {
+  const productIds = [...new Set(rows.flatMap((row) => (row.productId ? [row.productId] : [])))];
+  const variantIds = [...new Set(rows.flatMap((row) => (row.variantId ? [row.variantId] : [])))];
+  if (productIds.length === 0 && variantIds.length === 0) {
+    return new Map();
+  }
+  const images = await prisma.productImage.findMany({
+    where: { OR: [{ variantId: { in: variantIds } }, { productId: { in: productIds }, variantId: null }] },
+    orderBy: { sortOrder: "asc" },
+    select: { productId: true, variantId: true, thumbnailUrl: true },
+  });
+  const thumbnails = new Map<string, string>();
+  for (const image of images) {
+    const key = image.variantId ?? image.productId;
+    if (key && !thumbnails.has(key)) {
+      thumbnails.set(key, image.thumbnailUrl);
+    }
+  }
+  return thumbnails;
+}
+
+export function toTopSellers(rows: TopSellerRow[], canViewCost: boolean, thumbnails: Map<string, string>): TopSeller[] {
   return rows.map((row) => {
     const revenue = roundMoney(decimal(row.revenue));
     const seller: TopSeller = {
@@ -284,6 +306,10 @@ export function toTopSellers(rows: TopSellerRow[], canViewCost: boolean): TopSel
       name: (row.name ?? {}) as TopSeller["name"],
       variantName: (row.variantName ?? null) as TopSeller["variantName"],
       sku: row.sku,
+      thumbnailUrl:
+        (row.variantId ? thumbnails.get(row.variantId) : undefined) ??
+        (row.productId ? thumbnails.get(row.productId) : undefined) ??
+        null,
       quantity: Number(decimal(row.quantity)),
       revenue: revenue.toFixed(MONEY_DECIMAL_PLACES),
     };

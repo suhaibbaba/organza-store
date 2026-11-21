@@ -9,6 +9,7 @@ import {
   queryChannelTotals,
   queryGiftCost,
   queryTopSellers,
+  queryTopSellerThumbnails,
   queryTotals,
   toChannelSales,
   toProfitTotals,
@@ -88,13 +89,15 @@ router.get(
       queryExpenseTotals(range),
     ]);
 
+    const thumbnails = await queryTopSellerThumbnails([...topByRevenue, ...topByQuantity]);
+
     const report: SalesReport = {
       range: { from: range.from.toISOString(), to: range.to.toISOString() },
       totals: toSalesTotals(totals, canViewCost),
       returns: toReturnsTotals(totals),
       byChannel: toChannelSales(channels, canViewCost),
-      topByRevenue: toTopSellers(topByRevenue, canViewCost),
-      topByQuantity: toTopSellers(topByQuantity, canViewCost),
+      topByRevenue: toTopSellers(topByRevenue, canViewCost, thumbnails),
+      topByQuantity: toTopSellers(topByQuantity, canViewCost, thumbnails),
     };
 
     // Sold/received/owed and gross/net, attached only for a role that may see cost.

@@ -661,11 +661,13 @@
       "thisMonth": "This month",
       "custom": "Custom",
       "from": "From",
-      "to": "To"
+      "to": "To",
+      "label": "Period",
+      "dates": "Dates"
     },
     "totals": {
       "title": "Sales in this period",
-      "soldHint": "{orders} orders · {items} items",
+      "soldHint": "{orders, plural, one {1 order} other {{orders} orders}} · {items, plural, one {1 piece} other {{items} pieces}}",
       "owedOrders": "{count, plural, one {1 order} other {{count, number, plain} orders}}",
       "averageOrder": {
         "label": "Average order",
@@ -684,11 +686,11 @@
         "help": "Sales minus what those goods cost. Rent, salaries and other expenses are not taken off it."
       },
       "margin": "{value, number, percent} margin",
-      "missingCost": "{count} sold items have no cost price, so the profit shown is higher than the real one."
+      "missingCost": "{count, plural, one {1 sold piece has} other {{count} sold pieces have}} no cost price, so the profit shown is higher than the real one."
     },
     "channels": {
       "title": "By sales channel",
-      "orders": "{count} orders",
+      "orders": "{count, plural, one {1 order} other {{count} orders}}",
       "empty": "No sales in this period.",
       "help": "Where the sales came from: the shop counter, WhatsApp, or the website."
     },
@@ -708,11 +710,43 @@
       "orders": "Across {count} orders",
       "empty": "No returns in this period.",
       "amountHelp": "The value of what customers handed back in this period. The sales figures above already have it taken off.",
-      "itemsHelp": "How many items came back, and how many orders they came from."
+      "itemsHelp": "How many items came back, and how many orders they came from.",
+      "ordersCount": "{count, plural, one {from 1 order} other {from {count} orders}}"
     },
     "empty": {
       "title": "No sales in this period",
       "description": "Try another period, or record your first order."
+    },
+    "statement": {
+      "title": "Profit",
+      "sold": "Sold",
+      "cogs": "Cost of goods sold",
+      "gross": "Gross profit",
+      "expenses": "Expenses",
+      "gifts": "Gifts (at cost)",
+      "net": "Net profit",
+      "margin": "{value, number, percent} margin",
+      "receivedTitle": "Counting only money received",
+      "receivedSold": "Received",
+      "receivedCogs": "Cost of what was paid for",
+      "receivedGross": "Gross profit",
+      "receivedNet": "Net profit",
+      "receivedHint": "Only sales already paid for. Expenses and gifts come off in full, because a bill is owed either way.",
+      "help": "Sold, less what the stock cost, is gross profit. Less expenses and gifts, it is what the shop actually made.",
+      "overheads": "Expenses and gifts"
+    },
+    "orders": {
+      "title": "Orders",
+      "count": "Orders",
+      "items": "Pieces sold",
+      "average": "Average order",
+      "discounts": "Discounts"
+    },
+    "table": {
+      "product": "Product",
+      "quantity": "Quantity",
+      "revenue": "Sales",
+      "profit": "Profit"
     }
   },
   "products": {

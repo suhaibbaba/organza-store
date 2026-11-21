@@ -661,11 +661,13 @@
       "thisMonth": "החודש",
       "custom": "תקופה אחרת",
       "from": "מתאריך",
-      "to": "עד תאריך"
+      "to": "עד תאריך",
+      "label": "תקופה",
+      "dates": "תאריכים"
     },
     "totals": {
       "title": "מכירות בתקופה זו",
-      "soldHint": "{orders} הזמנות, {items} פריטים",
+      "soldHint": "{orders, plural, one {הזמנה אחת} other {{orders} הזמנות}} · {items, plural, one {פריט אחד} other {{items} פריטים}}",
       "owedOrders": "{count, plural, one {הזמנה אחת} two {שתי הזמנות} other {{count, number, plain} הזמנות}}",
       "averageOrder": {
         "label": "הזמנה ממוצעת",
@@ -684,11 +686,11 @@
         "help": "מכירות פחות עלות הסחורה. שכר דירה, משכורות והוצאות אחרות אינם מנוכים ממנו."
       },
       "margin": "שיעור רווח {value, number, percent}",
-      "missingCost": "ל-{count} פריטים שנמכרו אין מחיר עלות, ולכן הרווח המוצג גבוה מהאמיתי."
+      "missingCost": "{count, plural, one {לפריט אחד שנמכר אין} other {ל־{count} פריטים שנמכרו אין}} מחיר עלות, ולכן הרווח המוצג גבוה מהאמיתי."
     },
     "channels": {
       "title": "לפי ערוץ מכירה",
-      "orders": "{count} הזמנות",
+      "orders": "{count, plural, one {הזמנה אחת} other {{count} הזמנות}}",
       "empty": "אין מכירות בתקופה זו.",
       "help": "מהיכן הגיעו המכירות: מהדלפק בחנות, מוואטסאפ או מהאתר."
     },
@@ -708,11 +710,43 @@
       "orders": "מתוך {count} הזמנות",
       "empty": "אין החזרות בתקופה זו.",
       "amountHelp": "השווי של מה שלקוחות החזירו בתקופה זו. נתוני המכירות שלמעלה כבר מנוכים בו.",
-      "itemsHelp": "כמה פריטים חזרו, ומכמה הזמנות."
+      "itemsHelp": "כמה פריטים חזרו, ומכמה הזמנות.",
+      "ordersCount": "{count, plural, one {מהזמנה אחת} other {מ־{count} הזמנות}}"
     },
     "empty": {
       "title": "אין מכירות בתקופה זו",
       "description": "נסה תקופה אחרת, או רשום הזמנה ראשונה."
+    },
+    "statement": {
+      "title": "רווח",
+      "sold": "מכירות",
+      "cogs": "עלות הסחורה שנמכרה",
+      "gross": "רווח גולמי",
+      "expenses": "הוצאות",
+      "gifts": "מתנות (בעלות)",
+      "net": "רווח נקי",
+      "margin": "שיעור רווח {value, number, percent}",
+      "receivedTitle": "לפי הכסף שהתקבל בלבד",
+      "receivedSold": "התקבל",
+      "receivedCogs": "עלות מה ששולם",
+      "receivedGross": "רווח גולמי",
+      "receivedNet": "רווח נקי",
+      "receivedHint": "רק מכירות ששולמו. ההוצאות והמתנות יורדות במלואן, כי החשבון חייב בכל מקרה.",
+      "help": "המכירות פחות עלות הסחורה הן הרווח הגולמי; אחרי הוצאות ומתנות נשאר מה שהחנות הרוויחה באמת.",
+      "overheads": "הוצאות ומתנות"
+    },
+    "orders": {
+      "title": "הזמנות",
+      "count": "הזמנות",
+      "items": "פריטים שנמכרו",
+      "average": "הזמנה ממוצעת",
+      "discounts": "הנחות"
+    },
+    "table": {
+      "product": "מוצר",
+      "quantity": "כמות",
+      "revenue": "מכירות",
+      "profit": "רווח"
     }
   },
   "products": {

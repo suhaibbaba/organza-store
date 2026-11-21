@@ -661,12 +661,14 @@
       "thisMonth": "هذا الشهر",
       "custom": "فترة أخرى",
       "from": "من تاريخ",
-      "to": "إلى تاريخ"
+      "to": "إلى تاريخ",
+      "label": "الفترة",
+      "dates": "التواريخ"
     },
     "totals": {
       "title": "مبيعات هذه الفترة",
-      "soldHint": "{orders} طلب، {items} قطعة",
-      "owedOrders": "{count, plural, one {طلب واحد} two {طلبان} few {{count, number, plain} طلبات} other {{count, number, plain} طلبًا}}",
+      "soldHint": "{orders, plural, zero {لا طلبات} one {طلب واحد} two {طلبان} few {{orders} طلبات} many {{orders} طلبًا} other {{orders} طلب}} · {items, plural, zero {لا قطع} one {قطعة واحدة} two {قطعتان} few {{items} قطع} many {{items} قطعة} other {{items} قطعة}}",
+      "owedOrders": "{count, plural, zero {لا طلبات} one {طلب واحد} two {طلبان} few {{count} طلبات} many {{count} طلبًا} other {{count} طلب}}",
       "averageOrder": {
         "label": "متوسط الطلب",
         "help": "المبيعات مقسومة على عدد الطلبات — أي كم كانت قيمة الطلب الواحد في هذه الفترة."
@@ -684,11 +686,11 @@
         "help": "المبيعات ناقص تكلفة البضاعة. لا تُخصم منه الإيجار والرواتب وباقي المصاريف."
       },
       "margin": "نسبة الربح {value, number, percent}",
-      "missingCost": "{count} قطعة مباعة بدون سعر تكلفة، فالربح المعروض أعلى من الحقيقي."
+      "missingCost": "{count, plural, one {قطعة مباعة واحدة بدون} two {قطعتان مباعتان بدون} few {{count} قطع مباعة بدون} many {{count} قطعة مباعة بدون} other {{count} قطعة مباعة بدون}} سعر تكلفة، فالربح المعروض أعلى من الحقيقي."
     },
     "channels": {
       "title": "حسب مصدر البيع",
-      "orders": "{count} طلب",
+      "orders": "{count, plural, zero {لا طلبات} one {طلب واحد} two {طلبان} few {{count} طلبات} many {{count} طلبًا} other {{count} طلب}}",
       "empty": "لا توجد مبيعات في هذه الفترة.",
       "help": "من أين جاءت المبيعات: من المحل، أو واتساب، أو الموقع."
     },
@@ -708,11 +710,43 @@
       "orders": "ضمن {count} طلب",
       "empty": "لا توجد مرتجعات في هذه الفترة.",
       "amountHelp": "قيمة ما أعاده الزبائن في هذه الفترة. أرقام المبيعات أعلاه مطروح منها هذا المبلغ أصلًا.",
-      "itemsHelp": "كم قطعة رجعت، ومن كم طلب."
+      "itemsHelp": "كم قطعة رجعت، ومن كم طلب.",
+      "ordersCount": "{count, plural, zero {من دون طلبات} one {من طلب واحد} two {من طلبين} few {من {count} طلبات} many {من {count} طلبًا} other {من {count} طلب}}"
     },
     "empty": {
       "title": "لا توجد مبيعات في هذه الفترة",
       "description": "جرّب فترة أخرى، أو سجّل أول طلب."
+    },
+    "statement": {
+      "title": "الربح",
+      "sold": "المبيعات",
+      "cogs": "تكلفة البضاعة المباعة",
+      "gross": "الربح الإجمالي",
+      "expenses": "المصاريف",
+      "gifts": "الهدايا (بالتكلفة)",
+      "net": "صافي الربح",
+      "margin": "نسبة الربح {value, number, percent}",
+      "receivedTitle": "بحساب المقبوض فقط",
+      "receivedSold": "المقبوض",
+      "receivedCogs": "تكلفة ما دُفع ثمنه",
+      "receivedGross": "الربح الإجمالي",
+      "receivedNet": "صافي الربح",
+      "receivedHint": "المبيعات التي قُبض ثمنها فقط. تُخصم المصاريف والهدايا كاملة، لأن الفاتورة مستحقة في الحالتين.",
+      "help": "المبيعات ناقص تكلفة البضاعة هي الربح الإجمالي، وبعد خصم المصاريف والهدايا يبقى ما ربحه المحل فعلًا.",
+      "overheads": "المصاريف والهدايا"
+    },
+    "orders": {
+      "title": "الطلبات",
+      "count": "الطلبات",
+      "items": "القطع المباعة",
+      "average": "متوسط الطلب",
+      "discounts": "الخصومات"
+    },
+    "table": {
+      "product": "المنتج",
+      "quantity": "الكمية",
+      "revenue": "المبيعات",
+      "profit": "الربح"
     }
   },
   "products": {

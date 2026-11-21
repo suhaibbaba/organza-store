@@ -421,6 +421,17 @@ hover:text-primary-700` (or `group` on the link + `group-hover:text-primary-700`
   a raw `error.category.has_children` showed as the toast text on every page until 2026-11-21.
 - An async `javascript_exec` IIFE returns `{}`: store the result on `window` and read it in a second call.
 
+- **Reports (user, 2026-11-21): the money story in two columns, figures only, no chart.** Range = `SegmentedControl`
+  (today / 7 / 30 days / this month / custom) + a `DateRangePicker` for custom, in the URL (`preset`, and `from`/`to`
+  only when custom). Three headline `StatCard`s (sold / received / owed), then main = a profit STATEMENT card that adds
+  down (sold − cost of goods = gross − expenses − gifts = net, margin badge in the header, then the same for money
+  received only) + best sellers as a `Table` with photos; side = orders facts, by channel, returns (`DetailCard`s with
+  one shared `ReportFactRow`). Look in the API before designing: the full `profit` block was sent and never shown.
+- A statement's total row is tinted with `-mx-3 px-3`, so its sign, label and figure stay in line with the rows above.
+- `SegmentedControl` options are radios (`aria-checked`): `useActiveSegmentInView` watches that attribute too.
+- `Typography` weights are `regular | medium | semibold | bold` (not "normal"); `h3` is barely larger than body, a
+  total that must stand out uses `h2`.
+
 ## Done
 
 - admin `products/[id]` (record) — 2026-11-21; rebuilt 2026-11-21: gallery + viewer, details card, no tabs
@@ -436,3 +447,4 @@ hover:text-primary-700` (or `group` on the link + `group-hover:text-primary-700`
 - admin + pos `profile` (new: details + SaveBar, devices, password modal, language, notifications) — 2026-11-21
 - admin `labels` (two steps: selectable Table + StickyActions; copies list + sticky sheet card; printed Modal) — 2026-11-21
 - admin `categories` (one bordered tree list, row-wide fold, search, counts linking to products, ⋯ with add subcategory, Modal form) — 2026-11-21
+- admin `reports` (range segments + URL, 3 headline cards, profit statement, best sellers Table with photos, side facts) — 2026-11-21

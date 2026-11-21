@@ -3,8 +3,8 @@
 import { useEffect, useRef } from "react";
 import { SEGMENT_SCROLL_PADDING_PX } from "@/constants/segmented";
 
-// Radix tabs use data-state, our button rows aria-pressed.
-const ACTIVE_SEGMENT_SELECTOR = '[data-state="active"], [aria-pressed="true"]';
+// Radix tabs use data-state, button rows aria-pressed, the SegmentedControl's radios aria-checked.
+const ACTIVE_SEGMENT_SELECTOR = '[data-state="active"], [aria-pressed="true"], [aria-checked="true"]';
 
 function prefersReducedMotion() {
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -51,7 +51,7 @@ export function useActiveSegmentInView<T extends HTMLElement>() {
     const observer = new MutationObserver(check);
     observer.observe(row, {
       attributes: true,
-      attributeFilter: ["data-state", "aria-pressed"],
+      attributeFilter: ["data-state", "aria-pressed", "aria-checked"],
       subtree: true,
     });
     return () => {
