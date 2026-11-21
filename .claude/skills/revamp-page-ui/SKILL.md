@@ -444,6 +444,9 @@ hover:text-primary-700` (or `group` on the link + `group-hover:text-primary-700`
 - `SegmentedControl size="sm"` is for icon-only segments (square options); text segments use the default size.
 - A to-do row is shown only to a role that can act on it; zero rows stay but read muted.
 
+- A page with no rows in the sandbox is checked by patching `fetch` to answer its GETs with sample rows (and its writes with a fake 201), then changing a filter to refetch.
+- A side card beside a wide Table only from `2xl`: at 1280px with the sidebar, a 20rem side column squeezes a 6-column table into horizontal scroll.
+
 ## Done
 
 - admin `products/[id]` (record) — 2026-11-21; rebuilt 2026-11-21: gallery + viewer, details card, no tabs
@@ -461,3 +464,4 @@ hover:text-primary-700` (or `group` on the link + `group-hover:text-primary-700`
 - admin `categories` (one bordered tree list, row-wide fold, search, counts linking to products, ⋯ with add subcategory, Modal form) — 2026-11-21
 - admin `reports` (range segments + URL, 3 headline cards, profit statement, best sellers Table with photos, side facts) — 2026-11-21
 - admin `dashboard` (greeting banner, today cards with icons, 7-day bars, latest orders, week/month brief, drawer, to-do list) — 2026-11-21
+- admin `expenses` (new: period segments, totals, table, by-category, add/edit modal with category tiles, categories drawer; dashboard button opens the form via `?new=1`) — 2026-11-22

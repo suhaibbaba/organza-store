@@ -17,6 +17,7 @@ export type NavKey =
   | "labels"
   | "categories"
   | "reports"
+  | "expenses"
   | "changeRequests"
   | "users"
   | "permissions"

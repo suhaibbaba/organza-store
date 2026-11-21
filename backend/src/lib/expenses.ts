@@ -1,8 +1,8 @@
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { formatMoney, money, roundMoney, ZERO_MONEY } from "@/lib/money";
-import { COUNTED_EXPENSE_APPROVAL_STATUS } from "@/constants";
-import type { AnyRecord, ExpenseAggregateRow, ReportRange } from "@/types";
+import { COUNTED_EXPENSE_APPROVAL_STATUS, PENDING_EXPENSE_APPROVAL_STATUS } from "@/constants";
+import type { AnyRecord, ExpenseAggregateRow, ExpenseSummary, ReportRange } from "@/types";
 
 // ============================================================================
 //  Expenses — what the shop spent.
@@ -42,6 +42,40 @@ export function expenseTotal(row: ExpenseAggregateRow | undefined): Prisma.Decim
 
 export function expenseCashTotal(row: ExpenseAggregateRow | undefined): Prisma.Decimal {
   return roundMoney(row?.cashTotal === null || row?.cashTotal === undefined ? ZERO_MONEY() : money(row.cashTotal));
+}
+
+function moneyText(value: Prisma.Decimal | null | undefined): string {
+  return formatMoney(roundMoney(money(value ?? 0))) ?? "0.00";
+}
+
+// Approved spending under a filter, split by category and by cash; pending is counted apart and never added in.
+export async function summarizeExpenses(where: Prisma.ExpenseWhereInput): Promise<ExpenseSummary> {
+  const approved = { ...where, approvalStatus: COUNTED_EXPENSE_APPROVAL_STATUS } as Prisma.ExpenseWhereInput;
+  const [byCategory, cash, pending] = await Promise.all([
+    prisma.expense.groupBy({ by: ["categoryId"], where: approved, _sum: { amount: true }, _count: { _all: true } }),
+    prisma.expense.aggregate({ where: { ...approved, paidInCash: true }, _sum: { amount: true } }),
+    prisma.expense.aggregate({
+      where: { ...where, approvalStatus: PENDING_EXPENSE_APPROVAL_STATUS } as Prisma.ExpenseWhereInput,
+      _sum: { amount: true },
+      _count: { _all: true },
+    }),
+  ]);
+
+  const total = byCategory.reduce((sum, row) => sum.plus(row._sum.amount ?? ZERO_MONEY()), ZERO_MONEY());
+  return {
+    total: moneyText(total),
+    cashTotal: moneyText(cash._sum.amount),
+    count: byCategory.reduce((sum, row) => sum + row._count._all, 0),
+    pendingCount: pending._count._all,
+    pendingAmount: moneyText(pending._sum.amount),
+    byCategory: byCategory
+      .map((row) => ({
+        categoryId: row.categoryId,
+        total: moneyText(row._sum.amount),
+        count: row._count._all,
+      }))
+      .sort((a, b) => Number(b.total) - Number(a.total)),
+  };
 }
 
 // --- serialization ---------------------------------------------------------

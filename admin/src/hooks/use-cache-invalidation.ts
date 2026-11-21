@@ -13,6 +13,9 @@ import { INVENTORY_LIST_QUERY_KEY } from "@/constants/inventory";
 import { ORDER_COLLECTION_SUMMARY_QUERY_KEY, ORDER_DETAIL_QUERY_KEY, ORDER_LIST_QUERY_KEY } from "@/constants/orders";
 import { REPORTS_DAILY_QUERY_KEY, REPORTS_SALES_QUERY_KEY, REPORTS_SUMMARY_QUERY_KEY } from "@/constants/reports";
 import { USERS_LIST_QUERY_KEY } from "@/constants/users";
+import { EXPENSE_CATEGORIES_QUERY_KEY, EXPENSE_LIST_QUERY_KEY, EXPENSE_SUMMARY_QUERY_KEY } from "@/constants/expenses";
+import { CASH_SESSION_CURRENT_QUERY_KEY } from "@/constants/dashboard";
+import { CHANGE_REQUEST_COUNT_QUERY_KEY, CHANGE_REQUEST_LIST_QUERY_KEY } from "@/constants/changeRequests";
 
 // Which screens a change makes stale, per thing changed, so a new screen can't quietly go stale.
 
@@ -40,6 +43,10 @@ export interface CacheInvalidation {
   settingsChanged: () => void;
   /** A staff account was added, edited or deactivated. */
   usersChanged: () => void;
+  /** An expense was recorded, edited or deleted. */
+  expensesChanged: () => void;
+  /** An expense category was added, renamed, retired or removed. */
+  expenseCategoriesChanged: () => void;
 }
 
 export function useCacheInvalidation(): CacheInvalidation {
@@ -87,6 +94,24 @@ export function useCacheInvalidation(): CacheInvalidation {
 
       usersChanged() {
         void queryClient.invalidateQueries({ queryKey: [USERS_LIST_QUERY_KEY] });
+      },
+
+      expensesChanged() {
+        void queryClient.invalidateQueries({ queryKey: [EXPENSE_LIST_QUERY_KEY] });
+        void queryClient.invalidateQueries({ queryKey: [EXPENSE_SUMMARY_QUERY_KEY] });
+        void queryClient.invalidateQueries({ queryKey: [EXPENSE_CATEGORIES_QUERY_KEY] });
+        // A cash expense moves the drawer's expected amount; every approved one moves net profit.
+        void queryClient.invalidateQueries({ queryKey: CASH_SESSION_CURRENT_QUERY_KEY });
+        void queryClient.invalidateQueries({ queryKey: REPORTS_SUMMARY_QUERY_KEY });
+        void queryClient.invalidateQueries({ queryKey: [REPORTS_SALES_QUERY_KEY] });
+        // An Employee's expense, or deleting a pending one, changes the approvals queue.
+        void queryClient.invalidateQueries({ queryKey: CHANGE_REQUEST_COUNT_QUERY_KEY });
+        void queryClient.invalidateQueries({ queryKey: [CHANGE_REQUEST_LIST_QUERY_KEY] });
+      },
+
+      expenseCategoriesChanged() {
+        void queryClient.invalidateQueries({ queryKey: [EXPENSE_CATEGORIES_QUERY_KEY] });
+        void queryClient.invalidateQueries({ queryKey: [EXPENSE_LIST_QUERY_KEY] });
       },
     }),
     [queryClient],

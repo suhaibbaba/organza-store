@@ -4,11 +4,9 @@ import { Barcode, ClipboardCheck, PackageSearch, Scale, Truck, WandSparkles } fr
 import type { DashboardTodoKey, DashboardTodoMeta } from "@/types/dashboard";
 
 export const CASH_SESSION_CURRENT_QUERY_KEY = ["cashSessions", "current"] as const;
-export const EXPENSES_PENDING_COUNT_QUERY_KEY = ["expenses", "pendingCount"] as const;
 
 // The drawer goes stale as fast as the sales figures (REPORTS_STALE_TIME_MS).
 export const CASH_SESSION_STALE_TIME_MS = 60 * 1000;
-export const NEEDS_ATTENTION_STALE_TIME_MS = 60 * 1000;
 
 // The week is what the shop plans around; the month is one tap away.
 export const DEFAULT_DASHBOARD_PERIOD: ReportPeriod = "week";

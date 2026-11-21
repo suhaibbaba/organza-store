@@ -72,7 +72,8 @@
       "manage": "الإدارة"
     },
     "collapse": "طيّ القائمة",
-    "expand": "توسيع القائمة"
+    "expand": "توسيع القائمة",
+    "expenses": "المصاريف"
   },
   "auth": {
     "login": {
@@ -262,7 +263,7 @@
       "receivedShare": "قُبض {received} · {owed} مع التوصيل",
       "newOrder": "طلب جديد",
       "newProduct": "منتج جديد",
-      "printLabels": "طباعة الملصقات"
+      "newExpense": "مصروف"
     },
     "bars": {
       "title": "مبيعات آخر 7 أيام",
@@ -2270,6 +2271,123 @@
       },
       "failed": "تعذّر تغيير إعداد الإشعارات. حاول مرة أخرى.",
       "iosHint": "ملاحظة للآيفون والآيباد: لا تصل الإشعارات إلا بعد إضافة التطبيق إلى الشاشة الرئيسية وفتحه من أيقونته."
+    }
+  },
+  "expenses": {
+    "title": "المصاريف",
+    "subtitle": "ما يصرفه المحل من فواتير ورواتب ومستلزمات. المصاريف المعتمدة فقط تدخل في الربح والصندوق.",
+    "add": "إضافة مصروف",
+    "categoriesButton": "التصنيفات",
+    "search": {
+      "label": "بحث في المصاريف",
+      "placeholder": "ابحث في الملاحظات…",
+      "clear": "مسح البحث"
+    },
+    "filters": {
+      "category": "التصنيف",
+      "allCategories": "كل التصنيفات",
+      "status": "الحالة",
+      "allStatuses": "كل الحالات"
+    },
+    "status": {
+      "PENDING": "بانتظار الموافقة",
+      "APPROVED": "معتمد",
+      "REJECTED": "مرفوض"
+    },
+    "summary": {
+      "total": "المصروف",
+      "count": "{count, plural, zero {لا مصاريف} one {مصروف واحد} two {مصروفان} few {{count} مصاريف} many {{count} مصروفًا} other {{count} مصروف}}",
+      "cash": "من الصندوق",
+      "cashHint": "دُفع نقدًا من الكاش",
+      "pending": "بانتظار الموافقة",
+      "pendingHint": "{count, plural, zero {لا شيء معلّق} one {مصروف واحد، لم يُحسب بعد} two {مصروفان، لم يُحسبا بعد} few {{count} مصاريف، لم تُحسب بعد} many {{count} مصروفًا، لم تُحسب بعد} other {{count} مصروف، لم تُحسب بعد}}"
+    },
+    "breakdown": {
+      "title": "حسب التصنيف",
+      "empty": "لا مصاريف في هذه الفترة."
+    },
+    "table": {
+      "category": "التصنيف",
+      "date": "التاريخ",
+      "paidFrom": "الدفع من",
+      "createdBy": "سجّله",
+      "amount": "المبلغ",
+      "actions": "إجراءات",
+      "cash": "الصندوق",
+      "other": "بطاقة / تحويل",
+      "recurring": "ثابت",
+      "noCategory": "بلا تصنيف"
+    },
+    "menu": {
+      "label": "إجراءات {name}",
+      "edit": "تعديل",
+      "delete": "حذف"
+    },
+    "delete": {
+      "title": "حذف مصروف {name} بقيمة {amount}؟",
+      "consequence": "لن يُحسب بعد الآن في الربح ولا في الصندوق، ويبقى في سجل التدقيق.",
+      "confirm": "حذف المصروف",
+      "success": "حُذف المصروف"
+    },
+    "empty": {
+      "noneTitle": "لا مصاريف في هذه الفترة",
+      "noneHint": "سجّل الفاتورة أو الدفعة فور دفعها.",
+      "noMatchesTitle": "لا مصاريف مطابقة",
+      "noMatchesHint": "جرّب تصنيفًا أو حالة أو بحثًا آخر."
+    },
+    "form": {
+      "createTitle": "إضافة مصروف",
+      "createDescription": "كم، وعلى ماذا، وهل خرج من الصندوق.",
+      "editTitle": "تعديل المصروف",
+      "editDescription": "التعديل يظهر في الربح والصندوق فورًا.",
+      "amount": "المبلغ",
+      "amountPlaceholder": "0.00",
+      "date": "تاريخ الدفع",
+      "category": "على ماذا صُرف؟",
+      "categoryRequired": "اختر تصنيفًا.",
+      "paidInCash": "دُفع نقدًا من الصندوق",
+      "paidInCashHint": "يُخصم مما يجب أن يكون في الصندوق اليوم",
+      "isRecurring": "مصروف ثابت",
+      "isRecurringHint": "إيجار، رواتب، إنترنت — يُدفع كل شهر",
+      "note": "ملاحظة",
+      "notePlaceholder": "مثلًا: فاتورة كهرباء شهر أكتوبر",
+      "create": "إضافة المصروف",
+      "save": "حفظ التعديلات",
+      "created": "أُضيف المصروف",
+      "saved": "حُفظ المصروف",
+      "sentForApproval": "أُرسل المصروف للموافقة",
+      "amountRequired": "أدخل المبلغ المدفوع."
+    },
+    "categories": {
+      "title": "تصنيفات المصاريف",
+      "description": "expenses.categories.descriptionText",
+      "add": "إضافة تصنيف",
+      "count": "{count, plural, zero {لا مصاريف} one {مصروف واحد} two {مصروفان} few {{count} مصاريف} many {{count} مصروفًا} other {{count} مصروف}}",
+      "active": "عرض {name} عند إضافة مصروف",
+      "edit": "إعادة تسمية {name}",
+      "offHint": "التصنيف المُطفأ لا يظهر عند الإضافة، لكن مصاريفه السابقة تحتفظ به.",
+      "turnedOn": "شُغّل التصنيف",
+      "turnedOff": "أُطفئ التصنيف",
+      "delete": {
+        "label": "حذف {name}",
+        "title": "حذف التصنيف {name}؟",
+        "consequence": "لا مصاريف تحته، فلن يتغيّر شيء آخر.",
+        "confirm": "حذف التصنيف",
+        "success": "حُذف التصنيف"
+      },
+      "form": {
+        "createTitle": "إضافة تصنيف",
+        "editTitle": "إعادة تسمية التصنيف",
+        "name": "الاسم",
+        "required": "مطلوب",
+        "optional": "اختياري",
+        "nameRequired": "اكتب الاسم باللغة الافتراضية.",
+        "create": "إضافة التصنيف",
+        "save": "حفظ",
+        "created": "أُضيف التصنيف",
+        "saved": "حُفظ التصنيف"
+      },
+      "descriptionText": "أضف تصنيفات المصاريف أو أعد تسميتها أو أطفئها."
     }
   }
 }

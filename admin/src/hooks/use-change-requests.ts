@@ -2,6 +2,7 @@
 
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { can } from "@store/shared/lib/permissions";
+import { CHANGE_REQUEST_ENTITIES } from "@store/shared/constants/changeRequest";
 import {
   CHANGE_REQUEST_COUNT_QUERY_KEY,
   CHANGE_REQUEST_COUNT_REFETCH_MS,
@@ -42,7 +43,7 @@ export function useChangeRequestCountQuery() {
 // Approving applies the change, so everything it could touch is stale.
 export function useDecideChangeRequestMutation() {
   const queryClient = useQueryClient();
-  const { productChanged } = useCacheInvalidation();
+  const { productChanged, expensesChanged } = useCacheInvalidation();
 
   return useMutation({
     mutationFn: ({ id, decision, note }: { id: string; decision: "approve" | "reject"; note?: string }) =>
@@ -50,7 +51,10 @@ export function useDecideChangeRequestMutation() {
     onSuccess: (request) => {
       void queryClient.invalidateQueries({ queryKey: [CHANGE_REQUEST_LIST_QUERY_KEY] });
       void queryClient.invalidateQueries({ queryKey: CHANGE_REQUEST_COUNT_QUERY_KEY });
-      // An expense has no product; refreshing the catalogue is safe either way.
+      if (request.entityType === CHANGE_REQUEST_ENTITIES.EXPENSE) {
+        expensesChanged();
+        return;
+      }
       productChanged(request.productId ?? undefined);
     },
   });

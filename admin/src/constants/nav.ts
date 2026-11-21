@@ -11,6 +11,7 @@ import {
   Users,
   ShieldCheck,
   Settings,
+  WalletMinimal,
 } from "lucide-react";
 import type { NavGroup, NavItem } from "@/types/nav";
 
@@ -36,6 +37,8 @@ export const NAV_ITEMS: readonly NavItem[] = [
   // from an Employee. Cost and profit inside the page are gated again, and
   // separately, by product.viewCost (CLAUDE.md rule 19).
   { key: "reports", href: "/reports", icon: ChartColumn, action: "report.view" },
+  // What the shop spent; reading it is Admin/Manager, the same gate as the API.
+  { key: "expenses", href: "/expenses", icon: WalletMinimal, action: "expense.view" },
   // Changes waiting on somebody (spec.md "Employee change approvals").
   // Gated on the permission to READ requests, which every role holds — an
   // Admin comes here to decide, an Employee to see their own edit waiting
@@ -65,7 +68,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
 // somebody drew it.
 // The phone menu's headings; the design system link goes last in "manage".
 export const NAV_GROUPS: readonly NavGroup[] = [
-  { key: "sales", items: ["dashboard", "orders", "collection", "reports"] },
+  { key: "sales", items: ["dashboard", "orders", "collection", "reports", "expenses"] },
   { key: "catalogue", items: ["products", "inventory", "labels", "categories"] },
   { key: "manage", items: ["changeRequests", "users", "permissions", "settings"] },
 ];

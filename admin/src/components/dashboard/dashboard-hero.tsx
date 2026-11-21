@@ -1,7 +1,7 @@
 "use client";
 
 import { useLocale, useTranslations } from "next-intl";
-import { CalendarDays, Plus, Printer, Sun, Sunset, Moon } from "lucide-react";
+import { CalendarDays, Moon, Plus, Sun, Sunset, WalletMinimal } from "lucide-react";
 import { can } from "@store/shared/lib/permissions";
 import { buttonClassName, Typography } from "@store/ui";
 import { Link } from "@/i18n/navigation";
@@ -46,8 +46,14 @@ export function DashboardHero({ name, today, drawer }: DashboardHeroProps) {
 
   const actions = [
     { key: "newOrder", href: "/orders/new", icon: Plus, show: can(user, "order.create"), variant: "inverse" },
+    {
+      key: "newExpense",
+      href: "/expenses?new=1",
+      icon: WalletMinimal,
+      show: can(user, "expense.create") && can(user, "expense.view"),
+      variant: "glass",
+    },
     { key: "newProduct", href: "/products/new", icon: Plus, show: can(user, "product.create"), variant: "glass" },
-    { key: "printLabels", href: "/labels", icon: Printer, show: can(user, "product.printLabels"), variant: "glass" },
   ] as const;
 
   return (

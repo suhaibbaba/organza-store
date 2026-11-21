@@ -9,7 +9,8 @@ import { useActiveSegmentInView } from "@/lib/segmented-scroll";
 import type { ReportPresetKey, ReportRangePickerProps } from "@/types/report";
 
 // The segments scroll inside their row on a phone instead of widening the page.
-export function ReportRangePicker({ value, onChange }: ReportRangePickerProps) {
+export function ReportRangePicker({ value, onChange, name }: ReportRangePickerProps) {
+  const datesName = name ? `${name}-dates` : "report-range-dates";
   const t = useTranslations("reports.range");
   const rowRef = useActiveSegmentInView<HTMLDivElement>();
 
@@ -21,7 +22,7 @@ export function ReportRangePicker({ value, onChange }: ReportRangePickerProps) {
     <div className="flex min-w-0 flex-wrap items-center gap-3">
       <div ref={rowRef} className="max-w-full overflow-x-auto">
         <SegmentedControl
-          data-testid="reports-range"
+          data-testid={name ?? "reports-range"}
           label={t("label")}
           options={REPORT_PRESETS.map((preset) => ({ value: preset, label: t(preset) }))}
           value={value.preset}
@@ -30,8 +31,8 @@ export function ReportRangePicker({ value, onChange }: ReportRangePickerProps) {
       </div>
       {value.preset === "custom" && (
         <DateRangePicker
-          id="report-range-dates"
-          data-testid={fieldTestSelector("report-range-dates")}
+          id={datesName}
+          data-testid={fieldTestSelector(datesName)}
           label={t("dates")}
           className="w-full sm:w-72"
           value={{ from: value.from, to: value.to }}

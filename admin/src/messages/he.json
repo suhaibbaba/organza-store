@@ -72,7 +72,8 @@
       "manage": "ניהול"
     },
     "collapse": "כיווץ התפריט",
-    "expand": "הרחבת התפריט"
+    "expand": "הרחבת התפריט",
+    "expenses": "הוצאות"
   },
   "auth": {
     "login": {
@@ -262,7 +263,7 @@
       "receivedShare": "{received} התקבלו · {owed} אצל השליחויות",
       "newOrder": "הזמנה חדשה",
       "newProduct": "מוצר חדש",
-      "printLabels": "הדפסת מדבקות"
+      "newExpense": "הוצאה"
     },
     "bars": {
       "title": "מכירות ב-7 הימים האחרונים",
@@ -2270,6 +2271,123 @@
       },
       "failed": "לא הצלחנו לשנות את הגדרת ההתראות. נסו שוב.",
       "iosHint": "לתשומת לב משתמשי אייפון ואייפד: התראות מגיעות רק אחרי שהאפליקציה נוספה למסך הבית ונפתחה מהאייקון שלה."
+    }
+  },
+  "expenses": {
+    "title": "הוצאות",
+    "subtitle": "מה שהחנות מוציאה — חשבונות, משכורות, ציוד. רק הוצאות מאושרות נספרות ברווח ובקופה.",
+    "add": "הוספת הוצאה",
+    "categoriesButton": "קטגוריות",
+    "search": {
+      "label": "חיפוש הוצאות",
+      "placeholder": "חיפוש בהערות…",
+      "clear": "ניקוי החיפוש"
+    },
+    "filters": {
+      "category": "קטגוריה",
+      "allCategories": "כל הקטגוריות",
+      "status": "סטטוס",
+      "allStatuses": "כל הסטטוסים"
+    },
+    "status": {
+      "PENDING": "ממתינה לאישור",
+      "APPROVED": "מאושרת",
+      "REJECTED": "נדחתה"
+    },
+    "summary": {
+      "total": "הוצאות",
+      "count": "{count, plural, =0 {אין הוצאות} one {הוצאה אחת} other {{count} הוצאות}}",
+      "cash": "מהקופה",
+      "cashHint": "שולם במזומן מהקופה",
+      "pending": "ממתינות לאישור",
+      "pendingHint": "{count, plural, =0 {אין ממתינות} one {הוצאה אחת, עוד לא נספרה} other {{count} הוצאות, עוד לא נספרו}}"
+    },
+    "breakdown": {
+      "title": "לפי קטגוריה",
+      "empty": "אין הוצאות בתקופה הזו."
+    },
+    "table": {
+      "category": "קטגוריה",
+      "date": "תאריך",
+      "paidFrom": "שולם מ",
+      "createdBy": "נרשם על ידי",
+      "amount": "סכום",
+      "actions": "פעולות",
+      "cash": "קופה",
+      "other": "כרטיס / העברה",
+      "recurring": "קבועה",
+      "noCategory": "ללא קטגוריה"
+    },
+    "menu": {
+      "label": "פעולות עבור {name}",
+      "edit": "עריכה",
+      "delete": "מחיקה"
+    },
+    "delete": {
+      "title": "למחוק את הוצאת {name} בסך {amount}?",
+      "consequence": "היא תפסיק להיספר ברווח ובקופה, ותישאר ביומן הביקורת.",
+      "confirm": "מחיקת ההוצאה",
+      "success": "ההוצאה נמחקה"
+    },
+    "empty": {
+      "noneTitle": "אין הוצאות בתקופה הזו",
+      "noneHint": "רשמו חשבון או תשלום ברגע ששולם.",
+      "noMatchesTitle": "אין הוצאות תואמות",
+      "noMatchesHint": "נסו קטגוריה, סטטוס או חיפוש אחר."
+    },
+    "form": {
+      "createTitle": "הוספת הוצאה",
+      "createDescription": "כמה, על מה, והאם יצא מהקופה.",
+      "editTitle": "עריכת הוצאה",
+      "editDescription": "השינוי מופיע ברווח ובקופה מיד.",
+      "amount": "סכום",
+      "amountPlaceholder": "0.00",
+      "date": "תאריך תשלום",
+      "category": "על מה?",
+      "categoryRequired": "בחרו קטגוריה.",
+      "paidInCash": "שולם במזומן מהקופה",
+      "paidInCashHint": "יורד ממה שאמור להיות בקופה היום",
+      "isRecurring": "הוצאה קבועה",
+      "isRecurringHint": "שכירות, משכורות, אינטרנט — כל חודש",
+      "note": "הערה",
+      "notePlaceholder": "למשל: חשבון חשמל לאוקטובר",
+      "create": "הוספת ההוצאה",
+      "save": "שמירת השינויים",
+      "created": "ההוצאה נוספה",
+      "saved": "ההוצאה נשמרה",
+      "sentForApproval": "ההוצאה נשלחה לאישור",
+      "amountRequired": "הזינו את הסכום ששולם."
+    },
+    "categories": {
+      "title": "קטגוריות הוצאות",
+      "description": "expenses.categories.descriptionText",
+      "add": "הוספת קטגוריה",
+      "count": "{count, plural, =0 {אין הוצאות} one {הוצאה אחת} other {{count} הוצאות}}",
+      "active": "להציע את {name} בהוספת הוצאה",
+      "edit": "שינוי שם {name}",
+      "offHint": "קטגוריה כבויה לא מוצעת יותר, אבל ההוצאות הקודמות שלה שומרות עליה.",
+      "turnedOn": "הקטגוריה הופעלה",
+      "turnedOff": "הקטגוריה כובתה",
+      "delete": {
+        "label": "מחיקת {name}",
+        "title": "למחוק את הקטגוריה {name}?",
+        "consequence": "אין תחתיה הוצאות, כך ששום דבר אחר לא משתנה.",
+        "confirm": "מחיקת הקטגוריה",
+        "success": "הקטגוריה נמחקה"
+      },
+      "form": {
+        "createTitle": "הוספת קטגוריה",
+        "editTitle": "שינוי שם קטגוריה",
+        "name": "שם",
+        "required": "חובה",
+        "optional": "רשות",
+        "nameRequired": "כתבו את השם בשפת ברירת המחדל.",
+        "create": "הוספת הקטגוריה",
+        "save": "שמירה",
+        "created": "הקטגוריה נוספה",
+        "saved": "הקטגוריה נשמרה"
+      },
+      "descriptionText": "הוסיפו, שנו שם או כבו את הקטגוריות שההוצאות נרשמות תחתן."
     }
   }
 }

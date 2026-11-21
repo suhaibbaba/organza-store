@@ -72,7 +72,8 @@
       "manage": "Management"
     },
     "collapse": "Collapse menu",
-    "expand": "Expand menu"
+    "expand": "Expand menu",
+    "expenses": "Expenses"
   },
   "auth": {
     "login": {
@@ -262,7 +263,7 @@
       "receivedShare": "{received} received · {owed} with delivery",
       "newOrder": "New order",
       "newProduct": "New product",
-      "printLabels": "Print labels"
+      "newExpense": "Expense"
     },
     "bars": {
       "title": "Sales, last 7 days",
@@ -2270,6 +2271,123 @@
       },
       "failed": "Couldn't change the notification setting. Please try again.",
       "iosHint": "iPhone and iPad note: notifications only arrive once the app has been added to the Home Screen and opened from its icon."
+    }
+  },
+  "expenses": {
+    "title": "Expenses",
+    "subtitle": "What the shop spends — bills, salaries, supplies. Only approved expenses count in profit and the drawer.",
+    "add": "Add expense",
+    "categoriesButton": "Categories",
+    "search": {
+      "label": "Search expenses",
+      "placeholder": "Search notes…",
+      "clear": "Clear search"
+    },
+    "filters": {
+      "category": "Category",
+      "allCategories": "All categories",
+      "status": "Status",
+      "allStatuses": "All statuses"
+    },
+    "status": {
+      "PENDING": "Awaiting approval",
+      "APPROVED": "Approved",
+      "REJECTED": "Rejected"
+    },
+    "summary": {
+      "total": "Spent",
+      "count": "{count, plural, =0 {No expenses} one {{count} expense} other {{count} expenses}}",
+      "cash": "From the drawer",
+      "cashHint": "Paid in cash out of the till",
+      "pending": "Awaiting approval",
+      "pendingHint": "{count, plural, =0 {Nothing waiting} one {{count} expense, not counted yet} other {{count} expenses, not counted yet}}"
+    },
+    "breakdown": {
+      "title": "By category",
+      "empty": "Nothing spent in this period."
+    },
+    "table": {
+      "category": "Category",
+      "date": "Date",
+      "paidFrom": "Paid from",
+      "createdBy": "Recorded by",
+      "amount": "Amount",
+      "actions": "Actions",
+      "cash": "Drawer",
+      "other": "Card / transfer",
+      "recurring": "Recurring",
+      "noCategory": "No category"
+    },
+    "menu": {
+      "label": "Actions for {name}",
+      "edit": "Edit",
+      "delete": "Delete"
+    },
+    "delete": {
+      "title": "Delete the {name} expense of {amount}?",
+      "consequence": "It stops counting in profit and in the drawer. It stays in the audit log.",
+      "confirm": "Delete expense",
+      "success": "Expense deleted"
+    },
+    "empty": {
+      "noneTitle": "No expenses in this period",
+      "noneHint": "Write down a bill or a payment as soon as it is paid.",
+      "noMatchesTitle": "No matching expenses",
+      "noMatchesHint": "Try another category, status or search."
+    },
+    "form": {
+      "createTitle": "Add expense",
+      "createDescription": "How much, on what, and whether it came out of the drawer.",
+      "editTitle": "Edit expense",
+      "editDescription": "Changes apply to profit and the drawer straight away.",
+      "amount": "Amount",
+      "amountPlaceholder": "0.00",
+      "date": "Date paid",
+      "category": "What was it for?",
+      "categoryRequired": "Pick a category.",
+      "paidInCash": "Paid in cash from the drawer",
+      "paidInCashHint": "Taken off what the drawer should hold today",
+      "isRecurring": "Recurring expense",
+      "isRecurringHint": "Rent, salaries, internet — paid every month",
+      "note": "Note",
+      "notePlaceholder": "e.g. electricity bill for October",
+      "create": "Add expense",
+      "save": "Save changes",
+      "created": "Expense added",
+      "saved": "Expense saved",
+      "sentForApproval": "Expense sent for approval",
+      "amountRequired": "Enter the amount paid."
+    },
+    "categories": {
+      "title": "Expense categories",
+      "description": "expenses.categories.descriptionText",
+      "add": "Add category",
+      "count": "{count, plural, =0 {No expenses} one {{count} expense} other {{count} expenses}}",
+      "active": "{name} offered when adding an expense",
+      "edit": "Rename {name}",
+      "offHint": "A category that is switched off is no longer offered, but its past expenses keep it.",
+      "turnedOn": "Category switched on",
+      "turnedOff": "Category switched off",
+      "delete": {
+        "label": "Delete {name}",
+        "title": "Delete the category {name}?",
+        "consequence": "It has no expenses, so nothing else changes.",
+        "confirm": "Delete category",
+        "success": "Category deleted"
+      },
+      "form": {
+        "createTitle": "Add category",
+        "editTitle": "Rename category",
+        "name": "Name",
+        "required": "Required",
+        "optional": "Optional",
+        "nameRequired": "Write the name in the default language.",
+        "create": "Add category",
+        "save": "Save",
+        "created": "Category added",
+        "saved": "Category saved"
+      },
+      "descriptionText": "Add, rename or switch off the categories expenses are filed under."
     }
   }
 }

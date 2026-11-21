@@ -6,7 +6,7 @@ import { asyncHandler } from "@/middleware/asyncHandler";
 import { requireAuth, requirePermission } from "@/middleware/auth";
 import { validateBody, validateQuery } from "@/middleware/validate";
 import { AppError, sendOk } from "@/lib/response";
-import { serializeExpense } from "@/lib/expenses";
+import { serializeExpense, summarizeExpenses } from "@/lib/expenses";
 import { formatMoney } from "@/lib/money";
 import { writeAudit } from "@/lib/audit";
 import {
@@ -17,9 +17,11 @@ import {
 } from "@/lib/changeRequests";
 import {
   createExpenseSchema,
+  expenseSummaryQuerySchema,
   listExpensesQuerySchema,
   updateExpenseSchema,
   type CreateExpenseInput,
+  type ExpenseSummaryQuery,
   type ListExpensesQuery,
   type UpdateExpenseInput,
 } from "@/validation/expense";
@@ -59,6 +61,27 @@ async function requireCategory(categoryId: string): Promise<void> {
   }
 }
 
+// The filters the list and the summary share, so the headline always adds up the rows below it.
+function expenseFilterWhere(query: ExpenseSummaryQuery): Prisma.ExpenseWhereInput {
+  const where: Prisma.ExpenseWhereInput = { deletedAt: null };
+  if (query.categoryId) {
+    where.categoryId = query.categoryId;
+  }
+  if (query.paidInCash !== undefined) {
+    where.paidInCash = query.paidInCash;
+  }
+  if (query.q) {
+    where.note = { contains: query.q, mode: "insensitive" };
+  }
+  if (query.dateFrom || query.dateTo) {
+    where.date = {
+      ...(query.dateFrom ? { gte: query.dateFrom } : {}),
+      ...(query.dateTo ? { lte: query.dateTo } : {}),
+    };
+  }
+  return where;
+}
+
 // GET /api/expenses — list (pagination + filtering + sorting)
 router.get(
   "/",
@@ -66,29 +89,13 @@ router.get(
   validateQuery(listExpensesQuerySchema),
   asyncHandler(async (req, res) => {
     const query = req.validatedQuery as ListExpensesQuery;
-    const where: Prisma.ExpenseWhereInput = { deletedAt: null };
+    const where = expenseFilterWhere(query);
 
-    if (query.categoryId) {
-      where.categoryId = query.categoryId;
-    }
     if (query.approvalStatus) {
       where.approvalStatus = query.approvalStatus;
     }
-    if (query.paidInCash !== undefined) {
-      where.paidInCash = query.paidInCash;
-    }
     if (query.isRecurring !== undefined) {
       where.isRecurring = query.isRecurring;
-    }
-    if (query.q) {
-      where.note = { contains: query.q, mode: "insensitive" };
-    }
-
-    if (query.dateFrom || query.dateTo) {
-      where.date = {
-        ...(query.dateFrom ? { gte: query.dateFrom } : {}),
-        ...(query.dateTo ? { lte: query.dateTo } : {}),
-      };
     }
 
     const [total, expenses] = await Promise.all([
@@ -108,6 +115,16 @@ router.get(
       total,
       totalPages: Math.max(1, Math.ceil(total / query.pageSize)),
     });
+  }),
+);
+
+// GET /api/expenses/summary — before /:id, or "summary" would be read as an id.
+router.get(
+  "/summary",
+  requirePermission("expense.view"),
+  validateQuery(expenseSummaryQuerySchema),
+  asyncHandler(async (req, res) => {
+    sendOk(res, await summarizeExpenses(expenseFilterWhere(req.validatedQuery as ExpenseSummaryQuery)));
   }),
 );
 

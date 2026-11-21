@@ -41,6 +41,8 @@ export interface ReportRangeValue {
 export interface ReportRangePickerProps {
   value: ReportRangeValue;
   onChange: (value: ReportRangeValue) => void;
+  // Test-selector name, so the same picker on two screens isn't one name.
+  name?: string;
 }
 
 export interface ReportHeadlineProps {
