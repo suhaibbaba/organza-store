@@ -1,9 +1,49 @@
 import type { BadgeTone } from "@ui/components/badge";
+import type { IconName } from "@ui/components/icon";
 
-export const TONE_SURFACE: Record<BadgeTone, string> = {
-  neutral: "border-line-strong bg-sunken text-ink-muted",
-  success: "border-success-300 bg-success-100 text-success-900",
-  warning: "border-warning-300 bg-warning-100 text-warning-700",
-  danger: "border-danger-200 bg-danger-100 text-danger-600",
-  info: "border-primary-200 bg-primary-100 text-primary-600",
+export interface NoticeTone {
+  readonly surface: string;
+  readonly icon: string;
+  readonly title: string;
+  readonly text: string;
+  readonly glyph: IconName;
+}
+
+// Alerts and toasts share one dark palette; it does not follow the page theme on purpose.
+export const NOTICE_TONES: Record<BadgeTone, NoticeTone> = {
+  danger: {
+    surface: "bg-toast-error",
+    icon: "text-toast-error-icon",
+    title: "text-toast-error-title",
+    text: "text-toast-error-text",
+    glyph: "error",
+  },
+  warning: {
+    surface: "bg-toast-warning",
+    icon: "text-toast-warning-icon",
+    title: "text-toast-warning-title",
+    text: "text-toast-warning-text",
+    glyph: "alert",
+  },
+  success: {
+    surface: "bg-toast-success",
+    icon: "text-toast-success-icon",
+    title: "text-toast-success-title",
+    text: "text-toast-success-text",
+    glyph: "circle-check",
+  },
+  info: {
+    surface: "bg-toast-info",
+    icon: "text-toast-info-icon",
+    title: "text-toast-info-title",
+    text: "text-toast-info-text",
+    glyph: "info",
+  },
+  neutral: {
+    surface: "bg-toast-neutral",
+    icon: "text-toast-neutral-icon",
+    title: "text-toast-neutral-title",
+    text: "text-toast-neutral-text",
+    glyph: "circle-help",
+  },
 };

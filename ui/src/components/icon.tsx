@@ -1,5 +1,7 @@
 import {
   Armchair,
+  CircleCheck,
+  CircleHelp,
   Layers,
   ScanBarcode,
   Shapes,
@@ -101,6 +103,8 @@ export type IconName =
   | "building"
   | "calendar"
   | "check"
+  | "circle-check"
+  | "circle-help"
   | "chevron-down"
   | "chevron-up"
   | "chevrons-up-down"
@@ -204,6 +208,8 @@ const ICONS: Record<IconName, LucideIcon> = {
   building: Building2,
   calendar: CalendarDays,
   check: Check,
+  "circle-check": CircleCheck,
+  "circle-help": CircleHelp,
   barcode: ScanBarcode,
   layers: Layers,
   shapes: Shapes,

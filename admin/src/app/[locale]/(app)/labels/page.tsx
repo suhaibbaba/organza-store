@@ -183,7 +183,7 @@ function LabelsPageContent() {
               <div className="flex flex-col gap-3">
                 <p>{t("print.confirmDescription")}</p>
                 {markPrinted.isError && (
-                  <p className="text-danger-600" role="alert">
+                  <p className="text-toast-error-icon" role="alert">
                     {translateError(markPrinted.error instanceof ApiError ? markPrinted.error.code : "error.internal")}
                   </p>
                 )}

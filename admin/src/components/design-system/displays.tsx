@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import {
+  Alert,
   Avatar,
   Button,
   Card,
@@ -179,13 +180,34 @@ export function Displays() {
           <Button variant="secondary" onClick={() => toast.success("designSystem.feedback.toastSuccess")}>
             {t("feedback.showSuccess")}
           </Button>
-          <Button variant="secondary" onClick={() => toast.warning("designSystem.feedback.toastWarning")}>
+          <Button variant="secondary" onClick={() => toast.warning("designSystem.feedback.toastWarning", undefined, "designSystem.feedback.toastWarningBody")}>
             {t("feedback.showWarning")}
           </Button>
-          <Button variant="secondary" onClick={() => toast.error("designSystem.feedback.toastError")}>
+          <Button variant="secondary" onClick={() => toast.error("designSystem.feedback.toastError", undefined, "designSystem.feedback.toastErrorBody")}>
             {t("feedback.showError")}
           </Button>
+          <Button
+            variant="secondary"
+            onClick={() => toast.info("designSystem.feedback.toastInfo", undefined, "designSystem.feedback.toastInfoBody")}
+          >
+            {t("feedback.showInfo")}
+          </Button>
+          <Button
+            variant="secondary"
+            onClick={() => toast.neutral("designSystem.feedback.toastNeutral", undefined, "designSystem.feedback.toastNeutralBody")}
+          >
+            {t("feedback.showNeutral")}
+          </Button>
           <InfoTip label={t("feedback.info")}>{t("feedback.infoBody")}</InfoTip>
+        </ShowcaseRow>
+        <ShowcaseRow label={t("feedback.alerts")}>
+          <div className="flex w-full flex-col gap-3">
+            <Alert tone="danger" title={t("feedback.alertDangerTitle")}>{t("feedback.alertDangerBody")}</Alert>
+            <Alert tone="warning" title={t("feedback.alertWarningTitle")}>{t("feedback.alertWarningBody")}</Alert>
+            <Alert tone="success" title={t("feedback.alertSuccessTitle")} />
+            <Alert tone="info" title={t("feedback.alertInfoTitle")}>{t("feedback.alertInfoBody")}</Alert>
+            <Alert tone="neutral">{t("feedback.alertNeutralBody")}</Alert>
+          </div>
         </ShowcaseRow>
         <EmptyState
           icon="receipt"
