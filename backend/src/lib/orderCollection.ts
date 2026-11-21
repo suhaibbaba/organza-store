@@ -3,31 +3,33 @@ import { prisma } from "@/lib/prisma";
 import { lineView } from "@/lib/reports";
 import { money, roundMoney, ZERO_MONEY } from "@/lib/money";
 import { MONEY_DECIMAL_PLACES } from "@/constants";
+import { COLLECTION_OVERDUE_DAYS, FINISHED_ORDER_STATUSES } from "@organza/shared/constants/order";
+import { MS_PER_DAY } from "@organza/shared/constants/time";
 import type { CollectionSummary, CollectionSummaryRow } from "@/types";
 
-// ============================================================================
-//  Money still sitting with the delivery company (spec.md "Payment
-//  collection").
-//
-//  Deliberately computed from the SAME per-line view the reports use rather
-//  than by summing Order.total: an order that was partly sent back owes only
-//  what stayed sold, and a cancelled or fully returned one owes nothing at
-//  all. Summing totals would quietly overstate the outstanding balance — the
-//  exact figure the shop uses to chase a payment.
-//
-//  Unbounded in time on purpose: an outstanding balance is not a date range,
-//  it is everything not yet settled.
-// ============================================================================
-
+// Net of returns and cancellations, from the same per-line view as the reports, and unbounded in time (spec.md "Payment collection").
 export async function queryCollectionSummary(): Promise<CollectionSummaryRow | undefined> {
+  const shipped = Prisma.join(FINISHED_ORDER_STATUSES.map((status) => Prisma.sql`${status}::"OrderStatus"`));
+  const overdueSince = new Date(Date.now() - COLLECTION_OVERDUE_DAYS * MS_PER_DAY);
   const rows = await prisma.$queryRaw<CollectionSummaryRow[]>`
-    WITH line AS (${lineView(null)})
+    WITH line AS (${lineView(null)}),
+    owed AS (
+      SELECT l.order_id, MIN(l.created_at) AS created_at, (o.status IN (${shipped})) AS shipped,
+             SUM(l.unit_net_price * l.net_units) AS amount
+      FROM line l JOIN "Order" o ON o.id = l.order_id
+      WHERE l.payment_status = 'PENDING_COLLECTION' AND l.net_units > 0
+      GROUP BY l.order_id, o.status
+    )
     SELECT
-      COUNT(DISTINCT order_id) FILTER (WHERE net_units > 0) AS "orderCount",
-      COALESCE(SUM(unit_net_price * net_units), 0)          AS "amount",
-      MIN(created_at) FILTER (WHERE net_units > 0)          AS "oldestCreatedAt"
-    FROM line
-    WHERE payment_status = 'PENDING_COLLECTION'
+      COUNT(*)                                          AS "orderCount",
+      COALESCE(SUM(amount), 0)                          AS "amount",
+      MIN(created_at)                                   AS "oldestCreatedAt",
+      COUNT(*) FILTER (WHERE shipped)                   AS "withCourierCount",
+      COALESCE(SUM(amount) FILTER (WHERE shipped), 0)   AS "withCourierAmount",
+      COUNT(*) FILTER (WHERE NOT shipped)               AS "notShippedCount",
+      COALESCE(SUM(amount) FILTER (WHERE NOT shipped), 0) AS "notShippedAmount",
+      COUNT(*) FILTER (WHERE created_at < ${overdueSince}) AS "overdueCount"
+    FROM owed
   `;
   return rows[0];
 }
@@ -42,19 +44,21 @@ export async function queryOutstandingByOrder(ids: string[]): Promise<Map<string
     WHERE order_id IN (${Prisma.join(ids)})
     GROUP BY order_id
   `;
-  return new Map(
-    rows.map((row) => [row.orderId, roundMoney(row.amount === null ? ZERO_MONEY() : money(row.amount)).toFixed(MONEY_DECIMAL_PLACES)])
-  );
+  return new Map(rows.map((row) => [row.orderId, moneyText(row.amount)]));
 }
 
-export function toCollectionSummary(row: CollectionSummaryRow | undefined): CollectionSummary {
-  const amount = row?.amount === null || row?.amount === undefined ? ZERO_MONEY() : money(row.amount);
+const moneyText = (value: Prisma.Decimal | null | undefined) =>
+  roundMoney(value === null || value === undefined ? ZERO_MONEY() : money(value)).toFixed(MONEY_DECIMAL_PLACES);
 
+export function toCollectionSummary(row: CollectionSummaryRow | undefined): CollectionSummary {
   return {
     orderCount: Number(row?.orderCount ?? 0),
-    amount: roundMoney(amount).toFixed(MONEY_DECIMAL_PLACES),
-    // Null when nothing is outstanding — there is no "owed since" date for a
-    // balance of zero.
+    amount: moneyText(row?.amount),
     oldestCreatedAt: row?.oldestCreatedAt ? row.oldestCreatedAt.toISOString() : null,
+    withCourierCount: Number(row?.withCourierCount ?? 0),
+    withCourierAmount: moneyText(row?.withCourierAmount),
+    notShippedCount: Number(row?.notShippedCount ?? 0),
+    notShippedAmount: moneyText(row?.notShippedAmount),
+    overdueCount: Number(row?.overdueCount ?? 0),
   };
 }

@@ -309,6 +309,14 @@ clinic app (`/Users/suhaibbaba/Projects/clinic-management-system/apps/web/src/mo
   `IconButton` top-aligned with the name. Controls in a row are all 36px (no `min-h-11`). A choice
   that decides which fields apply (order type) goes FIRST on phones: split the side column into grid items placed
   with `lg:col-start-*`/`lg:row-start-*` so the DOM order is the phone order.
+- **Every order list shows the order's product photos (user, 2026-11-21)** — the collection page included. Order rows
+  share `OrderTitle` + `OrderPhotos` (`components/orders/order-cells.tsx`); never a card grid of text-only orders.
+- **A list you tick for a bulk action is a `Table` with `selection`** (`@store/ui`): a checkbox per row and a
+  select-all (indeterminate) in the head on desktop / above the cards on phones; selected rows tint `bg-selected`.
+  The action itself sits in a fixed bar that appears only while something is ticked.
+- **Sub-lists of orders reuse the orders list's toolbar (user, 2026-11-21: "like orders table")**: SearchField,
+  the same `OrderFilters` drawer + `OrderFilterChips`, sortable headers. A filter the page fixes (collection:
+  unpaid) is passed in `omit` and forced back on apply, so it is never a chip.
 
 ## Done
 - admin `products/[id]` (record) — 2026-11-21
@@ -317,4 +325,4 @@ clinic app (`/Users/suhaibbaba/Projects/clinic-management-system/apps/web/src/mo
 - admin `orders` (list) — 2026-11-21
 - admin `orders/[id]` (record, two columns) — 2026-11-21
 - admin `orders/new` (channel segments + gift switch) — 2026-11-21
-- admin `orders/collection` (ui Checkbox rows, Typography) + whole orders area audited at 375/768/1024/1280 — 2026-11-21
+- admin `orders/collection` — rebuilt 2026-11-21: selectable `Table` with photos + customer, search, date/status/channel filters, sort

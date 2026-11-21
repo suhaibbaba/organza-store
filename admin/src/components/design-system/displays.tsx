@@ -45,6 +45,7 @@ export function Displays() {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [page, setPage] = useState(1);
   const [tableLoading, setTableLoading] = useState(false);
+  const [tableSelected, setTableSelected] = useState<string[]>([]);
 
   const columns: readonly Column<DesignSystemSampleRow>[] = [
     { key: "name", header: "designSystem.table.product", primary: true, render: (row) => t(`table.${row.nameKey}`) },
@@ -238,6 +239,14 @@ export function Displays() {
           isLoading={tableLoading}
           empty={<EmptyState title="designSystem.table.empty" />}
           pagination={{ page, totalPages: 5, onPageChange: setPage }}
+          selection={{
+            isSelected: (row) => tableSelected.includes(row.id),
+            onToggle: (row) =>
+              setTableSelected((ids) => (ids.includes(row.id) ? ids.filter((id) => id !== row.id) : [...ids, row.id])),
+            onToggleAll: (select) => setTableSelected(select ? DESIGN_SYSTEM_SAMPLE_ROWS.map((row) => row.id) : []),
+            rowLabel: (row) => t("table.selectRow", { name: t(`table.${row.nameKey}`) }),
+            allLabel: t("table.selectAll"),
+          }}
         />
       </ShowcaseSection>
 

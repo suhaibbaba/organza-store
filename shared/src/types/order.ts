@@ -146,6 +146,14 @@ export interface CollectionSummary {
   amount: string;
   // The oldest still-uncollected sale, which is what makes the outstanding total actionable.
   oldestCreatedAt: string | null;
+  // Handed to the courier (or completed): the money is with the delivery company now.
+  withCourierCount: number;
+  withCourierAmount: string;
+  // Not shipped yet: owed, but nobody can have paid it.
+  notShippedCount: number;
+  notShippedAmount: string;
+  // Unpaid for longer than COLLECTION_OVERDUE_DAYS.
+  overdueCount: number;
 }
 
 // Collecting twice is a no-op, so two people tapping at once can't produce a failure.

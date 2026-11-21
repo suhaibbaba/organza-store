@@ -1,3 +1,4 @@
+import { MS_PER_DAY } from "@organza/shared/constants/time";
 import { DATE_FORMAT_BASE, NUMBER_FORMAT_BASE } from "@organza/shared/constants/formatting";
 
 // Every figure and date goes through these helpers, from the shared base, so digits match on every device.
@@ -63,4 +64,9 @@ export function formatTime(value: string | null | undefined, locale: string): st
   } catch {
     return date.toISOString();
   }
+}
+
+// Whole days from a moment until now; 0 on the same day.
+export function daysSince(value: string, now: number = Date.now()): number {
+  return Math.max(0, Math.floor((now - new Date(value).getTime()) / MS_PER_DAY));
 }

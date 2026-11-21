@@ -38,6 +38,9 @@ export const ONLINE_ORDER_INITIAL_STATUS = "NEW";
 
 // A counter sale is paid on the spot; a courier order is collected once the delivery company settles up.
 export const STORE_ORDER_INITIAL_PAYMENT_STATUS = "COLLECTED";
+// An unpaid order older than this is chased first on the collection page.
+export const COLLECTION_OVERDUE_DAYS = 7;
+
 export const ONLINE_ORDER_INITIAL_PAYMENT_STATUS = "PENDING_COLLECTION";
 
 // Online orders commit stock when preparation starts — an unanswered WhatsApp order must not hold an item.

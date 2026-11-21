@@ -38,6 +38,11 @@ export interface CollectionSummaryRow {
   orderCount: bigint;
   amount: Prisma.Decimal | null;
   oldestCreatedAt: Date | null;
+  withCourierCount: bigint;
+  withCourierAmount: Prisma.Decimal | null;
+  notShippedCount: bigint;
+  notShippedAmount: Prisma.Decimal | null;
+  overdueCount: bigint;
 }
 
 // One line's worth of stock movement: exactly one of variantId/productId is

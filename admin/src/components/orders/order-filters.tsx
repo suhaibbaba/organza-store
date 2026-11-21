@@ -8,21 +8,9 @@ import { ORDER_CHANNELS, ORDER_STATUSES, PAYMENT_STATUSES } from "@organza/share
 import { fieldTestSelector } from "@organza/shared/lib/testSelector";
 import { DEFAULT_ORDER_FILTERS, ORDER_SORT_OPTIONS } from "@/constants/orders";
 import { formatDate } from "@/lib/format";
-import type { OrderListFilters } from "@/types/order";
+import type { OrderFilterChipsProps, OrderFiltersProps, OrderFiltersValue, OrderSortValue } from "@/types/order";
 
-export interface OrderFiltersValue {
-  status: OrderListFilters["status"];
-  channel: OrderListFilters["channel"];
-  paymentStatus: OrderListFilters["paymentStatus"];
-  hasQuickSale: boolean;
-  dateFrom: string;
-  dateTo: string;
-}
-
-export interface OrderSortValue {
-  sortBy: OrderListFilters["sortBy"];
-  sortDir: OrderListFilters["sortDir"];
-}
+export type { OrderFiltersValue, OrderSortValue };
 
 export const EMPTY_ORDER_FILTERS: OrderFiltersValue = {
   status: null,
@@ -39,13 +27,7 @@ export function countOrderFilters(value: OrderFiltersValue): number {
   ).length;
 }
 
-interface OrderFiltersProps {
-  value: OrderFiltersValue;
-  sort: OrderSortValue;
-  onApply: (value: OrderFiltersValue, sort: OrderSortValue) => void;
-}
-
-export function OrderFilters({ value, sort, onApply }: OrderFiltersProps) {
+export function OrderFilters({ value, sort, onApply, omit = [] }: OrderFiltersProps) {
   const t = useTranslations("orders.filters");
   const tSort = useTranslations("orders.sort");
   const tStatus = useTranslations("orders.status");
@@ -143,6 +125,7 @@ export function OrderFilters({ value, sort, onApply }: OrderFiltersProps) {
             />
           </FormField>
 
+          {!omit.includes("paymentStatus") && (
           <FormField
             label="orders.filters.paymentStatus"
             hint="orders.filters.paymentStatusHint"
@@ -162,6 +145,7 @@ export function OrderFilters({ value, sort, onApply }: OrderFiltersProps) {
               }
             />
           </FormField>
+          )}
 
           <FormField label="orders.filters.dateRange" hint="orders.filters.dateRangeHint" htmlFor="order-filter-dates">
             <DateRangePicker
@@ -187,11 +171,6 @@ export function OrderFilters({ value, sort, onApply }: OrderFiltersProps) {
       </Drawer>
     </>
   );
-}
-
-interface OrderFilterChipsProps {
-  value: OrderFiltersValue;
-  onChange: (value: OrderFiltersValue) => void;
 }
 
 export function OrderFilterChips({ value, onChange }: OrderFilterChipsProps) {

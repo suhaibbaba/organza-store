@@ -605,9 +605,16 @@
       "selectOrder": "בחירת הזמנה {number} — {amount}",
       "marked": "{count, plural, one {נרשם תשלום עבור הזמנה אחת.} two {נרשם תשלום עבור שתי הזמנות.} other {נרשם תשלום עבור {count, number, plain} הזמנות.}}",
       "summary": {
-        "label": "חייבים לך",
-        "orders": "{count, plural, =0 {אין הזמנות} one {הזמנה אחת} two {שתי הזמנות} other {{count, number, plain} הזמנות}}",
-        "oldest": "ההזמנה הוותיקה שטרם שולמה: {date}"
+        "label": "מגיע לך",
+        "orders": "{count, plural, =0 {אין הזמנות} one {הזמנה אחת} other {{count, number, plain} הזמנות}}",
+        "withCourier": "אצל חברת המשלוחים",
+        "withCourierHint": "{count, plural, =0 {לא נמסר דבר} one {הזמנה אחת נמסרה למשלוח} other {{count, number, plain} הזמנות נמסרו למשלוח}}",
+        "notShipped": "טרם נשלח",
+        "notShippedHint": "{count, plural, =0 {אין ממתינות} one {הזמנה אחת עדיין בחנות} other {{count, number, plain} הזמנות עדיין בחנות}}",
+        "oldest": "החוב הוותיק ביותר",
+        "oldestDays": "{count, plural, =0 {היום} one {יום אחד} other {{count, number, plain} ימים}}",
+        "overdue": "{count, plural, =0 {אין הזמנות מעל {days} ימים} one {הזמנה אחת מעל {days} ימים} other {{count, number, plain} הזמנות מעל {days} ימים}}",
+        "none": "—"
       },
       "empty": {
         "title": "אין חובות פתוחים",
@@ -617,7 +624,15 @@
         "selected": "{count, plural, one {הזמנה אחת נבחרה} two {שתי הזמנות נבחרו} other {{count, number, plain} הזמנות נבחרו}}",
         "selectAll": "בחר הכל",
         "clear": "ניקוי",
-        "markCollected": "{count, plural, one {התקבל תשלום עבור הזמנה} two {התקבל תשלום עבור שתיים} other {התקבל תשלום עבור {count, number, plain}}}"
+        "markCollected": "{count, plural, one {התקבל תשלום עבור הזמנה} two {התקבל תשלום עבור שתיים} other {התקבל תשלום עבור {count, number, plain}}}",
+        "selectAllLabel": "בחירת כל ההזמנות בעמוד"
+      },
+      "table": {
+        "owed": "לתשלום"
+      },
+      "noResults": {
+        "title": "אין הזמנה שלא שולמה שתואמת",
+        "description": "נסו חיפוש אחר, או הסירו מסנן."
       }
     },
     "quickSale": {
@@ -1888,7 +1903,9 @@
       "rowA": "צעיף משי",
       "rowB": "עבאיה פשתן",
       "rowC": "חיג׳אב כותנה",
-      "empty": "אין מוצרים תואמים"
+      "empty": "אין מוצרים תואמים",
+      "selectRow": "בחירת שורה {name}",
+      "selectAll": "בחירת כל השורות"
     },
     "chips": {
       "remove": "הסרת {name}"

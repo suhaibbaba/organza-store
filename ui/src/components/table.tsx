@@ -1,6 +1,7 @@
 import { foldDigits } from "@ui/lib/support";
 import { useEffect, useState, type JSX, type KeyboardEvent, type ReactNode } from "react";
 import { useTranslation } from "@ui/lib/i18n";
+import { Checkbox } from "@ui/components/checkbox";
 import { Icon, type IconName } from "@ui/components/icon";
 import { Ltr } from "@ui/components/ltr";
 import { Select } from "@ui/components/select";
@@ -37,6 +38,15 @@ export interface TableSort {
   readonly onChange: (key: string | null, dir: "asc" | "desc") => void;
 }
 
+// Row selection for bulk actions: a checkbox per row and a select-all in the head.
+export interface TableSelection<TRow> {
+  readonly isSelected: (row: TRow) => boolean;
+  readonly onToggle: (row: TRow) => void;
+  readonly onToggleAll: (select: boolean) => void;
+  readonly rowLabel: (row: TRow) => string;
+  readonly allLabel: string;
+}
+
 export interface TableProps<TRow> extends TestIdProps {
   columns: readonly Column<TRow>[];
   rows: readonly TRow[];
@@ -50,6 +60,7 @@ export interface TableProps<TRow> extends TestIdProps {
   header?: ReactNode | undefined;
   density?: "default" | "compact" | undefined;
   sort?: TableSort | undefined;
+  selection?: TableSelection<TRow> | undefined;
 }
 
 export interface PaginationProps extends TestIdProps {
@@ -85,6 +96,7 @@ export function Table<TRow>({
   header,
   density = "default",
   sort,
+  selection,
   "data-testid": testId,
 }: TableProps<TRow>): JSX.Element {
   const { t } = useTranslation();
@@ -95,6 +107,20 @@ export function Table<TRow>({
 
   const rowId = (row: TRow): string | undefined =>
     testId === undefined ? undefined : `${testId}-row-${rowKey(row)}`;
+
+  const selectedCount = selection === undefined ? 0 : rows.filter(selection.isSelected).length;
+  const allSelected = rows.length > 0 && selectedCount === rows.length;
+  const rowCheckbox = (row: TRow, size: "sm" | "md") =>
+    selection === undefined ? null : (
+      <Checkbox
+        size={size}
+        label={selection.rowLabel(row)}
+        hideLabel
+        checked={selection.isSelected(row)}
+        onCheckedChange={() => selection.onToggle(row)}
+        {...testid(rowId(row), "select")}
+      />
+    );
 
   if (!isLoading && rows.length === 0 && empty !== undefined) {
     return (
@@ -121,6 +147,16 @@ export function Table<TRow>({
         <div data-part="table-cards" {...testid(testId)} className="relative flex flex-col gap-3">
           <RefreshBar active={isRefreshing} overlay />
 
+          {selection !== undefined && showRows && rows.length > 0 && (
+            <Checkbox
+              label={selection.allLabel}
+              checked={allSelected}
+              indeterminate={selectedCount > 0 && !allSelected}
+              onCheckedChange={(next) => selection.onToggleAll(next)}
+              {...testid(testId, "select-all")}
+            />
+          )}
+
           {showSkeleton && (
             <>
               <SkeletonStatus />
@@ -143,6 +179,7 @@ export function Table<TRow>({
                 <>
                   {primary && (
                     <div className={cn("flex items-start justify-between gap-3", shown.length > 0 && "mb-3")}>
+                      {selection !== undefined && <div className="relative z-10 shrink-0 pt-0.5">{rowCheckbox(row, "md")}</div>}
                       <div
                         data-part="table-card-title"
                         {...testid(rowId(row), "title")}
@@ -217,8 +254,10 @@ export function Table<TRow>({
                 </>
               );
 
-              const cardClass =
-                "border border-line rounded-card bg-surface p-4 text-start shadow-card transition duration-[250ms] ease-in-out";
+              const cardClass = cn(
+                "border rounded-card p-4 text-start shadow-card transition duration-[250ms] ease-in-out",
+                selection?.isSelected(row) ? "border-selected-line bg-selected" : "border-line bg-surface",
+              );
 
               return onRowClick === undefined ? (
                 <div
@@ -296,6 +335,22 @@ export function Table<TRow>({
         <table className="w-full border-collapse text-value">
           <thead>
             <tr>
+              {selection !== undefined && (
+                <th
+                  scope="col"
+                  className={cn("w-px border-b border-line bg-table-head", compact ? "ps-3" : "ps-[18px] py-[13px]")}
+                >
+                  <Checkbox
+                    size="sm"
+                    label={selection.allLabel}
+                    hideLabel
+                    checked={allSelected}
+                    indeterminate={selectedCount > 0 && !allSelected}
+                    onCheckedChange={(next) => selection.onToggleAll(next)}
+                    {...testid(testId, "select-all")}
+                  />
+                </th>
+              )}
               {wideColumns.map((column) => (
                 <th
                   key={column.key}
@@ -360,9 +415,17 @@ export function Table<TRow>({
                     className: "cursor-pointer transition-colors duration-150 hover:bg-row-hover focus-visible:bg-neutral-200",
                   })}
                   {...(!onRowClick && {
-                    className: "transition-colors duration-150 hover:bg-row-hover",
+                    className: cn(
+                      "transition-colors duration-150",
+                      selection?.isSelected(row) ? "bg-selected" : "hover:bg-row-hover",
+                    ),
                   })}
                 >
+                  {selection !== undefined && (
+                    <td className={cn("w-px align-middle", compact ? "ps-3" : "ps-[18px] py-[13px]")}>
+                      {rowCheckbox(row, "sm")}
+                    </td>
+                  )}
                   {wideColumns.map((column) => (
                     <td
                       key={column.key}

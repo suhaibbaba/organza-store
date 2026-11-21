@@ -605,9 +605,16 @@
       "selectOrder": "تحديد طلب رقم {number} — {amount}",
       "marked": "{count, plural, one {تم تسجيل استلام مبلغ طلب واحد.} two {تم تسجيل استلام مبلغ طلبين.} few {تم تسجيل استلام مبالغ {count, number, plain} طلبات.} other {تم تسجيل استلام مبالغ {count, number, plain} طلبًا.}}",
       "summary": {
-        "label": "المبلغ المستحق لك",
-        "orders": "{count, plural, =0 {لا توجد طلبات} one {طلب واحد} two {طلبان} few {{count, number, plain} طلبات} other {{count, number, plain} طلبًا}}",
-        "oldest": "أقدم طلب بانتظار التحصيل: {date}"
+        "label": "المستحق لك",
+        "orders": "{count, plural, =0 {لا طلبات} one {طلب واحد} two {طلبان} few {{count, number, plain} طلبات} many {{count, number, plain} طلبًا} other {{count, number, plain} طلب}}",
+        "withCourier": "عند شركة التوصيل",
+        "withCourierHint": "{count, plural, =0 {لم يُسلَّم شيء} one {طلب واحد سُلّم للتوصيل} two {طلبان سُلّما للتوصيل} few {{count, number, plain} طلبات سُلّمت للتوصيل} many {{count, number, plain} طلبًا سُلّمت للتوصيل} other {{count, number, plain} طلب سُلّمت للتوصيل}}",
+        "notShipped": "لم تُشحن بعد",
+        "notShippedHint": "{count, plural, =0 {لا شيء بالانتظار} one {طلب واحد ما زال في المحل} two {طلبان ما زالا في المحل} few {{count, number, plain} طلبات ما زالت في المحل} many {{count, number, plain} طلبًا ما زالت في المحل} other {{count, number, plain} طلب ما زالت في المحل}}",
+        "oldest": "أقدم مبلغ غير محصّل",
+        "oldestDays": "{count, plural, =0 {اليوم} one {يوم واحد} two {يومان} few {{count, number, plain} أيام} many {{count, number, plain} يومًا} other {{count, number, plain} يوم}}",
+        "overdue": "{count, plural, =0 {لا طلبات أقدم من {days} أيام} one {طلب واحد أقدم من {days} أيام} two {طلبان أقدم من {days} أيام} few {{count, number, plain} طلبات أقدم من {days} أيام} many {{count, number, plain} طلبًا أقدم من {days} أيام} other {{count, number, plain} طلب أقدم من {days} أيام}}",
+        "none": "—"
       },
       "empty": {
         "title": "لا توجد مبالغ مستحقة",
@@ -617,7 +624,15 @@
         "selected": "{count, plural, one {طلب واحد محدد} two {طلبان محددان} few {{count, number, plain} طلبات محددة} other {{count, number, plain} طلبًا محددًا}}",
         "selectAll": "تحديد الكل",
         "clear": "إلغاء التحديد",
-        "markCollected": "{count, plural, one {استلمت مبلغ طلب واحد} two {استلمت مبلغ طلبين} few {استلمت مبالغ {count, number, plain} طلبات} other {استلمت مبالغ {count, number, plain} طلبًا}}"
+        "markCollected": "{count, plural, one {استلمت مبلغ طلب واحد} two {استلمت مبلغ طلبين} few {استلمت مبالغ {count, number, plain} طلبات} other {استلمت مبالغ {count, number, plain} طلبًا}}",
+        "selectAllLabel": "تحديد كل طلبات هذه الصفحة"
+      },
+      "table": {
+        "owed": "المستحق"
+      },
+      "noResults": {
+        "title": "لا يوجد طلب غير مدفوع يطابق البحث",
+        "description": "جرّب بحثًا آخر أو أزل أحد الفلاتر."
       }
     },
     "quickSale": {
@@ -1888,7 +1903,9 @@
       "rowA": "شال حرير",
       "rowB": "عباية كتان",
       "rowC": "حجاب قطن",
-      "empty": "لا توجد منتجات مطابقة"
+      "empty": "لا توجد منتجات مطابقة",
+      "selectRow": "تحديد الصف {name}",
+      "selectAll": "تحديد كل الصفوف"
     },
     "chips": {
       "remove": "إزالة {name}"

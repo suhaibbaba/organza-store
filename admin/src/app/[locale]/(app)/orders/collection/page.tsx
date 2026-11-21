@@ -1,24 +1,25 @@
 "use client";
 
-import { toCents, fromCents } from "@/lib/money";
 import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
+import { Alert, EmptyState, SearchField, TotalBadge, type TableSort } from "@store/ui";
 import { ERROR_CODES } from "@organza/shared/constants/errors";
 import { DEFAULT_PAGE } from "@organza/shared/constants/pagination";
 import { RoleGuard } from "@/components/auth/role-guard";
 import { PageContainer } from "@/components/layout/page-container";
 import { PageHeader } from "@/components/layout/page-header";
-import { COLLECTION_ORDER_FILTERS } from "@/constants/orders";
+import { COLLECTION_ORDER_FILTERS, ORDER_SEARCH_DEBOUNCE_MS } from "@/constants/orders";
 import { useCollectOrdersMutation, useCollectionSummaryQuery, useOrdersQuery } from "@/hooks/use-orders";
+import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { useTranslateError } from "@/hooks/use-translate-error";
 import { ApiError } from "@/lib/api/errors";
-import { Alert, Button, EmptyState, Typography } from "@store/ui";
-import { OrderListError, OrderListLoading, OrderListSpinnerOverlay } from "@/components/orders/order-list-states";
-import { OrderPagination } from "@/components/orders/order-pagination";
-import { CollectionSummaryCard } from "@/components/orders/collection/collection-summary-card";
-import { CollectionOrderRow } from "@/components/orders/collection/collection-order-row";
+import { fromCents, toCents } from "@/lib/money";
+import { OrderListError } from "@/components/orders/order-list-states";
+import { CollectionSummaryCards } from "@/components/orders/collection/collection-summary-cards";
+import { CollectionTable } from "@/components/orders/collection/collection-table";
+import { OrderFilterChips, OrderFilters, countOrderFilters } from "@/components/orders/order-filters";
 import { CollectionActionBar } from "@/components/orders/collection/collection-action-bar";
-import type { OrderListFilters } from "@/types/order";
+import type { OrderFiltersValue, OrderListFilters, OrderSortValue } from "@/types/order";
 
 // Unpaid sales oldest first, to tick off as settled. Gated on order.markCollected: the shop-wide total is refused to an Employee (rule 19).
 export default function OrderCollectionPage() {
@@ -30,55 +31,79 @@ export default function OrderCollectionPage() {
 }
 
 function OrderCollectionPageContent() {
-  const t = useTranslations("orders.collection");
+  const t = useTranslations("orders");
   const translateError = useTranslateError();
 
   const [filters, setFilters] = useState<OrderListFilters>(COLLECTION_ORDER_FILTERS);
+  const [searchInput, setSearchInput] = useState("");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const debouncedSearch = useDebouncedValue(searchInput, ORDER_SEARCH_DEBOUNCE_MS);
+  const effectiveFilters = useMemo(() => ({ ...filters, q: debouncedSearch }), [filters, debouncedSearch]);
 
-  const { data, isLoading, isFetching, isError, error, refetch } = useOrdersQuery(filters);
+  const { data, isLoading, isFetching, isError, error, refetch } = useOrdersQuery(effectiveFilters);
   const summaryQuery = useCollectionSummaryQuery();
   const mutation = useCollectOrdersMutation();
 
   const orders = useMemo(() => data?.orders ?? [], [data]);
 
   // Only what is on screen counts: a page-1 selection must never be settled from page 2.
-  const selectedOnPage = useMemo(
-    () => orders.filter((order) => selectedIds.includes(order.id)),
-    [orders, selectedIds]
-  );
+  const selectedOnPage = useMemo(() => orders.filter((order) => selectedIds.includes(order.id)), [orders, selectedIds]);
   const selectedAmount = fromCents(selectedOnPage.reduce((sum, order) => sum + toCents(order.outstanding ?? order.total), 0));
+
+  function changeFilters(next: Partial<OrderListFilters>) {
+    setSelectedIds([]);
+    setFilters((current) => ({ ...current, ...next }));
+  }
 
   function toggle(id: string) {
     setSelectedIds((ids) => (ids.includes(id) ? ids.filter((one) => one !== id) : [...ids, id]));
   }
 
-  function changePage(page: number) {
-    setSelectedIds([]);
-    setFilters((f) => ({ ...f, page }));
-  }
-
-  function selectAllOnPage() {
-    setSelectedIds(orders.map((order) => order.id));
-  }
-
   function confirm() {
-    mutation.mutate(selectedOnPage.map((order) => order.id), {
-      onSuccess: () => {
-        setSelectedIds([]);
-        // Settled orders leave the list, which can empty this page.
-        setFilters((f) => ({ ...f, page: DEFAULT_PAGE }));
-      },
-    });
+    mutation.mutate(
+      selectedOnPage.map((order) => order.id),
+      {
+        onSuccess: () => {
+          setSelectedIds([]);
+          // Settled orders leave the list, which can empty this page.
+          setFilters((current) => ({ ...current, page: DEFAULT_PAGE }));
+        },
+      }
+    );
   }
 
-  const allOnPageSelected = orders.length > 0 && selectedOnPage.length === orders.length;
+  // Payment is fixed to "unpaid" here, so it is neither a filter nor a chip.
+  const filtersValue: OrderFiltersValue = {
+    status: filters.status,
+    channel: filters.channel,
+    paymentStatus: null,
+    hasQuickSale: filters.hasQuickSale,
+    dateFrom: filters.dateFrom,
+    dateTo: filters.dateTo,
+  };
+  const sortValue: OrderSortValue = { sortBy: filters.sortBy, sortDir: filters.sortDir };
+
+  function applyFilters(next: OrderFiltersValue, sort?: OrderSortValue) {
+    changeFilters({ ...next, ...sort, paymentStatus: COLLECTION_ORDER_FILTERS.paymentStatus, page: DEFAULT_PAGE });
+  }
+
+  const tableSort: TableSort = {
+    key: filters.sortBy,
+    dir: filters.sortDir,
+    onChange: (key, dir) =>
+      key === null
+        ? changeFilters({ sortBy: COLLECTION_ORDER_FILTERS.sortBy, sortDir: COLLECTION_ORDER_FILTERS.sortDir, page: DEFAULT_PAGE })
+        : changeFilters({ sortBy: key as OrderListFilters["sortBy"], sortDir: dir, page: DEFAULT_PAGE }),
+  };
+
+  const isFiltered = debouncedSearch.trim().length > 0 || countOrderFilters(filtersValue) > 0;
 
   return (
     <PageContainer>
-      <PageHeader name="collection" title={t("title")} description={t("subtitle")} />
+      <PageHeader name="collection" title={t("collection.title")} description={t("collection.subtitle")} />
       <div className="flex flex-col gap-4">
-        {summaryQuery.data && <CollectionSummaryCard summary={summaryQuery.data} />}
+        {summaryQuery.data && <CollectionSummaryCards summary={summaryQuery.data} />}
+
         {mutation.isError && (
           <Alert tone="danger" data-testid="alert-destructive">
             {translateError(mutation.error instanceof ApiError ? mutation.error.code : ERROR_CODES.INTERNAL)}
@@ -86,48 +111,70 @@ function OrderCollectionPageContent() {
         )}
         {mutation.isSuccess && !mutation.isPending && (
           <Alert tone="success" data-testid="alert-success">
-            {t("marked", { count: mutation.data.collectedIds.length })}
+            {t("collection.marked", { count: mutation.data.collectedIds.length })}
           </Alert>
         )}
-        {isLoading ? (
-          <OrderListLoading />
-        ) : isError ? (
+
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="min-w-64 flex-1 sm:max-w-md">
+            <SearchField
+              label={t("search.label")}
+              value={searchInput}
+              onChange={(event) => {
+                setSearchInput(event.target.value);
+                changeFilters({ page: DEFAULT_PAGE });
+              }}
+              onClear={() => {
+                setSearchInput("");
+                changeFilters({ page: DEFAULT_PAGE });
+              }}
+              clearLabel={t("search.clear")}
+              placeholder={t("search.placeholder")}
+              data-testid="collection-search"
+            />
+          </div>
+          <OrderFilters value={filtersValue} sort={sortValue} omit={["paymentStatus"]} onApply={applyFilters} />
+          {data?.meta && (
+            <div className="ms-auto flex h-(--control-h) items-center">
+              <TotalBadge data-testid="collection-count" total={data.meta.total} />
+            </div>
+          )}
+        </div>
+        <OrderFilterChips value={filtersValue} onChange={(next) => applyFilters(next)} />
+
+        {isError ? (
           <OrderListError error={error} onRetry={() => void refetch()} />
-        ) : orders.length === 0 ? (
-          <EmptyState
-            data-testid="collection-empty"
-            icon="coins"
-            title="orders.collection.empty.title"
-            hint="orders.collection.empty.description"
-          />
+        ) : !isLoading && orders.length === 0 ? (
+          isFiltered ? (
+            <EmptyState
+              data-testid="collection-no-results"
+              icon="search"
+              title="orders.collection.noResults.title"
+              hint="orders.collection.noResults.description"
+            />
+          ) : (
+            <EmptyState
+              data-testid="collection-empty"
+              icon="coins"
+              title="orders.collection.empty.title"
+              hint="orders.collection.empty.description"
+            />
+          )
         ) : (
-          <>
-            <div className="flex items-center justify-between gap-3">
-              <Typography variant="small" tone="muted" as="span">{t("listLabel")}</Typography>
-              <Button
-                type="button"
-                variant="secondary"
-                onClick={() => (allOnPageSelected ? setSelectedIds([]) : selectAllOnPage())}
-              >
-                {allOnPageSelected ? t("actions.clear") : t("actions.selectAll")}
-              </Button>
-            </div>
-            {isFetching && <OrderListSpinnerOverlay />}
-            {/* Several across on a desk, so the whole batch is visible while being ticked. */}
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
-              {orders.map((order) => (
-                <CollectionOrderRow
-                  key={order.id}
-                  order={order}
-                  selected={selectedIds.includes(order.id)}
-                  onToggle={toggle}
-                />
-              ))}
-            </div>
-            {data?.meta && <OrderPagination meta={data.meta} onPageChange={changePage} />}
-            {selectedOnPage.length > 0 && <div className="h-32" aria-hidden="true" />}
-          </>
+          <CollectionTable
+            orders={orders}
+            meta={data?.meta ?? null}
+            isRefreshing={isFetching && !isLoading}
+            sort={tableSort}
+            selectedIds={selectedIds}
+            onToggle={toggle}
+            onToggleAll={(select) => setSelectedIds(select ? orders.map((order) => order.id) : [])}
+            onPageChange={(page) => changeFilters({ page })}
+            onPageSizeChange={(pageSize) => changeFilters({ pageSize, page: DEFAULT_PAGE })}
+          />
         )}
+
+        {selectedOnPage.length > 0 && <div className="h-32" aria-hidden="true" />}
         <CollectionActionBar
           count={selectedOnPage.length}
           amount={selectedAmount}
