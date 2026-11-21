@@ -1,7 +1,7 @@
-import { REPORT_PERIODS } from "@store/shared/constants/report";
 import type { ReportPeriod } from "@/types/report";
 
-// Dashboard: Today, cash drawer, a period, needs attention — figures only, no chart.
+import { Barcode, ClipboardCheck, PackageSearch, Scale, Truck, WandSparkles } from "lucide-react";
+import type { DashboardTodoKey, DashboardTodoMeta } from "@/types/dashboard";
 
 export const CASH_SESSION_CURRENT_QUERY_KEY = ["cashSessions", "current"] as const;
 export const EXPENSES_PENDING_COUNT_QUERY_KEY = ["expenses", "pendingCount"] as const;
@@ -10,13 +10,31 @@ export const EXPENSES_PENDING_COUNT_QUERY_KEY = ["expenses", "pendingCount"] as 
 export const CASH_SESSION_STALE_TIME_MS = 60 * 1000;
 export const NEEDS_ATTENTION_STALE_TIME_MS = 60 * 1000;
 
-// The month is what rent is paid out of — the figure the owner checks first.
-export const DEFAULT_DASHBOARD_PERIOD: ReportPeriod = "month";
+// The week is what the shop plans around; the month is one tap away.
+export const DEFAULT_DASHBOARD_PERIOD: ReportPeriod = "week";
 
-export const DASHBOARD_PERIOD_TABS: readonly { id: ReportPeriod; label: string }[] = REPORT_PERIODS.map((key) => ({
-  id: key,
-  label: `dashboard.period.periods.${key}`,
-}));
+// The brief only switches between these two; today has its own strip above.
+export const DASHBOARD_BRIEF_PERIODS: readonly ReportPeriod[] = ["week", "month"];
+
+export const DASHBOARD_RECENT_ORDERS = 5;
+
+// Hours that start the afternoon and the evening greeting.
+export const GREETING_AFTERNOON_HOUR = 12;
+export const GREETING_EVENING_HOUR = 18;
+
+// Stagger between cards rising in, and between the sales bars growing.
+export const DASHBOARD_RISE_STEP_MS = 70;
+export const DASHBOARD_BAR_STEP_MS = 60;
+
+// Each to-do row: its icon and the screen that clears it (none when no screen exists yet).
+export const DASHBOARD_TODOS: Record<DashboardTodoKey, DashboardTodoMeta> = {
+  approvals: { icon: ClipboardCheck, href: "/change-requests" },
+  incomplete: { icon: WandSparkles, href: "/products?completeness=needs_completing" },
+  labels: { icon: Barcode, href: "/labels" },
+  lowStock: { icon: PackageSearch, href: "/inventory?lowStock=true" },
+  uncollected: { icon: Truck, href: "/orders/collection" },
+  followUps: { icon: Scale, href: null },
+};
 
 // CSV, not .xlsx: Excel opens it natively and it needs no library.
 export const EXPORT_FILE_PREFIX = "store";

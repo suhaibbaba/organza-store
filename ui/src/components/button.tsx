@@ -3,7 +3,7 @@ import { Icon } from "@ui/components/icon";
 import { cn } from "@ui/lib/cn";
 import { parts, type PartAttrs, type TestIdProps } from "@ui/lib/testid";
 
-export type ButtonVariant = "primary" | "secondary" | "ghost" | "quiet" | "danger";
+export type ButtonVariant = "primary" | "secondary" | "ghost" | "quiet" | "danger" | "inverse" | "glass";
 export type ButtonSize = "sm" | "md";
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement>, TestIdProps {
@@ -25,6 +25,11 @@ const VARIANTS: Record<ButtonVariant, string> = {
   quiet:
     "text-ink-muted hover:bg-inset hover:text-ink active:bg-neutral-200 focus-visible:bg-neutral-300 focus-visible:text-ink",
   danger: "bg-danger-600 text-ink-inverse hover:bg-danger-700 active:bg-danger-800 focus-visible:bg-danger-800",
+  // inverse and glass sit on a dark brand surface (a banner), never on the page background.
+  inverse:
+    "bg-surface text-primary-900 shadow-float hover:bg-primary-50 active:bg-primary-100 focus-visible:bg-primary-200",
+  glass:
+    "border border-white/25 bg-white/15 text-ink-inverse backdrop-blur-sm hover:bg-white/25 active:bg-white/30 focus-visible:bg-white/35",
 };
 
 const SIZES: Record<ButtonSize, string> = {

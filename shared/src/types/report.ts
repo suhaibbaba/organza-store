@@ -88,6 +88,18 @@ export interface PeriodSummary {
 // GET /api/reports/sales-summary: today / this week / this month, all in one request for the dashboard.
 export type SalesSummary = Record<ReportPeriod, PeriodSummary>;
 
+// One local day of the dashboard's sales bars; `date` is the viewer's YYYY-MM-DD.
+export interface DailySalesDay {
+  date: string;
+  revenue: string;
+  orderCount: number;
+}
+
+// GET /api/reports/daily-sales: the last DASHBOARD_DAILY_SALES_DAYS local days, oldest first, empty days included.
+export interface DailySales {
+  days: DailySalesDay[];
+}
+
 // GET /api/reports/sales?from=&to= — the Reports page.
 export interface SalesReport {
   // The instants covered, resolved from local dates + offset; `to` is exclusive.

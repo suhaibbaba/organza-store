@@ -1,6 +1,7 @@
 "use client";
 
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
+import type { LucideIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { ExplainedLabel } from "@/components/figures/explained-label";
 import { testSelectorFor } from "@store/shared/lib/testSelector";
@@ -17,7 +18,10 @@ interface StatCardProps {
   tone?: StatCardTone;
   // Rendered as `stat-card-<name>`, with `stat-card-value-<name>` for the figure.
   name?: string;
+  // A tinted tile beside the label, in the figure's tone.
+  icon?: LucideIcon;
   className?: string;
+  style?: CSSProperties;
 }
 
 const TONE_CLASS: Record<StatCardTone, string> = {
@@ -26,8 +30,24 @@ const TONE_CLASS: Record<StatCardTone, string> = {
   warning: "text-warning-700",
 };
 
+const ICON_TILE_CLASS: Record<StatCardTone, string> = {
+  default: "bg-primary-100 text-primary-700",
+  success: "bg-success-100 text-success-700",
+  warning: "bg-warning-100 text-warning-700",
+};
+
 // The (?) expands inline rather than hovering: ~95% of use is on a phone.
-export function StatCard({ label, value, hint, tooltip, tone = "default", name, className }: StatCardProps) {
+export function StatCard({
+  label,
+  value,
+  hint,
+  tooltip,
+  tone = "default",
+  name,
+  icon: Icon,
+  className,
+  style,
+}: StatCardProps) {
   const tFigures = useTranslations("figures");
 
   return (
@@ -36,14 +56,26 @@ export function StatCard({ label, value, hint, tooltip, tone = "default", name, 
         "flex min-w-0 flex-col rounded-card border border-line bg-surface p-[18px_20px] shadow-card",
         className,
       )}
+      style={style}
       data-test-selector={testSelectorFor("stat-card", name)}
     >
-      <ExplainedLabel
-        label={label}
-        description={tooltip}
-        toggleLabel={tFigures("explain", { label })}
-        rowClassName="justify-between gap-2"
-      />
+      <div className="flex items-start gap-3">
+        <ExplainedLabel
+          className="min-w-0 flex-1"
+          label={label}
+          description={tooltip}
+          toggleLabel={tFigures("explain", { label })}
+          rowClassName="justify-between gap-2"
+        />
+        {Icon && (
+          <span
+            className={cn("flex size-10 shrink-0 items-center justify-center rounded-panel", ICON_TILE_CLASS[tone])}
+            aria-hidden="true"
+          >
+            <Icon className="size-5" />
+          </span>
+        )}
+      </div>
 
       {/* break-words, not truncate: a clipped amount is worse than an ugly one. */}
       <p

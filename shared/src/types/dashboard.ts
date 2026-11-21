@@ -1,5 +1,4 @@
-// GET /api/dashboard/summary — Phase 1 dashboard (spec.md: "Dashboard" section).
-// Sales/profit are Phase 2 (orders don't exist yet) — deliberately not modeled here.
+// GET /api/dashboard/summary — catalogue figures and the to-do counts; sales come from /api/reports.
 export interface DashboardSummary {
   products: {
     active: number;
@@ -13,11 +12,13 @@ export interface DashboardSummary {
     count: number;
     threshold: number;
   };
-  // `basis: "cost"` only for Admin, who alone holds product.viewCost
-  // (CLAUDE.md rule 19);
-  // everyone else gets a retail valuation off basePrice/priceOverride.
+  // `basis: "cost"` only with product.viewCost (rule 19); everyone else gets a retail valuation.
   inventoryValue: {
     amount: string;
     basis: "cost" | "price";
   };
+  // The labels page's "not printed yet" queue, counted with the same clause.
+  unprintedLabels: number;
+  // Quick-sold pieces still waiting for their details (rule 23).
+  incompleteProducts: number;
 }

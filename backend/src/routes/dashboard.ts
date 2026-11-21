@@ -7,8 +7,10 @@ import { asyncHandler } from "@/middleware/asyncHandler";
 import { requireAuth, requirePermission } from "@/middleware/auth";
 import { sendOk } from "@/lib/response";
 import { DEFAULT_LOW_STOCK_THRESHOLD, SETTINGS_SINGLETON_ID } from "@/constants";
+import { NEEDS_LABEL_WHERE } from "@/lib/labelState";
+import { NEEDS_COMPLETING_WHERE } from "@/lib/quickSellState";
 
-// Dashboard built from catalogue data (products, variants, categories, settings).
+// Catalogue figures and the to-do counts the dashboard links from.
 const router = Router();
 router.use(requireAuth);
 
@@ -18,22 +20,26 @@ router.get(
   asyncHandler(async (req, res) => {
     const canViewCost = can(req.user!, "product.viewCost");
 
-    const [activeCount, hiddenCount, categoryCount, setting, products] = await Promise.all([
-      prisma.product.count({ where: { deletedAt: null, isActive: true } }),
-      prisma.product.count({ where: { deletedAt: null, isActive: false } }),
-      prisma.category.count(),
-      prisma.setting.findUnique({ where: { id: SETTINGS_SINGLETON_ID } }),
-      prisma.product.findMany({
-        where: { deletedAt: null },
-        select: {
-          stock: true,
-          basePrice: true,
-          cost: true,
-          trackLowStock: true,
-          variants: { select: { stock: true, priceOverride: true, cost: true } },
-        },
-      }),
-    ]);
+    const [activeCount, hiddenCount, categoryCount, setting, products, unprintedLabels, incompleteProducts] =
+      await Promise.all([
+        prisma.product.count({ where: { deletedAt: null, isActive: true } }),
+        prisma.product.count({ where: { deletedAt: null, isActive: false } }),
+        prisma.category.count(),
+        prisma.setting.findUnique({ where: { id: SETTINGS_SINGLETON_ID } }),
+        prisma.product.findMany({
+          where: { deletedAt: null },
+          select: {
+            stock: true,
+            basePrice: true,
+            cost: true,
+            trackLowStock: true,
+            variants: { select: { stock: true, priceOverride: true, cost: true } },
+          },
+        }),
+        // The same clauses as the labels queue and the "needs completing" filter, so the count matches the list it opens.
+        prisma.product.count({ where: { deletedAt: null, labelsPrintedAt: null, AND: [NEEDS_LABEL_WHERE] } }),
+        prisma.product.count({ where: { deletedAt: null, AND: [NEEDS_COMPLETING_WHERE] } }),
+      ]);
 
     const threshold = setting?.lowStockThreshold ?? DEFAULT_LOW_STOCK_THRESHOLD;
 
@@ -73,6 +79,8 @@ router.get(
         amount: inventoryValue.toString(),
         basis: canViewCost ? "cost" : "price",
       },
+      unprintedLabels,
+      incompleteProducts,
     };
 
     sendOk(res, summary);

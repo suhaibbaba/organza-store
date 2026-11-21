@@ -125,8 +125,6 @@
   },
   "dashboard": {
     "title": "Dashboard",
-    "welcome": "Welcome, {name}",
-    "subtitle": "Money received and money still owed are never mixed together here.",
     "today": {
       "title": "Today",
       "orders": "{count, plural, =0 {No orders} one {1 order} other {{count, number, plain} orders}}",
@@ -136,7 +134,10 @@
         "label": "Profit on today's sales",
         "help": "Today's sales less what the stock cost and what the shop spent today. It counts every sale, including ones the delivery company hasn't paid for yet.",
         "hint": "after cost + expenses"
-      }
+      },
+      "ordersLabel": "Orders",
+      "pieces": "{count, plural, =0 {No pieces} one {1 piece} other {{count, number, plain} pieces}}",
+      "averageHint": "Average {amount}"
     },
     "drawer": {
       "title": "Cash drawer",
@@ -153,8 +154,6 @@
         "help": "The morning float plus today's cash sales, less cash spent from the till. This is what should be there right now, before you count."
       },
       "notClosed": {
-        "title": "Day not closed yet",
-        "body": "Count the drawer, record any cash you take out",
         "action": "Close the day / count"
       },
       "notStarted": {
@@ -197,7 +196,8 @@
         "body": "Counted {counted}. {carried} stays in the drawer for tomorrow.",
         "short": "Came up {amount} short",
         "over": "Came up {amount} over"
-      }
+      },
+      "openBadge": "Open"
     },
     "period": {
       "export": "Export Excel",
@@ -247,14 +247,50 @@
         "hint": "profit ÷ sold",
         "value": "{value, number, percent}",
         "none": "—"
-      },
-      "choose": "Period"
+      }
     },
-    "attention": {
-      "title": "Needs attention",
-      "lowStock": "Low stock items",
-      "pendingApprovals": "Waiting for your approval",
-      "uncollected": "Uncollected from delivery"
+    "hero": {
+      "label": "Welcome",
+      "morning": "Good morning, {name}",
+      "afternoon": "Good afternoon, {name}",
+      "evening": "Good evening, {name}",
+      "openSince": "The drawer is open since {time}",
+      "notOpen": "The drawer isn't open yet today",
+      "closed": "Today's drawer is closed",
+      "ordersToday": "{count, plural, =0 {no orders yet} one {1 order so far} other {{count, number, plain} orders so far}}",
+      "todaySales": "Today's sales",
+      "receivedShare": "{received} received · {owed} with delivery",
+      "newOrder": "New order",
+      "newProduct": "New product",
+      "printLabels": "Print labels"
+    },
+    "bars": {
+      "title": "Sales, last 7 days",
+      "total": "Total {amount}",
+      "best": "Best day: {day}",
+      "none": "No sales in the last 7 days",
+      "today": "Today",
+      "chart": "Sales per day for the last seven days",
+      "day": "{day}: {amount}"
+    },
+    "recent": {
+      "title": "Latest orders",
+      "all": "All orders",
+      "empty": "No orders yet."
+    },
+    "brief": {
+      "choose": "Period",
+      "fullReport": "Full report",
+      "netProfit": "Net profit"
+    },
+    "todo": {
+      "title": "To follow up",
+      "approvals": "Waiting for approval",
+      "incomplete": "Pieces to complete",
+      "labels": "Labels not printed",
+      "lowStock": "Low stock",
+      "uncollected": "With the delivery company",
+      "followUps": "Drawer differences to review"
     }
   },
   "figures": {
@@ -1943,7 +1979,9 @@
       "outbound": "Open in Maps",
       "card": "A card to tap",
       "cardSelected": "Selected card",
-      "cardHint": "The whole card is one button"
+      "cardHint": "The whole card is one button",
+      "inverse": "On dark: inverse",
+      "glass": "On dark: glass"
     },
     "badges": {
       "inStock": "In stock",

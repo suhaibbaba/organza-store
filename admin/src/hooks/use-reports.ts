@@ -1,12 +1,26 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { REPORTS_SALES_QUERY_KEY, REPORTS_STALE_TIME_MS, REPORTS_SUMMARY_QUERY_KEY } from "@/constants/reports";
-import { fetchSalesReport, fetchSalesSummary } from "@/lib/api/reports";
+import {
+  REPORTS_DAILY_QUERY_KEY,
+  REPORTS_SALES_QUERY_KEY,
+  REPORTS_STALE_TIME_MS,
+  REPORTS_SUMMARY_QUERY_KEY,
+} from "@/constants/reports";
+import { fetchDailySales, fetchSalesReport, fetchSalesSummary } from "@/lib/api/reports";
 
 // The dashboard's Sales & Profit block: today / this week / this month.
 export function useSalesSummaryQuery() {
   return useQuery({
     queryKey: REPORTS_SUMMARY_QUERY_KEY,
     queryFn: fetchSalesSummary,
+    staleTime: REPORTS_STALE_TIME_MS,
+  });
+}
+
+// The dashboard's seven sales bars.
+export function useDailySalesQuery() {
+  return useQuery({
+    queryKey: REPORTS_DAILY_QUERY_KEY,
+    queryFn: fetchDailySales,
     staleTime: REPORTS_STALE_TIME_MS,
   });
 }

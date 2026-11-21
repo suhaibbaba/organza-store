@@ -1,13 +1,7 @@
 import { MS_PER_MINUTE, REPORT_WEEK_START_DAY } from "@/constants";
 import type { ReportPeriod, ReportRange } from "@/types";
 
-// Turning "today" into instants.
-//
-// A report is read in the viewer's local time (their phone's), not the
-// server's: the shop closes at night local time, so a sale at 23:30 belongs
-// to that day and not to the next UTC one. The client sends its offset in
-// minutes to add to UTC; every boundary below is computed on a shifted clock
-// and shifted back, so no server timezone ever leaks into the numbers.
+// Boundaries are computed on the viewer's shifted clock and shifted back, so a 23:30 sale stays on its local day.
 
 function shift(date: Date, minutes: number): Date {
   return new Date(date.getTime() + minutes * MS_PER_MINUTE);
@@ -26,9 +20,7 @@ function addLocalDays(date: Date, days: number, tzOffset: number): Date {
   return shift(local, -tzOffset);
 }
 
-// The dashboard's three quick periods, all ending "now": today since local
-// midnight, this week since REPORT_WEEK_START_DAY (Saturday — the store is in
-// Palestine), this month since the 1st.
+// The dashboard's periods, all ending now: today, this week (from REPORT_WEEK_START_DAY), this month.
 export function periodRange(period: ReportPeriod, tzOffset: number, now: Date = new Date()): ReportRange {
   const to = now;
 
@@ -49,11 +41,23 @@ export function periodRange(period: ReportPeriod, tzOffset: number, now: Date = 
   return { from: shift(local, -tzOffset), to };
 }
 
-// A picked range: two local calendar dates (YYYY-MM-DD), inclusive of both.
-// `to` becomes local midnight of the following day so the last day counts in
-// full — a half-open window is also what the SQL below compares against.
+// Two local dates, both inclusive: `to` becomes the next local midnight, the half-open window the SQL compares against.
 export function pickedRange(from: string, to: string, tzOffset: number): ReportRange {
   const fromInstant = shift(new Date(`${from}T00:00:00.000Z`), -tzOffset);
   const toInstant = addLocalDays(shift(new Date(`${to}T00:00:00.000Z`), -tzOffset), 1, tzOffset);
   return { from: fromInstant, to: toInstant };
+}
+
+// The last `days` local days ending now, today included.
+export function lastDaysRange(days: number, tzOffset: number, now: Date = new Date()): ReportRange {
+  return { from: addLocalDays(startOfLocalDay(now, tzOffset), -(days - 1), tzOffset), to: now };
+}
+
+// Each local date in a range, oldest first, as YYYY-MM-DD.
+export function localDatesIn(range: ReportRange, tzOffset: number): string[] {
+  const dates: string[] = [];
+  for (let day = range.from; day < range.to; day = addLocalDays(day, 1, tzOffset)) {
+    dates.push(shift(day, tzOffset).toISOString().slice(0, 10));
+  }
+  return dates;
 }

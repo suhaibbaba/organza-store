@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { Calculator, Check } from "lucide-react";
+import { Calculator, Check, Wallet } from "lucide-react";
 import type { CashSession, CurrentCashSession } from "@store/shared/types/cash";
-import { Alert, Button, Card } from "@store/ui";
+import { Alert, Badge, Button, Typography } from "@store/ui";
+import { DetailCard } from "@/components/layout/detail-card";
 import { ExplainedLabel } from "@/components/figures/explained-label";
 import { CloseDaySheet } from "@/components/dashboard/close-day-sheet";
 import { OpenDaySheet } from "@/components/dashboard/open-day-sheet";
@@ -30,20 +31,37 @@ export function CashDrawerSection({ current }: { current: CurrentCashSession }) 
   const closedToday = !session && current.lastClosed?.date === today ? current.lastClosed : null;
 
   return (
-    <section className="flex flex-col gap-3">
-      <div>
-        <h2 className="text-section font-semibold text-ink">{t("title")}</h2>
-        <p className="text-label text-ink-muted">{t("subtitle")}</p>
-      </div>
-
+    <DetailCard
+      icon={Wallet}
+      title={t("title")}
+      data-testid="dashboard-drawer"
+      className="animate-rise [animation-delay:300ms]"
+      action={
+        session ? (
+          <Badge tone="success" data-testid="dashboard-drawer-open">
+            <span aria-hidden="true" className="size-2 animate-live rounded-full bg-success-500" />
+            {t("openBadge")}
+          </Badge>
+        ) : undefined
+      }
+    >
       {session ? (
         <>
-          <Card className="flex flex-col gap-2">
-            {/* An earlier uncounted day is still the open drawer — name it rather than let "today" mean last Thursday. */}
-            {session.date !== today && (
-              <Alert tone="warning">{t("staleDay", { date: formatDate(session.date, locale) })}</Alert>
-            )}
+          {/* An earlier uncounted day is still the open drawer — name it rather than let "today" mean last Thursday. */}
+          {session.date !== today && (
+            <Alert tone="warning">{t("staleDay", { date: formatDate(session.date, locale) })}</Alert>
+          )}
 
+          <div className="flex flex-col gap-1 rounded-panel bg-linear-to-br from-primary-50 to-primary-100 p-4">
+            <ExplainedLabel
+              label={t("expected.label")}
+              description={t("expected.help")}
+              toggleLabel={tFigures("explain", { label: t("expected.label") })}
+            />
+            <span className="text-title font-bold text-primary-900 tabular-nums">{formatMoney(session.expected)}</span>
+          </div>
+
+          <div className="flex flex-col">
             <CalculationRow
               label={t("openingFloat.label")}
               description={t("openingFloat.help")}
@@ -52,49 +70,39 @@ export function CashDrawerSection({ current }: { current: CurrentCashSession }) 
             />
             <CalculationRow label={t("cashSales")} value={formatMoney(session.cashSales)} sign="+" />
             <CalculationRow label={t("cashExpenses")} value={formatMoney(session.cashExpenses)} sign="−" />
-
-            <hr className="my-1 border-line" />
-
-            <CalculationRow
-              label={t("expected.label")}
-              description={t("expected.help")}
-              toggleLabel={tFigures("explain", { label: t("expected.label") })}
-              value={formatMoney(session.expected)}
-              sign="="
-              emphasis
-            />
-          </Card>
-
-          {/* Amber: an uncounted drawer is an open loop, not an error. */}
-          <div className="flex flex-col gap-3 rounded-card border border-warning-300 bg-warning-50 p-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="min-w-0">
-              <p className="font-semibold text-warning-800">{t("notClosed.title")}</p>
-              <p className="mt-1 text-label text-ink-muted">{t("notClosed.body")}</p>
-            </div>
-            <Button
-              type="button"
-              className="w-full shrink-0 sm:w-auto"
-              icon={<Calculator className="size-4" aria-hidden="true" />}
-              onClick={() => setCountingSession(session)}
-            >
-              {t("notClosed.action")}
-            </Button>
           </div>
+
+          <Button
+            type="button"
+            className="w-full"
+            data-test-selector="dashboard-drawer-close"
+            icon={<Calculator className="size-4" aria-hidden="true" />}
+            onClick={() => setCountingSession(session)}
+          >
+            {t("notClosed.action")}
+          </Button>
         </>
       ) : closedToday ? (
         <ClosedDayCard session={closedToday} />
       ) : (
-        <Card className="flex flex-col gap-3">
-          <div>
-            <p className="font-semibold text-ink">{t("notStarted.title")}</p>
-            <p className="mt-1 text-label text-ink-muted">
+        <>
+          <div className="flex flex-col gap-1">
+            <Typography variant="body" weight="semibold" as="p">
+              {t("notStarted.title")}
+            </Typography>
+            <Typography variant="small" tone="muted" as="p">
               {t("notStarted.body", { amount: formatMoney(current.suggestedOpeningFloat) })}
-            </p>
+            </Typography>
           </div>
-          <Button type="button" className="w-full sm:w-auto sm:self-start" onClick={() => setOpening(true)}>
+          <Button
+            type="button"
+            className="w-full"
+            data-test-selector="dashboard-drawer-open-day"
+            onClick={() => setOpening(true)}
+          >
             {t("notStarted.action")}
           </Button>
-        </Card>
+        </>
       )}
 
       <OpenDaySheet open={opening} onOpenChange={setOpening} suggestedOpeningFloat={current.suggestedOpeningFloat} />
@@ -112,7 +120,7 @@ export function CashDrawerSection({ current }: { current: CurrentCashSession }) 
           }}
         />
       )}
-    </section>
+    </DetailCard>
   );
 }
 
@@ -123,7 +131,7 @@ function ClosedDayCard({ session }: { session: CashSession }) {
   const difference = Number(session.difference ?? 0);
 
   return (
-    <Card className="flex flex-col gap-3">
+    <div className="flex flex-col gap-3">
       <div className="flex items-start gap-3">
         <Check className="mt-0.5 size-5 shrink-0 text-primary-600" aria-hidden="true" />
         <div className="min-w-0">
@@ -145,7 +153,7 @@ function ClosedDayCard({ session }: { session: CashSession }) {
           {session.note ? ` — ${session.note}` : ""}
         </Alert>
       )}
-    </Card>
+    </div>
   );
 }
 

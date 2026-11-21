@@ -11,7 +11,7 @@ import {
 import { PRODUCT_LIST_QUERY_KEY } from "@/constants/products";
 import { INVENTORY_LIST_QUERY_KEY } from "@/constants/inventory";
 import { ORDER_COLLECTION_SUMMARY_QUERY_KEY, ORDER_DETAIL_QUERY_KEY, ORDER_LIST_QUERY_KEY } from "@/constants/orders";
-import { REPORTS_SALES_QUERY_KEY, REPORTS_SUMMARY_QUERY_KEY } from "@/constants/reports";
+import { REPORTS_DAILY_QUERY_KEY, REPORTS_SALES_QUERY_KEY, REPORTS_SUMMARY_QUERY_KEY } from "@/constants/reports";
 import { USERS_LIST_QUERY_KEY } from "@/constants/users";
 
 // Which screens a change makes stale, per thing changed, so a new screen can't quietly go stale.
@@ -63,6 +63,7 @@ export function useCacheInvalidation(): CacheInvalidation {
         // A sale, a cancellation or a return all change the sales figures.
         void queryClient.invalidateQueries({ queryKey: REPORTS_SUMMARY_QUERY_KEY });
         void queryClient.invalidateQueries({ queryKey: [REPORTS_SALES_QUERY_KEY] });
+        void queryClient.invalidateQueries({ queryKey: REPORTS_DAILY_QUERY_KEY });
       },
 
       categoriesChanged() {

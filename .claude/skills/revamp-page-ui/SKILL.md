@@ -432,6 +432,18 @@ hover:text-primary-700` (or `group` on the link + `group-hover:text-primary-700`
 - `Typography` weights are `regular | medium | semibold | bold` (not "normal"); `h3` is barely larger than body, a
   total that must stand out uses `h2`.
 
+- **Dashboard (user, 2026-11-21): "modern, not traditional" — a greeting banner, animation and shadow.** Banner =
+  brand gradient (`bg-linear-125 from-primary-900 via-primary-700 to-primary-500`), time-of-day greeting with the
+  name, today's long date, a live dot for the drawer, today's sales in a glass box, and the quick actions as the new
+  `Button` variants `inverse` / `glass` (only for dark brand surfaces). Then four `StatCard`s with icon tiles, and
+  main = 7-day bars (`/api/reports/daily-sales`) + latest 5 orders + week/month brief; side = drawer + to-do list.
+  Motion comes from theme utilities (`animate-rise` staggered by inline `animationDelay`, `animate-grow-up`,
+  `animate-float`, `animate-live`) — the site-wide reduced-motion rule already stills them.
+- Before showing a sketch, show a picture: the user judged the ASCII layout fine but asked for a visual mockup and
+  then for "more modern" — a Design canvas mockup settled the look before any code.
+- `SegmentedControl size="sm"` is for icon-only segments (square options); text segments use the default size.
+- A to-do row is shown only to a role that can act on it; zero rows stay but read muted.
+
 ## Done
 
 - admin `products/[id]` (record) — 2026-11-21; rebuilt 2026-11-21: gallery + viewer, details card, no tabs
@@ -448,3 +460,4 @@ hover:text-primary-700` (or `group` on the link + `group-hover:text-primary-700`
 - admin `labels` (two steps: selectable Table + StickyActions; copies list + sticky sheet card; printed Modal) — 2026-11-21
 - admin `categories` (one bordered tree list, row-wide fold, search, counts linking to products, ⋯ with add subcategory, Modal form) — 2026-11-21
 - admin `reports` (range segments + URL, 3 headline cards, profit statement, best sellers Table with photos, side facts) — 2026-11-21
+- admin `dashboard` (greeting banner, today cards with icons, 7-day bars, latest orders, week/month brief, drawer, to-do list) — 2026-11-21

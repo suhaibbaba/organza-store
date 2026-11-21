@@ -3,6 +3,7 @@ import type { ReportPresetKey, ReportRangeValue, TopSellerRanking } from "@/type
 import type { UrlParams } from "@/types/urlFilters";
 
 export const REPORTS_SUMMARY_QUERY_KEY = ["reports", "salesSummary"] as const;
+export const REPORTS_DAILY_QUERY_KEY = ["reports", "dailySales"] as const;
 export const REPORTS_SALES_QUERY_KEY = "reports.sales";
 
 // Sales go stale fast; a minute spares a refetch per navigation without showing yesterday's number.

@@ -1,6 +1,8 @@
 import type { ReactNode } from "react";
 import type {
   ChannelSales,
+  DailySales,
+  DailySalesDay,
   PeriodSummary,
   ProfitTotals,
   ReportPeriod,
@@ -13,6 +15,8 @@ import type {
 
 export type {
   ChannelSales,
+  DailySales,
+  DailySalesDay,
   PeriodSummary,
   ProfitTotals,
   ReportPeriod,

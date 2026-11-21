@@ -5,6 +5,8 @@ import { MARGIN_DECIMAL_PLACES, MONEY_DECIMAL_PLACES, ORDER_CHANNELS } from "@/c
 import type {
   ChannelAggregateRow,
   ChannelSales,
+  DailySales,
+  DailySalesRow,
   GiftAggregateRow,
   OrderChannel,
   ProfitTotals,
@@ -157,6 +159,19 @@ export async function queryTopSellers(
     HAVING SUM(net_units) > 0
     ORDER BY ${orderBy}, "quantity" DESC
     LIMIT ${limit}
+  `;
+}
+
+// Revenue per viewer-local day, grouped on the shifted clock so a 23:30 sale stays on its own day.
+export async function queryDailySales(range: ReportRange, tzOffset: number): Promise<DailySalesRow[]> {
+  return prisma.$queryRaw<DailySalesRow[]>`
+    WITH line AS (${lineView(range)})
+    SELECT
+      to_char(created_at + make_interval(mins => ${tzOffset}::int), 'YYYY-MM-DD') AS "date",
+      COUNT(DISTINCT order_id) FILTER (WHERE net_units > 0)                      AS "orderCount",
+      COALESCE(SUM(unit_net_price * net_units), 0)                               AS "revenue"
+    FROM line
+    GROUP BY 1
   `;
 }
 
@@ -318,4 +333,15 @@ export function toTopSellers(rows: TopSellerRow[], canViewCost: boolean, thumbna
     }
     return seller;
   });
+}
+
+// Every date in the window gets a bar, a day without sales included.
+export function toDailySales(rows: DailySalesRow[], dates: string[]): DailySales {
+  const byDate = new Map(rows.map((row) => [row.date, row]));
+  return {
+    days: dates.map((date) => {
+      const row = byDate.get(date);
+      return { date, revenue: amount(row?.revenue ?? null), orderCount: Number(row?.orderCount ?? 0) };
+    }),
+  };
 }

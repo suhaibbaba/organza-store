@@ -4,14 +4,16 @@ import { asyncHandler } from "@/middleware/asyncHandler";
 import { requireAuth, requirePermission } from "@/middleware/auth";
 import { validateQuery } from "@/middleware/validate";
 import { sendOk } from "@/lib/response";
-import { periodRange, pickedRange } from "@/lib/reportRange";
+import { lastDaysRange, localDatesIn, periodRange, pickedRange } from "@/lib/reportRange";
 import {
   queryChannelTotals,
+  queryDailySales,
   queryGiftCost,
   queryTopSellers,
   queryTopSellerThumbnails,
   queryTotals,
   toChannelSales,
+  toDailySales,
   toProfitTotals,
   toReturnsTotals,
   toSalesTotals,
@@ -24,8 +26,8 @@ import {
   type SalesReportQuery,
   type SalesSummaryQuery,
 } from "@/validation/report";
-import { REPORT_PERIODS } from "@/constants";
-import type { SalesReport, SalesSummary } from "@/types";
+import { DASHBOARD_DAILY_SALES_DAYS, REPORT_PERIODS } from "@/constants";
+import type { DailySales, SalesReport, SalesSummary } from "@/types";
 
 // Reports are gated on the screen they serve (report.view, dashboard.view), never on order.view (rule 19).
 const router = Router();
@@ -65,6 +67,20 @@ router.get(
     }, {} as SalesSummary);
 
     sendOk(res, summary);
+  }),
+);
+
+// GET /api/reports/daily-sales — the dashboard's bars: revenue per local day, empty days included.
+router.get(
+  "/daily-sales",
+  requirePermission("dashboard.view"),
+  validateQuery(salesSummaryQuerySchema),
+  asyncHandler(async (req, res) => {
+    const { tzOffset } = req.validatedQuery as SalesSummaryQuery;
+    const range = lastDaysRange(DASHBOARD_DAILY_SALES_DAYS, tzOffset);
+    const rows = await queryDailySales(range, tzOffset);
+    const daily: DailySales = toDailySales(rows, localDatesIn(range, tzOffset));
+    sendOk(res, daily);
   }),
 );
 

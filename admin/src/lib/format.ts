@@ -69,6 +69,21 @@ export function formatDate(value: string | null | undefined, locale: string): st
   }
 }
 
+// Weekday, day, month and year in words, for a heading like the dashboard's.
+export function formatLongDate(date: Date, locale: string): string {
+  try {
+    return new Intl.DateTimeFormat(locale, {
+      ...DATE_FORMAT_BASE,
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    }).format(date);
+  } catch {
+    return date.toISOString().slice(0, 10);
+  }
+}
+
 export function formatTime(value: string | null | undefined, locale: string): string {
   if (!value) {
     return "";

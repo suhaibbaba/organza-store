@@ -84,6 +84,12 @@ export function Controls() {
           <Button variant="danger">{t("buttons.danger")}</Button>
         </ShowcaseRow>
         <ShowcaseRow>
+          <div className="flex flex-wrap gap-2 rounded-panel bg-primary-800 p-4">
+            <Button variant="inverse">{t("buttons.inverse")}</Button>
+            <Button variant="glass">{t("buttons.glass")}</Button>
+          </div>
+        </ShowcaseRow>
+        <ShowcaseRow>
           <Button variant="primary" isLoading>
             {t("buttons.loading")}
           </Button>

@@ -125,8 +125,6 @@
   },
   "dashboard": {
     "title": "לוח בקרה",
-    "welcome": "שלום, {name}",
-    "subtitle": "כסף שהתקבל וכסף שעדיין חייבים לך לעולם לא מעורבבים כאן.",
     "today": {
       "title": "היום",
       "orders": "{count, plural, =0 {אין הזמנות} one {הזמנה אחת} two {שתי הזמנות} other {{count, number, plain} הזמנות}}",
@@ -136,7 +134,10 @@
         "label": "רווח על מכירות היום",
         "help": "מכירות היום פחות עלות הסחורה וההוצאות. כולל כל מכירה, גם כזו שחברת המשלוחים עדיין לא שילמה עליה.",
         "hint": "אחרי עלות והוצאות"
-      }
+      },
+      "ordersLabel": "הזמנות",
+      "pieces": "{count, plural, =0 {אין פריטים} one {פריט אחד} other {{count, number, plain} פריטים}}",
+      "averageHint": "ממוצע {amount}"
     },
     "drawer": {
       "title": "קופת מזומן",
@@ -153,8 +154,6 @@
         "help": "מזומן הבוקר ועוד מכירות המזומן היום, פחות מה ששולם מהקופה. זה מה שאמור להיות שם עכשיו, לפני הספירה."
       },
       "notClosed": {
-        "title": "היום עדיין לא נסגר",
-        "body": "ספור את הקופה ורשום כל משיכה",
         "action": "סגירת היום / ספירה"
       },
       "notStarted": {
@@ -197,7 +196,8 @@
         "body": "נספרו {counted}. {carried} נשארים בקופה למחר.",
         "short": "חסרו {amount}",
         "over": "היה עודף של {amount}"
-      }
+      },
+      "openBadge": "פתוחה"
     },
     "period": {
       "export": "ייצוא לאקסל",
@@ -247,14 +247,50 @@
         "hint": "רווח ÷ נמכר",
         "value": "{value, number, percent}",
         "none": "—"
-      },
-      "choose": "תקופה"
+      }
     },
-    "attention": {
-      "title": "דורש טיפול",
-      "lowStock": "פריטים במלאי נמוך",
-      "pendingApprovals": "מחכים לאישורך",
-      "uncollected": "טרם נגבה מהמשלוחים"
+    "hero": {
+      "label": "ברוכים הבאים",
+      "morning": "בוקר טוב, {name}",
+      "afternoon": "צהריים טובים, {name}",
+      "evening": "ערב טוב, {name}",
+      "openSince": "הקופה פתוחה מאז {time}",
+      "notOpen": "הקופה עוד לא נפתחה היום",
+      "closed": "הקופה של היום נסגרה",
+      "ordersToday": "{count, plural, =0 {עדיין אין הזמנות} one {הזמנה אחת עד עכשיו} other {{count, number, plain} הזמנות עד עכשיו}}",
+      "todaySales": "מכירות היום",
+      "receivedShare": "{received} התקבלו · {owed} אצל השליחויות",
+      "newOrder": "הזמנה חדשה",
+      "newProduct": "מוצר חדש",
+      "printLabels": "הדפסת מדבקות"
+    },
+    "bars": {
+      "title": "מכירות ב-7 הימים האחרונים",
+      "total": "סה״כ {amount}",
+      "best": "היום הטוב ביותר: {day}",
+      "none": "אין מכירות ב-7 הימים האחרונים",
+      "today": "היום",
+      "chart": "מכירות לכל יום בשבעת הימים האחרונים",
+      "day": "{day}: {amount}"
+    },
+    "recent": {
+      "title": "הזמנות אחרונות",
+      "all": "כל ההזמנות",
+      "empty": "עדיין אין הזמנות."
+    },
+    "brief": {
+      "choose": "תקופה",
+      "fullReport": "הדוח המלא",
+      "netProfit": "רווח נקי"
+    },
+    "todo": {
+      "title": "למעקב",
+      "approvals": "ממתינים לאישור",
+      "incomplete": "פריטים להשלמה",
+      "labels": "מדבקות שלא הודפסו",
+      "lowStock": "מלאי נמוך",
+      "uncollected": "אצל חברת המשלוחים",
+      "followUps": "הפרשי קופה לבדיקה"
     }
   },
   "figures": {
@@ -1943,7 +1979,9 @@
       "outbound": "פתיחה במפות",
       "card": "כרטיס ללחיצה",
       "cardSelected": "כרטיס נבחר",
-      "cardHint": "הכרטיס כולו כפתור אחד"
+      "cardHint": "הכרטיס כולו כפתור אחד",
+      "inverse": "על כהה: הפוך",
+      "glass": "על כהה: זכוכית"
     },
     "badges": {
       "inStock": "במלאי",

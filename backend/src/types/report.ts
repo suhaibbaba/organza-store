@@ -1,6 +1,8 @@
 import type { Prisma } from "@prisma/client";
 import type {
   ChannelSales,
+  DailySales,
+  DailySalesDay,
   ProfitTotals,
   ReportPeriod,
   ReturnsTotals,
@@ -12,6 +14,8 @@ import type {
 
 export type {
   ChannelSales,
+  DailySales,
+  DailySalesDay,
   ProfitTotals,
   ReportPeriod,
   ReturnsTotals,
@@ -44,6 +48,13 @@ export interface SalesAggregateRow {
   returnedOrderCount: bigint;
   returnedItemCount: Prisma.Decimal | null;
   returnedAmount: Prisma.Decimal | null;
+}
+
+// One local day's sales; `date` is already the viewer's YYYY-MM-DD.
+export interface DailySalesRow {
+  date: string;
+  orderCount: bigint;
+  revenue: Prisma.Decimal | null;
 }
 
 export interface ChannelAggregateRow extends SalesAggregateRow {
