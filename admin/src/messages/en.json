@@ -445,6 +445,8 @@
       },
       "statusActions": {
         "progressLabel": "Order progress",
+        "stepDone": "done",
+        "stepCurrent": "current step",
         "moved": "Status updated to: {status}",
         "advanceTo": {
           "PREPARING": "Start preparing",

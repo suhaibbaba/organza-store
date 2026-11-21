@@ -50,7 +50,7 @@ export function Switch({
         'after:content-[""] lg:after:hidden',
         "disabled:cursor-not-allowed disabled:opacity-50",
         "aria-disabled:cursor-not-allowed aria-disabled:opacity-50",
-        checked ? "bg-primary-600" : "bg-neutral-500",
+        checked ? "bg-primary-600 focus-visible:bg-primary-900" : "bg-neutral-500 focus-visible:bg-neutral-700",
       )}
     >
       <SwitchPrimitive.Thumb

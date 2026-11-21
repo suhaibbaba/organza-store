@@ -64,7 +64,7 @@ export function SearchField({ value, onChange, onSubmitCode, isLooking, inputRef
             onClick={() => onChange("")}
             aria-label={t("search.clear")}
             data-test-selector="pos-search-clear"
-            className="hit-area absolute end-1 top-1/2 flex size-8 -translate-y-1/2 items-center justify-center cursor-pointer rounded-control text-ink-faint hover:bg-inset hover:text-ink"
+            className="hit-area absolute end-1 top-1/2 flex size-8 -translate-y-1/2 items-center justify-center cursor-pointer rounded-control text-ink-faint hover:bg-inset hover:text-ink focus-visible:bg-neutral-200 focus-visible:text-ink"
           >
             <X className="size-4" aria-hidden="true" />
           </button>

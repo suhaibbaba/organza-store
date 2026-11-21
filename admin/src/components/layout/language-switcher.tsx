@@ -105,7 +105,9 @@ export function LanguageSwitcher({ className, variant = "list" }: LanguageSwitch
           aria-current={loc === locale}
           className={cn(
             "pill-text min-h-11 cursor-pointer rounded-pill px-3 text-label font-medium transition-colors duration-150",
-            loc === locale ? "bg-primary-100 text-primary-700" : "text-ink-muted hover:bg-inset hover:text-ink"
+            loc === locale
+              ? "bg-primary-100 text-primary-700 focus-visible:bg-primary-300 focus-visible:text-primary-900"
+              : "text-ink-muted hover:bg-inset hover:text-ink focus-visible:bg-neutral-200 focus-visible:text-ink"
           )}
         >
           {LOCALE_LABELS[loc]}

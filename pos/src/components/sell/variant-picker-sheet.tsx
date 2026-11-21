@@ -208,7 +208,7 @@ function VariantPicker({ product, isNumbered, onPick, onClose }: VariantPickerPr
                   data-test-selector={testSelectorFor("pos-variant-option", variant.id)}
                   className={cn(
                     "relative flex w-full cursor-pointer flex-col items-start justify-center gap-1 rounded-panel border p-3 text-start transition-colors",
-                    "min-h-16 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500",
+                    "min-h-16 focus-darken",
                     "disabled:cursor-not-allowed disabled:border-dashed disabled:bg-inset/40 disabled:opacity-70",
                     isNumbered && "items-center text-center",
                     // A chosen tile must be unmistakable at arm's length: fill, border, weight and a tick together.

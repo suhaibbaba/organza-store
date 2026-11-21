@@ -39,18 +39,18 @@ interface DayState {
 }
 
 const DAY_STATES = {
-  plain: { button: "text-ink hover:bg-inset" },
-  outside: { button: "text-ink-subtle hover:bg-inset" },
-  disabled: { button: "cursor-not-allowed text-ink-faint line-through decoration-ink-faint" },
-  today: { button: "border-[1.5px] border-success-600 text-success-800 hover:bg-success-50" },
-  selected: { button: "bg-primary-600 text-ink-inverse hover:bg-primary-700" },
+  plain: { button: "text-ink hover:bg-inset focus-visible:bg-neutral-300" },
+  outside: { button: "text-ink-subtle hover:bg-inset focus-visible:bg-neutral-300 focus-visible:text-ink" },
+  disabled: { button: "cursor-not-allowed text-ink-faint line-through decoration-ink-faint focus-visible:bg-neutral-200" },
+  today: { button: "border-[1.5px] border-success-600 text-success-800 hover:bg-success-50 focus-visible:bg-success-100 focus-visible:text-success-900" },
+  selected: { button: "bg-primary-600 text-ink-inverse hover:bg-primary-700 focus-visible:bg-primary-900" },
   todaySelected: {
     button: cn(
       "bg-linear-to-br from-success-700 to-success-900 text-ink-inverse",
-      "hover:from-success-800 hover:to-success-900",
+      "hover:from-success-800 hover:to-success-900 focus-darken",
     ),
   },
-  rangeMiddle: { cell: "bg-selected", button: "text-ink hover:bg-primary-200" },
+  rangeMiddle: { cell: "bg-selected", button: "text-ink hover:bg-primary-200 focus-visible:bg-primary-300 focus-visible:text-primary-900" },
 } satisfies Record<string, DayState>;
 
 const TODAY_DOT = cn(
@@ -121,12 +121,13 @@ function CalendarDayButton({ day, modifiers, className, ...props }: DayButtonPro
 const NAV_BUTTON = cn(
   "inline-flex size-(--control-h-sm) cursor-pointer items-center justify-center rounded-control",
   "text-ink-muted transition-colors duration-150 hover:bg-inset hover:text-ink",
+  "focus-visible:bg-neutral-300 focus-visible:text-ink",
   "disabled:cursor-not-allowed disabled:text-ink-faint disabled:hover:bg-transparent",
 );
 
 const CAPTION_BUTTON = cn(
   "inline-flex h-(--control-h-sm) cursor-pointer items-center gap-2 rounded-control px-3",
-  "text-value font-medium text-ink transition-colors duration-150 hover:bg-inset",
+  "text-value font-medium text-ink transition-colors duration-150 hover:bg-inset focus-visible:bg-neutral-300",
 );
 
 const PERIOD_CELL = cn(

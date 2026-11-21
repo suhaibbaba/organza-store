@@ -445,6 +445,8 @@
       },
       "statusActions": {
         "progressLabel": "مراحل الطلب",
+        "stepDone": "مكتملة",
+        "stepCurrent": "المرحلة الحالية",
         "moved": "تم تحديث الحالة إلى: {status}",
         "advanceTo": {
           "PREPARING": "ابدأ التحضير",

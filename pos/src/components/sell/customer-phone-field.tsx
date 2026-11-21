@@ -72,7 +72,7 @@ export function CustomerPhoneField({ onPickSuggestion, ...field }: CustomerPhone
                 <button
                   type="button"
                   onClick={() => onPickSuggestion(suggestion)}
-                  className="flex w-full cursor-pointer items-center gap-3 rounded-control border border-line-strong bg-surface px-4 py-3 text-start transition-colors hover:bg-row-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+                  className="flex w-full cursor-pointer items-center gap-3 rounded-control border border-line-strong bg-surface px-4 py-3 text-start transition-colors hover:bg-row-hover focus-visible:bg-neutral-200 focus-visible:text-ink"
                 >
                   <History className="size-5 shrink-0 text-ink-muted" aria-hidden="true" />
                   <span className="flex min-w-0 flex-col">

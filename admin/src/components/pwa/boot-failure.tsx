@@ -68,7 +68,7 @@ export async function BootFailure() {
         </p>
         <button
           type="button"
-          className="boot-failure-retry"
+          className="boot-failure-retry focus-darken"
           data-boot-failure-retry=""
           // The click handler is attached by the script below, not here: this
           // markup is on screen precisely because React is not running, so a

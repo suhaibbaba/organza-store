@@ -69,7 +69,7 @@ export function CartPanel({
             type="button"
             onClick={() => setConfirmingClear(true)}
             data-test-selector="pos-cart-clear"
-            className="hit-area shrink-0 cursor-pointer rounded-control px-1 text-label text-primary-600 transition-colors hover:text-primary-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+            className="hit-area shrink-0 cursor-pointer rounded-control px-1 text-label text-primary-600 transition-colors hover:text-primary-700 focus-visible:bg-primary-100 focus-visible:text-primary-900"
           >
             {t("screen.clear")}
           </button>
@@ -135,7 +135,7 @@ export function CartPanel({
           disabled={cart.isEmpty}
           aria-label={t("screen.editDiscount")}
           data-test-selector="pos-order-discount-button"
-          className="hit-area -mx-1 flex cursor-pointer items-center justify-between rounded-control px-1 text-label hover:bg-primary-50 disabled:cursor-default disabled:hover:bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+          className="hit-area -mx-1 flex cursor-pointer items-center justify-between rounded-control px-1 text-label hover:bg-primary-50 disabled:cursor-default disabled:hover:bg-transparent focus-visible:bg-primary-200"
         >
           <span className="text-ink-subtle">{t("screen.discount")}</span>
           <span className={cn("font-semibold text-ink tabular-nums", discountCents > 0 && "text-success-700")}>

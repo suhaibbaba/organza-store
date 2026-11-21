@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { ArrowRight, ListChecks, PackageMinus } from "lucide-react";
+import { ArrowRight, Check, ListChecks, PackageMinus } from "lucide-react";
 import { Button, useToast } from "@store/ui";
 import { ERROR_CODES } from "@organza/shared/constants/errors";
 import { ONLINE_STOCK_DEDUCTION_STATUS, ORDER_STATUS_TRANSITIONS } from "@organza/shared/constants/order";
@@ -41,16 +41,27 @@ export function OrderStatusActions({ order }: { order: Order }) {
         <ol className="flex items-start gap-1" aria-label={t("progressLabel")}>
           {ONLINE_ORDER_FLOW.map((status, index) => {
             const reached = index <= currentStep;
+            const isCurrent = index === currentStep;
+            // Done, current and upcoming are told apart by a tick and weight as well as colour, and spoken.
             return (
-              <li key={status} className="flex min-w-0 flex-1 flex-col items-center gap-1.5">
-                <span className={cn("h-1.5 w-full rounded-pill", reached ? "bg-primary-600" : "bg-inset")} />
+              <li
+                key={status}
+                aria-current={isCurrent ? "step" : undefined}
+                className="flex min-w-0 flex-1 flex-col items-center gap-1.5"
+              >
+                <span
+                  aria-hidden="true"
+                  className={cn("h-1.5 w-full rounded-pill", reached ? "bg-primary-600" : "bg-neutral-300")}
+                />
                 <span
                   className={cn(
-                    "text-center text-micro",
-                    index === currentStep ? "font-medium text-primary-700" : "text-ink-muted"
+                    "inline-flex items-center gap-1 text-center text-micro",
+                    isCurrent ? "font-semibold text-primary-700" : "text-ink-muted"
                   )}
                 >
+                  {reached && !isCurrent && <Check className="size-3 shrink-0" aria-hidden="true" />}
                   {tStatus(status)}
+                  {reached && <span className="sr-only">{isCurrent ? t("stepCurrent") : t("stepDone")}</span>}
                 </span>
               </li>
             );

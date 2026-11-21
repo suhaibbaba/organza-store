@@ -68,7 +68,7 @@ export function CategoryTiles({ selectedId, onSelect }: CategoryTilesProps) {
                   data-test-selector={testSelectorFor("pos-category-tile", tile.id ?? "all")}
                   className={cn(
                     "flex min-h-11 min-w-24 cursor-pointer flex-col items-start rounded-tile border px-3.5 py-1.5 text-start transition-[background-color,border-color,box-shadow] tab:min-w-27",
-                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2",
+                    "focus-darken",
                     selected
                       ? "border-selected-line bg-selected text-primary-700"
                       : "border-line bg-surface text-ink shadow-pill hover:border-line-strong hover:bg-row-hover"

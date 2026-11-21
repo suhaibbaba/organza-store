@@ -445,6 +445,8 @@
       },
       "statusActions": {
         "progressLabel": "התקדמות ההזמנה",
+        "stepDone": "הושלם",
+        "stepCurrent": "השלב הנוכחי",
         "moved": "הסטטוס עודכן ל: {status}",
         "advanceTo": {
           "PREPARING": "התחלת הכנה",

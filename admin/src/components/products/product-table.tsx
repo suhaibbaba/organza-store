@@ -37,7 +37,7 @@ export function ProductTable({ products, currency }: ProductTableProps) {
             <div className="flex min-w-0 flex-wrap items-start gap-x-3 gap-y-1">
               <Link
                 href={`/products/${product.id}`}
-                className="group inline-flex min-w-0 max-w-full items-start gap-3 rounded-control focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+                className="group inline-flex min-w-0 max-w-full items-start gap-3 rounded-control focus-visible:bg-primary-100"
               >
                 <ProductImage
                   src={product.image?.thumbnailUrl}
@@ -45,7 +45,7 @@ export function ProductTable({ products, currency }: ProductTableProps) {
                   className="size-11 shrink-0 rounded-chip"
                   sizes="44px"
                 />
-                <span className="min-w-0 font-medium text-ink transition-colors group-hover:text-primary-700">{name}</span>
+                <span className="min-w-0 font-medium text-ink transition-colors group-hover:text-primary-700 group-focus-visible:text-primary-900 group-focus-visible:underline">{name}</span>
               </Link>
               {product.needsCompleting && <IncompleteBadge />}
               {product.isNumbered && <NumberedBadge count={product.numberCount} />}

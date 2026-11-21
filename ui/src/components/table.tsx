@@ -244,7 +244,7 @@ export function Table<TRow>({
                     {...testid(rowId(row), "open")}
                     onClick={() => onRowClick(row)}
                     {...(rowLabel && { "aria-label": rowLabel(row) })}
-                    className="absolute inset-0 z-0 cursor-pointer rounded-card"
+                    className="absolute inset-0 z-0 cursor-pointer rounded-card focus-visible:bg-primary-900/10"
                   />
                   {body}
                 </div>
@@ -357,7 +357,7 @@ export function Table<TRow>({
                         onRowClick(row);
                       }
                     },
-                    className: "cursor-pointer transition-colors duration-150 hover:bg-row-hover",
+                    className: "cursor-pointer transition-colors duration-150 hover:bg-row-hover focus-visible:bg-neutral-200",
                   })}
                   {...(!onRowClick && {
                     className: "transition-colors duration-150 hover:bg-row-hover",
@@ -431,7 +431,7 @@ function SortButton({
       onClick={next}
       className={cn(
         "group inline-flex cursor-pointer items-center gap-1 rounded-control",
-        "transition-colors duration-150 hover:text-ink",
+        "transition-colors duration-150 hover:text-ink focus-visible:bg-neutral-200 focus-visible:text-ink",
         active && "text-ink",
       )}
     >
@@ -675,8 +675,8 @@ function PageButton({
         "pill-text inline-flex items-center size-(--control-h) cursor-pointer justify-center lg:size-(--control-h-sm)",
         "rounded-chip border text-label tabular-nums transition-colors duration-[250ms] ease-in-out",
         current
-          ? "border-primary-600 bg-primary-600 font-medium text-ink-inverse"
-          : "border-line bg-surface text-ink-muted hover:bg-inset hover:border-primary-600 hover:text-primary-700",
+          ? "border-primary-600 bg-primary-600 font-medium text-ink-inverse focus-visible:border-primary-900 focus-visible:bg-primary-900"
+          : "border-line bg-surface text-ink-muted hover:bg-inset hover:border-primary-600 hover:text-primary-700 focus-visible:border-primary-800 focus-visible:bg-neutral-200 focus-visible:text-primary-900",
         "disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-line",
       )}
     >

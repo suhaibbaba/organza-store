@@ -58,7 +58,7 @@ export function CategoryTreeNode(props: CategoryTreeNodeProps) {
           disabled={!hasChildren}
           aria-label={expanded ? t("collapse") : t("expand")}
           className={cn(
-            "inline-flex size-11 shrink-0 items-center justify-center rounded-control text-ink-muted hover:bg-inset hover:text-ink",
+            "inline-flex size-11 shrink-0 items-center justify-center rounded-control text-ink-muted hover:bg-inset hover:text-ink focus-visible:bg-neutral-200 focus-visible:text-ink",
             !hasChildren && "invisible"
           )}
         >
@@ -87,7 +87,7 @@ export function CategoryTreeNode(props: CategoryTreeNodeProps) {
               aria-label={node.isFavorite ? t("unpin", { name }) : t("pin", { name })}
               disabled={isTogglingFavorite}
               className={cn(
-                "inline-flex size-11 items-center justify-center rounded-control not-disabled:hover:bg-inset disabled:cursor-not-allowed disabled:opacity-50",
+                "inline-flex size-11 items-center justify-center rounded-control not-disabled:hover:bg-inset focus-visible:bg-neutral-200 disabled:cursor-not-allowed disabled:opacity-50",
                 node.isFavorite ? "text-warning-700" : "text-ink-muted hover:text-ink"
               )}
             >
@@ -97,7 +97,7 @@ export function CategoryTreeNode(props: CategoryTreeNodeProps) {
               type="button"
               onClick={() => onEdit(node)}
               aria-label={t("edit")}
-              className="inline-flex size-11 items-center justify-center rounded-control text-ink-muted hover:bg-inset hover:text-ink"
+              className="inline-flex size-11 items-center justify-center rounded-control text-ink-muted hover:bg-inset hover:text-ink focus-visible:bg-neutral-200 focus-visible:text-ink"
             >
               <Pencil className="size-4" aria-hidden="true" />
             </button>
@@ -106,7 +106,7 @@ export function CategoryTreeNode(props: CategoryTreeNodeProps) {
               onClick={() => onRequestDelete(node.id)}
               aria-label={t("delete")}
               disabled={isDeleting}
-              className="inline-flex size-11 items-center justify-center rounded-control text-ink-muted not-disabled:hover:bg-danger-50 not-disabled:hover:text-danger-600 disabled:cursor-not-allowed disabled:opacity-50"
+              className="inline-flex size-11 items-center justify-center rounded-control text-ink-muted not-disabled:hover:bg-danger-50 not-disabled:hover:text-danger-600 focus-visible:bg-danger-100 focus-visible:text-danger-700 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isDeleting ? <Spinner className="size-4" /> : <Trash2 className="size-4" aria-hidden="true" />}
             </button>
@@ -119,11 +119,11 @@ export function CategoryTreeNode(props: CategoryTreeNodeProps) {
               type="button"
               onClick={() => onConfirmDelete(node)}
               disabled={isDeleting}
-              className="min-h-11 text-meta font-semibold text-danger-600"
+              className="min-h-11 rounded-control text-meta font-semibold text-danger-600 focus-visible:bg-danger-100 focus-visible:text-danger-800 focus-visible:underline"
             >
               {t("confirmDelete")}
             </button>
-            <button type="button" onClick={onCancelDelete} className="min-h-11 text-meta text-ink-muted">
+            <button type="button" onClick={onCancelDelete} className="min-h-11 rounded-control text-meta text-ink-muted focus-link">
               {t("cancelDelete")}
             </button>
           </div>

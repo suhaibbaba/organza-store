@@ -89,7 +89,7 @@ export function EntityCard({
                 onClick={action.onClick}
                 disabled={action.disabled === true}
                 title={action.label}
-                className="cursor-pointer text-start text-primary-700 transition-colors hover:text-primary-900 disabled:cursor-not-allowed disabled:text-ink"
+                className="cursor-pointer text-start text-primary-700 transition-colors hover:text-primary-900 focus-link disabled:cursor-not-allowed disabled:text-ink"
               >
                 <bdi>{title}</bdi>
               </button>

@@ -194,7 +194,7 @@ function SourceChoice({ isSelected, disabled, onSelect, title, hint }: SourceCho
       aria-pressed={isSelected}
       className={cn(
         "flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-panel border p-3 text-start transition-colors",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 disabled:cursor-not-allowed disabled:opacity-50",
+        "focus-darken disabled:cursor-not-allowed disabled:opacity-50",
         isSelected
           ? "bg-selected border-selected-line ring-2 ring-primary-600"
           : "border-line bg-surface text-ink not-disabled:hover:bg-row-hover"

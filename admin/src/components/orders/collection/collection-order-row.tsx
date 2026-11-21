@@ -34,7 +34,7 @@ export function CollectionOrderRow({ order, selected, onToggle }: CollectionOrde
         type="checkbox"
         checked={selected}
         onChange={() => onToggle(order.id)}
-        className="size-5 shrink-0 cursor-pointer accent-primary-600"
+        className="size-5 shrink-0 cursor-pointer accent-primary-600 focus-darken"
       />
 
       <div className="flex min-w-0 flex-1 flex-col gap-1">

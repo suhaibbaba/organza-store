@@ -189,7 +189,7 @@ export function VariantEditList({
               <button
                 type="button"
                 onClick={open}
-                className="flex min-w-0 flex-1 cursor-pointer flex-col items-start gap-1 text-start sm:basis-0"
+                className="flex min-w-0 flex-1 cursor-pointer flex-col items-start gap-1 rounded-control text-start focus-visible:bg-inset sm:basis-0"
               >
                 {chips}
                 <span className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
@@ -229,7 +229,7 @@ export function VariantEditList({
                 onClick={open}
                 aria-label={t("toggleDetails", { name })}
                 data-test-selector={testSelectorFor("variant-edit-open", variant.id)}
-                className="inline-flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-control text-ink-muted hover:bg-inset hover:text-ink"
+                className="inline-flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-control text-ink-muted hover:bg-inset hover:text-ink focus-visible:bg-neutral-200 focus-visible:text-ink"
               >
                 <Pencil className="size-4" aria-hidden="true" />
               </button>

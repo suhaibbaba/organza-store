@@ -15,13 +15,15 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement>, Te
   ref?: Ref<HTMLButtonElement> | undefined;
 }
 
+// Keyboard focus is each variant's darkest shade, darker than hover, so it reads as "you are here" and never as an outline.
 const VARIANTS: Record<ButtonVariant, string> = {
-  primary: "bg-primary-600 text-ink-inverse hover:bg-primary-700 active:bg-primary-800",
+  primary: "bg-primary-600 text-ink-inverse hover:bg-primary-700 active:bg-primary-800 focus-visible:bg-primary-900",
   secondary:
-    "border border-line bg-surface text-ink hover:bg-inset hover:border-primary-600 hover:text-primary-700 active:bg-neutral-200",
-  ghost: "bg-primary-100 text-primary-700 hover:bg-primary-200 active:bg-primary-300",
-  quiet: "text-ink-muted hover:bg-inset hover:text-ink active:bg-neutral-200",
-  danger: "bg-danger-600 text-ink-inverse hover:bg-danger-700 active:bg-danger-800",
+    "border border-line bg-surface text-ink hover:bg-inset hover:border-primary-600 hover:text-primary-700 active:bg-neutral-200 focus-visible:border-primary-800 focus-visible:bg-neutral-200 focus-visible:text-primary-900",
+  ghost:
+    "bg-primary-100 text-primary-700 hover:bg-primary-200 active:bg-primary-300 focus-visible:bg-primary-300 focus-visible:text-primary-900",
+  quiet: "text-ink-muted hover:bg-inset hover:text-ink active:bg-neutral-200 focus-visible:bg-neutral-300 focus-visible:text-ink",
+  danger: "bg-danger-600 text-ink-inverse hover:bg-danger-700 active:bg-danger-800 focus-visible:bg-danger-800",
 };
 
 const SIZES: Record<ButtonSize, string> = {

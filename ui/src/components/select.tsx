@@ -96,7 +96,7 @@ function PlainSelect({
         aria-invalid={hasError || undefined}
         className={cn(
           bare
-            ? "flex shrink-0 items-center gap-1.5 self-stretch bg-transparent"
+            ? "flex shrink-0 items-center gap-1.5 self-stretch rounded-control bg-transparent focus-visible:bg-neutral-200"
             : fieldShell({ hasError, disabled }),
           "cursor-pointer text-start text-field",
           "focus-visible:outline-none",
@@ -201,7 +201,7 @@ function Row({
         "flex min-h-(--control-h) cursor-pointer items-center justify-between gap-2 rounded-control",
         "lg:min-h-(--control-h-sm) px-3 py-2 text-start text-field outline-none select-none",
         "transition-colors duration-150",
-        "data-[highlighted]:bg-inset data-[state=checked]:font-medium",
+        "data-[highlighted]:bg-primary-100 data-[highlighted]:text-primary-900 data-[state=checked]:font-medium",
         muted ? "text-ink-subtle" : "text-ink",
       )}
     >
@@ -395,7 +395,7 @@ function SearchableSelect({
                 className={cn(
                   "flex min-h-(--control-h) cursor-pointer items-center justify-between gap-2 rounded-control",
                   "lg:min-h-(--control-h-sm) px-3 py-2 text-start text-field text-ink select-none",
-                  "transition-colors duration-150 data-[highlighted]:bg-inset",
+                  "transition-colors duration-150 data-[highlighted]:bg-primary-100 data-[highlighted]:text-primary-900",
                   option.value === value && "font-medium",
                 )}
               >
@@ -420,7 +420,7 @@ function SearchableSelect({
                 className={cn(
                   "flex min-h-(--control-h) cursor-pointer items-center gap-2 rounded-control",
                   "lg:min-h-(--control-h-sm) px-3 py-2 text-start text-field font-medium text-primary-700 select-none",
-                  "transition-colors duration-150 data-[highlighted]:bg-inset",
+                  "transition-colors duration-150 data-[highlighted]:bg-primary-100 data-[highlighted]:text-primary-900",
                 )}
               >
                 <Icon name="plus" className="size-4 shrink-0" />

@@ -35,6 +35,7 @@ export default async function OfflinePage() {
 
       <Link
         href="/"
+        className="focus-darken"
         style={{
           // 44px min touch target (CLAUDE.md mobile rules).
           display: "inline-flex",

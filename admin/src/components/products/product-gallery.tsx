@@ -36,7 +36,7 @@ export function ProductGallery({ images, alt }: ProductGalleryProps) {
               type="button"
               onClick={() => setActiveIndex(index)}
               className={cn(
-                "shrink-0 overflow-hidden rounded-control ring-2 ring-offset-2 ring-offset-surface",
+                "shrink-0 overflow-hidden rounded-control ring-2 ring-offset-2 ring-offset-surface focus-darken",
                 index === activeIndex ? "ring-primary-600" : "ring-transparent",
               )}
             >

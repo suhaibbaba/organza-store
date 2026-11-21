@@ -173,7 +173,7 @@ export function OrderHeader({ order }: { order: Order }) {
                 isTotal && "bg-primary-50"
               )}
             >
-              <fact.icon className="mt-0.5 size-5 shrink-0 text-ink-muted" aria-hidden="true" />
+              <fact.icon className="mt-0.5 size-5 shrink-0 text-primary-700" aria-hidden="true" />
               <div className="min-w-0">
                 <dt className="text-label text-ink-muted">{fact.label}</dt>
                 <dd

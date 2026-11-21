@@ -123,7 +123,7 @@ function AddValueInline({ typeId, onAdded }: { typeId: string; onAdded: (valueId
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="inline-flex h-8 cursor-pointer items-center gap-1 rounded-pill border border-dashed border-line-strong px-3 text-label text-primary-600 hover:border-primary-600"
+        className="inline-flex h-8 cursor-pointer items-center gap-1 rounded-pill border border-dashed border-line-strong px-3 text-label text-primary-600 hover:border-primary-600 focus-visible:border-primary-700 focus-visible:bg-primary-100 focus-visible:text-primary-800"
       >
         <Plus className="size-4" aria-hidden="true" />
         {t("addValue")}
@@ -193,7 +193,7 @@ function AddTypeInline({ onCreated }: { onCreated: (typeId: string) => void }) {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="inline-flex min-h-11 items-center gap-1 self-start text-label font-medium text-primary-600 hover:text-primary-700"
+        className="inline-flex min-h-11 items-center gap-1 self-start text-label font-medium text-primary-600 hover:text-primary-700 focus-link"
       >
         <Plus className="size-4" aria-hidden="true" />
         {t("addType")}

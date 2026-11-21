@@ -81,7 +81,7 @@ export function DraftLinesList({ draft, onLineDiscountClick }: DraftLinesListPro
                 type="button"
                 onClick={() => draft.removeLine(line.key)}
                 aria-label={t("remove", { name: label })}
-                className="flex size-11 shrink-0 cursor-pointer items-center justify-center rounded-control text-ink-muted transition-colors hover:bg-inset hover:text-danger-600"
+                className="flex size-11 shrink-0 cursor-pointer items-center justify-center rounded-control text-ink-muted transition-colors hover:bg-inset hover:text-danger-600 focus-visible:bg-danger-100 focus-visible:text-danger-700"
               >
                 <Trash2 className="size-4" aria-hidden="true" />
               </button>
@@ -106,8 +106,8 @@ export function DraftLinesList({ draft, onLineDiscountClick }: DraftLinesListPro
                   aria-label={t("discountFor", { name: label })}
                   className={
                     hasDiscount
-                      ? "flex min-h-11 cursor-pointer items-center gap-1 rounded-control border border-selected-line bg-selected px-3 py-2 text-micro font-medium text-primary-600"
-                      : "flex min-h-11 cursor-pointer items-center gap-1 rounded-control border border-line-strong px-3 py-2 text-micro font-medium text-ink-muted transition-colors hover:bg-inset"
+                      ? "flex min-h-11 cursor-pointer items-center gap-1 rounded-control border border-selected-line bg-selected px-3 py-2 text-micro font-medium text-primary-600 focus-visible:bg-primary-200 focus-visible:text-primary-800"
+                      : "flex min-h-11 cursor-pointer items-center gap-1 rounded-control border border-line-strong px-3 py-2 text-micro font-medium text-ink-muted transition-colors hover:bg-inset focus-visible:bg-neutral-200 focus-visible:text-ink"
                   }
                 >
                   {/* A price tag, not a percent sign: the discount may be a percentage or a flat sum. */}

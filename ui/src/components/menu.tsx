@@ -79,8 +79,8 @@ export function MenuItem({
         "lg:min-h-(--control-h-sm)",
         "text-value outline-none transition-colors duration-150",
         tone === "danger"
-          ? "text-danger-700 data-highlighted:bg-danger-50"
-          : "text-ink data-highlighted:bg-inset",
+          ? "text-danger-700 data-highlighted:bg-danger-100 data-highlighted:text-danger-800"
+          : "text-ink data-highlighted:bg-primary-100 data-highlighted:text-primary-900",
         "data-disabled:cursor-not-allowed data-disabled:opacity-50",
         "aria-disabled:cursor-not-allowed aria-disabled:text-ink-subtle",
       )}
@@ -144,6 +144,7 @@ export function RowMenu({
           "transition-colors duration-[250ms] ease-in-out",
           "hover:bg-inset hover:border-primary-600 hover:text-primary-600",
           "data-[state=open]:border-primary-600 data-[state=open]:text-primary-600",
+          "focus-visible:border-primary-800 focus-visible:bg-neutral-200 focus-visible:text-primary-900",
         )}
       >
         <Icon name="more-vertical" className="size-4" />

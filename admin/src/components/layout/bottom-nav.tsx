@@ -41,7 +41,7 @@ export function BottomNav() {
               href={item.href}
               data-test-selector={testSelectorFor("nav-item", item.key)}
               className={cn(
-                "flex flex-1 flex-col items-center justify-center gap-1 text-micro",
+                "flex flex-1 flex-col items-center justify-center gap-1 text-micro focus-visible:bg-primary-100 focus-visible:text-primary-800",
                 isActive ? "font-semibold text-primary-600" : "font-medium text-ink-muted"
               )}
               aria-current={isActive ? "page" : undefined}

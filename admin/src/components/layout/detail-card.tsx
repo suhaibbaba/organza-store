@@ -19,7 +19,7 @@ export function DetailCard({ icon: Icon, title, action, className, children, "da
       className={cn("flex flex-col gap-4 rounded-card border border-line bg-surface p-5 shadow-card", className)}
     >
       <header className="flex items-center gap-2.5">
-        <Icon className="size-5 shrink-0 text-ink" aria-hidden="true" />
+        <Icon className="size-5 shrink-0 text-primary-700" aria-hidden="true" />
         <h2 className="min-w-0 flex-1 text-section font-semibold text-ink">{title}</h2>
         {action}
       </header>

@@ -430,9 +430,28 @@ body {
   }
 }
 
+/* No outlines: every focusable thing shows keyboard focus by turning darker (focus-darken, focus-link, or its own state). */
 :focus,
 :focus-visible {
   outline: none;
+}
+
+/* Any element, any colours: the whole thing darkens while it has keyboard focus. */
+@utility focus-darken {
+  &:focus-visible {
+    filter: brightness(0.75);
+  }
+}
+
+/* A text link: darker ink on a light tint, with a thick underline so focus never rests on colour alone. */
+@utility focus-link {
+  &:focus-visible {
+    color: var(--color-primary-900);
+    background-color: var(--color-primary-100);
+    text-decoration-line: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 3px;
+  }
 }
 
 @utility scroll-lane {

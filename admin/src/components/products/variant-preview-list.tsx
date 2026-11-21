@@ -101,7 +101,7 @@ export function VariantPreviewList({ rows, excluded, onToggleExcluded, stocks, o
               <button
                 type="button"
                 onClick={() => onToggleExcluded(row.key)}
-                className="ms-auto inline-flex h-9 min-w-9 shrink-0 cursor-pointer items-center justify-center rounded-pill px-2 text-ink-muted hover:bg-inset hover:text-ink"
+                className="ms-auto inline-flex h-9 min-w-9 shrink-0 cursor-pointer items-center justify-center rounded-pill px-2 text-ink-muted hover:bg-inset hover:text-ink focus-visible:bg-neutral-200 focus-visible:text-ink"
                 aria-label={isExcluded ? t("restoreCombo") : t("removeCombo")}
               >
                 {isExcluded ? <span className="text-label">{t("undo")}</span> : <X className="size-4" />}

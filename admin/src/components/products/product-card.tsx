@@ -24,7 +24,7 @@ export function ProductCard({ product, currency }: ProductCardProps) {
   return (
     <Link
       href={`/products/${product.id}`}
-      className="flex items-center gap-3 rounded-card border border-line bg-surface p-3 text-start shadow-card transition-colors hover:bg-row-hover active:bg-inset"
+      className="flex items-center gap-3 rounded-card border border-line bg-surface p-3 text-start shadow-card transition-colors hover:bg-row-hover focus-visible:bg-inset active:bg-inset"
       data-test-selector={testSelectorFor("product-card", product.id)}
     >
       <ProductImage src={product.image?.thumbnailUrl} alt={name} className="size-16 shrink-0 rounded-control" sizes="64px" />

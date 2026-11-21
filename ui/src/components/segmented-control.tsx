@@ -195,6 +195,7 @@ export function SegmentedControl<TValue extends string>({
                 "whitespace-nowrap rounded-pill text-label font-medium transition-colors",
                 SIZES[size].option,
                 isSelected ? "text-ink" : "text-ink-muted hover:text-ink",
+                "focus-visible:bg-neutral-300 focus-visible:text-primary-900",
               )}
             >
               {option.label}

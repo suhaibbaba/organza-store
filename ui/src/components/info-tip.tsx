@@ -46,6 +46,7 @@ export function InfoTip({
           className={cn(
             "inline-flex size-5 shrink-0 cursor-pointer items-center justify-center rounded-pill",
             "text-ink-subtle transition-colors duration-150 hover:text-ink",
+            "focus-visible:bg-neutral-300 focus-visible:text-ink",
             className,
           )}
         >

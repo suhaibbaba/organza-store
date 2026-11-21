@@ -110,7 +110,7 @@ export function Chip({
           {...part("remove")}
           onClick={onRemove}
           aria-label={removeLabel}
-          className="inline-flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-pill transition-colors hover:bg-primary-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+          className="inline-flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-pill transition-colors hover:bg-primary-200 focus-visible:bg-primary-300 focus-visible:text-primary-900"
         >
           <Icon name="x" className="size-3.5" />
         </button>
@@ -130,8 +130,8 @@ export function Chip({
         disabled && "cursor-not-allowed border-transparent bg-inset text-ink-faint",
         !disabled &&
           (selected
-            ? "border-primary-600 bg-primary-100 text-primary-700"
-            : "border-line-strong bg-surface text-ink-muted hover:bg-inset hover:border-neutral-400 hover:text-ink"),
+            ? "border-primary-600 bg-primary-100 text-primary-700 focus-visible:border-primary-800 focus-visible:bg-primary-200 focus-visible:text-primary-900"
+            : "border-line-strong bg-surface text-ink-muted hover:bg-inset hover:border-neutral-400 hover:text-ink focus-visible:border-primary-800 focus-visible:bg-neutral-200 focus-visible:text-primary-900"),
         className,
       )}
       {...props}

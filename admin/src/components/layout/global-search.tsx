@@ -177,7 +177,7 @@ export function GlobalSearch() {
         onClick={() => setMobileOpen(true)}
         aria-label={t("open")}
         data-test-selector="global-search-open"
-        className="flex size-10 shrink-0 cursor-pointer items-center justify-center rounded-control text-ink transition-colors hover:bg-inset hover:text-primary-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 md:hidden"
+        className="flex size-10 shrink-0 cursor-pointer items-center justify-center rounded-control text-ink transition-colors hover:bg-inset hover:text-primary-700 focus-visible:bg-neutral-200 focus-visible:text-primary-800 md:hidden"
       >
         <Search className="size-5" aria-hidden="true" />
       </button>
@@ -195,7 +195,7 @@ export function GlobalSearch() {
               onClick={() => setMobileOpen(false)}
               aria-label={t("close")}
               data-test-selector="global-search-close"
-              className="flex size-10 shrink-0 cursor-pointer items-center justify-center rounded-control text-ink-muted transition-colors hover:bg-inset hover:text-primary-700"
+              className="flex size-10 shrink-0 cursor-pointer items-center justify-center rounded-control text-ink-muted transition-colors hover:bg-inset hover:text-primary-700 focus-visible:bg-neutral-200 focus-visible:text-primary-800"
             >
               <X className="size-5" aria-hidden="true" />
             </button>
@@ -289,7 +289,7 @@ function ResultGroup({
           <Link
             onClick={onNavigate}
             href={group.seeAllHref!}
-            className="text-micro text-primary-600 transition-colors hover:text-primary-700"
+            className="text-micro text-primary-600 transition-colors hover:text-primary-700 focus-link"
             data-test-selector={testSelectorFor("global-search-see-all", group.key)}
           >
             {t("seeAll", { count: group.total })}

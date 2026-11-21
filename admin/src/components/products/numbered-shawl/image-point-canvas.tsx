@@ -264,7 +264,7 @@ export function ImagePointCanvas({
                   outline: selectedId === point.id ? `${borderWidth + 1}px solid var(--color-primary-600)` : undefined,
                   outlineOffset: `${borderWidth}px`,
                 }}
-                className={cn(PIN_CLASS, "touch-none", selectedId === point.id && "z-10")}
+                className={cn(PIN_CLASS, "touch-none focus-darken", selectedId === point.id && "z-10")}
               >
                 {/* The finger gets its 44px from this invisible pad; growing the badge made numbers crowd. */}
                 <span aria-hidden="true" className="absolute" style={{ inset: `-${POINT_MARKER_TOUCH_PADDING_PX}px` }} />

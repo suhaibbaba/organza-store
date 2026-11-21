@@ -68,7 +68,7 @@ export function OrderItemsList({ items, footer }: { items: OrderItem[]; footer?:
               {item.productId ? (
                 <Link
                   href={`/products/${item.productId}`}
-                  className="self-start rounded-control text-value font-normal text-ink transition-colors hover:text-primary-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+                  className="self-start rounded-control text-value font-normal text-ink transition-colors hover:text-primary-700 focus-link"
                 >
                   {name}
                 </Link>

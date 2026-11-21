@@ -39,7 +39,7 @@ export function SidebarNav() {
         aria-label={t(collapsed ? "nav.expand" : "nav.collapse")}
         aria-expanded={!collapsed}
         data-test-selector="sidebar-toggle"
-        className="absolute top-1/2 -end-3 z-10 flex size-6 -translate-y-1/2 cursor-pointer items-center justify-center rounded-pill bg-rail-active text-ink-inverse shadow-card ring-2 ring-canvas transition-colors hover:bg-primary-700 focus-visible:outline-none focus-visible:ring-primary-300"
+        className="absolute top-1/2 -end-3 z-10 flex size-6 -translate-y-1/2 cursor-pointer items-center justify-center rounded-pill bg-rail-active text-ink-inverse shadow-card ring-2 ring-canvas transition-colors hover:bg-primary-700 focus-visible:bg-primary-800"
       >
         <ChevronLeft
           className={cn("size-3.5 transition-transform duration-300 ease-glide", collapsed ? "ltr:rotate-180" : "rtl:rotate-180")}
@@ -57,7 +57,7 @@ export function SidebarNav() {
           href={landingHref(user) ?? DEFAULT_LANDING_HREF}
           data-test-selector="sidebar-brand"
           className={cn(
-            "mb-[22px] flex shrink-0 items-center gap-3 border-b border-rail-line pb-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-300",
+            "mb-[22px] flex shrink-0 items-center gap-3 border-b border-rail-line pb-4 focus-visible:bg-rail-active",
             "h-20 justify-between"
           )}
         >

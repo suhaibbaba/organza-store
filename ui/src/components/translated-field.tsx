@@ -106,7 +106,7 @@ export function TranslatedField({
           aria-expanded={open}
           aria-controls={panelId}
           onClick={() => setOpen((value) => !value)}
-          className="flex h-(--control-h) w-full cursor-pointer items-center gap-2 border-t border-line bg-inset px-3.5 text-label text-ink-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-500"
+          className="flex h-(--control-h) w-full cursor-pointer items-center gap-2 border-t border-line bg-inset px-3.5 text-label text-ink-muted focus-visible:bg-neutral-300 focus-visible:text-ink"
         >
           <Icon name="globe" className="size-4" />
           <span className="flex-1 text-start">

@@ -40,7 +40,7 @@ export function ExplainedLabel({
             aria-expanded={open}
             aria-controls={id}
             aria-label={toggleLabel}
-            className="-mx-1 inline-flex size-11 shrink-0 items-center justify-center rounded-pill text-ink-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+            className="-mx-1 inline-flex size-11 shrink-0 items-center justify-center rounded-pill text-ink-muted focus-visible:bg-neutral-200 focus-visible:text-ink"
           >
             <span
               aria-hidden="true"

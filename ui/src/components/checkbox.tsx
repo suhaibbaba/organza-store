@@ -57,8 +57,8 @@ export function Checkbox({
             small ? "size-4" : "size-5",
             "transition-colors duration-150",
             marked
-              ? "border-primary-600 bg-primary-600 text-ink-inverse"
-              : "border-neutral-500 bg-surface",
+              ? "border-primary-600 bg-primary-600 text-ink-inverse peer-focus-visible:border-primary-900 peer-focus-visible:bg-primary-900"
+              : "border-neutral-500 bg-surface peer-focus-visible:border-primary-800 peer-focus-visible:bg-neutral-200",
           )}
         >
           {checked ? (

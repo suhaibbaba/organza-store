@@ -32,7 +32,7 @@ export function LabelProductRow({ product, selected, onToggle }: LabelProductRow
         checked={selected}
         onChange={(event) => onToggle(product.id, event.target.checked)}
         aria-label={t("select", { name })}
-        className="size-5 shrink-0 cursor-pointer rounded-chip accent-primary-600"
+        className="size-5 shrink-0 cursor-pointer rounded-chip accent-primary-600 focus-darken"
       />
 
       <ProductImage src={product.image?.thumbnailUrl} alt="" className="size-12 shrink-0 rounded-chip" sizes="48px" />

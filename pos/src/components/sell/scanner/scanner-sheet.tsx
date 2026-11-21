@@ -110,7 +110,7 @@ function FeedbackToggle({ isOn, onToggle, onIcon, offIcon, label }: FeedbackTogg
       type="button"
       onClick={onToggle}
       aria-pressed={isOn}
-      className="flex h-12 cursor-pointer items-center justify-center gap-2 rounded-control border border-line-strong bg-surface px-3 text-label font-medium text-ink transition-colors hover:bg-inset focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+      className="flex h-12 cursor-pointer items-center justify-center gap-2 rounded-control border border-line-strong bg-surface px-3 text-label font-medium text-ink transition-colors hover:bg-inset focus-visible:bg-neutral-200 focus-visible:text-ink"
     >
       {isOn ? onIcon : offIcon}
       <span className="truncate">{label}</span>

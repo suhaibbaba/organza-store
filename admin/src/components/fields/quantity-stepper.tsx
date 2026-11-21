@@ -51,7 +51,7 @@ export function QuantityStepper({
   }
 
   const button =
-    "flex size-8 shrink-0 items-center justify-center rounded-chip text-ink-muted transition-colors not-disabled:hover:bg-inset not-disabled:hover:text-ink disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500";
+    "flex size-8 shrink-0 items-center justify-center rounded-chip text-ink-muted transition-colors not-disabled:hover:bg-inset not-disabled:hover:text-ink disabled:cursor-not-allowed disabled:opacity-40 focus-visible:bg-neutral-200 focus-visible:text-ink";
 
   return (
     <div

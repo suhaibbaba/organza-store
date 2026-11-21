@@ -85,7 +85,7 @@ export function CustomerForm({ register, control, setValue, errors, onPickSugges
       </FormField>
 
       <details className="rounded-panel border border-line">
-        <summary className="flex cursor-pointer list-none items-center justify-between gap-2 px-4 py-3.5 text-value font-medium text-ink marker:hidden [&::-webkit-details-marker]:hidden">
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-2 px-4 py-3.5 text-value font-medium text-ink marker:hidden [&::-webkit-details-marker]:hidden focus-visible:bg-neutral-200">
           {t("moreDetails")}
           <ChevronDown className="size-5 shrink-0 text-ink-muted" aria-hidden="true" />
         </summary>

@@ -70,8 +70,8 @@ export function Tabs<TId extends string>({
               "[transition:background-color_250ms_ease-in-out,border-color_250ms_ease-in-out,color_250ms_ease-in-out,scale_120ms_ease-out]",
               "active:scale-95",
               selected
-                ? "border-primary-600 bg-primary-600 text-ink-inverse"
-                : "border-line-strong bg-surface text-ink-muted hover:bg-inset hover:border-neutral-400 hover:text-ink",
+                ? "border-primary-600 bg-primary-600 text-ink-inverse focus-visible:border-primary-900 focus-visible:bg-primary-900"
+                : "border-line-strong bg-surface text-ink-muted hover:bg-inset hover:border-neutral-400 hover:text-ink focus-visible:border-primary-800 focus-visible:bg-neutral-200 focus-visible:text-primary-900",
             )}
           >
             {t(tab.label)}

@@ -146,7 +146,7 @@ export function NumberedPhoto({ product, chosenIds, onToggle }: NumberedPhotoPro
                   outline: chosen ? `${borderWidth + 2}px solid var(--color-primary-600)` : undefined,
                   outlineOffset: `${borderWidth}px`,
                 }}
-                className="absolute flex -translate-x-1/2 -translate-y-1/2 items-center justify-center border-solid font-bold leading-none tabular-nums disabled:cursor-not-allowed disabled:opacity-40 disabled:line-through"
+                className="absolute flex -translate-x-1/2 -translate-y-1/2 items-center justify-center border-solid font-bold leading-none tabular-nums focus-darken disabled:cursor-not-allowed disabled:opacity-40 disabled:line-through"
               >
                 <span
                   aria-hidden="true"

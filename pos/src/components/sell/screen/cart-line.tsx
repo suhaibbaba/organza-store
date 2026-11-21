@@ -101,7 +101,7 @@ export function CartLine({ line, flash, onQuantityChange, onRemove }: CartLinePr
               // Matches the 40px stepper beside it; hit-area keeps 44px.
               className={cn(
                 "hit-area flex size-10 shrink-0 cursor-pointer items-center justify-center rounded-control border border-line bg-surface text-ink-muted transition-colors",
-                "hover:border-danger-500 hover:bg-danger-50 hover:text-danger-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+                "hover:border-danger-500 hover:bg-danger-50 hover:text-danger-600 focus-visible:border-danger-600 focus-visible:bg-danger-100 focus-visible:text-danger-700"
               )}
             >
               <Trash2 className="size-4" aria-hidden="true" />

@@ -125,7 +125,7 @@ export function ImageEditorSheet({
           onClick={onCancel}
           aria-label={step && step.total > 1 ? t("skip") : t("cancel")}
           data-test-selector="image-editor-cancel"
-          className="inline-flex size-11 items-center justify-center rounded-pill text-ink-inverse/90 transition-colors hover:bg-ink-inverse/10"
+          className="inline-flex size-11 items-center justify-center rounded-pill text-ink-inverse/90 transition-colors hover:bg-ink-inverse/10 focus-visible:bg-ink-inverse/25"
         >
           <X className="size-6" aria-hidden="true" />
         </button>
@@ -208,7 +208,7 @@ export function ImageEditorSheet({
             onChange={(event) => setZoom(Number(event.target.value))}
             aria-label={t("zoom")}
             data-test-selector="image-editor-zoom"
-            className="h-11 w-full cursor-pointer accent-ink-inverse"
+            className="h-11 w-full cursor-pointer accent-ink-inverse focus-darken"
           />
           <ZoomIn className="size-4 shrink-0 text-ink-inverse/70" aria-hidden="true" />
         </label>
@@ -301,7 +301,7 @@ function EditorAction({
       aria-label={label}
       title={label}
       data-test-selector={`image-editor-${name}`}
-      className="inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-pill bg-ink-inverse/10 px-3 text-label text-ink-inverse transition-colors hover:bg-ink-inverse/20"
+      className="inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-pill bg-ink-inverse/10 px-3 text-label text-ink-inverse transition-colors hover:bg-ink-inverse/20 focus-visible:bg-ink-inverse/35"
     >
       {icon}
       {label}
@@ -328,7 +328,7 @@ function ShapeChoice({
       data-test-selector={`image-editor-aspect-${name}`}
       className={cn(
         "inline-flex h-9 cursor-pointer items-center rounded-pill px-3 text-label transition-colors",
-        isActive ? "bg-surface text-ink" : "bg-ink-inverse/10 text-ink-inverse hover:bg-ink-inverse/20"
+        isActive ? "bg-surface text-ink focus-darken" : "bg-ink-inverse/10 text-ink-inverse hover:bg-ink-inverse/20 focus-visible:bg-ink-inverse/35"
       )}
     >
       {label}

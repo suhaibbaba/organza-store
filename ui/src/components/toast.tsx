@@ -204,7 +204,7 @@ export function ToastProvider({ children }: { children: ReactNode }): JSX.Elemen
                   className={cn(
                     "mt-1 inline-flex min-h-(--control-h-sm) cursor-pointer items-center",
                     "text-label font-medium text-primary-700",
-                    "transition-colors hover:text-primary-900",
+                    "transition-colors hover:text-primary-900 focus-link",
                   )}
                 >
                   {t(message.action.labelKey)}
@@ -220,6 +220,7 @@ export function ToastProvider({ children }: { children: ReactNode }): JSX.Elemen
                 "inline-grid size-(--control-h-sm) shrink-0 cursor-pointer place-items-center",
                 "rounded-control text-ink-subtle",
                 "transition-colors duration-[250ms] ease-in-out hover:bg-inset hover:text-ink",
+                "focus-visible:bg-neutral-300 focus-visible:text-ink",
               )}
             >
               <Icon name="x" className="size-4" />

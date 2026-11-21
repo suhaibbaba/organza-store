@@ -1,5 +1,6 @@
 import { useTranslations } from "next-intl";
-import { MapPin, MessageCircle, Phone, UserRound } from "lucide-react";
+import { MapPin, Phone, UserRound } from "lucide-react";
+import { PhoneLink, WhatsAppLink } from "@store/ui";
 import type { Order } from "@organza/shared/types/order";
 import { SELECTABLE } from "@organza/shared/lib/nativeGestures";
 import { COORDINATE_DECIMALS, MAP_LINK_TEMPLATE } from "@/constants/orders";
@@ -15,35 +16,23 @@ export function OrderCustomerCard({ order }: { order: Order }) {
   return (
     <DetailCard icon={UserRound} title={t("title")} className="gap-3" data-testid="order-customer-card">
       {order.customerName && <p className="text-value text-ink">{order.customerName}</p>}
-
       {order.customerPhone && (
-        <a
-          href={`tel:${order.customerPhone}`}
-          className="flex min-h-11 items-center gap-2 text-label text-primary-600 transition-colors hover:text-primary-700"
-        >
-          <Phone className="size-4 shrink-0" aria-hidden="true" />
-          <span dir="ltr" {...SELECTABLE}>
-            {order.customerPhone}
-          </span>
-        </a>
+        <p className="flex min-h-11 items-center gap-2 text-label" {...SELECTABLE}>
+          <Phone className="size-4 shrink-0 text-primary-600" aria-hidden="true" />
+          <PhoneLink value={order.customerPhone} data-testid="order-customer-phone" />
+        </p>
       )}
 
       {order.customerWhatsapp && (
-        <a
-          href={`tel:${order.customerWhatsapp}`}
-          className="flex min-h-11 items-center gap-2 text-label text-primary-600 transition-colors hover:text-primary-700"
-        >
-          <MessageCircle className="size-4 shrink-0" aria-hidden="true" />
-          <span dir="ltr" {...SELECTABLE}>
-            {order.customerWhatsapp}
-          </span>
+        <p className="flex min-h-11 items-center gap-2 text-label" {...SELECTABLE}>
+          <WhatsAppLink value={order.customerWhatsapp} data-testid="order-customer-whatsapp" />
           <span className="text-micro text-ink-muted">{t("whatsappLabel")}</span>
-        </a>
+        </p>
       )}
 
       {order.customerAddress && (
         <p className="flex items-start gap-2 text-label text-ink-muted">
-          <MapPin className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+          <MapPin className="mt-0.5 size-4 shrink-0 text-primary-700" aria-hidden="true" />
           <span className="min-w-0 whitespace-pre-line" {...SELECTABLE}>
             {order.customerAddress}
           </span>
@@ -55,7 +44,7 @@ export function OrderCustomerCard({ order }: { order: Order }) {
           href={mapUrl}
           target="_blank"
           rel="noreferrer"
-          className="flex min-h-11 items-center gap-2 text-label text-primary-600 transition-colors hover:text-primary-700"
+          className="flex min-h-11 items-center gap-2 text-label text-primary-600 transition-colors hover:text-primary-700 focus-link"
         >
           <MapPin className="size-4 shrink-0" aria-hidden="true" />
           {t("openMap")}

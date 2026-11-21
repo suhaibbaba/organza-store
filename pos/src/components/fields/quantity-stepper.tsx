@@ -60,8 +60,8 @@ export function QuantityStepper({
 
   const compact = size === "compact";
   const buttonClass = compact
-    ? "hit-area flex size-10 shrink-0 cursor-pointer items-center justify-center rounded-control text-ink transition-colors not-disabled:hover:bg-primary-50 disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
-    : "flex size-11 shrink-0 cursor-pointer items-center justify-center rounded-control border border-line-strong bg-surface text-ink transition-colors not-disabled:hover:bg-inset disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500";
+    ? "hit-area flex size-10 shrink-0 cursor-pointer items-center justify-center rounded-control text-ink transition-colors not-disabled:hover:bg-primary-50 disabled:cursor-not-allowed disabled:opacity-40 focus-visible:bg-primary-200 focus-visible:text-primary-900"
+    : "flex size-11 shrink-0 cursor-pointer items-center justify-center rounded-control border border-line-strong bg-surface text-ink transition-colors not-disabled:hover:bg-inset disabled:cursor-not-allowed disabled:opacity-40 focus-visible:bg-neutral-200 focus-visible:text-ink";
   const iconClass = compact ? "size-4" : "size-5";
 
   return (

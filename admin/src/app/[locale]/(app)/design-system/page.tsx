@@ -31,7 +31,7 @@ function DesignSystemContent() {
             <a
               key={id}
               href={`#${id}`}
-              className="rounded-pill border border-line bg-surface px-3 py-1.5 text-meta font-semibold text-ink-muted hover:border-primary-600 hover:text-primary-600"
+              className="rounded-pill border border-line bg-surface px-3 py-1.5 text-meta font-semibold text-ink-muted hover:border-primary-600 hover:text-primary-600 focus-visible:border-primary-700 focus-visible:bg-primary-100 focus-visible:text-primary-800"
             >
               {t(`sections.${id}`)}
             </a>

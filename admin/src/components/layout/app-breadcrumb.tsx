@@ -28,7 +28,7 @@ export function AppBreadcrumb() {
             href={parent.href}
             aria-label={t("breadcrumb.back")}
             data-test-selector="breadcrumb-back"
-            className="-ms-1 flex size-8 items-center justify-center rounded-control text-ink-muted transition-colors hover:bg-sunken hover:text-primary-700"
+            className="-ms-1 flex size-8 items-center justify-center rounded-control text-ink-muted transition-colors hover:bg-sunken hover:text-primary-700 focus-visible:bg-neutral-200 focus-visible:text-primary-800"
           >
             <ArrowLeft className="size-4 rtl:-scale-x-100" aria-hidden="true" />
           </Link>
@@ -48,7 +48,7 @@ export function AppBreadcrumb() {
                     {crumb.label}
                   </span>
                 ) : (
-                  <Link href={crumb.href} className="truncate text-ink-muted transition-colors hover:text-primary-700">
+                  <Link href={crumb.href} className="truncate text-ink-muted transition-colors hover:text-primary-700 focus-link">
                     {crumb.label}
                   </Link>
                 )}

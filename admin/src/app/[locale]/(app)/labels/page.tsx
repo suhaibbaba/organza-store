@@ -224,7 +224,7 @@ function LabelsPageContent() {
                     : t("sheet.thermal", { width: geometry.widthMm, height: geometry.heightMm })}
                 </p>
                 {can(user, "settings.manage") && (
-                  <Link href="/settings" className="mt-2 inline-block text-label font-medium text-primary-600 underline hover:text-primary-700">
+                  <Link href="/settings" className="mt-2 inline-block text-label font-medium text-primary-600 underline hover:text-primary-700 focus-link">
                     {t("sheet.change")}
                   </Link>
                 )}

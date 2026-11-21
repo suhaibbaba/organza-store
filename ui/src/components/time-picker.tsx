@@ -153,7 +153,9 @@ export function TimePicker({
               className={cn(
                 "flex w-full cursor-pointer items-center justify-between rounded-control px-3 py-2",
                 "text-start text-value tabular-nums transition-colors duration-150",
-                slot === value ? "bg-primary-600 text-ink-inverse" : "text-ink hover:bg-inset",
+                slot === value
+                  ? "bg-primary-600 text-ink-inverse focus-visible:bg-primary-900"
+                  : "text-ink hover:bg-inset focus-visible:bg-neutral-300",
               )}
             >
               {to12Hour(slot)}

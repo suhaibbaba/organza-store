@@ -42,7 +42,7 @@ export function SortableImageThumb({
   const style = { transform: CSS.Transform.toString(transform), transition };
 
   const tool =
-    "inline-flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-pill text-ink-inverse transition-colors hover:bg-ink-inverse/20 disabled:cursor-not-allowed disabled:opacity-50";
+    "inline-flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-pill text-ink-inverse transition-colors hover:bg-ink-inverse/20 focus-visible:bg-ink-inverse/35 disabled:cursor-not-allowed disabled:opacity-50";
 
   return (
     <div

@@ -12,7 +12,7 @@ export interface ContactLinkProps extends TestIdProps {
 
 const LINK_CLASS = cn(
   "text-primary-600 transition-colors duration-150",
-  "hover:text-primary-700",
+  "hover:text-primary-700 focus-link",
   "relative inline-block",
   "after:absolute after:inset-x-0 after:top-1/2 after:h-(--control-h) after:-translate-y-1/2 after:content-[''] lg:after:hidden",
 );
@@ -65,7 +65,8 @@ export function EmailLink({
 
 export interface WhatsAppLinkProps extends TestIdProps {
   readonly value: string | null | undefined;
-  readonly label: string;
+  // Without a label the link shows the number itself.
+  readonly label?: string | undefined;
   readonly className?: string | undefined;
 }
 
@@ -92,7 +93,7 @@ export function WhatsAppLink({
       className={cn(LINK_CLASS, "inline-flex items-center gap-1", className)}
     >
       <Icon name="whatsapp" className="size-4 shrink-0 text-success-700" />
-      {label}
+      {label ?? <Ltr className="tabular-nums">{value}</Ltr>}
     </a>
   );
 }

@@ -90,7 +90,7 @@ export function BottomSheet({
             className={cn(
               "absolute end-3 top-3 inline-flex size-11 cursor-pointer items-center justify-center rounded-control",
               "text-ink-muted transition-colors hover:bg-inset hover:text-ink",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+              "focus-visible:bg-neutral-200 focus-visible:text-ink"
             )}
           >
             <Icon name="x" className="size-5" />

@@ -36,7 +36,7 @@ export function TopBar() {
               onClick={() => setMenuOpen(true)}
               aria-label={t("nav.openMenu")}
               data-test-selector="top-bar-menu"
-              className="relative flex size-10 shrink-0 cursor-pointer items-center justify-center rounded-control text-ink transition-colors hover:bg-inset hover:text-primary-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 md:hidden"
+              className="relative flex size-10 shrink-0 cursor-pointer items-center justify-center rounded-control text-ink transition-colors hover:bg-inset hover:text-primary-700 focus-visible:bg-neutral-200 focus-visible:text-primary-800 md:hidden"
             >
               <Menu className="size-6" aria-hidden="true" />
               {items.some((item) => item.key === "changeRequests") && (
@@ -46,7 +46,7 @@ export function TopBar() {
             <Link
               href={landingHref(user) ?? DEFAULT_LANDING_HREF}
               data-test-selector="top-bar-brand"
-              className="flex h-10 shrink-0 items-center rounded-control focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 md:hidden"
+              className="flex h-10 shrink-0 items-center rounded-control focus-darken md:hidden"
             >
               <ShopLogo alt={t("app.name")} className="h-full w-auto max-w-32" />
             </Link>

@@ -30,7 +30,7 @@ export function ColorInput({ id, label, value, onChange, disabled, className }: 
           value={hex}
           disabled={disabled}
           onChange={(e) => onChange(normalizeHexColor(e.target.value) ?? e.target.value.toUpperCase())}
-          className="size-11 shrink-0 cursor-pointer appearance-none rounded-chip border border-line bg-transparent p-0 disabled:cursor-not-allowed disabled:opacity-50"
+          className="size-11 shrink-0 cursor-pointer appearance-none rounded-chip border border-line bg-transparent p-0 focus-darken disabled:cursor-not-allowed disabled:opacity-50"
         />
         <span dir="ltr" className="font-mono text-meta text-ink-muted">
           {hex}

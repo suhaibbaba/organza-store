@@ -81,7 +81,7 @@ function AttentionRow({ label, value, highlight, href }: AttentionRowProps) {
   return (
     <Link
       href={href}
-      className="flex min-h-14 items-center gap-3 px-4 py-2 transition-colors hover:bg-row-hover active:bg-inset"
+      className="flex min-h-14 items-center gap-3 px-4 py-2 transition-colors hover:bg-row-hover focus-visible:bg-inset active:bg-inset"
     >
       {content}
     </Link>

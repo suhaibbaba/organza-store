@@ -82,7 +82,7 @@ export function Section({
             aria-expanded={open}
             aria-controls={bodyId}
             onClick={() => setToggled((value) => !value)}
-            className="flex min-w-0 flex-1 cursor-pointer items-center gap-3 rounded-control focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+            className="flex min-w-0 flex-1 cursor-pointer items-center gap-3 rounded-control focus-visible:bg-neutral-200 focus-visible:text-primary-900"
           >
             {heading}
             <Icon

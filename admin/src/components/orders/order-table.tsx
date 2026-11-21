@@ -84,7 +84,7 @@ export function OrderTable({ orders, meta, isRefreshing, sort, onPageChange, onP
           <div className="flex flex-wrap items-center gap-2">
             <Link
               href={`/orders/${order.id}`}
-              className="whitespace-nowrap rounded-control text-value font-medium text-ink transition-colors hover:text-primary-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+              className="whitespace-nowrap rounded-control text-value font-medium text-ink transition-colors hover:text-primary-700 focus-link"
             >
               {t("card.orderNumber", { number: String(order.orderNumber) })}
             </Link>

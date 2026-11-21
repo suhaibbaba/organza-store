@@ -94,6 +94,7 @@ export function FieldIcon({
 export const FIELD_BUTTON = cn(
   "inline-grid size-6 shrink-0 cursor-pointer place-items-center rounded-chip",
   "text-ink-faint transition-colors duration-150 hover:bg-inset hover:text-ink",
+  "focus-visible:bg-neutral-300 focus-visible:text-ink",
 );
 
 export function FieldLock({ "data-testid": testId }: TestIdProps = {}): JSX.Element {
@@ -128,6 +129,7 @@ export function FieldClear({
       className={cn(
         "inline-grid size-5 shrink-0 cursor-pointer place-items-center rounded-pill",
         "text-ink-faint transition-colors duration-150 hover:bg-inset hover:text-ink",
+        "focus-visible:bg-neutral-300 focus-visible:text-ink",
       )}
     >
       <Icon name="x" className="size-3.5" />

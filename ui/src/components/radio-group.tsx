@@ -58,8 +58,8 @@ export function RadioGroup<TValue extends string>({
               "flex min-h-(--control-h) cursor-pointer items-center gap-3 rounded-panel border px-3 py-2 text-start",
               "transition-[background-color,border-color] duration-[250ms] ease-in-out",
               isSelected
-                ? "border-primary-600 bg-selected"
-                : "border-line bg-surface hover:border-line-strong hover:bg-inset",
+                ? "border-primary-600 bg-selected focus-visible:border-primary-800 focus-visible:bg-primary-100"
+                : "border-line bg-surface hover:border-line-strong hover:bg-inset focus-visible:border-primary-800 focus-visible:bg-neutral-200",
             )}
           >
             <span

@@ -45,7 +45,7 @@ export function OptionValueNotesSection({
         onClick={() => setOpen((previous) => !previous)}
         data-test-selector="option-notes-toggle"
         aria-expanded={open}
-        className="flex min-h-11 w-full items-center justify-between gap-3 p-3 text-start"
+        className="flex min-h-11 w-full items-center justify-between gap-3 rounded-panel p-3 text-start focus-visible:bg-inset"
       >
         <span className="flex min-w-0 flex-col">
           <span className="text-label font-medium text-ink">{t("title")}</span>

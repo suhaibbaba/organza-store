@@ -41,7 +41,7 @@ export function ProductCard({ product, isPending, isBusy, onAdd }: ProductCardPr
       className={cn(
         "group flex size-full min-w-0 flex-col gap-2.5 rounded-card border border-line bg-surface p-2.5 text-start shadow-card",
         "cursor-pointer transition-[border-color,box-shadow] not-disabled:hover:border-line-strong not-disabled:hover:shadow-card-hover",
-        "focus-visible:border-primary-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2",
+        "focus-visible:border-primary-600 focus-darken",
         "disabled:cursor-not-allowed",
         isBusy && !soldOut && "cursor-wait"
       )}
