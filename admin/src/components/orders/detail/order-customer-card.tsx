@@ -2,11 +2,10 @@ import { useTranslations } from "next-intl";
 import { MapPin, Phone, UserRound } from "lucide-react";
 import { PhoneLink, WhatsAppLink } from "@store/ui";
 import type { Order } from "@organza/shared/types/order";
-import { SELECTABLE } from "@organza/shared/lib/nativeGestures";
 import { COORDINATE_DECIMALS, MAP_LINK_TEMPLATE } from "@/constants/orders";
 import { DetailCard } from "@/components/layout/detail-card";
+import { CustomerContactRow } from "@/components/orders/detail/customer-contact-row";
 
-// The order's customer snapshot (no Customer entity yet); numbers shown exactly as stored, prefix included (rule 18).
 export function OrderCustomerCard({ order }: { order: Order }) {
   const t = useTranslations("orders.detail.customer");
 
@@ -17,42 +16,39 @@ export function OrderCustomerCard({ order }: { order: Order }) {
     <DetailCard icon={UserRound} title={t("title")} className="gap-3" data-testid="order-customer-card">
       {order.customerName && <p className="text-value text-ink">{order.customerName}</p>}
       {order.customerPhone && (
-        <p className="flex min-h-11 items-center gap-2 text-label" {...SELECTABLE}>
-          <Phone className="size-4 shrink-0 text-primary-600" aria-hidden="true" />
+        <CustomerContactRow icon={Phone}>
           <PhoneLink value={order.customerPhone} data-testid="order-customer-phone" />
-        </p>
+        </CustomerContactRow>
       )}
 
       {order.customerWhatsapp && (
-        <p className="flex min-h-11 items-center gap-2 text-label" {...SELECTABLE}>
+        <CustomerContactRow>
           <WhatsAppLink value={order.customerWhatsapp} data-testid="order-customer-whatsapp" />
           <span className="text-micro text-ink-muted">{t("whatsappLabel")}</span>
-        </p>
+        </CustomerContactRow>
       )}
 
       {order.customerAddress && (
-        <p className="flex items-start gap-2 text-label text-ink-muted">
-          <MapPin className="mt-0.5 size-4 shrink-0 text-primary-700" aria-hidden="true" />
-          <span className="min-w-0 whitespace-pre-line" {...SELECTABLE}>
-            {order.customerAddress}
-          </span>
-        </p>
+        <CustomerContactRow icon={MapPin} multiline className="text-ink-muted">
+          <span className="min-w-0 whitespace-pre-line">{order.customerAddress}</span>
+        </CustomerContactRow>
       )}
 
       {mapUrl && (
-        <a
-          href={mapUrl}
-          target="_blank"
-          rel="noreferrer"
-          className="flex min-h-11 items-center gap-2 text-label text-primary-600 transition-colors hover:text-primary-700 focus-link"
-        >
-          <MapPin className="size-4 shrink-0" aria-hidden="true" />
-          {t("openMap")}
+        <CustomerContactRow icon={MapPin}>
+          <a
+            href={mapUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="text-primary-600 transition-colors hover:text-primary-700 focus-link"
+          >
+            {t("openMap")}
+          </a>
           {/* The raw pair too: a driver reading it out over the phone needs the numbers. */}
-          <span className="text-micro tabular-nums text-ink-muted" dir="ltr" {...SELECTABLE}>
+          <span className="text-micro tabular-nums text-ink-muted" dir="ltr">
             {order.customerLatitude?.toFixed(COORDINATE_DECIMALS)}, {order.customerLongitude?.toFixed(COORDINATE_DECIMALS)}
           </span>
-        </a>
+        </CustomerContactRow>
       )}
 
       {order.note && (

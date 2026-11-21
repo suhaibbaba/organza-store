@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+import type { LucideIcon } from "lucide-react";
 import type { I18n } from "@organza/shared/types/common";
 import type { ListOrdersQuery } from "@organza/shared/schemas/order";
 import type { DiscountType, OrderChannel, OrderStatus, PaymentStatus } from "@organza/shared/types/order";
@@ -67,3 +69,11 @@ export interface OrderCustomerDraft {
 
 // Absent or 0 = that line is not part of this return.
 export type ReturnQuantities = Record<string, number>;
+
+export interface CustomerContactRowProps {
+  icon?: LucideIcon;
+  // Multi-line content (an address) aligns to the top instead of the middle.
+  multiline?: boolean;
+  className?: string;
+  children: ReactNode;
+}
