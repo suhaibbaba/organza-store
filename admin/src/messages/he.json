@@ -718,9 +718,9 @@
     "subtitle": "עיין בקטלוג המוצרים שלך.",
     "addProduct": "הוספת מוצר",
     "search": {
-      "placeholder": "חיפוש מוצרים…",
+      "placeholder": "חיפוש לפי שם, מק״ט או ברקוד",
       "label": "חיפוש מוצרים",
-      "clear": "ניקוי חיפוש"
+      "clear": "ניקוי החיפוש"
     },
     "sort": {
       "label": "מיון לפי",
@@ -728,7 +728,9 @@
       "priceLowToHigh": "מחיר: הזול קודם",
       "priceHighToLow": "מחיר: היקר קודם",
       "nameAToZ": "שם: א עד ת",
-      "nameZToA": "שם: ת עד א"
+      "nameZToA": "שם: ת עד א",
+      "stockLowToHigh": "מלאי: מהנמוך",
+      "stockHighToLow": "מלאי: מהגבוה"
     },
     "filters": {
       "trigger": "סינון",
@@ -746,8 +748,20 @@
       "priceRange": "טווח מחירים",
       "priceMin": "מינימום",
       "priceMax": "מקסימום",
-      "reset": "איפוס",
-      "apply": "החל"
+      "reset": "ניקוי מסננים",
+      "apply": "הצגת תוצאות",
+      "categoryHint": "פריטים בקטגוריה זו ובקטגוריות שמתחתיה.",
+      "statusHint": "פריטים מוסתרים אינם נמכרים בחנות או באתר.",
+      "stockHint": "כולל את כל הווריאציות של הפריט.",
+      "priceHint": "מחיר המכירה לפני הנחה.",
+      "sortHint": "אפשר גם בלחיצה על כותרת עמודה.",
+      "chipCategory": "קטגוריה: {name}",
+      "chipStatus": "סטטוס: {name}",
+      "chipStock": "מלאי: {name}",
+      "chipPrice": "מחיר {min} – {max}",
+      "chipPriceMin": "מחיר מ-{min}",
+      "chipPriceMax": "מחיר עד {max}",
+      "removeFilter": "הסרת מסנן: {name}"
     },
     "status": {
       "active": "פעיל",
@@ -765,7 +779,10 @@
       "sku": "מק\"ט",
       "price": "מחיר",
       "stock": "מלאי",
-      "status": "סטטוס"
+      "status": "סטטוס",
+      "actions": "פעולות",
+      "variants": "{count, plural, one {וריאציה אחת} other {{count, number, plain} וריאציות}}",
+      "noCategory": "ללא קטגוריה"
     },
     "empty": {
       "noProductsTitle": "אין עדיין מוצרים",
@@ -1048,6 +1065,11 @@
       "oneOff": "זה היה פריט חד-פעמי",
       "confirmOneOff": "אישור: פריט חד-פעמי",
       "oneOffWarning": "הפריט לא יצטרף לקטלוג. המכירה נשארת וההזמנה לא מושפעת."
+    },
+    "rowMenu": {
+      "label": "פעולות עבור {name}",
+      "edit": "עריכה",
+      "delete": "מחיקה"
     }
   },
   "inventory": {
@@ -1825,7 +1847,10 @@
       "disabled": "שדה מושבת",
       "translated": "שם מתורגם",
       "sectionTitle": "מקטע",
-      "sectionDescription": "כרטיס עם כותרת שאפשר לקפל."
+      "sectionDescription": "כרטיס עם כותרת שאפשר לקפל.",
+      "colour": "צבע",
+      "colourHint": "יותר מעשר אפשרויות, ולכן ברשימה יש חיפוש.",
+      "colourPlaceholder": "בחרו צבע"
     },
     "choices": {
       "channel": "ערוץ מכירה",
@@ -1909,6 +1934,20 @@
     },
     "chips": {
       "remove": "הסרת {name}"
+    },
+    "colours": {
+      "black": "שחור",
+      "white": "לבן",
+      "navy": "כחול כהה",
+      "beige": "בז׳",
+      "camel": "גמל",
+      "grey": "אפור",
+      "olive": "זית",
+      "burgundy": "בורדו",
+      "rose": "ורוד",
+      "sky": "תכלת",
+      "mint": "מנטה",
+      "mustard": "חרדל"
     }
   },
   "breadcrumb": {

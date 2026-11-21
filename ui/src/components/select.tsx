@@ -16,7 +16,7 @@ import { Icon } from "@ui/components/icon";
 import { cn } from "@ui/lib/cn";
 import { parts, testid, type TestIdProps } from "@ui/lib/testid";
 import { documentDirection } from "@ui/lib/direction";
-import { useMediaQuery } from "@ui/lib/use-media-query";
+import { foldSearchText } from "@ui/lib/support/search-text";
 
 export interface SelectOption {
   readonly value: string;
@@ -41,8 +41,12 @@ export interface SelectProps
 
 const NONE = "__none__";
 
+// A list longer than this gets a search box on its own, unless the caller says otherwise.
+const SEARCHABLE_FROM = 10;
+
 export function Select(props: SelectProps): JSX.Element {
-  return props.searchable === true ? <SearchableSelect {...props} /> : <PlainSelect {...props} />;
+  const auto = props.bare !== true && props.renderValue === undefined && props.options.length > SEARCHABLE_FROM;
+  return (props.searchable ?? auto) ? <SearchableSelect {...props} /> : <PlainSelect {...props} />;
 }
 
 function PlainSelect({
@@ -65,7 +69,6 @@ function PlainSelect({
 }: SelectProps): JSX.Element {
   const part = parts("select", testId);
   const dialogLayer = useDialogLayer();
-  const finePointer = useMediaQuery("(pointer: fine)");
   const empty = value === "" || value === undefined;
   const shown =
     renderValue && !empty ? options.find((option) => option.value === value) : undefined;
@@ -146,13 +149,7 @@ function PlainSelect({
             "data-[state=closed]:animate-[menu-out_150ms_ease-in]",
           )}
         >
-          {finePointer && (
-            <SelectPrimitive.ScrollUpButton className="flex h-6 items-center justify-center text-ink-subtle">
-              <Icon name="chevron-up" className="size-4" />
-            </SelectPrimitive.ScrollUpButton>
-          )}
-
-          <SelectPrimitive.Viewport className="overscroll-contain">
+          <SelectPrimitive.Viewport className="scroll-lane overscroll-contain">
             {placeholder !== undefined && (
               <Row value={NONE} label={placeholder} muted testId={testId} />
             )}
@@ -167,12 +164,6 @@ function PlainSelect({
               />
             ))}
           </SelectPrimitive.Viewport>
-
-          {finePointer && (
-            <SelectPrimitive.ScrollDownButton className="flex h-6 items-center justify-center text-ink-subtle">
-              <Icon name="chevron-down" className="size-4" />
-            </SelectPrimitive.ScrollDownButton>
-          )}
         </SelectPrimitive.Content>
       </SelectPrimitive.Portal>
     </SelectPrimitive.Root>
@@ -252,8 +243,11 @@ function SearchableSelect({
   const [query, setQuery] = useState("");
   const [active, setActive] = useState(0);
 
-  const term = query.trim().toLowerCase();
-  const shown = options.filter((option) => option.label.toLowerCase().includes(term));
+  const term = foldSearchText(query);
+  // The placeholder ("All categories") stays first while nothing is typed, so a choice can be cleared.
+  const choices: readonly SelectOption[] =
+    placeholder !== undefined && term === "" ? [{ value: "", label: placeholder }, ...options] : options;
+  const shown = choices.filter((option) => foldSearchText(option.label).includes(term));
   const chosen = options.find((option) => option.value === value);
   const rows = shown.length + (onCreate ? 1 : 0);
 
@@ -275,7 +269,9 @@ function SearchableSelect({
     setActive(
       Math.max(
         0,
-        options.findIndex((option) => option.value === value),
+        (placeholder === undefined ? options : [{ value: "" }, ...options]).findIndex(
+          (option) => option.value === (value ?? ""),
+        ),
       ),
     );
     setOpen(true);
@@ -397,6 +393,7 @@ function SearchableSelect({
                   "lg:min-h-(--control-h-sm) px-3 py-2 text-start text-field text-ink select-none",
                   "transition-colors duration-150 data-[highlighted]:bg-primary-100 data-[highlighted]:text-primary-900",
                   option.value === value && "font-medium",
+                  option.value === "" && "text-ink-subtle",
                 )}
               >
                 <span className="inline-flex min-w-0 items-center gap-2">

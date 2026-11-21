@@ -8,7 +8,7 @@ import { testSelectorFor } from "@organza/shared/lib/testSelector";
 import { localize } from "@/lib/i18n-content";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
 import { useProductSearch } from "@/hooks/use-product-search";
-import { ProductImage } from "@/components/products/product-image";
+import { ProductPhoto } from "@/components/products/product-photo";
 
 interface ProductPickerProps {
   query: string;
@@ -82,13 +82,7 @@ export function ProductPicker({ query, onQueryChange, pendingId, onSelect }: Pro
                   className="h-full flex-col overflow-hidden"
                 >
                   <span className="relative block aspect-square w-full bg-sunken">
-                    <ProductImage
-                      src={product.image?.thumbnailUrl}
-                      alt={name}
-                      fit="contain"
-                      className="size-full"
-                      sizes="(max-width: 640px) 45vw, 160px"
-                    />
+                    <ProductPhoto product={product} alt={name} fit="contain" className="size-full" sizes="(max-width: 640px) 45vw, 160px" />
                     <span className="absolute end-2 top-2 flex size-8 items-center justify-center rounded-pill bg-surface/90 text-primary-700 shadow-card">
                       {pendingId === product.id ? <Spinner /> : <Plus className="size-4" aria-hidden="true" />}
                     </span>

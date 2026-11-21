@@ -718,7 +718,7 @@
     "subtitle": "Browse your catalog.",
     "addProduct": "Add product",
     "search": {
-      "placeholder": "Search products…",
+      "placeholder": "Search by name, SKU or barcode",
       "label": "Search products",
       "clear": "Clear search"
     },
@@ -728,7 +728,9 @@
       "priceLowToHigh": "Price: low to high",
       "priceHighToLow": "Price: high to low",
       "nameAToZ": "Name: A to Z",
-      "nameZToA": "Name: Z to A"
+      "nameZToA": "Name: Z to A",
+      "stockLowToHigh": "Stock: low to high",
+      "stockHighToLow": "Stock: high to low"
     },
     "filters": {
       "trigger": "Filters",
@@ -746,8 +748,20 @@
       "priceRange": "Price range",
       "priceMin": "Min",
       "priceMax": "Max",
-      "reset": "Reset",
-      "apply": "Apply"
+      "reset": "Clear filters",
+      "apply": "Show results",
+      "categoryHint": "Pieces in this category and the ones under it.",
+      "statusHint": "Hidden pieces are not sold in the shop or online.",
+      "stockHint": "Counts every variant of a piece.",
+      "priceHint": "The selling price, before any discount.",
+      "sortHint": "Also set by tapping a column heading.",
+      "chipCategory": "Category: {name}",
+      "chipStatus": "Status: {name}",
+      "chipStock": "Stock: {name}",
+      "chipPrice": "Price {min} – {max}",
+      "chipPriceMin": "Price from {min}",
+      "chipPriceMax": "Price up to {max}",
+      "removeFilter": "Remove filter: {name}"
     },
     "status": {
       "active": "Active",
@@ -765,7 +779,10 @@
       "sku": "SKU",
       "price": "Price",
       "stock": "Stock",
-      "status": "Status"
+      "status": "Status",
+      "actions": "Actions",
+      "variants": "{count, plural, one {1 variant} other {{count, number, plain} variants}}",
+      "noCategory": "No category"
     },
     "empty": {
       "noProductsTitle": "No products yet",
@@ -1048,6 +1065,11 @@
       "oneOff": "It was a one-off",
       "confirmOneOff": "Confirm: a one-off",
       "oneOffWarning": "The piece won't join the catalogue. The sale stands and the order is untouched."
+    },
+    "rowMenu": {
+      "label": "Actions for {name}",
+      "edit": "Edit",
+      "delete": "Delete"
     }
   },
   "inventory": {
@@ -1825,7 +1847,10 @@
       "disabled": "Disabled field",
       "translated": "Translated name",
       "sectionTitle": "Section",
-      "sectionDescription": "A titled card that folds away."
+      "sectionDescription": "A titled card that folds away.",
+      "colour": "Colour",
+      "colourHint": "Over ten choices, so the list has a search box.",
+      "colourPlaceholder": "Choose a colour"
     },
     "choices": {
       "channel": "Sales channel",
@@ -1909,6 +1934,20 @@
     },
     "chips": {
       "remove": "Remove {name}"
+    },
+    "colours": {
+      "black": "Black",
+      "white": "White",
+      "navy": "Navy",
+      "beige": "Beige",
+      "camel": "Camel",
+      "grey": "Grey",
+      "olive": "Olive",
+      "burgundy": "Burgundy",
+      "rose": "Rose",
+      "sky": "Sky blue",
+      "mint": "Mint",
+      "mustard": "Mustard"
     }
   },
   "breadcrumb": {

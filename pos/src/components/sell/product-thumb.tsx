@@ -11,10 +11,11 @@ interface ProductThumbProps {
   alt: string;
   className?: string;
   sizes?: string;
+  fit?: "cover" | "contain";
 }
 
 // A product photo, or the branded placeholder for a missing or failed one — never the broken-image glyph.
-export function ProductThumb({ src, alt, className, sizes }: ProductThumbProps) {
+export function ProductThumb({ src, alt, className, sizes, fit = "cover" }: ProductThumbProps) {
   const resolved = src ? resolveImageUrl(src) : null;
 
   // Keyed by URL so a row recycled onto a different product starts fresh.
@@ -34,7 +35,7 @@ export function ProductThumb({ src, alt, className, sizes }: ProductThumbProps) 
           alt={alt}
           fill
           sizes={sizes ?? "80px"}
-          className="object-cover"
+          className={fit === "contain" ? "object-contain" : "object-cover"}
           onError={() => {
             markImageFailed(resolved);
             setFailed(resolved);

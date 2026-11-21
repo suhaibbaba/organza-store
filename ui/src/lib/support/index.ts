@@ -7,3 +7,4 @@ export * from "@ui/lib/support/money";
 export * from "@ui/lib/support/numbers";
 export * from "@ui/lib/support/phone";
 export * from "@ui/lib/support/validation";
+export * from "@ui/lib/support/search-text";

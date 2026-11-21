@@ -26,6 +26,7 @@ import {
 } from "@/validation/image";
 import { writeAudit } from "@/lib/audit";
 import { queueOwnerSync } from "@/lib/search";
+import { queueMarkedImages } from "@/lib/markedImage";
 import { cancelPendingChangesFor, deletionValue, fileChangeRequests } from "@/lib/changeRequests";
 import { AUDIT_ENTITY, CHANGE_REQUEST_ENTITIES, CHANGE_REQUEST_FIELDS, ERROR_CODES } from "@/constants";
 
@@ -121,6 +122,7 @@ router.post(
       newValue: created,
     });
     await queueOwnerSync(created);
+    queueMarkedImages([created.productId]);
 
     sendOk(res, serializeImage(created), null, 201);
   })
@@ -159,6 +161,7 @@ router.patch(
       newValue: { order: body.imageIds },
     });
     await queueOwnerSync(body);
+    queueMarkedImages([body.productId]);
 
     sendOk(res, updated.map(serializeImage));
   })
@@ -200,6 +203,7 @@ router.patch(
       newValue: { isPrimary: updated.isPrimary },
     });
     await queueOwnerSync(image);
+    queueMarkedImages([image.productId]);
 
     sendOk(res, serializeImage(updated));
   })
@@ -271,6 +275,7 @@ router.patch(
       newValue: { url: updated.url, edit },
     });
     await queueOwnerSync(image);
+    queueMarkedImages([image.productId]);
 
     sendOk(res, serializeImage(updated));
   })
@@ -345,6 +350,7 @@ router.delete(
       oldValue: image,
     });
     await queueOwnerSync(image);
+    queueMarkedImages([image.productId]);
 
     sendOk(res, { id: image.id, deleted: true });
   })

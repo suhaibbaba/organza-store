@@ -1,61 +1,39 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
-import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Plus } from "lucide-react";
+import { SegmentedControl, TotalBadge, Typography, buttonClassName, type TableSort } from "@store/ui";
 import { DEFAULT_PAGE } from "@organza/shared/constants/pagination";
 import { can } from "@organza/shared/lib/permissions";
 import { Link } from "@/i18n/navigation";
-import { buttonClassName, SegmentedControl } from "@store/ui";
 import { PageContainer } from "@/components/layout/page-container";
 import { PageHeader } from "@/components/layout/page-header";
 import { useSession } from "@/components/providers/session-provider";
-import { DEFAULT_PRODUCT_FILTERS, PRODUCT_SEARCH_DEBOUNCE_MS } from "@/constants/products";
-import { useDebouncedValue } from "@/hooks/use-debounced-value";
+import { DEFAULT_PRODUCT_FILTERS, PRODUCT_LIST_URL_PARAMS, PRODUCT_SEARCH_DEBOUNCE_MS } from "@/constants/products";
+import { useUrlFilters } from "@/hooks/use-url-filters";
+import { useUrlSearch } from "@/hooks/use-url-search";
 import { useNeedsCompletingCountQuery, useProductsQuery } from "@/hooks/use-products";
-import { useSettingsQuery } from "@/hooks/use-settings";
 import { ProductSearch } from "@/components/products/product-search";
-import { ProductFiltersSheet, type ProductFiltersValue } from "@/components/products/product-filters-sheet";
-import { ProductSortSelect } from "@/components/products/product-sort-select";
-import { ProductCard } from "@/components/products/product-card";
+import { ProductFilterChips, ProductFilters, countProductFilters } from "@/components/products/product-filters";
 import { ProductTable } from "@/components/products/product-table";
-import { ProductPagination } from "@/components/products/product-pagination";
-import {
-  ProductListEmpty,
-  ProductListError,
-  ProductListLoading,
-  ProductListSpinnerOverlay,
-} from "@/components/products/product-list-states";
-import type { ProductListFilters } from "@/types/product";
+import { ProductListEmpty, ProductListError } from "@/components/products/product-list-states";
+import type { ProductFiltersValue, ProductListFilters, ProductSortValue } from "@/types/product";
 
 export default function ProductsPage() {
   const t = useTranslations("products");
   const { user } = useSession();
-  // The header search's "see all" opens this list already searched (?q=).
-  const searchParams = useSearchParams();
-  const urlQuery = searchParams.get("q") ?? "";
-  const [searchInput, setSearchInput] = useState(urlQuery);
-  const [seenUrlQuery, setSeenUrlQuery] = useState(urlQuery);
-  if (urlQuery !== seenUrlQuery) {
-    setSeenUrlQuery(urlQuery);
-    setSearchInput(urlQuery);
-  }
-  const [filters, setFilters] = useState<ProductListFilters>(DEFAULT_PRODUCT_FILTERS);
-  const debouncedSearch = useDebouncedValue(searchInput, PRODUCT_SEARCH_DEBOUNCE_MS);
-
-  const effectiveFilters = useMemo<ProductListFilters>(
-    () => ({ ...filters, q: debouncedSearch }),
-    [filters, debouncedSearch]
+  const [filters, changeFilters] = useUrlFilters(DEFAULT_PRODUCT_FILTERS, PRODUCT_LIST_URL_PARAMS);
+  const [searchInput, setSearchInput] = useUrlSearch(
+    filters.q,
+    (q) => changeFilters({ q, page: DEFAULT_PAGE }),
+    PRODUCT_SEARCH_DEBOUNCE_MS
   );
 
-  const { data, isLoading, isFetching, isError, error, refetch } = useProductsQuery(effectiveFilters);
-  const { data: settings } = useSettingsQuery();
+  const { data, isLoading, isFetching, isError, error, refetch } = useProductsQuery(filters);
   // The "needs completing" queue (rule 23), offered only to whoever can clear it.
   const canComplete = can(user, "product.complete");
   const { data: needsCompletingCount } = useNeedsCompletingCountQuery(canComplete);
   const needsCompleting = filters.completeness === "needs_completing";
-  const currency = settings?.currency ?? "ILS";
 
   const filtersValue: ProductFiltersValue = {
     categoryId: filters.categoryId,
@@ -64,31 +42,19 @@ export default function ProductsPage() {
     priceMin: filters.priceMin,
     priceMax: filters.priceMax,
   };
-  const activeFilterCount = [
-    filters.categoryId,
-    filters.status,
-    filters.stock,
-    filters.priceMin,
-    filters.priceMax,
-  ].filter(Boolean).length;
-  const hasAnyFilter = activeFilterCount > 0 || debouncedSearch.trim().length > 0;
+  const sortValue: ProductSortValue = { sortBy: filters.sortBy, sortDir: filters.sortDir };
+  const hasAnyFilter = countProductFilters(filtersValue) > 0 || filters.q.trim().length > 0;
 
-  function updatePage(page: number) {
-    setFilters((f) => ({ ...f, page }));
-  }
-
-  function applyFilters(next: ProductFiltersValue) {
-    setFilters((f) => ({ ...f, ...next, page: DEFAULT_PAGE }));
-  }
-
-  function handleSearchChange(value: string) {
-    setSearchInput(value);
-    setFilters((f) => ({ ...f, page: DEFAULT_PAGE }));
-  }
-
-  function handleSortChange(sortBy: ProductListFilters["sortBy"], sortDir: ProductListFilters["sortDir"]) {
-    setFilters((f) => ({ ...f, sortBy, sortDir, page: DEFAULT_PAGE }));
-  }
+  const tableSort: TableSort = {
+    key: filters.sortBy,
+    dir: filters.sortDir,
+    onChange: (key, dir) =>
+      changeFilters(
+        key === null
+          ? { sortBy: DEFAULT_PRODUCT_FILTERS.sortBy, sortDir: DEFAULT_PRODUCT_FILTERS.sortDir, page: DEFAULT_PAGE }
+          : { sortBy: key as ProductListFilters["sortBy"], sortDir: dir, page: DEFAULT_PAGE }
+      ),
+  };
 
   const products = data?.products ?? [];
 
@@ -99,11 +65,7 @@ export default function ProductsPage() {
         title={t("title")}
         description={t("subtitle")}
         actions={
-          <Link
-            href="/products/new"
-            data-test-selector="add-product"
-            className={buttonClassName({ className: "shrink-0" })}
-          >
+          <Link href="/products/new" data-test-selector="add-product" className={buttonClassName({ className: "shrink-0" })}>
             <Plus className="size-4" aria-hidden="true" />
             {t("addProduct")}
           </Link>
@@ -111,13 +73,13 @@ export default function ProductsPage() {
       />
 
       <div className="flex flex-col gap-4">
-        <div className="flex flex-col gap-3">
-          {/* A tab, not a filter: a quick-sold piece has no category, so the category filter can never find it. Hidden at zero. */}
-          {canComplete && (needsCompleting || (needsCompletingCount ?? 0) > 0) && (
+        {/* A tab, not a filter: a quick-sold piece has no category, so the category filter can never find it. Hidden at zero. */}
+        {canComplete && (needsCompleting || (needsCompletingCount ?? 0) > 0) && (
+          <div className="flex flex-col gap-2">
             <SegmentedControl
               data-testid="products-completeness"
               label={t("title")}
-              value={filters.completeness === "needs_completing" ? "needs-completing" : "all"}
+              value={needsCompleting ? "needs-completing" : "all"}
               options={[
                 { value: "all", label: t("completeness.all") },
                 {
@@ -126,49 +88,53 @@ export default function ProductsPage() {
                 },
               ]}
               onChange={(value) =>
-                setFilters((f) => ({
-                  ...f,
-                  completeness: value === "needs-completing" ? "needs_completing" : "all",
-                  page: DEFAULT_PAGE,
-                }))
+                changeFilters({ completeness: value === "needs-completing" ? "needs_completing" : "all", page: DEFAULT_PAGE })
               }
             />
-          )}
-
-          {/* Said in words, so a list that changed what it shows doesn't look like lost products. */}
-          {needsCompleting && <p className="text-label text-ink-muted">{t("completeness.hint")}</p>}
-
-          <ProductSearch value={searchInput} onChange={handleSearchChange} />
-          <div className="flex gap-3">
-            <div className="flex-1">
-              <ProductSortSelect sortBy={filters.sortBy} sortDir={filters.sortDir} onChange={handleSortChange} />
-            </div>
-            <ProductFiltersSheet value={filtersValue} onApply={applyFilters} activeCount={activeFilterCount} />
+            {needsCompleting && (
+              <Typography variant="small" tone="muted">
+                {t("completeness.hint")}
+              </Typography>
+            )}
           </div>
+        )}
+
+        <div className="flex flex-col gap-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="min-w-64 flex-1 sm:max-w-md">
+              <ProductSearch
+                value={searchInput}
+                onChange={setSearchInput}
+              />
+            </div>
+            <ProductFilters
+              value={filtersValue}
+              sort={sortValue}
+              onApply={(next, sort) => changeFilters({ ...next, ...sort, page: DEFAULT_PAGE })}
+            />
+            {data?.meta && (
+              <div className="ms-auto flex h-(--control-h) items-center">
+                <TotalBadge data-testid="products-count" total={data.meta.total} />
+              </div>
+            )}
+          </div>
+          <ProductFilterChips value={filtersValue} onChange={(next) => changeFilters({ ...next, page: DEFAULT_PAGE })} />
         </div>
 
-        {isLoading ? (
-          <ProductListLoading />
-        ) : isError ? (
+        {isError ? (
           <ProductListError error={error} onRetry={() => void refetch()} />
-        ) : products.length === 0 ? (
+        ) : !isLoading && products.length === 0 ? (
           <ProductListEmpty hasFilters={hasAnyFilter} />
         ) : (
-          <>
-            {isFetching && <ProductListSpinnerOverlay />}
-
-            <div className="flex flex-col gap-3 md:hidden">
-              {products.map((product) => (
-                <ProductCard key={product.id} product={product} currency={currency} />
-              ))}
-            </div>
-
-            <div className="hidden md:block">
-              <ProductTable products={products} currency={currency} />
-            </div>
-
-            {data?.meta && <ProductPagination meta={data.meta} onPageChange={updatePage} />}
-          </>
+          <ProductTable
+            products={products}
+            meta={data?.meta ?? null}
+            isLoading={isLoading}
+            isRefreshing={isFetching && !isLoading}
+            sort={tableSort}
+            onPageChange={(page) => changeFilters({ page })}
+            onPageSizeChange={(pageSize) => changeFilters({ pageSize, page: DEFAULT_PAGE })}
+          />
         )}
       </div>
     </PageContainer>

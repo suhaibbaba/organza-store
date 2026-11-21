@@ -1,3 +1,4 @@
+import type { ProductSummary } from "@organza/shared/types/product";
 import type { OrderStatus } from "@organza/shared/types/order";
 
 export type GlobalSearchGroupKey = "pages" | "orders" | "products" | "customers";
@@ -10,6 +11,8 @@ export interface GlobalSearchItem {
   meta?: string;
   status?: OrderStatus;
   thumbnailUrl?: string | null;
+  // A product result, so a numbered shawl is drawn with its numbers.
+  product?: Pick<ProductSummary, "image" | "markedImage">;
 }
 
 export interface GlobalSearchGroup {

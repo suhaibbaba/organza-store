@@ -104,3 +104,17 @@ export function buildNumberOptions(product: AnyRecord, serializedVariants: AnyRe
 
   return options;
 }
+
+// The placed numbers burned into the photo by lib/markedImage.ts, in number order.
+export function summarizePoints(product: AnyRecord): { label: string; x: number; y: number; soldOut: boolean }[] {
+  if (!isNumberedProduct(product)) return [];
+  const typeIds = numberTypeIds(product);
+  const points: { label: string; x: number; y: number; soldOut: boolean }[] = [];
+  for (const variant of (product.variants ?? []) as AnyRecord[]) {
+    if (variant.imageX == null || variant.imageY == null) continue;
+    const numberValue = (variant.values ?? []).find((vv: AnyRecord) => typeIds.has(vv.optionValue.variantTypeId));
+    if (!numberValue) continue;
+    points.push({ label: String(numberValue.optionValue.key), x: variant.imageX, y: variant.imageY, soldOut: variant.stock <= 0 });
+  }
+  return points.sort((a, b) => Number(a.label) - Number(b.label));
+}

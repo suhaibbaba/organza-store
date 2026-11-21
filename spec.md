@@ -1051,6 +1051,23 @@ nullable). ONE pair for all of a product's numbers, never one per number.
 **New field on ProductImage:** `brightness` (0-100, nullable) — how light or dark the photograph
 is, measured once by `sharp` at upload and read only to suggest a marker colour.
 
+**Everywhere the piece appears, its photo carries its numbers — as a saved image** (user, 2026-11-21).
+`Product.markedImage` (JSON: the three size URLs, the base file name and a signature) is the primary
+photo with the numbers burned in by `sharp`, written by `backend/src/lib/markedImage.ts` after commit.
+A product save awaits it (`refreshMarkedImages`), so the list is right on return; sales, stock moves,
+photo changes and approvals queue it (`queueMarkedImages`). It is rebuilt only when the signature
+(photo, points, colours, sold-out numbers, drawing version) changes, and it never fails a save.
+**Storage stays clean:** a redraw deletes the previous three files once the new set is saved; a redraw
+that fails deletes its own half-written files; a product that stops being numbered, loses its main photo
+or is deleted has its files removed; and `images:mark` sweeps any `-marked-` file no product points at
+(older than 10 minutes, so a picture being drawn right then is never touched). Each size is drawn on its own, with a larger marker on the thumbnail so the number
+reads at 64px; an edge marker is pulled inside the photo; a sold-out number is drawn faded. Lists, the
+new-order picker, the header search, the labels list and the POS grid show `markedImage` whole
+(`contain`). The editor and the product page keep the live overlay, because points move there.
+`npm run images:mark` rebuilds them all (every deploy, the import and the demo seed run it); bump
+`MARKED_IMAGE_LAYOUT_VERSION` when the drawing changes. The runtime image carries `fonts-dejavu-core`,
+without which the digits render blank.
+
 **Display:** product image as background; numbers drawn on a separate transparent overlay using
 each variant's `imageX/imageY`. Full image visible with numbers on top. Three rules hold
 everywhere the numbers are drawn — the admin's placement canvas, the product detail page, and the
@@ -1084,8 +1101,8 @@ app's CSS, so the burned-in WhatsApp copy resolves exactly the same colours.
 3. Then set quantity (and optional price) per number.
 4. Persist only on an explicit **Save** (no autosave). Deleting a number asks for confirmation.
 
-**WhatsApp export (automatic):** render the image + numbers "burned in" into one shareable copy via
-`sharp`, regenerated when points change — one workflow yields both a WhatsApp-ready numbered image
+**WhatsApp export (automatic):** the burned-in copy is `Product.markedImage` (above), regenerated
+when points change — one workflow yields both a WhatsApp-ready numbered image
 and the interactive stock-linked variants inside the system.
 
 **Critical technical note:** on click, coordinates must be computed relative to the **displayed

@@ -140,7 +140,7 @@ export function RowMenu({
         className={cn(
           "inline-grid size-(--control-h) shrink-0 cursor-pointer place-items-center",
           size === "row" && "lg:size-(--control-h-sm)",
-          "rounded-control border border-line bg-surface text-ink-muted",
+          "rounded-pill border border-line bg-surface text-ink-muted",
           "transition-colors duration-[250ms] ease-in-out",
           "hover:bg-inset hover:border-primary-600 hover:text-primary-600",
           "data-[state=open]:border-primary-600 data-[state=open]:text-primary-600",

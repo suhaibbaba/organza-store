@@ -8,9 +8,10 @@ import { DEFAULT_PAGE } from "@organza/shared/constants/pagination";
 import { RoleGuard } from "@/components/auth/role-guard";
 import { PageContainer } from "@/components/layout/page-container";
 import { PageHeader } from "@/components/layout/page-header";
-import { COLLECTION_ORDER_FILTERS, ORDER_SEARCH_DEBOUNCE_MS } from "@/constants/orders";
+import { COLLECTION_ORDER_FILTERS, COLLECTION_ORDER_URL_PARAMS, ORDER_SEARCH_DEBOUNCE_MS } from "@/constants/orders";
 import { useCollectOrdersMutation, useCollectionSummaryQuery, useOrdersQuery } from "@/hooks/use-orders";
-import { useDebouncedValue } from "@/hooks/use-debounced-value";
+import { useUrlFilters } from "@/hooks/use-url-filters";
+import { useUrlSearch } from "@/hooks/use-url-search";
 import { useTranslateError } from "@/hooks/use-translate-error";
 import { ApiError } from "@/lib/api/errors";
 import { fromCents, toCents } from "@/lib/money";
@@ -34,13 +35,15 @@ function OrderCollectionPageContent() {
   const t = useTranslations("orders");
   const translateError = useTranslateError();
 
-  const [filters, setFilters] = useState<OrderListFilters>(COLLECTION_ORDER_FILTERS);
-  const [searchInput, setSearchInput] = useState("");
+  const [filters, setUrlFilters] = useUrlFilters(COLLECTION_ORDER_FILTERS, COLLECTION_ORDER_URL_PARAMS);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const debouncedSearch = useDebouncedValue(searchInput, ORDER_SEARCH_DEBOUNCE_MS);
-  const effectiveFilters = useMemo(() => ({ ...filters, q: debouncedSearch }), [filters, debouncedSearch]);
+  const [searchInput, setSearchInput] = useUrlSearch(
+    filters.q,
+    (q) => changeFilters({ q, page: DEFAULT_PAGE }),
+    ORDER_SEARCH_DEBOUNCE_MS
+  );
 
-  const { data, isLoading, isFetching, isError, error, refetch } = useOrdersQuery(effectiveFilters);
+  const { data, isLoading, isFetching, isError, error, refetch } = useOrdersQuery(filters);
   const summaryQuery = useCollectionSummaryQuery();
   const mutation = useCollectOrdersMutation();
 
@@ -52,7 +55,7 @@ function OrderCollectionPageContent() {
 
   function changeFilters(next: Partial<OrderListFilters>) {
     setSelectedIds([]);
-    setFilters((current) => ({ ...current, ...next }));
+    setUrlFilters(next);
   }
 
   function toggle(id: string) {
@@ -66,7 +69,7 @@ function OrderCollectionPageContent() {
         onSuccess: () => {
           setSelectedIds([]);
           // Settled orders leave the list, which can empty this page.
-          setFilters((current) => ({ ...current, page: DEFAULT_PAGE }));
+          setUrlFilters({ page: DEFAULT_PAGE });
         },
       }
     );
@@ -96,7 +99,7 @@ function OrderCollectionPageContent() {
         : changeFilters({ sortBy: key as OrderListFilters["sortBy"], sortDir: dir, page: DEFAULT_PAGE }),
   };
 
-  const isFiltered = debouncedSearch.trim().length > 0 || countOrderFilters(filtersValue) > 0;
+  const isFiltered = filters.q.trim().length > 0 || countOrderFilters(filtersValue) > 0;
 
   return (
     <PageContainer>
@@ -120,14 +123,8 @@ function OrderCollectionPageContent() {
             <SearchField
               label={t("search.label")}
               value={searchInput}
-              onChange={(event) => {
-                setSearchInput(event.target.value);
-                changeFilters({ page: DEFAULT_PAGE });
-              }}
-              onClear={() => {
-                setSearchInput("");
-                changeFilters({ page: DEFAULT_PAGE });
-              }}
+              onChange={(event) => setSearchInput(event.target.value)}
+              onClear={() => setSearchInput("")}
               clearLabel={t("search.clear")}
               placeholder={t("search.placeholder")}
               data-testid="collection-search"

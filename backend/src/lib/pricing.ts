@@ -3,6 +3,8 @@ import { can } from "@organza/shared/lib/permissions";
 import { needsLabel } from "@/lib/labelState";
 import { needsCompleting } from "@/lib/quickSellState";
 import { summarizeNumbers } from "@/lib/numberedProduct";
+import { serializeMarkedImage } from "@/lib/markedImage";
+import { VARIANT_IMAGE_PREVIEW_LIMIT } from "@organza/shared/constants/product";
 import type { AnyRecord } from "@/types";
 
 // `cost` is sensitive (CLAUDE.md rule 19): ADMIN ONLY — never returned to a
@@ -142,6 +144,7 @@ export function serializeProduct(product: AnyRecord, role: Role) {
       note: row.note,
     })),
     images: (product.images ?? []).map(serializeImage),
+    markedImage: serializeMarkedImage(product.markedImage),
     variantTypes: (product.variantTypes ?? []).map((pvt: AnyRecord) => ({
       id: pvt.variantType.id,
       name: pvt.variantType.name,
@@ -159,14 +162,14 @@ export function serializeProduct(product: AnyRecord, role: Role) {
   return dto;
 }
 
-// Lighter DTO for list endpoints — no per-variant breakdown, just enough to
-// render a row (aggregate stock, variant count).
+// Lighter DTO for list endpoints: enough to draw a row, no per-variant breakdown.
 export function serializeProductSummary(product: AnyRecord, role: Role) {
   const variants = product.variants ?? [];
   const aggregateStock = variants.length
     ? variants.reduce((sum: number, v: AnyRecord) => sum + v.stock, 0)
     : product.stock;
   const { isNumbered, numberCount } = summarizeNumbers(product);
+  const primary: AnyRecord | undefined = product.images?.[0];
 
   const dto: AnyRecord = {
     id: product.id,
@@ -185,27 +188,16 @@ export function serializeProductSummary(product: AnyRecord, role: Role) {
     isActive: product.isActive,
     trackLowStock: product.trackLowStock,
     labelsPrintedAt: product.labelsPrintedAt ?? null,
-    // --- quick sell (spec.md "Quick sell") ---
-    // Three facts about a piece that was sold before it was entered. Every
-    // screen that draws a product reads `needsCompleting` rather than
-    // re-deriving the rule, so the products list, the inventory and the label
-    // queue all agree on which pieces are deliberately incomplete.
+    // Quick sell (spec.md): every screen reads needsCompleting rather than re-deriving the rule.
     quickSoldAt: product.quickSoldAt ?? null,
     completedAt: product.completedAt ?? null,
     oneOffAt: product.oneOffAt ?? null,
     needsCompleting: needsCompleting(product),
-    // Whether a label is still owed at all, which the list row cannot work
-    // out for itself: it depends on the variants' own barcode sources, and a
-    // summary carries no variants. Same rule as the "not printed yet" filter
-    // (lib/labelState.ts).
+    // Depends on the variants' own barcode sources, which a summary does not carry (lib/labelState.ts).
     needsLabel: needsLabel(product),
     hasVariants: variants.length > 0,
     variantCount: variants.length,
-    // What kind of choice this product asks for — "sizes", "colours" — so a
-    // list can say so without fetching each product's detail. The POS search
-    // reads it to tell a card that opens a picker apart from one that adds
-    // straight to the cart. Already loaded by the list query's include (it is
-    // what summarizeNumbers counts against), so this costs nothing extra.
+    // "sizes", "colours": lets a list (and the POS) say what a picker will ask for.
     variantTypes: (product.variantTypes ?? []).map((pvt: AnyRecord) => ({
       id: pvt.variantType.id,
       name: pvt.variantType.name,
@@ -213,9 +205,11 @@ export function serializeProductSummary(product: AnyRecord, role: Role) {
     })),
     isNumbered,
     numberCount,
-    // Lowest sortOrder = primary (spec.md); already loaded by the list
-    // query's include, so this costs nothing extra.
-    image: product.images?.length ? serializeImage(product.images[0]) : null,
+    // Lowest sortOrder = primary (spec.md).
+    image: primary ? serializeImage(primary) : null,
+    // Numbered shawls show their numbers on the photo everywhere, burned in by lib/markedImage.ts.
+    markedImage: serializeMarkedImage(product.markedImage),
+    variantImages: variantPreviewImages(product, primary),
     createdAt: product.createdAt,
     updatedAt: product.updatedAt,
   };
@@ -225,4 +219,18 @@ export function serializeProductSummary(product: AnyRecord, role: Role) {
   }
 
   return dto;
+}
+
+// Each variant's own main photo when it differs from the product's, so a list shows what the piece comes in.
+function variantPreviewImages(product: AnyRecord, primary: AnyRecord | undefined) {
+  const seen = new Set<string>(primary ? [primary.id] : []);
+  const images: AnyRecord[] = [];
+  for (const variant of (product.variants ?? []) as AnyRecord[]) {
+    const own = variant.images?.[0];
+    if (!own || seen.has(own.id)) continue;
+    seen.add(own.id);
+    images.push(serializeImage(own));
+    if (images.length === VARIANT_IMAGE_PREVIEW_LIMIT) break;
+  }
+  return images;
 }

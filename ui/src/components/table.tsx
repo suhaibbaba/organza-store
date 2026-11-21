@@ -77,8 +77,9 @@ export const PER_PAGE_OPTIONS = [10, 25, 50, 100] as const;
 
 export const DEFAULT_PER_PAGE = 10;
 
+// Figures sit at the start under their heading, like every other value (user, 2026-11-21).
 const alignClass = (align: Column<never>["align"]): string =>
-  align === "numeric" ? "text-end tabular-nums" : align === "end" ? "text-end" : "text-start";
+  align === "numeric" ? "text-start tabular-nums" : align === "end" ? "text-end" : "text-start";
 
 const cardAlignClass = (align: Column<never>["align"]): string =>
   align === "numeric" ? "text-start tabular-nums" : "text-start";
@@ -445,7 +446,7 @@ export function Table<TRow>({
                         data-part="table-cell-content"
                         className={cn(
                           "max-w-(--cell-max)",
-                          column.align === "end" || column.align === "numeric" ? "ms-auto" : "",
+                          column.align === "end" ? "ms-auto" : "",
                           compact ? "truncate" : "[overflow-wrap:anywhere]",
                         )}
                       >

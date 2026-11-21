@@ -8,6 +8,7 @@ import { validateBody, validateQuery } from "@/middleware/validate";
 import { AppError, sendOk } from "@/lib/response";
 import { writeAudit } from "@/lib/audit";
 import { queueOwnerSync } from "@/lib/search";
+import { queueMarkedImages } from "@/lib/markedImage";
 import { changeRequestInclude, serializeChangeRequest } from "@/lib/changeRequests";
 import {
   DECIDER_PERMISSIONS,
@@ -297,6 +298,7 @@ async function decide(
     productId: request.productId ?? (request.entityType === CHANGE_REQUEST_ENTITIES.PRODUCT ? request.entityId : null),
     variantId: request.entityType === CHANGE_REQUEST_ENTITIES.VARIANT ? request.entityId : null,
   });
+  queueMarkedImages([request.productId ?? (request.entityType === CHANGE_REQUEST_ENTITIES.PRODUCT ? request.entityId : null)]);
 
   return request;
 }

@@ -1,5 +1,8 @@
 import { DEFAULT_PAGE, DEFAULT_PAGE_SIZE } from "@organza/shared/constants/pagination";
 import type { ChangeRequestListFilters } from "@/types/changeRequest";
+import { CHANGE_REQUEST_STATUSES } from "@organza/shared/constants/changeRequest";
+import { urlParam } from "@/lib/url-filters";
+import type { UrlParams } from "@/types/urlFilters";
 
 export const CHANGE_REQUEST_LIST_QUERY_KEY = "changeRequests" as const;
 export const CHANGE_REQUEST_COUNT_QUERY_KEY = ["changeRequests", "count"] as const;
@@ -21,3 +24,8 @@ export const DEFAULT_CHANGE_REQUEST_FILTERS: ChangeRequestListFilters = {
 
 /** The status tabs, in the order they are shown. */
 export const CHANGE_REQUEST_STATUS_TABS = ["PENDING", "APPROVED", "REJECTED"] as const;
+
+export const CHANGE_REQUEST_LIST_URL_PARAMS: UrlParams<ChangeRequestListFilters> = {
+  status: urlParam.oneOf(CHANGE_REQUEST_STATUSES),
+  page: urlParam.page(),
+};

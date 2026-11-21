@@ -511,3 +511,12 @@ body {
     transparent
   );
 }
+
+/* Radix hides the select list's scrollbar for its arrow buttons; ours scrolls like any other list. */
+[data-radix-select-viewport] {
+  scrollbar-width: thin !important;
+}
+
+[data-radix-select-viewport]::-webkit-scrollbar {
+  display: block !important;
+}

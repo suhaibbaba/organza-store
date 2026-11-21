@@ -10,6 +10,7 @@ import { Link, usePathname, useRouter } from "@/i18n/navigation";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { useGlobalSearch } from "@/hooks/use-global-search";
 import { ProductImage } from "@/components/products/product-image";
+import { ProductPhoto } from "@/components/products/product-photo";
 import { OrderStatusBadge } from "@/components/orders/order-status-badge";
 import {
   GLOBAL_SEARCH_COMMAND_KEY,
@@ -330,12 +331,16 @@ function ResultRow({ id, group, item, isActive, onHover, onNavigate }: ResultRow
       )}
     >
       {hasPhoto ? (
-        <ProductImage
-          src={item.thumbnailUrl}
-          alt=""
-          className="size-10 shrink-0 rounded-control"
-          sizes={GLOBAL_SEARCH_THUMB_SIZES}
-        />
+        item.product ? (
+          <ProductPhoto product={item.product} alt="" className="size-10 shrink-0 rounded-control" sizes={GLOBAL_SEARCH_THUMB_SIZES} />
+        ) : (
+          <ProductImage
+            src={item.thumbnailUrl}
+            alt=""
+            className="size-10 shrink-0 rounded-control"
+            sizes={GLOBAL_SEARCH_THUMB_SIZES}
+          />
+        )
       ) : (
         <span className="flex size-10 shrink-0 items-center justify-center rounded-control bg-sunken text-ink-muted">
           <Icon className="size-[18px]" aria-hidden="true" />

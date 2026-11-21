@@ -5,7 +5,7 @@ import type { ProductSummary } from "@organza/shared/types/product";
 import { testSelectorFor } from "@organza/shared/lib/testSelector";
 import { localize } from "@/lib/i18n-content";
 import { formatDate } from "@/lib/format";
-import { ProductImage } from "@/components/products/product-image";
+import { ProductPhoto } from "@/components/products/product-photo";
 import { NumberedBadge } from "@/components/products/numbered-badge";
 
 interface LabelProductRowProps {
@@ -35,7 +35,7 @@ export function LabelProductRow({ product, selected, onToggle }: LabelProductRow
         className="size-5 shrink-0 cursor-pointer rounded-chip accent-primary-600 focus-darken"
       />
 
-      <ProductImage src={product.image?.thumbnailUrl} alt="" className="size-12 shrink-0 rounded-chip" sizes="48px" />
+      <ProductPhoto product={product} alt="" className="size-12 shrink-0 rounded-chip" sizes="48px" />
 
       <div className="min-w-0 flex-1">
         <p className="truncate text-label font-medium text-ink">{name}</p>

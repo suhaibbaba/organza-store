@@ -180,6 +180,8 @@ export async function applyCatalogue(snapshot: CatalogueSnapshot): Promise<Appli
             // nothing here. Nullable exactly for this (the column already
             // allows it for a product whose author has left).
             createdById: null,
+            // Production's burned-in pictures are not copied; images:mark rebuilds them here.
+            markedImage: Prisma.DbNull,
           })),
         })
       );

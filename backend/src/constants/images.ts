@@ -40,3 +40,14 @@ export const MAIN_IMAGE_ONLY = {
   take: 1,
   select: { thumbnailUrl: true },
 };
+
+// Burned-in numbers (lib/markedImage.ts): a marker's width as a share of each size, larger on the thumbnail so it reads at 64px.
+export const MARKED_IMAGE_MARKER_WIDTH_PERCENT = { thumbnail: 16, medium: 12, full: 11 } as const;
+export const MARKED_IMAGE_FILE_INFIX = "-marked-";
+export const MARKED_IMAGE_SOLD_OUT_OPACITY = 0.45;
+export const MARKED_IMAGE_FONT_FAMILY = "DejaVu Sans, Arial, Helvetica, sans-serif";
+export const MARKED_IMAGE_QUEUE_MS = 1500;
+// Bump when the drawing itself changes, so images:mark redraws every numbered photo on the next deploy.
+export const MARKED_IMAGE_LAYOUT_VERSION = 2;
+// images:mark leaves a burned-in file younger than this alone: the server may be about to save its row.
+export const MARKED_IMAGE_SWEEP_GRACE_MS = 10 * 60 * 1000;

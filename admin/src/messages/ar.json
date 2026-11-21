@@ -718,8 +718,8 @@
     "subtitle": "تصفّح كتالوج منتجاتك.",
     "addProduct": "إضافة منتج",
     "search": {
-      "placeholder": "ابحث عن منتج…",
-      "label": "البحث عن منتجات",
+      "placeholder": "ابحث بالاسم أو الرمز أو الباركود",
+      "label": "البحث في المنتجات",
       "clear": "مسح البحث"
     },
     "sort": {
@@ -728,7 +728,9 @@
       "priceLowToHigh": "السعر: الأقل أولًا",
       "priceHighToLow": "السعر: الأعلى أولًا",
       "nameAToZ": "الاسم: أ إلى ي",
-      "nameZToA": "الاسم: ي إلى أ"
+      "nameZToA": "الاسم: ي إلى أ",
+      "stockLowToHigh": "المخزون: من الأقل",
+      "stockHighToLow": "المخزون: من الأكثر"
     },
     "filters": {
       "trigger": "عوامل التصفية",
@@ -746,8 +748,20 @@
       "priceRange": "نطاق السعر",
       "priceMin": "الحد الأدنى",
       "priceMax": "الحد الأقصى",
-      "reset": "إعادة تعيين",
-      "apply": "تطبيق"
+      "reset": "مسح التصفية",
+      "apply": "عرض النتائج",
+      "categoryHint": "القطع في هذا القسم وما تحته من أقسام.",
+      "statusHint": "القطع المخفية لا تُباع في المحل ولا عبر الإنترنت.",
+      "stockHint": "يشمل كل متغيرات القطعة.",
+      "priceHint": "سعر البيع قبل أي خصم.",
+      "sortHint": "يمكن تغييره أيضًا بالضغط على عنوان العمود.",
+      "chipCategory": "القسم: {name}",
+      "chipStatus": "الحالة: {name}",
+      "chipStock": "المخزون: {name}",
+      "chipPrice": "السعر {min} – {max}",
+      "chipPriceMin": "السعر من {min}",
+      "chipPriceMax": "السعر حتى {max}",
+      "removeFilter": "إزالة التصفية: {name}"
     },
     "status": {
       "active": "ظاهر",
@@ -765,7 +779,10 @@
       "sku": "رمز SKU",
       "price": "السعر",
       "stock": "المخزون",
-      "status": "الحالة"
+      "status": "الحالة",
+      "actions": "إجراءات",
+      "variants": "{count, plural, zero {لا متغيرات} one {متغير واحد} two {متغيران} few {{count, number, plain} متغيرات} many {{count, number, plain} متغيرًا} other {{count, number, plain} متغير}}",
+      "noCategory": "بلا قسم"
     },
     "empty": {
       "noProductsTitle": "لا توجد منتجات بعد",
@@ -1048,6 +1065,11 @@
       "oneOff": "كانت قطعة واحدة فقط",
       "confirmOneOff": "تأكيد: قطعة واحدة فقط",
       "oneOffWarning": "لن تُضاف القطعة إلى الكتالوج. عملية البيع تبقى كما هي ولا يتأثر الطلب."
+    },
+    "rowMenu": {
+      "label": "إجراءات {name}",
+      "edit": "تعديل",
+      "delete": "حذف"
     }
   },
   "inventory": {
@@ -1825,7 +1847,10 @@
       "disabled": "حقل معطّل",
       "translated": "اسم مترجَم",
       "sectionTitle": "قسم",
-      "sectionDescription": "بطاقة بعنوان يمكن طيّها."
+      "sectionDescription": "بطاقة بعنوان يمكن طيّها.",
+      "colour": "اللون",
+      "colourHint": "أكثر من عشرة خيارات، لذا في القائمة مربع بحث.",
+      "colourPlaceholder": "اختر لونًا"
     },
     "choices": {
       "channel": "قناة البيع",
@@ -1909,6 +1934,20 @@
     },
     "chips": {
       "remove": "إزالة {name}"
+    },
+    "colours": {
+      "black": "أسود",
+      "white": "أبيض",
+      "navy": "كحلي",
+      "beige": "بيج",
+      "camel": "جملي",
+      "grey": "رمادي",
+      "olive": "زيتي",
+      "burgundy": "خمري",
+      "rose": "وردي",
+      "sky": "سماوي",
+      "mint": "نعناعي",
+      "mustard": "خردلي"
     }
   },
   "breadcrumb": {

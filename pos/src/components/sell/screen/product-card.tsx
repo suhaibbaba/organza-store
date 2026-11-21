@@ -46,10 +46,12 @@ export function ProductCard({ product, isPending, isBusy, onAdd }: ProductCardPr
         isBusy && !soldOut && "cursor-wait"
       )}
     >
+      {/* A numbered shawl is sold by its numbers, so its burned-in photo shows whole. */}
       <ProductThumb
-        src={product.image?.thumbnailUrl}
+        src={product.markedImage?.thumbnailUrl ?? product.image?.thumbnailUrl}
         alt=""
         sizes={SELL_CARD_THUMB_SIZES}
+        fit={product.markedImage ? "contain" : "cover"}
         className={cn("aspect-square w-full rounded-photo bg-sunken", soldOut && "opacity-60")}
       />
 

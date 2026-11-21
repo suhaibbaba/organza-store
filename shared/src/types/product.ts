@@ -90,6 +90,7 @@ export interface Product {
   // variant has been generated. Empty when the product has none.
   optionValueNotes: ProductOptionValueNote[];
   images: ProductImageRef[];
+  markedImage: MarkedImageRef | null;
   variantTypes: ProductVariantTypeRef[];
   variants: Variant[];
   createdAt: string;
@@ -154,16 +155,23 @@ export interface ProductSummary {
   // ask for without loading every variant — CLAUDE.md rule 2 means these are
   // references, so a renamed type shows through here on its own.
   variantTypes: ProductVariantTypeRef[];
-  // Numbered products (spec.md "Numbered shawls"): the numbers themselves are
-  // illegible on a list thumbnail, so the list UI labels the product type with
-  // a badge instead. `isNumbered` is the product's own explicit flag;
-  // `numberCount` is how many distinct numbers it offers.
+  // The product's own flag (spec.md "Numbered shawls") and how many numbers it offers.
   isNumbered: boolean;
   numberCount: number;
   image: ProductImageRef | null;
+  // A numbered shawl's primary photo with its numbers burned in; null for any other piece.
+  markedImage: MarkedImageRef | null;
+  // Variants' own main photos that differ from the product's (up to VARIANT_IMAGE_PREVIEW_LIMIT).
+  variantImages: ProductImageRef[];
   createdAt: string;
   updatedAt: string;
   cost?: string | null;
+}
+
+export interface MarkedImageRef {
+  url: string;
+  mediumUrl: string;
+  thumbnailUrl: string;
 }
 
 export type ProductPrintState = (typeof PRODUCT_PRINT_STATES)[number];

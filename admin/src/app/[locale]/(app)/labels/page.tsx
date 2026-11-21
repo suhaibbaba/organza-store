@@ -12,6 +12,8 @@ import { PageContainer } from "@/components/layout/page-container";
 import { PageHeader } from "@/components/layout/page-header";
 import { useSession } from "@/components/providers/session-provider";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
+import { useUrlFilters } from "@/hooks/use-url-filters";
+import { useUrlSearch } from "@/hooks/use-url-search";
 import { useProductsQuery } from "@/hooks/use-products";
 import { useSettingsQuery } from "@/hooks/use-settings";
 import {
@@ -32,6 +34,7 @@ import {
 } from "@/lib/labels";
 import {
   DEFAULT_LABEL_FILTERS,
+  LABEL_LIST_URL_PARAMS,
   LABEL_RUN_MAX,
   LABEL_SEARCH_DEBOUNCE_MS,
   MIN_SCANNABLE_LABEL_WIDTH_MM,
@@ -52,7 +55,7 @@ import {
   LabelListSpinnerOverlay,
 } from "@/components/labels/label-states";
 import { Alert, Button } from "@store/ui";
-import type { LabelListFilters, LabelStep } from "@/types/label";
+import type { LabelStep } from "@/types/label";
 
 // Barcode labels (rule 13): pick the pieces still owed a label, then set copies and print; the sheet comes from Settings.
 
@@ -63,21 +66,19 @@ function LabelsPageContent() {
   const { user } = useSession();
 
   const [step, setStep] = useState<LabelStep>("select");
-  const [searchInput, setSearchInput] = useState("");
-  const [filters, setFilters] = useState<LabelListFilters>(DEFAULT_LABEL_FILTERS);
+  const [filters, setFilters] = useUrlFilters(DEFAULT_LABEL_FILTERS, LABEL_LIST_URL_PARAMS);
+  const [searchInput, handleSearchChange] = useUrlSearch(
+    filters.q,
+    (q) => setFilters({ q, page: DEFAULT_PAGE }),
+    LABEL_SEARCH_DEBOUNCE_MS
+  );
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   // Only counts the user changed; the rest fall back to the suggestion so none goes stale.
   const [copyOverrides, setCopyOverrides] = useState<Record<string, string>>({});
   // The browser never says whether anything printed, so we ask once its dialog closes.
   const [printDialogClosed, setPrintDialogClosed] = useState(false);
 
-  const debouncedSearch = useDebouncedValue(searchInput, LABEL_SEARCH_DEBOUNCE_MS);
-  const effectiveFilters = useMemo<LabelListFilters>(
-    () => ({ ...filters, q: debouncedSearch }),
-    [filters, debouncedSearch]
-  );
-
-  const list = useProductsQuery(toProductListFilters(effectiveFilters));
+  const list = useProductsQuery(toProductListFilters(filters));
   const settingsQuery = useSettingsQuery();
   const { products: selectedProducts, isLoading: detailsLoading, error: detailsError } =
     useSelectedProductsQueries(selectedIds);
@@ -122,20 +123,15 @@ function LabelsPageContent() {
   }
 
   function updatePage(page: number) {
-    setFilters((f) => ({ ...f, page }));
-  }
-
-  function handleSearchChange(value: string) {
-    setSearchInput(value);
-    setFilters((f) => ({ ...f, page: DEFAULT_PAGE }));
+    setFilters({ page });
   }
 
   function handlePrintStateChange(printState: ProductPrintState) {
-    setFilters((f) => ({ ...f, printState, page: DEFAULT_PAGE }));
+    setFilters({ printState, page: DEFAULT_PAGE });
   }
 
   function handleCategoryChange(categoryId: string | null) {
-    setFilters((f) => ({ ...f, categoryId, page: DEFAULT_PAGE }));
+    setFilters({ categoryId, page: DEFAULT_PAGE });
   }
 
   function handlePrint() {
@@ -155,7 +151,7 @@ function LabelsPageContent() {
     });
   }
 
-  const hasFilters = hasActiveLabelFilters(effectiveFilters);
+  const hasFilters = hasActiveLabelFilters(filters);
 
   // ---- Step 2: counts, preview, print ------------------------------------
   if (step === "prepare") {

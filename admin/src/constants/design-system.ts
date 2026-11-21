@@ -64,3 +64,6 @@ export const DESIGN_SYSTEM_SAMPLE_ROWS = [
   { id: "c", nameKey: "rowC", sku: "ORG-1051", stock: 0, price: "35.00" },
 ] as const;
 
+
+// Long enough (over 10) that the Select turns searchable on its own.
+export const DESIGN_SYSTEM_COLOURS = ["black", "white", "navy", "beige", "camel", "grey", "olive", "burgundy", "rose", "sky", "mint", "mustard"] as const;

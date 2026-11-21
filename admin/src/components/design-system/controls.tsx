@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { DESIGN_SYSTEM_COLOURS } from "@/constants/design-system";
 import { useTranslations } from "next-intl";
 import {
   Badge,
@@ -60,6 +61,7 @@ export function Controls() {
   const [translated, setTranslated] = useState<Record<string, string>>({});
   const [quantity, setQuantity] = useState("1");
   const [category, setCategory] = useState("");
+  const [colour, setColour] = useState("");
   const [phone, setPhone] = useState<string | null>(null);
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
@@ -169,6 +171,15 @@ export function Controls() {
                 { value: "dresses", label: t("badges.dresses") },
                 { value: "shawls", label: t("badges.shawls") },
               ]}
+            />
+          </FormField>
+          <FormField label="designSystem.fields.colour" hint="designSystem.fields.colourHint" htmlFor="ds-colour">
+            <Select
+              id="ds-colour"
+              placeholder={t("fields.colourPlaceholder")}
+              value={colour}
+              onChange={(event) => setColour(event.target.value)}
+              options={DESIGN_SYSTEM_COLOURS.map((key) => ({ value: key, label: t(`colours.${key}`) }))}
             />
           </FormField>
           <FormField label="designSystem.fields.price" htmlFor="ds-price">

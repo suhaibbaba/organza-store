@@ -142,6 +142,9 @@ clinic app (`/Users/suhaibbaba/Projects/clinic-management-system/apps/web/src/mo
   beside the figure they describe — no separate "status" column, no "›" chevrons in cells.
 - **Pagination is the Table's own** (`pagination` prop): page numbers + "per page", the size sent
   to the API as `pageSize` and shown from `meta.pageSize`; options from shared `PAGE_SIZE_OPTIONS`.
+- **Filters, sort, search, page and page size live in the URL** (user, 2026-11-21): `useUrlFilters(DEFAULTS, <LIST>_URL_PARAMS)`
+  + `useUrlSearch` (box types freely, `q` written once typing pauses); a param map per list in `constants/`, built
+  from `urlParam.*` so a bad value falls back to the default; defaults are left out of the URL; `replace`, not push.
 - **No auto-save on a list.** Inline edits (stock) are staged, outlined while changed, and written
   together by a sticky `SaveBar` ("N changed" · Discard · Save); a failed row stays outlined red with
   one Alert on top. No "kept here outside the filter" notices — staged rows don't move until Save.
@@ -317,6 +320,22 @@ clinic app (`/Users/suhaibbaba/Projects/clinic-management-system/apps/web/src/mo
 - **Sub-lists of orders reuse the orders list's toolbar (user, 2026-11-21: "like orders table")**: SearchField,
   the same `OrderFilters` drawer + `OrderFilterChips`, sortable headers. A filter the page fixes (collection:
   unpaid) is passed in `omit` and forced back on apply, so it is never a chip.
+- **Products list (2026-11-21)**: one `Table` (no separate phone `ProductCard`), columns ① photo + name, a muted
+  "category · N variants" line, incomplete/numbered badges ② price (compare-at struck through under it) ③ stock (red
+  at 0) ④ status ⑤ ⋯ with ONLY Edit (`product.edit`) and Delete (`product.delete`, danger confirm) — no "open", the name already opens it (user). No SKU column — search finds SKUs and barcodes, and the
+  placeholder says so. The "needs completing" segments stay above the toolbar (rule 23).
+- **Table figures (money, counts) align at the START under their heading, in every language (user, 2026-11-21)** —
+  `align: "numeric"` only adds tabular digits; never push a figure to the end of its cell.
+- **Selects (user, 2026-11-21):** no scroll arrows — the list scrolls with a normal scrollbar. A list over 10 options
+  (categories, colours, collections) turns searchable on its own (`Select` `SEARCHABLE_FROM`); the search ignores
+  Arabic diacritics and alef/ya/ta-marbuta forms, and the placeholder ("All …") stays the first row so a choice clears.
+- **A numbered shawl's photo always carries its numbers (user, 2026-11-21)** — as a SAVED image (`markedImage`, burned
+  in by the backend after each save), not a live overlay: every product thumbnail goes through `ProductPhoto` (admin)
+  or `ProductThumb` with `markedImage` (POS), shown `contain`. Only the editor and product page draw points live.
+- **A product with its own variant photos shows them** (up to 4, `variantImages` from the list API) as small
+  `size-8` tiles under the name, beside the main photo.
+- **The row ⋯ (`RowMenu`) is a round button** (`rounded-pill`), on every list.
+- A filter chip names its filter ("Stock: out of stock"), never the bare value — "Out of stock" alone reads as a status.
 
 ## Done
 - admin `products/[id]` (record) — 2026-11-21
@@ -325,4 +344,5 @@ clinic app (`/Users/suhaibbaba/Projects/clinic-management-system/apps/web/src/mo
 - admin `orders` (list) — 2026-11-21
 - admin `orders/[id]` (record, two columns) — 2026-11-21
 - admin `orders/new` (channel segments + gift switch) — 2026-11-21
+- admin `products` (list: toolbar + filter drawer with sort + chips, sortable headers, Table pagination) — 2026-11-21
 - admin `orders/collection` — rebuilt 2026-11-21: selectable `Table` with photos + customer, search, date/status/channel filters, sort

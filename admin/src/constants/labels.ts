@@ -1,6 +1,9 @@
 import { DEFAULT_PAGE, DEFAULT_PAGE_SIZE } from "@organza/shared/constants/pagination";
 import { QUANTITY_MAX } from "@organza/shared/constants/quantity";
 import type { LabelListFilters } from "@/types/label";
+import { PRODUCT_PRINT_STATES } from "@organza/shared/constants/product";
+import { urlParam } from "@/lib/url-filters";
+import type { UrlParams } from "@/types/urlFilters";
 
 export const LABEL_SEARCH_DEBOUNCE_MS = 250;
 
@@ -69,3 +72,10 @@ export const BARCODE_OPTIONS = {
   // sticker will not scan.
   margin: 6,
 } as const;
+
+export const LABEL_LIST_URL_PARAMS: UrlParams<LabelListFilters> = {
+  q: urlParam.text(),
+  categoryId: urlParam.id(),
+  printState: urlParam.oneOf(PRODUCT_PRINT_STATES),
+  page: urlParam.page(),
+};

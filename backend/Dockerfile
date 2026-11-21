@@ -68,7 +68,8 @@ FROM node:20-slim AS runtime
 # Prisma's query engine is a native binary that links libssl at run time, not
 # just at generate time. Leaving openssl out here is the classic "worked in the
 # build, dies on the first query" failure.
-RUN apt-get update && apt-get install -y --no-install-recommends openssl \
+# fonts-dejavu-core: the slim image has no fonts, and without one the numbers burned into a shawl photo render blank.
+RUN apt-get update && apt-get install -y --no-install-recommends openssl fonts-dejavu-core \
     && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 ENV NODE_ENV=production

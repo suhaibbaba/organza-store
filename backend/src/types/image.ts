@@ -17,3 +17,12 @@ export interface StoredImage {
   originalFilename: string | null;
   originalUrl: string | null;
 }
+
+// Product.markedImage as stored: the URLs the apps read, plus the base name and what it was drawn from.
+export interface StoredMarkedImage {
+  filename: string;
+  signature: string;
+  url: string;
+  mediumUrl: string;
+  thumbnailUrl: string;
+}

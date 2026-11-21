@@ -362,6 +362,9 @@ model Product {
   pointTextColor       String?
   pointBackgroundColor String?
 
+  // The primary photo with its numbers burned in, rebuilt by lib/markedImage.ts after every change that moves them.
+  markedImage Json?
+
   // --- quick sell (spec.md "Quick sell") -------------------------------
   // Three facts, never a status column (CLAUDE.md rule 21): what waits on
   // this product is a ChangeRequest like any other gated change, and these

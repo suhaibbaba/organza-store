@@ -29,6 +29,7 @@ import { generateUniqueBarcode, resolveBarcodeChange, resolveNewBarcode } from "
 import { NEEDS_LABEL_WHERE } from "@/lib/labelState";
 import { NEEDS_COMPLETING_WHERE, QUICK_SOLD_WHERE } from "@/lib/quickSellState";
 import { buildSearchText, indexProducts, queueProductSync, searchProductIds } from "@/lib/search";
+import { queueMarkedImages, refreshMarkedImages } from "@/lib/markedImage";
 import { isRelevanceSort, pageByRelevance } from "@/lib/search/relevance";
 import { cartesianProduct, buildComboName, buildImagePointMap, resolveComboImagePoint } from "@/lib/variantCombo";
 import { comboStockLookup, generateVariantsForProduct, previewComboNames, validateOptionSelections } from "@/lib/variants";
@@ -494,6 +495,7 @@ router.post(
       newValue: serializeProduct(full, Role.ADMIN),
     });
     await indexProducts([created.id]);
+    await refreshMarkedImages([created.id]);
 
     sendOk(res, serializeProduct(full, req.user!.role), null, 201);
   })
@@ -712,6 +714,7 @@ router.patch(
       newValue: serializeProduct(updated, Role.ADMIN),
     });
     await indexProducts([updated.id]);
+    await refreshMarkedImages([updated.id]);
 
     // Filed after the save, so a request only ever exists alongside a change
     // that actually went through.
@@ -759,6 +762,7 @@ router.delete(
       newValue: { deletedAt: deleted.deletedAt, isActive: deleted.isActive },
     });
     await indexProducts([deleted.id]);
+    await refreshMarkedImages([deleted.id]);
 
     sendOk(res, { id: deleted.id, deletedAt: deleted.deletedAt });
   })
@@ -838,6 +842,7 @@ router.post(
       newValue: { generatedSkus: createdSkus },
     });
     await indexProducts([product.id]);
+    await refreshMarkedImages([product.id]);
 
     const full = await fetchFullProduct(product.id);
     sendOk(res, await serializeProductWithPending(full, req.user!.role), null, 201);
@@ -955,6 +960,7 @@ router.patch(
 
     if (drafts.length) await fileChangeRequests(req.user!, drafts);
     queueProductSync([product.id]);
+    queueMarkedImages([product.id]);
 
     const pending = await findPendingChangesForProduct({ id: product.id, variants: [{ id: variant.id }] });
     sendOk(res, {
@@ -1030,6 +1036,7 @@ router.delete(
       oldValue: variant,
     });
     queueProductSync([variant.productId]);
+    queueMarkedImages([variant.productId]);
 
     sendOk(res, { id: variant.id, deleted: true });
   })

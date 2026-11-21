@@ -1,6 +1,10 @@
 import { DEFAULT_PAGE, DEFAULT_PAGE_SIZE } from "@organza/shared/constants/pagination";
 import type { IconName, SectionTone } from "@store/ui";
 import type { OrderListFilters } from "@/types/order";
+import { ORDER_CHANNELS, ORDER_SORT_FIELDS, ORDER_STATUSES, PAYMENT_STATUSES } from "@organza/shared/constants/order";
+import { SORT_DIRECTIONS } from "@organza/shared/constants/pagination";
+import { urlParam } from "@/lib/url-filters";
+import type { UrlParams } from "@/types/urlFilters";
 
 export const ORDER_LIST_QUERY_KEY = "orders" as const;
 export const ORDER_DETAIL_QUERY_KEY = "order" as const;
@@ -81,3 +85,24 @@ export const ORDER_PRODUCT_SEARCH_STATUS = "active" as const;
 
 
 export const COORDINATE_DECIMALS = 6;
+
+export const ORDER_LIST_URL_PARAMS: UrlParams<OrderListFilters> = {
+  q: urlParam.text(),
+  status: urlParam.optionalOneOf(ORDER_STATUSES),
+  channel: urlParam.optionalOneOf(ORDER_CHANNELS),
+  paymentStatus: urlParam.optionalOneOf(PAYMENT_STATUSES),
+  collectableOnly: urlParam.fixed(),
+  hasQuickSale: urlParam.flag(),
+  dateFrom: urlParam.text(),
+  dateTo: urlParam.text(),
+  sortBy: urlParam.oneOf(ORDER_SORT_FIELDS),
+  sortDir: urlParam.oneOf(SORT_DIRECTIONS),
+  page: urlParam.page(),
+  pageSize: urlParam.pageSize(),
+};
+
+// The collection screen is unpaid-only, so its payment filter is never read from the URL.
+export const COLLECTION_ORDER_URL_PARAMS: UrlParams<OrderListFilters> = {
+  ...ORDER_LIST_URL_PARAMS,
+  paymentStatus: urlParam.fixed(),
+};

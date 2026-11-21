@@ -35,6 +35,7 @@ import {
 import { deductStock, restoreStock } from "@/lib/orderStock";
 import { createQuickSoldProduct } from "@/lib/quickSell";
 import { queueProductSync } from "@/lib/search";
+import { queueMarkedImages } from "@/lib/markedImage";
 import {
   announceFiledChangeRequest,
   fileChangeRequestInTransaction,
@@ -477,6 +478,7 @@ router.post(
     });
     // Stock moved and quick-sold pieces were created; batched, so the till never waits on search.
     queueProductSync(created.items.map((item) => item.productId));
+    queueMarkedImages(created.items.map((item) => item.productId));
 
     // After commit, so a rolled-back sale leaves neither the request's audit entry nor its push behind.
     for (const request of quickSellRequests) {
@@ -632,6 +634,7 @@ router.patch(
       newValue: { status: updated.status, stockDeductedAt: updated.stockDeductedAt },
     });
     queueProductSync(existing.items.map((item) => item.productId));
+    queueMarkedImages(existing.items.map((item) => item.productId));
 
     sendOk(res, serializeOrder(updated, req.user!.role));
   })
@@ -728,6 +731,7 @@ router.post(
       },
     });
     queueProductSync(existing.items.map((item) => item.productId));
+    queueMarkedImages(existing.items.map((item) => item.productId));
 
     sendOk(res, serializeOrder(updated, req.user!.role));
   })
@@ -759,6 +763,7 @@ router.delete(
       newValue: { deletedAt: deleted.deletedAt, stockDeductedAt: deleted.stockDeductedAt },
     });
     queueProductSync(existing.items.map((item) => item.productId));
+    queueMarkedImages(existing.items.map((item) => item.productId));
 
     sendOk(res, { id: deleted.id, deletedAt: deleted.deletedAt });
   })

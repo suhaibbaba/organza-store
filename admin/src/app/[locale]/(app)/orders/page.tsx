@@ -1,7 +1,5 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
-import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { HandCoins, Plus } from "lucide-react";
 import { SearchField, TotalBadge, buttonClassName, type TableSort } from "@store/ui";
@@ -9,8 +7,9 @@ import { can } from "@organza/shared/lib/permissions";
 import { DEFAULT_PAGE } from "@organza/shared/constants/pagination";
 import { Link } from "@/i18n/navigation";
 import { useSession } from "@/components/providers/session-provider";
-import { DEFAULT_ORDER_FILTERS, ORDER_SEARCH_DEBOUNCE_MS } from "@/constants/orders";
-import { useDebouncedValue } from "@/hooks/use-debounced-value";
+import { DEFAULT_ORDER_FILTERS, ORDER_LIST_URL_PARAMS, ORDER_SEARCH_DEBOUNCE_MS } from "@/constants/orders";
+import { useUrlFilters } from "@/hooks/use-url-filters";
+import { useUrlSearch } from "@/hooks/use-url-search";
 import { useOrdersQuery } from "@/hooks/use-orders";
 import { PageContainer } from "@/components/layout/page-container";
 import { PageHeader } from "@/components/layout/page-header";
@@ -31,20 +30,14 @@ export default function OrdersPage() {
   const canCreate = can(user, "order.create");
   const canCollect = can(user, "order.markCollected");
 
-  // The header search's "see all" opens this list already searched (?q=).
-  const searchParams = useSearchParams();
-  const urlQuery = searchParams.get("q") ?? "";
-  const [searchInput, setSearchInput] = useState(urlQuery);
-  const [seenUrlQuery, setSeenUrlQuery] = useState(urlQuery);
-  if (urlQuery !== seenUrlQuery) {
-    setSeenUrlQuery(urlQuery);
-    setSearchInput(urlQuery);
-  }
-  const [filters, setFilters] = useState<OrderListFilters>(DEFAULT_ORDER_FILTERS);
-  const debouncedSearch = useDebouncedValue(searchInput, ORDER_SEARCH_DEBOUNCE_MS);
-  const effectiveFilters = useMemo(() => ({ ...filters, q: debouncedSearch }), [filters, debouncedSearch]);
+  const [filters, changeFilters] = useUrlFilters(DEFAULT_ORDER_FILTERS, ORDER_LIST_URL_PARAMS);
+  const [searchInput, setSearchInput] = useUrlSearch(
+    filters.q,
+    (q) => changeFilters({ q, page: DEFAULT_PAGE }),
+    ORDER_SEARCH_DEBOUNCE_MS
+  );
 
-  const { data, isLoading, isFetching, isError, error, refetch } = useOrdersQuery(effectiveFilters);
+  const { data, isLoading, isFetching, isError, error, refetch } = useOrdersQuery(filters);
   const orders = data?.orders ?? [];
 
   const filtersValue: OrderFiltersValue = {
@@ -56,11 +49,7 @@ export default function OrdersPage() {
     dateTo: filters.dateTo,
   };
   const sortValue: OrderSortValue = { sortBy: filters.sortBy, sortDir: filters.sortDir };
-  const hasAnyFilter = countOrderFilters(filtersValue) > 0 || debouncedSearch.trim().length > 0;
-
-  function changeFilters(next: Partial<OrderListFilters>) {
-    setFilters((f) => ({ ...f, ...next }));
-  }
+  const hasAnyFilter = countOrderFilters(filtersValue) > 0 || filters.q.trim().length > 0;
 
   const tableSort: TableSort = {
     key: filters.sortBy,
@@ -112,14 +101,8 @@ export default function OrdersPage() {
               <SearchField
                 label={t("search.label")}
                 value={searchInput}
-                onChange={(e) => {
-                  setSearchInput(e.target.value);
-                  changeFilters({ page: DEFAULT_PAGE });
-                }}
-                onClear={() => {
-                  setSearchInput("");
-                  changeFilters({ page: DEFAULT_PAGE });
-                }}
+                onChange={(e) => setSearchInput(e.target.value)}
+                onClear={() => setSearchInput("")}
                 clearLabel={t("search.clear")}
                 placeholder={t("search.placeholder")}
                 data-testid="orders-search"

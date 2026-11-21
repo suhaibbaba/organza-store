@@ -26,6 +26,7 @@
     "import:prod": "tsx scripts/import-from-production.ts",
     "search:setup": "tsx scripts/search-setup.ts",
     "search:reindex": "tsx scripts/search-reindex.ts",
+    "images:mark": "tsx scripts/images-mark.ts",
     "email:preview": "tsx scripts/email-preview.ts",
     "seed:demo": "tsx prisma/dev/demo-seed.ts",
     "seed:demo-sales": "tsx prisma/dev/demo-sales-seed.ts",

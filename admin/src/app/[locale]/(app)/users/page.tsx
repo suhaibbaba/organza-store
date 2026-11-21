@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { Plus } from "lucide-react";
 import type { User } from "@organza/shared/types/user";
@@ -8,8 +8,9 @@ import { DEFAULT_PAGE } from "@organza/shared/constants/pagination";
 import { RoleGuard } from "@/components/auth/role-guard";
 import { PageContainer } from "@/components/layout/page-container";
 import { PageHeader } from "@/components/layout/page-header";
-import { DEFAULT_USER_FILTERS, USER_SEARCH_DEBOUNCE_MS } from "@/constants/users";
-import { useDebouncedValue } from "@/hooks/use-debounced-value";
+import { DEFAULT_USER_FILTERS, USER_LIST_URL_PARAMS, USER_SEARCH_DEBOUNCE_MS } from "@/constants/users";
+import { useUrlFilters } from "@/hooks/use-url-filters";
+import { useUrlSearch } from "@/hooks/use-url-search";
 import { useUsersQuery, useToggleUserActiveMutation } from "@/hooks/use-users";
 import { useTranslateError } from "@/hooks/use-translate-error";
 import { Alert, Button } from "@store/ui";
@@ -36,13 +37,14 @@ function UsersPageContent() {
   const t = useTranslations("users");
   const translateError = useTranslateError();
 
-  const [searchInput, setSearchInput] = useState("");
-  const [filters, setFilters] = useState<UserListFilters>(DEFAULT_USER_FILTERS);
-  const debouncedSearch = useDebouncedValue(searchInput, USER_SEARCH_DEBOUNCE_MS);
+  const [filters, setFilters] = useUrlFilters(DEFAULT_USER_FILTERS, USER_LIST_URL_PARAMS);
+  const [searchInput, handleSearchChange] = useUrlSearch(
+    filters.q,
+    (q) => setFilters({ q, page: DEFAULT_PAGE }),
+    USER_SEARCH_DEBOUNCE_MS
+  );
 
-  const effectiveFilters = useMemo<UserListFilters>(() => ({ ...filters, q: debouncedSearch }), [filters, debouncedSearch]);
-
-  const { data, isLoading, isFetching, isError, error, refetch } = useUsersQuery(effectiveFilters);
+  const { data, isLoading, isFetching, isError, error, refetch } = useUsersQuery(filters);
   const toggleMutation = useToggleUserActiveMutation();
 
   const [formOpen, setFormOpen] = useState(false);
@@ -53,23 +55,18 @@ function UsersPageContent() {
   const [activateError, setActivateError] = useState<string | null>(null);
   const [removingUser, setRemovingUser] = useState<User | null>(null);
 
-  const hasAnyFilter = Boolean(filters.role) || filters.isActive !== null || debouncedSearch.trim().length > 0;
+  const hasAnyFilter = Boolean(filters.role) || filters.isActive !== null || filters.q.trim().length > 0;
 
   function updatePage(page: number) {
-    setFilters((f) => ({ ...f, page }));
-  }
-
-  function handleSearchChange(value: string) {
-    setSearchInput(value);
-    setFilters((f) => ({ ...f, page: DEFAULT_PAGE }));
+    setFilters({ page });
   }
 
   function handleRoleChange(role: UserListFilters["role"]) {
-    setFilters((f) => ({ ...f, role, page: DEFAULT_PAGE }));
+    setFilters({ role, page: DEFAULT_PAGE });
   }
 
   function handleIsActiveChange(isActive: UserListFilters["isActive"]) {
-    setFilters((f) => ({ ...f, isActive, page: DEFAULT_PAGE }));
+    setFilters({ isActive, page: DEFAULT_PAGE });
   }
 
   function openCreateForm() {

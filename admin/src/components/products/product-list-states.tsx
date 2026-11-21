@@ -1,5 +1,5 @@
 import { useTranslations } from "next-intl";
-import { Alert, Button, EmptyState, Skeleton, Spinner } from "@store/ui";
+import { Alert, Button, EmptyState, Skeleton } from "@store/ui";
 import { useTranslateError } from "@/hooks/use-translate-error";
 import { ApiError } from "@/lib/api/errors";
 
@@ -41,13 +41,5 @@ export function ProductListError({ error, onRetry }: { error: unknown; onRetry: 
     >
       {code ? translateError(code) : t("retry")}
     </Alert>
-  );
-}
-
-export function ProductListSpinnerOverlay() {
-  return (
-    <div className="flex items-center justify-center py-3">
-      <Spinner className="size-5" />
-    </div>
   );
 }

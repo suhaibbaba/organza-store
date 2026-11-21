@@ -14,6 +14,7 @@ import {
 } from "@/validation/inventory";
 import { writeAudit } from "@/lib/audit";
 import { queueProductSync, searchProductIds } from "@/lib/search";
+import { queueMarkedImages } from "@/lib/markedImage";
 import { isRelevanceSort, rankOf } from "@/lib/search/relevance";
 import {
   countValue,
@@ -210,6 +211,7 @@ router.patch(
       newValue: { stock: updated.stock },
     });
     queueProductSync([updated.id]);
+    queueMarkedImages([updated.id]);
 
     sendOk(res, { id: updated.id, stock: updated.stock });
   })
@@ -260,6 +262,7 @@ router.patch(
       newValue: { stock: updated.stock },
     });
     queueProductSync([variant.productId]);
+    queueMarkedImages([variant.productId]);
 
     sendOk(res, { id: updated.id, stock: updated.stock });
   })

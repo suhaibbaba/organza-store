@@ -85,6 +85,7 @@ export function useGlobalSearch(query: string) {
     subtitle: product.sku ?? undefined,
     meta: formatMoney(product.basePrice),
     thumbnailUrl: product.image?.thumbnailUrl ?? null,
+    product,
   }));
 
   const encoded = encodeURIComponent(q);

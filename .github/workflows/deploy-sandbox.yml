@@ -119,6 +119,12 @@ jobs:
               echo "::warning::Check: docker compose -f docker-compose.sandbox.yml --env-file .env.sandbox logs meilisearch"
             fi
 
+            echo "==> Rebuilding the numbered shawls' photos"
+            # A warning, not a failed deploy: the lists show the plain photo until the next save or deploy.
+            if ! docker compose -f docker-compose.sandbox.yml --env-file .env.sandbox exec -T backend npm run images:mark; then
+              echo "::warning::The numbered photos were not rebuilt (npm run images:mark)."
+            fi
+
             echo "==> Checking the uploads volume is mounted and writable"
             # The shop's photographs are the one thing a deploy can silently
             # destroy: point UPLOAD_DIR one directory away from the mount and

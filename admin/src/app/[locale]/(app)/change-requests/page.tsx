@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { can } from "@organza/shared/lib/permissions";
 import { DEFAULT_PAGE } from "@organza/shared/constants/pagination";
@@ -13,8 +12,10 @@ import { Tabs } from "@store/ui";
 import { toSelectorName } from "@organza/shared/lib/testSelector";
 import {
   CHANGE_REQUEST_STATUS_TABS,
+  CHANGE_REQUEST_LIST_URL_PARAMS,
   DEFAULT_CHANGE_REQUEST_FILTERS,
 } from "@/constants/changeRequests";
+import { useUrlFilters } from "@/hooks/use-url-filters";
 import { useChangeRequestsQuery } from "@/hooks/use-change-requests";
 import { isQuickSoldRequest } from "@/lib/change-requests";
 import { ChangeRequestCard } from "@/components/change-requests/change-request-card";
@@ -26,7 +27,6 @@ import {
   ChangeRequestListLoading,
   ChangeRequestListSpinnerOverlay,
 } from "@/components/change-requests/change-request-list-states";
-import type { ChangeRequestListFilters } from "@/types/changeRequest";
 
 // Approvals: guarded by .view, not .approve, so an Employee can follow their own request (the backend scopes what each sees).
 export default function ChangeRequestsPage() {
@@ -44,7 +44,7 @@ function ChangeRequestsPageContent() {
   // Completing a quick sale is its own permission (review after the sale), separate from approving a change (rule 23).
   const canComplete = can(user, "product.complete");
 
-  const [filters, setFilters] = useState<ChangeRequestListFilters>(DEFAULT_CHANGE_REQUEST_FILTERS);
+  const [filters, setFilters] = useUrlFilters(DEFAULT_CHANGE_REQUEST_FILTERS, CHANGE_REQUEST_LIST_URL_PARAMS);
   const { data, isLoading, isFetching, isError, error, refetch } = useChangeRequestsQuery(filters);
   const items = data?.items ?? [];
 
@@ -91,7 +91,7 @@ function ChangeRequestsPageContent() {
             {data?.meta && (
               <ChangeRequestPagination
                 meta={data.meta}
-                onPageChange={(page) => setFilters((f) => ({ ...f, page }))}
+                onPageChange={(page) => setFilters({ page })}
               />
             )}
           </>
