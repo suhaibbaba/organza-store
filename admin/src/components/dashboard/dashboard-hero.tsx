@@ -68,7 +68,7 @@ export function DashboardHero({ name, today, drawer }: DashboardHeroProps) {
       />
       <span
         aria-hidden="true"
-        className="absolute -bottom-24 -z-10 size-52 animate-float rounded-full bg-white/5 [animation-delay:-3s] ltr:right-1/3 rtl:left-1/3"
+        className="absolute -bottom-24 -z-10 size-52 animate-float rounded-full bg-white/5 blur-2xl [animation-delay:-3s] ltr:right-1/3 rtl:left-1/3"
       />
 
       <div className="flex min-w-0 flex-col gap-3">

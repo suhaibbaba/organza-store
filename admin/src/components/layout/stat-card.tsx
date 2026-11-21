@@ -59,17 +59,20 @@ export function StatCard({
       style={style}
       data-test-selector={testSelectorFor("stat-card", name)}
     >
-      <div className="flex items-start gap-3">
+      {/* Phones stack the tile over the label: side by side, a half-width card squeezes the label into its (?). */}
+      <div className="flex flex-col-reverse items-start gap-2 sm:flex-row sm:gap-3">
         <ExplainedLabel
-          className="min-w-0 flex-1"
+          className="w-full min-w-0 sm:flex-1"
           label={label}
           description={tooltip}
           toggleLabel={tFigures("explain", { label })}
-          rowClassName="justify-between gap-2"
         />
         {Icon && (
           <span
-            className={cn("flex size-10 shrink-0 items-center justify-center rounded-panel", ICON_TILE_CLASS[tone])}
+            className={cn(
+              "flex size-9 shrink-0 items-center justify-center rounded-panel sm:size-10",
+              ICON_TILE_CLASS[tone],
+            )}
             aria-hidden="true"
           >
             <Icon className="size-5" />
