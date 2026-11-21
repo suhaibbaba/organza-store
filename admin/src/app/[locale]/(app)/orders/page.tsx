@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { HandCoins, Plus } from "lucide-react";
+import { SearchField, TotalBadge, buttonClassName, type TableSort } from "@store/ui";
 import { can } from "@organza/shared/lib/permissions";
 import { DEFAULT_PAGE } from "@organza/shared/constants/pagination";
 import { Link } from "@/i18n/navigation";
@@ -10,21 +11,17 @@ import { useSession } from "@/components/providers/session-provider";
 import { DEFAULT_ORDER_FILTERS, ORDER_SEARCH_DEBOUNCE_MS } from "@/constants/orders";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { useOrdersQuery } from "@/hooks/use-orders";
-import { buttonClassName } from "@store/ui";
 import { PageContainer } from "@/components/layout/page-container";
 import { PageHeader } from "@/components/layout/page-header";
-import { OrderSearch } from "@/components/orders/order-search";
-import { OrderSortSelect } from "@/components/orders/order-sort-select";
-import { OrderFiltersSheet, type OrderFiltersValue } from "@/components/orders/order-filters-sheet";
-import { OrderCard } from "@/components/orders/order-card";
-import { OrderTable } from "@/components/orders/order-table";
-import { OrderPagination } from "@/components/orders/order-pagination";
 import {
-  OrderListEmpty,
-  OrderListError,
-  OrderListLoading,
-  OrderListSpinnerOverlay,
-} from "@/components/orders/order-list-states";
+  countOrderFilters,
+  OrderFilterChips,
+  OrderFilters,
+  type OrderFiltersValue,
+  type OrderSortValue,
+} from "@/components/orders/order-filters";
+import { OrderTable } from "@/components/orders/order-table";
+import { OrderListEmpty, OrderListError, OrderListLoading } from "@/components/orders/order-list-states";
 import type { OrderListFilters } from "@/types/order";
 
 export default function OrdersPage() {
@@ -36,13 +33,10 @@ export default function OrdersPage() {
   const [searchInput, setSearchInput] = useState("");
   const [filters, setFilters] = useState<OrderListFilters>(DEFAULT_ORDER_FILTERS);
   const debouncedSearch = useDebouncedValue(searchInput, ORDER_SEARCH_DEBOUNCE_MS);
-
-  const effectiveFilters = useMemo<OrderListFilters>(
-    () => ({ ...filters, q: debouncedSearch }),
-    [filters, debouncedSearch]
-  );
+  const effectiveFilters = useMemo(() => ({ ...filters, q: debouncedSearch }), [filters, debouncedSearch]);
 
   const { data, isLoading, isFetching, isError, error, refetch } = useOrdersQuery(effectiveFilters);
+  const orders = data?.orders ?? [];
 
   const filtersValue: OrderFiltersValue = {
     status: filters.status,
@@ -52,35 +46,23 @@ export default function OrdersPage() {
     dateFrom: filters.dateFrom,
     dateTo: filters.dateTo,
   };
-  const activeFilterCount = [
-    filters.status,
-    filters.channel,
-    filters.paymentStatus,
-    filters.hasQuickSale,
-    filters.dateFrom,
-    filters.dateTo,
-  ].filter(Boolean).length;
-  const hasAnyFilter = activeFilterCount > 0 || debouncedSearch.trim().length > 0;
+  const sortValue: OrderSortValue = { sortBy: filters.sortBy, sortDir: filters.sortDir };
+  const hasAnyFilter = countOrderFilters(filtersValue) > 0 || debouncedSearch.trim().length > 0;
 
-  function updatePage(page: number) {
-    setFilters((f) => ({ ...f, page }));
+  function changeFilters(next: Partial<OrderListFilters>) {
+    setFilters((f) => ({ ...f, ...next }));
   }
 
-  // Back to page 1, or a narrower filter can land on a page that no longer exists.
-  function applyFilters(next: OrderFiltersValue) {
-    setFilters((f) => ({ ...f, ...next, page: DEFAULT_PAGE }));
-  }
-
-  function handleSearchChange(value: string) {
-    setSearchInput(value);
-    setFilters((f) => ({ ...f, page: DEFAULT_PAGE }));
-  }
-
-  function handleSortChange(sortBy: OrderListFilters["sortBy"], sortDir: OrderListFilters["sortDir"]) {
-    setFilters((f) => ({ ...f, sortBy, sortDir, page: DEFAULT_PAGE }));
-  }
-
-  const orders = data?.orders ?? [];
+  const tableSort: TableSort = {
+    key: filters.sortBy,
+    dir: filters.sortDir,
+    onChange: (key, dir) =>
+      changeFilters(
+        key === null
+          ? { sortBy: DEFAULT_ORDER_FILTERS.sortBy, sortDir: DEFAULT_ORDER_FILTERS.sortDir, page: DEFAULT_PAGE }
+          : { sortBy: key as OrderListFilters["sortBy"], sortDir: dir, page: DEFAULT_PAGE }
+      ),
+  };
 
   return (
     <PageContainer>
@@ -90,6 +72,16 @@ export default function OrdersPage() {
         description={t("subtitle")}
         actions={
           <>
+            {canCollect && (
+              <Link
+                href="/orders/collection"
+                data-test-selector="orders-collection-link"
+                className={buttonClassName({ variant: "secondary", className: "shrink-0" })}
+              >
+                <HandCoins className="size-4" aria-hidden="true" />
+                {t("collectionLink")}
+              </Link>
+            )}
             {canCreate && (
               <Link
                 href="/orders/new"
@@ -100,31 +92,42 @@ export default function OrdersPage() {
                 {t("newOrder")}
               </Link>
             )}
-
-            {/* The shortest path to "who still owes us money"; full width on a phone. */}
-            {canCollect && (
-              <Link
-                href="/orders/collection"
-                data-test-selector="orders-collection-link"
-                className={buttonClassName({ variant: "secondary", className: "w-full justify-start sm:w-auto" })}
-              >
-                <HandCoins className="size-5" aria-hidden="true" />
-                {t("collectionLink")}
-              </Link>
-            )}
           </>
         }
       />
 
       <div className="flex flex-col gap-4">
         <div className="flex flex-col gap-3">
-          <OrderSearch value={searchInput} onChange={handleSearchChange} />
-          <div className="flex gap-3">
-            <div className="flex-1">
-              <OrderSortSelect sortBy={filters.sortBy} sortDir={filters.sortDir} onChange={handleSortChange} />
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="min-w-64 flex-1 sm:max-w-md">
+              <SearchField
+                label={t("search.label")}
+                value={searchInput}
+                onChange={(e) => {
+                  setSearchInput(e.target.value);
+                  changeFilters({ page: DEFAULT_PAGE });
+                }}
+                onClear={() => {
+                  setSearchInput("");
+                  changeFilters({ page: DEFAULT_PAGE });
+                }}
+                clearLabel={t("search.clear")}
+                placeholder={t("search.placeholder")}
+                data-testid="orders-search"
+              />
             </div>
-            <OrderFiltersSheet value={filtersValue} onApply={applyFilters} activeCount={activeFilterCount} />
+            <OrderFilters
+              value={filtersValue}
+              sort={sortValue}
+              onApply={(next, sort) => changeFilters({ ...next, ...sort, page: DEFAULT_PAGE })}
+            />
+            {data?.meta && (
+              <span className="ms-auto flex h-(--control-h) items-center">
+                <TotalBadge data-testid="orders-count" total={data.meta.total} />
+              </span>
+            )}
           </div>
+          <OrderFilterChips value={filtersValue} onChange={(next) => changeFilters({ ...next, page: DEFAULT_PAGE })} />
         </div>
 
         {isLoading ? (
@@ -134,21 +137,14 @@ export default function OrdersPage() {
         ) : orders.length === 0 ? (
           <OrderListEmpty hasFilters={hasAnyFilter} />
         ) : (
-          <>
-            {isFetching && <OrderListSpinnerOverlay />}
-
-            <div className="flex flex-col gap-3 md:hidden">
-              {orders.map((order) => (
-                <OrderCard key={order.id} order={order} />
-              ))}
-            </div>
-
-            <div className="hidden md:block">
-              <OrderTable orders={orders} />
-            </div>
-
-            {data?.meta && <OrderPagination meta={data.meta} onPageChange={updatePage} />}
-          </>
+          <OrderTable
+            orders={orders}
+            meta={data?.meta ?? null}
+            isRefreshing={isFetching}
+            sort={tableSort}
+            onPageChange={(page) => changeFilters({ page })}
+            onPageSizeChange={(pageSize) => changeFilters({ pageSize, page: DEFAULT_PAGE })}
+          />
         )}
       </div>
     </PageContainer>

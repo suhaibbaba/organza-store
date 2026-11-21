@@ -1,133 +1,190 @@
 "use client";
 
-import { useMemo } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { flexRender, getCoreRowModel, useReactTable, type ColumnDef } from "@tanstack/react-table";
-import { testSelectorFor } from "@organza/shared/lib/testSelector";
-import { ChevronRight } from "lucide-react";
-import type { OrderSummary } from "@organza/shared/types/order";
+import { Table, type Column, type TableSort } from "@store/ui";
+import type { OrderPreviewItem, OrderSummary } from "@organza/shared/types/order";
+import type { Pagination } from "@organza/shared/types/common";
+import { PAGE_SIZE_OPTIONS } from "@organza/shared/constants/pagination";
 import { isOrderCollectable } from "@organza/shared/lib/orders";
 import { Link } from "@/i18n/navigation";
-import { formatDateTime } from "@/lib/format";
+import { formatDate, formatTime } from "@/lib/format";
+import { localize } from "@/lib/i18n-content";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
-import { OrderChannelBadge } from "@/components/orders/order-channel-badge";
+import { ORDER_THUMB_SIZES } from "@/constants/orders";
+import { ProductImage } from "@/components/products/product-image";
+import { useOrderRowMenu } from "@/components/orders/order-row-menu";
 import { OrderStatusBadge } from "@/components/orders/order-status-badge";
 import { OrderTypeBadge } from "@/components/orders/order-type-badge";
 import { QuickSaleBadge } from "@/components/orders/quick-sale-badge";
 import { PaymentStatusBadge } from "@/components/orders/payment-status-badge";
 
-// Desktop-only view of the same orders the cards show on a phone.
-export function OrderTable({ orders }: { orders: OrderSummary[] }) {
+// Rows are named `orders-row-<id>` by the Table (its data-testid + "-row-" + rowKey).
+const TABLE_NAME = "orders";
+
+interface OrderTableProps {
+  orders: OrderSummary[];
+  meta: Pagination | null;
+  isRefreshing: boolean;
+  sort: TableSort;
+  onPageChange: (page: number) => void;
+  onPageSizeChange: (pageSize: number) => void;
+}
+
+export function OrderTable({ orders, meta, isRefreshing, sort, onPageChange, onPageSizeChange }: OrderTableProps) {
   const locale = useLocale();
-  const t = useTranslations("orders.card");
-  const tTable = useTranslations("orders.table");
+  const t = useTranslations("orders");
   const formatMoney = useMoneyFormatter();
+  const menu = useOrderRowMenu();
 
-  const columns = useMemo<ColumnDef<OrderSummary>[]>(
-    () => [
-      {
-        id: "orderNumber",
-        header: tTable("orderNumber"),
-        cell: ({ row }) => (
-          <div className="flex min-w-0 flex-wrap items-center gap-2">
-            {/* ::after stretches the link over its whole cell. */}
-            <Link
-              href={`/orders/${row.original.id}`}
-              className="flex min-w-0 items-center gap-2 rounded-control group after:absolute after:inset-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
-            >
-              <span className="font-medium text-ink transition-colors group-hover:text-primary-700">
-                {t("orderNumber", { number: String(row.original.orderNumber) })}
+  function pieceName(item: OrderPreviewItem) {
+    const name = localize(item.name, locale);
+    const variant = item.variantName ? ` (${localize(item.variantName, locale)})` : "";
+    const quantity = item.quantity > 1 ? ` ${t("card.quantity", { count: item.quantity })}` : "";
+    return `${name}${variant}${quantity}`;
+  }
+
+  function renderPhotos(order: OrderSummary) {
+    const more = order.itemCount - order.previewItems.length;
+    return (
+      <Link
+        href={`/orders/${order.id}`}
+        tabIndex={-1}
+        aria-hidden="true"
+        data-test-selector="order-photos"
+        className="flex shrink-0 items-center gap-1.5"
+      >
+        {order.previewItems.map((item, index) => (
+          <span key={item.id} className="relative">
+            <ProductImage
+              src={item.thumbnailUrl}
+              alt={pieceName(item)}
+              className="size-16 rounded-control md:size-12"
+              sizes={ORDER_THUMB_SIZES}
+            />
+            {more > 0 && index === order.previewItems.length - 1 && (
+              <span
+                data-test-selector="order-pieces-more"
+                dir="ltr"
+                className="absolute inset-0 flex items-center justify-center rounded-control bg-ink/55 text-value font-medium text-ink-inverse tabular-nums"
+              >
+                {t("card.morePieces", { count: more })}
               </span>
-              <ChevronRight className="size-4 shrink-0 text-ink-muted rtl:-scale-x-100" aria-hidden="true" />
-            </Link>
-            {/* Beside the number, not in Channel: a gift is not a channel, it changes what the total means. */}
-            <OrderTypeBadge type={row.original.type} />
-            {/* Typed at the counter, so its cost may still be missing (spec.md "Quick sell"). */}
-            {row.original.hasQuickSale && <QuickSaleBadge />}
-          </div>
-        ),
-      },
-      {
-        id: "channel",
-        header: tTable("channel"),
-        cell: ({ row }) => <OrderChannelBadge channel={row.original.channel} />,
-      },
-      {
-        id: "status",
-        header: tTable("status"),
-        cell: ({ row }) => <OrderStatusBadge status={row.original.status} />,
-      },
-      {
-        id: "paymentStatus",
-        header: tTable("payment"),
-        // A cancelled or returned sale owes nothing, so it shows no payment state.
-        cell: ({ row }) =>
-          isOrderCollectable(row.original.status) ? (
-            <PaymentStatusBadge status={row.original.paymentStatus} />
-          ) : (
-            <span className="text-ink-muted">{tTable("noPayment")}</span>
-          ),
-      },
-      {
-        id: "customer",
-        header: tTable("customer"),
-        cell: ({ row }) => (
-          <span className="text-ink-muted">{row.original.customerName ?? tTable("noCustomer")}</span>
-        ),
-      },
-      {
-        id: "createdAt",
-        header: tTable("date"),
-        cell: ({ row }) => (
-          <span className="whitespace-nowrap text-ink-muted">
-            {formatDateTime(row.original.createdAt, locale)}
+            )}
           </span>
-        ),
-      },
-      {
-        id: "total",
-        header: tTable("total"),
-        cell: ({ row }) => (
-          <span className="font-semibold tabular-nums text-ink">{formatMoney(row.original.total)}</span>
-        ),
-      },
-    ],
-    [locale, t, tTable, formatMoney]
-  );
+        ))}
+      </Link>
+    );
+  }
 
-  const table = useReactTable({ data: orders, columns, getCoreRowModel: getCoreRowModel() });
+  function renderOrder(order: OrderSummary) {
+    return (
+      <div className="flex flex-col gap-3">
+        <div className="md:hidden">{renderPhotos(order)}</div>
+        <div className="flex min-w-0 flex-col gap-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <Link
+              href={`/orders/${order.id}`}
+              className="whitespace-nowrap rounded-control text-value font-medium text-ink transition-colors hover:text-primary-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+            >
+              {t("card.orderNumber", { number: String(order.orderNumber) })}
+            </Link>
+            {/* A gift changes what the total means, so it is badged on the order itself. */}
+            <OrderTypeBadge type={order.type} />
+            {order.hasQuickSale && <QuickSaleBadge />}
+          </div>
+          <span data-test-selector="order-pieces-names" className="line-clamp-2 text-label font-normal text-ink-muted">
+            {order.previewItems.map(pieceName).join(" · ")}
+            {order.itemCount > order.previewItems.length &&
+              ` · ${t("card.morePieces", { count: order.itemCount - order.previewItems.length })}`}
+          </span>
+        </div>
+      </div>
+    );
+  }
+
+  const columns: Column<OrderSummary>[] = [
+    {
+      key: "order",
+      header: "orders.table.orderNumber",
+      primary: true,
+      sortKey: "orderNumber",
+      // Two lines of piece names need more room than the Table's default cell cap.
+      className: "min-w-[13rem] [--cell-max:22rem]",
+      render: renderOrder,
+    },
+    {
+      key: "photos",
+      header: "orders.table.photos",
+      hideOnMobile: true,
+      render: renderPhotos,
+    },
+    {
+      key: "status",
+      header: "orders.table.status",
+      render: (order) => <OrderStatusBadge status={order.status} className="whitespace-nowrap" />,
+    },
+    {
+      key: "payment",
+      header: "orders.table.payment",
+      // A cancelled or returned sale owes nothing, so it carries no payment state.
+      render: (order) =>
+        isOrderCollectable(order.status) ? (
+          <PaymentStatusBadge status={order.paymentStatus} className="whitespace-nowrap" />
+        ) : null,
+    },
+    {
+      key: "createdAt",
+      header: "orders.table.date",
+      sortKey: "createdAt",
+      render: (order) => (
+        <div className="flex flex-col whitespace-nowrap tabular-nums">
+          <span className="text-ink">{formatDate(order.createdAt, locale)}</span>
+          <span className="text-label text-ink-muted">{formatTime(order.createdAt, locale)}</span>
+        </div>
+      ),
+    },
+    {
+      key: "total",
+      header: "orders.table.total",
+      sortKey: "total",
+      align: "numeric",
+      render: (order) => (
+        <span className="whitespace-nowrap font-medium tabular-nums text-ink">{formatMoney(order.total)}</span>
+      ),
+    },
+    {
+      key: "actions",
+      header: "orders.table.actions",
+      actions: true,
+      besideTitleOnMobile: true,
+      align: "end",
+      className: "align-top",
+      render: menu.renderMenu,
+    },
+  ];
 
   return (
-    <div className="overflow-hidden rounded-card border border-line bg-surface shadow-card" data-test-selector="orders-table">
-      <table className="w-full text-label">
-        <thead className="bg-table-head text-ink-muted">
-          {table.getHeaderGroups().map((headerGroup) => (
-            <tr key={headerGroup.id}>
-              {headerGroup.headers.map((header) => (
-                <th key={header.id} className="px-4 py-3 text-start font-medium">
-                  {flexRender(header.column.columnDef.header, header.getContext())}
-                </th>
-              ))}
-            </tr>
-          ))}
-        </thead>
-        <tbody>
-          {table.getRowModel().rows.map((row) => (
-            <tr
-              key={row.id}
-              className="border-t border-line transition-colors hover:bg-row-hover"
-              data-test-selector={testSelectorFor("orders-row", row.original.id)}
-            >
-              {/* `relative` scopes the number link's stretched ::after to its own cell. */}
-              {row.getVisibleCells().map((cell) => (
-                <td key={cell.id} className="relative px-4 py-3 align-middle">
-                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                </td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+    <>
+      <Table
+        data-testid={TABLE_NAME}
+        columns={columns}
+        rows={orders}
+        rowKey={(order) => order.id}
+        isRefreshing={isRefreshing}
+        sort={sort}
+        {...(meta && {
+          pagination: {
+            "data-testid": "orders-pagination",
+            page: meta.page,
+            totalPages: Math.max(meta.totalPages, 1),
+            perPage: meta.pageSize,
+            perPageOptions: PAGE_SIZE_OPTIONS,
+            onPageChange,
+            onPerPageChange: onPageSizeChange,
+          },
+        })}
+      />
+      {menu.dialog}
+    </>
   );
 }

@@ -1,6 +1,5 @@
 import { useTranslations } from "next-intl";
-import { ReceiptText } from "lucide-react";
-import { Alert, Button, Spinner } from "@store/ui";
+import { Alert, Button, EmptyState, Spinner } from "@store/ui";
 import { useTranslateError } from "@/hooks/use-translate-error";
 import { ApiError } from "@/lib/api/errors";
 
@@ -15,20 +14,13 @@ export function OrderListLoading() {
 }
 
 export function OrderListEmpty({ hasFilters }: { hasFilters: boolean }) {
-  const t = useTranslations("orders.empty");
-
   return (
-    <div className="flex flex-col items-center gap-3 rounded-card border border-dashed border-line py-16 text-center"
-      data-test-selector="orders-empty"
-    >
-      <ReceiptText className="size-10 text-ink-muted" aria-hidden="true" />
-      <div>
-        <p className="font-medium text-ink">{hasFilters ? t("noMatchesTitle") : t("noOrdersTitle")}</p>
-        <p className="mt-1 text-label text-ink-muted">
-          {hasFilters ? t("noMatchesDescription") : t("noOrdersDescription")}
-        </p>
-      </div>
-    </div>
+    <EmptyState
+      data-testid="orders-empty"
+      icon="receipt"
+      title={hasFilters ? "orders.empty.noMatchesTitle" : "orders.empty.noOrdersTitle"}
+      hint={hasFilters ? "orders.empty.noMatchesDescription" : "orders.empty.noOrdersDescription"}
+    />
   );
 }
 

@@ -17,10 +17,7 @@ export type PaymentStatus = (typeof PAYMENT_STATUSES)[number];
 export type DiscountType = (typeof DISCOUNT_TYPES)[number];
 export type OrderSortField = (typeof ORDER_SORT_FIELDS)[number];
 
-// One sold line. Everything the receipt needs is snapshotted at creation, so
-// renaming or repricing the product later never rewrites past sales — the
-// product/variant ids are kept only as a link back to the live catalogue and
-// go null if the variant is later removed.
+// Snapshotted at creation so a later rename or reprice never rewrites a past sale; the ids are only a link back.
 export interface OrderItem {
   id: string;
   productId: string | null;
@@ -37,19 +34,13 @@ export interface OrderItem {
   discountAmount: string;
   lineTotal: string;
   returnedQuantity: number;
-  // This line was quick-sold: typed at the counter with a name and a price
-  // because the piece was not in the catalogue yet (spec.md "Quick sell").
-  // A snapshot like every other field here, so the line still says how it was
-  // sold long after its product has been completed or ruled a one-off.
+  // Quick-sold at the counter (spec.md "Quick sell"); a snapshot, so it outlives the product's completion.
   quickSold: boolean;
-  // SENSITIVE (CLAUDE.md rule 19): ADMIN ONLY — absent entirely from a
-  // Manager's or an Employee's response, not merely null.
+  // SENSITIVE (rule 19): Admin only — absent, not null, for everyone else.
   unitCost?: string | null;
 }
 
-// Who rang the sale up, named rather than referenced by id so the admin can
-// show it without pulling the staff list (which is Admin-only). Deliberately
-// just id + name: nothing else about a staff member belongs on an order.
+// Just id + name, so the admin can show it without the Admin-only staff list.
 export interface OrderCreator {
   id: string;
   name: string;
@@ -59,17 +50,11 @@ export interface Order {
   id: string;
   orderNumber: number;
   channel: OrderChannel;
-  // SALE or GIFT. A gift moves the same stock through the same machinery but
-  // charges nothing: every line is priced at zero, so it never adds revenue,
-  // and its COST is what the shop lost by giving it away (reported as an
-  // expense, not as cost of goods sold).
+  // A gift charges nothing; its cost is reported as an expense, never as cost of goods sold.
   type: OrderType;
   status: OrderStatus;
   paymentMethod: PaymentMethod;
-  // Whether the money for this sale is actually in the shop's hands. A
-  // counter sale is COLLECTED on the spot; a parcel handed to the delivery
-  // company stays PENDING_COLLECTION until an Admin/Manager records that the
-  // company has paid for it.
+  // A courier parcel stays PENDING_COLLECTION until an Admin/Manager records the company has paid.
   paymentStatus: PaymentStatus;
   collectedAt: string | null;
   // Customer snapshot — required for WHATSAPP/WEBSITE, unused for STORE.
@@ -81,21 +66,15 @@ export interface Order {
   customerLatitude: number | null;
   customerLongitude: number | null;
   note: string | null;
-  // All money is computed on the server from the item snapshots; the client
-  // never supplies a total.
+  // Computed on the server from the item snapshots; the client never supplies a total.
   subtotal: string;
   discountType: DiscountType | null;
   discountValue: string | null;
   discountAmount: string;
   total: string;
-  // Whether anything on this sale was quick-sold — rung up before the piece
-  // existed in the catalogue (spec.md "Quick sell"). Stored on the order
-  // rather than worked out from the lines, so it stays true once the product
-  // has been completed, ruled a one-off or removed, and so the list can
-  // filter on it without reading every line.
+  // Stored on the order so it survives the product's completion and the list can filter on it cheaply.
   hasQuickSale: boolean;
-  // Set the moment stock is taken off the shelf for this order, so it can
-  // never be deducted twice.
+  // Set when stock leaves the shelf, so it can never be deducted twice.
   stockDeductedAt: string | null;
   // Soft delete: a deleted sale is hidden from every endpoint, not destroyed.
   deletedAt: string | null;
@@ -107,6 +86,14 @@ export interface Order {
 }
 
 // Lighter list-view DTO (GET /api/orders) — no per-item breakdown.
+export interface OrderPreviewItem {
+  id: string;
+  name: I18n;
+  variantName: I18n | null;
+  quantity: number;
+  thumbnailUrl: string | null;
+}
+
 export interface OrderSummary {
   id: string;
   orderNumber: number;
@@ -114,8 +101,6 @@ export interface OrderSummary {
   type: OrderType;
   status: OrderStatus;
   paymentMethod: PaymentMethod;
-  // Carried on the list row too: the outstanding-money view is a filtered
-  // order list, so a row has to be able to say whether it has been collected.
   paymentStatus: PaymentStatus;
   collectedAt: string | null;
   customerName: string | null;
@@ -124,11 +109,9 @@ export interface OrderSummary {
   discountAmount: string;
   total: string;
   itemCount: number;
-  // Whether anything on this sale was quick-sold — rung up before the piece
-  // existed in the catalogue (spec.md "Quick sell"). Stored on the order
-  // rather than worked out from the lines, so it stays true once the product
-  // has been completed, ruled a one-off or removed, and so the list can
-  // filter on it without reading every line.
+  // The dearest few lines, highest unit price first; itemCount says how many there are in all.
+  previewItems: OrderPreviewItem[];
+  // Stored on the order so it survives the product's completion and the list can filter on it cheaply.
   hasQuickSale: boolean;
   stockDeductedAt: string | null;
   createdById: string;
@@ -136,11 +119,7 @@ export interface OrderSummary {
   updatedAt: string;
 }
 
-// GET /api/orders/customer-suggestions — one entry per repeat customer, for
-// the phone autocomplete on the POS's WhatsApp order form. Customers are
-// still deferred as an entity (spec.md "Customer information"), so this is
-// the newest snapshot written under that number rather than a stored record:
-// if the address changed on the last order, that is the one offered back.
+// One entry per repeat customer: the newest snapshot under that number, since there is no Customer table yet.
 export interface CustomerSuggestion {
   // Exactly as it was stored, on its own prefix (CLAUDE.md rule 18).
   phone: string;
@@ -153,22 +132,15 @@ export interface CustomerSuggestion {
   lastOrderAt: string;
 }
 
-// GET /api/orders/collection-summary — what the delivery company still owes
-// the shop, across every order regardless of date. The amount is net of
-// returns and excludes cancelled sales, computed exactly like report revenue
-// so the two figures can never disagree.
+// Net of returns and free of cancelled sales, computed like report revenue so the two never disagree.
 export interface CollectionSummary {
   orderCount: number;
   amount: string;
-  // When the oldest still-uncollected sale was taken — "money that has been
-  // owed since 12 July" is what makes an outstanding total actionable.
+  // The oldest still-uncollected sale, which is what makes the outstanding total actionable.
   oldestCreatedAt: string | null;
 }
 
-// POST /api/orders/collect — the result of settling a batch. `collectedIds`
-// are the orders this call moved; `alreadyCollectedIds` were settled before
-// it ran (marking twice is a no-op, not an error, so two people tapping at
-// once can't produce a failure).
+// Collecting twice is a no-op, so two people tapping at once can't produce a failure.
 export interface CollectResult {
   collectedIds: string[];
   alreadyCollectedIds: string[];

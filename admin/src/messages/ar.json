@@ -300,10 +300,23 @@
       "dateRange": "الفترة الزمنية",
       "dateFrom": "من تاريخ",
       "dateTo": "إلى تاريخ",
-      "reset": "إعادة ضبط",
-      "apply": "تطبيق",
+      "reset": "مسح التصفية",
+      "apply": "عرض النتائج",
       "quickSale": "عمليات البيع السريع فقط",
-      "quickSaleHint": "قطع بيعت قبل إدخالها إلى النظام."
+      "quickSaleHint": "قطع بيعت قبل إدخالها إلى النظام.",
+      "sortHint": "ترتيب القائمة على الهاتف؛ على الشاشة الكبيرة اضغط عنوان العمود.",
+      "statusHint": "المرحلة التي وصل إليها الطلب.",
+      "channelHint": "من أين جاء الطلب.",
+      "paymentStatusHint": "هل وصل ثمن الطلب إلى المحل.",
+      "dateRangeHint": "الطلبات المسجّلة بين هذين اليومين.",
+      "chipStatus": "الحالة: {name}",
+      "chipChannel": "المصدر: {name}",
+      "chipPayment": "التحصيل: {name}",
+      "chipQuickSale": "بيع سريع",
+      "chipDateFrom": "من {date}",
+      "chipDateTo": "حتى {date}",
+      "chipDates": "{from} — {to}",
+      "removeFilter": "إزالة التصفية: {name}"
     },
     "status": {
       "NEW": "جديد",
@@ -357,7 +370,9 @@
     },
     "card": {
       "orderNumber": "طلب رقم {number}",
-      "itemCount": "{count, plural, one {منتج واحد} two {منتجان} few {{count, number, plain} منتجات} other {{count, number, plain} منتجًا}}"
+      "itemCount": "{count, plural, one {منتج واحد} two {منتجان} few {{count, number, plain} منتجات} other {{count, number, plain} منتجًا}}",
+      "quantity": "×{count}",
+      "morePieces": "+{count}"
     },
     "table": {
       "orderNumber": "رقم الطلب",
@@ -368,7 +383,9 @@
       "customer": "الزبون",
       "noCustomer": "—",
       "date": "التاريخ",
-      "total": "المجموع"
+      "total": "المجموع",
+      "photos": "الصور",
+      "actions": "إجراءات"
     },
     "empty": {
       "noOrdersTitle": "لا توجد طلبات بعد",
@@ -554,6 +571,15 @@
     },
     "quickSale": {
       "badge": "بيع سريع"
+    },
+    "rowMenu": {
+      "label": "خيارات الطلب رقم {number}",
+      "open": "فتح الطلب",
+      "markCollected": "استلمت المبلغ",
+      "confirmTitle": "تسجيل استلام مبلغ الطلب رقم {number}؟",
+      "confirmConsequence": "سيُسجَّل أن شركة التوصيل دفعت {amount} عن هذا الطلب.",
+      "confirmAction": "استلمت المبلغ",
+      "collected": "تم تسجيل استلام المبلغ."
     }
   },
   "reports": {

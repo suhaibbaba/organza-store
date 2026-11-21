@@ -300,10 +300,23 @@
       "dateRange": "Date range",
       "dateFrom": "From date",
       "dateTo": "To date",
-      "reset": "Reset",
-      "apply": "Apply",
+      "reset": "Clear filters",
+      "apply": "Show results",
       "quickSale": "Quick sales only",
-      "quickSaleHint": "Pieces sold before they were entered into the system."
+      "quickSaleHint": "Pieces sold before they were entered into the system.",
+      "sortHint": "Sorts the list on a phone; on a wide screen, click a column heading.",
+      "statusHint": "How far along the order is.",
+      "channelHint": "Where the order came from.",
+      "paymentStatusHint": "Whether the money has reached the shop.",
+      "dateRangeHint": "Orders taken between these two days.",
+      "chipStatus": "Status: {name}",
+      "chipChannel": "Channel: {name}",
+      "chipPayment": "Payment: {name}",
+      "chipQuickSale": "Quick sale",
+      "chipDateFrom": "From {date}",
+      "chipDateTo": "Until {date}",
+      "chipDates": "{from} — {to}",
+      "removeFilter": "Remove filter: {name}"
     },
     "status": {
       "NEW": "New",
@@ -357,7 +370,9 @@
     },
     "card": {
       "orderNumber": "Order {number}",
-      "itemCount": "{count, plural, one {{count, number, plain} item} other {{count, number, plain} items}}"
+      "itemCount": "{count, plural, one {{count, number, plain} item} other {{count, number, plain} items}}",
+      "quantity": "×{count}",
+      "morePieces": "+{count}"
     },
     "table": {
       "orderNumber": "Order",
@@ -368,7 +383,9 @@
       "customer": "Customer",
       "noCustomer": "—",
       "date": "Date",
-      "total": "Total"
+      "total": "Total",
+      "photos": "Photos",
+      "actions": "Actions"
     },
     "empty": {
       "noOrdersTitle": "No orders yet",
@@ -554,6 +571,15 @@
     },
     "quickSale": {
       "badge": "Quick sale"
+    },
+    "rowMenu": {
+      "label": "Options for order {number}",
+      "open": "Open order",
+      "markCollected": "Money received",
+      "confirmTitle": "Record payment for order {number}?",
+      "confirmConsequence": "This records that the delivery company paid {amount} for this order.",
+      "confirmAction": "Money received",
+      "collected": "Payment recorded."
     }
   },
   "reports": {

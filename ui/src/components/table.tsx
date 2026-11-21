@@ -142,7 +142,7 @@ export function Table<TRow>({
               const body = (
                 <>
                   {primary && (
-                    <div className={cn("flex items-center justify-between gap-3", shown.length > 0 && "mb-3")}>
+                    <div className={cn("flex items-start justify-between gap-3", shown.length > 0 && "mb-3")}>
                       <div
                         data-part="table-card-title"
                         {...testid(rowId(row), "title")}

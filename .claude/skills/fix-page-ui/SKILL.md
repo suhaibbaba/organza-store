@@ -127,10 +127,23 @@ Reference implementation: the clinic app at `/Users/suhaibbaba/Projects/clinic-m
   together by a sticky `SaveBar` ("N changed" · Discard · Save); a failed row stays outlined red with
   one Alert on top. No "kept here outside the filter" notices — staged rows don't move until Save.
 
-### Dashboard
-Not learned yet — ask, then write the pattern here.
-
-## Rules that always apply
+- **Sort** (orders, 2026-11-21): sortable column headers via the Table's `sort` prop (`sortKey` per
+  column; a `null` key falls back to the default order), plus the same choice as a `Select` at the top
+  of the filter Drawer, since phone cards have no headers. Sort is not a filter: no chip, no count.
+- **Orders list columns — set by the user 2026-11-21:** ① order number (+ gift/quick-sale badges)
+  with the piece names as a muted subtitle (`name (variant) ×qty · … · +N`, `line-clamp-2`)
+  ② photos — up to 3 lines, **highest unit price first**, the last dimmed with `+N`
+  ③ status ④ payment ⑤ date (date, time muted under it) ⑥ total ⑦ ⋯ menu. No customer/channel
+  column. Phones: photos on top of the title cell (`md:hidden`; the photos column `hideOnMobile`),
+  ⋯ beside the title (`besideTitleOnMobile`). The API sends `previewItems` (first 3 lines by price).
+- **The row ⋯ is on EVERY row, always at the TOP-END corner** (user, 2026-11-21): "open" is always
+  in it, role-gated actions are added when they apply (orders: "money received"). Desktop: the
+  actions column gets `className: "align-top"`; phone cards: `besideTitleOnMobile` (the Table's
+  card title row is `items-start`, so it stays in the corner beside tall photo titles).
+- `useConfirm` defaults to delete styling (trash icon, red): pass `tone: "primary"` for anything
+  that isn't a removal. Every confirm keeps its 3-second hold.
+- A wide cell needs `className: "min-w-[13rem] [--cell-max:22rem]"` (sized to fit) on its column: Table caps cell
+  content at `--cell-max` (18rem), which squeezes anything with photos + text.
 - **Every product image is 1:1** — list thumbnails, gallery tiles and the product page's photo
   alike (`aspect-square` / `size-*`). Tiles and the big photo use `fit="contain"` so nothing of
   the garment is cut; small row thumbnails stay `cover`. Only a numbered-shawl photo keeps its own
@@ -150,7 +163,10 @@ Not learned yet — ask, then write the pattern here.
   `Table` column `header`, `Tabs` labels take **keys**; everything else takes translated text.
 - Name things for tests: `data-testid` on `@store/ui` components (written to `data-test-selector`
   too), literal `data-test-selector` on plain elements; purpose-first, no positions.
-- Comments: one line or none — and strip the old multi-line ones from every file you touch.
+- **Comments: one line or none — in EVERY file the page touches, old comments included** (the page,
+  its components, and the types/constants/api/hooks files you edit): collapse each multi-line block
+  to one line that says a business rule or a non-obvious why, or delete it. Run a grep for `//` over
+  those files before verifying; it is part of every run, not a follow-up.
 - Anything added to `@store/ui` (a component, a new `size`) is also demoed on `/design-system`.
 - Wording (ar): variants are **متغيرات**, never تركيبات.
 
@@ -189,7 +205,19 @@ Not learned yet — ask, then write the pattern here.
 - `Drawer`: `side="end"` (default) for content panels, `side="start"` for navigation.
 - The ADMIN zooms (pinch / Ctrl+wheel) — only the POS till locks zoom (spec.md "An installed app").
 
+- Orders: the hand-rolled tanstack table + separate phone `OrderCard` + own pagination → one
+  `@store/ui` Table; page size is a field of the list filters (`pageSize`), sent to the API from there.
+- `@store/ui` `Select` is a Radix combobox (a `<button>`), not a native `<select>`: drive it by
+  clicking in browser checks, never by setting `.value`.
+- At 1280px with the sidebar the table has ~950px: measure `orders-head-*` widths and the
+  `-scroll` element's scrollWidth vs clientWidth before calling a wide table done.
+- Test the long case by patching `window.fetch` in the page (fake rows, long names, many lines):
+  the sandbox has few records, and patching the response writes nothing.
+- The comment rule covers backend and shared files the page needed too (route, serializer, types).
+- Date range filters use `DateRangePicker` in a `FormField`; the chip reads the days as local midnight.
+
 ## Done
 - admin `products/[id]` (record) — 2026-11-21
 - admin `products/[id]/edit` + `products/new` (form, shared `product-form.tsx`) — 2026-11-21
 - admin `inventory` (list — first list pattern) — 2026-11-21
+- admin `orders` (list) — 2026-11-21

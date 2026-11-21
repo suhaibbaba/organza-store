@@ -29,29 +29,13 @@ import {
   SETTINGS_SINGLETON_ID,
 } from "@/constants";
 import type { StockItem } from "@/types";
-import { MAIN_IMAGE_ONLY } from "@/constants/inventory";
+import { MAIN_IMAGE_ONLY } from "@/constants/images";
 
-// Inventory is a read/adjust layer over Product (simple products) and
-// Variant (variant-bearing products) stock — it doesn't own its own table.
-// Both viewing (inventory.view) and adjusting (inventory.adjust) are
-// Admin/Manager only — CLAUDE.md rule 5: an Employee has no stock-management
-// access, so the stock list 403s for them just like an adjustment does.
-//
-// This is the MANUAL stock path, and the only stock path that is ever gated
-// (spec.md "Employee change approvals"). Stock coming off the shelf because
-// something was SOLD never passes through here — see lib/orderStock.ts — so
-// a sale always completes on the spot, whoever rang it up.
+// The MANUAL stock path and the only gated one; a sale deducts through lib/orderStock.ts and always completes.
 const router = Router();
 router.use(requireAuth);
 
-// ---------------------------------------------------------------------------
-// GET /api/inventory — flattened stock list (simple products + variants),
-// pagination + filtering + sorting. lowStock=true filters against
-// Setting.lowStockThreshold (CLAUDE.md rule 14 — never hard-code it), and
-// only over products that opted into tracking (Product.trackLowStock): most
-// products are one-off pieces with stock = 1, so alerting on all of them
-// would bury the ones that actually need restocking.
-// ---------------------------------------------------------------------------
+// GET /api/inventory — lowStock only counts products that opted into tracking, against Setting.lowStockThreshold.
 router.get(
   "/",
   requirePermission("inventory.view"),
@@ -61,21 +45,12 @@ router.get(
     const setting = await prisma.setting.findUnique({ where: { id: SETTINGS_SINGLETON_ID } });
     const threshold = setting?.lowStockThreshold ?? DEFAULT_LOW_STOCK_THRESHOLD;
 
-    // Name/description matching goes through the shared, normalized,
-    // cross-language search layer (CLAUDE.md rule 10) — the same one
-    // /api/products uses — rather than a raw `contains` against the
-    // already-normalized `searchText` column, which would silently miss
-    // anything with tashkeel or an unnormalized letter (ة/ه, أ/إ/آ/ا, ...).
-    // SKU/barcode matching is exact-ish and checked at both the product and
-    // variant level, since a staff member searches by whichever one is
-    // printed on the item in their hand.
+    // Names go through the shared normalized search layer (rule 10); SKU/barcode match at product and variant level.
     const nameMatchIds = query.q ? await searchProductIds(query.q) : null;
 
     const products = await prisma.product.findMany({
       where: {
         deletedAt: null,
-        // Opt-in only: a product that hasn't asked to be tracked can never
-        // surface as low stock, whatever its quantity.
         ...(query.lowStock ? { trackLowStock: true } : {}),
         ...(query.categoryId ? { categoryId: query.categoryId } : {}),
         ...(query.q
@@ -131,8 +106,7 @@ router.get(
             sku: variant.sku,
             barcode: variant.barcode,
             categoryId: product.categoryId,
-            // Tracking is a product-level opt-in; every variant of a tracked
-            // product is tracked with it.
+            // Tracking is a product-level opt-in; every variant of a tracked product is tracked with it.
             trackLowStock: product.trackLowStock,
             stock: variant.stock,
             thumbnailUrl: variant.images[0]?.thumbnailUrl ?? product.images[0]?.thumbnailUrl ?? null,
@@ -155,9 +129,7 @@ router.get(
     const start = (query.page - 1) * query.pageSize;
     const page = filtered.slice(start, start + query.pageSize);
 
-    // What is waiting on the rows actually shown — one query for the page,
-    // never one per row, so a stock figure somebody has asked to change reads
-    // as spoken for rather than as simply wrong.
+    // Pending stock requests for the shown rows, in one query for the page, never one per row.
     const pendingByEntity = await findPendingChangesByEntity(
       page.map((item) => ({
         entityType:
@@ -179,16 +151,7 @@ router.get(
   })
 );
 
-// Typing a stock figure you may not set is a request, not a refusal (spec.md
-// "Employee change approvals"). Reaching these endpoints at all still needs
-// inventory.view, so nobody who cannot see the stock list can move it either;
-// what the gate below decides is whether the figure lands or waits.
-//
-// Today every role holding inventory.view also holds inventory.adjust, so the
-// request branch is unreachable from the inventory screen — an Employee's
-// manual stock edit arrives through the product form instead
-// (PATCH /api/products/:id), which is gated the same way. The branch is here
-// so that the rule lives with the action rather than with today's role table.
+// A stock figure you may not set files a request instead of being refused (spec.md "Employee change approvals").
 function mayAdjustDirectly(user: { role: string }): boolean {
   return can(user, "inventory.adjust");
 }
@@ -197,9 +160,7 @@ function assertMayRequest(user: { role: string }): void {
   if (!can(user, "changeRequest.create")) throw new AppError(403, ERROR_CODES.FORBIDDEN);
 }
 
-// ---------------------------------------------------------------------------
 // PATCH /api/inventory/products/:id — set a simple product's stock
-// ---------------------------------------------------------------------------
 router.patch(
   "/products/:id",
   requirePermission("inventory.view"),
@@ -249,9 +210,7 @@ router.patch(
   })
 );
 
-// ---------------------------------------------------------------------------
 // PATCH /api/inventory/variants/:id — set a variant's stock
-// ---------------------------------------------------------------------------
 router.patch(
   "/variants/:id",
   requirePermission("inventory.view"),
@@ -259,8 +218,7 @@ router.patch(
   asyncHandler(async (req, res) => {
     const variant = await prisma.variant.findUnique({
       where: { id: req.params.id },
-      // ...and its product's name, which is what the approval screen heads
-      // the card with — a stock request on "1" names nothing on its own.
+      // The product's name heads the approval card; a stock request on "1" names nothing on its own.
       include: { product: { select: { id: true, name: true } } },
     });
     if (!variant) throw new AppError(404, ERROR_CODES.VARIANT_NOT_FOUND);

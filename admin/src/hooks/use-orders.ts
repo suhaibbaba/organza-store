@@ -4,7 +4,6 @@ import type { CreateOrderInput, ReturnOrderInput } from "@organza/shared/schemas
 import {
   ORDER_COLLECTION_SUMMARY_QUERY_KEY,
   ORDER_DETAIL_QUERY_KEY,
-  ORDER_LIST_PAGE_SIZE,
   ORDER_LIST_QUERY_KEY,
 } from "@/constants/orders";
 import {
@@ -23,9 +22,7 @@ import type { OrderListFilters } from "@/types/order";
 export function useOrdersQuery(filters: OrderListFilters) {
   return useQuery({
     queryKey: [ORDER_LIST_QUERY_KEY, filters],
-    queryFn: () => fetchOrders(filters, ORDER_LIST_PAGE_SIZE),
-    // Keeps the current page's cards on screen while the next page/filter
-    // loads, instead of flashing back to a loading state.
+    queryFn: () => fetchOrders(filters),
     placeholderData: keepPreviousData,
   });
 }
@@ -38,9 +35,7 @@ export function useOrderQuery(id: string) {
   });
 }
 
-// What the delivery company still owes. Read on the outstanding-money screen
-// and refreshed by every order mutation, since creating, cancelling,
-// returning or collecting a sale all change it.
+// Refreshed by every order mutation: creating, cancelling, returning and collecting all change it.
 export function useCollectionSummaryQuery() {
   return useQuery({
     queryKey: ORDER_COLLECTION_SUMMARY_QUERY_KEY,
@@ -48,9 +43,6 @@ export function useCollectionSummaryQuery() {
   });
 }
 
-// One order write shows up on the order screens, the catalogue (stock moves
-// with it) and the sales figures — the whole map lives in
-// hooks/use-cache-invalidation.ts.
 function useInvalidateOrders() {
   const { ordersChanged } = useCacheInvalidation();
   return ordersChanged;
@@ -64,9 +56,7 @@ export function useCreateOrderMutation() {
   });
 }
 
-// Advancing an order along the delivery flow. Employees may do this (spec.md:
-// "create + mark delivered"); cancelling goes through the same endpoint but
-// needs `order.cancel`, which the backend checks separately.
+// Cancelling goes through the same endpoint but needs order.cancel, checked by the backend.
 export function useUpdateOrderStatusMutation(id: string) {
   const invalidate = useInvalidateOrders();
   return useMutation({
@@ -83,9 +73,6 @@ export function useReturnOrderMutation(id: string) {
   });
 }
 
-// Settling up with the delivery company, for one order or a batch of them.
-// Admin/Manager only — the backend enforces it (order.markCollected); the UI
-// only decides whether the button exists.
 export function useCollectOrdersMutation() {
   const invalidate = useInvalidateOrders();
   return useMutation({

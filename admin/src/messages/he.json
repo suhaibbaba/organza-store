@@ -300,10 +300,23 @@
       "dateRange": "טווח תאריכים",
       "dateFrom": "מתאריך",
       "dateTo": "עד תאריך",
-      "reset": "איפוס",
-      "apply": "החלה",
+      "reset": "ניקוי סינון",
+      "apply": "הצגת תוצאות",
       "quickSale": "מכירות מהירות בלבד",
-      "quickSaleHint": "פריטים שנמכרו לפני שהוזנו למערכת."
+      "quickSaleHint": "פריטים שנמכרו לפני שהוזנו למערכת.",
+      "sortHint": "ממיין את הרשימה בטלפון; במסך רחב לחצו על כותרת עמודה.",
+      "statusHint": "באיזה שלב נמצאת ההזמנה.",
+      "channelHint": "מאיפה הגיעה ההזמנה.",
+      "paymentStatusHint": "האם הכסף הגיע לחנות.",
+      "dateRangeHint": "הזמנות שנרשמו בין שני הימים האלה.",
+      "chipStatus": "סטטוס: {name}",
+      "chipChannel": "מקור: {name}",
+      "chipPayment": "תשלום: {name}",
+      "chipQuickSale": "מכירה מהירה",
+      "chipDateFrom": "מ־{date}",
+      "chipDateTo": "עד {date}",
+      "chipDates": "{from} — {to}",
+      "removeFilter": "הסרת סינון: {name}"
     },
     "status": {
       "NEW": "חדשה",
@@ -357,7 +370,9 @@
     },
     "card": {
       "orderNumber": "הזמנה {number}",
-      "itemCount": "{count, plural, one {פריט אחד} two {שני פריטים} other {{count, number, plain} פריטים}}"
+      "itemCount": "{count, plural, one {פריט אחד} two {שני פריטים} other {{count, number, plain} פריטים}}",
+      "quantity": "×{count}",
+      "morePieces": "+{count}"
     },
     "table": {
       "orderNumber": "הזמנה",
@@ -368,7 +383,9 @@
       "customer": "לקוח",
       "noCustomer": "—",
       "date": "תאריך",
-      "total": "סכום"
+      "total": "סכום",
+      "photos": "תמונות",
+      "actions": "פעולות"
     },
     "empty": {
       "noOrdersTitle": "אין הזמנות עדיין",
@@ -554,6 +571,15 @@
     },
     "quickSale": {
       "badge": "מכירה מהירה"
+    },
+    "rowMenu": {
+      "label": "אפשרויות להזמנה {number}",
+      "open": "פתיחת ההזמנה",
+      "markCollected": "הכסף התקבל",
+      "confirmTitle": "לרשום תשלום עבור הזמנה {number}?",
+      "confirmConsequence": "יירשם שחברת המשלוחים שילמה {amount} עבור ההזמנה.",
+      "confirmAction": "הכסף התקבל",
+      "collected": "התשלום נרשם."
     }
   },
   "reports": {

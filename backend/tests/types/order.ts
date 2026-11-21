@@ -64,6 +64,7 @@ export interface OrderSummaryDto {
   total: string;
   hasQuickSale: boolean;
   itemCount: number;
+  previewItems: { id: string; quantity: number; thumbnailUrl: string | null }[];
 }
 
 // POST /api/orders/collect

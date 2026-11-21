@@ -3,9 +3,7 @@ import { can } from "@organza/shared/lib/permissions";
 import { formatMoney } from "@/lib/money";
 import type { AnyRecord } from "@/types";
 
-// `unitCost` is sensitive (CLAUDE.md rule 19): ADMIN ONLY. Gated here, at
-// the response boundary, with the same permission the product API uses for
-// cost — one rule, one place.
+// unitCost is Admin only (rule 19), gated at the response boundary with the product API's own permission.
 function canSeeCost(role: Role): boolean {
   return can({ role }, "product.viewCost");
 }
@@ -25,8 +23,6 @@ function serializeItem(item: AnyRecord, role: Role) {
     discountAmount: formatMoney(item.discountAmount?.toString()),
     lineTotal: formatMoney(item.lineTotal?.toString()),
     returnedQuantity: item.returnedQuantity,
-    // How this line was rung up: picked from the catalogue, or typed at the
-    // counter because the piece wasn't in it yet (spec.md "Quick sell").
     quickSold: item.quickSold ?? false,
   };
 
@@ -71,8 +67,17 @@ export function serializeOrder(order: AnyRecord, role: Role) {
   };
 }
 
-// Lighter DTO for the list endpoint — enough to render a row without
-// shipping every line of every order.
+// A variant's own photo first, else its product's.
+function serializePreviewItem(item: AnyRecord) {
+  return {
+    id: item.id,
+    name: item.name,
+    variantName: item.variantName ?? null,
+    quantity: item.quantity,
+    thumbnailUrl: item.variant?.images?.[0]?.thumbnailUrl ?? item.product?.images?.[0]?.thumbnailUrl ?? null,
+  };
+}
+
 export function serializeOrderSummary(order: AnyRecord) {
   return {
     id: order.id,
@@ -89,6 +94,7 @@ export function serializeOrderSummary(order: AnyRecord) {
     discountAmount: formatMoney(order.discountAmount?.toString()),
     total: formatMoney(order.total?.toString()),
     itemCount: order._count?.items ?? (order.items?.length ?? 0),
+    previewItems: (order.items ?? []).map(serializePreviewItem),
     hasQuickSale: order.hasQuickSale ?? false,
     stockDeductedAt: order.stockDeductedAt,
     createdById: order.createdById,

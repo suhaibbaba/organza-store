@@ -38,6 +38,8 @@ import {
   quickSellValue,
 } from "@/lib/changeRequests";
 import { serializeOrder, serializeOrderSummary } from "@/lib/orderSerialize";
+import { MAIN_IMAGE_ONLY } from "@/constants/images";
+import { ORDER_SUMMARY_PREVIEW_LINES } from "@/constants/order";
 import { queryCollectionSummary, toCollectionSummary } from "@/lib/orderCollection";
 import { findCustomerSuggestions } from "@/lib/orderCustomers";
 import { scheduleSaleNotification } from "@/lib/saleNotifications";
@@ -69,43 +71,26 @@ import type {
   PricedOrderItem,
 } from "@/types";
 
-// Orders (Phase 2). Two shapes of sale share one model:
-//   STORE    — rung up at the POS counter; opens COMPLETED with stock
-//              already deducted and the cash already in the till, because the
-//              customer walks out with it.
-//   WHATSAPP / WEBSITE — taken remotely; opens NEW and travels
-//              NEW -> PREPARING -> HANDED_TO_COURIER, committing stock when
-//              preparation starts. The shop's part ends at the handover: it
-//              does not track the parcel to the customer's door.
-// Being paid is tracked separately from all of that (paymentStatus): the
-// delivery company settles up later, so a sold order and a collected one are
-// two different facts.
-// Money is computed here from the catalogue and the caller's discounts; no
-// total is ever accepted from a client.
+// STORE opens COMPLETED with stock out; WHATSAPP/WEBSITE walk NEW → PREPARING → HANDED_TO_COURIER; payment is tracked apart.
 const router = Router();
 router.use(requireAuth);
 
 const orderInclude = {
   items: { orderBy: [{ createdAt: "asc" as const }, { id: "asc" as const }] },
-  // Just the author's name, so the admin can say who took the order without
-  // reading the staff list (which is Admin-only). Nothing sensitive is
-  // selected — no email, phone or idNumber (CLAUDE.md rule 19).
+  // Author's name only — no email, phone or idNumber (rule 19).
   createdBy: { select: { id: true, name: true } },
 } satisfies Prisma.OrderInclude;
 
 type OrderWithItems = Prisma.OrderGetPayload<{ include: typeof orderInclude }>;
 
-// Soft-deleted orders are invisible to every route, so a deleted sale can
-// neither be read, edited, advanced nor returned — only the audit log and a
-// direct DB look still hold it.
+// Soft-deleted orders are invisible to every route; only the audit log still holds them.
 async function loadOrder(id: string): Promise<OrderWithItems> {
   const order = await prisma.order.findFirst({ where: { id, deletedAt: null }, include: orderInclude });
   if (!order) throw new AppError(404, ERROR_CODES.ORDER_NOT_FOUND);
   return order;
 }
 
-// What is still on the customer's side of the counter for each line — what a
-// cancellation has to put back, and what a return can still take back.
+// What is still with the customer per line: what a cancellation puts back and a return can still take.
 function outstandingMovements(order: OrderWithItems) {
   return toStockMovements(
     order.items.map((item) => ({
@@ -120,9 +105,7 @@ function isOnlineChannel(channel: string): boolean {
   return (ONLINE_ORDER_CHANNELS as readonly string[]).includes(channel);
 }
 
-// ---------------------------------------------------------------------------
 // GET /api/orders — list (pagination + filtering + sorting)
-// ---------------------------------------------------------------------------
 router.get(
   "/",
   requirePermission("order.view"),
@@ -133,24 +116,16 @@ router.get(
 
     if (query.status) where.status = query.status;
     if (query.channel) where.channel = query.channel;
-    // Unset means both: the orders list is the record of everything that left
-    // the shop, sold or given away.
+    // Unset lists sales and gifts alike: everything that left the shop.
     if (query.type) where.type = query.type;
     if (query.paymentStatus) where.paymentStatus = query.paymentStatus;
-    // "Which sales still need reviewing" (spec.md "Quick sell"). Unset lists
-    // everything: a quick sale is an ordinary sale in every other respect,
-    // and hiding it would be worse than marking it.
+    // Quick sell's review list (spec.md "Quick sell"); unset lists everything.
     if (query.hasQuickSale) where.hasQuickSale = true;
 
-    // The outstanding-money view asks for PENDING_COLLECTION + this: a
-    // cancelled or fully returned sale is still technically "not collected",
-    // but nobody owes anything on it, so it must not pad the list the shop
-    // chases the delivery company with.
+    // A cancelled or fully returned sale owes nothing and must not pad the outstanding-money list.
     if (query.collectableOnly) {
       const collectable = [...COLLECTABLE_ORDER_STATUSES] as OrderStatus[];
-      // Combined with an explicit status filter the two intersect, so asking
-      // for a non-collectable status alongside the flag matches nothing
-      // rather than quietly having one of the two dropped.
+      // With an explicit status the two intersect, so a non-collectable status matches nothing.
       where.status = { in: query.status ? collectable.filter((s) => s === query.status) : collectable };
     }
 
@@ -161,11 +136,7 @@ router.get(
       };
     }
 
-    // Staff look an order up by whatever they have in front of them: the
-    // number on the receipt, or the customer's name/phone from the chat.
-    // orderNumber is a 32-bit column, so a longer run of digits (a phone
-    // number, say) is matched as text only rather than being handed to
-    // Postgres as an out-of-range integer.
+    // orderNumber is 32-bit, so a longer run of digits (a phone) is matched as text only.
     if (query.q) {
       const asNumber = Number(query.q);
       const isOrderNumber = Number.isInteger(asNumber) && asNumber >= 0 && asNumber <= MAX_INT32;
@@ -180,7 +151,21 @@ router.get(
       prisma.order.count({ where }),
       prisma.order.findMany({
         where,
-        include: { _count: { select: { items: true } } },
+        include: {
+          _count: { select: { items: true } },
+          items: {
+            orderBy: [{ unitPrice: "desc" }, { createdAt: "asc" }],
+            take: ORDER_SUMMARY_PREVIEW_LINES,
+            select: {
+              id: true,
+              name: true,
+              variantName: true,
+              quantity: true,
+              product: { select: { images: MAIN_IMAGE_ONLY } },
+              variant: { select: { images: MAIN_IMAGE_ONLY } },
+            },
+          },
+        },
         orderBy: { [query.sortBy]: query.sortDir },
         skip: (query.page - 1) * query.pageSize,
         take: query.pageSize,
@@ -196,18 +181,7 @@ router.get(
   })
 );
 
-// ---------------------------------------------------------------------------
-// GET /api/orders/collection-summary — what the delivery company still owes,
-// across every sale regardless of date. Declared before /:id so the literal
-// path isn't swallowed as an order id.
-//
-// Gated on order.markCollected, NOT on order.view: this is a shop-wide money
-// total, the same class of figure as a report, and order.view is held by an
-// Employee so they can follow the orders they took. It also matches who the
-// answer is for — the people who settle up with the delivery company are the
-// people who chase it — and it is what the two screens reading it (the
-// collection page, the dashboard's "needs attention") already require.
-// ---------------------------------------------------------------------------
+// GET /api/orders/collection-summary — a shop-wide money total, so gated on order.markCollected, never order.view (rule 19).
 router.get(
   "/collection-summary",
   requirePermission("order.markCollected"),
@@ -216,16 +190,7 @@ router.get(
   })
 );
 
-// ---------------------------------------------------------------------------
-// GET /api/orders/customer-suggestions — repeat customers matching the phone
-// digits typed so far, for the POS's WhatsApp order form. Declared before
-// /:id so the literal path isn't swallowed as an order id.
-//
-// Gated on order.view like every other read of order data, which is exactly
-// the right level: an Employee takes these orders at the counter, and this
-// returns nothing they wouldn't see on the order list anyway (no cost, no
-// staff details — CLAUDE.md rule 19).
-// ---------------------------------------------------------------------------
+// GET /api/orders/customer-suggestions — repeat customers by phone digits; declared before /:id so the path isn't read as an id.
 router.get(
   "/customer-suggestions",
   requirePermission("order.view"),
@@ -236,30 +201,20 @@ router.get(
   })
 );
 
-// ---------------------------------------------------------------------------
-// POST /api/orders/collect — record that the delivery company has paid for
-// one or more orders. Admin/Manager only (order.markCollected): an Employee
-// may take a sale but must never be able to declare its money received.
-//
-// Marking an already-collected order is a no-op rather than an error, so two
-// people settling the same batch at once can't produce a failure.
-// ---------------------------------------------------------------------------
+// POST /api/orders/collect — an Employee may take a sale but never declare its money received.
 router.post(
   "/collect",
   requirePermission("order.markCollected"),
   validateBody(collectOrdersSchema),
   asyncHandler(async (req, res) => {
     const { orderIds } = req.body as CollectOrdersInput;
-    // Same id twice in one batch is the caller repeating themselves, not two
-    // collections.
     const ids = [...new Set(orderIds)];
 
     const orders = await prisma.order.findMany({ where: { id: { in: ids }, deletedAt: null } });
     const found = new Set(orders.map((order) => order.id));
     if (ids.some((id) => !found.has(id))) throw new AppError(404, ERROR_CODES.ORDER_NOT_FOUND);
 
-    // A cancelled or fully returned sale owes the shop nothing, so there is
-    // no money on it to collect.
+    // A cancelled or fully returned sale has no money on it to collect.
     if (orders.some((order) => !isOrderCollectable(order.status))) {
       throw new AppError(409, ERROR_CODES.ORDER_NOT_COLLECTABLE);
     }
@@ -274,8 +229,7 @@ router.post(
       });
     }
 
-    // One audit entry per order, not per batch: "who said the money for order
-    // 412 arrived" has to be answerable on its own (CLAUDE.md rule 6).
+    // One audit entry per order, so "who said order 412 was paid" is answerable on its own (rule 6).
     for (const order of pending) {
       await writeAudit({
         userId: req.user!.id,
@@ -299,9 +253,7 @@ router.post(
   })
 );
 
-// ---------------------------------------------------------------------------
 // GET /api/orders/:id — detail
-// ---------------------------------------------------------------------------
 router.get(
   "/:id",
   requirePermission("order.view"),
@@ -311,10 +263,7 @@ router.get(
   })
 );
 
-// ---------------------------------------------------------------------------
-// POST /api/orders — create (Admin/Manager/Employee: spec.md lets an
-// Employee ring up a sale, just not undo one)
-// ---------------------------------------------------------------------------
+// POST /api/orders — create (an Employee may ring up a sale, just not undo one)
 router.post(
   "/",
   requirePermission("order.create"),
@@ -322,48 +271,30 @@ router.post(
   asyncHandler(async (req, res) => {
     const body = req.body as CreateOrderInput;
 
-    // Giving stock away is not something an Employee may do: someone who
-    // could file a sale as a gift could walk out with the piece. Checked here
-    // rather than on the route because order.create is the gate for the
-    // ordinary case and this is the narrower one on top of it. (The schema
-    // has already refused a gift on any channel but STORE.)
+    // An Employee may not give stock away: filing a sale as a gift would let a piece walk out.
     const isGift = body.type === GIFT_ORDER_TYPE;
     if (isGift && !can(req.user!, "order.createGift")) throw new AppError(403, ERROR_CODES.FORBIDDEN);
 
-    // Quick sell (spec.md "Quick sell"): lines naming a piece that is not in
-    // the catalogue at all. Refused up front for anybody without the
-    // permission — the sale would otherwise create a product they may not
-    // create (CLAUDE.md rule 5) — and refused on a gift, because giving away
-    // something the shop has no record of buying is not a gift, it is a piece
-    // walking out with nothing to show it ever existed.
+    // Quick sell needs its permission and is refused on a gift: an unrecorded piece given away leaves no trace.
     const quickSellCount = body.items.filter((item) => item.quickSell).length;
     if (quickSellCount > 0) {
       if (!can(req.user!, "product.quickSell")) throw new AppError(403, ERROR_CODES.FORBIDDEN);
       if (isGift) throw new AppError(400, ERROR_CODES.ORDER_ITEM_SOURCE_INVALID);
     }
 
-    // Prices, names and costs are read from the catalogue here and frozen
-    // onto the lines — the caller only named products and quantities. Quick
-    // sold lines have no catalogue entry to read, so they are priced inside
-    // the transaction below, where their product is created.
+    // Catalogue lines are priced here; quick-sold lines are priced in the transaction where their product is created.
     const catalogue = await priceRequestedItems(
       body.items
         .filter((item) => item.productId)
         .map((item) => ({ ...item, productId: item.productId! }))
     );
 
-    // A counter sale differs from a remote one in three ways at once: it
-    // opens finished, it takes its stock off the shelf immediately, and its
-    // money is already in the till. A gift takes the same path — it is handed
-    // over at the counter — with nothing to collect.
+    // A counter sale (and a gift) opens finished, takes stock at once and has its money in the till.
     const isCounterSale = body.channel === "STORE";
     const now = new Date();
 
     const { created, quickSellRequests } = await prisma.$transaction(async (tx) => {
-      // The lines, back in the order they were sent. Catalogue lines were
-      // priced above; a quick-sold line creates its product here, inside this
-      // transaction, so an abandoned or failed sale can never leave a
-      // half-made product behind (see lib/quickSell.ts).
+      // A quick-sold product is created inside this transaction, so a failed sale never leaves a half-made product.
       const quickSold: { line: PricedOrderItem; input: NonNullable<CreateOrderInput["items"][number]["quickSell"]> }[] = [];
       const lines: PricedOrderItem[] = [];
       let nextCatalogueLine = 0;
@@ -384,14 +315,11 @@ router.post(
         quickSold.push({ line: product.line, input: item.quickSell });
       }
 
-      // A gift charges nothing: every line is re-priced at zero, and only
-      // unitCost survives — that is what the shop actually lost. (A gift can
-      // hold no quick-sold line; that was refused above.)
+      // A gift re-prices every line at zero; only unitCost survives, as what the shop lost.
       const priced = isGift ? asGiftLines(lines) : lines;
       const totals = computeOrderTotals(
         priced.map((line) => line.lineTotal),
-        // A discount off nothing is nothing; a gift's order-level discount is
-        // dropped rather than applied to a zero subtotal.
+        // A gift's order-level discount is dropped rather than applied to a zero subtotal.
         isGift ? {} : body
       );
 
@@ -401,8 +329,7 @@ router.post(
           type: body.type as OrderType,
           status: (isCounterSale ? STORE_ORDER_INITIAL_STATUS : ONLINE_ORDER_INITIAL_STATUS) as OrderStatus,
           paymentMethod: body.paymentMethod,
-          // An order going out with the courier is not paid for until the
-          // delivery company settles up (spec.md "Payment collection").
+          // A courier order is not paid until the delivery company settles up (spec.md "Payment collection").
           paymentStatus: (isCounterSale
             ? STORE_ORDER_INITIAL_PAYMENT_STATUS
             : ONLINE_ORDER_INITIAL_PAYMENT_STATUS) as PaymentStatus,
@@ -420,9 +347,7 @@ router.post(
           discountAmount: totals.discountAmount,
           total: totals.total,
           stockDeductedAt: isCounterSale ? now : null,
-          // A fact about the sale, kept on the sale: it stays true after the
-          // product has been completed, ruled a one-off or removed, and the
-          // orders list filters on it without reading every line.
+          // Kept on the sale so it outlives the product's completion and the list can filter on it.
           hasQuickSale: quickSold.length > 0,
           createdById: req.user!.id,
           items: {
@@ -446,19 +371,10 @@ router.post(
         include: orderInclude,
       });
 
-      // A counter sale hands the goods over immediately, so stock moves with
-      // the order. Online orders wait for PREPARING — see the status route.
-      // A quick-sold product was created holding exactly what is leaving, so
-      // this same deduction lands it at zero — quick sell adds no second path
-      // through stock.
+      // A counter sale deducts now (a quick-sold product lands at zero); online orders wait for PREPARING.
       if (isCounterSale) await deductStock(tx, toStockMovements(priced));
 
-      // ...and the review that the sale owes: "this was sold, complete its
-      // details" (spec.md "Quick sell"). Filed in this transaction alongside
-      // the product and the order, so the three can never disagree about
-      // whether the sale happened. Nothing waits on it — the sale is already
-      // complete, which is exactly what makes this request read the opposite
-      // way round from every other one.
+      // The completion request is filed in the same transaction, so product, order and request never disagree.
       const quickSellRequests = [];
       for (const { line, input } of quickSold) {
         quickSellRequests.push(
@@ -466,9 +382,7 @@ router.post(
             entityType: CHANGE_REQUEST_ENTITIES.PRODUCT,
             entityId: line.productId!,
             field: CHANGE_REQUEST_FIELDS.PRODUCT_COMPLETION,
-            // Nothing was there before. An empty old value is what makes the
-            // admin card read "sold for X" rather than "from A to B" — there
-            // is no previous state to move away from.
+            // An empty old value makes the admin card read "sold for X" rather than "from A to B".
             oldValue: quickSellValue(0, {}),
             newValue: quickSellValue(line.unitPrice, {
               sale: {
@@ -497,36 +411,19 @@ router.post(
       newValue: serializeOrder(created, Role.ADMIN),
     });
 
-    // The request's own audit entry and push, once the sale has committed —
-    // the same pair fileChangeRequest() writes for itself. Deliberately after
-    // the transaction: a rolled-back sale must leave neither behind. The audit
-    // of WHO quick-sold WHAT at WHAT PRICE is the order's own CREATE entry
-    // above, which carries every line's name, price and quickSold flag.
+    // After commit, so a rolled-back sale leaves neither the request's audit entry nor its push behind.
     for (const request of quickSellRequests) {
       await announceFiledChangeRequest(request, req.user!);
     }
 
-    // The shop owner isn't at the counter all day, so a sale made by someone
-    // else is pushed to whichever Admin devices have opted in. Deliberately
-    // NOT awaited and after the order is committed: a push service being
-    // slow or down must never delay a queue at the till, and must never turn
-    // a completed sale into an error (failures go to the error-tracking
-    // layer instead — see lib/saleNotifications.ts).
-    //
-    // Gifts are left out: the notification says "new sale — <amount>", and a
-    // gift is neither. Only an Admin or a Manager can give stock away, and
-    // the audit log holds who did (spec.md "Cash drawer & expenses").
+    // Never awaited and after commit, so a slow push service can't delay the till; gifts are not "new sale" pushes.
     if (!isGift) scheduleSaleNotification(created, req.user!);
 
     sendOk(res, serializeOrder(created, req.user!.role), null, 201);
   })
 );
 
-// ---------------------------------------------------------------------------
-// PATCH /api/orders/:id — edit contact details, note, payment method and
-// discounts (Admin/Manager only — an Employee must not be able to reprice a
-// sale after the fact). Lines themselves are fixed at creation.
-// ---------------------------------------------------------------------------
+// PATCH /api/orders/:id — contact, note, payment method and discounts (Admin/Manager); lines are fixed at creation.
 router.patch(
   "/:id",
   requirePermission("order.edit"),
@@ -539,8 +436,7 @@ router.patch(
       throw new AppError(409, ERROR_CODES.ORDER_NOT_EDITABLE);
     }
 
-    // An online order still has to be deliverable to someone once the edit
-    // lands — the same invariant the create schema enforces.
+    // An online order must still be deliverable to someone, as the create schema enforces.
     if (isOnlineChannel(existing.channel)) {
       const name = body.customerName === undefined ? existing.customerName : body.customerName;
       const phone = body.customerPhone === undefined ? existing.customerPhone : body.customerPhone;
@@ -554,8 +450,7 @@ router.patch(
       }
     }
 
-    // Lines are re-priced from their own snapshots, never from today's
-    // catalogue: a past sale keeps the price it was sold at.
+    // Re-priced from the line snapshots, never today's catalogue: a past sale keeps its price.
     const repriced = existing.items.map((item) => {
       const patch = itemPatches.get(item.id);
       const discount = patch
@@ -622,12 +517,7 @@ router.patch(
   })
 );
 
-// ---------------------------------------------------------------------------
-// PATCH /api/orders/:id/status — move an order along the flow.
-// Employees may advance it (spec.md: they "create + hand over" orders);
-// cancelling needs order.cancel, which they don't have, and marking the money
-// collected needs order.markCollected, which they don't have either.
-// ---------------------------------------------------------------------------
+// PATCH /api/orders/:id/status — Employees may advance; cancelling needs order.cancel.
 router.patch(
   "/:id/status",
   requirePermission("order.updateStatus"),
@@ -636,9 +526,7 @@ router.patch(
     const existing = await loadOrder(req.params.id);
     const target = (req.body as UpdateOrderStatusInput).status;
 
-    // RETURNED is a legal destination (see ORDER_STATUS_TRANSITIONS) but not
-    // a settable one: it has to come from POST /:id/return so stock and
-    // returnedQuantity move with it.
+    // RETURNED only comes from POST /:id/return, so stock and returnedQuantity move with it.
     if (target === "RETURNED") throw new AppError(400, ERROR_CODES.ORDER_INVALID_STATUS_TRANSITION);
 
     const cancelling = target === "CANCELLED";
@@ -647,9 +535,7 @@ router.patch(
     const allowed = ORDER_STATUS_TRANSITIONS[existing.status as OrderStatus] ?? [];
     if (!allowed.includes(target)) throw new AppError(400, ERROR_CODES.ORDER_INVALID_STATUS_TRANSITION);
 
-    // stockDeductedAt is the single source of truth for "has this order taken
-    // stock off the shelf" — both branches below key off it, so re-entering a
-    // state can never double-deduct or double-restore.
+    // stockDeductedAt is the one source of truth, so re-entering a state never double-deducts or double-restores.
     const deductNow = target === ONLINE_STOCK_DEDUCTION_STATUS && existing.stockDeductedAt === null;
     const restoreNow = cancelling && existing.stockDeductedAt !== null;
 
@@ -681,11 +567,7 @@ router.patch(
   })
 );
 
-// ---------------------------------------------------------------------------
-// POST /api/orders/:id/return — return the whole order, or specific lines in
-// specific quantities. Admin/Manager only: reversing a sale is exactly what
-// spec.md keeps out of an Employee's hands.
-// ---------------------------------------------------------------------------
+// POST /api/orders/:id/return — whole order or specific lines; Admin/Manager only.
 router.post(
   "/:id/return",
   requirePermission("order.return"),
@@ -700,8 +582,7 @@ router.post(
 
     const itemsById = new Map(existing.items.map((item) => [item.id, item]));
 
-    // No `items` means "all of it" — every line, in whatever quantity is
-    // still outstanding.
+    // No items = every line, in whatever quantity is still outstanding.
     const requested = body.items
       ? body.items.map((entry) => {
           const item = itemsById.get(entry.orderItemId);
@@ -730,8 +611,7 @@ router.post(
       }
     }
 
-    // Goods only go back on the shelf if they ever left it — an order whose
-    // stock was never deducted has nothing to restore.
+    // Only goods that left the shelf go back on it.
     const movements = existing.stockDeductedAt
       ? toStockMovements(
           [...returnedById].map(([itemId, quantity]) => ({
@@ -742,8 +622,7 @@ router.post(
         )
       : [];
 
-    // Once every line has come back in full the order itself is RETURNED;
-    // a partial return leaves the status alone and just records quantities.
+    // Every line back in full makes the order RETURNED; a partial return only records quantities.
     const fullyReturned = existing.items.every(
       (item) => item.returnedQuantity + (returnedById.get(item.id) ?? 0) >= item.quantity
     );
@@ -781,12 +660,7 @@ router.post(
   })
 );
 
-// ---------------------------------------------------------------------------
-// DELETE /api/orders/:id — soft delete, Admin/Manager only. A sale is a
-// financial record, so it is hidden rather than destroyed (the same reasoning
-// that makes products soft-delete-only, CLAUDE.md rule 4). Anything still
-// committed goes back on the shelf as it does on a cancellation.
-// ---------------------------------------------------------------------------
+// DELETE /api/orders/:id — soft delete (a financial record); committed stock goes back as on a cancellation.
 router.delete(
   "/:id",
   requirePermission("order.delete"),
@@ -799,8 +673,6 @@ router.delete(
 
       return tx.order.update({
         where: { id: existing.id },
-        // stockDeductedAt is cleared along with it: the goods are back on the
-        // shelf, so this order no longer holds any.
         data: { deletedAt: new Date(), ...(restoreNow ? { stockDeductedAt: null } : {}) },
       });
     });
