@@ -704,12 +704,24 @@
         "confirm": "Delete this product? It disappears from the products list, the POS and the storefront. Past orders keep it.",
         "confirmAction": "Yes, delete it",
         "keep": "Keep it",
-        "success": "Product deleted."
+        "success": "Product deleted.",
+        "title": "Delete “{name}”?",
+        "consequence": "It disappears from the products list, the POS and the storefront. Past orders keep it."
       },
       "barcodeSource": "Barcode source",
       "barcodeGenerated": "Ours (label printed)",
       "barcodeSupplier": "Supplier's (no label needed)",
-      "barcodeSupplierShort": "supplier's code"
+      "barcodeSupplierShort": "supplier's code",
+      "actions": "Product actions",
+      "price": "Price",
+      "noPhotos": "No photos yet",
+      "noDescription": "No description yet",
+      "tabs": {
+        "label": "Product sections",
+        "variants": "Variants",
+        "photos": "Photos",
+        "description": "Description"
+      }
     },
     "form": {
       "back": "Back",
@@ -792,7 +804,7 @@
         "addType": "Add a new option type",
         "newTypePlaceholder": "e.g. Material",
         "noTypesYet": "No option types yet — add one below.",
-        "previewCount": "{count} variants will be created",
+        "previewCount": "{count, plural, one {1 variant will be created} other {{count} variants will be created}}",
         "removeCombo": "Remove",
         "restoreCombo": "Restore",
         "undo": "Undo",
@@ -802,12 +814,22 @@
         "cost": "Cost",
         "active": "Visible",
         "addMoreTitle": "Add more combinations",
-        "addMoreSuccess": "Variants added.",
-        "generate": "Generate variants",
         "toggleDetails": "Details — {name}",
         "summaryStock": "Stock: {count}",
         "hidden": "Hidden",
-        "barcodeIncomplete": "Barcode incomplete"
+        "barcodeIncomplete": "Barcode incomplete",
+        "addButton": "Add variants",
+        "done": "Done",
+        "drawerDescription": "Visibility, price, barcode and photos for this variant. Saved with the product.",
+        "selectedCount": "{count} selected",
+        "addDescription": "Pick the colours and sizes to add. Each new combination appears in the list with its own stock.",
+        "addCount": "Add {count, plural, one {1 variant} other {{count} variants}}",
+        "noneSelected": "Nothing selected",
+        "selectAll": "Select all",
+        "bulkStock": "stock for the selected",
+        "bulkSetStock": "Set stock",
+        "bulkRemove": "Remove",
+        "selectRow": "Select {name}"
       },
       "optionNotes": {
         "title": "Notes on the options",
@@ -880,7 +902,6 @@
       "kind": {
         "title": "What are you selling?",
         "legend": "Product kind",
-        "hint": "Pick one — it changes what you fill in below.",
         "ordinaryTitle": "A normal product",
         "ordinaryDescription": "One piece, or several in different colours and sizes.",
         "numberedTitle": "Numbered pieces",
@@ -901,6 +922,19 @@
         "title": "Saved — some changes are waiting",
         "detail": "{count} of your changes need an admin's approval before they take effect. Nothing was lost.",
         "viewProduct": "View product"
+      },
+      "statusTitle": "Status",
+      "sections": {
+        "basic-info": "The name and description customers see, and where it sits in the catalogue.",
+        "pricing": "What it sells for, an optional before-discount price, and what it cost you.",
+        "barcode": "The code the cashier scans: ours, or the supplier's printed one.",
+        "variants": "Each colour and size this piece comes in, with its own stock.",
+        "numbered-hint": "Numbers are placed on the photo once the product is saved.",
+        "numbered-shawl": "Each numbered piece on the photo, with its own price and stock.",
+        "status": "Whether customers see it, and whether low stock warns you.",
+        "kind": "Pick one — it changes what you fill in below.",
+        "photos": "The first photo is the one shown everywhere.",
+        "inventory": "How many pieces you have, and its stock code."
       }
     },
     "completeness": {
@@ -1691,7 +1725,10 @@
       "range": "Period",
       "error": "Required",
       "errorHint": "This field is required",
-      "disabled": "Disabled field"
+      "disabled": "Disabled field",
+      "translated": "Translated name",
+      "sectionTitle": "Section",
+      "sectionDescription": "A titled card that folds away."
     },
     "choices": {
       "channel": "Sales channel",

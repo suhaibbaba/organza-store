@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { QUANTITY_MAX } from "@/constants/quantity";
 import {
   booleanInput,
   decimalInput,
@@ -67,6 +68,12 @@ export const imagePointSchema = z.object({
   imageY: imagePointCoordinateSchema,
 });
 
+export const comboStockSchema = z.object({
+  valueIds: z.array(z.string().min(1)).min(1),
+  stock: z.coerce.number().int().min(0).max(QUANTITY_MAX),
+});
+export type ComboStockInput = z.infer<typeof comboStockSchema>;
+
 export const optionSelectionSchema = z.object({
   variantTypeId: z.string().min(1),
   valueIds: z.array(z.string().min(1)).min(1),
@@ -131,6 +138,7 @@ export const createProductSchema = z.object({
   // Selected global option values to generate variants from (cartesian
   // product across each type's valueIds). Omit for a simple product.
   optionSelections: z.array(optionSelectionSchema).optional(),
+  comboStocks: z.array(comboStockSchema).optional(),
   // Optional short note per chosen value ("طول البنطلون ٩٥ سم" against this
   // product's own S). Only values this product actually uses are accepted.
   ...optionValueNotesField,
@@ -166,6 +174,7 @@ export type UpdateProductInput = z.infer<typeof updateProductSchema>;
 
 export const generateVariantsSchema = z.object({
   optionSelections: z.array(optionSelectionSchema).min(1),
+  comboStocks: z.array(comboStockSchema).optional(),
 });
 export type GenerateVariantsInput = z.infer<typeof generateVariantsSchema>;
 

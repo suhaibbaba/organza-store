@@ -1,10 +1,12 @@
 "use client";
 
-import { useMemo, useState, type ReactNode } from "react";
+import { MoneyField } from "@/components/fields/money-field";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useLocale, useTranslations } from "next-intl";
-import { Alert, Button, Card, Input, SegmentedControl, Select, Switch, Textarea } from "@store/ui";
+import { Alert, Button, Input, SaveBar, Section, Select, Switch, TranslatedField } from "@store/ui";
+import { PRODUCT_FORM_SECTIONS, type ProductFormSectionName } from "@/constants/products";
 import { SUPPORTED_LANGUAGES, DEFAULT_LANGUAGE } from "@organza/shared/constants/languages";
 import { NUMBER_VARIANT_TYPE_SLUG } from "@organza/shared/constants/variantType";
 import { ERROR_CODES } from "@organza/shared/constants/errors";
@@ -18,7 +20,14 @@ import { useCategoriesQuery } from "@/hooks/use-categories";
 import { flattenCategoryTree } from "@/lib/api/categories";
 import { useVariantTypesQuery } from "@/hooks/use-variant-types";
 import { useSettingsQuery } from "@/hooks/use-settings";
-import { useCreateProductMutation, useUpdateProductMutation, useUpdateVariantMutation, useDeleteVariantMutation } from "@/hooks/use-products";
+import {
+  useCreateProductMutation,
+  useDeleteVariantMutation,
+  useGenerateVariantsMutation,
+  useUpdateProductMutation,
+  useUpdateVariantMutation,
+} from "@/hooks/use-products";
+import { DEFAULT_STOCK } from "@organza/shared/constants/quantity";
 import { deleteVariant } from "@/lib/api/products";
 import {
   productBasicFormSchema,
@@ -50,8 +59,6 @@ import { buildVariantPreview, toOptionSelections, comboKey } from "@/lib/variant
 import { localize } from "@/lib/i18n-content";
 import { formatMoney } from "@/lib/format";
 import { LOCALE_LABELS } from "@/constants/locale";
-import { FormContainer } from "@/components/layout/form-container";
-import { NumericInput } from "@/components/fields/numeric-input";
 import { QuantityStepper } from "@/components/fields/quantity-stepper";
 import { parseQuantity } from "@/lib/validation/numeric";
 import { OptionValueNotesSection } from "@/components/products/option-value-notes-section";
@@ -78,9 +85,10 @@ import type {
 interface ProductFormProps {
   mode: "create" | "edit";
   product?: Product;
+  onDiscard?: () => void;
 }
 
-export function ProductForm({ mode, product }: ProductFormProps) {
+export function ProductForm({ mode, product, onDiscard }: ProductFormProps) {
   const t = useTranslations("products.form");
   const tCommon = useTranslations("common");
   const locale = useLocale();
@@ -89,25 +97,19 @@ export function ProductForm({ mode, product }: ProductFormProps) {
   const translateError = useTranslateError();
 
   const canSeeCost = can(user, "product.viewCost");
-  // Someone who may only REQUEST still sees the fields: a field you can't see is a change you can't ask for (spec.md "Employee change approvals").
   const canRequestChanges = can(user, "changeRequest.create");
   const canDeleteImages = can(user, "images.delete") || canRequestChanges;
   const canRemoveCombos = can(user, "product.editVariantSet") || canRequestChanges;
-  // Details are open to every editing role; images are a separate, broader capability.
   const canEditDetails = mode === "create" || can(user, "product.edit");
-  // A NEW product's price is part of adding it; re-pricing an existing one is product.editPrice.
   const appliesPrice = mode === "create" || can(user, "product.editPrice");
   const appliesStock = mode === "create" || can(user, "inventory.adjust");
   const appliesVisibility = can(user, "product.hide");
-  // The backend decides on save whether a value lands or waits; the hint says which.
   const canEditPrice = appliesPrice || canRequestChanges;
   const canEditStock = appliesStock || canRequestChanges;
   const showActiveToggle = appliesVisibility || canRequestChanges;
-  // ...and the little "this needs approval" line beneath each of them.
   const priceNeedsApproval = !appliesPrice && canRequestChanges;
   const stockNeedsApproval = !appliesStock && canRequestChanges;
   const visibilityNeedsApproval = !appliesVisibility && canRequestChanges;
-  // Low-stock opt-in follows the stock gate.
   const canTrackLowStock = can(user, "inventory.adjust");
 
   const abilities: ProductEditAbilities = {
@@ -123,31 +125,22 @@ export function ProductForm({ mode, product }: ProductFormProps) {
   const { data: settings } = useSettingsQuery();
   const currency = settings?.currency ?? "ILS";
 
-  // Create-mode: which global option values build the cartesian variant set.
-  const [nameLanguage, setNameLanguage] = useState<keyof I18nFormValue>(DEFAULT_LANGUAGE);
-  const [descriptionLanguage, setDescriptionLanguage] = useState<keyof I18nFormValue>(DEFAULT_LANGUAGE);
   const [selections, setSelections] = useState<VariantSelectionMap>({});
   const [excludedCombos, setExcludedCombos] = useState<Set<string>>(new Set());
-  // Edit-mode: local, unsaved edits to the product's existing variant rows.
+  const [comboStocks, setComboStocks] = useState<Record<string, number>>({});
   const [variantEdits, setVariantEdits] = useState<Record<string, VariantEditValues>>(() =>
     product ? initVariantEdits(product.variants) : {}
   );
-  // Baseline separating what the person changed from what changed elsewhere (diffVariantEdit).
   const [variantBaseline, setVariantBaseline] = useState<Record<string, VariantEditValues>>(() =>
     product ? initVariantEdits(product.variants) : {}
   );
   const [removedVariantIds, setRemovedVariantIds] = useState<Set<string>>(new Set());
-  // Keyed by option value id, saved with the rest of the form (spec.md "Notes on a product's options").
   const [optionNotes, setOptionNotes] = useState<OptionValueNoteMap>(() => initOptionValueNotes(product));
   const [submitError, setSubmitError] = useState<string | null>(null);
-  // Held changes are reported as news, never as an error: nothing failed.
   const [awaitingApproval, setAwaitingApproval] = useState(0);
 
-  // Photos are held here, not uploaded on pick, so one Save writes the product and its photos together.
   const [galleries, setGalleries] = useState<Record<string, Gallery>>(() => initGalleries(product));
-  // Null when idle.
   const [saveStep, setSaveStep] = useState<SaveStep | null>(null);
-  // Keeps the product id so a retry (or "continue") never creates a second product.
   const [partialFailure, setPartialFailure] = useState<{ pending: number; errorCode: string | null } | null>(null);
   const [savedProductId, setSavedProductId] = useState<string | null>(product?.id ?? null);
 
@@ -156,13 +149,12 @@ export function ProductForm({ mode, product }: ProductFormProps) {
     handleSubmit,
     control,
     watch,
-    formState: { errors, isSubmitting },
+    formState: { errors, isSubmitting, isDirty: fieldsDirty },
   } = useForm<ProductBasicFormValues>({
     resolver: zodResolver(productBasicFormSchema),
     defaultValues: mode === "edit" && product ? productToFormValues(product) : DEFAULT_PRODUCT_FORM_VALUES,
   });
 
-  // A rejected barcode also names the piece already using it (lib/barcode-conflict.ts).
   function describeError(err: unknown): string {
     if (!(err instanceof ApiError)) return translateError(ERROR_CODES.INTERNAL);
     const conflict = barcodeConflictSku(err);
@@ -175,10 +167,9 @@ export function ProductForm({ mode, product }: ProductFormProps) {
   const updateMutation = useUpdateProductMutation(product?.id ?? "");
   const updateVariantMutation = useUpdateVariantMutation(product?.id ?? "");
   const deleteVariantMutation = useDeleteVariantMutation(product?.id ?? "");
+  const generateMutation = useGenerateVariantsMutation(product?.id ?? "");
 
-  // A numbered product sells its numbers only, so the colour/size machinery isn't shown (spec.md "Numbered shawls").
   const isNumbered = watch("isNumbered");
-  // Locked while variants exist; the API refuses it too.
   const savedVariantCount = mode === "edit" ? product?.variants.length ?? 0 : 0;
   const kindLockedReason = savedVariantCount === 0 ? null : product?.isNumbered ? "numbers" : "options";
 
@@ -186,13 +177,11 @@ export function ProductForm({ mode, product }: ProductFormProps) {
   const willHaveVariants = mode === "create" ? newOptionSelections.length > 0 : Boolean(product?.hasVariants);
   const showVariantsCard = !isNumbered && (mode === "create" || Boolean(product?.hasVariants) || canEditDetails);
 
-  // Numbers are placed by the dedicated tool, never in the colour/size picker.
   const ordinaryVariantTypes = useMemo(
     () => (variantTypes ?? []).filter((type) => type.slug !== NUMBER_VARIANT_TYPE_SLUG),
     [variantTypes]
   );
 
-  // Just-ticked values while creating, or the ones the variants already use.
   const noteGroups = useMemo(
     () =>
       mode === "create"
@@ -203,7 +192,6 @@ export function ProductForm({ mode, product }: ProductFormProps) {
     [mode, variantTypes, selections, product, locale]
   );
 
-  // Notes on unticked values are dropped from the payload (the API refuses them) but kept locally for a re-tick.
   const noteRowKeys = useMemo(
     () => new Set(noteGroups.flatMap((group) => group.rows.map((row) => row.key))),
     [noteGroups]
@@ -216,9 +204,16 @@ export function ProductForm({ mode, product }: ProductFormProps) {
   }
 
   const previewRows = useMemo(
-    () => (mode === "create" ? buildVariantPreview(ordinaryVariantTypes, selections) : []),
-    [mode, ordinaryVariantTypes, selections]
+    () => buildVariantPreview(ordinaryVariantTypes, selections),
+    [ordinaryVariantTypes, selections]
   );
+  const comboStocksPayload = previewRows
+    .filter((row) => !excludedCombos.has(row.key))
+    .map((row) => ({ valueIds: row.valueIds, stock: comboStocks[row.key] ?? DEFAULT_STOCK }));
+
+  function setComboStock(key: string, stock: number) {
+    setComboStocks((previous) => ({ ...previous, [key]: stock }));
+  }
 
   function toggleExcludedCombo(key: string) {
     setExcludedCombos((prev) => {
@@ -230,10 +225,27 @@ export function ProductForm({ mode, product }: ProductFormProps) {
   }
 
   const isBusy = isSubmitting || saveStep !== null;
-  // Image editing is its own capability, so Save also belongs to someone who may only change photos.
+  const languageOrder: (keyof I18nFormValue)[] = [
+    DEFAULT_LANGUAGE,
+    ...SUPPORTED_LANGUAGES.filter((lang) => lang !== DEFAULT_LANGUAGE),
+  ];
+  const formLanguages = languageOrder.map((code) => ({ code, name: LOCALE_LABELS[code] }));
+  const formRef = useRef<HTMLFormElement>(null);
+  const noticeRef = useRef<HTMLDivElement>(null);
+  const hasChanges =
+    fieldsDirty ||
+    Object.values(galleries).some(galleryChanged) ||
+    removedVariantIds.size > 0 ||
+    JSON.stringify(variantEdits) !== JSON.stringify(variantBaseline) ||
+    chosenValueNotes(initOptionValueNotes(product)).length > 0 ||
+    newOptionSelections.length > 0;
+  useEffect(() => {
+    if (submitError || partialFailure || awaitingApproval > 0) {
+      noticeRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [submitError, partialFailure, awaitingApproval]);
   const canSave = canEditDetails || can(user, "images.edit");
 
-  // The per-variant working galleries, in the shape the variant list wants.
   const variantImageSlots = useMemo(() => {
     const map: Record<string, GallerySlot[]> = {};
     for (const [key, gallery] of Object.entries(galleries)) {
@@ -247,13 +259,11 @@ export function ProductForm({ mode, product }: ProductFormProps) {
     setGalleries((prev) => ({ ...prev, [key]: { slots, saved: prev[key]?.saved ?? [] } }));
   }
 
-  // Never throws for a photo: failures come back as counts and stay pending for a retry.
   async function saveGalleries(
     productId: string
   ): Promise<{ pending: number; awaiting: number; errorCode: string | null }> {
     const jobs = Object.entries(galleries).filter(([, gallery]) => galleryChanged(gallery));
     if (jobs.length === 0) return { pending: 0, awaiting: 0, errorCode: null };
-
 
     const total = jobs.reduce((sum, [, gallery]) => sum + pendingCount(gallery.slots), 0);
     let uploaded = 0;
@@ -262,7 +272,6 @@ export function ProductForm({ mode, product }: ProductFormProps) {
     const next = { ...galleries };
     let pending = 0;
     let errorCode: string | null = null;
-    // Photo deletions that were filed as requests rather than carried out.
     let awaiting = 0;
 
     for (const [key, gallery] of jobs) {
@@ -290,14 +299,12 @@ export function ProductForm({ mode, product }: ProductFormProps) {
     setSaveStep(null);
     const waiting = requestsFiled + result.awaiting;
     setAwaitingApproval(waiting);
-    // The product mutation invalidated before any photo went up, so invalidate again, even on partial failure.
     productChanged(productId);
     if (result.pending > 0 || result.errorCode) {
       setSavedProductId(productId);
       setPartialFailure({ pending: result.pending, errorCode: result.errorCode });
       return;
     }
-    // A HELD change keeps the form on screen: leaving would look like a normal save (spec.md "Employee change approvals").
     if (waiting > 0) {
       setSavedProductId(productId);
       return;
@@ -321,7 +328,6 @@ export function ProductForm({ mode, product }: ProductFormProps) {
     setSubmitError(null);
     setPartialFailure(null);
 
-    // A half-scanned supplier code blocks Save rather than silently dropping it; rows staged for removal are exempt.
     const liveVariantEdits = Object.entries(variantEdits)
       .filter(([id]) => !removedVariantIds.has(id))
       .map(([, edits]) => edits);
@@ -331,10 +337,12 @@ export function ProductForm({ mode, product }: ProductFormProps) {
     }
 
     try {
-      // Product row, then variants, then photos: the only order the API allows.
       if (mode === "create") {
         setSaveStep({ kind: "product" });
-        const payload = toCreatePayload(values, newOptionSelections, chosenValueNotes({}));
+        const payload = {
+          ...toCreatePayload(values, newOptionSelections, chosenValueNotes({})),
+          comboStocks: comboStocksPayload,
+        };
         const created = await createMutation.mutateAsync(payload);
 
         if (created.hasVariants && excludedCombos.size > 0) {
@@ -345,14 +353,12 @@ export function ProductForm({ mode, product }: ProductFormProps) {
           await Promise.all(toDelete.map((v) => deleteVariant(created.id, v.id)));
         }
 
-        // Photos picked before the product existed go up against its new id.
         finishSave(created.id, await saveGalleries(created.id));
         return;
       }
 
       if (!product) return;
 
-      // Collected by request id so the notice can say how many are waiting.
       const filedRequests = new Set<string>();
 
       if (canEditDetails) {
@@ -362,7 +368,6 @@ export function ProductForm({ mode, product }: ProductFormProps) {
             values,
             willHaveVariants,
             abilities,
-            // Only changed notes, so a save never overwrites one written elsewhere since.
             chosenValueNotes(initOptionValueNotes(product))
           )
         );
@@ -385,7 +390,6 @@ export function ProductForm({ mode, product }: ProductFormProps) {
           for (const variant of patched) {
             for (const change of variant.pendingChanges ?? []) filedRequests.add(change.id);
           }
-          // The new baseline, so a second save doesn't resend these over a later change.
           setVariantBaseline(variantEdits);
           const removals = await Promise.all(
             [...removedVariantIds].map((variantId) => deleteVariantMutation.mutateAsync(variantId))
@@ -396,7 +400,24 @@ export function ProductForm({ mode, product }: ProductFormProps) {
         }
       }
 
-      finishSave(product.id, await saveGalleries(product.id), filedRequests.size);
+      const galleryResult = await saveGalleries(product.id);
+
+      if (canEditDetails && newOptionSelections.length > 0) {
+        setSaveStep({ kind: "variants" });
+        const existingIds = new Set(product.variants.map((variant) => variant.id));
+        const generated = await generateMutation.mutateAsync({
+          optionSelections: newOptionSelections,
+          comboStocks: comboStocksPayload,
+        });
+        for (const change of generated.pendingChanges ?? []) filedRequests.add(change.id);
+        const unwanted = generated.variants.filter(
+          (variant) =>
+            !existingIds.has(variant.id) && excludedCombos.has(comboKey(variant.values.map((value) => value.id)))
+        );
+        await Promise.all(unwanted.map((variant) => deleteVariantMutation.mutateAsync(variant.id)));
+      }
+
+      finishSave(product.id, galleryResult, filedRequests.size);
     } catch (err) {
       setSaveStep(null);
       setSubmitError(describeError(err));
@@ -404,9 +425,52 @@ export function ProductForm({ mode, product }: ProductFormProps) {
   }
 
   return (
-    <FormContainer asForm onSubmit={handleSubmit(onSubmit)} noValidate className="flex flex-col gap-4 pb-6">
+    <form ref={formRef} onSubmit={handleSubmit(onSubmit)} noValidate className="flex flex-col gap-5">
+      <div ref={noticeRef} className="flex flex-col gap-3 empty:hidden">
+      {submitError && <Alert tone="danger">{submitError}</Alert>}
+
+      {awaitingApproval > 0 && savedProductId && (
+        <Alert tone="info" title={t("awaitingApproval.title")}>
+          <div className="flex flex-col gap-3">
+            <p>{t("awaitingApproval.detail", { count: awaitingApproval })}</p>
+            <Button className="w-full sm:w-auto sm:self-start" onClick={() => router.push(`/products/${savedProductId}`)}>
+              {t("awaitingApproval.viewProduct")}
+            </Button>
+          </div>
+        </Alert>
+      )}
+        {partialFailure && (
+        <Alert tone="danger" title={t("partial.title")}>
+          <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-1">
+              {partialFailure.pending > 0 ? (
+                <p>{t("partial.detail", { count: partialFailure.pending })}</p>
+              ) : (
+                partialFailure.errorCode && <p>{translateError(partialFailure.errorCode)}</p>
+              )}
+            </div>
+            <div className="flex flex-col gap-2">
+              <Button onClick={() => void handleRetryImages()} isLoading={isBusy} className="w-full sm:w-auto sm:self-start">
+                {isBusy ? t("partial.retrying") : t("partial.retry")}
+              </Button>
+              <Button
+                variant="secondary"
+                disabled={isBusy}
+                className="w-full sm:w-auto sm:self-start"
+                onClick={() => savedProductId && router.push(`/products/${savedProductId}`)}
+              >
+                {t("partial.continue")}
+              </Button>
+            </div>
+          </div>
+        </Alert>
+        )}
+      </div>
+
+      <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-[minmax(0,1fr)_22rem]">
+        <div className="flex min-w-0 flex-col gap-5">
       {mode === "edit" && !canEditDetails && product && (
-        <Card className="flex flex-col gap-4">
+        <section data-test-selector="product-form-read-only" className="flex flex-col gap-4 rounded-card border border-line bg-surface p-4 shadow-card">
           <div className="flex flex-col gap-1">
             <p className="text-heading font-semibold text-ink">{localize(product.name, locale)}</p>
             {product.category && (
@@ -415,92 +479,51 @@ export function ProductForm({ mode, product }: ProductFormProps) {
             <p className="text-value font-semibold text-ink">{formatMoney(product.basePrice, currency, locale)}</p>
             <p className="mt-2 text-label text-ink-muted">{t("employeeReadOnlyHint")}</p>
           </div>
-        </Card>
+        </section>
       )}
 
-      {canEditDetails && (
-        <Card className="flex flex-col gap-4">
-          <h3 className="text-section font-semibold text-ink">{t("kind.title")}</h3>
-          <div>
-            <Controller
-              control={control}
-              name="isNumbered"
-              render={({ field }) => (
-                <ProductKindChoice
-                  value={field.value}
-                  onChange={field.onChange}
-                  lockedReason={kindLockedReason}
-                  disabled={isBusy}
-                />
-              )}
-            />
-          </div>
-        </Card>
-      )}
+          {canEditDetails && (
+            <>
+              <FormSection name="basic-info" title={t("basicInfo")} forceOpen={!!errors.name || !!errors.categoryId}>
+                <fieldset className="flex flex-col gap-1.5">
+                  <legend className="mb-1.5 text-label text-ink">{t("name")}</legend>
+                  <TranslatedField
+                    data-testid="translated-name"
+                    languages={formLanguages}
+                    values={watch("name")}
+                    hasError={!!errors.name?.ar}
+                    controlProps={(lang) => ({
+                      "data-test-selector": `field-name-${lang}`,
+                      "aria-label": `${t("name")} — ${LOCALE_LABELS[lang as keyof I18nFormValue]}`,
+                      placeholder: lang === DEFAULT_LANGUAGE ? t("required") : t("optional"),
+                      ...register(`name.${lang}` as "name.ar"),
+                    })}
+                  />
+                  {errors.name?.ar && (
+                    <FieldErrorText field="name">{translateError(errors.name.ar.message ?? "")}</FieldErrorText>
+                  )}
+                </fieldset>
 
-      <Card className="flex flex-col gap-4">
-        <h3 className="text-section font-semibold text-ink">{t("images.productTitle")}</h3>
-        <div>
-          <ImageManager
-            slots={galleries[PRODUCT_GALLERY_KEY]?.slots ?? []}
-            onChange={(slots) => setGallerySlots(PRODUCT_GALLERY_KEY, slots)}
-            canDelete={canDeleteImages}
-            isBusy={isBusy}
-          />
-        </div>
-      </Card>
+                <fieldset className="flex flex-col gap-1.5">
+                  <legend className="mb-1.5 text-label text-ink">{t("description")}</legend>
+                  <TranslatedField
+                    data-testid="translated-description"
+                    multiline
+                    languages={formLanguages}
+                    values={watch("description")}
+                    controlProps={(lang) => ({
+                      "data-test-selector": `field-description-${lang}`,
+                      "aria-label": `${t("description")} — ${LOCALE_LABELS[lang as keyof I18nFormValue]}`,
+                      placeholder: t("optional"),
+                      ...register(`description.${lang}` as "description.ar"),
+                    })}
+                  />
+                </fieldset>
 
-      {canEditDetails && (
-        <>
-          <Card className="flex flex-col gap-4">
-            <h3 className="text-section font-semibold text-ink">{t("basicInfo")}</h3>
-            <div className="flex flex-col gap-4">
-              <div className="flex flex-col gap-2">
-                <span className="text-label font-medium text-ink">{t("name")}</span>
-                <SegmentedControl
-                  label={tCommon("language")}
-                  size="sm"
-                  value={nameLanguage}
-                  onChange={setNameLanguage}
-                  options={SUPPORTED_LANGUAGES.map((lang) => ({ value: lang, label: LOCALE_LABELS[lang] }))}
-                />
-                <Input
-                  key={nameLanguage}
-                  data-test-selector={`field-name-${nameLanguage}`}
-                  aria-label={`${t("name")} — ${LOCALE_LABELS[nameLanguage]}`}
-                  placeholder={nameLanguage === DEFAULT_LANGUAGE ? t("required") : t("optional")}
-                  hasError={nameLanguage === DEFAULT_LANGUAGE && !!errors.name?.ar}
-                  {...register(`name.${nameLanguage}` as "name.ar")}
-                />
-                {errors.name?.ar && (
-                  <FieldErrorText field="name">{translateError(errors.name.ar.message ?? "")}</FieldErrorText>
-                )}
-              </div>
-
-              <div className="flex flex-col gap-2">
-                <span className="text-label font-medium text-ink">{t("description")}</span>
-                <SegmentedControl
-                  label={tCommon("language")}
-                  size="sm"
-                  value={descriptionLanguage}
-                  onChange={setDescriptionLanguage}
-                  options={SUPPORTED_LANGUAGES.map((lang) => ({ value: lang, label: LOCALE_LABELS[lang] }))}
-                />
-                <Textarea
-                  key={descriptionLanguage}
-                  data-test-selector={`field-description-${descriptionLanguage}`}
-                  aria-label={`${t("description")} — ${LOCALE_LABELS[descriptionLanguage]}`}
-                  placeholder={t("optional")}
-                  rows={4}
-                  {...register(`description.${descriptionLanguage}` as "description.ar")}
-                />
-              </div>
-
-              <div className="flex flex-col gap-2">
-                <label htmlFor="categoryId" className="text-label font-medium text-ink">
-                  {t("category")}
-                </label>
-                {/* Controller, not register(): categories load async, so an uncontrolled select would miss its initial value. */}
+                <div className="flex flex-col gap-2">
+                  <label htmlFor="categoryId" className="text-label text-ink">
+                    {t("category")}
+                  </label>
                 <Controller
                   control={control}
                   name="categoryId"
@@ -523,22 +546,19 @@ export function ProductForm({ mode, product }: ProductFormProps) {
                 {errors.categoryId && (
                   <FieldErrorText field="categoryId">{translateError(errors.categoryId.message ?? "")}</FieldErrorText>
                 )}
-              </div>
-            </div>
-          </Card>
+                </div>
+              </FormSection>
 
-          <Card className="flex flex-col gap-4">
-            <h3 className="text-section font-semibold text-ink">{t("pricing")}</h3>
-            <div className="flex flex-col gap-4">
+              <FormSection name="pricing" title={t("pricing")} forceOpen={!!errors.basePrice || !!errors.compareAtPrice || !!errors.cost}>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
               {canEditPrice ? (
                 <>
                   <div className="flex flex-col gap-2">
-                    <label htmlFor="basePrice" className="text-label font-medium text-ink">
+                    <label htmlFor="basePrice" className="text-label text-ink">
                       {t("basePrice")}
                     </label>
-                    <NumericInput
+                    <MoneyField
                       id="basePrice"
-                      allowDecimal
                       aria-invalid={!!errors.basePrice}
                       {...register("basePrice")}
                     />
@@ -548,12 +568,11 @@ export function ProductForm({ mode, product }: ProductFormProps) {
                   </div>
 
                   <div className="flex flex-col gap-2">
-                    <label htmlFor="compareAtPrice" className="text-label font-medium text-ink">
+                    <label htmlFor="compareAtPrice" className="text-label text-ink">
                       {t("compareAtPrice")}
                     </label>
-                    <NumericInput
+                    <MoneyField
                       id="compareAtPrice"
-                      allowDecimal
                       placeholder={t("optional")}
                       aria-invalid={!!errors.compareAtPrice}
                       {...register("compareAtPrice")}
@@ -568,10 +587,9 @@ export function ProductForm({ mode, product }: ProductFormProps) {
                   )}
                 </>
               ) : (
-                // Shown read-only: hiding it would read as "the price is gone".
                 product && (
                   <div className="flex flex-col gap-1">
-                    <span className="text-label font-medium text-ink">{t("basePrice")}</span>
+                    <span className="text-label text-ink">{t("basePrice")}</span>
                     <p className="text-value font-semibold text-ink">
                       {formatMoney(product.basePrice, currency, locale)}
                     </p>
@@ -579,15 +597,13 @@ export function ProductForm({ mode, product }: ProductFormProps) {
                   </div>
                 )
               )}
-
               {canSeeCost && (
                 <div className="flex flex-col gap-2">
-                  <label htmlFor="cost" className="text-label font-medium text-ink">
+                  <label htmlFor="cost" className="text-label text-ink">
                     {t("cost")}
                   </label>
-                  <NumericInput
+                  <MoneyField
                     id="cost"
-                    allowDecimal
                     placeholder={t("optional")}
                     aria-invalid={!!errors.cost}
                     {...register("cost")}
@@ -595,149 +611,26 @@ export function ProductForm({ mode, product }: ProductFormProps) {
                   {errors.cost && <FieldErrorText field="cost">{translateError(errors.cost.message ?? "")}</FieldErrorText>}
                 </div>
               )}
-            </div>
-          </Card>
-
-          {showActiveToggle && (
-            <Card className="flex flex-col gap-4">
-              <div className="flex items-center justify-between gap-3">
-                <div>
-                  <label htmlFor="isActive" className="text-label font-medium text-ink">
-                    {t("isActive")}
-                  </label>
-                  <p className="text-label text-ink-muted">
-                    {visibilityNeedsApproval ? t("needsApproval.visibility") : t("isActiveHint")}
-                  </p>
                 </div>
-                <Controller
-                  control={control}
-                  name="isActive"
-                  render={({ field }) => (
-                    <Switch
-                      id="isActive"
-                      data-testid={fieldTestSelector("isActive")}
-                      label={t("isActive")}
-                      hideLabel
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  )}
-                />
-              </div>
-            </Card>
+              </FormSection>
+
+            </>
           )}
 
-          {/* Opt-in per product: most pieces sit at stock 1, so a global alert would be noise. */}
-          {canTrackLowStock && (
-            <Card className="flex flex-col gap-4">
-              <div className="flex items-center justify-between gap-3">
-                <div>
-                  <label htmlFor="trackLowStock" className="text-label font-medium text-ink">
-                    {t("trackLowStock")}
-                  </label>
-                  <p className="text-label text-ink-muted">{t("trackLowStockHint")}</p>
-                </div>
-                <Controller
-                  control={control}
-                  name="trackLowStock"
-                  render={({ field }) => (
-                    <Switch
-                      id="trackLowStock"
-                      data-testid={fieldTestSelector("trackLowStock")}
-                      label={t("trackLowStock")}
-                      hideLabel
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  )}
-                />
-              </div>
-            </Card>
-          )}
+          <FormSection name="photos" title={t("images.productTitle")}>
+          <ImageManager
+            slots={galleries[PRODUCT_GALLERY_KEY]?.slots ?? []}
+            onChange={(slots) => setGallerySlots(PRODUCT_GALLERY_KEY, slots)}
+            canDelete={canDeleteImages}
+            isBusy={isBusy}
+          />
+          </FormSection>
 
-          {!willHaveVariants && (
-            <Card className="flex flex-col gap-4">
-              <h3 className="text-section font-semibold text-ink">{t("inventory")}</h3>
-              <div className="flex flex-col gap-4">
-                {/* A numbered product keeps stock per number; the POS never sells the parent. */}
-                {isNumbered && <p className="text-label text-ink-muted">{t("kind.stockPerNumber")}</p>}
-                {canEditStock && !isNumbered && (
-                  <div className="flex flex-col gap-2">
-                    <span className="text-label font-medium text-ink">{t("stock")}</span>
-                    {/* Controller: the stepper returns a clamped number; the form field is a string. */}
-                    <Controller
-                      control={control}
-                      name="stock"
-                      render={({ field }) => (
-                        <QuantityStepper
-                          value={parseQuantity(field.value)}
-                          onChange={(quantity) => field.onChange(String(quantity))}
-                          decreaseLabel={tCommon("quantity.decrease", { name: t("stock") })}
-                          increaseLabel={tCommon("quantity.increase", { name: t("stock") })}
-                          valueLabel={tCommon("quantity.value", { name: t("stock") })}
-                        />
-                      )}
-                    />
-                    {errors.stock && <FieldErrorText field="stock">{translateError(errors.stock.message ?? "")}</FieldErrorText>}
-                    {stockNeedsApproval && (
-                      <p className="text-label text-ink-muted">{t("needsApproval.stock")}</p>
-                    )}
-                  </div>
-                )}
-
-                <div className="flex flex-col gap-1.5">
-                  <label htmlFor="sku" className="text-label font-medium text-ink">
-                    {t("sku")}
-                  </label>
-                  <Input id="sku" data-test-selector={fieldTestSelector("sku")} value={product?.sku ?? t("autoGenerated")} disabled readOnly />
-                </div>
-              </div>
-            </Card>
-          )}
-
-          {/* Shown for variant products too: one supplier code on the parent opens the POS variant picker (rule 13). */}
-          <Card className="flex flex-col gap-4">
-            <h3 className="text-section font-semibold text-ink">{t("barcode.title")}</h3>
-            <div className="flex flex-col gap-3">
-              <Controller
-                control={control}
-                name="barcodeSource"
-                render={({ field: sourceField }) => (
-                  <Controller
-                    control={control}
-                    name="barcode"
-                    render={({ field: codeField }) => (
-                      <BarcodeField
-                        id="product-barcode"
-                        source={sourceField.value}
-                        value={codeField.value}
-                        onChange={({ source, value }) => {
-                          sourceField.onChange(source);
-                          codeField.onChange(value);
-                        }}
-                        currentCode={product?.barcode ?? null}
-                        disabled={isBusy}
-                      />
-                    )}
-                  />
-                )}
-              />
-              {errors.barcode && (
-                <FieldErrorText field="product-barcode">{translateError(errors.barcode.message ?? "")}</FieldErrorText>
-              )}
-              {willHaveVariants && <p className="text-label text-ink-muted">{t("barcode.parentSharedHint")}</p>}
-            </div>
-          </Card>
-        </>
-      )}
-
-      {showVariantsCard && (
-        <Card className="flex flex-col gap-4">
-          <h3 className="text-section font-semibold text-ink">{t("variants.title")}</h3>
+          {showVariantsCard && (
+            <FormSection name="variants" title={t("variants.title")}>
           <div className="flex flex-col gap-4">
             {mode === "edit" && product?.hasVariants && (
               <VariantEditList
-                // Placed shawl points are edited in the dedicated tool below.
                 variants={product.variants.filter((v) => v.imageX == null || v.imageY == null)}
                 variantTypes={variantTypes ?? []}
                 currency={currency}
@@ -768,12 +661,26 @@ export function ProductForm({ mode, product }: ProductFormProps) {
             {mode === "create" && variantTypes && (
               <>
                 <VariantTypePicker variantTypes={ordinaryVariantTypes} value={selections} onChange={setSelections} />
-                <VariantPreviewList rows={previewRows} excluded={excludedCombos} onToggleExcluded={toggleExcludedCombo} />
+                <VariantPreviewList
+                  rows={previewRows}
+                  excluded={excludedCombos}
+                  onToggleExcluded={toggleExcludedCombo}
+                  stocks={comboStocks}
+                  onStockChange={setComboStock}
+                />
               </>
             )}
 
             {mode === "edit" && product && variantTypes && canEditDetails && (
-              <AddVariantsSection productId={product.id} variantTypes={ordinaryVariantTypes} />
+              <AddVariantsSection
+                variantTypes={ordinaryVariantTypes}
+                selections={selections}
+                onSelectionsChange={setSelections}
+                excluded={excludedCombos}
+                onToggleExcluded={toggleExcludedCombo}
+                stocks={comboStocks}
+                {...(canEditStock && { onStockChange: setComboStock })}
+              />
             )}
 
             {canEditDetails && (
@@ -786,85 +693,200 @@ export function ProductForm({ mode, product }: ProductFormProps) {
               />
             )}
           </div>
-        </Card>
-      )}
+            </FormSection>
+          )}
 
-      {/* Reads the SAVED product: the API refuses numbers until the product itself says it is numbered. */}
       {isNumbered && canEditDetails && (mode === "create" || !product?.isNumbered) && (
-        <Card className="flex flex-col gap-4">
-          <h3 className="text-section font-semibold text-ink">{t("numberedShawl.title")}</h3>
+        <FormSection name="numbered-hint" title={t("numberedShawl.title")}>
           <div>
             <p className="text-label text-ink-muted">{t("kind.placeNumbersAfterSave")}</p>
           </div>
-        </Card>
+        </FormSection>
       )}
 
       {mode === "edit" && canEditDetails && canEditPrice && canEditStock && product && variantTypes && isNumbered && showNumberedShawlEditor(product) && (
-        <Card className="flex flex-col gap-4">
-          <h3 className="text-section font-semibold text-ink">{t("numberedShawl.title")}</h3>
+        <FormSection name="numbered-shawl" title={t("numberedShawl.title")}>
           <div>
             <NumberedShawlEditor product={product} variantTypes={variantTypes} currency={currency} />
           </div>
-        </Card>
+        </FormSection>
       )}
+        </div>
 
-      {submitError && <Alert tone="danger">{submitError}</Alert>}
+        <div className="flex min-w-0 flex-col gap-5">
+          {canEditDetails && (showActiveToggle || canTrackLowStock) && (
+            <FormSection name="status" title={t("statusTitle")}>
+              <div className="flex flex-col divide-y divide-line">
+          {showActiveToggle && (
+            <div className="py-3 first:pt-0 last:pb-0">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <label htmlFor="isActive" className="text-label text-ink">
+                    {t("isActive")}
+                  </label>
+                  <p className="text-label text-ink-muted">
+                    {visibilityNeedsApproval ? t("needsApproval.visibility") : t("isActiveHint")}
+                  </p>
+                </div>
+                <Controller
+                  control={control}
+                  name="isActive"
+                  render={({ field }) => (
+                    <Switch
+                      id="isActive"
+                      data-testid={fieldTestSelector("isActive")}
+                      label={t("isActive")}
+                      hideLabel
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  )}
+                />
+              </div>
+            </div>
+          )}
+          {canTrackLowStock && (
+            <div className="py-3 first:pt-0 last:pb-0">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <label htmlFor="trackLowStock" className="text-label text-ink">
+                    {t("trackLowStock")}
+                  </label>
+                  <p className="text-label text-ink-muted">{t("trackLowStockHint")}</p>
+                </div>
+                <Controller
+                  control={control}
+                  name="trackLowStock"
+                  render={({ field }) => (
+                    <Switch
+                      id="trackLowStock"
+                      data-testid={fieldTestSelector("trackLowStock")}
+                      label={t("trackLowStock")}
+                      hideLabel
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  )}
+                />
+              </div>
+            </div>
+          )}
+              </div>
+            </FormSection>
+          )}
 
-      {awaitingApproval > 0 && savedProductId && (
-        <Alert tone="info" title={t("awaitingApproval.title")}>
-          <div className="flex flex-col gap-3">
-            <p>{t("awaitingApproval.detail", { count: awaitingApproval })}</p>
-            <Button className="w-full sm:w-auto sm:self-start" onClick={() => router.push(`/products/${savedProductId}`)}>
-              {t("awaitingApproval.viewProduct")}
-            </Button>
-          </div>
-        </Alert>
-      )}
-
-      {/* Retry only the photos: pressing Save again would file a second product. */}
-      {partialFailure ? (
-        <Alert tone="danger" title={t("partial.title")}>
-          <div className="flex flex-col gap-3">
-            <div className="flex flex-col gap-1">
-              {/* With none pending (order or main photo failed), the plain reason instead of "0 photos". */}
-              {partialFailure.pending > 0 ? (
-                <p>{t("partial.detail", { count: partialFailure.pending })}</p>
-              ) : (
-                partialFailure.errorCode && <p>{translateError(partialFailure.errorCode)}</p>
+          {canEditDetails && (
+            <FormSection name="kind" title={t("kind.title")}>
+            <Controller
+              control={control}
+              name="isNumbered"
+              render={({ field }) => (
+                <ProductKindChoice
+                  value={field.value}
+                  onChange={field.onChange}
+                  lockedReason={kindLockedReason}
+                  disabled={isBusy}
+                />
               )}
-            </div>
-            <div className="flex flex-col gap-2">
-              <Button onClick={() => void handleRetryImages()} isLoading={isBusy} className="w-full sm:w-auto sm:self-start">
-                {isBusy ? t("partial.retrying") : t("partial.retry")}
-              </Button>
-              <Button
-                variant="secondary"
-                disabled={isBusy}
-                className="w-full sm:w-auto sm:self-start"
-                onClick={() => savedProductId && router.push(`/products/${savedProductId}`)}
-              >
-                {t("partial.continue")}
-              </Button>
-            </div>
-          </div>
-        </Alert>
-      ) : (
-        canSave && (
-          <>
-            <Button type="submit" data-test-selector="product-save" isLoading={isBusy} className="w-full sm:w-auto sm:self-start">
-              {isBusy ? t(mode === "create" ? "creating" : "saving") : t(mode === "create" ? "create" : "save")}
-            </Button>
-            {saveStep && (
-              <p aria-live="polite" className="text-center text-label text-ink-muted">
-                {saveStep.kind === "images"
-                  ? t("progress.images", { done: saveStep.done, total: saveStep.total })
-                  : t(saveStep.kind === "product" ? "progress.product" : "progress.variants")}
-              </p>
-            )}
-          </>
-        )
+            />
+            </FormSection>
+          )}
+
+          {/* Shown for variant products too: one supplier code on the parent opens the POS variant picker (rule 13). */}
+          {canEditDetails && (
+            <FormSection name="barcode" title={t("barcode.title")} forceOpen={!!errors.barcode}>
+              <div className="flex flex-col gap-3">
+                <Controller
+                  control={control}
+                  name="barcodeSource"
+                  render={({ field: sourceField }) => (
+                    <Controller
+                      control={control}
+                      name="barcode"
+                      render={({ field: codeField }) => (
+                        <BarcodeField
+                          id="product-barcode"
+                          source={sourceField.value}
+                          value={codeField.value}
+                          onChange={({ source, value }) => {
+                            sourceField.onChange(source);
+                            codeField.onChange(value);
+                          }}
+                          currentCode={product?.barcode ?? null}
+                          disabled={isBusy}
+                        />
+                      )}
+                    />
+                  )}
+                />
+                {errors.barcode && (
+                  <FieldErrorText field="product-barcode">{translateError(errors.barcode.message ?? "")}</FieldErrorText>
+                )}
+                {willHaveVariants && <p className="text-label text-ink-muted">{t("barcode.parentSharedHint")}</p>}
+              </div>
+            </FormSection>
+          )}
+
+          {canEditDetails && (
+            <>
+          {!willHaveVariants && (
+            <FormSection name="inventory" title={t("inventory")} forceOpen={!!errors.stock}>
+              <div className="flex flex-col gap-4">
+                {isNumbered && <p className="text-label text-ink-muted">{t("kind.stockPerNumber")}</p>}
+                {canEditStock && !isNumbered && (
+                  <div className="flex flex-col gap-2">
+                    <span className="text-label text-ink">{t("stock")}</span>
+                    <Controller
+                      control={control}
+                      name="stock"
+                      render={({ field }) => (
+                        <QuantityStepper
+                          value={parseQuantity(field.value)}
+                          onChange={(quantity) => field.onChange(String(quantity))}
+                          decreaseLabel={tCommon("quantity.decrease", { name: t("stock") })}
+                          increaseLabel={tCommon("quantity.increase", { name: t("stock") })}
+                          valueLabel={tCommon("quantity.value", { name: t("stock") })}
+                        />
+                      )}
+                    />
+                    {errors.stock && <FieldErrorText field="stock">{translateError(errors.stock.message ?? "")}</FieldErrorText>}
+                    {stockNeedsApproval && (
+                      <p className="text-label text-ink-muted">{t("needsApproval.stock")}</p>
+                    )}
+                  </div>
+                )}
+
+                <div className="flex flex-col gap-1.5">
+                  <label htmlFor="sku" className="text-label text-ink">
+                    {t("sku")}
+                  </label>
+                  <Input id="sku" data-test-selector={fieldTestSelector("sku")} value={product?.sku ?? t("autoGenerated")} disabled readOnly />
+                </div>
+              </div>
+            </FormSection>
+          )}
+            </>
+          )}
+        </div>
+      </div>
+
+      {canSave && !partialFailure && (
+        <SaveBar
+          data-testid="product-save"
+          visible={mode === "create" || hasChanges || isBusy}
+          saving={isBusy}
+          message={
+            saveStep
+              ? saveStep.kind === "images"
+                ? t("progress.images", { done: saveStep.done, total: saveStep.total })
+                : t(saveStep.kind === "product" ? "progress.product" : "progress.variants")
+              : undefined
+          }
+          onSave={() => void handleSubmit(onSubmit)()}
+          onDiscard={() => (onDiscard ? onDiscard() : router.push(product ? `/products/${product.id}` : "/products"))}
+        />
       )}
-    </FormContainer>
+    </form>
   );
 }
 
@@ -875,3 +897,32 @@ function FieldErrorText({ field, children }: { field: string; children: ReactNod
     </p>
   );
 }
+
+function FormSection({
+  name,
+  title,
+  forceOpen,
+  children,
+}: {
+  name: ProductFormSectionName;
+  title: string;
+  forceOpen?: boolean;
+  children: ReactNode;
+}) {
+  const t = useTranslations("products.form.sections");
+  const { icon, tone } = PRODUCT_FORM_SECTIONS[name];
+  return (
+    <Section
+      data-testid={`product-form-${name}`}
+      title={title}
+      description={t(name)}
+      icon={icon}
+      tone={tone}
+      collapsible
+      forceOpen={forceOpen}
+    >
+      {children}
+    </Section>
+  );
+}
+

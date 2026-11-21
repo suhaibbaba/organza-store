@@ -163,7 +163,7 @@ function VariantPicker({ product, isNumbered, onPick, onClose }: VariantPickerPr
 
         {isNumbered && (
           <form onSubmit={handleNumberSubmit} className="flex flex-col gap-2">
-            <label htmlFor="pos-number-entry" className="text-label font-medium text-ink">
+            <label htmlFor="pos-number-entry" className="text-label text-ink">
               {t("numberLabel")}
             </label>
             <NumericInput

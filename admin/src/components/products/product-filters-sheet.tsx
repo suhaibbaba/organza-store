@@ -1,11 +1,11 @@
 "use client";
 
+import { MoneyField } from "@/components/fields/money-field";
 import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { SlidersHorizontal } from "lucide-react";
 import { Button, Drawer, FormField, Select } from "@store/ui";
 import { fieldTestSelector } from "@organza/shared/lib/testSelector";
-import { NumericInput } from "@/components/fields/numeric-input";
 import { useCategoriesQuery } from "@/hooks/use-categories";
 import { flattenCategoryTree } from "@/lib/api/categories";
 import { localize } from "@/lib/i18n-content";
@@ -142,17 +142,15 @@ export function ProductFiltersSheet({ value, onApply, activeCount }: ProductFilt
 
           <FormField label="products.filters.priceRange" htmlFor="filter-price-min">
             <div className="flex items-center gap-3">
-              <NumericInput
+              <MoneyField
                 id="filter-price-min"
-                allowDecimal
                 placeholder={t("priceMin")}
                 aria-label={t("priceMin")}
                 value={draft.priceMin}
                 onChange={(e) => setDraft((d) => ({ ...d, priceMin: e.target.value }))}
               />
               <span className="text-ink-muted">–</span>
-              <NumericInput
-                allowDecimal
+              <MoneyField
                 placeholder={t("priceMax")}
                 aria-label={t("priceMax")}
                 value={draft.priceMax}

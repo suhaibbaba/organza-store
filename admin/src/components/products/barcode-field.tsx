@@ -48,16 +48,19 @@ export function BarcodeField({
   const invalid = isSupplier && trimmed.length > 0 && !isValidBarcode(trimmed);
 
   const label = (
-    <label htmlFor={isSupplier ? id : undefined} className="text-label font-medium text-ink">
+    <label htmlFor={isSupplier ? id : undefined} className="text-label text-ink">
       {t("label")}
     </label>
   );
 
   const sources = compact ? (
-    <div inert={disabled || undefined} aria-disabled={disabled || undefined} className={cn(disabled && "opacity-50")}>
+    <div
+      inert={disabled || undefined}
+      aria-disabled={disabled || undefined}
+      className={cn("shrink-0 [&>*]:w-max", disabled && "opacity-50")}
+    >
       <SegmentedControl
         label={t("label")}
-        size="sm"
         value={source}
         onChange={(next) => onChange({ source: next, value })}
         options={[

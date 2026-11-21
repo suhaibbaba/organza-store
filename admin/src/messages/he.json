@@ -704,12 +704,24 @@
         "confirm": "למחוק את המוצר הזה? הוא ייעלם מרשימת המוצרים, מהקופה ומהחנות. הזמנות קודמות נשמרות.",
         "confirmAction": "כן, למחוק",
         "keep": "להשאיר",
-        "success": "המוצר נמחק."
+        "success": "המוצר נמחק.",
+        "title": "למחוק את „{name}”?",
+        "consequence": "הוא ייעלם מרשימת המוצרים, מהקופה ומהחנות. הזמנות קודמות שומרות אותו."
       },
       "barcodeSource": "מקור הברקוד",
       "barcodeGenerated": "שלנו (מודפסת מדבקה)",
       "barcodeSupplier": "של היבואן (לא צריך מדבקה)",
-      "barcodeSupplierShort": "קוד היבואן"
+      "barcodeSupplierShort": "קוד היבואן",
+      "actions": "פעולות מוצר",
+      "price": "מחיר",
+      "noPhotos": "אין עדיין תמונות",
+      "noDescription": "אין עדיין תיאור",
+      "tabs": {
+        "label": "חלקי המוצר",
+        "variants": "וריאציות",
+        "photos": "תמונות",
+        "description": "תיאור"
+      }
     },
     "form": {
       "back": "חזרה",
@@ -792,7 +804,7 @@
         "addType": "הוספת סוג אפשרות חדש",
         "newTypePlaceholder": "לדוגמה: חומר",
         "noTypesYet": "אין עדיין סוגי אפשרויות — הוסף/י אחד למטה.",
-        "previewCount": "ייווצרו {count} וריאציות",
+        "previewCount": "{count, plural, one {תיווצר וריאציה אחת} other {ייווצרו {count} וריאציות}}",
         "removeCombo": "הסרה",
         "restoreCombo": "שחזור",
         "undo": "ביטול פעולה",
@@ -802,12 +814,22 @@
         "cost": "עלות",
         "active": "גלוי",
         "addMoreTitle": "הוספת שילובים נוספים",
-        "addMoreSuccess": "הוריאציות נוספו.",
-        "generate": "יצירת וריאציות",
         "toggleDetails": "פרטים — {name}",
         "summaryStock": "מלאי: {count}",
         "hidden": "מוסתר",
-        "barcodeIncomplete": "הברקוד חסר"
+        "barcodeIncomplete": "הברקוד חסר",
+        "addButton": "הוספת וריאציות",
+        "done": "סיום",
+        "drawerDescription": "נראות, מחיר, ברקוד ותמונות לווריאציה זו. נשמר עם המוצר.",
+        "selectedCount": "{count} נבחרו",
+        "addDescription": "בחרו צבעים ומידות להוספה. כל צירוף חדש מופיע ברשימה עם מלאי משלו.",
+        "addCount": "הוספת {count, plural, one {וריאציה אחת} other {{count} וריאציות}}",
+        "noneSelected": "לא נבחר דבר",
+        "selectAll": "בחירת הכל",
+        "bulkStock": "מלאי לנבחרים",
+        "bulkSetStock": "קביעת מלאי",
+        "bulkRemove": "הסרה",
+        "selectRow": "בחירת {name}"
       },
       "optionNotes": {
         "title": "הערות על האפשרויות",
@@ -880,7 +902,6 @@
       "kind": {
         "title": "מה אתם מוכרים?",
         "legend": "סוג המוצר",
-        "hint": "בחרו אחד — הבחירה משנה את מה שתמלאו בהמשך.",
         "ordinaryTitle": "מוצר רגיל",
         "ordinaryDescription": "פריט אחד, או כמה פריטים בצבעים ובמידות שונים.",
         "numberedTitle": "פריטים ממוספרים",
@@ -901,6 +922,19 @@
         "title": "נשמר — חלק מהשינויים ממתינים",
         "detail": "{count} מהשינויים שלכם דורשים אישור מנהל לפני שייכנסו לתוקף. שום דבר לא אבד.",
         "viewProduct": "הצגת המוצר"
+      },
+      "statusTitle": "סטטוס",
+      "sections": {
+        "basic-info": "השם והתיאור שהלקוחות רואים, והמיקום בקטלוג.",
+        "pricing": "מחיר המכירה, מחיר לפני הנחה (רשות), וכמה עלה לך.",
+        "barcode": "הקוד שהקופה סורקת: שלנו, או המודפס של הספק.",
+        "variants": "כל צבע ומידה של הפריט, לכל אחד מלאי משלו.",
+        "numbered-hint": "המספרים ממוקמים על התמונה אחרי שמירת המוצר.",
+        "numbered-shawl": "כל פריט ממוספר בתמונה, עם מחיר ומלאי משלו.",
+        "status": "האם לקוחות רואים אותו, והאם מלאי נמוך מתריע.",
+        "kind": "בחרו אחד — הבחירה משנה את מה שתמלאו בהמשך.",
+        "photos": "התמונה הראשית מוצגת בכל מקום.",
+        "inventory": "כמה פריטים יש לך, וקוד ה-SKU."
       }
     },
     "completeness": {
@@ -1691,7 +1725,10 @@
       "range": "תקופה",
       "error": "חובה",
       "errorHint": "שדה חובה",
-      "disabled": "שדה מושבת"
+      "disabled": "שדה מושבת",
+      "translated": "שם מתורגם",
+      "sectionTitle": "מקטע",
+      "sectionDescription": "כרטיס עם כותרת שאפשר לקפל."
     },
     "choices": {
       "channel": "ערוץ מכירה",

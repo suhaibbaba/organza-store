@@ -55,5 +55,11 @@
     "yearOutOfRange": "השנה אינה תקינה — יש להזין תאריך בין 1900 ל-2100",
     "dateInFuture": "התאריך לא יכול להיות בעתיד",
     "dateInPast": "התאריך לא יכול להיות בעבר"
+  },
+  "translatedField": {
+    "translations": "תרגומים",
+    "filled": "{done}/{total}",
+    "show": "הצג",
+    "hide": "הסתר"
   }
 }

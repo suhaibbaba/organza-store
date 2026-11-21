@@ -55,5 +55,11 @@
     "yearOutOfRange": "السنة غير صحيحة، اكتب تاريخًا بين 1900 و2100",
     "dateInFuture": "لا يمكن أن يكون هذا التاريخ في المستقبل",
     "dateInPast": "لا يمكن أن يكون هذا التاريخ في الماضي"
+  },
+  "translatedField": {
+    "translations": "الترجمات",
+    "filled": "{done}/{total}",
+    "show": "إظهار",
+    "hide": "إخفاء"
   }
 }

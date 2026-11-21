@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+
 import { useParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { ChevronLeft } from "lucide-react";
@@ -24,10 +26,10 @@ export default function EditProductPage() {
 
   const notFound = error instanceof ApiError && error.status === 404;
   const canEditDetails = can(user, "product.edit");
+  const [resets, setResets] = useState(0);
 
   return (
     <PageContainer>
-      {/* Above the header: the way out of the screen, not one of its actions. */}
       <Link
         href={`/products/${params.id}`}
         data-test-selector="back-link"
@@ -47,11 +49,15 @@ export default function EditProductPage() {
         ) : isError ? (
           <ProductListError error={error} onRetry={() => void refetch()} />
         ) : (
-          // Keyed on the variant count, not updatedAt: a save must not throw away photos still waiting to retry.
           <>
             {/* Quick-sold: the blanks below are deliberate and completing them is the errand (rule 23). */}
             <QuickSoldBanner product={product} />
-            <ProductForm key={`${product.id}:${product.variants.length}`} mode="edit" product={product} />
+            <ProductForm
+              key={`${product.id}:${product.variants.length}:${resets}`}
+              mode="edit"
+              product={product}
+              onDiscard={() => setResets((count) => count + 1)}
+            />
           </>
         )}
       </div>

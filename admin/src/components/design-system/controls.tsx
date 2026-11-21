@@ -25,8 +25,12 @@ import {
   Tabs,
   Textarea,
   TimePicker,
+  TranslatedField,
+  Section,
   type DateRange,
 } from "@store/ui";
+import { SUPPORTED_LANGUAGES } from "@organza/shared/constants/languages";
+import { LOCALE_LABELS } from "@/constants/locale";
 import { useSettingsQuery } from "@/hooks/use-settings";
 import { ShowcaseRow, ShowcaseSection } from "@/components/design-system/showcase-section";
 
@@ -38,6 +42,8 @@ type Channel = (typeof CHANNELS)[number];
 type Discount = (typeof DISCOUNTS)[number];
 type OrderTab = (typeof ORDER_TABS)[number];
 
+const DS_LANGUAGES = SUPPORTED_LANGUAGES.map((code) => ({ code, name: LOCALE_LABELS[code] }));
+
 export function Controls() {
   const t = useTranslations("designSystem");
   const currency = useSettingsQuery().data?.currency;
@@ -46,6 +52,7 @@ export function Controls() {
   const [search, setSearch] = useState("");
   const [name, setName] = useState("");
   const [price, setPrice] = useState("180");
+  const [translated, setTranslated] = useState<Record<string, string>>({});
   const [quantity, setQuantity] = useState("1");
   const [category, setCategory] = useState("");
   const [phone, setPhone] = useState<string | null>(null);
@@ -177,6 +184,29 @@ export function Controls() {
           <FormField label="designSystem.fields.notes" htmlFor="ds-notes" optional>
             <Textarea id="ds-notes" placeholder={t("fields.notesPlaceholder")} rows={3} />
           </FormField>
+          <Section
+            data-testid="ds-section"
+            title={t("fields.sectionTitle")}
+            description={t("fields.sectionDescription")}
+            icon="layers"
+            tone="green"
+            collapsible
+          >
+            <Input id="ds-section-field" aria-label={t("fields.sectionTitle")} placeholder={t("fields.namePlaceholder")} />
+          </Section>
+          <fieldset className="flex flex-col gap-1.5">
+            <legend className="mb-1.5 text-label text-ink">{t("fields.translated")}</legend>
+            <TranslatedField
+              data-testid="ds-translated"
+              languages={DS_LANGUAGES}
+              values={translated}
+              controlProps={(code) => ({
+                "aria-label": `${t("fields.translated")} — ${code}`,
+                value: translated[code] ?? "",
+                onChange: (event) => setTranslated((previous) => ({ ...previous, [code]: event.target.value })),
+              })}
+            />
+          </fieldset>
         </div>
       </ShowcaseSection>
 
@@ -201,6 +231,8 @@ export function Controls() {
           <Switch label={t("choices.trackStock")} checked={trackStock} onCheckedChange={setTrackStock} />
           <Checkbox label={t("choices.printLabel")} checked={printLabel} onCheckedChange={setPrintLabel} />
           <Checkbox label={t("choices.giftWrap")} checked={giftWrap} onCheckedChange={setGiftWrap} />
+          <Switch size="sm" label={t("choices.trackStock")} checked={trackStock} onCheckedChange={setTrackStock} />
+          <Checkbox size="sm" label={t("choices.printLabel")} checked={printLabel} onCheckedChange={setPrintLabel} />
         </ShowcaseRow>
         <div className="flex flex-col gap-3">
           <Tabs

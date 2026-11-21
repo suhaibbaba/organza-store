@@ -2,10 +2,10 @@
 
 import { useMemo } from "react";
 import { useLocale, useTranslations } from "next-intl";
+import { Table, type Column } from "@store/ui";
 import { BARCODE_SOURCE } from "@organza/shared/constants/barcode";
 import type { ProductVariantTypeRef } from "@organza/shared/types/product";
 import type { Variant } from "@organza/shared/types/variant";
-import { testSelectorFor } from "@organza/shared/lib/testSelector";
 import { SELECTABLE } from "@organza/shared/lib/nativeGestures";
 import { localize } from "@/lib/i18n-content";
 import { formatMoney } from "@/lib/format";
@@ -24,92 +24,109 @@ export function VariantList({ variants, variantTypes, currency }: VariantListPro
   const locale = useLocale();
   const t = useTranslations("products.detail");
 
-  // variantTypeId -> translated type name (e.g. "اللون", "المقاس", "الأرقام").
   const typeNameById = useMemo(() => {
     const map = new Map<string, string>();
     for (const type of variantTypes) map.set(type.id, localize(type.name, locale));
     return map;
   }, [variantTypes, locale]);
 
-  return (
-    <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
-      {variants.map((variant) => {
+  const columns: readonly Column<Variant>[] = [
+    {
+      key: "variant",
+      header: "products.detail.variantsTitle",
+      primary: true,
+      render: (variant) => {
         const name = localize(variant.name, locale);
-        const outOfStock = variant.stock <= 0;
-        const showCost = variant.resolvedCost !== undefined;
-        const groups = variant.values.map((value) => ({
-          id: value.id,
-          typeName: typeNameById.get(value.variantTypeId) ?? "",
-          value: localize(value.value, locale),
-          // What this value means on THIS product (spec.md "Notes on a product's options").
-          note: localize(value.note, locale),
-        }));
-
         return (
-          <div
-            key={variant.id}
-            className="flex items-center gap-3 rounded-panel border border-line bg-surface p-3"
-            data-test-selector={testSelectorFor("variant-row", variant.id)}
-          >
+          <span className="flex min-w-0 items-center gap-3">
             <ProductImage
               src={variant.images[0]?.thumbnailUrl}
               alt={name}
-              className="size-14 shrink-0 rounded-control"
-              sizes="56px"
+              className="size-10 shrink-0 rounded-control"
+              sizes="40px"
             />
-            <div className="min-w-0 flex-1">
-              <div className="flex items-start justify-between gap-2">
-                {groups.length > 0 ? (
-                  <div className="flex min-w-0 flex-wrap items-start gap-x-4 gap-y-1">
-                    {groups.map((group) => (
-                      <div key={group.id} className="min-w-0">
-                        {group.typeName && (
-                          <p className="truncate text-micro text-ink-muted">
-                            {group.typeName}
-                          </p>
-                        )}
-                        <p className="truncate text-label font-medium text-ink">{group.value}</p>
-                        {group.note && (
-                          <p className="line-clamp-2 text-micro text-ink-muted">{group.note}</p>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="truncate text-label font-medium text-ink">{name}</p>
-                )}
-                <StatusBadge isActive={variant.isActive} />
-              </div>
-              <p className="mt-0.5 truncate text-micro text-ink-muted" {...SELECTABLE}>
-                {variant.sku}
-              </p>
-              {variant.barcode && (
-                <p className="truncate text-micro text-ink-muted" dir="ltr" {...SELECTABLE}>
-                  {variant.barcode}
-                  {variant.barcodeSource === BARCODE_SOURCE.SUPPLIER && (
-                    <span dir="auto" className="ms-2 font-medium">
-                      {t("barcodeSupplierShort")}
+            <span className="flex min-w-0 flex-wrap gap-x-4 gap-y-0.5">
+              {variant.values.length === 0 ? (
+                <span className="truncate font-medium text-ink">{name}</span>
+              ) : (
+                variant.values.map((value) => {
+                  const note = localize(value.note, locale);
+                  return (
+                    <span key={value.id} className="min-w-0">
+                      <span className="block truncate text-meta text-ink-muted">
+                        {typeNameById.get(value.variantTypeId) ?? ""}
+                      </span>
+                      <span className="block truncate font-medium text-ink">{localize(value.value, locale)}</span>
+                      {note && <span className="block line-clamp-2 text-meta text-ink-muted">{note}</span>}
                     </span>
-                  )}
-                </p>
+                  );
+                })
               )}
-              <div className="mt-1.5 flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
-                <span className="text-label font-semibold text-ink">
-                  {formatMoney(variant.resolvedPrice, currency, locale)}
-                  {showCost && variant.resolvedCost && (
-                    <span className="ms-2 text-micro font-normal text-ink-muted">
-                      {t("cost")}: {formatMoney(variant.resolvedCost, currency, locale)}
-                    </span>
-                  )}
-                </span>
-                <span className={cn("text-micro font-medium", outOfStock ? "text-danger-600" : "text-ink-muted")}>
-                  {t("variantStock")}: {variant.stock}
-                </span>
-              </div>
-            </div>
-          </div>
+            </span>
+          </span>
         );
-      })}
-    </div>
-  );
+      },
+    },
+    {
+      key: "sku",
+      header: "products.detail.variantSku",
+      render: (variant) => (
+        <span dir="ltr" className="tabular-nums" {...SELECTABLE}>
+          {variant.sku}
+        </span>
+      ),
+    },
+    {
+      key: "barcode",
+      header: "products.detail.barcode",
+      hideOnMobile: true,
+      render: (variant) =>
+        variant.barcode ? (
+          <span className="flex flex-col">
+            <span dir="ltr" className="tabular-nums" {...SELECTABLE}>
+              {variant.barcode}
+            </span>
+            {variant.barcodeSource === BARCODE_SOURCE.SUPPLIER && (
+              <span className="text-meta text-ink-muted">{t("barcodeSupplierShort")}</span>
+            )}
+          </span>
+        ) : (
+          "—"
+        ),
+    },
+    {
+      key: "price",
+      header: "products.detail.variantPrice",
+      align: "numeric",
+      render: (variant) => (
+        <span className="flex flex-col">
+          <span className="font-medium text-ink">{formatMoney(variant.resolvedPrice, currency, locale)}</span>
+          {/* Cost reaches this screen for an Admin only (rule 19). */}
+          {variant.resolvedCost && (
+            <span className="text-meta text-ink-muted">
+              {t("cost")}: {formatMoney(variant.resolvedCost, currency, locale)}
+            </span>
+          )}
+        </span>
+      ),
+    },
+    {
+      key: "stock",
+      header: "products.detail.variantStock",
+      align: "numeric",
+      render: (variant) => (
+        <span className={cn("tabular-nums", variant.stock <= 0 ? "font-medium text-danger-600" : "text-ink")}>
+          {variant.stock}
+        </span>
+      ),
+    },
+    {
+      key: "status",
+      header: "products.detail.variantStatus",
+      besideTitleOnMobile: true,
+      render: (variant) => <StatusBadge isActive={variant.isActive} />,
+    },
+  ];
+
+  return <Table data-testid="variant" columns={columns} rows={variants} rowKey={(variant) => variant.id} />;
 }

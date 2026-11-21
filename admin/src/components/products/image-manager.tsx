@@ -27,7 +27,6 @@ interface ImageManagerProps {
   slots: GallerySlot[];
   onChange: (slots: GallerySlot[]) => void;
   canDelete: boolean;
-  // Saving: the gallery goes quiet rather than racing the upload.
   isBusy?: boolean;
   emptyHint?: string;
 }
@@ -37,26 +36,20 @@ interface EditTarget {
   id: string;
   src: string;
   edit: ImageEdit;
-  // Needs CORS or the preview canvas comes back tainted.
   crossOrigin: boolean;
-  // The stored original, used if the optimizer's copy in `src` fails to load.
   fallbackSrc?: string;
 }
 
-// Local form state only: photos are written by the product form's one Save, never from here.
 export function ImageManager({ slots, onChange, canDelete, isBusy = false, emptyHint }: ImageManagerProps) {
   const t = useTranslations("products.form.images");
   const translateError = useTranslateError();
   const inputRef = useRef<HTMLInputElement>(null);
-  // Only a rejected pick (type, size); save failures are reported by the form.
   const [rejected, setRejected] = useState<string | null>(null);
-  // Picking three opens the editor three times in a row without returning to the form.
   const [queue, setQueue] = useState<string[]>([]);
   const [queueIndex, setQueueIndex] = useState(0);
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { delay: 150, tolerance: 6 } }));
 
-  // From the CURRENT slots, so a second pass shows the crop the first left.
   const target = editTargetFor(slots, queue[queueIndex]);
 
   function handleFiles(fileList: FileList | null) {
@@ -66,7 +59,6 @@ export function ImageManager({ slots, onChange, canDelete, isBusy = false, empty
     onChange(next);
     if (inputRef.current) inputRef.current.value = "";
 
-    // Straight into the editor, no prompt: the answer is always yes.
     const added = next.filter((slot) => !slots.some((existing) => existing.id === slot.id));
     if (added.length > 0) {
       setQueue(added.map((slot) => slot.id));
@@ -91,9 +83,7 @@ export function ImageManager({ slots, onChange, canDelete, isBusy = false, empty
 
   async function handleEditorSave(edit: ImageEdit) {
     if (!target) return;
-    // An edit that changed nothing must not become a stored crop or a server re-cut.
     const kept = editToSend(edit);
-    // Preview only: the stored picture is cut by sharp from the original (lib/image-edit.ts).
     const preview = kept ? await renderCropPreview(target.src, kept, { crossOrigin: target.crossOrigin }) : null;
     onChange(applyEditToSlot(slots, target.id, kept, preview));
     closeOrAdvance();
@@ -101,25 +91,6 @@ export function ImageManager({ slots, onChange, canDelete, isBusy = false, empty
 
   return (
     <div className="flex flex-col gap-3" data-test-selector="image-manager">
-      <label
-        className={cn(
-          "flex min-h-14 cursor-pointer items-center justify-center gap-2 rounded-panel border-2 border-dashed border-primary-300 bg-primary-50 px-4 text-label font-medium text-primary-600 transition-colors hover:bg-primary-100 active:bg-primary-100",
-          isBusy && "pointer-events-none opacity-50"
-        )}
-      >
-        <ImagePlus className="size-5" aria-hidden="true" />
-        {t("addImages")}
-        <input
-          data-test-selector="image-upload-input"
-          ref={inputRef}
-          type="file"
-          accept="image/*"
-          multiple
-          disabled={isBusy}
-          className="sr-only"
-          onChange={(e) => handleFiles(e.target.files)}
-        />
-      </label>
 
       {rejected && (
         <p className="text-label text-danger-600" data-test-selector="image-upload-error">
@@ -127,10 +98,12 @@ export function ImageManager({ slots, onChange, canDelete, isBusy = false, empty
         </p>
       )}
 
-      {slots.length > 0 && (
-        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-          <SortableContext items={slots.map((s) => s.id)} strategy={rectSortingStrategy}>
-            <div className="grid grid-cols-3 gap-2" data-test-selector="image-gallery">
+      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+        <SortableContext items={slots.map((s) => s.id)} strategy={rectSortingStrategy}>
+            <div
+              className="grid grid-cols-[repeat(auto-fill,minmax(7rem,1fr))] gap-3 sm:grid-cols-[repeat(auto-fill,minmax(8.5rem,1fr))]"
+              data-test-selector="image-gallery"
+            >
               {slots.map((slot) => (
                 <SortableImageThumb
                   key={slot.id}
@@ -138,7 +111,6 @@ export function ImageManager({ slots, onChange, canDelete, isBusy = false, empty
                   thumbnailUrl={thumbnailFor(slot)}
                   isPrimary={slot.isPrimary}
                   isBusy={isBusy}
-                  // An un-uploaded pick can always be removed: nothing on the server is deleted.
                   canDelete={slot.kind === "new" || canDelete}
                   isNew={slot.kind === "new" || Boolean(slot.previewUrl)}
                   canEdit={Boolean(editTargetFor(slots, slot.id))}
@@ -151,10 +123,29 @@ export function ImageManager({ slots, onChange, canDelete, isBusy = false, empty
                   onRemove={(id) => onChange(removeSlot(slots, id))}
                 />
               ))}
+              <label
+                data-test-selector="image-add-tile"
+                className={cn(
+                  "flex aspect-[2/3] cursor-pointer flex-col items-center justify-center gap-1.5 rounded-control border-2 border-dashed border-primary-300 bg-primary-50 px-2 text-center text-label text-primary-600 transition-colors hover:border-primary-600 hover:bg-primary-100",
+                  isBusy && "pointer-events-none opacity-50"
+                )}
+              >
+                <ImagePlus className="size-6" aria-hidden="true" />
+                {t("addImages")}
+                <input
+                  data-test-selector="image-upload-input"
+                  ref={inputRef}
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  disabled={isBusy}
+                  className="sr-only"
+                  onChange={(e) => handleFiles(e.target.files)}
+                />
+              </label>
             </div>
-          </SortableContext>
-        </DndContext>
-      )}
+        </SortableContext>
+      </DndContext>
 
       {slots.length === 0 && emptyHint && <p className="text-label text-ink-muted">{emptyHint}</p>}
 
@@ -164,14 +155,12 @@ export function ImageManager({ slots, onChange, canDelete, isBusy = false, empty
 
       {target && (
         <ImageEditorSheet
-          // Keyed by photo so no zoom or crop survives into the next one in a batch.
           key={target.id}
           src={target.src}
           crossOrigin={target.crossOrigin}
           fallbackSrc={target.fallbackSrc}
           edit={target.edit}
           step={{ index: queueIndex + 1, total: queue.length }}
-          // Leaves this photograph as it is and moves on to the next.
           onCancel={closeOrAdvance}
           onSave={handleEditorSave}
         />
@@ -196,13 +185,10 @@ function editTargetFor(slots: GallerySlot[], id: string | undefined): EditTarget
   }
   const source = slot.image.originalUrl ?? slot.image.url;
   if (!source) return null;
-  // Stored paths are API-relative; the admin is on its own origin.
   const original = resolveImageUrl(source);
   return {
     id: slot.id,
-    // A 1200px optimizer copy on our origin; the crop is stored as fractions, so sharp still cuts the original exactly.
     src: optimizedImageUrl(original, EDITOR_SOURCE_WIDTH),
-    // Pending crop first, then the stored one, so re-opening never starts from scratch.
     edit: editOrIdentity(slot.edit ?? slot.image.edit),
     crossOrigin: false,
     fallbackSrc: original,

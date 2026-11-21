@@ -1,5 +1,6 @@
 "use client";
 
+import { MoneyField } from "@/components/fields/money-field";
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { EyeOff } from "lucide-react";
@@ -7,7 +8,6 @@ import { ERROR_CODES } from "@organza/shared/constants/errors";
 import type { CashSession } from "@organza/shared/types/cash";
 import { fieldTestSelector } from "@organza/shared/lib/testSelector";
 import { Alert, Button, Drawer, FormField, Switch, Textarea } from "@store/ui";
-import { NumericInput } from "@/components/fields/numeric-input";
 import { useCloseCashSessionMutation } from "@/hooks/use-cash-sessions";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
 import { useTranslateError } from "@/hooks/use-translate-error";
@@ -121,9 +121,8 @@ function CloseDayForm({ session, onDone }: { session: CashSession; onDone: () =>
       {/* After the reveal the count is fixed — changing it after seeing the answer is what counting blind prevents. */}
       {step === "counting" && (
         <FormField label="dashboard.drawer.closeDay.counted" htmlFor="counted-amount">
-          <NumericInput
+          <MoneyField
             id="counted-amount"
-            allowDecimal
             value={counted}
             onChange={(event) => setCounted(event.target.value)}
             placeholder="0"
@@ -137,9 +136,8 @@ function CloseDayForm({ session, onDone }: { session: CashSession; onDone: () =>
         htmlFor="withdrawn-amount"
         note="dashboard.drawer.closeDay.withdrawnHint"
       >
-        <NumericInput
+        <MoneyField
           id="withdrawn-amount"
-          allowDecimal
           value={withdrawn}
           onChange={(event) => setWithdrawn(event.target.value)}
           placeholder="0"
@@ -171,7 +169,7 @@ function CloseDayForm({ session, onDone }: { session: CashSession; onDone: () =>
       {step === "reveal" && (
         <div className="flex items-start justify-between gap-3 rounded-panel border border-line p-4">
           <div className="min-w-0">
-            <label htmlFor="carry-difference" className="cursor-pointer text-label font-medium text-ink">
+            <label htmlFor="carry-difference" className="cursor-pointer text-label text-ink">
               {t("carry")}
             </label>
             <p className="mt-1 text-meta text-ink-muted">{t("carryHint")}</p>

@@ -3,27 +3,24 @@
 import { useState } from "react";
 import { Minus, Plus } from "lucide-react";
 import { QUANTITY_MAX, QUANTITY_MAX_LENGTH, QUANTITY_MIN, clampQuantity } from "@organza/shared/constants/quantity";
-import { NumericInput } from "@/components/fields/numeric-input";
+import { FIELD_TEXT, FieldDivider, fieldShell } from "@store/ui";
+import { sanitizeNumeric } from "@/components/fields/numeric-input";
 import { isNonNegativeIntegerString } from "@/lib/validation/numeric";
 import { testSelectorFor } from "@organza/shared/lib/testSelector";
 import { cn } from "@/lib/utils";
 
 interface QuantityStepperProps {
   value: number;
-  // A screen may narrow the shared 0–999 range, never widen it.
   min?: number;
   max?: number;
   onChange: (quantity: number) => void;
-  // Accessible names should name the line, so a screen reader doesn't hear several identical "more" buttons.
   decreaseLabel: string;
   increaseLabel: string;
   valueLabel: string;
-  // Names the stepper `quantity-stepper-<name>`.
   name?: string;
   className?: string;
 }
 
-// Typed values clamp on blur to the same bounds the buttons stop at; the draft exists only while editing so "" doesn't snap to the minimum.
 export function QuantityStepper({
   value,
   min = QUANTITY_MIN,
@@ -51,38 +48,48 @@ export function QuantityStepper({
     step(Number(raw));
   }
 
+  const button =
+    "flex size-8 shrink-0 items-center justify-center rounded-chip text-ink-muted transition-colors not-disabled:hover:bg-inset not-disabled:hover:text-ink disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500";
+
   return (
-    <div className={cn("flex items-center gap-1", className)} data-test-selector={testSelectorFor("quantity-stepper", name)}>
+    <div
+      className={cn(fieldShell({}), "w-36 gap-1 px-1", className)}
+      data-test-selector={testSelectorFor("quantity-stepper", name)}
+    >
       <button
         type="button"
         onClick={() => step(value - 1)}
         disabled={value <= floor}
         aria-label={decreaseLabel}
         data-test-selector={testSelectorFor("quantity-decrease", name)}
-        className="flex size-11 shrink-0 items-center justify-center rounded-control border border-line bg-surface text-ink transition-colors not-disabled:hover:border-primary-600 not-disabled:hover:bg-inset disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+        className={button}
       >
-        <Minus className="size-5" aria-hidden="true" />
+        <Minus className="size-4" aria-hidden="true" />
       </button>
-
-      <NumericInput
+      <FieldDivider />
+      <input
+        type="text"
+        inputMode="numeric"
+        dir="ltr"
+        autoComplete="off"
         value={draft ?? String(value)}
-        onChange={(event) => setDraft(event.target.value)}
+        onChange={(event) => setDraft(sanitizeNumeric(event.target.value, false))}
         onBlur={(event) => commit(event.target.value)}
         maxLength={QUANTITY_MAX_LENGTH}
         aria-label={valueLabel}
         data-test-selector={testSelectorFor("quantity-value", name)}
-        className="h-11 w-14 px-0 text-base font-semibold [&_input]:text-center"
+        className={cn(FIELD_TEXT, "text-center tabular-nums")}
       />
-
+      <FieldDivider />
       <button
         type="button"
         onClick={() => step(value + 1)}
         disabled={value >= ceiling}
         aria-label={increaseLabel}
         data-test-selector={testSelectorFor("quantity-increase", name)}
-        className="flex size-11 shrink-0 items-center justify-center rounded-control border border-line bg-surface text-ink transition-colors not-disabled:hover:border-primary-600 not-disabled:hover:bg-inset disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+        className={button}
       >
-        <Plus className="size-5" aria-hidden="true" />
+        <Plus className="size-4" aria-hidden="true" />
       </button>
     </div>
   );

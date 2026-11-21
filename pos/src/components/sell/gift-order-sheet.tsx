@@ -93,7 +93,7 @@ export function GiftOrderSheet({
           </div>
 
           <div className="flex flex-col gap-2">
-            <label htmlFor="pos-gift-note" className="text-label font-medium text-ink">
+            <label htmlFor="pos-gift-note" className="text-label text-ink">
               {t("noteLabel")}
             </label>
             <Textarea

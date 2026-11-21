@@ -51,7 +51,7 @@ export function FormField({
         <Label
           htmlFor={htmlFor}
           {...part("label")}
-          className="cursor-pointer text-label font-medium text-ink"
+          className="cursor-pointer text-label text-ink"
         >
           {t(label, labelValues ?? {})}
           {required && (

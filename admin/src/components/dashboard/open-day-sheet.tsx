@@ -1,11 +1,11 @@
 "use client";
 
+import { MoneyField } from "@/components/fields/money-field";
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { ERROR_CODES } from "@organza/shared/constants/errors";
 import { fieldTestSelector } from "@organza/shared/lib/testSelector";
 import { Alert, Button, Drawer, FormField, Textarea } from "@store/ui";
-import { NumericInput } from "@/components/fields/numeric-input";
 import { useOpenCashSessionMutation } from "@/hooks/use-cash-sessions";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
 import { useTranslateError } from "@/hooks/use-translate-error";
@@ -83,9 +83,8 @@ function OpenDayForm({
       )}
 
       <FormField label="dashboard.drawer.openDay.openingFloat" htmlFor="opening-float">
-        <NumericInput
+        <MoneyField
           id="opening-float"
-          allowDecimal
           value={openingFloat}
           onChange={(event) => setOpeningFloat(event.target.value)}
         />

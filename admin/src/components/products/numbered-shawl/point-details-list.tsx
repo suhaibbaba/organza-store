@@ -1,7 +1,7 @@
 "use client";
 
+import { MoneyField } from "@/components/fields/money-field";
 import { useTranslations } from "next-intl";
-import { NumericInput } from "@/components/fields/numeric-input";
 import { QuantityStepper } from "@/components/fields/quantity-stepper";
 import { formatMoney } from "@/lib/format";
 import { parseQuantity } from "@/lib/validation/numeric";
@@ -56,12 +56,11 @@ export function PointDetailsList({ points, currency, locale, basePrice, onFieldC
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label htmlFor={`shawl-price-${point.id}`} className="text-label font-medium text-ink">
+              <label htmlFor={`shawl-price-${point.id}`} className="text-label text-ink">
                 {t("priceOverride")}
               </label>
-              <NumericInput
+              <MoneyField
                 id={`shawl-price-${point.id}`}
-                allowDecimal
                 placeholder={t("inherits", { value: formatMoney(basePrice, currency, locale) })}
                 value={point.priceOverride}
                 onChange={(e) => onFieldChange(point.id, "priceOverride", e.target.value)}

@@ -79,7 +79,7 @@ export function OptionValueNotesSection({
                       className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-3"
                       data-test-selector={testSelectorFor("option-note-row", row.key)}
                     >
-                      <label htmlFor={id} className="text-label font-medium text-ink sm:w-28 sm:shrink-0 sm:truncate">
+                      <label htmlFor={id} className="text-label text-ink sm:w-28 sm:shrink-0 sm:truncate">
                         {row.label}
                       </label>
                       <Input

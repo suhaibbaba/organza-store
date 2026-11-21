@@ -11,6 +11,7 @@ export interface SwitchProps extends TestIdProps {
   disabled?: boolean | undefined;
   "aria-disabled"?: boolean | undefined;
   id?: string | undefined;
+  size?: "sm" | "md" | undefined;
 }
 
 export function Switch({
@@ -21,10 +22,12 @@ export function Switch({
   disabled = false,
   "aria-disabled": unavailable = false,
   id,
+  size = "md",
   "data-testid": testId,
 }: SwitchProps): JSX.Element {
   const part = parts("switch", testId);
   const labelId = useId();
+  const small = size === "sm";
 
   const track = (
     <SwitchPrimitive.Root
@@ -40,7 +43,8 @@ export function Switch({
       aria-disabled={unavailable || undefined}
       {...(hideLabel ? { "aria-label": label } : { "aria-labelledby": labelId })}
       className={cn(
-        "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full",
+        "relative inline-flex shrink-0 cursor-pointer rounded-full",
+        small ? "h-4.5 w-8" : "h-6 w-11",
         "transition-colors duration-150",
         "after:absolute after:inset-x-0 after:top-1/2 after:h-(--control-h) after:-translate-y-1/2",
         'after:content-[""] lg:after:hidden',
@@ -52,9 +56,9 @@ export function Switch({
       <SwitchPrimitive.Thumb
         {...part("thumb")}
         className={cn(
-          "block size-5 rounded-full bg-surface shadow-pill transition-transform",
-          "absolute top-0.5 start-0.5",
-          checked ? "rtl:-translate-x-5 ltr:translate-x-5" : "translate-x-0",
+          "block rounded-full bg-surface shadow-pill transition-transform",
+          small ? "absolute top-0.5 start-0.5 size-3.5" : "absolute top-0.5 start-0.5 size-5",
+          checked ? (small ? "rtl:-translate-x-3.5 ltr:translate-x-3.5" : "rtl:-translate-x-5 ltr:translate-x-5") : "translate-x-0",
         )}
       />
     </SwitchPrimitive.Root>
@@ -65,14 +69,15 @@ export function Switch({
   }
 
   return (
-    <span {...part("row")} className="inline-flex items-center gap-2.5">
+    <span {...part("row")} className={cn("inline-flex items-center", small ? "gap-1.5" : "gap-2.5")}>
       {track}
       <span
         id={labelId}
         {...part("label")}
         onClick={() => !disabled && onCheckedChange(!checked)}
         className={cn(
-          "select-none text-value text-ink",
+          "select-none text-ink",
+          small ? "text-label" : "text-value",
           disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer",
         )}
       >

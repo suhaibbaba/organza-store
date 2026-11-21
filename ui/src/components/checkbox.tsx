@@ -10,6 +10,7 @@ export interface CheckboxProps extends TestIdProps {
   readonly hideLabel?: boolean | undefined;
   readonly indeterminate?: boolean | undefined;
   readonly id?: string | undefined;
+  readonly size?: "sm" | "md" | undefined;
 }
 
 export function Checkbox({
@@ -19,11 +20,13 @@ export function Checkbox({
   hideLabel = false,
   indeterminate = false,
   id,
+  size = "md",
   "data-testid": testId,
 }: CheckboxProps): JSX.Element {
   const part = parts("checkbox", testId);
   const input = useRef<HTMLInputElement>(null);
   const marked = checked || indeterminate;
+  const small = size === "sm";
 
   useEffect(() => {
     if (input.current) {
@@ -34,9 +37,9 @@ export function Checkbox({
   return (
     <label
       {...part()}
-      className="flex w-fit min-h-(--control-h-sm) cursor-pointer items-center gap-2.5 select-none"
+      className={cn("flex w-fit cursor-pointer items-center select-none", small ? "gap-1.5" : "min-h-(--control-h-sm) gap-2.5")}
     >
-      <span className="relative grid size-5 shrink-0 place-items-center">
+      <span className={cn("relative grid shrink-0 place-items-center", small ? "size-4" : "size-5")}>
         <input
           ref={input}
           id={id}
@@ -50,7 +53,8 @@ export function Checkbox({
           aria-hidden="true"
           {...part("box")}
           className={cn(
-            "pointer-events-none grid size-5 place-items-center rounded-chip border-[1.5px]",
+            "pointer-events-none grid place-items-center rounded-chip border-[1.5px]",
+            small ? "size-4" : "size-5",
             "transition-colors duration-150",
             marked
               ? "border-primary-600 bg-primary-600 text-ink-inverse"
@@ -58,13 +62,13 @@ export function Checkbox({
           )}
         >
           {checked ? (
-            <Icon name="check" className="size-3.5" />
+            <Icon name="check" className={small ? "size-3" : "size-3.5"} />
           ) : (
-            indeterminate && <span className="h-0.5 w-2.5 rounded-pill bg-current" />
+            indeterminate && <span className={cn("h-0.5 rounded-pill bg-current", small ? "w-2" : "w-2.5")} />
           )}
         </span>
       </span>
-      <span {...part("label")} className={cn("text-value text-ink", hideLabel && "sr-only")}>
+      <span {...part("label")} className={cn(small ? "text-label" : "text-value", "text-ink", hideLabel && "sr-only")}>
         {label}
       </span>
     </label>

@@ -30,7 +30,7 @@ import { NEEDS_LABEL_WHERE } from "@/lib/labelState";
 import { NEEDS_COMPLETING_WHERE, QUICK_SOLD_WHERE } from "@/lib/quickSellState";
 import { buildSearchText, searchProductIds } from "@/lib/search";
 import { cartesianProduct, buildComboName, buildImagePointMap, resolveComboImagePoint } from "@/lib/variantCombo";
-import { generateVariantsForProduct, previewComboNames, validateOptionSelections } from "@/lib/variants";
+import { comboStockLookup, generateVariantsForProduct, previewComboNames, validateOptionSelections } from "@/lib/variants";
 import { serializeProduct, serializeProductSummary, serializeVariant } from "@/lib/pricing";
 import { applyOptionValueNotes, assertOptionValueNotesUsable } from "@/lib/optionValueNotes";
 import { moneyChanged } from "@/lib/money";
@@ -450,6 +450,7 @@ router.post(
 
       const combos = cartesianProduct(body.optionSelections!.map((s) => s.valueIds));
       const imagePointMap = buildImagePointMap(body.optionSelections!);
+      const stockFor = comboStockLookup(body.comboStocks);
       let variantNumber = 0;
       for (const combo of combos) {
         variantNumber += 1;
@@ -462,7 +463,7 @@ router.post(
             name: buildComboName(values),
             sku: variantSku(created.productNumber, variantNumber),
             barcode: await generateUniqueBarcode(),
-            stock: DEFAULT_STOCK,
+            stock: stockFor(combo),
             imageX: point?.imageX ?? null,
             imageY: point?.imageY ?? null,
             values: { create: combo.map((optionValueId) => ({ optionValueId })) },
@@ -806,6 +807,7 @@ router.post(
               variantTypeId: s.variantTypeId,
               valueIds: s.valueIds,
             })),
+            ...(body.comboStocks?.length && { comboStocks: body.comboStocks }),
           }),
         },
       ]);
@@ -817,7 +819,7 @@ router.post(
       return;
     }
 
-    const { createdSkus } = await generateVariantsForProduct(prisma, product, body.optionSelections, valueMap);
+    const { createdSkus } = await generateVariantsForProduct(prisma, product, body.optionSelections, valueMap, body.comboStocks);
 
     await writeAudit({
       userId: req.user!.id,

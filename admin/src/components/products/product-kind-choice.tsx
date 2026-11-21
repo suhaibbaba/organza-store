@@ -47,7 +47,6 @@ export function ProductKindChoice({ value, onChange, lockedReason, disabled }: P
 
   return (
     <div className="flex flex-col gap-3">
-      <p className="text-label text-ink-muted">{t("hint")}</p>
 
       <div role="radiogroup" aria-label={t("legend")} className="flex flex-col gap-3 sm:flex-row">
         {options.map((option) => {

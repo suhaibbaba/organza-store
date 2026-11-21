@@ -41,6 +41,7 @@ export interface ChangeRequestValueDetail {
    * a value renamed while the request waits still resolves correctly.
    */
   optionSelections?: { variantTypeId: string; valueIds: string[] }[];
+  comboStocks?: { valueIds: string[]; stock: number }[];
   /** variantSet + remove only: which variant goes. */
   variantId?: string;
 

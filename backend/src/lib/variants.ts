@@ -83,12 +83,19 @@ export function previewComboNames(
  * can run it inside its transaction — barcode uniqueness included, since the
  * lookup then sees the rows this same batch has just written.
  */
+export function comboStockLookup(entries: { valueIds: string[]; stock: number }[] = []): (combo: string[]) => number {
+  const stocks = new Map(entries.map((entry) => [[...entry.valueIds].sort().join(","), entry.stock]));
+  return (combo) => stocks.get([...combo].sort().join(",")) ?? DEFAULT_STOCK;
+}
+
 export async function generateVariantsForProduct(
   client: DbClient,
   product: GeneratableProduct,
   selections: OptionSelectionInput[],
-  valueMap: Map<string, OptionValueLookup>
+  valueMap: Map<string, OptionValueLookup>,
+  comboStocks: { valueIds: string[]; stock: number }[] = []
 ): Promise<{ createdSkus: string[] }> {
+  const stockFor = comboStockLookup(comboStocks);
   const typeIds = [...new Set(selections.map((s) => s.variantTypeId))];
   await client.productVariantType.createMany({
     data: typeIds.map((variantTypeId) => ({ productId: product.id, variantTypeId })),
@@ -119,7 +126,7 @@ export async function generateVariantsForProduct(
         name: buildComboName(values),
         sku,
         barcode: await generateUniqueBarcode(client),
-        stock: DEFAULT_STOCK,
+        stock: stockFor(combo),
         imageX: point?.imageX ?? null,
         imageY: point?.imageY ?? null,
         values: { create: combo.map((optionValueId) => ({ optionValueId })) },

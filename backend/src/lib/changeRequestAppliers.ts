@@ -218,7 +218,7 @@ const productVariantSetApplier: ChangeRequestApplier = {
       where: { id: product.id },
       include: { variants: { include: { values: true } } },
     });
-    const { createdSkus } = await generateVariantsForProduct(tx, full, detail.optionSelections, valueMap);
+    const { createdSkus } = await generateVariantsForProduct(tx, full, detail.optionSelections, valueMap, detail.comboStocks);
 
     return {
       audits: [

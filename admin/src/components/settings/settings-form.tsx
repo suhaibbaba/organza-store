@@ -251,7 +251,7 @@ export function SettingsForm({ setting }: { setting: Setting }) {
         <p className={hint}>{t("saleNotificationsIntro")}</p>
 
         <div className="flex items-center justify-between gap-4">
-          <label htmlFor="saleNotificationsEnabled" className="flex-1 cursor-pointer text-label font-medium text-ink">
+          <label htmlFor="saleNotificationsEnabled" className="flex-1 cursor-pointer text-label text-ink">
             {t("saleNotificationsEnabled")}
           </label>
           <Controller
@@ -325,7 +325,7 @@ export function SettingsForm({ setting }: { setting: Setting }) {
         </FormField>
 
         <fieldset>
-          <legend className="mb-2 text-label font-medium text-ink">{t("labelSizeTitle")}</legend>
+          <legend className="mb-2 text-label text-ink">{t("labelSizeTitle")}</legend>
           <div className="grid grid-cols-2 gap-3">
             <MeasureField
               id="labelWidthMm"
@@ -355,7 +355,7 @@ export function SettingsForm({ setting }: { setting: Setting }) {
             </div>
 
             <fieldset>
-              <legend className="mb-2 text-label font-medium text-ink">{t("labelGridTitle")}</legend>
+              <legend className="mb-2 text-label text-ink">{t("labelGridTitle")}</legend>
               <div className="grid grid-cols-2 gap-3">
                 <MeasureField
                   id="labelColumns"
@@ -380,7 +380,7 @@ export function SettingsForm({ setting }: { setting: Setting }) {
             </fieldset>
 
             <fieldset>
-              <legend className="mb-2 text-label font-medium text-ink">{t("labelMarginsTitle")}</legend>
+              <legend className="mb-2 text-label text-ink">{t("labelMarginsTitle")}</legend>
               <div className="grid grid-cols-2 gap-3">
                 <MeasureField
                   id="labelPageMarginTopMm"
@@ -417,7 +417,7 @@ export function SettingsForm({ setting }: { setting: Setting }) {
             </fieldset>
 
             <fieldset>
-              <legend className="mb-2 text-label font-medium text-ink">{t("labelGapsTitle")}</legend>
+              <legend className="mb-2 text-label text-ink">{t("labelGapsTitle")}</legend>
               <div className="grid grid-cols-2 gap-3">
                 <MeasureField
                   id="labelGapXMm"

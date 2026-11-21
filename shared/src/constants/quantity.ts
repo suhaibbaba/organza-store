@@ -31,3 +31,6 @@ export function clampQuantity(value: number, min: number = QUANTITY_MIN, max: nu
   if (ceiling < floor) return floor;
   return Math.min(Math.max(value, floor), ceiling);
 }
+
+// A new product or variant starts with one piece in stock (CLAUDE.md rule 7).
+export const DEFAULT_STOCK = 1;

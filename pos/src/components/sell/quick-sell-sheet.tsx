@@ -93,7 +93,7 @@ function QuickSellForm({
       }}
     >
       <div className="flex flex-col gap-2">
-        <label htmlFor="pos-quick-sell-name" className="text-label font-medium text-ink">{t("nameLabel")}</label>
+        <label htmlFor="pos-quick-sell-name" className="text-label text-ink">{t("nameLabel")}</label>
         {/* Autofocus: the sheet was opened to type this, and the keyboard coming up with it is the second this feature saves. */}
         <Input
           id="pos-quick-sell-name"
@@ -109,7 +109,7 @@ function QuickSellForm({
       </div>
 
       <div className="flex flex-col gap-2">
-        <label htmlFor="pos-quick-sell-price" className="text-label font-medium text-ink">
+        <label htmlFor="pos-quick-sell-price" className="text-label text-ink">
           {currency ? t("priceLabelCurrency", { currency }) : t("priceLabel")}
         </label>
         <NumericInput
@@ -133,7 +133,7 @@ function QuickSellForm({
       </div>
 
       <div className="flex flex-col gap-2">
-        <label htmlFor="pos-quick-sell-detail" className="text-label font-medium text-ink">{t("detailLabel")}</label>
+        <label htmlFor="pos-quick-sell-detail" className="text-label text-ink">{t("detailLabel")}</label>
         <Input
           id="pos-quick-sell-detail"
           data-testid={fieldTestSelector("pos-quick-sell-detail")}

@@ -109,7 +109,7 @@ export function CustomerForm({ register, control, setValue, errors }: CustomerFo
       </FormField>
 
       <fieldset className="flex flex-col gap-1.5">
-        <legend className="flex items-center gap-1.5 text-label font-medium text-ink">
+        <legend className="flex items-center gap-1.5 text-label text-ink">
           <MapPin className="size-4" aria-hidden="true" />
           {t("location")}
         </legend>

@@ -20,7 +20,7 @@ export function ColorInput({ id, label, value, onChange, disabled, className }: 
 
   return (
     <div className={cn("flex flex-col gap-1.5", className)}>
-      <label htmlFor={id} className="text-label font-medium text-ink">
+      <label htmlFor={id} className="text-label text-ink">
         {label}
       </label>
       <div className="flex items-center gap-2 rounded-control border border-line-strong bg-surface p-1.5">

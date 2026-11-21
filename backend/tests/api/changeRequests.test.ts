@@ -413,6 +413,47 @@ describe("Change requests", () => {
       expect(after.data!.variants.every((v) => Boolean(v.barcode))).toBe(true);
     });
 
+    it("creates new combinations with the opening stock asked for, and the default for the rest", async () => {
+      const admin = await getSession("ADMIN");
+      const optionSelections = await twoByTwoOptionSelections(admin.token);
+      const created = await product(admin.token, "ComboStock");
+      const first = optionSelections.map((selection) => selection.valueIds[0]!);
+
+      const added = await apiRequest<ProductDto>(`/api/products/${created.id}/variants/generate`, {
+        method: "POST",
+        token: admin.token,
+        body: { optionSelections, comboStocks: [{ valueIds: [...first].reverse(), stock: 7 }] },
+      });
+      expect(added.status).toBe(201);
+
+      const stocks = added.data!.variants.map((variant) => ({
+        stock: variant.stock,
+        chosen: variant.values.every((value) => first.includes(value.id)),
+      }));
+      expect(stocks.filter((row) => row.chosen).map((row) => row.stock)).toEqual([7]);
+      expect(stocks.filter((row) => !row.chosen).every((row) => row.stock === 1)).toBe(true);
+    });
+
+    it("carries the asked-for opening stock through an approved variant-set addition", async () => {
+      const admin = await getSession("ADMIN");
+      const employee = await getSession("EMPLOYEE");
+      const optionSelections = await twoByTwoOptionSelections(admin.token);
+      const created = await product(admin.token, "ApproveComboStock");
+      const first = optionSelections.map((selection) => selection.valueIds[0]!);
+
+      const asked = await apiRequest<ProductDto>(`/api/products/${created.id}/variants/generate`, {
+        method: "POST",
+        token: employee.token,
+        body: { optionSelections, comboStocks: [{ valueIds: first, stock: 5 }] },
+      });
+      const request = asked.data!.pendingChanges!.find((c) => c.field === "variantSet")!;
+      expect((await approveChange(admin.token, request.id)).status).toBe(200);
+
+      const after = await apiRequest<ProductDto>(`/api/products/${created.id}`, { token: admin.token });
+      const chosen = after.data!.variants.find((variant) => variant.values.every((value) => first.includes(value.id)));
+      expect(chosen?.stock).toBe(5);
+    });
+
     it("applies an approved photo deletion, and the photo is gone", async () => {
       const admin = await getSession("ADMIN");
       const employee = await getSession("EMPLOYEE");

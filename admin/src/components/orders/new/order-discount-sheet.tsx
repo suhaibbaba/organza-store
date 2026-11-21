@@ -102,7 +102,7 @@ function DiscountForm({ baseAmount, current, onApply }: DiscountFormProps) {
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <label htmlFor="order-discount-value" className="cursor-pointer text-label font-medium text-ink">
+        <label htmlFor="order-discount-value" className="cursor-pointer text-label text-ink">
           {type === "AMOUNT" && currency ? t("valueLabel.AMOUNT_currency", { currency }) : t(`valueLabel.${type}`)}
         </label>
         <NumericInput

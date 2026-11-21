@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import Cropper, { type Area, type MediaSize } from "react-easy-crop";
 import { Button, Spinner } from "@store/ui";
-import { Check, FlipHorizontal2, FlipVertical2, RotateCw, X } from "lucide-react";
+import { FlipHorizontal2, FlipVertical2, RotateCw, X, ZoomIn, ZoomOut } from "lucide-react";
 import {
   IMAGE_ZOOM,
   PRODUCT_IMAGE_ASPECT,
@@ -48,17 +48,13 @@ export function ImageEditorSheet({
 }: ImageEditorSheetProps) {
   const t = useTranslations("products.form.images.editor");
 
-  // `crop` is the cropper's pixel offset; what we keep is the AREA it reports, in fractions.
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState<number>(IMAGE_ZOOM.min);
   const [working, setWorking] = useState<ImageEdit>(edit);
   const [area, setArea] = useState<ImageCrop | null>(edit.crop);
-  // On = the catalogue's 2:3; off = the photograph's own shape.
   const [constrained, setConstrained] = useState(true);
-  // The picture as DRAWN (fitted size), needed for the whole-photo box shape and zoom.
   const [drawnSize, setDrawnSize] = useState<{ width: number; height: number } | null>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
-  // `src` scaled down to something a phone reliably decodes; "failed" must never be swallowed.
   const [source, setSource] = useState<{ url: string } | "failed" | null>(null);
 
   useEffect(() => {
@@ -86,7 +82,6 @@ export function ImageEditorSheet({
     };
   }, [src, crossOrigin, fallbackSrc]);
 
-  // Nothing resets on a photo change: the gallery mounts one editor per photo (key={target.id}).
 
   /** Zoom at which the box covers the ENTIRE photo — not 1 for a turned picture; mirrors the cropper's getCropSize. */
   const wholePhotoZoom = useCallback(
@@ -98,14 +93,12 @@ export function ImageEditorSheet({
       const fittingWidth = Math.min(picture.width, frame.width);
       const fittingHeight = Math.min(picture.height, frame.height);
       const boxWidth = fittingWidth > fittingHeight * aspect ? fittingHeight * aspect : fittingWidth;
-      // Never above 1: the box already holds everything there.
       return Math.min(IMAGE_ZOOM.min, boxWidth / picture.width);
     },
     [drawnSize]
   );
 
   const handleCropComplete = useCallback((percentages: Area) => {
-    // Deliberately not converted for the mirror — see "WHY THE CROP NEEDS NO CONVERSION" in shared/lib/imageEdit.
     setArea({
       x: percentages.x / 100,
       y: percentages.y / 100,
@@ -114,23 +107,19 @@ export function ImageEditorSheet({
     });
   }, []);
 
-  // A portrait photo turned a quarter is a landscape frame.
   const drawnFrame = drawnSize ? rotatedFrameSize(drawnSize, working.rotation) : null;
   const wholeFrameAspect = drawnFrame ? drawnFrame.width / drawnFrame.height : PRODUCT_IMAGE_ASPECT_RATIO;
 
   return (
-    // Full screen, not a Drawer: a side panel is the wrong shape for a portrait photo and invites a tap that loses the crop.
     <div
       className="fixed inset-0 z-50 flex flex-col bg-ink"
       role="dialog"
       aria-modal="true"
       aria-label={t("title")}
       data-test-selector="image-editor"
-      // Pinch-zoom is cancelled app-wide (globals.css) except here, where it IS the feature.
       data-allow-zoom="true"
     >
       <div className="flex items-center justify-between gap-2 px-2 pt-[calc(var(--safe-top)+0.5rem)] text-ink-inverse">
-        {/* In a batch this skips (keeps the photo as is), so it says "skip", not "cancel". */}
         <button
           type="button"
           onClick={onCancel}
@@ -145,19 +134,9 @@ export function ImageEditorSheet({
           {step && step.total > 1 ? t("step", { index: step.index, total: step.total }) : t("title")}
         </p>
 
-        <button
-          type="button"
-          onClick={() => onSave({ ...working, crop: area })}
-          aria-label={t("save")}
-          data-test-selector="image-editor-save"
-          disabled={source === null || source === "failed"}
-          className="inline-flex size-11 items-center justify-center rounded-pill text-ink-inverse transition-colors hover:bg-ink-inverse/10 disabled:opacity-40"
-        >
-          <Check className="size-6" aria-hidden="true" />
-        </button>
+        <span aria-hidden="true" className="size-11" />
       </div>
 
-      {/* `relative`: the cropper positions itself absolutely. */}
       <div ref={canvasRef} className="relative min-h-0 flex-1" data-test-selector="image-editor-canvas">
         {source === null && (
           <div className="absolute inset-0 flex items-center justify-center" data-test-selector="image-editor-loading">
@@ -182,7 +161,6 @@ export function ImageEditorSheet({
           zoom={zoom}
           rotation={working.rotation}
           aspect={constrained ? PRODUCT_IMAGE_ASPECT_RATIO : wholeFrameAspect}
-          // The cropper refuses a zoom under its minimum, so the floor moves with the whole-photo zoom.
           minZoom={constrained ? IMAGE_ZOOM.min : Math.min(IMAGE_ZOOM.min, zoom)}
           maxZoom={IMAGE_ZOOM.max}
           objectFit="contain"
@@ -201,7 +179,6 @@ export function ImageEditorSheet({
           onCropChange={setOffset}
           onZoomChange={setZoom}
           onCropComplete={handleCropComplete}
-          // Mirror before the turn, the same order sharp uses, so preview and stored photo match.
           transform={[
             `translate(${offset.x}px, ${offset.y}px)`,
             `rotate(${working.rotation}deg)`,
@@ -215,13 +192,13 @@ export function ImageEditorSheet({
 
       <div
         className={cn(
-          "flex flex-col gap-4 px-4 pb-[calc(var(--safe-bottom)+1rem)] pt-4 text-ink-inverse",
-          // No controls until a picture is on screen: saving a crop nobody saw is worse than a wait.
+          "mx-auto flex w-full max-w-xl flex-col gap-4 px-4 pb-[calc(var(--safe-bottom)+1rem)] pt-4 text-ink-inverse",
           source === null || source === "failed" ? "pointer-events-none opacity-40" : ""
         )}
       >
         <label className="flex items-center gap-3">
           <span className="sr-only">{t("zoom")}</span>
+          <ZoomOut className="size-4 shrink-0 text-ink-inverse/70" aria-hidden="true" />
           <input
             type="range"
             min={constrained ? IMAGE_ZOOM.min : Math.min(IMAGE_ZOOM.min, zoom)}
@@ -231,40 +208,37 @@ export function ImageEditorSheet({
             onChange={(event) => setZoom(Number(event.target.value))}
             aria-label={t("zoom")}
             data-test-selector="image-editor-zoom"
-            className="h-11 w-full accent-ink-inverse"
+            className="h-11 w-full cursor-pointer accent-ink-inverse"
           />
+          <ZoomIn className="size-4 shrink-0 text-ink-inverse/70" aria-hidden="true" />
         </label>
 
         <div className="flex flex-wrap items-center justify-center gap-2">
           <EditorAction
-            icon={<RotateCw className="size-5" aria-hidden="true" />}
+            icon={<RotateCw className="size-4" aria-hidden="true" />}
             label={t("rotate")}
             name="rotate"
             onClick={() =>
               setWorking((current) => {
                 const rotation = rotateClockwise(current.rotation);
-                // A turn changes the whole-photo zoom too.
                 if (!constrained) setZoom(wholePhotoZoom(rotation));
                 return { ...current, rotation };
               })
             }
           />
           <EditorAction
-            icon={<FlipHorizontal2 className="size-5" aria-hidden="true" />}
+            icon={<FlipHorizontal2 className="size-4" aria-hidden="true" />}
             label={t("flipHorizontal")}
             name="flip-horizontal"
-            // Mirrors what is SEEN; the axis mapping lives in shared so both apps and the server agree.
             onClick={() => setWorking((current) => toggleDisplayFlip(current, "horizontal"))}
           />
           <EditorAction
-            icon={<FlipVertical2 className="size-5" aria-hidden="true" />}
+            icon={<FlipVertical2 className="size-4" aria-hidden="true" />}
             label={t("flipVertical")}
             name="flip-vertical"
             onClick={() => setWorking((current) => toggleDisplayFlip(current, "vertical"))}
           />
-        </div>
-
-        <div className="flex items-center justify-center gap-2">
+          <span aria-hidden="true" className="mx-1 h-6 w-px bg-ink-inverse/20" />
           <ShapeChoice
             label={t("aspectCatalogue", { width: PRODUCT_IMAGE_ASPECT.width, height: PRODUCT_IMAGE_ASPECT.height })}
             name="catalogue"
@@ -280,7 +254,6 @@ export function ImageEditorSheet({
             name="whole"
             isActive={!constrained}
             onClick={() => {
-              // Whole picture: the reported crop resolves to no cut, same as an upload without the editor.
               setConstrained(false);
               setZoom(wholePhotoZoom(working.rotation));
               setOffset({ x: 0, y: 0 });
@@ -288,13 +261,23 @@ export function ImageEditorSheet({
           />
         </div>
 
-        <Button
-          onClick={() => onSave({ ...working, crop: area })}
-          className="w-full"
-          data-test-selector="image-editor-done"
-        >
-          {step && step.total > 1 && step.index < step.total ? t("saveAndNext") : t("saveAndClose")}
-        </Button>
+        <div className="flex items-center justify-end gap-2 border-t border-ink-inverse/15 pt-4">
+          <Button
+            variant="quiet"
+            onClick={onCancel}
+            className="flex-1 text-ink-inverse hover:bg-ink-inverse/10 sm:flex-none"
+          >
+            {step && step.total > 1 ? t("skip") : t("cancel")}
+          </Button>
+          <Button
+            onClick={() => onSave({ ...working, crop: area })}
+            disabled={source === null || source === "failed"}
+            className="flex-1 sm:flex-none"
+            data-test-selector="image-editor-done"
+          >
+            {step && step.total > 1 && step.index < step.total ? t("saveAndNext") : t("saveAndClose")}
+          </Button>
+        </div>
       </div>
     </div>
   );
@@ -318,8 +301,7 @@ function EditorAction({
       aria-label={label}
       title={label}
       data-test-selector={`image-editor-${name}`}
-      // Labels always drawn: no tooltip on a phone, and the users are not tech-savvy.
-      className="inline-flex min-h-11 items-center gap-2 rounded-pill bg-ink-inverse/10 px-3 text-xs font-medium text-ink-inverse transition-colors hover:bg-ink-inverse/20"
+      className="inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-pill bg-ink-inverse/10 px-3 text-label text-ink-inverse transition-colors hover:bg-ink-inverse/20"
     >
       {icon}
       {label}
@@ -345,7 +327,7 @@ function ShapeChoice({
       aria-pressed={isActive}
       data-test-selector={`image-editor-aspect-${name}`}
       className={cn(
-        "inline-flex min-h-11 items-center rounded-pill px-4 text-sm font-medium transition-colors",
+        "inline-flex h-9 cursor-pointer items-center rounded-pill px-3 text-label transition-colors",
         isActive ? "bg-surface text-ink" : "bg-ink-inverse/10 text-ink-inverse hover:bg-ink-inverse/20"
       )}
     >

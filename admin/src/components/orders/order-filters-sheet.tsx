@@ -157,7 +157,7 @@ export function OrderFiltersSheet({ value, onApply, activeCount }: OrderFiltersS
 
           {/* Each date has its own visible label: an empty date input on a phone shows nothing to tell "from" from "to". */}
           <fieldset className="flex min-w-0 flex-col gap-2">
-            <legend className="mb-2 text-label font-medium text-ink">{t("dateRange")}</legend>
+            <legend className="mb-2 text-label text-ink">{t("dateRange")}</legend>
             <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2">
               <FormField label="orders.filters.dateFrom" htmlFor="order-filter-date-from">
                 <Input

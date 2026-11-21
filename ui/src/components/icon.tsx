@@ -1,5 +1,9 @@
 import {
   Armchair,
+  Layers,
+  ScanBarcode,
+  Shapes,
+  ToggleRight,
   Bone,
   Monitor,
   Target,
@@ -77,6 +81,10 @@ import { cn } from "@ui/lib/cn";
 import type { TestIdProps } from "@ui/lib/testid";
 
 export type IconName =
+  | "barcode"
+  | "layers"
+  | "shapes"
+  | "toggle"
   | "activity"
   | "arrow-down"
   | "arrow-up"
@@ -186,6 +194,10 @@ const ICONS: Record<IconName, LucideIcon> = {
   building: Building2,
   calendar: CalendarDays,
   check: Check,
+  barcode: ScanBarcode,
+  layers: Layers,
+  shapes: Shapes,
+  toggle: ToggleRight,
   "chevron-down": ChevronDown,
   "chevron-up": ChevronUp,
   "chevrons-up-down": ChevronsUpDown,

@@ -55,5 +55,11 @@
     "yearOutOfRange": "That year is not right — use a date between 1900 and 2100",
     "dateInFuture": "This date cannot be in the future",
     "dateInPast": "This date cannot be in the past"
+  },
+  "translatedField": {
+    "translations": "Translations",
+    "filled": "{done}/{total}",
+    "show": "Show",
+    "hide": "Hide"
   }
 }

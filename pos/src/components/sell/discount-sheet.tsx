@@ -90,7 +90,7 @@ function DiscountForm({ baseAmount, current, onApply }: DiscountFormProps) {
       </div>
 
       <div className="flex flex-col gap-2">
-        <label htmlFor="pos-discount-value" className="text-label font-medium text-ink">
+        <label htmlFor="pos-discount-value" className="text-label text-ink">
           {type === "AMOUNT" && currency ? t("valueLabel.AMOUNT_currency", { currency }) : t(`valueLabel.${type}`)}
         </label>
         {/* No autoFocus: the phone keyboard would cover the type buttons and Apply. */}
