@@ -22,6 +22,7 @@ export async function requireAuth(req: Request, _res: Response, next: NextFuncti
       throw new AppError(403, ERROR_CODES.ACCOUNT_INACTIVE);
     }
     req.user = { id: user.id, role: user.role };
+    req.sessionId = session.session.id;
 
     // The one place per request where the stored half of the permission rules
     // is checked for freshness — never inside `can()`, which is synchronous

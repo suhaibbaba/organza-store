@@ -7,7 +7,6 @@ export const SETTINGS_SECTIONS = {
   inventory: { icon: "package", tone: "amber" },
   labels: { icon: "barcode", tone: "green" },
   branding: { icon: "image", tone: "rose" },
-  device: { icon: "monitor", tone: "neutral" },
   "sale-notifications": { icon: "bell", tone: "amber" },
 } as const satisfies Record<string, { icon: IconName; tone: SectionTone }>;
 

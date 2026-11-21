@@ -28,6 +28,10 @@ export const ERROR_MESSAGE_KEYS: Record<string, string> = {
   [ERROR_CODES.VALIDATION_INVALID_PHONE]: "errors.validationInvalidPhone",
   [ERROR_CODES.VALIDATION_INVALID_EMAIL]: "errors.validationInvalidEmail",
   [ERROR_CODES.VALIDATION_PASSWORD_TOO_SHORT]: "errors.validationPasswordTooShort",
+  [ERROR_CODES.PHONE_DUPLICATE]: "errors.phoneDuplicate",
+  [ERROR_CODES.WHATSAPP_DUPLICATE]: "errors.whatsappDuplicate",
+  [ERROR_CODES.PROFILE_WRONG_PASSWORD]: "errors.profileWrongPassword",
+  [ERROR_CODES.PROFILE_SESSION_NOT_FOUND]: "errors.profileSessionNotFound",
 
   [ERROR_CODES.PRODUCT_NOT_FOUND]: "errors.productNotFound",
   [ERROR_CODES.VARIANT_NOT_FOUND]: "errors.variantNotFound",
@@ -44,3 +48,6 @@ export const ERROR_MESSAGE_KEYS: Record<string, string> = {
 };
 
 export const FALLBACK_ERROR_MESSAGE_KEY = "errors.internal";
+
+// Every backend error code starts with this; anything else in a field error is already a screen key.
+export const BACKEND_ERROR_PREFIX = "error.";

@@ -7,6 +7,8 @@ export const AUTH_ENDPOINTS = {
 } as const;
 
 export const SESSION_QUERY_KEY = ["session"] as const;
+export const PROFILE_QUERY_KEY = ["profile"] as const;
+export const PROFILE_SESSIONS_QUERY_KEY = ["profile", "sessions"] as const;
 export const SETTINGS_QUERY_KEY = ["settings"] as const;
 // Which actions each role holds (spec.md "Editable role permissions"). Loaded
 // with the session and pushed into `can()` — see PermissionsProvider. Held

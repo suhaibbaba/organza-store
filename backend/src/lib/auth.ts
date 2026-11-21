@@ -117,6 +117,12 @@ export const auth = betterAuth({
         required: false,
         input: false,
       },
+      // Written only by PATCH /api/me, so the audit trail sees it; sent with the session for the apps to apply at sign-in.
+      locale: {
+        type: "string",
+        required: false,
+        input: false,
+      },
       idNumber: {
         type: "string",
         required: false,

@@ -146,3 +146,21 @@ export async function usersWithPassword(userIds: string[]): Promise<Set<string>>
   });
   return new Set(accounts.map((account) => account.userId));
 }
+
+// Through Better Auth's own verifier, so it checks exactly what sign-in checks.
+export async function verifyUserPassword(userId: string, password: string): Promise<boolean> {
+  const ctx = await auth.$context;
+  const accounts = await ctx.internalAdapter.findAccounts(userId);
+  const hash = accounts.find((account) => account.providerId === AUTH_PROVIDER_CREDENTIAL)?.password;
+  if (!hash) return false;
+  return ctx.password.verify({ hash, password });
+}
+
+export async function revokeOtherSessions(userId: string, keepSessionId: string | undefined): Promise<void> {
+  const ctx = await auth.$context;
+  const sessions = await prisma.session.findMany({
+    where: { userId, ...(keepSessionId ? { id: { not: keepSessionId } } : {}) },
+    select: { token: true },
+  });
+  if (sessions.length > 0) await ctx.internalAdapter.deleteSessions(sessions.map((session) => session.token));
+}

@@ -24,7 +24,7 @@ import {
   type ListUsersQuery,
   type UpdateUserInput,
 } from "@/validation/user";
-import { findUserByPhoneField } from "@/lib/phone";
+import { assertPhonesAvailable } from "@/lib/phone";
 import { writeAudit } from "@/lib/audit";
 import { AUDIT_ENTITY, ERROR_CODES } from "@/constants";
 import type { SerializableUser } from "@/types";
@@ -77,17 +77,6 @@ async function assertNotLastAdmin(
     where: { role: Role.ADMIN, isActive: true, id: { not: existing.id } },
   });
   if (others === 0) throw new AppError(409, ERROR_CODES.USER_LAST_ADMIN);
-}
-
-async function assertPhonesAvailable(input: { phone?: string; whatsapp?: string | null }, excludeUserId?: string) {
-  if (input.phone) {
-    const dupe = await findUserByPhoneField("phone", input.phone, excludeUserId);
-    if (dupe) throw new AppError(409, ERROR_CODES.PHONE_DUPLICATE);
-  }
-  if (input.whatsapp) {
-    const dupe = await findUserByPhoneField("whatsapp", input.whatsapp, excludeUserId);
-    if (dupe) throw new AppError(409, ERROR_CODES.WHATSAPP_DUPLICATE);
-  }
 }
 
 // GET /api/users

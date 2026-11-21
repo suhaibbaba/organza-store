@@ -20,7 +20,6 @@ import type { AppLocale } from "@/i18n/routing";
 import { NumericInput } from "@/components/fields/numeric-input";
 import { SettingsSection } from "@/components/settings/settings-section";
 import { BrandImageField } from "@/components/settings/brand-image-field";
-import { NotificationsCard } from "@/components/settings/notifications-card";
 import { ApiError } from "@/lib/api/errors";
 import type { BrandImageChange, BrandImageChanges, BrandImageKind } from "@/types/settings";
 
@@ -414,8 +413,6 @@ export function SettingsForm({ setting }: { setting: Setting }) {
               />
             </div>
           </SettingsSection>
-
-          <NotificationsCard />
 
           <SettingsSection name="sale-notifications">
             <Controller

@@ -145,6 +145,8 @@ export const ERROR_CODES = {
   USER_SELF_REMOVAL: "error.user.self_removal",
   // Records name their author (spec.md "Security rationale"), so a worked account is deactivated, never deleted.
   USER_HAS_HISTORY: "error.user.has_history",
+  PROFILE_WRONG_PASSWORD: "error.profile.wrong_password",
+  PROFILE_SESSION_NOT_FOUND: "error.profile.session_not_found",
 
   // Role permissions (spec.md "Editable role permissions"): refused on the server, never merely hidden.
   PERMISSION_ACTION_PROTECTED: "error.permission.action_protected",

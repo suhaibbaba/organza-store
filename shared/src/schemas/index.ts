@@ -15,3 +15,4 @@ export * from "./report";
 export * from "./setting";
 export * from "./user";
 export * from "./variantType";
+export * from "./profile";

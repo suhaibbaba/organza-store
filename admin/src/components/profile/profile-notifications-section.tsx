@@ -4,17 +4,17 @@ import { useTranslations } from "next-intl";
 import { BellRing, BellOff } from "lucide-react";
 import { Alert, Button, Skeleton, Typography } from "@store/ui";
 import { usePushNotifications } from "@/hooks/use-push-notifications";
-import { SettingsSection } from "@/components/settings/settings-section";
+import { ProfileSection } from "@/components/profile/profile-section";
 
 // Whether THIS phone receives sale notifications (a browser permission, applied at once); whether the shop sends them is a Setting.
-export function NotificationsCard() {
-  const t = useTranslations("settings.notifications");
+export function ProfileNotificationsSection() {
+  const t = useTranslations("profile.notifications");
   const { isReady, permission, isSubscribed, blockedReason, action, enable, disable } = usePushNotifications();
 
   const isPending = action === "pending";
 
   return (
-    <SettingsSection name="device">
+    <ProfileSection name="notifications">
       {!isReady ? (
         <Skeleton className="h-11 rounded-control" />
       ) : blockedReason ? (
@@ -56,6 +56,6 @@ export function NotificationsCard() {
           {t("iosHint")}
         </Typography>
       </div>
-    </SettingsSection>
+    </ProfileSection>
   );
 }

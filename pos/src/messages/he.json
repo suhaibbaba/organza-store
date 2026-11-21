@@ -24,7 +24,9 @@
       "ADMIN": "מנהל מערכת",
       "MANAGER": "מנהל",
       "EMPLOYEE": "עובד"
-    }
+    },
+    "profile": "הפרופיל שלי",
+    "cancel": "ביטול"
   },
   "stock": {
     "out": "אזל מהמלאי",
@@ -334,7 +336,11 @@
     "validationInvalidPhone": "יש להזין מספר טלפון תקין.",
     "orderCustomerRequired": "יש להזין את שם הלקוח ומספר הטלפון.",
     "orderLocationInvalid": "המיקום אינו תקין. יש להזין קו רוחב וקו אורך יחד.",
-    "rateLimited": "יותר מדי ניסיונות בזמן קצר. המתן/י רגע ונסה/י שוב."
+    "rateLimited": "יותר מדי ניסיונות בזמן קצר. המתן/י רגע ונסה/י שוב.",
+    "profileWrongPassword": "הסיסמה הנוכחית שגויה.",
+    "profileSessionNotFound": "המכשיר הזה כבר נותק.",
+    "phoneDuplicate": "מספר טלפון זה כבר בשימוש.",
+    "whatsappDuplicate": "מספר וואטסאפ זה כבר בשימוש."
   },
   "pwa": {
     "version": {
@@ -349,5 +355,76 @@
       "action": "עדכון עכשיו",
       "updating": "מעדכן…"
     }
+  },
+  "profile": {
+    "title": "הפרופיל שלי",
+    "subtitle": "החשבון שלך: פרטים, סיסמה, מכשירים ושפה.",
+    "header": {
+      "email": "אימייל",
+      "phone": "טלפון",
+      "memberSince": "חבר/ה מאז"
+    },
+    "sections": {
+      "details": {
+        "title": "פרטים אישיים",
+        "description": "השם והמספרים שלך, כפי ששאר הצוות רואה אותם."
+      },
+      "devices": {
+        "title": "מכשירים מחוברים",
+        "description": "היכן החשבון שלך מחובר כרגע."
+      },
+      "password": {
+        "title": "סיסמה",
+        "description": "שינוי הסיסמה מנתק אותך מכל המכשירים האחרים."
+      },
+      "language": {
+        "title": "שפה",
+        "description": "בשימוש במכשיר הזה עכשיו, ובכל פעם שתתחבר/י."
+      }
+    },
+    "details": {
+      "name": "שם מלא",
+      "namePlaceholder": "השם המלא שלך",
+      "phone": "מספר טלפון",
+      "whatsapp": "וואטסאפ",
+      "whatsappHint": "רק אם הוא שונה ממספר הטלפון.",
+      "email": "אימייל",
+      "emailNote": "זו הכתובת שאיתה מתחברים. רק מנהל/ת יכול/ה לשנות אותה.",
+      "saved": "הפרטים שלך נשמרו."
+    },
+    "password": {
+      "open": "שינוי סיסמה",
+      "title": "שינוי סיסמה",
+      "description": "הזן/י את הסיסמה הנוכחית, ואז את החדשה פעמיים.",
+      "current": "סיסמה נוכחית",
+      "currentPlaceholder": "הסיסמה הנוכחית שלך",
+      "new": "סיסמה חדשה",
+      "newPlaceholder": "בחר/י סיסמה חדשה",
+      "newNote": "לפחות 8 תווים.",
+      "confirm": "חזרה על הסיסמה החדשה",
+      "confirmPlaceholder": "חזרה על הסיסמה החדשה",
+      "submit": "שינוי סיסמה",
+      "changed": "הסיסמה שונתה. המכשירים האחרים שלך נותקו.",
+      "mismatch": "שתי הסיסמאות אינן תואמות."
+    },
+    "language": {
+      "label": "שפת הממשק"
+    },
+    "devices": {
+      "browserOn": "{browser} ב-{system}",
+      "unknownDevice": "מכשיר לא מזוהה",
+      "thisDevice": "המכשיר הזה",
+      "lastActive": "פעילות אחרונה {when}",
+      "signOut": "ניתוק",
+      "signOutTitle": "לנתק את המכשיר הזה?",
+      "signOutConsequence": "מי שמשתמש בו יצטרך להתחבר מחדש.",
+      "signedOut": "המכשיר נותק.",
+      "signOutOthers": "ניתוק כל המכשירים האחרים",
+      "signOutOthersTitle": "לנתק את כל המכשירים האחרים?",
+      "signOutOthersConsequence": "כל מכשיר מלבד זה יצטרך להתחבר מחדש.",
+      "signedOutOthers": "כל המכשירים האחרים נותקו.",
+      "onlyThisDevice": "את/ה מחובר/ת רק במכשיר הזה."
+    },
+    "back": "חזרה למכירה"
   }
 }

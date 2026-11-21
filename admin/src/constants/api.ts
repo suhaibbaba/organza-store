@@ -7,6 +7,8 @@ export const AUTH_ENDPOINTS = {
 } as const;
 
 export const SESSION_QUERY_KEY = ["session"] as const;
+export const PROFILE_QUERY_KEY = ["profile"] as const;
+export const PROFILE_SESSIONS_QUERY_KEY = ["profile", "sessions"] as const;
 export const SETTINGS_QUERY_KEY = ["settings"] as const;
 export const PUSH_CONFIG_QUERY_KEY = ["push", "config"] as const;
 export const CATEGORIES_QUERY_KEY = ["categories"] as const;

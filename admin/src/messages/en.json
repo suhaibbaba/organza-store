@@ -28,7 +28,8 @@
       "value": "Quantity — {name}",
       "increase": "Increase quantity — {name}",
       "decrease": "Decrease quantity — {name}"
-    }
+    },
+    "profile": "My profile"
   },
   "stock": {
     "out": "Out of stock",
@@ -1284,28 +1285,6 @@
       "labelSheetErrorHint": "Some A4 sheet numbers aren't valid. Switch the printer type back to the A4 sheet to fix them.",
       "saved": "Settings saved."
     },
-    "notifications": {
-      "state": {
-        "on": "Notifications are on for this device.",
-        "off": "Notifications are off for this device."
-      },
-      "turnOn": "Turn on notifications",
-      "turnOff": "Turn off notifications",
-      "permissionLabel": "Browser notification permission",
-      "permission": {
-        "default": "Not asked yet",
-        "granted": "Allowed",
-        "denied": "Blocked"
-      },
-      "blocked": {
-        "unsupported": "This browser can't show notifications. Try another browser or another phone.",
-        "needs-install": "On iPhone and iPad, add the app to the Home Screen first: tap the share button, choose “Add to Home Screen”, then open the app from its icon and turn notifications on here.",
-        "not-configured": "Notifications aren't set up on the server yet. Ask whoever runs the server.",
-        "denied": "Notifications are blocked for this site. Allow them in your browser or phone settings, then try again."
-      },
-      "failed": "Couldn't change the notification setting. Please try again.",
-      "iosHint": "iPhone and iPad note: notifications only arrive once the app has been added to the Home Screen and opened from its icon."
-    },
     "sections": {
       "store-info": {
         "title": "Store info",
@@ -1326,10 +1305,6 @@
       "branding": {
         "title": "Branding",
         "description": "The logo in the side bar and the icon in the browser tab and on the home screen."
-      },
-      "device": {
-        "title": "Notifications on this device",
-        "description": "Turn notifications on to hear about sales on this phone as they happen. This setting applies to this device only."
       },
       "sale-notifications": {
         "title": "Sale notifications",
@@ -1604,7 +1579,9 @@
     "userHasHistory": "This account has already been used in the shop, so it cannot be deleted. Deactivate it instead — its orders and expenses keep the person's name.",
     "productCompletionIncomplete": "Choose a category before completing this product — without one it won't appear in any category list.",
     "orderItemSourceInvalid": "This line doesn't say clearly what is being sold.",
-    "orderLocationLinkInvalid": "Couldn’t read a location from this link. Paste a share link from Google Maps."
+    "orderLocationLinkInvalid": "Couldn’t read a location from this link. Paste a share link from Google Maps.",
+    "profileWrongPassword": "The current password is not correct.",
+    "profileSessionNotFound": "That device is already signed out."
   },
   "pwa": {
     "version": {
@@ -2074,6 +2051,102 @@
       "orders": "Orders",
       "products": "Products",
       "customers": "Customers"
+    }
+  },
+  "profile": {
+    "title": "My profile",
+    "subtitle": "Your own account: details, password, devices and language.",
+    "header": {
+      "email": "Email",
+      "phone": "Phone",
+      "memberSince": "Member since"
+    },
+    "sections": {
+      "details": {
+        "title": "Personal details",
+        "description": "Your name and numbers, as the rest of the shop sees them."
+      },
+      "devices": {
+        "title": "Signed-in devices",
+        "description": "Where your account is signed in right now."
+      },
+      "password": {
+        "title": "Password",
+        "description": "Changing it signs you out on every other device."
+      },
+      "language": {
+        "title": "Language",
+        "description": "Used on this device now, and whenever you sign in."
+      },
+      "notifications": {
+        "title": "Notifications on this device",
+        "description": "Turn notifications on to hear about sales on this phone as they happen. This setting applies to this device only."
+      }
+    },
+    "details": {
+      "name": "Full name",
+      "namePlaceholder": "Your full name",
+      "phone": "Phone number",
+      "whatsapp": "WhatsApp",
+      "whatsappHint": "Only if it differs from your phone number.",
+      "email": "Email",
+      "emailNote": "You sign in with this address. Only an Admin can change it.",
+      "saved": "Your details were saved."
+    },
+    "password": {
+      "open": "Change password",
+      "title": "Change password",
+      "description": "Enter your current password, then the new one twice.",
+      "current": "Current password",
+      "currentPlaceholder": "Your current password",
+      "new": "New password",
+      "newPlaceholder": "Choose a new password",
+      "newNote": "At least 8 characters.",
+      "confirm": "Repeat the new password",
+      "confirmPlaceholder": "Repeat the new password",
+      "submit": "Change password",
+      "changed": "Password changed. Your other devices were signed out.",
+      "mismatch": "The two new passwords do not match."
+    },
+    "language": {
+      "label": "Interface language"
+    },
+    "devices": {
+      "browserOn": "{browser} on {system}",
+      "unknownDevice": "Unknown device",
+      "thisDevice": "This device",
+      "lastActive": "Last active {when}",
+      "signOut": "Sign out",
+      "signOutTitle": "Sign out this device?",
+      "signOutConsequence": "Whoever is using it will have to sign in again.",
+      "signedOut": "The device was signed out.",
+      "signOutOthers": "Sign out all other devices",
+      "signOutOthersTitle": "Sign out all other devices?",
+      "signOutOthersConsequence": "Every device except this one will have to sign in again.",
+      "signedOutOthers": "All other devices were signed out.",
+      "onlyThisDevice": "You are signed in on this device only."
+    },
+    "notifications": {
+      "state": {
+        "on": "Notifications are on for this device.",
+        "off": "Notifications are off for this device."
+      },
+      "turnOn": "Turn on notifications",
+      "turnOff": "Turn off notifications",
+      "permissionLabel": "Browser notification permission",
+      "permission": {
+        "default": "Not asked yet",
+        "granted": "Allowed",
+        "denied": "Blocked"
+      },
+      "blocked": {
+        "unsupported": "This browser can't show notifications. Try another browser or another phone.",
+        "needs-install": "On iPhone and iPad, add the app to the Home Screen first: tap the share button, choose “Add to Home Screen”, then open the app from its icon and turn notifications on here.",
+        "not-configured": "Notifications aren't set up on the server yet. Ask whoever runs the server.",
+        "denied": "Notifications are blocked for this site. Allow them in your browser or phone settings, then try again."
+      },
+      "failed": "Couldn't change the notification setting. Please try again.",
+      "iosHint": "iPhone and iPad note: notifications only arrive once the app has been added to the Home Screen and opened from its icon."
     }
   }
 }

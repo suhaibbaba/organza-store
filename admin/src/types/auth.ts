@@ -1,4 +1,5 @@
 import type { Role } from "@organza/shared/types/role";
+import type { SupportedLanguage } from "@organza/shared/types/language";
 import type { PasswordTokenPurpose } from "@organza/shared/constants/passwordSetup";
 
 export interface SessionUser {
@@ -7,6 +8,8 @@ export interface SessionUser {
   name: string;
   role: Role;
   isActive: boolean;
+  // The language chosen on the profile, applied when this person signs in.
+  locale?: SupportedLanguage | null;
 }
 
 export interface Session {

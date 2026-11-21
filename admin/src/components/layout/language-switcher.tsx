@@ -8,6 +8,7 @@ import { routing, type AppLocale } from "@/i18n/routing";
 import { LOCALE_LABELS } from "@/constants/locale";
 import { cn } from "@/lib/utils";
 import { testSelectorFor } from "@organza/shared/lib/testSelector";
+import { useRememberLocale } from "@/hooks/use-profile";
 
 interface LanguageSwitcherProps {
   className?: string;
@@ -20,9 +21,11 @@ export function LanguageSwitcher({ className, variant = "list" }: LanguageSwitch
   const pathname = usePathname();
   const router = useRouter();
   const t = useTranslations("common");
+  const remember = useRememberLocale();
 
   // Navigating writes next-intl's locale cookie, which is what makes the choice survive a relaunch.
   function handleChange(loc: AppLocale) {
+    remember(loc);
     router.replace(pathname, { locale: loc });
   }
 

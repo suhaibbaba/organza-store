@@ -16,6 +16,7 @@ import expenseCategoriesRouter from "@/routes/expenseCategories";
 import cashSessionsRouter from "@/routes/cashSessions";
 import reportsRouter from "@/routes/reports";
 import usersRouter from "@/routes/users";
+import meRouter from "@/routes/me";
 import passwordSetupRouter from "@/routes/passwordSetup";
 import settingsRouter from "@/routes/settings";
 import permissionsRouter from "@/routes/permissions";
@@ -145,6 +146,7 @@ app.use("/api/expense-categories", expenseCategoriesRouter);
 app.use("/api/cash-sessions", cashSessionsRouter);
 app.use("/api/reports", reportsRouter);
 app.use("/api/users", usersRouter);
+app.use("/api/me", meRouter);
 // Unauthenticated by design — somebody with no password cannot sign in to
 // ask for one. Every route on it is rate-limited and none of them confirms
 // that an account exists (see routes/passwordSetup.ts).

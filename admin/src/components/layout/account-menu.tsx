@@ -3,6 +3,8 @@
 import { useTranslations } from "next-intl";
 import { Avatar, Menu, MenuContent, MenuItem, MenuLabel, MenuSeparator, MenuTrigger } from "@store/ui";
 import { useSession } from "@/components/providers/session-provider";
+import { useRouter } from "@/i18n/navigation";
+import { PROFILE_HREF } from "@/constants/profile";
 import { useUserDisplay } from "@/lib/user-display";
 import { cn } from "@/lib/utils";
 
@@ -14,6 +16,7 @@ interface AccountMenuProps {
 export function AccountMenu({ className }: AccountMenuProps) {
   const t = useTranslations("common");
   const { user, logout } = useSession();
+  const router = useRouter();
 
   // Name, else address, else role — never an internal id (lib/user-display.ts).
   const { name, roleLabel } = useUserDisplay()(user);
@@ -44,6 +47,9 @@ export function AccountMenu({ className }: AccountMenuProps) {
           </span>
         </MenuLabel>
         <MenuSeparator />
+        <MenuItem icon="user" data-testid="account-menu-profile" onSelect={() => router.push(PROFILE_HREF)}>
+          {t("profile")}
+        </MenuItem>
         <MenuItem icon="logout" tone="danger" data-testid="account-menu-logout" onSelect={() => void logout()}>
           {t("logout")}
         </MenuItem>

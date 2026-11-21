@@ -36,3 +36,6 @@ export const SIGN_IN_RATE_LIMIT_MAX = 20;
 
 /** Better Auth's sign-in path, relative to its own base path. */
 export const SIGN_IN_EMAIL_PATH = "/sign-in/email";
+
+// A person's own devices; far more than one shop phone and a laptop would ever hold.
+export const PROFILE_SESSIONS_LIMIT = 50;

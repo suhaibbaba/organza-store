@@ -112,9 +112,14 @@ export const ERROR_MESSAGE_KEYS: Record<string, string> = {
   [ERROR_CODES.USER_LAST_ADMIN]: "errors.userLastAdmin",
   [ERROR_CODES.USER_SELF_REMOVAL]: "errors.userSelfRemoval",
   [ERROR_CODES.USER_HAS_HISTORY]: "errors.userHasHistory",
+  [ERROR_CODES.PROFILE_WRONG_PASSWORD]: "errors.profileWrongPassword",
+  [ERROR_CODES.PROFILE_SESSION_NOT_FOUND]: "errors.profileSessionNotFound",
 
   [ERROR_CODES.RATE_LIMITED]: "errors.rateLimited",
   [ERROR_CODES.PASSWORD_TOKEN_INVALID]: "errors.passwordTokenInvalid",
 };
 
 export const FALLBACK_ERROR_MESSAGE_KEY = "errors.internal";
+
+// Every backend error code starts with this; anything else in a field error is already a screen key.
+export const BACKEND_ERROR_PREFIX = "error.";

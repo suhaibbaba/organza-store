@@ -9,6 +9,7 @@ import { PASSWORD_MIN_LENGTH } from "@organza/shared/constants/validation";
 import { ACCOUNT_INACTIVE_AUTH_CODE } from "@organza/shared/constants/auth";
 import { fieldErrorTestSelector, fieldTestSelector, testSelectorFor } from "@organza/shared/lib/testSelector";
 import { Link, useRouter } from "@/i18n/navigation";
+import { SELL_HREF } from "@/constants/profile";
 import { useSession } from "@/components/providers/session-provider";
 import { AuthError } from "@/lib/auth/client";
 import { HTTP_TOO_MANY_REQUESTS } from "@/constants/api";
@@ -53,8 +54,9 @@ export function LoginForm() {
   const onSubmit = async (values: LoginInput) => {
     setFormError(null);
     try {
-      await login(values.email, values.password);
-      router.replace("/sell");
+      const user = await login(values.email, values.password);
+      // The account's own language wins on a shared phone; without one, this device keeps its choice.
+      router.replace(SELL_HREF, user.locale ? { locale: user.locale } : undefined);
     } catch (error) {
       // Better Auth's sign-in doesn't use our error envelope (lib/auth/client.ts), so its status and code are read here.
       setFormError(loginErrorKind(error));

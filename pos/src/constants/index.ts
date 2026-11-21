@@ -5,6 +5,7 @@ export * from "./layout";
 export * from "./locale";
 export * from "./numeric";
 export * from "./pos";
+export * from "./profile";
 export * from "./pwa";
 export * from "./segmented";
 export * from "./storage";

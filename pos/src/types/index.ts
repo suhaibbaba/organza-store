@@ -4,3 +4,4 @@ export * from "./customer";
 export * from "./feedback";
 export * from "./pwa";
 export * from "./sell";
+export * from "./profile";

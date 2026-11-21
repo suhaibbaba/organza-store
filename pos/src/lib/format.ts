@@ -1,4 +1,4 @@
-import { NUMBER_FORMAT_BASE } from "@organza/shared/constants/formatting";
+import { DATE_FORMAT_BASE, NUMBER_FORMAT_BASE } from "@organza/shared/constants/formatting";
 import { MONEY_DECIMAL_PLACES } from "@organza/shared/constants/order";
 
 // Every figure in this app is written through one of the functions below, and
@@ -50,4 +50,23 @@ export function formatPercent(value: string | number, locale: string): string {
   } catch {
     return `${parsed}%`;
   }
+}
+
+function formatMoment(value: string | null | undefined, locale: string, options: Intl.DateTimeFormatOptions): string {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  try {
+    return new Intl.DateTimeFormat(locale, { ...DATE_FORMAT_BASE, ...options }).format(date);
+  } catch {
+    return date.toISOString();
+  }
+}
+
+export function formatDate(value: string | null | undefined, locale: string): string {
+  return formatMoment(value, locale, { dateStyle: "medium" });
+}
+
+export function formatDateTime(value: string | null | undefined, locale: string): string {
+  return formatMoment(value, locale, { dateStyle: "medium", timeStyle: "short" });
 }

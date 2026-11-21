@@ -57,7 +57,8 @@ export function LoginForm() {
     try {
       // Landing decided from the signed-in role, so an Employee never passes through a screen they are refused.
       const user = await login(values.email, values.password);
-      router.replace(landingHref(user) ?? DEFAULT_LANDING_HREF);
+      // The account's own language wins on a shared phone; without one, this device keeps its choice.
+      router.replace(landingHref(user) ?? DEFAULT_LANDING_HREF, user.locale ? { locale: user.locale } : undefined);
     } catch (error) {
       // Better Auth's own status/code, not our envelope (lib/auth/client.ts).
       setFormError(loginErrorKind(error));

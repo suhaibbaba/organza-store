@@ -13,3 +13,4 @@ export * from "./search";
 export * from "./urlFilters";
 export * from "./settings";
 export * from "./user";
+export * from "./profile";

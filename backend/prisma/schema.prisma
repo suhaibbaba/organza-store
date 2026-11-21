@@ -53,6 +53,7 @@ model User {
   whatsapp String? @unique // E.164 as entered; optional
   idNumber String? // SENSITIVE: Admin-only; never returned by API to others
   isActive Boolean @default(true)
+  locale   String? // ar | en | he, chosen on the profile; null = each device keeps its own
 
   accounts            Account[]
   sessions            Session[]
@@ -666,6 +667,9 @@ enum AuditAction {
   // granted or revoked at all, so there is nothing here to record.
   PERMISSION_GRANTED
   PERMISSION_REVOKED
+  // A person changing their own password, or signing out one of their devices.
+  PASSWORD_CHANGED
+  SESSION_REVOKED
 }
 
 model AuditLog {

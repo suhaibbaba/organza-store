@@ -4,6 +4,8 @@ import { useTranslations } from "next-intl";
 import { Avatar, Icon, Menu, MenuContent, MenuItem, MenuLabel, MenuSeparator, MenuTrigger } from "@store/ui";
 import { TOP_BAR_PILL } from "@/components/layout/top-bar-pill";
 import { useSession } from "@/components/providers/session-provider";
+import { useRouter } from "@/i18n/navigation";
+import { PROFILE_HREF } from "@/constants/profile";
 import { useUserDisplay } from "@/lib/user-display";
 import { AppVersion } from "@/components/pwa/app-version";
 import { cn } from "@/lib/utils";
@@ -16,6 +18,7 @@ interface AccountMenuProps {
 export function AccountMenu({ className }: AccountMenuProps) {
   const t = useTranslations("common");
   const { user, logout } = useSession();
+  const router = useRouter();
 
   // Name, address or role — never an internal id; the letter comes from the same source as the name.
   const { name, initial } = useUserDisplay()(user);
@@ -45,6 +48,9 @@ export function AccountMenu({ className }: AccountMenuProps) {
         </MenuLabel>
         <MenuSeparator />
 
+        <MenuItem icon="user" data-testid="pos-account-menu-profile" onSelect={() => router.push(PROFILE_HREF)}>
+          {t("profile")}
+        </MenuItem>
         <MenuItem icon="logout" tone="danger" onSelect={() => void logout()}>
           {t("logout")}
         </MenuItem>
