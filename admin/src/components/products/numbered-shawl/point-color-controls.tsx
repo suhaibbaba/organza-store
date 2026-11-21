@@ -36,7 +36,7 @@ export function PointColorControls({
       <div className="flex flex-wrap items-center justify-between gap-2">
         <span className="text-label font-medium text-ink">{t("title")}</span>
         {!isAuto && (
-          <Button variant="quiet" size="sm" onClick={onUseSuggestion} disabled={disabled}>
+          <Button variant="quiet" onClick={onUseSuggestion} disabled={disabled}>
             {t("useSuggestion")}
           </Button>
         )}

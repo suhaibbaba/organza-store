@@ -1218,6 +1218,7 @@ model Setting {
   currency           String   @default("ILS") // room for multi-currency later
   defaultCountryCode String   @default("+970") // default phone prefix (المقدمة)
   lowStockThreshold  Int      @default(3)
+  logoFilename       String? // shop logo in UPLOAD_DIR; null = none uploaded
 
   // --- barcode-label printing (Admin-only to edit, readable by all staff) ---
   // The shop buys whatever label printer it can get, so the sheet is

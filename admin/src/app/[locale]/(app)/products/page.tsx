@@ -93,7 +93,7 @@ export default function ProductsPage() {
           <Link
             href="/products/new"
             data-test-selector="add-product"
-            className={buttonClassName({ size: "sm", className: "shrink-0" })}
+            className={buttonClassName({ className: "shrink-0" })}
           >
             <Plus className="size-4" aria-hidden="true" />
             {t("addProduct")}

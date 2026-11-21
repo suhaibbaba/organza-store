@@ -2,6 +2,8 @@ import { Router } from "express";
 import { AuditAction, type Setting } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { formatMoney } from "@/lib/money";
+import { deleteLogoFile, logoUrl, storeLogo } from "@/lib/image";
+import { handleImageUpload } from "@/middleware/imageUpload";
 import { asyncHandler } from "@/middleware/asyncHandler";
 import { requireAuth, requirePermission } from "@/middleware/auth";
 import { validateBody } from "@/middleware/validate";
@@ -48,6 +50,7 @@ function serializeSetting(setting: Setting) {
     currency: setting.currency,
     defaultCountryCode: setting.defaultCountryCode,
     lowStockThreshold: setting.lowStockThreshold,
+    logoUrl: logoUrl(setting.logoFilename),
 
     // Barcode-label geometry — read by every screen that prints a label.
     labelPrintMode: setting.labelPrintMode,
@@ -133,6 +136,56 @@ router.patch(
       newValue: updated,
     });
 
+    sendOk(res, serializeSetting(updated));
+  })
+);
+
+// The shop logo: replacing one deletes the old file after the row points at the new one.
+router.post(
+  "/logo",
+  requirePermission("settings.manage"),
+  handleImageUpload,
+  asyncHandler(async (req, res) => {
+    if (!req.file) throw new AppError(400, ERROR_CODES.IMAGE_FILE_REQUIRED);
+    const existing = await getOrCreateSettings();
+    const filename = await storeLogo(req.file.buffer);
+    const updated = await prisma.setting.update({
+      where: { id: SETTINGS_SINGLETON_ID },
+      data: { logoFilename: filename },
+    });
+    if (existing.logoFilename) await deleteLogoFile(existing.logoFilename);
+    await writeAudit({
+      userId: req.user!.id,
+      action: AuditAction.UPDATE,
+      entityType: AUDIT_ENTITY.SETTING,
+      entityId: updated.id,
+      oldValue: { logoFilename: existing.logoFilename },
+      newValue: { logoFilename: updated.logoFilename },
+    });
+    sendOk(res, serializeSetting(updated));
+  })
+);
+
+router.delete(
+  "/logo",
+  requirePermission("settings.manage"),
+  asyncHandler(async (req, res) => {
+    const existing = await getOrCreateSettings();
+    const updated = await prisma.setting.update({
+      where: { id: SETTINGS_SINGLETON_ID },
+      data: { logoFilename: null },
+    });
+    if (existing.logoFilename) {
+      await deleteLogoFile(existing.logoFilename);
+      await writeAudit({
+        userId: req.user!.id,
+        action: AuditAction.UPDATE,
+        entityType: AUDIT_ENTITY.SETTING,
+        entityId: updated.id,
+        oldValue: { logoFilename: existing.logoFilename },
+        newValue: { logoFilename: null },
+      });
+    }
     sendOk(res, serializeSetting(updated));
   })
 );

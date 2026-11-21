@@ -89,7 +89,7 @@ export function OrderStatusActions({ order }: { order: Order }) {
           <div key={status} className="flex flex-col gap-2">
             <Button
               type="button"
-              className="h-14 w-full text-section sm:w-auto sm:self-start"
+              className="w-full sm:w-auto sm:self-start"
               isLoading={mutation.isPending}
               onClick={() => move(status)}
               data-test-selector={testSelectorFor("order-status-advance", status)}

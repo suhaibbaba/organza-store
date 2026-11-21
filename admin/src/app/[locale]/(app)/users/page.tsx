@@ -125,7 +125,7 @@ function UsersPageContent() {
         title={t("title")}
         description={t("subtitle")}
         actions={
-          <Button size="sm" className="shrink-0" onClick={openCreateForm} data-test-selector="add-user">
+          <Button className="shrink-0" onClick={openCreateForm} data-test-selector="add-user">
             <Plus className="size-4" aria-hidden="true" />
             {t("addUser")}
           </Button>

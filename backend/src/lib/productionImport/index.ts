@@ -53,7 +53,12 @@ export async function runProductionImport(
   const applied = await applyCatalogue(snapshot);
 
   options.onProgress?.(options.productionUploadDir ? "Copying photographs" : "Skipping photographs");
-  const images = await syncImageFiles(options.productionUploadDir, snapshot.productImages);
+  const setting = await prisma.setting.findFirst({ select: { logoFilename: true } });
+  const images = await syncImageFiles(
+    options.productionUploadDir,
+    snapshot.productImages,
+    setting?.logoFilename ? [setting.logoFilename] : []
+  );
 
   return {
     endpoints,

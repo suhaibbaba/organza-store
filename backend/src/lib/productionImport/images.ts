@@ -31,9 +31,12 @@ import type { ImageSyncSummary } from "@/types";
  */
 export async function syncImageFiles(
   sourceDir: string | null,
-  images: ImageFileRef[]
+  images: ImageFileRef[],
+  keepFiles: string[] = []
 ): Promise<ImageSyncSummary> {
   const claimed = claimedImageBases(images);
+  // Files the sandbox keeps of its own (its settings stay), e.g. the shop logo.
+  for (const file of keepFiles) claimed.add(file);
 
   if (sourceDir === null) {
     // Still worth clearing up after the catalogue that was just wiped: those

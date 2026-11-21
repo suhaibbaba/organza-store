@@ -93,7 +93,7 @@ function ReturnForm({ order, onDone }: { order: Order; onDone: () => void }) {
       <Button
         type="button"
         variant="danger"
-        className="h-14 w-full text-section"
+        className="w-full"
         isLoading={mutation.isPending}
         onClick={submitWholeOrder}
         icon={<Undo2 className="size-5 rtl:-scale-x-100" aria-hidden="true" />}
@@ -141,7 +141,7 @@ function ReturnForm({ order, onDone }: { order: Order; onDone: () => void }) {
       <Button
         type="button"
         variant="danger"
-        className="mt-auto h-14 w-full text-section"
+        className="mt-auto w-full"
         isLoading={mutation.isPending}
         disabled={selectedCount === 0}
         onClick={submitSelected}

@@ -183,7 +183,7 @@ export function OrderBuilder() {
         <Button
           type="submit"
           data-test-selector="order-create-submit"
-          className="h-14 w-full text-section sm:w-auto sm:self-start"
+          className="w-full sm:w-auto sm:self-start"
           isLoading={mutation.isPending}
           disabled={draft.isEmpty}
           icon={<Save className="size-5" aria-hidden="true" />}

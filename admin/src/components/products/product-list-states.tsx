@@ -34,7 +34,7 @@ export function ProductListError({ error, onRetry }: { error: unknown; onRetry: 
       tone="danger"
       data-testid="products-error"
       action={
-        <Button variant="secondary" size="sm" onClick={onRetry}>
+        <Button variant="secondary" onClick={onRetry}>
           {t("retry")}
         </Button>
       }

@@ -7,6 +7,7 @@ import { useSession } from "@/components/providers/session-provider";
 import { NavPendingBadge } from "@/components/change-requests/nav-pending-badge";
 import { DesignSystemNavLink, NavLink } from "@/components/layout/nav-link";
 import { EnvironmentBadge } from "@/components/layout/environment-badge";
+import { ShopLogo } from "@/components/brand/shop-logo";
 import { DEFAULT_LANDING_HREF } from "@/constants/routes";
 import { landingHref } from "@/lib/nav";
 import { testSelectorFor } from "@organza/shared/lib/testSelector";
@@ -27,10 +28,10 @@ export function SidebarNav() {
         <Link
           href={landingHref(user) ?? DEFAULT_LANDING_HREF}
           data-test-selector="sidebar-brand"
-          className="mb-[22px] flex shrink-0 flex-wrap items-center gap-2 rounded-brand border border-line bg-surface px-4 py-3.5"
+          className="relative mb-[22px] flex h-20 shrink-0 items-center justify-center rounded-brand border border-line bg-surface p-3"
         >
-          <span className="truncate text-section font-semibold text-primary-700">{t("app.name")}</span>
-          <EnvironmentBadge />
+          <ShopLogo alt={t("app.name")} className="h-full max-w-full" />
+          <EnvironmentBadge className="absolute top-2 end-2" />
         </Link>
 
         <nav className="scroll-lane -mx-[18px] min-h-0 flex-1 overflow-y-auto px-[18px]">

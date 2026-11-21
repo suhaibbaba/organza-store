@@ -36,7 +36,7 @@ export function ChangeRequestListError({ error, onRetry }: { error: unknown; onR
       tone="danger"
       data-testid="change-requests-error"
       action={
-        <Button type="button" variant="secondary" size="sm" onClick={onRetry}>
+        <Button type="button" variant="secondary" onClick={onRetry}>
           {t("retry")}
         </Button>
       }

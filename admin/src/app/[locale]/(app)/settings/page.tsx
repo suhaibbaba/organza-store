@@ -9,6 +9,7 @@ import { useSettingsQuery } from "@/hooks/use-settings";
 import { useTranslateError } from "@/hooks/use-translate-error";
 import { SettingsForm } from "@/components/settings/settings-form";
 import { NotificationsCard } from "@/components/settings/notifications-card";
+import { LogoCard } from "@/components/settings/logo-card";
 import { Alert, Button, Skeleton } from "@store/ui";
 import { ApiError } from "@/lib/api/errors";
 import { AppVersion } from "@/components/pwa/app-version";
@@ -35,7 +36,7 @@ function SettingsPageContent() {
             tone="danger"
             data-testid="alert-destructive"
             action={
-              <Button type="button" variant="secondary" size="sm" onClick={() => void refetch()}>
+              <Button type="button" variant="secondary" onClick={() => void refetch()}>
                 {tCommon("retry")}
               </Button>
             }
@@ -45,6 +46,7 @@ function SettingsPageContent() {
         ) : (
           <>
             {/* This device's notification permission first: it is the part done per device. */}
+            <LogoCard />
             <NotificationsCard />
             <SettingsForm setting={setting} />
             <AppVersion className="w-auto items-center self-center" />

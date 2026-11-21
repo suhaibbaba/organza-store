@@ -109,7 +109,7 @@ function ProductDetail({ product, currency, locale }: { product: Product; curren
               <Link
                 href={`/products/${product.id}/edit`}
                 data-test-selector="product-edit"
-                className={buttonClassName({ variant: "secondary", size: "sm" })}
+                className={buttonClassName({ variant: "secondary", })}
               >
                 <Pencil className="size-4" aria-hidden="true" />
                 {t("edit")}

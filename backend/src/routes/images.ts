@@ -1,6 +1,5 @@
 import { Router } from "express";
-import type { NextFunction, Request, Response } from "express";
-import multer, { MulterError } from "multer";
+import { handleImageUpload } from "@/middleware/imageUpload";
 import { AuditAction, Prisma, type ProductImage } from "@prisma/client";
 import { can } from "@organza/shared/lib/permissions";
 import { prisma } from "@/lib/prisma";
@@ -9,8 +8,6 @@ import { requireAuth, requirePermission } from "@/middleware/auth";
 import { validateBody } from "@/middleware/validate";
 import { AppError, sendOk } from "@/lib/response";
 import {
-  ALLOWED_IMAGE_TYPES,
-  UPLOAD_MAX_SIZE_MB,
   deleteProductImageFiles,
   largestStoredFileName,
   recropProductImage,
@@ -65,35 +62,6 @@ function ownerWhere(owner: { productId?: string | null; variantId?: string | nul
   return owner.variantId ? { variantId: owner.variantId } : { productId: owner.productId };
 }
 
-const upload = multer({
-  storage: multer.memoryStorage(),
-  limits: { fileSize: UPLOAD_MAX_SIZE_MB * 1024 * 1024 },
-  fileFilter: (_req, file, cb) => {
-    if (!ALLOWED_IMAGE_TYPES.includes(file.mimetype)) {
-      cb(new AppError(400, ERROR_CODES.IMAGE_INVALID_TYPE));
-      return;
-    }
-    cb(null, true);
-  },
-});
-
-// Wraps multer so its errors (file too large, rejected type) flow through the
-// same AppError -> unified envelope path as everything else, instead of
-// multer's own default error format.
-function handleUpload(req: Request, res: Response, next: NextFunction): void {
-  upload.single("file")(req, res, (err: unknown) => {
-    if (err) {
-      if (err instanceof MulterError && err.code === "LIMIT_FILE_SIZE") {
-        next(new AppError(400, ERROR_CODES.IMAGE_TOO_LARGE));
-        return;
-      }
-      next(err instanceof AppError ? err : new AppError(400, ERROR_CODES.IMAGE_UPLOAD_FAILED));
-      return;
-    }
-    next();
-  });
-}
-
 // ---------------------------------------------------------------------------
 // POST /api/images — upload + process (sharp: thumbnail/medium/full WebP) +
 // attach to a product OR a variant (Admin/Manager/Employee — "edit images").
@@ -101,7 +69,7 @@ function handleUpload(req: Request, res: Response, next: NextFunction): void {
 router.post(
   "/",
   requirePermission("images.edit"),
-  handleUpload,
+  handleImageUpload,
   validateBody(uploadImageSchema),
   asyncHandler(async (req, res) => {
     if (!req.file) throw new AppError(400, ERROR_CODES.IMAGE_FILE_REQUIRED);

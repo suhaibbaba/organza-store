@@ -10,6 +10,8 @@ export const FONT_SIZE_KEYS = [
   "heading",
   "title",
   "kpi",
+  "headline",
+  "hero",
   "field",
 ] as const;
 

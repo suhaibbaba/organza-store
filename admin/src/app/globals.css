@@ -79,7 +79,7 @@
 @media (min-width: 48rem) {
   :root {
     --bottom-bar-inset: var(--safe-bottom);
-    --top-bar-height: 4rem;
+    --top-bar-height: 4.5rem;
   }
 }
 

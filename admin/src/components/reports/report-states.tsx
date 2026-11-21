@@ -26,7 +26,7 @@ export function ReportError({ error, onRetry }: { error: unknown; onRetry: () =>
       tone="danger"
       data-testid="reports-error"
       action={
-        <Button type="button" variant="secondary" size="sm" onClick={onRetry}>
+        <Button type="button" variant="secondary" onClick={onRetry}>
           {t("retry")}
         </Button>
       }

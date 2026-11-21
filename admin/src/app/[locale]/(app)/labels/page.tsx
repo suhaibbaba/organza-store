@@ -163,7 +163,7 @@ function LabelsPageContent() {
       <PageContainer>
         {/* Above the header: steps back through the screen's own two stages. */}
         <div className="mb-4 flex items-center gap-2">
-          <Button type="button" variant="quiet" size="sm" className="-ms-2 px-2" onClick={() => setStep("select")}>
+          <Button type="button" variant="quiet" className="-ms-2 px-2" onClick={() => setStep("select")}>
             <ArrowLeft className="size-4 rtl:-scale-x-100" aria-hidden="true" />
             {t("prepare.back")}
           </Button>
@@ -313,11 +313,11 @@ function LabelsPageContent() {
         ) : (
           <>
             <div className="flex items-center justify-between gap-3">
-              <Button type="button" variant="secondary" size="sm" onClick={selectAllOnPage}>
+              <Button type="button" variant="secondary" onClick={selectAllOnPage}>
                 {t("selectAll")}
               </Button>
               {selectedIds.length > 0 && (
-                <Button type="button" variant="quiet" size="sm" onClick={() => setSelectedIds([])}>
+                <Button type="button" variant="quiet" onClick={() => setSelectedIds([])}>
                   {t("clearSelection")}
                 </Button>
               )}

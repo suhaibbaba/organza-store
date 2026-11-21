@@ -42,7 +42,7 @@ export function OrderListError({ error, onRetry }: { error: unknown; onRetry: ()
       tone="danger"
       data-testid="orders-error"
       action={
-        <Button type="button" variant="secondary" size="sm" onClick={onRetry}>
+        <Button type="button" variant="secondary" onClick={onRetry}>
           {t("retry")}
         </Button>
       }

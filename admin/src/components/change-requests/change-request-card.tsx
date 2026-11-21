@@ -146,7 +146,7 @@ export function ChangeRequestCard({ request, canDecide }: ChangeRequestCardProps
             </Button>
           </div>
           {rejecting && (
-            <Button type="button" variant="quiet" size="sm" disabled={busy} onClick={() => setRejecting(false)}>
+            <Button type="button" variant="quiet" disabled={busy} onClick={() => setRejecting(false)}>
               {tCommon("cancel")}
             </Button>
           )}

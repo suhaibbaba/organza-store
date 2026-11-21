@@ -326,15 +326,15 @@ export function NumberedShawlEditor({ product, variantTypes, currency }: Numbere
               <span className="text-label font-medium text-ink">{t("pointLabel", { number: selectedPoint.number })}</span>
               {confirmDeleteId === selectedPoint.id ? (
                 <div className="flex items-center gap-2">
-                  <Button variant="danger" size="sm" onClick={() => handleConfirmDelete(selectedPoint.id)}>
+                  <Button variant="danger" onClick={() => handleConfirmDelete(selectedPoint.id)}>
                     {t("confirmDelete")}
                   </Button>
-                  <Button variant="quiet" size="sm" onClick={() => setConfirmDeleteId(null)}>
+                  <Button variant="quiet" onClick={() => setConfirmDeleteId(null)}>
                     {t("cancelDelete")}
                   </Button>
                 </div>
               ) : (
-                <Button variant="secondary" size="sm" onClick={() => setConfirmDeleteId(selectedPoint.id)}>
+                <Button variant="secondary" onClick={() => setConfirmDeleteId(selectedPoint.id)}>
                   {t("deletePoint")}
                 </Button>
               )}

@@ -12,6 +12,10 @@ export const IMAGE_SIZES = {
 
 export const IMAGE_WEBP_QUALITY = 82;
 
+// The shop logo: one WebP, alpha kept, fitted inside this square.
+export const LOGO_MAX_DIMENSION = 512;
+export const LOGO_FILE_PREFIX = "logo";
+
 // ---------------------------------------------------------------------------
 // The original, kept
 // ---------------------------------------------------------------------------

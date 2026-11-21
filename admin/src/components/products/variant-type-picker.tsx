@@ -130,7 +130,6 @@ function AddValueInline({ typeId, onAdded }: { typeId: string; onAdded: (valueId
         />
         <div className="flex items-center gap-2">
           <Button
-            size="sm"
             onClick={() => void handleAdd()}
             isLoading={mutation.isPending}
             className="flex-1 sm:flex-none"
@@ -138,7 +137,6 @@ function AddValueInline({ typeId, onAdded }: { typeId: string; onAdded: (valueId
             {t("add")}
           </Button>
           <Button
-            size="sm"
             variant="quiet"
             onClick={() => {
               setOpen(false);
@@ -203,7 +201,6 @@ function AddTypeInline({ onCreated }: { onCreated: (typeId: string) => void }) {
         />
         <div className="flex items-center gap-2">
           <Button
-            size="sm"
             onClick={() => void handleAdd()}
             isLoading={mutation.isPending}
             className="flex-1 sm:flex-none"
@@ -211,7 +208,6 @@ function AddTypeInline({ onCreated }: { onCreated: (typeId: string) => void }) {
             {t("add")}
           </Button>
           <Button
-            size="sm"
             variant="quiet"
             onClick={() => {
               setOpen(false);

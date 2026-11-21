@@ -35,12 +35,12 @@ export function CollectionActionBar({
         </div>
 
         <div className="flex gap-3">
-          <Button type="button" variant="secondary" className="h-12 shrink-0 px-4" onClick={onClear}>
+          <Button type="button" variant="secondary" className="shrink-0 px-4" onClick={onClear}>
             {t("clear")}
           </Button>
           <Button
             type="button"
-            className="h-12 flex-1 text-section"
+            className="flex-1"
             isLoading={isPending}
             onClick={onConfirm}
             icon={<HandCoins className="size-5" aria-hidden="true" />}

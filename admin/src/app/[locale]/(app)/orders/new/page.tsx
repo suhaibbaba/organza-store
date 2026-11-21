@@ -20,7 +20,7 @@ export default function NewOrderPage() {
         <Link
           href="/orders"
           data-test-selector="back-link"
-          className={buttonClassName({ variant: "quiet", size: "sm", className: "-ms-2 mb-4 self-start px-2" })}
+          className={buttonClassName({ variant: "quiet", className: "-ms-2 mb-4 self-start px-2" })}
         >
           <ArrowLeft className="size-4 rtl:-scale-x-100" aria-hidden="true" />
           {t("back")}

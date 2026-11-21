@@ -11,8 +11,8 @@ import { testSelectorFor } from "@organza/shared/lib/testSelector";
 
 interface LanguageSwitcherProps {
   className?: string;
-  // "menu": a heading + radio items inside an open account menu; "list": a row of buttons (signed-out pages, More sheet).
-  variant?: "menu" | "list";
+  // "pill": a header button opening the languages; "menu": radio items inside an open menu; "list": a row of buttons.
+  variant?: "pill" | "menu" | "list";
 }
 
 export function LanguageSwitcher({ className, variant = "list" }: LanguageSwitcherProps) {
@@ -24,6 +24,34 @@ export function LanguageSwitcher({ className, variant = "list" }: LanguageSwitch
   // Navigating writes next-intl's locale cookie, which is what makes the choice survive a relaunch.
   function handleChange(loc: AppLocale) {
     router.replace(pathname, { locale: loc });
+  }
+
+  if (variant === "pill") {
+    return (
+      <DropdownMenuPrimitive.Root>
+        <DropdownMenuPrimitive.Trigger
+          aria-label={t("language")}
+          data-test-selector="language-switcher"
+          className={cn(
+            "flex h-(--control-h) shrink-0 cursor-pointer items-center gap-1.5 rounded-control border border-line bg-surface px-2.5",
+            "text-label font-medium text-ink transition-colors duration-150 hover:bg-primary-50 data-[state=open]:bg-primary-50",
+            className
+          )}
+        >
+          <Languages className="size-4 shrink-0 text-ink-muted" aria-hidden="true" />
+          <span className="hidden sm:inline">{LOCALE_LABELS[locale]}</span>
+        </DropdownMenuPrimitive.Trigger>
+        <DropdownMenuPrimitive.Portal>
+          <DropdownMenuPrimitive.Content
+            align="end"
+            sideOffset={6}
+            className="z-50 min-w-40 rounded-panel border border-line bg-surface p-1 shadow-card"
+          >
+            <LanguageSwitcher variant="menu" />
+          </DropdownMenuPrimitive.Content>
+        </DropdownMenuPrimitive.Portal>
+      </DropdownMenuPrimitive.Root>
+    );
   }
 
   if (variant === "menu") {

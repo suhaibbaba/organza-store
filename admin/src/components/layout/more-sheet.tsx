@@ -7,7 +7,6 @@ import { usePathname } from "@/i18n/navigation";
 import { LanguageSwitcher } from "@/components/layout/language-switcher";
 import { DesignSystemNavLink, NavLink } from "@/components/layout/nav-link";
 import { useSession } from "@/components/providers/session-provider";
-import { AppVersion } from "@/components/pwa/app-version";
 import { NavPendingBadge } from "@/components/change-requests/nav-pending-badge";
 import { testSelectorFor } from "@organza/shared/lib/testSelector";
 import type { NavItem } from "@/types/nav";
@@ -61,7 +60,6 @@ export function MoreSheet({ open, onOpenChange, items }: MoreSheetProps) {
             <LogOut className="size-[19px]" aria-hidden="true" />
             {tCommon("logout")}
           </button>
-          <AppVersion className="px-1" />
         </div>
       </div>
     </Drawer>

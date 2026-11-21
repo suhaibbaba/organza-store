@@ -375,3 +375,6 @@ export const PULL_REFRESH_IGNORE_ATTRIBUTE = "data-no-pull-refresh";
 
 /** How long the "copied" tick stays up after the version line is tapped. */
 export const COPIED_FEEDBACK_MS = 2_000;
+
+/** The app icon size the sidebar logo falls back to before a shop logo is uploaded. */
+export const LOGO_ICON_SIZE = 192;

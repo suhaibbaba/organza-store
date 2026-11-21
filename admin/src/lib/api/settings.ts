@@ -11,3 +11,15 @@ export async function updateSettings(input: UpdateSettingInput): Promise<Setting
   const { data } = await apiFetch<Setting>("/api/settings", { method: "PATCH", body: input });
   return data;
 }
+
+export async function uploadLogo(file: File): Promise<Setting> {
+  const formData = new FormData();
+  formData.append("file", file);
+  const { data } = await apiFetch<Setting>("/api/settings/logo", { method: "POST", body: formData });
+  return data;
+}
+
+export async function removeLogo(): Promise<Setting> {
+  const { data } = await apiFetch<Setting>("/api/settings/logo", { method: "DELETE" });
+  return data;
+}

@@ -37,7 +37,7 @@ export function LabelListError({ error, onRetry }: { error: unknown; onRetry: ()
       tone="danger"
       data-testid="labels-error"
       action={
-        <Button type="button" variant="secondary" size="sm" onClick={onRetry}>
+        <Button type="button" variant="secondary" onClick={onRetry}>
           {t("retry")}
         </Button>
       }

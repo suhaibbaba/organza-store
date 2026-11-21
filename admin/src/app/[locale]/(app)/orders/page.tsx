@@ -94,7 +94,7 @@ export default function OrdersPage() {
               <Link
                 href="/orders/new"
                 data-test-selector="add-order"
-                className={buttonClassName({ size: "sm", className: "shrink-0" })}
+                className={buttonClassName({ className: "shrink-0" })}
               >
                 <Plus className="size-4" aria-hidden="true" />
                 {t("newOrder")}

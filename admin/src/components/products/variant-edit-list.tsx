@@ -117,7 +117,7 @@ export function VariantEditList({
                 )}
                 <p className="text-micro text-ink-muted">{variant.sku}</p>
               </div>
-              <Button variant="secondary" size="sm" onClick={() => onRestore(variant.id)}>
+              <Button variant="secondary" onClick={() => onRestore(variant.id)}>
                 {t("undo")}
               </Button>
             </div>
@@ -323,7 +323,6 @@ export function VariantEditList({
                   <div className="px-3 py-2">
                     <Button
                       variant="quiet"
-                      size="sm"
                       onClick={() => onRemove(variant.id)}
                       className="text-danger-600 hover:bg-danger-50 hover:text-danger-600"
                       icon={<Trash2 className="size-4" aria-hidden="true" />}

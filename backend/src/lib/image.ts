@@ -21,6 +21,8 @@ import {
   IMAGE_ORIGINAL_SUFFIX,
   IMAGE_SIZES,
   IMAGE_WEBP_QUALITY,
+  LOGO_FILE_PREFIX,
+  LOGO_MAX_DIMENSION,
 } from "@/constants";
 import type { ImageSize, StoredImage } from "@/types";
 
@@ -362,4 +364,25 @@ export async function deleteProductImageFiles(
   const files = (Object.keys(IMAGE_SIZES) as ImageSize[]).map((size) => `${filename}-${size}.webp`);
   if (originalFilename) files.push(originalFilename);
   await Promise.all(files.map((file) => fs.unlink(path.join(UPLOAD_DIR, file)).catch(() => undefined)));
+}
+
+// The shop logo, fitted inside LOGO_MAX_DIMENSION as one WebP; returns the stored file name.
+export async function storeLogo(buffer: Buffer): Promise<string> {
+  await readImageMetadata(buffer);
+  const filename = `${LOGO_FILE_PREFIX}-${crypto.randomUUID()}.webp`;
+  await fs.mkdir(UPLOAD_DIR, { recursive: true });
+  await sharp(buffer)
+    .autoOrient()
+    .resize({ width: LOGO_MAX_DIMENSION, height: LOGO_MAX_DIMENSION, fit: "inside", withoutEnlargement: true })
+    .webp({ quality: IMAGE_WEBP_QUALITY })
+    .toFile(path.join(UPLOAD_DIR, filename));
+  return filename;
+}
+
+export async function deleteLogoFile(filename: string): Promise<void> {
+  await fs.unlink(path.join(UPLOAD_DIR, path.basename(filename))).catch(() => undefined);
+}
+
+export function logoUrl(filename: string | null): string | null {
+  return filename ? `/uploads/${filename}` : null;
 }

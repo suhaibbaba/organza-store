@@ -34,7 +34,7 @@ export function InventoryListError({ error, onRetry }: { error: unknown; onRetry
       tone="danger"
       data-testid="inventory-error"
       action={
-        <Button type="button" variant="secondary" size="sm" onClick={onRetry}>
+        <Button type="button" variant="secondary" onClick={onRetry}>
           {t("retry")}
         </Button>
       }

@@ -20,7 +20,6 @@ export function UserPagination({ meta, onPageChange }: UserPaginationProps) {
       <Button
         type="button"
         variant="secondary"
-        size="sm"
         disabled={meta.page <= 1}
         onClick={() => onPageChange(meta.page - 1)}
         icon={<ChevronLeft className="size-4 rtl:-scale-x-100" aria-hidden="true" />}
@@ -35,7 +34,6 @@ export function UserPagination({ meta, onPageChange }: UserPaginationProps) {
       <Button
         type="button"
         variant="secondary"
-        size="sm"
         disabled={meta.page >= meta.totalPages}
         onClick={() => onPageChange(meta.page + 1)}
         icon={<ChevronRight className="size-4 rtl:-scale-x-100" aria-hidden="true" />}

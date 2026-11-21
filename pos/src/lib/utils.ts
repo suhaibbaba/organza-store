@@ -1,6 +1,2 @@
-import { clsx, type ClassValue } from "clsx";
-import { twMerge } from "tailwind-merge";
-
-export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
+// The design system's cn: tailwind-merge taught its custom sizes and radii (text-micro is a size, not a colour).
+export { cn } from "@store/ui/lib/cn";

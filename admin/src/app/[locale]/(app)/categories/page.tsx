@@ -85,7 +85,7 @@ export default function CategoriesPage() {
         description={t("subtitle")}
         actions={
           canManage && (
-            <Button size="sm" className="shrink-0" onClick={openCreateForm} data-test-selector="add-category">
+            <Button className="shrink-0" onClick={openCreateForm} data-test-selector="add-category">
               <Plus className="size-4" aria-hidden="true" />
               {t("addCategory")}
             </Button>

@@ -13,6 +13,7 @@ export interface Setting {
   currency: string;
   defaultCountryCode: string;
   lowStockThreshold: number;
+  logoUrl: string | null; // API-relative ("/uploads/…"); null when no logo was uploaded
   // --- barcode-label printing ---
   // Every dimension is in millimetres. THERMAL prints one label per page (the
   // page is the label); A4_GRID lays labels out on a sheet, so the grid and

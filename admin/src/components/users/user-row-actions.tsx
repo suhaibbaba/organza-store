@@ -42,13 +42,12 @@ export function UserRowActions({
         <Button
           type="button"
           variant="ghost"
-          size="sm"
           onClick={() => onConfirmActivate(user)}
           disabled={isActivating}
         >
           {t("confirmActivate")}
         </Button>
-        <Button type="button" variant="quiet" size="sm" onClick={onCancelActivate}>
+        <Button type="button" variant="quiet" onClick={onCancelActivate}>
           {t("cancelToggle")}
         </Button>
       </div>
@@ -60,7 +59,6 @@ export function UserRowActions({
       <Button
         type="button"
         variant="quiet"
-        size="sm"
         onClick={() => onEdit(user)}
         aria-label={t("edit")}
         className={button}
@@ -71,7 +69,6 @@ export function UserRowActions({
         <Button
           type="button"
           variant="quiet"
-          size="sm"
           onClick={() => onRemove(user)}
           aria-label={t("remove")}
           className={button}
@@ -81,7 +78,6 @@ export function UserRowActions({
         <Button
           type="button"
           variant="quiet"
-          size="sm"
           onClick={() => onRequestActivate(user.id)}
           aria-label={t("activate")}
           isLoading={isActivating}

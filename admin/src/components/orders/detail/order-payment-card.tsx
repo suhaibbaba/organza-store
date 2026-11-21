@@ -62,7 +62,7 @@ export function OrderPaymentCard({ order }: { order: Order }) {
       {canCollect && (
         <Button
           type="button"
-          className="h-14 w-full text-section sm:w-auto sm:self-start"
+          className="w-full sm:w-auto sm:self-start"
           isLoading={mutation.isPending}
           onClick={() => mutation.mutate([order.id])}
           icon={<HandCoins className="size-5" aria-hidden="true" />}

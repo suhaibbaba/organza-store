@@ -138,7 +138,7 @@ function InventoryPageContent() {
                 tone="info"
                 data-testid="alert-default"
                 action={
-                  <Button type="button" variant="secondary" size="sm" onClick={refreshList}>
+                  <Button type="button" variant="secondary" onClick={refreshList}>
                     {t("refreshList")}
                   </Button>
                 }

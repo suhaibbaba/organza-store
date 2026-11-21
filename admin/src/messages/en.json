@@ -1164,6 +1164,13 @@
       },
       "failed": "Couldn't change the notification setting. Please try again.",
       "iosHint": "iPhone and iPad note: notifications only arrive once the app has been added to the Home Screen and opened from its icon."
+    },
+    "logo": {
+      "title": "Logo",
+      "hint": "Shown at the top of the side bar. PNG, JPG or WebP; a transparent PNG looks best.",
+      "upload": "Upload logo",
+      "replace": "Replace logo",
+      "remove": "Remove logo"
     }
   },
   "push": {
