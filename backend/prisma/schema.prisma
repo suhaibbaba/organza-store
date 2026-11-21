@@ -1222,6 +1222,7 @@ model Setting {
   defaultCountryCode String   @default("+970") // default phone prefix (المقدمة)
   lowStockThreshold  Int      @default(3)
   logoFilename       String? // shop logo in UPLOAD_DIR; null = none uploaded
+  faviconFilename    String? // base name of the favicon PNG set in UPLOAD_DIR; null = the built-in icons
 
   // --- barcode-label printing (Admin-only to edit, readable by all staff) ---
   // The shop buys whatever label printer it can get, so the sheet is

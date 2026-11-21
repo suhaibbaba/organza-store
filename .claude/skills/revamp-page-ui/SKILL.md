@@ -357,6 +357,22 @@ clinic app (`/Users/suhaibbaba/Projects/clinic-management-system/apps/web/src/mo
 - **A big photo opens `ImageViewer` (`@store/ui`)**: the photo alone on a dim of the page (no panel behind it), the
   set as thumbnails under it, arrows that follow the reading direction, a counter only when there are 2+.
 
+- **Settings is a two-column form page (user, 2026-11-21)**: main = shop info (`TranslatedField`), regional (short
+  fields paired `sm:grid-cols-2`), inventory, barcode labels; side = branding, this device's notifications, sale
+  notifications. Collapsible `Section`s from `SETTINGS_SECTIONS`; one `SaveBar`. A device action (turning this
+  phone's notifications on) applies at once — it is a browser permission, not a saved field.
+- **Uploads on a form page are staged until Save (user, 2026-11-21)**: picking a file shows an object-URL preview and
+  opens the SaveBar; Undo drops it; Save writes the fields first, then each image, clearing each as it lands so a
+  later failure leaves only the unsaved ones staged. Revoke object URLs when replaced and on unmount.
+- **Favicon (user, 2026-11-21)**: used for the tab, the installed-app icon and notifications, in the sandbox too.
+  Every icon reference goes through `/brand-icon/<size>.png` (admin + POS route) which redirects to the upload or the
+  environment's built-in icon; the manifest drops the built-in maskable icon once one is uploaded; `BrandIconSync`
+  swaps the `<head>` links the moment a Save changes it. `GET /api/branding` is open (icons load before sign-in).
+- A form fed by a query resets only when the row's `updatedAt` changes — resetting on every refetch wipes typing.
+- React lint: never write a ref during render (`ref.current = x` in the body) — set it in an effect.
+- Backend API tests default to the DEPLOYED sandbox; run them locally with `API_URL=http://localhost:4000` (needs the
+  demo seed — the local prod copy has no demo accounts).
+
 ## Done
 - admin `products/[id]` (record) — 2026-11-21; rebuilt 2026-11-21: gallery + viewer, details card, no tabs
 - admin `products/[id]/edit` + `products/new` (form, shared `product-form.tsx`) — 2026-11-21
@@ -366,3 +382,4 @@ clinic app (`/Users/suhaibbaba/Projects/clinic-management-system/apps/web/src/mo
 - admin `orders/new` (channel segments + gift switch) — 2026-11-21
 - admin `products` (list: toolbar + filter drawer with sort + chips, sortable headers, Table pagination) — 2026-11-21
 - admin `orders/collection` — rebuilt 2026-11-21: selectable `Table` with photos + customer, search, date/status/channel filters, sort
+- admin `settings` (form, two columns, staged logo + new favicon upload) — 2026-11-21

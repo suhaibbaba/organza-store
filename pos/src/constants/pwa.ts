@@ -326,3 +326,10 @@ export const COPIED_FEEDBACK_MS = 2_000;
 
 /** The icon size the top bar's logo is cut from (drawn at 36px). */
 export const LOGO_ICON_SIZE = 192;
+
+// One fixed address per icon size: it redirects to the shop's uploaded favicon, else to this environment's built-in icon.
+export const BRAND_ICON_ROUTE = "/brand-icon";
+export const brandIconPath = (size: number): string => `${BRAND_ICON_ROUTE}/${size}.png`;
+// Short, so a newly uploaded favicon reaches open tabs and installed apps within minutes.
+export const BRAND_ICON_CACHE_SECONDS = 300;
+export const BRANDING_API_PATH = "/api/branding";

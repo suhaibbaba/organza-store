@@ -4,12 +4,9 @@ import { useTranslations } from "next-intl";
 import { RoleGuard } from "@/components/auth/role-guard";
 import { PageContainer } from "@/components/layout/page-container";
 import { PageHeader } from "@/components/layout/page-header";
-import { FormContainer } from "@/components/layout/form-container";
 import { useSettingsQuery } from "@/hooks/use-settings";
 import { useTranslateError } from "@/hooks/use-translate-error";
 import { SettingsForm } from "@/components/settings/settings-form";
-import { NotificationsCard } from "@/components/settings/notifications-card";
-import { LogoCard } from "@/components/settings/logo-card";
 import { Alert, Button, Skeleton } from "@store/ui";
 import { ApiError } from "@/lib/api/errors";
 import { AppVersion } from "@/components/pwa/app-version";
@@ -24,35 +21,33 @@ function SettingsPageContent() {
     <PageContainer>
       <PageHeader name="settings" title={t("title")} description={t("subtitle")} />
 
-      <FormContainer className="flex flex-col gap-4">
-        {isLoading ? (
-          <div className="flex flex-col gap-3">
+      {isLoading ? (
+        <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-[minmax(0,1fr)_22rem]">
+          <div className="flex flex-col gap-5">
             {Array.from({ length: 3 }).map((_, i) => (
-              <Skeleton key={i} className="h-32 rounded-card" />
+              <Skeleton key={i} className="h-40 rounded-card" />
             ))}
           </div>
-        ) : isError || !setting ? (
-          <Alert
-            tone="danger"
-            data-testid="alert-destructive"
-            action={
-              <Button type="button" variant="secondary" onClick={() => void refetch()}>
-                {tCommon("retry")}
-              </Button>
-            }
-          >
-            {translateError(error instanceof ApiError ? error.code : "error.internal")}
-          </Alert>
-        ) : (
-          <>
-            {/* This device's notification permission first: it is the part done per device. */}
-            <LogoCard />
-            <NotificationsCard />
-            <SettingsForm setting={setting} />
-            <AppVersion className="w-auto items-center self-center" />
-          </>
-        )}
-      </FormContainer>
+          <Skeleton className="h-72 rounded-card" />
+        </div>
+      ) : isError || !setting ? (
+        <Alert
+          tone="danger"
+          data-testid="alert-destructive"
+          action={
+            <Button type="button" variant="secondary" onClick={() => void refetch()}>
+              {tCommon("retry")}
+            </Button>
+          }
+        >
+          {translateError(error instanceof ApiError ? error.code : "error.internal")}
+        </Alert>
+      ) : (
+        <div className="flex flex-col gap-5">
+          <SettingsForm setting={setting} />
+          <AppVersion className="w-auto items-center self-center" />
+        </div>
+      )}
     </PageContainer>
   );
 }

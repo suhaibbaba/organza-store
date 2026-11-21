@@ -11,7 +11,6 @@ import {
   APPLE_SPLASH_SCREENS,
   PWA_APPLE_ICON_SIZE,
   PWA_DESCRIPTION,
-  PWA_FAVICON_PATH,
   PWA_FAVICON_PNG_SIZES,
   PWA_MANIFEST_PATH,
   PWA_NAME,
@@ -19,7 +18,7 @@ import {
   PWA_THEME_COLOR,
   appleSplashImagePath,
   appleSplashMediaQuery,
-  pwaIconPath,
+  brandIconPath,
 } from "@/constants/pwa";
 import { AppProviders } from "@/components/providers/app-providers";
 import { BootFailure } from "@/components/pwa/boot-failure";
@@ -40,24 +39,15 @@ export const metadata: Metadata = {
   description: PWA_DESCRIPTION,
   manifest: PWA_MANIFEST_PATH,
   icons: {
-    // The tab. Both entries point inside app_icon/<environment>/, so a
-    // sandbox tab is amber-banded even before anything on the page has
-    // rendered — the .ico for whatever still insists on one, the PNG for
-    // everything that can pick by size (see PWA_FAVICON_PNG_SIZES).
-    icon: [
-      { url: PWA_FAVICON_PATH, sizes: "any", type: "image/x-icon" },
-      ...PWA_FAVICON_PNG_SIZES.map((size) => ({
-        url: pwaIconPath(size),
-        sizes: `${size}x${size}`,
-        type: "image/png",
-      })),
-    ],
-    shortcut: PWA_FAVICON_PATH,
-    // iOS ignores the manifest's icons entirely and uses this one for the
-    // home screen, so it has to be declared here as well.
+    // Both resolve to the shop's uploaded favicon when there is one, else this environment's built-in icon.
+    icon: PWA_FAVICON_PNG_SIZES.map((size) => ({
+      url: brandIconPath(size),
+      sizes: `${size}x${size}`,
+      type: "image/png",
+    })),
     apple: [
       {
-        url: pwaIconPath(PWA_APPLE_ICON_SIZE),
+        url: brandIconPath(PWA_APPLE_ICON_SIZE),
         sizes: `${PWA_APPLE_ICON_SIZE}x${PWA_APPLE_ICON_SIZE}`,
         type: "image/png",
       },

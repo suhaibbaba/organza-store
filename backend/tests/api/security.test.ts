@@ -269,6 +269,8 @@ describe("Security", () => {
       "currency",
       "defaultCountryCode",
       "lowStockThreshold",
+      "logoUrl",
+      "faviconUrls",
       "labelPrintMode",
       "labelWidthMm",
       "labelHeightMm",

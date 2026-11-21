@@ -15,6 +15,13 @@ export const IMAGE_WEBP_QUALITY = 82;
 export const LOGO_MAX_DIMENSION = 512;
 export const LOGO_FILE_PREFIX = "logo";
 
+export { FAVICON_SIZES } from "@organza/shared/constants/brand";
+export const FAVICON_FILE_PREFIX = "favicon";
+// iOS paints a transparent home-screen icon black, so its size is flattened onto white.
+export const FAVICON_OPAQUE_SIZE = 180;
+export const FAVICON_OPAQUE_BACKGROUND = "#ffffff";
+export const FAVICON_CLEAR_BACKGROUND = { r: 0, g: 0, b: 0, alpha: 0 };
+
 // The original is kept byte-for-byte as <uuid>-original.<ext> so a garment can be re-cropped later.
 export const IMAGE_ORIGINAL_SUFFIX = "original";
 

@@ -8,10 +8,7 @@ import { boundedDecimalField, boundedIntegerField, requiredIntegerField } from "
 
 const i18nFormSchema = z.object({ ar: z.string(), en: z.string(), he: z.string() });
 
-// Label geometry, in millimetres, bounded exactly like the shared schema the
-// backend validates with (shared/src/constants/label.ts) so a typo is caught
-// on the phone instead of coming back as a rejected save. Margins and gaps
-// may be 0 — sticker sheets that start at the paper edge are normal.
+// Millimetres, bounded like the shared schema so a typo is caught here; margins and gaps may be 0.
 const labelDimensionField = boundedDecimalField(LABEL_LIMITS.minDimensionMm, LABEL_LIMITS.maxDimensionMm);
 const labelMarginField = boundedDecimalField(0, LABEL_LIMITS.maxMarginMm);
 const labelGapField = boundedDecimalField(0, LABEL_LIMITS.maxGapMm);
@@ -26,9 +23,7 @@ export const settingsFormSchema = z.object({
   labelPrintMode: z.enum(LABEL_PRINT_MODES),
   labelWidthMm: labelDimensionField,
   labelHeightMm: labelDimensionField,
-  // The grid/page fields describe the A4 sheet only, but they are validated
-  // and saved in either mode so switching to thermal and back doesn't lose
-  // the sheet the shop measured.
+  // A4-only fields are still validated and saved in thermal mode, so switching back keeps the measured sheet.
   labelColumns: labelGridField,
   labelRows: labelGridField,
   labelPageMarginTopMm: labelMarginField,
@@ -37,9 +32,7 @@ export const settingsFormSchema = z.object({
   labelPageMarginLeftMm: labelMarginField,
   labelGapXMm: labelGapField,
   labelGapYMm: labelGapField,
-  // Sale notifications. Only the implemented modes are offered — the schema
-  // holds more (see shared/src/constants/push.ts), and the day one of them
-  // ships it appears here on its own.
+  // Only implemented modes are offered; a new mode appears here once it ships.
   saleNotificationsEnabled: z.boolean(),
   saleNotificationMode: z.enum(IMPLEMENTED_SALE_NOTIFICATION_MODES),
 });
@@ -63,8 +56,7 @@ export function settingsToFormValues(setting: Setting): SettingsFormValues {
     labelGapXMm: String(setting.labelGapXMm),
     labelGapYMm: String(setting.labelGapYMm),
     saleNotificationsEnabled: setting.saleNotificationsEnabled,
-    // A row written by a newer build could hold a mode this one can't offer;
-    // showing the first mode it does understand beats an empty select.
+    // A mode from a newer build falls back to the first one this build understands.
     saleNotificationMode: IMPLEMENTED_SALE_NOTIFICATION_MODES.includes(
       setting.saleNotificationMode as (typeof IMPLEMENTED_SALE_NOTIFICATION_MODES)[number]
     )
@@ -80,8 +72,7 @@ function sanitizeStoreName(value: SettingsFormValues["storeName"]): UpdateSettin
   return { ...Object.fromEntries(entries), ar: value.ar.trim() } as UpdateSettingInput["storeName"];
 }
 
-// Numeric fields are held as strings in the form (mobile numeric inputs, see
-// components/ui/numeric-input.tsx) and only become numbers on the way out.
+// Numeric fields are strings in the form and become numbers only on the way out.
 function toNumber(value: string): number {
   return Number(value.trim());
 }

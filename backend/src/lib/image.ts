@@ -23,20 +23,15 @@ import {
   IMAGE_WEBP_QUALITY,
   LOGO_FILE_PREFIX,
   LOGO_MAX_DIMENSION,
+  FAVICON_CLEAR_BACKGROUND,
+  FAVICON_FILE_PREFIX,
+  FAVICON_OPAQUE_BACKGROUND,
+  FAVICON_OPAQUE_SIZE,
+  FAVICON_SIZES,
 } from "@/constants";
-import type { ImageSize, StoredImage } from "@/types";
+import type { FaviconSize, FaviconUrls, ImageSize, StoredImage } from "@/types";
 
-// CLAUDE.md rule: images stored locally on the VPS, optimized with sharp
-// (WebP + multi-size) on upload. Sizes: thumbnail (lists), medium (POS), full (product page).
-//
-// RESOLVED AGAINST THE WORKING DIRECTORY, which is why the deployment sets it
-// absolutely. A relative UPLOAD_DIR means "wherever this process happens to
-// have been started from" — in the container that is /app/backend, one level
-// below the mount at /app/uploads, so every photo landed in the container's
-// own layer and was thrown away by the next deploy. Nothing failed; the files
-// simply stopped existing. docker-compose.sandbox.yml now sets
-// UPLOAD_DIR=/app/uploads in `environment:` so the app's path and the mount
-// point are the same two lines in one file.
+// Absolute in every deployment: a relative UPLOAD_DIR resolves inside the container layer and is lost on redeploy.
 export const UPLOAD_DIR = path.resolve(process.env.UPLOAD_DIR ?? DEFAULT_UPLOAD_DIR);
 export const UPLOAD_MAX_SIZE_MB = Number(process.env.UPLOAD_MAX_SIZE_MB ?? DEFAULT_UPLOAD_MAX_SIZE_MB);
 export const ALLOWED_IMAGE_TYPES = (process.env.ALLOWED_IMAGE_TYPES ?? DEFAULT_ALLOWED_IMAGE_TYPES.join(","))
@@ -182,12 +177,7 @@ function editedPipeline(buffer: Buffer, ops: ImageEditOps, maxDimension: number 
   return pipeline;
 }
 
-// Resizes into every size (max dimension, aspect preserved, never upscaled),
-// converts to WebP, and writes each under UPLOAD_DIR — served statically at /uploads.
-//
-// Every size is cut from the ORIGINAL buffer, never from the size above it:
-// three decodes of the same file cost a little more than one and are the
-// difference between a crop at full quality and a crop of a crop.
+// Every size is cut from the original buffer (never from a larger size), WebP, never upscaled.
 async function writeSizes(buffer: Buffer, filename: string, ops: ImageEditOps): Promise<Record<ImageSize, string>> {
   const urls = {} as Record<ImageSize, string>;
   for (const [size, maxDimension] of Object.entries(IMAGE_SIZES) as [ImageSize, number][]) {
@@ -349,14 +339,7 @@ export function largestStoredFileName(filename: string): string {
   return `${filename}-${largest}.webp`;
 }
 
-// Best-effort cleanup — a missing file (already removed, or never fully
-// written) should not block deleting the DB row.
-//
-// The kept original goes with the sizes: it exists to serve one image row,
-// and a row that has gone leaves nothing that could ever be cut from it
-// again. Its name is passed in rather than derived, because after a re-crop
-// the original's base name and the row's `filename` are deliberately
-// different (see recropProductImage).
+// Best-effort; the kept original goes too, named by the caller since a re-crop gives it a different base name.
 export async function deleteProductImageFiles(
   filename: string,
   originalFilename?: string | null
@@ -385,4 +368,37 @@ export async function deleteLogoFile(filename: string): Promise<void> {
 
 export function logoUrl(filename: string | null): string | null {
   return filename ? `/uploads/${filename}` : null;
+}
+
+const faviconFile = (base: string, size: FaviconSize): string => `${base}-${size}.png`;
+
+// The favicon set, each size centred on a transparent square; returns the base name the files share.
+export async function storeFavicon(buffer: Buffer): Promise<string> {
+  await readImageMetadata(buffer);
+  const base = `${FAVICON_FILE_PREFIX}-${crypto.randomUUID()}`;
+  await fs.mkdir(UPLOAD_DIR, { recursive: true });
+  await Promise.all(
+    FAVICON_SIZES.map((size) => {
+      const opaque = size === FAVICON_OPAQUE_SIZE;
+      const resized = sharp(buffer)
+        .autoOrient()
+        .resize({ width: size, height: size, fit: "contain", background: opaque ? FAVICON_OPAQUE_BACKGROUND : FAVICON_CLEAR_BACKGROUND });
+      return (opaque ? resized.flatten({ background: FAVICON_OPAQUE_BACKGROUND }).removeAlpha() : resized)
+        .png()
+        .toFile(path.join(UPLOAD_DIR, faviconFile(base, size)));
+    })
+  );
+  return base;
+}
+
+export async function deleteFaviconFiles(base: string): Promise<void> {
+  const safe = path.basename(base);
+  await Promise.all(
+    FAVICON_SIZES.map((size) => fs.unlink(path.join(UPLOAD_DIR, faviconFile(safe, size))).catch(() => undefined))
+  );
+}
+
+export function faviconUrls(base: string | null): FaviconUrls | null {
+  if (!base) return null;
+  return Object.fromEntries(FAVICON_SIZES.map((size) => [size, `/uploads/${faviconFile(base, size)}`])) as FaviconUrls;
 }

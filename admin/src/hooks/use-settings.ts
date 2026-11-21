@@ -1,6 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { SETTINGS_QUERY_KEY } from "@/constants/api";
-import { fetchSettings, removeLogo, updateSettings, uploadLogo } from "@/lib/api/settings";
+import type { Setting } from "@organza/shared/types/setting";
+import { fetchSettings, removeBrandImage, updateSettings, uploadBrandImage } from "@/lib/api/settings";
+import { BRAND_IMAGE_KINDS } from "@/constants/settings";
+import type { SaveSettingsInput } from "@/types/settings";
 import { useCacheInvalidation } from "@/hooks/use-cache-invalidation";
 
 export function useSettingsQuery() {
@@ -11,25 +14,28 @@ export function useSettingsQuery() {
   });
 }
 
-export function useUpdateSettingsMutation() {
+// The settings page's one Save: the fields first, then each branding image that changed.
+export function useSaveSettingsMutation() {
   const queryClient = useQueryClient();
   const { settingsChanged } = useCacheInvalidation();
   return useMutation({
-    mutationFn: updateSettings,
-    onSuccess: (data) => {
-      queryClient.setQueryData(SETTINGS_QUERY_KEY, data);
-      // The currency and the low-stock threshold are read by other screens
-      // too (the dashboard tile, the stock list's filter), and those hold
-      // numbers computed from the old ones until they are re-read.
-      settingsChanged();
+    mutationFn: async ({ payload, images, onImageSaved }: SaveSettingsInput): Promise<Setting | null> => {
+      let latest: Setting | null = null;
+      const keep = (setting: Setting) => {
+        latest = setting;
+        queryClient.setQueryData(SETTINGS_QUERY_KEY, setting);
+      };
+      if (payload) {
+        keep(await updateSettings(payload));
+        settingsChanged();
+      }
+      for (const kind of BRAND_IMAGE_KINDS) {
+        const change = images[kind];
+        if (!change) continue;
+        keep(change.kind === "replace" ? await uploadBrandImage(kind, change.file) : await removeBrandImage(kind));
+        onImageSaved(kind);
+      }
+      return latest;
     },
   });
-}
-
-export function useLogoMutations() {
-  const queryClient = useQueryClient();
-  const onSuccess = (data: Awaited<ReturnType<typeof uploadLogo>>) => queryClient.setQueryData(SETTINGS_QUERY_KEY, data);
-  const upload = useMutation({ mutationFn: uploadLogo, onSuccess });
-  const remove = useMutation({ mutationFn: removeLogo, onSuccess });
-  return { upload, remove };
 }

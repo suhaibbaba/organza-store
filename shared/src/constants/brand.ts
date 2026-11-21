@@ -30,3 +30,6 @@ export const BRAND_NAME = {
   en: "Organza",
   he: "אורגנזה",
 } as const;
+
+// The shop's uploaded favicon, cut by the backend into these square PNGs: tab (32), iOS (180), app icon (192, 512).
+export const FAVICON_SIZES = [32, 180, 192, 512] as const;

@@ -26,3 +26,5 @@ export interface StoredMarkedImage {
   mediumUrl: string;
   thumbnailUrl: string;
 }
+
+export type { FaviconSize, FaviconUrls } from "@organza/shared/types/setting";

@@ -1,6 +1,7 @@
 import type { I18n } from "@/types/common";
 import type { LABEL_PRINT_MODES } from "@/constants/label";
 import type { SaleNotificationMode } from "@/types/push";
+import type { FAVICON_SIZES } from "@/constants/brand";
 
 export type LabelPrintMode = (typeof LABEL_PRINT_MODES)[number];
 
@@ -14,6 +15,7 @@ export interface Setting {
   defaultCountryCode: string;
   lowStockThreshold: number;
   logoUrl: string | null; // API-relative ("/uploads/…"); null when no logo was uploaded
+  faviconUrls: FaviconUrls | null; // API-relative, one per size; null = the built-in icons
   // --- barcode-label printing ---
   // Every dimension is in millimetres. THERMAL prints one label per page (the
   // page is the label); A4_GRID lays labels out on a sheet, so the grid and
@@ -37,4 +39,13 @@ export interface Setting {
   saleNotificationMode: SaleNotificationMode;
   saleNotificationMinAmount: string;
   updatedAt: string;
+}
+
+export type FaviconSize = (typeof FAVICON_SIZES)[number];
+export type FaviconUrls = Record<FaviconSize, string>;
+
+// GET /api/branding — open to anyone, so a tab or a home-screen icon can draw it before sign-in.
+export interface Branding {
+  logoUrl: string | null;
+  faviconUrls: FaviconUrls | null;
 }

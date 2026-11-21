@@ -22,6 +22,7 @@ import permissionsRouter from "@/routes/permissions";
 import imagesRouter from "@/routes/images";
 import pushRouter from "@/routes/push";
 import versionRouter from "@/routes/version";
+import brandingRouter from "@/routes/branding";
 import { errorHandler } from "@/middleware/errorHandler";
 import { AppError, sendError } from "@/lib/response";
 import { UPLOAD_DIR, checkUploadDirWritable } from "@/lib/image";
@@ -130,6 +131,7 @@ app.get("/health", async (_req, res) => {
 
 // Open, like /health above — see routes/version.ts for why.
 app.use("/api/version", versionRouter);
+app.use("/api/branding", brandingRouter);
 
 app.use("/api/dashboard", dashboardRouter);
 app.use("/api/products", productsRouter);

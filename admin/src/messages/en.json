@@ -1236,32 +1236,24 @@
   },
   "settings": {
     "title": "Settings",
-    "subtitle": "Store name, currency, stock levels, notifications, and barcode labels.",
+    "subtitle": "Store name, branding, region, stock, notifications and barcode labels.",
     "form": {
-      "readOnlyHint": "You can view settings only. Ask an admin to make changes.",
-      "storeInfoTitle": "Store info",
       "storeName": "Store name",
       "required": "Required",
       "optional": "Optional",
-      "regionalTitle": "Regional",
       "defaultLanguage": "Default language",
       "currency": "Currency",
       "currencyHint": "Currency is fixed for now and can't be changed here yet.",
       "defaultCountryCode": "Default phone code",
       "defaultCountryCodeHint": "Used to prefill new phone numbers.",
-      "inventoryTitle": "Inventory",
       "lowStockThreshold": "Low-stock alert level",
       "lowStockThresholdHint": "Products at or below this quantity are flagged as low stock.",
-      "saleNotificationsTitle": "Sale notifications",
-      "saleNotificationsIntro": "Every sale made by a manager or an employee sends a notification to the admins' phones. Nobody is notified of their own sale.",
       "saleNotificationsEnabled": "Send a notification for sales",
       "saleNotificationMode": "When to notify",
       "saleNotificationModeOption": {
         "EVERY_SALE": "On every sale"
       },
       "saleNotificationModeHint": "More options are coming later, such as sales above a set amount or a periodic summary.",
-      "labelsTitle": "Barcode labels",
-      "labelsIntro": "How barcode labels come out of your printer. The Labels screen uses these numbers every time it prints.",
       "labelPrintMode": "Printer type",
       "labelPrintModeOption": {
         "THERMAL": "Label printer (roll)",
@@ -1290,13 +1282,9 @@
       "labelGapY": "Down",
       "labelGapsHint": "The gap between one sticker and the next. Type 0 if they touch each other.",
       "labelSheetErrorHint": "Some A4 sheet numbers aren't valid. Switch the printer type back to the A4 sheet to fix them.",
-      "saving": "Saving…",
-      "save": "Save changes",
       "saved": "Settings saved."
     },
     "notifications": {
-      "title": "Notifications on this device",
-      "intro": "Turn notifications on to hear about sales on this phone as they happen. This setting applies to this device only.",
       "state": {
         "on": "Notifications are on for this device.",
         "off": "Notifications are off for this device."
@@ -1318,12 +1306,50 @@
       "failed": "Couldn't change the notification setting. Please try again.",
       "iosHint": "iPhone and iPad note: notifications only arrive once the app has been added to the Home Screen and opened from its icon."
     },
-    "logo": {
-      "title": "Logo",
-      "hint": "Shown at the top of the side bar. PNG, JPG or WebP; a transparent PNG looks best.",
-      "upload": "Upload logo",
-      "replace": "Replace logo",
-      "remove": "Remove logo"
+    "sections": {
+      "store-info": {
+        "title": "Store info",
+        "description": "The shop's name in each language."
+      },
+      "regional": {
+        "title": "Regional",
+        "description": "Default language, currency and phone code."
+      },
+      "inventory": {
+        "title": "Inventory",
+        "description": "When a product counts as low on stock."
+      },
+      "labels": {
+        "title": "Barcode labels",
+        "description": "How barcode labels come out of your printer. The Labels screen uses these numbers every time it prints."
+      },
+      "branding": {
+        "title": "Branding",
+        "description": "The logo in the side bar and the icon in the browser tab and on the home screen."
+      },
+      "device": {
+        "title": "Notifications on this device",
+        "description": "Turn notifications on to hear about sales on this phone as they happen. This setting applies to this device only."
+      },
+      "sale-notifications": {
+        "title": "Sale notifications",
+        "description": "Every sale made by a manager or an employee sends a notification to the admins' phones. Nobody is notified of their own sale."
+      }
+    },
+    "branding": {
+      "logo": "Logo",
+      "logoHint": "Shown at the top of the side bar. PNG, JPG or WebP; a transparent PNG looks best.",
+      "favicon": "Favicon",
+      "faviconHint": "The icon in the browser tab, on the home screen and on notifications. A square image of at least 512 × 512 works best.",
+      "choose": "Choose image",
+      "replace": "Replace",
+      "remove": "Remove",
+      "undo": "Undo",
+      "pendingReplace": "New image — it is uploaded when you save.",
+      "pendingRemove": "It is removed when you save.",
+      "builtIn": "Nothing uploaded yet — the built-in icon is used.",
+      "tabPreview": "Browser tab",
+      "appPreview": "Home screen"
     }
   },
   "push": {

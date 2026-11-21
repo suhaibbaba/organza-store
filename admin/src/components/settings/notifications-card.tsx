@@ -2,10 +2,11 @@
 
 import { useTranslations } from "next-intl";
 import { BellRing, BellOff } from "lucide-react";
-import { Alert, Button, Card } from "@store/ui";
+import { Alert, Button, Skeleton, Typography } from "@store/ui";
 import { usePushNotifications } from "@/hooks/use-push-notifications";
+import { SettingsSection } from "@/components/settings/settings-section";
 
-// Whether THIS phone receives sale notifications (a browser permission); whether the shop sends them is a Setting below.
+// Whether THIS phone receives sale notifications (a browser permission, applied at once); whether the shop sends them is a Setting.
 export function NotificationsCard() {
   const t = useTranslations("settings.notifications");
   const { isReady, permission, isSubscribed, blockedReason, action, enable, disable } = usePushNotifications();
@@ -13,52 +14,29 @@ export function NotificationsCard() {
   const isPending = action === "pending";
 
   return (
-    <Card className="flex flex-col gap-4">
-      <h2 className="text-section font-semibold text-ink">{t("title")}</h2>
-      <p className="text-label text-ink-muted">{t("intro")}</p>
-
+    <SettingsSection name="device">
       {!isReady ? (
-        <div className="h-11 animate-pulse rounded-control bg-inset" />
+        <Skeleton className="h-11 rounded-control" />
       ) : blockedReason ? (
         <Alert tone="danger" data-testid="alert-destructive">
           {t(`blocked.${blockedReason}`)}
         </Alert>
-      ) : isSubscribed ? (
-        <>
-          <Alert tone="success" data-testid="alert-success">
-            {t("state.on")}
+      ) : (
+        <div className="flex flex-col gap-3">
+          <Alert tone={isSubscribed ? "success" : "neutral"} data-testid={isSubscribed ? "alert-success" : "alert-default"}>
+            {t(isSubscribed ? "state.on" : "state.off")}
           </Alert>
           <Button
             type="button"
-            variant="secondary"
-            onClick={() => void disable()}
+            variant={isSubscribed ? "secondary" : "primary"}
+            onClick={() => void (isSubscribed ? disable() : enable())}
             isLoading={isPending}
-            icon={<BellOff className="size-4" aria-hidden />}
-            className="w-full sm:w-auto sm:self-start"
+            className="self-start"
+            icon={isSubscribed ? <BellOff className="size-4" aria-hidden /> : <BellRing className="size-4" aria-hidden />}
           >
-            {t("turnOff")}
+            {t(isSubscribed ? "turnOff" : "turnOn")}
           </Button>
-        </>
-      ) : (
-        <>
-          <p className="text-label text-ink-muted">{t("state.off")}</p>
-          <Button
-            type="button"
-            onClick={() => void enable()}
-            isLoading={isPending}
-            icon={<BellRing className="size-4" aria-hidden />}
-            className="w-full sm:w-auto sm:self-start"
-          >
-            {t("turnOn")}
-          </Button>
-        </>
-      )}
-
-      {/* The permission the browser actually holds, so staff can see why nothing arrives. */}
-      {isReady && permission && (
-        <p className="text-label text-ink-muted">
-          {t("permissionLabel")}: {t(`permission.${permission}`)}
-        </p>
+        </div>
       )}
 
       {action === "error" && (
@@ -67,8 +45,17 @@ export function NotificationsCard() {
         </Alert>
       )}
 
-      {/* Shown to everyone: shop phones are handed around. */}
-      <p className="text-label text-ink-muted">{t("iosHint")}</p>
-    </Card>
+      <div className="flex flex-col gap-1">
+        {isReady && permission && (
+          <Typography variant="caption" tone="muted">
+            {t("permissionLabel")}: {t(`permission.${permission}`)}
+          </Typography>
+        )}
+        {/* Shown to everyone: shop phones are handed around. */}
+        <Typography variant="caption" tone="muted">
+          {t("iosHint")}
+        </Typography>
+      </div>
+    </SettingsSection>
   );
 }
