@@ -5,14 +5,13 @@ import { CircleCheck, HandCoins } from "lucide-react";
 import { Button, useConfirm, useToast, Typography } from "@store/ui";
 import { can } from "@store/shared/lib/permissions";
 import { isOrderCollectable } from "@store/shared/lib/orders";
-import { ERROR_CODES } from "@store/shared/constants/errors";
 import type { Order } from "@store/shared/types/order";
 import { useSession } from "@/components/providers/session-provider";
 import { useCollectOrdersMutation } from "@/hooks/use-orders";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
-import { ApiError } from "@/lib/api/errors";
 import { formatDateTime } from "@/lib/format";
 import { DetailCard } from "@/components/layout/detail-card";
+import { errorMessageKey } from "@/lib/error-message-key";
 
 // Recording a collection is order.markCollected; the backend is the real gate, this only decides whether the button exists.
 export function OrderPaymentCard({ order }: { order: Order }) {
@@ -41,7 +40,7 @@ export function OrderPaymentCard({ order }: { order: Order }) {
           await mutation.mutateAsync([order.id]);
           toast.success("orders.detail.payment.markedCollected");
         } catch (error) {
-          toast.error(error instanceof ApiError ? error.code : ERROR_CODES.INTERNAL);
+          toast.error(errorMessageKey(error));
           throw error;
         }
       },

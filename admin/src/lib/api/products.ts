@@ -22,6 +22,7 @@ function buildProductListQuery(filters: ProductListFilters, pageSize: number): s
   }
   if (filters.categoryId) {
     params.set("categoryId", filters.categoryId);
+    params.set("includeSubcategories", "true");
   }
   if (filters.status) {
     params.set("status", filters.status);

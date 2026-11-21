@@ -4,7 +4,6 @@ import { useLocale, useTranslations } from "next-intl";
 import { Monitor, Smartphone, Tablet, MonitorSmartphone } from "lucide-react";
 import { Alert, Badge, Button, Skeleton, Typography, useConfirm, useToast } from "@store/ui";
 import type { ProfileSession } from "@store/shared/types/profile";
-import { ERROR_CODES } from "@store/shared/constants/errors";
 import { ProfileSection } from "@/components/profile/profile-section";
 import { useProfileSessionsQuery, useRevokeOtherSessionsMutation, useRevokeSessionMutation } from "@/hooks/use-profile";
 import { useTranslateError } from "@/hooks/use-translate-error";
@@ -12,6 +11,7 @@ import { describeUserAgent } from "@/lib/user-agent";
 import { formatDateTime } from "@/lib/format";
 import { ApiError } from "@/lib/api/errors";
 import type { DeviceKind } from "@/types/profile";
+import { errorMessageKey } from "@/lib/error-message-key";
 
 const DEVICE_ICONS: Record<DeviceKind, typeof Monitor> = {
   phone: Smartphone,
@@ -85,7 +85,7 @@ export function ProfileDevicesSection() {
   const others = (sessions ?? []).filter((session) => !session.current);
 
   function failed(cause: unknown) {
-    toast.error(cause instanceof ApiError ? cause.code : ERROR_CODES.INTERNAL);
+    toast.error(errorMessageKey(cause));
   }
 
   function signOutOne(session: ProfileSession) {

@@ -3,13 +3,12 @@
 import { useLocale, useTranslations } from "next-intl";
 import { MenuItem, RowMenu, useConfirm, useToast } from "@store/ui";
 import { can } from "@store/shared/lib/permissions";
-import { ERROR_CODES } from "@store/shared/constants/errors";
 import type { ProductSummary } from "@store/shared/types/product";
 import { useRouter } from "@/i18n/navigation";
 import { useSession } from "@/components/providers/session-provider";
 import { useDeleteAnyProductMutation } from "@/hooks/use-products";
-import { ApiError } from "@/lib/api/errors";
 import { localize } from "@/lib/i18n-content";
+import { errorMessageKey } from "@/lib/error-message-key";
 
 // Edit and soft delete (rule 4), each only for a role that may do it; one confirm dialog for the whole list.
 export function useProductRowMenu() {
@@ -35,7 +34,7 @@ export function useProductRowMenu() {
           await remove.mutateAsync(product.id);
           toast.success("products.detail.delete.success");
         } catch (error) {
-          toast.error(error instanceof ApiError ? error.code : ERROR_CODES.INTERNAL);
+          toast.error(errorMessageKey(error));
           throw error;
         }
       },

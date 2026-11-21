@@ -407,6 +407,20 @@ hover:text-primary-700` (or `group` on the link + `group-hover:text-primary-700`
 - "Module not found: @/constants/…" from `shared/dist` in the console is a dev server that read the build between
   `tsc` and `tsc-alias`; check `grep 'require("@/' shared/dist` and the timestamp before treating it as current.
 
+- **Categories (user, 2026-11-21): one bordered tree list**, not a card per row: children indented under their parent
+  (2.25rem a level), each row = name + pinned badge, a muted "N products · N subcategories" line, ★ and ⋯ (Edit / Add
+  subcategory / Delete with the danger confirm). Toolbar: search (every language, matches keep their parents and
+  open everything), Collapse/Expand all, a total that counts what is shown. Create/edit is a `Modal` with
+  `TranslatedField`; "Add subcategory" opens it with the parent already set.
+- **A row that folds opens from anywhere on it (user, 2026-11-21: "all row clickable instead of arrow only")**:
+  the row's onClick ignores clicks from `a, button, [role=menu], [role=menuitem]` (React events bubble out of portals,
+  so a menu item would fold the row too); the chevron stays the keyboard control; only foldable rows get `cursor-pointer`.
+- **A count that links to a list must land on the same number**: the category count is active products under the
+  whole subtree, so the link adds `status=active`, and the products list sends `includeSubcategories` with a category.
+- **`toast.error` takes a message KEY, never a backend code**: pass `errorMessageKey(error)` (`lib/error-message-key.ts`);
+  a raw `error.category.has_children` showed as the toast text on every page until 2026-11-21.
+- An async `javascript_exec` IIFE returns `{}`: store the result on `window` and read it in a second call.
+
 ## Done
 
 - admin `products/[id]` (record) — 2026-11-21; rebuilt 2026-11-21: gallery + viewer, details card, no tabs
@@ -421,3 +435,4 @@ hover:text-primary-700` (or `group` on the link + `group-hover:text-primary-700`
 - admin `users` (list: role select + filter drawer with sort/status, chips, sortable Table; create/edit in a Modal) — 2026-11-21
 - admin + pos `profile` (new: details + SaveBar, devices, password modal, language, notifications) — 2026-11-21
 - admin `labels` (two steps: selectable Table + StickyActions; copies list + sticky sheet card; printed Modal) — 2026-11-21
+- admin `categories` (one bordered tree list, row-wide fold, search, counts linking to products, ⋯ with add subcategory, Modal form) — 2026-11-21

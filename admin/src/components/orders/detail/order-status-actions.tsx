@@ -3,15 +3,14 @@
 import { useTranslations } from "next-intl";
 import { ArrowRight, Check, ListChecks, PackageMinus } from "lucide-react";
 import { Button, useToast, Typography } from "@store/ui";
-import { ERROR_CODES } from "@store/shared/constants/errors";
 import { ONLINE_STOCK_DEDUCTION_STATUS, ORDER_STATUS_TRANSITIONS } from "@store/shared/constants/order";
 import type { Order, OrderStatus } from "@store/shared/types/order";
 import { testSelectorFor } from "@store/shared/lib/testSelector";
 import { ONLINE_ORDER_FLOW } from "@/constants/orders";
 import { useUpdateOrderStatusMutation } from "@/hooks/use-orders";
-import { ApiError } from "@/lib/api/errors";
 import { cn } from "@/lib/utils";
 import { DetailCard } from "@/components/layout/detail-card";
+import { errorMessageKey } from "@/lib/error-message-key";
 
 // Offers only the forward moves ORDER_STATUS_TRANSITIONS allows; cancelling lives in the header menu.
 export function OrderStatusActions({ order }: { order: Order }) {
@@ -33,7 +32,7 @@ export function OrderStatusActions({ order }: { order: Order }) {
   function move(status: OrderStatus) {
     mutation.mutate(status, {
       onSuccess: () => toast.success("orders.detail.statusActions.moved", { status: tStatus(status) }),
-      onError: (error) => toast.error(error instanceof ApiError ? error.code : ERROR_CODES.INTERNAL),
+      onError: (error) => toast.error(errorMessageKey(error)),
     });
   }
 

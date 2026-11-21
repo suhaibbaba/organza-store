@@ -6,14 +6,12 @@ import { CalendarDays, Coins, CreditCard, ShoppingCart, Undo2, UserRound } from 
 import { Button, MenuItem, RowMenu, useConfirm, useToast, Typography } from "@store/ui";
 import { can } from "@store/shared/lib/permissions";
 import { isOrderCollectable } from "@store/shared/lib/orders";
-import { ERROR_CODES } from "@store/shared/constants/errors";
 import { ORDER_STATUS_TRANSITIONS, RETURNABLE_ORDER_STATUSES } from "@store/shared/constants/order";
 import type { Order } from "@store/shared/types/order";
 import { useRouter } from "@/i18n/navigation";
 import { useSession } from "@/components/providers/session-provider";
 import { useDeleteOrderMutation, useUpdateOrderStatusMutation } from "@/hooks/use-orders";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
-import { ApiError } from "@/lib/api/errors";
 import { formatDateTime } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { useActorName } from "@/lib/user-display";
@@ -23,6 +21,7 @@ import { OrderTypeBadge } from "@/components/orders/order-type-badge";
 import { QuickSaleBadge } from "@/components/orders/quick-sale-badge";
 import { PaymentStatusBadge } from "@/components/orders/payment-status-badge";
 import { OrderReturnSheet } from "@/components/orders/detail/order-return-sheet";
+import { errorMessageKey } from "@/lib/error-message-key";
 
 // Anti-theft (spec.md): whoever rang an order up must not undo it, so return/cancel/delete are permission-gated.
 export function OrderHeader({ order }: { order: Order }) {
@@ -63,7 +62,7 @@ export function OrderHeader({ order }: { order: Order }) {
           await statusMutation.mutateAsync("CANCELLED");
           toast.success("orders.detail.statusActions.cancelled");
         } catch (error) {
-          toast.error(error instanceof ApiError ? error.code : ERROR_CODES.INTERNAL);
+          toast.error(errorMessageKey(error));
           throw error;
         }
       },
@@ -85,7 +84,7 @@ export function OrderHeader({ order }: { order: Order }) {
           toast.success("orders.detail.manage.deleted");
           router.replace("/orders");
         } catch (error) {
-          toast.error(error instanceof ApiError ? error.code : ERROR_CODES.INTERNAL);
+          toast.error(errorMessageKey(error));
           throw error;
         }
       },

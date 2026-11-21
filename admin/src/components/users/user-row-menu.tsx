@@ -2,11 +2,10 @@
 
 import { useTranslations } from "next-intl";
 import { MenuItem, RowMenu, useConfirm, useToast } from "@store/ui";
-import { ERROR_CODES } from "@store/shared/constants/errors";
 import type { User } from "@store/shared/types/user";
 import { useToggleUserActiveMutation } from "@/hooks/use-users";
 import { useUserDisplay } from "@/lib/user-display";
-import { ApiError } from "@/lib/api/errors";
+import { errorMessageKey } from "@/lib/error-message-key";
 
 // Removing opens the modal that explains deactivate vs erase; putting somebody back is one confirm.
 export function useUserRowMenu({ onEdit, onRemove }: { onEdit: (user: User) => void; onRemove: (user: User) => void }) {
@@ -28,7 +27,7 @@ export function useUserRowMenu({ onEdit, onRemove }: { onEdit: (user: User) => v
           await toggle.mutateAsync({ id: user.id, isActive: true });
           toast.success("users.activate.success");
         } catch (error) {
-          toast.error(error instanceof ApiError ? error.code : ERROR_CODES.INTERNAL);
+          toast.error(errorMessageKey(error));
           throw error;
         }
       },

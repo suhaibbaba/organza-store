@@ -3,13 +3,12 @@
 import { useTranslations } from "next-intl";
 import { useConfirm, useToast } from "@store/ui";
 import { can } from "@store/shared/lib/permissions";
-import { ERROR_CODES } from "@store/shared/constants/errors";
 import type { Product } from "@store/shared/types/product";
 import { useRouter } from "@/i18n/navigation";
 import { useSession } from "@/components/providers/session-provider";
 import { useDeleteProductMutation } from "@/hooks/use-products";
-import { ApiError } from "@/lib/api/errors";
 import { localize } from "@/lib/i18n-content";
+import { errorMessageKey } from "@/lib/error-message-key";
 
 // Soft delete (rule 4) behind product.delete (rule 5): past orders still point at the row; the backend refuses anyone else.
 export function useProductDelete(product: Product, locale: string) {
@@ -33,7 +32,7 @@ export function useProductDelete(product: Product, locale: string) {
           toast.success("products.detail.delete.success");
           router.replace("/products");
         } catch (error) {
-          toast.error(error instanceof ApiError ? error.code : ERROR_CODES.INTERNAL);
+          toast.error(errorMessageKey(error));
           throw error;
         }
       },
