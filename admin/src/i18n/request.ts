@@ -9,7 +9,12 @@ export default getRequestConfig(async ({ requestLocale }) => {
 
   return {
     locale,
-    messages: (await import(`../messages/${locale}.json`)).default,
+    // The app's own messages, plus @store/ui's under `ui` — the
+    // components' own strings (cancel, pagination, validation) ship with them.
+    messages: {
+      ...(await import(`../messages/${locale}.json`)).default,
+      ui: (await import(`@store/ui/messages/${locale}.json`)).default,
+    },
 
     // How a figure inside a sentence is written. Named rather than left to
     // the device — see @organza/shared/constants/formatting. The client

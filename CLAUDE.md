@@ -16,8 +16,14 @@ organza-store/
 ├── admin/       Admin dashboard — Next.js
 ├── pos/         Point-of-sale — Next.js
 ├── frontend/    Customer storefront — Next.js (LATER, not this phase)
-└── shared/      Shared TypeScript types + Zod schemas — published as @organza/shared
+├── shared/      Shared TypeScript types + Zod schemas — published as @organza/shared
+└── ui/          Store Management's design system — published as @store/ui (TypeScript source)
 ```
+Organza is a **client** of the system, not the system: the system is **Store Management**, and
+`@store/ui` is its design system (ported from the clinic system's `@clinic/ui`). Client looks are
+themes inside it — `ui/src/themes/organza.css` + `organza.ts`, applied by `UiProvider` — never
+edits to the components. The admin's `/design-system` page (Admin role only) shows every component.
+
 Each project has its own `package.json`, and the root one ties them together as **npm
 workspaces**. There is exactly one `package-lock.json`, at the root; per-project lockfiles must
 never come back. `shared/` is a real dependency of the others (`@organza/shared`), resolved
@@ -301,162 +307,6 @@ behavior — guessing is what broke the previous attempt.
 - These are **structural rules**: when refactoring to satisfy them, move/rename only — never change
   behavior — and keep `tsc` type-check and the build passing.
 
-## The oldest phone on the floor decides (admin + pos)
-The shop's main device runs **iOS 15**, and both apps declare it in their browserslist
-(`ios_saf >= 15`). CSS fails silently there — no build error, no console message, every desktop
-browser perfect — so this is enforced by the build rather than by review.
-
-- **Every colour is written ONCE, in `oklch()`; the fallback is generated, never typed.**
-  `@csstools/postcss-oklab-function` (`preserve: true`, in both `postcss.config.mjs`) derives the
-  plain sRGB copy from each colour and keeps the original inside an `@supports`, so the two cannot
-  drift when a colour changes. **Never hand-write a second palette.** It only works for a colour
-  the plugin can EVALUATE, so **never put a `var()` inside a colour function** —
-  `oklch(0.44 0.06 var(--brand-hue))` is passed through untouched, with nothing behind it, and
-  that is exactly what left every button in both apps with no background and every badge a blank
-  coloured pill. The brand hues are literals in `globals.css`; the note at the top of the palette
-  says why.
-- **Supported is not the same as accepted.** Safari has known `oklch()` since 15.4, but 15.x reads
-  the lightness as a PERCENTAGE and drops the whole declaration when it is a decimal —
-  `oklch(44% .06 206.4)` paints, `oklch(0.44 .06 206.4)` does not, which is why Tailwind rewrote
-  its own default theme. That is the worst shape of all: the `@supports` guard lets the modern
-  declaration in, the browser discards it anyway, and the fallback in front of it has already been
-  overwritten. `check-css-target.js` fails the build on a decimal lightness. (The HUE is a plain
-  number — that is what the spec says and what Safari 15 accepts; the build normalises away a
-  `deg` unit anyway, so do not add one expecting it to ship.)
-- **Three build guards, one per failure mode**, wired into `npm run build` in both apps:
-  `shared/scripts/check-messages.js` (source messages), then `next build`, then
-  `check-browser-target.js` (JS parses) and `check-css-target.js` (CSS is usable). The CSS one
-  separates FATAL — a colour or length with nothing behind it, or an at-rule that takes its whole
-  block with it, or a colour Safari 15.x discards — from DEGRADED, which it names and allows:
-  `:has()`, `:focus-visible`, `::backdrop`, `accent-color`, `backdrop-filter`, `@property`.
-  Losing an effect is fine; losing a stylesheet is not.
-- **Both ranges are checked, not just the old one.** `shared/scripts` has no simulator, so the
-  sweep renders the built stylesheet twice — once filtered as iOS 15.0–15.3 parses it (the
-  derived sRGB fallback paints) and once as 15.4–15.8 does (the native `oklch()` paints, and the
-  percentage-lightness bug is reproduced). The two must agree with each other and with a modern
-  engine, down to the painted RGB of every token.
-- **`shared/scripts/postcss-ios15.cjs` runs last and repairs what the framework cannot.**
-  It flattens `@layer` (an unknown at-rule is dropped WITH its block, so one `@layer` discards the
-  whole sheet on 15.0–15.3 — without this pass 15% of the stylesheet survives, not 72%), rewrites
-  Tailwind's `color-mix()` opacity modifiers to `rgb(var(--token-rgb) / N%)` so `bg-primary/10` is
-  a tint rather than the solid colour (`color-mix` is Safari 16.2, so this one reaches 16.1 too),
-  and puts a `vh` fallback before every `dvh`. It has no dependencies: the plain sRGB it needs is
-  what the oklab plugin already wrote in front of each colour, so it reads that instead of
-  computing a second opinion — which is also why removing that plugin makes this one **throw**
-  rather than quietly go back to solid badges. Its own header explains each pass.
-- **Numbers and dates are stated, never inherited.** `Intl` takes its numbering system from the
-  device: recent ICU writes `ar` in western digits, iOS 15's writes it in Arabic-Indic ones, so
-  the same price reads two ways on two devices in one shop. Every `Intl` call in both apps spreads
-  `NUMBER_FORMAT_BASE` / `DATE_FORMAT_BASE` from `@organza/shared/constants/formatting` (western
-  digits, Gregorian calendar), and a figure inside a sentence is written `{count, number, plain}` —
-  never ICU's `#`, which is formatted with the bare locale. `check-messages.js` refuses `#`, a
-  bare `{arg, number}`, and Arabic-Indic digits typed into the copy.
-
-## Frontend UX — mobile-first, simple, RTL (admin + pos)
-The people using the admin and POS are **not tech-savvy**, and ~**95% of use is on mobile phones**.
-Design for that reality:
-
-- **Mobile-first, not merely responsive.** Design and build for a phone screen FIRST, then scale
-  up to desktop. Single-column layouts by default; never a desktop layout crammed onto a phone.
-- **Nothing zooms, so nothing may depend on zooming.** Page zoom is off in both apps — viewport
-  (`maximumScale: 1`, `userScalable: false`), `touch-action: manipulation`, and the gesture guards
-  in `components/pwa/native-gesture-guard.tsx` for iOS, which ignores the viewport. So: **every
-  form field is at least 16px** (Safari zooms the page in on focus below that, and there is now no
-  way back out), 44px stays the floor for anything a thumb hits, and **no interface text goes below
-  12px**. Anything that genuinely wants two fingers marks itself `data-allow-zoom="true"`.
-- **A long press must not raise the system sheet.** Text selection and the iOS callout are off
-  app-wide and opted back in with `data-selectable="true"` — for a barcode, a SKU, an order number,
-  a phone number, an address: things somebody copies. Not for cards, rows or buttons.
-- **Big, easy touch targets.** Large tappable buttons (min ~44px), generous spacing, no tiny links
-  or dense toolbars. Primary action on each screen should be obvious and reachable by thumb.
-- **Few, clear steps.** Minimize taps to complete any task. Avoid multi-step wizards where one
-  screen would do. Plain, simple wording — no technical jargon in the UI.
-- **Tables become cards on mobile.** Wide data tables must reflow into stacked cards/list items on
-  small screens (TanStack Table can drive both). Never force horizontal scrolling of a table on a
-  phone.
-- **Clear feedback always.** Every action shows loading, success, and error states in plain
-  language (mapped from `error.*` keys via `t()`), so an untrained user is never left guessing.
-- **RTL must be 100% correct**, not just `dir="rtl"`: the whole layout mirrors (nav, icons, arrows,
-  padding/margins, alignment), Arabic uses a clear legible Arabic font, and numbers/dates render
-  correctly. **Verify Arabic visually** — do not assume it works. Arabic is the default locale.
-- **Arabic needs more vertical room than Latin at the same size — the type scale already gives it.**
-  Cairo's ink runs from ~0.7em above the baseline to ~0.45em below it, so Tailwind's Latin line
-  heights (text-sm at 1.43, text-2xl at 1.33) leave the tails of ج ح خ ي outside the line box, where
-  the first `truncate` or `line-clamp` slices them off. Both apps therefore override every
-  `--text-*--line-height` (and the inherited `html` line height) in `globals.css` — around 1.8 at
-  interface sizes. **Do not put `leading-tight`, `leading-snug` or `leading-none` back on Arabic
-  text**: they undo it, and the damage only shows where something clips. `leading-none` is for
-  content that is digits or a single glyph by construction (a count badge, a numbered-shawl
-  marker) and nothing else. Any new fixed-height text box has to fit the line box the scale gives
-  it — prefer `min-h-*` with padding over `h-*`, and check with `ملاحظات على الخيارات جحخي`.
-- **Accessibility basics:** readable font sizes on mobile, sufficient contrast, labels on inputs.
-- **Whoever is signed in is named IN THE SHELL, never on a page.** The header carries the
-  account — name, role, sign-out, the language, the app version — at every width and for every
-  role, sourced from the session (`components/layout/account-menu.tsx`, mirroring the POS's). It
-  may never be hidden below a breakpoint, and it may never be the dashboard's job: the dashboard
-  is Admin/Manager only, so tying identity to it takes their own name away from the one role that
-  spends all day filing orders under it. The same holds for anything a person always needs — the
-  sandbox badge, the way out. Nothing that must always be reachable may live behind a
-  permission-gated page, and nothing may live *only* in the bottom nav's "More" sheet either: that
-  sheet exists only when a role has more nav entries than the four tabs hold.
-- **The top bar carries three things: the shop's name, the sandbox badge, the account.** Nothing
-  else — a bar with a fourth control in it had already squeezed the language down to an unlabelled
-  icon below `sm` and clipped "أورجانزا" to "أ…" at 320px. A person's own settings go INSIDE the
-  account menu, which is where the language now lives; that menu is built in named groups
-  (identity, preferences, the way out, the build) and anything added later joins one or starts a
-  fifth **with a heading**. Two rules keep it usable: never a submenu (a preference stays two taps
-  — open the menu, choose) and never a bare icon (every control keeps a word).
-  **The POS is the exception, by the shop's choice:** its bar shows the logo alone (no name
-  beside it), the sandbox badge, the selling tools, then two matching pills — the language
-  (globe, the language in its own script, chevron) and the account (avatar, name, chevron) —
-  and the language is no longer inside the POS account menu.
-- **Radix menus must be told which way round they are.** `DropdownMenu` portals its content to
-  `document.body` and stamps its own `dir="ltr"` unless given one, so `dir="rtl"` on `<html>` is
-  overridden rather than inherited and every logical property inside resolves backwards — `ps-*`
-  became padding-LEFT and the tick beside the chosen language sat on the wrong side in Arabic.
-  Both apps' `components/ui/dropdown-menu.tsx` pass `dir` from the locale in the wrapper, so no
-  call site has to remember. Check any other portalled Radix primitive the same way.
-- **A person is named through `lib/user-display.ts`, never by rendering `user.name` raw.**
-  One rule for both apps (`shared/src/lib/userDisplay.ts`): their name, then the local part of
-  their email, then their translated role — and **never an internal id**. An id is meaningless to
-  staff, unbounded in length so it stretches whatever is drawn around it, and a top bar reading
-  "Admin mt0grbxoqx7nbf" looks broken rather than informative. Id-shaped words are stripped from a
-  stored name (the test suite once renamed the sandbox's Admin and never put it back), and the
-  avatar's letter comes from the same source as the name so the two can never disagree. Long names
-  truncate with an ellipsis; they never widen the header.
-- **Every password field is a `PasswordInput`** (`components/ui/password-input.tsx`, one per app),
-  never a bare `<Input type="password">`. Typing eight unseen characters on a phone keyboard and
-  being told only that they were wrong is not something to ask of anyone. It starts hidden always,
-  the eye is a 44px button carrying a `t()` label and `aria-pressed`, and it sits at the field's
-  **end** (`end-*` / `pe-*`) so it mirrors correctly in Arabic and Hebrew.
-- **Never fake a solid icon by putting `fill` on an outline one.** lucide is an outline set; filling
-  one floods the body and swallows every inner stroke — a receipt loses its lines, stacked boxes
-  merge into a blob. A filled icon must be *drawn* filled, with its detail knocked out as negative
-  space (`fill-rule="evenodd"`) or split into separate shapes. The bottom nav's solid twins live in
-  `admin/src/components/icons/nav-solid-icons.tsx`, one per `PRIMARY_NAV_KEYS` entry (the table is
-  typed so a new tab without a drawn twin fails the build). Check any new one at 24px, light and
-  dark — not zoomed.
-- Keep the visual language consistent between admin and pos (shared components where sensible).
-  **Exception, for now:** the POS has moved to its own retail palette — slate page `#F8FAFC`,
-  white surfaces, deep emerald `#065F46` primary, soft slate shadows (`shadow-xs`…`shadow-xl`,
-  `shadow-focus`, `shadow-primary`) and named corners (`rounded-card` 16, `rounded-panel` 20,
-  `rounded-tile` 14, `rounded-control`/`rounded-photo` 12), all as tokens in
-  `pos/src/app/globals.css`; the selling screen's button classes are `PRIMARY_ACTION` /
-  `SECONDARY_ACTION` in `pos/src/components/sell/screen/control-styles.ts`. The admin is still
-  on the earlier teal until it is brought across.
-
-## Mobile input & device specifics (admin + pos)
-- **Numeric fields (stock, quantities, prices) must be easy to type on a phone.** Do NOT use
-  `<input type="number">` (it's hard to clear the last digit and accepts junk like `e`/`+`/`-`).
-  Use `type="text"` with `inputMode="numeric"` (and `pattern="[0-9]*"` for integers) so the phone
-  shows a numeric keypad, plus regex/Zod validation. Stock/quantities are **integers only** (no
-  decimals, no negatives). Prices allow decimals but still validate.
-- **iOS safe areas:** the app must respect the iPhone home-indicator area. Any fixed **bottom
-  navigation/bar** must add `padding-bottom: env(safe-area-inset-bottom)` (e.g. Tailwind
-  `pb-[env(safe-area-inset-bottom)]`) so its last part isn't hidden under the indicator on devices
-  like iPhone Pro Max. Ensure the viewport meta includes `viewport-fit=cover` (required for safe
-  areas to work). Apply the same to any fixed top bar with `safe-area-inset-top` where relevant.
-
 ## Test selectors — naming what is on the screen
 Every element worth diagnosing carries **`data-test-selector`**, a stable name saying WHAT IT IS.
 "The button in the corner" is not a description on a screen that mirrors itself in Arabic, and a
@@ -490,26 +340,3 @@ shared component once; only reach for a literal attribute where the element is o
 errors, sheets and dialogs, navigation items, empty and error states, and the numbered-shawl point
 markers (`shawl-point-<number>`). **Not** every wrapper `<div>` — a name on everything is a name on
 nothing.
-
-## Admin layout conventions
-The admin app uses shared layout primitives (`admin/src/components/layout/`). Use them —
-don't hand-roll page chrome:
-- **Every admin page is wrapped in `<PageContainer>`** — it provides the max width and page
-  padding. Never add page-level padding on top of it (that double-pads).
-- **Page titles use `<PageHeader>`** (title, optional description, and page-level actions in
-  `actions`) — not an ad-hoc heading block.
-- **Summary metrics use `<StatCard>`**, never a bespoke card, so figures look and behave the
-  same everywhere.
-- **Never use bare `w-full` on a button** — use `w-full sm:w-auto`, so buttons fill the width on
-  phones but size to their content on desktop. Exceptions: buttons inside Dialog/Sheet/AlertDialog
-  footers, dropdown-menu items, command-palette items and nav items.
-- **Segmented controls and tab rows** use `inline-flex w-fit`, not `grid grid-cols-N w-full`.
-- **Card grids** scale as `grid-cols-1 sm:grid-cols-2 xl:grid-cols-4` rather than being fixed at
-  two columns.
-- **Use logical CSS utilities only** (`ms-/me-/ps-/pe-`), never `ml-/mr-/pl-/pr-`, so layouts
-  mirror correctly in RTL.
-- **Desktop layout work must never regress mobile.** The admin is used ~95% on phones: verify
-  every change on a phone-sized viewport in Arabic RTL before finishing.
-
-**Note:** these primitives are for `admin/` only. The POS (`pos/`) is a distinct operational
-screen with its own layout and is deliberately not converted.

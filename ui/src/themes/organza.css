@@ -1,0 +1,93 @@
+/* Organza — a Store Management client. Its theme is the clinic system's look, copied exactly (its palette,
+   surfaces, shadows and tints). base.css declares every token with a neutral
+   default; this file is the product's values on top, painted from the first
+   byte. Keep it in step with theme/organza.ts, the same values as the typed
+   override UiProvider applies. */
+
+@theme static {
+  --color-primary-50: #f1f7fa;
+  --color-primary-100: #e1eef5;
+  --color-primary-200: #c8dfec;
+  --color-primary-300: #a5c9de;
+  --color-primary-500: #2e80a8;
+  --color-primary-600: #1b6f97;
+  --color-primary-700: #155b7d;
+  --color-primary-800: #114d6a;
+  --color-primary-900: #0e3d55;
+  --color-success-50: #effaf6;
+  --color-success-100: #dcf3ec;
+  --color-success-300: #a5e2cd;
+  --color-success-400: #6dcfb1;
+  --color-success-500: #39ba97;
+  --color-success-600: #2ca886;
+  --color-success-700: #1d7f64;
+  --color-success-800: #1e7a62;
+  --color-success-900: #0f7a5d;
+
+  --color-danger-50: #fef5f4;
+  --color-danger-100: #fbeae8;
+  --color-danger-200: #fce8e6;
+  --color-danger-500: #c4544a;
+  --color-danger-600: #b03a31;
+  --color-danger-700: #a03b31;
+  --color-danger-800: #7a2720;
+
+  --color-warning-50: #fdf8ec;
+  --color-warning-100: #fbf1da;
+  --color-warning-300: #e8cb83;
+  --color-warning-500: #b98a1c;
+  --color-warning-700: #8f6206;
+  --color-warning-800: #6e4b04;
+
+  --color-neutral-50: #f1f6f7;
+  --color-neutral-100: #e9f0f2;
+  --color-neutral-200: #e0eaee;
+  --color-neutral-300: #c9d8de;
+  --color-neutral-400: #a3bac6;
+  --color-neutral-500: #768d99;
+  --color-neutral-600: #56707c;
+  --color-neutral-700: #4e6975;
+  --color-neutral-900: #12303f;
+}
+
+@theme static {
+  --color-sunken: #eff3f5;
+  --color-row-hover: #f7fbfa;
+  --color-table-head: #f7fafb;
+  --color-quiet-bg: #f0f5f6;
+  --color-quiet-ink: #5a7280;
+  --color-rail: #fbfdfd;
+}
+
+@theme static {
+  --shadow-card: 0 12px 28px -18px rgb(27 111 151 / 0.35), 0 2px 6px -3px rgb(27 111 151 / 0.12);
+  --shadow-card-hover: 0 18px 34px -18px rgb(27 111 151 / 0.45);
+  --shadow-nav-active: 0 8px 18px -10px rgb(27 111 151 / 0.55);
+  --shadow-float: 0 8px 24px -14px rgb(14 61 85 / 0.35);
+  --shadow-glass:
+    0 18px 40px -18px rgb(14 61 85 / 0.45), 0 2px 8px -4px rgb(14 61 85 / 0.16),
+    inset 0 1px 0 rgb(255 255 255 / 0.75), inset 0 -1px 0 rgb(255 255 255 / 0.2);
+  --shadow-drawer: calc(20px * var(--drawer-direction, 1)) 0 48px -16px rgb(27 111 151 / 0.32);
+  --shadow-now: 0 10px 22px -14px rgb(34 152 122 / 0.5);
+  --shadow-pill: 0 1px 2px rgb(18 48 63 / 0.08);
+
+  --shadow-field-focus: 0 0 0 0.5px var(--color-primary-600), 0 0 0 3.5px rgb(27 111 151 / 0.15);
+  --shadow-field-error-ring: 0 0 0 0.5px var(--color-danger-600), 0 0 0 3.5px rgb(176 58 49 / 0.15);
+}
+
+@theme static {
+  --color-tint-3-bg: #ede8f8;
+  --color-tint-3-ink: #5b3ea6;
+  --color-tint-5-ink: #1e7a62;
+  --color-tint-6-bg: #f2e7ee;
+  --color-tint-6-ink: #8c3a6b;
+
+  --color-tag-from: #dff2eb;
+  --color-tag-to: #deeaf5;
+}
+
+
+/* The active navigation item's wash (the clinic shell's sidebar). */
+@utility nav-active-wash {
+  background-image: linear-gradient(160deg, var(--color-primary-600), var(--color-primary-900));
+}

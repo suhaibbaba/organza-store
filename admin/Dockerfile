@@ -23,6 +23,8 @@ WORKDIR /app
 # root package.json and refuses the install with any of them missing.
 COPY package.json package-lock.json .npmrc ./
 COPY shared ./shared
+# @store/ui ships TypeScript source; Next compiles it into this app at build.
+COPY ui ./ui
 COPY backend/package.json ./backend/
 COPY admin/package.json ./admin/
 COPY pos/package.json ./pos/

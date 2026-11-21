@@ -1,4 +1,6 @@
 @import "tailwindcss";
+@import "@store/ui/styles/base.css";
+@import "@store/ui/themes/organza.css";
 @import "tw-animate-css";
 
 @theme inline {

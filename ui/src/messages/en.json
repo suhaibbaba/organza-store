@@ -1,0 +1,59 @@
+{
+  "common": {
+    "addNamed": "Add “{name}”",
+    "addNew": "Add new",
+    "calendar": {
+      "chooseMonth": "Choose month",
+      "chooseYear": "Choose year",
+      "nextMonth": "Next month",
+      "nextYear": "Next year",
+      "previousMonth": "Previous month",
+      "previousYear": "Previous year"
+    },
+    "cancel": "Cancel",
+    "clear": "Clear",
+    "close": "Close",
+    "diallingCode": "Dialling code",
+    "discard": "Discard",
+    "done": "Done",
+    "loading": "Loading",
+    "moreInfo": "More information",
+    "noMatches": "No matches",
+    "openCalendar": "Open the calendar",
+    "optional": "Optional",
+    "placeholders": {
+      "date": "dd/mm/yyyy",
+      "dateRange": "Choose a period",
+      "time": "Select a time"
+    },
+    "save": "Save",
+    "search": "Search",
+    "showMore": "Show more",
+    "today": "Today",
+    "unsavedChanges": "Unsaved changes",
+    "updating": "Updating",
+    "confirm": "Confirm",
+    "deleteForever": "Delete for good",
+    "hidePassword": "Hide password",
+    "showPassword": "Show password"
+  },
+  "pagination": {
+    "goToPage": "Page {page, number, plain}",
+    "label": "Pagination",
+    "next": "Next",
+    "pageOf": "Page number, of {totalPages, number, plain}",
+    "perPage": "Per page",
+    "previous": "Previous",
+    "total": "{total, number, plain} records"
+  },
+  "validation": {
+    "required": "This field is required",
+    "tooSmall": "Value is shorter than allowed",
+    "tooBig": "Value is longer than allowed",
+    "invalidFormat": "Invalid format",
+    "invalid": "Invalid value",
+    "yearOutOfRange": "That year is not right — use a date between 1900 and 2100",
+    "dateInFuture": "This date cannot be in the future",
+    "dateInPast": "This date cannot be in the past"
+  }
+}

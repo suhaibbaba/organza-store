@@ -27,6 +27,7 @@ COPY shared ./shared
 COPY backend/package.json ./backend/
 COPY admin/package.json ./admin/
 COPY pos/package.json ./pos/
+COPY ui/package.json ./ui/
 COPY backend/prisma ./backend/prisma
 RUN --mount=type=cache,target=/root/.npm npm ci -w backend
 
@@ -54,6 +55,7 @@ COPY shared/scripts/prepare.js ./shared/scripts/
 COPY backend/package.json ./backend/
 COPY admin/package.json ./admin/
 COPY pos/package.json ./pos/
+COPY ui/package.json ./ui/
 # prisma/schema.prisma has to be here: --omit=dev still runs the backend's
 # postinstall, and that postinstall is `prisma generate`. This is why `prisma`
 # is a runtime dependency and not dev tooling (see backend/package.json) — with

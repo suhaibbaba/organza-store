@@ -6,6 +6,7 @@
   "_comment_workspaces": "shared/ is listed first because it is the package the other three depend on. npm resolves the graph itself, so the order is documentation rather than mechanism — but `npm run build` below relies on it being built first, and that IS ordered explicitly.",
   "workspaces": [
     "shared",
+    "ui",
     "backend",
     "admin",
     "pos"
