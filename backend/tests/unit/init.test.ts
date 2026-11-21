@@ -2,10 +2,7 @@ import { describe, expect, it } from "vitest";
 import { createInitialStaff, InitRefusedError } from "@/lib/init";
 import type { InitAccountDetails, InitDependencies } from "@/types/init";
 
-// The go-live command, without a database, a mail provider or a terminal.
-// scripts/init.ts is the wiring; the rule is here, and this is where it is
-// proven — including the refusal, which is the whole reason the command is
-// safe to leave in the repo.
+// The go-live rule, proven without a database, mail provider or terminal — the refusal included.
 
 const ACCOUNTS: InitAccountDetails[] = [
   { email: "one@example.com", name: "One", phone: "+970599000101", role: "ADMIN" },
@@ -43,8 +40,7 @@ describe("init — the go-live staff command", () => {
     it("writes nothing at all when it refuses", async () => {
       const deps = recordingDeps(7);
       await createInitialStaff(ACCOUNTS, deps).catch(() => undefined);
-      // Not "creates some and stops" — a half-run init against a live shop
-      // would be worse than no init at all.
+      // All or nothing: a half-run init on a live shop is worse than none.
       expect(deps.created).toEqual([]);
       expect(deps.invited).toEqual([]);
     });

@@ -1,19 +1,7 @@
 import type { PermissionAction } from "@store/shared/types/permission";
 import { PERMISSION_ACTIONS } from "@store/shared/constants/permissions";
 
-/**
- * The Permissions screen, laid out the way somebody running a shop thinks
- * about it: by the part of the shop each action belongs to, not by the order
- * the actions happen to be declared in.
- *
- * Every action appears in exactly one group — checked below, so an action
- * added to the shared list and forgotten here is a crash on the first render
- * rather than a row that is silently missing from the screen that exists to
- * show all of them.
- *
- * Labels come from `permissions.actions.*` in the message files, keyed by the
- * action itself (CLAUDE.md rule 12), and so do the group headings.
- */
+// Grouped by part of the shop; every action must appear in exactly one group (checked below).
 export interface PermissionGroup {
   key: string;
   actions: readonly PermissionAction[];
@@ -90,9 +78,7 @@ export const PERMISSION_GROUPS: readonly PermissionGroup[] = [
   },
 ];
 
-// The screen's own promise: it shows EVERY action. Broken loudly rather than
-// quietly, at module load, because the failure it prevents — a permission
-// that exists and cannot be found anywhere — is invisible by nature.
+// Fails at load: a permission missing from this screen would otherwise be invisible.
 const grouped = PERMISSION_GROUPS.flatMap((group) => group.actions);
 const missing = PERMISSION_ACTIONS.filter((action) => !grouped.includes(action));
 const duplicated = grouped.filter((action, index) => grouped.indexOf(action) !== index);

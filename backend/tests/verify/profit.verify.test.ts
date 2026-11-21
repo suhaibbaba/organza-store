@@ -1,21 +1,4 @@
-// ============================================================================
-//  7. PROFIT
-//
-//      gross = sales − COGS
-//      net   = gross − approved expenses − gifts at cost
-//
-//  ...each given twice: for everything sold, and for the part that has
-//  actually been paid for. A good month and a month that has been paid for
-//  are different months.
-//
-//    * both profits are computed from the unitPrice/unitCost SNAPSHOTTED at
-//      sale time — re-pricing or re-costing the product afterwards must not
-//      move a single historical figure (spec.md "Price & cost snapshots");
-//    * a cancelled order is out entirely, a return comes off both sides;
-//    * a gift adds nothing to sales and its COST is subtracted as overhead;
-//    * a line sold with no cost recorded counts as zero and is surfaced as
-//      missingCostItems, because it quietly makes both profits look better.
-// ============================================================================
+// gross = sales − COGS, net = gross − expenses − gifts at cost, from snapshots; missing costs surfaced, not hidden.
 import { beforeAll, describe, expect, it } from "vitest";
 import { apiRequest } from "@tests/support/client";
 import { getSession } from "@tests/support/auth";

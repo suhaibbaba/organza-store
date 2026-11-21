@@ -15,17 +15,7 @@ import {
 import { ERROR_CODES } from "@/constants";
 import type { PushConfig, PushSubscriptionDto } from "@/types";
 
-// Web Push device registry.
-//
-// Every route here is about the CALLER'S OWN devices: a session registers
-// the phone it is running on, and can unregister it again. There is
-// deliberately no permission gate beyond being signed in — managing your own
-// device is not a capability the role table has anything to say about, and
-// nothing here reads or writes another user's data (the `userId` on every
-// query is taken from the session, never from the request body).
-//
-// Who actually RECEIVES a sale notification is a separate question, decided
-// on the sending side (lib/saleNotifications.ts: Admins only).
+// Web Push device registry: the caller's own devices only, userId always from the session.
 const router = Router();
 router.use(requireAuth);
 
@@ -41,12 +31,7 @@ function serialize(subscription: PushSubscription): PushSubscriptionDto {
   };
 }
 
-// ---------------------------------------------------------------------------
-// GET /api/push/config — the VAPID public key a browser needs to subscribe.
-// Public knowledge by design (it is sent to every push service), and useless
-// without the private half. `configured: false` lets the admin explain that
-// the server has no keys instead of offering a button that cannot work.
-// ---------------------------------------------------------------------------
+// GET /api/push/config — the public VAPID key; `configured: false` when the server has no keys.
 router.get(
   "/config",
   asyncHandler(async (_req, res) => {
@@ -55,11 +40,7 @@ router.get(
   }),
 );
 
-// ---------------------------------------------------------------------------
-// GET /api/push/subscriptions — the caller's own registered devices.
-// Naturally bounded: this is one person's handful of phones, not a list
-// anyone can page through.
-// ---------------------------------------------------------------------------
+// GET /api/push/subscriptions — the caller's own devices, naturally bounded.
 router.get(
   "/subscriptions",
   asyncHandler(async (req, res) => {
@@ -71,15 +52,7 @@ router.get(
   }),
 );
 
-// ---------------------------------------------------------------------------
-// POST /api/push/subscriptions — register (or re-register) this device.
-//
-// Upsert on the endpoint, because the endpoint IS the device: a browser
-// hands back the same subscription every time until it is revoked, and the
-// same phone may later be signed in to by someone else — in which case the
-// row moves to them rather than notifying the previous owner on a device
-// they no longer hold.
-// ---------------------------------------------------------------------------
+// POST /api/push/subscriptions — upsert on the endpoint (it IS the device), moving it to whoever now signs in.
 router.post(
   "/subscriptions",
   validateBody(pushSubscribeSchema),
@@ -99,8 +72,7 @@ router.post(
 
     const subscription = await prisma.pushSubscription.upsert({
       where: { endpoint: body.endpoint },
-      // A re-subscribe also clears the delivery history: new owner, new keys,
-      // a clean slate for "has this device ever accepted anything".
+      // A re-subscribe clears the delivery history: new owner, new keys.
       update: { ...data, lastAttemptAt: null, lastSuccessAt: null },
       create: { ...data, endpoint: body.endpoint },
     });
@@ -109,10 +81,7 @@ router.post(
   }),
 );
 
-// ---------------------------------------------------------------------------
-// DELETE /api/push/subscriptions — turn notifications off for this device.
-// Scoped to the caller: you can only ever remove your own registration.
-// ---------------------------------------------------------------------------
+// DELETE /api/push/subscriptions — turn this device off; only your own.
 router.delete(
   "/subscriptions",
   validateBody(pushUnsubscribeSchema),

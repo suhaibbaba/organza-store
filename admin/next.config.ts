@@ -5,26 +5,10 @@ import createNextIntlPlugin from "next-intl/plugin";
 
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
-// Stamped into the service-worker URL by components/pwa/service-worker-
-// registrar.tsx. A rebuild changes it, which is what makes an installed app
-// pick up the new worker instead of sticking with the deployed-yesterday one.
-// CI can pin it to a commit SHA by exporting BUILD_ID before `npm run build`;
-// otherwise the build time stands in, which changes for exactly the same
-// reason. Inlined into the client bundle at build time via `env` below, so
-// the value `next start` would compute later never matters.
+// Stamped into the service-worker URL: a new build id is what makes an installed app take the new worker.
 const buildId = process.env.BUILD_ID ?? String(Date.now());
 
-// The version staff read out when they report a problem: "0.1" from this
-// project's package.json plus the repo's commit count, so it moves forward on
-// its own with every deploy (shared/scripts/app-version.js). Pulled in with
-// createRequire rather than a plain import because it is a build-time
-// CommonJS script living outside the app — the same reason __dirname works
-// below.
-//
-// Inside a container there is no git history to count, so the deploy resolves
-// the number on the host and passes it in as NEXT_PUBLIC_APP_VERSION; that
-// always wins. It is stamped into the client bundle via `env` below, exactly
-// like the build id.
+// Version plus commit count; the deploy's NEXT_PUBLIC_APP_VERSION wins, since containers have no git history.
 const { resolveAppVersion } = createRequire(__filename)(
   path.join(__dirname, "..", "shared", "scripts", "app-version.js"),
 ) as { resolveAppVersion: (options: { projectDir?: string; envValue?: string }) => string };
@@ -34,24 +18,12 @@ const appVersion = resolveAppVersion({
   envValue: process.env.NEXT_PUBLIC_APP_VERSION,
 });
 
-// Product images are served by the backend (stored-relative "/uploads/.."
-// URLs resolved against NEXT_PUBLIC_API_URL — see components/products/
-// product-image.tsx), so next/image needs that origin allow-listed here.
+// Product images are served by the backend, so next/image must allow that origin.
 const apiUrl = new URL(process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000");
-// The documented local-dev setup (.env.example) points at a loopback
-// backend, which the image optimizer otherwise refuses to fetch from as an
-// SSRF guard. Every real deployment (docker-compose.sandbox.yml, prod) uses
-// a public hostname, so this only ever relaxes the check in local dev.
+// Local dev points at a loopback backend, which the optimizer otherwise refuses as an SSRF guard.
 const isLocalApi = apiUrl.hostname === "localhost" || apiUrl.hostname === "127.0.0.1";
 
-// How long a phone may keep an optimized product photo without asking again,
-// in seconds — 30 days rather than next/image's 4 hours. Safe because a
-// stored photo's URL never changes what it points at: every upload and every
-// re-framing writes files under a new name (backend lib/image.ts), and the
-// old name is deleted rather than overwritten. At 4 hours the shop's phone
-// re-asked for every thumbnail on a list each morning — one round trip per
-// photo, which on an old phone over the shop's connection is the list
-// filling in one picture at a time.
+// 30 days: a stored photo's URL never changes what it points at (every upload or re-framing gets a new name).
 const PRODUCT_IMAGE_CACHE_TTL_SECONDS = 60 * 60 * 24 * 30;
 
 const nextConfig: NextConfig = {
@@ -64,8 +36,7 @@ const nextConfig: NextConfig = {
       {
         source: "/sw.js",
         headers: [
-          // The worker script must be revalidated on every check, or a phone
-          // can keep re-registering a cached copy of an old worker.
+          // Revalidated on every check, or a phone keeps re-registering a cached old worker.
           { key: "Cache-Control", value: "no-cache, must-revalidate" },
         ],
       },
@@ -84,30 +55,14 @@ const nextConfig: NextConfig = {
     dangerouslyAllowLocalIP: isLocalApi,
     minimumCacheTTL: PRODUCT_IMAGE_CACHE_TTL_SECONDS,
   },
-  // @store/shared is a workspace package, so node_modules/@store/shared
-  // is a symlink to ../shared — and Turbopack won't follow a symlink pointing
-  // outside the project root. Pointing the root at the workspace root (the
-  // repo root, one level up) is what lets it resolve the shared package.
+  // Turbopack won't follow the @store/shared symlink outside the project root, so the root is the workspace.
   turbopack: {
     root: path.join(__dirname, ".."),
   },
-  // Emit a self-contained server bundle under .next/standalone: server.js plus
-  // only the node_modules files the app actually reaches, traced from the
-  // build. It is what the runtime stage of the Dockerfile copies, instead of
-  // the whole workspace and its ~1 GB of node_modules.
-  //
-  // outputFileTracingRoot has to be the workspace root for the same reason
-  // turbopack.root does: this app's dependencies live in the hoisted
-  // /app/node_modules one level up, and @store/shared is a symlink out of
-  // the project directory. Left to infer it, the trace would be rooted at
-  // admin/ and miss both. It also fixes the layout inside .next/standalone —
-  // paths are emitted relative to this root, so the bundle contains
-  // node_modules/, admin/ and shared/, and the server entrypoint is
-  // admin/server.js.
+  // Standalone bundle traced from the workspace root, so hoisted node_modules and shared/ are included.
   output: "standalone",
   outputFileTracingRoot: path.join(__dirname, ".."),
-  // The dev-mode indicator badge sits bottom-corner, the same spot our
-  // mobile bottom nav's "More" button occupies.
+  // The dev badge would sit where the mobile bottom nav's "More" button is.
   devIndicators: false,
 };
 

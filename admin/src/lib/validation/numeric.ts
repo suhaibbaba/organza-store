@@ -9,11 +9,7 @@ export function isNonNegativeIntegerString(value: string): boolean {
   return trimmed !== "" && INTEGER_STRING_REGEX.test(trimmed);
 }
 
-// A quantity field's stored string read back as the number a stepper shows.
-// A value that isn't a plain integer — empty, or half-deleted mid-edit —
-// reads as the field's floor rather than NaN, and anything outside the range
-// is clamped into it, so a stored 1200 is displayed as the 999 it will be
-// saved as instead of a number no button can reach.
+// Non-integers read as the floor, never NaN, and out-of-range is clamped to what will be saved.
 export function parseQuantity(value: string | undefined, min = QUANTITY_MIN, max = QUANTITY_MAX): number {
   if (value === undefined || !isNonNegativeIntegerString(value)) {
     return clampQuantity(0, min, max);
@@ -45,10 +41,7 @@ export const optionalDecimalField = z
   .string()
   .refine((v) => v.trim() === "" || isNonNegativeDecimalString(v), { message: ERROR_CODES.VALIDATION_INVALID_NUMBER });
 
-// Fields that measure something real and therefore have a ceiling (label
-// geometry in millimetres, how many labels fit across a sheet). The bounds
-// mirror the shared schema the backend validates with, so the user gets a
-// plain message on the spot instead of a rejected save.
+// Bounds mirror the shared schema, so the message comes before a rejected save.
 function isWithin(min: number, max: number) {
   return (value: string) => {
     const parsed = Number(value.trim());

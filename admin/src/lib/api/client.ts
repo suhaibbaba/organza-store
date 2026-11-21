@@ -13,18 +13,13 @@ interface ApiResult<T> {
   meta: Pagination | null;
 }
 
-// Typed wrapper around fetch for our own `/api/*` REST routes: adds the
-// bearer token + Origin (sent automatically by the browser on cross-origin
-// requests — the backend rejects requests missing it), and unwraps the
-// unified envelope (CLAUDE.md rule 15). Not used for Better Auth's own
-// `/api/auth/*` routes, which don't follow this envelope — see lib/auth/client.ts.
+// Our /api/* routes: adds bearer + Origin and unwraps the envelope (rule 15); Better Auth uses lib/auth/client.ts.
 export async function apiFetch<T>(path: string, options: ApiFetchOptions = {}): Promise<ApiResult<T>> {
   const token = getStoredToken();
   const isFormData = options.body instanceof FormData;
   const headers = new Headers(options.headers);
   headers.set("Accept", "application/json");
-  // A FormData body (image upload) must NOT get an explicit Content-Type —
-  // the browser sets multipart/form-data with the right boundary itself.
+  // The browser sets multipart/form-data with its boundary itself.
   if (options.body !== undefined && !isFormData) {
     headers.set("Content-Type", "application/json");
   }

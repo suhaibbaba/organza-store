@@ -1,5 +1,4 @@
-// Formatting an amount held as a decimal string ("1250.50") — never a float.
-// Ported from the clinic system's shared package without its zod schemas.
+// Amounts as decimal strings ("1250.50"), never floats.
 import { DEFAULT_NUMBER_SEPARATORS, groupDigits, type NumberSeparators } from "@ui/lib/support/numbers";
 
 export function formatWholeMoney(amount: string, separators: NumberSeparators = DEFAULT_NUMBER_SEPARATORS): string {

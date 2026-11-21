@@ -1,14 +1,4 @@
-// ============================================================================
-//  3. QUANTITIES AND STOCK
-//
-//    * a quantity is a whole number: 1.5, 0, -1 and "two" are all refused;
-//    * a counter sale takes stock off the shelf at once; an online order
-//      takes it when preparation starts, and NOT before (spec.md);
-//    * stockDeductedAt is the single source of truth, so walking an order
-//      back and forth through its statuses can never deduct twice;
-//    * selling more than is on the shelf is refused, and stock never goes
-//      negative — not by one sale, not by two lines of the same variant.
-// ============================================================================
+// Whole quantities only; counter sales deduct at once, online at preparation; stockDeductedAt means never twice, never negative.
 import { beforeAll, describe, expect, it } from "vitest";
 import { apiRequest } from "@tests/support/client";
 import { getSession } from "@tests/support/auth";
@@ -115,8 +105,7 @@ describe("Verify · quantities and stock", () => {
 
       const stampedAt = preparing.data!.stockDeductedAt;
 
-      // Every illegal re-entry into a deducting state, one after another.
-      // Each must be refused, and none of them may move stock again.
+      // Every illegal re-entry into a deducting state is refused and moves no stock.
       for (const attempt of ["PREPARING", "NEW"]) {
         const res = await setStatus(admin, order.id, attempt);
         expect(res.status, `PREPARING -> ${attempt} is not a legal move`).toBe(400);
@@ -128,8 +117,7 @@ describe("Verify · quantities and stock", () => {
       expect(handed.data!.stockDeductedAt, "and must not re-stamp the deduction").toBe(stampedAt);
       expectCount(await readStock(admin, product.id), 6, "stock after the courier handover");
 
-      // HANDED_TO_COURIER is the end of the line — nothing may take it back
-      // through PREPARING and deduct a second time.
+      // HANDED_TO_COURIER is final: nothing may go back through PREPARING and deduct again.
       const again = await setStatus(admin, order.id, "PREPARING");
       expect(again.status, "HANDED_TO_COURIER -> PREPARING is not a legal move").toBe(400);
       expectCount(await readStock(admin, product.id), 6, "stock after trying to go back to PREPARING");
@@ -244,8 +232,7 @@ describe("Verify · quantities and stock", () => {
       expectCount(await readStock(admin, product.id), 3, "stock on the product");
       expectCount((await readOrder(admin, order.id)).items[0].quantity, 5, "quantity on the sold line");
 
-      // The inventory list is looked up by the SKU printed on the item, which
-      // is how a staff member would find it too.
+      // Looked up by the SKU printed on the item, as staff would.
       const inventory = await apiRequest<{ type: string; productId: string; stock: number }[]>(
         `/api/inventory?q=${encodeURIComponent(product.product.sku!)}&pageSize=100`,
         { token: admin },

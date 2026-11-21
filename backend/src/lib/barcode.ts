@@ -23,12 +23,7 @@ function randomCandidate(): string {
   return `${twelve}${checkDigit(twelve)}`;
 }
 
-// Barcodes are unique across BOTH products and variants (one shared
-// namespace), per CLAUDE.md rule 13.
-//
-// Takes the client so a caller generating several inside one transaction
-// (a whole variant set at once) checks against the rows that same transaction
-// has already written, rather than against the last committed state.
+// Barcodes are unique across products and variants (rule 13); takes the transaction client to see its own uncommitted rows.
 export async function generateUniqueBarcode(client: DbClient = prisma): Promise<string> {
   for (let attempt = 0; attempt < BARCODE_MAX_ATTEMPTS; attempt++) {
     const candidate = randomCandidate();
@@ -39,11 +34,7 @@ export async function generateUniqueBarcode(client: DbClient = prisma): Promise<
   throw new Error("Failed to generate a unique EAN-13 barcode after multiple attempts");
 }
 
-// Whoever holds this code, in either table and in either column. `generatedBarcode`
-// counts: a code parked there is on a label that is still physically stuck on a
-// garment, waiting for the toggle to be flipped back, so handing it to a second
-// piece would put one code on two labels — and scanning that sticker would sell
-// the wrong item, which is the whole thing this check exists to prevent.
+// generatedBarcode counts too: a parked code is still on a physical label, so reusing it would sell the wrong item.
 async function findBarcodeHolders(code: string, owner: BarcodeOwner, client: DbClient) {
   const productWhere = { OR: [{ barcode: code }, { generatedBarcode: code }] };
   const variantWhere = { OR: [{ barcode: code }, { generatedBarcode: code }] };
@@ -64,32 +55,9 @@ async function isCodeUnused(code: string, owner: BarcodeOwner, client: DbClient)
   return !product && !variant;
 }
 
-/* ---------------------------------------------------------------------------
- * Supplier barcodes
- *
- * Auto-generation stays the default (CLAUDE.md rule 13). What follows is the
- * other case: a garment that arrived already barcoded, whose printed code the
- * shop keeps rather than covering with a label of its own. See
- * shared/constants/barcode.ts.
- * ------------------------------------------------------------------------ */
+// Supplier barcodes: a garment that arrived barcoded keeps its printed code (shared/constants/barcode.ts).
 
-// Is this code free? Checked across BOTH tables, because barcodes share one
-// namespace — a variant's code colliding with a product's would make one scan
-// resolve to two different things, and the POS answers a scan with whichever
-// it finds first. The row asking is excluded, so re-saving a form with the
-// code it already has is not a clash with itself.
-//
-// The unique indexes are still the backstop (two saves racing each other end
-// as a P2002, which the error handler maps to the same code). This exists to
-// name the conflict while we can still see it, which a constraint violation
-// cannot do.
-//
-// Soft-deleted products are NOT excluded: deletion here only sets `deletedAt`
-// (CLAUDE.md rule 4), so those rows still hold their codes and the unique
-// index still enforces it. Answering "free" for one and then failing on the
-// constraint would turn a clear refusal into an unexplained 409, so the
-// conflict is reported — `deleted` says so, since the piece it names is not
-// one the user will find on the shelf.
+// Free across both tables (one namespace), excluding the row asking; the unique indexes stay the backstop for races.
 export async function assertBarcodeAvailable(
   code: string,
   owner: BarcodeOwner = {},
@@ -117,13 +85,11 @@ export async function assertBarcodeAvailable(
   }
 }
 
-// A brand-new piece's barcode. Nothing given ⇒ ours, minted here, which is
-// what every product got before supplier codes existed.
+// A new piece's barcode: nothing given means ours, minted here.
 export async function resolveNewBarcode(input: BarcodeInput, client: DbClient = prisma): Promise<BarcodePatch> {
   if (input.barcodeSource === BARCODE_SOURCE.SUPPLIER && input.barcode) {
     await assertBarcodeAvailable(input.barcode, {}, client);
-    // No generated code is minted alongside it: there is no label of ours in
-    // circulation to protect, so switching to GENERATED later mints one then.
+    // No generated code is minted alongside: no label of ours exists yet, so switching to GENERATED mints one then.
     return { barcode: input.barcode, barcodeSource: BARCODE_SOURCE.SUPPLIER, generatedBarcode: null };
   }
 
@@ -134,15 +100,7 @@ export async function resolveNewBarcode(input: BarcodeInput, client: DbClient = 
   };
 }
 
-// An edit. Returns null when the request says nothing about the barcode, or
-// says exactly what the row already holds — the callers merge the result into
-// a bigger update, and an untouched barcode must not appear in it.
-//
-// Both directions are always available (that is the point of the toggle):
-//   → SUPPLIER: the typed/scanned code replaces ours, and ours is parked.
-//   → GENERATED: the parked code comes BACK, so a label already printed and
-//     stuck on the piece keeps working. Only if that code has since been
-//     taken (or was never minted) is a fresh one generated.
+// An edit: null when the barcode is untouched; to SUPPLIER parks ours, to GENERATED brings the parked code back.
 export async function resolveBarcodeChange(
   existing: BarcodeState,
   input: BarcodeInput,
@@ -168,8 +126,7 @@ export async function resolveBarcodeChange(
       data: {
         barcode: code,
         barcodeSource: BARCODE_SOURCE.SUPPLIER,
-        // Parked on the way out, and left alone when one supplier code simply
-        // replaces another — the code to restore is still the one WE minted.
+        // Parked on the way out, and left alone when one supplier code replaces another.
         generatedBarcode:
           existing.barcodeSource === BARCODE_SOURCE.GENERATED ? existing.barcode : existing.generatedBarcode,
       },
@@ -182,9 +139,7 @@ export async function resolveBarcodeChange(
   }
 
   const parked = existing.generatedBarcode;
-  // Parked codes are reserved (see findBarcodeHolders), so this is normally a
-  // formality; it still asks, because data predating that reservation — or a
-  // piece that never had a code of ours — has nothing to come back to.
+  // Parked codes are reserved, so this is normally a formality; older data may have no code of ours to restore.
   const restorable = parked !== null && (await isCodeUnused(parked, owner, client));
   return {
     data: {
@@ -192,8 +147,7 @@ export async function resolveBarcodeChange(
       barcodeSource: BARCODE_SOURCE.GENERATED,
       generatedBarcode: null,
     },
-    // A code nobody has ever printed. Whatever label is on the piece now says
-    // something else, so the caller puts it back in the "still to print" queue.
+    // A code nobody has printed: the piece's label says something else, so it goes back in the print queue.
     mintedFresh: !restorable,
   };
 }

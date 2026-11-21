@@ -1,19 +1,10 @@
-// The cache behind `can()`, tested for what it actually promises.
-//
-// Not a database test: what matters here is the STALENESS LOGIC — that a
-// request inside the freshness window costs nothing, that a version which has
-// moved causes exactly one re-read, that one which has not causes none, and
-// that a change made in this process is visible immediately. Handing the
-// clock and the two loaders in is what makes those four assertable in
-// milliseconds instead of by waiting five seconds and hoping.
+// can()'s cache: free inside the window, one re-read when the version moved, none when not, own writes at once.
 import { afterEach, describe, expect, it } from "vitest";
 import { PermissionCache } from "@/lib/permissionConfig";
 import { can, setConfigurablePermissions } from "@store/shared/lib/permissions";
 import type { ConfigurablePermissionMatrix } from "@store/shared/types/permission";
 
-// `can()` reads module-level state in the shared package, and this file is in
-// the same process as every other suite (vitest.config.ts: isolate false,
-// singleFork). So whatever a case here publishes is taken back afterwards.
+// can() reads module state shared with every suite in the process, so each case takes back what it publishes.
 afterEach(() => {
   setConfigurablePermissions(null);
 });
@@ -117,10 +108,7 @@ describe("PermissionCache", () => {
     h.setMatrix({ EMPLOYEE: { "product.create": false } });
     h.setVersion("v2");
 
-    // Inside the window, this process is still on the old answer — which is
-    // the honest description of the design, not a bug: it is bounded by
-    // PERMISSION_CACHE_TTL_MS and the process that made the change is
-    // already correct.
+    // Inside the window the old answer is expected: bounded by PERMISSION_CACHE_TTL_MS, and the writing process is already right.
     h.advance(1_000);
     await h.cache.ensureFresh();
     expect(can({ role: "EMPLOYEE" }, "product.create")).toBe(true);
@@ -146,8 +134,7 @@ describe("PermissionCache", () => {
     h.setMatrix({ EMPLOYEE: { "product.create": false } });
     h.setVersion("v2");
 
-    // No clock movement at all: this is the write path, and it must not wait
-    // for a window it is itself inside.
+    // The write path must not wait for a window it is inside.
     await h.cache.invalidate();
     expect(can({ role: "EMPLOYEE" }, "product.create")).toBe(false);
   });
@@ -177,9 +164,7 @@ describe("PermissionCache", () => {
     let broken = true;
     const h = harness({ ttlMs: 5_000, failWith: () => (broken ? new Error("connection refused") : null) });
 
-    // Nothing has ever loaded, so there is no cached answer to serve — and
-    // that is exactly when a naive retry-every-time keeps a struggling
-    // database company. One attempt per window, no more.
+    // Never loaded: one attempt per window, so retries don't hammer a struggling database.
     await h.cache.ensureFresh();
     const attempts = h.errors.length;
 
@@ -197,9 +182,7 @@ describe("PermissionCache", () => {
   });
 
   it("falls back to the shipped defaults before anything has been loaded", () => {
-    // Nothing published: `can()` answers from DEFAULT_ROLE_PERMISSIONS, so a
-    // process that has just started is running the rules as written rather
-    // than refusing everything or allowing everything.
+    // Nothing published: can() answers from DEFAULT_ROLE_PERMISSIONS, the rules as written.
     setConfigurablePermissions(null);
     expect(can({ role: "EMPLOYEE" }, "product.create")).toBe(true);
     expect(can({ role: "EMPLOYEE" }, "inventory.adjust")).toBe(false);

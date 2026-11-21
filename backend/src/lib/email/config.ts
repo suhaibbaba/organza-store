@@ -4,8 +4,7 @@ import { DEFAULT_LANGUAGE, SUPPORTED_LANGUAGES } from "@store/shared/constants/l
 import type { EmailConfig, EmailTransportName } from "@/types/email";
 import type { SupportedLanguage } from "@/types/common";
 
-// Read at call time, not at import time, so a preview script or a test can
-// set the environment and get the answer it just wrote.
+// Read at call time, so a preview script or test can set the environment first.
 
 function trimmed(name: string): string | null {
   const value = process.env[name]?.trim();
@@ -19,11 +18,7 @@ function resolveLanguage(): SupportedLanguage {
     : DEFAULT_LANGUAGE;
 }
 
-/**
- * Where the emailed link points. The admin app is the only place a password
- * can be set, so this is its public origin — falling back to the auth URL,
- * which on a single-host development machine is the same thing.
- */
+/** Where the emailed link points: the admin's public origin, falling back to the auth URL. */
 function resolveAdminUrl(): string {
   const url = trimmed("ADMIN_URL") ?? trimmed("BETTER_AUTH_URL") ?? "http://localhost:3000";
   return url.replace(/\/+$/, "");
@@ -31,17 +26,14 @@ function resolveAdminUrl(): string {
 
 export function emailConfig(): EmailConfig {
   const apiKey = trimmed("RESEND_API_KEY");
-  // No key, no provider: the console transport keeps the flow working end to
-  // end on a developer's machine and makes a misconfigured deployment
-  // obvious in `docker compose logs` instead of silently swallowing mail.
+  // No key, console transport: the flow works locally and a misconfigured deployment shows in the logs.
   const transport: EmailTransportName = apiKey ? "resend" : "console";
 
   return {
     transport,
     apiKey,
     from: trimmed("EMAIL_FROM") ?? DEFAULT_EMAIL_FROM,
-    // Replies to a transactional email are a person trying to reach the shop
-    // — they must not land in a mailbox nobody reads.
+    // Replies are a person trying to reach the shop, so they must reach a mailbox somebody reads.
     replyTo: trimmed("EMAIL_REPLY_TO"),
     adminUrl: resolveAdminUrl(),
     defaultLanguage: resolveLanguage(),

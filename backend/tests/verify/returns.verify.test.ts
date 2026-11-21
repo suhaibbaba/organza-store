@@ -1,14 +1,4 @@
-// ============================================================================
-//  4. RETURNS
-//
-//    * a partial return restores the exact quantity that came back, records
-//      it on the line, and leaves the rest of the sale standing;
-//    * a full return restores everything and closes the order as RETURNED;
-//    * the same units can never be returned twice, and more than was sold can
-//      never be returned at all;
-//    * sales and profit follow the goods: a returned unit stops counting as
-//      revenue and its cost stops counting as COGS.
-// ============================================================================
+// Returns: restore exactly what came back, never twice or beyond what was sold; revenue and COGS follow the goods.
 import { beforeAll, describe, expect, it } from "vitest";
 import { getSession } from "@tests/support/auth";
 import { expectCount, expectDelta, expectMoney } from "@tests/support/money";

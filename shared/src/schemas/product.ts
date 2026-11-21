@@ -17,35 +17,22 @@ import { PRODUCT_PRINT_STATES, PRODUCT_SORT_FIELDS } from "@/constants/product";
 import { DEFAULT_PRODUCT_COMPLETENESS_FILTER, PRODUCT_COMPLETENESS_FILTERS } from "@/constants/quickSell";
 import { MAX_LABEL_PRINT_BATCH } from "@/constants/label";
 
-// A supplier's own code, typed or scanned into a barcode field. Normalized
-// before it is validated (see lib/barcode.ts) so the value stored is exactly
-// what a scanner will send back at the counter, whatever the field collected.
+// Normalized before validation (lib/barcode.ts), so what is stored is what a scanner sends back.
 export const supplierBarcodeInput = z
   .string()
   .transform(normalizeBarcode)
   .refine(isValidBarcode, { message: ERROR_CODES.BARCODE_INVALID });
 
-// Where a piece's barcode comes from (CLAUDE.md rule 13 + constants/barcode.ts).
-// Sent explicitly by the client rather than deduced from whether a code came
-// with it: "use your own code" and "use this code the supplier printed" are
-// two different intentions, and only one of them survives an empty field.
+// Sent explicitly, never deduced from the code (rule 13): own code and supplier code are different intentions.
 export const barcodeSourceInput = z.enum(BARCODE_SOURCES);
 
-// The barcode half of a create/update body, shared by products and variants.
-//   { barcodeSource: "SUPPLIER", barcode: "5901234123457" } — keep the tag
-//     the garment came with.
-//   { barcodeSource: "GENERATED" } — ours: minted on create, and on an edit
-//     this switches back, restoring the code we had before (or minting a
-//     fresh one if it is gone).
-//   neither — leave whatever the piece already has alone.
+// SUPPLIER + barcode keeps the garment's tag; GENERATED mints ours or restores it; neither leaves the piece alone.
 export const barcodeFields = {
   barcodeSource: barcodeSourceInput.optional(),
   barcode: supplierBarcodeInput.optional(),
 };
 
-// A supplier source with nothing to put in it is the one combination that
-// cannot be honoured, so it is refused by name instead of silently generating
-// a code the garment does not carry. Applied to create and update alike.
+// A supplier source with no code is refused rather than silently generating one.
 export function refineBarcodeFields(value: { barcodeSource?: string; barcode?: string }): boolean {
   return value.barcodeSource !== BARCODE_SOURCE.SUPPLIER || typeof value.barcode === "string";
 }
@@ -55,8 +42,7 @@ export const BARCODE_REFINEMENT = {
   path: ["barcode"] as (string | number)[],
 };
 
-// Numbered shawls (spec.md): a point on the product image for one option
-// value, set while the admin is placing/reviewing points, before Save.
+// Numbered shawls (spec.md): a point on the product image for one option value.
 export const imagePointSchema = z.object({
   imageX: imagePointCoordinateSchema,
   imageY: imagePointCoordinateSchema,
@@ -71,27 +57,16 @@ export type ComboStockInput = z.infer<typeof comboStockSchema>;
 export const optionSelectionSchema = z.object({
   variantTypeId: z.string().min(1),
   valueIds: z.array(z.string().min(1)).min(1),
-  // Optional per-value image point, keyed by valueId (numbered shawls only;
-  // ordinary Color/Size selections simply omit this).
   imagePoints: z.record(z.string(), imagePointSchema).optional(),
 });
 
-// Numbered shawls (spec.md): the marker colours, stored on the product so a
-// choice survives the photograph being replaced. Explicit null means "go back
-// to following the photo" — which is why they are nullable rather than merely
-// optional (omitted = leave alone).
+// Numbered-shawl marker colours on the product; null means follow the photo again, omitted means leave alone.
 export const pointColorFields = {
   pointTextColor: hexColorSchema.optional().nullable(),
   pointBackgroundColor: hexColorSchema.optional().nullable(),
 };
 
-// A note written against ONE of this product's option values (spec.md "Notes
-// on a product's options"). Scoped to the product, never to the global value:
-// the same "S" on the next product keeps whatever it had.
-//
-// The note itself is nullable, and null is meaningful — it REMOVES the note.
-// Values not mentioned are left alone, so a caller can send one changed note
-// without having to resend every note the product carries.
+// A note on one of this product's option values, never the global value; null removes it, unmentioned values are kept.
 export const optionValueNoteInputSchema = z.object({
   optionValueId: z.string().min(1, ERROR_CODES.VALIDATION_REQUIRED),
   note: optionValueNoteSchema.nullable(),
@@ -111,31 +86,20 @@ export const createProductSchema = z
     compareAtPrice: decimalInput.optional(),
     cost: decimalInput.optional(),
     isActive: z.boolean().optional(),
-    // Opt-in low-stock alerts (CLAUDE.md rule 14: the threshold itself still
-    // comes from Setting). Off by default — most products are one-off pieces
-    // with stock = 1, so alerting on all of them is noise.
+    // Opt-in low-stock alerts (threshold from Setting, rule 14); off by default because most pieces are one-offs at 1.
     trackLowStock: z.boolean().optional(),
-    // Numbered product (spec.md "Numbered shawls"): one photo carrying numbers,
-    // each number its own piece. Off by default; when on, the only variant type
-    // the API accepts for this product is Number, and when off it accepts every
-    // type except Number.
+    // Numbered product (spec.md "Numbered shawls"): when on, only the Number variant type is accepted; when off, everything but Number.
     isNumbered: z.boolean().optional(),
-    // The colour of the numbers drawn on the photo and of the badge behind them
-    // (spec.md "Numbered shawls"), one pair for the whole product. Omitted —
-    // the usual case — the numbers follow the photo's own brightness instead.
+    // Marker and badge colours for the whole product; omitted, they follow the photo's brightness.
     ...pointColorFields,
     sku: z.string().min(1).optional(),
     stock: z.coerce.number().int().min(0).optional(),
-    // Auto-generation is the default (CLAUDE.md rule 13): omit these and the
-    // product is given a fresh EAN-13. A product WITH variants may still carry
-    // one here — a supplier's single code for every size lives on the parent.
+    // Omit for an auto-generated EAN-13 (rule 13); a parent may carry one supplier code shared by every variant.
     ...barcodeFields,
-    // Selected global option values to generate variants from (cartesian
-    // product across each type's valueIds). Omit for a simple product.
+    // Option values to build variants from (cartesian across types); omit for a simple product.
     optionSelections: z.array(optionSelectionSchema).optional(),
     comboStocks: z.array(comboStockSchema).optional(),
-    // Optional short note per chosen value ("طول البنطلون ٩٥ سم" against this
-    // product's own S). Only values this product actually uses are accepted.
+    // Optional note per chosen value; only values this product uses are accepted.
     ...optionValueNotesField,
   })
   .refine(refineBarcodeFields, BARCODE_REFINEMENT);
@@ -151,20 +115,15 @@ export const updateProductSchema = z
     cost: decimalInput.optional().nullable(),
     isActive: z.boolean().optional(),
     trackLowStock: z.boolean().optional(),
-    // Changing which kind of product this is (see createProductSchema) is only
-    // accepted while it has no variants at all — the API refuses the switch
-    // rather than throwing away numbers or colours (error.product.
-    // numbered_switch_has_variants).
+    // Switching numbered/ordinary is refused once the product has variants (error.product.numbered_switch_has_variants).
     isNumbered: z.boolean().optional(),
-    // Null puts either half back to "follow the photo"; a colour pins it, and
-    // it stays pinned when the photograph is replaced.
+    // Null returns a colour to following the photo; a set colour survives a new photo.
     ...pointColorFields,
     sku: z.string().min(1).optional(),
     stock: z.coerce.number().int().min(0).optional(),
     // Reversible in both directions, at any time (see barcodeFields).
     ...barcodeFields,
-    // Upserted one by one: a note of `null` removes that value's note, and a
-    // value left out of the list keeps whatever it had.
+    // Upserted one by one: null removes a note, omitted values keep theirs.
     ...optionValueNotesField,
   })
   .refine(refineBarcodeFields, BARCODE_REFINEMENT);
@@ -184,12 +143,10 @@ export const updateVariantSchema = z
     cost: decimalInput.optional().nullable(),
     stock: z.coerce.number().int().min(0).optional(),
     isActive: z.boolean().optional(),
-    // Numbered shawls (spec.md): point on the product image, percentage 0-100.
-    // Null clears it back to an ordinary variant.
+    // Numbered-shawl point as a percentage 0-100; null makes it an ordinary variant.
     imageX: imagePointCoordinateSchema.optional().nullable(),
     imageY: imagePointCoordinateSchema.optional().nullable(),
-    // Each variant's barcode is its own: one size can carry the supplier's tag
-    // while the next still uses ours.
+    // Each variant's barcode source is its own.
     ...barcodeFields,
   })
   .refine(refineBarcodeFields, BARCODE_REFINEMENT);
@@ -197,45 +154,29 @@ export type UpdateVariantInput = z.infer<typeof updateVariantSchema>;
 
 export const listProductsQuerySchema = paginationSchema.extend({
   categoryId: z.string().min(1).optional(),
-  // Whether `categoryId` means that one category or the whole branch under
-  // it. Off by default, which is what the admin's product filter has always
-  // done ("show me exactly this shelf"); the POS product browser turns it on,
-  // because a cashier tapping "Women" means every dress and abaya filed under
-  // it and not the handful of products left directly on the parent.
+  // Whether categoryId includes its whole branch: off for the admin's exact-shelf filter, on for the POS.
   includeSubcategories: booleanInput.optional(),
   status: z.enum(["active", "hidden"]).optional(),
   stock: z.enum(["in_stock", "out_of_stock"]).optional(),
   priceMin: z.coerce.number().min(0).optional(),
   priceMax: z.coerce.number().min(0).optional(),
   q: z.string().min(1).optional(),
-  // Barcode-label print state: "which labels still have to be printed" is a
-  // whole workflow of its own, so it filters the list rather than being
-  // sifted out client-side. Defaults to every product.
+  // Label print state is filtered on the server: "still to print" is a workflow of its own.
   printState: z.enum(PRODUCT_PRINT_STATES).default("all"),
-  // Quick sell's own work queue (spec.md "Quick sell"). "needs_completing" is
-  // the list an Admin has to clear once the season ends: sold, still without
-  // a category, and therefore invisible to every category filter on this same
-  // screen — which is exactly why it needs a filter of its own rather than a
-  // note somebody is expected to remember.
+  // Quick sell's queue (spec.md): needs_completing finds sold, categoryless products no category filter can reach.
   completeness: z.enum(PRODUCT_COMPLETENESS_FILTERS).default(DEFAULT_PRODUCT_COMPLETENESS_FILTER),
   sortBy: z.enum(PRODUCT_SORT_FIELDS).default("createdAt"),
   sortDir: z.enum(["asc", "desc"]).default("desc"),
 });
 export type ListProductsQuery = z.infer<typeof listProductsQuerySchema>;
 
-// POST /api/products/labels/printed — record that a batch of labels went to
-// the printer. Bounded like every other list the API takes (CLAUDE.md rule
-// 15); reprinting the same products later is always allowed.
+// Records a printed batch; bounded like every list (rule 15), reprinting always allowed.
 export const markLabelsPrintedSchema = z.object({
   productIds: z.array(z.string().min(1)).min(1, ERROR_CODES.VALIDATION_REQUIRED).max(MAX_LABEL_PRINT_BATCH),
 });
 export type MarkLabelsPrintedInput = z.infer<typeof markLabelsPrintedSchema>;
 
-// POS barcode/SKU lookup (GET /api/products/lookup). One scan of a tag has
-// to resolve to the exact thing being sold, so the code is matched against
-// both products and variants, and both of their identifiers: the barcode is
-// what the label prints (CLAUDE.md rule 13), the SKU is what a staff member
-// reads out when a label is damaged.
+// POS lookup: one scan resolves to the exact piece, matched on product and variant barcodes (rule 13) and SKUs.
 export const lookupProductQuerySchema = z.object({
   code: z.string().min(1, ERROR_CODES.VALIDATION_REQUIRED),
 });

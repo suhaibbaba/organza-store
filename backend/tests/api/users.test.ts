@@ -13,11 +13,7 @@ describe("Users", () => {
 
   afterAll(async () => {
     const admin = await getSession("ADMIN");
-    // Taken away properly now that staff CAN be deleted: these accounts never
-    // did anything, so nothing refuses it and the sandbox is left as it was
-    // found. Deactivation is the fallback for any that somehow picked up
-    // history mid-run — a leftover inactive row is untidy, a failed teardown
-    // that masks a real result is worse.
+    // These never did anything, so they are deleted; deactivation is the fallback if one picked up history.
     for (const id of createdUserIds) {
       const deleted = await apiRequest(`/api/users/${id}`, { method: "DELETE", token: admin.token });
       if (deleted.status !== 200) {
@@ -152,16 +148,14 @@ describe("Users", () => {
     expect(list.status).toBe(200);
 
     const row = list.data!.find((user) => user.id === invited.data!.id);
-    // Enabled, but nobody can sign in as them yet: the two are different
-    // questions and the screen has to be able to ask both.
+    // Enabled but not yet able to sign in: the screen has to tell the two apart.
     expect(row?.isActive).toBe(true);
     expect(row?.hasPassword).toBe(false);
 
     // The password is never on the wire in any shape, not even as a length.
     expect(JSON.stringify(row)).not.toContain('password":"');
 
-    // Setting one from the Admin's own box flips it — the same flag the
-    // emailed link flips (tests/api/passwordSetup.test.ts).
+    // Setting one from the Admin's box flips the same flag the emailed link does.
     await apiRequest(`/api/users/${invited.data!.id}`, {
       method: "PATCH",
       token: admin.token,

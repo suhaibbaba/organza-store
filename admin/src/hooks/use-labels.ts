@@ -5,10 +5,7 @@ import { PRODUCT_LIST_QUERY_KEY } from "@/constants/products";
 import { fetchProduct, markLabelsPrinted } from "@/lib/api/products";
 import { useCacheInvalidation } from "@/hooks/use-cache-invalidation";
 
-// Declared at module level so its identity never changes: react-query only
-// memoizes a `combine` result while the function itself is stable, and the
-// label run is rebuilt from these products on every keystroke — an array that
-// changed identity each render would rebuild the whole sheet for nothing.
+// Module-level so react-query keeps memoizing the combined result.
 function combineProducts(results: UseQueryResult<Product>[]) {
   return {
     products: results.flatMap((result) => (result.data ? [result.data] : [])),
@@ -17,10 +14,7 @@ function combineProducts(results: UseQueryResult<Product>[]) {
   };
 }
 
-// Full detail for every selected product: the list endpoint returns aggregate
-// stock only, and a label per variant needs each variant's own barcode and
-// stock. Same query key as useProductQuery, so a product already opened
-// elsewhere is served from cache.
+// Full detail per product: labels need each variant's barcode and stock; shares useProductQuery's key.
 export function useSelectedProductsQueries(productIds: readonly string[]) {
   return useQueries({
     queries: productIds.map((id) => ({
@@ -40,14 +34,11 @@ export function useRefetchSelectedProducts(productIds: readonly string[]) {
   }, [queryClient, productIds]);
 }
 
-// Records the print run, so the products just printed leave the "not printed
-// yet" filter straight away — on the list and on each product's own page.
+// So printed products leave the "not printed yet" filter at once.
 export function useMarkLabelsPrintedMutation() {
   const { productChanged } = useCacheInvalidation();
   return useMutation({
     mutationFn: markLabelsPrinted,
-    // Several products at once: refreshing the list (and every product page
-    // behind it) covers the batch.
     onSuccess: () => productChanged(),
   });
 }

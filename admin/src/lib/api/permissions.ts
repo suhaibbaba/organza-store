@@ -13,11 +13,7 @@ export interface RolePermissionChange {
   granted: boolean;
 }
 
-/**
- * One checkbox, one request. The response is the whole matrix again, so the
- * screen never has to guess what the change did — including the case where it
- * did nothing because somebody else got there first.
- */
+// The response is the whole matrix, including when someone else got there first.
 export async function updateRolePermissions(input: {
   role: Role;
   changes: RolePermissionChange[];

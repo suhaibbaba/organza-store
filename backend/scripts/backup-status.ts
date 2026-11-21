@@ -1,19 +1,5 @@
 #!/usr/bin/env tsx
-// ============================================================================
-//  npm run backup:status — when did the off-site backup last actually work?
-//
-//  The question you want answered in ten seconds over SSH, and the one nobody
-//  thinks to ask until the morning it matters. Reads the BackupRun table that
-//  ops/backup.sh writes to (via `backup:record`), prints the last few runs,
-//  and EXITS NON-ZERO when the last success is older than
-//  BACKUP_STALE_AFTER_HOURS — so it can be dropped into a monitor or a cron
-//  entry without anybody having to parse its output.
-//
-//    npm run backup:status
-//    npm run backup:status -- --json     # for a monitor rather than a person
-//
-//  Same figures as /health serves; this is the terminal spelling of them.
-// ============================================================================
+// npm run backup:status — prints the last runs and exits non-zero when the last success is older than BACKUP_STALE_AFTER_HOURS.
 import "dotenv/config";
 import { prisma } from "@/lib/prisma";
 import { getBackupHealth } from "@/lib/backups";
@@ -112,8 +98,7 @@ async function main(): Promise<void> {
     console.log("");
   }
 
-  // Non-zero so a monitor, or `&&` in a shell, treats a stale backup as the
-  // failure it is. Every other exit here is a success.
+  // Non-zero so a monitor, or `&&` in a shell, treats a stale backup as the failure it is.
   process.exitCode = health.stale ? 1 : 0;
 }
 

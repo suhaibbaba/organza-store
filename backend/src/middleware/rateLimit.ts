@@ -3,18 +3,7 @@ import { AppError } from "@/lib/response";
 import { ERROR_CODES, RATE_LIMIT_SWEEP_INTERVAL_MS } from "@/constants";
 import type { RateLimitOptions, RateLimiter } from "@/types/rateLimit";
 
-// A fixed-window rate limiter, in memory.
-//
-// In memory is the right size for this shop: one API container, on one VPS,
-// in front of a handful of staff. The alternative (Redis) would be a second
-// service to run and back up for the sake of endpoints that see a few
-// requests a day. If the API is ever run as more than one process, this
-// becomes per-process — which weakens the limit rather than breaking it, and
-// is the point at which to move the counters into Postgres.
-//
-// It exists for the public password endpoints, which are the only doors into
-// the system that take no session: without it, "email me a link" is a mail
-// cannon pointed at any address somebody types.
+// Fixed-window in-memory limiter — right for one API container; more processes would weaken it per process.
 
 export function createRateLimiter(options: RateLimitOptions): RateLimiter {
   const hits = new Map<string, { count: number; resetAt: number }>();
@@ -55,14 +44,7 @@ export function createRateLimiter(options: RateLimitOptions): RateLimiter {
   };
 }
 
-/**
- * Express wiring. `keyOf` decides what is being limited — the caller's
- * address, the email they typed, or both in sequence.
- *
- * Answers 429 with `error.rate_limited` and nothing else: a limiter that
- * explains which of its rules was hit is a limiter that helps whoever is
- * probing it.
- */
+/** `keyOf` picks what is limited; answers 429 error.rate_limited and nothing more, so probing learns nothing. */
 export function rateLimit(limiter: RateLimiter, keyOf: (req: Request) => string | null) {
   return (req: Request, _res: Response, next: NextFunction): void => {
     const key = keyOf(req);

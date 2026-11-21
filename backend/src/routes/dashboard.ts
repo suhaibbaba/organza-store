@@ -8,9 +8,7 @@ import { requireAuth, requirePermission } from "@/middleware/auth";
 import { sendOk } from "@/lib/response";
 import { DEFAULT_LOW_STOCK_THRESHOLD, SETTINGS_SINGLETON_ID } from "@/constants";
 
-// Phase 1 dashboard (spec.md) — built only from data that already exists
-// (Products, Variants, Categories, Setting). No Orders yet, so no
-// sales/profit numbers here (that's Phase 2).
+// Dashboard built from catalogue data (products, variants, categories, settings).
 const router = Router();
 router.use(requireAuth);
 
@@ -42,9 +40,7 @@ router.get(
     let lowStockCount = 0;
     let inventoryValue = new Prisma.Decimal(0);
 
-    // Inventory value covers every product; the low-stock count only counts
-    // products that opted into tracking (Product.trackLowStock), so the alert
-    // isn't drowned out by the many one-off pieces that sit at stock = 1.
+    // Inventory value covers every product; low stock counts only products with trackLowStock.
     for (const product of products) {
       if (product.variants.length === 0) {
         if (product.trackLowStock && product.stock <= threshold) {

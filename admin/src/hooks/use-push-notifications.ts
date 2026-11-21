@@ -15,12 +15,7 @@ import {
 import { isInstalledApp } from "@/lib/pwa";
 import type { PushActionState, PushBlockedReason, PushNotificationState } from "@/types/push";
 
-// Sale notifications, as this device sees them.
-//
-// Everything below reports what the browser actually says — the permission
-// is read from `Notification.permission`, never remembered in our own state,
-// so a permission revoked in the phone's settings shows up here as soon as
-// the screen is opened rather than leaving a switch stuck on.
+// Permission is always read from the browser, so one revoked in phone settings shows at once.
 export function usePushNotifications(): PushNotificationState {
   const locale = useLocale();
   const [isReady, setIsReady] = useState(false);
@@ -31,9 +26,7 @@ export function usePushNotifications(): PushNotificationState {
   const [isInstalled, setIsInstalled] = useState(false);
   const [action, setAction] = useState<PushActionState>("idle");
 
-  // The server's VAPID public key. Fetched rather than baked into the bundle
-  // at build time, so rotating the key pair on the VPS doesn't need a rebuild
-  // of the admin.
+  // Fetched, not baked in, so rotating the VAPID keys needs no rebuild.
   const { data: config } = useQuery({ queryKey: PUSH_CONFIG_QUERY_KEY, queryFn: fetchPushConfig, staleTime: Infinity });
   const publicKey = config?.publicKey ?? null;
   const isConfigured = config?.configured ?? true;
@@ -68,8 +61,7 @@ export function usePushNotifications(): PushNotificationState {
     }
     setAction("pending");
     try {
-      // Asked from the button's own click, which is the only moment a
-      // browser will show the permission prompt.
+      // Only a click lets the browser show the permission prompt.
       const granted = await Notification.requestPermission();
       setPermission(granted);
       if (granted !== "granted") {
@@ -81,8 +73,6 @@ export function usePushNotifications(): PushNotificationState {
       setIsSubscribed(true);
       setAction("idle");
     } catch {
-      // The message under the switch is the user's answer; the technical
-      // detail belongs in the browser console, not on a shop phone.
       setAction("error");
     }
   }, [publicKey, locale]);
@@ -91,8 +81,7 @@ export function usePushNotifications(): PushNotificationState {
     setAction("pending");
     try {
       const endpoint = await dropSubscription();
-      // Told to the API too, so it stops pushing at a device that has gone
-      // quiet — rather than waiting to learn from the push service.
+      // Tell the API too, so it stops pushing at this device.
       if (endpoint) {
         await unsubscribeFromPush({ endpoint }).catch(() => undefined);
       }
@@ -122,9 +111,7 @@ export function usePushNotifications(): PushNotificationState {
   };
 }
 
-// Ordered by what the user would have to do about it: a browser that can't
-// do push at all, then an iPhone that needs installing first, then a server
-// with no keys, then a permission that was refused.
+// Ordered by what the user must do about it.
 function resolveBlockedReason(state: {
   supported: boolean;
   isIOS: boolean;

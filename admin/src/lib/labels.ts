@@ -16,9 +16,7 @@ import { DEFAULT_PRODUCT_FILTERS } from "@/constants/products";
 import type { LabelGeometry, LabelLine, LabelListFilters, LabelPrintItem } from "@/types/label";
 import type { ProductListFilters } from "@/types/product";
 
-// The labels screen picks from the same catalogue as the products screen, so
-// it reuses that list endpoint (and its cache) rather than growing a second
-// one — it just fixes the sort and drops the filters that don't apply.
+// Reuses the products list endpoint and its cache.
 export function toProductListFilters(filters: LabelListFilters): ProductListFilters {
   return {
     ...DEFAULT_PRODUCT_FILTERS,
@@ -37,37 +35,16 @@ export function hasActiveLabelFilters(filters: LabelListFilters): boolean {
   );
 }
 
-// A numbered shawl (spec.md "Numbered shawls") — one photo with the numbers
-// drawn on it — says so itself, on the flag chosen when it was added.
 export function isNumberedProduct(product: Pick<Product, "isNumbered">): boolean {
   return product.isNumbered;
 }
 
-// What to print for one product, in the three shapes the catalogue takes:
-//
-//   simple product   — one design, copies = its stock
-//   ordinary variants— one design per variant, copies = that variant's stock
-//                      (colour/size labels have to name which piece they're on)
-//   numbered shawl   — the PARENT only. Its numbers live on the photo, not on
-//                      separate tags, so there is nothing per-number to stick;
-//                      the count is whatever the shop wants and is typed in.
-//
-// A line whose code is the supplier's own needs no sticker: the garment came
-// with one printed on it. Those lines are kept but proposed at zero copies and
-// marked on screen — the state is shown, never faked by pretending the label
-// was printed (see the products list's `printState` filter, which excludes the
-// same pieces by source). Printing one anyway is a typed count away.
+// Simple: copies = stock; variants: one line each; numbered shawl: the parent, count typed. Supplier codes start at 0.
 export function buildLabelLines(product: Product, locale: string): LabelLine[] {
   const name = localize(product.name, locale);
-  // The suggestion can't propose more than the field itself accepts, or the
-  // number on screen would stop matching the number being counted. Where that
-  // bites, the stock it was drawn from travels with the line so the screen can
-  // say so out loud (see LabelCopiesList) — a silently shortened print run is
-  // how somebody ends up with 999 stickers for 1200 pieces and no idea why.
+  // Capped at the field's own limit; the source stock travels with the line so the screen can say so.
   const suggest = (stock: number) => clampQuantity(stock, 0, LABEL_COPIES_MAX);
-  // A supplier code on the PARENT covers every variant under it: that is the
-  // shared-code case — one tag for all sizes — so nothing per-variant is owed
-  // either.
+  // A supplier code on the parent is one tag for every variant.
   const parentIsSupplier = product.barcodeSource === BARCODE_SOURCE.SUPPLIER;
 
   if (isNumberedProduct(product)) {
@@ -80,8 +57,7 @@ export function buildLabelLines(product: Product, locale: string): LabelLine[] {
         subtitle: null,
         code: product.barcode,
         suggestedCopies: parentIsSupplier ? 0 : 1,
-        // Never a stock figure: the numbers live on the photo, so how many
-        // collection labels the shop wants is a decision, not a count.
+        // The numbers live on the photo, so the count is a choice, not stock.
         stock: null,
         supplierBarcode: parentIsSupplier,
         isNumbered: true,
@@ -98,13 +74,10 @@ export function buildLabelLines(product: Product, locale: string): LabelLine[] {
         variantId: variant.id,
         name,
         subtitle: localize(variant.name, locale),
-        // A variant always has a SKU; the barcode is what the label prints, so
-        // the SKU only stands in if a barcode somehow never got generated.
+        // The SKU stands in only if no barcode was ever generated.
         code: variant.barcode ?? variant.sku,
         suggestedCopies: supplierBarcode ? 0 : suggest(variant.stock),
-        // Reported even when the line is proposed at zero for a supplier
-        // code: the piece still has a stock, and the person who overrides
-        // the zero should see the number they are overriding it towards.
+        // Shown even when proposed at zero, so an override knows the real stock.
         stock: variant.stock,
         supplierBarcode,
         isNumbered: false,
@@ -128,9 +101,7 @@ export function buildLabelLines(product: Product, locale: string): LabelLine[] {
   ];
 }
 
-// Copies are held as strings (the integer-safe numeric input keeps them that
-// way while being typed), so an empty or half-typed field reads as zero
-// rather than crashing the preview.
+// Held as strings while typed, so a half-typed field reads as zero.
 export function parseCopies(value: string | undefined): number {
   if (value === undefined || !isNonNegativeIntegerString(value)) {
     return 0;
@@ -154,8 +125,6 @@ export function expandLabels(lines: readonly LabelLine[], copies: Record<string,
   return items;
 }
 
-// Splits the run into printed pages: one label per page in thermal mode,
-// columns x rows per sheet in A4 mode.
 export function paginateLabels(items: readonly LabelPrintItem[], geometry: LabelGeometry): LabelPrintItem[][] {
   const perPage = geometry.printMode === "A4_GRID" ? Math.max(1, geometry.columns * geometry.rows) : 1;
   const pages: LabelPrintItem[][] = [];
@@ -165,8 +134,7 @@ export function paginateLabels(items: readonly LabelPrintItem[], geometry: Label
   return pages;
 }
 
-// Reads the sheet description out of the Setting singleton (CLAUDE.md rule
-// 14) — nothing about the label is hard-coded in the UI.
+// From the Setting singleton (rule 14).
 export function toLabelGeometry(setting: Setting): LabelGeometry {
   return {
     printMode: setting.labelPrintMode,
@@ -183,8 +151,6 @@ export function toLabelGeometry(setting: Setting): LabelGeometry {
   };
 }
 
-// The page the browser will actually print, in mm — one label in thermal
-// mode, a full A4 sheet in grid mode.
 export function printedPageSizeMm(geometry: LabelGeometry): { widthMm: number; heightMm: number } {
   return geometry.printMode === "A4_GRID"
     ? { widthMm: A4_WIDTH_MM, heightMm: A4_HEIGHT_MM }
@@ -195,9 +161,7 @@ export function mmToPx(mm: number): number {
   return (mm / MM_PER_INCH) * CSS_PX_PER_INCH;
 }
 
-// How many labels the configured grid actually fits across the usable width
-// of the sheet — a column count that overflows the paper is the one geometry
-// mistake that silently clips labels off the right-hand edge.
+// An overflowing grid silently clips labels off the edge.
 export function gridOverflowsPage(geometry: LabelGeometry): boolean {
   if (geometry.printMode !== "A4_GRID") {
     return false;
@@ -206,7 +170,6 @@ export function gridOverflowsPage(geometry: LabelGeometry): boolean {
   const usableHeight = A4_HEIGHT_MM - geometry.pageMarginTopMm - geometry.pageMarginBottomMm;
   const neededWidth = geometry.columns * geometry.widthMm + (geometry.columns - 1) * geometry.gapXMm;
   const neededHeight = geometry.rows * geometry.heightMm + (geometry.rows - 1) * geometry.gapYMm;
-  // Half a millimetre of slack: rounding in the settings form shouldn't raise
-  // a warning about a sheet that fits in practice.
+  // Half a millimetre of slack for rounding in the settings form.
   return neededWidth > usableWidth + 0.5 || neededHeight > usableHeight + 0.5;
 }

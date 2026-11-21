@@ -1,33 +1,5 @@
 #!/usr/bin/env node
-/*
- * Rebuilds the app-icon files that are DERIVED from the artwork, for every
- * app and every environment.
- *
- * The designer supplies five files per folder — favicon.ico, icon-180,
- * icon-192, icon-512 and icon-maskable-512. Two more are needed and neither
- * is something to draw by hand:
- *
- *   icon-32.png        The browser tab. favicon.ico holds a single 16×16,
- *                      and every current screen draws that tab at 32 real
- *                      pixels, so without this the tab is an upscaled 16.
- *   icon-mark-512.png  The mark on transparency, for the boot splash the app
- *                      paints while it works out who is signed in (see
- *                      components/pwa/boot-splash.tsx). The square icon can't
- *                      be used there: the splash paints its own background in
- *                      CSS, and a flat fill decoded next to a CSS colour
- *                      lands a level off it — a visible seam across a large
- *                      flat field.
- *
- * Run this after replacing any icon-512.png. Nothing runs it automatically:
- * the outputs are committed, and a build that rewrote files in public/ would
- * be a build with side effects.
- *
- *   node shared/scripts/derive-app-icons.js
- *
- * It needs `sharp`, which is a backend dependency — so `backend/` must have
- * had `npm install` run in it. Nothing else in this script is specific to the
- * backend; it just borrows the one library the repo already ships.
- */
+// Rebuilds icon-32.png (sharp tab icon) and icon-mark-512.png (transparent splash mark) from each icon-512.png; run by hand, needs backend's sharp.
 
 const fs = require("fs");
 const path = require("path");
@@ -44,10 +16,7 @@ const FAVICON_PNG_SIZE = 32;
 /** Boot-splash mark, same edge length as the source. */
 const MARK_SIZE = 512;
 
-/**
- * A colour has to cover this much of the image to count as one of the flat
- * fills rather than an anti-aliased edge pixel...
- */
+/** Share of the image a colour must cover to count as a flat fill rather than an anti-aliased edge. */
 const MIN_FLAT_COLOR_SHARE = 0.005;
 /** ...and sit this far from the background, squared, in RGB. */
 const MIN_FOREGROUND_DISTANCE_SQ = 900;
@@ -77,22 +46,11 @@ function readPalette(data, info) {
     }));
 }
 
-/**
- * Lifts the flat background off, leaving the mark on transparency.
- *
- * These icons are flat colour on flat colour, so every pixel is either one of
- * the fills or a blend of one with the background. Each pixel is matched to
- * the fill whose blend line it sits closest to, its position along that line
- * is the alpha, and the fill itself is written back as the colour — which is
- * what keeps the anti-aliased edges clean. Simply making the background
- * transparent and keeping each pixel's own colour would leave every edge
- * ringed with a halo of the colour that was removed.
- */
+/** Lifts the flat background off by matching each pixel to a fill's blend line, so edges stay clean with no halo. */
 async function extractMark(sourcePath, outputPath) {
   const { data, info } = await sharp(sourcePath).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
   const palette = readPalette(data, info);
-  // The background is the flat colour that covers the most ground. True of
-  // both the plain icons and the SBX ones, where the amber band is second.
+  // The background is the flat colour covering the most ground (true for SBX icons too, where amber is second).
   const background = palette[0].rgb;
   const foregrounds = palette
     .filter(
@@ -151,8 +109,7 @@ async function extractMark(sourcePath, outputPath) {
         continue;
       }
 
-      // lanczos3: downscaling to 32px has to hold thin strokes together, and
-      // the default kernel softens them into the background.
+      // lanczos3 keeps thin strokes together at 32px.
       await sharp(source)
         .resize(FAVICON_PNG_SIZE, FAVICON_PNG_SIZE, { kernel: "lanczos3" })
         .png({ compressionLevel: 9 })

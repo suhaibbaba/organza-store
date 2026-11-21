@@ -4,13 +4,7 @@ import en from "@/lib/email/messages/en.json";
 import he from "@/lib/email/messages/he.json";
 import type { SupportedLanguage } from "@/types/common";
 
-// Translations for the emails the backend sends.
-//
-// Same shape as the frontends' next-intl catalogues (one JSON file per
-// language, dotted keys, {placeholders}) so a translator sees one system, not
-// two — but next-intl itself is a Next.js library and this is Express, so the
-// lookup is these fifteen lines instead. CLAUDE.md rule 12 holds either way:
-// nothing user-facing is written in a .ts file.
+// Email translations in the frontends' JSON shape; a tiny lookup instead of next-intl, which is Next-only.
 
 const CATALOGUES: Record<SupportedLanguage, unknown> = { ar, en, he };
 
@@ -38,12 +32,7 @@ function lookup(catalogue: unknown, key: string): string | null {
   return typeof node === "string" ? node : null;
 }
 
-/**
- * Translate `key` into `language`, filling `{placeholders}` from `values`.
- * Falls back to the default language when a translation is missing
- * (CLAUDE.md rule 9), and — if even that is missing — to the key itself,
- * which makes the gap obvious in a preview instead of rendering "undefined".
- */
+/** Falls back to the default language (rule 9), then to the key itself, so a gap shows in a preview. */
 export function t(language: SupportedLanguage, key: string, values: Record<string, string | number> = {}): string {
   const template = lookup(CATALOGUES[language], key) ?? lookup(CATALOGUES[DEFAULT_LANGUAGE], key) ?? key;
   return template.replace(/\{(\w+)\}/g, (match, name: string) => (name in values ? String(values[name]) : match));

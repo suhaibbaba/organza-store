@@ -4,9 +4,7 @@ import { passwordTokens } from "@/lib/passwordTokenStore";
 import { loadStoreName, storeNameIn } from "@/lib/storeName";
 import type { PasswordTokenPurpose } from "@/types/passwordSetup";
 
-// Issuing a password link and putting it in the post, in one place, so the
-// three callers that need it (creating a user, an Admin triggering a reset,
-// and the public "I forgot" endpoint) cannot each get it subtly different.
+// Issues and emails a password link for all three callers (create user, Admin reset, "I forgot"), so they cannot differ.
 
 export interface PasswordSetupInvite {
   /** The link that was emailed. Returned to Admin-only callers; never logged. */
@@ -14,18 +12,7 @@ export interface PasswordSetupInvite {
   expiresAt: Date;
 }
 
-/**
- * Mint a single-use link for `user` and email it.
- *
- * The token is created and stored (hashed) synchronously — the caller needs
- * to know the link exists — but the MAIL goes out in the background and can
- * never fail the operation that triggered it. Creating a member of staff
- * succeeds even if the mail provider is down; the failure lands in error
- * tracking, and an Admin can trigger another one from the users screen.
- *
- * Call this AFTER the transaction that created or changed the user has
- * committed. Nothing here participates in it.
- */
+/** Stores the hashed token now and mails in the background, so mail never fails the caller; call after commit. */
 export async function sendPasswordSetupEmail(
   user: { id: string; name: string; email: string },
   purpose: PasswordTokenPurpose,
@@ -34,9 +21,7 @@ export async function sendPasswordSetupEmail(
   const issued = await passwordTokens.issue(user.id, purpose);
   const storeName = storeNameIn(await loadStoreName(), config.defaultLanguage);
 
-  // A staff member has no stored language preference — there is no field for
-  // one, and the shop runs in one language. So the email is written in the
-  // store's default (CLAUDE.md rule 14: read it, never hard-code it).
+  // Written in the store's default language from Settings (rule 14).
   const rendered = renderPasswordSetupEmail({
     language: config.defaultLanguage,
     name: user.name,
@@ -48,8 +33,7 @@ export async function sendPasswordSetupEmail(
 
   sendEmailInBackground(
     { to: user.email, subject: rendered.subject, html: rendered.html, text: rendered.text },
-    // Enough to find the user in the audit log, and nothing that would put a
-    // working link into an error report.
+    // Enough to find the user in the audit log, never a working link.
     { userId: user.id, purpose },
   );
 

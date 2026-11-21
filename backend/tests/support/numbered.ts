@@ -1,8 +1,4 @@
-// Helpers for the numbered-shawl suite: a product that declares itself
-// numbered (isNumbered — spec.md "Numbered shawls"; the kind is an explicit
-// choice, never inferred from the variant types it uses) and is built on the
-// global Number variant type, with the stock of each number set to a known
-// figure so every assertion starts from a fixed point.
+// A product flagged isNumbered on the global Number type, each number's stock set to a known figure.
 import { apiRequest, uniqueId } from "@tests/support/client";
 import { anyCategoryId, firstTwoNumberValueIds } from "@tests/support/fixtures";
 import type { ProductDto } from "@tests/types";
@@ -13,8 +9,7 @@ export interface NumberedShawl {
   numbers: ProductDto["variants"];
 }
 
-// `stocks` is applied to the numbers in order — pass a 0 to model a number
-// that is sold out (it must still be listed, just flagged unavailable).
+// Applied to the numbers in order; a 0 models a sold-out number, which is still listed.
 export async function createNumberedShawl(
   adminToken: string,
   options: { basePrice?: string; stocks?: [number, number] } = {},

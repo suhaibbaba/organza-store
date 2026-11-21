@@ -14,20 +14,7 @@ import { ORDER_COLLECTION_SUMMARY_QUERY_KEY, ORDER_DETAIL_QUERY_KEY, ORDER_LIST_
 import { REPORTS_SALES_QUERY_KEY, REPORTS_SUMMARY_QUERY_KEY } from "@/constants/reports";
 import { USERS_LIST_QUERY_KEY } from "@/constants/users";
 
-// Which screens a change makes wrong, in one place.
-//
-// Every mutation in the admin ends by calling one of these. They are written
-// per *thing that changed*, not per endpoint, because one write is usually
-// visible on several screens: a photo shows on the product page and in the
-// list, a sale moves stock, the money owed, the dashboard and the reports at
-// once. Keeping that map here — instead of a queryClient call at each call
-// site — is what stops a new screen from quietly going stale.
-//
-// react-query matches query keys by prefix, so invalidating
-// [PRODUCT_LIST_QUERY_KEY] covers the list (keyed [key, filters]) and every
-// product's detail (keyed [key, id]) together. Where a specific id is known
-// it is invalidated explicitly too, so the intent is readable rather than
-// resting on that.
+// Which screens a change makes stale, per thing changed, so a new screen can't quietly go stale.
 
 function invalidateProductViews(queryClient: QueryClient, productId?: string) {
   void queryClient.invalidateQueries({ queryKey: [PRODUCT_LIST_QUERY_KEY] });
@@ -71,10 +58,7 @@ export function useCacheInvalidation(): CacheInvalidation {
         }
         // What the delivery company still owes.
         void queryClient.invalidateQueries({ queryKey: ORDER_COLLECTION_SUMMARY_QUERY_KEY });
-        // Every order mutation can move stock: creating deducts it (STORE) or
-        // commits it later (online), advancing to PREPARING deducts it, and
-        // cancelling, returning or deleting puts it back — so the catalogue
-        // views go with it, or they keep showing quantities that aren't true.
+        // Every order mutation can move stock, so the catalogue views go with it.
         invalidateProductViews(queryClient);
         // A sale, a cancellation or a return all change the sales figures.
         void queryClient.invalidateQueries({ queryKey: REPORTS_SUMMARY_QUERY_KEY });
@@ -83,25 +67,19 @@ export function useCacheInvalidation(): CacheInvalidation {
 
       categoriesChanged() {
         void queryClient.invalidateQueries({ queryKey: CATEGORIES_QUERY_KEY });
-        // Product rows and the product page print their category's name, and
-        // renaming a category has to reach them (CLAUDE.md rule 2: the name
-        // is referenced, never copied).
+        // Product views print the category's name, which is referenced, not copied (rule 2).
         invalidateProductViews(queryClient);
       },
 
       variantTypesChanged() {
         void queryClient.invalidateQueries({ queryKey: VARIANT_TYPES_QUERY_KEY });
-        // Variant rows are labelled with their option values, so a new value
-        // has to be readable on the product it was just added from.
+        // Variant rows are labelled with their option values.
         void queryClient.invalidateQueries({ queryKey: [PRODUCT_LIST_QUERY_KEY] });
       },
 
       settingsChanged() {
         void queryClient.invalidateQueries({ queryKey: SETTINGS_QUERY_KEY });
-        // The currency every price is printed in, and the low-stock threshold
-        // the dashboard tile and the inventory filter both count against
-        // (CLAUDE.md rule 14 — the threshold lives in settings, so changing
-        // it changes what those screens say).
+        // Settings hold the currency and the low-stock threshold those screens count against (rule 14).
         void queryClient.invalidateQueries({ queryKey: DASHBOARD_SUMMARY_QUERY_KEY });
         void queryClient.invalidateQueries({ queryKey: [INVENTORY_LIST_QUERY_KEY] });
       },

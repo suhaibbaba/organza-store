@@ -2,55 +2,40 @@ import type { BarcodeSource } from "@store/shared/types/product";
 
 export type { BarcodeSource };
 
-// The barcode half of a create/update body, once Zod has normalized it
-// (shared/schemas/product.ts). `barcode` is read ONLY when `barcodeSource` is
-// SUPPLIER — a code with no source attached is never taken as a decision,
-// because which of the two a piece uses is stored, not inferred.
+// The normalized barcode half of a body; `barcode` is read only when barcodeSource is SUPPLIER.
 export interface BarcodeInput {
   barcodeSource?: BarcodeSource;
   barcode?: string;
 }
 
-// What a product or variant row currently holds. `generatedBarcode` is the
-// code we minted, parked while a supplier code is in use.
+// What a row holds now; `generatedBarcode` is ours, parked while a supplier code is in use.
 export interface BarcodeState {
   barcode: string | null;
   barcodeSource: BarcodeSource;
   generatedBarcode: string | null;
 }
 
-// The columns to write. The resolver returns null instead when nothing about
-// the barcode changed — the callers merge this into a larger update, so an
-// untouched barcode must not appear in it at all.
+// The columns to write; null when the barcode is untouched.
 export type BarcodePatch = BarcodeState;
 
-// A resolved edit: the columns to write, plus whether the code that came out is
-// one nobody has ever printed. That only happens switching back to ours with no
-// parked code to restore, and it means whatever label is on the piece now says
-// something else — so the caller puts the product back in the "still to print"
-// queue (labelsPrintedAt = null).
+// A resolved edit plus whether the code was never printed, which puts the product back in the label queue.
 export interface BarcodeUpdate {
   data: BarcodePatch;
   mintedFresh: boolean;
 }
 
-// Which row is asking, so the uniqueness check can ignore the code the row
-// already owns (re-saving a form must not clash with itself).
+// Which row is asking, so its own code is no clash.
 export interface BarcodeOwner {
   productId?: string;
   variantId?: string;
 }
 
-// What a rejected duplicate clashed with, carried in the error's `details` so
-// the screen can name it: "already used by ORG-00042-3". Without it "this
-// barcode is already used" is unanswerable — the user cannot tell whether
-// they scanned the wrong tag or the right tag onto the wrong piece.
+// What a duplicate clashed with, so the screen can name it ("already used by ORG-00042-3").
 export interface BarcodeConflict {
   kind: "product" | "variant";
   sku: string | null;
   productId: string;
   variantId: string | null;
-  // The piece holding the code has been soft-deleted (CLAUDE.md rule 4), so
-  // it still owns the code but is nowhere to be found in the catalogue.
+  // The holder is soft-deleted (rule 4): it still owns the code but is out of the catalogue.
   deleted: boolean;
 }

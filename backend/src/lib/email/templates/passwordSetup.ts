@@ -9,9 +9,7 @@ import { logoUrlFor, renderLayout, renderText } from "@/lib/email/templates/layo
 import type { EmailLayoutInput, RenderedEmail } from "@/types/email";
 import type { SupportedLanguage } from "@/types/common";
 
-// "Set your password" and "Reset your password" — one template, because they
-// are the same email with a different reason on it, and keeping them together
-// is what stops the branding of one drifting away from the other.
+// Set and reset share one template, so their branding cannot drift apart.
 
 const NAMESPACE: Record<PasswordTokenPurpose, string> = {
   SET: "passwordSet",
@@ -30,11 +28,7 @@ export interface PasswordSetupEmailInput {
   adminUrl: string;
 }
 
-/**
- * The link the button points at. Locale-prefixed because every admin route is
- * (`/ar/set-password?token=…`), and in the recipient's own language: somebody
- * reading an Arabic email should not arrive on an English screen.
- */
+/** The button's link, locale-prefixed like every admin route, in the recipient's language. */
 export function passwordSetupUrl(input: Pick<PasswordSetupEmailInput, "adminUrl" | "language" | "token">): string {
   const url = new URL(`${input.adminUrl.replace(/\/+$/, "")}/${input.language}/${PASSWORD_SETUP_PATH}`);
   url.searchParams.set(PASSWORD_SETUP_TOKEN_PARAM, input.token);

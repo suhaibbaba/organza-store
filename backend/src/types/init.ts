@@ -8,13 +8,7 @@ export interface InitAccountDetails {
   role: Role;
 }
 
-/**
- * One thing wrong with the roster file, located precisely enough to fix
- * without guessing: which entry, which field, and what is wrong with it.
- *
- * `entry` is how a human finds the row — its email when there is one to read,
- * and its position when there is not.
- */
+/** One roster problem: which entry (email, else position), which field, and what is wrong. */
 export interface StaffFileProblem {
   entry: string;
   field?: string;
@@ -35,11 +29,7 @@ export interface InitAccountResult {
   expiresAt: Date;
 }
 
-/**
- * Everything `createInitialStaff` needs from the world. Injected so the
- * refusal and the ordering can be proven without a database, a mail provider
- * or a terminal (see tests/unit/init.test.ts).
- */
+/** createInitialStaff's dependencies, injected so its refusal and ordering are testable. */
 export interface InitDependencies {
   countUsers(): Promise<number>;
   /** Creates the account with NO usable password. */

@@ -8,12 +8,7 @@ export function isInstalledApp(): boolean {
   return iosStandalone || window.matchMedia("(display-mode: standalone)").matches;
 }
 
-// The two conditions the app's own pull-to-refresh needs: installed (a tab
-// still has the browser's own gesture, and two would fight) and a finger to
-// pull with. Shaped for useSyncExternalStore — read from the browser rather
-// than mirrored into state, so it can't go stale and there is nothing to set
-// in an effect. Both media queries are watched, since an installed app can
-// be opened on a device that gains a mouse (a tablet with a keyboard case).
+// Installed (a tab has the browser's gesture) and touch; read live, since a tablet can gain a mouse.
 
 const STANDALONE_QUERY = "(display-mode: standalone)";
 const COARSE_POINTER_QUERY = "(pointer: coarse)";

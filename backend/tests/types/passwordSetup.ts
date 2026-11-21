@@ -1,14 +1,7 @@
 import type { PasswordTokenPurpose } from "@store/shared/constants/passwordSetup";
 import type { SerializableUser } from "@/types";
 
-/**
- * A staff row as the API returns it: the user PLUS whether the account has
- * ever been finished off.
- *
- * `hasPassword` is what tells "invited, waiting on their link" apart from
- * "signed in and working" — the two are otherwise identical on the wire, and
- * both are `isActive: true`.
- */
+/** A staff row plus hasPassword, which tells "invited" from "signed in"; both are isActive. */
 export interface StaffAccountView extends SerializableUser {
   hasPassword: boolean;
   /** Whether this account has ever done anything — see lib/userHistory.ts. */

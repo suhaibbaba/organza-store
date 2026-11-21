@@ -5,30 +5,9 @@ import { claimedImageBases, deleteOrphanedUploads, imageFileNames, type ImageFil
 import { MISSING_IMAGE_EXAMPLES } from "@/constants";
 import type { ImageSyncSummary } from "@/types";
 
-// ============================================================================
-//  The photographs.
-//
-//  Importing the ProductImage rows alone would give the sandbox a catalogue of
-//  broken images, so the files come too: every size file an imported row
-//  claims is copied out of production's UPLOAD_DIR, and whatever the previous
-//  catalogue left behind is removed.
-//
-//  Nothing here is allowed to fail the run. The database is already committed
-//  by the time this starts, and a photograph that was deleted off the live
-//  server months ago must not turn a successful import into an error — a
-//  missing file is counted and named, not thrown.
-// ============================================================================
+// Copies the photo files imported rows claim and removes leftovers; never fails the run, the database is already committed.
 
-/**
- * The originals come across with the three sizes (spec.md "Editing a
- * photograph on upload"): without them the sandbox's catalogue would look
- * right and refuse to re-crop anything, which is a worse kind of copy than an
- * obviously incomplete one.
- *
- * @param sourceDir production's uploads directory as this machine sees it, or
- *                  null when the run was told to leave the files alone.
- * @param images    the imported image rows, which name the files they claim.
- */
+/** Originals come across with the three sizes, or the sandbox could not re-crop; sourceDir null means skip the files. */
 export async function syncImageFiles(
   sourceDir: string | null,
   images: ImageFileRef[],
@@ -41,8 +20,7 @@ export async function syncImageFiles(
   }
 
   if (sourceDir === null) {
-    // Still worth clearing up after the catalogue that was just wiped: those
-    // files belong to nothing at all now.
+    // Still worth clearing up after the catalogue that was just wiped: those files belong to nothing at all now.
     const cleaned = await deleteOrphanedUploads(claimed);
     return {
       skipped: true,

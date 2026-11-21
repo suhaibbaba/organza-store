@@ -1,20 +1,7 @@
-// What this run has created, so it can be taken away again.
-//
-// A leaf module on purpose: it imports nothing, which is what lets
-// tests/support/client.ts feed it from inside every request without a cycle
-// (client -> registry, cleanup -> client + registry).
-//
-// Registration is AUTOMATIC. Rather than asking every test to remember,
-// apiRequest reports each successful create back here — so a fixture is
-// tracked whether it was made by a helper, by a verify test or by one of the
-// older API suites, and "self-cleaning" is not a discipline anybody has to
-// keep.
+// A leaf module (imports nothing) so client.ts can feed it from every request without a cycle.
 import type { FixtureKind, FixtureRecord } from "@tests/types";
 
-// Paths whose successful POST creates something that has to be cleaned up.
-// Matched EXACTLY against the path with its query string removed, so
-// /api/orders is tracked while /api/orders/collect and
-// /api/products/labels/printed are not.
+// Matched exactly, query string removed: /api/orders is tracked, /api/orders/collect is not.
 const CREATE_ROUTES: Readonly<Record<string, FixtureKind>> = {
   "/api/products": "product",
   "/api/orders": "order",
@@ -39,29 +26,16 @@ export function registerFixture(kind: FixtureKind, id: string): void {
   }
 }
 
-// When this process started. A change request older than that was not asked
-// for by this run — it belongs to the seed, or to the shop — so it is left
-// exactly where it is. Without this, merely READING a product that already
-// had something waiting on it would enrol somebody else's request for
-// rejection at teardown.
+// A request older than this run is the shop's or the seed's, and is never rejected at teardown.
 const RUN_STARTED_AT = Date.now();
 
 function askedForByThisRun(entry: { requestedAt?: unknown }): boolean {
   const requestedAt = typeof entry.requestedAt === "string" ? Date.parse(entry.requestedAt) : NaN;
-  // An entry with no usable timestamp is treated as somebody else's: the cost
-  // of leaving one behind is a stale row, the cost of guessing wrong is
-  // rejecting a request the shop was waiting on.
+  // No usable timestamp means somebody else's: a stale row beats rejecting a request the shop was waiting on.
   return Number.isFinite(requestedAt) && requestedAt >= RUN_STARTED_AT;
 }
 
-/**
- * Anything still waiting for an Admin that this run asked for.
- *
- * A gated Employee edit answers with the request it filed rather than
- * applying (spec.md "Employee change approvals"), so these arrive on ordinary
- * PATCH responses rather than on a create — and left behind they would sit in
- * the shop's approval list and on its navigation badge.
- */
+/** Requests this run filed: gated edits answer with them on ordinary PATCH responses. */
 function harvestChangeRequests(value: unknown, depth = 0): void {
   if (depth > 6 || value === null || typeof value !== "object") {
     return;
@@ -85,8 +59,7 @@ function harvestChangeRequests(value: unknown, depth = 0): void {
     }
   }
 
-  // Nested one level down as well: a product carries its own pendingChanges,
-  // and a change request's approval response carries the entity it touched.
+  // One level down too: a product carries pendingChanges, an approval carries its entity.
   for (const nested of Object.values(record)) {
     harvestChangeRequests(nested, depth + 1);
   }

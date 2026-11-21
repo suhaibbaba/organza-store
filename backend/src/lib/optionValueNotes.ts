@@ -5,29 +5,9 @@ import { AppError } from "@/lib/response";
 import { ERROR_CODES } from "@/constants";
 import type { DbClient } from "@/types";
 
-// Writing the notes a product carries on its option values (spec.md "Notes on
-// a product's options").
-//
-// The scope is the whole point: a note belongs to (this product, this value),
-// so "طول البنطلون ٩٥ سم" written against a pair of trousers' S can never
-// appear on an abaya's S. That is the composite primary key, and it is why
-// this never touches VariantOptionValue itself.
-//
-// Semantics, deliberately upsert-per-entry rather than replace-the-lot:
-//   { optionValueId, note: {...} } — write (or overwrite) that value's note
-//   { optionValueId, note: null }  — remove it
-//   a value not mentioned at all   — left exactly as it was
-// so a screen can send one changed note without having to resend the rest,
-// and no note is ever lost to a request that simply did not know about it.
+// A note belongs to (this product, this value), so one product's note never shows on another's same value.
 
-/**
- * Which option values this product is allowed to carry notes for: the values
- * belonging to the variant types the product uses.
- *
- * A note keyed to anything else would be invisible for ever — nothing draws a
- * value the product does not have — so it is refused by name rather than
- * stored where nobody will find it.
- */
+/** Only values of the variant types this product uses may carry notes; anything else would never be seen, so it is refused. */
 export async function assertOptionValueNotesUsable(
   notes: OptionValueNoteInput[] | undefined,
   variantTypeIds: string[],
@@ -48,8 +28,7 @@ export async function assertOptionValueNotesUsable(
 
   for (const id of optionValueIds) {
     const variantTypeId = found.get(id);
-    // A value that does not exist at all is the same mistake reported the way
-    // every other unknown value is.
+    // A value that does not exist at all is the same mistake reported the way every other unknown value is.
     if (!variantTypeId) {
       throw new AppError(400, ERROR_CODES.VARIANT_TYPE_VALUE_NOT_FOUND);
     }
@@ -59,13 +38,7 @@ export async function assertOptionValueNotesUsable(
   }
 }
 
-/**
- * Applies a request's notes to one product.
- *
- * `variantTypeIds` is which types the product uses AFTER this request — the
- * selections being created, or the types already stored on an update — so a
- * note may be written in the same breath as the option it explains.
- */
+/** Applies a request's notes; `variantTypeIds` are the types after this request, so a note can come with its new option. */
 export async function applyOptionValueNotes(
   productId: string,
   notes: OptionValueNoteInput[] | undefined,
@@ -76,19 +49,15 @@ export async function applyOptionValueNotes(
     return;
   }
 
-  // Last entry wins if the same value is sent twice, rather than two writes
-  // racing to be the one that stuck.
+  // Last entry wins if the same value is sent twice, rather than two writes racing to be the one that stuck.
   const byValueId = new Map(notes.map((entry) => [entry.optionValueId, entry.note]));
   await assertOptionValueNotesUsable(notes, variantTypeIds, client);
 
   for (const [optionValueId, raw] of byValueId) {
-    // Blank in every language means the same thing as an explicit null: no
-    // note. A form posts all three boxes whether or not they were filled in,
-    // so this is the common way a note is cleared.
+    // Blank in every language means no note — the usual way a note is cleared.
     const note = normalizeOptionValueNote(raw);
     if (note === null) {
-      // Removing one that was never there is not an error — the caller asked
-      // for "no note on this value", and that is what it now has.
+      // Removing a note that was never there is not an error.
       await client.productOptionValueNote.deleteMany({ where: { productId, optionValueId } });
       continue;
     }

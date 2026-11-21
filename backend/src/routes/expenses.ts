@@ -33,37 +33,13 @@ import {
 } from "@/constants";
 import type { ExpenseApprovalStatus } from "@/types";
 
-// Expenses (spec.md "Cash drawer & expenses") — the other half of the profit
-// sum: orders say what came in, these say what went out.
-//
-// The gates, all enforced here rather than in the UI:
-//   * expense.create  — every role. Whoever pays the electricity bill should
-//                       be able to write it down there and then.
-//   * expense.view    — Admin/Manager. The expense list is the shop's
-//                       spending laid bare.
-//   * expense.manage  — Admin/Manager. Editing or deleting after the fact.
-//   * expense.approve — Admin/Manager. Recording spending that counts the
-//                       moment it is written, rather than as a request.
-//
-// And the rule that makes "anyone can record one" safe: an expense recorded
-// by someone WITHOUT expense.approve opens PENDING and counts for nothing —
-// not against the drawer, not against profit — until it is approved. That is
-// decided by the caller's role, never by the request body.
-//
-// WHERE THE APPROVAL WENT (spec.md "Employee change approvals"): there used
-// to be POST /:id/approve and POST /:id/reject here. There is one approval
-// mechanism in the shop now, so a pending expense files an ordinary change
-// request (entityType "Expense", field "approvalStatus") and is decided
-// through /api/change-requests like every other gated change. The columns on
-// Expense stay exactly as they were — they are the APPLIED state, and every
-// money query in the shop still filters on "only approved expenses count".
+// Expenses: create is every role's, view and manage are Admin/Manager; an Employee's expense opens PENDING.
 const router = Router();
 router.use(requireAuth);
 
 const expenseInclude = {
   category: { select: { id: true, key: true, name: true } },
-  // Just id + name of whoever recorded/signed it off — nothing else about a
-  // staff member belongs on a financial record (CLAUDE.md rule 19).
+  // Only id + name of who recorded or approved it — nothing more about staff on a financial record.
   createdBy: { select: { id: true, name: true } },
   approvedBy: { select: { id: true, name: true } },
 } satisfies Prisma.ExpenseInclude;
@@ -83,9 +59,7 @@ async function requireCategory(categoryId: string): Promise<void> {
   }
 }
 
-// ---------------------------------------------------------------------------
 // GET /api/expenses — list (pagination + filtering + sorting)
-// ---------------------------------------------------------------------------
 router.get(
   "/",
   requirePermission("expense.view"),
@@ -137,9 +111,7 @@ router.get(
   }),
 );
 
-// ---------------------------------------------------------------------------
 // GET /api/expenses/:id
-// ---------------------------------------------------------------------------
 router.get(
   "/:id",
   requirePermission("expense.view"),
@@ -148,10 +120,7 @@ router.get(
   }),
 );
 
-// ---------------------------------------------------------------------------
-// POST /api/expenses — record one. Every role may; an Employee's opens
-// PENDING (see the module comment).
-// ---------------------------------------------------------------------------
+// POST /api/expenses — any role may record one; an Employee's opens PENDING.
 router.post(
   "/",
   requirePermission("expense.create"),
@@ -160,9 +129,7 @@ router.post(
     const body = req.body as CreateExpenseInput;
     await requireCategory(body.categoryId);
 
-    // The whole approval rule, in one line: someone who could approve this
-    // anyway has nothing to wait for, so their own expense is APPROVED as it
-    // is written. Everyone else's is a request.
+    // Someone who could approve it anyway has their own expense APPROVED at once; everyone else's is a request.
     const selfApproving = can(req.user!, "expense.approve");
     const approvalStatus = (
       selfApproving ? APPROVED_EXPENSE_APPROVAL_STATUS : PENDING_EXPENSE_APPROVAL_STATUS
@@ -173,8 +140,7 @@ router.post(
       data: {
         categoryId: body.categoryId,
         amount: body.amount,
-        // Defaults to now: the common case is writing a bill down as it is
-        // paid. An explicit date is what backdates last week's electricity.
+        // Defaults to now; an explicit date backdates.
         date: body.date ?? now,
         note: body.note ?? null,
         paidInCash: body.paidInCash,
@@ -195,9 +161,7 @@ router.post(
       newValue: serializeExpense(created),
     });
 
-    // An expense that opens PENDING is a request like any other, so it goes
-    // on the same approval screen and notifies the same people. Nothing here
-    // is expense-specific beyond the values.
+    // A PENDING expense is an ordinary change request: same approval screen, same notifications.
     const pendingChange = selfApproving
       ? null
       : await fileChangeRequest(req.user!, {
@@ -219,10 +183,7 @@ router.post(
   }),
 );
 
-// ---------------------------------------------------------------------------
-// PATCH /api/expenses/:id — Admin/Manager. An Employee cannot revise what
-// they submitted; that is what approval is for.
-// ---------------------------------------------------------------------------
+// PATCH /api/expenses/:id — Admin/Manager; an Employee cannot revise what they submitted.
 router.patch(
   "/:id",
   requirePermission("expense.manage"),
@@ -261,10 +222,7 @@ router.patch(
   }),
 );
 
-// ---------------------------------------------------------------------------
-// DELETE /api/expenses/:id — soft delete. An expense is a financial record,
-// so it is hidden rather than destroyed (the same reasoning as an order).
-// ---------------------------------------------------------------------------
+// DELETE /api/expenses/:id — soft delete: a financial record is hidden, never destroyed.
 router.delete(
   "/:id",
   requirePermission("expense.manage"),
@@ -273,8 +231,7 @@ router.delete(
 
     const deleted = await prisma.$transaction(async (tx) => {
       const row = await tx.expense.update({ where: { id: existing.id }, data: { deletedAt: new Date() } });
-      // A deleted expense is not waiting on anybody: leaving its approval on
-      // the screen would offer an Admin a decision about a hidden record.
+      // A deleted expense's pending approval goes too.
       await cancelPendingChangesFor(tx, [{ entityType: CHANGE_REQUEST_ENTITIES.EXPENSE, entityId: existing.id }]);
       return row;
     });

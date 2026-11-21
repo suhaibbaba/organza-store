@@ -1,29 +1,11 @@
-// Does the picture the server cuts match the picture the shop framed?
-//
-// The admin's editor never sends an image (spec.md "Editing a photograph on
-// upload") — it sends a rectangle, a quarter turn and a mirror, and sharp cuts
-// that out of the uploaded file at full quality. The whole feature therefore
-// rests on one piece of arithmetic, resolveImageEditOps in shared, and on the
-// order sharp applies things in, which is fixed, undocumented in places, and
-// easy to get wrong: the crop is mapped back into the UPLOADED file's own
-// coordinates precisely because the cut happens before the turn. A mistake
-// there is invisible in code review and obvious to the shop: a dress cropped
-// to its sleeve.
-//
-// So this checks the arithmetic against a reference written the other way
-// round — the transform as the EDITOR performs it, mirror then turn, as a
-// plain per-pixel lookup — over every combination of turn, mirror and crop.
-// Each pixel of the test image encodes its own coordinates, so a mismatch
-// names exactly which pixel came from where.
+// The server's cut must match the editor's frame: checked against a per-pixel reference over every turn, mirror and crop.
 import { describe, expect, it } from "vitest";
 import sharp from "sharp";
 import { resolveImageEditOps, type ImageEdit } from "@store/shared/lib/imageEdit";
 import { IMAGE_ROTATIONS } from "@store/shared/constants/image";
 import { editedImage } from "@/lib/image";
 
-// Portrait, like every garment photograph in the shop, and small enough that
-// a failure prints readably. Deliberately not square: a square image hides
-// exactly the bugs this is looking for.
+// Portrait and not square, since a square hides exactly these bugs; small so failures print readably.
 const WIDTH = 8;
 const HEIGHT = 12;
 
@@ -49,13 +31,7 @@ function frameSize(rotation: number): { width: number; height: number } {
   return rotation === 90 || rotation === 270 ? { width: HEIGHT, height: WIDTH } : { width: WIDTH, height: HEIGHT };
 }
 
-/**
- * The reference: what the person in the shop is looking at.
- *
- * Written as the inverse lookup a canvas does — for each pixel of the frame,
- * which pixel of the original is under it — because that is how the browser
- * draws the preview, and the preview is what "the saved image matches" means.
- */
+/** The reference: the inverse lookup the browser preview draws, i.e. what the shop is looking at. */
 function referenceFrame(edit: ImageEdit): string[][] {
   const frame = frameSize(edit.rotation);
   const rows: string[][] = [];
@@ -100,16 +76,7 @@ function croppedReference(edit: ImageEdit): string[][] {
     .map((row) => row.slice(left, left + Math.round(edit.crop!.width * size.width)));
 }
 
-/**
- * What the API actually produces — through the API's OWN pipeline.
- *
- * `editedImage` is the function the upload endpoint uses, resize step and
- * all, rather than a copy of its calls written out here: sharp's ordering
- * rules are strict enough (a rotate before a resize refuses a perfectly valid
- * crop outright) that a copy would eventually pass while the real thing
- * failed. The bound is far larger than this test's image, so nothing is
- * scaled and the pixels stay comparable.
- */
+/** The API's own pipeline (editedImage), not a copy: sharp's ordering rules would let a copy pass while the real one failed. */
 async function serverResult(edit: ImageEdit): Promise<string[][]> {
   const ops = resolveImageEditOps(edit, { width: WIDTH, height: HEIGHT });
   const { data, info } = await editedImage(await sourceImage(), ops, 1600)
@@ -139,8 +106,7 @@ describe("Image edits (crop, turn, mirror)", () => {
             crop: { x: 2 / frame.width, y: 3 / frame.height, width: 4 / frame.width, height: 6 / frame.height },
           },
           {
-            // The corner a right-to-left layout starts from is still the
-            // frame's own origin: the crop is geometry, not reading order.
+            // An RTL layout's starting corner is still the frame's origin: the crop is geometry, not reading order.
             label: "2:3 crop at the origin",
             crop: { x: 0, y: 0, width: 2 / frame.width, height: 3 / frame.height },
           },
@@ -161,16 +127,12 @@ describe("Image edits (crop, turn, mirror)", () => {
       { crop: { x: 0, y: 0, width: 1, height: 1 }, rotation: 0, flipHorizontal: false, flipVertical: false },
       { width: WIDTH, height: HEIGHT },
     );
-    // No extract, no mirror, no turn: the pipeline is what it was before any
-    // of this existed, so an un-edited upload cannot be changed by it.
+    // No extract, mirror or turn, so an unedited upload is unchanged.
     expect(ops).toEqual({ extract: null, flop: false, flip: false, rotation: 0 });
   });
 
   it("never asks sharp for a region outside the file", () => {
-    // A crop that claims the whole frame at every turn still has to resolve
-    // inside the original's own bounds — sharp throws on a region that runs
-    // over the edge, and a thrown extract is a 500 for a photograph that is
-    // perfectly fine.
+    // A full-frame crop at every turn must stay inside the original, or sharp throws and a fine photo is a 500.
     for (const rotation of IMAGE_ROTATIONS) {
       const ops = resolveImageEditOps(
         { crop: { x: 0.5, y: 0.5, width: 0.5, height: 0.5 }, rotation, flipHorizontal: true, flipVertical: true },

@@ -14,25 +14,13 @@ export function initVariantEdits(variants: Variant[]): Record<string, VariantEdi
       cost: variant.cost ?? "",
       isActive: variant.isActive,
       barcodeSource: variant.barcodeSource,
-      // Only a supplier code is editable; ours is shown read-only from the
-      // variant itself.
       barcode: variant.barcodeSource === BARCODE_SOURCE.SUPPLIER ? (variant.barcode ?? "") : "",
     };
   }
   return map;
 }
 
-// Only the fields that actually changed vs. the loaded variant go into the
-// PATCH body — an unchanged priceOverride/cost stays untouched rather than
-// being resent (both accept `null` to explicitly clear back to the parent's
-// fallback, CLAUDE.md rule 3) — and only the fields this user may write at
-// all (see ProductEditAbilities; the backend gates each one).
-//
-// `baseline` is what the form showed when it opened. A field the person never
-// touched is left out even when the variant has moved on since — the numbered
-// shawl editor, on the same page, saves a number's quantity on its own, and
-// comparing the form's stale copy against the refreshed variant sent the old
-// quantity straight back over it.
+// Only fields the user changed and may write; untouched ones are left out even if the variant has since moved on.
 export function diffVariantEdit(
   original: Variant,
   edits: VariantEditValues,
@@ -72,10 +60,7 @@ export function diffVariantEdit(
     changed = true;
   }
 
-  // Ours or the supplier's, per variant. Sent only when the answer (or the
-  // supplier's code) actually changed: resending SUPPLIER with the same code is
-  // harmless but resending GENERATED on every save would be noise in the audit
-  // trail of every unrelated edit.
+  // Only when it changed, or every unrelated edit would add GENERATED to the audit trail.
   const barcode = touched("barcodeSource") || touched("barcode") ? barcodeChange(original, edits) : null;
   if (barcode) {
     Object.assign(patch, barcode);
@@ -88,9 +73,7 @@ export function diffVariantEdit(
 function barcodeChange(original: Variant, edits: VariantEditValues): UpdateVariantInput | null {
   if (edits.barcodeSource === BARCODE_SOURCE.SUPPLIER) {
     const code = normalizeBarcode(edits.barcode);
-    // An empty or malformed code is left out entirely rather than sent to be
-    // refused — the row shows the problem inline, and the form refuses to
-    // submit while one is outstanding (see the product form's onSubmit).
+    // Left out rather than sent to be refused; the row shows the problem and submit is blocked.
     if (!isValidBarcode(code)) {
       return null;
     }
@@ -103,14 +86,11 @@ function barcodeChange(original: Variant, edits: VariantEditValues): UpdateVaria
   if (original.barcodeSource === BARCODE_SOURCE.GENERATED) {
     return null;
   }
-  // Back to ours: the API restores the code it parked when the supplier code
-  // was set, so a label already printed for this variant still scans.
+  // The API restores our parked code, so a label already printed still scans.
   return { barcodeSource: BARCODE_SOURCE.GENERATED };
 }
 
-// Whether this row is holding a supplier code that cannot be saved — an empty
-// box after the toggle was flipped, or something no scanner could have
-// produced. The form asks before it submits, so nothing is silently dropped.
+// An empty or impossible supplier code; the form asks before submitting.
 export function variantBarcodeIncomplete(edits: VariantEditValues): boolean {
   return edits.barcodeSource === BARCODE_SOURCE.SUPPLIER && !isValidBarcode(normalizeBarcode(edits.barcode));
 }

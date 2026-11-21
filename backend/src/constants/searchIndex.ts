@@ -1,5 +1,4 @@
-// The products index, as code: every setting lives here and `npm run search:setup` (and every reindex) applies it.
-// Bump PRODUCTS_INDEX_VERSION when anything below changes, so the change is visible in review and in the setup output.
+// The products index as code, applied by npm run search:setup and every reindex; bump PRODUCTS_INDEX_VERSION on change.
 import { SUPPORTED_LANGUAGES } from "@store/shared/constants/languages";
 
 export const PRODUCTS_INDEX_VERSION = 3;
@@ -24,8 +23,7 @@ export const PRODUCTS_INDEX_SETTINGS = {
   pagination: { maxTotalHits: 1000 },
 } as const;
 
-// Words the shop treats as the same. Write them as people type them; they are normalized before being applied.
-// Each entry: a word, and the words a search for it should also find.
+// Words the shop treats as the same, written as typed (normalized before applying): a word and what it should also find.
 export const PRODUCT_SYNONYMS: Record<string, string[]> = {
   عباية: ["عباءة"],
   عباءة: ["عباية"],

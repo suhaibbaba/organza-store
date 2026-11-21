@@ -1,25 +1,5 @@
 #!/usr/bin/env tsx
-// ============================================================================
-//  npm run backup:record — file the outcome of one off-site backup run.
-//
-//  Called by ops/backup.sh, never by a person and never by the deploy. The
-//  script does the backing up; this is what makes the result findable
-//  afterwards:
-//
-//    * a FAILED run goes to Sentry through the usual layer (lib/logger.ts),
-//      because a backup that broke at 02:30 has nobody watching the terminal;
-//    * either outcome is written to the BackupRun table, which is what
-//      /health serves and `npm run backup:status` prints.
-//
-//  Sentry FIRST, database second, and the database failing does not fail the
-//  command. The order is the point: the most likely reason a backup failed at
-//  all is that the database was unreachable, and a reporter that needs the
-//  database to report "the database is unreachable" reports nothing.
-//
-//    npm run backup:record -- --status=SUCCEEDED --started-at=<iso> \
-//      --database-bytes=1234 --image-count=88 --image-bytes=5678
-//    npm run backup:record -- --status=FAILED --stage=upload --error="..."
-// ============================================================================
+// npm run backup:record — files one ops/backup.sh run in BackupRun (and a failure to Sentry); never run by hand.
 import "dotenv/config";
 import { prisma } from "@/lib/prisma";
 import { captureException } from "@/lib/logger";
@@ -60,12 +40,7 @@ function readStatus(): BackupRunStatus {
   return raw as BackupRunStatus;
 }
 
-/**
- * An unknown stage is recorded as-is rather than refused. This runs on the
- * error path of something that has already gone wrong, and throwing the whole
- * report away over a typo in a label is the worse trade — BACKUP_STAGE is the
- * set ops/backup.sh uses, not a constraint on what may be written down.
- */
+/** An unknown stage is recorded as-is: this is the error path, and losing the report over a label typo is worse. */
 function readStage(): BackupStage | null {
   const raw = (readFlag(BACKUP_RECORD_FLAGS.stage) ?? "").trim();
   return raw ? (raw as BackupStage) : null;
@@ -117,11 +92,7 @@ async function main(): Promise<void> {
     });
     console.log(`Recorded backup run: ${status}${stage ? ` (stage ${stage})` : ""}`);
   } catch (dbError) {
-    // Deliberately not fatal. The run itself has already succeeded or failed
-    // on its own merits, and turning "we could not write the note about it"
-    // into "the backup failed" would send ops/backup.sh chasing the wrong
-    // problem — and, on a SUCCEEDED run, throw away a backup that is sitting
-    // safely in R2.
+    // Not fatal: failing to record the run must not turn a good backup into a failed one.
     captureException(dbError, {
       check: "backup-run",
       hint: "The backup ran, but its outcome could not be written to the BackupRun table.",

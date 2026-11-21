@@ -17,23 +17,11 @@ import {
 } from "@/validation/expense";
 import { AUDIT_ENTITY, ERROR_CODES } from "@/constants";
 
-// The list an expense is filed under (spec.md "Cash drawer & expenses").
-// Ordinary rows rather than an enum, because the list is the shop's to
-// extend: it starts with utilities/salaries/supplies/maintenance/delivery
-// (seeded) and grows from the admin.
-//
-// Two gates:
-//   * expenseCategory.view   — every role. Picking "Utilities" is part of
-//                              recording an expense, which everyone may do.
-//   * expenseCategory.manage — Admin/Manager. Changing the list reaches every
-//                              past expense filed under it.
+// Expense categories are rows the shop extends; view is everyone's, manage is Admin/Manager.
 const router = Router();
 router.use(requireAuth);
 
-// Not paginated on purpose: this is a picker, and a shop with more than a
-// screenful of expense categories has a different problem. It is still a
-// bounded list (CLAUDE.md rule 15) — bounded by the shop's own list, which it
-// manages here.
+// Unpaginated picker, still bounded by the shop's own list (rule 15).
 const categoryInclude = { _count: { select: { expenses: true } } } satisfies Prisma.ExpenseCategoryInclude;
 
 async function loadCategory(id: string) {
@@ -44,9 +32,7 @@ async function loadCategory(id: string) {
   return category;
 }
 
-// ---------------------------------------------------------------------------
 // GET /api/expense-categories
-// ---------------------------------------------------------------------------
 router.get(
   "/",
   requirePermission("expenseCategory.view"),
@@ -55,8 +41,7 @@ router.get(
     const { includeInactive } = req.validatedQuery as ListExpenseCategoriesQuery;
 
     const categories = await prisma.expenseCategory.findMany({
-      // A retired category still has to render on its past expenses, but it
-      // must not be offered for new ones.
+      // A retired category still has to render on its past expenses, but it must not be offered for new ones.
       where: includeInactive ? {} : { isActive: true },
       include: categoryInclude,
       orderBy: [{ sortOrder: "asc" }, { key: "asc" }],
@@ -66,9 +51,7 @@ router.get(
   }),
 );
 
-// ---------------------------------------------------------------------------
 // POST /api/expense-categories
-// ---------------------------------------------------------------------------
 router.post(
   "/",
   requirePermission("expenseCategory.manage"),
@@ -76,8 +59,7 @@ router.post(
   asyncHandler(async (req, res) => {
     const body = req.body as CreateExpenseCategoryInput;
 
-    // Identity is the key, never the translated name (CLAUDE.md rule 9), so
-    // this is the only uniqueness that matters.
+    // Identity is the key, never the translated name (rule 9).
     const existing = await prisma.expenseCategory.findUnique({ where: { key: body.key } });
     if (existing) {
       throw new AppError(409, ERROR_CODES.EXPENSE_CATEGORY_KEY_DUPLICATE);
@@ -105,11 +87,7 @@ router.post(
   }),
 );
 
-// ---------------------------------------------------------------------------
-// PATCH /api/expense-categories/:id — display name, order, active flag. The
-// key is frozen at creation (the same reasoning as a SKU, CLAUDE.md rule 1):
-// renaming reaches every expense automatically because nothing copies it.
-// ---------------------------------------------------------------------------
+// PATCH /api/expense-categories/:id — name, order, active; the key is frozen at creation.
 router.patch(
   "/:id",
   requirePermission("expenseCategory.manage"),
@@ -141,11 +119,7 @@ router.patch(
   }),
 );
 
-// ---------------------------------------------------------------------------
-// DELETE /api/expense-categories/:id — only while nothing is filed under it.
-// Otherwise the past would stop making sense; retire it (isActive: false)
-// instead, which takes it out of the picker and leaves the record intact.
-// ---------------------------------------------------------------------------
+// DELETE /api/expense-categories/:id — only while unused; otherwise retire it (isActive: false).
 router.delete(
   "/:id",
   requirePermission("expenseCategory.manage"),

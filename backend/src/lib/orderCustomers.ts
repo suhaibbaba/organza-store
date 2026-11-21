@@ -4,15 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { CUSTOMER_SUGGESTION_LIMIT, CUSTOMER_SUGGESTION_SCAN_LIMIT } from "@/constants";
 import type { CustomerSuggestion } from "@/types";
 
-// ============================================================================
-//  Repeat customers, reconstructed from past orders.
-//
-//  There is no Customer table (spec.md "Customer information") — a customer
-//  is a snapshot copied onto each order. So "have we served this number
-//  before?" is answered by reading the most recent order written under it,
-//  which is also the right answer: if the address changed last time, that is
-//  the address to offer back.
-// ============================================================================
+// Repeat customers rebuilt from past orders (there is no Customer table); the newest order holds the latest details.
 
 const suggestionSelect = {
   customerName: true,
@@ -24,12 +16,7 @@ const suggestionSelect = {
   createdAt: true,
 } satisfies Prisma.OrderSelect;
 
-// What to look for inside a stored E.164 number. The query is the digits the
-// cashier has typed, which is normally the national part — matched as a
-// substring so it finds the number whichever prefix it was saved under
-// (+970 and +972 are the same line, CLAUDE.md rule 18). A number typed with
-// its trunk "0" (059…) is tried without it too, since the stored form never
-// carries that zero.
+// Typed digits match inside the stored E.164, so either Palestine prefix is found (rule 18); a leading 0 too.
 function searchCandidates(query: string): string[] {
   const digits = nationalPhoneDigits(query.trim());
   if (!digits) {
@@ -39,11 +26,7 @@ function searchCandidates(query: string): string[] {
   return withoutTrunkZero && withoutTrunkZero !== digits ? [digits, withoutTrunkZero] : [digits];
 }
 
-// Newest-first, one entry per customer, capped. The collapse happens here
-// rather than in SQL because "the same customer" spans two spellings of the
-// same Palestine number, which no single DISTINCT column can express; the
-// scan it reads is bounded (CUSTOMER_SUGGESTION_SCAN_LIMIT) so a customer
-// with a long history can't turn this into an unbounded read.
+// Newest first, one per customer, capped; collapsed here since one customer can span both prefixes; the scan is bounded.
 export async function findCustomerSuggestions(query: string): Promise<CustomerSuggestion[]> {
   const candidates = searchCandidates(query);
   if (candidates.length === 0) {
@@ -64,15 +47,13 @@ export async function findCustomerSuggestions(query: string): Promise<CustomerSu
 
   for (const order of orders) {
     const phone = order.customerPhone;
-    // A STORE sale has no customer on it at all; `contains` can't match a
-    // null, but a caller could still widen the query one day.
+    // A STORE sale has no customer; `contains` can't match null, but guard anyway.
     if (!phone) {
       continue;
     }
 
     const key = phoneIdentityKey(phone);
-    // The rows arrive newest-first, so the first one seen for a number is
-    // already the latest snapshot of that customer.
+    // The rows arrive newest-first, so the first one seen for a number is already the latest snapshot of that customer.
     if (byCustomer.has(key)) {
       continue;
     }

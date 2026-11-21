@@ -13,18 +13,7 @@ import {
 import type { InitAccountDetails, StaffFileProblem, StaffOverrides } from "@/types/init";
 import type { Role } from "@store/shared/types/role";
 
-// Reading and checking the staff roster.
-//
-// `init` creates real accounts for real people in one pass, so EVERY problem
-// with the file is found before the database is touched — a run that creates
-// two accounts and then falls over on a typo in the third leaves a half-built
-// shop that `init` will subsequently refuse to finish (it only ever populates
-// an empty database). So this validates the whole file, collects every
-// problem, and reports them together: one pass of the eyes, one edit, one run.
-//
-// Messages here are console output for whoever is standing at the terminal on
-// go-live day, not UI (CLAUDE.md rule 12 governs what a member of staff reads
-// in the app) — same reasoning as lib/dangerousCommands.ts.
+// Reads and checks the staff roster, collecting every problem before the database is touched.
 
 export class StaffFileError extends Error {
   readonly problems: StaffFileProblem[];
@@ -49,12 +38,7 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-/**
- * A label a human can find the row by. Always leads with the POSITION, then
- * the email when there is a readable one: the position is what you scroll to,
- * and the email alone is ambiguous in exactly the case you most need to find —
- * two entries carrying the same address.
- */
+/** A findable label: position first, then the email if readable. */
 function labelFor(entry: unknown, index: number): string {
   const email = isPlainObject(entry) ? entry.email : undefined;
   const readable = typeof email === "string" && email.trim() ? email.trim() : null;
@@ -65,17 +49,10 @@ function requiredString(value: unknown): string | null {
   return typeof value === "string" && value.trim() ? value.trim() : null;
 }
 
-// Deliberately loose — this is a sanity check, not an RFC 5322 parser. The
-// address either receives the set-password link or it does not, and the shop
-// finds that out in minutes; what this catches is a missing @ or a stray space.
+// A loose sanity check (missing @, stray space), not an RFC 5322 parser.
 const EMAIL_SHAPE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-/**
- * Turns parsed JSON into accounts, or throws with every problem at once.
- *
- * `source` only appears in the message, so this stays pure and testable
- * without a file on disk.
- */
+/** Parsed JSON to accounts, or throws with every problem; `source` only labels the message. */
 export function parseStaffAccounts(raw: unknown, source: string): InitAccountDetails[] {
   const problems: StaffFileProblem[] = [];
 
@@ -92,8 +69,7 @@ export function parseStaffAccounts(raw: unknown, source: string): InitAccountDet
   }
 
   const accounts: InitAccountDetails[] = [];
-  // Both are collapsed before comparison: EMAIL@x and email@x are one mailbox,
-  // and +970599… and +972599… are one Palestinian line (CLAUDE.md rule 18).
+  // Emails compare case-insensitively and +970/+972 are one line (rule 18).
   const emailSeen = new Map<string, string>();
   const phoneSeen = new Map<string, { label: string; phone: string }>();
 
@@ -139,8 +115,7 @@ export function parseStaffAccounts(raw: unknown, source: string): InitAccountDet
     if (!phone) {
       add("missing — an international number such as +970599123456", "phone");
     } else if (!isValidE164(phone)) {
-      // Stored exactly as entered, prefix never rewritten (CLAUDE.md rule 18),
-      // so it has to be right in the file.
+      // Stored exactly as entered, prefix never rewritten (rule 18).
       add(`not a valid international number: ${JSON.stringify(phone)} (E.164, e.g. +970599123456)`, "phone");
     }
 
@@ -158,8 +133,7 @@ export function parseStaffAccounts(raw: unknown, source: string): InitAccountDet
       const key = phoneIdentityKey(phone);
       const first = phoneSeen.get(key);
       if (first) {
-        // Spelled differently but the same line: worth saying out loud, or the
-        // clash looks like a false positive on two numbers that plainly differ.
+        // Different spelling, same line: said out loud so the clash doesn't look false.
         const viaPrefix = first.phone !== phone ? " — the same line written under the other prefix (+970/+972)" : "";
         add(`already used by ${first.label}${viaPrefix}`, "phone");
       } else {
@@ -178,13 +152,7 @@ export function parseStaffAccounts(raw: unknown, source: string): InitAccountDet
   return accounts;
 }
 
-/**
- * Applies `--name` / `--phone` overrides, matched by email.
- *
- * An override naming an address that is not in the file is an ERROR, not a
- * no-op: a mistyped email on the command line would otherwise mean the
- * correction you thought you made silently did not happen.
- */
+/** --name/--phone overrides by email; an unknown email is an error, so a typo never silently drops a correction. */
 export function applyStaffOverrides(
   accounts: InitAccountDetails[],
   overrides: StaffOverrides,
@@ -213,8 +181,7 @@ export function applyStaffOverrides(
     };
   });
 
-  // Re-checked rather than trusted: an override goes into the same database
-  // column as a file value, so it faces the same rules.
+  // Overrides face the same checks as file values.
   const phoneSeen = new Map<string, string>();
   for (const account of updated) {
     if (!account.name) {

@@ -10,9 +10,7 @@ import {
   REPORT_TZ_OFFSET_MIN_MINUTES,
 } from "@/constants/report";
 
-// Minutes to ADD to UTC to reach the viewer's local time — the client sends
-// `-new Date().getTimezoneOffset()`, so "today" on the dashboard means today
-// where the phone is, not in UTC. Defaults to UTC when omitted.
+// Minutes to add to UTC for the viewer's local time (-getTimezoneOffset()), so "today" is the phone's today; default UTC.
 export const reportTzOffsetSchema = z.coerce
   .number()
   .int()
@@ -25,9 +23,7 @@ export const salesSummaryQuerySchema = z.object({
 });
 export type SalesSummaryQuery = z.infer<typeof salesSummaryQuerySchema>;
 
-// A plain local calendar date (YYYY-MM-DD) — what a date picker produces.
-// The backend turns it into instants with the offset above; sending a full
-// timestamp would just re-introduce the timezone question the offset answers.
+// A plain local date (YYYY-MM-DD), turned into instants with the offset above.
 const reportDateSchema = z
   .string()
   .regex(REPORT_DATE_PATTERN, ERROR_CODES.REPORT_RANGE_INVALID)
@@ -39,8 +35,7 @@ export const salesReportQuerySchema = z
     from: reportDateSchema,
     to: reportDateSchema,
     tzOffset: reportTzOffsetSchema,
-    // Best sellers are a bounded top-N rather than a paged list (CLAUDE.md
-    // rule 15's "never return unbounded lists" — this is the bound).
+    // Best sellers are a bounded top-N (rule 15).
     topLimit: z.coerce
       .number()
       .int()

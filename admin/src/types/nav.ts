@@ -1,9 +1,7 @@
 import type { LucideIcon } from "lucide-react";
 import type { PermissionAction } from "@store/shared/types/permission";
 
-// A hand-drawn solid glyph (components/icons/nav-solid-icons.tsx). Same call
-// shape as a LucideIcon for the size class, but it takes no `fill` — a solid
-// icon is drawn filled, never an outline icon with paint poured into it.
+// Like a LucideIcon but with no `fill`: a solid icon is drawn filled.
 export interface SolidIconProps {
   className?: string;
 }

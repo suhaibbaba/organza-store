@@ -1,26 +1,4 @@
-// ============================================================================
-//  2. DISCOUNTS, TOTALS AND ROUNDING
-//
-//  Every figure here is asserted to the agora, because this is where a money
-//  bug would actually cost the shop something.
-//
-//    * a percentage and a fixed amount, at line level and order level, alone
-//      and together;
-//    * rounding to 2 places, HALF UP, with no floating-point drift anywhere —
-//      3 x 0.10 is 0.30, not 0.30000000000000004;
-//    * the server recomputes every total from the catalogue: a client that
-//      sends its own unitPrice, lineTotal, subtotal or total is REFUSED —
-//      it used to be silently ignored, which answered a body trying to name
-//      its own price with a receipt (middleware/validate.ts);
-//    * a discount is never negative, never more than 100%, and never larger
-//      than the thing it discounts.
-//
-//  NOTE on the last one: the API CLAMPS an over-large discount rather than
-//  refusing it (lib/money.ts resolveDiscountAmount) — a 500.00 discount on a
-//  100.00 line becomes exactly 100.00 and the total becomes 0.00, never
-//  negative. Malformed discounts (a negative value, a percentage over 100, a
-//  type with no value) ARE refused. Both behaviours are pinned below.
-// ============================================================================
+// Discounts and rounding to the agora: half-up, no float drift, totals from the catalogue, over-large discounts clamped.
 import { beforeAll, describe, expect, it } from "vitest";
 import { apiRequest } from "@tests/support/client";
 import { getSession } from "@tests/support/auth";
@@ -48,8 +26,7 @@ describe("Verify · discounts, totals and rounding", () => {
 
   beforeAll(async () => {
     admin = (await getSession("ADMIN")).token;
-    // 100.00 a piece, plenty on the shelf: every figure below is a round
-    // number of it, so a wrong answer is visibly wrong.
+    // 100.00 a piece, so a wrong figure is visibly wrong.
     product = await createPricedProduct(admin, { basePrice: UNIT_PRICE });
   });
 
@@ -101,8 +78,7 @@ describe("Verify · discounts, totals and rounding", () => {
 
   describe("both levels at once", () => {
     it("applies the line discount first, then the order discount to what is left", async () => {
-      // 2 x 100.00 = 200.00, less 10% on the line = 180.00,
-      // less 12.5% of THAT (22.50) = 157.50.
+      // 2 × 100 = 200, less 10% = 180, less 12.5% (22.50) = 157.50.
       const order = await sell(
         admin,
         [{ productId: product.id, quantity: 2, discountType: "PERCENT", discountValue: ITEM_PERCENT }],
@@ -117,10 +93,7 @@ describe("Verify · discounts, totals and rounding", () => {
     });
 
     it("spreads across several lines: two discounted lines under one order discount", async () => {
-      // Line A: 3 x 100.00 less 10%     = 270.00
-      // Line B: 1 x 100.00 less 15.50   =  84.50
-      //   subtotal                      = 354.50
-      //   less 25.00 off the order      = 329.50
+      // A: 3×100 less 10% = 270; B: 100 less 15.50 = 84.50; subtotal 354.50, less 25 = 329.50.
       const order = await sell(
         admin,
         [
@@ -205,20 +178,13 @@ describe("Verify · discounts, totals and rounding", () => {
         },
       );
 
-      // This used to be a 201 with every one of those fields quietly dropped.
-      // Dropping them was safe, but it answered a body that tried to name its
-      // own price with a receipt — so the client could not tell that its
-      // figures had been thrown away, and neither could anybody reading the
-      // logs. An unknown field is now a refusal (middleware/validate.ts).
+      // A body naming its own price is refused, so neither the client nor the logs mistake it for honoured.
       expect(res.status, "a body naming its own price is refused, not humoured").toBe(400);
       expect(res.error?.code).toBe(ERROR_CODES.VALIDATION);
     });
 
     it("prices from the catalogue, so there is nowhere for a client's figure to enter", async () => {
-      // The guarantee underneath the refusal above, stated on its own: the
-      // reason no tampered price can be honoured is not that the server
-      // notices and discards it, but that money is computed from the
-      // catalogue and the schema has no field for one.
+      // Money is computed from the catalogue and the schema has no field for a price.
       const order = await sell(admin, [{ productId: product.id, quantity: 2 }]);
 
       expectMoney(order.items[0].unitPrice, "100.00", "unit price (the catalogue's)");
@@ -254,9 +220,7 @@ describe("Verify · discounts, totals and rounding", () => {
       expect(tampered.status, "an edit naming its own total is refused").toBe(400);
       expect(tampered.error?.code).toBe(ERROR_CODES.VALIDATION);
 
-      // The same edit without the fiction: the discount is honoured, and
-      // every figure around it is recomputed from the stored line snapshots
-      // rather than from anything the client said.
+      // The discount is honoured and everything around it recomputed from the line snapshots.
       const edited = await apiRequest<OrderDto>(`/api/orders/${order.id}`, {
         method: "PATCH",
         token: admin,

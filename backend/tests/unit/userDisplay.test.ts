@@ -1,9 +1,4 @@
-// How a person is named on screen (shared/src/lib/userDisplay.ts).
-//
-// Two things these pin, and both are about damage: an internal id must never
-// reach a screen, and the rule that removes one must never eat a real name.
-// The second is the reason the id test is as narrow as it is — this code
-// deletes words somebody may have typed on purpose.
+// An internal id must never reach a screen, and the rule removing one must never eat a real name.
 import { describe, expect, it } from "vitest";
 import {
   cleanUserName,
@@ -15,8 +10,7 @@ import {
 
 describe("spotting an internal id", () => {
   it("recognizes the shapes that actually reach the name field", () => {
-    // A test nonce: Date.now() in base 36 plus six random characters. This is
-    // the exact shape that renamed a sandbox's Admin to "Admin mt0grbxoqx7nbf".
+    // A test nonce: the exact shape that once renamed the sandbox Admin.
     expect(looksLikeInternalId("mt0grbxoqx7nbf")).toBe(true);
     expect(looksLikeInternalId("mt0lvkbaksaqkk")).toBe(true);
     // A cuid, with and without its leading letter.
@@ -35,8 +29,7 @@ describe("spotting an internal id", () => {
     expect(looksLikeInternalId("a1b2c3d4")).toBe(false);
     // Digits alone are a number somebody meant, not an id.
     expect(looksLikeInternalId("123456789012")).toBe(false);
-    // Arabic and Hebrew can never match — the default locale's names are safe
-    // by construction, which is most of why the rule is ASCII-only.
+    // Arabic and Hebrew can never match, which is why the rule is ASCII-only.
     expect(looksLikeInternalId("محمدعبدالرحمن")).toBe(false);
     expect(looksLikeInternalId("ישראלישראלי")).toBe(false);
   });

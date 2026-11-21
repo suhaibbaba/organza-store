@@ -12,18 +12,14 @@ import {
 import type { FeedbackVariant } from "@/types/feedback";
 
 export interface ScanVibration {
-  // False on iPhones (no Vibration API in Safari) and on desktops, where the
-  // switch has nothing to switch and so isn't shown.
+  // False on iPhones and desktops, where the switch isn't shown.
   isSupported: boolean;
   isMuted: boolean;
   toggleMute: () => void;
   vibrate: (variant: FeedbackVariant) => void;
 }
 
-// Nothing ever changes whether the device can buzz, so there is nothing to
-// subscribe to — but the answer still has to come through useSyncExternalStore
-// so the server render (false) and the first client paint agree instead of
-// hydrating into a mismatch.
+// Through useSyncExternalStore so the server render (false) and the first client paint agree.
 const neverChanges = () => () => {};
 
 // The buzz that goes with the beep, and the switch that silences it.
@@ -38,9 +34,7 @@ export function useScanVibration(): ScanVibration {
   const toggleMute = useCallback(() => {
     const next = !isScanVibrationMuted();
     setScanVibrationMuted(next);
-    // Turning it back on buzzes once, then and there: the cashier asked for
-    // the cue, so show them what they just switched on rather than making
-    // them scan something to find out.
+    // Turning it on buzzes once, so the cashier feels what they just enabled.
     if (!next) {
       vibrateScan("success");
     }

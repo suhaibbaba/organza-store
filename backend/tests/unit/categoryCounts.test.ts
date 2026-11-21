@@ -1,8 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { rollUpCategoryCounts } from "@/lib/categories";
 
-// The number under each POS category tile. It must promise what tapping the
-// tile shows — the shelf AND everything under it — so it is rolled up the tree.
+// A tile's count must promise what tapping it shows, so it is rolled up the tree.
 describe("rollUpCategoryCounts", () => {
   const tree = [
     { id: "women", parentId: null },

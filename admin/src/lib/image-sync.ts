@@ -5,18 +5,7 @@ import { ApiError } from "@/lib/api/errors";
 import { pendingCount } from "@/lib/image-slots";
 import type { Gallery, GallerySlot, ImageSyncOutcome } from "@/types/productForm";
 
-// Writes one gallery to the server as part of the product form's single Save.
-// Internally that is several calls — upload each new file (multipart), re-cut
-// any photo that was re-framed, delete what was removed, reorder what
-// remains, then set the main photo — and they have to run in that order: the
-// reorder endpoint checks the id set matches the owner's images exactly, so
-// it can only run once uploads and deletions have settled.
-//
-// Nothing here throws for a failed photo. On a weak connection one upload can
-// die while the product itself saved perfectly, and blowing the whole save up
-// would tell the user their product was lost when it wasn't. Instead each
-// failure is recorded, the file stays pending in the returned slots, and the
-// caller reports what got through and offers to try the rest again.
+// Uploads, re-cuts, deletes, reorders, then sets the main photo, in that order; failures are recorded, never thrown.
 
 function errorCodeOf(err: unknown): string {
   return err instanceof ApiError ? err.code : ERROR_CODES.INTERNAL;
@@ -25,16 +14,12 @@ function errorCodeOf(err: unknown): string {
 export async function syncGallery(
   owner: ImageOwner,
   gallery: Gallery,
-  // Called after each upload attempt, successful or not, so the form can
-  // count photos through ("Uploading photos (2 of 5)").
   onUploadSettled?: () => void,
 ): Promise<ImageSyncOutcome> {
   const { slots, saved } = gallery;
   let errorCode: string | null = null;
 
-  // Every image the server currently holds for this owner, by id — kept in
-  // step with what actually happens below, so the reorder call at the end can
-  // be given the exact set the server has.
+  // Kept in step with the calls below, so the reorder gets the exact set the server has.
   const onServer = new Map<string, ProductImageRef>(saved.map((i) => [i.id, i]));
   const keptIds = new Set(slots.filter((s) => s.kind === "existing").map((s) => s.id));
 
@@ -61,10 +46,7 @@ export async function syncGallery(
     onUploadSettled?.();
   }
 
-  // 2. Re-framings of photos that were already there. A failure leaves the
-  //    photo exactly as it was — the crop is still pending in the slot, so a
-  //    retry sends it again — and never blocks the rest of the save: an
-  //    unsaved crop is a smaller loss than a reorder that did not happen.
+  // 2. Re-framings: a failure keeps the crop pending for a retry and never blocks the rest.
   for (const [index, slot] of working.entries()) {
     if (slot.kind !== "existing" || !slot.edit) {
       continue;
@@ -72,8 +54,6 @@ export async function syncGallery(
     try {
       const updated = await editImage(slot.id, slot.edit);
       onServer.set(updated.id, updated);
-      // The locally drawn preview has done its job; from here the tile shows
-      // what the server actually produced.
       if (slot.previewUrl) {
         URL.revokeObjectURL(slot.previewUrl);
       }
@@ -83,16 +63,7 @@ export async function syncGallery(
     }
   }
 
-  // 3. Deletions. One that fails is still on the server, so it goes back into
-  //    the gallery rather than being quietly dropped from the user's view —
-  //    and stays in the set the reorder call below has to account for.
-  //
-  //    A photo somebody may not delete is not a failure: the backend files a
-  //    request and answers `deleted: false` (spec.md "Employee change
-  //    approvals"). That photo is still there, so it goes back into the
-  //    gallery exactly like a failed deletion would — and the caller is told
-  //    how many are waiting, so it can say so rather than reporting an error
-  //    for something that worked as designed.
+  // 3. Deletions: a failed or approval-held one stays in the gallery and in the reorder set.
   let awaitingApproval = 0;
   for (const image of saved) {
     if (keptIds.has(image.id)) {
@@ -129,8 +100,6 @@ export async function syncGallery(
     }
   }
 
-  // Re-read the primary flag from the server's answer, so what the gallery
-  // shows next is what the server actually stored.
   const byId = new Map(images.map((i) => [i.id, i]));
   const settled: GallerySlot[] = working.map((slot) => {
     if (slot.kind !== "existing") {

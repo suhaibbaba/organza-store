@@ -33,32 +33,7 @@ import {
 } from "@/constants";
 import type { ChangeRequestStatus } from "@/types";
 
-// Change requests (spec.md "Employee change approvals") — one screen, one
-// endpoint pair, for every gated change in the shop.
-//
-// The gates:
-//   * changeRequest.view    — every role, but it does NOT mean "everyone's":
-//                             without changeRequest.approve the list is
-//                             narrowed to your own, because an Employee has
-//                             to see their price change waiting rather than
-//                             lost, and nothing more.
-//   * changeRequest.approve — ADMIN only. Deciding is the whole point of the
-//                             gate; modelled as a permission so widening it
-//                             later is one entry in ROLE_PERMISSIONS.
-//   * product.complete      — Admin/Manager, and ONE field's decision only:
-//                             finishing off a quick-sold piece (spec.md "Quick
-//                             sell"). Which permission decides which field is
-//                             decided by the appliers, not here
-//                             (decisionPermissionFor), so these routes stay
-//                             entity-agnostic. It is a separate action rather
-//                             than a widened changeRequest.approve because the
-//                             two are opposites: approving a gated change is
-//                             permission BEFORE the fact, completing a quick
-//                             sale is review AFTER money has changed hands.
-//
-// There is deliberately no POST: a request is born from the action it stands
-// in for (an Employee saving a new price), never asked for directly. That is
-// what keeps a request from describing a change nobody actually attempted.
+// Change requests: one endpoint pair for every gated change; without changeRequest.approve you see only your own.
 const router = Router();
 router.use(requireAuth);
 
@@ -70,20 +45,7 @@ async function loadRequest(id: string) {
   return request;
 }
 
-/**
- * How much of the queue this caller may READ, as a where-clause.
- *
- * `null` means "no narrowing at all" — the Admin's view, and the only one
- * that sees somebody else's price change.
- *
- * Everybody else gets their own requests, plus whichever fields they are
- * themselves the decider for. That second half exists for quick sell (spec.md
- * "Quick sell"): a Manager holds product.complete and has to be able to find
- * the pieces waiting on them, without that turning into a licence to read the
- * gated changes an Employee filed. Derived from the appliers' own table rather
- * than hard-coded, so a future field that answers to another permission is
- * scoped correctly for free.
- */
+/** What this caller may read: null for Admins, else their own requests plus fields they decide (quick sell for Managers). */
 function visibleRequestScope(user: { id: string; role: string }): Prisma.ChangeRequestWhereInput | null {
   if (can(user, "changeRequest.approve")) {
     return null;
@@ -112,9 +74,7 @@ function mayReadRequest(
   return can(user, decisionPermissionFor(request.entityType, request.field));
 }
 
-// ---------------------------------------------------------------------------
 // GET /api/change-requests — list (pagination + filtering + sorting)
-// ---------------------------------------------------------------------------
 router.get(
   "/",
   requirePermission("changeRequest.view"),
@@ -133,10 +93,7 @@ router.get(
       where.entityId = query.entityId;
     }
 
-    // Enforced here, not in the UI: someone who cannot decide requests may
-    // only ever read their own, whatever they ask for. `mine` narrows to your
-    // own regardless of what you hold, which is what the "my requests" view
-    // asks for.
+    // Enforced here, not in the UI: non-deciders only read their own; `mine` narrows anyone to their own.
     const scope = query.mine ? { requestedById: req.user!.id } : visibleRequestScope(req.user!);
     if (scope) {
       Object.assign(where, scope);
@@ -146,8 +103,7 @@ router.get(
       query.sortBy === "entityType"
         ? { entityType: query.sortDir }
         : // "createdAt" means "when was this last asked for" — a superseded
-          // row's requestedAt moves forward with the newer ask, which is the
-          // date the screen shows.
+          // The row's requestedAt moves forward with a newer ask — the date the screen shows.
           { requestedAt: query.sortDir };
 
     const [total, requests] = await Promise.all([
@@ -170,15 +126,7 @@ router.get(
   }),
 );
 
-// ---------------------------------------------------------------------------
-// GET /api/change-requests/count — what the nav badge shows.
-//
-// Declared before "/:id" — Express matches in order, so a literal path
-// registered after the parameter route would never be reached.
-//
-// Scoped the same way the list is: an Admin sees how many are waiting on
-// them, everyone else how many of their own are still waiting.
-// ---------------------------------------------------------------------------
+// GET /api/change-requests/count — the nav badge, scoped like the list; declared before /:id.
 router.get(
   "/count",
   requirePermission("changeRequest.view"),
@@ -186,9 +134,7 @@ router.get(
     const pending = await prisma.changeRequest.count({
       where: {
         status: PENDING_CHANGE_REQUEST_STATUS as ChangeRequestStatus,
-        // The badge counts exactly what the list would show, scoped the same
-        // way — a Manager's badge counts the quick-sold pieces waiting on
-        // them, an Employee's counts their own asks (spec.md "Quick sell").
+        // The badge counts exactly what the list would show, scoped the same way.
         ...(visibleRequestScope(req.user!) ?? {}),
       },
     });
@@ -196,9 +142,7 @@ router.get(
   }),
 );
 
-// ---------------------------------------------------------------------------
 // GET /api/change-requests/:id
-// ---------------------------------------------------------------------------
 router.get(
   "/:id",
   requirePermission("changeRequest.view"),
@@ -211,10 +155,7 @@ router.get(
   }),
 );
 
-// The half both decisions share: check it is still open, check the decider
-// isn't the asker, run whatever the field needs, and stamp the row. All of it
-// in ONE transaction, so a change is either applied and recorded together or
-// neither — an approval that half-applied would be worse than one that failed.
+// Shared by approve and reject: still open, not the asker, apply, stamp — all in one transaction.
 async function decide(
   requestId: string,
   decider: { id: string; role: string },
@@ -223,33 +164,18 @@ async function decide(
 ) {
   const existing = await loadRequest(requestId);
 
-  // MAY THIS PERSON DECIDE THIS AT ALL — asked first, before anything about
-  // the request's state, so somebody who has no business here learns nothing
-  // about it beyond that they may not.
-  //
-  // WHICH permission it answers to depends on the field: changeRequest.approve
-  // for every gated change, product.complete for a quick sale's completion
-  // (see decisionPermissionFor). Checked here rather than on the route so that
-  // one endpoint pair keeps serving every field, and so the API refuses
-  // server-side rather than relying on a hidden button (CLAUDE.md rule 5).
+  // May this person decide this at all? Asked first, by the field's permission (see decisionPermissionFor).
   if (!can(decider, decisionPermissionFor(existing.entityType, existing.field))) {
     throw new AppError(403, ERROR_CODES.FORBIDDEN);
   }
 
-  // Deciding something already decided is not a no-op: it would overwrite who
-  // decided what, which is the one thing this record exists to hold.
+  // Deciding something already decided would overwrite who decided — refused.
   if (existing.status !== PENDING_CHANGE_REQUEST_STATUS) {
     throw new AppError(409, ERROR_CODES.CHANGE_REQUEST_NOT_PENDING);
   }
   const applier = applierFor(existing.entityType, existing.field);
 
-  // Nobody signs off their own ask — that would make the gate decorative.
-  // Reachable in principle by an Admin whose own action was gated; kept as a
-  // rule of the flow rather than an accident of who holds what today.
-  //
-  // The one field that opts out is quick sell's completion, which is not a
-  // gate: the sale already happened and finishing the product off is data
-  // entry (see ChangeRequestApplier.allowSelfDecision).
+  // Nobody decides their own ask, except quick sell's completion, which is data entry, not a gate.
   if (existing.requestedById === decider.id && !applier.allowSelfDecision) {
     throw new AppError(403, ERROR_CODES.CHANGE_REQUEST_SELF_DECISION);
   }
@@ -258,9 +184,7 @@ async function decide(
 
   const { request, outcome } = await prisma.$transaction(async (tx) => {
     const ctx = { deciderId: decider.id, decidedAt };
-    // Approving applies the change; rejecting discards it, and only the
-    // entities that would otherwise be left stuck (an expense) do anything
-    // at all on the way out.
+    // Approving applies the change; rejecting discards it, writing only where an entity would be stuck (an expense).
     const result: ApplyOutcome =
       status === APPROVED_CHANGE_REQUEST_STATUS
         ? await applier.apply(tx, existing, ctx)
@@ -270,8 +194,7 @@ async function decide(
       where: { id: existing.id },
       data: {
         status: status as ChangeRequestStatus,
-        // Freed the moment it stops being pending, which is what lets the
-        // next request for this same field take the slot.
+        // Freed once no longer pending, so the next request for the field can take the slot.
         pendingKey: null,
         decidedById: decider.id,
         decidedAt,
@@ -283,8 +206,7 @@ async function decide(
     return { request: updated, outcome: result };
   });
 
-  // The decision itself (CLAUDE.md rule 6) — "who agreed to this" is a
-  // different question from "what did the price become", so both are written.
+  // The decision is audited separately from what it changed (rule 6).
   await writeAudit({
     userId: decider.id,
     action: status === APPROVED_CHANGE_REQUEST_STATUS ? AuditAction.APPROVE : AuditAction.REJECT,
@@ -301,14 +223,12 @@ async function decide(
     newValue: { status: request.status, value: request.newValue, decisionNote: request.decisionNote },
   });
 
-  // ...and whatever the change did to the entity itself, attributed to
-  // whoever approved it — they are the one who made it happen.
+  // …and the change itself, attributed to whoever approved it.
   for (const entry of outcome.audits) {
     await writeAudit({ ...entry, userId: decider.id });
   }
 
-  // Only now, with everything committed: deleting an image's files cannot be
-  // rolled back, so it must never run inside the transaction that might.
+  // Only after commit: deleting image files cannot be rolled back.
   if (outcome.afterCommit) {
     await outcome.afterCommit();
   }
@@ -325,17 +245,10 @@ async function decide(
   return request;
 }
 
-// ---------------------------------------------------------------------------
 // POST /api/change-requests/:id/approve — apply it, atomically.
-// ---------------------------------------------------------------------------
 router.post(
   "/:id/approve",
-  // Deliberately the READ gate here, with the real one applied per field
-  // inside decide(): which permission may decide a request depends on WHICH
-  // request it is, and that is not knowable from the URL (see
-  // decisionPermissionFor). Nothing is loosened — a caller holding neither
-  // changeRequest.approve nor the field's own action is refused with 403
-  // before anything is touched.
+  // The read gate only; decide() applies the field's own permission, unknowable from the URL.
   requirePermission("changeRequest.view"),
   validateBody(decideChangeRequestSchema),
   asyncHandler(async (req, res) => {
@@ -345,10 +258,7 @@ router.post(
   }),
 );
 
-// ---------------------------------------------------------------------------
-// POST /api/change-requests/:id/reject — discard it. The entity is not
-// touched; the request stays on the record, with who turned it down and why.
-// ---------------------------------------------------------------------------
+// POST /api/change-requests/:id/reject — discard it; the request stays on record with who and why.
 router.post(
   "/:id/reject",
   // Same as approve above: gated per field inside decide().
@@ -361,30 +271,14 @@ router.post(
   }),
 );
 
-// ---------------------------------------------------------------------------
-// POST /api/change-requests/:id/cancel — take your own ask back.
-//
-// Not a third decision: a decision is somebody ELSE's answer to the question,
-// and this is withdrawing the question. Which is why it is the asker's alone
-// and why it is refused the moment the request has been decided — a refusal
-// with an Admin's name on it is a record, and nobody gets to delete a record
-// of their own by asking nicely.
-//
-// The row goes rather than gaining a fourth status, which is exactly what
-// SUPERSEDING already does to a request replaced by a newer one: what was
-// asked for lives on in the audit trail, and the approval screen is left
-// holding only decisions that are still somebody's to make. It also frees
-// the pendingKey, so the same field can be asked about again straight away.
-// ---------------------------------------------------------------------------
+// POST /api/change-requests/:id/cancel — withdraw your own pending ask; refused once decided.
 router.post(
   "/:id/cancel",
   requirePermission("changeRequest.cancel"),
   asyncHandler(async (req, res) => {
     const existing = await loadRequest(req.params.id);
 
-    // Yours only. Checked here, not in the UI (CLAUDE.md rule 5) — and
-    // deliberately without an Admin override: an Admin who disagrees with a
-    // request has REJECT, which says who disagreed and why.
+    // Yours only, enforced here (rule 5), with no Admin override — Admins have reject.
     if (existing.requestedById !== req.user!.id) {
       throw new AppError(403, ERROR_CODES.CHANGE_REQUEST_NOT_REQUESTER);
     }
@@ -395,9 +289,7 @@ router.post(
 
     await prisma.changeRequest.delete({ where: { id: existing.id } });
 
-    // What was asked for, kept (CLAUDE.md rule 6) — the row is gone, so the
-    // trail is the only place the withdrawn value survives. Same shape as the
-    // REQUEST entry it undoes, so the pair reads as one story.
+    // The withdrawn value is kept in the audit trail (rule 6), in the same shape as the request entry.
     await writeAudit({
       userId: req.user!.id,
       action: AuditAction.CANCEL,

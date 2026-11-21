@@ -1,16 +1,5 @@
 #!/usr/bin/env tsx
-// ============================================================================
-//  npm run verify — one command, one verdict.
-//
-//  Runs the whole vitest suite (tests/verify/* alongside the older
-//  tests/api/*) against a live API, then prints a pass/fail line per AREA
-//  rather than per file, and writes a report that can be handed to somebody
-//  else.
-//
-//  It refuses to run against production before it spawns anything, so the
-//  refusal arrives in one clean message rather than repeated once per test
-//  file (tests/setup.ts carries the same gate, for a bare `vitest`).
-// ============================================================================
+// npm run verify — runs the whole suite against a live API and prints one pass/fail line per area, plus a report.
 import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
@@ -79,8 +68,7 @@ function summarise(run: VitestRun, vitestExitCode: number): VerifyRunSummary {
     failures: [],
   });
 
-  // Every declared area is seeded, so one that ran NOTHING shows up as an
-  // empty row rather than silently disappearing from the summary.
+  // Every declared area is seeded, so one that ran nothing shows as an empty row instead of vanishing.
   for (const area of VERIFY_AREAS) {
     byKey.set(area.key, blank(area));
   }
@@ -102,9 +90,7 @@ function summarise(run: VitestRun, vitestExitCode: number): VerifyRunSummary {
         result.failures.push({
           file: base,
           name: [...(test.ancestorTitles ?? []), test.title].join(" › "),
-          // The first line of an assertion failure is the money sentence
-          // ("order total: expected 162.00, got 161.99") — the stack below it
-          // is noise in a summary somebody reads at the counter.
+          // An assertion's first line is the useful sentence; the stack below is noise in a summary.
           message: (test.failureMessages?.[0] ?? "").split("\n")[0].trim(),
         });
       } else if (test.status === "passed") {
@@ -118,11 +104,7 @@ function summarise(run: VitestRun, vitestExitCode: number): VerifyRunSummary {
   const areas = [...byKey.values()];
   const failed = areas.reduce((total, area) => total + area.failed, 0);
   return {
-    // A run can fail without a single assertion failing — a test file that
-    // could not even load (the API was down, an import broke) reports every
-    // test as SKIPPED. Reading that as "pass, nothing failed" would be the
-    // worst lie this tool could tell, so vitest's own verdict is carried
-    // through and shown.
+    // A file that failed to load reports every test SKIPPED, so vitest's own verdict is carried through, never read as a pass.
     incomplete: vitestExitCode !== 0 && failed === 0,
     target: { url: TARGET.url, host: TARGET.host, kind: TARGET.kind },
     startedAt: new Date(run.startTime ?? Date.now()).toISOString(),
@@ -286,12 +268,7 @@ function writeReport(summary: VerifyRunSummary): void {
 // --- main ------------------------------------------------------------------
 
 function main(): void {
-  // The gate, before a single request goes out — and before vitest is even
-  // spawned, so a refusal is one clean message rather than one per test file.
-  //
-  // The refusal is a thrown Error (that is what makes vitest fail loudly when
-  // the suite is run directly), but here it is the whole output, so it is
-  // printed as the message it is rather than as a stack trace.
+  // The production gate runs before vitest is spawned, so a refusal is one clean message, printed without a stack.
   try {
     assertSafeTarget();
   } catch (error) {
@@ -316,9 +293,7 @@ function main(): void {
   writeReport(summary);
   printSummary(summary);
 
-  // The suite's own verdict wins over vitest's exit code only when it is
-  // worse — a failure vitest reported but no assertion carries (a file that
-  // failed to load, say) must still fail the run.
+  // The suite's verdict overrides vitest's exit code only when worse — a load failure must still fail the run.
   process.exit(summary.failed > 0 || summary.incomplete ? 1 : exitCode);
 }
 

@@ -1,14 +1,4 @@
-// Asserting on money, so that a failure names the figure rather than the
-// field.
-//
-// Every helper here fails with "<what it is>: expected 162.00, got 161.99
-// (off by 0.01)". A money bug found at 2am by someone who is not a
-// programmer has to be readable as a sentence about money, not as a diff of
-// two JSON blobs.
-//
-// Comparisons run on scaled integers — the amounts are turned into agorot
-// before they are compared — so the assertion path cannot itself introduce
-// the floating-point drift it exists to catch.
+// Money assertions name the figure ("expected 162.00, got 161.99") and compare scaled integers, so they add no float drift.
 import { expect } from "vitest";
 import { MONEY_DECIMAL_PLACES, MONEY_SCALE, MONEY_STRING_PATTERN } from "@tests/constants";
 
@@ -34,27 +24,13 @@ function describe(label: string, actual: MoneyLike, expected: MoneyLike): string
   return `${label}: expected ${money(expected)}, got ${money(actual)}${drift}`;
 }
 
-/**
- * An amount is exactly the figure it should be.
- *
- * Also insists on the SHAPE: a 2dp string. A number where a string belongs is
- * how float drift gets into a money field in the first place, so a response
- * that has started returning 0.30000000000000004 fails here even though it
- * rounds to the right answer.
- */
+/** Exactly this amount, and as a 2dp string: a number in a money field is how float drift gets in. */
 export function expectMoney(actual: MoneyLike, expected: MoneyLike, label: string): void {
   expectMoneyShape(actual, label);
   expect(agorot(actual), describe(label, actual, expected)).toBe(agorot(expected));
 }
 
-/**
- * A CATALOGUE price — a product's basePrice, a variant's resolvedCost.
- *
- * These are Prisma Decimals serialized straight to JSON rather than passed
- * through formatMoney, so they arrive unpadded ("60", not "60.00"). Still a
- * string, and still exact — which is the part that matters: a Float here
- * would be the bug.
- */
+/** A catalogue price: a Decimal serialized unpadded ("60"), but still an exact string, never a Float. */
 export function expectPrice(actual: MoneyLike, expected: MoneyLike, label: string): void {
   expect(
     typeof actual,

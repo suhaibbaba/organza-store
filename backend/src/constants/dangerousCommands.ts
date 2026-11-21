@@ -1,10 +1,4 @@
-// Guard rails for the two commands that can destroy a shop's data.
-//
-// Both values have to be typed out in full. A bare "1" is something that ends
-// up in a shell profile, a CI variable or somebody's history and then fires by
-// accident six months later; a sentence you have to mean is not.
-// (The test suite guards its own target the same way — see
-// tests/constants/targets.ts.)
+// Guard rails for the two data-destroying commands: each needs a full sentence, never a bare "1" that fires by accident.
 
 /** The banner every refusal and every command header is drawn with. */
 export const COMMAND_RULE = "═".repeat(74);

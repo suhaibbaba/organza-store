@@ -7,14 +7,7 @@ import {
   resolveImportEndpoints,
 } from "@/lib/productionImport/guards";
 
-// The guards in front of `npm run import:prod`.
-//
-// This command copies the live shop's catalogue into the sandbox and WIPES
-// the sandbox to do it. Run the other way round it would delete the shop's
-// entire catalogue — so the refusals below are the whole safety of it, and
-// they are asserted rather than assumed. Each one is proven to fire ON ITS
-// OWN, with every other condition satisfied, because "one of the four would
-// have caught it" is only true if each of the four actually does.
+// import:prod wipes the sandbox to copy the live catalogue, so each refusal is proven to fire on its own.
 
 const SANDBOX_URL = "postgresql://app:pw@db-sandbox:5432/store_sandbox?schema=public";
 const PRODUCTION_URL = "postgresql://reader:pw@db-live:5432/store?schema=public";

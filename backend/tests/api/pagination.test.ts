@@ -4,9 +4,7 @@ import { apiRequest, uniqueId } from "@tests/support/client";
 import { getSession } from "@tests/support/auth";
 import type { ProductDto, ProductSummaryDto } from "@tests/types";
 
-// A dedicated, freshly-created category scopes every assertion to exactly
-// the 3 products this suite creates, independent of whatever else exists in
-// the sandbox's catalog.
+// A fresh category scopes every assertion to the 3 products this suite creates.
 describe("Products pagination + filtering + sorting", () => {
   const nonce = uniqueId();
   const prices = [10, 30, 20];

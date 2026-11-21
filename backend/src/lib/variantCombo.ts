@@ -1,8 +1,7 @@
 import { SUPPORTED_LANGUAGES } from "@/constants";
 import type { I18n, OptionValueLookup } from "@/types";
 
-// Cartesian product of the selected values per variant type, e.g.
-// Color[red, blue] x Size[M, L] -> [[red,M],[red,L],[blue,M],[blue,L]]
+// Cartesian product of the selected values per type: Color[red, blue] × Size[M, L] → 4 combos.
 export function cartesianProduct<T>(arrays: T[][]): T[][] {
   return arrays.reduce<T[][]>((acc, curr) => acc.flatMap((combo) => curr.map((item) => [...combo, item])), [[]]);
 }
@@ -12,8 +11,7 @@ export interface ImagePoint {
   imageY: number;
 }
 
-// Numbered shawls (spec.md): flattens every selection's optional per-value
-// image points into a single optionValueId -> point lookup.
+// Numbered shawls: flattens per-value image points into one optionValueId → point lookup.
 export function buildImagePointMap(
   selections: { imagePoints?: Record<string, ImagePoint> }[],
 ): Map<string, ImagePoint> {
@@ -29,9 +27,7 @@ export function buildImagePointMap(
   return map;
 }
 
-// A combo is one generated variant's option value ids across every selected
-// type; numbered shawls only ever select a single type (Number), so at most
-// one id in the combo carries a point.
+// A combo is one variant's value ids; numbered shawls select only Number, so at most one id carries a point.
 export function resolveComboImagePoint(combo: string[], pointMap: Map<string, ImagePoint>): ImagePoint | undefined {
   for (const valueId of combo) {
     const point = pointMap.get(valueId);
@@ -42,9 +38,7 @@ export function resolveComboImagePoint(combo: string[], pointMap: Map<string, Im
   return undefined;
 }
 
-// Auto-suggested variant name from its option combination, e.g. "أحمر / M".
-// Falls back to the default-language (ar) label for any language missing on
-// a given option value, so every language key still gets a usable string.
+// Suggested variant name like "أحمر / M", falling back to the default language per value.
 export function buildComboName(values: Pick<OptionValueLookup, "value">[]): I18n {
   const name: I18n = {};
   for (const lang of SUPPORTED_LANGUAGES) {

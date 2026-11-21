@@ -4,18 +4,7 @@ import { applyPermissionMatrixPayload } from "@store/shared/lib/permissions";
 import { PERMISSIONS_QUERY_KEY } from "@/constants/api";
 import { updateRolePermissions } from "@/lib/api/permissions";
 
-/**
- * Flipping one grant.
- *
- * The response is the whole matrix as the server now sees it, so it is
- * written straight into the cache AND straight into `can()` — the screen the
- * Admin is standing on rearranges itself the moment the change lands, which
- * is the honest thing for a screen about permissions to do.
- *
- * No optimistic update. This is a permission: showing it as switched off
- * before the server has agreed is showing somebody a shop rule that may not
- * be true, and the request takes a few hundred milliseconds.
- */
+// No optimistic update: never show a shop rule the server hasn't agreed to; the response replaces the matrix.
 export function useUpdateRolePermissionsMutation() {
   const queryClient = useQueryClient();
 

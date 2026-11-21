@@ -1,39 +1,5 @@
 #!/usr/bin/env tsx
-// ============================================================================
-//  npm run import:prod — copy the LIVE shop's catalogue into the SANDBOX.
-//
-//  One way, always. It reads production and writes the sandbox, and it is
-//  built so that it cannot do the reverse:
-//
-//    · the target must declare itself sandbox in APP_ENV *and* carry
-//      "sandbox" in its own database name — two independent facts that have
-//      to agree, with no override for either;
-//    · the run must name the database it is about to empty
-//      (STORE_IMPORT_CONFIRM=<database>);
-//    · the production connection is opened READ-ONLY at the server and is
-//      proven so — with a write that has to fail — before a row is read;
-//    · the client that reaches production never leaves lib/productionImport/
-//      source.ts, so no other module in this codebase holds an object that
-//      could write to the live shop.
-//
-//  It is a terminal command over SSH and never a button: this is used a
-//  handful of times a year, and a mis-tap would empty an environment — while
-//  putting it in the app would mean keeping production's credentials inside
-//  the sandbox's own deployment, where they are least protected.
-//
-//  WHAT CROSSES OVER: categories, products (including hidden and
-//  soft-deleted ones), variants, the global variant types and their option
-//  values, images, barcodes, SKUs, prices and stock — with production's ids
-//  copied verbatim, so every relation resolves without remapping.
-//
-//  WHAT NEVER DOES: orders, users, expenses, cash sessions, change requests,
-//  push subscriptions and the audit log. No customer or staff data leaves the
-//  live shop.
-//
-//  WHAT THE SANDBOX KEEPS: its staff accounts, their credentials and their
-//  sessions (you are never locked out), its Setting row, its expense
-//  categories and its bootstrap record.
-// ============================================================================
+// npm run import:prod — one-way copy of the live catalogue into the sandbox; see lib/productionImport.
 import "dotenv/config";
 import path from "node:path";
 import { prisma } from "@/lib/prisma";
@@ -45,12 +11,7 @@ import { canReadUploadDir, runProductionImport } from "@/lib/productionImport";
 import { COMMAND_RULE as RULE, PRODUCTION_IMPORT_ENV, PRODUCTION_IMPORT_FLAGS } from "@/constants";
 import type { ProductionImportSummary } from "@/types";
 
-/**
- * Production's uploads directory, or null when the run said to skip the
- * files. Refuses rather than importing rows whose photographs will 404: a
- * catalogue of grey boxes is not what anybody asked for, and finding out
- * afterwards costs another full run.
- */
+/** Production's uploads dir, or null to skip files; refuses rather than importing rows whose photos would 404. */
 async function resolveUploadSource(argv: string[]): Promise<string | null> {
   if (argv.includes(PRODUCTION_IMPORT_FLAGS.skipImages)) {
     return null;

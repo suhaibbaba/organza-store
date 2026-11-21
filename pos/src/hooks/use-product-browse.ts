@@ -10,15 +10,7 @@ interface UseProductBrowseOptions {
   query: string;
 }
 
-// The selling screen's product grid: a category at a time, page by page.
-//
-// Paged rather than endless (CLAUDE.md rule 15) and accumulated rather than
-// replaced, so "Show more" adds a row to what is already on screen instead of
-// scrolling the cashier back to the top of a shelf they were halfway down.
-//
-// The query is debounced on the same clock as the selling screen's search box
-// — it is the same backend search, typed the same way, and the two should not
-// feel like different fields.
+// Paged (rule 15) and accumulated, so "Show more" adds rows instead of jumping back to the top.
 export function useProductBrowse({ categoryId, query }: UseProductBrowseOptions) {
   const debounced = useDebouncedValue(query.trim(), SEARCH_DEBOUNCE_MS);
 
@@ -33,14 +25,7 @@ export function useProductBrowse({ categoryId, query }: UseProductBrowseOptions)
       }
       return meta.page + 1;
     },
-    // Same reasoning as the search list: every card shows a stock badge, and
-    // a second till can move those numbers while this one is looking at them.
-    // The grid keeps its scroll position and its loaded pages across a
-    // refresh — react-query replaces the page data in place, and nothing here
-    // reads `isFetching`, so the only visible change is a badge.
-    //
-    // The grid is always on screen now, so this polls for as long as the
-    // till is in use; refetchIntervalInBackground keeps an idle till quiet.
+    // Always stale: another till can move the stock badges; refreshes replace pages in place.
     staleTime: 0,
     refetchInterval: STOCK_POLL_INTERVAL_MS,
     refetchIntervalInBackground: false,
@@ -50,8 +35,6 @@ export function useProductBrowse({ categoryId, query }: UseProductBrowseOptions)
     ...result,
     products: result.data?.pages.flatMap((page) => page.products) ?? undefined,
     total: result.data?.pages[0]?.meta?.total ?? null,
-    // Typed something the debounce hasn't caught up with: shown as loading
-    // rather than as a grid that still belongs to the previous query.
     isTyping: query.trim() !== debounced,
   };
 }

@@ -11,18 +11,7 @@ import {
 } from "@/constants/bootstrap";
 import type { BootstrapSummary } from "@/types/bootstrap";
 
-// Essential data for a real shop, and nothing else.
-//
-// Safe to run on every deploy, and safe to run twice in a row — but "safe"
-// here is stronger than "idempotent". An upsert-based seed is idempotent and
-// still wrong: the shop retires the "Beige" colour it never stocks, the next
-// push puts it back, and the shop learns that the system overrules them. So
-// each item is created at most ONCE in the life of the database, recorded in
-// BootstrapRecord, and never written again — while a genuinely new default
-// added in a later release still lands on the next run.
-//
-// Adopting an existing row (one the old dev seed created) counts as created:
-// the marker goes down, the row is left exactly as it is.
+// Essential data only, each item created once in the database's life (BootstrapRecord): deleted stays deleted.
 
 async function alreadyApplied(key: string): Promise<boolean> {
   return (await prisma.bootstrapRecord.findUnique({ where: { key } })) !== null;
@@ -41,8 +30,7 @@ export async function runBootstrap(): Promise<BootstrapSummary> {
       return;
     }
     if (await exists()) {
-      // Already there — from the old dev seed, or from a half-finished run.
-      // Record it and change nothing.
+      // Already there (old dev seed or a half-finished run): record it and change nothing.
       await markApplied(key);
       summary.adopted.push(key);
       return;
@@ -71,8 +59,7 @@ export async function runBootstrap(): Promise<BootstrapSummary> {
       },
     );
 
-    // The type may have been deleted deliberately after being bootstrapped;
-    // in that case there is nothing to hang values off, and nothing to do.
+    // The type may have been deleted on purpose after bootstrap; then there is nothing to add values to.
     const stored = await prisma.variantType.findUnique({ where: { slug: type.slug } });
     if (!stored) {
       continue;
@@ -109,16 +96,7 @@ export async function runBootstrap(): Promise<BootstrapSummary> {
     );
   }
 
-  // --- who may do what (spec.md "Editable role permissions") ---
-  //
-  // The CONFIGURABLE grants, copied out of DEFAULT_ROLE_PERMISSIONS exactly as
-  // they are declared, so a shop that has never opened the Permissions screen
-  // behaves on day one precisely as it did before the screen existed.
-  //
-  // The ADMIN role is deliberately NOT written: `can()` answers it from the
-  // shipped table (an Admin holds everything) and never looks here, so a row
-  // for it would do nothing except suggest, to whoever reads the database
-  // later, that it does something.
+  // Copies DEFAULT_ROLE_PERMISSIONS' configurable grants; ADMIN is never written (can() answers it).
   for (const role of ROLES) {
     if (isFixedRole(role)) {
       continue;

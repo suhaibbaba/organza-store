@@ -5,9 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { trackTillActivity } from "@/lib/activity";
 
 export function QueryProvider({ children }: { children: ReactNode }) {
-  // Created once per browser tab via useState (not module scope), so
-  // separate requests never share a client — see the React Query + Next.js
-  // App Router setup guide.
+  // Once per tab via useState, so separate requests never share a client.
   const [client] = useState(
     () =>
       new QueryClient({
@@ -15,12 +13,7 @@ export function QueryProvider({ children }: { children: ReactNode }) {
           queries: {
             staleTime: 60_000,
             retry: 1,
-            // Both are react-query defaults, restated because the stock
-            // queries lean on them: coming back to the till, or coming back
-            // onto the network, re-reads anything stale before the cashier
-            // has looked at it. Leaving them implicit would make a future
-            // "let's set some sensible defaults" pass able to turn the
-            // freshness guarantee off without anyone noticing.
+            // Restated defaults the stock freshness relies on; don't turn them off.
             refetchOnWindowFocus: true,
             refetchOnReconnect: true,
           },
@@ -28,9 +21,6 @@ export function QueryProvider({ children }: { children: ReactNode }) {
       }),
   );
 
-  // Teaches react-query what "this till is in use" means before deciding to
-  // poll anything — see lib/activity.ts. Installed here rather than at module
-  // scope so it is torn down with the provider and survives a hot reload.
   useEffect(() => trackTillActivity(), []);
 
   return <QueryClientProvider client={client}>{children}</QueryClientProvider>;

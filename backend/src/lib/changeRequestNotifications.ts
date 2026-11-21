@@ -13,19 +13,7 @@ import {
 import type { AnyRecord, ChangeRequestActorRef, I18n, PushTarget } from "@/types";
 import type { ChangeRequestNotificationPayload } from "@store/shared/types/push";
 
-// Telling the people who can decide that somebody is waiting on them.
-//
-// Same three rules as the sale notification (lib/saleNotifications.ts), for
-// the same reasons:
-//   1. The request comes first. This runs after it is filed and can never
-//      fail it — hence the fire-and-forget wrapper at the bottom.
-//   2. No sentences. Translation keys and data (CLAUDE.md rule 12); the
-//      admin's service worker renders them in the reader's own language.
-//   3. Nobody is told about their own request.
-//
-// Only creation notifies, deliberately: a decision is made BY the person who
-// would be notified, and the person who asked finds out on the screen where
-// they asked (their pending badge simply clears).
+// Tells the deciders someone is waiting: after the request is filed, never failing it, keys not sentences, bounded.
 
 /** The little of a request this needs. */
 export interface NotifiableChangeRequest {
@@ -38,10 +26,7 @@ export interface NotifiableChangeRequest {
   requestedBy?: { name: string } | null;
 }
 
-/**
- * Every device belonging to somebody who can act on this, except the asker's
- * own. Bounded (CLAUDE.md rule 15) for the same reason the sale fan-out is.
- */
+/** Every device of someone who can act on this, except the asker's own; bounded (rule 15). */
 async function findApproverTargets(excludeUserId: string): Promise<PushTarget[]> {
   return prisma.pushSubscription.findMany({
     where: {
@@ -72,9 +57,7 @@ function buildPayload(
     entityType: request.entityType,
     field: request.field,
     entityLabel: (request.entityLabel ?? null) as I18n | null,
-    // Named the same way the approval screen heads its cards: the piece
-    // first, because "Employee asked to change Stock on 1" tells nobody
-    // anything. Null on an expense, where entityLabel is the category.
+    // Named like the approval card, the piece first; null on an expense, whose entityLabel is the category.
     productLabel: (request.productLabel ?? null) as I18n | null,
     staffName,
     pendingCount,
@@ -88,9 +71,7 @@ export async function sendChangeRequestNotification(
   request: NotifiableChangeRequest,
   actor: ChangeRequestActorRef,
 ): Promise<void> {
-  // Nothing to send with, so nothing to look up either. This is also the
-  // clean hook the whole feature hangs on: with no VAPID keys configured the
-  // flow is unchanged and silent, and configuring them turns it on.
+  // No VAPID keys, nothing to send: the flow stays silent until they are configured.
   if (!isPushConfigured()) {
     return;
   }
@@ -104,8 +85,7 @@ export async function sendChangeRequestNotification(
     prisma.setting.findUnique({ where: { id: SETTINGS_SINGLETON_ID } }),
     prisma.changeRequest.count({ where: { status: PENDING_CHANGE_REQUEST_STATUS as never } }),
   ]);
-  // No settings row yet means a shop that hasn't been set up; the request is
-  // still filed, there is just no default language to render it against.
+  // No settings row means an unset shop: the request is still filed, but there is no language to render in.
   if (!setting) {
     return;
   }
@@ -116,12 +96,7 @@ export async function sendChangeRequestNotification(
   );
 }
 
-/**
- * Fire-and-forget wrapper used when a request is filed. Nothing it does can
- * reach the request that triggered it: a push that fails is a failure of the
- * notification, so it ends up in the error-tracking layer instead of in the
- * response (CLAUDE.md rule 20).
- */
+/** Fire-and-forget: a failed push goes to error tracking, never into the filing response (rule 20). */
 export function scheduleChangeRequestNotification(request: AnyRecord, actor: ChangeRequestActorRef): void {
   void sendChangeRequestNotification(request as NotifiableChangeRequest, actor).catch((error) => {
     captureException(error, { scope: "changeRequestNotification", changeRequestId: request?.id });

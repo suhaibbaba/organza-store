@@ -2,8 +2,7 @@ import type { CashSession, CurrentCashSession } from "@store/shared/types/cash";
 import type { CloseCashSessionInput, OpenCashSessionInput } from "@store/shared/schemas/cash";
 import { apiFetch } from "@/lib/api/client";
 
-// The cash drawer (spec.md "Cash drawer & expenses"). Admin/Manager only —
-// the backend is the gate; this is just the wire.
+// Admin/Manager only; the backend is the gate.
 
 export async function fetchCurrentCashSession(): Promise<CurrentCashSession> {
   const { data } = await apiFetch<CurrentCashSession>("/api/cash-sessions/current");
@@ -15,11 +14,7 @@ export async function openCashSession(input: OpenCashSessionInput): Promise<Cash
   return data;
 }
 
-// Closing is where the count is recorded. It can come back 400 with
-// `error.cashSession.difference_note_required` when the count disagrees with
-// the books and no explanation was given — the error carries the expected,
-// counted and difference figures, which is how the blind-count screen learns
-// what to reveal (see close-day-sheet.tsx).
+// A 400 difference_note_required carries expected/counted/difference, which the blind-count screen reveals.
 export async function closeCashSession(id: string, input: CloseCashSessionInput): Promise<CashSession> {
   const { data } = await apiFetch<CashSession>(`/api/cash-sessions/${id}/close`, {
     method: "POST",

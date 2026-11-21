@@ -2,9 +2,7 @@ import { Prisma } from "@prisma/client";
 import { MONEY_DECIMAL_PLACES } from "@/constants";
 import type { DiscountType } from "@/types";
 
-// All order arithmetic runs through Prisma's Decimal (CLAUDE.md: money is
-// never a Float) and is rounded to the same 2 places the DB column stores,
-// so what is computed, what is written and what is returned always agree.
+// All order arithmetic in Decimal (never Float), rounded to the column's 2 places, so computed, stored and returned agree.
 
 export type Money = Prisma.Decimal;
 
@@ -18,9 +16,7 @@ export function roundMoney(value: Money): Money {
   return value.toDecimalPlaces(MONEY_DECIMAL_PLACES, Prisma.Decimal.ROUND_HALF_UP);
 }
 
-// Money leaves the API as a fixed-2dp string rather than a JS number:
-// floats can't hold every 2dp value exactly, and a string round-trips into
-// the frontend's own formatter untouched.
+// Money leaves the API as a fixed-2dp string: floats can't hold every 2dp value exactly.
 export function formatMoney(value: Prisma.Decimal.Value | null | undefined): string | null {
   if (value === null || value === undefined) {
     return null;
@@ -28,10 +24,7 @@ export function formatMoney(value: Prisma.Decimal.Value | null | undefined): str
   return roundMoney(money(value)).toFixed(MONEY_DECIMAL_PLACES);
 }
 
-// Would an incoming money field actually change what is stored? Used by the
-// permission gates that refuse a *change* rather than the field itself
-// (product.editPrice), so a form resending a value untouched still saves.
-// `undefined` means the field wasn't sent at all; `null` means "clear it".
+// Would an incoming money field change what is stored? `undefined` means not sent, `null` means clear it.
 export function moneyChanged(input: Prisma.Decimal.Value | null | undefined, current: Prisma.Decimal | null): boolean {
   if (input === undefined) {
     return false;
@@ -42,9 +35,7 @@ export function moneyChanged(input: Prisma.Decimal.Value | null | undefined, cur
   return !money(input).equals(current);
 }
 
-// Resolves a (type, value) discount against the amount it applies to.
-// Clamped to that base in both directions, so a discount can never exceed
-// the thing it discounts or turn into a surcharge.
+// Resolves a (type, value) discount, clamped so it never exceeds its base or becomes a surcharge.
 export function resolveDiscountAmount(
   base: Money,
   type: DiscountType | null | undefined,

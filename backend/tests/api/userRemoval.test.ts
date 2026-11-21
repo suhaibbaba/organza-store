@@ -1,21 +1,4 @@
-// ============================================================================
-//  REMOVING A STAFF ACCOUNT
-//
-//  Two different things behind one word, and the whole point of this suite is
-//  that they stay different:
-//
-//    DEACTIVATE — the normal path. They cannot sign in, every session they
-//      already had is dead, and every order, expense and drawer count still
-//      names them. That naming IS the anti-theft design (spec.md "Security
-//      rationale"), so for anybody who has worked here it is the only honest
-//      meaning of "remove".
-//
-//    DELETE — erasing the row. Only ever possible for an account that has
-//      never done anything, because the alternative is either a foreign-key
-//      failure or — on the nullable half of those relations — silently
-//      blanking the authorship out of records that exist to carry it
-//      (backend/src/lib/userHistory.ts).
-// ============================================================================
+// Deactivate keeps every record naming them (the anti-theft design); delete is only for an account that never did anything.
 import { afterAll, describe, expect, it } from "vitest";
 import { Role } from "@prisma/client";
 import { apiRequest, rawRequest, uniqueId } from "@tests/support/client";
@@ -48,16 +31,7 @@ describe("Staff account removal", () => {
     return res.data!;
   }
 
-  /**
-   * A fixture account that has ACTUALLY WORKED — it signs in and rings up a
-   * sale of its own.
-   *
-   * Deliberately not the seeded Employee. Switching that account off would
-   * revoke the session tests/setup.ts signs in once and shares with every
-   * other file in the run, so a test that deactivated it would break suites
-   * it never touched — and reactivating afterwards would not bring the
-   * revoked token back.
-   */
+  /** A fixture that has worked; never the seeded Employee, whose shared session deactivation would revoke for every suite. */
   async function createWorkingStaff(
     label: string,
   ): Promise<{ account: StaffAccountView; token: string; orderId: string }> {
@@ -83,8 +57,7 @@ describe("Staff account removal", () => {
     const admin = await getSession("ADMIN");
     for (const id of strays) {
       const deleted = await apiRequest(`/api/users/${id}`, { method: "DELETE", token: admin.token });
-      // Already gone (a test deleted it) or it picked up history — either way
-      // the run must not fail here.
+      // Already gone or it picked up history: either way the run must not fail here.
       if (deleted.status !== 200) {
         await apiRequest(`/api/users/${id}`, { method: "PATCH", token: admin.token, body: { isActive: false } });
       }
@@ -111,9 +84,7 @@ describe("Staff account removal", () => {
       });
       expect(off.status).toBe(200);
 
-      // The token in their phone is dead THE MOMENT the switch is flipped.
-      // `isActive: false` on its own would only block the next sign-in and
-      // leave this one working (routes/users.ts revokes them explicitly).
+      // The token is dead the moment the switch flips: routes/users.ts revokes sessions explicitly.
       const replayed = await apiRequest("/api/categories", { token });
       expect(replayed.status, "the session they already had must be dead").toBe(401);
     });
@@ -128,10 +99,7 @@ describe("Staff account removal", () => {
         body: { isActive: false },
       });
 
-      // Better Auth knows nothing about `isActive` — this is refused by the
-      // session hook in lib/auth.ts. Without it sign-in SUCCEEDS and the
-      // person lands in an app where every screen 403s, which is not what
-      // "they can no longer sign in" means.
+      // Better Auth ignores isActive; the session hook in lib/auth.ts refuses it, or sign-in lands on all 403s.
       const attempt = await rawRequest("/api/auth/sign-in/email", {
         method: "POST",
         body: { email: staff.email, password: SEEDED_PASSWORD },
@@ -172,9 +140,7 @@ describe("Staff account removal", () => {
       });
       expect(off.status).toBe(200);
 
-      // The sale is still there, and it still says who rang it up. That is
-      // the promise the screen makes in words ("their history stays") and the
-      // reason deactivation exists at all.
+      // The sale still names who rang it up: the promise "their history stays" makes.
       const order = await apiRequest<{ id: string; createdById: string; createdBy: { name: string } | null }>(
         `/api/orders/${orderId}`,
         { token: admin.token },
@@ -199,14 +165,12 @@ describe("Staff account removal", () => {
       expect(deleted.status).toBe(200);
       expect(deleted.data!.deleted).toBe(true);
 
-      // Gone, not hidden — staff have no soft delete, which is exactly why
-      // this is only ever allowed for an account with nothing behind it.
+      // Gone, not hidden: staff have no soft delete, so only an account with nothing behind it.
       const gone = await apiRequest(`/api/users/${staff.id}`, { token: admin.token });
       expect(gone.status).toBe(404);
       expect(gone.error?.code).toBe(ERROR_CODES.USER_NOT_FOUND);
 
-      // ...and their password went with them: the credential row cascades, so
-      // the old password cannot let anybody into a resurrected account.
+      // The credential row cascades, so the old password cannot reach a resurrected account.
       const attempt = await signIn(staff.email, SEEDED_PASSWORD);
       expect(attempt.session).toBeUndefined();
     });
@@ -219,8 +183,7 @@ describe("Staff account removal", () => {
       expect(res.status).toBe(409);
       expect(res.error?.code).toBe(ERROR_CODES.USER_HAS_HISTORY);
 
-      // The refusal has to be a refusal, not a partial: the account is
-      // untouched, still active, still able to work.
+      // A refusal is total: the account is untouched, still active.
       const still = await apiRequest<StaffAccountView>(`/api/users/${account.id}`, { token: admin.token });
       expect(still.status).toBe(200);
       expect(still.data!.isActive).toBe(true);
@@ -231,10 +194,7 @@ describe("Staff account removal", () => {
       const admin = await getSession("ADMIN");
       const staff = await createStaff("delete-audited");
 
-      // Asking for a password link writes an audit entry in their own name
-      // (routes/passwordSetup.ts) and nothing else. That is still a record of
-      // them having existed and acted, so the account stops being erasable —
-      // the check is "any history", not "any SALES".
+      // A password-link request writes an audit entry in their name, and any history makes them unerasable.
       const requested = await apiRequest("/api/password-setup/request", {
         method: "POST",
         body: { email: staff.email },
@@ -253,10 +213,7 @@ describe("Staff account removal", () => {
       const refused = await apiRequest(`/api/users/${account.id}`, { method: "DELETE", token: admin.token });
       expect(refused.status).toBe(409);
 
-      // The order they took still names them. A cascade — or a nullable
-      // relation quietly set to NULL, which is what Prisma's DEFAULT would do
-      // to half of these — would show up here as a sale with no author, the
-      // exact failure this design exists to prevent.
+      // The order still names them: a cascade or SET NULL would show a sale with no author.
       const order = await apiRequest<{ createdById: string | null }>(`/api/orders/${orderId}`, {
         token: admin.token,
       });
@@ -288,16 +245,7 @@ describe("Staff account removal", () => {
       expect(deactivated.status).toBe(409);
       expect(deactivated.error?.code).toBe(ERROR_CODES.USER_SELF_REMOVAL);
 
-      // Editing yourself is still perfectly fine — it is REMOVAL that is
-      // refused, not every self-edit.
-      //
-      // Put back afterwards, which is not politeness: this account is the one
-      // every screen of the sandbox signs in as, and the suite runs against a
-      // LIVE deployment. A rename left behind is a rename somebody reads in
-      // the account button for the rest of the year — and this test used to
-      // leave `Admin <nonce>` there, which is exactly how a raw id came to be
-      // sitting in the top bar. The new name is a readable one for the same
-      // reason: even the window where it IS applied should look like a name.
+      // Self-edit is fine, only removal is refused; restored after, since every sandbox screen signs in as this account.
       const before = await apiRequest<StaffAccountView>(`/api/users/${admin.userId}`, {
         token: admin.token,
       });
@@ -326,8 +274,7 @@ describe("Staff account removal", () => {
         token: admin.token,
       });
       expect(admins.status).toBe(200);
-      // Only meaningful while there is exactly one; with two, demoting one is
-      // a legitimate thing to allow.
+      // Only meaningful with exactly one Admin.
       if ((admins.data ?? []).length !== 1) {
         return;
       }
@@ -343,19 +290,12 @@ describe("Staff account removal", () => {
 
     it.each(["MANAGER", "EMPLOYEE"] as SeededRole[])("refuses a %s outright, both ways", async (role) => {
       const session = await getSession(role);
-      // They cannot even read the staff list, so they have no id to aim at —
-      // which is the first half of the answer.
+      // They cannot read the staff list, so they have no id to aim at.
       const list = await apiRequest("/api/users", { token: session.token });
       expect(list.status).toBe(403);
       expect(list.error?.code).toBe(ERROR_CODES.FORBIDDEN);
 
-      // ...and aiming at one anyway is refused on the route, not by the UI
-      // hiding a button (CLAUDE.md rule 5). Both verbs, because they are
-      // gated by different permissions (user.manage and user.delete).
-      //
-      // A fixture account is the target rather than a seeded one: the point
-      // is that the CALLER is refused, and borrowing somebody else's id for
-      // that would make this test's outcome depend on another suite.
+      // Refused on the route (rule 5), both verbs (user.manage, user.delete); a fixture target keeps suites independent.
       const victim = await createStaff(`refused-${role.toLowerCase()}`);
 
       const deleted = await apiRequest(`/api/users/${victim.id}`, {
@@ -397,15 +337,13 @@ describe("Staff account removal", () => {
       expect(res.status).toBe(200);
 
       for (const user of res.data ?? []) {
-        // active / deactivated, invited-but-not-set-up, and whether removing
-        // them could ever mean erasing them.
+        // Active or not, invited-but-not-set-up, and whether removal could ever mean erasure.
         expect(typeof user.isActive).toBe("boolean");
         expect(typeof user.hasPassword).toBe("boolean");
         expect(typeof user.hasHistory).toBe("boolean");
       }
 
-      // The seeded staff have all worked, so none of them is erasable — the
-      // list must say so rather than offering a button the API would refuse.
+      // The seeded staff have all worked, so the list must not offer a delete the API would refuse.
       const employee = (res.data ?? []).find((user) => user.email === SEEDED_ACCOUNTS.EMPLOYEE.email);
       expect(employee?.hasHistory).toBe(true);
     });

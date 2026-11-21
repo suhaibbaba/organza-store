@@ -6,11 +6,7 @@ import { DEFAULT_POINT_STOCK } from "@/constants/numberedShawl";
 import { initOptionValueNotes, type OptionValueNoteMap } from "@/lib/option-value-notes";
 import type { PlacedShawlPoint, ShawlPoint } from "@/types/numberedShawl";
 
-// Whether to surface the numbered-point placement tool at all. It is the
-// product's own explicit choice (spec.md "Numbered shawls" — Product
-// .isNumbered), never a guess based on which variant types it happens to use:
-// the tool appears on a numbered product and on nothing else, and the backend
-// enforces the same rule on every variant it would create.
+// The product's own isNumbered flag, never inferred from its variant types; the backend enforces the same.
 export function showNumberedShawlEditor(product: Pick<Product, "isNumbered">): boolean {
   return product.isNumbered;
 }
@@ -19,17 +15,11 @@ export function clampPercent(value: number): number {
   return Math.min(100, Math.max(0, value));
 }
 
-// Two decimals is plenty of precision for a percentage position and keeps
-// state/payloads readable.
 export function roundPercent(value: number): number {
   return Math.round(clampPercent(value) * 100) / 100;
 }
 
-// Every number the product has, placed on the photo or not. A number
-// without coordinates (made before it was put on the photo, or copied in
-// from elsewhere) used to be left out here — and since a numbered product
-// has no other variant list, its quantity could then be changed nowhere.
-// Only the canvas narrows this to the placed ones (placedShawlPoints).
+// Every number, placed or not: a numbered product has no other list to change its quantity in.
 export function initShawlPoints(variants: Variant[]): ShawlPoint[] {
   return variants
     .filter((v) => v.values.length > 0)
@@ -46,10 +36,7 @@ export function initShawlPoints(variants: Variant[]): ShawlPoint[] {
     .sort((a, b) => a.number - b.number);
 }
 
-// The notes this shawl's numbers already carry, keyed the way the editor
-// keys its rows — by POINT, not by option value (spec.md "Notes on a
-// product's options"). A number placed in the current session has no global
-// value yet, so the editor cannot key by value until the save resolves one.
+// Keyed by point, not option value: a number placed this session has no value until the save.
 export function initPointNotes(product: Product): OptionValueNoteMap {
   const byValueId = initOptionValueNotes(product);
   const notes: OptionValueNoteMap = {};
@@ -70,10 +57,7 @@ export function placedShawlPoints(points: ShawlPoint[]): PlacedShawlPoint[] {
   return points.filter(isPlacedShawlPoint);
 }
 
-// The number a tap on the photo should place: the lowest one that exists but
-// is not on the photo yet, before any new number is made. Placing "1" again
-// as a brand-new point would collide with the existing 1 — the save leaves an
-// existing number untouched, so its position was silently thrown away.
+// The lowest existing unplaced number first: a new "1" would collide with the existing 1 and lose its position.
 export function firstUnplacedPoint(points: ShawlPoint[]): ShawlPoint | null {
   return points.filter((p) => !isPlacedShawlPoint(p)).sort((a, b) => a.number - b.number)[0] ?? null;
 }
@@ -95,14 +79,11 @@ export function newShawlPoint(number: number, x: number, y: number): ShawlPoint 
   };
 }
 
-// Only the fields that actually changed vs. the loaded variant go into the
-// PATCH body, mirroring lib/validation/variant-edit.ts's diffVariantEdit.
+// Only changed fields, like diffVariantEdit.
 export function diffShawlPoint(original: Variant, point: ShawlPoint): UpdateVariantInput | null {
   const patch: UpdateVariantInput = {};
   let changed = false;
 
-  // An unplaced number has no position to send; once placed, it is sent
-  // like any move.
   if (isPlacedShawlPoint(point)) {
     const x = roundPercent(point.x);
     const y = roundPercent(point.y);

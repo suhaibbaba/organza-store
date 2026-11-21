@@ -25,31 +25,19 @@ export interface ChangeRequestVariantSummary {
   name: I18n;
 }
 
-/**
- * The extra shape a compound field needs. Scalar fields (a price, a count, a
- * flag) leave it out entirely and carry everything in `value`.
- */
+/** Extra shape for compound fields; scalar fields carry everything in `value`. */
 export interface ChangeRequestValueDetail {
   /** variantSet only: whether the request adds combinations or removes one. */
   action?: ChangeRequestVariantSetAction;
   /** variantSet only: the combinations themselves, for the "old → requested" line. */
   variants?: ChangeRequestVariantSummary[];
-  /**
-   * variantSet + add only: exactly what the applier re-runs on approval. The
-   * option value ids are references, never copied text (CLAUDE.md rule 2), so
-   * a value renamed while the request waits still resolves correctly.
-   */
+  /** variantSet add only: what the applier re-runs, with value ids as references (rule 2), so renames still resolve. */
   optionSelections?: { variantTypeId: string; valueIds: string[] }[];
   comboStocks?: { valueIds: string[]; stock: number }[];
   /** variantSet + remove only: which variant goes. */
   variantId?: string;
 
-  /**
-   * quickSell only: the sale that has ALREADY happened, snapshotted when the
-   * request was filed (spec.md "Quick sell"). It is what turns the approval
-   * card from "approve this change" into "this was sold — complete its
-   * details": the order it went out on, how many, and what the customer paid.
-   */
+  /** quickSell only: the sale already made, snapshotted at filing, which makes the card "complete its details" (spec.md "Quick sell"). */
   sale?: {
     orderId: string;
     orderNumber: number;
@@ -59,10 +47,7 @@ export interface ChangeRequestValueDetail {
   };
 }
 
-/**
- * A value on either side of a request. Data, never prose: `kind` says how to
- * read it and the frontends supply the wording through t() (CLAUDE.md rule 12).
- */
+/** A request value as data, never prose: `kind` says how to read it, the apps word it via t() (rule 12). */
 export interface ChangeRequestValue {
   kind: ChangeRequestValueKind;
   /** Money as a 2dp string, a count as an integer, a flag as a boolean. */
@@ -70,15 +55,7 @@ export interface ChangeRequestValue {
   detail?: ChangeRequestValueDetail;
 }
 
-/**
- * A pending or decided request (GET /api/change-requests).
- *
- * `entityLabel` / `entityDetail` are snapshots taken when the request was
- * filed, purely so the approval screen can say WHICH piece is being re-priced
- * without a second round trip — and so a request still reads correctly if the
- * thing it is about has since gone. They are never what the change is applied
- * to: that is always (entityType, entityId, field).
- */
+/** entityLabel/entityDetail are display snapshots from filing; the change always applies to (entityType, entityId, field). */
 export interface ChangeRequest {
   id: string;
   entityType: ChangeRequestEntityType;
@@ -90,12 +67,7 @@ export interface ChangeRequest {
   newValue: ChangeRequestValue | null;
 
   entityLabel: I18n | null;
-  /**
-   * The owning product's name — what the approval screen heads the card
-   * with. Distinct from entityLabel on a variant, where the entity is the
-   * combination; null where there is no product behind the request (an
-   * expense), and the entity's own label is the heading instead.
-   */
+  /** The owning product's name for the card heading; null without a product (an expense). */
   productLabel: I18n | null;
   entityDetail: string | null;
   /** Where the admin screen links to, when the request is about a product. */
@@ -115,12 +87,7 @@ export interface ChangeRequest {
   updatedAt: string;
 }
 
-/**
- * The pending requests hanging off one product, its variants and its images —
- * attached to every product response so an Employee's screen can say "waiting
- * for approval" next to the value they changed, instead of appearing to have
- * dropped their edit.
- */
+/** Pending requests on a product, its variants and images, so an Employee sees "waiting for approval" beside their edit. */
 export type PendingChange = ChangeRequest;
 
 /** GET /api/change-requests/count — what the nav badge shows. */
@@ -128,12 +95,7 @@ export interface ChangeRequestCount {
   pending: number;
 }
 
-/**
- * POST /api/change-requests/:id/cancel — the asker took it back.
- *
- * There is no request to return: withdrawing removes the row (what was asked
- * for stays in the audit trail), so the id is all there is left to say.
- */
+/** Withdrawing removes the row (the audit trail keeps it), so only the id is returned. */
 export interface ChangeRequestCancelled {
   id: string;
   cancelled: boolean;

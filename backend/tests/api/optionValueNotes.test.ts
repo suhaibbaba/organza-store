@@ -1,11 +1,4 @@
-// What one option value MEANS on one product (spec.md "Notes on a product's
-// options").
-//
-// The rule the whole feature rests on is the SCOPE: "S" is a different
-// measurement on trousers than on an abaya, so a note written against one
-// product's S must be invisible on every other product's S. Everything else
-// here — the round trip, the languages, the number that reaches the POS — is
-// only useful if that holds, so it is the first thing proved.
+// A note is scoped to ONE product's value: "S" on trousers is not "S" on an abaya.
 import { afterAll, describe, expect, it } from "vitest";
 import { apiRequest, uniqueId } from "@tests/support/client";
 import { getSession } from "@tests/support/auth";
@@ -65,8 +58,7 @@ describe("Notes on a product's options", () => {
     const selections = await twoByTwoOptionSelections(admin.token);
     const sharedSizeId = selections[1].valueIds[0];
 
-    // Two products built on the very same global values — the size list is
-    // the shop's one list, shared by the whole catalogue.
+    // Both products share the global values: the size list is the shop's one list.
     const trousers = await createProduct(admin.token, selections, {
       optionValueNotes: [{ optionValueId: sharedSizeId, note: { ar: "طول البنطلون ٩٥ سم" } }],
     });
@@ -104,8 +96,7 @@ describe("Notes on a product's options", () => {
     expect(product.optionValueNotes).toHaveLength(1);
     expect(noteOnValue(product, colorId)).toEqual({ ar: "قماش خفيف", en: "Light fabric" });
 
-    // A second note on another value, sent on its own: the first is not
-    // mentioned in this request and must survive it.
+    // A note sent alone must not wipe the one not mentioned.
     const edited = await apiRequest<ProductDto>(`/api/products/${product.id}`, {
       method: "PATCH",
       token: admin.token,
@@ -144,10 +135,7 @@ describe("Notes on a product's options", () => {
     const selections = await twoByTwoOptionSelections(admin.token);
     const sizeId = selections[1].valueIds[0];
 
-    // The shop writes Arabic and nothing else, which is the normal case. The
-    // empty English must not be stored as an empty string: every screen falls
-    // back to the default language, and "" is not a missing translation, it
-    // is a translation that renders blank.
+    // An empty translation is stored as absent, not "": "" renders blank instead of falling back.
     const product = await createProduct(admin.token, selections, {
       optionValueNotes: [{ optionValueId: sizeId, note: { ar: "الطول ١٤٠ سم", en: "", he: "" } }],
     });
@@ -176,8 +164,7 @@ describe("Notes on a product's options", () => {
     expect(res.status).toBe(400);
     expect(res.error?.code).toBe(ERROR_CODES.PRODUCT_OPTION_NOTE_VALUE_NOT_USED);
 
-    // Refused at creation too — and with nothing created, rather than a 400
-    // handed back for a product that exists anyway.
+    // Refused at creation with nothing created, never a 400 for a product that exists anyway.
     const nonce = uniqueId();
     const categoryId = await anyCategoryId(admin.token);
     const query = `/api/products?pageSize=100&q=${encodeURIComponent(`Vitest Notes ${nonce}`)}`;
@@ -215,9 +202,7 @@ describe("Notes on a product's options", () => {
     expect(res.error?.code).toBe(ERROR_CODES.VALIDATION);
   });
 
-  // A note is a product DETAIL — what the piece SAYS — so it rides on
-  // product.edit exactly like the name beside it, and is not one of the five
-  // actions held for approval (CLAUDE.md rule 21).
+  // A note is a product detail on product.edit like the name, not one of the five gated actions (rule 21).
   it("lets an Employee write a note, while their price change on the same save still waits", async () => {
     const admin = await getSession("ADMIN");
     const employee = await getSession("EMPLOYEE");
@@ -244,9 +229,7 @@ describe("Notes on a product's options", () => {
     expect((saved.data!.pendingChanges ?? []).some((change) => change.field === "basePrice")).toBe(true);
   });
 
-  // Numbers are option values like any other (spec.md "Numbered shawls"), so
-  // a number takes a note like any other — and it reaches the POS beside the
-  // number, never drawn on the photograph.
+  // A number takes a note like any value, shown beside it in the POS, never drawn on the photo.
   it("carries a numbered shawl's note to the POS picker without touching the image overlay", async () => {
     const admin = await getSession("ADMIN");
     const employee = await getSession("EMPLOYEE");
@@ -270,8 +253,7 @@ describe("Notes on a product's options", () => {
 
     const numbered = lookup.data!.numbers.find((option) => option.variantId === numbers[0].id);
     expect(numbered?.note).toEqual({ ar: "حرير طبيعي" });
-    // The other number carries none, and says so plainly rather than by
-    // omission — a screen must be able to draw nothing without guessing.
+    // The other number says "none" explicitly, so a screen draws nothing without guessing.
     expect(lookup.data!.numbers.find((option) => option.variantId === numbers[1].id)?.note).toBeNull();
 
     // The picker reads the same note off the variant it is about to sell.
@@ -280,9 +262,7 @@ describe("Notes on a product's options", () => {
       ?.values.find((value) => value.id === numberValueId);
     expect(pickerValue?.note).toEqual({ ar: "حرير طبيعي" });
 
-    // And nothing about the photograph moved: the points are where they were
-    // and the markers' colours were not touched, because a note is never
-    // drawn on the image.
+    // A note is never drawn on the image, so the points and marker colours did not move.
     const reloaded = await apiRequest<ProductDto>(`/api/products/${product.id}`, { token: admin.token });
     const before = numbers[0];
     const after = reloaded.data!.variants.find((variant) => variant.id === before.id);

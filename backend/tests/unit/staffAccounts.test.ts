@@ -11,12 +11,7 @@ import {
 import { DEFAULT_STAFF_FILE, INIT_FLAGS, STAFF_FILE_ENV } from "@/constants/init";
 import type { InitAccountDetails } from "@/types/init";
 
-// The staff roster `npm run init` reads.
-//
-// It creates real accounts for real people in one pass, so the file is checked
-// in full before the database is touched. What matters here is not just that a
-// bad file is refused, but that it is refused with something specific enough
-// to fix without guessing — and that NOTHING is half-accepted.
+// The init roster is checked in full before any write, with fixable messages, and nothing is half-accepted.
 
 const SOURCE = "staff.json";
 
@@ -73,8 +68,7 @@ describe("Staff roster file", () => {
     });
 
     it("accepts the committed example file", () => {
-      // The example is what somebody copies. If it stopped parsing, the first
-      // thing they did on go-live day would fail.
+      // The example is what somebody copies on go-live day, so it must parse.
       const example = path.resolve(__dirname, "..", "..", "..", "staff.example.json");
       expect(loadStaffAccounts(example)).toHaveLength(3);
     });
@@ -174,9 +168,7 @@ describe("Staff roster file", () => {
     });
 
     it("treats the same Palestinian line under +970 and +972 as one number", () => {
-      // CLAUDE.md rule 18: the prefix is never rewritten, so uniqueness is
-      // enforced by checking BOTH spellings. Two staff sharing a line would
-      // otherwise only fail at the database's unique index, halfway through.
+      // The prefix is never rewritten (rule 18), so both spellings are checked before the unique index fails halfway.
       const problems = problemsOf([
         entry({ phone: "+970599000101" }),
         entry({ email: "two@example.com", phone: "+972599000101" }),
@@ -197,8 +189,7 @@ describe("Staff roster file", () => {
 
   describe("unknown fields", () => {
     it("refuses a misspelt field rather than ignoring it", () => {
-      // A "phoneNumber" that quietly does nothing is a phone number nobody
-      // notices is missing until the account exists without one.
+      // A misspelt key would silently leave the account without a phone.
       const problems = problemsOf([{ ...entry(), phoneNumber: "+970599000102" }]);
       expect(problems).toMatch(/phoneNumber: unknown field/);
     });
@@ -219,9 +210,7 @@ describe("Staff roster file", () => {
     });
 
     it("accepts nothing at all when any entry is bad", () => {
-      // The whole point of validating up front: `init` creates accounts in one
-      // pass and refuses a database that already has users, so a run that
-      // created two of four would leave a shop nothing could finish building.
+      // init runs once and refuses a database with users, so a half-created roster could never be finished.
       let thrown: unknown;
       try {
         parseStaffAccounts(
@@ -261,8 +250,7 @@ describe("Staff roster file", () => {
     });
 
     it("refuses an override for an address that is not in the file", () => {
-      // Silently doing nothing would mean the correction you thought you made
-      // did not happen.
+      // Silently doing nothing would hide a correction that never happened.
       expect(() =>
         applyStaffOverrides(accounts, { phones: new Map([["typo@example.com", "+970599000103"]]) }, SOURCE),
       ).toThrow(/--phone names an address that is not in staff\.json/);

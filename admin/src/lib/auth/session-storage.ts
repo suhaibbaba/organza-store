@@ -1,8 +1,6 @@
 import { SESSION_COOKIE_MAX_AGE_SECONDS, SESSION_TOKEN_KEY } from "@/constants/storage";
 
-// The bearer token lives in both localStorage (read by the API client) and a
-// plain cookie (read by proxy.ts, which can't reach localStorage) — see
-// proxy.ts for why this is an optimistic check only.
+// Mirrored to a cookie for proxy.ts, which can't read localStorage (an optimistic check only).
 export function getStoredToken(): string | null {
   if (typeof window === "undefined") {
     return null;

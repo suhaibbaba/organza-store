@@ -1,15 +1,5 @@
 #!/usr/bin/env tsx
-// ============================================================================
-//  npm run email:preview — render every email, in every language, to disk.
-//
-//  Sends nothing, needs no API key, and touches no database (the store name is the default). It writes one
-//  .html and one .txt per template per language into tmp/email-preview/ (git
-//  ignored) and prints the paths, so the Arabic layout can be opened in a
-//  browser and CHECKED rather than assumed (CLAUDE.md: verify Arabic visually).
-//
-//  The plain-text half is written out too, because it is what a text-only
-//  client and every spam filter actually read.
-// ============================================================================
+// npm run email:preview — renders every email in every language to tmp/email-preview/; sends nothing, no database.
 import "dotenv/config";
 import fs from "node:fs/promises";
 import path from "node:path";
@@ -20,8 +10,7 @@ import { emailConfig } from "@/lib/email";
 import { BOOTSTRAP_SETTING, EMAIL_PREVIEW_DIR } from "@/constants";
 import { localizeI18n } from "@store/shared/lib/i18n";
 
-// Obviously fake, and obviously long enough to show how a real one wraps in
-// the fallback-link paragraph.
+// Obviously fake, and obviously long enough to show how a real one wraps in the fallback-link paragraph.
 const SAMPLE_TOKEN = "PREVIEW-TOKEN-not-a-real-link-0000000000000000000000";
 const SAMPLE_NAMES: Record<string, string> = {
   ar: "روان",

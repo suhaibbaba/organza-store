@@ -9,16 +9,13 @@ export default getRequestConfig(async ({ requestLocale }) => {
 
   return {
     locale,
-    // The app's own messages, plus @store/ui's under `ui` — the
-    // components' own strings (cancel, pagination, validation) ship with them.
+    // Plus @store/ui's own strings under `ui`.
     messages: {
       ...(await import(`../messages/${locale}.json`)).default,
       ui: (await import(`@store/ui/messages/${locale}.json`)).default,
     },
 
-    // How a figure inside a sentence is written. Named rather than left to
-    // the device — see @store/shared/constants/formatting. The client
-    // provider inherits this from here, so both halves of the app agree.
+    // Named number formats (shared/constants/formatting), inherited by the client provider.
     formats: MESSAGE_FORMATS,
   };
 });

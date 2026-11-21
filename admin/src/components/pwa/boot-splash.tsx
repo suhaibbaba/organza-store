@@ -21,46 +21,19 @@ import type { BootSplashPhase } from "@/types";
 
 const DOTS = Array.from({ length: BOOT_SPLASH_DOT_COUNT }, (_, index) => index);
 
-/**
- * The branded screen the app opens on, between the phone's own launch image
- * and the first real screen.
- *
- * Tapping the home-screen tile puts up a launch image — the PNG iOS picked
- * out of public/splash/, or the icon-on-background Android generates from the
- * manifest. That image goes away the moment the page paints, which is well
- * before the app knows who is signed in, and what used to be there in the gap
- * was a white flash and then a bare spinner. This is what is there instead:
- * the same two colours as the launch image, the same mark, and a small row of
- * dots to say something is still happening.
- *
- * It is deliberately part of the server-rendered document rather than
- * something an effect puts up, so the very first paint is already branded —
- * there is no frame in which the page background shows through.
- *
- * It comes down as soon as the session check answers, and it is gone from the
- * page entirely a fraction of a second later: this covers a wait, it never
- * adds one.
- */
+// Server-rendered so the first paint is branded between the launch image and the first screen; it never adds a wait.
 export function BootSplash() {
   const { isLoading } = useSession();
   const t = useTranslations("common");
 
   const [phase, setPhase] = useState<BootSplashPhase>("visible");
-  // The session check is allowed to take its time, but not forever — see
-  // BOOT_SPLASH_MAX_VISIBLE_MS.
   const [hasWaitedLongEnough, setHasWaitedLongEnough] = useState(false);
 
-  // When this screen actually went up. Read in the effect below to work out
-  // how much of the minimum is left, and set here rather than during render
-  // because on a cold start the document is painted long before React gets
-  // around to hydrating it.
+  // Set in the effect, not during render: on a cold start the document paints long before hydration.
   const shownAt = useRef(0);
 
   useEffect(() => {
-    // React is mounted and running effects — which is the whole of what the
-    // boot watchdog is waiting to see. Set before anything else here, because
-    // from this line on the app is alive and the failure screen must not
-    // appear (components/pwa/boot-failure.tsx).
+    // First thing: from here the app is alive and the boot watchdog's failure screen must not appear.
     document.documentElement.setAttribute("data-boot", "ready");
 
     shownAt.current = performance.now();
@@ -68,9 +41,7 @@ export function BootSplash() {
     return () => window.clearTimeout(timer);
   }, []);
 
-  // `isLoading` covers the failure case too: a session check that gives up
-  // finishes loading, and the app's own "couldn't reach the server" screen
-  // (components/auth/auth-guard.tsx) says far more than this one can.
+  // A session check that gives up finishes loading too, and auth-guard's own error screen says more.
   const isBooting = isLoading && !hasWaitedLongEnough;
 
   useEffect(() => {
@@ -100,9 +71,7 @@ export function BootSplash() {
     <div
       className="boot-splash"
       data-phase={phase}
-      // Both colours come from constants/pwa.ts, which is also what the
-      // manifest's background_color is read from — one value, so the in-app
-      // screen and the launch image it replaces can never drift apart.
+      // The same colour as the manifest's background_color, so the screen matches the launch image.
       style={{ backgroundColor: PWA_BACKGROUND_COLOR, transitionDuration: `${BOOT_SPLASH_FADE_OUT_MS}ms` }}
       role="status"
     >
@@ -111,13 +80,8 @@ export function BootSplash() {
         src={BOOT_SPLASH_MARK_PATH}
         width={BOOT_SPLASH_MARK_SIZE}
         height={BOOT_SPLASH_MARK_SIZE}
-        // Unoptimized on purpose: this exact path is the one the service
-        // worker keeps a copy of (public/sw.js), whereas the optimizer's
-        // /_next/image route is deliberately never cached — so this is also
-        // the only version of the mark that is there on a dead connection.
+        // Unoptimized: the service worker caches this exact path, never /_next/image, so it works offline.
         unoptimized
-        // The mark is what the screen is; start fetching it from the <head>
-        // rather than waiting for the browser to find it in the body.
         preload
         // Purely decorative — the status text below is what gets announced.
         alt=""

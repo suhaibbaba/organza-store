@@ -26,9 +26,7 @@ describe("Categories", () => {
 
   afterAll(async () => {
     const admin = await getSession("ADMIN");
-    // Products first: a category with anything filed under it refuses to be
-    // deleted (CATEGORY_HAS_PRODUCTS), so the shelf can only be cleared once
-    // what is on it has gone.
+    // A category with products refuses deletion (CATEGORY_HAS_PRODUCTS), so products go first.
     if (childProductId) {
       await apiRequest(`/api/products/${childProductId}`, { method: "DELETE", token: admin.token });
     }
@@ -78,9 +76,7 @@ describe("Categories", () => {
     expect(res.error?.code).toBe(ERROR_CODES.FORBIDDEN);
   });
 
-  // The POS product browser's sidebar pins these to the top, on every till
-  // (spec.md "POS product browser") — so the flag is stored on the category
-  // and gated like every other category edit.
+  // Favourites are pinned on every till, so the flag is stored on the category and gated like any edit.
   it("pins and unpins a category as a favourite", async () => {
     const admin = await getSession("ADMIN");
 
@@ -114,9 +110,7 @@ describe("Categories", () => {
     expect(res.error?.code).toBe(ERROR_CODES.FORBIDDEN);
   });
 
-  // Products hang off leaves, so the browser asking for a parent shelf has to
-  // be answered with everything under it — otherwise tapping "Women" shows an
-  // empty grid while the dresses sit one level down.
+  // Products hang off leaves, so a parent shelf must answer with everything under it.
   it("lists a child category's products under the parent only with includeSubcategories", async () => {
     const admin = await getSession("ADMIN");
     const name = `Vitest Subtree ${nonce}`;

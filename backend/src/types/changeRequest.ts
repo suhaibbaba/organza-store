@@ -27,9 +27,7 @@ export type {
   PendingChange,
 };
 
-// Anything that can run a query: the client itself, or the transaction client
-// handed to a $transaction callback. Appliers take one of these so that
-// approving a change and writing its audit entry are one atomic unit.
+// The client or a transaction client, so an approval and its audit entry are atomic.
 export type DbClient = Prisma.TransactionClient;
 
 /** Who is asking for, or deciding, a change. */
@@ -38,11 +36,7 @@ export interface ChangeRequestActorRef {
   role: string;
 }
 
-/**
- * Everything needed to file one request. The caller (a route that just
- * refused to apply something) describes WHAT it would have done; nothing here
- * knows which entity that is beyond the triple.
- */
+/** Everything needed to file one request: the change a route just refused to apply. */
 export interface ChangeRequestDraft {
   entityType: ChangeRequestEntityType;
   entityId: string;
@@ -51,12 +45,7 @@ export interface ChangeRequestDraft {
   newValue: ChangeRequestValue;
   /** Snapshots for the approval screen — see the schema comment. */
   entityLabel?: unknown;
-  /**
-   * The owning product's name. Set it on every draft that HAS a product,
-   * whether the entity is the product, one of its variants or one of its
-   * photos — it is what the approval screen heads the card with, and without
-   * it a variant request names only the combination.
-   */
+  /** The owning product's name, set on every draft that has one — the approval card's heading. */
   productLabel?: unknown;
   entityDetail?: string | null;
   productId?: string | null;
@@ -64,10 +53,7 @@ export interface ChangeRequestDraft {
 
 /** One entity type + field pair, and how to apply an approved change to it. */
 export interface ChangeRequestApplier {
-  /**
-   * Applies the requested value. Runs inside the approval's transaction, so
-   * throwing leaves the request pending and the entity untouched.
-   */
+  /** Applies the requested value inside the approval's transaction; throwing leaves it pending. */
   apply: (tx: DbClient, request: AppliedChangeRequestRow) => Promise<void>;
 }
 

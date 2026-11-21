@@ -2,36 +2,24 @@ import type { BarcodeSource } from "@store/shared/types/product";
 import type { ProductImageRef } from "@store/shared/types/variant";
 import type { ImageEdit } from "@store/shared/lib/imageEdit";
 
-// Raw <input> values for the translatable name/description fields — always
-// plain strings (never undefined) so controlled inputs never warn; sanitized
-// into a real I18n object only at submit time (see lib/validation/product-form.ts).
+// Always strings so inputs stay controlled; turned into I18n at submit.
 export interface I18nFormValue {
   ar: string;
   en: string;
   he: string;
 }
 
-// One block of the product form's notes editor (spec.md "Notes on a product's
-// options"): a variant type and the values of it this product uses, each row
-// keyed by a string the caller owns — the option value id for an ordinary
-// product, the point id for a number being placed in this same save, whose
-// global value does not exist yet.
+// Rows keyed by a caller-owned string: the value id, or a point id for a number placed in this save.
 export interface OptionValueNoteGroup {
   id: string;
   typeName: string;
   rows: { key: string; label: string }[];
 }
 
-// Selected global option values per variant type, keyed by variantTypeId —
-// the UI's working shape for the picker; converted to the API's
-// `optionSelections` array (CLAUDE.md rule 2: values are referenced by id).
+// Converted to the API's optionSelections (rule 2: values referenced by id).
 export type VariantSelectionMap = Record<string, string[]>;
 
-// What the signed-in user may actually write on a product or a variant.
-// The backend gates each of these fields separately (product.editPrice,
-// inventory.adjust, product.hide, product.viewCost — CLAUDE.md rule 5), so
-// the payload builders leave out whatever the user can't set instead of
-// resending a value that would be refused or, worse, blanked.
+// The backend gates each field separately (rule 5), so payloads omit what the user can't set.
 export interface ProductEditAbilities {
   canEditPrice: boolean;
   canEditCost: boolean;
@@ -39,86 +27,57 @@ export interface ProductEditAbilities {
   canHide: boolean;
 }
 
-// One slot in a working gallery: either an image already on the server, or a
-// file the user has picked that hasn't been uploaded yet. Both carry a stable
-// `id` (the server id, or a temporary one) so dnd-kit can track them and the
-// primary flag can point at either kind. Nothing is uploaded until the
-// product form's single Save runs.
+// A stored image or a picked file, both with a stable id for dnd-kit; nothing uploads until Save.
 export type GallerySlot =
   | {
       kind: "existing";
       id: string;
       image: ProductImageRef;
       isPrimary: boolean;
-      // A re-framing chosen here but not sent yet. The photograph on the
-      // server is untouched until the form's Save runs, exactly like every
-      // other change in this gallery — and null means "leave it as it is",
-      // which is not the same as the identity edit (that would re-cut the
-      // photo to say nothing had changed).
+      // Unsent until Save; null means leave it, which differs from the identity edit (that would re-cut).
       edit?: ImageEdit | null;
-      // What that re-framing looks like, drawn locally so the tile shows it
-      // straight away. Null when the browser could not produce one; the tile
-      // then keeps the stored thumbnail until the save comes back.
+      // Null when the browser couldn't draw one; the stored thumbnail shows until the save returns.
       previewUrl?: string | null;
     }
   | {
       kind: "new";
       id: string;
       file: File;
-      // The tile's picture: the file as picked, or the cropped preview once
-      // it has been through the editor.
       previewUrl: string;
-      // The file as picked, always — what the editor re-opens on, so a second
-      // pass at the crop starts from the whole photograph rather than from
-      // the last cut.
+      // Always the file as picked, so a second crop starts from the whole photo.
       sourceUrl: string;
       isPrimary: boolean;
       edit: ImageEdit | null;
     };
 
-// One gallery being edited — the product's own, or one variant's — as the
-// working copy plus the server state it is diffed against.
 export interface Gallery {
   slots: GallerySlot[];
   saved: ProductImageRef[];
 }
 
-// Which part of the one Save is running, for the single progress line the
-// user sees. The three stages are forced by the API: the product row, then
-// its variants, then the photos that hang on them.
+// The API forces the order: product, then variants, then photos.
 export type SaveStep = { kind: "product" } | { kind: "variants" } | { kind: "images"; done: number; total: number };
 
-// What one gallery's save attempt actually achieved. Deliberately not an
-// exception: a photo that didn't upload must not undo the product that did
-// (CLAUDE.md: the user is told plainly what happened), so a failure comes
-// back as data — with the slots left in a state a retry can pick up.
+// Data, not an exception: a failed photo must not undo the saved product; slots stay retryable.
 export interface ImageSyncOutcome {
   // Server truth after the attempt, in order.
   images: ProductImageRef[];
-  // What the gallery should now show: uploads that worked as saved images,
-  // anything that failed still pending.
   slots: GallerySlot[];
   // Photos still waiting to upload after this attempt.
   pendingCount: number;
-  // Photos whose DELETION is waiting for an Admin (spec.md "Employee change
-  // approvals"). Not an error: the request was filed and the photo stays in
-  // the gallery until somebody decides.
+  // Deletions waiting for approval: not an error, the photo stays until decided.
   awaitingApproval: number;
   // First error hit, as an `error.*` key for t() (CLAUDE.md rule 12).
   errorCode: string | null;
 }
 
-// Local, unsaved edits to an existing variant row (edit mode). Empty string
-// on priceOverride/cost means "inherit from parent" (CLAUDE.md rule 3).
+// An empty priceOverride/cost means inherit from the parent (rule 3).
 export interface VariantEditValues {
   stock: string;
   priceOverride: string;
   cost: string;
   isActive: boolean;
-  // Ours or the supplier's, per variant (shared/constants/barcode.ts).
-  // `barcode` holds only the supplier's typed/scanned code — the generated one
-  // is never edited by hand — and is kept across a toggle so flipping back and
-  // forth doesn't wipe what was just scanned.
+  // `barcode` holds only the supplier's code, kept across a toggle so flipping back doesn't wipe a scan.
   barcodeSource: BarcodeSource;
   barcode: string;
 }

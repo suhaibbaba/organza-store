@@ -8,26 +8,7 @@ import { productSku } from "@/lib/sku";
 import { SUPPORTED_LANGUAGES } from "@/constants";
 import type { DbClient, DiscountType, I18n, PricedOrderItem, QuickSellRequestedItem } from "@/types";
 
-// ============================================================================
-//  Quick sell (spec.md "Quick sell") — a sale for a piece the catalogue has
-//  never heard of.
-//
-//  The shape of it, and the order the steps happen in, both matter:
-//
-//   1. The product is created HERE, inside the order's own transaction. If
-//      anything about the sale fails — a stock guard on another line, a
-//      rolled-back total — the product goes with it. A cart abandoned halfway
-//      must never leave a nameless half-product in the catalogue.
-//   2. Its stock is created equal to what is being sold, so the ordinary
-//      deduction the sale performs afterwards lands it at zero. Quick sell
-//      adds no second path through stock: the piece arrives and leaves by the
-//      same machinery as everything else (CLAUDE.md rule 21's "a sale always
-//      completes" applies here too — nothing about this waits on approval).
-//   3. What it does NOT get is as important as what it does: no category, no
-//      cost, no photographs, no variants, and a barcode of ours rather than
-//      one anybody chose. Those are the things the cashier skipped, and they
-//      are what the completion request asks a reviewer for.
-// ============================================================================
+// Quick sell: the product is created inside the order's transaction, so a failed sale never leaves a nameless product.
 
 /** Everything the order route needs back to build the line and the request. */
 export interface QuickSoldProduct {
@@ -39,24 +20,12 @@ export interface QuickSoldProduct {
   line: PricedOrderItem;
 }
 
-// One typed name in every language. There is nobody at the counter to
-// translate, and a blank Arabic name would read as a broken product on the
-// default locale — so the same words go in all three and the reviewer fixes
-// them when they complete it (CLAUDE.md rule 9's fallback covers the reading
-// side either way).
+// The typed name goes into every language; the reviewer translates when completing it.
 function asI18n(text: string): I18n {
   return Object.fromEntries(SUPPORTED_LANGUAGES.map((language) => [language, text])) as I18n;
 }
 
-/**
- * Creates the deliberately-incomplete product and prices the line that sells
- * it. Runs inside the order's transaction — see the note above.
- *
- * The price is the one figure a client is ever allowed to name (see
- * `quickSellItemSchema`): there is no catalogue entry to read one from, so
- * what the cashier typed becomes both the product's basePrice and the line's
- * unitPrice, which is why the two can never disagree.
- */
+/** Creates the incomplete product and prices its line: the typed price is both basePrice and unitPrice. */
 export async function createQuickSoldProduct(
   tx: DbClient,
   input: {
@@ -84,29 +53,20 @@ export async function createQuickSoldProduct(
       // No shelf yet — the whole point (see Product.categoryId in the schema).
       categoryId: null,
       basePrice: input.quickSell.price,
-      // Absent, not zero. A zero cost would report as a piece the shop got for
-      // nothing and quietly inflate the profit on it; absent is what the
-      // reports' missing-cost warning counts (CLAUDE.md rule 19).
+      // Cost is absent, not zero: zero would inflate profit; absent is what the missing-cost warning counts (rule 19).
       cost: null,
-      // Ours, so the piece can be labelled the moment somebody wants to put it
-      // on a shelf (CLAUDE.md rule 13). Nobody is asked to scan anything at
-      // the counter — that is work, and this is the busy hour.
+      // Our own barcode, so it can be labelled later (rule 13); nothing is scanned at the counter.
       barcode: await generateUniqueBarcode(tx),
-      // It was sold, so it holds none. Created with what is leaving and
-      // deducted by the sale itself, which lands it at zero without quick sell
-      // needing a stock path of its own.
+      // Created with the quantity leaving and deducted by the sale itself, landing at zero.
       stock: input.quantity,
-      // Off the shelf until somebody has actually looked at it: an unnamed,
-      // uncategorised, photoless product has no business appearing in the
-      // storefront or the POS browser. Completing it is what publishes it.
+      // Hidden until someone has looked at it; completing it publishes it.
       isActive: false,
       quickSoldAt: soldAt,
       createdById: actor.id,
     },
   });
 
-  // Product.sku needs productNumber, which the database assigns on insert —
-  // the same second write the ordinary create path makes, for the same reason.
+  // sku needs the productNumber the database assigns, hence the second write.
   const sku = productSku(created.productNumber);
   await tx.product.update({ where: { id: created.id }, data: { sku } });
 
@@ -123,15 +83,11 @@ export async function createQuickSoldProduct(
       productId: created.id,
       variantId: null,
       name,
-      // The typed "which one" rides in the variantName snapshot rather than in
-      // a variant of its own: building a variant at the counter is exactly the
-      // work quick sell defers, and the receipt still reads "Abaya — black".
+      // The typed "which one" rides in the variantName snapshot; no variant is built at the counter.
       variantName,
       sku,
       unitPrice,
-      // Nobody at the till knows what it cost. Null is what the reports'
-      // missing-cost warning counts, so profit is visibly overstated until a
-      // reviewer fills it in rather than silently wrong.
+      // Cost is null: profit shows as visibly overstated until a reviewer fills it in.
       unitCost: null,
       quantity: input.quantity,
       discountType: input.discountType ?? null,

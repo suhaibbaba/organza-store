@@ -1,11 +1,4 @@
-// Helpers for the generic approval flow (spec.md "Employee change
-// approvals"). Every gated change — a price, a manual stock figure, a photo
-// deletion, hiding a product, a product's variant set, an Employee's expense —
-// files one of these, and an Admin decides it through the same two endpoints.
-//
-// Like the rest of the suite these run against a LIVE API whose database
-// already holds other people's requests, so nothing here asserts a total:
-// requests are always looked up by the entity they are about.
+// Live API with other people's requests, so requests are always looked up by their entity, never counted.
 import { apiRequest } from "@tests/support/client";
 import type { ApiResult } from "@tests/types";
 import type { ChangeRequestDto } from "@tests/types/changeRequest";
@@ -14,12 +7,7 @@ export function listChangeRequests(token: string, query = ""): Promise<ApiResult
   return apiRequest<ChangeRequestDto[]>(`/api/change-requests${query}`, { token });
 }
 
-/**
- * The single request still waiting on one entity's field, or undefined. The
- * pendingKey index guarantees there is never more than one — that IS
- * superseding — so this returning at most one row is part of what the suite
- * is checking.
- */
+/** The one pending request on a field; the pendingKey index guarantees at most one. */
 export async function pendingChangeFor(
   token: string,
   entityType: string,
@@ -34,15 +22,7 @@ export async function pendingChangeFor(
   return field ? rows.find((r) => r.field === field) : rows[0];
 }
 
-/**
- * EVERY request about one entity's field, decided ones included — no status
- * filter at all.
- *
- * pendingChangeFor above can only ever see the pending slot, which is the one
- * state the database itself keeps unique. This is what "one decision, once"
- * has to be checked against: a decided row's pendingKey is null, so nothing
- * stops two of them describing the same decision except the flow being right.
- */
+/** Every request on a field, decided ones too: what "one decision, once" is checked against. */
 export async function changeRequestsFor(
   token: string,
   entityType: string,
@@ -73,11 +53,7 @@ export function rejectChange(token: string, id: string, note?: string): Promise<
   });
 }
 
-/**
- * Taking your own ask back (spec.md "Employee change approvals"). Not a third
- * decision: it answers with `{ id, cancelled }` rather than a request, because
- * the row is gone once it succeeds.
- */
+/** Withdrawing your own ask; answers `{ id, cancelled }` because the row is gone. */
 export function cancelChange(token: string, id: string): Promise<ApiResult<{ id: string; cancelled: boolean }>> {
   return apiRequest<{ id: string; cancelled: boolean }>(`/api/change-requests/${id}/cancel`, {
     method: "POST",
@@ -86,12 +62,7 @@ export function cancelChange(token: string, id: string): Promise<ApiResult<{ id:
   });
 }
 
-/**
- * Sign off an expense that opened PENDING, the way the shop now does it:
- * find the request it filed and approve that. Replaces the old
- * POST /api/expenses/:id/approve, which no longer exists — there is one
- * approval mechanism, not two.
- */
+/** Approves an expense through the request it filed: there is one approval mechanism. */
 export async function approveExpense(adminToken: string, expenseId: string): Promise<ApiResult<ChangeRequestDto>> {
   const pending = await pendingChangeFor(adminToken, "Expense", expenseId);
   if (!pending) {

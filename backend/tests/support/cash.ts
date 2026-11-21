@@ -1,30 +1,11 @@
-// Helpers for the cash-drawer and expense suites.
-//
-// These run against a LIVE API whose database already holds other days,
-// other sales and other spending, so — like the reports suite — nothing here
-// asserts an absolute total. Two techniques do all the work:
-//
-//   1. SYNTHETIC DAYS. A drawer session is one calendar date, and a date can
-//      only be used once, so the arithmetic tests take their own dates far in
-//      the future. No order can ever have been collected inside such a
-//      window, which pins cash sales at exactly zero and makes
-//      "expected = openingFloat - cash expenses" an equation with no unknowns.
-//      Expenses, unlike sales, can be dated INTO that window, which is what
-//      lets the cash/non-cash rule be tested exactly rather than by delta.
-//
-//   2. DELTAS, for the one thing a synthetic day cannot cover: a real sale
-//      reaching a real drawer, which can only happen on today's.
+// Live API: arithmetic runs on synthetic future days (cash sales pinned at zero); only a real sale uses a delta on today.
 import { apiRequest } from "@tests/support/client";
 import { mayOpenTodaysDrawer } from "@tests/support/target";
 import { ALLOW_TODAY_DRAWER_ENV } from "@tests/constants";
 import { MS_PER_DAY } from "@/constants";
 import type { ApiResult, CashSessionDto, CurrentCashSessionDto, ExpenseCategoryDto, ExpenseDto } from "@tests/types";
 
-// The synthetic-day range: 2100 onwards, far past anything the shop will ever
-// have traded on. A random starting offset keeps two runs against the same
-// sandbox from colliding, and allocateDate() walks forward from it — so the
-// dates one test uses are always consecutive with the next test's, which is
-// what the carry-over assertion needs.
+// Synthetic days from 2100 at a random offset, walked forward so consecutive calls give adjacent days.
 const SYNTHETIC_EPOCH = Date.UTC(2100, 0, 1);
 const SYNTHETIC_DAYS = 30_000; // ~82 years of room
 let cursor = Math.floor(Math.random() * SYNTHETIC_DAYS);
@@ -33,22 +14,18 @@ function syntheticDate(offset: number): string {
   return new Date(SYNTHETIC_EPOCH + offset * MS_PER_DAY).toISOString().slice(0, 10);
 }
 
-// The next unused synthetic day. Sequential, so `allocateDate()` twice in a
-// row gives a day and the day after it.
+// Sequential, so two calls give a day and the day after it.
 export function allocateDate(): string {
   cursor = (cursor + 1) % SYNTHETIC_DAYS;
   return syntheticDate(cursor);
 }
 
-// An instant inside a synthetic day's window (offset 0 => the window is that
-// UTC calendar day), for dating an expense into it.
+// An instant inside a synthetic day's window (offset 0 = that UTC day).
 export function middleOfDay(date: string): string {
   return `${date}T12:00:00.000Z`;
 }
 
-// The calendar day after this one — what tomorrow's drawer is labelled with,
-// and therefore what the carry-over has to land on. Computed rather than
-// allocated so the two days are guaranteed adjacent.
+// Computed rather than allocated, so the carry-over day is guaranteed adjacent.
 export function dayAfter(date: string): string {
   return new Date(Date.parse(`${date}T00:00:00.000Z`) + MS_PER_DAY).toISOString().slice(0, 10);
 }
@@ -59,10 +36,7 @@ export function openSessionRequest(token: string, body: Record<string, unknown>)
   return apiRequest<CashSessionDto>("/api/cash-sessions", { method: "POST", token, body });
 }
 
-// Opens a drawer on a fresh synthetic day. Retries on the (astronomically
-// unlikely, but not impossible) case of two runs picking the same start
-// offset, so a re-run against the same sandbox can never fail on a date
-// collision rather than on the thing under test.
+// Retries a start-offset collision, so a re-run never fails on a date rather than on the thing tested.
 export async function openSyntheticSession(
   token: string,
   body: Record<string, unknown> = {},
@@ -100,26 +74,7 @@ export function readCurrent(token: string): Promise<ApiResult<CurrentCashSession
   return apiRequest<CurrentCashSessionDto>("/api/cash-sessions/current", { token });
 }
 
-// Today's drawer, on a clock deliberately chosen so that "now" sits at local
-// NOON — twelve hours from either boundary. The offset a client sends is its
-// own business (the API only ever stores it), so picking one here is
-// legitimate, and it means a suite running at 23:59 UTC still puts its sale
-// squarely inside the window it is measuring.
-//
-// Returns null when today's drawer has already been COUNTED AND CLOSED. That
-// is a real state — someone can close the day from the admin — and it cannot
-// be undone: a day is one drawer, and a closed one is a signed record. The
-// suite itself never closes today's, so the callers treat null as "not
-// testable right now" and skip, the same way the push tests skip a
-// deployment with no VAPID keys.
-//
-// AND IT NEVER OPENS ONE EITHER, unless the run says the database is
-// disposable (STORE_ALLOW_TODAY_DRAWER=1). A drawer is one per calendar day
-// and there is no endpoint that deletes one, so a test that opened today's
-// would take the shop's own day away from it — the float would be whatever
-// the carry-over happened to be, and the shop's first act of the morning
-// would be a 409. Measuring the drawer the shop already opened is safe;
-// creating one is not.
+// "Now" at local noon so a 23:59 run stays inside the window; null once today is closed; never opens today's without STORE_ALLOW_TODAY_DRAWER.
 export async function todaysOpenSession(token: string): Promise<CashSessionDto | null> {
   const now = new Date();
   const utcMinutes = now.getUTCHours() * 60 + now.getUTCMinutes();
@@ -149,8 +104,6 @@ export async function todaysOpenSession(token: string): Promise<CashSessionDto |
   throw new Error(`Could not open today's drawer (HTTP ${opened.status}, ${opened.error?.code}).`);
 }
 
-// vitest's skip() throws, so the `return true` is belt and braces for the
-// caller's own early return rather than something that runs.
 export function skipWithoutTodaysDrawer(
   ctx: { skip: () => void },
   session: CashSessionDto | null,
@@ -195,8 +148,7 @@ export function createExpense(token: string, body: Record<string, unknown>): Pro
   return apiRequest<ExpenseDto>("/api/expenses", { method: "POST", token, body });
 }
 
-// Money crosses the API as 2dp strings; tests turn them into numbers only
-// here, at the assertion boundary.
+// Money crosses the API as 2dp strings; they become numbers only here.
 export function num(value: string | number | null | undefined): number {
   return Number(value ?? 0);
 }

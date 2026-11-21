@@ -10,27 +10,7 @@ export interface ImageFileRef {
   originalFilename?: string | null;
 }
 
-/**
- * Uploaded files nobody's row claims any more.
- *
- * A stored image is one base name and three files
- * (`<name>-thumbnail.webp`, `-medium`, `-full`), plus the original it was cut
- * from (`<name>-original.jpg`), so a file belongs to a row when its base name
- * matches one this row claims.
- *
- * The original's base name is usually the same as the row's `filename` and,
- * after a re-crop, deliberately is not: re-cropping mints new derived files
- * under a new name so no cache anywhere can go on serving the old framing,
- * while the original stays where it is. Hence `claimedImageBases` below
- * rather than a set of `filename` values — a set built the old way would
- * count every re-cropped photo's original as rubbish and delete the one file
- * that cannot be reproduced.
- *
- * Shared by the two commands that leave the uploads folder out of step with
- * the database: `db:reset` (which empties the database, so every file is
- * orphaned) and `import:prod` (which replaces the catalogue, so the previous
- * catalogue's photographs are). Gigabytes of pictures of nothing, either way.
- */
+/** Files no row claims: an image is a base name with three sizes plus an original (maybe an older base name). */
 export async function deleteOrphanedUploads(claimed: Set<string>): Promise<{ deleted: number; kept: number }> {
   let entries: string[];
   try {
@@ -50,8 +30,7 @@ export async function deleteOrphanedUploads(claimed: Set<string>): Promise<{ del
     }
     const target = path.join(UPLOAD_DIR, entry);
     const stat = await fs.stat(target).catch(() => null);
-    // Only files. A directory in here is not something these commands
-    // invented and not something they will remove.
+    // Only files; directories are never removed.
     if (!stat?.isFile()) {
       continue;
     }
@@ -71,12 +50,7 @@ export function imageFileNames(image: ImageFileRef): string[] {
   return files;
 }
 
-/**
- * Every base name a set of image rows claims — what a sweep must not delete.
- *
- * Two per row rather than one, because a re-cropped photo's original keeps
- * the base name it was first stored under (see above).
- */
+/** Every base name a set of rows claims — two per row, since an original keeps its first base name. */
 export function claimedImageBases(images: ImageFileRef[]): Set<string> {
   const claimed = new Set<string>();
   for (const image of images) {

@@ -6,14 +6,7 @@ import { isValidE164 } from "@store/shared/lib/phone";
 import type { User } from "@store/shared/types/user";
 import type { CreateUserInput, UpdateUserInput } from "@store/shared/schemas/user";
 
-// Field messages are backend error codes (CLAUDE.md rule 12), same as every
-// other form.
-//
-// Password is optional in BOTH modes now, and blank is the normal answer on
-// create: the new member of staff is emailed a single-use link and chooses
-// their own, so nobody at the counter ever types (or knows) somebody else's
-// password. Typing one anyway is still supported — the fallback for a person
-// whose mailbox is unreachable.
+// Blank is normal on create (they are emailed a link); a typed one is the fallback for an unreachable mailbox.
 export const userFormSchema = z.object({
   name: z.string().min(1, ERROR_CODES.VALIDATION_REQUIRED),
   email: z.string().min(1, ERROR_CODES.VALIDATION_REQUIRED).email(ERROR_CODES.VALIDATION_INVALID_EMAIL),
@@ -55,8 +48,7 @@ export function toCreatePayload(values: UserFormValues): CreateUserInput {
   return {
     name: values.name.trim(),
     email: values.email.trim(),
-    // Omitted when blank — the backend then creates the account with no
-    // password at all and emails a set-password link.
+    // Omitted when blank: the account gets no password and a set-password email.
     ...(values.password.trim() ? { password: values.password } : {}),
     role: values.role,
     phone: values.phone,
@@ -65,9 +57,7 @@ export function toCreatePayload(values: UserFormValues): CreateUserInput {
   };
 }
 
-// idNumber is only included when the caller can see/edit it (CLAUDE.md rule
-// 19) — omitting the key leaves the stored value untouched, since the
-// backend treats a missing field as "no change" (see updateUserSchema).
+// idNumber only when the caller may edit it (rule 19); a missing key means no change.
 export function toUpdatePayload(values: UserFormValues, canEditSensitive: boolean): UpdateUserInput {
   return {
     name: values.name.trim(),

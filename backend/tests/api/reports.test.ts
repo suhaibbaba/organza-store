@@ -17,20 +17,11 @@ import {
 import type { OrderDto, ProductDto, SalesReport } from "@tests/types";
 import { ERROR_CODES } from "@/constants";
 
-// Sales & profit reporting (Phase 2). Two things are being proved here:
-// that the money is right — profit computed from the SNAPSHOTTED unit price
-// and cost, net of both discount levels and of returns, with cancelled
-// orders left out — and that cost/profit never reach a role without
-// product.viewCost (CLAUDE.md rule 19).
-//
-// Every assertion is a DELTA around a sale (see tests/support/reports.ts):
-// the target API already holds other orders, so absolute totals are not a
-// thing any test can assert.
+// Profit from snapshotted price and cost, net of discounts and returns; cost never reaches a role without product.viewCost. Deltas only.
 describe("Reports", () => {
   const openedOrderIds: string[] = [];
   const openedProductIds: string[] = [];
-  // Expenses move the net-profit figures other tests measure as deltas, so
-  // the ones raised here are cleaned up like the orders are.
+  // Expenses move net profit other tests measure, so they are cleaned up like orders.
   const openedExpenseIds: string[] = [];
 
   async function createOrder(token: string, body: unknown) {
@@ -64,9 +55,6 @@ describe("Reports", () => {
     }
   });
 
-  // -------------------------------------------------------------------------
-  // Profit math
-  // -------------------------------------------------------------------------
   describe("profit math", () => {
     it("nets both discount levels out of revenue and profit", async () => {
       const admin = await getSession("ADMIN");
@@ -74,8 +62,7 @@ describe("Reports", () => {
 
       const before = await salesReport(admin.token);
 
-      // 2 × 100 = 200, less a 10% line discount = 180, less a fixed 30 off
-      // the order = 150 taken. Cost is 2 × 40 = 80, so profit is 70.
+      // 2×100 less 10% = 180, less 30 off the order = 150 taken; cost 2×40 = 80, profit 70.
       const order = await createOrder(admin.token, {
         channel: "STORE",
         items: [{ productId: product.id, quantity: 2, discountType: "PERCENT", discountValue: "10" }],
@@ -190,8 +177,7 @@ describe("Reports", () => {
       expect(delta.profit).toBeCloseTo(0, 2);
     });
 
-    // spec.md "Price & cost snapshots": profit must use what was true at the
-    // moment of sale, not what the product costs today.
+    // Profit uses what was true at the moment of sale, not what the product costs today.
     it("keeps using the price and cost snapshotted at sale time", async () => {
       const admin = await getSession("ADMIN");
       const product = await sellableProduct(admin.token, { basePrice: "100", cost: "40", stock: 20 });
@@ -219,11 +205,7 @@ describe("Reports", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
-  // Sales vs. money actually in hand (spec.md "Payment collection"). Revenue
-  // says what was sold; it is NOT what the shop holds, because a courier
-  // order is paid for later.
-  // -------------------------------------------------------------------------
+  // Revenue is what was sold, not what the shop holds: a courier order is paid later.
   describe("collected vs pending revenue", () => {
     it("counts a counter sale as collected the moment it is rung up", async () => {
       const admin = await getSession("ADMIN");
@@ -276,8 +258,7 @@ describe("Reports", () => {
       expect(collected.status).toBe(200);
 
       const settled = totalsDelta((await salesReport(admin.token)).totals, before.totals);
-      // Collecting moves money between the two columns; the sale itself is
-      // unchanged.
+      // Collecting moves money between the columns; the sale is unchanged.
       expect(settled.revenue).toBeCloseTo(300, 2);
       expect(settled.collectedRevenue).toBeCloseTo(300, 2);
       expect(settled.pendingCollectionAmount).toBeCloseTo(0, 2);
@@ -319,11 +300,7 @@ describe("Reports", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
-  // Sold vs. received vs. owed, gross vs. net (spec.md "Cash drawer &
-  // expenses" -> Reporting). ADMIN ONLY: every figure here is derived from
-  // cost.
-  // -------------------------------------------------------------------------
+  // Sold vs received vs owed, gross vs net: Admin-only, as every figure derives from cost.
   describe("the money states", () => {
     it("states sold, received and owed separately, and they always reconcile", async () => {
       const admin = await getSession("ADMIN");
@@ -333,8 +310,7 @@ describe("Reports", () => {
 
       // One sale paid at the counter...
       await createOrder(admin.token, { channel: "STORE", items: [{ productId: product.id, quantity: 1 }] });
-      // ...and one gone out with the courier, whose money the delivery
-      // company is still holding.
+      // One gone with the courier, its money still held by the delivery company.
       const owed = await createOrder(admin.token, {
         channel: "WHATSAPP",
         customerName: "مستحق",
@@ -404,8 +380,7 @@ describe("Reports", () => {
         categoryId,
         amount: "77",
         note: `Vitest report expense ${uniqueId()}`,
-        // Non-cash on purpose: a bill paid by transfer is just as real a
-        // cost, even though the drawer never held that money.
+        // Non-cash on purpose: a transfer is just as real a cost though the drawer never held it.
         paidInCash: false,
       });
       expect(recorded.status).toBe(201);
@@ -417,8 +392,7 @@ describe("Reports", () => {
       // Overheads are not cost of goods sold, so gross is untouched...
       expect(num(after.grossProfit) - num(before.grossProfit)).toBeCloseTo(0, 2);
       expect(num(after.cogs) - num(before.cogs)).toBeCloseTo(0, 2);
-      // ...and both nets drop by it. A bill is owed whether or not the
-      // delivery company has settled up yet.
+      // Both nets drop: a bill is owed whether or not the courier has settled.
       expect(num(after.netProfit) - num(before.netProfit)).toBeCloseTo(-77, 2);
       expect(num(after.receivedNetProfit) - num(before.receivedNetProfit)).toBeCloseTo(-77, 2);
     });
@@ -447,9 +421,6 @@ describe("Reports", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
-  // Breakdowns
-  // -------------------------------------------------------------------------
   describe("breakdowns", () => {
     it("attributes a counter sale to the STORE channel", async () => {
       const admin = await getSession("ADMIN");
@@ -506,9 +477,6 @@ describe("Reports", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
-  // Dashboard summary
-  // -------------------------------------------------------------------------
   describe("sales summary", () => {
     it("adds a new sale to today, this week and this month", async () => {
       const admin = await getSession("ADMIN");
@@ -530,8 +498,7 @@ describe("Reports", () => {
         expect(delta.revenue).toBeCloseTo(100, 2);
         expect(delta.profit).toBeCloseTo(60, 2);
 
-        // The dashboard reads its Today block and its period tabs from this
-        // one response, so each period carries the money states too.
+        // The dashboard reads Today and its period tabs from one response, so each period carries the money states.
         expect(num(after[period].profit!.sold) - num(before[period].profit!.sold)).toBeCloseTo(100, 2);
         expect(num(after[period].profit!.received) - num(before[period].profit!.received)).toBeCloseTo(100, 2);
         expect(num(after[period].profit!.grossProfit) - num(before[period].profit!.grossProfit)).toBeCloseTo(60, 2);
@@ -547,19 +514,7 @@ describe("Reports", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
-  // Role gating — two separate gates, both enforced here rather than in the
-  // UI, and the reason this suite exists at all:
-  //
-  //   * WHO REACHES A REPORT. /sales is report.view (ADMIN ONLY);
-  //     /sales-summary is dashboard.view (Admin/Manager). An EMPLOYEE holds
-  //     neither, so no sales figure of any kind reaches them — not a partial
-  //     one, not a zeroed one, a 403.
-  //   * WHAT A REPORT CONTAINS. Cost, COGS, profit and margin are ADMIN ONLY
-  //     (product.viewCost, CLAUDE.md rule 19). A Manager runs the shop floor,
-  //     but the owner's margin is not theirs to read, so their summary must
-  //     not CONTAIN those fields — absent, never zeroed.
-  // -------------------------------------------------------------------------
+  // Reports need report.view, the dashboard dashboard.view; cost, COGS and profit are absent (not zeroed) without product.viewCost.
   describe("role gating", () => {
     it("refuses the reports page to an Employee outright", async () => {
       const employee = await getSession("EMPLOYEE");
@@ -569,8 +524,7 @@ describe("Reports", () => {
       expect(report.error?.code).toBe(ERROR_CODES.FORBIDDEN);
       expect(report.data).toBeUndefined();
 
-      // ...and the dashboard's block too: an Employee has no business
-      // reading the shop's takings from either screen.
+      // The dashboard block is refused too: an Employee reads the shop's takings from neither screen.
       const summary = await fetchSalesSummary(employee.token);
       expect(summary.status).toBe(403);
       expect(summary.error?.code).toBe(ERROR_CODES.FORBIDDEN);
@@ -595,8 +549,7 @@ describe("Reports", () => {
         expect(summary[period].totals.profit).toBeUndefined();
         expect(summary[period].totals.margin).toBeUndefined();
         expect(summary[period].totals.missingCostItems).toBeUndefined();
-        // ...and no money-states block at all, so the dashboard has no
-        // empty profit cards to render.
+        // No money-states block at all, so the dashboard has no empty profit cards.
         expect(summary[period].profit).toBeUndefined();
       }
 
@@ -634,9 +587,6 @@ describe("Reports", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
-  // Range validation
-  // -------------------------------------------------------------------------
   describe("range validation", () => {
     it("rejects a range that ends before it starts", async () => {
       const admin = await getSession("ADMIN");

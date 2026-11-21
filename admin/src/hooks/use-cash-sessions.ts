@@ -23,10 +23,7 @@ export function useOpenCashSessionMutation() {
   });
 }
 
-// Closing rejects an unexplained difference (400
-// error.cashSession.difference_note_required) — that refusal is part of the
-// blind-count flow, not a failure, so the caller handles it rather than this
-// hook. Nothing is invalidated on that path because nothing was written.
+// An unexplained difference is refused (difference_note_required) as part of the blind count; the caller handles it.
 export function useCloseCashSessionMutation(sessionId: string) {
   const queryClient = useQueryClient();
   return useMutation({

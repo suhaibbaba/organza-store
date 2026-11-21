@@ -55,26 +55,18 @@ export const metadata: Metadata = {
   },
   appleWebApp: {
     capable: true,
-    // What appears under the icon on an iPhone home screen — short, because
-    // iOS truncates hard.
+    // Shown under the iPhone home-screen icon; iOS truncates hard.
     title: PWA_SHORT_NAME,
-    // "default", not "black-translucent": translucent would let the page
-    // scroll up underneath the clock and battery.
+    // Translucent would let the page scroll under the clock and battery.
     statusBarStyle: "default",
-    // The launch images, one <link rel="apple-touch-startup-image"> per
-    // device. Without these an installed app opens on a blank white screen
-    // while iOS gets the web view up; with them it opens on the brand. The
-    // list and both derived strings live in constants/pwa.ts.
+    // Without launch images an installed app opens on a blank white screen.
     startupImage: APPLE_SPLASH_SCREENS.map((screen) => ({
       url: appleSplashImagePath(screen),
       media: appleSplashMediaQuery(screen),
     })),
   },
   other: {
-    // For `capable: true` Next now emits only the modern
-    // `mobile-web-app-capable`, which iOS didn't understand before Safari
-    // 17.4. Older iPhones in the shop still read this one to launch without
-    // browser chrome, and a newer one just ignores it.
+    // Next emits only mobile-web-app-capable, which iOS before Safari 17.4 doesn't understand.
     "apple-mobile-web-app-capable": "yes",
   },
 };
@@ -83,8 +75,6 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  // Tints the Android status bar once installed, and the address bar before
-  // that. Matches the manifest's theme_color.
   themeColor: PWA_THEME_COLOR,
 };
 

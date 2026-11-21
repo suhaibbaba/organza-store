@@ -15,17 +15,7 @@ import { generateUniqueSlug, toSlug } from "@/lib/slug";
 import { writeAudit } from "@/lib/audit";
 import { AUDIT_ENTITY, ERROR_CODES } from "@/constants";
 
-// Global variant types/values (Color, Size, Number, ...), shared across all
-// products. Creation here is what powers the "inline add" flow from the
-// product screen (spec.md "Inline add") — Employees can use it too, since
-// it's part of "add products", and it only ever appends to the lists.
-//
-// Hence the two permissions: adding is variantType.create (every role that
-// can add a product), while variantType.manage covers changing or removing
-// what already exists — a rename propagates to every product using that
-// value (CLAUDE.md rule 2) and a deletion pulls it out from under them.
-// There is no rename/delete endpoint yet; when one is added it belongs
-// behind variantType.manage, not behind the create gate below.
+// Global variant types/values; create is every adder's (inline add), manage covers changes and deletes.
 const router = Router();
 router.use(requireAuth);
 

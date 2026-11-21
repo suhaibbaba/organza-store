@@ -21,10 +21,7 @@ import type { CategoryNode } from "@/types";
 const router = Router();
 router.use(requireAuth);
 
-// Builds the parent/child tree from a flat list — categories are few enough
-// (a boutique's catalog) that loading them all and nesting in memory is
-// simpler than a recursive CTE, and keeps pagination out of a hierarchy that
-// doesn't really have "pages".
+// Nests the flat list in memory: a boutique has few categories, and a tree has no pages.
 function buildTree(categories: Category[]): CategoryNode[] {
   const nodes = new Map<string, CategoryNode>(categories.map((c) => [c.id, { ...c, children: [] }]));
   const roots: CategoryNode[] = [];
@@ -38,8 +35,7 @@ function buildTree(categories: Category[]): CategoryNode[] {
   return roots;
 }
 
-// True if `candidateParentId` is `categoryId` itself or one of its
-// descendants — reparenting onto either would create a cycle.
+// True if candidateParentId is categoryId or a descendant — reparenting there would make a cycle.
 function wouldCreateCycle(categories: Category[], categoryId: string, candidateParentId: string): boolean {
   if (candidateParentId === categoryId) {
     return true;
@@ -55,22 +51,14 @@ function wouldCreateCycle(categories: Category[], categoryId: string, candidateP
   return false;
 }
 
-// ---------------------------------------------------------------------------
-// GET /api/categories — list as a nested tree (default) or ?flat=true
-// ---------------------------------------------------------------------------
-// Gated on category.view for the same reason the product list is gated on
-// product.view: every role holds it as shipped, so nothing changes today —
-// but it is a CONFIGURABLE grant now, and a grant the API does not enforce is
-// a checkbox that lies (spec.md "Editable role permissions").
+// GET /api/categories — nested tree, or ?flat=true; gated on the configurable category.view.
 router.get(
   "/",
   requirePermission("category.view"),
   asyncHandler(async (req, res) => {
     const [rows, direct] = await Promise.all([
       prisma.category.findMany({ orderBy: { createdAt: "asc" } }),
-      // What a till can sell: the same "active, not deleted" the POS's own
-      // product list asks for (status=active), so a tile's number and the
-      // grid it opens agree.
+      // What a till can sell (active, not deleted), so a tile's count matches the grid it opens.
       prisma.product.groupBy({
         by: ["categoryId"],
         where: { deletedAt: null, isActive: true, categoryId: { not: null } },
@@ -90,9 +78,7 @@ router.get(
   }),
 );
 
-// ---------------------------------------------------------------------------
 // POST /api/categories — create (Admin/Manager only)
-// ---------------------------------------------------------------------------
 router.post(
   "/",
   requirePermission("category.manage"),
@@ -133,9 +119,7 @@ router.post(
   }),
 );
 
-// ---------------------------------------------------------------------------
 // PATCH /api/categories/:id — rename / reparent (Admin/Manager only)
-// ---------------------------------------------------------------------------
 router.patch(
   "/:id",
   requirePermission("category.manage"),
@@ -177,8 +161,7 @@ router.patch(
         name: body.name,
         slug,
         parentId: body.parentId === undefined ? undefined : body.parentId,
-        // Pinning a category to the front of the POS browser is an ordinary
-        // category edit — same permission, same audit entry as a rename.
+        // Pinning to the POS browser is an ordinary category edit: same permission and audit.
         isFavorite: body.isFavorite,
       },
     });
@@ -197,12 +180,7 @@ router.patch(
   }),
 );
 
-// ---------------------------------------------------------------------------
-// DELETE /api/categories/:id — blocked while it has children or products
-// (Admin/Manager only). Categories have no soft-delete column, so deletion
-// is only ever allowed once the category is empty — reassign children/
-// products elsewhere first, then delete.
-// ---------------------------------------------------------------------------
+// DELETE /api/categories/:id — only once it has no children or products (no soft delete here).
 router.delete(
   "/:id",
   requirePermission("category.manage"),

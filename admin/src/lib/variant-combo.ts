@@ -3,15 +3,12 @@ import type { VariantType } from "@store/shared/types/variant";
 import { SUPPORTED_LANGUAGES, DEFAULT_LANGUAGE } from "@store/shared/constants/languages";
 import type { VariantSelectionMap } from "@/types/productForm";
 
-// Mirrors backend/src/lib/variantCombo.ts — used client-side only to render
-// a live "here's what will be created" preview before submitting.
+// Mirrors backend/src/lib/variantCombo.ts, for the live preview only.
 export function cartesianProduct<T>(arrays: T[][]): T[][] {
   return arrays.reduce<T[][]>((acc, curr) => acc.flatMap((combo) => curr.map((item) => [...combo, item])), [[]]);
 }
 
-// Order-insensitive identity for a combination of option value ids — used to
-// match a preview row back to its real variant after creation, and to detect
-// combinations the generate endpoint has already created.
+// Order-insensitive, to match preview rows to real variants.
 export function comboKey(valueIds: string[]): string {
   return [...valueIds].sort().join(",");
 }
@@ -30,8 +27,6 @@ export interface VariantPreviewRow {
   name: I18n;
 }
 
-// Cartesian preview of the variants a set of selections would generate,
-// e.g. Color[أحمر, أزرق] x Size[M, L] -> 4 rows (spec.md).
 export function buildVariantPreview(variantTypes: VariantType[], selections: VariantSelectionMap): VariantPreviewRow[] {
   const activeSelections = Object.values(selections).filter((ids) => ids.length > 0);
   if (activeSelections.length === 0) {

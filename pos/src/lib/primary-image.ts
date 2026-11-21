@@ -1,9 +1,6 @@
 import type { ProductImageRef } from "@store/shared/types/variant";
 
-// The photo that stands for a product or a variant: the one marked primary,
-// else the first by the shop's own order. Null when there are none — a
-// variant with no photos of its own falls back to its product's (schema:
-// "empty => falls back to product images"), and that is the caller's call.
+// Primary, else first by the shop's order; null when none (a variant then falls back to its product).
 export function primaryImage(images: readonly ProductImageRef[] | undefined): ProductImageRef | null {
   if (!images || images.length === 0) {
     return null;

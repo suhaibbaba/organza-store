@@ -1,55 +1,8 @@
-// ============================================================
-//  Store Management — DEMO seed (DEV / SANDBOX ONLY — NEVER PRODUCTION)
-//
-//  ⚠️  QUARANTINED. This file writes fake products, fake orders and test
-//  accounts whose password is printed at the bottom of this very file. On the
-//  shop's real database that is a stranger's login and a shelf full of
-//  garments that do not exist.
-//
-//  It is therefore:
-//    - NOT wired to `prisma db seed` (package.json#prisma is gone), so
-//      neither `prisma migrate dev` nor `prisma migrate reset` can trigger it;
-//    - NOT run by the deploy (.github/workflows/deploy-sandbox.yml runs
-//      `npm run bootstrap`, which creates essential data only);
-//    - refused outright unless the run says, in full, that the database is
-//      disposable (see the guard below).
-//
-//  Run it by hand, against a sandbox or a local machine:
-//      STORE_ALLOW_DEMO_SEED=I-KNOW-THIS-IS-NOT-PRODUCTION npm run seed:demo
-//
-//  What a REAL shop gets instead:
-//      npm run bootstrap   — settings, variant types, expense categories
-//      npm run init        — the four real staff accounts, by email
-//
-//  Idempotent: safe to run multiple times (uses upsert).
-//  Covers every rule so the system can be tested end-to-end:
-//    - one user per role
-//    - global variant types + values (ar/en/he)
-//    - nested categories
-//    - simple product, 1-option product, 2-option (cartesian) product
-//    - a variant with price override + one that inherits from parent
-//    - compare-at price, hidden product, soft-deleted product
-//    - a numbered shawl (Number variant type), incl. a sold-out number
-//    - one product with its barcode labels already printed, the rest not
-//    - supplier barcodes: a simple product carrying the code it arrived with,
-//      a variant product whose PARENT carries one shared code for every size
-//      (the parent scan opens the picker), and one whose single variant has
-//      its own supplier code while its siblings keep ours
-//    - orders on every channel, covering the status flow, both discount
-//      levels, a cancellation, a partial return and a soft-deleted sale
-//    - a GIFT order (stock out, nothing charged)
-//    - the five default expense categories, plus an expense of every shape:
-//      approved-in-cash, approved-by-transfer, an Employee's pending one,
-//      and a rejected one
-//    - change requests in every state: an Employee's pending price change, the
-//      pending expense's own approval, and one already turned down
-//    - two closed cash-drawer days, the second carrying a difference forward
-// ============================================================
+// DEMO seed, dev/sandbox only: fake data and known-password accounts; refused unless declared disposable.
 
 import { PrismaClient, Role } from "@prisma/client";
 import { createStaffUser, setUserPassword } from "@/lib/credentials";
-// Reuse the real search normalizer + SKU generator so the seed can never
-// silently drift from the production logic (CLAUDE.md rule 11).
+// Reuses the real search normalizer and SKU generator so the seed cannot drift from production logic (rule 11).
 import { buildSearchText, reindexAllProducts } from "@/lib/search";
 import { rebuildAllMarkedImages } from "@/lib/markedImage";
 import { productSku, variantSku } from "@/lib/sku";
@@ -57,9 +10,7 @@ import { generateUniqueBarcode } from "@/lib/barcode";
 import { assertDisposableDatabase } from "@/lib/dangerousCommands";
 import { DANGEROUS_COMMAND_ENV } from "@/constants";
 
-// THE GATE, before the Prisma client is even constructed. Bare rather than
-// inside main() so that importing this file for any reason cannot start
-// writing demo rows into somebody's shop.
+// The gate runs before the Prisma client exists, so merely importing this file can never write demo rows.
 try {
   assertDisposableDatabase({
     command: "seed:demo",
@@ -67,8 +18,7 @@ try {
     what: "write demo products, demo orders and test staff accounts",
   });
 } catch (error) {
-  // The refusal is a message for a person at a terminal — printed as one,
-  // not as a stack trace they have to read past.
+  // The refusal is a message for a person at a terminal — printed as one, not as a stack trace they have to read past.
   console.error(error instanceof Error ? error.message : error);
   process.exit(1);
 }
@@ -79,19 +29,10 @@ const prisma = new PrismaClient();
 
 type I18n = { ar: string; en?: string; he?: string };
 
-// Fixed (not `new Date()`) so a re-seed produces the exact same row — the
-// stand-in for "these labels have already been printed", giving both sides of
-// the products list's print-state filter real data.
+// Fixed date so a re-seed writes the same row; stands in for "labels already printed".
 const SEEDED_LABELS_PRINTED_AT = new Date("2026-01-01T09:00:00.000Z");
 
-// Codes "printed by the supplier" on the seeded garments — fixed, so a
-// re-seed keeps them, and picked from the published EAN example range so they
-// can never collide with one this system generates (those all start 200-299,
-// see src/constants/barcode.ts).
-// The demo accounts' shared password. Printed at the end of the run and hard
-// -coded in the API test suite (tests/constants/accounts.ts) — which is
-// exactly why this file is quarantined behind STORE_ALLOW_DEMO_SEED: it is
-// a published login, and on a real database that is a stranger's way in.
+// Supplier codes from the published EAN example range, so they never collide with ours (200-299).
 const DEMO_PASSWORD = "password123";
 
 const SEEDED_SUPPLIER_BARCODES = {
@@ -117,19 +58,14 @@ async function main() {
       currency: "ILS",
       defaultCountryCode: "+970",
       lowStockThreshold: 3,
-      // Sale notifications: on, one per sale. Mirrors the schema defaults and
-      // SALE_NOTIFICATION_DEFAULTS in shared/src/constants/push.ts — a dev
-      // database should behave like a fresh shop.
+      // Sale notifications on, one per sale — the same defaults as a fresh shop (SALE_NOTIFICATION_DEFAULTS).
       saleNotificationsEnabled: true,
       saleNotificationMode: "EVERY_SALE",
       saleNotificationMinAmount: "0",
     },
   });
 
-  // --- Users: one per role ---
-  // Created through lib/credentials.ts — the one path a staff account comes
-  // into existence by anywhere in this system — and given their password
-  // through Better Auth's own context, so the hash is one sign-in accepts.
+  // Users: one per role, created through lib/credentials.ts with the password written by Better Auth's own context.
   const staff = [
     { email: "admin@store.test", name: "Admin", role: Role.ADMIN, phone: "+970599000001" },
     { email: "manager@store.test", name: "Manager", role: Role.MANAGER, phone: "+970599000002" },
@@ -138,12 +74,7 @@ async function main() {
   for (const s of staff) {
     const existing = await prisma.user.findUnique({ where: { email: s.email } });
     if (!existing) {
-      // Through the same path the real shop creates staff with, for the same
-      // reason: Better Auth's public sign-up endpoint is disabled (it was
-      // reachable by anybody on the internet), so this seed cannot use it
-      // either — and should not, since it is not how accounts are made here.
-      // setUserPassword writes through Better Auth's own context, so the hash
-      // is one sign-in will accept.
+      // Same path the real shop creates staff with: public sign-up is disabled, and the hash must be one sign-in accepts.
       const created = await createStaffUser({
         email: s.email,
         name: s.name,
@@ -161,8 +92,7 @@ async function main() {
     });
   }
 
-  // --- Variant types + values (global, translatable) ---
-  // slug = stable type id ; key = stable value id within a type
+  // Variant types + values: slug is the stable type id, key the stable value id within a type.
   const variantTypes = [
     {
       slug: "color",
@@ -186,9 +116,7 @@ async function main() {
     {
       slug: "number",
       name: { ar: "الأرقام", en: "Number", he: "מספר" },
-      // 1–6 are the numbered-shawl numbers (spec.md "Numbered shawls": the
-      // Number type's values double as the points drawn on the image); 38–42
-      // are the numeric sizes the same type covers.
+      // 1–6 are numbered-shawl points (the Number type's values); 38–42 are the numeric sizes the same type covers.
       values: [
         { key: "1", value: { ar: "1", en: "1", he: "1" } },
         { key: "2", value: { ar: "2", en: "2", he: "2" } },
@@ -223,10 +151,7 @@ async function main() {
     }
   }
 
-  // --- Categories (nested) ---
-  // `isFavorite` is seeded on some and not others so the POS product browser
-  // has both groups to draw: pinned shelves at the top of its sidebar, the
-  // rest of the tree under them.
+  // Categories: isFavorite on some only, so the POS browser has both pinned shelves and the rest of the tree.
   const women = await prisma.category.upsert({
     where: { slug: "women" },
     update: { name: { ar: "نسائي", en: "Women", he: "נשים" } },
@@ -258,12 +183,7 @@ async function main() {
     },
   });
 
-  // helper: create/refresh a product + its variants deterministically
-  //
-  // `productNumber` is deliberately NOT passed in: it's a DB autoincrement, and
-  // hard-coding it made re-seeding blow up with P2002 as soon as real products
-  // (created via the admin or the tests) had taken those numbers. The database
-  // assigns it; `slug` is the stable upsert key.
+  // Upserts a product + variants by slug; productNumber is left to the database autoincrement (hard-coding it hit P2002).
   async function upsertProduct(opts: {
     slug: string;
     name: I18n;
@@ -274,20 +194,13 @@ async function main() {
     cost?: number;
     isActive?: boolean;
     deleted?: boolean;
-    // Opt-in low-stock alerts (off by default) — most products sit at
-    // stock = 1, so only the ones actually restocked ask to be tracked.
+    // Opt-in low-stock alerts (off by default): only restocked products ask to be tracked.
     trackLowStock?: boolean;
-    // Barcode labels already printed for this product — the other side of the
-    // products list's print-state filter. Off by default, so a freshly seeded
-    // catalogue mostly looks like a shop that still has labels to print.
+    // Labels already printed — the other side of the print-state filter; off by default.
     labelsPrinted?: boolean;
-    // Numbered product (spec.md "Numbered shawls"): its variants are the
-    // numbers on one photo. An explicit choice, never inferred from the
-    // variant types used — see Product.isNumbered.
+    // Numbered product (spec "Numbered shawls"): an explicit choice, never inferred from the variant types.
     isNumbered?: boolean;
-    // The code the garment arrived carrying (shared/constants/barcode.ts).
-    // Set on a product WITH variants it is the shared-parent case: one tag for
-    // every size, so nothing per-variant gets printed either.
+    // The garment's own supplier code; on a product with variants it is the one shared tag for every size.
     supplierBarcode?: string;
     // simple product fields (only when no variants)
     simple?: { stock: number };
@@ -298,30 +211,22 @@ async function main() {
       stock?: number;
       priceOverride?: number;
       cost?: number;
-      // Numbered shawls (spec.md): the variant's point on the product image,
-      // as percentages. Left out for ordinary variants.
+      // Numbered shawls: the variant's point on the product image, as percentages.
       imageX?: number;
       imageY?: number;
-      // This size's own supplier code, independent of its siblings' and of
-      // the parent's.
+      // This size's own supplier code, independent of its siblings' and of the parent's.
       supplierBarcode?: string;
     }[];
-    // What a chosen option value MEANS on this product (spec.md "Notes on a
-    // product's options"), keyed the same way a combo is: `${typeSlug}:${valueKey}`.
-    // Scoped to the product, so "size:m" here says nothing about "size:m" on
-    // the next product — which is exactly what the seed demonstrates.
+    // What a chosen option value means on this product, keyed `${typeSlug}:${valueKey}` and scoped to the product.
     optionNotes?: Record<string, I18n>;
   }) {
     const searchText = buildSearchText(opts.name, opts.description);
-    // Barcode is generated once and frozen thereafter, same spirit as SKU —
-    // reuse it across reseed runs instead of rotating on every `upsert`.
+    // Barcode is generated once and frozen, like the SKU — reused across re-seeds.
     const existing = await prisma.product.findUnique({
       where: { slug: opts.slug },
       select: { barcode: true, barcodeSource: true, generatedBarcode: true },
     });
-    // A supplier-coded piece still keeps OUR code parked, exactly as the API
-    // does when the toggle is flipped — so toggling it back in the admin
-    // restores a code rather than minting a third one.
+    // A supplier-coded piece keeps our code parked, as the API does, so toggling back restores it.
     const generated =
       (existing?.barcodeSource === "SUPPLIER" ? existing.generatedBarcode : existing?.barcode) ??
       (await generateUniqueBarcode());
@@ -346,18 +251,14 @@ async function main() {
       stock: opts.simple ? opts.simple.stock : 1,
     };
 
-    // No `productNumber` in `create` — Postgres assigns it, exactly like the
-    // POST /api/products route does.
+    // No `productNumber` in `create` — Postgres assigns it, exactly like the POST /api/products route does.
     const product = await prisma.product.upsert({
       where: { slug: opts.slug },
       update: base,
       create: base,
     });
 
-    // SKU is derived from the real assigned productNumber and frozen at
-    // creation (CLAUDE.md rule 1), so it's written once and never rewritten on
-    // a re-seed. Mirrors the second write in POST /api/products, where the
-    // number likewise only exists after the insert.
+    // SKU comes from the assigned productNumber and is frozen at creation (rule 1), so it is written once.
     if (opts.simple && !product.sku) {
       await prisma.product.update({
         where: { id: product.id },
@@ -365,8 +266,7 @@ async function main() {
       });
     }
 
-    // reset variants for idempotency, then recreate — keep the existing
-    // barcodes (frozen, like the product's) so they don't rotate every run
+    // Variants are recreated for idempotency, keeping their frozen barcodes.
     const previousVariants = await prisma.variant.findMany({
       where: { productId: product.id },
       select: { variantNumber: true, barcode: true, barcodeSource: true, generatedBarcode: true },
@@ -390,8 +290,7 @@ async function main() {
         }
       }
 
-      // Upserted like everything else here, so a re-seed neither duplicates a
-      // note nor silently reverts one somebody edited in the admin.
+      // Upserted, so a re-seed neither duplicates a note nor reverts an admin edit.
       for (const [comboKey, note] of Object.entries(opts.optionNotes ?? {})) {
         const optionValueId = valueId[comboKey];
         if (!optionValueId) {
@@ -432,11 +331,7 @@ async function main() {
     return product;
   }
 
-  // Repair for databases touched by the old seed, which inserted explicit
-  // `productNumber` values and so left Postgres's sequence behind the real max.
-  // Nothing here writes the column any more, but an out-of-sync sequence would
-  // still make the next insert (seed or API) fail with P2002. Point it at
-  // max + 1; on an empty table that's 1, i.e. exactly the default.
+  // Repairs a productNumber sequence left behind by the old seed's explicit values (else P2002 on the next insert).
   await prisma.$executeRawUnsafe(
     `SELECT setval(pg_get_serial_sequence('"Product"', 'productNumber'), COALESCE((SELECT MAX("productNumber") FROM "Product"), 0) + 1, false)`,
   );
@@ -449,8 +344,7 @@ async function main() {
     categoryId: abayas.id,
     basePrice: 45,
     cost: 20,
-    // Already on the shelf with its label on it — everything else below is
-    // still waiting for the printer.
+    // Already on the shelf with its label on it — everything else below is still waiting for the printer.
     labelsPrinted: true,
     simple: { stock: 10 },
   });
@@ -462,17 +356,14 @@ async function main() {
     categoryId: abayas.id,
     basePrice: 120,
     cost: 60,
-    // Restocked line, so it opts into low-stock alerts — its XL sits at 2,
-    // under the seeded threshold of 3, giving the low-stock view real data.
+    // Restocked line opting into low-stock alerts: its XL at 2 sits under the seeded threshold of 3.
     trackLowStock: true,
     variants: [
       { combo: ["size:m"], name: { ar: "M", en: "M", he: "M" }, stock: 5 },
       { combo: ["size:l"], name: { ar: "L", en: "L", he: "L" }, stock: 3 },
       { combo: ["size:xl"], name: { ar: "XL", en: "XL", he: "XL" }, stock: 2 },
     ],
-    // What "M" and "L" mean on an abaya. The evening dress below writes
-    // something else against the very same global values — which is the whole
-    // point of scoping a note to the product (spec.md).
+    // What "M" and "L" mean on an abaya — the evening dress below gives the same values another meaning.
     optionNotes: {
       "size:m": { ar: "الطول ١٤٠ سم", en: "Length 140 cm", he: 'אורך 140 ס"מ' },
       "size:l": { ar: "الطول ١٤٥ سم", en: "Length 145 cm", he: 'אורך 145 ס"מ' },
@@ -501,11 +392,7 @@ async function main() {
       { combo: ["color:blue", "size:m"], name: { ar: "أزرق / M", en: "Blue / M", he: "כחול / M" }, stock: 6 },
       { combo: ["color:blue", "size:l"], name: { ar: "أزرق / L", en: "Blue / L", he: "כחול / L" }, stock: 0 }, // out of stock
     ],
-    // The same "size:m" the abaya above annotated, saying something entirely
-    // different here — and a colour note beside it, so one variant carries a
-    // note from two option types at once (which is what the picker has to
-    // show clearly separated). The Arabic alone on the colour is deliberate:
-    // it exercises the fall-back to the default language.
+    // Same "size:m" with a different meaning, plus a colour note in Arabic only to exercise the language fallback.
     optionNotes: {
       "size:m": { ar: "يناسب مقاس ٣٨-٤٠", en: "Fits EU 38-40", he: "מתאים למידה 38-40" },
       "color:red": { ar: "اللون أغمق قليلًا من الصورة" },
@@ -532,9 +419,7 @@ async function main() {
     simple: { stock: 1 },
   });
 
-  // 6) Numbered shawl (spec.md) — Number variant type only, every variant a
-  //    placed point on the product image, so the list badge and the numbered
-  //    editor both have real data to render.
+  // 6) Numbered shawl: Number variant type only, every variant a placed point on the image.
   await upsertProduct({
     slug: "numbered-shawl-collection",
     name: { ar: "تشكيلة شالات مرقّمة", en: "Numbered Shawl Collection", he: "מארז צעיפים ממוספרים" },
@@ -546,8 +431,7 @@ async function main() {
     categoryId: abayas.id,
     basePrice: 60,
     cost: 25,
-    // The explicit choice, not a side effect of using the Number type: this is
-    // what the badge, the product form and the POS all read.
+    // The explicit choice the badge, form and POS read.
     isNumbered: true,
     variants: [
       { combo: ["number:1"], name: { ar: "1", en: "1", he: "1" }, stock: 1, imageX: 18, imageY: 22 },
@@ -557,17 +441,13 @@ async function main() {
       { combo: ["number:5"], name: { ar: "5", en: "5", he: "5" }, stock: 0, imageX: 50, imageY: 68 },
       { combo: ["number:6"], name: { ar: "6", en: "6", he: "6" }, stock: 1, imageX: 76, imageY: 64, priceOverride: 75 },
     ],
-    // A number is an option value like any other, so it takes a note like any
-    // other — read beside the number in the POS picker, and never drawn on
-    // the photograph.
+    // A number takes a note like any option value — shown in the POS picker, never drawn on the photo.
     optionNotes: {
       "number:4": { ar: "حرير طبيعي", en: "Pure silk", he: "משי טבעי" },
     },
   });
 
-  // 7) A piece that arrived already barcoded (shared/constants/barcode.ts):
-  //    its tag is the supplier's, so it owes no label of ours and drops out of
-  //    the "not printed yet" queue by source — never by a faked print date.
+  // 7) Arrived already barcoded: owes no label of ours, so it leaves the label queue by source, not by a fake print date.
   await upsertProduct({
     slug: "supplier-coded-belt",
     name: { ar: "حزام مستورد", en: "Imported Belt", he: "חגורה מיובאת" },
@@ -583,10 +463,7 @@ async function main() {
     simple: { stock: 4 },
   });
 
-  // 8) One supplier code for EVERY size, stuck on the parent — the case the
-  //    parent-scan picker exists for: the code names the garment, not the size
-  //    that just sold, so scanning it in the POS asks which (and the orders API
-  //    refuses a sale on the parent alone).
+  // 8) One supplier code on the parent for every size: scanning it asks which size, and a sale on the parent is refused.
   await upsertProduct({
     slug: "supplier-coded-tunic",
     name: { ar: "تونيك مستورد", en: "Imported Tunic", he: "טוניקה מיובאת" },
@@ -602,9 +479,7 @@ async function main() {
     ],
   });
 
-  // 9) Both levels at once: our own code on the parent, and one size carrying
-  //    the supplier's own tag. Scanning that size adds it straight to the cart;
-  //    scanning the parent still opens the picker.
+  // 9) Both levels at once: our own code on the parent, and one size carrying the supplier's own tag.
   await upsertProduct({
     slug: "mixed-barcode-blouse",
     name: { ar: "بلوزة مختلطة الباركود", en: "Mixed-Barcode Blouse", he: "חולצה עם ברקוד מעורב" },
@@ -622,23 +497,11 @@ async function main() {
     ],
   });
 
-  // ============================================================
-  //  ORDERS (Phase 2)
-  //  Sample sales so the POS, the admin orders page and sales/profit
-  //  reporting all have real data to render on day one.
-  //
-  //  Idempotency: each order is upserted under a fixed id, and the seed
-  //  writes the RESULTING state directly rather than replaying the API's
-  //  stock deduction. That matters — upsertProduct re-asserts every
-  //  product's stock on each run, so a seed that also deducted would walk
-  //  the numbers down a little further every time. The stock figures
-  //  declared above are therefore the post-sale ones.
-  // ============================================================
+  // Orders: upserted under fixed ids, writing the resulting state directly rather than replaying stock deduction.
 
   const admin = await prisma.user.findUniqueOrThrow({ where: { email: "admin@store.test" } });
   const employee = await prisma.user.findUniqueOrThrow({ where: { email: "employee@store.test" } });
-  // Used by the expense + cash-drawer fixtures below: the Manager is who
-  // approves someone else's expense and who counts the drawer.
+  // The Manager approves someone else's expense and counts the drawer in the fixtures below.
   const manager = await prisma.user.findUniqueOrThrow({ where: { email: "manager@store.test" } });
 
   const silkScarf = await prisma.product.findUniqueOrThrow({ where: { slug: "silk-scarf" } });
@@ -657,10 +520,7 @@ async function main() {
     returnedQuantity?: number;
   };
 
-  // Mirrors backend/src/lib/money.ts + orderPricing.ts. Kept as plain numbers
-  // here (dev fixtures, 2dp) rather than importing the Decimal helpers, but
-  // the shape of the calculation is deliberately identical: line discounts
-  // first, then the order discount against their sum.
+  // Mirrors lib/money.ts + orderPricing.ts in plain numbers: line discounts first, then the order discount on their sum.
   const round2 = (n: number) => Math.round(n * 100) / 100;
   const discountOf = (base: number, type?: "PERCENT" | "AMOUNT", value?: number) => {
     if (!type || value === undefined) {
@@ -672,12 +532,10 @@ async function main() {
   async function upsertOrder(opts: {
     id: string;
     channel: "STORE" | "WHATSAPP" | "WEBSITE";
-    // SALE unless stated. A GIFT prices every line at zero (nothing was
-    // charged) but keeps unitCost — what the shop lost by giving it away.
+    // SALE unless stated; a GIFT prices every line at zero but keeps unitCost.
     type?: "SALE" | "GIFT";
     status: "NEW" | "PREPARING" | "HANDED_TO_COURIER" | "COMPLETED" | "CANCELLED" | "RETURNED";
-    // Whether the money for this sale is already in the shop's hands. A
-    // counter sale is; a parcel with the delivery company usually isn't yet.
+    // Whether the money is already in hand: a counter sale is, a courier parcel usually isn't.
     paymentStatus: "PENDING_COLLECTION" | "COLLECTED";
     createdById: string;
     lines: SeedOrderLine[];
@@ -695,8 +553,7 @@ async function main() {
   }) {
     const isGift = opts.type === "GIFT";
     const items = opts.lines.map((line) => {
-      // Mirrors asGiftLines() in src/lib/orderPricing.ts: a gift charges
-      // nothing, so the price is zero rather than discounted to zero.
+      // Mirrors asGiftLines(): a gift charges nothing, so the price is zero rather than discounted to zero.
       const unitPrice = isGift ? 0 : round2(Number(line.variant?.priceOverride ?? line.product.basePrice));
       const unitCost = line.variant?.cost ?? line.product.cost;
       const gross = round2(unitPrice * line.quantity);
@@ -705,8 +562,7 @@ async function main() {
         productId: line.product.id,
         variantId: line.variant?.id ?? null,
         name: line.product.name as object,
-        // `undefined`, not null: Prisma writes SQL NULL for an omitted
-        // nullable Json column, and only accepts Prisma.DbNull explicitly.
+        // `undefined`, not null: Prisma writes NULL for an omitted Json column and only accepts Prisma.DbNull explicitly.
         variantName: (line.variant?.name ?? undefined) as object | undefined,
         sku: line.variant?.sku ?? line.product.sku,
         unitPrice,
@@ -746,8 +602,7 @@ async function main() {
       createdById: opts.createdById,
     };
 
-    // Lines are rebuilt rather than updated in place: they carry no stable
-    // key of their own, and rewriting them keeps a re-seed deterministic.
+    // Lines are rebuilt, not updated: they carry no stable key, and rewriting keeps a re-seed deterministic.
     const order = await prisma.order.upsert({
       where: { id: opts.id },
       update: base,
@@ -760,9 +615,7 @@ async function main() {
     return order;
   }
 
-  // 1) STORE sale — opens COMPLETED with stock already deducted and the cash
-  //    already in the till, and shows both discount levels at once (10% off
-  //    the line, then 5 off the order).
+  // 1) STORE sale: COMPLETED, stock deducted, cash in the till, with both discount levels (10% line, 5 off the order).
   await upsertOrder({
     id: "seed-order-store-completed",
     channel: "STORE",
@@ -792,8 +645,7 @@ async function main() {
     lines: [{ product: eveningDress, variant: redM, quantity: 1 }],
   });
 
-  // 3) Still NEW — nothing committed yet, so the POS can practise the first
-  //    move of the flow.
+  // 3) Still NEW — nothing committed yet, so the POS can practise the first move of the flow.
   await upsertOrder({
     id: "seed-order-website-new",
     channel: "WEBSITE",
@@ -820,9 +672,7 @@ async function main() {
     lines: [{ product: eveningDress, variant: eveningDress.variants[1], quantity: 1 }],
   });
 
-  // 5) Handed to the courier, then partially returned — one of the two came
-  //    back, so the order keeps its status and only records the quantity. Its
-  //    money has since been collected from the delivery company.
+  // 5) With the courier and partly returned: status unchanged, only the returned quantity recorded; money collected since.
   await upsertOrder({
     id: "seed-order-website-partially-returned",
     channel: "WEBSITE",
@@ -836,9 +686,7 @@ async function main() {
     lines: [{ product: silkScarf, quantity: 2, returnedQuantity: 1 }],
   });
 
-  // 6) With the courier and still unpaid — the case the outstanding-money
-  //    screen exists for: sold, stock gone, but the delivery company has not
-  //    handed the cash over yet.
+  // 6) With the courier and unpaid — what the outstanding-money screen is for.
   await upsertOrder({
     id: "seed-order-whatsapp-awaiting-collection",
     channel: "WHATSAPP",
@@ -864,10 +712,7 @@ async function main() {
     lines: [{ product: silkScarf, quantity: 1 }],
   });
 
-  // 8) A GIFT — stock walked out of the shop for nothing. Same machinery as a
-  //    counter sale (COMPLETED, stock deducted, nothing to collect), but every
-  //    line is priced at zero, so it contributes no revenue anywhere. What it
-  //    cost the shop is reported as a cost of doing business, not as COGS.
+  // 8) A GIFT: completed with stock deducted but every line at zero; its cost is a cost of business, not COGS.
   await upsertOrder({
     id: "seed-order-store-gift",
     channel: "STORE",
@@ -880,9 +725,7 @@ async function main() {
     lines: [{ product: silkScarf, quantity: 1 }],
   });
 
-  // --- Expense categories (the shop's own list, extendable from the admin) ---
-  // Upserted by `key`, which is the stable identity: renaming the display
-  // name in three languages must never orphan an expense (CLAUDE.md rule 9).
+  // Expense categories upserted by `key`, so renaming the display name never orphans an expense (rule 9).
   const expenseCategories = [
     { key: "utilities", name: { ar: "فواتير", en: "Utilities", he: "חשבונות" } },
     { key: "salaries", name: { ar: "رواتب", en: "Salaries", he: "משכורות" } },
@@ -901,12 +744,7 @@ async function main() {
     expenseCategoryId[c.key] = row.id;
   }
 
-  // --- Expenses: every shape the rules define ---
-  //   approved + cash      -> counts against the drawer AND against profit
-  //   approved + not cash   -> counts against profit only (never touched the till)
-  //   pending (an Employee's) -> counts for nothing until it is signed off
-  //   rejected              -> never happened, kept on the record anyway
-  // Dates are fixed so a re-seed produces the same rows.
+  // Expenses in every shape: approved cash, approved non-cash, pending and rejected; fixed dates for re-seeds.
   const seedExpenses = [
     {
       id: "seed-expense-utilities-cash",
@@ -941,8 +779,7 @@ async function main() {
       note: "أكياس وشرائط تغليف",
       paidInCash: true,
       isRecurring: false,
-      // Recorded by an Employee, so it is a request: it moves neither the
-      // drawer nor the profit figures until someone senior approves it.
+      // An Employee's expense is a request: it moves neither drawer nor profit until approved.
       approvalStatus: "PENDING" as const,
       createdById: employee.id,
       approvedById: null,
@@ -957,9 +794,7 @@ async function main() {
       isRecurring: false,
       approvalStatus: "REJECTED" as const,
       createdById: employee.id,
-      // Deciding a request is the Admin's (changeRequest.approve) — a Manager
-      // records spending that counts immediately, but does not sign off
-      // someone else's (spec.md "Employee change approvals").
+      // Deciding a request is the Admin's (changeRequest.approve); a Manager's own spending counts immediately.
       approvedById: admin.id,
     },
   ];
@@ -979,16 +814,7 @@ async function main() {
     await prisma.expense.upsert({ where: { id: e.id }, update: data, create: { id: e.id, ...data } });
   }
 
-  // --- Change requests: the generic approval gate, in every state ---
-  // (spec.md "Employee change approvals"). Every gated change in the shop is
-  // one of these rows — a price, a manual stock figure, a photo deletion, a
-  // product's visibility, its variant set, and an Employee's expense — so the
-  // seed covers a pending one of each kind an approval screen has to draw,
-  // plus one already turned down.
-  //
-  // `pendingKey` is what makes superseding impossible to get wrong: unique
-  // while PENDING, null once decided. Set it exactly as lib/changeRequests.ts
-  // does, or a re-seed will collide with itself.
+  // Change requests in every state: one pending of each gated kind plus one rejected.
   const pendingKey = (entityType: string, entityId: string, field: string) => `${entityType}:${entityId}:${field}`;
 
   const seedChangeRequests = [
@@ -997,13 +823,11 @@ async function main() {
       entityType: "Product",
       entityId: silkScarf.id,
       field: "basePrice",
-      // Read off the row rather than written twice: the "old" side of a
-      // request is whatever is actually stored.
+      // Read off the row rather than written twice: the "old" side of a request is whatever is actually stored.
       oldValue: { kind: "money", value: silkScarf.basePrice.toFixed(2) },
       newValue: { kind: "money", value: "39.00" },
       entityLabel: silkScarf.name,
-      // The piece the card is headed with. Same as entityLabel here because
-      // the entity IS the product; on a variant request the two differ.
+      // The card's heading: the same as entityLabel here, since the entity is the product.
       productLabel: silkScarf.name,
       entityDetail: silkScarf.sku,
       productId: silkScarf.id,
@@ -1057,8 +881,7 @@ async function main() {
       entityType: r.entityType,
       entityId: r.entityId,
       field: r.field,
-      // Held only while pending — the unique index on it IS the "never a
-      // queue of stale requests" rule.
+      // Held only while pending — the unique index on it IS the "never a queue of stale requests" rule.
       pendingKey: r.status === "PENDING" ? pendingKey(r.entityType, r.entityId, r.field) : null,
       oldValue: r.oldValue,
       newValue: r.newValue,
@@ -1073,34 +896,14 @@ async function main() {
       decidedAt: r.decidedAt,
       decisionNote: r.decisionNote,
     };
-    // The seed OWNS the (entityType, entityId, field) of every request it
-    // writes, so anything else describing that same change is a leftover and
-    // goes first. A database that went through the expense-approval migration
-    // holds exactly that: the backfill wrote its own request for each seeded
-    // expense under a generated id, attributed to whoever had signed the
-    // expense off at the time.
-    //
-    // Cleared for DECIDED rows as well as pending ones, which is the part
-    // that was missing. pendingKey is null once a request is decided — that
-    // is what frees the slot for the next ask — so nothing in the database
-    // stops two decided rows describing one decision, and the approvals
-    // screen listed both: the same refusal twice, under two different
-    // deciders. Matching on the triple rather than on the pendingKey covers
-    // both states with one rule.
+    // The seed owns each request's (entityType, entityId, field), so other requests for that change are leftovers.
     await prisma.changeRequest.deleteMany({
       where: { entityType: r.entityType, entityId: r.entityId, field: r.field, id: { not: r.id } },
     });
     await prisma.changeRequest.upsert({ where: { id: r.id }, update: data, create: { id: r.id, ...data } });
   }
 
-  // --- Cash drawer: two closed days, one of them short ---
-  // Both are CLOSED on purpose. A seeded OPEN drawer would be a day nobody
-  // ever counted, and would sit at the top of "the current drawer" forever.
-  //
-  // Day 2 carries a difference forward: the count came up short, the close was
-  // recorded anyway (a difference NEVER blocks it), a note explains it, and it
-  // stays on the follow-up list until someone signs it off — which is exactly
-  // the state the follow-up reminder exists to show.
+  // Cash drawer: two CLOSED days (an open one would never be counted); day 2 came up short and awaits sign-off.
   const seedSessions = [
     {
       id: "seed-cash-session-balanced",

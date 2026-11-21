@@ -1,17 +1,6 @@
 import type { PasswordTokenStore, StoredPasswordToken } from "@/types/passwordSetup";
 
-// An in-memory PasswordTokenStore plus a clock you can wind forward.
-//
-// This is what lets the token rules be PROVEN rather than assumed: expiry can
-// be tested without waiting three days, and the single-use guarantee can be
-// tested by racing two redemptions at each other — neither of which is
-// reachable through the HTTP API, which only ever hands out a live token with
-// a real expiry.
-//
-// It implements the same contract the Prisma store does
-// (lib/passwordTokenStore.ts), including the one subtle part: markUsed is
-// conditional on the token still being unused, and says so in its return
-// value.
+// In-memory token store and windable clock: expiry and the single-use race are provable here, not over HTTP.
 
 export function createInMemoryTokenStore(): PasswordTokenStore & { all(): StoredPasswordToken[] } {
   const rows = new Map<string, StoredPasswordToken>();

@@ -5,14 +5,9 @@ import { LATITUDE_MAX, LATITUDE_MIN, LONGITUDE_MAX, LONGITUDE_MIN } from "@store
 import { SIGNED_DECIMAL_REGEX } from "@/constants/numeric";
 import type { OrderCustomerDraft } from "@/types/customer";
 
-// Mirrors admin/src/lib/validation/order-form.ts: the same order, taken at
-// the counter instead of at a desk. Field messages are backend error codes
-// (CLAUDE.md rule 12), so one translator renders both client- and
-// server-side failures.
+// Mirrors the admin's order-form validation; messages are backend error codes (rule 12).
 
-// A coordinate is signed and fractional, so it can't reuse the
-// non-negative-decimal rules the money/quantity fields share. Empty is fine —
-// the map pin is optional (spec.md "Customer information").
+// Signed and fractional, so it can't reuse the money rules; empty is fine, the pin is optional.
 function isCoordinate(value: string, min: number, max: number): boolean {
   const trimmed = value.trim();
   if (trimmed === "") {
@@ -25,9 +20,7 @@ function isCoordinate(value: string, min: number, max: number): boolean {
   return Number.isFinite(parsed) && parsed >= min && parsed <= max;
 }
 
-// Name and phone are required because an order taken over WhatsApp has to be
-// deliverable back to someone — the same invariant the backend enforces with
-// ORDER_CUSTOMER_REQUIRED.
+// A WhatsApp order must be deliverable, as the backend's ORDER_CUSTOMER_REQUIRED enforces.
 export const orderCustomerFormSchema = z
   .object({
     name: z.string().min(1, ERROR_CODES.VALIDATION_REQUIRED),
@@ -44,8 +37,7 @@ export const orderCustomerFormSchema = z
     }),
     note: z.string(),
   })
-  // Half a coordinate points nowhere, so the pair is given together or not at
-  // all (the backend's isLocationConsistent says the same).
+  // Half a coordinate points nowhere: both or neither (as the backend's isLocationConsistent).
   .refine((v) => (v.latitude.trim() === "") === (v.longitude.trim() === ""), {
     message: ERROR_CODES.ORDER_LOCATION_INVALID,
     path: ["longitude"],
@@ -63,15 +55,11 @@ export const DEFAULT_ORDER_CUSTOMER_VALUES: OrderCustomerFormValues = {
   note: "",
 };
 
-// The form's values are already the draft's shape — kept as a named
-// conversion so the two can diverge later without hunting down call sites.
 export function toCustomerDraft(values: OrderCustomerFormValues): OrderCustomerDraft {
   return { ...values };
 }
 
-// A location shared over WhatsApp arrives as one "32.313, 35.028" string, so
-// pasting it into the latitude field fills both rather than being rejected as
-// a bad number. Returns null when there is no pair to split.
+// A WhatsApp location arrives as one "32.313, 35.028" string, so pasting it fills both fields.
 export function splitCoordinatePair(value: string): { latitude: string; longitude: string } | null {
   const parts = value.split(",").map((part) => part.trim());
   if (parts.length !== 2) {

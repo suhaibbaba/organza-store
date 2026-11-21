@@ -1,9 +1,4 @@
-// How `can()` decides, now that half the rules live in a database.
-//
-// The API suite proves the endpoints behave; this proves the RESOLVER does,
-// including the cases an HTTP test cannot reach — a stored row for the
-// ADMIN role, a row for an action that does not exist, a role with no stored
-// config at all.
+// can()'s resolver on what HTTP cannot reach: a stored ADMIN row, an unknown action, a role with no stored config.
 import { afterEach, describe, expect, it } from "vitest";
 import {
   can,
@@ -63,8 +58,7 @@ describe("can()", () => {
   });
 
   it("answers the ADMIN role from the shipped table, whatever is stored", () => {
-    // A row that should not exist, does, and says no. It changes nothing: an
-    // Admin holds everything, always.
+    // A stored "no" for ADMIN changes nothing: an Admin holds everything.
     setConfigurablePermissions({
       ADMIN: { "order.cancel": false, "user.manage": false, "permission.manage": false },
     });
@@ -82,8 +76,7 @@ describe("can()", () => {
   });
 
   it("falls back to the default for an action nobody has decided", () => {
-    // A database bootstrapped before the action existed: a row for the role,
-    // no row for this action. "Missing" must mean "as shipped", not "no".
+    // No row for an action added after bootstrap means "as shipped", not "no".
     setConfigurablePermissions({ EMPLOYEE: { "inventory.adjust": true } });
 
     expect(can({ role: "EMPLOYEE" }, "product.create"), "still held").toBe(true);

@@ -9,14 +9,10 @@ export const CHANGE_REQUEST_COUNT_QUERY_KEY = ["changeRequests", "count"] as con
 
 export const CHANGE_REQUEST_LIST_PAGE_SIZE = DEFAULT_PAGE_SIZE;
 
-// How often the badge in the navigation re-checks. Requests arrive while
-// somebody is already looking at another screen, and an Admin who is pushed a
-// notification should find the number already right when they open the app.
-// Slow enough not to be a poll worth worrying about on a phone's data.
+// So an Admin opening the app after a push finds the badge already right.
 export const CHANGE_REQUEST_COUNT_REFETCH_MS = 60_000;
 
-// Waiting first — that is the whole reason the screen exists. The decided
-// ones are one tap away, so nothing is hidden.
+// Waiting first: that is why the screen exists.
 export const DEFAULT_CHANGE_REQUEST_FILTERS: ChangeRequestListFilters = {
   status: "PENDING",
   page: DEFAULT_PAGE,

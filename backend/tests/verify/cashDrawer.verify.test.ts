@@ -1,27 +1,4 @@
-// ============================================================================
-//  5. THE CASH DRAWER — a whole day, walked end to end
-//
-//      expected   = openingFloat + cash sales − cash expenses
-//      difference = counted − expected
-//      tomorrow's openingFloat = counted − withdrawn
-//
-//  Every figure below is an absolute, not a delta, because the day it walks
-//  is one the suite owns outright.
-//
-//  SAFETY — the two rules this file will not break:
-//
-//    1. It never opens, closes or touches a drawer for a REAL trading day.
-//       The walk happens on a synthetic date far in the future (2100+), which
-//       no sale can ever fall inside — which is also what pins cash sales at
-//       exactly zero and turns "expected" into an equation with no unknowns.
-//       A drawer cannot be deleted once opened, so a day the shop might
-//       actually trade on is not the suite's to take.
-//    2. The one assertion that genuinely needs a live window — a cash sale
-//       reaching the drawer — measures the drawer THE SHOP has already
-//       opened. If there isn't one it reports itself skipped rather than
-//       opening today's (see STORE_ALLOW_TODAY_DRAWER for a disposable
-//       database).
-// ============================================================================
+// A whole drawer day on a synthetic 2100+ date the suite owns; a real day is never opened, a live window only measured.
 import { beforeAll, describe, expect, it } from "vitest";
 import { apiRequest } from "@tests/support/client";
 import { getSession } from "@tests/support/auth";
@@ -71,8 +48,7 @@ describe("Verify · the cash drawer", () => {
   });
 
   describe("a whole day, from opening float to tomorrow's float", () => {
-    // One session, walked in order — each step depends on the one before it,
-    // which is the point: this is a day, not a set of unrelated assertions.
+    // One session walked in order: each step depends on the one before.
     let date: string;
     let session: CashSessionDto;
 
@@ -144,9 +120,7 @@ describe("Verify · the cash drawer", () => {
     });
 
     it("refuses an unexplained difference — and hands back the three figures with the refusal", async () => {
-      // The count is BLIND: the closing screen is never told what to expect,
-      // so the refusal is what lets it reveal "expected 229.50, counted
-      // 209.50, short 20.00" without ever having been given the answer.
+      // The count is blind, so the refusal is how the closing screen learns the expected figure.
       const refused = await closeSession(admin, session.id, { countedAmount: DRAWER_COUNTED });
 
       expect(refused.status, "a difference with no explanation is refused").toBe(400);
@@ -288,8 +262,7 @@ describe("Verify · the cash drawer", () => {
         stock: 10,
       });
 
-      // 2 x 250.00, paid in cash, at the counter — collected the moment it is
-      // rung up, so it lands in this window.
+      // 2 × 250.00 in cash at the counter: collected at once, so it lands in this window.
       const order = await sell(admin, [{ productId: product.id, quantity: DRAWER_CASH_SALE_QUANTITY }]);
       expectMoney(order.total, DRAWER_CASH_SALE_TOTAL, "the sale's own total");
       expect(order.paymentStatus, "a counter sale is paid on the spot").toBe("COLLECTED");
@@ -311,8 +284,7 @@ describe("Verify · the cash drawer", () => {
 
       const product = await createPricedProduct(admin, { basePrice: "120.00", stock: 10 });
 
-      // Sold and handed over, but not paid for: the delivery company holds
-      // the money, so the drawer must not.
+      // Handed over but unpaid: the courier holds the money, so the drawer must not.
       const order = await sell(admin, [{ productId: product.id, quantity: 1 }], { channel: "WHATSAPP" });
       await handToCourier(admin, order.id);
 
@@ -339,8 +311,7 @@ describe("Verify · the cash drawer", () => {
 
   describe("who may stand at the drawer", () => {
     it("keeps an Employee out of it entirely — reading and writing", async () => {
-      // A synthetic date even here: if the gate ever broke, the refusal that
-      // did not happen must still not land on a real trading day.
+      // A synthetic date even here, so a broken gate could never land on a real trading day.
       const opening = await openSessionRequest(employee, {
         date: allocateDate(),
         tzOffset: 0,

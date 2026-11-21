@@ -1,28 +1,5 @@
 #!/usr/bin/env tsx
-// ============================================================================
-//  npm run init — create the shop's real staff accounts, once.
-//
-//  MANUAL ONLY. It is not in the deploy pipeline and must never be: it exists
-//  to be run by hand at go-live, on a database that has just been migrated and
-//  bootstrapped and has no users in it yet.
-//
-//  WHO it creates comes from a JSON roster read at run time, not from this
-//  repo — see src/constants/init.ts for why, and staff.example.json for the
-//  shape:
-//
-//      npm run init                                  # ../staff.json
-//      npm run init -- --accounts /srv/staff.json    # somewhere else
-//      STORE_STAFF_FILE=/srv/staff.json npm run init
-//
-//  Each account is created with NO PASSWORD and is emailed a single-use
-//  "set your password" link, so the only person who ever knows a password is
-//  the person it belongs to. Nothing is printed that would let anybody in.
-//
-//  It REFUSES to run if any user already exists — there is no partial mode and
-//  no "top up the ones that are missing". A database with a user in it is a
-//  database somebody is already using, and this command's whole job is to
-//  populate an empty one.
-// ============================================================================
+// npm run init — creates the shop's real staff once, by hand, from a JSON roster (never in the deploy).
 import "dotenv/config";
 import path from "node:path";
 import { APIError } from "better-auth";
@@ -67,18 +44,14 @@ async function main(): Promise<void> {
   console.log(`  Email    : ${isEmailConfigured() ? emailConfig().from : "NOT CONFIGURED (links will not be sent)"}`);
   console.log(RULE);
 
-  // The roster is read and checked in full BEFORE the database is touched, so
-  // a typo in the fourth entry can never leave the first three created.
+  // The roster is checked in full before the database is touched, so a bad entry never leaves half the accounts created.
   const details = applyStaffOverrides(
     loadStaffAccounts(staffFile),
     { names: parseKeyedFlags(argv, INIT_FLAGS.name), phones: parseKeyedFlags(argv, INIT_FLAGS.phone) },
     staffFile,
   );
 
-  // The refusal, before anything is written. createInitialStaff checks it
-  // again for itself (it is that function's rule, not this file's) — this
-  // early copy only exists so the roster is echoed back before the refusal
-  // rather than after it.
+  // Early copy of createInitialStaff's own refusal, so the roster is echoed before refusing.
   const existing = await prisma.user.count();
   if (existing > 0) {
     console.error(
@@ -115,15 +88,7 @@ async function main(): Promise<void> {
     countUsers: () => prisma.user.count(),
 
     async createAccount(account) {
-      // The same one path every staff account in the shop is born through
-      // (lib/credentials.ts), which is the point: Better Auth's public
-      // sign-up endpoint is disabled, and it had to be — it was reachable by
-      // anybody on the internet. This writes through Better Auth's own
-      // internal adapter instead.
-      //
-      // No password is minted at all, not even a throwaway to delete
-      // afterwards, so at no moment does a working credential for this
-      // account exist anywhere. Its owner sets one from the emailed link.
+      // The one path every staff account is born through (lib/credentials.ts); no password is minted at all.
       try {
         return await createStaffUser({
           email: account.email,
@@ -144,9 +109,7 @@ async function main(): Promise<void> {
     sendInvite: (user) => sendPasswordSetupEmail(user, "SET"),
   });
 
-  // "created" rather than "sent" when there is no provider: the accounts and
-  // their links are real either way, but claiming a delivery that never
-  // happened is exactly the sort of thing somebody would act on.
+  // "created", not "sent", without a provider: never claim a delivery that did not happen.
   const verb = isEmailConfigured() ? "link sent" : "link created (NOT emailed)";
   for (const result of results) {
     console.log(

@@ -53,54 +53,29 @@ export const metadata: Metadata = {
   },
   appleWebApp: {
     capable: true,
-    // What appears under the icon on an iPhone home screen — short, because
-    // iOS truncates hard.
+    // Short: iOS truncates the home-screen label hard.
     title: PWA_SHORT_NAME,
-    // "default", not "black-translucent": translucent would let the page
-    // scroll up underneath the clock and battery.
+    // "default": black-translucent would let the page scroll under the clock and battery.
     statusBarStyle: "default",
-    // The launch images, one <link rel="apple-touch-startup-image"> per
-    // device. Without these an installed app opens on a blank white screen
-    // while iOS gets the web view up; with them it opens on the brand. The
-    // list and both derived strings live in constants/pwa.ts.
+    // Without launch images an installed app opens on a blank white screen.
     startupImage: APPLE_SPLASH_SCREENS.map((screen) => ({
       url: appleSplashImagePath(screen),
       media: appleSplashMediaQuery(screen),
     })),
   },
   other: {
-    // For `capable: true` Next now emits only the modern
-    // `mobile-web-app-capable`, which iOS didn't understand before Safari
-    // 17.4. Older iPhones in the shop still read this one to launch without
-    // browser chrome, and a newer one just ignores it.
+    // Older iPhones (before Safari 17.4) only understand this legacy tag.
     "apple-mobile-web-app-capable": "yes",
   },
 };
 
-// viewport-fit=cover is required for env(safe-area-inset-*) to resolve to
-// anything other than 0 — without it, fixed bars stay padded for nothing
-// and get covered by the iOS home indicator on notched iPhones.
-//
-// maximumScale/userScalable turn page zoom OFF. This is a till: the app is
-// held in one hand over a counter, and a pinch nobody meant to make leaves
-// the screen sitting askew at 1.4× in the middle of a sale, with a customer
-// waiting and nobody free to pinch it back. Two things make that decision
-// binding rather than advisory — `touch-action: manipulation` in globals.css,
-// which removes double-tap-to-zoom without touching taps, and the gesture
-// guards in components/pwa/native-gesture-guard.tsx, because iOS has ignored
-// user-scalable=no since iOS 10. See that file for what holds where.
-//
-// Nothing may now depend on zooming: every label has to be legible and every
-// control tappable at 1×, which is what the 16px form fields and the 44px
-// minimum touch target are for.
+// Zoom is off on a till (a stray pinch mid-sale); viewport-fit=cover makes safe-area insets resolve.
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
   viewportFit: "cover",
-  // Tints the Android status bar once installed, and the address bar before
-  // that. Matches the manifest's theme_color.
   themeColor: PWA_THEME_COLOR,
 };
 
@@ -128,29 +103,15 @@ export default async function LocaleLayout({
       className={`${geist.variable} ${cairo.variable} ${notoSansHebrew.variable}`}
     >
       <body className="min-h-dvh antialiased">
-        {/* Before the providers, and outside them: this is the screen for the
-            case where none of the app's own JavaScript ever runs, so it must
-            not be downstream of anything the bundle has to set up. It is a
-            server component and its watchdog is inline ES5 — the first script
-            in the document, and the only one that is certain to execute. */}
+        {/* Outside the providers: this screen covers the case where none of the app's own JavaScript runs. */}
         <BootFailure />
-        {/* Outside the providers, like the watchdog above: cancelling a pinch
-            is not a feature of any one screen, and it has to be listening
-            from the first frame — including on the login screen, which is
-            not inside the app shell. */}
+        {/* Listening from the first frame, login screen included. */}
         <NativeGestureGuard />
         <NextIntlClientProvider>
           <AppProviders>
-            {/* First thing in the document, and inside the session provider
-                it watches: it holds the brand on screen from the frame the
-                phone's launch image disappears until the app knows who is
-                signed in. */}
             <BootSplash />
             {children}
           </AppProviders>
-          {/* Inside the intl provider: the registrar no longer renders
-              nothing — it puts the "a new version is ready" prompt on screen,
-              and that wording goes through t() like all the rest. */}
           <ServiceWorkerRegistrar />
         </NextIntlClientProvider>
       </body>

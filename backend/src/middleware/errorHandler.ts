@@ -5,13 +5,7 @@ import { AppError, sendError } from "@/lib/response";
 import { captureException } from "@/lib/logger";
 import { ERROR_CODES, type ErrorCode } from "@/constants";
 
-// Schemas built from `@store/shared/schemas/*` are compiled against shared/'s own
-// zod install — a separate copy of the package from backend's own
-// node_modules/zod (each project here has its own package.json, CLAUDE.md's
-// "Repo structure"; nothing hoists them together). A ZodError thrown while
-// validating a shared schema is therefore a different realm's class, so
-// `instanceof ZodError` fails even though it's the same error by name/shape
-// — duck-type on that shape instead of trusting the prototype chain.
+// Shared schemas use their own zod copy, so `instanceof ZodError` fails across realms; matched by shape instead.
 function isZodError(err: unknown): err is ZodError {
   return (
     err instanceof ZodError ||
@@ -42,9 +36,7 @@ function codeForUniqueViolation(target: unknown): ErrorCode {
   return ERROR_CODES.DUPLICATE;
 }
 
-// Every response — success or failure — goes out through the unified
-// envelope (CLAUDE.md rule 15); errors are translation KEYS, never literal
-// sentences (rule 12), so the frontend renders them via t().
+// Every response uses the unified envelope (rule 15); errors are keys, never sentences (rule 12).
 export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
   if (err instanceof AppError) {
     sendError(res, err);
@@ -67,9 +59,7 @@ export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
     }
   }
 
-  // Anything reaching here is a genuine fault rather than a rejected
-  // request, so it goes to the error-tracking layer (CLAUDE.md rule 20) —
-  // which also logs it to the console.
+  // Anything here is a genuine fault, so it goes to error tracking (rule 20).
   captureException(err);
   sendError(res, new AppError(500, ERROR_CODES.INTERNAL));
 };

@@ -1,10 +1,4 @@
-// Fixtures for the verification suite.
-//
-// Every one of them is built from scratch to a KNOWN price, cost and stock,
-// and every one is registered for teardown automatically (apiRequest feeds
-// tests/support/fixtureRegistry.ts). Nothing here reads the seed's own
-// products: an assertion about money has to start from a figure this file
-// chose, or it is measuring whatever the sandbox happened to contain.
+// Fixtures built to a known price, cost and stock, never the seed's: money assertions start from figures chosen here.
 import { apiRequest, uniqueId } from "@tests/support/client";
 import { anyCategoryId } from "@tests/support/fixtures";
 import { randomPalestinePhone } from "@tests/support/phone";
@@ -19,8 +13,7 @@ import type {
   VariantTypeDto,
 } from "@tests/types";
 
-// Everything the suite creates carries this in its name, so a leftover is
-// recognisable at a glance in the admin if a teardown ever fails to finish.
+// In every fixture's name, so a leftover is recognisable in the admin.
 const MARKER = "verify";
 
 function fixtureName(what: string): { ar: string; en: string } {
@@ -63,8 +56,7 @@ export async function createPricedProduct(token: string, options: PricedProductO
   return { product: res.data, id: res.data.id, basePrice, cost, stock };
 }
 
-// One option type with two values = two variants, which is all the fallback
-// rule needs: one variant that overrides, one that inherits.
+// One type with two values: one variant that overrides, one that inherits.
 async function twoValueSelection(token: string): Promise<{ variantTypeId: string; valueIds: string[] }> {
   const res = await apiRequest<VariantTypeDto[]>("/api/variant-types", { token });
   const colour = res.data?.find((type) => type.slug === "color");
@@ -80,11 +72,7 @@ export interface PricedVariantOptions extends PricedProductOptions {
   variantStock?: number;
 }
 
-/**
- * A product with two variants: the first carries an explicit price AND cost,
- * the second carries neither and must therefore inherit the parent's
- * (CLAUDE.md rule 3 — resolved at read time, never copied).
- */
+/** Two variants: the first sets price and cost, the second inherits the parent's (rule 3). */
 export async function createVariantProduct(
   token: string,
   options: PricedVariantOptions,
@@ -110,8 +98,7 @@ export async function createVariantProduct(
 
   const [first, second] = created.data.variants;
 
-  // Only the FIRST variant is given a price and a cost. The second is left
-  // untouched on purpose: that is the inheritance under test.
+  // Only the first variant is priced: the second's inheritance is what is tested.
   const patched = await apiRequest(`/api/products/${created.data.id}/variants/${first.id}`, {
     method: "PATCH",
     token,

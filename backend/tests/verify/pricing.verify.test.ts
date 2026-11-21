@@ -1,16 +1,4 @@
-// ============================================================================
-//  1. PRICING
-//
-//  What a piece costs the customer, and where that figure comes from.
-//
-//    * a variant's priceOverride is what is charged when it is set;
-//    * an empty one inherits the parent's basePrice — RESOLVED AT READ TIME,
-//      so re-pricing the parent afterwards reaches it (CLAUDE.md rule 3);
-//    * cost follows exactly the same fallback;
-//    * the SKU is frozen at creation and survives every later edit
-//      (CLAUDE.md rule 1) — printed barcodes must never break;
-//    * compareAtPrice is a "was" price and never touches what is charged.
-// ============================================================================
+// Pricing: an override is charged, an empty one inherits at read time (rule 3), cost likewise, SKU frozen (rule 1).
 import { beforeAll, describe, expect, it } from "vitest";
 import { apiRequest, uniqueId } from "@tests/support/client";
 import { getSession } from "@tests/support/auth";
@@ -183,8 +171,7 @@ describe("Verify · pricing", () => {
     });
 
     it("never changes what is charged when it is set BELOW the base price either", async () => {
-      // A "was" price lower than the current one is nonsense on a tag, but it
-      // must not become a discount if somebody types it.
+      // A lower "was" price must not become a discount.
       const fixture = await createPricedProduct(admin, { basePrice: UNIT_PRICE, compareAtPrice: "1.00" });
       const order = await sell(admin, [{ productId: fixture.id, quantity: 1 }]);
 

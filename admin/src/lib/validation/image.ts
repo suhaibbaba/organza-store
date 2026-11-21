@@ -1,9 +1,7 @@
 import { ERROR_CODES } from "@store/shared/constants/errors";
 import { CLIENT_ALLOWED_IMAGE_TYPES, CLIENT_MAX_IMAGE_SIZE_MB } from "@/constants/images";
 
-// Fast, local pre-check before hitting the network — returns a backend error
-// code (translated the same way as a real API error) or null when the file
-// looks fine. The backend re-validates regardless (CLAUDE.md rule 8).
+// Returns a backend error code or null; the backend re-validates regardless (rule 8).
 export function validateImageFile(file: File): string | null {
   if (!CLIENT_ALLOWED_IMAGE_TYPES.includes(file.type)) {
     return ERROR_CODES.IMAGE_INVALID_TYPE;

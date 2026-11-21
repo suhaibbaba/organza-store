@@ -1,14 +1,4 @@
-// Helpers for the sale-notification suite.
-//
-// The devices registered here are deliberately unreachable: the endpoint
-// host is under `.invalid`, which by RFC 2606 never resolves. That is the
-// point — the shop's own phones can't be enrolled from a test, and a push
-// that cannot be delivered is exactly the case the suite has to prove is
-// harmless (a sale must succeed regardless).
-//
-// What IS observable is the attempt: the API records `lastAttemptAt` on the
-// subscription whenever it pushes at it (backend/src/lib/push.ts), so
-// "were the Admins notified about this sale" can be answered over HTTP.
+// Test devices push to `.invalid` (never resolves), proving a dead push is harmless; lastAttemptAt makes the attempt observable.
 import { createECDH, randomBytes } from "node:crypto";
 import { apiRequest, uniqueId } from "@tests/support/client";
 import { PUSH_ATTEMPT_POLL_INTERVAL_MS, PUSH_ATTEMPT_TIMEOUT_MS } from "@tests/constants";
@@ -19,12 +9,7 @@ export interface FakeDevice {
   keys: { p256dh: string; auth: string };
 }
 
-/**
- * A subscription shaped exactly like a browser's: a real P-256 public point
- * and a 16-byte auth secret, so the payload genuinely encrypts and the send
- * fails at the network rather than at the crypto — the failure a real dead
- * push service would produce.
- */
+/** Shaped like a browser subscription, so the send fails at the network, not the crypto. */
 export function fakeDevice(): FakeDevice {
   const ecdh = createECDH("prime256v1");
   ecdh.generateKeys();
@@ -67,13 +52,7 @@ function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-/**
- * Waits for a notification to be pushed at this device.
- *
- * Sending is fire-and-forget (it happens after the order's response has gone
- * out), so "was it notified" is a question with a delay attached — hence
- * polling rather than a single read.
- */
+/** Sending is fire-and-forget after the response, so this polls. */
 export async function waitForAttempt(token: string, device: FakeDevice, since: string | null): Promise<string | null> {
   const deadline = Date.now() + PUSH_ATTEMPT_TIMEOUT_MS;
   while (Date.now() < deadline) {
@@ -86,13 +65,7 @@ export async function waitForAttempt(token: string, device: FakeDevice, since: s
   return null;
 }
 
-/**
- * Gives a notification that must NOT be sent time to fail to appear.
- *
- * Every caller pairs this with a sale that MUST notify, proving the pipeline
- * was awake the whole time — otherwise a slow API would make a "nothing was
- * sent" assertion pass for the wrong reason.
- */
+/** Waits out a notification that must not appear; callers pair it with one that must. */
 export async function settleQuietly(): Promise<void> {
   await sleep(PUSH_ATTEMPT_TIMEOUT_MS);
 }

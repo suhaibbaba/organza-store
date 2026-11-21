@@ -13,16 +13,7 @@ import {
 } from "@/constants";
 import type { AnyRecord, I18n, PushTarget, SaleNotificationPayload } from "@/types";
 
-// Telling the Admins that someone else has made a sale.
-//
-// Three rules shape everything below:
-//   1. The sale comes first. This runs AFTER the order is committed and its
-//      response is on its way out, and it can never fail the sale — hence
-//      notifySaleCreated() being fire-and-forget and swallowing everything.
-//   2. No sentences. The payload carries translation keys and numbers
-//      (CLAUDE.md rule 12); the admin's service worker renders them in the
-//      reader's own language.
-//   3. Nobody is told about their own sale.
+// Tells Admins about someone else's sale: after commit, never failing it, keys not sentences.
 
 /** The little of an order this needs — deliberately not the route's include type. */
 export interface SaleNotificationOrder {
@@ -39,16 +30,7 @@ export interface SaleActor {
   role: Role | string;
 }
 
-/**
- * Whether this sale is worth a notification, per the shop's settings.
- *
- * The switch is the extension point: ABOVE_AMOUNT and PERIODIC_SUMMARY are
- * already in the schema and in the mode enum, so adding either is a case
- * here (plus, for the digest, a scheduled job) rather than a migration and a
- * settings redesign. Until then they are not accepted by the settings API
- * (IMPLEMENTED_SALE_NOTIFICATION_MODES), so an unknown mode can only mean a
- * row written by a newer build — in which case the safe answer is silence.
- */
+/** Whether this sale warrants a notification per the shop's settings; new modes are a case here. */
 export function shouldNotifyForSale(
   setting: Pick<Setting, "saleNotificationsEnabled" | "saleNotificationMode" | "saleNotificationMinAmount">,
   total: string,
@@ -61,8 +43,7 @@ export function shouldNotifyForSale(
     case "EVERY_SALE":
       return true;
     case "ABOVE_AMOUNT":
-      // Reads the threshold the shop has already been able to store, but is
-      // not yet selectable in settings — see the enum comment above.
+      // Reads a stored threshold not yet selectable in settings.
       return Number(total) >= Number(setting.saleNotificationMinAmount);
     case "PERIODIC_SUMMARY":
       // A digest is sent by a scheduled job, never by the sale itself.
@@ -99,8 +80,7 @@ function buildPayload(
     itemNames,
     extraItemCount,
     total: formatMoney((order.total as AnyRecord)?.toString()) ?? "0",
-    // Currency comes from the Setting singleton, never from a constant
-    // (CLAUDE.md rule 14) — the worker formats the amount with it.
+    // Currency from the Setting singleton (rule 14); the worker formats the amount.
     currency: setting.currency,
     staffName,
     locale,
@@ -108,11 +88,7 @@ function buildPayload(
   };
 }
 
-/**
- * Every Admin device except the author's own. Bounded (CLAUDE.md rule 15):
- * a shop has a handful of Admins, and a notification must never turn into an
- * unbounded job.
- */
+/** Every Admin device except the author's; bounded (rule 15). */
 async function findAdminTargets(excludeUserId: string): Promise<PushTarget[]> {
   const subscriptions = await prisma.pushSubscription.findMany({
     where: {
@@ -125,10 +101,7 @@ async function findAdminTargets(excludeUserId: string): Promise<PushTarget[]> {
   return subscriptions;
 }
 
-/**
- * Do the work: decide, gather, send. Exported for the tests and for any
- * future caller that wants to await it — the sale path does not.
- */
+/** Decide, gather, send — exported for tests; the sale path does not await it. */
 export async function sendSaleNotification(order: SaleNotificationOrder, actor: SaleActor): Promise<void> {
   if (!isNotifiableActor(actor)) {
     return;
@@ -139,8 +112,7 @@ export async function sendSaleNotification(order: SaleNotificationOrder, actor: 
   }
 
   const setting = await prisma.setting.findUnique({ where: { id: SETTINGS_SINGLETON_ID } });
-  // No settings row yet means a shop that hasn't been set up; the sale is
-  // still fine, there is just nobody configured to tell.
+  // No settings row means an unset shop: the sale is fine, nobody to tell.
   if (!setting) {
     return;
   }
@@ -159,13 +131,7 @@ export async function sendSaleNotification(order: SaleNotificationOrder, actor: 
   await sendPushToTargets(targets, (target) => buildPayload(order, setting, staffName, target.locale));
 }
 
-/**
- * Fire-and-forget wrapper used by the order route. Returns immediately, and
- * absolutely nothing it does can reach the sale: a push that fails is a
- * failure of the notification, never of the order that triggered it, so
- * every error ends up in the error-tracking layer instead of in the
- * response (CLAUDE.md rule 20).
- */
+/** Fire-and-forget for the order route: errors go to error tracking, never to the sale (rule 20). */
 export function scheduleSaleNotification(order: SaleNotificationOrder, actor: SaleActor): void {
   void sendSaleNotification(order, actor).catch((error) => {
     captureException(error, { scope: "saleNotification", orderId: order.id });

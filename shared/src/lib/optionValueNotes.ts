@@ -2,14 +2,7 @@ import type { I18n } from "@/types/common";
 import type { ProductOptionValueNote } from "@/types/product";
 import type { Variant, VariantOptionValueRef } from "@/types/variant";
 
-// Which notes a variant carries, and in what order (spec.md "Notes on a
-// product's options").
-//
-// One definition for every screen that draws them — the POS picker, the
-// product detail page and, when it is built, the storefront's variant
-// selector. Colours, sizes and numbers are all option values, so none of them
-// can end up with a different answer to "does this have a note", which is the
-// whole reason this is not a `.filter()` written out three times.
+// Which notes a variant carries, in order (spec.md "Notes on a product's options"), defined once for every screen.
 
 export interface VariantValueNote {
   /** The option value the note belongs to — its id is a stable React key. */
@@ -20,11 +13,7 @@ export interface VariantValueNote {
   note: I18n;
 }
 
-/**
- * The notes on one variant, in the variant's own value order, with the
- * value each belongs to. Empty — never a placeholder — when nothing was
- * written, so a screen renders nothing at all and no gap is left behind.
- */
+/** One variant's notes in value order; empty, never a placeholder, when none were written. */
 export function variantValueNotes(variant: Pick<Variant, "values">): VariantValueNote[] {
   return variant.values
     .filter((value): value is VariantOptionValueRef & { note: I18n } => Boolean(value.note))
@@ -36,13 +25,7 @@ export function variantValueNotes(variant: Pick<Variant, "values">): VariantValu
     }));
 }
 
-/**
- * What actually gets stored for a note somebody typed: trimmed, with every
- * blank language dropped — and `null` when nothing is left, because blank in
- * every language is not a note, it is the ABSENCE of one. Stored that way (no
- * row at all) so "does this value have a note" is one question with one
- * answer, rather than a row full of empty strings every screen has to test.
- */
+/** A typed note trimmed with blank languages dropped; null when nothing is left, so blank is stored as no row. */
 export function normalizeOptionValueNote(note: I18n | null | undefined): I18n | null {
   if (!note) {
     return null;

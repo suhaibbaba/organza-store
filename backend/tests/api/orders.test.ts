@@ -12,9 +12,7 @@ import type {
 } from "@tests/types";
 import { CUSTOMER_SUGGESTION_LIMIT, ERROR_CODES, PALESTINE_PHONE_PREFIXES } from "@/constants";
 
-// Orders (Phase 2). Every assertion here runs against the live API, so each
-// block creates its own product and cleans up the orders it opened — the
-// suite must be re-runnable against a shared sandbox.
+// Runs against a shared live API: every block makes its own product and cleans up its orders.
 describe("Orders", () => {
   const openedOrderIds: string[] = [];
   const openedProductIds: string[] = [];
@@ -43,9 +41,6 @@ describe("Orders", () => {
     }
   });
 
-  // -------------------------------------------------------------------------
-  // Creation — the two shapes of sale
-  // -------------------------------------------------------------------------
   describe("creation", () => {
     it("opens a STORE order as completed, with stock already deducted", async () => {
       const admin = await getSession("ADMIN");
@@ -106,9 +101,7 @@ describe("Orders", () => {
       expect(store.data!.customerName).toBeNull();
     });
 
-    // spec.md "Customer information": customers are still deferred as an
-    // entity, so the address — and an optional map pin for places with no
-    // street address — are snapshotted onto the order itself.
+    // No customer entity yet, so the address and optional map pin are snapshotted onto the order.
     it("stores the delivery address and an optional map pin on an online order", async () => {
       const admin = await getSession("ADMIN");
       const product = await sellableProduct(admin.token, { stock: 5 });
@@ -213,9 +206,6 @@ describe("Orders", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
-  // Money — computed server-side, never taken from the client
-  // -------------------------------------------------------------------------
   describe("discount math", () => {
     it("applies an item percent discount, then an order amount discount", async () => {
       const admin = await getSession("ADMIN");
@@ -242,9 +232,7 @@ describe("Orders", () => {
       const first = await sellableProduct(admin.token, { basePrice: "49.99", stock: 5 });
       const second = await sellableProduct(admin.token, { basePrice: "10.005", stock: 5 });
 
-      // 49.99 x 3 = 149.97, plus 10.01 (the stored price rounds to 2dp) x 1
-      // = 159.98 subtotal; 25% of that is 39.995, which rounds half up to
-      // 40.00, leaving 119.98.
+      // 49.99×3 + 10.01 = 159.98; 25% is 39.995, rounded half up to 40.00, leaving 119.98.
       const res = await createOrder(admin.token, {
         channel: "STORE",
         items: [
@@ -265,11 +253,7 @@ describe("Orders", () => {
       const admin = await getSession("ADMIN");
       const product = await sellableProduct(admin.token, { basePrice: "100", stock: 5 });
 
-      // This used to be answered with a 201 and the tampered fields quietly
-      // dropped. Dropping them was safe but silent, and silence is the wrong
-      // answer to a body that is trying to name its own price: an unknown
-      // field is now a refusal (middleware/validate.ts), so a client that
-      // sends one is told rather than humoured.
+      // A body naming its own price is refused, not quietly humoured.
       const tampered = await createOrder(admin.token, {
         channel: "STORE",
         items: [{ productId: product.id, quantity: 1, unitPrice: "1", lineTotal: "1" }],
@@ -280,9 +264,7 @@ describe("Orders", () => {
       expect(tampered.status).toBe(400);
       expect(tampered.error?.code).toBe(ERROR_CODES.VALIDATION);
 
-      // ...and the price the shop actually charges is still the catalogue's,
-      // which is the guarantee underneath: the only reason the tampered body
-      // above could not set a price is that there is nowhere for one to enter.
+      // The charged price is still the catalogue's: there is nowhere for a client price to enter.
       const clean = await createOrder(admin.token, {
         channel: "STORE",
         items: [{ productId: product.id, quantity: 1 }],
@@ -354,8 +336,7 @@ describe("Orders", () => {
       expect(edited.data!.subtotal).toBe("100.00");
       expect(edited.data!.total).toBe("90.00");
 
-      // An item entry replaces that line's discount outright, so sending
-      // just its id clears it; a cleared order discount does the same.
+      // An item entry replaces that line's discount, so sending only its id clears it.
       const cleared = await apiRequest<OrderDto>(`/api/orders/${created.data!.id}`, {
         method: "PATCH",
         token: admin.token,
@@ -416,9 +397,6 @@ describe("Orders", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
-  // Status flow + the stockDeductedAt guard
-  // -------------------------------------------------------------------------
   describe("status transitions", () => {
     it("deducts stock exactly once across the whole online flow", async () => {
       const admin = await getSession("ADMIN");
@@ -455,10 +433,7 @@ describe("Orders", () => {
       expect(await readStock(admin.token, product.id)).toBe(6);
     });
 
-    // spec.md's status flow ends an online order at HANDED_TO_COURIER — the
-    // shop does not follow the parcel to the customer's door. COMPLETED
-    // belongs to a STORE sale, which opens there; reporting treats the two
-    // together (FINISHED_ORDER_STATUSES) rather than chaining them.
+    // An online order ends at HANDED_TO_COURIER; COMPLETED is a store sale's, and reports count both as finished.
     it("ends an online order at HANDED_TO_COURIER, with no move on to COMPLETED", async () => {
       const admin = await getSession("ADMIN");
       const product = await sellableProduct(admin.token, { stock: 10 });
@@ -487,8 +462,7 @@ describe("Orders", () => {
       expect(res.error?.code).toBe(ERROR_CODES.ORDER_INVALID_STATUS_TRANSITION);
     });
 
-    // The two dropped states must not survive anywhere: they are not valid
-    // input, not a legal destination, and not a status an order can hold.
+    // The removed states are not valid input, not a destination and not a status an order can hold.
     it("no longer accepts the removed DELIVERING and RECEIVED states", async () => {
       const admin = await getSession("ADMIN");
       const product = await sellableProduct(admin.token, { stock: 5 });
@@ -557,8 +531,7 @@ describe("Orders", () => {
       expect(backwards.status).toBe(400);
       expect(backwards.error?.code).toBe(ERROR_CODES.ORDER_INVALID_STATUS_TRANSITION);
 
-      // RETURNED is reachable, but only through the returns endpoint, so
-      // that stock and returnedQuantity move with it.
+      // RETURNED only through the returns endpoint, so stock and returnedQuantity move with it.
       const returned = await apiRequest(`/api/orders/${created.data!.id}/status`, {
         method: "PATCH",
         token: admin.token,
@@ -636,11 +609,7 @@ describe("Orders", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
-  // Payment collection (spec.md "Payment collection") — money for a courier
-  // order arrives later, from the delivery company, so being sold and being
-  // paid are two separate facts.
-  // -------------------------------------------------------------------------
+  // A courier order's money arrives later, so being sold and being paid are separate facts.
   describe("payment collection", () => {
     async function onlineOrder(token: string, productId: string, quantity = 1) {
       const created = await createOrder(token, {
@@ -666,8 +635,7 @@ describe("Orders", () => {
       const product = await sellableProduct(admin.token, { basePrice: "100", stock: 10 });
       const order = await onlineOrder(admin.token, product.id);
 
-      // Walking the whole flow does NOT collect the money — handing a parcel
-      // to the courier is not being paid for it.
+      // Handing a parcel to the courier is not being paid for it.
       for (const status of ["PREPARING", "HANDED_TO_COURIER"]) {
         const moved = await apiRequest<OrderDto>(`/api/orders/${order.id}/status`, {
           method: "PATCH",
@@ -698,8 +666,7 @@ describe("Orders", () => {
       expect([...res.data!.collectedIds].sort()).toEqual([first.id, second.id].sort());
       expect(res.data!.alreadyCollectedIds).toEqual([]);
 
-      // Two people settling the same batch at once must not produce a
-      // failure — the second call is simply a no-op.
+      // Two people settling the same batch at once: the second call is a no-op, not a failure.
       const again = await collect(admin.token, [first.id, second.id]);
       expect(again.status).toBe(200);
       expect(again.data!.collectedIds).toEqual([]);
@@ -719,8 +686,7 @@ describe("Orders", () => {
       expect(res.status).toBe(403);
       expect(res.error?.code).toBe(ERROR_CODES.FORBIDDEN);
 
-      // ...and the order really is untouched: an Employee may take the sale,
-      // never declare its money received (spec.md "Security rationale").
+      // An Employee may take the sale, never declare its money received.
       const reread = await apiRequest<OrderDto>(`/api/orders/${order.id}`, { token: admin.token });
       expect(reread.data!.paymentStatus).toBe("PENDING_COLLECTION");
       expect(reread.data!.collectedAt).toBeNull();
@@ -735,9 +701,7 @@ describe("Orders", () => {
       const employee = await getSession("EMPLOYEE");
       const manager = await getSession("MANAGER");
 
-      // Not "how much of my own sale is unpaid" — this is every sale in the
-      // shop added up, the same class of figure as a report, so it is gated
-      // on settling the money rather than on seeing an order.
+      // The outstanding total is every sale added up, so it is gated on collecting money, not on order.view.
       const refused = await apiRequest<CollectionSummaryDto>("/api/orders/collection-summary", {
         token: employee.token,
       });
@@ -856,9 +820,6 @@ describe("Orders", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
-  // Returns
-  // -------------------------------------------------------------------------
   describe("returns", () => {
     async function handedOverOrder(token: string, productId: string, quantity: number) {
       const created = await createOrder(token, {
@@ -980,10 +941,6 @@ describe("Orders", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
-  // Roles (CLAUDE.md rule 5 / spec.md "Security rationale") — enforced on the
-  // backend, never merely hidden in a UI.
-  // -------------------------------------------------------------------------
   describe("role gating", () => {
     it("lets an Employee create an order and advance it", async () => {
       const admin = await getSession("ADMIN");
@@ -1039,9 +996,7 @@ describe("Orders", () => {
       expect(removed.status).toBe(403);
       expect(removed.error?.code).toBe(ERROR_CODES.FORBIDDEN);
 
-      // Cancelling is refused even though the same endpoint accepts an
-      // Employee's forward moves — the check is on the destination, not the
-      // route (spec.md: a sale must not be erasable to cover theft).
+      // Cancel is checked on the destination, not the route: a sale must not be erasable to cover theft.
       const online = await createOrder(employee.token, {
         channel: "WEBSITE",
         customerName: "لمى",
@@ -1061,8 +1016,7 @@ describe("Orders", () => {
       expect(reread.data!.status).toBe("NEW");
     });
 
-    // unitCost is ADMIN ONLY (CLAUDE.md rule 19) — a Manager sits on the same
-    // side of this gate as an Employee.
+    // unitCost is Admin-only (rule 19): a Manager is on the same side as an Employee.
     it("hides unitCost from an Employee and a Manager, and shows it to an Admin", async () => {
       const admin = await getSession("ADMIN");
       const manager = await getSession("MANAGER");
@@ -1109,9 +1063,7 @@ describe("Orders", () => {
       expect(removed.status).toBe(200);
     });
 
-    // A sale is a financial record, so deleting one hides it rather than
-    // destroying it (the same reasoning behind CLAUDE.md rule 4 for
-    // products) — and the stock it still held goes back on the shelf.
+    // A sale is a financial record, so deleting it hides it and its stock goes back on the shelf.
     it("soft-deletes an order, restoring its stock and hiding it everywhere", async () => {
       const admin = await getSession("ADMIN");
       const product = await sellableProduct(admin.token, { stock: 10 });
@@ -1147,10 +1099,6 @@ describe("Orders", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
-  // Listing (CLAUDE.md rule 15: pagination + filtering + sorting, never
-  // an unbounded list)
-  // -------------------------------------------------------------------------
   describe("listing", () => {
     it("paginates, filters by status and channel, and sorts", async () => {
       const admin = await getSession("ADMIN");
@@ -1237,8 +1185,7 @@ describe("Orders", () => {
       );
       expect(byName.data!.some((o) => o.id === created.data!.id)).toBe(true);
 
-      // A phone number is a run of digits far past a 32-bit order number —
-      // it must be matched as text, not handed to Postgres as an integer.
+      // A phone number overflows a 32-bit order number, so it must match as text.
       const byPhone = await apiRequest<OrderSummaryDto[]>("/api/orders?q=970598300300&pageSize=100", {
         token: admin.token,
       });
@@ -1254,10 +1201,7 @@ describe("Orders", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
-  // Customer suggestions — repeat customers, read back out of past orders
-  // (there is no Customer table: spec.md "Customer information")
-  // -------------------------------------------------------------------------
+  // Repeat customers are read back out of past orders: there is no Customer table yet.
   describe("customer suggestions", () => {
     function suggestUrl(query: string): string {
       return `/api/orders/customer-suggestions?q=${encodeURIComponent(query)}`;
@@ -1276,8 +1220,7 @@ describe("Orders", () => {
         customerAddress: "نابلس، شارع قديم",
         items: [{ productId: product.id, quantity: 1 }],
       });
-      // A second order under the same number: the address moved, and that is
-      // the one worth offering back.
+      // A second order under the same number with a moved address: that one is offered back.
       await createOrder(admin.token, {
         channel: "WHATSAPP",
         customerName: "ليلى الجديدة",
@@ -1313,9 +1256,7 @@ describe("Orders", () => {
         items: [{ productId: product.id, quantity: 1 }],
       });
 
-      // The cashier types the digits they were given; which prefix the number
-      // was filed under is not something they should have to guess
-      // (CLAUDE.md rule 18).
+      // The cashier types digits; which Palestine prefix the number was filed under must not matter (rule 18).
       const res = await apiRequest<CustomerSuggestionDto[]>(suggestUrl(national), { token: admin.token });
 
       expect(res.status).toBe(200);

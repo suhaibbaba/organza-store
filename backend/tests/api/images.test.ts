@@ -7,18 +7,7 @@ import type { ErrorBody, ImageDto, ProductDto } from "@tests/types";
 import { ERROR_CODES } from "@/constants";
 import { IMAGE_BRIGHTNESS_LIGHT_THRESHOLD } from "@store/shared/constants/numberedShawl";
 
-// Per the task scope, multipart upload is NOT exercised deeply here — just
-// that the endpoint exists, rejects bad input (missing auth, missing file),
-// and that an image which uploads successfully can then actually be FETCHED
-// back.
-//
-// The round trip covers the half of "photos disappear on deploy" that lives
-// in the app: written, and served from where it was written. It cannot cover
-// the other half — that the directory is the mounted volume rather than the
-// container's own layer — because both halves look identical to a single
-// running process, which is exactly why that bug survived so long. That one
-// is checked where it is decidable: against the compose file's resolved
-// config, and by the deploy asking /health after every release.
+// Upload is only smoke-tested; the round trip proves a written photo is served. The volume half is checked by the deploy's /health.
 describe("Images", () => {
   it("serves an uploaded image back from the directory it was written to", async () => {
     const admin = await getSession("ADMIN");
@@ -43,32 +32,19 @@ describe("Images", () => {
       const uploaded = (await upload.json()) as { data: ImageDto };
       expect(upload.status).toBe(201);
 
-      // Every size sharp wrote, fetched the way the admin and the POS fetch
-      // them: an ordinary unauthenticated GET against the API's /uploads.
-      // A 404 here is what the shop sees as a broken thumbnail.
+      // Fetched the way both apps do, unauthenticated from /uploads: a 404 is a broken thumbnail.
       for (const url of [uploaded.data.url, uploaded.data.mediumUrl, uploaded.data.thumbnailUrl]) {
         expect(url.startsWith("/uploads/")).toBe(true);
         const fetched = await fetch(`${API_BASE_URL}${url}`);
         expect(fetched.status).toBe(200);
         expect(fetched.headers.get("content-type")).toContain("image/webp");
-        // Served off disk, so a zero-length body would mean the file is there
-        // in name only.
+        // Served off disk, so an empty body means the file exists in name only.
         expect((await fetched.arrayBuffer()).byteLength).toBeGreaterThan(0);
 
-        // A 200 is not enough: `Cross-Origin-Resource-Policy: same-origin` —
-        // helmet's default, and what this mount used to inherit — makes the
-        // BROWSER discard a perfectly good response because the page asking
-        // for it is on another origin, which every page in this system is.
-        // It stayed hidden for as long as it did because product photos are
-        // drawn with next/image, which fetches them server-side where the
-        // header means nothing; the admin's photo editor puts one straight
-        // into an <img> and got a blank screen for it.
+        // CORP same-origin makes the browser drop the image on another origin, which every page here is.
         expect(fetched.headers.get("cross-origin-resource-policy")).not.toBe("same-origin");
       }
-      // The photograph as it was uploaded, kept beside the three sizes so a
-      // different crop can be cut from it later (spec.md "Editing a
-      // photograph on upload"). The editor loads THIS one directly in the
-      // browser, so it has to be fetchable and embeddable like the rest.
+      // The original is kept for a later re-crop, and the editor loads it straight in the browser.
       const originalUrl = uploaded.data.originalUrl;
       expect(originalUrl).toBeTruthy();
       const original = await fetch(`${API_BASE_URL}${originalUrl}`);
@@ -80,10 +56,7 @@ describe("Images", () => {
     }
   });
 
-  // A numbered shawl's numbers suggest their own colour from the photograph
-  // they sit on — white on a black abaya, dark on a cream scarf (spec.md
-  // "Numbered shawls"). That is decided by one reading taken here, at upload,
-  // so a wrong reading is a wrong suggestion on every screen afterwards.
+  // One reading at upload decides every later marker-colour suggestion, so it must tell dark from light.
   it("measures how light or dark an uploaded photograph is", async () => {
     const admin = await getSession("ADMIN");
     const categoryId = await anyCategoryId(admin.token);
@@ -111,9 +84,7 @@ describe("Images", () => {
       const dark = await upload(DARK_PNG);
       const light = await upload(LIGHT_PNG);
 
-      // On the 0-100 scale the suggestion reads, and on opposite sides of it
-      // — the assertion that actually matters is that they are not the same
-      // answer for a black photo and a white one.
+      // What matters is that a black and a white photo do not get the same answer.
       expect(dark).not.toBeNull();
       expect(light).not.toBeNull();
       expect(dark!).toBeLessThan(IMAGE_BRIGHTNESS_LIGHT_THRESHOLD);
@@ -128,11 +99,7 @@ describe("Images", () => {
   });
 
   it("reports whether it can write uploads at all", async () => {
-    // What the deploy checks after every release (see
-    // .github/workflows/deploy-sandbox.yml). `false` means the volume is not
-    // mounted where the app is pointed, or the container's user cannot write
-    // to it — the API keeps serving everything else, and every image upload
-    // fails.
+    // The deploy checks this after every release: false means the uploads volume is not mounted or not writable.
     const res = await fetch(`${API_BASE_URL}/health`);
     const body = (await res.json()) as { data: { status: string; uploadsWritable: boolean } };
     expect(res.status).toBe(200);

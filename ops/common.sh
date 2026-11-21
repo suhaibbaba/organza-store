@@ -1,52 +1,20 @@
 #!/usr/bin/env bash
-#
-# Shared plumbing for ops/backup.sh and ops/restore.sh.
-#
-# Sourced, never executed. It exists because the two scripts have to agree
-# about a handful of things, and the one place a disagreement would surface is
-# a restore during an emergency:
-#
-#   * WHICH STACK they are working on — and that the compose file, the env
-#     file and the database all belong to that same one;
-#   * how the R2 endpoint is derived when only the account id is configured;
-#   * what the bucket's layout is (<project>/database/… and <project>/uploads/…);
-#   * how the AWS CLI is run, and with which volume attached;
-#   * how a dump is proven readable before anybody trusts it.
+# Shared by backup.sh and restore.sh so they agree on the stack, the bucket layout and dump verification. Sourced, never run.
 
-# ---------------------------------------------------------------------------
-#  Which stack — ONE choice, both files
-# ---------------------------------------------------------------------------
-# This used to be two independent variables, COMPOSE_FILE and ENV_FILE, each
-# defaulting to the sandbox on its own. Setting only one produced a working
-# command that operated on a MIXTURE of the two deployments: in practice
-# `ENV_FILE=.env.production` read production's credentials and its R2 bucket
-# while still driving `docker-compose.sandbox.yml`, so the nightly cron dumped
-# the SANDBOX into production's folder every night while everybody believed
-# the shop was protected. Nothing errored. That is only discovered during an
-# emergency, which is the worst way to find out that there is no backup.
-#
-# So the stack is now one word, and it derives both files together. There is
-# deliberately no way to set them individually any more — see ops_load_env,
-# which refuses rather than letting the old habit half-work.
+# One STACK word picks both files: separate COMPOSE_FILE/ENV_FILE once backed up the sandbox under production's name.
 STACK="${STACK:-sandbox}"
 
-# Captured HERE, before anything below assigns them, so a value that came from
-# the caller's environment can still be told apart from the ones this file is
-# about to derive. That is the whole point of the refusal in ops_load_env.
+# Captured before anything below assigns them, so a caller's value can be refused in ops_load_env.
 OPS_INHERITED_COMPOSE_FILE="${COMPOSE_FILE:-}"
 OPS_INHERITED_ENV_FILE="${ENV_FILE:-}"
 
 STACK_PRODUCTION="production"
 STACK_SANDBOX="sandbox"
 
-# A sandbox database has to say so in its own name. The same marker the
-# backend's `import:prod` guard uses (backend/src/constants/productionImport.ts)
-# — a value somebody types into a compose file can be wrong, while the database
-# name travels with the database itself.
+# A sandbox database must say so in its own name (the same marker import:prod uses).
 SANDBOX_DATABASE_MARKER="sandbox"
 
-# Pinned rather than `latest`: an unattended 02:30 run is the worst possible
-# moment to discover that a new CLI release changed a default.
+# Pinned rather than latest: an unattended nightly run is no time to meet a changed default.
 AWS_CLI_IMAGE="${AWS_CLI_IMAGE:-amazon/aws-cli:2.36.24}"
 
 # shellcheck disable=SC2034  # used by the scripts that source this file
@@ -70,7 +38,7 @@ ops_stack_env_file() {
   esac
 }
 
-# The compose project name (volume prefix and bucket folder) is STACK_NAME in that stack's env file; FROM_STACK_NAME covers a stack whose env file is not here.
+# A stack's project name (volume prefix, bucket folder) is STACK_NAME in its env file, else FROM_STACK_NAME.
 ops_stack_project() {
   local file name
   if [ "$1" = "${STACK:-}" ] && [ -n "${STACK_NAME:-}" ]; then printf '%s' "$STACK_NAME"; return; fi
@@ -85,15 +53,9 @@ ops_stack_project() {
 
 compose() { docker compose -f "$COMPOSE_FILE" --env-file "$ENV_FILE" "$@"; }
 
-# ---------------------------------------------------------------------------
-#  Resolve the stack, load its settings, and refuse a mixture
-# ---------------------------------------------------------------------------
-# Sets COMPOSE_FILE, ENV_FILE, STACK_PROJECT, DB_USER, DB_NAME and the R2_*
-# values, all from the one `STACK` word.
+# Sets COMPOSE_FILE, ENV_FILE, STACK_PROJECT, DB_USER, DB_NAME and R2_* from the one STACK word, refusing a mixture.
 ops_load_env() {
-  # The old interface, caught loudly rather than half-honoured. Anybody still
-  # carrying `ENV_FILE=.env.production` in a cron entry gets an error tonight
-  # instead of a year of sandbox backups filed under production's name.
+  # The old COMPOSE_FILE/ENV_FILE interface fails loudly instead of half-working.
   if [ -n "$OPS_INHERITED_COMPOSE_FILE$OPS_INHERITED_ENV_FILE" ]; then
     cat >&2 <<EOF
 
@@ -130,8 +92,6 @@ EOF
   [ -f "$COMPOSE_FILE" ] || die "no $COMPOSE_FILE here. cd to the directory that holds it."
   [ -f "$ENV_FILE" ]     || die "no $ENV_FILE here — STACK=$STACK expects that file next to $COMPOSE_FILE."
 
-  # Sourced through a path that always contains a directory, so a bare
-  # filename is never looked up on PATH.
   local env_path="$ENV_FILE"
   case "$env_path" in /*) ;; *) env_path="./$env_path" ;; esac
   set -a
@@ -146,10 +106,7 @@ EOF
   ops_assert_stack_matches_database
 }
 
-# The second, independent check. STACK picks the files; this asks whether the
-# database those files actually point at belongs to the stack that was named.
-# A sandbox database says "sandbox" in its own name (rule 11's marker); the
-# shop's does not.
+# Second check: the database the files point at must belong to the named stack.
 ops_assert_stack_matches_database() {
   case "$STACK" in
     "$STACK_SANDBOX")
@@ -167,10 +124,7 @@ ops_assert_stack_matches_database() {
   esac
 }
 
-# The third check, and the only one that asks the running deployment rather
-# than a file. Warns rather than aborts when it cannot be read at all: an
-# observed disagreement is a mistake, an unanswerable question is just a
-# container that is not up.
+# Third check, against the running deployment: a disagreement aborts, an unreadable answer only warns.
 ops_assert_stack_matches_app_env() {
   local observed
   observed="$(ops_probe_app_env)"
@@ -182,18 +136,7 @@ ops_assert_stack_matches_app_env() {
     die "STACK=$STACK but the running backend reports APP_ENV=$observed. Refusing: the files and the running stack disagree about which deployment this is."
 }
 
-# ---------------------------------------------------------------------------
-#  Which deployment the RUNNING container thinks it is
-# ---------------------------------------------------------------------------
-# Asked of the container rather than of a file, because that is where the
-# answer actually lives: docker-compose.prod.yml sets APP_ENV in
-# `environment:`, which overrides `env_file:` — so reading .env.production
-# would report "unset" on the live shop.
-#
-# ops_probe_app_env returns EMPTY when it cannot tell. ops_app_env turns that
-# into "production", which is the right way round for a destructive guard
-# (backend/src/lib/appEnv.ts does the same): a missing value must never be the
-# reason a refusal stands down.
+# APP_ENV is read from the running container (compose's environment: wins); unknown counts as production, so guards never relax.
 ops_probe_app_env() {
   compose exec -T backend printenv APP_ENV 2>/dev/null | tr -d '\r\n' || true
 }
@@ -204,9 +147,7 @@ ops_app_env() {
   printf '%s' "${value:-$STACK_PRODUCTION}"
 }
 
-# The header both scripts print, and the line a cron log gets read for. Every
-# value that decides WHAT was touched, in one block, so "which environment did
-# last night actually back up?" is never a matter of inference.
+# One header with every value that decides what was touched, so a cron log answers which stack ran.
 ops_print_target() {
   echo "  Stack    : $STACK  (project $STACK_PROJECT)"
   echo "  Compose  : $COMPOSE_FILE"
@@ -214,36 +155,21 @@ ops_print_target() {
   echo "  Database : $DB_NAME"
 }
 
-# ---------------------------------------------------------------------------
-#  The bucket's layout, in one place so both scripts spell it the same way
-# ---------------------------------------------------------------------------
 ops_db_prefix()      { printf '%s/database' "$1"; }
 ops_uploads_prefix() { printf '%s/uploads' "$1"; }
 
-# ---------------------------------------------------------------------------
-#  Cloudflare R2
-# ---------------------------------------------------------------------------
 ops_require_r2() {
   : "${R2_BUCKET:?not set in $ENV_FILE — see backend/.env.example, 'Off-site backups (Cloudflare R2)'}"
   : "${R2_ACCESS_KEY_ID:?not set in $ENV_FILE}"
   : "${R2_SECRET_ACCESS_KEY:?not set in $ENV_FILE}"
-  # The endpoint is derivable from the account id, so only one of the two has
-  # to be filled in — but both are documented, because a bucket reached
-  # through a custom domain needs the endpoint spelled out.
+  # Only the account id is needed; the endpoint is for buckets behind a custom domain.
   if [ -z "${R2_ENDPOINT:-}" ]; then
     : "${R2_ACCOUNT_ID:?set either R2_ENDPOINT or R2_ACCOUNT_ID in $ENV_FILE}"
     R2_ENDPOINT="https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com"
   fi
 }
 
-# The uploads volume is attached by --volumes-from rather than by name: the
-# backend container already has it mounted at /app/uploads, so this inherits
-# the mount without either script having to know what Docker called the volume
-# (the compose project name plus the volume key — something a rename would
-# silently redirect to an empty one).
-#
-# $OPS_WORK_DIR, when set, is mounted at /work, which is how a dump gets in
-# and out of the container.
+# Photos are reached with --volumes-from the backend, so no script depends on Docker's volume name; OPS_WORK_DIR mounts at /work.
 OPS_BACKEND_CONTAINER=""
 ops_backend_container() {
   if [ -z "$OPS_BACKEND_CONTAINER" ]; then
@@ -254,25 +180,12 @@ ops_backend_container() {
   printf '%s' "$OPS_BACKEND_CONTAINER"
 }
 
-# The two checksum settings are for R2 specifically. AWS CLI v2.23 began
-# sending its own integrity headers by default, which S3-compatible services
-# that are not S3 reject; `when_required` is the pre-2.23 behaviour and is
-# ignored by older clients, so it is safe in both directions.
+# R2 rejects the checksum headers AWS CLI 2.23+ sends by default; when_required restores the old behaviour.
 r2() {
   local work_mount=()
   [ -n "${OPS_WORK_DIR:-}" ] && work_mount=(-v "$(cd "$OPS_WORK_DIR" && pwd)":/work)
 
-  # The credentials go in through a FILE, not through `-e KEY=value`.
-  #
-  # An argument on a command line is not private: it lands in the `docker`
-  # client's own argv, where any local user can read it out of
-  # /proc/<pid>/cmdline for as long as the command runs, and it stays visible
-  # in `docker inspect` for the container's whole life. On a single-admin VPS
-  # that is a small exposure, but it is a free one to remove, and these are
-  # the keys to every backup the shop has.
-  #
-  # The temp file is created with a private umask, removed on the way out
-  # whatever happens, and never contains anything but these two lines.
+  # Credentials go in through a private temp file, never -e, which leaks into argv and docker inspect.
   local env_file
   env_file="$(mktemp)"
   # shellcheck disable=SC2064  # $env_file is expanded now, on purpose
@@ -293,11 +206,7 @@ r2() {
     --endpoint-url "$R2_ENDPOINT" --region auto "$@"
 }
 
-# Every dump in the bucket for a project, oldest first.
-#
-# The keys are timestamped and share a prefix, so sorting them lexically sorts
-# them by age — no dates have to be parsed, and nothing depends on an object's
-# mtime, which a copy or a lifecycle rule could rewrite.
+# Timestamped keys sort by age lexically, so no dates or mtimes are trusted.
 ops_list_dumps() {
   local prefix="$1"
   r2 s3api list-objects-v2 --bucket "$R2_BUCKET" --prefix "$prefix/" \
@@ -305,45 +214,7 @@ ops_list_dumps() {
     tr '\t' '\n' | grep -v '^None$' | grep . || true
 }
 
-# ---------------------------------------------------------------------------
-#  Proving a dump is readable
-# ---------------------------------------------------------------------------
-# Two things have to be true for this to be worth anything, and both were got
-# wrong at least once. ops/selftest.sh pins them down.
-#
-# 1. IT HAS TO READ A REAL FILE.
-#    A custom-format (-Fc) archive is read by seeking, and `docker compose
-#    exec -T` hands the container a PIPE. So the obvious spelling,
-#
-#        compose exec -T db pg_restore --list /dev/stdin < dump      # WRONG
-#
-#    fails on every dump ever taken, valid ones included, with "did not find
-#    magic string in file header". It reads as corruption and it is not — it is
-#    the check being impossible, and because it fails closed, the backup then
-#    aborts nightly and uploads nothing. (A full restore IS fine from a pipe,
-#    which is why restoring worked while verifying could not.)
-#
-#    So the dump is copied into the db container and read there, as a file.
-#    Inside that container on purpose: it is the same image that produced the
-#    dump, so the pg_restore reading it is exactly the version of the pg_dump
-#    that wrote it, with no host tooling to install or keep in step.
-#
-# 2. IT HAS TO READ THE DATA, NOT JUST THE HEADER.
-#    `pg_restore --list` only walks the table of contents, which sits at the
-#    FRONT of the archive — so a dump truncated to half its length lists
-#    perfectly and passes. Truncation is the failure mode that actually
-#    happens (a full disk, a killed process), so a check that misses it is
-#    ceremony.
-#
-#    `--file=/dev/null` converts the whole archive to SQL and throws it away,
-#    which forces every compressed data block to be read and decompressed. It
-#    touches no database. That costs CPU proportional to the dump — far less
-#    than the pg_dump that produced it — and it is the difference between
-#    knowing a dump is restorable and hoping so.
-#
-# The copy is removed whether the check passes or fails; it lives in the
-# container's own /tmp, so it needs room for one dump for a few seconds and
-# anything a kill leaves behind dies with the container.
+# Verified as a FILE in the db container (pipes cannot seek) and read through to /dev/null, so truncated dumps fail; see selftest.sh.
 ops_verify_dump() {
   local local_file="$1"
   local remote rc=0

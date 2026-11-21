@@ -1,13 +1,11 @@
 import slugify from "slugify";
 
-// Slugify handles Arabic via transliteration (e.g. "فستان سهرة" -> "fstan-shrh"),
-// so the same helper works for every supported language's default text.
+// Transliterates Arabic ("فستان سهرة" -> "fstan-shrh"), so one helper works for every language.
 export function toSlug(text: string): string {
   return slugify(text, { lower: true, strict: true }) || "item";
 }
 
-// Appends an incrementing numeric suffix on collision: "evening-dress",
-// "evening-dress-2", "evening-dress-3", ...
+// Collisions get a numeric suffix: "evening-dress", "evening-dress-2", … (rule 16).
 export async function generateUniqueSlug(
   base: string,
   exists: (candidate: string) => Promise<boolean>,

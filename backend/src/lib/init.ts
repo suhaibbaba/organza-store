@@ -1,19 +1,13 @@
 import type { InitAccountDetails, InitAccountResult, InitDependencies } from "@/types/init";
 
-// The go-live command's actual rule, with nothing around it: create these
-// accounts with no password and email each of them a link — but only into a
-// database that has no users in it at all.
-//
-// Kept out of scripts/init.ts so the refusal is a thing that can be proven
-// rather than a thing somebody remembered to write.
+// The go-live rule: create password-less accounts and email links, only into a database with no users at all.
 
 /** Thrown when the database is already in use. Its message goes straight to the terminal. */
 export class InitRefusedError extends Error {
   readonly existingUsers: number;
 
   constructor(existingUsers: number) {
-    // Written as separate lines because it is printed to a terminal inside a
-    // boxed banner — one long line would run off the edge of it.
+    // Separate lines because it prints inside a boxed terminal banner.
     super(
       [
         `This database already has ${existingUsers} user account(s).`,
@@ -28,15 +22,7 @@ export class InitRefusedError extends Error {
   }
 }
 
-/**
- * Creates the shop's staff accounts, in order, each with no password and each
- * emailed a set-password link.
- *
- * Refuses outright if ANY user already exists. There is deliberately no
- * partial mode and no "top up the ones that are missing": a database with a
- * user in it is a database somebody is already using, and half-running this
- * against it would be worse than not running it at all.
- */
+/** Creates the staff accounts in order, password-less with an emailed link; refuses if ANY user exists — no partial mode. */
 export async function createInitialStaff(
   accounts: InitAccountDetails[],
   deps: InitDependencies,

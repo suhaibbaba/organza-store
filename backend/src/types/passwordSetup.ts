@@ -12,11 +12,7 @@ export interface StoredPasswordToken {
   usedAt: Date | null;
 }
 
-/**
- * Everything the token service needs from the world, so the rules
- * (single-use, expiry, revocation) can be exercised without a database.
- * The real implementation is lib/passwordTokenStore.ts.
- */
+/** The token service's dependencies, so its rules are testable without a database (real one: lib/passwordTokenStore.ts). */
 export interface PasswordTokenStore {
   create(input: {
     userId: string;
@@ -25,11 +21,7 @@ export interface PasswordTokenStore {
     expiresAt: Date;
   }): Promise<StoredPasswordToken>;
   findByHash(tokenHash: string): Promise<StoredPasswordToken | null>;
-  /**
-   * Marks a token used — and MUST do so conditionally on it still being
-   * unused, returning false if it was already redeemed. This is the whole
-   * single-use guarantee: two requests arriving together must not both win.
-   */
+  /** Marks a token used only if still unused, returning false otherwise — the single-use guarantee. */
   markUsed(id: string, usedAt: Date): Promise<boolean>;
   /** Drops every outstanding (unused) token for a user. */
   revokeAllForUser(userId: string): Promise<number>;

@@ -3,15 +3,7 @@ import type { EMAIL_TRANSPORTS } from "@/constants/email";
 
 export type EmailTransportName = (typeof EMAIL_TRANSPORTS)[number];
 
-/**
- * One message, provider-agnostic. Every template produces this shape and
- * nothing below it knows what a template is.
- *
- * `text` is not optional: a transactional email without a plain-text
- * alternative reads as bulk mail to every spam filter worth the name, and is
- * the difference between a password link arriving and a password link being
- * quarantined.
- */
+/** One provider-agnostic message; `text` is required, since mail without a plain-text part looks like bulk. */
 export interface EmailMessage {
   to: string;
   subject: string;
@@ -27,20 +19,13 @@ export interface RenderedEmail {
   text: string;
 }
 
-/**
- * The swappable half. Resend today; a self-hosted SMTP relay, Postmark, or
- * anything else is one more file implementing this and one line in
- * lib/email/index.ts (CLAUDE.md: keep the provider swappable).
- */
+/** The swappable transport: Resend today, another is one file plus one line in lib/email/index.ts. */
 export interface EmailTransport {
   readonly name: EmailTransportName;
   send(message: EmailMessage): Promise<void>;
 }
 
-/**
- * Everything the branded shell needs. Templates fill this in; the layout
- * knows nothing about passwords, and this is the seam between them.
- */
+/** Everything the branded shell needs; the seam between templates and layout. */
 export interface EmailLayoutInput {
   language: SupportedLanguage;
   /** The shop's name from Settings, already in this email's language. */

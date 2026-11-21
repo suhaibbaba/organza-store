@@ -1,9 +1,4 @@
-// Where this run is pointed, and whether it is allowed to go there.
-//
-// Resolved once, at module load, from API_URL — defaulting to SANDBOX_API_URL, then localhost, so
-// that a bare `vitest` can never accidentally mean "the live shop". The guard
-// below is what every entry point (tests/setup.ts and scripts/verify.ts)
-// calls before the first request goes out.
+// The run's target, from API_URL then SANDBOX_API_URL then localhost: a bare run never means the live shop.
 import {
   ALLOW_TODAY_DRAWER_ENV,
   DEFAULT_API_URL,
@@ -50,8 +45,7 @@ export function classify(host: string, liveHost: string | null = productionHost(
   if ((LOCAL_HOSTS as readonly string[]).includes(lower)) {
     return "local";
   }
-  // Never heard of it. Treated as the live shop until someone says otherwise
-  // — a typo'd URL must not be assumed harmless.
+  // Never heard of it: treated as the live shop, since a typo'd URL must not be assumed harmless.
   return "unrecognised";
 }
 
@@ -90,13 +84,7 @@ export function keepFixtures(): boolean {
   return process.env[KEEP_FIXTURES_ENV] === "1" || process.env[KEEP_FIXTURES_ENV] === "true";
 }
 
-/**
- * May this run OPEN the drawer for the window that contains "now"?
- *
- * A drawer is one per calendar day and there is no way to delete one, so
- * opening today's takes the shop's own day away from it. Off unless the run
- * says the database is disposable.
- */
+/** Today's drawer cannot be deleted, so opening it takes the shop's day; only on a disposable database. */
 export function mayOpenTodaysDrawer(): boolean {
   return process.env[ALLOW_TODAY_DRAWER_ENV] === "1" || process.env[ALLOW_TODAY_DRAWER_ENV] === "true";
 }
@@ -160,17 +148,7 @@ export function targetBanner(target: ResolvedTarget = TARGET): string {
   return `🎯  Target: ${target.url}  (${target.kind}, from ${source})`;
 }
 
-/**
- * The gate. Sandbox and local run without ceremony; the live shop — and any
- * host this file has never heard of — is refused unless the override says
- * otherwise, and even then it shouts first.
- *
- * Throws rather than exiting, so vitest reports it as a failure rather than
- * as a silent zero-test run.
- */
-// setupFiles run once per TEST FILE, so without this the banner (or the
-// production warning) would be printed thirty times in a row and stop being
-// read. The check itself is cheap and repeats; only the announcement doesn't.
+// setupFiles run per test file, so the banner is announced once while the gate itself repeats.
 let announced = false;
 
 export function assertSafeTarget(target: ResolvedTarget = TARGET): void {

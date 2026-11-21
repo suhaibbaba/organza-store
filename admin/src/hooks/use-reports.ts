@@ -18,8 +18,7 @@ export function useSalesReportQuery(from: string, to: string) {
     queryFn: () => fetchSalesReport(from, to),
     enabled: Boolean(from && to),
     staleTime: REPORTS_STALE_TIME_MS,
-    // Keeps the previous range's figures on screen while the next one loads,
-    // so changing the dates doesn't blank the whole page.
+    // Keeps the previous range on screen while the next loads.
     placeholderData: keepPreviousData,
   });
 }

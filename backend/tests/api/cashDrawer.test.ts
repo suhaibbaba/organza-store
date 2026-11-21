@@ -19,16 +19,7 @@ import {
 import { ERROR_CODES } from "@/constants";
 import type { CashSessionDto, ExpenseDto, OrderDto } from "@tests/types";
 
-// The cash drawer (spec.md "Cash drawer & expenses").
-//
-//   expected   = openingFloat + cash sales - cash expenses
-//   difference = counted - expected
-//   tomorrow's openingFloat = counted - withdrawn
-//
-// Most of this is proved on SYNTHETIC days far in the future, where no order
-// can ever have been collected: cash sales are then exactly zero, and the
-// equation has no unknowns left in it. Only the "a real sale reaches the
-// drawer" case needs today's session, and it is asserted as a delta.
+// Cash drawer: expected = float + cash sales - cash expenses; proved on synthetic future days where cash sales are zero.
 describe("Cash drawer", () => {
   const openedOrderIds: string[] = [];
   const openedProductIds: string[] = [];
@@ -50,8 +41,7 @@ describe("Cash drawer", () => {
 
   afterAll(async () => {
     const admin = await getSession("ADMIN");
-    // Expenses are cleaned up because they are dated into windows other
-    // tests measure; the sessions themselves sit on days nothing else uses.
+    // Expenses are cleaned up because they are dated into windows other tests measure.
     for (const id of openedExpenseIds) {
       await apiRequest(`/api/expenses/${id}`, { method: "DELETE", token: admin.token });
     }
@@ -63,9 +53,6 @@ describe("Cash drawer", () => {
     }
   });
 
-  // -------------------------------------------------------------------------
-  // expected vs. counted
-  // -------------------------------------------------------------------------
   describe("expected vs. counted", () => {
     it("opens with the float it was given and expects exactly that when nothing has moved", async () => {
       const admin = await getSession("ADMIN");
@@ -85,13 +72,7 @@ describe("Cash drawer", () => {
       expect(num(closed.data!.difference)).toBe(0);
       expect(closed.data!.closedBy?.id).toBe(admin.userId);
 
-      // A counted, closed day is reported back as such. Without it a screen
-      // could not tell "the day is finished" from "nobody has started one",
-      // and would offer to open a drawer that has already been signed off.
-      //
-      // Asserted as an invariant rather than as "it is this row": the target
-      // database holds other closed days, and what `lastClosed` promises is
-      // the NEWEST one — never older than the day just closed.
+      // lastClosed promises the NEWEST closed day, so a screen never offers to reopen a signed-off drawer.
       const current = await readCurrent(admin.token);
       const lastClosed = current.data!.lastClosed;
       expect(lastClosed).not.toBeNull();
@@ -105,8 +86,7 @@ describe("Cash drawer", () => {
       const categoryId = await expenseCategoryId(admin.token);
       const { session, date } = await openSyntheticSession(admin.token, { openingFloat: "500" });
 
-      // Both are real costs. Only the one paid out of the till moves the
-      // drawer (spec.md: "a transfer never touched the drawer").
+      // Only an expense paid from the till moves the drawer; a transfer never does.
       await expense(admin.token, {
         categoryId,
         amount: "120",
@@ -147,8 +127,6 @@ describe("Cash drawer", () => {
 
       expect(num((await readSession(admin.token, session.id)).expected)).toBe(400);
 
-      // Signed off through the one approval mechanism there now is
-      // (spec.md "Employee change approvals").
       await approveExpense(admin.token, pending.data!.id);
 
       expect(num((await readSession(admin.token, session.id)).expected)).toBe(340);
@@ -165,11 +143,7 @@ describe("Cash drawer", () => {
       expect(unexplained.status).toBe(400);
       expect(unexplained.error?.code).toBe(ERROR_CODES.CASH_SESSION_DIFFERENCE_NOTE_REQUIRED);
 
-      // ...and the refusal carries the figures, because counting is BLIND:
-      // the closing screen withholds what the drawer should hold until a
-      // count has been submitted, so this is how it learns there is a
-      // difference at all — and can reveal "expected 300, counted 275,
-      // short 25" before asking for the explanation.
+      // Counting is blind, so the refusal is how the closing screen learns the expected figure.
       const details = unexplained.error?.details as Record<string, string> | undefined;
       expect(num(details?.expected)).toBe(300);
       expect(num(details?.counted)).toBe(275);
@@ -178,8 +152,7 @@ describe("Cash drawer", () => {
       // ...and the drawer is still open, not half-closed.
       expect((await readSession(admin.token, session.id)).status).toBe("OPEN");
 
-      // ...but with one, the shortfall is SAVED. It is never a reason to
-      // block: the money in the drawer is a fact.
+      // With an explanation the shortfall is saved: the money in the drawer is a fact, never a reason to block.
       const explained = await closeSession(admin.token, session.id, {
         countedAmount: "275",
         note: "نقص ٢٥ شيكل — يُراجع",
@@ -228,9 +201,6 @@ describe("Cash drawer", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
-  // The withdrawal, and what it leaves behind
-  // -------------------------------------------------------------------------
   describe("withdrawal and carry-over", () => {
     it("carries what is left in the drawer into the next day's opening float", async () => {
       const admin = await getSession("ADMIN");
@@ -246,8 +216,7 @@ describe("Cash drawer", () => {
       // 200 counted - 150 banked = 50 left in the drawer overnight.
       expect(num(closed.data!.closingBalance)).toBe(50);
 
-      // Day two opens with NO openingFloat given — the remainder carries
-      // itself over, which is the whole point of recording the withdrawal.
+      // No openingFloat given: the remainder carries itself over, the point of recording the withdrawal.
       const dayTwo = await openSyntheticSession(admin.token);
       expect(num(dayTwo.session.openingFloat)).toBe(50);
       expect(num(dayTwo.session.expected)).toBe(50);
@@ -267,9 +236,7 @@ describe("Cash drawer", () => {
       expect(num(closed.data!.difference)).toBe(-30);
       expect(num(closed.data!.closingBalance)).toBe(100);
 
-      // The next day opens on the money that is really there (100), not on
-      // what the books said should have been (130) — so no correcting entry
-      // is ever needed, only an explanation.
+      // The next day opens on the money really there, not on what the books expected.
       const dayTwo = await openSyntheticSession(admin.token);
       expect(num(dayTwo.session.openingFloat)).toBe(100);
 
@@ -303,9 +270,6 @@ describe("Cash drawer", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
-  // Carrying a difference forward
-  // -------------------------------------------------------------------------
   describe("follow-up on a difference", () => {
     it("keeps a carried difference on the follow-up list until it is signed off", async () => {
       const admin = await getSession("ADMIN");
@@ -342,8 +306,7 @@ describe("Cash drawer", () => {
       const after = await readCurrent(admin.token);
       expect(after.data!.openFollowUpCount).toBe(before.data!.openFollowUpCount);
 
-      // Signing the same one off twice is not a no-op — it would overwrite
-      // who decided what.
+      // Signing off twice would overwrite who decided what, so it is refused.
       const again = await apiRequest(`/api/cash-sessions/${session.id}/resolve-follow-up`, {
         method: "POST",
         token: admin.token,
@@ -365,10 +328,6 @@ describe("Cash drawer", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
-  // A real sale reaching a real drawer — the one case a synthetic day cannot
-  // cover, so it is a delta on today's session.
-  // -------------------------------------------------------------------------
   describe("cash sales", () => {
     it("adds a cash counter sale to what the drawer should hold", async (ctx) => {
       const admin = await getSession("ADMIN");
@@ -416,8 +375,7 @@ describe("Cash drawer", () => {
       expect(order.status).toBe(201);
       openedOrderIds.push(order.data!.id);
 
-      // Sold, but the delivery company is still holding the money: nothing
-      // has reached the drawer.
+      // Sold, but the delivery company still holds the money: nothing has reached the drawer.
       const before = await readSession(admin.token, opened.id);
 
       const collected = await apiRequest("/api/orders/collect", {
@@ -432,9 +390,6 @@ describe("Cash drawer", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
-  // Role gating (CLAUDE.md rule 5) — enforced on the backend, not the UI
-  // -------------------------------------------------------------------------
   describe("role gating", () => {
     it("keeps an Employee out of the drawer entirely", async () => {
       const employee = await getSession("EMPLOYEE");
@@ -446,8 +401,7 @@ describe("Cash drawer", () => {
       const list = await apiRequest("/api/cash-sessions", { token: employee.token });
       expect(list.status).toBe(403);
 
-      // The person at the till must not be the one who declares what should
-      // have been in it (spec.md "Security rationale").
+      // The person at the till must not declare what should have been in it.
       const open = await openSessionRequest(employee.token, { tzOffset: 0 });
       expect(open.status).toBe(403);
       expect(open.error?.code).toBe(ERROR_CODES.FORBIDDEN);

@@ -1,8 +1,4 @@
-// What colour a numbered shawl's numbers come out (spec.md "Numbered
-// shawls"). The rule has three layers and they are easy to get backwards, so
-// each is pinned here rather than through the API: the shop's own choice, the
-// suggestion read from the photograph, and the guarantee that the number stays
-// readable whatever the two colours are.
+// Marker colours: the shop's choice beats the photo's suggestion, and the number stays readable whatever both are.
 import { describe, expect, it } from "vitest";
 import {
   contrastRatio,
@@ -27,8 +23,7 @@ describe("the suggestion read from the photograph", () => {
   });
 
   it("keeps the shipped marker when there is nothing to sample", () => {
-    // A photo uploaded before brightness was recorded, or no photo at all.
-    // Guessing here would change how existing products look for no reason.
+    // No brightness recorded: guessing would change how existing products look.
     expect(suggestPointColors(null)).toEqual(POINT_COLORS_FALLBACK);
     expect(suggestPointColors(undefined)).toEqual(POINT_COLORS_FALLBACK);
   });
@@ -45,8 +40,7 @@ describe("what actually gets drawn", () => {
 
   it("keeps a chosen colour when the photograph is replaced", () => {
     const chosen = { pointTextColor: "#FFF59D", pointBackgroundColor: "#C2185B" };
-    // The same product, photographed dark and then pale: the choice is stored,
-    // so it must not follow the new picture.
+    // A stored choice must not follow a new photograph.
     for (const brightness of [9, 91, null]) {
       const colors = resolvePointColors(chosen, brightness);
       expect(colors.background).toBe("#C2185B");
@@ -63,8 +57,7 @@ describe("what actually gets drawn", () => {
   });
 
   it("moves the text rather than let a number vanish into its own badge", () => {
-    // A colour picker will happily produce this. The badge is what the shop
-    // chose to sit against its photograph, so the TEXT is what gives way.
+    // The badge is the shop's choice against the photo, so the text gives way.
     const colors = resolvePointColors({ pointTextColor: "#C2185B", pointBackgroundColor: "#C2185B" }, null);
     expect(colors.background).toBe("#C2185B");
     expect(colors.text).not.toBe("#C2185B");
@@ -79,8 +72,7 @@ describe("what actually gets drawn", () => {
   });
 
   it("ignores a stored value that is not a colour", () => {
-    // Nothing should be able to write one, but a marker that renders as
-    // "javascript:" is worse than one that falls back.
+    // A marker rendering "javascript:" is worse than one falling back.
     const colors = resolvePointColors({ pointTextColor: "red; drop table", pointBackgroundColor: "" }, 9);
     expect(colors).toMatchObject(POINT_COLORS_FOR_DARK_IMAGE);
   });

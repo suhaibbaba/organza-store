@@ -1,9 +1,7 @@
 import { PALESTINE_PHONE_PREFIXES } from "@/constants";
 import { TEST_LOCAL_NUMBER_DIGITS, TEST_MOBILE_PREFIX } from "@tests/constants";
 
-// A random N-digit local number after the mobile prefix mirrors the shape
-// the seed uses (e.g. "+970599000001"), which libphonenumber-js validates
-// as a real Palestinian mobile range.
+// The seed's mobile shape ("+970599000001"), which libphonenumber-js accepts as a real range.
 function randomLocalNumber(): string {
   const min = 10 ** (TEST_LOCAL_NUMBER_DIGITS - 1);
   const max = 10 ** TEST_LOCAL_NUMBER_DIGITS;

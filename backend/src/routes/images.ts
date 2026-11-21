@@ -34,18 +34,12 @@ function serializeImage(image: ProductImage) {
     url: image.url,
     mediumUrl: image.mediumUrl,
     thumbnailUrl: image.thumbnailUrl,
-    // The photograph as it was uploaded, and what was done to it. Both are
-    // what the admin's editor needs to re-open on a photo already stored —
-    // the original is the picture it draws, the edit is where the crop box
-    // starts. Null on anything uploaded before the editor existed, which is
-    // exactly how a screen knows not to offer to re-crop it.
+    // The original and the edit, for re-opening the editor; null on photos from before it existed.
     originalUrl: image.originalUrl,
     edit: (image.edit as ImageEdit | null) ?? null,
     sortOrder: image.sortOrder,
     isPrimary: image.isPrimary,
-    // Same field the product endpoints return: what a numbered shawl's
-    // numbers read to suggest their own colour, so a photo just uploaded
-    // suggests one without waiting for a refetch.
+    // Same as the product endpoints: lets a fresh upload suggest numbered-shawl marker colours.
     brightness: image.brightness,
     productId: image.productId,
     variantId: image.variantId,
@@ -53,16 +47,12 @@ function serializeImage(image: ProductImage) {
   };
 }
 
-// Owner scope shared by an image's product or variant — used to resolve the
-// target for upload/reorder and to scope "only one isPrimary" per owner.
+// Owner scope (product or variant) for resolving uploads/reorders and one primary per owner.
 function ownerWhere(owner: { productId?: string | null; variantId?: string | null }) {
   return owner.variantId ? { variantId: owner.variantId } : { productId: owner.productId };
 }
 
-// ---------------------------------------------------------------------------
-// POST /api/images — upload + process (sharp: thumbnail/medium/full WebP) +
-// attach to a product OR a variant (Admin/Manager/Employee — "edit images").
-// ---------------------------------------------------------------------------
+// POST /api/images — upload, cut three WebP sizes, attach to a product or variant.
 router.post(
   "/",
   requirePermission("images.edit"),
@@ -90,10 +80,7 @@ router.post(
 
     const where = ownerWhere(body);
     const existingCount = await prisma.productImage.count({ where });
-    // The FILE is untouched and the framing travels beside it as numbers —
-    // never a canvas re-encode from the browser, which would hand us a
-    // picture already decoded, scaled to a phone screen and re-compressed
-    // (spec.md "Editing a photograph on upload").
+    // The file arrives untouched, with the framing as numbers — never a browser canvas re-encode.
     const stored = await storeProductImage(req.file.buffer, body.edit ?? null);
 
     const created = await prisma.productImage.create({
@@ -102,8 +89,7 @@ router.post(
         url: stored.urls.full,
         mediumUrl: stored.urls.medium,
         thumbnailUrl: stored.urls.thumbnail,
-        // Only ever read to suggest a colour for a numbered shawl's numbers
-        // (spec.md) — never to change the photograph itself.
+        // Only used to suggest marker colours; never changes the photo.
         brightness: stored.brightness,
         originalFilename: stored.originalFilename,
         originalUrl: stored.originalUrl,
@@ -129,10 +115,7 @@ router.post(
   }),
 );
 
-// ---------------------------------------------------------------------------
-// PATCH /api/images/reorder — bulk sortOrder update for one product's or
-// variant's gallery (Admin/Manager/Employee).
-// ---------------------------------------------------------------------------
+// PATCH /api/images/reorder — bulk sortOrder update for one product's or variant's gallery (Admin/Manager/Employee).
 router.patch(
   "/reorder",
   requirePermission("images.edit"),
@@ -170,11 +153,7 @@ router.patch(
   }),
 );
 
-// ---------------------------------------------------------------------------
-// PATCH /api/images/:id — set or clear isPrimary (Admin/Manager/Employee).
-// Setting it true clears isPrimary on every other image of the same owner —
-// at most one primary per product/variant.
-// ---------------------------------------------------------------------------
+// PATCH /api/images/:id — set or clear isPrimary; at most one primary per owner.
 router.patch(
   "/:id",
   requirePermission("images.edit"),
@@ -214,19 +193,7 @@ router.patch(
   }),
 );
 
-// ---------------------------------------------------------------------------
-// PATCH /api/images/:id/edit — frame the same photograph differently.
-//
-// No file is uploaded: the original was kept when the photo was first stored,
-// and the three sizes are cut from it again at full quality. That is the
-// whole reason for keeping it — a crop chosen in a hurry at the counter can
-// be reconsidered later without asking anybody to photograph the piece again.
-//
-// images.edit, the same permission that adds a photo and reorders a gallery.
-// Deliberately NOT a gated action (CLAUDE.md rule 21, which lists the five):
-// nothing is destroyed here — the original stays, the row keeps its place in
-// the gallery, and any framing can be drawn again tomorrow.
-// ---------------------------------------------------------------------------
+// PATCH /api/images/:id/edit — re-frame from the kept original at full quality, no new upload.
 router.patch(
   "/:id/edit",
   requirePermission("images.edit"),
@@ -237,11 +204,7 @@ router.patch(
       throw new AppError(404, ERROR_CODES.IMAGE_NOT_FOUND);
     }
 
-    // A photo from before the editor existed has no original — and is
-    // re-framed anyway, from the largest size it does have, which then
-    // becomes its original (see recropProductImage). "You cannot re-frame the
-    // photographs you already had" is not something to tell a shop about its
-    // own catalogue.
+    // A photo with no original is re-framed from its largest size, which becomes its original.
     const source = image.originalFilename
       ? { filename: image.originalFilename, isOriginal: true }
       : { filename: largestStoredFileName(image.filename), isOriginal: false };
@@ -263,14 +226,7 @@ router.patch(
       },
     });
 
-    // Only once the row points at the new files: a failed update must never
-    // leave a gallery whose photographs have been deleted from under it.
-    //
-    // The original is not among these — it belongs to the image, not to this
-    // crop. That matters most in the promotion case above, where the file
-    // being kept was WRITTEN from one of the sizes about to be deleted: it
-    // was copied under the new base name first, so what goes here is only the
-    // old copy.
+    // Old files are deleted only once the row points at the new ones; the original is never among them.
     await deleteProductImageFiles(image.filename);
 
     await writeAudit({
@@ -288,15 +244,7 @@ router.patch(
   }),
 );
 
-// ---------------------------------------------------------------------------
-// DELETE /api/images/:id — Admin/Manager delete the photo there and then.
-//
-// An Employee may add and reorder photos but not destroy one, so their delete
-// becomes a REQUEST (spec.md "Employee change approvals") and the photo stays
-// exactly where it is until an Admin agrees. Reaching this endpoint needs
-// images.edit — the same permission that lets someone manage the gallery at
-// all — and images.delete is what decides whether the photo actually goes.
-// ---------------------------------------------------------------------------
+// DELETE /api/images/:id — immediate for Admin/Manager; an Employee's becomes a request (images.delete decides).
 router.delete(
   "/:id",
   requirePermission("images.edit"),
@@ -311,9 +259,7 @@ router.delete(
         throw new AppError(403, ERROR_CODES.FORBIDDEN);
       }
 
-      // The photo belongs to a product or to one of its variants; either way
-      // the approval screen wants the product's name to show WHICH gallery
-      // this is, and the thumbnail so the Admin can see what would go.
+      // The approval screen shows which product's gallery this is, with the thumbnail.
       const owner = image.productId
         ? await prisma.product.findUnique({ where: { id: image.productId }, select: { id: true, name: true } })
         : await prisma.variant
@@ -328,8 +274,7 @@ router.delete(
           entityType: CHANGE_REQUEST_ENTITIES.PRODUCT_IMAGE,
           entityId: image.id,
           field: CHANGE_REQUEST_FIELDS.IMAGE_DELETION,
-          // A photo has no name of its own; the gallery it is in is what
-          // identifies it, together with the thumbnail below.
+          // A photo has no name; its gallery and thumbnail identify it.
           entityLabel: null,
           productLabel: owner?.name ?? null,
           entityDetail: image.thumbnailUrl,

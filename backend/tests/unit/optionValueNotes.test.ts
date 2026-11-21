@@ -1,8 +1,4 @@
-// How a note reaches a screen (spec.md "Notes on a product's options").
-//
-// The API suite proves the notes are stored and scoped correctly; this proves
-// the two rules every screen shares, which no HTTP test can see: which notes a
-// variant carries, and which language of one is shown.
+// The two rules every screen shares for option notes: which notes a variant carries, and which language shows.
 import { describe, expect, it } from "vitest";
 import { localizeI18n } from "@store/shared/lib/i18n";
 import { noteByOptionValueId, variantValueNotes } from "@store/shared/lib/optionValueNotes";
@@ -19,15 +15,12 @@ function variant(values: ReturnType<typeof value>[]): Pick<Variant, "values"> {
 
 describe("which notes a variant carries", () => {
   it("returns nothing at all when no value was annotated", () => {
-    // Not an empty string, not a placeholder: a screen renders nothing, so
-    // there is no gap and nothing shifts on a tile without a note — which is
-    // almost every tile.
+    // Absent, not "" or a placeholder, so a tile without a note (almost every tile) renders nothing.
     expect(variantValueNotes(variant([value("s", "S", null), value("red", "Red", null)]))).toEqual([]);
   });
 
   it("keeps each note with the value it belongs to, in the variant's own order", () => {
-    // A dress in red/M with something to say about both: the picker has to be
-    // able to show which note is the colour's and which is the size's.
+    // Red/M with a note on each: the picker must tell the colour's note from the size's.
     const notes = variantValueNotes(
       variant([value("red", "Red", { ar: "أغمق من الصورة" }), value("m", "M", { ar: "يناسب ٣٨-٤٠" })]),
     );
@@ -62,9 +55,7 @@ describe("which language of a note is shown", () => {
   });
 
   it("falls back to the default language rather than rendering blank", () => {
-    // The shop writes Arabic and little else, so Hebrew has to fall back —
-    // CLAUDE.md rule 9. A blank note would read as "no note", which is a
-    // different fact entirely.
+    // Hebrew falls back to the default language (rule 9): a blank note would read as "no note".
     expect(localizeI18n(note, "he")).toBe(note[DEFAULT_LANGUAGE]);
     expect(localizeI18n({ en: "Light fabric" }, "he")).toBe("Light fabric");
   });

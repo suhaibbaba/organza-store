@@ -11,23 +11,7 @@ import { isRtl, t } from "@/lib/email/i18n";
 import type { SupportedLanguage } from "@/types/common";
 import type { EmailLayoutInput } from "@/types/email";
 
-// The branded shell every email is poured into.
-//
-// Email HTML is not web HTML and this file is where that is dealt with once:
-//   - tables for layout. Outlook renders flexbox and grid not at all, and
-//     `div` widths unreliably; nested tables with explicit widths are what
-//     twenty-year-old rendering engines agree on.
-//   - every style inline. Gmail strips <head><style> on some clients and
-//     Outlook.com rewrites class names, so a class is a style that may or may
-//     not exist. The one <style> block below carries ONLY a mobile media
-//     query — progressive enhancement, never anything the layout depends on.
-//   - no webfonts, no background-image, no CSS variables, no border-radius
-//     the layout relies on (Outlook squares the corners and that is fine).
-//   - RTL for real: `dir` on the html element AND an explicit text-align on
-//     every cell, because a client that ignores `dir` still honours the
-//     attribute on the cell.
-//   - no tracking pixel and no rewritten links, for the reason in
-//     transports/resend.ts.
+// The branded email shell: table layout and inline styles, since Outlook and Gmail ignore flexbox and <style>.
 
 function escapeHtml(value: string): string {
   return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -161,12 +145,7 @@ export function renderLayout(input: EmailLayoutInput): string {
 </html>`;
 }
 
-/**
- * The plain-text alternative. Not a stripped-down courtesy copy — it is what
- * a text-only client, a screen reader in text mode, and every spam filter
- * actually reads, and a transactional mail without one is a transactional
- * mail in the junk folder.
- */
+/** The plain-text part — what text-only clients and spam filters read. */
 export function renderText(input: EmailLayoutInput): string {
   const { language, storeName, heading, paragraphs, action, footNote } = input;
   return [

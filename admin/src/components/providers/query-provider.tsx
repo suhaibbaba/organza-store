@@ -4,9 +4,7 @@ import { useState, type ReactNode } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 export function QueryProvider({ children }: { children: ReactNode }) {
-  // Created once per browser tab via useState (not module scope), so
-  // separate requests never share a client — see the React Query + Next.js
-  // App Router setup guide.
+  // Per tab via useState, not module scope, so separate requests never share a client.
   const [client] = useState(
     () =>
       new QueryClient({

@@ -89,9 +89,7 @@ router.patch(
         currency: body.currency,
         defaultCountryCode: body.defaultCountryCode,
         lowStockThreshold: body.lowStockThreshold,
-        // Barcode-label geometry (CLAUDE.md rule 13/14): the sheet lives in
-        // settings so any printer the shop owns can be described, and nothing
-        // about it is hard-coded in the apps that render the labels.
+        // Barcode label geometry lives in settings so any printer can be described (rules 13/14).
         labelPrintMode: body.labelPrintMode,
         labelWidthMm: body.labelWidthMm,
         labelHeightMm: body.labelHeightMm,
@@ -103,9 +101,7 @@ router.patch(
         labelPageMarginLeftMm: body.labelPageMarginLeftMm,
         labelGapXMm: body.labelGapXMm,
         labelGapYMm: body.labelGapYMm,
-        // Sale notifications (Admin-only, like the rest of this screen): the
-        // master switch, which sales are worth a notification, and the
-        // threshold the ABOVE_AMOUNT mode will read once it exists.
+        // Sale notification settings (Admin only): master switch, mode, and the ABOVE_AMOUNT threshold.
         saleNotificationsEnabled: body.saleNotificationsEnabled,
         saleNotificationMode: body.saleNotificationMode,
         saleNotificationMinAmount: body.saleNotificationMinAmount,

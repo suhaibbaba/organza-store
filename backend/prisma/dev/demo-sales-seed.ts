@@ -1,33 +1,4 @@
-// ============================================================
-//  Store Management — DEMO SALES HISTORY (DEV / SANDBOX ONLY — NEVER PRODUCTION)
-//
-//  A run of everyday trading from DEMO_SALES_FROM up to the moment it runs,
-//  so the dashboard's Today / This week / This month and the Reports page
-//  have figures in every window — the main demo seed (demo-seed.ts) writes a
-//  handful of orders that cover every RULE, not a history.
-//
-//  Quarantined exactly like demo-seed.ts — refused unless the run declares
-//  the database disposable, and never under APP_ENV=production:
-//      STORE_ALLOW_DEMO_SEED=I-KNOW-THIS-IS-NOT-PRODUCTION npm run seed:demo-sales
-//
-//  Per day (shop's local time): a few counter sales, now and then a WhatsApp
-//  order and a gift, and the month's standing costs plus small cash
-//  expenses. Online orders older than a few days have been delivered and
-//  collected; the most recent ones are still with the courier, being
-//  prepared, or new — so the outstanding-money figure has something in it.
-//
-//  Idempotent: every row has a fixed id derived from its day, and every
-//  choice comes from a generator seeded by that day — re-running rewrites
-//  the same rows, and a later run simply adds the days since. Only the
-//  current day is written up to "now", so today grows on a re-run.
-//
-//  Stock is deliberately NOT touched. Like demo-seed.ts, this writes the
-//  resulting state of each sale rather than replaying the API's deduction —
-//  replaying it would walk the shelf down further on every run.
-//
-//  Needs a catalogue with priced products and the demo accounts, i.e.
-//  `npm run seed:demo` first.
-// ============================================================
+// DEMO sales history (dev/sandbox only, never production), so dashboard and reports have figures; gated like demo-seed.ts.
 import { PrismaClient } from "@prisma/client";
 import { assertDisposableDatabase } from "@/lib/dangerousCommands";
 import { DANGEROUS_COMMAND_ENV, MS_PER_MINUTE } from "@/constants";
@@ -79,8 +50,7 @@ const DEMO_CUSTOMERS = [
 
 const round2 = (n: number) => Math.round(n * 100) / 100;
 
-// Deterministic per key (mulberry32 over a string hash), so the same day
-// always makes the same choices.
+// Deterministic per key (mulberry32 over a string hash), so the same day always makes the same choices.
 function rng(key: string) {
   let h = 1779033703 ^ key.length;
   for (let i = 0; i < key.length; i++) {
@@ -132,8 +102,7 @@ async function main() {
   const employee = await prisma.user.findUniqueOrThrow({ where: { email: "employee@store.test" } });
   const sellers = [employee, employee, manager, admin];
 
-  // Anything on the shelf with a price. Ordered by id so the same day picks
-  // the same pieces on every run while the catalogue is unchanged.
+  // Anything on the shelf with a price, ordered by id so the same day picks the same pieces.
   const products = await prisma.product.findMany({
     where: { deletedAt: null, isActive: true, basePrice: { gt: 0 } },
     include: { variants: { where: { isActive: true }, orderBy: { variantNumber: "asc" } } },
@@ -281,8 +250,7 @@ async function main() {
     if (r.chance(WHATSAPP_CHANCE)) {
       const createdAt = at(randomMinute());
       if (happened(createdAt)) {
-        // Delivered and paid once the courier has had it long enough; before
-        // that it walks back through the flow the younger it is.
+        // Delivered and paid once the courier has had it long enough; younger orders sit earlier in the flow.
         const delivered = ageDays >= COURIER_DAYS;
         const status = delivered
           ? "COMPLETED"

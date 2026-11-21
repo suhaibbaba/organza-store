@@ -9,19 +9,7 @@ import {
   type PointColors,
 } from "@/constants/numberedShawl";
 
-// The colour of the numbers drawn on a numbered shawl's photo (spec.md
-// "Numbered shawls"). One pair per product, never per point.
-//
-// Three rules, in this order:
-//   1. What the shop chose wins, and keeps winning when the photo is
-//      replaced — the choice is stored on the product, not derived.
-//   2. What it did not choose is SUGGESTED from the photo's own brightness:
-//      a dark photo gets light markers, a pale one dark markers.
-//   3. Whatever comes out of 1 and 2, the number stays readable against its
-//      own badge — see enforceTextContrast.
-//
-// Pure and dependency-free so the same answer is reached in the admin, in
-// the POS, and on the server when the WhatsApp copy is rendered.
+// Numbered-shawl marker colours, one pair per product: the shop's choice wins, else suggested from photo brightness, always legible.
 
 export type { PointColors };
 
@@ -56,11 +44,7 @@ export function parseHexColor(value: string): RgbColor | null {
   };
 }
 
-/**
- * `#abc` → `#AABBCC`. A colour input speaks only the six-digit form, and the
- * schema accepts both, so anything on its way to one goes through here.
- * Null for a string that is not a hex colour at all.
- */
+/** #abc to #AABBCC for colour inputs; null for a non-hex string. */
 export function normalizeHexColor(value: string): string | null {
   const rgb = parseHexColor(value);
   if (!rgb) {
@@ -93,11 +77,7 @@ export function contrastRatio(a: string, b: string): number {
   return (light + 0.05) / (dark + 0.05);
 }
 
-/**
- * The pair that suits a photograph of this brightness. `null` (no photo, or
- * one uploaded before brightness was recorded) keeps the marker this feature
- * shipped with rather than guessing.
- */
+/** The pair suiting a photo's brightness; null brightness keeps the original marker. */
 export function suggestPointColors(brightness: number | null | undefined): PointColors {
   if (brightness == null || Number.isNaN(brightness)) {
     return POINT_COLORS_FALLBACK;
@@ -105,12 +85,7 @@ export function suggestPointColors(brightness: number | null | undefined): Point
   return brightness >= IMAGE_BRIGHTNESS_LIGHT_THRESHOLD ? POINT_COLORS_FOR_LIGHT_IMAGE : POINT_COLORS_FOR_DARK_IMAGE;
 }
 
-/**
- * Guarantees the number can be read on its badge whatever the two colours
- * are — including white on white, which a colour picker will happily
- * produce. Only the TEXT moves: the background is what the shop picked to
- * sit against its photograph, and it is the half worth keeping.
- */
+/** Keeps the number readable on its badge by moving only the text colour. */
 export function enforceTextContrast(text: string, background: string): string {
   if (contrastRatio(text, background) >= MIN_POINT_CONTRAST_RATIO) {
     return text;
@@ -142,13 +117,7 @@ export interface ResolvedPointColors extends PointColors {
   textAdjustedForContrast: boolean;
 }
 
-/**
- * The final colours to draw with: the product's choice where it made one,
- * the photo's suggestion where it did not, and legible either way.
- *
- * `brightness` is the primary image's recorded brightness (0–100) — see
- * ProductImageRef.brightness, measured by sharp at upload.
- */
+/** Final colours: the product's choice, else the photo's suggestion, legible either way. */
 export function resolvePointColors(
   product: PointColorSource,
   brightness: number | null | undefined,

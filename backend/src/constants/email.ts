@@ -1,12 +1,7 @@
 import { appIconPath } from "@store/shared/constants/appEnv";
 import { APP_ENV } from "@/lib/appEnv";
 
-// Transactional email — provider, addresses, and the numbers the templates
-// are laid out against.
-//
-// Everything here is read from the environment at call time (see
-// lib/email/config.ts) rather than baked in, so the sandbox and the live shop
-// differ by a .env line and nothing else.
+// Transactional email settings, read from the environment at call time so stacks differ by .env only.
 
 /** Resend's REST endpoint. The only place the provider's name appears in a URL. */
 export const RESEND_API_URL = "https://api.resend.com/emails";
@@ -17,20 +12,10 @@ export const EMAIL_SEND_TIMEOUT_MS = 10_000;
 /** Development fallback only: production sets EMAIL_FROM to an address on the shop's verified domain. */
 export const DEFAULT_EMAIL_FROM = "noreply@example.com";
 
-/**
- * Transports the email service knows about.
- *  - `resend`  : the real provider.
- *  - `console` : renders and logs the message instead of sending it. What a
- *                deployment with no API key falls back to, so a missing key
- *                degrades to "not delivered" rather than to "crashed".
- */
+/** `resend` sends; `console` logs instead — the fallback without an API key, so a missing key means undelivered, not crashed. */
 export const EMAIL_TRANSPORTS = ["resend", "console"] as const;
 
-// --- template layout ---------------------------------------------------
-// Emails are laid out with tables and inline styles (Outlook renders neither
-// flexbox nor a <style> block reliably), so every dimension is a number
-// written into an attribute. They live here rather than inline in the markup
-// for the same reason every other magic number in this repo does.
+// Template layout numbers: emails use tables and inline attributes, since Outlook handles neither flexbox nor <style>.
 
 /** Card width on a desktop client; below this the card simply fills the screen. */
 export const EMAIL_CONTENT_WIDTH_PX = 600;
@@ -40,28 +25,10 @@ export const EMAIL_LOGO_ICON_SIZE = 192;
 export const EMAIL_BUTTON_RADIUS_PX = 8;
 export const EMAIL_CARD_RADIUS_PX = 12;
 
-/**
- * Arabic and Hebrew need a font stack that actually ships with the mail
- * clients people read on — no webfonts, which Gmail and Outlook strip.
- * "Segoe UI" covers Windows/Outlook, Tahoma is the classic Arabic-safe
- * fallback, and Arial/sans-serif closes it out.
- */
+/** A font stack mail clients ship (no webfonts, which Gmail and Outlook strip) that renders Arabic and Hebrew. */
 export const EMAIL_FONT_STACK = "'Segoe UI', Tahoma, Arial, 'Helvetica Neue', Helvetica, sans-serif";
 
-/**
- * The shop's mark, served by the admin app out of its own `public/` folder.
- * A remote URL rather than an inline `data:` image on purpose: Gmail strips
- * data URIs, and an attached image turns a password mail into something with
- * an attachment on it.
- *
- * Built from this API's own APP_ENV, so a "set your password" mail sent by the
- * sandbox carries the amber SBX mark and one from the live shop carries the
- * plain one — the same distinction the home-screen tiles make, in the inbox
- * where the link is actually clicked. The folder layout comes from
- * @store/shared/constants/appEnv rather than being spelled out here: the file it
- * points at lives in another project, and nothing would report a 404 on it —
- * the mail would simply arrive with a hole where the logo was.
- */
+/** The shop's mark served by the admin's public/ (Gmail strips data URIs), chosen by this API's APP_ENV. */
 export const EMAIL_LOGO_PATH = appIconPath(APP_ENV, EMAIL_LOGO_ICON_SIZE);
 
 /** Where the preview command writes its rendered files. */

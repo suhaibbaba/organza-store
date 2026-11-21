@@ -5,10 +5,7 @@ import { anyCategoryId } from "@tests/support/fixtures";
 import { searchUntil } from "@tests/support/search";
 import type { ProductDto } from "@tests/types";
 
-// A single fixture product carries three distinct-language names built
-// around one shared nonce, so every assertion below can search for a term
-// that could ONLY match this run's product (never a leftover from a
-// previous run or a seeded sample).
+// One fixture with three language names around one nonce, so every search can only match this run's product.
 describe("Search", () => {
   const nonce = uniqueId();
   let productId: string | undefined;

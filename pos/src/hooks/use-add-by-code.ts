@@ -17,12 +17,7 @@ export interface AddByCodeResult {
 }
 
 export interface PickVariantResult {
-  // The code named a variant-bearing product (its parent barcode), so the
-  // cashier still has to say which variant — the parent isn't sellable.
-  //
-  // A numbered shawl's collection label and a supplier's one-code-for-every-
-  // size are the same situation, and the API answers both the same way
-  // (PRODUCT_LOOKUP_KIND.VARIANT_SELECTION).
+  // A variant-bearing parent's code (numbered-shawl label or shared supplier code): the parent isn't sellable.
   status: "pick";
   product: Product;
 }
@@ -40,42 +35,22 @@ interface UseAddByCodeOptions {
   onOutcome: (outcome: CodeOutcome) => void;
 }
 
-// Turns one code — scanned by the camera or typed in by hand — into a cart
-// line. Everything that makes scanning feel reliable at a counter lives
-// here: repeat reads of the same barcode are swallowed, and a code that
-// lands on a variant-bearing parent asks rather than guessing.
+// One scanned or typed code to a cart line: repeat reads are swallowed and a parent code asks, never guesses.
 export function useAddByCode({ onAdd, onOutcome }: UseAddByCodeOptions) {
   const [isLooking, setIsLooking] = useState(false);
-  // The camera reports the same barcode many times a second while it stays
-  // in frame; without this, one item would land in the cart a dozen times.
   const lastScan = useRef<{ code: string; at: number } | null>(null);
-  // A code the cashier has already been asked a question about (which
-  // variant?). Held until some other code is read, because the tag that
-  // raised the question is still lying under the camera when it comes back
-  // — and asking the same question again, and again, is a trap the cashier
-  // cannot scan their way out of. Cleared outright when they open the
-  // scanner themselves, so deliberately scanning that same tag again works.
+  // Held until another code is read: the tag that raised the question is still under the camera.
   const heldCode = useRef<string | null>(null);
 
   const submitCode = useCallback(
     async (rawCode: string, options: { dedupe?: boolean } = {}) => {
-      // `٤٠١٢` is 4012. A cashier reading a torn label out by hand types it
-      // on the Arabic keyboard they already have, whose digit row sends
-      // Arabic-Indic digits — and every barcode and SKU in the catalogue is
-      // ASCII, so the lookup would answer "no such product" for a code they
-      // typed perfectly correctly. Both scanners send ASCII already, so this
-      // only ever changes the hand-typed path.
+      // Arabic-Indic digits typed by hand become ASCII, since every barcode and SKU is ASCII.
       const code = toLatinDigits(rawCode.trim());
       if (!code) {
         return;
       }
 
-      // Only what the camera keeps re-reading is held back, and only that
-      // one code: the moment a different barcode comes into frame it is
-      // taken with no wait at all, so scanning a pile of items one after
-      // another is never slowed down. Re-scanning the same tag on purpose
-      // (a second identical piece) works too — it just has to be after the
-      // window the cart line's little bar is counting down.
+      // Only the one code the camera keeps re-reading is held; a different code is taken at once.
       if (options.dedupe) {
         if (heldCode.current !== null) {
           if (heldCode.current === code) {
@@ -97,12 +72,8 @@ export function useAddByCode({ onAdd, onOutcome }: UseAddByCodeOptions) {
       try {
         const { kind, product, variant } = await lookupProductByCode(code);
 
-        // The backend's own verdict, not a guess from the shape of what came
-        // back: it is the side that also refuses a sale on the parent
-        // (error.order.variant_required), so the two can never disagree.
+        // The backend's verdict, the same side that refuses a sale on the parent, so the two never disagree.
         if (kind === PRODUCT_LOOKUP_KIND.VARIANT_SELECTION) {
-          // See heldCode above: the camera is about to be handed back after
-          // the cashier answers, with this same tag still in front of it.
           if (options.dedupe) {
             heldCode.current = code;
           }
@@ -124,9 +95,7 @@ export function useAddByCode({ onAdd, onOutcome }: UseAddByCodeOptions) {
     [onAdd, onOutcome],
   );
 
-  // Called when the cashier opens the scanner themselves: whatever they
-  // point it at next is a fresh intention, even if it is the tag they were
-  // just looking at.
+  // Opening the scanner is a fresh intention, even for the tag just looked at.
   const resetScanHistory = useCallback(() => {
     lastScan.current = null;
     heldCode.current = null;

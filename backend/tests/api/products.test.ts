@@ -48,9 +48,7 @@ describe("Products", () => {
     expect(res.data!.hasVariants).toBe(false);
   });
 
-  // Cost is ADMIN ONLY (CLAUDE.md rule 19) — a Manager is on the same side of
-  // this gate as an Employee: they may run the shop floor, but not read what
-  // the owner paid for the stock.
+  // Cost is Admin-only (rule 19): a Manager is on the same side as an Employee.
   it("hides cost from an Employee and a Manager, and returns it to an Admin", async () => {
     const employee = await getSession("EMPLOYEE");
     const manager = await getSession("MANAGER");
@@ -61,8 +59,7 @@ describe("Products", () => {
     const created = await apiRequest<ProductDto>("/api/products", {
       method: "POST",
       token: manager.token,
-      // Neither an Employee nor a Manager can SET cost either — the backend
-      // must silently drop it, not error.
+      // Neither may set cost either: the backend drops it silently rather than erroring.
       body: { name: { ar: name, en: name }, categoryId, basePrice: "50", cost: "999" },
     });
     expect(created.status).toBe(201);
@@ -83,16 +80,7 @@ describe("Products", () => {
     expect(asAdmin.data!.cost).toBeNull();
   });
 
-  // CLAUDE.md rule 5 / spec.md: an Employee may fix a product that's already
-  // on the shelf — its name, description, category — but not what it sells
-  // for. Price lives behind product.editPrice (Admin/Manager), as do stock
-  // (inventory.adjust) and visibility (product.hide).
-  //
-  // Those three are no longer REFUSED, though: they are held for approval
-  // (spec.md "Employee change approvals"). The edit is neither applied nor
-  // discarded — it waits, attributed, and comes back on the product so the
-  // Employee's screen can show it waiting rather than appearing to have
-  // dropped what they typed.
+  // An Employee may fix a product's details; price, stock and visibility are held for approval (rule 21), not refused.
   describe("an Employee edits a product but not its price", () => {
     async function createProduct(token: string, label: string): Promise<ProductDto> {
       const categoryId = await anyCategoryId(token);
@@ -123,9 +111,7 @@ describe("Products", () => {
       expect(res.data!.name.ar).toBe(newName);
     });
 
-    // No longer a refusal (spec.md "Employee change approvals"): the price
-    // the Employee typed is HELD, not applied and not thrown away, and comes
-    // straight back on the product so their screen can say so.
+    // The typed price is held, not applied nor thrown away, and comes back on the product.
     it("holds an Employee's price change for approval, leaving the price as it was", async () => {
       const admin = await getSession("ADMIN");
       const employee = await getSession("EMPLOYEE");
@@ -159,9 +145,7 @@ describe("Products", () => {
       expect(Number(after.data!.compareAtPrice)).toBe(150);
     });
 
-    // The admin form loads the product and posts the whole thing back, so an
-    // Employee's "save" carries the price it was already showing. That is not
-    // an attempt to re-price anything and must not be refused.
+    // The form posts the whole product back, so an unchanged price is not a re-price and must not be refused.
     it("accepts an Employee's edit that resends the price untouched", async () => {
       const admin = await getSession("ADMIN");
       const employee = await getSession("EMPLOYEE");
@@ -209,9 +193,7 @@ describe("Products", () => {
       expect(after.data!.isActive).toBe(true);
     });
 
-    // A variant's priceOverride IS what that combination sells for, so the
-    // same gate has to hold there — otherwise the product-level check is just
-    // a detour.
+    // A variant's priceOverride is what it sells for, so the same gate holds there.
     it("holds an Employee's change to a variant's price override", async () => {
       const admin = await getSession("ADMIN");
       const employee = await getSession("EMPLOYEE");
@@ -259,9 +241,7 @@ describe("Products", () => {
     });
   });
 
-  // GET /api/products/lookup — what one POS scan resolves to. The POS puts
-  // the returned item straight into the cart, so "which variant" has to be
-  // unambiguous, not left to the caller to work out.
+  // The POS puts the returned item straight in the cart, so which variant must be unambiguous.
   describe("lookup by scanned code", () => {
     it("resolves a simple product's own barcode, and its SKU", async () => {
       const employee = await getSession("EMPLOYEE");
@@ -335,8 +315,7 @@ describe("Products", () => {
       expect(missing.status).toBe(404);
       expect(missing.error?.code).toBe(ERROR_CODES.PRODUCT_NOT_FOUND);
 
-      // Scanning must not become a side door onto a sensitive field
-      // (CLAUDE.md rule 19) — the same gate as every other product read.
+      // Scanning must not be a side door onto cost (rule 19).
       const asEmployee = await apiRequest<ProductLookupDto>(
         `/api/products/lookup?code=${encodeURIComponent(product.barcode!)}`,
         { token: employee.token },

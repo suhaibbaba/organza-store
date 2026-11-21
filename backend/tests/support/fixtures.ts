@@ -1,6 +1,4 @@
-// Fixture lookups against data the seed guarantees exists (backend/prisma/dev/demo-seed.ts):
-// nested categories, and the global "color"/"size"/"number" variant types
-// with >=2 values each.
+// Lookups against data the demo seed guarantees: nested categories and color/size/number types.
 import { apiRequest } from "@tests/support/client";
 import type { OptionSelection, VariantTypeDto } from "@tests/types";
 
@@ -12,10 +10,7 @@ export async function anyCategoryId(token: string): Promise<string> {
   return res.data[0].id;
 }
 
-// A category that is NOT the one given — for proving that moving a product
-// between categories leaves its SKU alone (CLAUDE.md rule 1). The seed nests
-// several, so there is always a second one; if there somehow isn't, the
-// caller gets the same id back and the assertion still holds, just weaker.
+// A different category, for proving a move keeps the SKU (rule 1); with only one the assertion is weaker, not wrong.
 export async function anotherCategoryId(token: string, notId: string): Promise<string> {
   const res = await apiRequest<{ id: string }[]>("/api/categories?flat=true", { token });
   const categories = res.data ?? [];
@@ -25,9 +20,7 @@ export async function anotherCategoryId(token: string, notId: string): Promise<s
   return (categories.find((category) => category.id !== notId) ?? categories[0]).id;
 }
 
-// Two option types x two values each = a 2x2 cartesian product (4 variants),
-// reusing the seeded "color" and "size" types instead of creating new global
-// variant types on every run.
+// 2×2 = 4 variants, reusing the seeded color and size types.
 export async function twoByTwoOptionSelections(token: string): Promise<OptionSelection[]> {
   const res = await apiRequest<VariantTypeDto[]>("/api/variant-types", { token });
   if (!res.success || !res.data) {
@@ -45,8 +38,7 @@ export async function twoByTwoOptionSelections(token: string): Promise<OptionSel
   ];
 }
 
-// The seeded global "number" variant type (spec.md: numbered shawls reuse it
-// as-is), with its first two option value ids.
+// The seeded global Number type and its first two value ids.
 export async function firstTwoNumberValueIds(
   token: string,
 ): Promise<{ variantTypeId: string; valueIds: [string, string] }> {

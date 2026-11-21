@@ -1,19 +1,4 @@
-// ============================================================================
-//  6. SOLD vs RECEIVED vs OWED
-//
-//  "What we sold" and "what we hold" are two different figures, and the whole
-//  reporting layer exists so they can never be read as one:
-//
-//      sold = received + owed          (always, to the agora)
-//
-//    * a counter sale is received the moment it is rung up;
-//    * a courier order is owed until the delivery company settles up;
-//    * marking it collected moves the amount from owed to received and leaves
-//      sold exactly where it was;
-//    * a cancelled or fully returned sale owes nothing and is out of all three;
-//    * settling a batch takes the orders that were pending AT THAT MOMENT —
-//      an order taken afterwards is still pending.
-// ============================================================================
+// sold = received + owed, always; collecting moves owed to received and never moves sold.
 import { beforeAll, describe, expect, it } from "vitest";
 import { apiRequest } from "@tests/support/client";
 import { getSession } from "@tests/support/auth";
@@ -179,8 +164,7 @@ describe("Verify · sold vs received vs owed", () => {
 
   describe("settling a batch", () => {
     it("collects exactly the orders pending at that moment, and leaves later ones pending", async () => {
-      // Three orders, all owed. Only these three — the shop's own outstanding
-      // orders are never touched, because the batch is named explicitly.
+      // Only these three: the batch is named, so the shop's own outstanding orders are never touched.
       const batch = [];
       for (let index = 0; index < 3; index++) {
         batch.push(await sellOnCredit(admin, [{ productId: product.id, quantity: 1 }]));

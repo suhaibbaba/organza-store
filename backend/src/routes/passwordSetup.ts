@@ -26,14 +26,7 @@ import {
   PASSWORD_SETUP_REDEEM_WINDOW_MS,
 } from "@/constants";
 
-// Setting a password from an emailed link. The ONLY unauthenticated routes in
-// the API besides Better Auth's own sign-in, which is why every one of them
-// is rate-limited and why none of them ever confirms that an account exists.
-//
-// The token travels in a request BODY throughout, never in a path or a query
-// string: URLs end up in proxy access logs and browser history, and this
-// token is a working key to somebody's account (spec.md: tokens are never
-// logged).
+// Setting a password from an emailed link: unauthenticated, rate-limited, never revealing an account; token only in bodies.
 const router = Router();
 
 const ipLimiter = createRateLimiter({ limit: PASSWORD_RESET_IP_LIMIT, windowMs: PASSWORD_RESET_IP_WINDOW_MS });
@@ -50,21 +43,12 @@ function normalizeEmail(value: string): string {
   return value.trim().toLowerCase();
 }
 
-// ---------------------------------------------------------------------------
-// POST /api/password-setup/request — "email me a link"
-//
-// Answers the SAME thing whether or not the address belongs to an account, and
-// whether or not that account is active. Anything else turns this endpoint
-// into a way of asking "does this person work here?".
-// ---------------------------------------------------------------------------
+// POST /api/password-setup/request — same answer whether or not the address has an account.
 router.post(
   "/request",
   rateLimit(ipLimiter, callerKey),
   validateBody(requestPasswordResetSchema),
-  // Limited per address as well as per caller: one IP hammering thirty
-  // addresses and thirty IPs hammering one address are both abuse, and the
-  // per-caller limit only catches the first. Runs after validation so a
-  // malformed body cannot spend somebody else's budget.
+  // Limited per address and per caller; after validation, so a bad body cannot spend someone's budget.
   rateLimit(emailLimiter, (req) => normalizeEmail((req.body as RequestPasswordResetInput).email)),
   asyncHandler(async (req, res) => {
     const email = normalizeEmail((req.body as RequestPasswordResetInput).email);
@@ -87,13 +71,7 @@ router.post(
   }),
 );
 
-// ---------------------------------------------------------------------------
-// POST /api/password-setup/verify — "is this link still good?"
-//
-// Lets the set-password screen say "this link has expired, ask for a new one"
-// before somebody types a password into a form that cannot work. Does NOT
-// consume the token.
-// ---------------------------------------------------------------------------
+// POST /api/password-setup/verify — is the link still good? Does not consume the token.
 router.post(
   "/verify",
   rateLimit(redeemLimiter, callerKey),
@@ -110,17 +88,12 @@ router.post(
       throw new AppError(400, ERROR_CODES.PASSWORD_TOKEN_INVALID);
     }
 
-    // The email is echoed back deliberately: whoever holds this token already
-    // has a working key to the account, so naming the mailbox it belongs to
-    // reveals nothing they could not already take — and it is what lets the
-    // screen say WHOSE password is being set.
+    // The email is echoed: the token holder already holds the account, and the screen shows whose password it is.
     sendOk(res, { email: user.email, name: user.name, purpose: stored.purpose, expiresAt: stored.expiresAt });
   }),
 );
 
-// ---------------------------------------------------------------------------
 // POST /api/password-setup/complete — redeem the link and set the password
-// ---------------------------------------------------------------------------
 router.post(
   "/complete",
   rateLimit(redeemLimiter, callerKey),
@@ -128,8 +101,7 @@ router.post(
   asyncHandler(async (req, res) => {
     const { token, password } = req.body as CompletePasswordSetupInput;
 
-    // redeem() marks the token used in the same conditional write that checks
-    // it, so a link double-clicked (or replayed) can only ever succeed once.
+    // redeem() marks the token used in the same conditional write that checks it, so a replay can only succeed once.
     const redeemed = await passwordTokens.redeem(token);
     if (!redeemed) {
       throw new AppError(400, ERROR_CODES.PASSWORD_TOKEN_INVALID);
@@ -143,9 +115,7 @@ router.post(
     await setUserPassword(user.id, password);
     // Redeeming a link proves the person reads that mailbox.
     await prisma.user.update({ where: { id: user.id }, data: { emailVerified: true } });
-    // Everything else signed in as this account is signed out. If the reason
-    // for the reset was that somebody else had the old password, leaving
-    // their session alive would make the reset decorative.
+    // Every other session of this account is signed out, or the reset would be decorative.
     await revokeAllSessions(user.id);
     // Belt and braces: redeeming one link burns the rest.
     await passwordTokens.revokeAllForUser(user.id);
@@ -155,8 +125,7 @@ router.post(
       action: AuditAction.UPDATE,
       entityType: AUDIT_ENTITY.USER,
       entityId: user.id,
-      // What changed, never what it changed TO. Neither the password nor the
-      // token appears anywhere in the trail.
+      // What changed, never what to: neither password nor token enters the trail.
       newValue: { passwordSet: true, via: "EMAIL_LINK", purpose: redeemed.purpose },
     });
 

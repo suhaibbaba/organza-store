@@ -9,19 +9,7 @@ import {
 import { prisma } from "@/lib/prisma";
 import type { CatalogueCounts, CatalogueSnapshot, WipedTable } from "@/types";
 
-// ============================================================================
-//  The sandbox side of `npm run import:prod` — empty it, then fill it.
-//
-//  Wiping FIRST is what makes the rest of this file simple. The production
-//  ids, SKUs and barcodes are copied VERBATIM (a variant points at an option
-//  value by id, an image at its product by id, a product at its category by
-//  id — CLAUDE.md rule 2), which only works if nothing in the target can
-//  clash with them. An empty table cannot.
-//
-//  All of it is ONE transaction. A run that dies halfway through rolls back to
-//  the catalogue the sandbox already had, rather than leaving a shop with
-//  categories and no products in it.
-// ============================================================================
+// The sandbox side of import:prod: wipe, then copy production's ids verbatim, all in one transaction.
 
 type Tx = Prisma.TransactionClient;
 
@@ -31,18 +19,7 @@ interface WipeStep {
   run(tx: Tx): Promise<{ count: number }>;
 }
 
-/**
- * Everything that is not a user account or the shop's own configuration,
- * deleted children-first.
- *
- * What is NOT here is the point of the command: `user`, `account`, `session`,
- * `verification`, `PasswordSetupToken` and `PushSubscription` (so nobody is
- * locked out of the sandbox and a phone that opted into notifications stays
- * opted in), `Setting` (the sandbox keeps its own currency, language and
- * thresholds), `ExpenseCategory` and `BootstrapRecord` (essential data —
- * CLAUDE.md rule 11: bootstrap creates each item once in the life of the
- * database and would not put them back).
- */
+/** Everything except accounts and the shop's own configuration, deleted children-first. */
 const WIPE_STEPS: readonly WipeStep[] = [
   { table: "auditLog", run: (tx) => tx.auditLog.deleteMany() },
   { table: "changeRequest", run: (tx) => tx.changeRequest.deleteMany() },
@@ -80,15 +57,7 @@ async function insertAll<T>(rows: T[], insert: (chunk: T[]) => Promise<Prisma.Ba
   return written;
 }
 
-/**
- * Categories nest into themselves, so they go in depth by depth: a child's
- * `parentId` has to point at a row that is already there.
- *
- * A row whose parent is missing from the snapshot entirely would loop
- * forever, so the remainder is written flat at the end and left for the
- * foreign key to judge — inside the transaction, where a failure costs
- * nothing.
- */
+/** Categories go in depth by depth so each parent exists; orphans are written last for the foreign key to judge. */
 function categoryLayers(categories: CatalogueSnapshot["categories"]): CatalogueSnapshot["categories"][] {
   const layers: CatalogueSnapshot["categories"][] = [];
   const placed = new Set<string>();
@@ -110,16 +79,7 @@ function categoryLayers(categories: CatalogueSnapshot["categories"]): CatalogueS
   return layers;
 }
 
-/**
- * Sequences carry human-facing numbers, and a fresh sandbox's are at 1 while
- * the imported rows are in the hundreds — so the next product added by hand
- * would collide on `productNumber` (and therefore on the SKU built from it,
- * which is frozen at creation — CLAUDE.md rule 1).
- *
- * Orders are not imported at all, so theirs goes back to the start: two runs
- * of this command leave the sandbox in the same state, down to the number the
- * next sale will be given.
- */
+/** Sequences moved past the imported numbers so new products cannot collide (SKUs are frozen, rule 1); orders restart. */
 async function realignSequences(tx: Tx): Promise<void> {
   await tx.$executeRawUnsafe(
     `SELECT setval(
@@ -140,11 +100,7 @@ export interface AppliedImport {
   imported: CatalogueCounts;
 }
 
-/**
- * Empties the sandbox of everything but its people, writes production's
- * catalogue in its place, and puts the sequences where the new data leaves
- * them. One transaction, so it either all happened or none of it did.
- */
+/** Wipes everything but people, writes production's catalogue and fixes sequences — one transaction. */
 export async function applyCatalogue(snapshot: CatalogueSnapshot): Promise<AppliedImport> {
   return prisma.$transaction(
     async (tx) => {
@@ -177,10 +133,7 @@ export async function applyCatalogue(snapshot: CatalogueSnapshot): Promise<Appli
             ...row,
             name: requiredJson(row.name),
             description: nullableJson(row.description),
-            // The one field deliberately NOT copied: who added the product is
-            // a member of the shop's staff, and production's user ids mean
-            // nothing here. Nullable exactly for this (the column already
-            // allows it for a product whose author has left).
+            // createdById is not copied: production's user ids mean nothing here.
             createdById: null,
             // Production's burned-in pictures are not copied; images:mark rebuilds them here.
             markedImage: Prisma.DbNull,
@@ -201,11 +154,7 @@ export async function applyCatalogue(snapshot: CatalogueSnapshot): Promise<Appli
       );
 
       const productImages = await insertAll(snapshot.productImages, (chunk) =>
-        // `edit` is the crop the shop drew on this photograph (shared's
-        // ImageEdit) and comes across with it, so the sandbox's catalogue
-        // shows the same framing production does — and Prisma wants a
-        // missing one spelled DbNull rather than null, like every other
-        // nullable Json column here.
+        // The photo's crop comes across too; Prisma wants DbNull, not null, for a missing Json value.
         tx.productImage.createMany({ data: chunk.map((row) => ({ ...row, edit: nullableJson(row.edit) })) }),
       );
 

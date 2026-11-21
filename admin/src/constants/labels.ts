@@ -7,14 +7,11 @@ import type { UrlParams } from "@/types/urlFilters";
 
 export const LABEL_SEARCH_DEBOUNCE_MS = 250;
 
-// The preview redraws the whole sheet, so it trails the copies inputs by a
-// moment instead of redrawing on every keystroke.
 export const PREVIEW_DEBOUNCE_MS = 250;
 
 export const LABEL_LIST_PAGE_SIZE = DEFAULT_PAGE_SIZE;
 
-// Opens on "not printed yet": after a bulk import that is the whole job, and
-// it is the one list a user needs to see without touching a filter.
+// After a bulk import, "not printed yet" is the whole job.
 export const DEFAULT_LABEL_FILTERS: LabelListFilters = {
   q: "",
   categoryId: null,
@@ -26,50 +23,32 @@ export const DEFAULT_LABEL_FILTERS: LabelListFilters = {
 export const A4_WIDTH_MM = 210;
 export const A4_HEIGHT_MM = 297;
 
-// CSS treats 1in as exactly 96px, which is how a mm-sized preview is scaled
-// to fit a phone screen.
 export const MM_PER_INCH = 25.4;
 export const CSS_PX_PER_INCH = 96;
 
-// Per design. The same ceiling every counting box in the admin and the POS
-// carries (shared/constants/quantity.ts), so "how many" means the same thing
-// here as it does in a cart or a stock correction — generous enough for a
-// genuinely deep line, tight enough that a stray extra digit can't eat a
-// whole roll. The run total below is the real ceiling anyway.
+// The same ceiling as every quantity box (shared/constants/quantity.ts); the run total is the real cap.
 export const LABEL_COPIES_MAX = QUANTITY_MAX;
 
-// Ceiling for a whole print run. Past this the browser's print preview gets
-// slow enough to look broken on a phone, so we ask for a smaller batch
-// instead of letting it hang.
+// Past this the print preview is slow enough to look broken on a phone.
 export const LABEL_RUN_MAX = 500;
 
-// The preview stops after this many pages — a 300-label roll is a very long
-// scroll, and the tenth identical page teaches nobody anything. Only the
-// preview is capped; every label still prints.
+// Only the preview is capped; every label still prints.
 export const LABEL_PREVIEW_MAX_PAGES = 12;
 
-// EAN-13 is 95 modules plus quiet zones; below roughly this width the bars
-// get too thin for a phone camera or a cheap scanner to read reliably. Only
-// ever a warning — the shop knows its own printer.
+// Below this EAN-13 bars get too thin to scan reliably; only ever a warning.
 export const MIN_SCANNABLE_LABEL_WIDTH_MM = 30;
 
-// The printed sheet is portalled to <body> under this id, and only prints
-// while the body carries the class below (so Ctrl+P on any other screen
-// still prints that screen normally). Both are referenced from the print
-// rules in app/globals.css.
+// Prints only while <body> carries the class, so Ctrl+P elsewhere prints that screen; used by globals.css.
 export const LABEL_PRINT_ROOT_ID = "label-print-root";
 export const LABEL_PRINTING_BODY_CLASS = "is-printing-labels";
 
-// JsBarcode geometry. These are the barcode's own drawing units — the SVG is
-// then scaled to the label by its viewBox — so they only set the bar/height
-// ratio and the size of the digits printed underneath.
+// Drawing units; the SVG is scaled by its viewBox, so these only set proportions.
 export const BARCODE_OPTIONS = {
   barWidth: 2,
   barHeight: 60,
   fontSize: 16,
   textMargin: 2,
-  // Quiet zones on both sides; a barcode printed flush to the edge of a
-  // sticker will not scan.
+  // Quiet zones: a barcode flush to the sticker's edge will not scan.
   margin: 6,
 } as const;
 
