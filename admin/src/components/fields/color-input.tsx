@@ -1,6 +1,6 @@
 "use client";
 
-import { normalizeHexColor } from "@organza/shared/lib/pointColors";
+import { normalizeHexColor } from "@store/shared/lib/pointColors";
 import { cn } from "@/lib/utils";
 
 interface ColorInputProps {

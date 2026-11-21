@@ -1,4 +1,4 @@
-import type { BarcodeSource } from "@organza/shared/types/product";
+import type { BarcodeSource } from "@store/shared/types/product";
 
 export type { BarcodeSource };
 

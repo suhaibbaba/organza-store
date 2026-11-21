@@ -19,7 +19,7 @@ import type {
   DbClient,
 } from "@/types/changeRequest";
 import type { ExpenseApprovalStatus } from "@/types";
-import type { PermissionAction } from "@organza/shared/types/permission";
+import type { PermissionAction } from "@store/shared/types/permission";
 
 // ============================================================================
 //  What "approve" actually DOES, per gated field.

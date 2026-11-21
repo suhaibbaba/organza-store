@@ -1,6 +1,6 @@
 import { useTranslations } from "next-intl";
 import { Badge, type BadgeVariant, type IconName } from "@store/ui";
-import type { PaymentStatus } from "@organza/shared/types/order";
+import type { PaymentStatus } from "@store/shared/types/order";
 import { cn } from "@/lib/utils";
 
 // Kept visually distinct from the order-status badge so "delivered" is never read as "paid for" (spec.md "Payment collection").

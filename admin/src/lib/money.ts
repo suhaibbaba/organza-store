@@ -1,5 +1,5 @@
-import { MONEY_DECIMAL_PLACES, PERCENT_MAX } from "@organza/shared/constants/order";
-import type { DiscountType } from "@organza/shared/types/order";
+import { MONEY_DECIMAL_PLACES, PERCENT_MAX } from "@store/shared/constants/order";
+import type { DiscountType } from "@store/shared/types/order";
 
 // Integer-cent arithmetic for the running total shown while an order is being
 // built (see components/orders/new-order/*).

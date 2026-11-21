@@ -2,9 +2,9 @@
 
 import { useTranslations } from "next-intl";
 import { Spinner, Switch } from "@store/ui";
-import type { PermissionAction } from "@organza/shared/types/permission";
-import type { Role } from "@organza/shared/types/role";
-import { testSelectorFor } from "@organza/shared/lib/testSelector";
+import type { PermissionAction } from "@store/shared/types/permission";
+import type { Role } from "@store/shared/types/role";
+import { testSelectorFor } from "@store/shared/lib/testSelector";
 
 // Only the grant in flight shows a spinner, so the reader can tell which tap it was.
 export function PermissionToggle({

@@ -1,5 +1,5 @@
-import type { Profile, ProfileSession } from "@organza/shared/types/profile";
-import type { ChangePasswordInput, UpdateProfileInput } from "@organza/shared/schemas/profile";
+import type { Profile, ProfileSession } from "@store/shared/types/profile";
+import type { ChangePasswordInput, UpdateProfileInput } from "@store/shared/schemas/profile";
 import { apiFetch } from "@/lib/api/client";
 
 export async function fetchProfile(): Promise<Profile> {

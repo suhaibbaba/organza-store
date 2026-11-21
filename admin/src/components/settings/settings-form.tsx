@@ -5,12 +5,12 @@ import { useForm, useWatch, Controller, type FieldError, type UseFormRegisterRet
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslations } from "next-intl";
 import { Alert, FormField, Input, SaveBar, Select, Switch, TranslatedField, Typography, useToast } from "@store/ui";
-import { PALESTINE_PHONE_PREFIXES } from "@organza/shared/constants/phone";
-import { LABEL_LIMITS, LABEL_PRINT_MODES } from "@organza/shared/constants/label";
-import { IMPLEMENTED_SALE_NOTIFICATION_MODES } from "@organza/shared/constants/push";
-import { DEFAULT_LANGUAGE, SUPPORTED_LANGUAGES } from "@organza/shared/constants/languages";
-import { fieldTestSelector } from "@organza/shared/lib/testSelector";
-import type { Setting } from "@organza/shared/types/setting";
+import { PALESTINE_PHONE_PREFIXES } from "@store/shared/constants/phone";
+import { LABEL_LIMITS, LABEL_PRINT_MODES } from "@store/shared/constants/label";
+import { IMPLEMENTED_SALE_NOTIFICATION_MODES } from "@store/shared/constants/push";
+import { DEFAULT_LANGUAGE, SUPPORTED_LANGUAGES } from "@store/shared/constants/languages";
+import { fieldTestSelector } from "@store/shared/lib/testSelector";
+import type { Setting } from "@store/shared/types/setting";
 import { useTranslateError } from "@/hooks/use-translate-error";
 import { useSaveSettingsMutation } from "@/hooks/use-settings";
 import { settingsFormSchema, settingsToFormValues, toUpdatePayload, type SettingsFormValues } from "@/lib/validation/settings-form";

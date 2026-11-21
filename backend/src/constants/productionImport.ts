@@ -20,7 +20,7 @@ export const PRODUCTION_IMPORT_ENV = {
    */
   uploadDir: "PRODUCTION_UPLOAD_DIR",
   /** The confirmation, which has to spell out the database being wiped. */
-  confirm: "ORGANZA_IMPORT_CONFIRM",
+  confirm: "STORE_IMPORT_CONFIRM",
 } as const;
 
 /**

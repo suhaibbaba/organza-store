@@ -34,7 +34,7 @@ export const DEFAULT_APP_ENV = "production";
  * How the sandbox says so in one or two characters.
  *
  * The same three letters the amber band on the sandbox icons carries, so the
- * home-screen tile and the label under it agree — "Organza Admin (SBX)" next
+ * home-screen tile and the label under it agree — "Store Admin (SBX)" next
  * to a tile with SBX printed across it. Short because iOS truncates the name
  * under an icon hard, and this has to survive that.
  */

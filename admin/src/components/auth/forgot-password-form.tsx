@@ -9,7 +9,7 @@ import { useTranslateError } from "@/hooks/use-translate-error";
 import { requestPasswordReset } from "@/lib/api/password-setup";
 import { ApiError } from "@/lib/api/errors";
 import { forgotPasswordSchema, type ForgotPasswordValues } from "@/lib/validation/set-password";
-import { fieldTestSelector } from "@organza/shared/lib/testSelector";
+import { fieldTestSelector } from "@store/shared/lib/testSelector";
 import { Alert, Button, buttonClassName, FormField, Input } from "@store/ui";
 import { AuthFieldError } from "@/components/auth/auth-field-error";
 

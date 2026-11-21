@@ -1,4 +1,4 @@
-export * from "@organza/shared/constants/permissions";
+export * from "@store/shared/constants/permissions";
 
 /**
  * How long a process will serve its cached permission matrix before it asks

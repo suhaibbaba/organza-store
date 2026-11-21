@@ -1,4 +1,4 @@
-// Organza Store schema. Translatable fields are JSON { ar, en, he }; Arabic is the default and missing languages fall back to it.
+// Store Management schema. Translatable fields are JSON { ar, en, he }; Arabic is the default and missing languages fall back to it.
 
 generator client {
   provider        = "prisma-client-js"

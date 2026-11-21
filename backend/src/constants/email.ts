@@ -1,4 +1,4 @@
-import { appIconPath } from "@organza/shared/constants/appEnv";
+import { appIconPath } from "@store/shared/constants/appEnv";
 import { APP_ENV } from "@/lib/appEnv";
 
 // Transactional email — provider, addresses, and the numbers the templates
@@ -14,8 +14,8 @@ export const RESEND_API_URL = "https://api.resend.com/emails";
 /** How long we wait on the provider before giving up. A slow mail API must never hold a request open. */
 export const EMAIL_SEND_TIMEOUT_MS = 10_000;
 
-/** Fallback From address if EMAIL_FROM is unset. The domain is the verified one. */
-export const DEFAULT_EMAIL_FROM = "noreply@organza-moda.com";
+/** Development fallback only: production sets EMAIL_FROM to an address on the shop's verified domain. */
+export const DEFAULT_EMAIL_FROM = "noreply@example.com";
 
 /**
  * Transports the email service knows about.
@@ -59,7 +59,7 @@ export const EMAIL_FONT_STACK =
  * sandbox carries the amber SBX mark and one from the live shop carries the
  * plain one — the same distinction the home-screen tiles make, in the inbox
  * where the link is actually clicked. The folder layout comes from
- * @organza/shared/constants/appEnv rather than being spelled out here: the file it
+ * @store/shared/constants/appEnv rather than being spelled out here: the file it
  * points at lives in another project, and nothing would report a 404 on it —
  * the mail would simply arrive with a hole where the logo was.
  */

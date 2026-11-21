@@ -3,7 +3,7 @@ import {
   PASSWORD_TOKEN_BYTES,
   PASSWORD_TOKEN_TTL_HOURS,
   type PasswordTokenPurpose,
-} from "@organza/shared/constants/passwordSetup";
+} from "@store/shared/constants/passwordSetup";
 import type {
   IssuedPasswordToken,
   PasswordTokenService,

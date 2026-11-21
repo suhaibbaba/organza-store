@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslations } from "next-intl";
 import { Alert, Button, FormField, Modal, PasswordInput, useToast } from "@store/ui";
-import { fieldTestSelector } from "@organza/shared/lib/testSelector";
+import { fieldTestSelector } from "@store/shared/lib/testSelector";
 import { useChangePasswordMutation } from "@/hooks/use-profile";
 import { useTranslateError } from "@/hooks/use-translate-error";
 import { fieldErrorKey } from "@/lib/field-error-key";

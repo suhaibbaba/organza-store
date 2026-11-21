@@ -2,10 +2,10 @@
 
 import { useLocale } from "next-intl";
 import { Table, type Column, type TableSort, Typography } from "@store/ui";
-import type { OrderSummary } from "@organza/shared/types/order";
-import type { Pagination } from "@organza/shared/types/common";
-import { PAGE_SIZE_OPTIONS } from "@organza/shared/constants/pagination";
-import { isOrderCollectable } from "@organza/shared/lib/orders";
+import type { OrderSummary } from "@store/shared/types/order";
+import type { Pagination } from "@store/shared/types/common";
+import { PAGE_SIZE_OPTIONS } from "@store/shared/constants/pagination";
+import { isOrderCollectable } from "@store/shared/lib/orders";
 import { formatDate, formatTime } from "@/lib/format";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
 import { useOrderRowMenu } from "@/components/orders/order-row-menu";

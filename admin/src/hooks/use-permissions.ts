@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import type { PermissionMatrixPayload } from "@organza/shared/types/permission";
-import { applyPermissionMatrixPayload } from "@organza/shared/lib/permissions";
+import type { PermissionMatrixPayload } from "@store/shared/types/permission";
+import { applyPermissionMatrixPayload } from "@store/shared/lib/permissions";
 import { PERMISSIONS_QUERY_KEY } from "@/constants/api";
 import { updateRolePermissions } from "@/lib/api/permissions";
 

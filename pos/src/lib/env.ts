@@ -1,4 +1,4 @@
-import { resolveAppEnv } from "@organza/shared/constants/appEnv";
+import { resolveAppEnv } from "@store/shared/constants/appEnv";
 
 // NEXT_PUBLIC_* vars are inlined at build time and safe to read on the client.
 export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
@@ -6,10 +6,12 @@ export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost
 // package.json + the repo's commit count). The fallback only ever shows in a
 // build that skipped the config — a dev server started oddly — and is
 // deliberately obviously-not-a-release.
+// The installed app's own name, set per deployment as a build arg.
+export const APP_NAME = process.env.NEXT_PUBLIC_APP_NAME || "Store POS";
 export const APP_VERSION = process.env.NEXT_PUBLIC_APP_VERSION ?? "0.0.0";
 
 // Which deployment this build belongs to — the sandbox stack or the live shop
-// (@organza/shared/constants/appEnv). Stated rather than inferred: both stacks run
+// (@store/shared/constants/appEnv). Stated rather than inferred: both stacks run
 // with NODE_ENV=production, so nothing else in the bundle can tell them apart.
 //
 // process.env.NEXT_PUBLIC_APP_ENV is written out in full because that is what

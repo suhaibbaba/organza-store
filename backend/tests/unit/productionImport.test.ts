@@ -16,9 +16,9 @@ import {
 // OWN, with every other condition satisfied, because "one of the four would
 // have caught it" is only true if each of the four actually does.
 
-const SANDBOX_URL = "postgresql://app:pw@db-sandbox:5432/organza_sandbox?schema=public";
-const PRODUCTION_URL = "postgresql://reader:pw@db-live:5432/organza?schema=public";
-const SANDBOX_DATABASE = "organza_sandbox";
+const SANDBOX_URL = "postgresql://app:pw@db-sandbox:5432/store_sandbox?schema=public";
+const PRODUCTION_URL = "postgresql://reader:pw@db-live:5432/store?schema=public";
+const SANDBOX_DATABASE = "store_sandbox";
 
 const APP_ENV = "APP_ENV";
 const TOUCHED = [APP_ENV, "DATABASE_URL", PRODUCTION_IMPORT_ENV.databaseUrl, PRODUCTION_IMPORT_ENV.confirm];
@@ -51,7 +51,7 @@ describe("Production import — the target", () => {
     setValidRun();
     const endpoints = resolveImportEndpoints();
     expect(endpoints.targetDatabase).toBe(SANDBOX_DATABASE);
-    expect(endpoints.target).toBe("db-sandbox:5432/organza_sandbox");
+    expect(endpoints.target).toBe("db-sandbox:5432/store_sandbox");
     expect(() => assertConfirmedTarget(endpoints)).not.toThrow();
   });
 
@@ -66,7 +66,7 @@ describe("Production import — the target", () => {
   });
 
   it('refuses a database whose name does not contain "sandbox", however APP_ENV is set', () => {
-    setValidRun({ DATABASE_URL: PRODUCTION_URL, [PRODUCTION_IMPORT_ENV.confirm]: "organza" });
+    setValidRun({ DATABASE_URL: PRODUCTION_URL, [PRODUCTION_IMPORT_ENV.confirm]: "store" });
     expect(() => resolveImportEndpoints()).toThrow(/does not contain "sandbox"/);
   });
 
@@ -89,7 +89,7 @@ describe("Production import — the source", () => {
 
   it("treats a different user on the same host and database as the same database", () => {
     setValidRun({
-      [PRODUCTION_IMPORT_ENV.databaseUrl]: "postgresql://someone-else:pw@db-sandbox:5432/organza_sandbox",
+      [PRODUCTION_IMPORT_ENV.databaseUrl]: "postgresql://someone-else:pw@db-sandbox:5432/store_sandbox",
     });
     expect(() => resolveImportEndpoints()).toThrow(/same database/);
   });
@@ -116,7 +116,7 @@ describe("Production import — the confirmation", () => {
   });
 
   it("refuses a confirmation that names a different database", () => {
-    setValidRun({ [PRODUCTION_IMPORT_ENV.confirm]: "organza" });
+    setValidRun({ [PRODUCTION_IMPORT_ENV.confirm]: "store" });
     expect(() => assertConfirmedTarget(resolveImportEndpoints())).toThrow(/is not this database's name/);
   });
 

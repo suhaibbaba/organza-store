@@ -1,6 +1,6 @@
 import type { I18n } from "@/types/common";
 
-// The data a real, empty Organza database needs before anybody can use it.
+// The data a real, empty database needs before anybody can use it.
 //
 // This is NOT sample data. There are no products here, no orders, no
 // accounts — only the lists the app cannot function without: the store
@@ -31,7 +31,7 @@ export const SETTING_SINGLETON_ID = "default";
 
 /** Store-wide defaults. Every one of them is editable from the admin's Settings screen afterwards. */
 export const BOOTSTRAP_SETTING = {
-  storeName: { ar: "أورجانزا", en: "Organza", he: "אורגנזה" } as I18n,
+  storeName: { ar: "متجري", en: "My store", he: "החנות שלי" } as I18n,
   defaultLanguage: "ar",
   supportedLanguages: ["ar", "en", "he"],
   currency: "ILS",

@@ -1,4 +1,4 @@
-export * from "@organza/shared/constants/validation";
+export * from "@store/shared/constants/validation";
 
 /**
  * What a rejected unknown field says in the ZodError's details.

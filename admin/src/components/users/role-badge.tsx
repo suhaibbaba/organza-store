@@ -1,6 +1,6 @@
 import { useTranslations } from "next-intl";
 import { Badge, type BadgeTone } from "@store/ui";
-import type { Role } from "@organza/shared/types/role";
+import type { Role } from "@store/shared/types/role";
 
 const ROLE_BADGE_TONES: Record<Role, BadgeTone> = {
   ADMIN: "info",

@@ -1,6 +1,6 @@
 {
   "app": {
-    "name": "אורגנזה",
+    "name": "ניהול חנות",
     "sandbox": "ניסיוני"
   },
   "common": {
@@ -79,7 +79,7 @@
       "title": "התחברות",
       "subtitle": "הזן/י אימייל וסיסמה כדי להמשיך.",
       "emailLabel": "אימייל",
-      "emailPlaceholder": "you@organza.test",
+      "emailPlaceholder": "you@store.test",
       "passwordLabel": "סיסמה",
       "passwordPlaceholder": "הזן/י סיסמה",
       "submit": "התחברות",
@@ -1804,7 +1804,7 @@
   },
   "designSystem": {
     "title": "מערכת עיצוב",
-    "subtitle": "כל רכיבי Store Management בכל המצבים, בערכת הנושא של אורגנזה.",
+    "subtitle": "כל רכיבי Store Management בכל המצבים, בערכת הנושא של החנות.",
     "adminOnly": "רק מנהל יכול לפתוח את מערכת העיצוב.",
     "sections": {
       "colours": "צבעים",
@@ -1841,7 +1841,7 @@
       "heading": "כותרת",
       "title": "כותרת עמוד",
       "kpi": "מדד",
-      "sample": "צעיף משי אורגנזה"
+      "sample": "צעיף משי"
     },
     "buttons": {
       "primary": "השלמת מכירה",

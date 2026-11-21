@@ -2,7 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { EmptyState, PageHeader } from "@store/ui";
-import { FIXED_ROLE } from "@organza/shared/constants/roles";
+import { FIXED_ROLE } from "@store/shared/constants/roles";
 import { useSession } from "@/components/providers/session-provider";
 import { Foundations } from "@/components/design-system/foundations";
 import { Controls } from "@/components/design-system/controls";

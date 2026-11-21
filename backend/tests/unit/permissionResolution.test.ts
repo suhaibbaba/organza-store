@@ -12,14 +12,14 @@ import {
   isProtectedAction,
   sanitizeConfigurableMatrix,
   setConfigurablePermissions,
-} from "@organza/shared/lib/permissions";
+} from "@store/shared/lib/permissions";
 import {
   CONFIGURABLE_ACTIONS,
   DEFAULT_ROLE_PERMISSIONS,
   PERMISSION_ACTIONS,
   PROTECTED_ACTIONS,
-} from "@organza/shared/constants/permissions";
-import { ROLES } from "@organza/shared/constants/roles";
+} from "@store/shared/constants/permissions";
+import { ROLES } from "@store/shared/constants/roles";
 
 afterEach(() => {
   setConfigurablePermissions(null);

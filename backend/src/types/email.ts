@@ -43,6 +43,8 @@ export interface EmailTransport {
  */
 export interface EmailLayoutInput {
   language: SupportedLanguage;
+  /** The shop's name from Settings, already in this email's language. */
+  storeName: string;
   /** Absolute URL of the shop's mark — see lib/email/templates/layout.ts. */
   logoUrl: string;
   /** The line the inbox shows beside the subject. */

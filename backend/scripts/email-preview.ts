@@ -2,7 +2,7 @@
 // ============================================================================
 //  npm run email:preview — render every email, in every language, to disk.
 //
-//  Sends nothing, needs no API key, and touches no database. It writes one
+//  Sends nothing, needs no API key, and touches no database (the store name is the default). It writes one
 //  .html and one .txt per template per language into tmp/email-preview/ (git
 //  ignored) and prints the paths, so the Arabic layout can be opened in a
 //  browser and CHECKED rather than assumed (CLAUDE.md: verify Arabic visually).
@@ -13,11 +13,12 @@
 import "dotenv/config";
 import fs from "node:fs/promises";
 import path from "node:path";
-import { SUPPORTED_LANGUAGES } from "@organza/shared/constants/languages";
-import { PASSWORD_TOKEN_PURPOSES } from "@organza/shared/constants/passwordSetup";
+import { SUPPORTED_LANGUAGES } from "@store/shared/constants/languages";
+import { PASSWORD_TOKEN_PURPOSES } from "@store/shared/constants/passwordSetup";
 import { renderPasswordSetupEmail } from "@/lib/email/templates/passwordSetup";
 import { emailConfig } from "@/lib/email";
-import { EMAIL_PREVIEW_DIR } from "@/constants";
+import { BOOTSTRAP_SETTING, EMAIL_PREVIEW_DIR } from "@/constants";
+import { localizeI18n } from "@store/shared/lib/i18n";
 
 // Obviously fake, and obviously long enough to show how a real one wraps in
 // the fallback-link paragraph.
@@ -40,7 +41,8 @@ async function main(): Promise<void> {
     for (const language of SUPPORTED_LANGUAGES) {
       const rendered = renderPasswordSetupEmail({
         language,
-        name: SAMPLE_NAMES[language] ?? "Organza",
+        name: SAMPLE_NAMES[language] ?? SAMPLE_NAMES.en,
+        storeName: localizeI18n(BOOTSTRAP_SETTING.storeName, language),
         token: SAMPLE_TOKEN,
         purpose,
         adminUrl,

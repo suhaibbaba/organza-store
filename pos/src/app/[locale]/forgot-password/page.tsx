@@ -2,18 +2,20 @@ import { getTranslations } from "next-intl/server";
 import { Card } from "@store/ui/components/card";
 import { ForgotPasswordForm } from "@/components/auth/forgot-password-form";
 import { LanguageSwitcher } from "@/components/layout/language-switcher";
+import { storeDisplayName } from "@/lib/store-name";
 
 // Public: somebody who cannot sign in cannot sign in to ask for a link.
 export default async function ForgotPasswordPage() {
   const t = await getTranslations("auth.forgotPassword");
   const tApp = await getTranslations("app");
+  const storeName = await storeDisplayName();
 
   return (
     <div className="flex min-h-dvh flex-col items-center justify-center gap-6 bg-canvas px-4 py-10">
       <LanguageSwitcher />
 
       <div className="w-full max-w-sm">
-        <p className="mb-1 text-center text-2xl font-semibold text-primary-600">{tApp("name")}</p>
+        <p className="mb-1 text-center text-2xl font-semibold text-primary-600">{storeName}</p>
         <p className="mb-6 text-center text-label text-ink-muted">{tApp("tagline")}</p>
 
         <Card className="flex flex-col gap-5">

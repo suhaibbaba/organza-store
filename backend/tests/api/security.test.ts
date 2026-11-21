@@ -66,7 +66,7 @@ describe("Security", () => {
 
     it("still lets an Admin create staff, which is the path that had to keep working", async () => {
       const admin = await getSession("ADMIN");
-      const email = `audit-staff-${uniqueId()}@organza.test`;
+      const email = `audit-staff-${uniqueId()}@store.test`;
 
       const res = await apiRequest<{ id: string; role: string; hasPassword: boolean }>("/api/users", {
         method: "POST",
@@ -140,7 +140,7 @@ describe("Security", () => {
       // A session of its own, so signing it out cannot disturb the cached
       // sessions every other test in the run is sharing.
       const admin = await getSession("ADMIN");
-      const email = `audit-logout-${uniqueId()}@organza.test`;
+      const email = `audit-logout-${uniqueId()}@store.test`;
       const password = `Aa1!${uniqueId()}${uniqueId()}`;
 
       const created = await apiRequest<{ id: string }>("/api/users", {

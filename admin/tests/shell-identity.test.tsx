@@ -16,7 +16,7 @@ import userEvent from "@testing-library/user-event";
 import { NextIntlClientProvider } from "next-intl";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ReactNode } from "react";
-import type { Role } from "@organza/shared/types/role";
+import type { Role } from "@store/shared/types/role";
 import messages from "@/messages/ar.json";
 import type { SessionUser } from "@/types/auth";
 
@@ -74,7 +74,7 @@ function renderShellHeader() {
 const ACCOUNTS: { role: Role; user: SessionUser; expectedName: string }[] = [
   {
     role: "ADMIN",
-    user: { id: "usr_1", name: "سهيب بابا", email: "admin@organza.test", role: "ADMIN", isActive: true },
+    user: { id: "usr_1", name: "سهيب بابا", email: "admin@store.test", role: "ADMIN", isActive: true },
     // Their own name, as stored.
     expectedName: "سهيب بابا",
   },
@@ -82,7 +82,7 @@ const ACCOUNTS: { role: Role; user: SessionUser; expectedName: string }[] = [
     role: "MANAGER",
     // No name on the account — which is the ordinary state of a staff account
     // created from a roster of addresses.
-    user: { id: "usr_2", name: "", email: "manager@organza.test", role: "MANAGER", isActive: true },
+    user: { id: "usr_2", name: "", email: "manager@store.test", role: "MANAGER", isActive: true },
     expectedName: "manager",
   },
   {
@@ -90,7 +90,7 @@ const ACCOUNTS: { role: Role; user: SessionUser; expectedName: string }[] = [
     // A stored name that is really an internal id. This is not hypothetical:
     // an API test renamed the sandbox's own account and never put it back, and
     // "Admin mt0grbxoqx7nbf" showed in the POS header for weeks.
-    user: { id: "usr_3", name: "mt0grbxoqx7nbf", email: "employee@organza.test", role: "EMPLOYEE", isActive: true },
+    user: { id: "usr_3", name: "mt0grbxoqx7nbf", email: "employee@store.test", role: "EMPLOYEE", isActive: true },
     expectedName: "employee",
   },
 ];

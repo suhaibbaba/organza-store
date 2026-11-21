@@ -289,22 +289,22 @@ describe("Staff roster file", () => {
 
     it("defaults to staff.json beside the repo, not inside backend/", () => {
       delete process.env[STAFF_FILE_ENV];
-      expect(resolveStaffFilePath([], "/opt/organza")).toBe(`/opt/organza/${DEFAULT_STAFF_FILE}`);
+      expect(resolveStaffFilePath([], "/opt/store")).toBe(`/opt/store/${DEFAULT_STAFF_FILE}`);
     });
 
     it("takes the environment variable over the default", () => {
       process.env[STAFF_FILE_ENV] = "/srv/roster.json";
-      expect(resolveStaffFilePath([], "/opt/organza")).toBe("/srv/roster.json");
+      expect(resolveStaffFilePath([], "/opt/store")).toBe("/srv/roster.json");
     });
 
     it("takes the flag over everything", () => {
       process.env[STAFF_FILE_ENV] = "/srv/roster.json";
-      expect(resolveStaffFilePath([INIT_FLAGS.accounts, "/tmp/other.json"], "/opt/organza")).toBe("/tmp/other.json");
+      expect(resolveStaffFilePath([INIT_FLAGS.accounts, "/tmp/other.json"], "/opt/store")).toBe("/tmp/other.json");
     });
 
     it("resolves a relative path against the working directory", () => {
       delete process.env[STAFF_FILE_ENV];
-      expect(resolveStaffFilePath([INIT_FLAGS.accounts, "./staff.json"], "/opt/organza")).toBe(
+      expect(resolveStaffFilePath([INIT_FLAGS.accounts, "./staff.json"], "/opt/store")).toBe(
         path.resolve("./staff.json")
       );
     });

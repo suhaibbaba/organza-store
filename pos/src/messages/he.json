@@ -1,6 +1,6 @@
 {
   "app": {
-    "name": "אורגנזה",
+    "name": "ניהול חנות",
     "tagline": "מסך מכירה",
     "sandbox": "ניסיוני"
   },
@@ -55,7 +55,7 @@
       "title": "התחברות",
       "subtitle": "הזן דוא\"ל וסיסמה כדי להמשיך.",
       "emailLabel": "דוא\"ל",
-      "emailPlaceholder": "you@organza.test",
+      "emailPlaceholder": "you@store.test",
       "passwordLabel": "סיסמה",
       "passwordPlaceholder": "הזן את הסיסמה",
       "submit": "התחברות",

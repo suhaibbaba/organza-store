@@ -1,6 +1,6 @@
-import { DEFAULT_PAGE, DEFAULT_PAGE_SIZE, SORT_DIRECTIONS } from "@organza/shared/constants/pagination";
-import { ROLES } from "@organza/shared/constants/roles";
-import { USER_SORT_FIELDS } from "@organza/shared/constants/user";
+import { DEFAULT_PAGE, DEFAULT_PAGE_SIZE, SORT_DIRECTIONS } from "@store/shared/constants/pagination";
+import { ROLES } from "@store/shared/constants/roles";
+import { USER_SORT_FIELDS } from "@store/shared/constants/user";
 import { urlParam } from "@/lib/url-filters";
 import type { UrlParams } from "@/types/urlFilters";
 import type { UserListFilters, UserSortOption } from "@/types/user";

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Organza — back up the two things that cannot be rebuilt from git, TO ANOTHER
+# Store Management — back up the two things that cannot be rebuilt from git, TO ANOTHER
 # COMPANY'S DISK: the database, and the uploaded product photographs.
 #
 #   STACK=production ./ops/backup.sh              # the nightly run (cron calls this)
@@ -129,8 +129,7 @@ trap 'fail "$CURRENT_STAGE" "the script exited unexpectedly (see the output abov
 ops_load_env
 DB_PREFIX="$(ops_db_prefix "$STACK_PROJECT")"
 UPLOADS_PREFIX="$(ops_uploads_prefix "$STACK_PROJECT")"
-# The project name already carries the "organza-" prefix, so it is not
-# repeated here.
+# The project name already names the stack, so it is not repeated here.
 DUMP_NAME="$STACK_PROJECT-$STAMP.dump"
 
 DEST="$DEST_ROOT/$STACK_PROJECT/$STAMP"
@@ -143,7 +142,7 @@ OPS_WORK_DIR="$DEST"
 [ "$LOCAL_ONLY" = "1" ] || ops_require_r2
 
 echo "$RULE"
-echo "  Organza backup — $(date -u +%Y-%m-%d\ %H:%M:%SZ)"
+echo "  Store Management backup — $(date -u +%Y-%m-%d\ %H:%M:%SZ)"
 echo "$RULE"
 ops_print_target
 echo "  Local    : $DEST"

@@ -1,6 +1,6 @@
-import { DEFAULT_PAGE, DEFAULT_PAGE_SIZE } from "@organza/shared/constants/pagination";
+import { DEFAULT_PAGE, DEFAULT_PAGE_SIZE } from "@store/shared/constants/pagination";
 import type { ChangeRequestListFilters } from "@/types/changeRequest";
-import { CHANGE_REQUEST_STATUSES } from "@organza/shared/constants/changeRequest";
+import { CHANGE_REQUEST_STATUSES } from "@store/shared/constants/changeRequest";
 import { urlParam } from "@/lib/url-filters";
 import type { UrlParams } from "@/types/urlFilters";
 

@@ -2,9 +2,9 @@
 
 import { useTranslations } from "next-intl";
 import { Alert, SaveBar, TotalBadge } from "@store/ui";
-import { can } from "@organza/shared/lib/permissions";
-import { DEFAULT_PAGE } from "@organza/shared/constants/pagination";
-import { DEFAULT_LOW_STOCK_THRESHOLD } from "@organza/shared/constants/inventory";
+import { can } from "@store/shared/lib/permissions";
+import { DEFAULT_PAGE } from "@store/shared/constants/pagination";
+import { DEFAULT_LOW_STOCK_THRESHOLD } from "@store/shared/constants/inventory";
 import { RoleGuard } from "@/components/auth/role-guard";
 import { PageContainer } from "@/components/layout/page-container";
 import { PageHeader } from "@/components/layout/page-header";

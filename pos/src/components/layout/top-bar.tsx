@@ -1,10 +1,10 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useTranslations } from "next-intl";
 import { AccountMenu } from "@/components/layout/account-menu";
 import { LanguageSwitcher } from "@/components/layout/language-switcher";
 import { EnvironmentBadge } from "@/components/layout/environment-badge";
+import { useStoreName } from "@/hooks/use-store-name";
 import { LOGO_ICON_SIZE, pwaIconPath } from "@/constants/pwa";
 
 interface TopBarProps {
@@ -13,7 +13,7 @@ interface TopBarProps {
 }
 
 export function TopBar({ tools }: TopBarProps) {
-  const t = useTranslations();
+  const storeName = useStoreName();
 
   return (
     <header
@@ -26,7 +26,7 @@ export function TopBar({ tools }: TopBarProps) {
           {/* eslint-disable-next-line @next/next/no-img-element -- a fixed, pre-sized PWA icon. */}
           <img
             src={pwaIconPath(LOGO_ICON_SIZE)}
-            alt={t("app.name")}
+            alt={storeName}
             width={36}
             height={36}
             className="size-9 shrink-0 rounded-control"

@@ -2,8 +2,8 @@
 
 import { useTranslations } from "next-intl";
 import { MenuItem, RowMenu, useConfirm, useToast } from "@store/ui";
-import { ERROR_CODES } from "@organza/shared/constants/errors";
-import type { User } from "@organza/shared/types/user";
+import { ERROR_CODES } from "@store/shared/constants/errors";
+import type { User } from "@store/shared/types/user";
 import { useToggleUserActiveMutation } from "@/hooks/use-users";
 import { useUserDisplay } from "@/lib/user-display";
 import { ApiError } from "@/lib/api/errors";

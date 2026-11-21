@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { AppError } from "@/lib/response";
 import { ERROR_CODES } from "@/constants";
-import { dualPrefixCandidates, isValidE164 } from "@organza/shared/lib/phone";
+import { dualPrefixCandidates, isValidE164 } from "@store/shared/lib/phone";
 
 export { isValidE164, dualPrefixCandidates };
 

@@ -16,16 +16,16 @@ import {
   Typography,
 } from "@store/ui";
 import { splitPhone } from "@store/ui/lib/support/phone";
-import { ERROR_CODES } from "@organza/shared/constants/errors";
+import { ERROR_CODES } from "@store/shared/constants/errors";
 import {
   coordinatesFromMapLink,
   googleMapsUrl,
   isShortMapLink,
-} from "@organza/shared/lib/mapLink";
+} from "@store/shared/lib/mapLink";
 import {
   fieldErrorTestSelector,
   fieldTestSelector,
-} from "@organza/shared/lib/testSelector";
+} from "@store/shared/lib/testSelector";
 import { useSettingsQuery } from "@/hooks/use-settings";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { MAP_LINK_RESOLVE_DEBOUNCE_MS } from "@/constants/orders";

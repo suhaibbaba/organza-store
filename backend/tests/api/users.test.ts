@@ -35,7 +35,7 @@ describe("Users", () => {
       token: admin.token,
       body: {
         name: `Vitest User ${nonce}`,
-        email: `vitest.${nonce}@organza.test`,
+        email: `vitest.${nonce}@store.test`,
         password: SEEDED_PASSWORD,
         role: Role.EMPLOYEE,
         phone,
@@ -55,7 +55,7 @@ describe("Users", () => {
       token: admin.token,
       body: {
         name: `Vitest Dual A ${nonce}`,
-        email: `vitest.dual-a.${nonce}@organza.test`,
+        email: `vitest.dual-a.${nonce}@store.test`,
         password: SEEDED_PASSWORD,
         role: Role.EMPLOYEE,
         phone,
@@ -69,7 +69,7 @@ describe("Users", () => {
       token: admin.token,
       body: {
         name: `Vitest Dual B ${nonce}`,
-        email: `vitest.dual-b.${nonce}@organza.test`,
+        email: `vitest.dual-b.${nonce}@store.test`,
         password: SEEDED_PASSWORD,
         role: Role.EMPLOYEE,
         phone: samePhoneUnderOtherPrefix(phone),
@@ -86,7 +86,7 @@ describe("Users", () => {
       token: admin.token,
       body: {
         name: `Vitest Invalid ${nonce}`,
-        email: `vitest.invalid.${nonce}@organza.test`,
+        email: `vitest.invalid.${nonce}@store.test`,
         password: SEEDED_PASSWORD,
         role: Role.EMPLOYEE,
         phone: "0599123456", // missing the required leading '+'
@@ -103,7 +103,7 @@ describe("Users", () => {
       token: admin.token,
       body: {
         name: `Vitest Garbage ${nonce}`,
-        email: `vitest.garbage.${nonce}@organza.test`,
+        email: `vitest.garbage.${nonce}@store.test`,
         password: SEEDED_PASSWORD,
         role: Role.EMPLOYEE,
         phone: "+not-a-real-phone#$%",
@@ -120,7 +120,7 @@ describe("Users", () => {
       token: admin.token,
       body: {
         name: `Vitest Empty ${nonce}`,
-        email: `vitest.empty.${nonce}@organza.test`,
+        email: `vitest.empty.${nonce}@store.test`,
         password: SEEDED_PASSWORD,
         role: Role.EMPLOYEE,
         phone: "",
@@ -139,7 +139,7 @@ describe("Users", () => {
       token: admin.token,
       body: {
         name: `Vitest Invited ${nonce}`,
-        email: `vitest.invited.${nonce}@organza.test`,
+        email: `vitest.invited.${nonce}@store.test`,
         role: Role.EMPLOYEE,
         phone: randomPalestinePhone(),
       },

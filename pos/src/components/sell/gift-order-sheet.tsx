@@ -7,7 +7,7 @@ import { localize } from "@/lib/i18n-content";
 import { useTranslateError } from "@/hooks/use-translate-error";
 import { GIFT_NOTE_MAX_LENGTH } from "@/constants/pos";
 import { Alert, Button, Textarea } from "@store/ui";
-import { fieldTestSelector } from "@organza/shared/lib/testSelector";
+import { fieldTestSelector } from "@store/shared/lib/testSelector";
 import { BottomSheet } from "@/components/sell/bottom-sheet";
 import { GIFT_BUTTON, SHEET_ACTION } from "@/components/sell/sheet-styles";
 import type { CartLine } from "@/types/cart";

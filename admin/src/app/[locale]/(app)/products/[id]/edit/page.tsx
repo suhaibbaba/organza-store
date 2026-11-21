@@ -5,7 +5,7 @@ import { useState } from "react";
 import { useParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { EmptyState } from "@store/ui";
-import { can } from "@organza/shared/lib/permissions";
+import { can } from "@store/shared/lib/permissions";
 import { PageContainer } from "@/components/layout/page-container";
 import { PageHeader } from "@/components/layout/page-header";
 import { useSession } from "@/components/providers/session-provider";

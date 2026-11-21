@@ -1,25 +1,45 @@
 // Where this run is pointed, and whether it is allowed to go there.
 //
-// Resolved once, at module load, from API_URL — defaulting to the sandbox so
+// Resolved once, at module load, from API_URL — defaulting to SANDBOX_API_URL, then localhost, so
 // that a bare `vitest` can never accidentally mean "the live shop". The guard
 // below is what every entry point (tests/setup.ts and scripts/verify.ts)
 // calls before the first request goes out.
 import {
   ALLOW_TODAY_DRAWER_ENV,
+  DEFAULT_API_URL,
   KEEP_FIXTURES_ENV,
   LOCAL_HOSTS,
-  PRODUCTION_HOSTS,
+  PRODUCTION_API_URL_ENV,
+  PRODUCTION_HOST_PREFIXES,
   PRODUCTION_OVERRIDE_ENV,
   PRODUCTION_OVERRIDE_VALUE,
   SAFE_TARGET_KINDS,
-  SANDBOX_API_URL,
+  SANDBOX_API_URL_ENV,
   SANDBOX_HOST_PATTERN,
 } from "@tests/constants";
 import type { ResolvedTarget, TargetKind } from "@tests/types";
 
-function classify(host: string): TargetKind {
+function bareHost(host: string): string {
   const lower = host.toLowerCase();
-  if ((PRODUCTION_HOSTS as readonly string[]).includes(lower)) return "production";
+  const prefix = PRODUCTION_HOST_PREFIXES.find((one) => lower.startsWith(one));
+  return prefix ? lower.slice(prefix.length) : lower;
+}
+
+function productionHost(): string | null {
+  const raw = process.env[PRODUCTION_API_URL_ENV]?.trim();
+  if (!raw) return null;
+  try {
+    return bareHost(new URL(raw).hostname);
+  } catch {
+    return null;
+  }
+}
+
+const SANDBOX_API_URL = process.env[SANDBOX_API_URL_ENV]?.trim() || DEFAULT_API_URL;
+
+export function classify(host: string, liveHost: string | null = productionHost()): TargetKind {
+  const lower = host.toLowerCase();
+  if (liveHost && bareHost(lower) === liveHost) return "production";
   if (SANDBOX_HOST_PATTERN.test(lower)) return "sandbox";
   if ((LOCAL_HOSTS as readonly string[]).includes(lower)) return "local";
   // Never heard of it. Treated as the live shop until someone says otherwise
@@ -38,7 +58,7 @@ function resolve(): ResolvedTarget {
   } catch {
     throw new Error(
       `API_URL is not a valid URL: ${JSON.stringify(raw)}.\n` +
-        `Leave it unset to target the sandbox (${SANDBOX_API_URL}), or set a full origin such as http://localhost:4000.`
+        `Leave it unset to target ${SANDBOX_API_URL_ENV} (${SANDBOX_API_URL}), or set a full origin such as http://localhost:4000.`
     );
   }
 
@@ -95,7 +115,7 @@ function refusalMessage(target: ResolvedTarget): string {
     "  expenses and opens cash drawers. Against real data that is a stranger",
     "  ringing up sales on the shop's till.",
     "",
-    "  Run it against the sandbox instead (the default — just unset API_URL):",
+    `  Run it against the sandbox instead (the default — unset API_URL and set ${SANDBOX_API_URL_ENV}):`,
     `      ${SANDBOX_API_URL}`,
     "",
     "  If you genuinely mean the live shop, say so in full:",

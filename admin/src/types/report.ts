@@ -8,7 +8,7 @@ import type {
   SalesSummary,
   SalesTotals,
   TopSeller,
-} from "@organza/shared/types/report";
+} from "@store/shared/types/report";
 
 export type {
   ChannelSales,

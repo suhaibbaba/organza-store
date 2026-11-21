@@ -3,10 +3,10 @@
 import { useTranslations } from "next-intl";
 import { ArrowRight, Check, ListChecks, PackageMinus } from "lucide-react";
 import { Button, useToast, Typography } from "@store/ui";
-import { ERROR_CODES } from "@organza/shared/constants/errors";
-import { ONLINE_STOCK_DEDUCTION_STATUS, ORDER_STATUS_TRANSITIONS } from "@organza/shared/constants/order";
-import type { Order, OrderStatus } from "@organza/shared/types/order";
-import { testSelectorFor } from "@organza/shared/lib/testSelector";
+import { ERROR_CODES } from "@store/shared/constants/errors";
+import { ONLINE_STOCK_DEDUCTION_STATUS, ORDER_STATUS_TRANSITIONS } from "@store/shared/constants/order";
+import type { Order, OrderStatus } from "@store/shared/types/order";
+import { testSelectorFor } from "@store/shared/lib/testSelector";
 import { ONLINE_ORDER_FLOW } from "@/constants/orders";
 import { useUpdateOrderStatusMutation } from "@/hooks/use-orders";
 import { ApiError } from "@/lib/api/errors";

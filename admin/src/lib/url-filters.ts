@@ -1,4 +1,4 @@
-import { PAGE_SIZE_OPTIONS } from "@organza/shared/constants/pagination";
+import { PAGE_SIZE_OPTIONS } from "@store/shared/constants/pagination";
 import type { UrlParam, UrlParams } from "@/types/urlFilters";
 
 function oneOf<T extends string>(values: readonly T[]): UrlParam<T> {

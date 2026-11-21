@@ -51,7 +51,7 @@ async function main(): Promise<void> {
   });
 
   console.log(RULE);
-  console.log("  Organza — resetting the database");
+  console.log("  Store Management — resetting the database");
   console.log(RULE);
   console.log(`  Database : ${describeDatabase()}`);
   console.log(`  Uploads  : ${UPLOAD_DIR}`);

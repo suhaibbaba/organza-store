@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { imageEditSchema } from "@organza/shared/schemas/image";
+import { imageEditSchema } from "@store/shared/schemas/image";
 import { ERROR_CODES } from "@/constants";
 
 /**

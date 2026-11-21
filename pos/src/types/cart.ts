@@ -1,6 +1,6 @@
-import type { I18n } from "@organza/shared/types/common";
-import type { DiscountType } from "@organza/shared/types/order";
-import type { QuickSellItemInput } from "@organza/shared/schemas/order";
+import type { I18n } from "@store/shared/types/common";
+import type { DiscountType } from "@store/shared/types/order";
+import type { QuickSellItemInput } from "@store/shared/schemas/order";
 
 // One line in the open sale. Everything needed to render the line is copied
 // in when it is added, so scrolling the cart never re-fetches anything —

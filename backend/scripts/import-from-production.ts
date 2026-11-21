@@ -9,7 +9,7 @@
 //      "sandbox" in its own database name — two independent facts that have
 //      to agree, with no override for either;
 //    · the run must name the database it is about to empty
-//      (ORGANZA_IMPORT_CONFIRM=<database>);
+//      (STORE_IMPORT_CONFIRM=<database>);
 //    · the production connection is opened READ-ONLY at the server and is
 //      proven so — with a write that has to fail — before a row is read;
 //    · the client that reaches production never leaves lib/productionImport/
@@ -63,7 +63,7 @@ async function resolveUploadSource(argv: string[]): Promise<string | null> {
         "  Point it at production's UPLOAD_DIR as THIS machine can see it — the",
         "  mounted volume, or a copy synced across first. On the VPS that is:",
         "",
-        "      docker volume inspect organza-production_production_uploads",
+        "      docker volume inspect <production stack>_production_uploads",
         "",
         "  Or import the rows without the pictures, knowingly:",
         `      npm run import:prod -- ${PRODUCTION_IMPORT_FLAGS.skipImages}`,
@@ -143,7 +143,7 @@ async function main(): Promise<void> {
     productionUploadDir: uploadSource,
     onResolved: (endpoints) => {
       console.log(RULE);
-      console.log("  Organza — importing the production catalogue into the sandbox");
+      console.log("  Store Management — importing the production catalogue into the sandbox");
       console.log(RULE);
       console.log(`  Source   : ${endpoints.source}   (read-only)`);
       console.log(`  Target   : ${endpoints.target}`);

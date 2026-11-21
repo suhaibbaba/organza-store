@@ -2,7 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { Download } from "lucide-react";
-import { can } from "@organza/shared/lib/permissions";
+import { can } from "@store/shared/lib/permissions";
 import { Button, Tabs } from "@store/ui";
 import { DASHBOARD_PERIOD_TABS } from "@/constants/dashboard";
 import { useSession } from "@/components/providers/session-provider";

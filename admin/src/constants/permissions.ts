@@ -1,5 +1,5 @@
-import type { PermissionAction } from "@organza/shared/types/permission";
-import { PERMISSION_ACTIONS } from "@organza/shared/constants/permissions";
+import type { PermissionAction } from "@store/shared/types/permission";
+import { PERMISSION_ACTIONS } from "@store/shared/constants/permissions";
 
 /**
  * The Permissions screen, laid out the way somebody running a shop thinks

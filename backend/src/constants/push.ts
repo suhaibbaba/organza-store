@@ -1,4 +1,4 @@
-export * from "@organza/shared/constants/push";
+export * from "@store/shared/constants/push";
 
 // Environment variables holding the VAPID identity of this server. Generated
 // once per deployment (`npx web-push generate-vapid-keys`) and kept in the

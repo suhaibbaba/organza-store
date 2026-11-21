@@ -148,8 +148,8 @@ describe("Dangerous command guards", () => {
 
   describe("what the refusal prints", () => {
     it("names the database without ever printing its password", () => {
-      const described = describeDatabase("postgresql://organza:hunter2@db.example.com:5432/organza?schema=public");
-      expect(described).toBe("db.example.com:5432/organza");
+      const described = describeDatabase("postgresql://store:hunter2@db.example.com:5432/store?schema=public");
+      expect(described).toBe("db.example.com:5432/store");
       expect(described).not.toContain("hunter2");
     });
 

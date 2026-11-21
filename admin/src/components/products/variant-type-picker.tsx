@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Plus } from "lucide-react";
 import { Button, Chip, Input, Section, Switch } from "@store/ui";
-import type { VariantType } from "@organza/shared/types/variant";
+import type { VariantType } from "@store/shared/types/variant";
 import { localize } from "@/lib/i18n-content";
 import { useTranslateError } from "@/hooks/use-translate-error";
 import { useAddOptionValueMutation, useCreateVariantTypeMutation } from "@/hooks/use-variant-types";

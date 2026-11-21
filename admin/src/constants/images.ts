@@ -13,7 +13,7 @@ export const IMAGE_GRID_THUMB_SIZES = "(min-width: 768px) 120px, 30vw";
 // The photo editor (components/products/image-editor-sheet.tsx)
 // ---------------------------------------------------------------------------
 // The catalogue's 2:3 and the zoom range are shared with the backend
-// (@organza/shared/constants/image) — they decide what is actually stored.
+// (@store/shared/constants/image) — they decide what is actually stored.
 // What lives here is only how the editor is drawn.
 
 /**

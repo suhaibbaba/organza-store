@@ -1,4 +1,4 @@
-import { SUPPORTED_LANGUAGES } from "@organza/shared/constants/languages";
+import { SUPPORTED_LANGUAGES } from "@store/shared/constants/languages";
 import { normalize, normalizedValues, withArticleVariants } from "@/lib/search/normalize";
 import type { SearchCategoryNode, ProductSearchDocument, SearchProductRow } from "@/types/search";
 

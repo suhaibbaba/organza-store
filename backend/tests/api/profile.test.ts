@@ -5,7 +5,7 @@ import { getSession, signIn } from "@tests/support/auth";
 import { randomPalestinePhone, samePhoneUnderOtherPrefix } from "@tests/support/phone";
 import { SEEDED_PASSWORD } from "@tests/constants";
 import { ERROR_CODES } from "@/constants";
-import type { Profile, ProfileSession } from "@organza/shared/types/profile";
+import type { Profile, ProfileSession } from "@store/shared/types/profile";
 import type { StaffAccountView } from "@tests/types";
 
 const NEW_PASSWORD = `${SEEDED_PASSWORD}-new`;
@@ -20,7 +20,7 @@ describe("My profile", () => {
       token: admin.token,
       body: {
         name: `Vitest ${label}`,
-        email: `vitest.${label}.${uniqueId()}@organza.test`,
+        email: `vitest.${label}.${uniqueId()}@store.test`,
         password: SEEDED_PASSWORD,
         role: "EMPLOYEE",
         phone: randomPalestinePhone(),
@@ -71,7 +71,7 @@ describe("My profile", () => {
     expect(ok.status).toBe(200);
     expect(ok.data).toMatchObject({ name: "Vitest renamed", phone, whatsapp: phone, locale: "en" });
 
-    for (const body of [{ role: "ADMIN" }, { email: "x@organza.test" }, { idNumber: "123" }]) {
+    for (const body of [{ role: "ADMIN" }, { email: "x@store.test" }, { idNumber: "123" }]) {
       const refused = await apiRequest("/api/me", { method: "PATCH", token, body });
       expect(refused.status, JSON.stringify(body)).toBe(400);
     }

@@ -1,5 +1,5 @@
-import type { Setting } from "@organza/shared/types/setting";
-import type { UpdateSettingInput } from "@organza/shared/schemas/setting";
+import type { Setting } from "@store/shared/types/setting";
+import type { UpdateSettingInput } from "@store/shared/schemas/setting";
 import { apiFetch } from "@/lib/api/client";
 import { BRAND_IMAGE_API_PATHS } from "@/constants/settings";
 import type { BrandImageKind } from "@/types/settings";

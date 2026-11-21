@@ -1,6 +1,6 @@
-import type { Product } from "@organza/shared/types/product";
-import type { Variant } from "@organza/shared/types/variant";
-import type { UpdateVariantInput } from "@organza/shared/schemas/product";
+import type { Product } from "@store/shared/types/product";
+import type { Variant } from "@store/shared/types/variant";
+import type { UpdateVariantInput } from "@store/shared/schemas/product";
 import { isNonNegativeIntegerString } from "@/lib/validation/numeric";
 import { DEFAULT_POINT_STOCK } from "@/constants/numberedShawl";
 import { initOptionValueNotes, type OptionValueNoteMap } from "@/lib/option-value-notes";

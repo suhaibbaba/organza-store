@@ -1,5 +1,5 @@
-import { normalizeOptionValueNote } from "@organza/shared/lib/optionValueNotes";
-import type { OptionValueNoteInput } from "@organza/shared/schemas/product";
+import { normalizeOptionValueNote } from "@store/shared/lib/optionValueNotes";
+import type { OptionValueNoteInput } from "@store/shared/schemas/product";
 import { prisma } from "@/lib/prisma";
 import { AppError } from "@/lib/response";
 import { ERROR_CODES } from "@/constants";

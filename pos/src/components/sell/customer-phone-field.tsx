@@ -4,8 +4,8 @@ import { useTranslations } from "next-intl";
 import { History } from "lucide-react";
 import { PhoneCountryProvider, PhoneInput, Spinner } from "@store/ui";
 import { DEFAULT_PHONE_COUNTRY, PHONE_COUNTRIES, type PhoneCountry } from "@store/ui/lib/support/phone";
-import type { CustomerSuggestion } from "@organza/shared/types/order";
-import { fieldTestSelector } from "@organza/shared/lib/testSelector";
+import type { CustomerSuggestion } from "@store/shared/types/order";
+import { fieldTestSelector } from "@store/shared/lib/testSelector";
 import { useCustomerSuggestions } from "@/hooks/use-customer-suggestions";
 import { useSettingsQuery } from "@/hooks/use-settings";
 

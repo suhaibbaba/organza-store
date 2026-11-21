@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { ChevronDown, ChevronRight, Pencil, Star, Trash2 } from "lucide-react";
-import type { CategoryNode } from "@organza/shared/types/category";
-import { testSelectorFor } from "@organza/shared/lib/testSelector";
+import type { CategoryNode } from "@store/shared/types/category";
+import { testSelectorFor } from "@store/shared/lib/testSelector";
 import { localize } from "@/lib/i18n-content";
 import { Spinner } from "@store/ui";
 import { cn } from "@/lib/utils";

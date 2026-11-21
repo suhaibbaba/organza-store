@@ -7,7 +7,7 @@ import { usePathname, useRouter } from "@/i18n/navigation";
 import { routing, type AppLocale } from "@/i18n/routing";
 import { LOCALE_LABELS } from "@/constants/locale";
 import { cn } from "@/lib/utils";
-import { testSelectorFor } from "@organza/shared/lib/testSelector";
+import { testSelectorFor } from "@store/shared/lib/testSelector";
 import { useRememberLocale } from "@/hooks/use-profile";
 
 interface LanguageSwitcherProps {

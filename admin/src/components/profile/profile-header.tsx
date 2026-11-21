@@ -2,7 +2,7 @@
 
 import { useLocale, useTranslations } from "next-intl";
 import { Avatar, Typography } from "@store/ui";
-import type { Profile } from "@organza/shared/types/profile";
+import type { Profile } from "@store/shared/types/profile";
 import { RoleBadge } from "@/components/users/role-badge";
 import { PROFILE_AVATAR_SIZE } from "@/constants/profile";
 import { formatDate } from "@/lib/format";

@@ -11,7 +11,7 @@ import {
   fieldTestSelector,
   testSelectorFor,
   toSelectorName,
-} from "@organza/shared/lib/testSelector";
+} from "@store/shared/lib/testSelector";
 
 describe("the house spelling", () => {
   it("is lower case and hyphenated, whatever it is built from", () => {

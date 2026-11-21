@@ -1,5 +1,5 @@
 /*
- * Organza Admin — service worker.
+ * Store Admin — service worker.
  *
  * Three jobs, and only three:
  *   1. Make the installed app open instantly and survive a weak connection,
@@ -45,7 +45,7 @@ const LOCALE_COOKIE_NAME = params.get("localeCookie") || "";
 // reason as the offline pages: this file knows no app routes of its own.
 const PUSH_MESSAGES_BASE_PATH = params.get("messages") || "";
 
-const CACHE_PREFIX = "organza-admin";
+const CACHE_PREFIX = "store-admin";
 // Versioned: every deploy starts with an empty shell cache, so nobody is left
 // opening an HTML document from a build that no longer exists.
 const SHELL_CACHE = `${CACHE_PREFIX}-shell-${VERSION}`;
@@ -109,7 +109,7 @@ self.addEventListener("activate", (event) => {
       const names = await caches.keys();
       await Promise.all(
         names
-          .filter((name) => name.startsWith(CACHE_PREFIX) && name !== SHELL_CACHE && name !== ASSET_CACHE)
+          .filter((name) => name !== SHELL_CACHE && name !== ASSET_CACHE)
           .map((name) => caches.delete(name))
       );
       await trimCache(ASSET_CACHE, MAX_ASSET_ENTRIES);

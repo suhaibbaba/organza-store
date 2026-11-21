@@ -3,8 +3,8 @@
 import { useLocale, useTranslations } from "next-intl";
 import { Plus } from "lucide-react";
 import { Alert, CardButton, Input, Spinner, Typography } from "@store/ui";
-import type { ProductSummary } from "@organza/shared/types/product";
-import { testSelectorFor } from "@organza/shared/lib/testSelector";
+import type { ProductSummary } from "@store/shared/types/product";
+import { testSelectorFor } from "@store/shared/lib/testSelector";
 import { localize } from "@/lib/i18n-content";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
 import { useProductSearch } from "@/hooks/use-product-search";

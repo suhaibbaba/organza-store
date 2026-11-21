@@ -1,6 +1,6 @@
-# Organza Store — Backend
+# Store Management — Backend
 
-API for the Organza Store system. Node + Express + TypeScript + Prisma + PostgreSQL.
+API for the Store Management system. Node + Express + TypeScript + Prisma + PostgreSQL.
 Auth is [Better Auth](https://www.better-auth.com/), email + password only, admin-provisioned
 (no public sign-up). Staff choose their own passwords from a single-use emailed link — see
 [Going live](#going-live).
@@ -33,8 +33,8 @@ cp .env.example .env
 Create the database (adjust user/db names to match your `.env`):
 
 ```bash
-sudo -u postgres psql -c "CREATE ROLE organza WITH LOGIN PASSWORD 'organza_dev_pw' CREATEDB;"
-sudo -u postgres psql -c "CREATE DATABASE organza OWNER organza;"
+sudo -u postgres psql -c "CREATE ROLE store WITH LOGIN PASSWORD 'store_dev_pw' CREATEDB;"
+sudo -u postgres psql -c "CREATE DATABASE store OWNER store;"
 ```
 
 Apply migrations (creates all tables, including Better Auth's `user`/`session`/`account`/
@@ -71,7 +71,7 @@ session, etc.). Example, using an account from the demo seed:
 ```bash
 curl -X POST http://localhost:4000/api/auth/sign-in/email \
   -H "Content-Type: application/json" \
-  -d '{"email":"admin@organza.test","password":"password123"}'
+  -d '{"email":"admin@store.test","password":"password123"}'
 ```
 
 The response includes a session `token`. Every route below requires it, either as the
@@ -127,25 +127,26 @@ FAIL  2. Discounts & rounding      18 passed, 1 failed
 The suite is **not read-only**. It creates orders, moves stock, records expenses and opens cash
 drawers, so it decides where it is pointed before it sends a single request:
 
-- **The sandbox is the default.** With `API_URL` unset it targets
-  `https://api.sandbox.organza-moda.com`.
-- **Production is refused**, loudly, with instructions — and so is *any host this suite does not
-  recognise*, which is treated as production until told otherwise. To override:
+- **The sandbox is the default.** With `API_URL` unset it targets `$SANDBOX_API_URL`, or
+  `http://localhost:4000` when that is unset too. No shop's address is written in the code.
+- **Production is refused**, loudly, with instructions: the host of `$PRODUCTION_API_URL` (and its
+  site and `www.` hosts), and *any host this suite does not recognise* — anything not local and not
+  saying `sandbox` — which is treated as production until told otherwise. To override:
 
   ```bash
-  ORGANZA_ALLOW_PRODUCTION=I-KNOW-THIS-IS-PRODUCTION npm run verify
+  STORE_ALLOW_PRODUCTION=I-KNOW-THIS-IS-PRODUCTION npm run verify
   ```
 
   which prints a large warning banner before it starts.
 - **Nothing is left behind.** Every product, order and expense the run creates is recorded from
   inside `apiRequest` (`tests/support/fixtureRegistry.ts`) and soft-deleted afterwards, and
   anything left waiting for an Admin is rejected — so the target ends the run in the state it
-  started it. Re-running changes no count. `ORGANZA_KEEP_FIXTURES=1` skips the teardown when
+  started it. Re-running changes no count. `STORE_KEEP_FIXTURES=1` skips the teardown when
   something needs inspecting by hand.
 - **A real trading day's cash session is never touched.** A drawer is one per calendar day and
   the API has no way to delete one, so the arithmetic is walked on synthetic dates in 2100+,
   which no sale can fall inside. The one assertion that needs a live window measures the drawer
-  **the shop has already opened**, or reports itself skipped. `ORGANZA_ALLOW_TODAY_DRAWER=1`
+  **the shop has already opened**, or reports itself skipped. `STORE_ALLOW_TODAY_DRAWER=1`
   lets it open one — only ever appropriate on a disposable database.
 
 `npm run api-test` and `npm run api-test:prod` still exist and run the same vitest suite without
@@ -244,7 +245,7 @@ Any status before the courier handover may go to `CANCELLED` (which puts committ
 A parcel the customer refuses comes back as a return, not a cancellation, so stock and money
 move together.
 `RETURNED` is reachable only through the returns endpoint, so stock and `returnedQuantity`
-always move together. The legal-move table lives in `@organza/shared/constants/order`
+always move together. The legal-move table lives in `@store/shared/constants/order`
 (`ORDER_STATUS_TRANSITIONS`) so the backend gate and the frontends' buttons read one source.
 
 Orders are **soft-deleted** (`deletedAt`), like products — a sale is a financial record, so
@@ -384,7 +385,7 @@ nothing here happens as a side effect of a deploy, and nothing here creates samp
 
 ```bash
 # 0. only when starting over — DESTRUCTIVE, see below
-ORGANZA_DB_RESET_CONFIRM=I-KNOW-THIS-DELETES-EVERYTHING npm run db:reset
+STORE_DB_RESET_CONFIRM=I-KNOW-THIS-DELETES-EVERYTHING npm run db:reset
 
 # 1. schema
 npx prisma migrate deploy
@@ -436,7 +437,7 @@ malformed or duplicate emails, invalid or duplicate numbers, missing fields, str
 every problem is reported at once, naming the entry:
 
 ```
-7 problem(s) in /opt/organza/sandbox/staff.json:
+7 problem(s) in /opt/store/sandbox/staff.json:
   • entry #1 (one@example.com) — role: unknown role "OWNER" — one of ADMIN, MANAGER, EMPLOYEE
   • entry #3 (three@example.com) — phone: already used by entry #1 (one@example.com) — the same
     line written under the other prefix (+970/+972)
@@ -450,8 +451,8 @@ has users and so could not finish the job on a second run.
 Where the file is, in precedence order:
 
 ```bash
-npm run init -- --accounts /srv/organza/staff.json   # flag wins
-ORGANZA_STAFF_FILE=/srv/organza/staff.json npm run init
+npm run init -- --accounts /srv/store/staff.json   # flag wins
+STORE_STAFF_FILE=/srv/store/staff.json npm run init
 npm run init                                          # <repo>/staff.json
 ```
 
@@ -469,7 +470,7 @@ docker compose -f docker-compose.sandbox.yml exec -T backend rm /tmp/staff.json
 |---|---|---|
 | `npm run bootstrap` | Creates the store settings singleton, the three global variant types with a starting set of values, and the five expense categories. Runs on every deploy. | **Yes** — the second run creates nothing. Each item is recorded in `BootstrapRecord` and created at most once in the life of the database, so a colour or an expense category the shop retires stays retired instead of coming back on the next push. A *new* default added in a later release still lands. |
 | `npm run init` | Creates every account in the staff roster (see above) with **no password**, and emails each of them a single-use "set your password" link. | **Yes, and the second run refuses** — it will not touch a database that already has any user in it. There is no partial mode: adding one more member of staff is the admin's Users screen. |
-| `npm run db:reset` | Drops every table, re-applies every migration, and deletes uploaded image files that no longer belong to any product. Seeds nothing. | **Yes** — the second run leaves an empty database empty. It refuses without `ORGANZA_DB_RESET_CONFIRM` typed out in full, every single time, and needs `ORGANZA_ALLOW_PRODUCTION=I-KNOW-THIS-IS-PRODUCTION` on top when `NODE_ENV=production`. |
+| `npm run db:reset` | Drops every table, re-applies every migration, and deletes uploaded image files that no longer belong to any product. Seeds nothing. | **Yes** — the second run leaves an empty database empty. It refuses without `STORE_DB_RESET_CONFIRM` typed out in full, every single time, and needs `STORE_ALLOW_PRODUCTION=I-KNOW-THIS-IS-PRODUCTION` on top when `NODE_ENV=production`. |
 | `npm run import:prod` | Copies the **live shop's catalogue** into the **sandbox** — products, categories, variants, images — after wiping the sandbox's own. Staff accounts survive. See [Importing the production catalogue](#importing-the-production-catalogue-into-the-sandbox). | **Yes** — it wipes first, so two runs leave byte-identical data. It refuses unless the target says *sandbox* in both `APP_ENV` and its database name, and unless the run names that database. |
 | `npm run email:preview` | Renders every email in every language to `tmp/email-preview/` (git-ignored). Sends nothing, needs no API key, touches no database. | Yes. |
 | `npm run backup:status` | Prints when the off-site backup last actually worked, the last failure and the last five runs. **Exits non-zero when the last success is over 48h old**, so a monitor can call it directly; `-- --json` for machines. Reads only. | Yes — it changes nothing. |
@@ -551,7 +552,7 @@ can actually write there:
 docker compose -f docker-compose.sandbox.yml logs backend | grep -i uploads
 # Uploads directory: /app/uploads (writable)
 
-curl -s https://api.sandbox.organza-moda.com/health
+curl -s "$SANDBOX_API_URL/health"
 # {"success":true,"data":{"status":"ok","uploadsWritable":true},"meta":null}
 ```
 
@@ -571,7 +572,7 @@ So `STACK=production ops/backup.sh` runs nightly from cron and puts both of them
 `s3 sync` of the photographs (only what changed that day). It keeps the last ~30 dumps and
 prunes the rest, **reads every dump all the way through** before trusting it, and checks
 the uploaded object's size against the local file. `ops/restore.sh` puts a backup back,
-and refuses production without `ORGANZA_ALLOW_PRODUCTION` on top of the usual
+and refuses production without `STORE_ALLOW_PRODUCTION` on top of the usual
 confirmation — the same two phrases `db:reset` uses.
 
 `STACK` is one word (`production` or `sandbox`) and derives both the compose file and the
@@ -610,7 +611,7 @@ categories and the real photographs — and nothing else.
 ```bash
 # on the SANDBOX server, over SSH
 docker compose -f docker-compose.sandbox.yml exec -T backend \
-  env ORGANZA_IMPORT_CONFIRM=<the sandbox's database name> \
+  env STORE_IMPORT_CONFIRM=<the sandbox's database name> \
   npm run import:prod
 ```
 
@@ -658,7 +659,7 @@ that direction is made structurally impossible rather than discouraged:
 2. **The target database's own name must contain `sandbox`.** An env var can be copied into the
    wrong compose file; the name travels with the data. Both have to agree.
 3. **The run must name the database it is about to empty** —
-   `ORGANZA_IMPORT_CONFIRM=<database>` — so a command pasted from elsewhere fires against
+   `STORE_IMPORT_CONFIRM=<database>` — so a command pasted from elsewhere fires against
    nothing.
 4. **Source and target must be different databases**, checked by host, port and name.
 5. **The production connection is read-only at the server.** `PRODUCTION_DATABASE_URL` is
@@ -695,8 +696,8 @@ npm run import:prod -- --skip-images
 Both variables live in the **sandbox's** `.env` and nowhere else (see `.env.example`):
 
 ```bash
-PRODUCTION_DATABASE_URL=postgresql://organza_readonly:…@…/organza?schema=public
-PRODUCTION_UPLOAD_DIR=/srv/organza/production-uploads
+PRODUCTION_DATABASE_URL=postgresql://store_readonly:…@…/<database>?schema=public
+PRODUCTION_UPLOAD_DIR=/srv/store/production-uploads
 ```
 
 The run prints what it wiped, what it imported and how many photographs came across, and ends by
@@ -710,16 +711,16 @@ deploy pipeline, and it refuses to run unless told the database is disposable �
 outright when `NODE_ENV=production`, with no override.
 
 ```bash
-ORGANZA_ALLOW_DEMO_SEED=I-KNOW-THIS-IS-NOT-PRODUCTION npm run seed:demo
+STORE_ALLOW_DEMO_SEED=I-KNOW-THIS-IS-NOT-PRODUCTION npm run seed:demo
 ```
 
 It creates one user per role (all `password123`) —
 
 | Email                    | Role     |
 |---------------------------|----------|
-| admin@organza.test        | ADMIN    |
-| manager@organza.test      | MANAGER  |
-| employee@organza.test     | EMPLOYEE |
+| admin@store.test        | ADMIN    |
+| manager@store.test      | MANAGER  |
+| employee@store.test     | EMPLOYEE |
 
 — plus nested categories, sample products covering every Phase 1 rule (simple, single-option,
 cartesian 2-option, price override, inherited price/cost, out-of-stock variant, hidden and
@@ -799,7 +800,7 @@ backend/
 
 Local modules are imported via the `@/` path alias (e.g. `@/lib/auth`), never relative paths.
 The shared cross-app package is a workspace dependency, imported by package name (e.g.
-`@organza/shared/schemas/product`), not through an alias.
+`@store/shared/schemas/product`), not through an alias.
 
 The repo is one npm workspace, so **install from the repo root, not from here**: a single
 `npm install` at the root wires up all four projects against one lockfile and compiles `shared/`

@@ -1,10 +1,10 @@
 import { z } from "zod";
-import { BARCODE_SOURCE, BARCODE_SOURCES } from "@organza/shared/constants/barcode";
-import { ERROR_CODES } from "@organza/shared/constants/errors";
-import { isValidBarcode, normalizeBarcode } from "@organza/shared/lib/barcode";
-import type { I18n } from "@organza/shared/types/common";
-import type { Product } from "@organza/shared/types/product";
-import type { CreateProductInput, OptionValueNoteInput, UpdateProductInput } from "@organza/shared/schemas/product";
+import { BARCODE_SOURCE, BARCODE_SOURCES } from "@store/shared/constants/barcode";
+import { ERROR_CODES } from "@store/shared/constants/errors";
+import { isValidBarcode, normalizeBarcode } from "@store/shared/lib/barcode";
+import type { I18n } from "@store/shared/types/common";
+import type { Product } from "@store/shared/types/product";
+import type { CreateProductInput, OptionValueNoteInput, UpdateProductInput } from "@store/shared/schemas/product";
 import { optionalDecimalField, optionalIntegerField, requiredDecimalField } from "@/lib/validation/numeric";
 import type { I18nFormValue, ProductEditAbilities } from "@/types/productForm";
 

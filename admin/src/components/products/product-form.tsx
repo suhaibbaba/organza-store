@@ -7,12 +7,12 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useLocale, useTranslations } from "next-intl";
 import { Alert, Button, Input, SaveBar, Section, Select, Switch, TranslatedField } from "@store/ui";
 import { PRODUCT_FORM_SECTIONS, type ProductFormSectionName } from "@/constants/products";
-import { SUPPORTED_LANGUAGES, DEFAULT_LANGUAGE } from "@organza/shared/constants/languages";
-import { NUMBER_VARIANT_TYPE_SLUG } from "@organza/shared/constants/variantType";
-import { ERROR_CODES } from "@organza/shared/constants/errors";
-import type { Product } from "@organza/shared/types/product";
-import { can } from "@organza/shared/lib/permissions";
-import { fieldErrorTestSelector, fieldTestSelector } from "@organza/shared/lib/testSelector";
+import { SUPPORTED_LANGUAGES, DEFAULT_LANGUAGE } from "@store/shared/constants/languages";
+import { NUMBER_VARIANT_TYPE_SLUG } from "@store/shared/constants/variantType";
+import { ERROR_CODES } from "@store/shared/constants/errors";
+import type { Product } from "@store/shared/types/product";
+import { can } from "@store/shared/lib/permissions";
+import { fieldErrorTestSelector, fieldTestSelector } from "@store/shared/lib/testSelector";
 import { useRouter } from "@/i18n/navigation";
 import { useSession } from "@/components/providers/session-provider";
 import { useTranslateError } from "@/hooks/use-translate-error";
@@ -27,7 +27,7 @@ import {
   useUpdateProductMutation,
   useUpdateVariantMutation,
 } from "@/hooks/use-products";
-import { DEFAULT_STOCK } from "@organza/shared/constants/quantity";
+import { DEFAULT_STOCK } from "@store/shared/constants/quantity";
 import { deleteVariant } from "@/lib/api/products";
 import {
   productBasicFormSchema,

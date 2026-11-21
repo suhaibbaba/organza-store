@@ -2,11 +2,11 @@ import type { ReactNode } from "react";
 import type { TableSort } from "@store/ui";
 import type { Control, FieldErrors, UseFormRegister, UseFormSetValue } from "react-hook-form";
 import type { LucideIcon } from "lucide-react";
-import type { I18n, Pagination } from "@organza/shared/types/common";
-import type { ListOrdersQuery } from "@organza/shared/schemas/order";
+import type { I18n, Pagination } from "@store/shared/types/common";
+import type { ListOrdersQuery } from "@store/shared/schemas/order";
 import type { OrderFormSectionName } from "@/constants/orders";
 import type { OrderCustomerFormValues } from "@/lib/validation/order-form";
-import type { DiscountType, OrderChannel, OrderStatus, OrderSummary, PaymentStatus } from "@organza/shared/types/order";
+import type { DiscountType, OrderChannel, OrderStatus, OrderSummary, PaymentStatus } from "@store/shared/types/order";
 
 // Mirrors ListOrdersQuery, but keeps "unset" distinct from the schema defaults and dates as yyyy-mm-dd.
 export interface OrderListFilters {

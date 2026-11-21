@@ -36,7 +36,7 @@ async function assertSessionIsReadOnly(client: PrismaClient, describedUrl: strin
   // it succeeds.
   let wrote = false;
   try {
-    await client.$executeRawUnsafe("CREATE TEMP TABLE organza_import_write_probe (probe integer)");
+    await client.$executeRawUnsafe("CREATE TEMP TABLE store_import_write_probe (probe integer)");
     wrote = true;
   } catch {
     // Exactly what a read-only session is supposed to do.

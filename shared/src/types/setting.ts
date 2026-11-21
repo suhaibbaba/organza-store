@@ -46,6 +46,7 @@ export type FaviconUrls = Record<FaviconSize, string>;
 
 // GET /api/branding — open to anyone, so a tab or a home-screen icon can draw it before sign-in.
 export interface Branding {
+  storeName: I18n;
   logoUrl: string | null;
   faviconUrls: FaviconUrls | null;
 }

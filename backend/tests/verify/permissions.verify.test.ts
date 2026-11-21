@@ -217,7 +217,7 @@ describe("Verify · permissions and data exposure", () => {
         token: manager,
         body: {
           name: `[verify] ${uniqueId()}`,
-          email: `verify-${uniqueId()}@organza.test`,
+          email: `verify-${uniqueId()}@store.test`,
           password: "password123",
           role: "EMPLOYEE",
           phone: randomPalestinePhone(),

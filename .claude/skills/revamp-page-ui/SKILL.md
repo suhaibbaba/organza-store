@@ -33,7 +33,7 @@ clinic app (`/Users/suhaibbaba/Projects/clinic-management-system/apps/web/src/mo
    hints `FormField`, toggles `Checkbox`/`Switch`, choices `SegmentedControl`, groups `Section`. A missing part
    is added to `@store/ui` (port it from operate/clinic when it exists there), demoed on `/design-system`,
    then used — never hand-built in the page. Theme-wide looks (colours, radii) change only in
-   `ui/src/themes/organza.*` or `ui/src/styles/base.css`, never per page.
+   `ui/src/themes/teal.*` or `ui/src/styles/base.css`, never per page.
 5. **Messages:** new keys in all three of `admin|pos/src/messages/{en,ar,he}.json`, real translations, no
    ICU `#`, a placeholder for every field. Props that take keys get full keys (see "Keys vs text").
 6. **Verify:** `npx tsc --noEmit` + `npx eslint <files>` in each touched app (and `ui/`); `npm run test -w admin`
@@ -264,8 +264,8 @@ clinic app (`/Users/suhaibbaba/Projects/clinic-management-system/apps/web/src/mo
 - Deleting a component before rewriting its importer leaves a Module-not-found in the console log:
   check the error's timestamp before treating it as current.
 - Date range filters use `DateRangePicker` in a `FormField`; the chip reads the days as local midnight.
-- **Colours come from the designer's palette (user, 2026-11-21)**, set ONLY in `ui/src/themes/organza.css` +
-  `organza.ts` (same values): dark-teal rail `#103F46`, active item `#197783`, canvas `#F1F7FA`, white cards,
+- **Colours come from the designer's palette (user, 2026-11-21)**, set ONLY in `ui/src/themes/teal.css` +
+  `teal.ts` (same values): dark-teal rail `#103F46`, active item `#197783`, canvas `#F1F7FA`, white cards,
   table heads/info areas `#F4F8FA`, ink `#102A3A`, borders `#DCE8EF`, green done `#16834A`/`#D8F5E5`, light-teal
   highlight `#E0F5F2`, soft teal-tinted shadows, 12px buttons. Never a raw hex in a page.
 - Muted text is `ink-muted` `#2c4350` (user, 2026-11-21: the old `#546f7d` was too faint on white); checkboxes are
@@ -317,7 +317,7 @@ clinic app (`/Users/suhaibbaba/Projects/clinic-management-system/apps/web/src/mo
   primary submit Button. **Nothing stretches full width** — segments, buttons and short inputs keep their own
   width (short fields pair up `sm:grid-cols-2`). **Every field has a placeholder.** Picking products is a grid of
   1:1 photo tiles (`auto-fill minmax(9rem,1fr)`). An optional second number hides behind a Checkbox. A location
-  is a pasted Google Maps link (`@organza/shared/lib/mapLink`), never latitude/longitude boxes.
+  is a pasted Google Maps link (`@store/shared/lib/mapLink`), never latitude/longitude boxes.
 - **Check phones at 375px, not the window's minimum** (Chrome stops near 600px): load the page in a 375px iframe.
   Rows with a stepper + discount + total need `basis-0` on the name and an icon-only discount below `sm`; on
   phones the line total gets its own third row, larger (`h2` bold) with a muted label. A row's delete is a red

@@ -1,4 +1,4 @@
-import { ERROR_CODES } from "@organza/shared/constants/errors";
+import { ERROR_CODES } from "@store/shared/constants/errors";
 
 // Backend codes mapped to flat message keys (nested JSON can't hold a code that is also a parent); only codes the POS can provoke.
 export const ERROR_MESSAGE_KEYS: Record<string, string> = {

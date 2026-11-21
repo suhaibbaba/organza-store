@@ -5,8 +5,8 @@
 // they are refused, redirected a frame later by the guard. This pins the rule
 // that replaced it: the route somebody lands on is one they may actually open.
 import { describe, expect, it } from "vitest";
-import { can } from "@organza/shared/lib/permissions";
-import type { Role } from "@organza/shared/types/role";
+import { can } from "@store/shared/lib/permissions";
+import type { Role } from "@store/shared/types/role";
 import { NAV_ITEMS } from "@/constants/nav";
 import { DEFAULT_LANDING_HREF } from "@/constants/routes";
 import { landingHref } from "@/lib/nav";

@@ -2,7 +2,7 @@
 
 import { useLocale, useTranslations } from "next-intl";
 import { Typography } from "@store/ui";
-import type { OrderPreviewItem, OrderSummary } from "@organza/shared/types/order";
+import type { OrderPreviewItem, OrderSummary } from "@store/shared/types/order";
 import { Link } from "@/i18n/navigation";
 import { localize } from "@/lib/i18n-content";
 import { ORDER_THUMB_SIZES } from "@/constants/orders";

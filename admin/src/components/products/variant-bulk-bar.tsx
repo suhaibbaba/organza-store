@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { Trash2 } from "lucide-react";
 import { Button, Checkbox } from "@store/ui";
-import { DEFAULT_STOCK } from "@organza/shared/constants/quantity";
+import { DEFAULT_STOCK } from "@store/shared/constants/quantity";
 import { QuantityStepper } from "@/components/fields/quantity-stepper";
 
 interface VariantBulkBarProps {

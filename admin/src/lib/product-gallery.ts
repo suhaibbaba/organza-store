@@ -1,4 +1,4 @@
-import type { Product } from "@organza/shared/types/product";
+import type { Product } from "@store/shared/types/product";
 import { localize } from "@/lib/i18n-content";
 import type { GalleryPhoto } from "@/types/product";
 

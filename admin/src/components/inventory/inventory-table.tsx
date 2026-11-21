@@ -2,14 +2,14 @@
 
 import { useLocale, useTranslations } from "next-intl";
 import { Table, type Column } from "@store/ui";
-import { resolveStockStatus } from "@organza/shared/lib/stock";
-import type { InventoryItem } from "@organza/shared/types/inventory";
-import type { Pagination } from "@organza/shared/types/common";
-import { PAGE_SIZE_OPTIONS } from "@organza/shared/constants/pagination";
+import { resolveStockStatus } from "@store/shared/lib/stock";
+import type { InventoryItem } from "@store/shared/types/inventory";
+import type { Pagination } from "@store/shared/types/common";
+import { PAGE_SIZE_OPTIONS } from "@store/shared/constants/pagination";
 import {
   CHANGE_REQUEST_ENTITIES,
   CHANGE_REQUEST_FIELDS,
-} from "@organza/shared/constants/changeRequest";
+} from "@store/shared/constants/changeRequest";
 import { Link } from "@/i18n/navigation";
 import { localize } from "@/lib/i18n-content";
 import { QuantityStepper } from "@/components/fields/quantity-stepper";

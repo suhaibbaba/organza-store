@@ -1,6 +1,6 @@
 // Numbered shawls (spec.md "Numbered shawls (variant-based)") — admin
 // placement UI tuning. The proportions the markers are drawn at are shared
-// (@organza/shared/constants/numberedShawl), because the WhatsApp copy has to
+// (@store/shared/constants/numberedShawl), because the WhatsApp copy has to
 // match what the shop sees; only the pixel bounds below are this app's.
 
 // Pointer movement under this many pixels, on release, still counts as a

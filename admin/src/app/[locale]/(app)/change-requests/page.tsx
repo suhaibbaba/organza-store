@@ -1,15 +1,15 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { can } from "@organza/shared/lib/permissions";
-import { DEFAULT_PAGE } from "@organza/shared/constants/pagination";
-import type { ChangeRequestStatus } from "@organza/shared/types/changeRequest";
+import { can } from "@store/shared/lib/permissions";
+import { DEFAULT_PAGE } from "@store/shared/constants/pagination";
+import type { ChangeRequestStatus } from "@store/shared/types/changeRequest";
 import { RoleGuard } from "@/components/auth/role-guard";
 import { PageContainer } from "@/components/layout/page-container";
 import { PageHeader } from "@/components/layout/page-header";
 import { useSession } from "@/components/providers/session-provider";
 import { Tabs } from "@store/ui";
-import { toSelectorName } from "@organza/shared/lib/testSelector";
+import { toSelectorName } from "@store/shared/lib/testSelector";
 import {
   CHANGE_REQUEST_STATUS_TABS,
   CHANGE_REQUEST_LIST_URL_PARAMS,

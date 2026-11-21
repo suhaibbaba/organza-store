@@ -1,11 +1,11 @@
 "use client";
 
 import * as React from "react";
-import { BARCODE_MAX_LENGTH } from "@organza/shared/constants/barcode";
-import { normalizeBarcode } from "@organza/shared/lib/barcode";
-import { isModifierKey, physicalKeyChar } from "@organza/shared/lib/keyboard";
+import { BARCODE_MAX_LENGTH } from "@store/shared/constants/barcode";
+import { normalizeBarcode } from "@store/shared/lib/barcode";
+import { isModifierKey, physicalKeyChar } from "@store/shared/lib/keyboard";
 import { BARCODE_TERMINATOR_CODES } from "@/constants/barcode";
-import { fieldTestSelector } from "@organza/shared/lib/testSelector";
+import { fieldTestSelector } from "@store/shared/lib/testSelector";
 import { Input } from "@store/ui";
 
 interface BarcodeInputProps

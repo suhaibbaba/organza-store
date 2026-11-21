@@ -35,7 +35,7 @@ import {
   Section,
   type DateRange,
 } from "@store/ui";
-import { SUPPORTED_LANGUAGES } from "@organza/shared/constants/languages";
+import { SUPPORTED_LANGUAGES } from "@store/shared/constants/languages";
 import { LOCALE_LABELS } from "@/constants/locale";
 import { useSettingsQuery } from "@/hooks/use-settings";
 import { ShowcaseRow, ShowcaseSection } from "@/components/design-system/showcase-section";

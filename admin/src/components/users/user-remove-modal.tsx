@@ -3,7 +3,7 @@
 import { useState, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { Alert, Button, Icon, Modal, Typography, useToast, type IconName } from "@store/ui";
-import { can } from "@organza/shared/lib/permissions";
+import { can } from "@store/shared/lib/permissions";
 import { useUserDisplay } from "@/lib/user-display";
 import { useSession } from "@/components/providers/session-provider";
 import { useDeleteUserMutation, useToggleUserActiveMutation } from "@/hooks/use-users";

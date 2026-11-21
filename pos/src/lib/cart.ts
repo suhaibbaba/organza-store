@@ -1,8 +1,8 @@
-import type { Product } from "@organza/shared/types/product";
-import type { Variant } from "@organza/shared/types/variant";
-import type { CreateOrderItemInput, QuickSellItemInput } from "@organza/shared/schemas/order";
-import type { I18n } from "@organza/shared/types/common";
-import { QUANTITY_MAX } from "@organza/shared/constants/quantity";
+import type { Product } from "@store/shared/types/product";
+import type { Variant } from "@store/shared/types/variant";
+import type { CreateOrderItemInput, QuickSellItemInput } from "@store/shared/schemas/order";
+import type { I18n } from "@store/shared/types/common";
+import { QUANTITY_MAX } from "@store/shared/constants/quantity";
 import { fromCents, multiplyCents, resolveDiscountCents, toCents } from "@/lib/money";
 import { MIN_CART_QUANTITY } from "@/constants/pos";
 import type { CartLine, CartTotals, DiscountState } from "@/types/cart";

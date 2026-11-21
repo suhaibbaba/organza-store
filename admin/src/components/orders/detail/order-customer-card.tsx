@@ -1,9 +1,9 @@
 import { useTranslations } from "next-intl";
 import { MapPin, Phone, UserRound } from "lucide-react";
 import { OutboundLink, PhoneLink, WhatsAppLink, Typography } from "@store/ui";
-import type { Order } from "@organza/shared/types/order";
+import type { Order } from "@store/shared/types/order";
 import { COORDINATE_DECIMALS } from "@/constants/orders";
-import { googleMapsUrl } from "@organza/shared/lib/mapLink";
+import { googleMapsUrl } from "@store/shared/lib/mapLink";
 import { DetailCard } from "@/components/layout/detail-card";
 import { CustomerContactRow } from "@/components/orders/detail/customer-contact-row";
 

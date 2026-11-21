@@ -113,7 +113,7 @@ export function readCurrent(token: string): Promise<ApiResult<CurrentCashSession
 // deployment with no VAPID keys.
 //
 // AND IT NEVER OPENS ONE EITHER, unless the run says the database is
-// disposable (ORGANZA_ALLOW_TODAY_DRAWER=1). A drawer is one per calendar day
+// disposable (STORE_ALLOW_TODAY_DRAWER=1). A drawer is one per calendar day
 // and there is no endpoint that deletes one, so a test that opened today's
 // would take the shop's own day away from it — the float would be whatever
 // the carry-over happened to be, and the shop's first act of the morning

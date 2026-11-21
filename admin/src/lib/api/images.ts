@@ -1,5 +1,5 @@
-import type { ProductImageRef } from "@organza/shared/types/variant";
-import type { ImageEdit } from "@organza/shared/lib/imageEdit";
+import type { ProductImageRef } from "@store/shared/types/variant";
+import type { ImageEdit } from "@store/shared/lib/imageEdit";
 import { apiFetch } from "@/lib/api/client";
 
 export type ImageOwner = { productId: string } | { variantId: string };

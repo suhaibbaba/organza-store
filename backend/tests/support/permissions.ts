@@ -17,8 +17,8 @@
 // settable here.
 import { apiRequest } from "@tests/support/client";
 import { getSession } from "@tests/support/auth";
-import { CONFIGURABLE_ACTIONS, DEFAULT_ROLE_PERMISSIONS } from "@organza/shared/constants/permissions";
-import type { PermissionAction, Role } from "@organza/shared/types";
+import { CONFIGURABLE_ACTIONS, DEFAULT_ROLE_PERMISSIONS } from "@store/shared/constants/permissions";
+import type { PermissionAction, Role } from "@store/shared/types";
 import type { PermissionChangeRequestBody, PermissionMatrixResponse } from "@tests/types";
 
 /**

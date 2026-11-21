@@ -1,6 +1,6 @@
 import { useTranslations } from "next-intl";
 import { Badge, type BadgeVariant, type IconName } from "@store/ui";
-import type { OrderChannel } from "@organza/shared/types/order";
+import type { OrderChannel } from "@store/shared/types/order";
 import { cn } from "@/lib/utils";
 
 const CHANNEL_BADGE_TONES: Record<OrderChannel, BadgeVariant> = {

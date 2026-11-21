@@ -8,7 +8,7 @@ import { NavPendingBadge } from "@/components/change-requests/nav-pending-badge"
 import { EnvironmentBadge } from "@/components/layout/environment-badge";
 import { ShopLogo } from "@/components/brand/shop-logo";
 import { NAV_GROUPS } from "@/constants/nav";
-import { testSelectorFor } from "@organza/shared/lib/testSelector";
+import { testSelectorFor } from "@store/shared/lib/testSelector";
 import type { NavItem } from "@/types/nav";
 import { activeHref } from "@/lib/nav";
 
@@ -20,7 +20,6 @@ interface MenuSheetProps {
 
 export function MenuSheet({ open, onOpenChange, items }: MenuSheetProps) {
   const t = useTranslations("nav");
-  const tApp = useTranslations("app");
   const pathname = usePathname();
   const showsDesignSystem = useShowsDesignSystem();
   const active = activeHref(pathname, items);
@@ -40,7 +39,7 @@ export function MenuSheet({ open, onOpenChange, items }: MenuSheetProps) {
       onOpenChange={onOpenChange}
       title={
         <span className="flex items-center gap-2">
-          <ShopLogo alt={tApp("name")} className="h-9 w-auto max-w-28" />
+          <ShopLogo className="h-9 w-auto max-w-28" />
           <EnvironmentBadge />
         </span>
       }

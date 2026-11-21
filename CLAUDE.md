@@ -1,32 +1,33 @@
-# CLAUDE.md — Organza Store
+# CLAUDE.md — Store Management
 
 Rules for working in this repo. Read this before making any change.
 Full product logic lives in `spec.md` — this file is the operating manual.
 
 ## What this project is
-Custom e-commerce + POS system for a clothing shop. **Not** Medusa or any e-commerce framework.
+Custom e-commerce + POS system for clothing shops, run by each shop as a client. **Not** Medusa or any e-commerce framework.
 Build it from scratch with the stack below. If something is ambiguous, check `spec.md`;
 if it's still unclear, **ask before assuming** — do not invent product behavior.
 
 ## Repo structure (4 separate projects + shared, one npm workspace)
 ```
-organza-store/
+store-management/
 ├── package.json      workspace root — declares the workspaces, holds the only lockfile
 ├── backend/     API — Node + Express + TypeScript + Prisma + PostgreSQL
 ├── admin/       Admin dashboard — Next.js
 ├── pos/         Point-of-sale — Next.js
 ├── frontend/    Customer storefront — Next.js (LATER, not this phase)
-├── shared/      Shared TypeScript types + Zod schemas — published as @organza/shared
+├── shared/      Shared TypeScript types + Zod schemas — published as @store/shared
 └── ui/          Store Management's design system — published as @store/ui (TypeScript source)
 ```
-Organza is a **client** of the system, not the system: the system is **Store Management**, and
+The system is **Store Management**; each shop that runs it is a **client**, and nothing in the code
+names one — the shop's name, logo and favicon are Settings data.
 `@store/ui` is its design system (ported from the clinic system's `@clinic/ui`). Client looks are
-themes inside it — `ui/src/themes/organza.css` + `organza.ts`, applied by `UiProvider` — never
+themes inside it — today `ui/src/themes/teal.css` + `teal.ts`, applied by `UiProvider` — never
 edits to the components. The admin's `/design-system` page (Admin role only) shows every component.
 
 Each project has its own `package.json`, and the root one ties them together as **npm
 workspaces**. There is exactly one `package-lock.json`, at the root; per-project lockfiles must
-never come back. `shared/` is a real dependency of the others (`@organza/shared`), resolved
+never come back. `shared/` is a real dependency of the others (`@store/shared`), resolved
 through `node_modules` like any package — not copied, symlinked or aliased by hand. A new project
 (`frontend/`) has to be added to the root `workspaces` array to exist.
 
@@ -123,7 +124,7 @@ from past orders — there is still no Customer table behind it.
     (never under `NODE_ENV=production`). The API test suite depends on its accounts.
     `npm run init` creates the shop's real staff, by hand, once, and refuses a database that
     already has users. **Who** it creates is a git-ignored JSON roster read at run time
-    (`staff.json`, or `--accounts`/`ORGANZA_STAFF_FILE`; `staff.example.json` shows the shape) —
+    (`staff.json`, or `--accounts`/`STORE_STAFF_FILE`; `staff.example.json` shows the shape) —
     never a list in the source: real people's names, addresses and phone numbers are operational
     data, not code. The whole file is validated before the database is touched, so a bad entry
     can never leave half the accounts created. `npm run db:reset` wipes everything and is
@@ -283,7 +284,8 @@ nothing else — no TypeScript, no vitest, no source tree it does not need. admi
 `node` user, which is why the uploads volume has to be owned by uid 1000 (see `ops/README.md`).
 Two things are easy to break here and are worth re-checking after any Dockerfile edit: the
 `NEXT_PUBLIC_*` build args must be set in the stage that runs `next build` — they are baked into
-the bundle there, and `NEXT_PUBLIC_APP_ENV` is what decides the environment's icons — and the
+the bundle there, `NEXT_PUBLIC_APP_ENV` is what decides the environment's icons and
+`NEXT_PUBLIC_APP_NAME` what the installed app is called — and the
 backend's runtime needs `openssl` plus **all three** `node_modules` directories, because zod
 cannot hoist (backend and shared are on zod 3, better-auth on zod 4).
 
@@ -297,8 +299,8 @@ file, or compose refuses to start. A **relative** `UPLOAD_DIR`
 resolves against the container's working directory (`/app/backend`), which is how every uploaded
 image was being written into the container layer and lost on each deploy — so any new service or
 compose file states its data path absolutely and mounts a volume there. Never rename a volume key
-or the compose `name:`: both feed the real volume name, and changing either points the stack at a
-new empty volume. See `ops/README.md` for backups — the volumes survive redeploys, not disks.
+or change `STACK_NAME` in a stack's env file (the compose `name:` reads it): both feed the real
+volume name, and changing either points the stack at a new empty volume. See `ops/README.md` for backups — the volumes survive redeploys, not disks.
 
 ## When unsure
 Check `spec.md` first. If the answer isn't there, ask the user. Never silently guess product
@@ -309,8 +311,8 @@ behavior — guessing is what broke the previous attempt.
   (e.g. `@/lib/auth`, `@/routes/products`) — never `../../lib/auth`. Configure that alias in each
   project's `tsconfig.json` (and the bundler/runtime resolver) so it works at build and runtime.
   The cross-app shared package is **not** an alias: the repo is one npm workspace and `shared/` is
-  published into it as `@organza/shared`, so import it by package name
-  (e.g. `@organza/shared/types`, `@organza/shared/constants/errors`) and let node_modules resolve
+  published into it as `@store/shared`, so import it by package name
+  (e.g. `@store/shared/types`, `@store/shared/constants/errors`) and let node_modules resolve
   it. Its subpaths come from the `exports` map in `shared/package.json` — add a new folder there
   (and to the matching `typesVersions` block, which is what the backend's node10 resolver reads)
   before importing it.
@@ -344,7 +346,7 @@ Tailwind class is not a name — it changes the next time the design does.
   its contents.
 - **The POS prefixes everything with `pos-`;** the admin's names are unprefixed. Two apps, one
   vocabulary, no collisions in a report that spans both.
-- **Names come from `@organza/shared/lib/testSelector`** (`testSelectorFor`, `fieldTestSelector`,
+- **Names come from `@store/shared/lib/testSelector`** (`testSelectorFor`, `fieldTestSelector`,
   `fieldErrorTestSelector`, `toSelectorName`) rather than from hand-built strings, so both apps
   spell the same idea the same way.
 - **Kept in production builds.** The deployed app is where problems appear; an attribute stripped

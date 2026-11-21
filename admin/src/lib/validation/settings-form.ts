@@ -1,9 +1,9 @@
 import { z } from "zod";
-import { ERROR_CODES } from "@organza/shared/constants/errors";
-import { LABEL_LIMITS, LABEL_PRINT_MODES } from "@organza/shared/constants/label";
-import { IMPLEMENTED_SALE_NOTIFICATION_MODES } from "@organza/shared/constants/push";
-import type { Setting } from "@organza/shared/types/setting";
-import type { UpdateSettingInput } from "@organza/shared/schemas/setting";
+import { ERROR_CODES } from "@store/shared/constants/errors";
+import { LABEL_LIMITS, LABEL_PRINT_MODES } from "@store/shared/constants/label";
+import { IMPLEMENTED_SALE_NOTIFICATION_MODES } from "@store/shared/constants/push";
+import type { Setting } from "@store/shared/types/setting";
+import type { UpdateSettingInput } from "@store/shared/schemas/setting";
 import { boundedDecimalField, boundedIntegerField, requiredIntegerField } from "@/lib/validation/numeric";
 
 const i18nFormSchema = z.object({ ar: z.string(), en: z.string(), he: z.string() });

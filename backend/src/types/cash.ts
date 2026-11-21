@@ -6,7 +6,7 @@ import type {
   CashSessionSortField,
   CashSessionStatus,
   CurrentCashSession,
-} from "@organza/shared/types/cash";
+} from "@store/shared/types/cash";
 
 export type {
   CashSession,

@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { FAVICON_SIZES } from "@organza/shared/constants/brand";
-import type { FaviconSize } from "@organza/shared/types/setting";
+import { FAVICON_SIZES } from "@store/shared/constants/brand";
+import type { FaviconSize } from "@store/shared/types/setting";
 import { BRAND_ICON_CACHE_SECONDS, pwaIconPath } from "@/constants/pwa";
 import { fetchBranding } from "@/lib/branding";
 import { API_BASE_URL } from "@/lib/env";

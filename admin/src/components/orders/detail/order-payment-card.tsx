@@ -3,10 +3,10 @@
 import { useLocale, useTranslations } from "next-intl";
 import { CircleCheck, HandCoins } from "lucide-react";
 import { Button, useConfirm, useToast, Typography } from "@store/ui";
-import { can } from "@organza/shared/lib/permissions";
-import { isOrderCollectable } from "@organza/shared/lib/orders";
-import { ERROR_CODES } from "@organza/shared/constants/errors";
-import type { Order } from "@organza/shared/types/order";
+import { can } from "@store/shared/lib/permissions";
+import { isOrderCollectable } from "@store/shared/lib/orders";
+import { ERROR_CODES } from "@store/shared/constants/errors";
+import type { Order } from "@store/shared/types/order";
 import { useSession } from "@/components/providers/session-provider";
 import { useCollectOrdersMutation } from "@/hooks/use-orders";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";

@@ -3,8 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { lineView } from "@/lib/reports";
 import { money, roundMoney, ZERO_MONEY } from "@/lib/money";
 import { MONEY_DECIMAL_PLACES } from "@/constants";
-import { COLLECTION_OVERDUE_DAYS, FINISHED_ORDER_STATUSES } from "@organza/shared/constants/order";
-import { MS_PER_DAY } from "@organza/shared/constants/time";
+import { COLLECTION_OVERDUE_DAYS, FINISHED_ORDER_STATUSES } from "@store/shared/constants/order";
+import { MS_PER_DAY } from "@store/shared/constants/time";
 import type { CollectionSummary, CollectionSummaryRow } from "@/types";
 
 // Net of returns and cancellations, from the same per-line view as the reports, and unbounded in time (spec.md "Payment collection").

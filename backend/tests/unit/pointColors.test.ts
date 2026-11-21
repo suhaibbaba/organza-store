@@ -11,13 +11,13 @@ import {
   normalizeHexColor,
   resolvePointColors,
   suggestPointColors,
-} from "@organza/shared/lib/pointColors";
+} from "@store/shared/lib/pointColors";
 import {
   MIN_POINT_CONTRAST_RATIO,
   POINT_COLORS_FALLBACK,
   POINT_COLORS_FOR_DARK_IMAGE,
   POINT_COLORS_FOR_LIGHT_IMAGE,
-} from "@organza/shared/constants/numberedShawl";
+} from "@store/shared/constants/numberedShawl";
 
 describe("the suggestion read from the photograph", () => {
   it("puts light markers on a dark photo and dark markers on a pale one", () => {

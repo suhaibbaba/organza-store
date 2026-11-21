@@ -9,14 +9,14 @@ import {
   IMAGE_ZOOM,
   PRODUCT_IMAGE_ASPECT,
   PRODUCT_IMAGE_ASPECT_RATIO,
-} from "@organza/shared/constants/image";
+} from "@store/shared/constants/image";
 import {
   rotateClockwise,
   rotatedFrameSize,
   toggleDisplayFlip,
   type ImageCrop,
   type ImageEdit,
-} from "@organza/shared/lib/imageEdit";
+} from "@store/shared/lib/imageEdit";
 import { CROP_ZOOM_KEY_STEP } from "@/constants/images";
 import { loadEditorSource } from "@/lib/image-edit";
 import { cn } from "@/lib/utils";

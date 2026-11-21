@@ -7,14 +7,14 @@ import { prisma } from "@/lib/prisma";
 import { captureException } from "@/lib/logger";
 import { UPLOAD_DIR } from "@/lib/image";
 import { summarizePoints } from "@/lib/numberedProduct";
-import { resolvePointColors } from "@organza/shared/lib/pointColors";
+import { resolvePointColors } from "@store/shared/lib/pointColors";
 import {
   POINT_MARKER_ASPECT_RATIO,
   POINT_MARKER_BORDER_PERCENT,
   POINT_MARKER_FONT_PERCENT,
   POINT_MARKER_RADIUS_PERCENT,
   POINT_MARKER_WIDTH_PERCENT,
-} from "@organza/shared/constants/numberedShawl";
+} from "@store/shared/constants/numberedShawl";
 import {
   IMAGE_SIZES,
   IMAGE_WEBP_QUALITY,

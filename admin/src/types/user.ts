@@ -1,8 +1,8 @@
 import type { ReactNode } from "react";
-import type { Role } from "@organza/shared/types/role";
-import type { User } from "@organza/shared/types/user";
-import type { Pagination } from "@organza/shared/types/common";
-import type { ListUsersQuery } from "@organza/shared/schemas/user";
+import type { Role } from "@store/shared/types/role";
+import type { User } from "@store/shared/types/user";
+import type { Pagination } from "@store/shared/types/common";
+import type { ListUsersQuery } from "@store/shared/schemas/user";
 import type { TableSort } from "@store/ui";
 
 // Client filter state for the users list; null means "not filtered".

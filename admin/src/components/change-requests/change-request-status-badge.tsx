@@ -5,8 +5,8 @@ import {
   APPROVED_CHANGE_REQUEST_STATUS,
   PENDING_CHANGE_REQUEST_STATUS,
   REJECTED_CHANGE_REQUEST_STATUS,
-} from "@organza/shared/constants/changeRequest";
-import type { ChangeRequestStatus } from "@organza/shared/types/changeRequest";
+} from "@store/shared/constants/changeRequest";
+import type { ChangeRequestStatus } from "@store/shared/types/changeRequest";
 import { cn } from "@/lib/utils";
 
 // Drawn from the request's own status only: the requested value alone reads "approved" even on a refused expense request.

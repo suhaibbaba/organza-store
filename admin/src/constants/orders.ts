@@ -1,8 +1,8 @@
-import { DEFAULT_PAGE, DEFAULT_PAGE_SIZE } from "@organza/shared/constants/pagination";
+import { DEFAULT_PAGE, DEFAULT_PAGE_SIZE } from "@store/shared/constants/pagination";
 import type { IconName, SectionTone } from "@store/ui";
 import type { OrderListFilters } from "@/types/order";
-import { ORDER_CHANNELS, ORDER_SORT_FIELDS, ORDER_STATUSES, PAYMENT_STATUSES } from "@organza/shared/constants/order";
-import { SORT_DIRECTIONS } from "@organza/shared/constants/pagination";
+import { ORDER_CHANNELS, ORDER_SORT_FIELDS, ORDER_STATUSES, PAYMENT_STATUSES } from "@store/shared/constants/order";
+import { SORT_DIRECTIONS } from "@store/shared/constants/pagination";
 import { urlParam } from "@/lib/url-filters";
 import type { UrlParams } from "@/types/urlFilters";
 

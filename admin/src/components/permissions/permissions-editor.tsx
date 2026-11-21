@@ -3,9 +3,9 @@
 import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Alert, Card, SegmentedControl } from "@store/ui";
-import { isFixedRole, isProtectedAction } from "@organza/shared/lib/permissions";
-import type { PermissionAction, PermissionMatrixPayload } from "@organza/shared/types/permission";
-import type { Role } from "@organza/shared/types/role";
+import { isFixedRole, isProtectedAction } from "@store/shared/lib/permissions";
+import type { PermissionAction, PermissionMatrixPayload } from "@store/shared/types/permission";
+import type { Role } from "@store/shared/types/role";
 import { PERMISSION_GROUPS, PERMISSION_MATRIX_ROLES } from "@/constants/permissions";
 import { useUpdateRolePermissionsMutation } from "@/hooks/use-permissions";
 import { useTranslateError } from "@/hooks/use-translate-error";

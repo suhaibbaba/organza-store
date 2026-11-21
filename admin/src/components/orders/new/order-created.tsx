@@ -3,8 +3,8 @@
 import { useTranslations } from "next-intl";
 import { CheckCircle2, Plus } from "lucide-react";
 import { Button, buttonClassName, Typography } from "@store/ui";
-import { GIFT_ORDER_TYPE, ONLINE_ORDER_CHANNELS } from "@organza/shared/constants/order";
-import type { Order } from "@organza/shared/types/order";
+import { GIFT_ORDER_TYPE, ONLINE_ORDER_CHANNELS } from "@store/shared/constants/order";
+import type { Order } from "@store/shared/types/order";
 import { Link } from "@/i18n/navigation";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
 

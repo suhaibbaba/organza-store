@@ -8,17 +8,17 @@
 // target is classified before a single request goes out, the sandbox is the
 // default, and anything else has to be asked for explicitly.
 
-export const SANDBOX_API_URL = "https://api.sandbox.organza-moda.com";
-export const PRODUCTION_API_URL = "https://api.organza-moda.com";
+// The deployment's own addresses come from the environment, never from code: the system serves more than one shop.
+export const SANDBOX_API_URL_ENV = "SANDBOX_API_URL";
+export const PRODUCTION_API_URL_ENV = "PRODUCTION_API_URL";
 
-// The live shop. Anything here needs the override below.
-export const PRODUCTION_HOSTS = [
-  "api.organza-moda.com",
-  "organza-moda.com",
-  "www.organza-moda.com",
-] as const;
+// With neither API_URL nor SANDBOX_API_URL set, the suite targets a developer's own machine.
+export const DEFAULT_API_URL = "http://localhost:4000";
 
-// A host is a sandbox when it says so in its name — api.sandbox.organza-moda.com,
+// Prefixes stripped from the production API host so its site and www hosts count as the live shop too.
+export const PRODUCTION_HOST_PREFIXES = ["api.", "www."] as const;
+
+// A host is a sandbox when it says so in its name — api.sandbox.example.com,
 // sandbox.example.test, ... Matched on a label boundary so "notasandbox.com"
 // is not mistaken for one.
 export const SANDBOX_HOST_PATTERN = /(^|[.-])sandbox([.-]|$)/i;
@@ -28,12 +28,12 @@ export const LOCAL_HOSTS = ["localhost", "127.0.0.1", "0.0.0.0", "::1", "host.do
 
 // How the run says "yes, I mean the live shop". A bare "1" is too easy to
 // leave in a shell profile, so the value has to be typed out in full.
-export const PRODUCTION_OVERRIDE_ENV = "ORGANZA_ALLOW_PRODUCTION";
+export const PRODUCTION_OVERRIDE_ENV = "STORE_ALLOW_PRODUCTION";
 export const PRODUCTION_OVERRIDE_VALUE = "I-KNOW-THIS-IS-PRODUCTION";
 
 // Leaves every fixture behind instead of tearing it down — for debugging a
 // failure by hand. Never set in a normal run.
-export const KEEP_FIXTURES_ENV = "ORGANZA_KEEP_FIXTURES";
+export const KEEP_FIXTURES_ENV = "STORE_KEEP_FIXTURES";
 
 // Lets the cash-drawer suite OPEN the drawer for the window that contains
 // "now" when the shop has not opened it itself. Off by default and only ever
@@ -42,7 +42,7 @@ export const KEEP_FIXTURES_ENV = "ORGANZA_KEEP_FIXTURES";
 // from it. Without it, the one assertion that needs a live window (a cash
 // sale reaching the drawer) measures the drawer the shop already opened, or
 // reports itself skipped.
-export const ALLOW_TODAY_DRAWER_ENV = "ORGANZA_ALLOW_TODAY_DRAWER";
+export const ALLOW_TODAY_DRAWER_ENV = "STORE_ALLOW_TODAY_DRAWER";
 
 export const TARGET_KINDS = ["sandbox", "local", "production", "unrecognised"] as const;
 

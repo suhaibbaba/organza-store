@@ -1,7 +1,7 @@
 import { z } from "zod";
-import { ERROR_CODES } from "@organza/shared/constants/errors";
-import { isValidE164 } from "@organza/shared/lib/phone";
-import { ONLINE_ORDER_CHANNELS } from "@organza/shared/constants/order";
+import { ERROR_CODES } from "@store/shared/constants/errors";
+import { isValidE164 } from "@store/shared/lib/phone";
+import { ONLINE_ORDER_CHANNELS } from "@store/shared/constants/order";
 import { DEFAULT_MANUAL_ORDER_CHANNEL, MANUAL_ORDER_CHANNELS } from "@/constants/orders";
 import type { OrderCustomerDraft } from "@/types/order";
 

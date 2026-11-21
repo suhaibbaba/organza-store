@@ -1,5 +1,5 @@
 import type { BadgeTone, IconName, SectionTone } from "@store/ui";
-import type { Role } from "@organza/shared/types/role";
+import type { Role } from "@store/shared/types/role";
 import type { DeviceKind } from "@/types/profile";
 
 export const PROFILE_HREF = "/profile";

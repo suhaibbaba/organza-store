@@ -1,1 +1,1 @@
-export * from "@organza/shared/constants/quickSell";
+export * from "@store/shared/constants/quickSell";

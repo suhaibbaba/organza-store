@@ -13,7 +13,7 @@
 // drift is real; the rest prove the app is out of its way.
 import { createTranslator } from "use-intl/core";
 import { describe, expect, it } from "vitest";
-import { CALENDAR, MESSAGE_FORMATS, NUMBERING_SYSTEM } from "@organza/shared/constants/formatting";
+import { CALENDAR, MESSAGE_FORMATS, NUMBERING_SYSTEM } from "@store/shared/constants/formatting";
 import { formatDate, formatDateTime, formatMoney, formatNumber } from "@/lib/format";
 
 const DRIFTING_LOCALE = "ar-EG";

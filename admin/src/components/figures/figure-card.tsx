@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { ExplainedLabel } from "@/components/figures/explained-label";
-import { testSelectorFor } from "@organza/shared/lib/testSelector";
+import { testSelectorFor } from "@store/shared/lib/testSelector";
 import { cn } from "@/lib/utils";
 import type { FigureTone } from "@/types/dashboard";
 

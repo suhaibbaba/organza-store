@@ -1,1 +1,1 @@
-export * from "@organza/shared/schemas/inventory";
+export * from "@store/shared/schemas/inventory";

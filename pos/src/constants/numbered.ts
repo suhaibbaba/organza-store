@@ -1,6 +1,6 @@
 // A numbered shawl's photo with its numbers on it, in the variant picker
 // (spec.md "Numbered shawls"). The marker's PROPORTIONS are shared with the
-// admin (@organza/shared/constants/numberedShawl) so a number sits and looks
+// admin (@store/shared/constants/numberedShawl) so a number sits and looks
 // the same in both apps; these are the POS's own bounds and box.
 
 /** The photo's height cap in the picker: room left for the number box and grid. */

@@ -4,9 +4,9 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { SlidersHorizontal } from "lucide-react";
 import { Button, Chip, ChipGroup, Drawer, FormField, Select, Typography } from "@store/ui";
-import { ROLES } from "@organza/shared/constants/roles";
-import type { Role } from "@organza/shared/types/role";
-import { fieldTestSelector } from "@organza/shared/lib/testSelector";
+import { ROLES } from "@store/shared/constants/roles";
+import type { Role } from "@store/shared/types/role";
+import { fieldTestSelector } from "@store/shared/lib/testSelector";
 import { USER_SORT_OPTIONS, USER_STATUS_OPTIONS } from "@/constants/users";
 import type {
   UserFilterChipsProps,

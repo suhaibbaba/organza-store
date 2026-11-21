@@ -9,7 +9,7 @@
 //     through a var() — it leaves those exactly as they were, which is why the
 //     brand hues are literals (see the note at the top of globals.css) and why
 //     check-css-target.js fails the build if one ever slips back.
-//  3. @organza/shared/postcss-ios15 repairs what neither of the two above can:
+//  3. @store/shared/postcss-ios15 repairs what neither of the two above can:
 //     cascade layers, Tailwind's color-mix() opacity modifiers, and dvh. Its
 //     own header explains each pass.
 //
@@ -18,7 +18,7 @@ const config = {
   plugins: {
     "@tailwindcss/postcss": {},
     "@csstools/postcss-oklab-function": { preserve: true },
-    "@organza/shared/postcss-ios15": {},
+    "@store/shared/postcss-ios15": {},
   },
 };
 

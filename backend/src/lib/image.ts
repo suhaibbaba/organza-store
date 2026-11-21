@@ -4,13 +4,13 @@ import crypto from "node:crypto";
 import sharp, { type Sharp } from "sharp";
 import { AppError } from "@/lib/response";
 import { ERROR_CODES } from "@/constants";
-import { IMAGE_BRIGHTNESS_MAX, IMAGE_BRIGHTNESS_MIN } from "@organza/shared/constants/numberedShawl";
+import { IMAGE_BRIGHTNESS_MAX, IMAGE_BRIGHTNESS_MIN } from "@store/shared/constants/numberedShawl";
 import {
   IDENTITY_IMAGE_EDIT,
   resolveImageEditOps,
   type ImageEdit,
   type ImageEditOps,
-} from "@organza/shared/lib/imageEdit";
+} from "@store/shared/lib/imageEdit";
 import {
   BRIGHTNESS_WEIGHTS,
   DEFAULT_ALLOWED_IMAGE_TYPES,

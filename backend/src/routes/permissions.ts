@@ -5,9 +5,9 @@ import {
   isConfigurableAction,
   isFixedRole,
   isProtectedAction,
-} from "@organza/shared/lib/permissions";
-import { DEFAULT_ROLE_PERMISSIONS } from "@organza/shared/constants/permissions";
-import type { ConfigurableAction } from "@organza/shared/types/permission";
+} from "@store/shared/lib/permissions";
+import { DEFAULT_ROLE_PERMISSIONS } from "@store/shared/constants/permissions";
+import type { ConfigurableAction } from "@store/shared/types/permission";
 import { prisma } from "@/lib/prisma";
 import { asyncHandler } from "@/middleware/asyncHandler";
 import { requireAuth, requirePermission } from "@/middleware/auth";

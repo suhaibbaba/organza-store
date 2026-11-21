@@ -1,6 +1,6 @@
 import { Typography } from "@store/ui";
 import { useTranslations } from "next-intl";
-import type { Order } from "@organza/shared/types/order";
+import type { Order } from "@store/shared/types/order";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
 
 // Same order of operations as backend/src/lib/orderPricing.ts: subtotal, order discount, total.

@@ -6,8 +6,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { useSearchParams } from "next/navigation";
-import { PASSWORD_MIN_LENGTH } from "@organza/shared/constants/validation";
-import { PASSWORD_SETUP_TOKEN_PARAM } from "@organza/shared/constants/passwordSetup";
+import { PASSWORD_MIN_LENGTH } from "@store/shared/constants/validation";
+import { PASSWORD_SETUP_TOKEN_PARAM } from "@store/shared/constants/passwordSetup";
 import { Link } from "@/i18n/navigation";
 import { PASSWORD_TOKEN_QUERY_KEY } from "@/constants/api";
 import { useTranslateError } from "@/hooks/use-translate-error";
@@ -18,7 +18,7 @@ import {
   SET_PASSWORD_MISMATCH,
   type SetPasswordValues,
 } from "@/lib/validation/set-password";
-import { fieldTestSelector } from "@organza/shared/lib/testSelector";
+import { fieldTestSelector } from "@store/shared/lib/testSelector";
 import { Alert, Button, buttonClassName, FormField, PasswordInput, Spinner } from "@store/ui";
 import { AuthFieldError } from "@/components/auth/auth-field-error";
 import type { PasswordTokenCheck } from "@/types/auth";

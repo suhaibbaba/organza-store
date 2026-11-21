@@ -1,6 +1,7 @@
-# Organza Store
+# Store Management
 
-A custom e-commerce and point-of-sale system for a clothing shop (Organza, Tulkarm branch).
+A custom e-commerce and point-of-sale system for clothing shops. Each shop that runs it is a
+client: its name, logo and theme are data and configuration, never code.
 Built from scratch — **not** Medusa, not Shopify, not any e-commerce framework. TypeScript
 everywhere, one npm workspace, deployed to the shop's own VPS.
 
@@ -12,9 +13,9 @@ as old as an iPhone 7. Most of the unusual decisions in this repo follow from th
 ## The four projects
 
 ```
-organza-store/
+store-management/
 ├── package.json      workspace root — declares the workspaces, holds the only lockfile
-├── shared/           @organza/shared — TypeScript types, Zod schemas, constants, build guards
+├── shared/           @store/shared — TypeScript types, Zod schemas, constants, build guards
 ├── backend/          the API — Node + Express + TypeScript + Prisma + PostgreSQL
 ├── admin/            the admin dashboard — Next.js
 ├── pos/              the point-of-sale screen — Next.js
@@ -22,7 +23,7 @@ organza-store/
 ```
 
 They install as **one npm workspace** against a single root lockfile. `shared/` is a real
-dependency of the other three (`@organza/shared`), resolved through `node_modules` like any
+dependency of the other three (`@store/shared`), resolved through `node_modules` like any
 package — never copied, symlinked or aliased by hand.
 
 | Project | What it is | Dev port |
@@ -59,8 +60,8 @@ Then bring up the API:
 
 ```bash
 cp backend/.env.example backend/.env       # set DATABASE_URL, BETTER_AUTH_SECRET, …
-sudo -u postgres psql -c "CREATE ROLE organza WITH LOGIN PASSWORD 'organza_dev_pw' CREATEDB;"
-sudo -u postgres psql -c "CREATE DATABASE organza OWNER organza;"
+sudo -u postgres psql -c "CREATE ROLE store WITH LOGIN PASSWORD 'store_dev_pw' CREATEDB;"
+sudo -u postgres psql -c "CREATE DATABASE store OWNER store;"
 
 cd backend
 npx prisma migrate dev     # all tables + the pg_trgm extension used by fuzzy search
@@ -207,16 +208,17 @@ Two branches, two stacks, two sets of volumes:
 
 | Branch | Stack | Compose file | API |
 |---|---|---|---|
-| `sandbox` | `organza-sandbox` | `docker-compose.sandbox.yml` | `api.sandbox.organza-moda.com` |
-| `production` | `organza-prod` | `docker-compose.prod.yml` | `api.organza-moda.com` |
+| `sandbox` | `STACK_NAME` in the sandbox env file | `docker-compose.sandbox.yml` | `PUBLIC_API_URL` in the same file |
+| `production` | `STACK_NAME` in the production env file | `docker-compose.prod.yml` | `PUBLIC_API_URL` in the same file |
 
 All three images are multi-stage and only the last stage ships. `.env` files live on the VPS and
 are never committed. The deploy applies migrations and runs `npm run bootstrap` — **never** demo
 data, never `init`, never `db:reset`.
 
 Persistent data lives on named volumes at absolute paths the app is told explicitly: the database
-and the uploaded photographs are the only two things a deploy cannot rebuild. Renaming a volume
-key or the compose `name:` points the stack at a new, empty volume. See `ops/README.md` for
+and the uploaded photographs are the only two things a deploy cannot rebuild. Volume names come from
+`STACK_NAME` in the stack env file plus the volume key; changing either points the stack at a new,
+empty volume. See `ops/README.md` for
 backups, restores and the drills.
 
 No third-party hosting or paid services. Sentry's and Resend's free tiers are the only external

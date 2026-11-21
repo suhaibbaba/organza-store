@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { Alert, Button, Drawer, FormField, SegmentedControl, Typography } from "@store/ui";
-import { DISCOUNT_TYPES } from "@organza/shared/constants/order";
-import type { DiscountType } from "@organza/shared/types/order";
+import { DISCOUNT_TYPES } from "@store/shared/constants/order";
+import type { DiscountType } from "@store/shared/types/order";
 import { isDiscountValueInRange, maxDiscountValue } from "@/lib/money";
 import { isNonNegativeIntegerString } from "@/lib/validation/numeric";
 import { useCurrencySymbol } from "@/hooks/use-currency-symbol";

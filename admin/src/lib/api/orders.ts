@@ -5,9 +5,9 @@ import type {
   Order,
   OrderStatus,
   OrderSummary,
-} from "@organza/shared/types/order";
-import type { Pagination } from "@organza/shared/types/common";
-import type { CreateOrderInput, ResolveMapLinkInput, ReturnOrderInput } from "@organza/shared/schemas/order";
+} from "@store/shared/types/order";
+import type { Pagination } from "@store/shared/types/common";
+import type { CreateOrderInput, ResolveMapLinkInput, ReturnOrderInput } from "@store/shared/schemas/order";
 import { apiFetch } from "@/lib/api/client";
 import type { OrderListFilters } from "@/types/order";
 

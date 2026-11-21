@@ -3,11 +3,11 @@
 import { useCallback, useRef, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { useQueryClient } from "@tanstack/react-query";
-import { can } from "@organza/shared/lib/permissions";
-import { ERROR_CODES } from "@organza/shared/constants/errors";
-import type { Order } from "@organza/shared/types/order";
-import type { Product, ProductSummary } from "@organza/shared/types/product";
-import type { Variant } from "@organza/shared/types/variant";
+import { can } from "@store/shared/lib/permissions";
+import { ERROR_CODES } from "@store/shared/constants/errors";
+import type { Order } from "@store/shared/types/order";
+import type { Product, ProductSummary } from "@store/shared/types/product";
+import type { Variant } from "@store/shared/types/variant";
 import { PRODUCT_DETAIL_QUERY_KEY } from "@/constants/api";
 import { ApiError } from "@/lib/api/errors";
 import { fetchProduct } from "@/lib/api/products";

@@ -1,5 +1,5 @@
-import type { PermissionMatrixPayload } from "@organza/shared/types/permission";
-import type { Role } from "@organza/shared/types/role";
+import type { PermissionMatrixPayload } from "@store/shared/types/permission";
+import type { Role } from "@store/shared/types/role";
 import { apiFetch } from "@/lib/api/client";
 
 /** What the API says each role may do right now (spec.md "Editable role permissions"). */

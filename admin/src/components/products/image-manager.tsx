@@ -12,7 +12,7 @@ import {
 } from "@dnd-kit/core";
 import { SortableContext, rectSortingStrategy } from "@dnd-kit/sortable";
 import { ImagePlus } from "lucide-react";
-import type { ImageEdit } from "@organza/shared/lib/imageEdit";
+import type { ImageEdit } from "@store/shared/lib/imageEdit";
 import { useTranslateError } from "@/hooks/use-translate-error";
 import { appendFiles, applyEditToSlot, moveSlot, removeSlot, setPrimarySlot } from "@/lib/image-slots";
 import { editOrIdentity, editToSend, renderCropPreview } from "@/lib/image-edit";

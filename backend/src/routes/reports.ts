@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { can } from "@organza/shared/lib/permissions";
+import { can } from "@store/shared/lib/permissions";
 import { asyncHandler } from "@/middleware/asyncHandler";
 import { requireAuth, requirePermission } from "@/middleware/auth";
 import { validateQuery } from "@/middleware/validate";

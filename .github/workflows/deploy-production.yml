@@ -24,7 +24,9 @@ jobs:
           command_timeout: 15m
           script: |
             set -euo pipefail
-            cd /opt/organza/production
+            DEPLOY_DIR="${{ vars.PRODUCTION_DEPLOY_DIR }}"
+            [ -n "$DEPLOY_DIR" ] || { echo "::error::Set the PRODUCTION_DEPLOY_DIR repository variable to this stack's directory on the VPS."; exit 1; }
+            cd "$DEPLOY_DIR"
             echo "==> Pulling latest 'production' branch"
             git fetch origin production
             git reset --hard origin/production
@@ -64,7 +66,9 @@ jobs:
             # run unconditionally, because a recursive chown across every
             # photograph the shop owns is not something to repeat on every
             # deploy. Nothing here touches the file contents.
-            UPLOADS_VOLUME=organza-prod_prod_uploads
+            STACK_NAME="$(sed -n 's/^STACK_NAME=["\x27]\{0,1\}\([^"\x27]*\).*$/\1/p' .env.production | head -n 1)"
+            [ -n "$STACK_NAME" ] || { echo "::error::Set STACK_NAME in .env.production (the compose project name the volumes carry)."; exit 1; }
+            UPLOADS_VOLUME="${STACK_NAME}_prod_uploads"
             if docker volume inspect "$UPLOADS_VOLUME" >/dev/null 2>&1; then
               CURRENT_UID="$(docker run --rm -v "$UPLOADS_VOLUME":/vol node:20-slim stat -c '%u' /vol)"
               echo "    $UPLOADS_VOLUME is owned by uid $CURRENT_UID"
@@ -97,7 +101,7 @@ jobs:
             # category the shop retires stays retired instead of coming back
             # on the next push.
             #
-            # The demo seed (fake products, fake orders, admin@organza.test)
+            # The demo seed (fake products, fake orders, admin@store.test)
             # is deliberately NOT here any more, and cannot be reached from a
             # deploy at all: it is quarantined under backend/prisma/dev/ and
             # refuses to run without being told the database is disposable.

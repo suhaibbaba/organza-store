@@ -1,5 +1,5 @@
-import type { ApiEnvelope } from "@organza/shared/types";
-import type { Branding } from "@organza/shared/types/setting";
+import type { ApiEnvelope } from "@store/shared/types";
+import type { Branding } from "@store/shared/types/setting";
 import { BRANDING_API_PATH } from "@/constants/pwa";
 import { API_BASE_URL } from "@/lib/env";
 

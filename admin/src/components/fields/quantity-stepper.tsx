@@ -2,11 +2,11 @@
 
 import { useState } from "react";
 import { Minus, Plus } from "lucide-react";
-import { QUANTITY_MAX, QUANTITY_MAX_LENGTH, QUANTITY_MIN, clampQuantity } from "@organza/shared/constants/quantity";
+import { QUANTITY_MAX, QUANTITY_MAX_LENGTH, QUANTITY_MIN, clampQuantity } from "@store/shared/constants/quantity";
 import { FIELD_TEXT, FieldDivider, fieldShell } from "@store/ui";
 import { sanitizeNumeric } from "@/components/fields/numeric-input";
 import { isNonNegativeIntegerString } from "@/lib/validation/numeric";
-import { testSelectorFor } from "@organza/shared/lib/testSelector";
+import { testSelectorFor } from "@store/shared/lib/testSelector";
 import { cn } from "@/lib/utils";
 
 interface QuantityStepperProps {

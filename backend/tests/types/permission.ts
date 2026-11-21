@@ -1,4 +1,4 @@
-import type { PermissionAction, Role } from "@organza/shared/types";
+import type { PermissionAction, Role } from "@store/shared/types";
 
 /** What `GET /api/permissions` answers with. */
 export interface PermissionMatrixResponse {

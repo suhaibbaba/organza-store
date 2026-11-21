@@ -7,7 +7,7 @@ import { formatMoney } from "@/lib/format";
 import { parseQuantity } from "@/lib/validation/numeric";
 import { isPlacedShawlPoint } from "@/lib/validation/numbered-shawl";
 import type { ShawlPoint } from "@/types/numberedShawl";
-import { testSelectorFor } from "@organza/shared/lib/testSelector";
+import { testSelectorFor } from "@store/shared/lib/testSelector";
 
 interface PointDetailsListProps {
   points: ShawlPoint[];

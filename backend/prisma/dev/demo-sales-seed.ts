@@ -1,5 +1,5 @@
 // ============================================================
-//  Organza Store — DEMO SALES HISTORY (DEV / SANDBOX ONLY — NEVER PRODUCTION)
+//  Store Management — DEMO SALES HISTORY (DEV / SANDBOX ONLY — NEVER PRODUCTION)
 //
 //  A run of everyday trading from DEMO_SALES_FROM up to the moment it runs,
 //  so the dashboard's Today / This week / This month and the Reports page
@@ -8,7 +8,7 @@
 //
 //  Quarantined exactly like demo-seed.ts — refused unless the run declares
 //  the database disposable, and never under APP_ENV=production:
-//      ORGANZA_ALLOW_DEMO_SEED=I-KNOW-THIS-IS-NOT-PRODUCTION npm run seed:demo-sales
+//      STORE_ALLOW_DEMO_SEED=I-KNOW-THIS-IS-NOT-PRODUCTION npm run seed:demo-sales
 //
 //  Per day (shop's local time): a few counter sales, now and then a WhatsApp
 //  order and a gift, and the month's standing costs plus small cash
@@ -121,9 +121,9 @@ function localDays(from: string, until: Date): string[] {
 async function main() {
   const now = new Date();
 
-  const admin = await prisma.user.findUniqueOrThrow({ where: { email: "admin@organza.test" } });
-  const manager = await prisma.user.findUniqueOrThrow({ where: { email: "manager@organza.test" } });
-  const employee = await prisma.user.findUniqueOrThrow({ where: { email: "employee@organza.test" } });
+  const admin = await prisma.user.findUniqueOrThrow({ where: { email: "admin@store.test" } });
+  const manager = await prisma.user.findUniqueOrThrow({ where: { email: "manager@store.test" } });
+  const employee = await prisma.user.findUniqueOrThrow({ where: { email: "employee@store.test" } });
   const sellers = [employee, employee, manager, admin];
 
   // Anything on the shelf with a price. Ordered by id so the same day picks

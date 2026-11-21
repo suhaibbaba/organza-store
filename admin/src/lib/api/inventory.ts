@@ -1,5 +1,5 @@
-import type { InventoryItem, StockAdjustResult } from "@organza/shared/types/inventory";
-import type { Pagination } from "@organza/shared/types/common";
+import type { InventoryItem, StockAdjustResult } from "@store/shared/types/inventory";
+import type { Pagination } from "@store/shared/types/common";
 import { apiFetch } from "@/lib/api/client";
 import type { InventoryListFilters } from "@/types/inventory";
 

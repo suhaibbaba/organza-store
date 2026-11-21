@@ -1,9 +1,9 @@
 import type { IconName, SectionTone } from "@store/ui";
-import { DEFAULT_PAGE, DEFAULT_PAGE_SIZE } from "@organza/shared/constants/pagination";
+import { DEFAULT_PAGE, DEFAULT_PAGE_SIZE } from "@store/shared/constants/pagination";
 import type { ProductListFilters } from "@/types/product";
-import { PRODUCT_PRINT_STATES, PRODUCT_SORT_FIELDS } from "@organza/shared/constants/product";
-import { PRODUCT_COMPLETENESS_FILTERS } from "@organza/shared/constants/quickSell";
-import { SORT_DIRECTIONS } from "@organza/shared/constants/pagination";
+import { PRODUCT_PRINT_STATES, PRODUCT_SORT_FIELDS } from "@store/shared/constants/product";
+import { PRODUCT_COMPLETENESS_FILTERS } from "@store/shared/constants/quickSell";
+import { SORT_DIRECTIONS } from "@store/shared/constants/pagination";
 import { urlParam } from "@/lib/url-filters";
 import type { UrlParams } from "@/types/urlFilters";
 

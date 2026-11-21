@@ -1,7 +1,7 @@
 import { useTranslations } from "next-intl";
 import { Badge } from "@store/ui";
-import { GIFT_ORDER_TYPE } from "@organza/shared/constants/order";
-import type { OrderType } from "@organza/shared/types/order";
+import { GIFT_ORDER_TYPE } from "@store/shared/constants/order";
+import type { OrderType } from "@store/shared/types/order";
 import { cn } from "@/lib/utils";
 
 // Only a gift is badged (spec.md "Gifts"): it explains a 0.00 total that is not a mistake.

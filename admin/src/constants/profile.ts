@@ -1,6 +1,6 @@
 import type { IconName, SectionTone } from "@store/ui";
-import { CHANGE_REQUEST_NOTIFICATION_ROLES } from "@organza/shared/constants/push";
-import type { Role } from "@organza/shared/types/role";
+import { CHANGE_REQUEST_NOTIFICATION_ROLES } from "@store/shared/constants/push";
+import type { Role } from "@store/shared/types/role";
 import type { DeviceKind } from "@/types/profile";
 
 export const PROFILE_HREF = "/profile";

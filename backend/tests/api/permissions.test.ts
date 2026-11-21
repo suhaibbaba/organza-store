@@ -14,7 +14,7 @@
 //    * and the cache behind `can()` never serves a stale answer.
 // ============================================================================
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { CONFIGURABLE_ACTIONS, PERMISSION_ACTIONS } from "@organza/shared/constants/permissions";
+import { CONFIGURABLE_ACTIONS, PERMISSION_ACTIONS } from "@store/shared/constants/permissions";
 import { apiRequest, uniqueId } from "@tests/support/client";
 import { getSession } from "@tests/support/auth";
 import {

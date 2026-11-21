@@ -1,1 +1,1 @@
-export * from "@organza/shared/schemas/variantType";
+export * from "@store/shared/schemas/variantType";

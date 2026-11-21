@@ -1,5 +1,5 @@
 /*
- * Organza POS — service worker.
+ * Store POS — service worker.
  *
  * Two jobs, and only two:
  *   1. Make the installed app open instantly and survive a weak connection,
@@ -37,7 +37,7 @@ const OFFLINE_URLS = (params.get("offline") || "").split(",").filter(Boolean);
 // the request never reaches the fallback below.
 const LOCALE_COOKIE_NAME = params.get("localeCookie") || "";
 
-const CACHE_PREFIX = "organza-pos";
+const CACHE_PREFIX = "store-pos";
 // Versioned: every deploy starts with an empty shell cache, so nobody is left
 // opening an HTML document from a build that no longer exists.
 const SHELL_CACHE = `${CACHE_PREFIX}-shell-${VERSION}`;
@@ -102,7 +102,7 @@ self.addEventListener("activate", (event) => {
       const names = await caches.keys();
       await Promise.all(
         names
-          .filter((name) => name.startsWith(CACHE_PREFIX) && name !== SHELL_CACHE && name !== ASSET_CACHE)
+          .filter((name) => name !== SHELL_CACHE && name !== ASSET_CACHE)
           .map((name) => caches.delete(name))
       );
       await trimCache(ASSET_CACHE, MAX_ASSET_ENTRIES);

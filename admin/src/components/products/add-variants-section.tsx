@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { Button, Drawer } from "@store/ui";
 import { Plus } from "lucide-react";
 import { useTranslations } from "next-intl";
-import type { VariantType } from "@organza/shared/types/variant";
+import type { VariantType } from "@store/shared/types/variant";
 import { buildVariantPreview } from "@/lib/variant-combo";
 import { VariantTypePicker } from "@/components/products/variant-type-picker";
 import { VariantPreviewList } from "@/components/products/variant-preview-list";

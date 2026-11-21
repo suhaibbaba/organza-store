@@ -1,6 +1,6 @@
-import { CONFIGURABLE_ACTIONS, DEFAULT_ROLE_PERMISSIONS } from "@organza/shared/constants/permissions";
-import { isFixedRole } from "@organza/shared/lib/permissions";
-import { ROLES } from "@organza/shared/constants/roles";
+import { CONFIGURABLE_ACTIONS, DEFAULT_ROLE_PERMISSIONS } from "@store/shared/constants/permissions";
+import { isFixedRole } from "@store/shared/lib/permissions";
+import { ROLES } from "@store/shared/constants/roles";
 import { prisma } from "@/lib/prisma";
 import {
   BOOTSTRAP_EXPENSE_CATEGORIES,

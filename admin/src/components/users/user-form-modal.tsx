@@ -17,10 +17,10 @@ import {
   Typography,
   useToast,
 } from "@store/ui";
-import { can } from "@organza/shared/lib/permissions";
-import { ROLES } from "@organza/shared/constants/roles";
-import { PALESTINE_PHONE_PREFIXES } from "@organza/shared/constants/phone";
-import { fieldTestSelector } from "@organza/shared/lib/testSelector";
+import { can } from "@store/shared/lib/permissions";
+import { ROLES } from "@store/shared/constants/roles";
+import { PALESTINE_PHONE_PREFIXES } from "@store/shared/constants/phone";
+import { fieldTestSelector } from "@store/shared/lib/testSelector";
 import { useSession } from "@/components/providers/session-provider";
 import { useTranslateError } from "@/hooks/use-translate-error";
 import { useCreateUserMutation, useUpdateUserMutation } from "@/hooks/use-users";

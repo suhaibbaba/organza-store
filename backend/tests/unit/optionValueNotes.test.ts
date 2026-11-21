@@ -4,10 +4,10 @@
 // the two rules every screen shares, which no HTTP test can see: which notes a
 // variant carries, and which language of one is shown.
 import { describe, expect, it } from "vitest";
-import { localizeI18n } from "@organza/shared/lib/i18n";
-import { noteByOptionValueId, variantValueNotes } from "@organza/shared/lib/optionValueNotes";
-import { DEFAULT_LANGUAGE } from "@organza/shared/constants/languages";
-import type { Variant } from "@organza/shared/types/variant";
+import { localizeI18n } from "@store/shared/lib/i18n";
+import { noteByOptionValueId, variantValueNotes } from "@store/shared/lib/optionValueNotes";
+import { DEFAULT_LANGUAGE } from "@store/shared/constants/languages";
+import type { Variant } from "@store/shared/types/variant";
 
 function value(id: string, label: string, note: Record<string, string> | null) {
   return { id, variantTypeId: `type-${id}`, value: { ar: label }, key: label.toLowerCase(), note };

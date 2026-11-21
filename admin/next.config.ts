@@ -84,7 +84,7 @@ const nextConfig: NextConfig = {
     dangerouslyAllowLocalIP: isLocalApi,
     minimumCacheTTL: PRODUCT_IMAGE_CACHE_TTL_SECONDS,
   },
-  // @organza/shared is a workspace package, so node_modules/@organza/shared
+  // @store/shared is a workspace package, so node_modules/@store/shared
   // is a symlink to ../shared — and Turbopack won't follow a symlink pointing
   // outside the project root. Pointing the root at the workspace root (the
   // repo root, one level up) is what lets it resolve the shared package.
@@ -98,7 +98,7 @@ const nextConfig: NextConfig = {
   //
   // outputFileTracingRoot has to be the workspace root for the same reason
   // turbopack.root does: this app's dependencies live in the hoisted
-  // /app/node_modules one level up, and @organza/shared is a symlink out of
+  // /app/node_modules one level up, and @store/shared is a symlink out of
   // the project directory. Left to infer it, the trace would be rooted at
   // admin/ and miss both. It also fixes the layout inside .next/standalone —
   // paths are emitted relative to this root, so the bundle contains

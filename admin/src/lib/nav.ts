@@ -1,4 +1,4 @@
-import { can, type PermissionSubject } from "@organza/shared/lib/permissions";
+import { can, type PermissionSubject } from "@store/shared/lib/permissions";
 import { NAV_ITEMS } from "@/constants/nav";
 import type { NavItem } from "@/types/nav";
 

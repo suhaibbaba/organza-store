@@ -2,8 +2,8 @@
 
 import { useTranslations } from "next-intl";
 import { Avatar, Badge, PhoneLink, Table, Typography, WhatsAppLink, type Column } from "@store/ui";
-import { PAGE_SIZE_OPTIONS } from "@organza/shared/constants/pagination";
-import type { User } from "@organza/shared/types/user";
+import { PAGE_SIZE_OPTIONS } from "@store/shared/constants/pagination";
+import type { User } from "@store/shared/types/user";
 import { useSession } from "@/components/providers/session-provider";
 import { useUserDisplay } from "@/lib/user-display";
 import { RoleBadge } from "@/components/users/role-badge";

@@ -1,4 +1,4 @@
-import type { ProductImageRef } from "@organza/shared/types/variant";
+import type { ProductImageRef } from "@store/shared/types/variant";
 
 // The photo that stands for a product or a variant: the one marked primary,
 // else the first by the shop's own order. Null when there are none — a

@@ -37,7 +37,7 @@ describe("Staff account removal", () => {
       token: admin.token,
       body: {
         name: `Vitest ${label}`,
-        email: `vitest.${label}.${uniqueId()}@organza.test`,
+        email: `vitest.${label}.${uniqueId()}@store.test`,
         password: SEEDED_PASSWORD,
         role,
         phone: randomPalestinePhone(),

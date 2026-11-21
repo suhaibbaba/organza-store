@@ -1,6 +1,7 @@
-# Organza — Sandbox stack (backend + Postgres for now)
+# Store Management — Sandbox stack
 # Run:  docker compose -f docker-compose.sandbox.yml --env-file .env.sandbox up -d --build
-name: organza-sandbox
+# STACK_NAME is the compose project name, so it names the volumes: never change it on a running stack.
+name: ${STACK_NAME:?set STACK_NAME in the stack env file}
 
 services:
   db:
@@ -111,11 +112,12 @@ services:
       context: .
       dockerfile: admin/Dockerfile
       args:
-        NEXT_PUBLIC_API_URL: https://api.sandbox.organza-moda.com
+        NEXT_PUBLIC_API_URL: ${PUBLIC_API_URL:?set PUBLIC_API_URL in the stack env file}
         NEXT_PUBLIC_DEFAULT_LOCALE: ar
         NEXT_PUBLIC_SUPPORTED_LOCALES: ar,en,he
-        NEXT_PUBLIC_PROJECT_NAME: organza-sandbox-admin
-        # Amber-banded SBX icons, "Organza Admin (SBX)" under the tile, and a
+        NEXT_PUBLIC_PROJECT_NAME: ${STACK_NAME}-admin
+        NEXT_PUBLIC_APP_NAME: ${ADMIN_APP_NAME:-}
+        # Amber-banded SBX icons, "the app name (SBX)" under the tile, and a
         # SANDBOX chip in the top bar. Baked in at build time, so this stack
         # has to be rebuilt — not just restarted — to change it.
         NEXT_PUBLIC_APP_ENV: sandbox
@@ -133,11 +135,12 @@ services:
       context: .
       dockerfile: pos/Dockerfile
       args:
-        NEXT_PUBLIC_API_URL: https://api.sandbox.organza-moda.com
+        NEXT_PUBLIC_API_URL: ${PUBLIC_API_URL:?set PUBLIC_API_URL in the stack env file}
         NEXT_PUBLIC_DEFAULT_LOCALE: ar
         NEXT_PUBLIC_SUPPORTED_LOCALES: ar,en,he
-        NEXT_PUBLIC_PROJECT_NAME: organza-sandbox-pos
-        # Amber-banded SBX icons, "Organza POS (SBX)" under the tile, and a
+        NEXT_PUBLIC_PROJECT_NAME: ${STACK_NAME}-pos
+        NEXT_PUBLIC_APP_NAME: ${POS_APP_NAME:-}
+        # Amber-banded SBX icons, "the app name (SBX)" under the tile, and a
         # SANDBOX chip in the top bar. Baked in at build time, so this stack
         # has to be rebuilt — not just restarted — to change it.
         NEXT_PUBLIC_APP_ENV: sandbox
@@ -156,8 +159,8 @@ services:
 # again from git.
 #
 # DO NOT RENAME THESE KEYS, and do not change `name:` at the top of the file.
-# Compose derives the real volume name from both (`organza-sandbox` +
-# `sandbox_db_data` -> `organza-sandbox_sandbox_db_data`), so editing either
+# Compose derives the real volume name from both (`$STACK_NAME` +
+# `sandbox_db_data` -> `<STACK_NAME>_sandbox_db_data`), so editing either
 # one points the stack at a DIFFERENT, empty volume. Postgres would come up on
 # an empty data directory and the shop would look like it had lost everything
 # — while the real data sat in the old volume nobody was looking at.

@@ -1,5 +1,5 @@
 import { apiRequest } from "@tests/support/client";
-import { MAX_PAGE_SIZE } from "@organza/shared/constants/pagination";
+import { MAX_PAGE_SIZE } from "@store/shared/constants/pagination";
 import { SEARCH_INDEX_POLL_MS, SEARCH_INDEX_WAIT_MS } from "@tests/constants";
 import type { ProductSummaryDto } from "@tests/types";
 

@@ -1,7 +1,7 @@
-import type { OptionValueNoteInput } from "@organza/shared/schemas/product";
-import type { I18n } from "@organza/shared/types/common";
-import type { Product } from "@organza/shared/types/product";
-import type { VariantType } from "@organza/shared/types/variant";
+import type { OptionValueNoteInput } from "@store/shared/schemas/product";
+import type { I18n } from "@store/shared/types/common";
+import type { Product } from "@store/shared/types/product";
+import type { VariantType } from "@store/shared/types/variant";
 import { localize } from "@/lib/i18n-content";
 import type { I18nFormValue, OptionValueNoteGroup, VariantSelectionMap } from "@/types/productForm";
 

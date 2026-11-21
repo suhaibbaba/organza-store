@@ -3,7 +3,7 @@
 import type { ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { ExplainedLabel } from "@/components/figures/explained-label";
-import { testSelectorFor } from "@organza/shared/lib/testSelector";
+import { testSelectorFor } from "@store/shared/lib/testSelector";
 import { cn } from "@/lib/utils";
 import type { StatCardTone } from "@/types/layout";
 

@@ -6,7 +6,7 @@ import { useTranslations } from "next-intl";
 import { Icon } from "@store/ui";
 import { DialogLayerProvider } from "@store/ui/components/dialog-layer";
 import { documentDirection } from "@store/ui/lib/direction";
-import { testSelectorFor } from "@organza/shared/lib/testSelector";
+import { testSelectorFor } from "@store/shared/lib/testSelector";
 import { cn } from "@/lib/utils";
 
 interface BottomSheetProps {

@@ -1,7 +1,7 @@
 import type { ThemeOverride } from "@ui/theme/create-theme";
 
-// The same values as themes/organza.css, which is what paints before any JavaScript runs.
-export const organzaTheme: ThemeOverride = {
+// The same values as themes/teal.css, which is what paints before any JavaScript runs.
+export const tealTheme: ThemeOverride = {
   color: {
     "primary-50": "#eef8f7",
     "primary-100": "#e0f5f2",

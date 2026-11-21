@@ -231,7 +231,7 @@ describe("Verify · edge cases", () => {
         token: admin,
         body: {
           name: `[verify] staff ${uniqueId()}`,
-          email: `verify-${uniqueId()}@organza.test`,
+          email: `verify-${uniqueId()}@store.test`,
           password: SEEDED_PASSWORD,
           role: "EMPLOYEE",
           phone,
@@ -245,7 +245,7 @@ describe("Verify · edge cases", () => {
           token: admin,
           body: {
             name: `[verify] staff ${uniqueId()}`,
-            email: `verify-${uniqueId()}@organza.test`,
+            email: `verify-${uniqueId()}@store.test`,
             password: SEEDED_PASSWORD,
             role: "EMPLOYEE",
             phone: twin,
@@ -274,7 +274,7 @@ describe("Verify · edge cases", () => {
         token: admin,
         body: {
           name: `[verify] staff ${uniqueId()}`,
-          email: `verify-${uniqueId()}@organza.test`,
+          email: `verify-${uniqueId()}@store.test`,
           password: SEEDED_PASSWORD,
           role: "EMPLOYEE",
           phone,
@@ -302,7 +302,7 @@ describe("Verify · edge cases", () => {
           token: admin,
           body: {
             name: `[verify] staff ${uniqueId()}`,
-            email: `verify-${uniqueId()}@organza.test`,
+            email: `verify-${uniqueId()}@store.test`,
             password: SEEDED_PASSWORD,
             role: "EMPLOYEE",
             phone,

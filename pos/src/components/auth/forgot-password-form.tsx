@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslations } from "next-intl";
 import { Alert, Button, FormField, Input, buttonClassName } from "@store/ui";
-import { fieldErrorTestSelector, fieldTestSelector, testSelectorFor } from "@organza/shared/lib/testSelector";
+import { fieldErrorTestSelector, fieldTestSelector, testSelectorFor } from "@store/shared/lib/testSelector";
 import { Link } from "@/i18n/navigation";
 import { useTranslateError } from "@/hooks/use-translate-error";
 import { requestPasswordReset } from "@/lib/api/password-setup";

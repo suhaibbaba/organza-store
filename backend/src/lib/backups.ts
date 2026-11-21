@@ -8,7 +8,7 @@ import {
   BACKUP_STALE_REPORT_EVERY_HOURS,
 } from "@/constants";
 import type { BackupRunStatus, BackupStage } from "@/constants/backup";
-import { MS_PER_HOUR } from "@organza/shared/constants/time";
+import { MS_PER_HOUR } from "@store/shared/constants/time";
 
 /*
  * The API's half of the off-site backup: remembering that it ran.

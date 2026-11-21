@@ -2,8 +2,8 @@
 
 import { useLocale, useTranslations } from "next-intl";
 import { Table, Typography, type Column } from "@store/ui";
-import type { ProductSummary } from "@organza/shared/types/product";
-import { PAGE_SIZE_OPTIONS } from "@organza/shared/constants/pagination";
+import type { ProductSummary } from "@store/shared/types/product";
+import { PAGE_SIZE_OPTIONS } from "@store/shared/constants/pagination";
 import { Link } from "@/i18n/navigation";
 import { localize } from "@/lib/i18n-content";
 import { cn } from "@/lib/utils";

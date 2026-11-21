@@ -5,7 +5,7 @@ import type {
   ExpenseApprovalStatus,
   ExpenseCategory,
   ExpenseSortField,
-} from "@organza/shared/types/expense";
+} from "@store/shared/types/expense";
 
 export type { Expense, ExpenseActor, ExpenseApprovalStatus, ExpenseCategory, ExpenseSortField };
 

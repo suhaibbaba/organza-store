@@ -1,11 +1,11 @@
 "use client";
 
 import { useCallback, useMemo, useRef, useState } from "react";
-import type { Product } from "@organza/shared/types/product";
-import type { Variant } from "@organza/shared/types/variant";
-import type { DiscountType } from "@organza/shared/types/order";
-import type { QuickSellItemInput } from "@organza/shared/schemas/order";
-import { clampQuantity } from "@organza/shared/constants/quantity";
+import type { Product } from "@store/shared/types/product";
+import type { Variant } from "@store/shared/types/variant";
+import type { DiscountType } from "@store/shared/types/order";
+import type { QuickSellItemInput } from "@store/shared/schemas/order";
+import { clampQuantity } from "@store/shared/constants/quantity";
 import { cartLineKey, computeTotals, toCartLine, toQuickSellCartLine } from "@/lib/cart";
 import { MIN_CART_QUANTITY } from "@/constants/pos";
 import type { CartLine, CartTotals, DiscountState } from "@/types/cart";

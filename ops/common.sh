@@ -70,16 +70,17 @@ ops_stack_env_file() {
   esac
 }
 
-# The compose PROJECT name — the prefix Docker puts on the volumes, and the
-# folder each stack gets in the bucket. Read from that stack's compose file, so
-# it can be asked about a stack that is not the one running here (which is what
-# lets a restore read production's backups while pointed at the sandbox).
+# The compose project name (volume prefix and bucket folder) is STACK_NAME in that stack's env file; FROM_STACK_NAME covers a stack whose env file is not here.
 ops_stack_project() {
   local file name
-  file="$(ops_stack_compose_file "$1")"
-  [ -f "$file" ] || die "no $file here. cd to the directory that holds the compose files."
-  name="$(sed -n 's/^name:[[:space:]]*\(.*\)$/\1/p' "$file" | head -n 1)"
-  printf '%s' "${name:-organza}"
+  if [ "$1" = "${STACK:-}" ] && [ -n "${STACK_NAME:-}" ]; then printf '%s' "$STACK_NAME"; return; fi
+  file="$(ops_stack_env_file "$1")"
+  if [ -f "$file" ]; then
+    name="$(sed -n 's/^STACK_NAME=["'\'']\{0,1\}\([^"'\'']*\).*$/\1/p' "$file" | head -n 1)"
+  fi
+  name="${name:-${FROM_STACK_NAME:-}}"
+  [ -n "$name" ] || die "no STACK_NAME for stack \"$1\": set it in $file, or pass FROM_STACK_NAME=<its compose project name>."
+  printf '%s' "$name"
 }
 
 compose() { docker compose -f "$COMPOSE_FILE" --env-file "$ENV_FILE" "$@"; }
@@ -125,7 +126,6 @@ EOF
 
   COMPOSE_FILE="$(ops_stack_compose_file "$STACK")"
   ENV_FILE="$(ops_stack_env_file "$STACK")"
-  STACK_PROJECT="$(ops_stack_project "$STACK")"
 
   [ -f "$COMPOSE_FILE" ] || die "no $COMPOSE_FILE here. cd to the directory that holds it."
   [ -f "$ENV_FILE" ]     || die "no $ENV_FILE here — STACK=$STACK expects that file next to $COMPOSE_FILE."
@@ -140,6 +140,8 @@ EOF
   set +a
   : "${DB_USER:?not set in $ENV_FILE}"
   : "${DB_NAME:?not set in $ENV_FILE}"
+  : "${STACK_NAME:?not set in $ENV_FILE — it is the compose project name the volumes carry}"
+  STACK_PROJECT="$STACK_NAME"
 
   ops_assert_stack_matches_database
 }
@@ -345,7 +347,7 @@ ops_list_dumps() {
 ops_verify_dump() {
   local local_file="$1"
   local remote rc=0
-  remote="/tmp/organza-verify-$$-$(basename "$local_file")"
+  remote="/tmp/store-verify-$$-$(basename "$local_file")"
 
   compose cp "$local_file" "db:$remote" >/dev/null 2>&1 || {
     echo "could not copy the dump into the db container to verify it" >&2

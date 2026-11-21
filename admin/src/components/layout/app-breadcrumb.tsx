@@ -3,7 +3,7 @@
 import { Fragment } from "react";
 import { useTranslations } from "next-intl";
 import { ArrowLeft, ChevronRight } from "lucide-react";
-import { testSelectorFor } from "@organza/shared/lib/testSelector";
+import { testSelectorFor } from "@store/shared/lib/testSelector";
 import { Link, usePathname } from "@/i18n/navigation";
 import { buildBreadcrumb } from "@/lib/breadcrumb";
 import { useReturnHref } from "@/hooks/use-return-href";

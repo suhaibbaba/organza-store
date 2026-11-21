@@ -2,7 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { Zap } from "lucide-react";
-import type { ProductSummary } from "@organza/shared/types/product";
+import type { ProductSummary } from "@store/shared/types/product";
 import { cn } from "@/lib/utils";
 import { Alert, Button, Spinner } from "@store/ui";
 import { CONTROL_HEIGHT } from "@/components/sell/screen/control-styles";

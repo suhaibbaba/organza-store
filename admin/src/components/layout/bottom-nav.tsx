@@ -5,7 +5,7 @@ import { Link, usePathname } from "@/i18n/navigation";
 import { PRIMARY_NAV_KEYS, type PrimaryNavKey } from "@/constants/nav";
 import { useVisibleNavItems } from "@/hooks/use-visible-nav-items";
 import { SOLID_NAV_ICONS } from "@/components/icons/nav-solid-icons";
-import { testSelectorFor } from "@organza/shared/lib/testSelector";
+import { testSelectorFor } from "@store/shared/lib/testSelector";
 import { cn } from "@/lib/utils";
 import { activeHref } from "@/lib/nav";
 import type { NavItem } from "@/types/nav";

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { SUPPORTED_LANGUAGES } from "@organza/shared/constants/languages";
-import { PASSWORD_TOKEN_PURPOSES, PASSWORD_TOKEN_TTL_HOURS } from "@organza/shared/constants/passwordSetup";
-import { BRAND_COLORS } from "@organza/shared/constants/brand";
+import { SUPPORTED_LANGUAGES } from "@store/shared/constants/languages";
+import { PASSWORD_TOKEN_PURPOSES, PASSWORD_TOKEN_TTL_HOURS } from "@store/shared/constants/passwordSetup";
+import { BRAND_COLORS } from "@store/shared/constants/brand";
 import { EMAIL_LOGO_PATH } from "@/constants/email";
 import { renderPasswordSetupEmail } from "@/lib/email/templates/passwordSetup";
 import type { SupportedLanguage } from "@/types/common";
@@ -10,11 +10,12 @@ import type { SupportedLanguage } from "@/types/common";
 // out, and it renders in clients nobody here can open. So the rules it has to
 // obey are asserted rather than eyeballed once.
 
-const ADMIN_URL = "https://admin.organza-moda.com";
+const ADMIN_URL = "https://admin.example.com";
+const STORE_NAME = "متجر التجربة";
 const TOKEN = "test-token-abc123";
 
 function render(language: SupportedLanguage, purpose: (typeof PASSWORD_TOKEN_PURPOSES)[number]) {
-  return renderPasswordSetupEmail({ language, name: "Rawand", token: TOKEN, purpose, adminUrl: ADMIN_URL });
+  return renderPasswordSetupEmail({ language, name: "Rawand", storeName: STORE_NAME, token: TOKEN, purpose, adminUrl: ADMIN_URL });
 }
 
 describe("Password setup email", () => {
@@ -36,6 +37,10 @@ describe("Password setup email", () => {
           expect(email.html).not.toContain("common.");
           expect(email.html).not.toContain("{name}");
           expect(email.html).not.toContain("{hours}");
+          expect(email.html).not.toContain("{storeName}");
+          // The shop's name comes from Settings, in the subject and in the signature.
+          expect(email.subject).toContain(STORE_NAME);
+          expect(email.text).toContain(STORE_NAME);
         });
       }
     }
@@ -104,7 +109,7 @@ describe("Password setup email", () => {
       expect(html).not.toContain("@import");
     });
 
-    it("carries the Organza palette", () => {
+    it("carries the email palette", () => {
       expect(html).toContain(BRAND_COLORS.teal);
       expect(html).toContain(BRAND_COLORS.light);
     });
@@ -116,8 +121,8 @@ describe("Password setup email", () => {
       // the icons move.
       expect(html).toContain(`${ADMIN_URL}${EMAIL_LOGO_PATH}`);
       expect(EMAIL_LOGO_PATH).toMatch(/^\/app_icon\/(sandbox|production)\/icon-\d+\.png$/);
-      expect(html).toContain('alt="أورجانزا"');
-      expect(html).toContain(">أورجانزا<");
+      expect(html).toContain(`alt="${STORE_NAME}"`);
+      expect(html).toContain(`>${STORE_NAME}<`);
     });
 
     it("carries a preheader for the inbox list", () => {

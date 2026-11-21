@@ -3,10 +3,10 @@
 import { useMemo } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Table, type Column } from "@store/ui";
-import { BARCODE_SOURCE } from "@organza/shared/constants/barcode";
-import type { ProductVariantTypeRef } from "@organza/shared/types/product";
-import type { Variant } from "@organza/shared/types/variant";
-import { SELECTABLE } from "@organza/shared/lib/nativeGestures";
+import { BARCODE_SOURCE } from "@store/shared/constants/barcode";
+import type { ProductVariantTypeRef } from "@store/shared/types/product";
+import type { Variant } from "@store/shared/types/variant";
+import { SELECTABLE } from "@store/shared/lib/nativeGestures";
 import { localize } from "@/lib/i18n-content";
 import { formatMoney } from "@/lib/format";
 import { ProductImage } from "@/components/products/product-image";

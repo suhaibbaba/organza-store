@@ -1,11 +1,11 @@
-import type { ListProductsQuery } from "@organza/shared/schemas/product";
-import type { ProductPrintState, ProductSummary } from "@organza/shared/types/product";
-import type { Pagination } from "@organza/shared/types/common";
+import type { ListProductsQuery } from "@store/shared/schemas/product";
+import type { ProductPrintState, ProductSummary } from "@store/shared/types/product";
+import type { Pagination } from "@store/shared/types/common";
 import type { TableSort } from "@store/ui";
-import type { ProductCompletenessFilter } from "@organza/shared/constants/quickSell";
+import type { ProductCompletenessFilter } from "@store/shared/constants/quickSell";
 import type { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
-import type { Product } from "@organza/shared/types/product";
+import type { Product } from "@store/shared/types/product";
 
 // Cropped to fill (thumbnails), whole inside the box, or its own size within a cap (detail page).
 export type ProductImageFit = "cover" | "contain" | "natural";

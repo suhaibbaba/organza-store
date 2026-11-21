@@ -1,4 +1,4 @@
-import { BRAND_COLORS } from "@organza/shared/constants/brand";
+import { BRAND_COLORS } from "@store/shared/constants/brand";
 import {
   EMAIL_BUTTON_RADIUS_PX,
   EMAIL_CARD_RADIUS_PX,
@@ -44,8 +44,7 @@ export function renderLayout(input: EmailLayoutInput): string {
   const rtl = isRtl(language);
   const dir = rtl ? "rtl" : "ltr";
   const start = rtl ? "right" : "left";
-  const brandName = t(language, "brand.name");
-  const tagline = t(language, "brand.tagline");
+  const brandName = input.storeName;
 
   const paragraphHtml = paragraphs
     .map(
@@ -67,9 +66,9 @@ export function renderLayout(input: EmailLayoutInput): string {
 <style type="text/css">
   /* Enhancement only — every width below also works without this block. */
   @media only screen and (max-width: 620px) {
-    .organza-card { width: 100% !important; }
-    .organza-pad { padding-left: 20px !important; padding-right: 20px !important; }
-    .organza-button { display: block !important; width: auto !important; }
+    .mail-card { width: 100% !important; }
+    .mail-pad { padding-left: 20px !important; padding-right: 20px !important; }
+    .mail-button { display: block !important; width: auto !important; }
   }
 </style>
 </head>
@@ -83,22 +82,21 @@ export function renderLayout(input: EmailLayoutInput): string {
   <tr>
     <td align="center" style="padding:24px 12px;">
 
-      <table role="presentation" class="organza-card" width="${EMAIL_CONTENT_WIDTH_PX}" cellpadding="0" cellspacing="0" border="0" style="width:${EMAIL_CONTENT_WIDTH_PX}px;max-width:100%;background-color:${BRAND_COLORS.surface};border:1px solid ${BRAND_COLORS.border};border-radius:${EMAIL_CARD_RADIUS_PX}px;">
+      <table role="presentation" class="mail-card" width="${EMAIL_CONTENT_WIDTH_PX}" cellpadding="0" cellspacing="0" border="0" style="width:${EMAIL_CONTENT_WIDTH_PX}px;max-width:100%;background-color:${BRAND_COLORS.surface};border:1px solid ${BRAND_COLORS.border};border-radius:${EMAIL_CARD_RADIUS_PX}px;">
 
         <!-- Header: the mark, then the shop's name as text so a client with
              images off still shows who this is from. -->
         <tr>
-          <td align="center" class="organza-pad" style="padding:28px 32px 20px 32px;background-color:${BRAND_COLORS.teal};border-radius:${EMAIL_CARD_RADIUS_PX}px ${EMAIL_CARD_RADIUS_PX}px 0 0;">
+          <td align="center" class="mail-pad" style="padding:28px 32px 20px 32px;background-color:${BRAND_COLORS.teal};border-radius:${EMAIL_CARD_RADIUS_PX}px ${EMAIL_CARD_RADIUS_PX}px 0 0;">
             <img src="${escapeHtml(input.logoUrl)}" width="${EMAIL_LOGO_HEIGHT_PX}" height="${EMAIL_LOGO_HEIGHT_PX}" alt="${escapeHtml(
               brandName
             )}" style="display:block;border:0;outline:none;text-decoration:none;height:${EMAIL_LOGO_HEIGHT_PX}px;width:${EMAIL_LOGO_HEIGHT_PX}px;margin:0 auto 10px auto;" />
             <div style="font-size:20px;font-weight:bold;color:#FFFFFF;line-height:1.4;">${escapeHtml(brandName)}</div>
-            <div style="font-size:13px;color:${BRAND_COLORS.light};line-height:1.5;">${escapeHtml(tagline)}</div>
           </td>
         </tr>
 
         <tr>
-          <td class="organza-pad" style="padding:32px;">
+          <td class="mail-pad" style="padding:32px;">
             <h1 style="margin:0 0 16px 0;font-size:22px;line-height:1.4;color:${BRAND_COLORS.tealDark};text-align:${start};">${escapeHtml(
               heading
             )}</h1>
@@ -110,7 +108,7 @@ export function renderLayout(input: EmailLayoutInput): string {
             <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:26px 0;">
               <tr>
                 <td align="center" bgcolor="${BRAND_COLORS.teal}" style="background-color:${BRAND_COLORS.teal};border-radius:${EMAIL_BUTTON_RADIUS_PX}px;">
-                  <a class="organza-button" href="${escapeHtml(action.url)}" target="_blank" rel="noopener" style="display:inline-block;padding:16px 34px;font-family:${EMAIL_FONT_STACK};font-size:17px;font-weight:bold;line-height:1.2;color:#FFFFFF;text-decoration:none;border-radius:${EMAIL_BUTTON_RADIUS_PX}px;">${escapeHtml(
+                  <a class="mail-button" href="${escapeHtml(action.url)}" target="_blank" rel="noopener" style="display:inline-block;padding:16px 34px;font-family:${EMAIL_FONT_STACK};font-size:17px;font-weight:bold;line-height:1.2;color:#FFFFFF;text-decoration:none;border-radius:${EMAIL_BUTTON_RADIUS_PX}px;">${escapeHtml(
                     action.label
                   )}</a>
                 </td>
@@ -148,9 +146,9 @@ export function renderLayout(input: EmailLayoutInput): string {
         </tr>
 
         <tr>
-          <td class="organza-pad" style="padding:20px 32px 26px 32px;border-top:1px solid ${BRAND_COLORS.border};">
+          <td class="mail-pad" style="padding:20px 32px 26px 32px;border-top:1px solid ${BRAND_COLORS.border};">
             <p style="margin:0 0 6px 0;font-size:14px;line-height:1.6;color:${BRAND_COLORS.text};text-align:${start};">${escapeHtml(
-              t(language, "common.signature")
+              t(language, "common.signature", { storeName: brandName })
             )}</p>
             <p style="margin:0;font-size:12px;line-height:1.6;color:${BRAND_COLORS.muted};text-align:${start};">${escapeHtml(
               t(language, "common.replyNote")
@@ -174,9 +172,9 @@ export function renderLayout(input: EmailLayoutInput): string {
  * mail in the junk folder.
  */
 export function renderText(input: EmailLayoutInput): string {
-  const { language, heading, paragraphs, action, footNote } = input;
+  const { language, storeName, heading, paragraphs, action, footNote } = input;
   return [
-    t(language, "brand.name"),
+    storeName,
     "",
     heading,
     "",
@@ -188,7 +186,7 @@ export function renderText(input: EmailLayoutInput): string {
     action.note,
     ...(footNote ? ["", footNote] : []),
     "",
-    t(language, "common.signature"),
+    t(language, "common.signature", { storeName }),
     t(language, "common.replyNote"),
   ].join("\n");
 }

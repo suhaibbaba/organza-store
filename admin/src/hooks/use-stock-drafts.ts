@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import type { InventoryItem } from "@organza/shared/types/inventory";
-import { clampQuantity } from "@organza/shared/constants/quantity";
+import type { InventoryItem } from "@store/shared/types/inventory";
+import { clampQuantity } from "@store/shared/constants/quantity";
 import { useAdjustStockMutation } from "@/hooks/use-inventory";
 import type { StockDraft } from "@/types/inventory";
 

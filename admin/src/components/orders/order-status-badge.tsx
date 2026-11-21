@@ -1,6 +1,6 @@
 import { useTranslations } from "next-intl";
 import { Badge, type BadgeTone, type IconName } from "@store/ui";
-import type { OrderStatus } from "@organza/shared/types/order";
+import type { OrderStatus } from "@store/shared/types/order";
 import { cn } from "@/lib/utils";
 
 // Same meaning on every screen: info = to do, warning = in motion, success = done, danger = money that didn't happen, neutral = reversed.

@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { SupportedLanguage } from "@organza/shared/types/language";
+import type { SupportedLanguage } from "@store/shared/types/language";
 import { PROFILE_QUERY_KEY, PROFILE_SESSIONS_QUERY_KEY, SESSION_QUERY_KEY } from "@/constants/api";
 import {
   changePassword,

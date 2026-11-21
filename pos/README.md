@@ -1,4 +1,4 @@
-# Organza Store — POS
+# Store Management — POS
 
 The point-of-sale screen: what the shop uses at the counter to ring up a sale. Next.js (App
 Router) + TypeScript + Tailwind + shadcn/ui-style components, talking to the `backend/` API.
@@ -21,7 +21,7 @@ cp .env.example .env.local
 # edit .env.local: NEXT_PUBLIC_API_URL should point at a running backend/ instance
 ```
 
-That root install also compiles `shared/` into the `@organza/shared` package this app imports
+That root install also compiles `shared/` into the `@store/shared` package this app imports
 (the shared package's own `prepare` script) — no separate setup step needed, matching `backend/`
 and `admin/`.
 
@@ -68,7 +68,7 @@ quantities and discounts, never a price or a total.
 ## Roles
 
 Every staff role can sell, Employee included (`spec.md` "Roles & Permissions"). The screen checks
-`can(user, "order.create")` from `@organza/shared` to explain itself when an account somehow lacks it —
+`can(user, "order.create")` from `@store/shared` to explain itself when an account somehow lacks it —
 the real gate is the backend's, on every request (CLAUDE.md rule 5).
 
 ## i18n
@@ -102,7 +102,7 @@ decides three things:
 - **Which icons are served.** `public/app_icon/production/` and `public/app_icon/sandbox/`
   hold the same file names; every icon path is built from the chosen folder in
   `src/constants/pwa.ts`. The sandbox artwork carries an amber `SBX` band.
-- **What the installed app is called** — `Organza POS` or `Organza POS (SBX)`, so two tiles on the
+- **What the installed app is called** — `NEXT_PUBLIC_APP_NAME` (default `Store POS`) or the same with `(SBX)`, so two tiles on the
   same phone can be told apart without opening them.
 - **Whether the SANDBOX chip appears** next to the shop's name in the top bar and on the
   login screen (`src/components/layout/environment-badge.tsx`). Production shows nothing.
@@ -160,7 +160,7 @@ pos/
 
 Local modules are imported via the `@/` path alias (e.g. `@/lib/cart`), never relative paths.
 The shared cross-app package is a workspace dependency, imported by package name (e.g.
-`@organza/shared/constants/order`), not through an alias — so install from the repo root
+`@store/shared/constants/order`), not through an alias — so install from the repo root
 (`npm install`) and run this app with `npm run dev -w pos`.
 
 ### A note on Next.js 16

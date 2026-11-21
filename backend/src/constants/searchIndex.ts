@@ -1,6 +1,6 @@
 // The products index, as code: every setting lives here and `npm run search:setup` (and every reindex) applies it.
 // Bump PRODUCTS_INDEX_VERSION when anything below changes, so the change is visible in review and in the setup output.
-import { SUPPORTED_LANGUAGES } from "@organza/shared/constants/languages";
+import { SUPPORTED_LANGUAGES } from "@store/shared/constants/languages";
 
 export const PRODUCTS_INDEX_VERSION = 3;
 

@@ -1,4 +1,4 @@
-# Security audit — Organza Store
+# Security audit — Store Management
 
 **Date:** 2026-08-15
 **Scope:** `backend/`, `admin/`, `pos/`, `shared/`, `ops/`, deployment config.
@@ -40,13 +40,13 @@ phone number**), `order.updateStatus`, `product.create`/`edit`, `images.edit`,
 **Reproduce**
 
 ```bash
-curl -X POST https://api.organza-moda.com/api/auth/sign-up/email \
+curl -X POST $PRODUCTION_API_URL/api/auth/sign-up/email \
   -H 'content-type: application/json' \
   -d '{"email":"attacker@example.com","password":"hunter2hunter2",
        "name":"x","phone":"+970599000000"}'
 # -> 200 { "token": "...", "user": { "role": "EMPLOYEE", ... } }
 
-curl https://api.organza-moda.com/api/orders \
+curl $PRODUCTION_API_URL/api/orders \
   -H 'Authorization: Bearer <token>'
 # -> every order in the shop
 ```
@@ -92,7 +92,7 @@ Two consequences, the first being the serious one:
 ```bash
 for i in $(seq 1 25); do
   curl -s -o /dev/null -w '%{http_code} ' \
-    -X POST https://api.organza-moda.com/api/auth/sign-in/email \
+    -X POST $PRODUCTION_API_URL/api/auth/sign-in/email \
     -H 'content-type: application/json' \
     -d '{"email":"nobody@example.com","password":"x"}'
 done
@@ -135,10 +135,10 @@ Two things make this worse than an ordinary misconfiguration:
 
 ```bash
 # machine A, 60 times
-curl -s -X POST https://api.organza-moda.com/api/password-setup/request \
+curl -s -X POST $PRODUCTION_API_URL/api/password-setup/request \
   -H 'content-type: application/json' -d '{"email":"a@example.com"}'
 # machine B, once
-curl -s -X POST https://api.organza-moda.com/api/password-setup/request \
+curl -s -X POST $PRODUCTION_API_URL/api/password-setup/request \
   -H 'content-type: application/json' -d '{"email":"b@example.com"}'
 # -> 429 error.rate_limited, despite being a different caller entirely
 ```
@@ -517,7 +517,7 @@ no active Admin — 409 `error.user.last_admin`, translated in all three languag
 four projects and `npm run build` (including both Next apps on the upgraded version).
 
 **Where it ran, and why not the sandbox.** `npm run api-test` hard-codes
-`API_URL=https://api.sandbox.organza-moda.com`, and this session's egress policy refuses that
+`API_URL=$SANDBOX_API_URL`, and this session's egress policy refuses that
 host outright — 403 on CONNECT, confirmed against the proxy's own status endpoint. So the suite
 was run against a **local** PostgreSQL 16 + backend built from this branch (migrated,
 bootstrapped and demo-seeded), which `tests/support/target.ts` classifies as a `local` target and

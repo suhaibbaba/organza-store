@@ -4,8 +4,8 @@ import { Controller, type Control, type FieldErrors, type UseFormRegister, type 
 import { useTranslations } from "next-intl";
 import { ChevronDown, MapPin } from "lucide-react";
 import { FormField, Input, Textarea } from "@store/ui";
-import type { CustomerSuggestion } from "@organza/shared/types/order";
-import { fieldErrorTestSelector, fieldTestSelector } from "@organza/shared/lib/testSelector";
+import type { CustomerSuggestion } from "@store/shared/types/order";
+import { fieldErrorTestSelector, fieldTestSelector } from "@store/shared/lib/testSelector";
 import { SIGNED_DECIMAL_INPUT_PATTERN } from "@/constants/numeric";
 import { useTranslateError } from "@/hooks/use-translate-error";
 import { splitCoordinatePair, type OrderCustomerFormValues } from "@/lib/validation/customer";

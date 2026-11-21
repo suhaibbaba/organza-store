@@ -3,8 +3,8 @@
 import { useEffect, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { Lock } from "lucide-react";
-import { can } from "@organza/shared/lib/permissions";
-import type { PermissionAction } from "@organza/shared/types/permission";
+import { can } from "@store/shared/lib/permissions";
+import type { PermissionAction } from "@store/shared/types/permission";
 import { Link, useRouter } from "@/i18n/navigation";
 import { useSession } from "@/components/providers/session-provider";
 import { buttonClassName } from "@store/ui";

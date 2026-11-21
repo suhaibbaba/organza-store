@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { installZoomGuards } from "@organza/shared/lib/nativeGestures";
+import { installZoomGuards } from "@store/shared/lib/nativeGestures";
 
 /**
  * The half of "this app does not zoom" that only JavaScript can do.

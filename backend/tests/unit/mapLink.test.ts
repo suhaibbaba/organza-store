@@ -1,6 +1,6 @@
 // Reading a customer's location out of the Google Maps link they send (spec.md "Customer information").
 import { describe, expect, it } from "vitest";
-import { coordinatesFromMapLink, isGoogleMapsLink, isShortMapLink } from "@organza/shared/lib/mapLink";
+import { coordinatesFromMapLink, isGoogleMapsLink, isShortMapLink } from "@store/shared/lib/mapLink";
 
 describe("coordinatesFromMapLink", () => {
   it("prefers the dropped pin over the map's centre", () => {

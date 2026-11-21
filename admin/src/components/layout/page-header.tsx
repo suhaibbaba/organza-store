@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { testSelectorFor } from "@organza/shared/lib/testSelector";
+import { testSelectorFor } from "@store/shared/lib/testSelector";
 import { cn } from "@/lib/utils";
 
 interface PageHeaderProps {

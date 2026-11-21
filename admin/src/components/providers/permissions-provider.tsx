@@ -2,8 +2,8 @@
 
 import { createContext, useContext, useMemo, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { applyPermissionMatrixPayload } from "@organza/shared/lib/permissions";
-import type { PermissionMatrixPayload } from "@organza/shared/types/permission";
+import { applyPermissionMatrixPayload } from "@store/shared/lib/permissions";
+import type { PermissionMatrixPayload } from "@store/shared/types/permission";
 import { PERMISSIONS_QUERY_KEY } from "@/constants/api";
 import { fetchPermissionMatrix } from "@/lib/api/permissions";
 import { useSession } from "@/components/providers/session-provider";

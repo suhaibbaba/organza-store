@@ -64,7 +64,7 @@ async function main(): Promise<void> {
   }
 
   console.log(RULE);
-  console.log("  Organza — off-site backup status");
+  console.log("  Store Management — off-site backup status");
   console.log(RULE);
 
   if (health.lastSuccessAt) {
@@ -103,7 +103,7 @@ async function main(): Promise<void> {
     console.log("");
     console.log("  Nothing here is a fresh copy of the shop. Check, in this order:");
     console.log("    1. the cron entry on the VPS   crontab -l | grep backup");
-    console.log("    2. the log it writes to        tail -50 /var/log/organza-backup.log");
+    console.log("    2. the log it writes to        tail -50 /var/log/store-backup.log");
     console.log("    3. the R2 credentials in the stack's env file (R2_ACCESS_KEY_ID etc.)");
     console.log("    4. run it by hand              ./ops/backup.sh");
     console.log("  See ops/README.md.");

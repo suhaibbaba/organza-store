@@ -1,8 +1,8 @@
 "use client";
 
 import { useLocale } from "next-intl";
-import { variantValueNotes } from "@organza/shared/lib/optionValueNotes";
-import type { Variant } from "@organza/shared/types/variant";
+import { variantValueNotes } from "@store/shared/lib/optionValueNotes";
+import type { Variant } from "@store/shared/types/variant";
 import { localize } from "@/lib/i18n-content";
 import { cn } from "@/lib/utils";
 

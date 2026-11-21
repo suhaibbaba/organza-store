@@ -1,5 +1,5 @@
 // ============================================================
-//  Organza Store — DEMO seed (DEV / SANDBOX ONLY — NEVER PRODUCTION)
+//  Store Management — DEMO seed (DEV / SANDBOX ONLY — NEVER PRODUCTION)
 //
 //  ⚠️  QUARANTINED. This file writes fake products, fake orders and test
 //  accounts whose password is printed at the bottom of this very file. On the
@@ -15,7 +15,7 @@
 //      disposable (see the guard below).
 //
 //  Run it by hand, against a sandbox or a local machine:
-//      ORGANZA_ALLOW_DEMO_SEED=I-KNOW-THIS-IS-NOT-PRODUCTION npm run seed:demo
+//      STORE_ALLOW_DEMO_SEED=I-KNOW-THIS-IS-NOT-PRODUCTION npm run seed:demo
 //
 //  What a REAL shop gets instead:
 //      npm run bootstrap   — settings, variant types, expense categories
@@ -90,7 +90,7 @@ const SEEDED_LABELS_PRINTED_AT = new Date("2026-01-01T09:00:00.000Z");
 // see src/constants/barcode.ts).
 // The demo accounts' shared password. Printed at the end of the run and hard
 // -coded in the API test suite (tests/constants/accounts.ts) — which is
-// exactly why this file is quarantined behind ORGANZA_ALLOW_DEMO_SEED: it is
+// exactly why this file is quarantined behind STORE_ALLOW_DEMO_SEED: it is
 // a published login, and on a real database that is a stranger's way in.
 const DEMO_PASSWORD = "password123";
 
@@ -111,7 +111,7 @@ async function main() {
     update: {},
     create: {
       id: "default",
-      storeName: { ar: "أورجانزا", en: "Organza", he: "אורגנזה" },
+      storeName: { ar: "متجر تجريبي", en: "Demo store", he: "חנות הדגמה" },
       defaultLanguage: "ar",
       supportedLanguages: ["ar", "en", "he"],
       currency: "ILS",
@@ -131,9 +131,9 @@ async function main() {
   // into existence by anywhere in this system — and given their password
   // through Better Auth's own context, so the hash is one sign-in accepts.
   const staff = [
-    { email: "admin@organza.test",    name: "Admin",    role: Role.ADMIN,    phone: "+970599000001" },
-    { email: "manager@organza.test",  name: "Manager",  role: Role.MANAGER,  phone: "+970599000002" },
-    { email: "employee@organza.test", name: "Employee", role: Role.EMPLOYEE, phone: "+970599000003" },
+    { email: "admin@store.test",    name: "Admin",    role: Role.ADMIN,    phone: "+970599000001" },
+    { email: "manager@store.test",  name: "Manager",  role: Role.MANAGER,  phone: "+970599000002" },
+    { email: "employee@store.test", name: "Employee", role: Role.EMPLOYEE, phone: "+970599000003" },
   ];
   for (const s of staff) {
     const existing = await prisma.user.findUnique({ where: { email: s.email } });
@@ -631,11 +631,11 @@ async function main() {
   //  declared above are therefore the post-sale ones.
   // ============================================================
 
-  const admin = await prisma.user.findUniqueOrThrow({ where: { email: "admin@organza.test" } });
-  const employee = await prisma.user.findUniqueOrThrow({ where: { email: "employee@organza.test" } });
+  const admin = await prisma.user.findUniqueOrThrow({ where: { email: "admin@store.test" } });
+  const employee = await prisma.user.findUniqueOrThrow({ where: { email: "employee@store.test" } });
   // Used by the expense + cash-drawer fixtures below: the Manager is who
   // approves someone else's expense and who counts the drawer.
-  const manager = await prisma.user.findUniqueOrThrow({ where: { email: "manager@organza.test" } });
+  const manager = await prisma.user.findUniqueOrThrow({ where: { email: "manager@store.test" } });
 
   const silkScarf = await prisma.product.findUniqueOrThrow({ where: { slug: "silk-scarf" } });
   const eveningDress = await prisma.product.findUniqueOrThrow({
@@ -1152,7 +1152,7 @@ async function main() {
   console.log(`   Search index (${search.engine}): ${search.indexed} product(s)`);
   console.log(`   Numbered photos: ${await rebuildAllMarkedImages()} product(s)`);
   console.log("✅ Seed complete.");
-  console.log(`   Users: admin@ / manager@ / employee@organza.test  (password: ${DEMO_PASSWORD})`);
+  console.log(`   Users: admin@ / manager@ / employee@store.test  (password: ${DEMO_PASSWORD})`);
 }
 
 main()

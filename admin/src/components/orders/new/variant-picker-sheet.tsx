@@ -2,9 +2,9 @@
 
 import { useLocale, useTranslations } from "next-intl";
 import { CardButton, Drawer, Typography } from "@store/ui";
-import { testSelectorFor } from "@organza/shared/lib/testSelector";
-import type { Product } from "@organza/shared/types/product";
-import type { Variant } from "@organza/shared/types/variant";
+import { testSelectorFor } from "@store/shared/lib/testSelector";
+import type { Product } from "@store/shared/types/product";
+import type { Variant } from "@store/shared/types/variant";
 import { localize } from "@/lib/i18n-content";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
 

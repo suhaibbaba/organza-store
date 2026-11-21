@@ -12,7 +12,7 @@
 //
 //      npm run init                                  # ../staff.json
 //      npm run init -- --accounts /srv/staff.json    # somewhere else
-//      ORGANZA_STAFF_FILE=/srv/staff.json npm run init
+//      STORE_STAFF_FILE=/srv/staff.json npm run init
 //
 //  Each account is created with NO PASSWORD and is emailed a single-use
 //  "set your password" link, so the only person who ever knows a password is
@@ -56,7 +56,7 @@ async function main(): Promise<void> {
   const staffFile = resolveStaffFilePath(argv, REPO_ROOT);
 
   console.log(RULE);
-  console.log("  Organza — creating the shop's staff accounts");
+  console.log("  Store Management — creating the shop's staff accounts");
   console.log(RULE);
   console.log(`  Database : ${describeDatabase()}`);
   console.log(`  Accounts : ${staffFile}`);

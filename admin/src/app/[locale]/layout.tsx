@@ -35,7 +35,7 @@ const notoSansHebrew = Noto_Sans_Hebrew({
 
 export const metadata: Metadata = {
   applicationName: PWA_NAME,
-  title: "Organza Store — Admin",
+  title: PWA_NAME,
   description: PWA_DESCRIPTION,
   manifest: PWA_MANIFEST_PATH,
   icons: {

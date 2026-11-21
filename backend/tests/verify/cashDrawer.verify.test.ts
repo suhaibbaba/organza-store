@@ -19,7 +19,7 @@
 //    2. The one assertion that genuinely needs a live window — a cash sale
 //       reaching the drawer — measures the drawer THE SHOP has already
 //       opened. If there isn't one it reports itself skipped rather than
-//       opening today's (see ORGANZA_ALLOW_TODAY_DRAWER for a disposable
+//       opening today's (see STORE_ALLOW_TODAY_DRAWER for a disposable
 //       database).
 // ============================================================================
 import { beforeAll, describe, expect, it } from "vitest";

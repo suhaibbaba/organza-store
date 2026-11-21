@@ -2,8 +2,8 @@
 
 import { useLocale, useTranslations } from "next-intl";
 import { Table, Typography, type Column } from "@store/ui";
-import type { OrderSummary } from "@organza/shared/types/order";
-import { PAGE_SIZE_OPTIONS } from "@organza/shared/constants/pagination";
+import type { OrderSummary } from "@store/shared/types/order";
+import { PAGE_SIZE_OPTIONS } from "@store/shared/constants/pagination";
 import { formatDate, formatTime } from "@/lib/format";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
 import { useOrderRowMenu } from "@/components/orders/order-row-menu";

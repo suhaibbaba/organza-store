@@ -1,10 +1,10 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
-import type { Product } from "@organza/shared/types/product";
-import type { Variant } from "@organza/shared/types/variant";
-import type { DiscountType } from "@organza/shared/types/order";
-import { clampQuantity } from "@organza/shared/constants/quantity";
+import type { Product } from "@store/shared/types/product";
+import type { Variant } from "@store/shared/types/variant";
+import type { DiscountType } from "@store/shared/types/order";
+import { clampQuantity } from "@store/shared/constants/quantity";
 import { MIN_ORDER_QUANTITY } from "@/constants/orders";
 import { computeDraftTotals, toDraftLine } from "@/lib/order-draft";
 import type { DiscountState, OrderDraftLine, OrderDraftTotals } from "@/types/order";

@@ -3,7 +3,7 @@
 import { useTranslations } from "next-intl";
 import { ArrowLeft } from "lucide-react";
 import { Alert, Button, Skeleton, Typography, buttonClassName } from "@store/ui";
-import { ERROR_CODES } from "@organza/shared/constants/errors";
+import { ERROR_CODES } from "@store/shared/constants/errors";
 import { Link } from "@/i18n/navigation";
 import { TopBar } from "@/components/layout/top-bar";
 import { ProfileHeader } from "@/components/profile/profile-header";

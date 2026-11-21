@@ -12,7 +12,7 @@
  *
  * The fix is one character longer and says what it means: `{count, number,
  * plain}`, where `plain` is a named format both apps hand to next-intl (see
- * @organza/shared/constants/formatting and each app's src/i18n/request.ts).
+ * @store/shared/constants/formatting and each app's src/i18n/request.ts).
  *
  * This is a build step rather than a code review because `#` is invisible in a
  * diff full of Arabic and only misbehaves on the one phone nobody develops on.
@@ -92,7 +92,7 @@ function main() {
     console.error(`check-messages: ${problems.length} message(s) would take their digits from the device:\n`);
     for (const line of problems.slice(0, 20)) console.error(`  ${line}`);
     if (problems.length > 20) console.error(`  …and ${problems.length - 20} more`);
-    console.error("\nSee @organza/shared/constants/formatting.ts for the named formats and why they exist.");
+    console.error("\nSee @store/shared/constants/formatting.ts for the named formats and why they exist.");
     process.exit(1);
   }
 

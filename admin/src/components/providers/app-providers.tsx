@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import { useLocale } from "next-intl";
 import { ToastProvider } from "@store/ui";
 import { UiProvider } from "@store/ui/theme";
-import { organzaTheme } from "@store/ui/themes/organza";
+import { tealTheme } from "@store/ui/themes/teal";
 import { getTextDirection } from "@/constants/locale";
 import type { AppLocale } from "@/i18n/routing";
 import { QueryProvider } from "@/components/providers/query-provider";
@@ -16,7 +16,7 @@ export function AppProviders({ children }: { children: ReactNode }) {
 
   return (
     <UiProvider
-      theme={organzaTheme}
+      theme={tealTheme}
       direction={getTextDirection(locale)}
       lang={locale}
     >

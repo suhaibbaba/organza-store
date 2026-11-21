@@ -1,4 +1,4 @@
-import type { ProfileSession } from "@organza/shared/types/profile";
+import type { ProfileSession } from "@store/shared/types/profile";
 
 export type DeviceKind = "phone" | "tablet" | "desktop" | "unknown";
 

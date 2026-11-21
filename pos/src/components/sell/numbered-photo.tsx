@@ -3,17 +3,17 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
-import type { Product } from "@organza/shared/types/product";
-import type { Variant } from "@organza/shared/types/variant";
-import { resolvePointColors } from "@organza/shared/lib/pointColors";
+import type { Product } from "@store/shared/types/product";
+import type { Variant } from "@store/shared/types/variant";
+import { resolvePointColors } from "@store/shared/lib/pointColors";
 import {
   POINT_MARKER_ASPECT_RATIO,
   POINT_MARKER_BORDER_PERCENT,
   POINT_MARKER_FONT_PERCENT,
   POINT_MARKER_RADIUS_PERCENT,
   POINT_MARKER_WIDTH_PERCENT,
-} from "@organza/shared/constants/numberedShawl";
-import { testSelectorFor } from "@organza/shared/lib/testSelector";
+} from "@store/shared/constants/numberedShawl";
+import { testSelectorFor } from "@store/shared/lib/testSelector";
 import {
   NUMBERED_PHOTO_MAX_HEIGHT,
   NUMBERED_PHOTO_PLACEHOLDER_RATIO,

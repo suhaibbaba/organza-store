@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { testSelectorFor } from "@organza/shared/lib/testSelector";
+import { testSelectorFor } from "@store/shared/lib/testSelector";
 import { useCategoriesQuery } from "@/hooks/use-categories";
 import { useProductCount } from "@/hooks/use-product-count";
 import { localize } from "@/lib/i18n-content";

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Trash2, Zap } from "lucide-react";
-import { testSelectorFor } from "@organza/shared/lib/testSelector";
+import { testSelectorFor } from "@store/shared/lib/testSelector";
 import { SCAN_FLASH_MS } from "@/constants/pos";
 import { SELL_CART_THUMB_SIZES } from "@/constants/images";
 import { useDiscountLabel } from "@/hooks/use-discount-label";

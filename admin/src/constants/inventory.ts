@@ -1,7 +1,7 @@
-import { DEFAULT_PAGE, DEFAULT_PAGE_SIZE } from "@organza/shared/constants/pagination";
+import { DEFAULT_PAGE, DEFAULT_PAGE_SIZE } from "@store/shared/constants/pagination";
 import type { InventoryListFilters } from "@/types/inventory";
-import { INVENTORY_SORT_FIELDS } from "@organza/shared/constants/inventory";
-import { SORT_DIRECTIONS } from "@organza/shared/constants/pagination";
+import { INVENTORY_SORT_FIELDS } from "@store/shared/constants/inventory";
+import { SORT_DIRECTIONS } from "@store/shared/constants/pagination";
 import { urlParam } from "@/lib/url-filters";
 import type { UrlParams } from "@/types/urlFilters";
 

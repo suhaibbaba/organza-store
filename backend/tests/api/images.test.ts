@@ -5,7 +5,7 @@ import { anyCategoryId } from "@tests/support/fixtures";
 import { DARK_PNG, LIGHT_PNG, TINY_PNG } from "@tests/constants";
 import type { ErrorBody, ImageDto, ProductDto } from "@tests/types";
 import { ERROR_CODES } from "@/constants";
-import { IMAGE_BRIGHTNESS_LIGHT_THRESHOLD } from "@organza/shared/constants/numberedShawl";
+import { IMAGE_BRIGHTNESS_LIGHT_THRESHOLD } from "@store/shared/constants/numberedShawl";
 
 // Per the task scope, multipart upload is NOT exercised deeply here — just
 // that the endpoint exists, rejects bad input (missing auth, missing file),

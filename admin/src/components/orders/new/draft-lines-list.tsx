@@ -11,7 +11,7 @@ import { useMoneyFormatter } from "@/hooks/use-money-formatter";
 import { QuantityStepper } from "@/components/fields/quantity-stepper";
 import { ProductImage } from "@/components/products/product-image";
 import type { OrderDraft } from "@/hooks/use-order-draft";
-import { testSelectorFor } from "@organza/shared/lib/testSelector";
+import { testSelectorFor } from "@store/shared/lib/testSelector";
 
 interface DraftLinesListProps {
   draft: OrderDraft;

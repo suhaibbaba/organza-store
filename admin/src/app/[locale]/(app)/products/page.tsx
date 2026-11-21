@@ -3,8 +3,8 @@
 import { useTranslations } from "next-intl";
 import { Plus } from "lucide-react";
 import { SegmentedControl, TotalBadge, Typography, buttonClassName, type TableSort } from "@store/ui";
-import { DEFAULT_PAGE } from "@organza/shared/constants/pagination";
-import { can } from "@organza/shared/lib/permissions";
+import { DEFAULT_PAGE } from "@store/shared/constants/pagination";
+import { can } from "@store/shared/lib/permissions";
 import { Link } from "@/i18n/navigation";
 import { PageContainer } from "@/components/layout/page-container";
 import { PageHeader } from "@/components/layout/page-header";

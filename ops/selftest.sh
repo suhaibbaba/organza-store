@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Organza — prove the backup's own safety checks actually work.
+# Store Management — prove the backup's own safety checks actually work.
 #
 #   STACK=production ./ops/selftest.sh
 #   STACK=sandbox    ./ops/selftest.sh
@@ -67,7 +67,7 @@ expect() {
 }
 
 echo "$RULE"
-echo "  Organza — backup self-test"
+echo "  Store Management — backup self-test"
 echo "$RULE"
 ops_print_target
 echo "$RULE"

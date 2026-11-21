@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
 import { Palette } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { FIXED_ROLE } from "@organza/shared/constants/roles";
+import { FIXED_ROLE } from "@store/shared/constants/roles";
 import { Link } from "@/i18n/navigation";
 import { useSession } from "@/components/providers/session-provider";
 import { cn } from "@/lib/utils";

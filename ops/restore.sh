@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 #
-# Organza — put a backup back.
+# Store Management — put a backup back.
 #
 #   STACK=production ./ops/restore.sh --list          # what is in the bucket
 #   STACK=production ./ops/restore.sh --from-r2 latest
 #   STACK=production ./ops/restore.sh --from-r2 20260815T023000Z
-#   STACK=production ./ops/restore.sh ./backups/organza-prod/20260815T023000Z
+#   STACK=production ./ops/restore.sh ./backups/<STACK_NAME>/20260815T023000Z
 #
 # STACK is one word and picks BOTH the compose file and the env file, so the
 # two can never disagree about which deployment is being written to; it
@@ -22,11 +22,11 @@
 # refuses to do that on a word — the confirmation has to be typed out in full,
 # and pointed at the LIVE SHOP it wants a second one on top:
 #
-#   ORGANZA_RESTORE_CONFIRM=I-KNOW-THIS-OVERWRITES-THE-DATABASE \
+#   STORE_RESTORE_CONFIRM=I-KNOW-THIS-OVERWRITES-THE-DATABASE \
 #     ./ops/restore.sh --from-r2 latest
 #
-#   ORGANZA_ALLOW_PRODUCTION=I-KNOW-THIS-IS-PRODUCTION \
-#   ORGANZA_RESTORE_CONFIRM=I-KNOW-THIS-OVERWRITES-THE-DATABASE \
+#   STORE_ALLOW_PRODUCTION=I-KNOW-THIS-IS-PRODUCTION \
+#   STORE_RESTORE_CONFIRM=I-KNOW-THIS-OVERWRITES-THE-DATABASE \
 #     STACK=production ./ops/restore.sh --from-r2 latest
 #
 # A backup that has never been restored is a hope, not a backup. Rehearse this
@@ -147,7 +147,7 @@ APP_ENV_VALUE="$(ops_app_env)"
 IS_PRODUCTION=0
 [ "$APP_ENV_VALUE" = "production" ] && IS_PRODUCTION=1
 
-if [ "${ORGANZA_RESTORE_CONFIRM:-}" != "$CONFIRM_PHRASE" ]; then
+if [ "${STORE_RESTORE_CONFIRM:-}" != "$CONFIRM_PHRASE" ]; then
   cat >&2 <<EOF
 
 $RULE
@@ -165,7 +165,7 @@ $RULE
 
   If that is what you mean, say so in full:
 
-      ORGANZA_RESTORE_CONFIRM=$CONFIRM_PHRASE \\
+      STORE_RESTORE_CONFIRM=$CONFIRM_PHRASE \\
         STACK=$STACK ./ops/restore.sh ${FROM_STACK:+--from-stack $FROM_STACK }${FROM_R2:+--from-r2 $FROM_R2}${SRC}
 
   Take a dump of what is there NOW first — even if you are sure.
@@ -183,7 +183,7 @@ fi
 # restore production — that is what a backup is FOR — so this is a second
 # deliberate sentence rather than a refusal that would only get worked around
 # with pg_restore by hand, which is worse.
-if [ "$IS_PRODUCTION" = "1" ] && [ "${ORGANZA_ALLOW_PRODUCTION:-}" != "$PRODUCTION_PHRASE" ]; then
+if [ "$IS_PRODUCTION" = "1" ] && [ "${STORE_ALLOW_PRODUCTION:-}" != "$PRODUCTION_PHRASE" ]; then
   cat >&2 <<EOF
 
 $RULE
@@ -198,8 +198,8 @@ $RULE
 
   If you genuinely mean it, say THAT in full as well:
 
-      ORGANZA_ALLOW_PRODUCTION=$PRODUCTION_PHRASE \\
-      ORGANZA_RESTORE_CONFIRM=$CONFIRM_PHRASE \\
+      STORE_ALLOW_PRODUCTION=$PRODUCTION_PHRASE \\
+      STORE_RESTORE_CONFIRM=$CONFIRM_PHRASE \\
         STACK=$STACK ./ops/restore.sh ${FROM_STACK:+--from-stack $FROM_STACK }${FROM_R2:+--from-r2 $FROM_R2}${SRC}
 
   If you are rehearsing rather than recovering, point this at the
@@ -251,7 +251,7 @@ fi
 # discovering it after `--clean` has dropped every table is discovering it in
 # the worst order possible.
 echo "$RULE"
-echo "  Organza restore"
+echo "  Store Management restore"
 echo "$RULE"
 ops_print_target
 if [ -n "$FROM_R2" ]; then

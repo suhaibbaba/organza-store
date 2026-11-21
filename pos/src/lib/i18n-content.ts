@@ -1,5 +1,5 @@
-import { localizeI18n } from "@organza/shared/lib/i18n";
-import type { I18n } from "@organza/shared/types/common";
+import { localizeI18n } from "@store/shared/lib/i18n";
+import type { I18n } from "@store/shared/types/common";
 
 // Resolves a translatable `{ ar, en, he }` field for display (CLAUDE.md rule
 // 9): current locale, falling back to the default language, then to

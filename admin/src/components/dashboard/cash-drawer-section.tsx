@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Calculator, Check } from "lucide-react";
-import type { CashSession, CurrentCashSession } from "@organza/shared/types/cash";
+import type { CashSession, CurrentCashSession } from "@store/shared/types/cash";
 import { Alert, Button, Card } from "@store/ui";
 import { ExplainedLabel } from "@/components/figures/explained-label";
 import { CloseDaySheet } from "@/components/dashboard/close-day-sheet";

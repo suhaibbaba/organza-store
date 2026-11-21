@@ -11,7 +11,7 @@ import {
   POINT_MARKER_RADIUS_PERCENT,
   POINT_MARKER_WIDTH_PERCENT,
   type PointColors,
-} from "@organza/shared/constants/numberedShawl";
+} from "@store/shared/constants/numberedShawl";
 import { PRODUCT_PLACEHOLDER_PATH } from "@/constants/images";
 import { hasImageFailed, markImageFailed, resolveImageUrl } from "@/lib/image-fallback";
 import {
@@ -27,7 +27,7 @@ import {
   POINT_MARKER_TOUCH_PADDING_PX,
   POINT_PREVIEW_MAX_HEIGHT,
 } from "@/constants/numberedShawl";
-import { testSelectorFor } from "@organza/shared/lib/testSelector";
+import { testSelectorFor } from "@store/shared/lib/testSelector";
 import { clampPercent } from "@/lib/validation/numbered-shawl";
 import { cn } from "@/lib/utils";
 import type { PlacedShawlPoint } from "@/types/numberedShawl";

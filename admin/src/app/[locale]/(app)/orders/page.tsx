@@ -3,8 +3,8 @@
 import { useTranslations } from "next-intl";
 import { HandCoins, Plus } from "lucide-react";
 import { SearchField, TotalBadge, buttonClassName, type TableSort } from "@store/ui";
-import { can } from "@organza/shared/lib/permissions";
-import { DEFAULT_PAGE } from "@organza/shared/constants/pagination";
+import { can } from "@store/shared/lib/permissions";
+import { DEFAULT_PAGE } from "@store/shared/constants/pagination";
 import { Link } from "@/i18n/navigation";
 import { useSession } from "@/components/providers/session-provider";
 import { DEFAULT_ORDER_FILTERS, ORDER_LIST_URL_PARAMS, ORDER_SEARCH_DEBOUNCE_MS } from "@/constants/orders";

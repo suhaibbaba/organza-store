@@ -2,10 +2,10 @@
 
 import { useTranslations } from "next-intl";
 import { MenuItem, RowMenu, useConfirm, useToast } from "@store/ui";
-import { can } from "@organza/shared/lib/permissions";
-import { ERROR_CODES } from "@organza/shared/constants/errors";
-import { isOrderCollectable } from "@organza/shared/lib/orders";
-import type { OrderSummary } from "@organza/shared/types/order";
+import { can } from "@store/shared/lib/permissions";
+import { ERROR_CODES } from "@store/shared/constants/errors";
+import { isOrderCollectable } from "@store/shared/lib/orders";
+import type { OrderSummary } from "@store/shared/types/order";
 import { useRouter } from "@/i18n/navigation";
 import { useSession } from "@/components/providers/session-provider";
 import { useCollectOrdersMutation } from "@/hooks/use-orders";

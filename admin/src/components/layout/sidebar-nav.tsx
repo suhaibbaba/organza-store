@@ -13,7 +13,7 @@ import { DEFAULT_LANDING_HREF } from "@/constants/routes";
 import { activeHref, landingHref } from "@/lib/nav";
 import { useSidebarCollapsed } from "@/hooks/use-sidebar-collapsed";
 import { cn } from "@/lib/utils";
-import { testSelectorFor } from "@organza/shared/lib/testSelector";
+import { testSelectorFor } from "@store/shared/lib/testSelector";
 
 export function SidebarNav() {
   const t = useTranslations();
@@ -62,7 +62,6 @@ export function SidebarNav() {
           )}
         >
           <ShopLogo
-            alt={t("app.name")}
             className={cn(
               "shrink-0 rounded-panel transition-[height] duration-300 ease-glide",
               collapsed ? "h-11" : "h-16"

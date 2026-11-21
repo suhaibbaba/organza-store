@@ -1,5 +1,5 @@
-import type { Role } from "@organza/shared/types/role";
-import type { SupportedLanguage } from "@organza/shared/types/language";
+import type { Role } from "@store/shared/types/role";
+import type { SupportedLanguage } from "@store/shared/types/language";
 
 export interface SessionUser {
   id: string;

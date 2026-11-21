@@ -1,4 +1,4 @@
-import { SELECTABLE } from "@organza/shared/lib/nativeGestures";
+import { SELECTABLE } from "@store/shared/lib/nativeGestures";
 import { Typography } from "@store/ui";
 import { cn } from "@/lib/utils";
 import type { CustomerContactRowProps } from "@/types";

@@ -3,8 +3,8 @@
 import { useLocale, useTranslations } from "next-intl";
 import { Monitor, Smartphone, Tablet, MonitorSmartphone } from "lucide-react";
 import { Alert, Badge, Button, Skeleton, Typography, useConfirm, useToast } from "@store/ui";
-import type { ProfileSession } from "@organza/shared/types/profile";
-import { ERROR_CODES } from "@organza/shared/constants/errors";
+import type { ProfileSession } from "@store/shared/types/profile";
+import { ERROR_CODES } from "@store/shared/constants/errors";
 import { ProfileSection } from "@/components/profile/profile-section";
 import {
   useProfileSessionsQuery,

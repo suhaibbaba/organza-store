@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import type { PointColors } from "@organza/shared/constants/numberedShawl";
+import type { PointColors } from "@store/shared/constants/numberedShawl";
 import { Button } from "@store/ui";
 import { ColorInput } from "@/components/fields/color-input";
 

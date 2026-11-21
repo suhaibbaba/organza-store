@@ -86,7 +86,7 @@ export const SCAN_PULSE_MS = 450;
 // with both hands full and no on-screen keyboard ever opens.
 //
 // Which keys it pressed is read off `event.code`, never off `event.key` —
-// see @organza/shared/constants/keyboard, and the shop's Arabic keyboard layout, which
+// see @store/shared/constants/keyboard, and the shop's Arabic keyboard layout, which
 // otherwise turns every scan into Arabic letters.
 //
 // The one thing that has to be got right is telling the machine apart from a

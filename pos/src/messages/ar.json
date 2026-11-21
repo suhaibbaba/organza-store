@@ -1,6 +1,6 @@
 {
   "app": {
-    "name": "أورجانزا",
+    "name": "إدارة المتجر",
     "tagline": "شاشة البيع",
     "sandbox": "تجريبي"
   },
@@ -55,7 +55,7 @@
       "title": "تسجيل الدخول",
       "subtitle": "أدخل بريدك الإلكتروني وكلمة المرور للمتابعة.",
       "emailLabel": "البريد الإلكتروني",
-      "emailPlaceholder": "you@organza.test",
+      "emailPlaceholder": "you@store.test",
       "passwordLabel": "كلمة المرور",
       "passwordPlaceholder": "أدخل كلمة المرور",
       "submit": "تسجيل الدخول",

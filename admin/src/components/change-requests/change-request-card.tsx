@@ -3,13 +3,13 @@
 import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Check, Undo2, X } from "lucide-react";
-import { can } from "@organza/shared/lib/permissions";
-import type { ChangeRequest } from "@organza/shared/types/changeRequest";
-import { testSelectorFor } from "@organza/shared/lib/testSelector";
+import { can } from "@store/shared/lib/permissions";
+import type { ChangeRequest } from "@store/shared/types/changeRequest";
+import { testSelectorFor } from "@store/shared/lib/testSelector";
 import {
   APPROVED_CHANGE_REQUEST_STATUS,
   PENDING_CHANGE_REQUEST_STATUS,
-} from "@organza/shared/constants/changeRequest";
+} from "@store/shared/constants/changeRequest";
 import { Button, Textarea } from "@store/ui";
 import { useSession } from "@/components/providers/session-provider";
 import { ChangeValueDiff } from "@/components/change-requests/change-value";

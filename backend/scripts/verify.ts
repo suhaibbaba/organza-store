@@ -158,7 +158,7 @@ function seconds(ms: number): string {
 }
 
 function printSummary(summary: VerifyRunSummary): void {
-  const lines: string[] = ["", RULE, `  ${BOLD}ORGANZA — VERIFICATION SUITE${RESET}`, RULE];
+  const lines: string[] = ["", RULE, `  ${BOLD}STORE MANAGEMENT — VERIFICATION SUITE${RESET}`, RULE];
   lines.push(`  Target : ${summary.target.url}  (${summary.target.kind})`);
   lines.push(`  Ran at : ${summary.startedAt}`);
   lines.push(THIN);
@@ -210,7 +210,7 @@ function writeReport(summary: VerifyRunSummary): void {
   const headline = summary.incomplete ? "DID NOT COMPLETE" : summary.failed === 0 ? "PASS" : "FAIL";
 
   const lines = [
-    "# Organza — verification report",
+    "# Store Management — verification report",
     "",
     `**${headline}** — ${summary.passed} passed, ${summary.failed} failed, ` +
       `${summary.skipped} skipped, in ${seconds(summary.durationMs)}.`,
@@ -261,7 +261,7 @@ function writeReport(summary: VerifyRunSummary): void {
       "`✅ pass*` means every assertion that ran passed, but some were skipped because the",
       "target could not offer what they need — a deployment with no VAPID keys cannot send a",
       "notification, and a day whose drawer the shop has not opened cannot be measured (the",
-      "suite never opens one on a real trading day; see `ORGANZA_ALLOW_TODAY_DRAWER`).",
+      "suite never opens one on a real trading day; see `STORE_ALLOW_TODAY_DRAWER`).",
       "",
       ...partial.map((area) => `- ${area.title}: ${area.skipped} skipped`),
       ""

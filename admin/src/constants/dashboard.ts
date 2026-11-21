@@ -1,4 +1,4 @@
-import { REPORT_PERIODS } from "@organza/shared/constants/report";
+import { REPORT_PERIODS } from "@store/shared/constants/report";
 import type { ReportPeriod } from "@/types/report";
 
 // Dashboard: Today, cash drawer, a period, needs attention — figures only, no chart.
@@ -18,6 +18,6 @@ export const DASHBOARD_PERIOD_TABS: readonly { id: ReportPeriod; label: string }
 );
 
 // CSV, not .xlsx: Excel opens it natively and it needs no library.
-export const EXPORT_FILE_PREFIX = "organza";
+export const EXPORT_FILE_PREFIX = "store";
 // Without a BOM Excel reads Arabic and Hebrew as mojibake.
 export const CSV_BOM = "﻿";

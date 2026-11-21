@@ -1,5 +1,5 @@
-import type { InventoryItem } from "@organza/shared/types/inventory";
-import type { ListInventoryQuery } from "@organza/shared/schemas/inventory";
+import type { InventoryItem } from "@store/shared/types/inventory";
+import type { ListInventoryQuery } from "@store/shared/schemas/inventory";
 
 export interface InventoryListFilters {
   q: string;

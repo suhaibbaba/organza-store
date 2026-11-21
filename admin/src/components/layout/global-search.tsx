@@ -5,7 +5,7 @@ import { createPortal } from "react-dom";
 import { useTranslations } from "next-intl";
 import { FileText, ReceiptText, Search, Shirt, UserRound, X, type LucideIcon } from "lucide-react";
 import { SearchField, Spinner } from "@store/ui";
-import { testSelectorFor } from "@organza/shared/lib/testSelector";
+import { testSelectorFor } from "@store/shared/lib/testSelector";
 import { Link, usePathname, useRouter } from "@/i18n/navigation";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { useGlobalSearch } from "@/hooks/use-global-search";

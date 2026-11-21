@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { SETTINGS_QUERY_KEY } from "@/constants/api";
-import type { Setting } from "@organza/shared/types/setting";
+import type { Setting } from "@store/shared/types/setting";
 import { fetchSettings, removeBrandImage, updateSettings, uploadBrandImage } from "@/lib/api/settings";
 import { BRAND_IMAGE_KINDS } from "@/constants/settings";
 import type { SaveSettingsInput } from "@/types/settings";

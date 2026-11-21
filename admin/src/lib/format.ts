@@ -1,5 +1,5 @@
-import { MS_PER_DAY } from "@organza/shared/constants/time";
-import { DATE_FORMAT_BASE, NUMBER_FORMAT_BASE } from "@organza/shared/constants/formatting";
+import { MS_PER_DAY } from "@store/shared/constants/time";
+import { DATE_FORMAT_BASE, NUMBER_FORMAT_BASE } from "@store/shared/constants/formatting";
 
 // Every figure and date goes through these helpers, from the shared base, so digits match on every device.
 

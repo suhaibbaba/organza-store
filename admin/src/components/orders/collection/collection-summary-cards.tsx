@@ -2,8 +2,8 @@
 
 import { useLocale, useTranslations } from "next-intl";
 import { StatCard, StatRow } from "@store/ui";
-import { COLLECTION_OVERDUE_DAYS } from "@organza/shared/constants/order";
-import type { CollectionSummary } from "@organza/shared/types/order";
+import { COLLECTION_OVERDUE_DAYS } from "@store/shared/constants/order";
+import type { CollectionSummary } from "@store/shared/types/order";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
 import { daysSince, formatDate } from "@/lib/format";
 import { getTextDirection } from "@/constants/locale";

@@ -11,7 +11,7 @@ import type {
   ChangeRequestVariantSummary,
   ChangeRequestCount,
   PendingChange,
-} from "@organza/shared/types/changeRequest";
+} from "@store/shared/types/changeRequest";
 
 export type {
   ChangeRequest,

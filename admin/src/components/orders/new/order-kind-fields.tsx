@@ -3,7 +3,7 @@
 import { Controller } from "react-hook-form";
 import { useTranslations } from "next-intl";
 import { FormField, SegmentedControl, Switch, Typography } from "@store/ui";
-import { fieldTestSelector } from "@organza/shared/lib/testSelector";
+import { fieldTestSelector } from "@store/shared/lib/testSelector";
 import { MANUAL_ORDER_CHANNELS } from "@/constants/orders";
 import type { OrderKindFieldsProps } from "@/types/order";
 

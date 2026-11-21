@@ -1,6 +1,6 @@
-import type { Product } from "@organza/shared/types/product";
-import type { ProductImageRef } from "@organza/shared/types/variant";
-import type { ImageEdit } from "@organza/shared/lib/imageEdit";
+import type { Product } from "@store/shared/types/product";
+import type { ProductImageRef } from "@store/shared/types/variant";
+import type { ImageEdit } from "@store/shared/lib/imageEdit";
 import { PRODUCT_GALLERY_KEY, variantGalleryKey } from "@/constants/images";
 import { validateImageFile } from "@/lib/validation/image";
 import type { Gallery, GallerySlot } from "@/types/productForm";

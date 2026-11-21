@@ -3,7 +3,7 @@
 import { useTranslations } from "next-intl";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@store/ui";
-import type { Pagination } from "@organza/shared/types/common";
+import type { Pagination } from "@store/shared/types/common";
 
 interface ProductPaginationProps {
   meta: Pagination;

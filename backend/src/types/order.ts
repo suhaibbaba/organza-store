@@ -13,7 +13,7 @@ import type {
   OrderType,
   PaymentMethod,
   PaymentStatus,
-} from "@organza/shared/types/order";
+} from "@store/shared/types/order";
 
 export type {
   CollectResult,

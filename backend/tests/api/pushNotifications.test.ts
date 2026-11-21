@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { Role, type Setting } from "@prisma/client";
-import type { PushConfig } from "@organza/shared/types/push";
+import type { PushConfig } from "@store/shared/types/push";
 import { apiRequest, uniqueId } from "@tests/support/client";
 import { getSession, signIn } from "@tests/support/auth";
 import { createSellableProduct } from "@tests/support/orders";
@@ -194,7 +194,7 @@ describe("Sale notifications", () => {
   // "not to the author" is only meaningful when somebody else is listening.
   const device: FakeDevice = fakeDevice();
   const otherDevice: FakeDevice = fakeDevice();
-  const otherAdmin = { email: `vitest.push-admin.${uniqueId()}@organza.test`, id: "", token: "" };
+  const otherAdmin = { email: `vitest.push-admin.${uniqueId()}@store.test`, id: "", token: "" };
   const openedOrderIds: string[] = [];
   const openedProductIds: string[] = [];
 

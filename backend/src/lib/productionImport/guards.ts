@@ -33,7 +33,7 @@ import type { ImportEndpoints } from "@/types";
 
 const COMMAND = "import:prod";
 
-/** `postgresql://u:p@host:5432/organza_sandbox?schema=public` -> `organza_sandbox`. */
+/** `postgresql://u:p@host:5432/store_sandbox?schema=public` -> `store_sandbox`. */
 export function databaseNameOf(url: string): string {
   try {
     return decodeURIComponent(new URL(url).pathname.replace(/^\//, ""));
@@ -148,10 +148,10 @@ export function resolveImportEndpoints(): ResolvedEndpoints {
       "  Set it on THIS server only, in the sandbox's own env file, pointing at",
       "  a read-only role on the live database:",
       "",
-      "      CREATE ROLE organza_readonly LOGIN PASSWORD '…';",
-      "      GRANT CONNECT ON DATABASE organza TO organza_readonly;",
-      "      GRANT USAGE ON SCHEMA public TO organza_readonly;",
-      "      GRANT SELECT ON ALL TABLES IN SCHEMA public TO organza_readonly;",
+      "      CREATE ROLE store_readonly LOGIN PASSWORD '…';",
+      "      GRANT CONNECT ON DATABASE <database> TO store_readonly;",
+      "      GRANT USAGE ON SCHEMA public TO store_readonly;",
+      "      GRANT SELECT ON ALL TABLES IN SCHEMA public TO store_readonly;",
       "",
       "  The connection is opened read-only either way, but a role that cannot",
       "  write is the version that survives somebody editing this file.",

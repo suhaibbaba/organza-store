@@ -1,4 +1,4 @@
-import { ERROR_CODES } from "@organza/shared/constants/errors";
+import { ERROR_CODES } from "@store/shared/constants/errors";
 
 // Flat message keys per backend code: nested JSON can't hold a code that is both leaf and parent. Sync with ERROR_CODES.
 export const ERROR_MESSAGE_KEYS: Record<string, string> = {

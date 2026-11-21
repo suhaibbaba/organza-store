@@ -1,6 +1,6 @@
 {
   "app": {
-    "name": "أورجانزا",
+    "name": "إدارة المتجر",
     "sandbox": "تجريبي"
   },
   "common": {
@@ -79,7 +79,7 @@
       "title": "تسجيل الدخول",
       "subtitle": "أدخل بريدك الإلكتروني وكلمة المرور للمتابعة.",
       "emailLabel": "البريد الإلكتروني",
-      "emailPlaceholder": "you@organza.test",
+      "emailPlaceholder": "you@store.test",
       "passwordLabel": "كلمة المرور",
       "passwordPlaceholder": "أدخل كلمة المرور",
       "submit": "تسجيل الدخول",
@@ -1804,7 +1804,7 @@
   },
   "designSystem": {
     "title": "نظام التصميم",
-    "subtitle": "كل مكوّنات Store Management بكل حالاتها، بثيم أورجانزا.",
+    "subtitle": "كل مكوّنات Store Management بكل حالاتها، بثيم المتجر.",
     "adminOnly": "فقط المدير يستطيع فتح نظام التصميم.",
     "sections": {
       "colours": "الألوان",
@@ -1841,7 +1841,7 @@
       "heading": "عنوان",
       "title": "عنوان الصفحة",
       "kpi": "مؤشّر",
-      "sample": "شال حرير أورجانزا"
+      "sample": "شال حرير"
     },
     "buttons": {
       "primary": "إتمام البيع",

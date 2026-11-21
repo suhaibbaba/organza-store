@@ -1,7 +1,7 @@
 import { Typography } from "@store/ui";
 import { useLocale, useTranslations } from "next-intl";
 import { Info } from "lucide-react";
-import type { Order } from "@organza/shared/types/order";
+import type { Order } from "@store/shared/types/order";
 import { formatDateTime } from "@/lib/format";
 import { DetailCard } from "@/components/layout/detail-card";
 

@@ -1,6 +1,6 @@
 @import "tailwindcss";
 @import "@store/ui/styles/base.css";
-@import "@store/ui/themes/organza.css";
+@import "@store/ui/themes/teal.css";
 @import "tw-animate-css";
 
 @theme inline {
@@ -132,7 +132,7 @@
      handful of places where text is genuinely worth lifting out — a barcode,
      an order number, a phone number, the diagnostic detail on a failure
      screen — are countable and known. They say so with data-selectable
-     (@organza/shared/constants/gestures.ts).
+     (@store/shared/constants/gestures.ts).
      ------------------------------------------------------------------ */
   body {
     -webkit-touch-callout: none;

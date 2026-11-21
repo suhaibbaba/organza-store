@@ -1,10 +1,10 @@
 import { Role } from "@prisma/client";
-import { can } from "@organza/shared/lib/permissions";
+import { can } from "@store/shared/lib/permissions";
 import { needsLabel } from "@/lib/labelState";
 import { needsCompleting } from "@/lib/quickSellState";
 import { summarizeNumbers } from "@/lib/numberedProduct";
 import { serializeMarkedImage } from "@/lib/markedImage";
-import { VARIANT_IMAGE_PREVIEW_LIMIT } from "@organza/shared/constants/product";
+import { VARIANT_IMAGE_PREVIEW_LIMIT } from "@store/shared/constants/product";
 import type { AnyRecord } from "@/types";
 
 // `cost` is sensitive (CLAUDE.md rule 19): ADMIN ONLY — never returned to a

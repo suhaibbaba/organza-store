@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { useLocale, useTranslations } from "next-intl";
-import { can } from "@organza/shared/lib/permissions";
+import { can } from "@store/shared/lib/permissions";
 import { fetchOrders } from "@/lib/api/orders";
 import { fetchProducts } from "@/lib/api/products";
 import { useSession } from "@/components/providers/session-provider";

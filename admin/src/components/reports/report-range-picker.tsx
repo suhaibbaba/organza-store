@@ -2,7 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { FormField, Input } from "@store/ui";
-import { fieldTestSelector } from "@organza/shared/lib/testSelector";
+import { fieldTestSelector } from "@store/shared/lib/testSelector";
 import { REPORT_PRESETS } from "@/constants/reports";
 import { rangeForPreset } from "@/lib/report-range";
 import { useActiveSegmentInView } from "@/lib/segmented-scroll";

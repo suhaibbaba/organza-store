@@ -33,7 +33,7 @@ export function downloadCsv(filename: string, csv: string): void {
   URL.revokeObjectURL(url);
 }
 
-// organza-this-month-2026-08-06.csv — the period and the day it was taken,
+// store-this-month-2026-08-06.csv — the period and the day it was taken,
 // so two exports never overwrite each other in the Downloads folder.
 export function exportFilename(periodKey: string, date: Date): string {
   const day = date.toISOString().slice(0, 10);

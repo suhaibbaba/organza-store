@@ -1,13 +1,13 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import type { Role } from "@organza/shared/types/role";
+import type { Role } from "@store/shared/types/role";
 import {
   cleanUserName,
   userDisplayName,
   userInitial,
   type DisplayableUser,
-} from "@organza/shared/lib/userDisplay";
+} from "@store/shared/lib/userDisplay";
 
 // The last step of naming a person on screen: the shared rule
 // (shared/src/lib/userDisplay.ts) resolves a name or an email, and this adds

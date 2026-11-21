@@ -5,9 +5,9 @@ import {
   updateProfileSchema,
   type ChangePasswordInput,
   type UpdateProfileInput,
-} from "@organza/shared/schemas/profile";
-import type { Profile, ProfileSession } from "@organza/shared/types/profile";
-import type { SupportedLanguage } from "@organza/shared/types/language";
+} from "@store/shared/schemas/profile";
+import type { Profile, ProfileSession } from "@store/shared/types/profile";
+import type { SupportedLanguage } from "@store/shared/types/language";
 import { prisma } from "@/lib/prisma";
 import { asyncHandler } from "@/middleware/asyncHandler";
 import { requireAuth } from "@/middleware/auth";

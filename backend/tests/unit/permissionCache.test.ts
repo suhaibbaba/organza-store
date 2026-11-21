@@ -8,8 +8,8 @@
 // milliseconds instead of by waiting five seconds and hoping.
 import { afterEach, describe, expect, it } from "vitest";
 import { PermissionCache } from "@/lib/permissionConfig";
-import { can, setConfigurablePermissions } from "@organza/shared/lib/permissions";
-import type { ConfigurablePermissionMatrix } from "@organza/shared/types/permission";
+import { can, setConfigurablePermissions } from "@store/shared/lib/permissions";
+import type { ConfigurablePermissionMatrix } from "@store/shared/types/permission";
 
 // `can()` reads module-level state in the shared package, and this file is in
 // the same process as every other suite (vitest.config.ts: isolate false,

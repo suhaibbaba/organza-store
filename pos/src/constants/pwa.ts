@@ -5,8 +5,8 @@
 // names or icons would leave staff guessing which home-screen tile is which.
 // The admin keeps its own copy of this file.
 
-import { SANDBOX_NAME_SUFFIX, appIconBasePath } from "@organza/shared/constants/appEnv";
-import { APP_ENV, IS_SANDBOX } from "@/lib/env";
+import { SANDBOX_NAME_SUFFIX, appIconBasePath } from "@store/shared/constants/appEnv";
+import { APP_ENV, APP_NAME, IS_SANDBOX } from "@/lib/env";
 import type { AppleSplashScreen } from "@/types";
 
 /** Brand teal (#235C63) — the logo's dark hue, and the colour of the POS mark itself. */
@@ -28,7 +28,7 @@ export const PWA_BACKGROUND_COLOR = "#B5D3CB";
  */
 export const PWA_SPLASH_FOREGROUND_COLOR = "#235C63";
 
-const PWA_BASE_NAME = "Organza POS";
+const PWA_BASE_NAME = APP_NAME;
 const PWA_BASE_SHORT_NAME = "POS";
 
 /*
@@ -48,7 +48,7 @@ export const PWA_NAME = IS_SANDBOX ? `${PWA_BASE_NAME} (${SANDBOX_NAME_SUFFIX})`
 export const PWA_SHORT_NAME = IS_SANDBOX
   ? `${PWA_BASE_SHORT_NAME} ${SANDBOX_NAME_SUFFIX}`
   : PWA_BASE_SHORT_NAME;
-export const PWA_DESCRIPTION = "Organza Store point of sale";
+export const PWA_DESCRIPTION = "Store Management point of sale";
 
 // Not a locale-prefixed path: launching from the home screen lands on "/",
 // and proxy.ts resolves it against the language this device last chose —

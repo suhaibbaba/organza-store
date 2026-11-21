@@ -3,9 +3,9 @@
 import { useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { CheckCircle2, Gift } from "lucide-react";
-import { GIFT_ORDER_TYPE } from "@organza/shared/constants/order";
-import type { Order } from "@organza/shared/types/order";
-import { SELECTABLE } from "@organza/shared/lib/nativeGestures";
+import { GIFT_ORDER_TYPE } from "@store/shared/constants/order";
+import type { Order } from "@store/shared/types/order";
+import { SELECTABLE } from "@store/shared/lib/nativeGestures";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
 import { Button } from "@store/ui";
 import { POS_ORDER_CHANNEL, SALE_SUCCESS_RESET_MS } from "@/constants/pos";

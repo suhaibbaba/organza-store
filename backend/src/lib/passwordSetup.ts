@@ -1,6 +1,7 @@
 import { emailConfig, sendEmailInBackground } from "@/lib/email";
 import { renderPasswordSetupEmail, passwordSetupUrl } from "@/lib/email/templates/passwordSetup";
 import { passwordTokens } from "@/lib/passwordTokenStore";
+import { loadStoreName, storeNameIn } from "@/lib/storeName";
 import type { PasswordTokenPurpose } from "@/types/passwordSetup";
 
 // Issuing a password link and putting it in the post, in one place, so the
@@ -31,6 +32,7 @@ export async function sendPasswordSetupEmail(
 ): Promise<PasswordSetupInvite> {
   const config = emailConfig();
   const issued = await passwordTokens.issue(user.id, purpose);
+  const storeName = storeNameIn(await loadStoreName(), config.defaultLanguage);
 
   // A staff member has no stored language preference — there is no field for
   // one, and the shop runs in one language. So the email is written in the
@@ -38,6 +40,7 @@ export async function sendPasswordSetupEmail(
   const rendered = renderPasswordSetupEmail({
     language: config.defaultLanguage,
     name: user.name,
+    storeName,
     token: issued.token,
     purpose,
     adminUrl: config.adminUrl,

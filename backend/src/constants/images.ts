@@ -15,7 +15,7 @@ export const IMAGE_WEBP_QUALITY = 82;
 export const LOGO_MAX_DIMENSION = 512;
 export const LOGO_FILE_PREFIX = "logo";
 
-export { FAVICON_SIZES } from "@organza/shared/constants/brand";
+export { FAVICON_SIZES } from "@store/shared/constants/brand";
 export const FAVICON_FILE_PREFIX = "favicon";
 // iOS paints a transparent home-screen icon black, so its size is flattened onto white.
 export const FAVICON_OPAQUE_SIZE = 180;

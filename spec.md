@@ -1,7 +1,8 @@
-# Organza Store — Specification (Phase 1)
+# Store Management — Specification (Phase 1)
 
 ## Overview
-E-commerce system for a clothing shop (Organza, Tulkarm branch).
+E-commerce and point-of-sale system for clothing shops; each shop that runs it is a client whose
+name, logo and theme are data, never code.
 Custom build — **not** Medusa or any e-commerce framework.
 
 **Phase 1 (DONE):** Products, Variants, Categories, Inventory, Users/Roles, Settings, Images,
@@ -12,7 +13,7 @@ and sales/profit reporting.
 
 ## Architecture — 4 separate projects
 ```
-organza-store/
+store-management/
 ├── backend/     API (Node + Express + TypeScript + Prisma + PostgreSQL)
 ├── admin/       Admin dashboard (Next.js)
 ├── pos/         Point-of-sale screen (Next.js)
@@ -292,7 +293,7 @@ and the log says so.
 **The templates live in the codebase, not in a provider's dashboard** — version-controlled,
 reviewable, and translated through the same per-language message files the rest of the system
 uses (ar default, en, he), with `dir="rtl"` and a legible Arabic font stack. They are branded in
-the Organza palette, carry the logo, one obvious action button and the raw link underneath it as
+the shop's palette and name (from Settings), carry the logo, one obvious action button and the raw link underneath it as
 a fallback, and are written as email HTML rather than web HTML: tables, inline styles, nothing
 Outlook cannot render, a real plain-text alternative, a subject and a preheader. They carry **no
 tracking pixel and no rewritten links** — both make a transactional mail look like marketing to
@@ -508,7 +509,7 @@ garment in the other — so the browser's default reflexes are wrong for them:
 ---
 
 ## POS selling screen layout (picking by eye)
-The selling screen follows the Figma file "Organza POS — 4 sizes" (Desktop 1440, Lenovo Miix 320
+The selling screen follows the POS Figma file ("4 sizes": Desktop 1440, Lenovo Miix 320
 1280×800, Tablet 1080, Small tablet 768, Mobile 390). The camera, the counter's hand scanner, the
 search box and the photo grid all end in the same cart, through the same lookup.
 
@@ -612,7 +613,7 @@ Employees handling stock, another does not; one wants its Manager printing label
 that to the counter. So **every action** in that table is editable from the admin for the Manager
 and the Employee — **and the Admin role is not, ever**: an Admin always holds everything.
 
-Everything goes through one function, `can(user, action)` in `@organza/shared`, which every screen
+Everything goes through one function, `can(user, action)` in `@store/shared`, which every screen
 and every route already calls. Making the rules editable changed only where that function reads
 them from; no call site moved.
 
@@ -971,7 +972,7 @@ be given one by accident.
   are missing", because a database with a user in it is a database somebody is already using.
 
   **Who** it creates is a JSON roster read at run time (`staff.json` beside the repo, or
-  `--accounts <path>` / `ORGANZA_STAFF_FILE`), never a list in the source. Real people's names,
+  `--accounts <path>` / `STORE_STAFF_FILE`), never a list in the source. Real people's names,
   addresses and phone numbers are operational data: hiring somebody is not a commit and a
   deploy, and a person's contact details should not sit in git history after they have left. The
   file is git-ignored; a committed `staff.example.json` shows the shape.
@@ -999,7 +1000,7 @@ own password by email → start entering real stock.**
 `backend/prisma/dev/demo-seed.ts` provides idempotent test data (run: `npm run seed:demo`, with
 the disposable-database declaration above). It must be **idempotent** (upsert-based, safe to
 re-run) and **dev-only**. It covers every rule:
-- one user per role (admin/manager/employee @organza.test, password `password123`)
+- one user per role (admin/manager/employee @store.test, password `password123`)
 - global variant types + values in ar/en/he (Color, Size, Number)
 - nested categories (Women > Dresses > Evening; Women > Abayas)
 - a simple product, a 1-option product, and a 2-option cartesian product

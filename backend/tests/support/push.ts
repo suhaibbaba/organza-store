@@ -12,7 +12,7 @@
 import { createECDH, randomBytes } from "node:crypto";
 import { apiRequest, uniqueId } from "@tests/support/client";
 import { PUSH_ATTEMPT_POLL_INTERVAL_MS, PUSH_ATTEMPT_TIMEOUT_MS } from "@tests/constants";
-import type { PushSubscriptionDto } from "@organza/shared/types/push";
+import type { PushSubscriptionDto } from "@store/shared/types/push";
 
 export interface FakeDevice {
   endpoint: string;
@@ -29,7 +29,7 @@ export function fakeDevice(): FakeDevice {
   const ecdh = createECDH("prime256v1");
   ecdh.generateKeys();
   return {
-    endpoint: `https://push-${uniqueId()}.organza.invalid/subscription`,
+    endpoint: `https://push-${uniqueId()}.store.invalid/subscription`,
     keys: {
       p256dh: ecdh.getPublicKey().toString("base64url"),
       auth: randomBytes(16).toString("base64url"),
@@ -41,7 +41,7 @@ export async function registerDevice(token: string, device: FakeDevice, locale =
   return apiRequest<PushSubscriptionDto>("/api/push/subscriptions", {
     method: "POST",
     token,
-    body: { endpoint: device.endpoint, keys: device.keys, locale, userAgent: "organza-api-test" },
+    body: { endpoint: device.endpoint, keys: device.keys, locale, userAgent: "store-api-test" },
   });
 }
 

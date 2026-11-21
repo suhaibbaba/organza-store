@@ -1,5 +1,5 @@
-import { DATE_FORMAT_BASE, NUMBER_FORMAT_BASE } from "@organza/shared/constants/formatting";
-import { MONEY_DECIMAL_PLACES } from "@organza/shared/constants/order";
+import { DATE_FORMAT_BASE, NUMBER_FORMAT_BASE } from "@store/shared/constants/formatting";
+import { MONEY_DECIMAL_PLACES } from "@store/shared/constants/order";
 
 // Every figure starts from the shared formatting base, so the till, phone and labels show the same digits.
 

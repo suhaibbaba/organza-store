@@ -1,4 +1,4 @@
-import type { PermissionMatrixPayload } from "@organza/shared/types/permission";
+import type { PermissionMatrixPayload } from "@store/shared/types/permission";
 import { apiFetch } from "@/lib/api/client";
 
 /**

@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { fieldTestSelector } from "@organza/shared/lib/testSelector";
+import { fieldTestSelector } from "@store/shared/lib/testSelector";
 import { Input } from "@store/ui";
 import { DECIMAL_INPUT_PATTERN, INTEGER_INPUT_PATTERN } from "@/constants/numeric";
 

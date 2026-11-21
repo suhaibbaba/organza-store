@@ -29,7 +29,7 @@ describe("Password setup by email", () => {
       token: admin.token,
       body: {
         name: `Vitest PwSetup ${nonce}`,
-        email: `vitest.pwsetup.${uniqueId()}@organza.test`,
+        email: `vitest.pwsetup.${uniqueId()}@store.test`,
         role: Role.EMPLOYEE,
         phone: randomPalestinePhone(),
         ...overrides,
@@ -303,7 +303,7 @@ describe("Password setup by email", () => {
       });
       const unknown = await apiRequest("/api/password-setup/request", {
         method: "POST",
-        body: { email: `nobody.${uniqueId()}@organza.test` },
+        body: { email: `nobody.${uniqueId()}@store.test` },
       });
 
       expect(known.status).toBe(200);
@@ -365,7 +365,7 @@ describe("Password setup by email", () => {
     it("rate-limits repeated requests for one address", async () => {
       // A fresh address each run, so the window belongs to this test rather
       // than to whatever else has been hitting a shared sandbox.
-      const email = `ratelimit.${uniqueId()}@organza.test`;
+      const email = `ratelimit.${uniqueId()}@store.test`;
 
       const statuses: number[] = [];
       for (let i = 0; i < PASSWORD_RESET_EMAIL_LIMIT + 2; i++) {
@@ -383,7 +383,7 @@ describe("Password setup by email", () => {
       // one, so these routes must be reachable without a token.
       const res = await apiRequest("/api/password-setup/request", {
         method: "POST",
-        body: { email: `anonymous.${uniqueId()}@organza.test` },
+        body: { email: `anonymous.${uniqueId()}@store.test` },
       });
       expect(res.status).not.toBe(401);
     });

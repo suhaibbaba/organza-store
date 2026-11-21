@@ -4,11 +4,11 @@ import {
   rotatedFrameSize,
   resolveImageEditOps,
   type ImageEdit,
-} from "@organza/shared/lib/imageEdit";
+} from "@store/shared/lib/imageEdit";
 import { CROP_PREVIEW_MAX_PX, EDITOR_SOURCE_MAX_PX } from "@/constants/images";
 
 // The editor's browser-side helpers. The arithmetic itself is shared with the
-// backend (@organza/shared/lib/imageEdit), so the crop drawn here and the crop
+// backend (@store/shared/lib/imageEdit), so the crop drawn here and the crop
 // cut there are the same crop by construction; what lives in this file is the
 // part only a browser can do — draw the preview the gallery shows while the
 // real picture is still waiting to be cut on the server.

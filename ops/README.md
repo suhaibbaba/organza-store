@@ -11,10 +11,21 @@ Both are named volumes declared at the bottom of `docker-compose.sandbox.yml`.
 
 ### Both stacks exist now
 
-`docker-compose.prod.yml` is the live shop (project name `organza-prod`, volumes
+`docker-compose.prod.yml` is the live shop (project name: `STACK_NAME` in `.env.production`, volumes
 `prod_db_data` and `prod_uploads`); `docker-compose.sandbox.yml` is the practice stack
-(`organza-sandbox`, `sandbox_db_data`, `sandbox_uploads`). The table above names the
+(`STACK_NAME` in `.env.sandbox`, `sandbox_db_data`, `sandbox_uploads`). The table above names the
 sandbox's volumes; production's are the same two things under the other prefix.
+
+### What each stack is told, not hard-coded
+The compose files and workflows carry no client name, domain or path; each stack's env file
+(`.env.production`, `.env.sandbox`) and the repository's Actions variables supply them:
+
+| Where | Setting | Example | Notes |
+|---|---|---|---|
+| env file | `STACK_NAME` | `acme-prod` | The compose project name, so it **names the volumes**. On an existing stack it must be the name the stack already runs under (`docker compose ls`), or the stack comes up on new, empty volumes. Compose refuses to start without it. |
+| env file | `PUBLIC_API_URL` | `https://api.example.com` | Baked into the admin and POS builds. |
+| env file | `ADMIN_APP_NAME`, `POS_APP_NAME` | `Acme Admin` | Optional: the home-screen names. |
+| Actions variables | `PRODUCTION_DEPLOY_DIR`, `SANDBOX_DEPLOY_DIR` | `/opt/acme/production` | The VPS clone each deploy runs in. |
 
 Four rules hold on both, and a third stack would inherit them or inherit the bug:
 
@@ -29,7 +40,7 @@ Four rules hold on both, and a third stack would inherit them or inherit the bug
    `NODE_ENV` is `production` on both, which is why `db:reset` used to announce "that is the
    LIVE SHOP" while pointed at the sandbox. It decides which `public/app_icon/<env>/` folder
    the tiles, the tab icon and the launch screen come from, whether the installed app is
-   called "Organza Admin" or "Organza Admin (SBX)", whether staff see a SANDBOX chip in the
+   called by `ADMIN_APP_NAME` (with " (SBX)" on the sandbox), whether staff see a SANDBOX chip in the
    top bar, and which mark a password email carries.
 
    Left unset it means *production* on purpose, so a missed env file cannot label the real
@@ -89,11 +100,11 @@ Cloudflare R2 bucket. R2 is S3-compatible, so the script drives it with the ordi
 CLI — run as a pinned container, so nothing is installed on the VPS.
 
 ```
-s3://organza-production-backups/
-  organza-prod/
-    database/organza-prod-20260815T023000Z.dump   <- one pg_dump -Fc per night, ~30 kept
+s3://<backup-bucket>/
+  <STACK_NAME>/
+    database/<STACK_NAME>-20260815T023000Z.dump   <- one pg_dump -Fc per night, ~30 kept
     uploads/…                                     <- a mirror of the photographs
-  organza-sandbox/
+  <SANDBOX_STACK_NAME>/
     …                                             <- same shape, its own folder
 ```
 
@@ -172,7 +183,7 @@ deployment comes back from git plus the bucket.
 
 Once, in the Cloudflare dashboard:
 
-1. **R2 → Create bucket → `organza-production-backups`.** Keep it private. One bucket
+1. **R2 → Create bucket → `<backup-bucket>`.** Keep it private. One bucket
    serves both stacks; they are separated by the folder the script derives from the
    compose project name, so a sandbox backup can never land on the shop's.
 2. **R2 → Manage API tokens → Create → Object Read & Write**, scoped **to that bucket
@@ -186,14 +197,14 @@ already runs on, so a backup cannot read one stack's credentials while dumping a
 R2_ACCOUNT_ID=…
 R2_ACCESS_KEY_ID=…
 R2_SECRET_ACCESS_KEY=…
-R2_BUCKET=organza-production-backups
+R2_BUCKET=<backup-bucket>
 R2_ENDPOINT=            # optional; derived from the account id when empty
 ```
 
 Prove it works before trusting it:
 
 ```bash
-cd /opt/organza/production
+cd <PRODUCTION_DEPLOY_DIR>
 STACK=production ./ops/selftest.sh          # do the safety checks actually work?
 STACK=production ./ops/backup.sh
 STACK=production ./ops/restore.sh --list
@@ -210,7 +221,7 @@ uploads nothing and touches nothing. See "Why the self-test exists" below.
 POS, so the dump is of a quiet database:
 
 ```cron
-30 2 * * * cd /opt/organza/production && STACK=production ./ops/backup.sh >> /var/log/organza-backup.log 2>&1
+30 2 * * * cd <PRODUCTION_DEPLOY_DIR> && STACK=production ./ops/backup.sh >> /var/log/store-backup.log 2>&1
 ```
 
 That is the whole entry. **Retention needs no second line** — the script prunes both the
@@ -222,7 +233,7 @@ Stagger the sandbox by an hour if it is backed up too, so the two runs never com
 the same CPU:
 
 ```cron
-30 3 * * * cd /opt/organza/sandbox && STACK=sandbox ./ops/backup.sh >> /var/log/organza-backup.log 2>&1
+30 3 * * * cd <SANDBOX_DEPLOY_DIR> && STACK=sandbox ./ops/backup.sh >> /var/log/store-backup.log 2>&1
 ```
 
 **Spell `STACK` out in both entries**, even the sandbox one where it is the default. A
@@ -262,7 +273,7 @@ docker compose -f docker-compose.prod.yml --env-file .env.production exec -T bac
 ### 0. What have we got?
 
 ```bash
-cd /opt/organza/production
+cd <PRODUCTION_DEPLOY_DIR>
 STACK=production ./ops/restore.sh --list
 ```
 
@@ -284,8 +295,8 @@ This is the step people skip, and it is the whole point. It puts the live shop's
 the practice stack, where being wrong costs nothing:
 
 ```bash
-cd /opt/organza/sandbox
-ORGANZA_RESTORE_CONFIRM=I-KNOW-THIS-OVERWRITES-THE-DATABASE \
+cd <SANDBOX_DEPLOY_DIR>
+STORE_RESTORE_CONFIRM=I-KNOW-THIS-OVERWRITES-THE-DATABASE \
   STACK=sandbox ./ops/restore.sh --from-stack production --from-r2 latest
 ```
 
@@ -306,9 +317,9 @@ container**, not from a file, because `docker-compose.prod.yml` sets it in
 `environment:` where it overrides `env_file:`. Same shape as `db:reset`:
 
 ```bash
-cd /opt/organza/production
-ORGANZA_ALLOW_PRODUCTION=I-KNOW-THIS-IS-PRODUCTION \
-ORGANZA_RESTORE_CONFIRM=I-KNOW-THIS-OVERWRITES-THE-DATABASE \
+cd <PRODUCTION_DEPLOY_DIR>
+STORE_ALLOW_PRODUCTION=I-KNOW-THIS-IS-PRODUCTION \
+STORE_RESTORE_CONFIRM=I-KNOW-THIS-OVERWRITES-THE-DATABASE \
   STACK=production ./ops/restore.sh --from-r2 latest
 ```
 
@@ -338,7 +349,7 @@ The check that matters is not that the command exited 0:
 - open the admin, find a product **with a photograph, and see the photograph** — not the
   placeholder;
 - open the orders list and find the last order you know was taken;
-- `curl -s https://api.organza-moda.com/health` → `uploadsWritable: true`.
+- `curl -s <PUBLIC_API_URL>/health` → `uploadsWritable: true`.
 
 ### If only the images are wrong
 
@@ -351,7 +362,7 @@ docker compose -f docker-compose.prod.yml --env-file .env.production ps -q backe
 docker run --rm --volumes-from <id> \
   -e AWS_ACCESS_KEY_ID=$R2_ACCESS_KEY_ID -e AWS_SECRET_ACCESS_KEY=$R2_SECRET_ACCESS_KEY \
   amazon/aws-cli:2.36.24 --endpoint-url "$R2_ENDPOINT" --region auto \
-  s3 sync s3://organza-production-backups/organza-prod/uploads/ /app/uploads
+  s3 sync s3://<backup-bucket>/<STACK_NAME>/uploads/ /app/uploads
 ```
 
 ### Rebuilding on a brand-new server
@@ -390,7 +401,7 @@ the one routine operation, besides a restore, that changes data a deploy cannot 
 
 In order:
 
-1. `curl -s https://api.sandbox.organza-moda.com/health` — `uploadsWritable: false` means
+1. `curl -s <sandbox PUBLIC_API_URL>/health` — `uploadsWritable: false` means
    the API cannot write where it is pointed. That is this problem; carry on.
 2. `docker compose -f docker-compose.sandbox.yml logs backend | grep -i uploads` — the API
    prints the absolute directory it is using on every start.
@@ -415,7 +426,7 @@ In order:
    hand:
 
    ```bash
-   docker run --rm --user 0:0 -v organza-sandbox_sandbox_uploads:/vol node:20-slim \
+   docker run --rm --user 0:0 -v <SANDBOX_STACK_NAME>_sandbox_uploads:/vol node:20-slim \
      chown -R 1000:1000 /vol
    ```
 

@@ -1,6 +1,6 @@
-import type { I18n } from "@organza/shared/types/common";
-import type { VariantType } from "@organza/shared/types/variant";
-import { SUPPORTED_LANGUAGES, DEFAULT_LANGUAGE } from "@organza/shared/constants/languages";
+import type { I18n } from "@store/shared/types/common";
+import type { VariantType } from "@store/shared/types/variant";
+import { SUPPORTED_LANGUAGES, DEFAULT_LANGUAGE } from "@store/shared/constants/languages";
 import type { VariantSelectionMap } from "@/types/productForm";
 
 // Mirrors backend/src/lib/variantCombo.ts — used client-side only to render

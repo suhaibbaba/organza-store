@@ -8,7 +8,7 @@
 export const SEEDED_PASSWORD = "password123";
 
 export const SEEDED_ACCOUNTS = {
-  ADMIN: { email: "admin@organza.test", password: SEEDED_PASSWORD },
-  MANAGER: { email: "manager@organza.test", password: SEEDED_PASSWORD },
-  EMPLOYEE: { email: "employee@organza.test", password: SEEDED_PASSWORD },
+  ADMIN: { email: "admin@store.test", password: SEEDED_PASSWORD },
+  MANAGER: { email: "manager@store.test", password: SEEDED_PASSWORD },
+  EMPLOYEE: { email: "employee@store.test", password: SEEDED_PASSWORD },
 } as const;

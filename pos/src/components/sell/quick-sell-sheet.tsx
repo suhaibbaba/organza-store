@@ -3,15 +3,15 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { Zap } from "lucide-react";
-import type { QuickSellItemInput } from "@organza/shared/schemas/order";
+import type { QuickSellItemInput } from "@store/shared/schemas/order";
 import {
   QUICK_SELL_DETAIL_MAX_LENGTH,
   QUICK_SELL_NAME_MAX_LENGTH,
-} from "@organza/shared/constants/quickSell";
+} from "@store/shared/constants/quickSell";
 import { isNonNegativeDecimalString } from "@/lib/validation/numeric";
 import { useCurrencySymbol } from "@/hooks/use-currency-symbol";
 import { Alert, Button, Input } from "@store/ui";
-import { fieldErrorTestSelector, fieldTestSelector } from "@organza/shared/lib/testSelector";
+import { fieldErrorTestSelector, fieldTestSelector } from "@store/shared/lib/testSelector";
 import { NumericInput } from "@/components/fields/numeric-input";
 import { BottomSheet } from "@/components/sell/bottom-sheet";
 import { SHEET_ACTION } from "@/components/sell/sheet-styles";

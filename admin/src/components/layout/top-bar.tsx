@@ -48,7 +48,7 @@ export function TopBar() {
               data-test-selector="top-bar-brand"
               className="flex h-10 shrink-0 items-center rounded-control focus-darken md:hidden"
             >
-              <ShopLogo alt={t("app.name")} className="h-full w-auto max-w-32" />
+              <ShopLogo className="h-full w-auto max-w-32" />
             </Link>
             <EnvironmentBadge className="md:hidden" />
           </div>

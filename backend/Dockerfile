@@ -85,7 +85,7 @@ ENV NODE_ENV=production
 # the manifests and the lockfile it was installed from.
 COPY --from=prod-deps /app ./
 
-# Compiled output, over the top. node_modules/@organza/shared is a symlink to
+# Compiled output, over the top. node_modules/@store/shared is a symlink to
 # ../../shared, so the package's dist/ has to land at that path for every
 # import to resolve; its package.json (and the `exports` map they all go
 # through) came across with the stage above.

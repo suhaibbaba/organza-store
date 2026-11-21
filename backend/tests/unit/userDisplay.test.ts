@@ -11,7 +11,7 @@ import {
   looksLikeInternalId,
   userDisplayName,
   userInitial,
-} from "@organza/shared/lib/userDisplay";
+} from "@store/shared/lib/userDisplay";
 
 describe("spotting an internal id", () => {
   it("recognizes the shapes that actually reach the name field", () => {
@@ -63,13 +63,13 @@ describe("cleaning a stored name", () => {
 
 describe("falling back to the email", () => {
   it("uses the local part, with its punctuation read as spaces", () => {
-    expect(emailLocalPart("suhaib.baba@organza.test")).toBe("suhaib baba");
-    expect(emailLocalPart("employee@organza.test")).toBe("employee");
+    expect(emailLocalPart("suhaib.baba@store.test")).toBe("suhaib baba");
+    expect(emailLocalPart("employee@store.test")).toBe("employee");
     expect(emailLocalPart("a_b-c@x.test")).toBe("a b c");
   });
 
   it("has nothing to give for an address it cannot read", () => {
-    expect(emailLocalPart("@organza.test")).toBeNull();
+    expect(emailLocalPart("@store.test")).toBeNull();
     expect(emailLocalPart("")).toBeNull();
     expect(emailLocalPart(null)).toBeNull();
   });
@@ -79,8 +79,8 @@ describe("what a screen shows", () => {
   it("prefers the name, then the email, then nothing", () => {
     expect(userDisplayName({ name: "Suhaib", email: "s@x.test" })).toBe("Suhaib");
     // The name is only an id, so the address answers instead.
-    expect(userDisplayName({ name: "mt0grbxoqx7nbf", email: "admin@organza.test" })).toBe("admin");
-    expect(userDisplayName({ name: "", email: "manager@organza.test" })).toBe("manager");
+    expect(userDisplayName({ name: "mt0grbxoqx7nbf", email: "admin@store.test" })).toBe("admin");
+    expect(userDisplayName({ name: "", email: "manager@store.test" })).toBe("manager");
     // Nothing usable at all — the caller shows the role, which it translates.
     expect(userDisplayName({ name: null, email: null })).toBeNull();
     expect(userDisplayName(null)).toBeNull();
@@ -89,7 +89,7 @@ describe("what a screen shows", () => {
   it("takes the avatar's letter from whatever is actually shown", () => {
     expect(userInitial({ name: "Suhaib", email: "s@x.test" })).toBe("S");
     // Not "M" from the id: the circle and the name beside it agree.
-    expect(userInitial({ name: "mt0grbxoqx7nbf", email: "admin@organza.test" })).toBe("A");
+    expect(userInitial({ name: "mt0grbxoqx7nbf", email: "admin@store.test" })).toBe("A");
     expect(userInitial({ name: "سهيب", email: null })).toBe("س");
     // Nothing to go on, so the caller's translated role supplies the letter.
     expect(userInitial(null, "مدير")).toBe("م");

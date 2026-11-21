@@ -117,7 +117,7 @@ app.use(errorHandler);
 
 const port = Number(process.env.PORT ?? 4000);
 app.listen(port, async () => {
-  console.log(`Organza Store API listening on port ${port}`);
+  console.log(`Store Management API listening on port ${port}`);
 
   // Permission rules loaded before the first request; a failure falls back to the shipped defaults.
   await loadPermissionConfig();

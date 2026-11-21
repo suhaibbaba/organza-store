@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { AuditAction, Prisma, Role } from "@prisma/client";
-import { can } from "@organza/shared/lib/permissions";
-import { isOrderCollectable } from "@organza/shared/lib/orders";
+import { can } from "@store/shared/lib/permissions";
+import { isOrderCollectable } from "@store/shared/lib/orders";
 import { prisma } from "@/lib/prisma";
 import { asyncHandler } from "@/middleware/asyncHandler";
 import { requireAuth, requirePermission } from "@/middleware/auth";

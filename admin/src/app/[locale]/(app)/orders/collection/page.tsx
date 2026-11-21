@@ -3,8 +3,8 @@
 import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Alert, EmptyState, SearchField, TotalBadge, type TableSort } from "@store/ui";
-import { ERROR_CODES } from "@organza/shared/constants/errors";
-import { DEFAULT_PAGE } from "@organza/shared/constants/pagination";
+import { ERROR_CODES } from "@store/shared/constants/errors";
+import { DEFAULT_PAGE } from "@store/shared/constants/pagination";
 import { RoleGuard } from "@/components/auth/role-guard";
 import { PageContainer } from "@/components/layout/page-container";
 import { PageHeader } from "@/components/layout/page-header";

@@ -3,12 +3,12 @@
 import { useMemo, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Alert, Button, SegmentedControl } from "@store/ui";
-import { NUMBER_VARIANT_TYPE_SLUG } from "@organza/shared/constants/variantType";
-import { ERROR_CODES } from "@organza/shared/constants/errors";
-import { resolvePointColors, suggestPointColors } from "@organza/shared/lib/pointColors";
-import type { UpdateVariantInput } from "@organza/shared/schemas/product";
-import type { Product } from "@organza/shared/types/product";
-import type { VariantType } from "@organza/shared/types/variant";
+import { NUMBER_VARIANT_TYPE_SLUG } from "@store/shared/constants/variantType";
+import { ERROR_CODES } from "@store/shared/constants/errors";
+import { resolvePointColors, suggestPointColors } from "@store/shared/lib/pointColors";
+import type { UpdateVariantInput } from "@store/shared/schemas/product";
+import type { Product } from "@store/shared/types/product";
+import type { VariantType } from "@store/shared/types/variant";
 import { useAddOptionValueMutation } from "@/hooks/use-variant-types";
 import {
   useDeleteVariantMutation,

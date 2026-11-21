@@ -2,9 +2,9 @@
 
 import { useTranslations } from "next-intl";
 import { useConfirm, useToast } from "@store/ui";
-import { can } from "@organza/shared/lib/permissions";
-import { ERROR_CODES } from "@organza/shared/constants/errors";
-import type { Product } from "@organza/shared/types/product";
+import { can } from "@store/shared/lib/permissions";
+import { ERROR_CODES } from "@store/shared/constants/errors";
+import type { Product } from "@store/shared/types/product";
 import { useRouter } from "@/i18n/navigation";
 import { useSession } from "@/components/providers/session-provider";
 import { useDeleteProductMutation } from "@/hooks/use-products";

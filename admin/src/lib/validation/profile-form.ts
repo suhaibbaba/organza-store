@@ -1,9 +1,9 @@
 import { z } from "zod";
-import { ERROR_CODES } from "@organza/shared/constants/errors";
-import { PASSWORD_MIN_LENGTH } from "@organza/shared/constants/validation";
-import { isValidE164 } from "@organza/shared/lib/phone";
-import type { Profile } from "@organza/shared/types/profile";
-import type { UpdateProfileInput } from "@organza/shared/schemas/profile";
+import { ERROR_CODES } from "@store/shared/constants/errors";
+import { PASSWORD_MIN_LENGTH } from "@store/shared/constants/validation";
+import { isValidE164 } from "@store/shared/lib/phone";
+import type { Profile } from "@store/shared/types/profile";
+import type { UpdateProfileInput } from "@store/shared/schemas/profile";
 import { PROFILE_PASSWORD_MISMATCH } from "@/constants/profile";
 
 export const profileFormSchema = z.object({

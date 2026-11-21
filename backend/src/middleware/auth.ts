@@ -1,8 +1,8 @@
 import type { NextFunction, Request, Response } from "express";
 import { fromNodeHeaders } from "better-auth/node";
 import type { Role } from "@prisma/client";
-import { can } from "@organza/shared/lib/permissions";
-import type { PermissionAction } from "@organza/shared/types/permission";
+import { can } from "@store/shared/lib/permissions";
+import type { PermissionAction } from "@store/shared/types/permission";
 import { auth } from "@/lib/auth";
 import { ensurePermissionConfigFresh } from "@/lib/permissionConfig";
 import { AppError } from "@/lib/response";

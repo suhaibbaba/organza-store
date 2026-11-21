@@ -17,8 +17,8 @@
 // names exactly which pixel came from where.
 import { describe, expect, it } from "vitest";
 import sharp from "sharp";
-import { resolveImageEditOps, type ImageEdit } from "@organza/shared/lib/imageEdit";
-import { IMAGE_ROTATIONS } from "@organza/shared/constants/image";
+import { resolveImageEditOps, type ImageEdit } from "@store/shared/lib/imageEdit";
+import { IMAGE_ROTATIONS } from "@store/shared/constants/image";
 import { editedImage } from "@/lib/image";
 
 // Portrait, like every garment photograph in the shop, and small enough that

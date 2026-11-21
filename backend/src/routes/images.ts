@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { handleImageUpload } from "@/middleware/imageUpload";
 import { AuditAction, Prisma, type ProductImage } from "@prisma/client";
-import { can } from "@organza/shared/lib/permissions";
+import { can } from "@store/shared/lib/permissions";
 import { prisma } from "@/lib/prisma";
 import { asyncHandler } from "@/middleware/asyncHandler";
 import { requireAuth, requirePermission } from "@/middleware/auth";
@@ -13,7 +13,7 @@ import {
   recropProductImage,
   storeProductImage,
 } from "@/lib/image";
-import type { ImageEdit } from "@organza/shared/lib/imageEdit";
+import type { ImageEdit } from "@store/shared/lib/imageEdit";
 import {
   editImageSchema,
   reorderImagesSchema,

@@ -1,6 +1,6 @@
 import { Prisma } from "@prisma/client";
-import { isConfigurableAction, setConfigurablePermissions } from "@organza/shared/lib/permissions";
-import type { ConfigurableAction, ConfigurablePermissionMatrix } from "@organza/shared/types/permission";
+import { isConfigurableAction, setConfigurablePermissions } from "@store/shared/lib/permissions";
+import type { ConfigurableAction, ConfigurablePermissionMatrix } from "@store/shared/types/permission";
 import { prisma } from "@/lib/prisma";
 import { captureException } from "@/lib/logger";
 import { PERMISSION_CACHE_TTL_MS } from "@/constants";

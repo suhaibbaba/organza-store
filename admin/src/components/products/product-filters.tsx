@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { SlidersHorizontal } from "lucide-react";
 import { Button, Chip, ChipGroup, Drawer, FormField, Select, Typography } from "@store/ui";
-import { fieldTestSelector } from "@organza/shared/lib/testSelector";
+import { fieldTestSelector } from "@store/shared/lib/testSelector";
 import { MoneyField } from "@/components/fields/money-field";
 import { useCategoriesQuery } from "@/hooks/use-categories";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";

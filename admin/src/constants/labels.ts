@@ -1,7 +1,7 @@
-import { DEFAULT_PAGE, DEFAULT_PAGE_SIZE } from "@organza/shared/constants/pagination";
-import { QUANTITY_MAX } from "@organza/shared/constants/quantity";
+import { DEFAULT_PAGE, DEFAULT_PAGE_SIZE } from "@store/shared/constants/pagination";
+import { QUANTITY_MAX } from "@store/shared/constants/quantity";
 import type { LabelListFilters } from "@/types/label";
-import { PRODUCT_PRINT_STATES } from "@organza/shared/constants/product";
+import { PRODUCT_PRINT_STATES } from "@store/shared/constants/product";
 import { urlParam } from "@/lib/url-filters";
 import type { UrlParams } from "@/types/urlFilters";
 

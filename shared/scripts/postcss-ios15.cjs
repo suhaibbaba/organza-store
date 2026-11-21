@@ -117,7 +117,7 @@ function parseColor(value) {
 }
 
 module.exports = () => ({
-  postcssPlugin: "organza-ios15",
+  postcssPlugin: "store-ios15",
 
   OnceExit(root, { result }) {
     // ---- 1. Cascade layers ------------------------------------------------
@@ -250,7 +250,7 @@ module.exports = () => ({
     // is caught here, where the count is known.
     if (alphaUses.length > 0 && rewritten === 0) {
       throw new Error(
-        `organza-ios15: found ${alphaUses.length} opacity-modifier fallback(s) and could soften none of them. ` +
+        `store-ios15: found ${alphaUses.length} opacity-modifier fallback(s) and could soften none of them. ` +
           "This pass reads the plain sRGB colours that @csstools/postcss-oklab-function writes — check it still runs " +
           "before this plugin in postcss.config.mjs."
       );
@@ -261,7 +261,7 @@ module.exports = () => ({
     for (const token of new Set(alphaUses.map((use) => use.token))) {
       if (isSoftenable(token)) continue;
       result.warn(
-        `organza-ios15: ${token} has no plain sRGB value to read, so its tinted backgrounds keep Tailwind's solid fallback on Safari < 16.2.`
+        `store-ios15: ${token} has no plain sRGB value to read, so its tinted backgrounds keep Tailwind's solid fallback on Safari < 16.2.`
       );
     }
 
@@ -295,9 +295,9 @@ module.exports = () => ({
       viewportFallbacks += 1;
     });
 
-    if (process.env.ORGANZA_CSS_DEBUG) {
+    if (process.env.STORE_CSS_DEBUG) {
       console.log(
-        `organza-ios15: flattened ${flattened} layer(s), softened ${rewritten} of ${alphaUses.length} tinted fallback(s) ` +
+        `store-ios15: flattened ${flattened} layer(s), softened ${rewritten} of ${alphaUses.length} tinted fallback(s) ` +
           `with ${generated} channel token(s), added ${viewportFallbacks} viewport fallback(s)`
       );
     }

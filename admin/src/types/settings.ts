@@ -1,4 +1,4 @@
-import type { UpdateSettingInput } from "@organza/shared/schemas/setting";
+import type { UpdateSettingInput } from "@store/shared/schemas/setting";
 
 export type BrandImageKind = "logo" | "favicon";
 

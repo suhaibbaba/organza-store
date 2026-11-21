@@ -1,5 +1,5 @@
-import type { ProductSummary } from "@organza/shared/types/product";
-import type { OrderStatus } from "@organza/shared/types/order";
+import type { ProductSummary } from "@store/shared/types/product";
+import type { OrderStatus } from "@store/shared/types/order";
 
 export type GlobalSearchGroupKey = "pages" | "orders" | "products" | "customers";
 

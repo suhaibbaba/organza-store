@@ -23,7 +23,7 @@ export const INIT_FLAGS = {
 } as const;
 
 /** Overrides the default path. Lowest precedence after the flag. */
-export const STAFF_FILE_ENV = "ORGANZA_STAFF_FILE";
+export const STAFF_FILE_ENV = "STORE_STAFF_FILE";
 
 /**
  * Where the roster lives when nothing says otherwise: `staff.json` beside the

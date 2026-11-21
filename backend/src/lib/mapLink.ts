@@ -1,6 +1,6 @@
-import { coordinatesFromMapLink, isGoogleMapsLink, roundCoordinate } from "@organza/shared/lib/mapLink";
-import { MAP_LINK_MAX_REDIRECTS, MAP_LINK_TIMEOUT_MS } from "@organza/shared/constants/mapLink";
-import type { Coordinates } from "@organza/shared/types/order";
+import { coordinatesFromMapLink, isGoogleMapsLink, roundCoordinate } from "@store/shared/lib/mapLink";
+import { MAP_LINK_MAX_REDIRECTS, MAP_LINK_TIMEOUT_MS } from "@store/shared/constants/mapLink";
+import type { Coordinates } from "@store/shared/types/order";
 
 // Follows a Google short link hop by hop, refusing any hop that leaves Google's map hosts; null when no point is found.
 export async function resolveMapLink(link: string): Promise<Coordinates | null> {

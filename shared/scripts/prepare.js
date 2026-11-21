@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// The `prepare` hook for @organza/shared.
+// The `prepare` hook for @store/shared.
 //
 // npm runs `prepare` for this package on EVERY install that links it — the
 // development install at the repo root, and equally the production install
@@ -27,7 +27,7 @@ const packageDir = path.resolve(__dirname, "..");
 const sourceDir = path.join(packageDir, "src");
 
 if (!fs.existsSync(sourceDir)) {
-  process.stdout.write("@organza/shared: no src/ in this tree — nothing to build, skipping.\n");
+  process.stdout.write("@store/shared: no src/ in this tree — nothing to build, skipping.\n");
   process.exit(0);
 }
 
