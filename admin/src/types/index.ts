@@ -12,3 +12,4 @@ export * from "./design-system";
 export * from "./search";
 export * from "./urlFilters";
 export * from "./settings";
+export * from "./user";

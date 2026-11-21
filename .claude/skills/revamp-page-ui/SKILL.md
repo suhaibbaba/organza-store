@@ -373,6 +373,13 @@ clinic app (`/Users/suhaibbaba/Projects/clinic-management-system/apps/web/src/mo
 - Backend API tests default to the DEPLOYED sandbox; run them locally with `API_URL=http://localhost:4000` (needs the
   demo seed — the local prod copy has no demo accounts).
 
+- **Create/edit of a small record (a staff account) opens in a `Modal`** (user, 2026-11-21: "to create user open mode"),
+  not a page or a Drawer: `size="lg"`, groups as `h4` sections split by `divide-y`, Cancel + submit in the footer
+  (`form={FORM_ID}`), and edit reuses the same modal. Removal choices are a second Modal, not a confirm.
+- Query booleans use shared `booleanInput`, never `z.coerce.boolean()` — that reads `"false"` as true (users `isActive`).
+- The "every file the page touches" comment rule includes the backend route: collapse it with a one-line-per-block
+  pass, then diff with comments filtered out to prove only comments moved.
+
 ## Done
 - admin `products/[id]` (record) — 2026-11-21; rebuilt 2026-11-21: gallery + viewer, details card, no tabs
 - admin `products/[id]/edit` + `products/new` (form, shared `product-form.tsx`) — 2026-11-21
@@ -383,3 +390,4 @@ clinic app (`/Users/suhaibbaba/Projects/clinic-management-system/apps/web/src/mo
 - admin `products` (list: toolbar + filter drawer with sort + chips, sortable headers, Table pagination) — 2026-11-21
 - admin `orders/collection` — rebuilt 2026-11-21: selectable `Table` with photos + customer, search, date/status/channel filters, sort
 - admin `settings` (form, two columns, staged logo + new favicon upload) — 2026-11-21
+- admin `users` (list: role select + filter drawer with sort/status, chips, sortable Table; create/edit in a Modal) — 2026-11-21

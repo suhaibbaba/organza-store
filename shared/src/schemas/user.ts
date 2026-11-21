@@ -1,9 +1,11 @@
 import { z } from "zod";
 import { phoneSchema } from "@/schemas/phone";
-import { paginationSchema } from "@/schemas/common";
+import { booleanInput, paginationSchema } from "@/schemas/common";
 import { ERROR_CODES } from "@/constants/errors";
 import { PASSWORD_MIN_LENGTH } from "@/constants/validation";
 import { ROLES } from "@/constants/roles";
+import { USER_SORT_FIELDS } from "@/constants/user";
+import { SORT_DIRECTIONS } from "@/constants/pagination";
 
 export const createUserSchema = z.object({
   name: z.string().min(1, ERROR_CODES.VALIDATION_REQUIRED),
@@ -35,7 +37,9 @@ export type UpdateUserInput = z.infer<typeof updateUserSchema>;
 
 export const listUsersQuerySchema = paginationSchema.extend({
   role: z.enum(ROLES).optional(),
-  isActive: z.coerce.boolean().optional(),
+  isActive: booleanInput.optional(),
   q: z.string().min(1).optional(),
+  sortBy: z.enum(USER_SORT_FIELDS).default("createdAt"),
+  sortDir: z.enum(SORT_DIRECTIONS).default("desc"),
 });
 export type ListUsersQuery = z.infer<typeof listUsersQuerySchema>;

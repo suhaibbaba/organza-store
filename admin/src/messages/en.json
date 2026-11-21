@@ -1379,7 +1379,17 @@
       "status": "Status",
       "statusAll": "All",
       "statusActive": "Active",
-      "statusInactive": "Inactive"
+      "statusInactive": "Inactive",
+      "trigger": "Filters",
+      "title": "Filter staff",
+      "reset": "Clear filters",
+      "apply": "Show results",
+      "sortHint": "The order staff are listed in.",
+      "roleHint": "Show only one role.",
+      "statusHint": "Active staff can sign in; inactive ones cannot.",
+      "chipRole": "Role: {name}",
+      "chipStatus": "Status: {name}",
+      "removeFilter": "Remove filter: {name}"
     },
     "role": {
       "ADMIN": "Admin",
@@ -1393,30 +1403,20 @@
     "accountState": {
       "pending": "Password not set"
     },
-    "card": {
-      "edit": "Edit staff member",
-      "activate": "Activate",
-      "confirmActivate": "Activate",
-      "cancelToggle": "Cancel",
-      "remove": "Remove staff member",
-      "actionsFor": "Actions for {name}"
-    },
     "table": {
       "name": "Name",
       "role": "Role",
-      "phone": "Phone",
-      "status": "Status"
+      "status": "Status",
+      "contact": "Contact",
+      "actions": "Actions",
+      "you": "You",
+      "whatsapp": "WhatsApp"
     },
     "empty": {
       "noUsersTitle": "No staff yet",
       "noUsersDescription": "Staff accounts you add will show up here.",
       "noMatchesTitle": "No matching staff",
       "noMatchesDescription": "Try a different search or clear your filters."
-    },
-    "pagination": {
-      "previous": "Previous",
-      "next": "Next",
-      "pageOf": "Page {page} of {totalPages}"
     },
     "form": {
       "createTitle": "Add staff",
@@ -1430,26 +1430,39 @@
       "passwordHintEdit": "Leave blank to keep the current password.",
       "role": "Role",
       "phone": "Phone",
-      "phonePrefixLabel": "Country code",
       "whatsapp": "WhatsApp",
       "whatsappHint": "Optional — used to reach this staff member on WhatsApp.",
       "idNumber": "ID number",
-      "creating": "Creating…",
-      "saving": "Saving…",
       "create": "Add staff",
       "save": "Save changes",
-      "passwordHintCreate": "Leave this blank (recommended): they get a link by email and choose their own password, so nobody else ever knows it."
+      "passwordHintCreate": "Leave this blank (recommended): they get a link by email and choose their own password, so nobody else ever knows it.",
+      "createDescription": "They get an email with a link to choose their own password.",
+      "editDescription": "Changes apply the next time they use the app.",
+      "created": "Staff member added.",
+      "saved": "Changes saved.",
+      "groups": {
+        "account": "Account",
+        "contact": "Contact",
+        "signIn": "Signing in"
+      },
+      "namePlaceholder": "Their full name",
+      "emailPlaceholder": "name@example.com",
+      "emailHintCreate": "They sign in with this address; it can't be changed later.",
+      "idNumberPlaceholder": "ID card number",
+      "idNumberHint": "Visible to admins only.",
+      "roleHint": "Decides what they can see and do. Each role's permissions are set on the Permissions page.",
+      "passwordEdit": "Set a new password yourself"
     },
     "passwordReset": {
       "action": "Send password link",
-      "sending": "Sending…",
       "sent": "A set-password link has been emailed to {email}.",
       "copyLink": "Copy link",
       "copied": "Link copied.",
       "linkHint": "If the email doesn't arrive, you can pass this link on yourself. It works only once.",
       "resendInvite": "Resend the set-up link",
       "inviteSent": "A link to choose a password has been emailed to {email}.",
-      "pendingHint": "This person hasn't chosen a password yet, so they can't sign in. Resend the link if it never arrived."
+      "pendingHint": "This person hasn't chosen a password yet, so they can't sign in. Resend the link if it never arrived.",
+      "hint": "Emails them a link to choose a new password. It works once and expires after two hours."
     },
     "remove": {
       "title": "Remove {name}",
@@ -1459,7 +1472,8 @@
         "body": "They can no longer sign in, and any device they are signed in on is signed out straight away. Everything they did stays exactly as it is: their orders, expenses and drawer counts still show their name. You can switch them back on later.",
         "action": "Deactivate this account",
         "confirmQuestion": "Deactivate this account? They will not be able to sign in.",
-        "confirm": "Yes, deactivate {name}"
+        "confirm": "Yes, deactivate {name}",
+        "success": "The account is deactivated."
       },
       "delete": {
         "heading": "Delete permanently",
@@ -1467,8 +1481,30 @@
         "unavailable": "This account cannot be deleted, because it has already been used in the shop — there are orders, expenses or other records with this person's name on them. Deactivate instead, so those records keep saying who did what.",
         "action": "Delete permanently",
         "confirmQuestion": "This erases the account {email} and its password for good. It cannot be undone.",
-        "confirm": "Yes, permanently delete {name}"
-      }
+        "confirm": "Yes, permanently delete {name}",
+        "success": "The account is deleted."
+      },
+      "description": "Choose how to remove this person from the shop."
+    },
+    "sort": {
+      "label": "Sort by",
+      "newest": "Newest first",
+      "oldest": "Oldest first",
+      "nameAToZ": "Name: A to Z",
+      "nameZToA": "Name: Z to A",
+      "role": "Role"
+    },
+    "rowMenu": {
+      "label": "Actions for {name}",
+      "edit": "Edit",
+      "remove": "Deactivate or delete…",
+      "activate": "Activate again"
+    },
+    "activate": {
+      "title": "Activate {name} again?",
+      "consequence": "They can sign in again with their own password.",
+      "confirm": "Activate",
+      "success": "The account is active again."
     }
   },
   "errors": {

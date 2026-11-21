@@ -1,17 +1,7 @@
 import { useTranslations } from "next-intl";
-import { Alert, Button, EmptyState, Spinner } from "@store/ui";
+import { Alert, Button, EmptyState } from "@store/ui";
 import { useTranslateError } from "@/hooks/use-translate-error";
 import { ApiError } from "@/lib/api/errors";
-
-export function UserListLoading() {
-  return (
-    <div className="flex flex-col gap-3" data-test-selector="users-loading">
-      {Array.from({ length: 6 }).map((_, i) => (
-        <div key={i} className="h-20 animate-pulse rounded-card bg-inset" />
-      ))}
-    </div>
-  );
-}
 
 export function UserListEmpty({ hasFilters }: { hasFilters: boolean }) {
   return (
@@ -41,13 +31,5 @@ export function UserListError({ error, onRetry }: { error: unknown; onRetry: () 
     >
       {code ? translateError(code) : t("retry")}
     </Alert>
-  );
-}
-
-export function UserListSpinnerOverlay() {
-  return (
-    <div className="flex items-center justify-center py-3">
-      <Spinner className="size-5" />
-    </div>
   );
 }

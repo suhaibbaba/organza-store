@@ -15,7 +15,7 @@ import { useTranslateError } from "@/hooks/use-translate-error";
 import { useSaveSettingsMutation } from "@/hooks/use-settings";
 import { settingsFormSchema, settingsToFormValues, toUpdatePayload, type SettingsFormValues } from "@/lib/validation/settings-form";
 import { LOCALE_LABELS } from "@/constants/locale";
-import { ERROR_MESSAGE_KEYS, FALLBACK_ERROR_MESSAGE_KEY } from "@/constants/errorMessages";
+import { fieldErrorKey } from "@/lib/field-error-key";
 import type { AppLocale } from "@/i18n/routing";
 import { NumericInput } from "@/components/fields/numeric-input";
 import { SettingsSection } from "@/components/settings/settings-section";
@@ -40,9 +40,6 @@ const A4_SHEET_FIELDS = [
   "labelGapYMm",
 ] as const satisfies readonly (keyof SettingsFormValues)[];
 
-function errorKey(error: FieldError | undefined): string | undefined {
-  return error ? (ERROR_MESSAGE_KEYS[error.message ?? ""] ?? FALLBACK_ERROR_MESSAGE_KEY) : undefined;
-}
 
 function localeLabel(code: string): string {
   return LOCALE_LABELS[code as AppLocale] ?? code;
@@ -66,7 +63,7 @@ function MeasureField({
 }) {
   return (
     <div className={className}>
-      <FormField label={labelKey} htmlFor={id} error={error} errorKey={errorKey(error)}>
+      <FormField label={labelKey} htmlFor={id} error={error} errorKey={fieldErrorKey(error)}>
         <NumericInput id={id} allowDecimal={allowDecimal} aria-invalid={!!error} placeholder="0" {...registration} />
       </FormField>
     </div>
@@ -266,7 +263,7 @@ export function SettingsForm({ setting }: { setting: Setting }) {
                 htmlFor="lowStockThreshold"
                 note="settings.form.lowStockThresholdHint"
                 error={errors.lowStockThreshold}
-                errorKey={errorKey(errors.lowStockThreshold)}
+                errorKey={fieldErrorKey(errors.lowStockThreshold)}
               >
                 <NumericInput
                   id="lowStockThreshold"

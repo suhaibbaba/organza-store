@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
-import { Alert, Button } from "@store/ui";
+import { Alert, Button, Typography } from "@store/ui";
 import type { User } from "@organza/shared/types/user";
 import { useTranslateError } from "@/hooks/use-translate-error";
 import { resendUserInvite, sendUserPasswordReset } from "@/lib/api/password-setup";
@@ -30,43 +30,43 @@ export function PasswordResetAction({ user }: { user: User }) {
   }
 
   return (
-    <div className="flex flex-col gap-2 rounded-panel border border-line p-4">
-      {pending && <p className="text-label text-ink-muted">{t("pendingHint")}</p>}
+    <div className="flex flex-col gap-3 rounded-panel bg-sunken p-4" data-test-selector="user-password-link">
+      <Typography variant="small" tone="muted">
+        {t(pending ? "pendingHint" : "hint")}
+      </Typography>
 
       <Button
         type="button"
         variant="secondary"
-        className="w-full sm:w-auto sm:self-start"
+        className="self-start"
         isLoading={mutation.isPending}
         onClick={() => mutation.mutate()}
+        data-test-selector="user-password-link-send"
       >
-        {mutation.isPending ? t("sending") : t(pending ? "resendInvite" : "action")}
+        {t(pending ? "resendInvite" : "action")}
       </Button>
 
       {mutation.isError && (
-        <Alert tone="danger" data-testid="alert-destructive">
+        <Alert tone="danger" data-testid="user-password-link-error">
           {translateError(mutation.error instanceof ApiError ? mutation.error.code : "error.internal")}
         </Alert>
       )}
 
       {mutation.isSuccess && (
-        <>
-          <Alert tone="success" data-testid="alert-success">
+        <div className="flex flex-col gap-2">
+          <Alert tone="success" data-testid="user-password-link-sent">
             {t(pending ? "inviteSent" : "sent", { email: mutation.data.email })}
           </Alert>
-          <p className="text-label text-ink-muted">{t("linkHint")}</p>
-          <p dir="ltr" className="break-all rounded-control bg-inset p-2 text-meta text-ink-muted">
+          <Typography variant="small" tone="muted">
+            {t("linkHint")}
+          </Typography>
+          <Typography variant="small" as="p" dir="ltr" className="break-all rounded-control bg-surface p-2 text-start">
             {mutation.data.url}
-          </p>
-          <Button
-            type="button"
-            variant="quiet"
-            className="w-full sm:w-auto sm:self-start"
-            onClick={() => copyLink(mutation.data.url)}
-          >
+          </Typography>
+          <Button type="button" variant="quiet" className="self-start" onClick={() => void copyLink(mutation.data.url)}>
             {copied ? t("copied") : t("copyLink")}
           </Button>
-        </>
+        </div>
       )}
     </div>
   );
