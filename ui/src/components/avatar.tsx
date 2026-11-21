@@ -11,6 +11,10 @@ export interface AvatarProps extends TestIdProps {
   readonly className?: string | undefined;
 }
 
+// Initials scale with the circle so a small avatar keeps air around its letters.
+const INITIALS_RATIO = 0.4;
+const MIN_INITIALS_PX = 10;
+
 const TINTS = [
   "bg-tint-1-bg text-tint-1-ink",
   "bg-tint-2-bg text-tint-2-ink",
@@ -46,6 +50,7 @@ export function Avatar({
     .map((word) => [...word][0] ?? "")
     .join("");
 
+  const fontSize = Math.max(MIN_INITIALS_PX, Math.round(size * INITIALS_RATIO));
   const shape = "pill-text inline-flex items-center shrink-0 select-none rounded-pill";
 
   const tint = tintKey === undefined ? "bg-tint-2-bg text-tint-2-ink" : tintFor(tintKey);
@@ -55,8 +60,8 @@ export function Avatar({
       <span
         {...part()}
         aria-hidden="true"
-        style={{ width: size, height: size }}
-        className={cn(shape, "justify-center text-label font-medium", tint, className)}
+        style={{ width: size, height: size, fontSize, lineHeight: 1 }}
+        className={cn(shape, "justify-center font-medium", tint, className)}
       >
         {initials}
       </span>
@@ -75,8 +80,9 @@ export function Avatar({
         <span
           {...part("initials")}
           aria-hidden="true"
+          style={{ fontSize }}
           className={cn(
-            "absolute inset-0 flex items-center justify-center text-label font-medium",
+            "absolute inset-0 flex items-center justify-center font-medium leading-none",
             tint,
           )}
         >

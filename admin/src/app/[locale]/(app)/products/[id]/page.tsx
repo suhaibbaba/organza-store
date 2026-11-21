@@ -2,7 +2,7 @@
 
 import { useParams } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
-import { ChevronLeft, Pencil } from "lucide-react";
+import { Pencil } from "lucide-react";
 import type { Product } from "@organza/shared/types/product";
 import { BARCODE_SOURCE } from "@organza/shared/constants/barcode";
 import { can } from "@organza/shared/lib/permissions";
@@ -34,7 +34,6 @@ import { ApiError } from "@/lib/api/errors";
 export default function ProductDetailPage() {
   const params = useParams<{ id: string }>();
   const locale = useLocale();
-  const t = useTranslations("products.detail");
   const { data: product, isLoading, isError, error, refetch } = useProductQuery(params.id);
   const { data: settings } = useSettingsQuery();
   const currency = settings?.currency ?? "ILS";
@@ -43,14 +42,6 @@ export default function ProductDetailPage() {
 
   return (
     <PageContainer>
-      <Link
-        href="/products"
-        data-test-selector="back-link"
-        className="mb-4 inline-flex w-fit items-center gap-1 text-label text-ink-muted transition-colors hover:text-primary-700"
-      >
-        <ChevronLeft className="size-4 rtl:-scale-x-100" aria-hidden="true" />
-        {t("back")}
-      </Link>
 
       {isLoading ? (
         <ProductListLoading />

@@ -1,9 +1,9 @@
 import { useTranslations } from "next-intl";
-import { MapPin, MessageCircle, Phone } from "lucide-react";
-import { Card } from "@store/ui";
+import { MapPin, MessageCircle, Phone, UserRound } from "lucide-react";
 import type { Order } from "@organza/shared/types/order";
 import { SELECTABLE } from "@organza/shared/lib/nativeGestures";
 import { COORDINATE_DECIMALS, MAP_LINK_TEMPLATE } from "@/constants/orders";
+import { DetailCard } from "@/components/layout/detail-card";
 
 // The order's customer snapshot (no Customer entity yet); numbers shown exactly as stored, prefix included (rule 18).
 export function OrderCustomerCard({ order }: { order: Order }) {
@@ -13,10 +13,8 @@ export function OrderCustomerCard({ order }: { order: Order }) {
   const mapUrl = hasLocation ? `${MAP_LINK_TEMPLATE}${order.customerLatitude},${order.customerLongitude}` : null;
 
   return (
-    <Card className="flex flex-col gap-3">
-      <h2 className="text-section font-medium text-ink">{t("title")}</h2>
-
-      {order.customerName && <p className="text-label font-medium text-ink">{order.customerName}</p>}
+    <DetailCard icon={UserRound} title={t("title")} className="gap-3" data-testid="order-customer-card">
+      {order.customerName && <p className="text-value text-ink">{order.customerName}</p>}
 
       {order.customerPhone && (
         <a
@@ -70,10 +68,10 @@ export function OrderCustomerCard({ order }: { order: Order }) {
 
       {order.note && (
         <div className="border-t border-line pt-3">
-          <p className="text-micro text-ink-muted">{t("note")}</p>
-          <p className="mt-1 whitespace-pre-line text-label text-ink">{order.note}</p>
+          <p className="text-label text-ink-muted">{t("note")}</p>
+          <p className="mt-1 whitespace-pre-line text-value text-ink">{order.note}</p>
         </div>
       )}
-    </Card>
+    </DetailCard>
   );
 }

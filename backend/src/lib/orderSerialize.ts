@@ -8,6 +8,11 @@ function canSeeCost(role: Role): boolean {
   return can({ role }, "product.viewCost");
 }
 
+// A variant's own photo first, else its product's; null for a quick-sold line or a removed product.
+function lineThumbnail(item: AnyRecord): string | null {
+  return item.variant?.images?.[0]?.thumbnailUrl ?? item.product?.images?.[0]?.thumbnailUrl ?? null;
+}
+
 function serializeItem(item: AnyRecord, role: Role) {
   const dto: AnyRecord = {
     id: item.id,
@@ -24,6 +29,7 @@ function serializeItem(item: AnyRecord, role: Role) {
     lineTotal: formatMoney(item.lineTotal?.toString()),
     returnedQuantity: item.returnedQuantity,
     quickSold: item.quickSold ?? false,
+    thumbnailUrl: lineThumbnail(item),
   };
 
   if (canSeeCost(role)) {
@@ -67,14 +73,13 @@ export function serializeOrder(order: AnyRecord, role: Role) {
   };
 }
 
-// A variant's own photo first, else its product's.
 function serializePreviewItem(item: AnyRecord) {
   return {
     id: item.id,
     name: item.name,
     variantName: item.variantName ?? null,
     quantity: item.quantity,
-    thumbnailUrl: item.variant?.images?.[0]?.thumbnailUrl ?? item.product?.images?.[0]?.thumbnailUrl ?? null,
+    thumbnailUrl: lineThumbnail(item),
   };
 }
 

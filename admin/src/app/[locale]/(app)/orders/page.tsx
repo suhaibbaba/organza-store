@@ -1,5 +1,6 @@
 "use client";
 
+import { useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { HandCoins, Plus } from "lucide-react";
@@ -30,7 +31,15 @@ export default function OrdersPage() {
   const canCreate = can(user, "order.create");
   const canCollect = can(user, "order.markCollected");
 
-  const [searchInput, setSearchInput] = useState("");
+  // The header search's "see all" opens this list already searched (?q=).
+  const searchParams = useSearchParams();
+  const urlQuery = searchParams.get("q") ?? "";
+  const [searchInput, setSearchInput] = useState(urlQuery);
+  const [seenUrlQuery, setSeenUrlQuery] = useState(urlQuery);
+  if (urlQuery !== seenUrlQuery) {
+    setSeenUrlQuery(urlQuery);
+    setSearchInput(urlQuery);
+  }
   const [filters, setFilters] = useState<OrderListFilters>(DEFAULT_ORDER_FILTERS);
   const debouncedSearch = useDebouncedValue(searchInput, ORDER_SEARCH_DEBOUNCE_MS);
   const effectiveFilters = useMemo(() => ({ ...filters, q: debouncedSearch }), [filters, debouncedSearch]);

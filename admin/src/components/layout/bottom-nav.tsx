@@ -7,6 +7,7 @@ import { useVisibleNavItems } from "@/hooks/use-visible-nav-items";
 import { SOLID_NAV_ICONS } from "@/components/icons/nav-solid-icons";
 import { testSelectorFor } from "@organza/shared/lib/testSelector";
 import { cn } from "@/lib/utils";
+import { activeHref } from "@/lib/nav";
 import type { NavItem } from "@/types/nav";
 
 function isPrimary(item: NavItem): item is NavItem & { key: PrimaryNavKey } {
@@ -20,6 +21,7 @@ export function BottomNav() {
   const items = useVisibleNavItems();
 
   const primaryItems = items.filter(isPrimary);
+  const active = activeHref(pathname, items);
 
   return (
     // Sized from --bottom-nav-height + --safe-bottom (= --bottom-bar-inset, what the page pads by); never hard-code it.
@@ -30,7 +32,7 @@ export function BottomNav() {
     >
       <div className="flex h-[var(--bottom-nav-height)] items-stretch">
         {primaryItems.map((item) => {
-          const isActive = pathname === item.href;
+          const isActive = item.href === active;
           // Outline icon for the other tabs, a drawn solid twin for the current one.
           const Icon = isActive ? SOLID_NAV_ICONS[item.key] : item.icon;
           return (

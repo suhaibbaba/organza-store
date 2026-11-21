@@ -9,3 +9,4 @@ export * from "./pwa";
 export * from "./report";
 export * from "./productForm";
 export * from "./design-system";
+export * from "./search";

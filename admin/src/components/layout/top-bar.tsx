@@ -14,6 +14,7 @@ import { landingHref } from "@/lib/nav";
 import { MenuSheet } from "@/components/layout/menu-sheet";
 import { useVisibleNavItems } from "@/hooks/use-visible-nav-items";
 import { NavPendingBadge } from "@/components/change-requests/nav-pending-badge";
+import { GlobalSearch } from "@/components/layout/global-search";
 
 // Menu, shop logo and sandbox chip (phones only; the sidebar carries them from md), then the language and the account, for every role at every width.
 export function TopBar() {
@@ -29,7 +30,7 @@ export function TopBar() {
     >
       <div className="h-[var(--top-bar-height)] px-4 md:px-6 md:pt-3">
         <div className="flex h-full items-center gap-2 md:rounded-field md:border md:border-line md:bg-surface md:px-3 md:shadow-card">
-          <div className="flex min-w-0 flex-1 items-center gap-2">
+          <div className="flex min-w-0 flex-1 items-center gap-2 md:hidden">
             <button
               type="button"
               onClick={() => setMenuOpen(true)}
@@ -50,6 +51,9 @@ export function TopBar() {
               <ShopLogo alt={t("app.name")} className="h-full w-auto max-w-32" />
             </Link>
             <EnvironmentBadge className="md:hidden" />
+          </div>
+          <div className="flex shrink-0 justify-center md:min-w-0 md:flex-1">
+            <GlobalSearch />
           </div>
           <LanguageSwitcher variant="pill" />
           <AccountMenu />

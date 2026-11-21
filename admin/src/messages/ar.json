@@ -69,7 +69,9 @@
       "sales": "المبيعات",
       "catalogue": "الكتالوج",
       "manage": "الإدارة"
-    }
+    },
+    "collapse": "طيّ القائمة",
+    "expand": "توسيع القائمة"
   },
   "auth": {
     "login": {
@@ -399,17 +401,18 @@
       "pageOf": "صفحة {page} من {totalPages}"
     },
     "detail": {
-      "back": "الطلبات",
       "notFoundTitle": "الطلب غير موجود",
       "notFoundDescription": "قد يكون هذا الطلب محذوفًا.",
       "items": {
         "title": "{count, plural, one {منتج واحد} two {منتجان} few {{count, number, plain} منتجات} other {{count, number, plain} منتجًا}}",
         "noSku": "بدون SKU",
-        "quantity": "الكمية: {count}",
-        "unitPrice": "سعر القطعة: {price}",
-        "itemDiscount": "خصم {label} (−{amount})",
         "returned": "تم إرجاع {count} من هذا المنتج",
-        "quickSold": "بيع سريع — بدون تكلفة بعد"
+        "quickSold": "بيع سريع — بدون تكلفة بعد",
+        "piece": "القطعة",
+        "quantityHeader": "الكمية",
+        "unitPriceHeader": "سعر القطعة",
+        "discountHeader": "الخصم",
+        "lineTotalHeader": "المجموع"
       },
       "totals": {
         "subtotal": "المجموع الفرعي",
@@ -437,7 +440,8 @@
         "createdAt": "تاريخ الإنشاء",
         "updatedAt": "آخر تحديث",
         "stockDeducted": "خصم المخزون",
-        "stockNotDeducted": "لم يُخصم بعد"
+        "stockNotDeducted": "لم يُخصم بعد",
+        "title": "التفاصيل"
       },
       "statusActions": {
         "progressLabel": "مراحل الطلب",
@@ -448,10 +452,11 @@
         },
         "stockDeductionNotice": "عند بدء التحضير سيتم خصم الكميات من المخزون.",
         "cancelOrder": "إلغاء الطلب",
-        "confirmCancel": "هل تريد إلغاء هذا الطلب؟",
-        "confirmCancelWithStock": "هل تريد إلغاء هذا الطلب؟ ستعود الكميات إلى المخزون.",
-        "confirmCancelAction": "نعم، ألغِ الطلب",
-        "keepOrder": "تراجع"
+        "title": "حالة الطلب",
+        "cancelTitle": "إلغاء الطلب رقم {number}؟",
+        "cancelConsequence": "سيُلغى الطلب ولن يُحسب في المبيعات.",
+        "cancelConsequenceStock": "سيُلغى الطلب وتعود الكميات إلى المخزون.",
+        "cancelled": "تم إلغاء الطلب."
       },
       "returns": {
         "title": "إرجاع",
@@ -469,15 +474,18 @@
       "manage": {
         "returnItems": "إرجاع منتجات",
         "deleteOrder": "حذف الطلب",
-        "confirmDelete": "هل تريد حذف هذا الطلب؟ سيُخفى من كل الشاشات.",
-        "confirmDeleteWithStock": "هل تريد حذف هذا الطلب؟ سيُخفى من كل الشاشات وستعود الكميات إلى المخزون.",
-        "confirmDeleteAction": "نعم، احذف الطلب",
-        "keepOrder": "تراجع",
-        "noPermission": "يمكنك تحديث حالة الطلب فقط. الإلغاء والإرجاع والحذف تحتاج صلاحية مدير."
+        "noPermission": "يمكنك تحديث حالة الطلب فقط. الإلغاء والإرجاع والحذف تحتاج صلاحية مدير.",
+        "deleteTitle": "حذف الطلب رقم {number}؟",
+        "deleteConsequence": "سيُخفى الطلب من كل الشاشات.",
+        "deleteConsequenceStock": "سيُخفى الطلب من كل الشاشات وتعود الكميات إلى المخزون.",
+        "deleted": "تم حذف الطلب."
+      },
+      "header": {
+        "options": "خيارات الطلب",
+        "date": "التاريخ"
       }
     },
     "new": {
-      "back": "الطلبات",
       "title": "طلب واتساب جديد",
       "subtitle": "سجّل طلبًا وصل عبر الواتساب.",
       "itemsTitle": "المنتجات",
@@ -547,7 +555,6 @@
       }
     },
     "collection": {
-      "back": "الطلبات",
       "title": "المبالغ عند شركة التوصيل",
       "subtitle": "الطلبات التي لم يصل مبلغها بعد. حدّد ما تم استلامه.",
       "listLabel": "طلبات بانتظار التحصيل",
@@ -713,7 +720,6 @@
       "pageOf": "صفحة {page} من {totalPages}"
     },
     "detail": {
-      "back": "العودة إلى المنتجات",
       "notFoundTitle": "المنتج غير موجود",
       "notFoundDescription": "ربما تمت إزالة هذا المنتج.",
       "sku": "رمز SKU",
@@ -756,7 +762,6 @@
       }
     },
     "form": {
-      "back": "رجوع",
       "createTitle": "إضافة منتج",
       "editTitle": "تعديل المنتج",
       "notFoundTitle": "المنتج غير موجود",
@@ -1837,6 +1842,41 @@
     },
     "chips": {
       "remove": "إزالة {name}"
+    }
+  },
+  "breadcrumb": {
+    "label": "مسار التنقل",
+    "back": "رجوع",
+    "detail": "التفاصيل",
+    "new": "جديد",
+    "edit": "تعديل",
+    "orders": {
+      "detail": "تفاصيل الطلب",
+      "new": "طلب جديد"
+    },
+    "products": {
+      "detail": "تفاصيل المنتج",
+      "new": "منتج جديد",
+      "edit": "تعديل المنتج"
+    }
+  },
+  "globalSearch": {
+    "label": "بحث في المتجر",
+    "placeholder": "ابحث عن طلب، منتج، عميل …",
+    "open": "فتح البحث",
+    "close": "إغلاق البحث",
+    "clear": "مسح البحث",
+    "minChars": "اكتب حرفين على الأقل للبحث.",
+    "searching": "جارٍ البحث…",
+    "noResults": "لا توجد نتائج لـ «{query}».",
+    "error": "تعذّر البحث الآن. حاول مرة أخرى.",
+    "seeAll": "عرض الكل ({count})",
+    "hint": "↑ ↓ للتنقل · Enter للفتح · Esc للإغلاق",
+    "groups": {
+      "pages": "الصفحات",
+      "orders": "الطلبات",
+      "products": "المنتجات",
+      "customers": "العملاء"
     }
   }
 }

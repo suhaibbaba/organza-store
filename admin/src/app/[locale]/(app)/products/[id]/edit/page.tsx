@@ -4,10 +4,8 @@ import { useState } from "react";
 
 import { useParams } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { ChevronLeft } from "lucide-react";
 import { EmptyState } from "@store/ui";
 import { can } from "@organza/shared/lib/permissions";
-import { Link } from "@/i18n/navigation";
 import { PageContainer } from "@/components/layout/page-container";
 import { PageHeader } from "@/components/layout/page-header";
 import { useSession } from "@/components/providers/session-provider";
@@ -30,14 +28,6 @@ export default function EditProductPage() {
 
   return (
     <PageContainer>
-      <Link
-        href={`/products/${params.id}`}
-        data-test-selector="back-link"
-        className="mb-4 inline-flex w-fit items-center gap-1 text-label text-ink-muted transition-colors hover:text-primary-700"
-      >
-        <ChevronLeft className="size-4 rtl:-scale-x-100" aria-hidden="true" />
-        {t("back")}
-      </Link>
 
       <PageHeader name="product-edit" title={canEditDetails ? t("editTitle") : t("images.manageTitle")} />
 

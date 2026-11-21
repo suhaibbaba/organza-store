@@ -51,6 +51,12 @@ Reference implementation: the clinic app at `/Users/suhaibbaba/Projects/clinic-m
 - **Delete** → `useConfirm()` dialog (title key with `{name}`, one consequence line,
   `tone="danger"`), toast on success/failure, never an inline confirm card.
 - Back link stays above the header card.
+- **Order record — two columns, no tabs** (user, 2026-11-21): an order is small, so everything is in
+  view. Header card (number, status/channel/payment/gift/quick-sale badges, facts: date, created by,
+  payment method, total; Return as a Button, cancel + delete in the ⋯) above a
+  `lg:grid-cols-[minmax(0,1fr)_20rem]` grid: main = pieces `Table` (photo, name, variant, SKU, qty,
+  unit price, discount, line total) + totals card; side = status steps + forward button, payment +
+  "money received" (`tone: "primary"` confirm), customer (online only), details. One column on phones.
 
 ### Form page (create / edit one thing)
 - Grid `grid-cols-1 items-start gap-5 lg:grid-cols-[minmax(0,1fr)_22rem]`: **main** column holds
@@ -214,10 +220,37 @@ Reference implementation: the clinic app at `/Users/suhaibbaba/Projects/clinic-m
 - Test the long case by patching `window.fetch` in the page (fake rows, long names, many lines):
   the sandbox has few records, and patching the response writes nothing.
 - The comment rule covers backend and shared files the page needed too (route, serializer, types).
+- Order detail: line photos come from the detail API (`thumbnailUrl`, variant photo else product's).
+  A minus before money needs `dir="ltr"` on its span, or Arabic puts it after the number ("45.00–").
+- An API response already in the query cache is never re-fetched, so fetch patching misses it: open
+  a made-up id (`/orders/fakeorder1`) and let the patch answer it from the real record plus changes.
+- Deleting a component before rewriting its importer leaves a Module-not-found in the console log:
+  check the error's timestamp before treating it as current.
 - Date range filters use `DateRangePicker` in a `FormField`; the chip reads the days as local midnight.
+- **Colours come from the designer's palette (user, 2026-11-21)**, set ONLY in `ui/src/themes/organza.css` +
+  `organza.ts` (same values): dark-teal rail `#103F46`, active item `#197783`, canvas `#F1F7FA`, white cards,
+  table heads/info areas `#F4F8FA`, ink `#102A3A`, borders `#DCE8EF`, green done `#16834A`/`#D8F5E5`, light-teal
+  highlight `#E0F5F2`, soft teal-tinted shadows, 12px buttons. Never a raw hex in a page.
+- The sidebar is dark: its items use the `rail-*` tokens (`NavLink onRail`); the phone menu stays light.
+- **Breadcrumb lives in the shell** (`AppBreadcrumb`, built from the path by `lib/breadcrumb.ts`): shown on any
+  page below a top-level one, with a ← to the parent. Pages carry NO back link of their own; a new kind of
+  sub-page adds its leaf wording to `BREADCRUMB_SECTIONS` + `breadcrumb.*` messages.
+- **Header search** (`GlobalSearch`, "/" or ⌘K): orders, products, customers (from orders) and pages through the
+  list endpoints, each gated by `can()`; "see all" opens `/orders?q=` / `/products?q=`, so a list page reads `q`
+  from the URL. The sidebar logo sits straight on the dark rail (no white box), the sandbox chip beside it.
+- The sidebar collapses to an 84px icon rail from a round toggle on its inner edge (`sidebar-toggle`); the
+  choice is per browser (`useSidebarCollapsed`), labels become `sr-only` + `title`, badges sit on the icon.
+- Search results and other tight rows: a badge never shares a line with text that can truncate; give it its own
+  line (`ms-auto`) so the badge stays whole and only the name shortens.
+- The nav lights the deepest matching href (`activeHref` in `lib/nav.ts`), so a record page keeps its list lit.
+- **Record-page sections are `DetailCard`s** (`components/layout/detail-card.tsx`): icon + semibold title, `p-5`,
+  `gap-4`. The header card leads with an icon tile (`size-14 bg-primary-50`), and its facts are a tinted
+  strip (`bg-sunken`, bordered cells with an icon each, the money cell `bg-primary-50`), 2 per row on phones.
+  Totals sit inside the pieces card, the final total on a `bg-primary-50` row.
 
 ## Done
 - admin `products/[id]` (record) — 2026-11-21
 - admin `products/[id]/edit` + `products/new` (form, shared `product-form.tsx`) — 2026-11-21
 - admin `inventory` (list — first list pattern) — 2026-11-21
 - admin `orders` (list) — 2026-11-21
+- admin `orders/[id]` (record, two columns) — 2026-11-21

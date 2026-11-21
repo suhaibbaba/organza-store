@@ -15,7 +15,7 @@ export const DESIGN_SYSTEM_COLOUR_GROUPS = [
   {
     key: "surfaces",
     tokens: [
-      "canvas", "surface", "inset", "sunken", "rail", "row-hover", "table-head",
+      "canvas", "surface", "inset", "sunken", "rail", "rail-ink", "rail-hover", "rail-active", "row-hover", "table-head",
       "quiet-bg", "selected", "selected-line", "line", "line-strong",
     ],
   },

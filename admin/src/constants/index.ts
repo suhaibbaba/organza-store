@@ -7,3 +7,5 @@ export * from "./products";
 export * from "./pwa";
 export * from "./reports";
 export * from "./storage";
+export * from "./breadcrumb";
+export * from "./search";

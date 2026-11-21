@@ -10,18 +10,12 @@ import { ShopLogo } from "@/components/brand/shop-logo";
 import { NAV_GROUPS } from "@/constants/nav";
 import { testSelectorFor } from "@organza/shared/lib/testSelector";
 import type { NavItem } from "@/types/nav";
+import { activeHref } from "@/lib/nav";
 
 interface MenuSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   items: NavItem[];
-}
-
-// The deepest matching href wins, so /orders/collection lights Collection and not Orders as well.
-function activeHref(pathname: string, items: NavItem[]): string | undefined {
-  return items
-    .filter((item) => pathname === item.href || pathname.startsWith(`${item.href}/`))
-    .sort((a, b) => b.href.length - a.href.length)[0]?.href;
 }
 
 export function MenuSheet({ open, onOpenChange, items }: MenuSheetProps) {

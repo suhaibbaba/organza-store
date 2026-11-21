@@ -1,5 +1,6 @@
 "use client";
 
+import { useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Plus } from "lucide-react";
@@ -31,7 +32,15 @@ import type { ProductListFilters } from "@/types/product";
 export default function ProductsPage() {
   const t = useTranslations("products");
   const { user } = useSession();
-  const [searchInput, setSearchInput] = useState("");
+  // The header search's "see all" opens this list already searched (?q=).
+  const searchParams = useSearchParams();
+  const urlQuery = searchParams.get("q") ?? "";
+  const [searchInput, setSearchInput] = useState(urlQuery);
+  const [seenUrlQuery, setSeenUrlQuery] = useState(urlQuery);
+  if (urlQuery !== seenUrlQuery) {
+    setSeenUrlQuery(urlQuery);
+    setSearchInput(urlQuery);
+  }
   const [filters, setFilters] = useState<ProductListFilters>(DEFAULT_PRODUCT_FILTERS);
   const debouncedSearch = useDebouncedValue(searchInput, PRODUCT_SEARCH_DEBOUNCE_MS);
 

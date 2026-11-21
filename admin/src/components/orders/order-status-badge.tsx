@@ -1,5 +1,5 @@
 import { useTranslations } from "next-intl";
-import { Badge, type BadgeTone } from "@store/ui";
+import { Badge, type BadgeTone, type IconName } from "@store/ui";
 import type { OrderStatus } from "@organza/shared/types/order";
 import { cn } from "@/lib/utils";
 
@@ -13,11 +13,20 @@ const STATUS_BADGE_TONES: Record<OrderStatus, BadgeTone> = {
   RETURNED: "neutral",
 };
 
+const STATUS_BADGE_ICONS: Record<OrderStatus, IconName> = {
+  NEW: "bell",
+  PREPARING: "package",
+  HANDED_TO_COURIER: "send",
+  COMPLETED: "check",
+  CANCELLED: "x",
+  RETURNED: "reset",
+};
+
 export function OrderStatusBadge({ status, className }: { status: OrderStatus; className?: string }) {
   const t = useTranslations("orders.status");
 
   return (
-    <Badge tone={STATUS_BADGE_TONES[status]} className={cn("shrink-0", className)}>
+    <Badge tone={STATUS_BADGE_TONES[status]} icon={STATUS_BADGE_ICONS[status]} className={cn("shrink-0", className)}>
       {t(status)}
     </Badge>
   );

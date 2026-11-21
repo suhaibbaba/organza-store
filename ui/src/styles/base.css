@@ -64,6 +64,12 @@
   --color-quiet-bg: #f1f4f5;
   --color-quiet-ink: #7d878f;
   --color-rail: #fcfdfd;
+  --color-rail-ink: var(--color-neutral-700);
+  --color-rail-ink-active: var(--color-ink-inverse);
+  --color-rail-hover: var(--color-primary-100);
+  --color-rail-hover-ink: var(--color-primary-700);
+  --color-rail-active: var(--color-primary-600);
+  --color-rail-line: var(--color-line);
 
   --color-selected: var(--color-primary-50);
   --color-selected-line: var(--color-primary-300);

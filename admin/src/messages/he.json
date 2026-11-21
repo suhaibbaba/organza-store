@@ -69,7 +69,9 @@
       "sales": "מכירות",
       "catalogue": "קטלוג",
       "manage": "ניהול"
-    }
+    },
+    "collapse": "כיווץ התפריט",
+    "expand": "הרחבת התפריט"
   },
   "auth": {
     "login": {
@@ -399,17 +401,18 @@
       "pageOf": "עמוד {page} מתוך {totalPages}"
     },
     "detail": {
-      "back": "הזמנות",
       "notFoundTitle": "ההזמנה לא נמצאה",
       "notFoundDescription": "ייתכן שההזמנה נמחקה.",
       "items": {
         "title": "{count, plural, one {פריט אחד} two {שני פריטים} other {{count, number, plain} פריטים}}",
         "noSku": "ללא מק\"ט",
-        "quantity": "כמות: {count}",
-        "unitPrice": "מחיר ליחידה: {price}",
-        "itemDiscount": "הנחה {label} (−{amount})",
         "returned": "{count} הוחזרו",
-        "quickSold": "מכירה מהירה — עדיין ללא עלות"
+        "quickSold": "מכירה מהירה — עדיין ללא עלות",
+        "piece": "פריט",
+        "quantityHeader": "כמות",
+        "unitPriceHeader": "מחיר ליחידה",
+        "discountHeader": "הנחה",
+        "lineTotalHeader": "סה״כ"
       },
       "totals": {
         "subtotal": "סכום ביניים",
@@ -437,7 +440,8 @@
         "createdAt": "נוצרה",
         "updatedAt": "עודכנה לאחרונה",
         "stockDeducted": "ניכוי מלאי",
-        "stockNotDeducted": "טרם נוכה"
+        "stockNotDeducted": "טרם נוכה",
+        "title": "פרטים"
       },
       "statusActions": {
         "progressLabel": "התקדמות ההזמנה",
@@ -448,10 +452,11 @@
         },
         "stockDeductionNotice": "תחילת ההכנה מנכה את הפריטים מהמלאי.",
         "cancelOrder": "ביטול ההזמנה",
-        "confirmCancel": "לבטל את ההזמנה?",
-        "confirmCancelWithStock": "לבטל את ההזמנה? הפריטים יחזרו למלאי.",
-        "confirmCancelAction": "כן, לבטל",
-        "keepOrder": "לא, להשאיר"
+        "title": "סטטוס ההזמנה",
+        "cancelTitle": "לבטל את הזמנה {number}?",
+        "cancelConsequence": "ההזמנה תבוטל ולא תיספר כמכירה.",
+        "cancelConsequenceStock": "ההזמנה תבוטל והפריטים יחזרו למלאי.",
+        "cancelled": "ההזמנה בוטלה."
       },
       "returns": {
         "title": "החזרה",
@@ -469,15 +474,18 @@
       "manage": {
         "returnItems": "החזרת פריטים",
         "deleteOrder": "מחיקת ההזמנה",
-        "confirmDelete": "למחוק את ההזמנה? היא תוסתר מכל המסכים.",
-        "confirmDeleteWithStock": "למחוק את ההזמנה? היא תוסתר מכל המסכים והפריטים יחזרו למלאי.",
-        "confirmDeleteAction": "כן, למחוק",
-        "keepOrder": "לא, להשאיר",
-        "noPermission": "ניתן לעדכן את סטטוס ההזמנה בלבד. ביטול, החזרה ומחיקה דורשים הרשאת מנהל."
+        "noPermission": "ניתן לעדכן את סטטוס ההזמנה בלבד. ביטול, החזרה ומחיקה דורשים הרשאת מנהל.",
+        "deleteTitle": "למחוק את הזמנה {number}?",
+        "deleteConsequence": "ההזמנה תוסתר מכל המסכים.",
+        "deleteConsequenceStock": "ההזמנה תוסתר מכל המסכים והפריטים יחזרו למלאי.",
+        "deleted": "ההזמנה נמחקה."
+      },
+      "header": {
+        "options": "אפשרויות הזמנה",
+        "date": "תאריך"
       }
     },
     "new": {
-      "back": "הזמנות",
       "title": "הזמנת וואטסאפ חדשה",
       "subtitle": "רישום הזמנה שהתקבלה בוואטסאפ.",
       "itemsTitle": "מוצרים",
@@ -547,7 +555,6 @@
       }
     },
     "collection": {
-      "back": "הזמנות",
       "title": "כסף אצל חברת המשלוחים",
       "subtitle": "הזמנות שטרם שולמו. סמן את מה שהתקבל.",
       "listLabel": "הזמנות הממתינות לתשלום",
@@ -713,7 +720,6 @@
       "pageOf": "עמוד {page} מתוך {totalPages}"
     },
     "detail": {
-      "back": "חזרה למוצרים",
       "notFoundTitle": "המוצר לא נמצא",
       "notFoundDescription": "ייתכן שהמוצר הוסר.",
       "sku": "מק\"ט",
@@ -756,7 +762,6 @@
       }
     },
     "form": {
-      "back": "חזרה",
       "createTitle": "הוספת מוצר",
       "editTitle": "עריכת מוצר",
       "notFoundTitle": "המוצר לא נמצא",
@@ -1837,6 +1842,41 @@
     },
     "chips": {
       "remove": "הסרת {name}"
+    }
+  },
+  "breadcrumb": {
+    "label": "נתיב ניווט",
+    "back": "חזרה",
+    "detail": "פרטים",
+    "new": "חדש",
+    "edit": "עריכה",
+    "orders": {
+      "detail": "פרטי הזמנה",
+      "new": "הזמנה חדשה"
+    },
+    "products": {
+      "detail": "פרטי מוצר",
+      "new": "מוצר חדש",
+      "edit": "עריכת מוצר"
+    }
+  },
+  "globalSearch": {
+    "label": "חיפוש בחנות",
+    "placeholder": "חיפוש הזמנה, מוצר, לקוח …",
+    "open": "פתיחת חיפוש",
+    "close": "סגירת חיפוש",
+    "clear": "ניקוי החיפוש",
+    "minChars": "הקלידו לפחות שני תווים כדי לחפש.",
+    "searching": "מחפש…",
+    "noResults": "אין תוצאות עבור „{query}”.",
+    "error": "החיפוש אינו זמין כרגע. נסו שוב.",
+    "seeAll": "הצגת הכול ({count})",
+    "hint": "↑ ↓ למעבר · Enter לפתיחה · Esc לסגירה",
+    "groups": {
+      "pages": "עמודים",
+      "orders": "הזמנות",
+      "products": "מוצרים",
+      "customers": "לקוחות"
     }
   }
 }

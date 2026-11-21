@@ -7,3 +7,5 @@ export const SESSION_TOKEN_KEY = "organza_admin_session_token";
 // — only used as the cookie's Max-Age; the backend is the source of truth
 // for actual session validity.
 export const SESSION_COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 7;
+export const SIDEBAR_COLLAPSED_KEY = "organza_admin_sidebar_collapsed";
+export const SIDEBAR_COLLAPSED_EVENT = "organza:sidebar-collapsed";

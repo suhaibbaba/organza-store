@@ -2,10 +2,8 @@
 
 import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
-import { ArrowLeft } from "lucide-react";
 import { ERROR_CODES } from "@organza/shared/constants/errors";
 import { DEFAULT_PAGE } from "@organza/shared/constants/pagination";
-import { Link } from "@/i18n/navigation";
 import { RoleGuard } from "@/components/auth/role-guard";
 import { PageContainer } from "@/components/layout/page-container";
 import { PageHeader } from "@/components/layout/page-header";
@@ -13,7 +11,7 @@ import { COLLECTION_ORDER_FILTERS } from "@/constants/orders";
 import { useCollectOrdersMutation, useCollectionSummaryQuery, useOrdersQuery } from "@/hooks/use-orders";
 import { useTranslateError } from "@/hooks/use-translate-error";
 import { ApiError } from "@/lib/api/errors";
-import { Alert, Button, buttonClassName, EmptyState } from "@store/ui";
+import { Alert, Button, EmptyState } from "@store/ui";
 import { OrderListError, OrderListLoading, OrderListSpinnerOverlay } from "@/components/orders/order-list-states";
 import { OrderPagination } from "@/components/orders/order-pagination";
 import { CollectionSummaryCard } from "@/components/orders/collection/collection-summary-card";
@@ -79,15 +77,6 @@ function OrderCollectionPageContent() {
 
   return (
     <PageContainer>
-      {/* Above the header: the way out of the screen, not one of its actions. */}
-      <Link
-        href="/orders"
-        data-test-selector="back-link"
-        className={buttonClassName({ variant: "quiet", className: "-ms-2 mb-4 self-start px-2" })}
-      >
-        <ArrowLeft className="size-4 rtl:-scale-x-100" aria-hidden="true" />
-        {t("back")}
-      </Link>
 
       <PageHeader name="collection" title={t("title")} description={t("subtitle")} />
 

@@ -36,6 +36,7 @@ export interface OrderItem {
   returnedQuantity: number;
   // Quick-sold at the counter (spec.md "Quick sell"); a snapshot, so it outlives the product's completion.
   quickSold: boolean;
+  thumbnailUrl: string | null;
   // SENSITIVE (rule 19): Admin only — absent, not null, for everyone else.
   unitCost?: string | null;
 }

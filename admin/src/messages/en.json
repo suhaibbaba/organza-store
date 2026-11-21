@@ -69,7 +69,9 @@
       "sales": "Sales",
       "catalogue": "Catalogue",
       "manage": "Management"
-    }
+    },
+    "collapse": "Collapse menu",
+    "expand": "Expand menu"
   },
   "auth": {
     "login": {
@@ -399,17 +401,18 @@
       "pageOf": "Page {page} of {totalPages}"
     },
     "detail": {
-      "back": "Orders",
       "notFoundTitle": "Order not found",
       "notFoundDescription": "This order may have been deleted.",
       "items": {
         "title": "{count, plural, one {{count, number, plain} item} other {{count, number, plain} items}}",
         "noSku": "No SKU",
-        "quantity": "Qty: {count}",
-        "unitPrice": "Unit price: {price}",
-        "itemDiscount": "{label} off (−{amount})",
         "returned": "{count} returned",
-        "quickSold": "Quick sale — no cost yet"
+        "quickSold": "Quick sale — no cost yet",
+        "piece": "Piece",
+        "quantityHeader": "Qty",
+        "unitPriceHeader": "Unit price",
+        "discountHeader": "Discount",
+        "lineTotalHeader": "Total"
       },
       "totals": {
         "subtotal": "Subtotal",
@@ -437,7 +440,8 @@
         "createdAt": "Created",
         "updatedAt": "Last updated",
         "stockDeducted": "Stock deducted",
-        "stockNotDeducted": "Not deducted yet"
+        "stockNotDeducted": "Not deducted yet",
+        "title": "Details"
       },
       "statusActions": {
         "progressLabel": "Order progress",
@@ -448,10 +452,11 @@
         },
         "stockDeductionNotice": "Starting preparation deducts these items from stock.",
         "cancelOrder": "Cancel order",
-        "confirmCancel": "Cancel this order?",
-        "confirmCancelWithStock": "Cancel this order? The items go back into stock.",
-        "confirmCancelAction": "Yes, cancel it",
-        "keepOrder": "Keep it"
+        "title": "Order status",
+        "cancelTitle": "Cancel order {number}?",
+        "cancelConsequence": "The order is cancelled and no longer counts as a sale.",
+        "cancelConsequenceStock": "The order is cancelled and its pieces go back into stock.",
+        "cancelled": "Order cancelled."
       },
       "returns": {
         "title": "Return",
@@ -469,15 +474,18 @@
       "manage": {
         "returnItems": "Return items",
         "deleteOrder": "Delete order",
-        "confirmDelete": "Delete this order? It will be hidden from every screen.",
-        "confirmDeleteWithStock": "Delete this order? It will be hidden from every screen and the items go back into stock.",
-        "confirmDeleteAction": "Yes, delete it",
-        "keepOrder": "Keep it",
-        "noPermission": "You can update the order status only. Cancelling, returning and deleting need a manager."
+        "noPermission": "You can update the order status only. Cancelling, returning and deleting need a manager.",
+        "deleteTitle": "Delete order {number}?",
+        "deleteConsequence": "The order is hidden from every screen.",
+        "deleteConsequenceStock": "The order is hidden from every screen and its pieces go back into stock.",
+        "deleted": "Order deleted."
+      },
+      "header": {
+        "options": "Order options",
+        "date": "Date"
       }
     },
     "new": {
-      "back": "Orders",
       "title": "New WhatsApp order",
       "subtitle": "Write down an order that came in over WhatsApp.",
       "itemsTitle": "Products",
@@ -547,7 +555,6 @@
       }
     },
     "collection": {
-      "back": "Orders",
       "title": "Money with the delivery company",
       "subtitle": "Orders you have not been paid for yet. Tick off what has come in.",
       "listLabel": "Orders awaiting payment",
@@ -713,7 +720,6 @@
       "pageOf": "Page {page} of {totalPages}"
     },
     "detail": {
-      "back": "Back to products",
       "notFoundTitle": "Product not found",
       "notFoundDescription": "This product may have been removed.",
       "sku": "SKU",
@@ -756,7 +762,6 @@
       }
     },
     "form": {
-      "back": "Back",
       "createTitle": "Add product",
       "editTitle": "Edit product",
       "notFoundTitle": "Product not found",
@@ -1837,6 +1842,41 @@
     },
     "chips": {
       "remove": "Remove {name}"
+    }
+  },
+  "breadcrumb": {
+    "label": "Breadcrumb",
+    "back": "Back",
+    "detail": "Details",
+    "new": "New",
+    "edit": "Edit",
+    "orders": {
+      "detail": "Order details",
+      "new": "New order"
+    },
+    "products": {
+      "detail": "Product details",
+      "new": "New product",
+      "edit": "Edit product"
+    }
+  },
+  "globalSearch": {
+    "label": "Search the shop",
+    "placeholder": "Search for an order, product, customer …",
+    "open": "Open search",
+    "close": "Close search",
+    "clear": "Clear search",
+    "minChars": "Type at least two characters to search.",
+    "searching": "Searching…",
+    "noResults": "No results for “{query}”.",
+    "error": "Search is unavailable right now. Try again.",
+    "seeAll": "See all ({count})",
+    "hint": "↑ ↓ to move · Enter to open · Esc to close",
+    "groups": {
+      "pages": "Pages",
+      "orders": "Orders",
+      "products": "Products",
+      "customers": "Customers"
     }
   }
 }
