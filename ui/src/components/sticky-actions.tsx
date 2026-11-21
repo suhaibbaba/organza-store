@@ -12,7 +12,7 @@ export interface StickyActionsProps extends TestIdProps {
   readonly className?: string | undefined;
 }
 
-// A floating glass pill of page actions over the bottom edge, above the phone's bottom nav (--bottom-bar-inset) where there is one.
+// A floating glass pill of page actions over the bottom edge, clear of the home indicator (--bottom-bar-inset).
 export function StickyActions({
   visible,
   label,
