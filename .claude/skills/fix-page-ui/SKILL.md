@@ -28,6 +28,8 @@ Reference implementation: the clinic app at `/Users/suhaibbaba/Projects/clinic-m
 5. **Verify:** `npx tsc --noEmit` and `npx eslint <files>` in the app; `npm run test -w admin`
    when the shell or a tested file changed. Then the browser again: every tab/state, Arabic and
    English, no console errors, `scrollWidth === innerWidth`. Never click a destructive confirm.
+   Test more than one record: one with child rows and one without (a simple product, an empty
+   gallery) — the user will open a different record than the one you checked.
 6. **Record the lessons** in "Learned so far" (one line each) and add the page to "Done".
    Commit only when the user asks.
 
@@ -52,8 +54,8 @@ Reference implementation: the clinic app at `/Users/suhaibbaba/Projects/clinic-m
 
 ### Form page (create / edit one thing)
 - Grid `grid-cols-1 items-start gap-5 lg:grid-cols-[minmax(0,1fr)_22rem]`: **main** column holds
-  the content fields (info, pricing, codes, child rows); **side** column holds status switches,
-  kind/type choices, photos and read-only facts. One column on phones.
+  the content (info, pricing, photos, child rows); **side** column holds status switches,
+  kind/type choices, codes (barcode) and stock/SKU facts. One column on phones.
 - Each group is a `Section` (`@store/ui`, modelled on operate-web's `ConfigSection`): coloured icon,
   medium title, one muted description line, `collapsible` with a sliding body, `forceOpen` while a
   field inside has an error. Icon + tone per section live in a constants map, descriptions in
@@ -73,10 +75,12 @@ Reference implementation: the clinic app at `/Users/suhaibbaba/Projects/clinic-m
 - An "add more" picker opens in a `Drawer` from a secondary `+` button; what it adds shows in the page
   (with its quantity) before Save. Never a grey inline panel, never a checkbox box per group:
   each group is a collapsible `Section` (no icon, `shadow-none`) whose description sums up what is
-  picked; picking a chip is what turns the group on.
+  picked (at most 3 names, then "+N"); picking a chip is what turns the group on.
   A "select all" is a `Switch size="sm"` at the top of the body, never in the header beside the chevron.
 - Lists of child rows (2+) get a small Checkbox per row and a bulk bar on top (select all with
   indeterminate, then the bulk actions the role may do). Bulk actions only stage edits — Save applies.
+  One shared bar (`variant-bulk-bar.tsx`) on EVERY list of the same rows — saved and not-yet-saved
+  alike; a feature on one list only reads as "missing" on a record that has only the other.
 - A `Drawer` closes from its header ✕ only; its footer holds the drawer's own actions or is absent.
 - In-row toggles use `size="sm"` (Switch and Checkbox both have it).
 - Rows with controls wrap below `sm`: the name gets its own full line (never `truncate`), the
@@ -88,7 +92,7 @@ Reference implementation: the clinic app at `/Users/suhaibbaba/Projects/clinic-m
   delete all keep the two together.
 - Full-screen editors: one Save (no duplicate ✓ in the header), controls in a centred `max-w-xl`
   column, Cancel + Save together at the end.
-- Counts in messages use ICU plurals (Arabic needs one/two/few/many/other).
+- Counts in messages use ICU plurals; Arabic needs zero/one/two/few/many/other ("سيتم إنشاء 0 متغير" is a bug).
 - Anything clickable gets `cursor-pointer` (section headers, row toggles, fold bars).
 - No section has its own submit button: everything on the page is written by the one SaveBar.
 - Rows being added that carry a quantity (stock) get a `QuantityStepper` per row, before saving.
@@ -109,7 +113,9 @@ Not learned yet — ask, then write the pattern here.
   `Table` column `header`, `Tabs` labels take **keys**; everything else takes translated text.
 - Name things for tests: `data-testid` on `@store/ui` components (written to `data-test-selector`
   too), literal `data-test-selector` on plain elements; purpose-first, no positions.
-- Comments: one line or none.
+- Comments: one line or none — and strip the old multi-line ones from every file you touch.
+- Anything added to `@store/ui` (a component, a new `size`) is also demoed on `/design-system`.
+- Wording (ar): variants are **متغيرات**, never تركيبات.
 
 ## Learned so far
 - Product page: status lived in a bespoke pill → `Badge`; price/barcode/stock were loose blocks →
@@ -123,6 +129,14 @@ Not learned yet — ask, then write the pattern here.
 
 - Folds open by animating `grid-template-rows` 0fr→1fr with the content kept mounted and `inert`
   when shut — smooth, no Radix Collapsible needed, and form inputs stay registered.
+
+- Write message keys BEFORE the component that uses them: hot reload renders first and logs
+  MISSING_MESSAGE errors that look like real bugs; reload before judging the console.
+- In browser checks, await a re-render between clicks (setTimeout) — two synchronous `.click()`s
+  read the same stale state and the second overwrites the first.
+- The user reviews by screenshot and short notes ("bad", "needs enhancement"): propose the fix,
+  apply, verify in the browser, and only ask (AskUserQuestion with previews) when the layout is a
+  real choice.
 
 ## Done
 - admin `products/[id]` (record) — 2026-11-21
