@@ -1,37 +1,50 @@
 ---
-name: fix-page-ui
-description: Rebuild one admin or POS page's layout into the Store Management (clinic) design system. Use when the user names a page/URL to "fix the UI" of, e.g. "fix ar/products/<id>" or "/fix-page-ui orders". Learns: every finished page adds its lessons below.
+name: revamp-page-ui
+description: Revamp one admin or POS page onto the Store Management design system (@store/ui) — rebuild its layout, its controls and, with the user, how it should work; not a patch of what is there. Use when the user names a page/URL to fix, revamp or redesign, e.g. "revamp ar/orders/new", "fix the UI of products/<id>", "/revamp-page-ui orders". Learns: every finished page adds its lessons below.
 ---
 
-# Fix one page's UI
+# Revamp one page
 
-The apps were first built with their own layouts; they now run on `@store/ui` (the clinic
-system's design system, `ui/`). Components were swapped already — this skill fixes **layout and
-composition** so each page reads like the clinic app. One page per run.
+A revamp, not a fix. The old page is a list of what it must still DO (queries, mutations, permission
+gates, CLAUDE.md rules, `data-test-selector` names) — never a layout to tidy. The new page is built from
+the page pattern below and `@store/ui`, and its product choices are re-asked: the user's notes on
+`orders/new` ("current ui very bad", "location should be from google", "gift is an option, not a type")
+were about how the page works, not its padding. One page per run.
 
-Reference implementation: the clinic app at `/Users/suhaibbaba/Projects/clinic-management-system/apps/web/src/modules`
-(e.g. `patients/pages/patient-page.tsx` for a record, `inventory/pages/item-page.tsx`). Every
-`@store/ui` component is on the admin's `/design-system` page.
+References, in this order: the patterns below; `@store/ui` on the admin's `/design-system` page; the
+clinic app (`/Users/suhaibbaba/Projects/clinic-management-system/apps/web/src/modules`, e.g.
+`patients/pages/patient-page.tsx`); operate-web (`/Users/suhaibbaba/Operate-Solution/operate-web/resources/js/Components/UI`)
+— when `@store/ui` lacks something, operate or the clinic usually has it already (`Typography` was ported from operate).
 
 ## Workflow
-1. **Look first.** Open the page in the browser (admin :3000, POS :3001, sign in with the
-   demo-seed accounts) at 1280px in Arabic; screenshot every scroll position. List what is wrong
-   against the patterns below before touching code.
-2. **Classify the page** (record / list / form / dashboard …) and find the clinic page of the same
-   kind. If the kind has no pattern below yet, or the layout choice is a real product decision,
-   ask the user with ASCII previews (AskUserQuestion) — then record the answer below.
-3. **Rebuild the layout**, keeping behaviour identical: same queries, mutations, permission gates
-   (`can()`), CLAUDE.md rules (cost Admin-only, pending-change badges, rule 23 incomplete badge),
-   and every existing `data-test-selector` name. Move things, don't drop them.
-4. **Messages:** new keys in all three of `admin|pos/src/messages/{en,ar,he}.json`, real
-   translations, no ICU `#`. Props that take keys get full keys (see "Keys vs text").
-5. **Verify:** `npx tsc --noEmit` and `npx eslint <files>` in the app; `npm run test -w admin`
-   when the shell or a tested file changed. Then the browser again: every tab/state, Arabic and
-   English, no console errors, `scrollWidth === innerWidth`. Never click a destructive confirm.
-   Test more than one record: one with child rows and one without (a simple product, an empty
-   gallery) — the user will open a different record than the one you checked.
-6. **Record the lessons** in "Learned so far" (one line each) and add the page to "Done".
-   Commit only when the user asks.
+1. **Look and take stock.** Open the page (admin :3000, POS :3001, demo-seed accounts) at 1280px in Arabic,
+   screenshot every scroll position, and at 375px (a 375px iframe — Chrome's window stops near 600px).
+   Write two lists: what the page must keep doing (from the code), and every element that is not a
+   `@store/ui` component (`grep -nE "<(button|label|input|select|textarea)\b|className=\"[^\"]*text-(micro|meta|label|value)"`).
+2. **Rethink the behaviour before the layout.** For each input ask what the shop actually has in hand
+   (a Maps link, not coordinates; a second number only sometimes → a Checkbox reveals it), what is a choice
+   (segments) versus an option on top of it (a switch), what decides which fields apply (it goes first),
+   and whether this is create or edit (SaveBar only on edit). A real product choice goes to the user with
+   AskUserQuestion + ASCII previews; record the answer under "Learned so far".
+3. **Classify and rebuild from the pattern** (record / list / form …), not from the old JSX: write the
+   composition fresh, then move the old behaviour into it. Keep every query, mutation, `can()` gate,
+   CLAUDE.md rule (cost Admin-only, pending-change badges, rule 23) and `data-test-selector` name.
+4. **Only design-system parts.** Text is `Typography`, actions `Button`, row tools `IconButton`, labels and
+   hints `FormField`, toggles `Checkbox`/`Switch`, choices `SegmentedControl`, groups `Section`. A missing part
+   is added to `@store/ui` (port it from operate/clinic when it exists there), demoed on `/design-system`,
+   then used — never hand-built in the page. Theme-wide looks (colours, radii) change only in
+   `ui/src/themes/organza.*` or `ui/src/styles/base.css`, never per page.
+5. **Messages:** new keys in all three of `admin|pos/src/messages/{en,ar,he}.json`, real translations, no
+   ICU `#`, a placeholder for every field. Props that take keys get full keys (see "Keys vs text").
+6. **Verify:** `npx tsc --noEmit` + `npx eslint <files>` in each touched app (and `ui/`); `npm run test -w admin`
+   when the shell or a tested file changed. Browser: every state, Arabic and English, 1280px and 375px, no
+   console errors (check timestamps — hot-reload errors linger), `scrollWidth === innerWidth`. Never press
+   Save or a destructive confirm; patch `fetch` to answer a submit and read its payload. Test more than one
+   record (with and without child rows).
+7. **Expect a review loop.** The user reviews by screenshot in short notes (sizes, colours, alignment,
+   "on mobile broke"): apply each, re-verify the exact spot (measure heights/alignment in JS), and turn
+   every note that applies beyond this page into a line under "Learned so far".
+8. **Record** the lessons and add the page to "Done". Commit only when the user asks.
 
 ## Patterns
 
@@ -157,6 +170,12 @@ Reference implementation: the clinic app at `/Users/suhaibbaba/Projects/clinic-m
 - **Links never underline.** Hover changes the colour to the dark brand shade: `transition-colors
   hover:text-primary-700` (or `group` on the link + `group-hover:text-primary-700` on the name span
   when the text inside carries `text-ink`); a link already `primary-700` goes to `primary-900`.
+- **Text is `Typography`** (`@store/ui`, ported from operate-web): `variant` display/h1–h4/body/small/caption/label sets
+  size + weight + tag, `tone` muted/subtle/brand/error/success, `weight`, `as` for the tag. Never a raw
+  `<p className="text-meta text-ink-muted">`; hints are `caption` + `muted`.
+- **No native `<button>`/`<label>` in a page** (user, 2026-11-21): actions are `Button` (36px), row tools (delete) are
+  `IconButton` (bare 24px icon, `tone="danger"`), labels/hints are `FormField` (`label` + `note` keys). Grep the
+  page for `<button|<label|<input` before calling it done.
 - Buttons are the standard 36px: no `size="sm"`, no `h-12/h-14` overrides (POS touch targets excepted).
 - `cn` comes from `@/lib/utils` (re-exports `@store/ui`'s, which knows `text-micro` etc. are sizes).
 - Field labels and field text are weight **400**: `text-label text-ink`, never `font-medium` on a
@@ -231,6 +250,8 @@ Reference implementation: the clinic app at `/Users/suhaibbaba/Projects/clinic-m
   `organza.ts` (same values): dark-teal rail `#103F46`, active item `#197783`, canvas `#F1F7FA`, white cards,
   table heads/info areas `#F4F8FA`, ink `#102A3A`, borders `#DCE8EF`, green done `#16834A`/`#D8F5E5`, light-teal
   highlight `#E0F5F2`, soft teal-tinted shadows, 12px buttons. Never a raw hex in a page.
+- Muted text is `ink-muted` `#2c4350` (user, 2026-11-21: the old `#546f7d` was too faint on white); checkboxes are
+  `rounded-check` (5px) with a 1px border.
 - The sidebar is dark: its items use the `rail-*` tokens (`NavLink onRail`); the phone menu stays light.
 - **Breadcrumb lives in the shell** (`AppBreadcrumb`, built from the path by `lib/breadcrumb.ts`): shown on any
   page below a top-level one, with a ← to the parent. Pages carry NO back link of their own; a new kind of
@@ -266,6 +287,25 @@ Reference implementation: the clinic app at `/Users/suhaibbaba/Projects/clinic-m
   and an `sr-only` "done" / "current step", so state never rests on colour alone (WCAG 1.4.1).
 - Before calling a page done, check contrast of every token pair it uses: text 4.5:1, icons and control edges
   3:1. Watch the badge tones — warning (4.60) and info (4.62) sit just over the line on their tinted fills.
+- **New order: channel is a `SegmentedControl` (WhatsApp | in the shop), gift is a `Switch` on either (user,
+  2026-11-21)** — never a third "type". The switch shows only with `order.createGift`; the line under the segments
+  explains the chosen combination. Contact + location only for an online channel; a gift hides discounts and shows
+  0. Check a submit's payload by patching `fetch` to answer the POST itself — nothing is written.
+- **New order is a form page (user, 2026-11-21: "current ui very bad")**: main = pieces + customer `Section`s, side =
+  order type, summary (final total on a `bg-primary-50` strip), note, then a plain "Create order" Button (no
+  icon, no SaveBar — see "Create vs edit"). Search results show only while there is a query (cached data outlives a cleared box), in one
+  bordered scrollable list; draft lines are one bordered `divide-y` list.
+- **Create vs edit (user, 2026-11-21):** the sticky `SaveBar` is for EDIT only; a create page ends with a normal
+  primary submit Button. **Nothing stretches full width** — segments, buttons and short inputs keep their own
+  width (short fields pair up `sm:grid-cols-2`). **Every field has a placeholder.** Picking products is a grid of
+  1:1 photo tiles (`auto-fill minmax(9rem,1fr)`). An optional second number hides behind a Checkbox. A location
+  is a pasted Google Maps link (`@organza/shared/lib/mapLink`), never latitude/longitude boxes.
+- **Check phones at 375px, not the window's minimum** (Chrome stops near 600px): load the page in a 375px iframe.
+  Rows with a stepper + discount + total need `basis-0` on the name and an icon-only discount below `sm`; on
+  phones the line total gets its own third row, larger (`h2` bold) with a muted label. A row's delete is a red
+  `IconButton` top-aligned with the name. Controls in a row are all 36px (no `min-h-11`). A choice
+  that decides which fields apply (order type) goes FIRST on phones: split the side column into grid items placed
+  with `lg:col-start-*`/`lg:row-start-*` so the DOM order is the phone order.
 
 ## Done
 - admin `products/[id]` (record) — 2026-11-21
@@ -273,3 +313,4 @@ Reference implementation: the clinic app at `/Users/suhaibbaba/Projects/clinic-m
 - admin `inventory` (list — first list pattern) — 2026-11-21
 - admin `orders` (list) — 2026-11-21
 - admin `orders/[id]` (record, two columns) — 2026-11-21
+- admin `orders/new` (channel segments + gift switch) — 2026-11-21

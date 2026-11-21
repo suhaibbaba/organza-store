@@ -20,7 +20,7 @@ export function AppBreadcrumb() {
     <nav
       aria-label={t("breadcrumb.label")}
       data-test-selector="breadcrumb"
-      className="mx-auto w-full max-w-[1440px] px-4 pt-6 lg:px-8"
+      className="mx-auto w-full max-w-[1440px] px-4 pt-2 lg:px-8"
     >
       <ol className="flex flex-wrap items-center gap-1.5 text-value">
         <li className="flex">

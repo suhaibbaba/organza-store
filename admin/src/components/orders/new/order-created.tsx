@@ -2,7 +2,8 @@
 
 import { useTranslations } from "next-intl";
 import { CheckCircle2, Plus } from "lucide-react";
-import { Button, buttonClassName } from "@store/ui";
+import { Button, buttonClassName, Typography } from "@store/ui";
+import { GIFT_ORDER_TYPE, ONLINE_ORDER_CHANNELS } from "@organza/shared/constants/order";
 import type { Order } from "@organza/shared/types/order";
 import { Link } from "@/i18n/navigation";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
@@ -16,6 +17,13 @@ interface OrderCreatedProps {
 export function OrderCreated({ order, onNewOrder }: OrderCreatedProps) {
   const t = useTranslations("orders.new.success");
   const formatMoney = useMoneyFormatter();
+  // An online order opens NEW with no stock taken yet; a counter sale or a gift is finished already.
+  const nextStepKey =
+    order.type === GIFT_ORDER_TYPE
+      ? "nextStepGift"
+      : (ONLINE_ORDER_CHANNELS as readonly string[]).includes(order.channel)
+        ? "nextStep"
+        : "nextStepStore";
 
   return (
     <div
@@ -25,14 +33,13 @@ export function OrderCreated({ order, onNewOrder }: OrderCreatedProps) {
       <CheckCircle2 className="size-12 text-success-700" aria-hidden="true" />
 
       <div className="flex flex-col gap-1">
-        <p className="text-title font-semibold text-ink">{t("title")}</p>
-        <p className="text-label text-ink-muted">{t("orderNumber", { number: String(order.orderNumber) })}</p>
+        <Typography variant="h1" weight="semibold" as="p">{t("title")}</Typography>
+        <Typography variant="small" tone="muted">{t("orderNumber", { number: String(order.orderNumber) })}</Typography>
       </div>
 
       <p className="text-kpi font-bold tabular-nums text-ink">{formatMoney(order.total)}</p>
 
-      {/* The order opens NEW with no stock taken yet; stock moves when preparation starts (spec.md "Stock deduction"). */}
-      <p className="text-label text-ink-muted">{t("nextStep")}</p>
+      <Typography variant="small" tone="muted">{t(nextStepKey)}</Typography>
 
       <div className="flex w-full max-w-xs flex-col gap-2">
         <Link href={`/orders/${order.id}`} className={buttonClassName({ className: "w-full sm:w-auto sm:self-center" })}>

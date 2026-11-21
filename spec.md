@@ -1124,6 +1124,10 @@ Customers are still **deferred as an entity** — there is no `Customer` table. 
 details are stored **directly on the order** (a snapshot):
 - **STORE:** no customer info needed (all fields empty).
 - **WHATSAPP / WEBSITE:** capture name, phone, and location/address info (optional map coordinates).
+  The admin takes the location as the **Google Maps link the customer sends**: a full link is read in
+  the browser; a short `maps.app.goo.gl` link is opened by the backend (`POST /api/orders/map-link`),
+  which follows Google's map hosts only and stores just the coordinates. No Google API key is used.
+  The WhatsApp number is asked only when it differs from the phone.
 This keeps Phase 3 (real customer accounts) open without blocking orders now.
 
 ### Payment
@@ -1280,13 +1284,16 @@ Stock walks out of the shop for nothing more often than a system likes to admit:
 relative, a replacement after a complaint, something thrown in with a wedding order. That is an
 order of type **`GIFT`**.
 
-- Created **from the POS, by Admin/Manager only**. An Employee who could file a sale as a gift
-  could walk out with the piece.
-- It is a **type, not a channel**: a gift is still handed over at the counter, so it keeps the
-  `STORE` channel. Keeping the two axes apart is what lets reporting drop gifts out of sales
-  without also dropping the STORE channel.
-- It **deducts stock through exactly the same machinery** as a counter sale, and is audited the
-  same way.
+- Created **from the POS, or from the admin's new-order page with its "Gift" switch, by
+  Admin/Manager only**. An Employee who could file a sale as a gift could walk out with the piece.
+- It is a **type, not a channel**: handed over at the counter it keeps the `STORE` channel and
+  opens finished; **sent over WhatsApp** it keeps `WHATSAPP`, needs the customer's details and
+  travels the delivery flow (stock leaves at `PREPARING`). Keeping the two axes apart is what lets
+  reporting drop gifts out of sales without also dropping a channel.
+- It **owes nothing on any channel**: it opens `COLLECTED`, so a WhatsApp gift never waits in the
+  collection queue.
+- It **deducts stock through exactly the same machinery** as a sale on its channel, and is audited
+  the same way.
 - Every line is **priced at zero** — not discounted 100%. A discounted line is a sale that earned
   less; a gift earned nothing, and keeping them apart stops a month of giveaways from reading as a
   month of generous discounts. Only `unitCost` survives on the line.

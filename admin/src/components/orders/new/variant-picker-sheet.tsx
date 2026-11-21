@@ -1,7 +1,7 @@
 "use client";
 
 import { useLocale, useTranslations } from "next-intl";
-import { Drawer } from "@store/ui";
+import { Drawer, Typography } from "@store/ui";
 import type { Product } from "@organza/shared/types/product";
 import type { Variant } from "@organza/shared/types/variant";
 import { localize } from "@/lib/i18n-content";
@@ -29,7 +29,7 @@ export function VariantPickerSheet({ product, onOpenChange, onPick }: VariantPic
     >
       {product && (
         <div className="flex flex-col gap-3">
-          <p className="text-label text-ink-muted">{t("subtitle")}</p>
+          <Typography variant="small" tone="muted">{t("subtitle")}</Typography>
 
           <ul className="flex flex-col gap-2">
             {product.variants.map((variant) => {
@@ -49,14 +49,14 @@ export function VariantPickerSheet({ product, onOpenChange, onPick }: VariantPic
                     className="flex min-h-16 w-full cursor-pointer items-center justify-between gap-3 rounded-panel border border-line bg-surface p-3 text-start transition-colors not-disabled:hover:bg-row-hover focus-visible:bg-inset disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     <span className="min-w-0">
-                      <span className="block truncate text-section font-medium text-ink">{name}</span>
-                      <span className="block truncate text-micro text-ink-muted" dir="ltr">
+                      <Typography variant="h3" as="span" className="block truncate">{name}</Typography>
+                      <Typography variant="caption" tone="muted" className="block truncate" dir="ltr">
                         {variant.sku}
-                      </span>
+                      </Typography>
                     </span>
-                    <span className="shrink-0 text-label text-ink-muted">
+                    <Typography variant="small" tone="muted" as="span" className="shrink-0">
                       {soldOut ? t("soldOut") : formatMoney(variant.resolvedPrice)}
-                    </span>
+                    </Typography>
                   </button>
                 </li>
               );

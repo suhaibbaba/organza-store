@@ -1,4 +1,5 @@
 import { DEFAULT_PAGE, DEFAULT_PAGE_SIZE } from "@organza/shared/constants/pagination";
+import type { IconName, SectionTone } from "@store/ui";
 import type { OrderListFilters } from "@/types/order";
 
 export const ORDER_LIST_QUERY_KEY = "orders" as const;
@@ -47,8 +48,22 @@ export const ORDER_SORT_OPTIONS = [
 // The online status flow (spec.md "Status flow"); the legal moves come from ORDER_STATUS_TRANSITIONS.
 export const ONLINE_ORDER_FLOW = ["NEW", "PREPARING", "HANDED_TO_COURIER"] as const;
 
-// Orders typed in the admin are WhatsApp orders; WEBSITE arrives from the storefront in Phase 3.
-export const MANUAL_ORDER_CHANNEL = "WHATSAPP" as const;
+// Where an order typed in the admin came from; WEBSITE arrives from the storefront in Phase 3.
+export const MANUAL_ORDER_CHANNELS = ["WHATSAPP", "STORE"] as const;
+export const DEFAULT_MANUAL_ORDER_CHANNEL = "WHATSAPP" as const;
+
+export const ORDER_FORM_SECTIONS = {
+  products: { icon: "package", tone: "amber" },
+  customer: { icon: "user", tone: "blue" },
+  kind: { icon: "receipt", tone: "violet" },
+  summary: { icon: "money", tone: "green" },
+  note: { icon: "file", tone: "neutral" },
+} as const satisfies Record<string, { icon: IconName; tone: SectionTone }>;
+
+export type OrderFormSectionName = keyof typeof ORDER_FORM_SECTIONS;
+
+// Every gift line is priced at zero, not discounted 100% (spec.md "Gifts").
+export const GIFT_LINE_TOTAL = "0";
 export const MANUAL_ORDER_PAYMENT_METHOD = "CASH" as const;
 
 // The backend re-checks stock atomically (ORDER_INSUFFICIENT_STOCK); this only avoids a doomed order.

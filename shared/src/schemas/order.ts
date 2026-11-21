@@ -3,6 +3,7 @@ import { booleanInput, decimalInput, paginationSchema } from "@/schemas/common";
 import { phoneSchema } from "@/schemas/phone";
 import { phoneDigits } from "@/lib/phone";
 import { ERROR_CODES } from "@/constants/errors";
+import { MAP_LINK_MAX_LENGTH } from "@/constants/mapLink";
 import { QUICK_SELL_DETAIL_MAX_LENGTH, QUICK_SELL_NAME_MAX_LENGTH } from "@/constants/quickSell";
 import {
   CUSTOMER_SUGGESTION_MIN_DIGITS,
@@ -11,7 +12,6 @@ import {
   LATITUDE_MIN,
   LONGITUDE_MAX,
   LONGITUDE_MIN,
-  GIFT_ORDER_CHANNEL,
   GIFT_ORDER_TYPE,
   MAX_BULK_COLLECT_ORDERS,
   ONLINE_ORDER_CHANNELS,
@@ -161,14 +161,9 @@ export const createOrderSchema = z
       !(ONLINE_ORDER_CHANNELS as readonly string[]).includes(v.channel) ||
       Boolean(v.customerName && v.customerPhone),
     { message: ERROR_CODES.ORDER_CUSTOMER_REQUIRED }
-  )
-  // A gift is handed over at the counter, in person. A parcel the shop pays
-  // the delivery company to carry and is never paid for is a different
-  // problem, and pretending it is a gift would hide it.
-  .refine((v) => v.type !== GIFT_ORDER_TYPE || v.channel === GIFT_ORDER_CHANNEL, {
-    message: ERROR_CODES.ORDER_GIFT_CHANNEL_INVALID,
-  });
-export type CreateOrderInput = z.infer<typeof createOrderSchema>;
+  );
+
+  export type CreateOrderInput = z.infer<typeof createOrderSchema>;
 
 // Editing reprices an existing order: contact details, the note, the payment
 // method and the discounts (order- and item-level). Adding or removing lines
@@ -200,6 +195,11 @@ export const updateOrderSchema = z
   .refine(isDiscountConsistent, DISCOUNT_REFINEMENT)
   .refine(isLocationConsistent, LOCATION_REFINEMENT);
 export type UpdateOrderInput = z.infer<typeof updateOrderSchema>;
+
+export const resolveMapLinkSchema = z.object({
+  url: z.string().trim().min(1).max(MAP_LINK_MAX_LENGTH).url(ERROR_CODES.ORDER_LOCATION_LINK_INVALID),
+});
+export type ResolveMapLinkInput = z.infer<typeof resolveMapLinkSchema>;
 
 export const updateOrderStatusSchema = z.object({
   status: z.enum(ORDER_STATUSES),

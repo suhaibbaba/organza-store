@@ -488,12 +488,9 @@
       }
     },
     "new": {
-      "title": "הזמנת וואטסאפ חדשה",
-      "subtitle": "רישום הזמנה שהתקבלה בוואטסאפ.",
-      "itemsTitle": "מוצרים",
-      "needItems": "יש להוסיף מוצר אחד לפחות לפני השמירה.",
-      "save": "שמירת ההזמנה",
-      "saving": "שומר…",
+      "title": "הזמנה חדשה",
+      "subtitle": "רשמו הזמנת וואטסאפ או מכירה בחנות, או תנו מתנה.",
+      "needItems": "הוסיפו פריט קודם",
       "wholeOrder": "ההזמנה כולה",
       "search": {
         "placeholder": "חיפוש מוצר לפי שם או מק\"ט",
@@ -522,7 +519,8 @@
         "percentValue": "{value}%",
         "discountApplied": "הנחה {value} · ‎−{amount}",
         "discountValue": "הנחה {value}",
-        "stockCap": "{count, plural, one {זה הפריט האחרון במלאי} two {אלה כל {count, number, plain} הפריטים במלאי} other {אלה כל {count, number, plain} הפריטים במלאי}}"
+        "stockCap": "{count, plural, one {זה הפריט האחרון במלאי} two {אלה כל {count, number, plain} הפריטים במלאי} other {אלה כל {count, number, plain} הפריטים במלאי}}",
+        "lineTotal": "סה״כ לשורה"
       },
       "totals": {
         "subtotal": "סכום ביניים ({count})",
@@ -530,31 +528,75 @@
         "orderDiscount": "הנחה על ההזמנה ({label})",
         "addOrderDiscount": "הנחה על כל ההזמנה",
         "editOrderDiscount": "עריכת ההנחה על ההזמנה",
-        "total": "סה\"כ"
+        "total": "סה\"כ",
+        "giftNote": "מתנה: כל הפריטים במחיר אפס ואינם נספרים במכירות."
       },
       "customer": {
-        "title": "פרטי הלקוח",
         "name": "שם הלקוח",
         "phone": "מספר טלפון",
         "phonePrefixLabel": "קידומת מדינה",
         "whatsapp": "מספר וואטסאפ",
-        "whatsappHint": "אפשר להשאיר ריק אם זהה לטלפון.",
         "address": "כתובת",
         "addressPlaceholder": "עיר, רחוב, ציון דרך…",
         "location": "מיקום במפה (רשות)",
-        "locationHint": "הדבקת הקואורדינטות מוואטסאפ בשדה קו הרוחב תמלא את שני השדות.",
-        "latitude": "קו רוחב",
-        "longitude": "קו אורך",
-        "note": "הערה (רשות)",
-        "notePlaceholder": "פרטים נוספים על ההזמנה…"
+        "locationHint": "הדביקו את קישור המיקום שהלקוח שלח מ-Google Maps.",
+        "notePlaceholder": "פרטים נוספים על ההזמנה…",
+        "namePlaceholder": "לדוגמה: שרה אחמד",
+        "phonePlaceholder": "59 123 4567",
+        "whatsappToggle": "מספר הוואטסאפ שונה ממספר הטלפון",
+        "locationPlaceholder": "https://maps.app.goo.gl/…",
+        "locationResolving": "קורא את המיקום מהקישור…",
+        "openInMaps": "פתיחה ב-Google Maps"
       },
       "success": {
         "title": "ההזמנה נשמרה",
         "orderNumber": "הזמנה {number}",
         "nextStep": "ההזמנה בסטטוס חדשה. המלאי מנוכה כשמתחילים בהכנה.",
         "openOrder": "פתיחת ההזמנה",
-        "newOrder": "הזמנה חדשה"
-      }
+        "newOrder": "הזמנה חדשה",
+        "nextStepStore": "המכירה נרשמה כהושלמה והמלאי ירד.",
+        "nextStepGift": "המתנה נרשמה והמלאי ירד."
+      },
+      "kind": {
+        "label": "סוג ההזמנה",
+        "options": {
+          "WHATSAPP": "וואטסאפ",
+          "STORE": "בחנות"
+        },
+        "hints": {
+          "WHATSAPP": "נמסרת דרך חברת המשלוחים. נפתחת כ„חדשה”; המלאי יורד כשמתחילה ההכנה.",
+          "STORE": "הלקוח בחנות ושילם במזומן. נשמרת כהושלמה; המלאי יורד מיד."
+        },
+        "giftHints": {
+          "WHATSAPP": "מתנה שנשלחת עם שליח. נפתחת כ„חדשה”; המלאי יורד כשמתחילה ההכנה, ואין מה לגבות.",
+          "STORE": "מתנה שנמסרת בחנות. נשמרת כהושלמה; המלאי יורד מיד."
+        },
+        "gift": "מתנה",
+        "giftHint": "כל הפריטים במחיר אפס ואינם נספרים במכירות; העלות נרשמת כהוצאה."
+      },
+      "sections": {
+        "products": {
+          "title": "פריטים",
+          "description": "חפשו פריט והוסיפו אותו; כמות והנחה לכל שורה."
+        },
+        "customer": {
+          "title": "לקוח ומשלוח",
+          "description": "למי ההזמנה נמסרת, ולאן."
+        },
+        "kind": {
+          "title": "סוג ההזמנה",
+          "description": "מאיפה הגיעה ההזמנה, והאם היא מתנה."
+        },
+        "summary": {
+          "title": "סיכום",
+          "description": "הסכום לפני השמירה; מחושב מחדש בשמירה."
+        },
+        "note": {
+          "title": "הערה",
+          "description": "אופציונלית, מופיעה על ההזמנה."
+        }
+      },
+      "save": "יצירת הזמנה"
     },
     "collection": {
       "title": "כסף אצל חברת המשלוחים",
@@ -1429,7 +1471,6 @@
     "orderNotCollectable": "ההזמנה בוטלה או הוחזרה, ולכן אין תשלום לרשום.",
     "reportRangeInvalid": "התקופה אינה תקינה. בדוק את תאריכי ההתחלה והסיום.",
     "reportRangeTooLong": "התקופה ארוכה מדי. בחר שנה לכל היותר.",
-    "orderGiftChannelInvalid": "מתנה ניתנת רק בדלפק.",
     "cashSessionNotFound": "לא נמצאה קופה לאותו יום.",
     "cashSessionDateTaken": "ליום הזה כבר יש קופה.",
     "cashSessionAlreadyClosed": "היום הזה כבר נספר ונסגר.",
@@ -1457,7 +1498,8 @@
     "userSelfRemoval": "אי אפשר להסיר את החשבון שלך עצמך. בקש ממנהל אחר לעשות זאת.",
     "userHasHistory": "כבר נעשה שימוש בחשבון הזה בחנות, ולכן אי אפשר למחוק אותו. השבת אותו במקום — ההזמנות וההוצאות שלו ממשיכות לשאת את שם האדם.",
     "productCompletionIncomplete": "בחרו קטגוריה לפני השלמת המוצר — בלעדיה הוא לא יופיע באף רשימה מסוננת.",
-    "orderItemSourceInvalid": "לא ברור מה נמכר בשורה הזו."
+    "orderItemSourceInvalid": "לא ברור מה נמכר בשורה הזו.",
+    "orderLocationLinkInvalid": "לא הצלחנו לקרוא מיקום מהקישור. הדביקו קישור שיתוף מ-Google Maps."
   },
   "pwa": {
     "version": {
@@ -1728,7 +1770,9 @@
       "loading": "שומר",
       "disabled": "לא זמין",
       "small": "קטן",
-      "withIcon": "הוספת מוצר"
+      "withIcon": "הוספת מוצר",
+      "iconDelete": "מחיקה",
+      "iconClose": "סגירה"
     },
     "badges": {
       "inStock": "במלאי",

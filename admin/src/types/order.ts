@@ -1,7 +1,10 @@
 import type { ReactNode } from "react";
+import type { Control, FieldErrors, UseFormRegister, UseFormSetValue } from "react-hook-form";
 import type { LucideIcon } from "lucide-react";
 import type { I18n } from "@organza/shared/types/common";
 import type { ListOrdersQuery } from "@organza/shared/schemas/order";
+import type { OrderFormSectionName } from "@/constants/orders";
+import type { OrderCustomerFormValues } from "@/lib/validation/order-form";
 import type { DiscountType, OrderChannel, OrderStatus, PaymentStatus } from "@organza/shared/types/order";
 
 // Mirrors ListOrdersQuery, but keeps "unset" distinct from the schema defaults and dates as yyyy-mm-dd.
@@ -61,10 +64,30 @@ export interface OrderCustomerDraft {
   phone: string;
   whatsapp: string;
   address: string;
-  // Typed text, so a half-entered coordinate never becomes a number.
+  // Read from the pasted Google Maps link; empty when there is none.
   latitude: string;
   longitude: string;
   note: string;
+}
+
+export interface CustomerFormProps {
+  register: UseFormRegister<OrderCustomerFormValues>;
+  control: Control<OrderCustomerFormValues>;
+  setValue: UseFormSetValue<OrderCustomerFormValues>;
+  errors: FieldErrors<OrderCustomerFormValues>;
+}
+
+export interface OrderKindFieldsProps {
+  control: Control<OrderCustomerFormValues>;
+  channel: string;
+  isGift: boolean;
+  canGift: boolean;
+}
+
+export interface OrderFormSectionProps {
+  name: OrderFormSectionName;
+  forceOpen?: boolean;
+  children: ReactNode;
 }
 
 // Absent or 0 = that line is not part of this return.

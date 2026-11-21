@@ -9,6 +9,11 @@ import type {
 } from "@/constants/order";
 import type { I18n } from "@/types/common";
 
+export interface Coordinates {
+  latitude: number;
+  longitude: number;
+}
+
 export type OrderChannel = (typeof ORDER_CHANNELS)[number];
 export type OrderType = (typeof ORDER_TYPES)[number];
 export type OrderStatus = (typeof ORDER_STATUSES)[number];

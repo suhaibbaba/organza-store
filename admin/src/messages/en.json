@@ -488,12 +488,9 @@
       }
     },
     "new": {
-      "title": "New WhatsApp order",
-      "subtitle": "Write down an order that came in over WhatsApp.",
-      "itemsTitle": "Products",
-      "needItems": "Add at least one product before saving.",
-      "save": "Save order",
-      "saving": "Saving…",
+      "title": "New order",
+      "subtitle": "Record a WhatsApp order or an in-shop sale, or give a gift.",
+      "needItems": "Add a piece first",
       "wholeOrder": "the whole order",
       "search": {
         "placeholder": "Search products by name or SKU",
@@ -522,7 +519,8 @@
         "percentValue": "{value}%",
         "discountApplied": "{value} discount · −{amount}",
         "discountValue": "{value} discount",
-        "stockCap": "{count, plural, one {That's the last one in stock} other {That's all {count, number, plain} in stock}}"
+        "stockCap": "{count, plural, one {That's the last one in stock} other {That's all {count, number, plain} in stock}}",
+        "lineTotal": "Line total"
       },
       "totals": {
         "subtotal": "Subtotal ({count})",
@@ -530,31 +528,75 @@
         "orderDiscount": "Order discount ({label})",
         "addOrderDiscount": "Discount the whole order",
         "editOrderDiscount": "Edit order discount",
-        "total": "Total"
+        "total": "Total",
+        "giftNote": "Gift: every piece at zero, not counted in sales."
       },
       "customer": {
-        "title": "Customer",
         "name": "Customer name",
         "phone": "Phone number",
         "phonePrefixLabel": "Country code",
         "whatsapp": "WhatsApp number",
-        "whatsappHint": "Leave empty if it's the same as the phone number.",
         "address": "Address",
         "addressPlaceholder": "City, street, nearest landmark…",
         "location": "Map location (optional)",
-        "locationHint": "Paste the coordinates from WhatsApp into the latitude box and both fields fill in.",
-        "latitude": "Latitude",
-        "longitude": "Longitude",
-        "note": "Note (optional)",
-        "notePlaceholder": "Anything else about this order…"
+        "locationHint": "Paste the location link the customer sent from Google Maps.",
+        "notePlaceholder": "Anything else about this order…",
+        "namePlaceholder": "e.g. Sara Ahmad",
+        "phonePlaceholder": "59 123 4567",
+        "whatsappToggle": "WhatsApp number is different from the phone",
+        "locationPlaceholder": "https://maps.app.goo.gl/…",
+        "locationResolving": "Reading the location from the link…",
+        "openInMaps": "Open in Google Maps"
       },
       "success": {
         "title": "Order saved",
         "orderNumber": "Order {number}",
         "nextStep": "The order is New. Stock is deducted when preparation starts.",
         "openOrder": "Open the order",
-        "newOrder": "New order"
-      }
+        "newOrder": "New order",
+        "nextStepStore": "The sale is recorded as completed and the stock has been taken.",
+        "nextStepGift": "The gift is recorded and the stock has been taken."
+      },
+      "kind": {
+        "label": "Order type",
+        "options": {
+          "WHATSAPP": "WhatsApp",
+          "STORE": "In the shop"
+        },
+        "hints": {
+          "WHATSAPP": "Delivered by the courier. Opens as “New”; stock is taken when preparation starts.",
+          "STORE": "The customer is in the shop and paid in cash. Saved as completed; stock is taken now."
+        },
+        "giftHints": {
+          "WHATSAPP": "A gift sent by courier. Opens as “New”; stock is taken when preparation starts, and there is nothing to collect.",
+          "STORE": "A gift handed over in the shop. Saved as completed; stock is taken now."
+        },
+        "gift": "Gift",
+        "giftHint": "Every piece at zero, not counted in sales; its cost counts as an expense."
+      },
+      "sections": {
+        "products": {
+          "title": "Pieces",
+          "description": "Find a piece and add it; quantity and discount per line."
+        },
+        "customer": {
+          "title": "Customer & delivery",
+          "description": "Who the order goes to, and where."
+        },
+        "kind": {
+          "title": "Order type",
+          "description": "Where the order came from, and whether it is a gift."
+        },
+        "summary": {
+          "title": "Summary",
+          "description": "The amount before saving; it is recalculated on save."
+        },
+        "note": {
+          "title": "Note",
+          "description": "Optional, shown on the order."
+        }
+      },
+      "save": "Create order"
     },
     "collection": {
       "title": "Money with the delivery company",
@@ -1429,7 +1471,6 @@
     "orderNotCollectable": "This order is cancelled or returned, so there is no payment to record.",
     "reportRangeInvalid": "That period isn't valid. Check the start and end dates.",
     "reportRangeTooLong": "That period is too long. Pick a year at most.",
-    "orderGiftChannelInvalid": "A gift can only be given at the counter.",
     "cashSessionNotFound": "That day's drawer could not be found.",
     "cashSessionDateTaken": "This day already has a drawer.",
     "cashSessionAlreadyClosed": "This day has already been counted and closed.",
@@ -1457,7 +1498,8 @@
     "userSelfRemoval": "You cannot remove your own account. Ask another admin to do it.",
     "userHasHistory": "This account has already been used in the shop, so it cannot be deleted. Deactivate it instead — its orders and expenses keep the person's name.",
     "productCompletionIncomplete": "Choose a category before completing this product — without one it won't appear in any category list.",
-    "orderItemSourceInvalid": "This line doesn't say clearly what is being sold."
+    "orderItemSourceInvalid": "This line doesn't say clearly what is being sold.",
+    "orderLocationLinkInvalid": "Couldn’t read a location from this link. Paste a share link from Google Maps."
   },
   "pwa": {
     "version": {
@@ -1728,7 +1770,9 @@
       "loading": "Saving",
       "disabled": "Unavailable",
       "small": "Small",
-      "withIcon": "Add product"
+      "withIcon": "Add product",
+      "iconDelete": "Delete",
+      "iconClose": "Close"
     },
     "badges": {
       "inStock": "In stock",

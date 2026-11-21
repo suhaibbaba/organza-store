@@ -33,7 +33,7 @@ export function AccountMenu({ className }: AccountMenuProps) {
         )}
       >
         <Avatar name={name} tintKey={user?.id} size={26} />
-        <span className="min-w-0 max-w-32 truncate sm:max-w-48">{name}</span>
+        <span className="min-w-0 max-w-32 truncate max-sm:sr-only sm:max-w-48">{name}</span>
         <ChevronDown
           className="size-4 shrink-0 text-ink-subtle transition-transform duration-150 group-data-[state=open]:rotate-180"
           aria-hidden="true"

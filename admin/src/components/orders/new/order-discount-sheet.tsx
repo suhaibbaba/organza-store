@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { Alert, Button, Drawer, SegmentedControl } from "@store/ui";
+import { Alert, Button, Drawer, FormField, SegmentedControl, Typography } from "@store/ui";
 import { DISCOUNT_TYPES } from "@organza/shared/constants/order";
 import type { DiscountType } from "@organza/shared/types/order";
 import { isDiscountValueInRange, maxDiscountValue } from "@/lib/money";
@@ -44,9 +44,9 @@ export function OrderDiscountSheet({
       data-testid="sheet-order-discount"
     >
       <div className="flex flex-col gap-4">
-        <p className="text-label text-ink-muted">
+        <Typography variant="small" tone="muted">
           {t("subtitle", { name: title, amount: formatMoney(baseAmount) })}
-        </p>
+        </Typography>
 
         {/* Mounted only while open, so reopening shows what is applied, not an abandoned edit. */}
         {open && (
@@ -87,7 +87,7 @@ function DiscountForm({ baseAmount, current, onApply }: DiscountFormProps) {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-1.5">
-        <span className="text-label font-medium text-ink">{t("typeLabel")}</span>
+        <Typography variant="small" weight="medium" as="span">{t("typeLabel")}</Typography>
         <SegmentedControl
           data-testid="segmented"
           label={t("typeLabel")}
@@ -101,10 +101,11 @@ function DiscountForm({ baseAmount, current, onApply }: DiscountFormProps) {
         />
       </div>
 
-      <div className="flex flex-col gap-1.5">
-        <label htmlFor="order-discount-value" className="cursor-pointer text-label text-ink">
-          {type === "AMOUNT" && currency ? t("valueLabel.AMOUNT_currency", { currency }) : t(`valueLabel.${type}`)}
-        </label>
+      <FormField
+        label={`orders.discount.valueLabel.${type === "AMOUNT" && currency ? "AMOUNT_currency" : type}`}
+        labelValues={{ currency }}
+        htmlFor="order-discount-value"
+      >
         <NumericInput
           id="order-discount-value"
           value={value}
@@ -122,9 +123,7 @@ function DiscountForm({ baseAmount, current, onApply }: DiscountFormProps) {
             {type === "PERCENT" ? t("invalid.PERCENT", { max }) : t("invalid.AMOUNT", { max: formatMoney(baseAmount) })}
           </Alert>
         )}
-      </div>
-
-      {/* Remove is danger (undoing a promised discount isn't neutral) and absent when there is nothing to remove; Apply ends the row. */}
+      </FormField>
       <div className="mt-2 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
         {current.type && (
           <Button

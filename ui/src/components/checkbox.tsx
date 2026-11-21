@@ -47,13 +47,13 @@ export function Checkbox({
           {...part("input")}
           checked={checked}
           onChange={(event) => onCheckedChange(event.target.checked)}
-          className="peer absolute inset-0 m-0 cursor-pointer appearance-none rounded-chip"
+          className="peer absolute inset-0 m-0 cursor-pointer appearance-none rounded-check"
         />
         <span
           aria-hidden="true"
           {...part("box")}
           className={cn(
-            "pointer-events-none grid place-items-center rounded-chip border-[1.5px]",
+            "pointer-events-none grid place-items-center rounded-check border",
             small ? "size-4" : "size-5",
             "transition-colors duration-150",
             marked

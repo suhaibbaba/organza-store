@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import {
   Badge,
   Button,
+  IconButton,
   Checkbox,
   Chip,
   ChipGroup,
@@ -90,6 +91,8 @@ export function Controls() {
           <Button variant="secondary" size="sm">
             {t("buttons.small")}
           </Button>
+          <IconButton label={t("buttons.iconDelete")} icon={<Icon name="trash" />} tone="danger" />
+          <IconButton label={t("buttons.iconClose")} icon={<Icon name="x" />} />
         </ShowcaseRow>
       </ShowcaseSection>
 

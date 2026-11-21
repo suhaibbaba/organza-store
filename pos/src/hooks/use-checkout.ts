@@ -20,11 +20,7 @@ interface CheckoutInput {
   // Present = the cart is being filed as a WhatsApp order for delivery;
   // absent = it is a counter sale, handed over there and then.
   customer?: OrderCustomerDraft;
-  // Present = the cart is being GIVEN AWAY rather than sold (spec.md
-  // "Gifts"). Never combined with a customer: a gift is handed over at the
-  // counter in person, and the backend refuses one on any other channel
-  // (ORDER_GIFT_CHANNEL_INVALID). The string is the optional "who for / why"
-  // note, empty when the cashier didn't write one.
+  // Present = the cart is GIVEN AWAY at the counter (spec.md "Gifts"); the string is the optional "who for / why" note.
   gift?: { note: string };
 }
 

@@ -2,6 +2,16 @@ export { Alert, type AlertProps, type AlertTone } from "@ui/components/alert";
 export { Avatar } from "@ui/components/avatar";
 export { Badge, Chip, ChipGroup, type BadgeTone, type ChipProps } from "@ui/components/badge";
 export { Button, buttonClassName, type ButtonSize, type ButtonVariant } from "@ui/components/button";
+export {
+  Typography,
+  typographyClassName,
+  type TypographyProps,
+  type TypographyTag,
+  type TypographyTone,
+  type TypographyVariant,
+  type TypographyWeight,
+} from "@ui/components/typography";
+export { IconButton, type IconButtonProps, type IconButtonTone } from "@ui/components/icon-button";
 export { Card } from "@ui/components/card";
 export { Checkbox } from "@ui/components/checkbox";
 export { EmailLink, PhoneLink, WhatsAppLink } from "@ui/components/contact-link";

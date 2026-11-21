@@ -1,3 +1,4 @@
+import type { TypographyVariant } from "@store/ui";
 // Token names only; values come from the stylesheet so swatches never drift.
 export const DESIGN_SYSTEM_COLOUR_GROUPS = [
   {
@@ -31,6 +32,18 @@ export const DESIGN_SYSTEM_COLOUR_GROUPS = [
     ],
   },
 ] as const;
+
+export const DESIGN_SYSTEM_TYPOGRAPHY_VARIANTS = [
+  "display",
+  "h1",
+  "h2",
+  "h3",
+  "h4",
+  "body",
+  "small",
+  "caption",
+  "label",
+] as const satisfies readonly TypographyVariant[];
 
 export const DESIGN_SYSTEM_TYPE_SCALE = [
   "micro", "meta", "label", "value", "section", "heading", "title", "kpi",

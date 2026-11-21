@@ -100,6 +100,7 @@ export const ERROR_CODES = {
   ORDER_ITEMS_REQUIRED: "error.order.items_required",
   ORDER_CUSTOMER_REQUIRED: "error.order.customer_required",
   ORDER_LOCATION_INVALID: "error.order.location_invalid",
+  ORDER_LOCATION_LINK_INVALID: "error.order.location_link_invalid",
   ORDER_DISCOUNT_INVALID: "error.order.discount_invalid",
   ORDER_INVALID_STATUS_TRANSITION: "error.order.invalid_status_transition",
   ORDER_INSUFFICIENT_STOCK: "error.order.insufficient_stock",
@@ -118,7 +119,6 @@ export const ERROR_CODES = {
   ORDER_NOT_COLLECTABLE: "error.order.not_collectable",
   // A gift is rung up at the counter with the person standing there, so it
   // only exists on the STORE channel (spec.md "Gifts").
-  ORDER_GIFT_CHANNEL_INVALID: "error.order.gift_channel_invalid",
 
   // --- cash drawer ---
   CASH_SESSION_NOT_FOUND: "error.cashSession.not_found",

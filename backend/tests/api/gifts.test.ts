@@ -177,7 +177,7 @@ describe("Gift orders", () => {
       expect(res.data!.items[0]).not.toHaveProperty("unitCost");
     });
 
-    it("refuses a gift on any channel but the counter", async () => {
+    it("sends a gift over WhatsApp: delivered like any online order, nothing to collect", async () => {
       const admin = await getSession("ADMIN");
       const product = await sellableProduct(admin.token, { basePrice: "40", stock: 3 });
 
@@ -188,8 +188,13 @@ describe("Gift orders", () => {
         customerPhone: "+970599777111",
         items: [{ productId: product.id, quantity: 1 }],
       });
-      expect(res.status).toBe(400);
-      expect(res.error?.code).toBe(ERROR_CODES.VALIDATION);
+      expect(res.status).toBe(201);
+      expect(res.data!.type).toBe("GIFT");
+      expect(res.data!.status).toBe("NEW");
+      expect(res.data!.paymentStatus).toBe("COLLECTED");
+      expect(num(res.data!.total)).toBe(0);
+      // Stock leaves when preparation starts, as for any online order.
+      expect(await readStock(admin.token, product.id)).toBe(3);
     });
   });
 

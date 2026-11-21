@@ -12,6 +12,7 @@ export * from "./image";
 export * from "./inventory";
 export * from "./keyboard";
 export * from "./label";
+export * from "./mapLink";
 export * from "./languages";
 export * from "./numberedShawl";
 export * from "./optionValueNote";

@@ -1,12 +1,13 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { Card } from "@store/ui";
+import { Card, Typography } from "@store/ui";
 import {
   DESIGN_SYSTEM_COLOUR_GROUPS,
   DESIGN_SYSTEM_RADII,
   DESIGN_SYSTEM_SHADOWS,
   DESIGN_SYSTEM_TYPE_SCALE,
+  DESIGN_SYSTEM_TYPOGRAPHY_VARIANTS,
 } from "@/constants/design-system";
 import { ShowcaseSection } from "@/components/design-system/showcase-section";
 
@@ -51,6 +52,18 @@ export function Foundations() {
                 {t("type.sample")}
               </span>
               <span className="text-meta text-ink-subtle">{t(`type.${step}`)}</span>
+            </li>
+          ))}
+        </ul>
+        <ul className="mt-6 flex flex-col gap-3 border-t border-line pt-6" data-test-selector="design-system-typography">
+          {DESIGN_SYSTEM_TYPOGRAPHY_VARIANTS.map((variant) => (
+            <li key={variant} className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
+              <code className="w-60 shrink-0 whitespace-nowrap text-meta text-ink-muted" dir="ltr">
+                {`<Typography variant="${variant}">`}
+              </code>
+              <Typography variant={variant} as="span" className="min-w-0 truncate">
+                {t("type.sample")}
+              </Typography>
             </li>
           ))}
         </ul>

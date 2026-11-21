@@ -47,6 +47,7 @@ export const organzaTheme: ThemeOverride = {
     "neutral-600": "#607d8b",
     "neutral-700": "#546f7d",
     "neutral-900": "#102a3a",
+    "ink-muted": "#2c4350",
 
     "sunken": "#f4f8fa",
     "row-hover": "#f8fbfc",

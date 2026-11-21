@@ -20,11 +20,7 @@ export const ORDER_TYPES = ["SALE", "GIFT"] as const;
 export const SALE_ORDER_TYPE = "SALE";
 export const GIFT_ORDER_TYPE = "GIFT";
 
-// A gift is rung up at the POS with the person standing there, so it takes
-// the counter path: it opens finished, its stock leaves immediately, and
-// there is no money to wait for. Taking a "gift" over WhatsApp would be a
-// delivery the shop is not paid for, which is a different thing entirely and
-// is not modelled.
+// The POS hands a gift over at the counter; a gift may also be sent over WhatsApp, and either way nothing is owed.
 export const GIFT_ORDER_CHANNEL = "STORE";
 
 // Channels whose orders are placed remotely: customer contact details are

@@ -13,6 +13,7 @@ import {
   fetchCollectionSummary,
   fetchOrder,
   fetchOrders,
+  resolveMapLink,
   returnOrder,
   updateOrderStatus,
 } from "@/lib/api/orders";
@@ -54,6 +55,10 @@ export function useCreateOrderMutation() {
     mutationFn: (input: CreateOrderInput) => createOrder(input),
     onSuccess: (order) => invalidate(order.id),
   });
+}
+
+export function useResolveMapLinkMutation() {
+  return useMutation({ mutationFn: (url: string) => resolveMapLink({ url }) });
 }
 
 // Cancelling goes through the same endpoint but needs order.cancel, checked by the backend.

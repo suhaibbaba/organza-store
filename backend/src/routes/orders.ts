@@ -9,6 +9,7 @@ import { validateBody, validateQuery } from "@/middleware/validate";
 import { AppError, sendOk } from "@/lib/response";
 import {
   collectOrdersSchema,
+  resolveMapLinkSchema,
   createOrderSchema,
   customerSuggestionsQuerySchema,
   listOrdersQuerySchema,
@@ -18,6 +19,7 @@ import {
   type CollectOrdersInput,
   type CreateOrderInput,
   type CustomerSuggestionsQuery,
+  type ResolveMapLinkInput,
   type ListOrdersQuery,
   type ReturnOrderInput,
   type UpdateOrderInput,
@@ -43,6 +45,7 @@ import { MAIN_IMAGE_ONLY } from "@/constants/images";
 import { ORDER_SUMMARY_PREVIEW_LINES } from "@/constants/order";
 import { queryCollectionSummary, toCollectionSummary } from "@/lib/orderCollection";
 import { findCustomerSuggestions } from "@/lib/orderCustomers";
+import { resolveMapLink } from "@/lib/mapLink";
 import { scheduleSaleNotification } from "@/lib/saleNotifications";
 import { writeAudit } from "@/lib/audit";
 import {
@@ -208,6 +211,19 @@ router.get(
   })
 );
 
+// POST /api/orders/map-link — reads the point out of a pasted Google Maps link; writes nothing.
+router.post(
+  "/map-link",
+  requirePermission("order.create"),
+  validateBody(resolveMapLinkSchema),
+  asyncHandler(async (req, res) => {
+    const { url } = req.body as ResolveMapLinkInput;
+    const point = await resolveMapLink(url);
+    if (!point) throw new AppError(400, ERROR_CODES.ORDER_LOCATION_LINK_INVALID);
+    sendOk(res, point);
+  })
+);
+
 // POST /api/orders/collect — an Employee may take a sale but never declare its money received.
 router.post(
   "/collect",
@@ -298,6 +314,8 @@ router.post(
 
     // A counter sale (and a gift) opens finished, takes stock at once and has its money in the till.
     const isCounterSale = body.channel === "STORE";
+    // A gift owes the shop nothing on any channel, so it never waits in the collection queue.
+    const isSettled = isCounterSale || isGift;
     const now = new Date();
 
     const { created, quickSellRequests } = await prisma.$transaction(async (tx) => {
@@ -337,10 +355,10 @@ router.post(
           status: (isCounterSale ? STORE_ORDER_INITIAL_STATUS : ONLINE_ORDER_INITIAL_STATUS) as OrderStatus,
           paymentMethod: body.paymentMethod,
           // A courier order is not paid until the delivery company settles up (spec.md "Payment collection").
-          paymentStatus: (isCounterSale
+          paymentStatus: (isSettled
             ? STORE_ORDER_INITIAL_PAYMENT_STATUS
             : ONLINE_ORDER_INITIAL_PAYMENT_STATUS) as PaymentStatus,
-          collectedAt: isCounterSale ? now : null,
+          collectedAt: isSettled ? now : null,
           customerName: body.customerName ?? null,
           customerPhone: body.customerPhone ?? null,
           customerWhatsapp: body.customerWhatsapp ?? null,

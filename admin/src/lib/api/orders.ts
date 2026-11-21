@@ -1,12 +1,13 @@
 import type {
   CollectResult,
   CollectionSummary,
+  Coordinates,
   Order,
   OrderStatus,
   OrderSummary,
 } from "@organza/shared/types/order";
 import type { Pagination } from "@organza/shared/types/common";
-import type { CreateOrderInput, ReturnOrderInput } from "@organza/shared/schemas/order";
+import type { CreateOrderInput, ResolveMapLinkInput, ReturnOrderInput } from "@organza/shared/schemas/order";
 import { apiFetch } from "@/lib/api/client";
 import type { OrderListFilters } from "@/types/order";
 
@@ -52,6 +53,11 @@ export async function fetchOrder(id: string): Promise<Order> {
 // The backend prices the order and decides its opening status.
 export async function createOrder(input: CreateOrderInput): Promise<Order> {
   const { data } = await apiFetch<Order>("/api/orders", { method: "POST", body: input });
+  return data;
+}
+
+export async function resolveMapLink(input: ResolveMapLinkInput): Promise<Coordinates> {
+  const { data } = await apiFetch<Coordinates>("/api/orders/map-link", { method: "POST", body: input });
   return data;
 }
 

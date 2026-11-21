@@ -67,6 +67,7 @@ export const ERROR_MESSAGE_KEYS: Record<string, string> = {
   [ERROR_CODES.ORDER_ITEMS_REQUIRED]: "errors.orderItemsRequired",
   [ERROR_CODES.ORDER_CUSTOMER_REQUIRED]: "errors.orderCustomerRequired",
   [ERROR_CODES.ORDER_LOCATION_INVALID]: "errors.orderLocationInvalid",
+  [ERROR_CODES.ORDER_LOCATION_LINK_INVALID]: "errors.orderLocationLinkInvalid",
   [ERROR_CODES.ORDER_DISCOUNT_INVALID]: "errors.orderDiscountInvalid",
   [ERROR_CODES.ORDER_INVALID_STATUS_TRANSITION]: "errors.orderInvalidStatusTransition",
   [ERROR_CODES.ORDER_INSUFFICIENT_STOCK]: "errors.orderInsufficientStock",
@@ -76,7 +77,6 @@ export const ERROR_MESSAGE_KEYS: Record<string, string> = {
   [ERROR_CODES.ORDER_PRODUCT_UNAVAILABLE]: "errors.orderProductUnavailable",
   [ERROR_CODES.ORDER_VARIANT_REQUIRED]: "errors.orderVariantRequired",
   [ERROR_CODES.ORDER_NOT_COLLECTABLE]: "errors.orderNotCollectable",
-  [ERROR_CODES.ORDER_GIFT_CHANNEL_INVALID]: "errors.orderGiftChannelInvalid",
   [ERROR_CODES.ORDER_ITEM_SOURCE_INVALID]: "errors.orderItemSourceInvalid",
 
   [ERROR_CODES.CASH_SESSION_NOT_FOUND]: "errors.cashSessionNotFound",

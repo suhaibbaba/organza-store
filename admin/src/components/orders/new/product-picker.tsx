@@ -2,7 +2,7 @@
 
 import { useLocale, useTranslations } from "next-intl";
 import { Plus } from "lucide-react";
-import { Alert, Input, Spinner } from "@store/ui";
+import { Alert, Input, Spinner, Typography } from "@store/ui";
 import type { ProductSummary } from "@organza/shared/types/product";
 import { testSelectorFor } from "@organza/shared/lib/testSelector";
 import { localize } from "@/lib/i18n-content";
@@ -50,18 +50,21 @@ export function ProductPicker({ query, onQueryChange, pendingId, onSelect }: Pro
       )}
 
       {isLoading && (
-        <p className="flex items-center justify-center gap-2 py-6 text-label text-ink-muted">
+        <Typography variant="small" tone="muted" className="flex items-center justify-center gap-2 py-6">
           <Spinner />
           {t("searching")}
-        </p>
+        </Typography>
       )}
 
       {search.isActive && !isLoading && products.length === 0 && (
-        <p className="py-6 text-center text-label text-ink-muted">{t("empty")}</p>
+        <Typography variant="small" tone="muted" className="py-6 text-center">{t("empty")}</Typography>
       )}
 
-      {!isLoading && products.length > 0 && (
-        <ul className="flex flex-col gap-2" data-test-selector="order-product-results">
+      {search.isActive && !isLoading && products.length > 0 && (
+        <ul
+          className="grid max-h-[28rem] grid-cols-[repeat(auto-fill,minmax(9rem,1fr))] gap-3 overflow-y-auto p-0.5"
+          data-test-selector="order-product-results"
+        >
           {products.map((product) => {
             const name = localize(product.name, locale);
             const soldOut = product.stock <= 0;
@@ -73,31 +76,31 @@ export function ProductPicker({ query, onQueryChange, pendingId, onSelect }: Pro
                   type="button"
                   disabled={soldOut || pendingId !== null}
                   onClick={() => onSelect(product)}
-                  className="flex w-full cursor-pointer items-center gap-3 rounded-panel border border-line bg-surface p-3 text-start transition-colors not-disabled:hover:bg-row-hover focus-visible:bg-inset disabled:cursor-not-allowed disabled:opacity-60"
+                  className="group flex h-full w-full cursor-pointer flex-col overflow-hidden rounded-panel border border-line bg-surface text-start transition-colors not-disabled:hover:border-primary-300 focus-darken disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  <ProductImage
-                    src={product.image?.thumbnailUrl}
-                    alt={name}
-                    className="size-14 shrink-0 rounded-control"
-                    sizes="56px"
-                  />
-
-                  <span className="flex min-w-0 flex-1 flex-col gap-1">
-                    <span className="truncate text-label font-medium text-ink">{name}</span>
-                    <span className="flex flex-wrap items-center gap-x-2 text-micro text-ink-muted">
-                      <span className="font-semibold text-ink">{formatMoney(product.basePrice)}</span>
-                      {product.hasVariants && <span>· {t("variantCount", { count: product.variantCount })}</span>}
-                      <span className={soldOut ? "text-danger-600" : undefined}>
-                        · {soldOut ? t("soldOut") : t("inStock", { count: product.stock })}
-                      </span>
+                  <span className="relative block aspect-square w-full bg-sunken">
+                    <ProductImage
+                      src={product.image?.thumbnailUrl}
+                      alt={name}
+                      fit="contain"
+                      className="size-full"
+                      sizes="(max-width: 640px) 45vw, 160px"
+                    />
+                    <span className="absolute end-2 top-2 flex size-8 items-center justify-center rounded-pill bg-surface/90 text-primary-700 shadow-card">
+                      {pendingId === product.id ? <Spinner /> : <Plus className="size-4" aria-hidden="true" />}
                     </span>
                   </span>
 
-                  {pendingId === product.id ? (
-                    <Spinner />
-                  ) : (
-                    <Plus className="size-5 shrink-0 text-ink-muted" aria-hidden="true" />
-                  )}
+                  <span className="flex flex-1 flex-col gap-1 p-2.5">
+                    <Typography variant="small" weight="medium" as="span" className="line-clamp-2 group-hover:text-primary-700">{name}</Typography>
+                    <Typography variant="small" weight="semibold" as="span">{formatMoney(product.basePrice)}</Typography>
+                    <Typography variant="caption" tone="muted">
+                      {product.hasVariants && <>{t("variantCount", { count: product.variantCount })} · </>}
+                      <span className={soldOut ? "text-danger-600" : undefined}>
+                        {soldOut ? t("soldOut") : t("inStock", { count: product.stock })}
+                      </span>
+                    </Typography>
+                  </span>
                 </button>
               </li>
             );
