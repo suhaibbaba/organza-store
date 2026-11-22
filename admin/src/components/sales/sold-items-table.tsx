@@ -72,11 +72,6 @@ export function SoldItemsTable({
               {localize(item.variantName, locale)}
             </Typography>
           )}
-          {item.sku && (
-            <Typography variant="small" tone="muted" as="span" className="tabular-nums" dir="ltr">
-              {item.sku}
-            </Typography>
-          )}
         </div>
       </div>
     );

@@ -4,7 +4,6 @@ import { HandHelping, Package, Store, Undo2, Zap } from "lucide-react";
 import { Button, Table, type Column, Typography } from "@store/ui";
 import type { OrderItem } from "@store/shared/types/order";
 import { testSelectorFor } from "@store/shared/lib/testSelector";
-import { SELECTABLE } from "@store/shared/lib/nativeGestures";
 import { Link } from "@/i18n/navigation";
 import { localize } from "@/lib/i18n-content";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
@@ -147,9 +146,6 @@ export function OrderItemsList({
                   {localize(item.variantName, locale)}
                 </Typography>
               )}
-              <Typography variant="small" tone="muted" as="span" className="font-normal" dir="ltr" {...SELECTABLE}>
-                {item.sku ?? t("noSku")}
-              </Typography>
               {/* Typed at the counter (spec.md "Quick sell"): this line's cost, and its profit, may still be missing. */}
               {item.quickSold && (
                 <Typography

@@ -148,10 +148,16 @@
         "help": "Today's sales less what the stock cost and what the shop spent today. It counts every sale, including ones the delivery company hasn't paid for yet.",
         "hint": "after cost + expenses"
       },
-      "ordersLabel": "Orders",
+      "ordersLabel": "Orders today",
       "pieces": "{count, plural, =0 {No pieces} one {1 piece} other {{count, number, plain} pieces}}",
       "averageHint": "Average {amount}",
-      "owedSplit": "Courier {courier} · customers {customers}"
+      "owedSplit": "Courier {courier} · customers {customers}",
+      "openSales": "Open today's sales",
+      "soldLabel": "Sold today",
+      "receivedLabel": "Received today",
+      "owedLabel": "Owed from today",
+      "openOrders": "Open today's orders",
+      "openCollection": "Open money still to collect"
     },
     "drawer": {
       "title": "Cash drawer",
@@ -285,7 +291,8 @@
       "none": "No sales in the last 7 days",
       "today": "Today",
       "chart": "Sales per day for the last seven days",
-      "day": "{day}: {amount}"
+      "day": "{day}: {amount}",
+      "more": "See sales"
     },
     "recent": {
       "title": "Latest orders",
@@ -459,7 +466,6 @@
       "notFoundDescription": "This order may have been deleted.",
       "items": {
         "title": "{count, plural, one {{count, number, plain} item} other {{count, number, plain} items}}",
-        "noSku": "No SKU",
         "returned": "{count} returned",
         "quickSold": "Quick sale — no cost yet",
         "piece": "Piece",
@@ -759,7 +765,8 @@
       "from": "From",
       "to": "To",
       "label": "Period",
-      "dates": "Dates"
+      "dates": "Dates",
+      "span": "{from} – {to}"
     },
     "totals": {
       "title": "Sales in this period",

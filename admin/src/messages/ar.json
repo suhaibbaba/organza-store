@@ -148,10 +148,16 @@
         "help": "مبيعات اليوم ناقص تكلفة البضاعة ومصاريف اليوم. يشمل كل عملية بيع، حتى التي لم تدفع شركة التوصيل ثمنها بعد.",
         "hint": "بعد التكلفة والمصاريف"
       },
-      "ordersLabel": "الطلبات",
+      "ordersLabel": "طلبات اليوم",
       "pieces": "{count, plural, =0 {لا قطع} one {قطعة واحدة} two {قطعتان} few {{count, number, plain} قطع} many {{count, number, plain} قطعة} other {{count, number, plain} قطعة}}",
       "averageHint": "المتوسط {amount}",
-      "owedSplit": "التوصيل {courier} · الزبائن {customers}"
+      "owedSplit": "التوصيل {courier} · الزبائن {customers}",
+      "openSales": "عرض مبيعات اليوم",
+      "soldLabel": "مبيعات اليوم",
+      "receivedLabel": "المقبوض اليوم",
+      "owedLabel": "المستحق من اليوم",
+      "openOrders": "عرض طلبات اليوم",
+      "openCollection": "عرض المبالغ غير المحصلة"
     },
     "drawer": {
       "title": "صندوق النقد",
@@ -285,7 +291,8 @@
       "none": "لا مبيعات في آخر 7 أيام",
       "today": "اليوم",
       "chart": "مبيعات كل يوم في آخر سبعة أيام",
-      "day": "{day}: {amount}"
+      "day": "{day}: {amount}",
+      "more": "عرض المبيعات"
     },
     "recent": {
       "title": "آخر الطلبات",
@@ -459,7 +466,6 @@
       "notFoundDescription": "قد يكون هذا الطلب محذوفًا.",
       "items": {
         "title": "{count, plural, one {منتج واحد} two {منتجان} few {{count, number, plain} منتجات} other {{count, number, plain} منتجًا}}",
-        "noSku": "بدون SKU",
         "returned": "تم إرجاع {count} من هذا المنتج",
         "quickSold": "بيع سريع — بدون تكلفة بعد",
         "piece": "القطعة",
@@ -759,7 +765,8 @@
       "from": "من تاريخ",
       "to": "إلى تاريخ",
       "label": "الفترة",
-      "dates": "التواريخ"
+      "dates": "التواريخ",
+      "span": "من {from} إلى {to}"
     },
     "totals": {
       "title": "مبيعات هذه الفترة",

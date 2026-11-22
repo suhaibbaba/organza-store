@@ -14,6 +14,12 @@ export function toLocalDateString(date: Date): string {
   return `${year}-${month}-${day}`;
 }
 
+// A plain local date (YYYY-MM-DD) back to a Date at local midnight, so the weekday is the shop's day.
+export function fromLocalDateString(value: string): Date {
+  const [year, month, day] = value.split("-").map(Number);
+  return new Date(year, month - 1, day);
+}
+
 // "This week" starts on the shop's week day (Saturday), the same as the backend's dashboard period.
 export function weekStart(today: Date): Date {
   const back = (today.getDay() - REPORT_WEEK_START_DAY + 7) % 7;

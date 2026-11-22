@@ -148,10 +148,16 @@
         "help": "מכירות היום פחות עלות הסחורה וההוצאות. כולל כל מכירה, גם כזו שחברת המשלוחים עדיין לא שילמה עליה.",
         "hint": "אחרי עלות והוצאות"
       },
-      "ordersLabel": "הזמנות",
+      "ordersLabel": "הזמנות היום",
       "pieces": "{count, plural, =0 {אין פריטים} one {פריט אחד} other {{count, number, plain} פריטים}}",
       "averageHint": "ממוצע {amount}",
-      "owedSplit": "שליחויות {courier} · לקוחות {customers}"
+      "owedSplit": "שליחויות {courier} · לקוחות {customers}",
+      "openSales": "פתיחת מכירות היום",
+      "soldLabel": "נמכר היום",
+      "receivedLabel": "התקבל היום",
+      "owedLabel": "חוב מהיום",
+      "openOrders": "פתיחת הזמנות היום",
+      "openCollection": "פתיחת כספים שטרם נגבו"
     },
     "drawer": {
       "title": "קופת מזומן",
@@ -285,7 +291,8 @@
       "none": "אין מכירות ב-7 הימים האחרונים",
       "today": "היום",
       "chart": "מכירות לכל יום בשבעת הימים האחרונים",
-      "day": "{day}: {amount}"
+      "day": "{day}: {amount}",
+      "more": "הצגת המכירות"
     },
     "recent": {
       "title": "הזמנות אחרונות",
@@ -459,7 +466,6 @@
       "notFoundDescription": "ייתכן שההזמנה נמחקה.",
       "items": {
         "title": "{count, plural, one {פריט אחד} two {שני פריטים} other {{count, number, plain} פריטים}}",
-        "noSku": "ללא מק\"ט",
         "returned": "{count} הוחזרו",
         "quickSold": "מכירה מהירה — עדיין ללא עלות",
         "piece": "פריט",
@@ -759,7 +765,8 @@
       "from": "מתאריך",
       "to": "עד תאריך",
       "label": "תקופה",
-      "dates": "תאריכים"
+      "dates": "תאריכים",
+      "span": "{from} – {to}"
     },
     "totals": {
       "title": "מכירות בתקופה זו",

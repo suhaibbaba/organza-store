@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { Plus } from "lucide-react";
+import { HandCoins, Plus, Users } from "lucide-react";
 import {
   Alert,
   Button,
@@ -140,12 +140,18 @@ function CustomersPageContent() {
           <div className="grid grid-cols-2 gap-3 sm:max-w-xl sm:gap-4">
             <StatCard
               name="customers-total-debt"
+              icon={HandCoins}
               label={t("stats.totalDebt")}
               tooltip={t("stats.totalDebtHint")}
               value={formatMoney(meta.totalDebt)}
               tone="warning"
             />
-            <StatCard name="customers-owing" label={t("stats.owingCount")} value={String(meta.owingCount ?? 0)} />
+            <StatCard
+              name="customers-owing"
+              icon={Users}
+              label={t("stats.owingCount")}
+              value={String(meta.owingCount ?? 0)}
+            />
           </div>
         )}
 
