@@ -31,3 +31,9 @@ export type PasskeyFailure =
   | "deactivated"
   | "rateLimited"
   | "failed";
+
+export interface PasskeySignInHandlers {
+  onSignedIn: (user: SessionUser) => void;
+  // A full message key, or null to clear the message as a new attempt starts.
+  onMessage: (messageKey: string | null) => void;
+}

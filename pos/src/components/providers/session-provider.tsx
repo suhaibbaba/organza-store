@@ -35,7 +35,7 @@ interface SessionContextValue {
   refresh: () => Promise<void>;
   // Returns the account so the caller can open it in that person's own language.
   login: (email: string, password: string) => Promise<SessionUser>;
-  loginWithPasskey: () => Promise<SessionUser>;
+  loginWithPasskey: (autofill?: boolean) => Promise<SessionUser>;
   unlock: (userId: string, passcode: string) => Promise<SessionUser | null>;
   passcodeSaved: () => void;
   lock: () => Promise<void>;
@@ -98,11 +98,14 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     [queryClient],
   );
 
-  const loginWithPasskey = useCallback(async () => {
-    const session = await signInWithPasskey();
-    queryClient.setQueryData(SESSION_QUERY_KEY, session.user);
-    return session.user;
-  }, [queryClient]);
+  const loginWithPasskey = useCallback(
+    async (autofill?: boolean) => {
+      const session = await signInWithPasskey(autofill);
+      queryClient.setQueryData(SESSION_QUERY_KEY, session.user);
+      return session.user;
+    },
+    [queryClient],
+  );
 
   const unlock = useCallback(
     async (userId: string, passcode: string) => {

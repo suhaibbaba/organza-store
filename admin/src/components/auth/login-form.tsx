@@ -6,12 +6,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslations } from "next-intl";
 import { Link, useRouter } from "@/i18n/navigation";
 import { useSession } from "@/components/providers/session-provider";
-import { usePasskeySupport } from "@/hooks/use-passkey-support";
-import { PasskeyError } from "@/lib/auth/passkey";
+import { usePasskeySignIn } from "@/hooks/use-passkey-sign-in";
 import { AuthError } from "@/lib/auth/client";
 import { HTTP_TOO_MANY_REQUESTS } from "@/constants/api";
 import { ACCOUNT_INACTIVE_AUTH_CODE } from "@store/shared/constants/auth";
-import { FORGOT_PASSWORD_PATH, PASSKEY_ERROR_MESSAGE_KEYS } from "@/constants/auth";
+import { FORGOT_PASSWORD_PATH } from "@/constants/auth";
 import { loginSchema, type LoginInput } from "@/lib/validation/login";
 import { DEFAULT_LANDING_HREF } from "@/constants/routes";
 import { landingHref } from "@/lib/nav";
@@ -44,12 +43,15 @@ function loginErrorKind(error: unknown): LoginErrorKind {
 export function LoginForm() {
   const t = useTranslations("auth.login");
   const tForgot = useTranslations("auth.forgotPassword");
-  const { login, loginWithPasskey } = useSession();
+  const { login } = useSession();
   const router = useRouter();
   const [formError, setFormError] = useState<string | null>(null);
-  const [passkeyPending, setPasskeyPending] = useState(false);
-  const passkeysAvailable = usePasskeySupport();
   const tRoot = useTranslations();
+  const passkey = usePasskeySignIn({
+    onSignedIn: (user) =>
+      router.replace(landingHref(user) ?? DEFAULT_LANDING_HREF, user.locale ? { locale: user.locale } : undefined),
+    onMessage: setFormError,
+  });
 
   const {
     register,
@@ -72,22 +74,6 @@ export function LoginForm() {
     }
   };
 
-  const onPasskey = async () => {
-    setFormError(null);
-    setPasskeyPending(true);
-    try {
-      const user = await loginWithPasskey();
-      router.replace(landingHref(user) ?? DEFAULT_LANDING_HREF, user.locale ? { locale: user.locale } : undefined);
-    } catch (error) {
-      const failure = error instanceof PasskeyError ? error.failure : "failed";
-      if (failure !== "cancelled") {
-        setFormError(PASSKEY_ERROR_MESSAGE_KEYS[failure]);
-      }
-    } finally {
-      setPasskeyPending(false);
-    }
-  };
-
   return (
     <form method="post" onSubmit={handleSubmit(onSubmit)} noValidate className="flex flex-col gap-4">
       {/* method="post" is a fallback: a native submit before hydration keeps credentials out of the URL. */}
@@ -104,7 +90,7 @@ export function LoginForm() {
           id="email"
           type="email"
           inputMode="email"
-          autoComplete="email"
+          autoComplete="email webauthn"
           placeholder={t("emailPlaceholder")}
           hasError={!!errors.email}
           data-testid={fieldTestSelector("email")}
@@ -134,14 +120,14 @@ export function LoginForm() {
         <Button type="submit" data-test-selector="login-submit" isLoading={isSubmitting} className="min-w-0 flex-1">
           {isSubmitting ? t("submitting") : t("submit")}
         </Button>
-        {passkeysAvailable && (
+        {passkey.available && (
           <Button
             type="button"
             variant="secondary"
             icon={<Icon name="passkey" aria-hidden="true" />}
-            isLoading={passkeyPending}
+            isLoading={passkey.pending}
             disabled={isSubmitting}
-            onClick={() => void onPasskey()}
+            onClick={() => void passkey.signIn()}
             data-test-selector="login-passkey"
             aria-label={t("passkey")}
             title={t("passkey")}
