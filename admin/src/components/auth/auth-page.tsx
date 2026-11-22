@@ -1,9 +1,14 @@
 import type { ReactNode } from "react";
+import { getTranslations } from "next-intl/server";
+import { Typography } from "@store/ui";
 import { LanguageSwitcher } from "@/components/layout/language-switcher";
 import { EnvironmentBadge } from "@/components/layout/environment-badge";
+import { fetchBranding } from "@/lib/branding";
+import { storeDisplayName } from "@/lib/store-name";
+import { resolveImageUrl } from "@/lib/image-fallback";
+import { LOGO_ICON_SIZE, pwaIconPath } from "@/constants/pwa";
 
 interface AuthPageProps {
-  appName: string;
   title: string;
   subtitle: string;
   // Rendered as `auth-<name>`.
@@ -11,30 +16,52 @@ interface AuthPageProps {
   children: ReactNode;
 }
 
-// The signed-out frame (clinic auth card): language on top, the shop and its sandbox chip, then the card. No top bar here to carry the chip.
-export function AuthPage({ appName, title, subtitle, name, children }: AuthPageProps) {
+// Signed-out screens (as the POS): one card, logo and tagline beside the form from `lg`, a band above it below that.
+export async function AuthPage({ title, subtitle, name, children }: AuthPageProps) {
+  const [tApp, storeName, branding] = await Promise.all([
+    getTranslations("app"),
+    storeDisplayName(),
+    fetchBranding(),
+  ]);
+  const logo = branding?.logoUrl ? resolveImageUrl(branding.logoUrl) : pwaIconPath(LOGO_ICON_SIZE);
+
   return (
     <main
-      className="flex min-h-dvh flex-col bg-canvas px-4 pb-[calc(var(--safe-bottom)+1.5rem)] pt-[calc(var(--safe-top)+1.5rem)] sm:px-8"
+      className="flex min-h-dvh items-center justify-center bg-canvas px-4 pb-[calc(var(--safe-bottom)+1rem)] pt-[calc(var(--safe-top)+1rem)] sm:px-6"
       data-test-selector={`auth-${name}`}
     >
-      <div className="flex justify-end">
-        <LanguageSwitcher />
-      </div>
-      <div className="flex flex-1 items-center justify-center py-10">
-        <div className="flex w-full max-w-sm flex-col gap-6 rounded-card border border-line bg-surface p-7 shadow-card">
-          <div className="flex flex-col items-center gap-3 text-center">
-            <div className="flex flex-wrap items-center justify-center gap-2">
-              <span className="text-heading font-bold text-primary-700">{appName}</span>
-              <EnvironmentBadge />
-            </div>
-            <div className="flex flex-col gap-1">
-              <h1 className="text-section font-semibold text-ink">{title}</h1>
-              <p className="text-label text-ink-muted">{subtitle}</p>
-            </div>
+      <div className="grid w-full max-w-md overflow-hidden rounded-card border border-line bg-surface shadow-card lg:max-w-4xl lg:grid-cols-[minmax(0,1fr)_minmax(0,26rem)]">
+        <section
+          className="flex flex-col gap-4 bg-linear-125 from-primary-900 via-primary-700 to-primary-500 p-5 text-ink-inverse lg:justify-between lg:gap-8 lg:p-8"
+          data-test-selector="auth-brand"
+        >
+          <div className="flex items-center justify-between gap-3">
+            {/* eslint-disable-next-line @next/next/no-img-element -- an already-optimised WebP served by the API */}
+            <img
+              src={logo}
+              alt={storeName}
+              className="size-12 shrink-0 object-contain lg:size-16"
+              data-test-selector="shop-logo"
+            />
+            <LanguageSwitcher variant="pill" />
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <Typography as="p" variant="h2" weight="semibold" className="text-ink-inverse">
+              {tApp("tagline")}
+            </Typography>
+            <EnvironmentBadge />
+          </div>
+        </section>
+
+        <section className="flex flex-col gap-5 p-5 lg:justify-center lg:p-8">
+          <div className="flex flex-col gap-1">
+            <Typography variant="h1">{title}</Typography>
+            <Typography variant="body" tone="muted">
+              {subtitle}
+            </Typography>
           </div>
           {children}
-        </div>
+        </section>
       </div>
     </main>
   );

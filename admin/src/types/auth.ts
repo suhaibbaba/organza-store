@@ -33,3 +33,19 @@ export interface PasswordResetInvite {
   url: string;
   expiresAt: string;
 }
+
+// Why a passkey sign-in or registration did not finish; "cancelled" is the person closing the prompt and is never shown.
+export type PasskeyFailure =
+  | "cancelled"
+  | "alreadyAdded"
+  | "signInAgain"
+  | "notOnAccount"
+  | "deactivated"
+  | "rateLimited"
+  | "failed";
+
+export interface PasskeySignInHandlers {
+  onSignedIn: (user: SessionUser) => void;
+  // A full message key, or null to clear the message as a new attempt starts.
+  onMessage: (messageKey: string | null) => void;
+}

@@ -41,6 +41,7 @@ model User {
   accounts            Account[]
   sessions            Session[]
   passwordSetupTokens PasswordSetupToken[]
+  passkeys            Passkey[]
   posPasscode         PosPasscode?
   posDevices          PosDeviceMember[]
 
@@ -130,6 +131,26 @@ model Verification {
 enum PasswordSetupPurpose {
   SET // a brand-new account choosing its first password
   RESET // an existing account replacing a forgotten one
+}
+
+// A staff member's passkey (Better Auth passkey plugin); the password stays as the way back in.
+model Passkey {
+  id           String    @id @default(cuid())
+  name         String?
+  publicKey    String
+  userId       String
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  credentialID String
+  counter      Int
+  deviceType   String
+  backedUp     Boolean
+  transports   String?
+  createdAt    DateTime? @default(now())
+  aaguid       String?
+
+  @@index([userId])
+  @@index([credentialID])
+  @@map("passkey")
 }
 
 model PasswordSetupToken {

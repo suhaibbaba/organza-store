@@ -235,15 +235,41 @@ key into the user's language.
 
 - **Library: Better Auth** — central auth in the separate backend, serving admin + pos (and later
   the storefront). Free, self-hosted on the VPS. Chosen over NextAuth (which suits a fullstack
-  Next.js app, not a separate API) and Lucia (discontinued). OTP/passkey can be added later as
-  plugins for customers without a rewrite.
-- Login is by **email + password only.** (Phone is kept as a contact field but is NOT a login
-  method.) Sessions/tokens handled by Better Auth.
+  Next.js app, not a separate API) and Lucia (discontinued). OTP can be added later as a plugin
+  for customers without a rewrite.
+- Login is by **email + password, or a passkey the person added themselves.** (Phone is kept as a
+  contact field but is NOT a login method.) Sessions/tokens handled by Better Auth.
 - Auth tables (User/Session/Account/Verification) come from Better Auth's schema — generate/verify
   with its CLI (`npx @better-auth/cli generate`). Password is stored (hashed) by Better Auth in
   `Account`, **not** on `User`.
 - Role checks enforced on the **backend** for every protected route.
-- Keep auth behind a thin wrapper so plugins (OTP/passkey for customers) slot in later.
+- Keep auth behind a thin wrapper so plugins (OTP for customers) slot in later.
+
+### Passkeys (staff, admin and POS)
+
+A staff member can sign in with **Face ID, a fingerprint or Windows Hello** instead of typing the
+password. It is an addition, never a replacement: the password (and the emailed set-password link)
+stays the way back in, and nobody is ever required to add one.
+
+- **Added by the person, on My profile** ("Passkeys"), never by an Admin for somebody else. Adding
+  one needs a sign-in from the last day; an older session is asked to sign in again first. The
+  list shows each passkey's provider when the device says it (iCloud Keychain, Google Password
+  Manager, Windows Hello…), whether it syncs across their devices, and when it was added; removing
+  one asks first and leaves the password working.
+- **Login screens** (admin and POS) offer two ways in: the passkey appears in the email field's
+  suggestions (autofill — tap it, then Face ID), and an icon-only passkey button sits beside
+  "Sign in", shown only where the browser supports passkeys. The browser always shows its own
+  confirmation first; no site can open the fingerprint or face prompt without it. Closing the device's prompt says nothing; a passkey the
+  account no longer accepts, a deactivated account and too many tries each get their own message.
+- **On the POS a passkey sign-in is a sign-in**: it joins the tablet exactly as a password does, so
+  the 6-digit passcode then reopens it. The passcode remains the way to switch person at the till.
+- **One passkey opens both apps.** It belongs to the domain the admin and POS share (read from
+  `CORS_ORIGINS`: `admin.x` + `pos.x` → `x`; `PASSKEY_RP_ID` overrides it), and only those origins
+  may complete a ceremony. The sandbox's passkeys are its own (`sandbox.x`), separate from
+  production's. The prompt names the system `PASSKEY_RP_NAME` (default "Store Management").
+- **Rules that still hold:** a deactivated account cannot sign in with one; sign-in is rate-limited
+  like the password; adding and removing are audited (entity `Passkey`). Better Auth's own passkey
+  list/rename/delete routes are switched off — listing and removing go through `/api/me/passkeys`.
 
 ### Passwords: nobody is handed one
 
@@ -996,7 +1022,7 @@ request **superseded** an earlier one, and who **approved** or **rejected** it.
 - `express` — server
 - `prisma` + `@prisma/client` — DB & ORM
 - `zod` — input validation
-- `better-auth` — authentication (email/phone + password; OTP/passkey later)
+- `better-auth` — authentication (email + password, passkeys via `@better-auth/passkey`; OTP later)
 - `libphonenumber-js` — phone validation/normalization (E.164)
 - `slugify` — slug generation from name
 - `multer` — image upload handling

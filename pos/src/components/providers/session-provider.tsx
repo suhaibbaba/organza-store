@@ -9,6 +9,7 @@ import {
   SHARED_QUERY_ROOTS,
 } from "@/constants/api";
 import { fetchSession, signInWithEmail, signOut as signOutRequest } from "@/lib/auth/client";
+import { signInWithPasskey } from "@/lib/auth/passkey";
 import { setStoredToken } from "@/lib/auth/session-storage";
 import {
   getDeviceCredentials,
@@ -34,6 +35,7 @@ interface SessionContextValue {
   refresh: () => Promise<void>;
   // Returns the account so the caller can open it in that person's own language.
   login: (email: string, password: string) => Promise<SessionUser>;
+  loginWithPasskey: (autofill?: boolean) => Promise<SessionUser>;
   unlock: (userId: string, passcode: string) => Promise<SessionUser | null>;
   passcodeSaved: () => void;
   lock: () => Promise<void>;
@@ -96,6 +98,15 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     [queryClient],
   );
 
+  const loginWithPasskey = useCallback(
+    async (autofill?: boolean) => {
+      const session = await signInWithPasskey(autofill);
+      queryClient.setQueryData(SESSION_QUERY_KEY, session.user);
+      return session.user;
+    },
+    [queryClient],
+  );
+
   const unlock = useCallback(
     async (userId: string, passcode: string) => {
       const credentials = getDeviceCredentials();
@@ -149,6 +160,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         canLock: enrollment?.hasPasscode === true,
         refresh,
         login,
+        loginWithPasskey,
         unlock,
         passcodeSaved,
         lock,

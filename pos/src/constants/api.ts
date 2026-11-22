@@ -3,11 +3,16 @@ export const AUTH_ENDPOINTS = {
   SIGN_IN_EMAIL: "/api/auth/sign-in/email",
   SIGN_OUT: "/api/auth/sign-out",
   GET_SESSION: "/api/auth/get-session",
+  PASSKEY_SIGN_IN_OPTIONS: "/api/auth/passkey/generate-authenticate-options",
+  PASSKEY_SIGN_IN: "/api/auth/passkey/verify-authentication",
+  PASSKEY_REGISTER_OPTIONS: "/api/auth/passkey/generate-register-options",
+  PASSKEY_REGISTER: "/api/auth/passkey/verify-registration",
 } as const;
 
 export const SESSION_QUERY_KEY = ["session"] as const;
 export const PROFILE_QUERY_KEY = ["profile"] as const;
 export const PROFILE_SESSIONS_QUERY_KEY = ["profile", "sessions"] as const;
+export const PROFILE_PASSKEYS_QUERY_KEY = ["profile", "passkeys"] as const;
 export const SETTINGS_QUERY_KEY = ["settings"] as const;
 
 // Each role's actions, loaded with the session and held for the shift.

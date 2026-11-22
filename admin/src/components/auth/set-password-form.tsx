@@ -13,10 +13,10 @@ import { PASSWORD_TOKEN_QUERY_KEY } from "@/constants/api";
 import { useTranslateError } from "@/hooks/use-translate-error";
 import { completePasswordSetup, verifyPasswordToken } from "@/lib/api/password-setup";
 import { ApiError } from "@/lib/api/errors";
-import { setPasswordSchema, SET_PASSWORD_MISMATCH, type SetPasswordValues } from "@/lib/validation/set-password";
+import { setPasswordSchema, type SetPasswordValues } from "@/lib/validation/set-password";
 import { fieldTestSelector } from "@store/shared/lib/testSelector";
-import { Alert, Button, buttonClassName, FormField, PasswordInput, Spinner } from "@store/ui";
-import { AuthFieldError } from "@/components/auth/auth-field-error";
+import { Alert, Button, buttonClassName, FormField, PasswordInput, Spinner, Typography } from "@store/ui";
+import { fieldErrorKey } from "@/lib/field-error-key";
 import type { PasswordTokenCheck } from "@/types/auth";
 
 // Where an emailed link lands: checking, a dead link, or the form.
@@ -57,7 +57,7 @@ export function SetPasswordForm() {
 
   if (done) {
     return (
-      <div className="flex flex-col gap-5">
+      <div className="flex flex-col gap-4">
         <Alert tone="success">{t("successBody")}</Alert>
         <Link href="/login" className={buttonClassName({ className: "w-full" })}>
           {t("goToLogin")}
@@ -69,7 +69,7 @@ export function SetPasswordForm() {
   // No token at all means a half-pasted link, said plainly rather than "expired".
   if (!token || check.isError) {
     return (
-      <div className="flex flex-col gap-5">
+      <div className="flex flex-col gap-4">
         <Alert tone="danger">{t(!token ? "missingToken" : "invalidBody")}</Alert>
         <Link href="/forgot-password" className={buttonClassName({ variant: "secondary", className: "w-full" })}>
           {t("requestNewLink")}
@@ -80,59 +80,45 @@ export function SetPasswordForm() {
 
   if (!check.data) {
     return (
-      <p className="flex items-center gap-2 py-4 text-label text-ink-muted">
+      <Typography as="p" variant="small" tone="muted" className="flex items-center gap-2 py-4">
         <Spinner />
         {t("checking")}
-      </p>
+      </Typography>
     );
   }
 
   return (
-    <form method="post" onSubmit={handleSubmit(onSubmit)} noValidate className="flex flex-col gap-5">
+    <form method="post" onSubmit={handleSubmit(onSubmit)} noValidate className="flex flex-col gap-4">
       {/* method="post" is a fallback: a native submit before hydration keeps the password out of the URL. */}
-      <p className="text-label text-ink-muted" dir="ltr">
+      <Typography as="p" variant="small" tone="muted">
         {t("forAccount", { email: check.data.email })}
-      </p>
+      </Typography>
 
       {formError && <Alert tone="danger">{translateError(formError)}</Alert>}
 
-      <FormField label="auth.setPassword.passwordLabel" required htmlFor="password">
+      <FormField label="auth.setPassword.passwordLabel" required htmlFor="password" error={errors.password} errorKey={fieldErrorKey(errors.password)} errorValues={{ min: PASSWORD_MIN_LENGTH }}>
         <PasswordInput
           id="password"
           autoComplete="new-password"
           placeholder={t("passwordPlaceholder")}
           hasError={!!errors.password}
-          aria-describedby={errors.password ? "password-error" : undefined}
           data-testid={fieldTestSelector("password")}
           {...register("password")}
         />
-        {errors.password && (
-          <AuthFieldError field="password">
-            {translateError(errors.password.message ?? "", { min: PASSWORD_MIN_LENGTH })}
-          </AuthFieldError>
-        )}
       </FormField>
 
-      <FormField label="auth.setPassword.confirmLabel" required htmlFor="confirm">
+      <FormField label="auth.setPassword.confirmLabel" required htmlFor="confirm" error={errors.confirm} errorKey={fieldErrorKey(errors.confirm)}>
         <PasswordInput
           id="confirm"
           autoComplete="new-password"
           placeholder={t("confirmPlaceholder")}
           hasError={!!errors.confirm}
-          aria-describedby={errors.confirm ? "confirm-error" : undefined}
           data-testid={fieldTestSelector("confirm")}
           {...register("confirm")}
         />
-        {errors.confirm && (
-          <AuthFieldError field="confirm">
-            {errors.confirm.message === SET_PASSWORD_MISMATCH
-              ? t("mismatch")
-              : translateError(errors.confirm.message ?? "", { min: PASSWORD_MIN_LENGTH })}
-          </AuthFieldError>
-        )}
       </FormField>
 
-      <Button type="submit" data-test-selector="set-password-submit" isLoading={isSubmitting} className="mt-2 w-full">
+      <Button type="submit" data-test-selector="set-password-submit" isLoading={isSubmitting} className="w-full">
         {isSubmitting ? t("submitting") : t("submit")}
       </Button>
     </form>

@@ -1,19 +1,28 @@
 import "dotenv/config";
 import { APIError, betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
+import { createAuthMiddleware } from "better-auth/api";
 import { bearer } from "better-auth/plugins";
+import { passkey } from "@better-auth/passkey";
+import { AuditAction } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import { writeAudit } from "@/lib/audit";
+import { passkeyOrigins, passkeyRpId } from "@/lib/passkeyConfig";
 import { TRUSTED_PROXY_IPS } from "@/lib/proxyTrust";
 import {
   ACCOUNT_INACTIVE_AUTH_CODE,
+  AUDIT_ENTITY,
   AUTH_DISABLED_PATHS,
   DEFAULT_SESSION_EXPIRES_IN_DAYS,
+  PASSKEY_DEFAULT_RP_NAME,
+  PASSKEY_VERIFY_AUTHENTICATION_PATH,
+  PASSKEY_VERIFY_REGISTRATION_PATH,
   SIGN_IN_EMAIL_PATH,
   SIGN_IN_RATE_LIMIT_MAX,
   SIGN_IN_RATE_LIMIT_WINDOW_SECONDS,
 } from "@/constants";
 
-// Central Better Auth for admin, POS and storefront: email + password only, and no self-registration — staff accounts are created by an Admin or `npm run init`.
+// Central Better Auth for admin, POS and storefront: email + password or a passkey, and no self-registration — staff accounts are created by an Admin or `npm run init`.
 export const auth = betterAuth({
   database: prismaAdapter(prisma, { provider: "postgresql" }),
   secret: process.env.BETTER_AUTH_SECRET,
@@ -31,6 +40,7 @@ export const auth = betterAuth({
   rateLimit: {
     customRules: {
       [SIGN_IN_EMAIL_PATH]: { window: SIGN_IN_RATE_LIMIT_WINDOW_SECONDS, max: SIGN_IN_RATE_LIMIT_MAX },
+      [PASSKEY_VERIFY_AUTHENTICATION_PATH]: { window: SIGN_IN_RATE_LIMIT_WINDOW_SECONDS, max: SIGN_IN_RATE_LIMIT_MAX },
     },
   },
   advanced: {
@@ -94,7 +104,34 @@ export const auth = betterAuth({
       },
     },
   },
+  // A new passkey is a change to the account (rule 6); removing one is audited by DELETE /api/me/passkeys/:id.
+  hooks: {
+    after: createAuthMiddleware(async (ctx) => {
+      if (ctx.path !== PASSKEY_VERIFY_REGISTRATION_PATH) {
+        return;
+      }
+      const created = ctx.context.returned as { id?: string; userId?: string; deviceType?: string } | undefined;
+      if (!created?.id || !created.userId) {
+        return;
+      }
+      await writeAudit({
+        userId: created.userId,
+        action: AuditAction.CREATE,
+        entityType: AUDIT_ENTITY.PASSKEY,
+        entityId: created.id,
+        oldValue: null,
+        newValue: { deviceType: created.deviceType },
+      });
+    }),
+  },
   trustedOrigins: (process.env.CORS_ORIGINS ?? "").split(",").filter(Boolean),
   // Bearer tokens for clients without cookies, alongside the cookie session.
-  plugins: [bearer()],
+  plugins: [
+    bearer(),
+    passkey({
+      rpID: passkeyRpId(),
+      rpName: process.env.PASSKEY_RP_NAME || PASSKEY_DEFAULT_RP_NAME,
+      origin: passkeyOrigins(),
+    }),
+  ],
 });

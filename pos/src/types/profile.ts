@@ -1,4 +1,4 @@
-import type { ProfileSession } from "@store/shared/types/profile";
+import type { ProfilePasskey, ProfileSession } from "@store/shared/types/profile";
 
 export type DeviceKind = "phone" | "tablet" | "desktop" | "unknown";
 
@@ -16,4 +16,9 @@ export interface DeviceRowProps {
 export interface PasswordChangeModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+}
+
+export interface PasskeyRowProps {
+  passkey: ProfilePasskey;
+  onRemove: (passkey: ProfilePasskey) => void;
 }

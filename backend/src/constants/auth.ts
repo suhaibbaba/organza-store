@@ -17,7 +17,26 @@ export const SIGN_IN_EMAIL_PATH = "/sign-in/email";
 export const PROFILE_SESSIONS_LIMIT = 50;
 
 // Better Auth endpoints answered 404: a person edits their own account only through the audited /api/me.
-export const AUTH_DISABLED_PATHS = ["/update-user", "/change-password"];
+export const AUTH_DISABLED_PATHS = [
+  "/update-user",
+  "/change-password",
+  "/passkey/list-user-passkeys",
+  "/passkey/delete-passkey",
+  "/passkey/update-passkey",
+];
+
+// Passkey ceremonies stay Better Auth's; listing and removing go through the audited /api/me/passkeys.
+export const PASSKEY_VERIFY_REGISTRATION_PATH = "/passkey/verify-registration";
+export const PASSKEY_VERIFY_AUTHENTICATION_PATH = "/passkey/verify-authentication";
+
+// What the device's passkey prompt calls the system when PASSKEY_RP_NAME is unset; never a shop's name.
+export const PASSKEY_DEFAULT_RP_NAME = "Store Management";
+
+// A person's passkeys: a phone, a laptop and a spare key are the usual set.
+export const PROFILE_PASSKEYS_LIMIT = 20;
+
+// The hostname every local app shares; any other one-label domain would be a public suffix.
+export const LOCALHOST = "localhost";
 
 // POS unlock and lock-screen lookups per caller: generous for one shop behind one address, useless for guessing.
 export const POS_UNLOCK_IP_LIMIT = 30;

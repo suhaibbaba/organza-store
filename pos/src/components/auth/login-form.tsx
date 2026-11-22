@@ -4,12 +4,13 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslations } from "next-intl";
-import { Alert, Button, FormField, Input, PasswordInput, buttonClassName } from "@store/ui";
+import { Alert, Button, FormField, Input, PasswordInput, buttonClassName, Icon } from "@store/ui";
 import { ACCOUNT_INACTIVE_AUTH_CODE } from "@store/shared/constants/auth";
 import { fieldTestSelector, testSelectorFor } from "@store/shared/lib/testSelector";
 import { Link, useRouter } from "@/i18n/navigation";
 import { SELL_HREF } from "@/constants/profile";
 import { useSession } from "@/components/providers/session-provider";
+import { usePasskeySignIn } from "@/hooks/use-passkey-sign-in";
 import { AuthError } from "@/lib/auth/client";
 import { HTTP_TOO_MANY_REQUESTS } from "@/constants/api";
 import { FORGOT_PASSWORD_PATH } from "@/constants/auth";
@@ -20,9 +21,9 @@ import { loginSchema, type LoginInput } from "@/lib/validation/login";
 type LoginErrorKind = "invalid" | "rateLimited" | "deactivated";
 
 const LOGIN_ERROR_MESSAGE_KEYS: Record<LoginErrorKind, string> = {
-  invalid: "error",
-  rateLimited: "tooManyAttempts",
-  deactivated: "accountDeactivated",
+  invalid: "auth.login.error",
+  rateLimited: "auth.login.tooManyAttempts",
+  deactivated: "auth.login.accountDeactivated",
 };
 
 function loginErrorKind(error: unknown): LoginErrorKind {
@@ -43,7 +44,12 @@ export function LoginForm() {
   const tForgot = useTranslations("auth.forgotPassword");
   const { login, hasDevice } = useSession();
   const router = useRouter();
-  const [formError, setFormError] = useState<LoginErrorKind | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
+  const tRoot = useTranslations();
+  const passkey = usePasskeySignIn({
+    onSignedIn: (user) => router.replace(SELL_HREF, user.locale ? { locale: user.locale } : undefined),
+    onMessage: setFormError,
+  });
 
   const {
     register,
@@ -61,7 +67,7 @@ export function LoginForm() {
       router.replace(SELL_HREF, user.locale ? { locale: user.locale } : undefined);
     } catch (error) {
       // Better Auth's sign-in doesn't use our error envelope (lib/auth/client.ts), so its status and code are read here.
-      setFormError(loginErrorKind(error));
+      setFormError(LOGIN_ERROR_MESSAGE_KEYS[loginErrorKind(error)]);
     }
   };
 
@@ -70,7 +76,7 @@ export function LoginForm() {
     <form method="post" onSubmit={handleSubmit(onSubmit)} noValidate className="flex flex-col gap-4">
       {formError && (
         <Alert tone="danger" icon={false} data-testid={testSelectorFor("alert", "destructive")}>
-          {t(LOGIN_ERROR_MESSAGE_KEYS[formError])}
+          {tRoot(formError)}
         </Alert>
       )}
 
@@ -85,7 +91,7 @@ export function LoginForm() {
           id="email"
           type="email"
           inputMode="email"
-          autoComplete="email"
+          autoComplete="email webauthn"
           placeholder={t("emailPlaceholder")}
           hasError={!!errors.email}
           data-testid={fieldTestSelector("email")}
@@ -110,9 +116,26 @@ export function LoginForm() {
         />
       </FormField>
 
-      <Button type="submit" data-test-selector="pos-login-submit" isLoading={isSubmitting} className="w-full">
-        {isSubmitting ? t("submitting") : t("submit")}
-      </Button>
+      {/* The passkey sits beside sign-in as an icon: the form stays the main way in. */}
+      <div className="flex gap-2">
+        <Button type="submit" data-test-selector="pos-login-submit" isLoading={isSubmitting} className="min-w-0 flex-1">
+          {isSubmitting ? t("submitting") : t("submit")}
+        </Button>
+        {passkey.available && (
+          <Button
+            type="button"
+            variant="secondary"
+            icon={<Icon name="passkey" aria-hidden="true" />}
+            isLoading={passkey.pending}
+            disabled={isSubmitting}
+            onClick={() => void passkey.signIn()}
+            data-test-selector="pos-login-passkey"
+            aria-label={t("passkey")}
+            title={t("passkey")}
+            className="shrink-0 px-0 w-(--control-h)"
+          />
+        )}
+      </div>
 
       {/* Back to the people on this tablet, for whoever came here by mistake. */}
       {hasDevice && (

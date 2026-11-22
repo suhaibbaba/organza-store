@@ -14,6 +14,7 @@ export interface FormFieldProps extends TestIdProps {
   htmlFor: string;
   error?: FieldError | undefined;
   errorKey?: string | undefined;
+  errorValues?: Record<string, string | number> | undefined;
   hint?: string | undefined;
   hintValues?: Record<string, string | number> | undefined;
   note?: string | undefined;
@@ -29,6 +30,7 @@ export function FormField({
   htmlFor,
   error,
   errorKey,
+  errorValues,
   hint,
   hintValues,
   note,
@@ -83,7 +85,7 @@ export function FormField({
           className={cn("flex items-start gap-1.5 text-value leading-label text-danger-700")}
         >
           <Icon name="error" className="mt-0.5 size-4 shrink-0" />
-          {t(messageKey)}
+          {t(messageKey, errorValues ?? {})}
         </p>
       )}
     </div>
