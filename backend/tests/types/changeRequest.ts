@@ -10,6 +10,7 @@ export interface ChangeRequestValueDto {
     variants?: { id?: string; sku?: string | null; name: Record<string, string> }[];
     optionSelections?: { variantTypeId: string; valueIds: string[] }[];
     variantId?: string;
+    sale?: { orderId: string; orderNumber: number; quantity: number; detail?: string | null };
   };
 }
 
