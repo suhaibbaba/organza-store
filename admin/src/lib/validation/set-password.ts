@@ -2,8 +2,8 @@ import { z } from "zod";
 import { ERROR_CODES } from "@store/shared/constants/errors";
 import { PASSWORD_MIN_LENGTH } from "@store/shared/constants/validation";
 
-// Messages are backend codes (rule 12), except the mismatch: the backend never sees the second box.
-export const SET_PASSWORD_MISMATCH = "form.password.mismatch";
+// Backend codes (rule 12), except the mismatch: a full message key, since the backend never sees the second box.
+export const SET_PASSWORD_MISMATCH = "auth.setPassword.mismatch";
 
 export const setPasswordSchema = z
   .object({
