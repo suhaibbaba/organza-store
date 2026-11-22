@@ -4,11 +4,13 @@ import { TopBar } from "@/components/layout/top-bar";
 import { SidebarNav } from "@/components/layout/sidebar-nav";
 import { AppBreadcrumb } from "@/components/layout/app-breadcrumb";
 import { BrandIconSync } from "@/components/pwa/brand-icon-sync";
+import { ScrollToTopOnNavigate } from "@/components/layout/scroll-to-top-on-navigate";
 
 export function AppShell({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-dvh bg-canvas" data-test-selector="app-shell">
       <BrandIconSync />
+      <ScrollToTopOnNavigate />
       <SidebarNav />
       <div className="flex min-w-0 flex-1 flex-col">
         <TopBar />
