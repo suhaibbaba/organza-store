@@ -222,6 +222,7 @@ describe("Security", () => {
       "currency",
       "defaultCountryCode",
       "lowStockThreshold",
+      "posAutoLockMinutes",
       "logoUrl",
       "faviconUrls",
       "labelPrintMode",
