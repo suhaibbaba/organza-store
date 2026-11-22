@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useCallback, useContext, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useSyncExternalStore, type ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   POS_ENROLLMENT_QUERY_KEY,
@@ -10,7 +10,12 @@ import {
 } from "@/constants/api";
 import { fetchSession, signInWithEmail, signOut as signOutRequest } from "@/lib/auth/client";
 import { setStoredToken } from "@/lib/auth/session-storage";
-import { getDeviceCredentials, setDeviceCredentials } from "@/lib/auth/device-storage";
+import {
+  getDeviceCredentials,
+  hasStoredDevice,
+  setDeviceCredentials,
+  subscribeToDevice,
+} from "@/lib/auth/device-storage";
 import { enrollDevice, leaveDevice, unlockDevice } from "@/lib/api/pos-device";
 import { dropCart } from "@/lib/cart-stash";
 import type { SessionUser } from "@/types/auth";
@@ -39,7 +44,7 @@ const SessionContext = createContext<SessionContextValue | null>(null);
 
 export function SessionProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
-  const [hasDevice, setHasDevice] = useState(() => getDeviceCredentials() !== null);
+  const hasDevice = useSyncExternalStore(subscribeToDevice, hasStoredDevice, () => false);
 
   const {
     data: user,
@@ -64,7 +69,6 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       if (result.deviceSecret) {
         setDeviceCredentials({ deviceId: result.deviceId, deviceSecret: result.deviceSecret });
       }
-      setHasDevice(true);
       return result;
     },
   });

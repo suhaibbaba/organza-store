@@ -462,6 +462,14 @@ hover:text-primary-700` (or `group` on the link + `group-hover:text-primary-700`
 - `QuantityStepper` lives in `@store/ui` (field-style, `onBelowMin`, `size="lg"` for the till); admin and POS share it.
 - The POS signs in per origin (token in localStorage), so the admin's session never carries over: ask the user to sign in.
 - A 375px iframe in an RTL page sits at the RIGHT edge: zoom on `[905,0,1280,683]`, not the left.
+- **POS signed-out screens never scroll on a landscape tablet (user, 2026-11-22: Lenovo Miix 320, 1280×800)**: one
+  card, the brand panel (logo, shop name, sandbox chip, language) beside the form from `desk`, a compact band above it
+  below that (`components/auth/auth-layout.tsx`, shared by login and forgot-password). Measure at 1280×650 (a 800px
+  screen minus browser bar and taskbar) and 1280×560, not only at 1280 wide.
+- Anything read from localStorage that changes what renders goes through `useSyncExternalStore` with a server
+  snapshot (`hasStoredDevice`): a `useState(() => localStorage…)` initialiser is a hydration error on signed-out pages.
+- To see the POS login while signed in, drop only the `store_pos_session_token` cookie (the proxy reads it), keep the
+  localStorage token, and put the cookie back afterwards.
 
 ## Done
 
@@ -483,3 +491,4 @@ hover:text-primary-700` (or `group` on the link + `group-hover:text-primary-700`
 - admin `expenses` (new: period segments, totals, table, by-category, add/edit modal with category tiles, categories drawer; dashboard button opens the form via `?new=1`) — 2026-11-22
 - admin `permissions` (two role columns, staged + SaveBar, group Sections with counts, search, restore defaults) — 2026-11-22
 - pos `sell` (admin-style header, checkout choices + one button, undo removal, per-line discount, every sheet on ui parts, shared `QuantityStepper`) — 2026-11-22
+- pos `login` + `forgot-password` (shared two-column `AuthLayout`, no scroll at 1280×560, errors on `FormField`) — 2026-11-22
