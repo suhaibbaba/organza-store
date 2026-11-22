@@ -2,12 +2,13 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { lineView } from "@/lib/reports";
 import { expenseCashTotal, queryExpenseTotals } from "@/lib/expenses";
+import { supplierDrawerTotal } from "@/lib/suppliers";
 import { formatMoney, money, roundMoney, ZERO_MONEY } from "@/lib/money";
 import { pickedRange } from "@/lib/reportRange";
 import { DEFAULT_OPENING_FLOAT, MONEY_DECIMAL_PLACES } from "@/constants";
 import type { AnyRecord, CashSessionFigures, CashSessionMovements, ReportRange } from "@/types";
 
-// Cash drawer: expected = float + cash sales − cash expenses; the figures are live while OPEN and frozen onto the row at close.
+// Cash drawer: expected = float + cash sales (credit payments and refunds included) − cash expenses; the figures are live while OPEN and frozen onto the row at close.
 
 // A drawer day's window, from its local date plus the offset frozen at open, so every read resolves the same window.
 export function sessionWindow(date: Date, tzOffset: number): ReportRange {
@@ -22,25 +23,37 @@ export function sessionDateString(date: Date): string {
 // Zero, in the same 2dp string shape every money field crosses the API in.
 const NO_MONEY = ZERO_MONEY().toFixed(MONEY_DECIMAL_PLACES);
 
-// Cash handed over inside the window (by collectedAt), from the reports' per-line view so returns and the sales figures agree.
+// Cash in the window: ordinary sales by collectedAt (per-line view, so returns agree), credit sales by each payment's day.
 async function queryCashSales(range: ReportRange): Promise<Prisma.Decimal> {
   const rows = await prisma.$queryRaw<{ amount: Prisma.Decimal | null }[]>`
     WITH line AS (${lineView(null)})
-    SELECT COALESCE(SUM(unit_net_price * net_units), 0) AS "amount"
-    FROM line
-    WHERE payment_status = 'COLLECTED'
-      AND payment_method = 'CASH'
-      AND collected_at >= ${range.from}
-      AND collected_at < ${range.to}
+    SELECT
+      (SELECT COALESCE(SUM(unit_net_price * net_units), 0)
+       FROM line
+       WHERE payment_status = 'COLLECTED'
+         AND NOT on_credit
+         AND payment_method = 'CASH'
+         AND collected_at >= ${range.from}
+         AND collected_at < ${range.to})
+      +
+      (SELECT COALESCE(SUM(p.amount), 0)
+       FROM "OrderPayment" p
+       WHERE p.method = 'CASH'::"PaymentMethod"
+         AND p."receivedAt" >= ${range.from}
+         AND p."receivedAt" < ${range.to}) AS "amount"
   `;
   const amount = rows[0]?.amount;
   return roundMoney(amount === null || amount === undefined ? ZERO_MONEY() : money(amount));
 }
 
-// Only APPROVED, paidInCash expenses count against the till.
+// Money out of the till: APPROVED paidInCash expenses, plus supplier payments taken from the drawer.
 export async function queryMovements(range: ReportRange): Promise<CashSessionMovements> {
-  const [cashSales, expenses] = await Promise.all([queryCashSales(range), queryExpenseTotals(range)]);
-  return { cashSales, cashExpenses: expenseCashTotal(expenses) };
+  const [cashSales, expenses, suppliers] = await Promise.all([
+    queryCashSales(range),
+    queryExpenseTotals(range),
+    supplierDrawerTotal(range),
+  ]);
+  return { cashSales, cashExpenses: roundMoney(expenseCashTotal(expenses).add(suppliers)) };
 }
 
 export function expectedAmount(openingFloat: Prisma.Decimal, movements: CashSessionMovements): Prisma.Decimal {

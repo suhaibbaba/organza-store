@@ -161,7 +161,7 @@ export function UserFormModal({ open, onOpenChange, mode, user }: UserFormModalP
                 />
               </FormField>
 
-              <FormField label="users.form.role" htmlFor="role" hint="users.form.roleHint">
+              <FormField label="users.form.role" htmlFor="role" hint="users.form.roleHint" required>
                 <Controller
                   control={control}
                   name="role"

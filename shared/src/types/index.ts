@@ -18,3 +18,5 @@ export * from "./user";
 export * from "./variant";
 export * from "./version";
 export * from "./profile";
+export * from "./customer";
+export * from "./supplier";

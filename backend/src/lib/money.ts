@@ -49,3 +49,8 @@ export function resolveDiscountAmount(
   const clamped = raw.lessThan(0) ? ZERO_MONEY() : raw.greaterThan(base) ? base : raw;
   return roundMoney(clamped);
 }
+
+// Zero in the 2dp string shape every money field crosses the API in.
+export function zeroMoneyText(): string {
+  return ZERO_MONEY().toFixed(MONEY_DECIMAL_PLACES);
+}

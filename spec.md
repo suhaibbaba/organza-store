@@ -1192,8 +1192,8 @@ states together rather than chaining them.
 
 ### Customer information
 
-Customers are still **deferred as an entity** — there is no `Customer` table. Instead, customer
-details are stored **directly on the order** (a snapshot):
+Every order keeps its customer details **directly on the order** (a snapshot); since credit sales,
+it may also point at a `Customer` row (see "Customers and selling on credit"):
 
 - **STORE:** no customer info needed (all fields empty).
 - **WHATSAPP / WEBSITE:** capture name, phone, and location/address info (optional map coordinates).
@@ -1280,6 +1280,99 @@ product's current values. This is what makes the sales/profit dashboard accurate
 Employee can **create** orders and advance them as far as the courier handover, but **cannot
 delete, edit, or cancel** them, and **cannot mark their money collected** (anti-theft).
 Admin/Manager have full control. Every mutation writes an audit entry.
+
+### Customers and selling on credit (الدين)
+
+A customer may take a piece now and pay for it later, in one payment or in several, with no fixed
+dates — the shop does not schedule instalments, it just records what was paid and when. Until the
+account is settled the piece is either **handed over** or **kept in the shop** for the customer,
+and the shop must always be able to see which.
+
+**Customers are a real table now** (`Customer`): name, phone (required, E.164 as entered, unique —
+checked under BOTH +970 and +972, rule 18), WhatsApp, address, map point and a note. WhatsApp is
+not unique: two customers may share one family number. An order may point at its customer
+(`Order.customerId`) and still keeps its own snapshot of the details, so editing a customer never
+rewrites a past sale. A credit sale must name a customer; a WhatsApp order finds or creates its
+customer by phone; the first migration links every past order that carried a phone, grouping both
+Palestine prefixes as one customer and taking the newest order's details. A plain counter sale
+still needs no customer.
+
+**Selling on credit** works on **any channel** — a counter sale or a WhatsApp/online order — but
+never on a gift. It is filed with `onCredit = true` and a `paymentStatus` of `ON_CREDIT`, and:
+
+- **Who owes it:** a counter sale picks (or adds) its `Customer`; an online order's customer is the
+  one found or created from its phone, as for any WhatsApp order.
+- **The customer pays the shop**, not the delivery company: an online credit order never enters the
+  courier collection queue (`PENDING_COLLECTION`); it follows its normal status flow otherwise.
+- **Stock is deducted at once on every channel**, even when the piece stays in the shop: a piece
+  sold on credit is sold, and must never be sold again (`stockDeductedAt` is set at creation, so
+  an online order's PREPARING step does not deduct it twice).
+- What was paid on the spot (zero is allowed) is the first `OrderPayment`.
+- **Each line records its handover** (`handedOverAt`, `handedOverById`): handed over or kept in the
+  shop. It is chosen at the sale and can be marked later, line by line. Lines of an ordinary sale
+  are handed over at creation; a plain WhatsApp order's lines go with the courier, so they never
+  ask. A credit order on ANY channel works the same way: each line is kept in the shop or leaves
+  (by hand or with the courier) at creation, and a kept line is marked handed over later.
+
+**Payments.** Every payment is an `OrderPayment` row — amount, method (cash), when, who took it,
+optional note — and `Order.paidAmount` is their running sum, kept in the same transaction. When the
+paid amount reaches what the order still costs (net of returns) the order becomes `COLLECTED` with
+`collectedAt` = that payment's time; `onCredit` stays true, so it is still known to have been a
+credit sale. A payment can never take the paid amount past what is owed. A payment taken on the
+customer's page is spread over that customer's open credit orders **oldest first**, and the split is
+shown before it is saved; a payment on an order's page goes to that order.
+
+**Undoing a credit sale.** Cancelling, deleting or returning reduces what is owed. If more has been
+paid than the order is now worth, the difference is recorded as a **refund** — a negative payment,
+paid out of the drawer — in the same transaction, and the confirmation says how much goes back.
+
+**Money figures.** A credit sale is revenue on the day it was sold, like any sale. What has been
+received of it counts as received; the rest is **customer debt** — a third part beside "received"
+and "with the delivery company", so `revenue = collectedRevenue + pendingCollectionAmount +
+customerDebtAmount` always holds. The cash drawer counts a credit sale's money **on the day each
+payment is taken** (refunds subtract), never on the day it was sold. "Owed to us" on the dashboard
+is the courier money plus customer debt, with the two shown apart.
+
+**Screens.** The POS and the admin's new-order page offer "on credit" for a counter sale: pick or
+add the customer, say what is paid now, and mark each piece taken or kept. The admin gets a
+**Customers** page (who owes what) and a page per customer (balance, orders, payments, pieces kept
+for them, "record a payment"); an order's page shows its payments and each line's handover. The
+dashboard's to-do list counts open debts and pieces waiting to be collected.
+
+**Permissions** (rule 22, every one configurable, shipped granted to every role): `customer.view`,
+`customer.manage` (add and edit customers), `order.sellOnCredit`, `order.recordPayment`,
+`order.markHandedOver`. A customer's own balance is visible to anyone who can see the customer; the
+**total of all customer debt** is a shop-wide figure, so it shows only with `dashboard.view`
+(rule 19). Every payment, refund and handover is audited.
+
+### Suppliers and their invoices (الموردون)
+
+The shop buys stock from suppliers, sometimes paying at once and often owing part of it. A
+**`Supplier`** has a name (required), and optionally a phone — unique under both +970 and +972
+when given (rule 18) — WhatsApp, address and note.
+
+A **`SupplierInvoice`** is **an amount owed, not stock received**: the supplier's own invoice number
+(optional, not unique), the invoice date, the total and a note. Pieces still come into stock
+through the products screens; an invoice never touches stock or a product's cost. What is owed on
+an invoice is `total − paidAmount`; `paidAmount` is the running sum of its payments, kept in the
+same transaction. An invoice's total can be edited but never below what is already paid; an
+invoice is soft-deleted, and only while nothing has been paid on it.
+
+**Payments** (`SupplierPayment`) work like a customer's: any amount, any time, no instalment plan.
+A payment is made **against one invoice**, or **on the supplier's account**, where it is spread
+over open invoices **oldest invoice first** — and the screen shows that split before Save. More
+than what is owed is refused. Something paid when the invoice is entered is its first payment.
+
+**The till:** each payment says whether the cash came **out of the drawer** (`fromDrawer`). Only
+those move the cash drawer, counted with the cash expenses on the day paid; a transfer or cheque
+paid from elsewhere is recorded but leaves the drawer alone. Supplier invoices are **not**
+expenses in the profit figures: profit already subtracts each piece's cost (COGS), and counting
+the purchase again would subtract it twice.
+
+**Permissions** (rule 22, each configurable): `supplier.view`, `supplier.manage` (suppliers and
+their invoices) and `supplier.pay`. **Admin only as shipped**, since an invoice shows what the
+stock cost (rule 19). The suppliers list shows the total owed to all suppliers. Every supplier,
+invoice and payment change is audited (`PAYMENT_MADE` for a payment).
 ---
 
 ## Cash drawer & expenses

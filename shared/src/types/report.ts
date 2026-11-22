@@ -12,9 +12,12 @@ export interface SalesTotals {
   // Sold after both discount levels and returns: the sales figure, NOT money in hand.
   revenue: string;
   collectedRevenue: string;
-  // Always revenue - collectedRevenue, stated so nobody has to subtract.
+  // Still with the delivery company.
   pendingCollectionAmount: string;
   pendingCollectionOrderCount: number;
+  // Still owed by customers on credit; revenue = collected + pendingCollection + customerDebt.
+  customerDebtAmount: string;
+  customerDebtOrderCount: number;
   discountAmount: string;
   averageOrderValue: string;
 
@@ -56,8 +59,12 @@ export interface TopSeller {
 export interface ProfitTotals {
   sold: string;
   received: string;
+  // With the delivery company.
   owed: string;
   owedOrderCount: number;
+  // Still owed by customers who bought on credit.
+  customerDebt: string;
+  customerDebtOrderCount: number;
 
   cogs: string;
   receivedCogs: string;

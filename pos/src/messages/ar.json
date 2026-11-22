@@ -219,7 +219,8 @@
       "submitting": "جارٍ الحفظ…",
       "whatsappOrder": "طلب واتساب",
       "orderDiscountApplied": "خصم الفاتورة ({value})",
-      "giftOrder": "إعطاء كهدية"
+      "giftOrder": "إعطاء كهدية",
+      "creditOrder": "بيع بالدين"
     },
     "success": {
       "title": "تم البيع بنجاح",
@@ -231,7 +232,8 @@
       "whatsappOrderNumber": "طلب رقم {number}",
       "giftTitle": "تم تسجيل الهدية",
       "giftCount": "{count, plural, one {قطعة واحدة} two {قطعتان} few {{count, number, plain} قطع} many {{count, number, plain} قطعة} other {{count, number, plain} قطعة}}",
-      "giftNextStep": "خرجت القطع من المخزون ولم يتم تحصيل أي مبلغ."
+      "giftNextStep": "خرجت القطع من المخزون ولم يتم تحصيل أي مبلغ.",
+      "creditBalance": "الباقي عليه {amount}"
     },
     "whatsapp": {
       "title": "طلب واتساب",
@@ -256,9 +258,11 @@
         "locationHint": "الصق الإحداثيات من الواتساب في خانة خط العرض وسيتم تعبئة الخانتين.",
         "latitude": "خط العرض",
         "longitude": "خط الطول",
-        "note": "ملاحظة (اختياري)",
+        "note": "ملاحظة",
         "notePlaceholder": "أي تفاصيل إضافية عن الطلب…"
-      }
+      },
+      "creditToggle": "بالدين",
+      "creditHint": "يدفع الزبون للمحل على دفعات أو مرة واحدة، لا لشركة التوصيل."
     },
     "gift": {
       "title": "إعطاء كهدية",
@@ -311,6 +315,33 @@
       "add": "إضافة {name} إلى السلة",
       "addToCart": "أضف للسلة",
       "cartCount": "{count, plural, zero {السلة فارغة} one {قطعة واحدة في السلة} two {قطعتان في السلة} few {{count, number, plain} قطع في السلة} many {{count, number, plain} قطعة في السلة} other {{count, number, plain} قطعة في السلة}}"
+    },
+    "credit": {
+      "title": "بيع بالدين",
+      "subtitle": "تُباع القطع الآن، ويدفع الزبون لاحقًا مرة واحدة أو على دفعات.",
+      "customer": "الزبون",
+      "searchLabel": "ابحث عن الزبون",
+      "searchPlaceholder": "الاسم أو رقم الهاتف",
+      "searching": "جارٍ البحث…",
+      "noMatches": "لم يُعثر على زبون. أضفه زبونًا جديدًا.",
+      "newCustomer": "زبون جديد",
+      "newName": "الاسم",
+      "newNamePlaceholder": "اسم الزبون",
+      "newPhone": "الهاتف",
+      "addCustomer": "إضافة الزبون",
+      "back": "رجوع",
+      "changeCustomer": "اختيار زبون آخر",
+      "alreadyOwes": "عليه من قبل {amount}",
+      "customerRequired": "اختر أو أضف الزبون الذي عليه الدين.",
+      "paidNow": "المدفوع الآن",
+      "paidNowHint": "اتركه فارغًا إن لم يُدفع شيء اليوم.",
+      "paidNowTooMuch": "أكثر من مجموع البيع.",
+      "remaining": "الباقي عليه",
+      "keptTitle": "محفوظ في المحل",
+      "keptHint": "علّم القطع التي لن يأخذها الزبون اليوم.",
+      "cancel": "إلغاء",
+      "confirm": "بيع بالدين",
+      "saving": "جارٍ الحفظ…"
     }
   },
   "errors": {
@@ -340,7 +371,11 @@
     "profileWrongPassword": "كلمة المرور الحالية غير صحيحة.",
     "profileSessionNotFound": "تم تسجيل خروج هذا الجهاز من قبل.",
     "phoneDuplicate": "رقم الهاتف هذا مستخدم مسبقًا.",
-    "whatsappDuplicate": "رقم الواتساب هذا مستخدم مسبقًا."
+    "whatsappDuplicate": "رقم الواتساب هذا مستخدم مسبقًا.",
+    "orderCreditInvalid": "البيع بالدين يكون من المحل فقط، مع اختيار الزبون.",
+    "orderPaymentExceedsBalance": "المبلغ أكبر من الباقي.",
+    "customerNotFound": "لم يُعثر على هذا الزبون.",
+    "customerPhoneTaken": "رقم الهاتف هذا مسجّل لزبون آخر."
   },
   "pwa": {
     "version": {

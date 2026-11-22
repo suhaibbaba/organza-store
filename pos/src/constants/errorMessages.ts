@@ -34,6 +34,10 @@ export const ERROR_MESSAGE_KEYS: Record<string, string> = {
   [ERROR_CODES.ORDER_PRODUCT_UNAVAILABLE]: "errors.orderProductUnavailable",
   [ERROR_CODES.ORDER_VARIANT_REQUIRED]: "errors.orderVariantRequired",
   [ERROR_CODES.ORDER_ITEM_SOURCE_INVALID]: "errors.orderItemSourceInvalid",
+  [ERROR_CODES.ORDER_CREDIT_INVALID]: "errors.orderCreditInvalid",
+  [ERROR_CODES.ORDER_PAYMENT_EXCEEDS_BALANCE]: "errors.orderPaymentExceedsBalance",
+  [ERROR_CODES.CUSTOMER_NOT_FOUND]: "errors.customerNotFound",
+  [ERROR_CODES.CUSTOMER_PHONE_TAKEN]: "errors.customerPhoneTaken",
 };
 
 export const FALLBACK_ERROR_MESSAGE_KEY = "errors.internal";

@@ -51,7 +51,7 @@ export function ForgotPasswordForm() {
     <form method="post" onSubmit={handleSubmit(onSubmit)} noValidate className="flex flex-col gap-5">
       {formError && <Alert tone="danger">{translateError(formError)}</Alert>}
 
-      <FormField label="auth.forgotPassword.emailLabel" htmlFor="email">
+      <FormField label="auth.forgotPassword.emailLabel" required htmlFor="email">
         <Input
           id="email"
           type="email"

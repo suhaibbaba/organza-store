@@ -41,6 +41,12 @@ export function DashboardTodoList({ summary, drawer }: DashboardTodoListProps) {
     ...(canCollect
       ? [{ key: "uncollected", value: formatMoney(collection?.amount ?? "0"), active: owed > 0 } as const]
       : []),
+    ...(can(user, "customer.view")
+      ? [
+          { key: "customersOwing", value: summary.customersOwing, active: summary.customersOwing > 0 } as const,
+          { key: "keptPieces", value: summary.keptPieces, active: summary.keptPieces > 0 } as const,
+        ]
+      : []),
     ...(drawer ? [{ key: "followUps", value: followUps, active: followUps > 0 } as const] : []),
   ];
 

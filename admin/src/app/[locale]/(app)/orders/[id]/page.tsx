@@ -19,6 +19,7 @@ import { OrderMetaCard } from "@/components/orders/detail/order-meta-card";
 import { OrderStatusActions } from "@/components/orders/detail/order-status-actions";
 import { OrderPaymentCard } from "@/components/orders/detail/order-payment-card";
 import { OrderHeader } from "@/components/orders/detail/order-header";
+import { useOrderHandover } from "@/hooks/use-order-handover";
 
 export default function OrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
   return (
@@ -34,6 +35,7 @@ function OrderDetailPageContent({ params }: { params: Promise<{ id: string }> })
   const { user } = useSession();
 
   const { data: order, isLoading, isError, error, refetch } = useOrderQuery(id);
+  const handover = useOrderHandover(order);
 
   if (isLoading) {
     return (
@@ -79,14 +81,15 @@ function OrderDetailPageContent({ params }: { params: Promise<{ id: string }> })
 
         <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-[minmax(0,1fr)_22rem]">
           <div className="flex min-w-0 flex-col gap-4">
-            <OrderItemsList items={order.items} footer={<OrderTotals order={order} />} />
+            <OrderItemsList items={order.items} footer={<OrderTotals order={order} />} handover={handover.controls} />
+            {handover.dialog}
           </div>
 
           <aside className="flex min-w-0 flex-col gap-4">
             <OrderStatusActions order={order} />
             <OrderPaymentCard order={order} />
-            {/* A STORE sale was handed over the counter: no customer to show. */}
-            {isOnline && <OrderCustomerCard order={order} />}
+            {/* A counter sale has no customer card, unless it was sold on credit to a named customer. */}
+            {(isOnline || order.onCredit) && <OrderCustomerCard order={order} />}
             <OrderMetaCard order={order} />
             {!canManage && (
               <Alert tone="info" data-testid="alert-default">

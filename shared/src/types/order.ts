@@ -42,8 +42,21 @@ export interface OrderItem {
   // Quick-sold at the counter (spec.md "Quick sell"); a snapshot, so it outlives the product's completion.
   quickSold: boolean;
   thumbnailUrl: string | null;
+  // Credit sales: null = still kept in the shop for the customer.
+  handedOverAt: string | null;
+  handedOverBy: OrderCreator | null;
   // SENSITIVE (rule 19): Admin only — absent, not null, for everyone else.
   unitCost?: string | null;
+}
+
+// One payment on a credit sale; a refund is negative.
+export interface OrderPayment {
+  id: string;
+  amount: string;
+  method: PaymentMethod;
+  receivedAt: string;
+  note: string | null;
+  receivedBy: OrderCreator | null;
 }
 
 // Just id + name, so the admin can show it without the Admin-only staff list.
@@ -72,6 +85,12 @@ export interface Order {
   customerLatitude: number | null;
   customerLongitude: number | null;
   note: string | null;
+  customerId: string | null;
+  // Credit sale: stays true once paid off. balance = what is still owed, net of returns.
+  onCredit: boolean;
+  paidAmount: string;
+  balance: string;
+  payments: OrderPayment[];
   // Computed on the server from the item snapshots; the client never supplies a total.
   subtotal: string;
   discountType: DiscountType | null;
@@ -111,6 +130,9 @@ export interface OrderSummary {
   collectedAt: string | null;
   customerName: string | null;
   customerPhone: string | null;
+  customerId: string | null;
+  onCredit: boolean;
+  paidAmount: string;
   subtotal: string;
   discountAmount: string;
   total: string;

@@ -52,7 +52,7 @@ export function CustomerForm({ register, control, setValue, errors, onPickSugges
 
   return (
     <div className="flex flex-col gap-5">
-      <FormField label="sell.whatsapp.customer.name" htmlFor="customer-name">
+      <FormField label="sell.whatsapp.customer.name" htmlFor="customer-name" required>
         <Input
           id="customer-name"
           data-testid={fieldTestSelector("customer-name")}
@@ -65,7 +65,7 @@ export function CustomerForm({ register, control, setValue, errors, onPickSugges
         {errors.name && <FieldMessage field="customer-name">{translateError(errors.name.message ?? "")}</FieldMessage>}
       </FormField>
 
-      <FormField label="sell.whatsapp.customer.phone" htmlFor="customer-phone">
+      <FormField label="sell.whatsapp.customer.phone" htmlFor="customer-phone" required>
         <Controller
           control={control}
           name="phone"
@@ -85,7 +85,7 @@ export function CustomerForm({ register, control, setValue, errors, onPickSugges
         )}
       </FormField>
 
-      <FormField label="sell.whatsapp.customer.address" htmlFor="customer-address">
+      <FormField label="sell.whatsapp.customer.address" htmlFor="customer-address" optional>
         <Textarea
           id="customer-address"
           data-testid={fieldTestSelector("customer-address")}
@@ -101,7 +101,7 @@ export function CustomerForm({ register, control, setValue, errors, onPickSugges
         </summary>
 
         <div className="flex flex-col gap-5 border-t border-line p-4">
-          <FormField label="sell.whatsapp.customer.whatsapp" htmlFor="customer-whatsapp">
+          <FormField label="sell.whatsapp.customer.whatsapp" htmlFor="customer-whatsapp" optional>
             <Controller
               control={control}
               name="whatsapp"
@@ -160,7 +160,7 @@ export function CustomerForm({ register, control, setValue, errors, onPickSugges
             )}
           </div>
 
-          <FormField label="sell.whatsapp.customer.note" htmlFor="customer-note">
+          <FormField label="sell.whatsapp.customer.note" htmlFor="customer-note" optional>
             <Textarea
               id="customer-note"
               data-testid={fieldTestSelector("customer-note")}

@@ -18,7 +18,8 @@ export interface CountComparison {
   difference: string;
 }
 
-export type DashboardTodoKey = "approvals" | "incomplete" | "labels" | "lowStock" | "uncollected" | "followUps";
+export type DashboardTodoKey =
+  "approvals" | "incomplete" | "labels" | "lowStock" | "uncollected" | "customersOwing" | "keptPieces" | "followUps";
 
 export interface DashboardTodoMeta {
   icon: LucideIcon;

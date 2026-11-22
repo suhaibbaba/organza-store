@@ -1,6 +1,6 @@
 import type { ReportPeriod } from "@/types/report";
 
-import { Barcode, ClipboardCheck, PackageSearch, Scale, Truck, WandSparkles } from "lucide-react";
+import { Barcode, ClipboardCheck, PackageSearch, Scale, Truck, WandSparkles, Contact, Store } from "lucide-react";
 import type { DashboardTodoKey, DashboardTodoMeta } from "@/types/dashboard";
 
 export const CASH_SESSION_CURRENT_QUERY_KEY = ["cashSessions", "current"] as const;
@@ -31,6 +31,8 @@ export const DASHBOARD_TODOS: Record<DashboardTodoKey, DashboardTodoMeta> = {
   labels: { icon: Barcode, href: "/labels" },
   lowStock: { icon: PackageSearch, href: "/inventory?lowStock=true" },
   uncollected: { icon: Truck, href: "/orders/collection" },
+  customersOwing: { icon: Contact, href: "/customers?owing=true" },
+  keptPieces: { icon: Store, href: "/customers?keptPieces=true" },
   followUps: { icon: Scale, href: null },
 };
 

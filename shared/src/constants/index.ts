@@ -30,3 +30,5 @@ export * from "./roles";
 export * from "./time";
 export * from "./validation";
 export * from "./variantType";
+export * from "./customer";
+export * from "./supplier";

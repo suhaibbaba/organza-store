@@ -150,7 +150,7 @@ export function CategoryFormModal({ target, tree, onClose }: CategoryFormModalPr
           )}
         </fieldset>
 
-        <FormField label="categories.form.parent" hint="categories.form.parentHint" htmlFor="parentId">
+        <FormField label="categories.form.parent" hint="categories.form.parentHint" htmlFor="parentId" optional>
           <Controller
             control={control}
             name="parentId"

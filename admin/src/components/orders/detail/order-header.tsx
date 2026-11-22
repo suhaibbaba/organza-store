@@ -44,6 +44,12 @@ export function OrderHeader({ order }: { order: Order }) {
   const canDelete = can(user, "order.delete");
   const hasQuickSale = order.hasQuickSale || order.items.some((item) => item.quickSold);
 
+  // Undoing a credit sale pays back what the customer already paid, from the till.
+  const refundLine =
+    order.onCredit && Number(order.paidAmount) > 0
+      ? [t("detail.credit.refundConsequence", { amount: formatMoney(order.paidAmount) })]
+      : [];
+
   function requestCancel() {
     cancelConfirm.confirm({
       title: "orders.detail.statusActions.cancelTitle",
@@ -54,6 +60,7 @@ export function OrderHeader({ order }: { order: Order }) {
             ? "detail.statusActions.cancelConsequenceStock"
             : "detail.statusActions.cancelConsequence",
         ),
+        ...refundLine,
       ],
       confirmLabel: "orders.detail.statusActions.cancelOrder",
       tone: "danger",
@@ -75,6 +82,7 @@ export function OrderHeader({ order }: { order: Order }) {
       titleValues: { number: order.orderNumber },
       consequences: [
         t(order.stockDeductedAt ? "detail.manage.deleteConsequenceStock" : "detail.manage.deleteConsequence"),
+        ...refundLine,
       ],
       confirmLabel: "orders.detail.manage.deleteOrder",
       tone: "danger",

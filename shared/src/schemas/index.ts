@@ -16,3 +16,5 @@ export * from "./setting";
 export * from "./user";
 export * from "./variantType";
 export * from "./profile";
+export * from "./customer";
+export * from "./supplier";

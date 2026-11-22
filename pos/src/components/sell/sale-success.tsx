@@ -54,6 +54,10 @@ export function SaleSuccess({ order, onNewSale }: SaleSuccessProps) {
             ? t("orderNumber", { number: order.orderNumber })
             : t("whatsappOrderNumber", { number: order.orderNumber })}
         </p>
+        {/* A credit sale names who owes it, and how much is still to come. */}
+        {order.onCredit && order.customerName && (
+          <p className="text-sm text-ink-muted">{t("customer", { name: order.customerName })}</p>
+        )}
         {!isGift && !isCounterSale && order.customerName && (
           <p className="text-sm text-ink-muted">{t("customer", { name: order.customerName })}</p>
         )}
@@ -66,6 +70,11 @@ export function SaleSuccess({ order, onNewSale }: SaleSuccessProps) {
         <p className="text-3xl font-bold tabular-nums text-ink">{formatMoney(order.total)}</p>
       )}
 
+      {order.onCredit && Number(order.balance) > 0 && (
+        <p className="text-lg font-semibold tabular-nums text-danger-700" data-test-selector="pos-sale-credit-balance">
+          {t("creditBalance", { amount: formatMoney(order.balance) })}
+        </p>
+      )}
       {isGift && <p className="max-w-xs text-sm text-ink-muted">{t("giftNextStep")}</p>}
       {!isGift && !isCounterSale && <p className="max-w-xs text-sm text-ink-muted">{t("whatsappNextStep")}</p>}
 

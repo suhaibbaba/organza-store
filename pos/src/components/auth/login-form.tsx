@@ -83,7 +83,7 @@ export function LoginForm() {
         </Alert>
       )}
 
-      <FormField label="auth.login.emailLabel" htmlFor="email">
+      <FormField label="auth.login.emailLabel" required htmlFor="email">
         <Input
           id="email"
           type="email"
@@ -101,7 +101,7 @@ export function LoginForm() {
         )}
       </FormField>
 
-      <FormField label="auth.login.passwordLabel" htmlFor="password">
+      <FormField label="auth.login.passwordLabel" required htmlFor="password">
         <PasswordInput
           id="password"
           autoComplete="current-password"

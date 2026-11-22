@@ -21,7 +21,7 @@ export const ORDER_STATUSES = ["NEW", "PREPARING", "HANDED_TO_COURIER", "COMPLET
 export const PAYMENT_METHODS = ["CASH"] as const;
 
 // Selling and being paid are separate moments: a courier parcel is money the delivery company still owes.
-export const PAYMENT_STATUSES = ["PENDING_COLLECTION", "COLLECTED"] as const;
+export const PAYMENT_STATUSES = ["PENDING_COLLECTION", "COLLECTED", "ON_CREDIT"] as const;
 
 export const DISCOUNT_TYPES = ["PERCENT", "AMOUNT"] as const;
 

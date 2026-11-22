@@ -2,25 +2,21 @@
 
 import { useTranslations } from "next-intl";
 import { ChevronLeft } from "lucide-react";
-import { Link, usePathname } from "@/i18n/navigation";
+import { Link } from "@/i18n/navigation";
 import { useVisibleNavItems } from "@/hooks/use-visible-nav-items";
 import { useSession } from "@/components/providers/session-provider";
-import { NavPendingBadge } from "@/components/change-requests/nav-pending-badge";
-import { DesignSystemNavLink, NavLink } from "@/components/layout/nav-link";
+import { NavTree } from "@/components/layout/nav-tree";
 import { EnvironmentBadge } from "@/components/layout/environment-badge";
 import { ShopLogo } from "@/components/brand/shop-logo";
 import { DEFAULT_LANDING_HREF } from "@/constants/routes";
-import { activeHref, landingHref } from "@/lib/nav";
+import { landingHref } from "@/lib/nav";
 import { useSidebarCollapsed } from "@/hooks/use-sidebar-collapsed";
 import { cn } from "@/lib/utils";
-import { testSelectorFor } from "@store/shared/lib/testSelector";
 
 export function SidebarNav() {
   const t = useTranslations();
-  const pathname = usePathname();
   const items = useVisibleNavItems();
   const { user } = useSession();
-  const active = activeHref(pathname, items);
   const [collapsed, setCollapsed] = useSidebarCollapsed();
 
   return (
@@ -73,23 +69,7 @@ export function SidebarNav() {
         </Link>
 
         <nav className="scroll-lane -mx-[18px] min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-[18px]">
-          <ul>
-            {items.map((item) => (
-              // Same name as the bottom bar's tab: one nav, two shapes.
-              <NavLink
-                key={item.key}
-                href={item.href}
-                icon={item.icon}
-                label={t(`nav.${item.key}`)}
-                isActive={item.href === active}
-                testSelector={testSelectorFor("nav-item", item.key)}
-                onRail
-                collapsed={collapsed}
-                trailing={item.key === "changeRequests" ? <NavPendingBadge className="ms-auto" /> : undefined}
-              />
-            ))}
-            <DesignSystemNavLink pathname={pathname} onRail collapsed={collapsed} />
-          </ul>
+          <NavTree items={items} itemSelector="nav-item" onRail collapsed={collapsed} />
         </nav>
       </div>
     </aside>

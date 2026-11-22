@@ -68,10 +68,16 @@ The POS selling screen is laid out from the Figma design — category tiles with
 photo grid, and the cart as a side panel from 1000px or a bottom bar + sheet below it (see "POS
 selling screen layout" in `spec.md`); its favourite categories are flagged from the admin's
 category screen.
-**Still deferred:** the customer storefront (Phase 3), real Customer accounts, and the
+**Customers and selling on credit** are built end to end (backend + admin + POS): a `Customer`
+table (phone unique under both +970/+972), credit sales on any channel (counter or WhatsApp) with any number of payments, per-piece
+handover for pieces kept in the shop — see "Customers and selling on credit" in `spec.md`.
+**Suppliers** are built (backend + admin): suppliers, their invoices as amounts owed (not stock),
+and payments against one invoice or oldest first, each marked as from the till or not — see
+"Suppliers and their invoices" in `spec.md`.
+**Still deferred:** the customer storefront (Phase 3), customer LOGIN accounts, and the
 numbered-shawls WhatsApp export. WhatsApp order entry is built (admin _and_ POS): a cart can be
 filed as a WHATSAPP order with a customer snapshot, and the phone box suggests repeat customers
-from past orders — there is still no Customer table behind it.
+from past orders; the order is also linked to its `Customer` row, created on first order.
 
 ## Hard rules — do not break these
 

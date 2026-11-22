@@ -12,6 +12,7 @@ import { toLocalDateString } from "@/lib/report-range";
 import { cn } from "@/lib/utils";
 import { GREETING_AFTERNOON_HOUR, GREETING_EVENING_HOUR } from "@/constants/dashboard";
 import type { DashboardHeroProps } from "@/types/dashboard";
+import { owedTotal } from "@/lib/report-figures";
 
 function greetingFor(hour: number) {
   if (hour < GREETING_AFTERNOON_HOUR) {
@@ -128,7 +129,7 @@ export function DashboardHero({ name, today, drawer }: DashboardHeroProps) {
         <Typography variant="caption" as="span" className="text-ink-inverse/75">
           {t("receivedShare", {
             received: formatMoney(totals.collectedRevenue),
-            owed: formatMoney(totals.pendingCollectionAmount),
+            owed: formatMoney(owedTotal(totals)),
           })}
         </Typography>
       </div>

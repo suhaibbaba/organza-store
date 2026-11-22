@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { StatCard } from "@/components/layout/stat-card";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
+import { owedTotal } from "@/lib/report-figures";
 import type { ReportHeadlineProps } from "@/types/report";
 
 // Sold, received and owed always together, so sales never reads as cash in hand.
@@ -32,11 +33,16 @@ export function ReportHeadline({ totals }: ReportHeadlineProps) {
         tone="warning"
         label={tFigures("owed.label")}
         tooltip={tFigures("owed.help")}
-        value={formatMoney(totals.pendingCollectionAmount)}
+        value={formatMoney(owedTotal(totals))}
         hint={
-          totals.pendingCollectionOrderCount > 0
-            ? t("owedOrders", { count: totals.pendingCollectionOrderCount })
-            : undefined
+          Number(totals.customerDebtAmount) > 0
+            ? t("owedSplit", {
+                courier: formatMoney(totals.pendingCollectionAmount),
+                customers: formatMoney(totals.customerDebtAmount),
+              })
+            : totals.pendingCollectionOrderCount > 0
+              ? t("owedOrders", { count: totals.pendingCollectionOrderCount })
+              : undefined
         }
       />
     </div>

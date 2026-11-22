@@ -1,3 +1,4 @@
+import type { Customer } from "@/types/customer";
 import type { ReactNode } from "react";
 import type { TableSort } from "@store/ui";
 import type { Control, FieldErrors, UseFormRegister, UseFormSetValue } from "react-hook-form";
@@ -33,6 +34,15 @@ export interface DiscountState {
 }
 
 // Display copies only: the API re-reads price and name, so a stale price can never become a wrong order.
+// The credit part of a new counter sale, kept beside the form (spec.md "Customers and selling on credit").
+export interface OrderCreditDraft {
+  onCredit: boolean;
+  customer: Customer | null;
+  paidNow: string;
+  // Draft line keys whose pieces stay in the shop until collected.
+  keptKeys: string[];
+}
+
 export interface OrderDraftLine {
   // Adding the same item twice bumps this line rather than stacking a duplicate.
   key: string;

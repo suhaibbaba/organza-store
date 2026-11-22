@@ -75,7 +75,7 @@ export function LoginForm() {
       {/* method="post" is a fallback: a native submit before hydration keeps credentials out of the URL. */}
       {formError && <Alert tone="danger">{t(LOGIN_ERROR_MESSAGE_KEYS[formError])}</Alert>}
 
-      <FormField label="auth.login.emailLabel" htmlFor="email">
+      <FormField label="auth.login.emailLabel" required htmlFor="email">
         <Input
           id="email"
           type="email"
@@ -90,7 +90,7 @@ export function LoginForm() {
         {errors.email && <AuthFieldError field="email">{translateError(errors.email.message ?? "")}</AuthFieldError>}
       </FormField>
 
-      <FormField label="auth.login.passwordLabel" htmlFor="password">
+      <FormField label="auth.login.passwordLabel" required htmlFor="password">
         <PasswordInput
           id="password"
           autoComplete="current-password"

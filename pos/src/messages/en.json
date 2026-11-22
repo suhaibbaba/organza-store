@@ -219,7 +219,8 @@
       "submitting": "Saving…",
       "whatsappOrder": "WhatsApp order",
       "orderDiscountApplied": "Sale discount ({value})",
-      "giftOrder": "Give as gift"
+      "giftOrder": "Give as gift",
+      "creditOrder": "Sell on credit"
     },
     "success": {
       "title": "Sale completed",
@@ -231,7 +232,8 @@
       "whatsappOrderNumber": "Order {number}",
       "giftTitle": "Gift recorded",
       "giftCount": "{count, plural, one {{count, number, plain} piece} other {{count, number, plain} pieces}}",
-      "giftNextStep": "The stock has been deducted and no money was taken."
+      "giftNextStep": "The stock has been deducted and no money was taken.",
+      "creditBalance": "Still owes {amount}"
     },
     "whatsapp": {
       "title": "WhatsApp order",
@@ -256,9 +258,11 @@
         "locationHint": "Paste the coordinates from WhatsApp into the latitude box and both fields fill in.",
         "latitude": "Latitude",
         "longitude": "Longitude",
-        "note": "Note (optional)",
+        "note": "Note",
         "notePlaceholder": "Anything else about this order…"
-      }
+      },
+      "creditToggle": "On credit",
+      "creditHint": "The customer pays the shop, in parts or at once — not the delivery company."
     },
     "gift": {
       "title": "Give as a gift",
@@ -311,6 +315,33 @@
       "add": "Add {name} to the cart",
       "addToCart": "Add to cart",
       "cartCount": "{count, plural, zero {The cart is empty} one {{count, number, plain} piece in the cart} other {{count, number, plain} pieces in the cart}}"
+    },
+    "credit": {
+      "title": "Sell on credit",
+      "subtitle": "The pieces are sold now; the customer pays later, in one go or bit by bit.",
+      "customer": "Customer",
+      "searchLabel": "Find a customer",
+      "searchPlaceholder": "Name or phone",
+      "searching": "Searching…",
+      "noMatches": "No customer found. Add them as a new customer.",
+      "newCustomer": "New customer",
+      "newName": "Name",
+      "newNamePlaceholder": "Customer's name",
+      "newPhone": "Phone",
+      "addCustomer": "Add customer",
+      "back": "Back",
+      "changeCustomer": "Choose another customer",
+      "alreadyOwes": "Already owes {amount}",
+      "customerRequired": "Choose or add the customer who owes this.",
+      "paidNow": "Paid now",
+      "paidNowHint": "Leave empty if nothing is paid today.",
+      "paidNowTooMuch": "More than the sale total.",
+      "remaining": "Left to pay",
+      "keptTitle": "Kept in the shop",
+      "keptHint": "Tick the pieces the customer is not taking today.",
+      "cancel": "Cancel",
+      "confirm": "Sell on credit",
+      "saving": "Saving…"
     }
   },
   "errors": {
@@ -340,7 +371,11 @@
     "profileWrongPassword": "The current password is not correct.",
     "profileSessionNotFound": "That device is already signed out.",
     "phoneDuplicate": "This phone number is already in use.",
-    "whatsappDuplicate": "This WhatsApp number is already in use."
+    "whatsappDuplicate": "This WhatsApp number is already in use.",
+    "orderCreditInvalid": "A credit sale must be a counter sale with a customer chosen.",
+    "orderPaymentExceedsBalance": "That is more than is owed.",
+    "customerNotFound": "This customer was not found.",
+    "customerPhoneTaken": "Another customer already has this phone number."
   },
   "pwa": {
     "version": {

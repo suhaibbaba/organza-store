@@ -6,6 +6,7 @@ import { StatCard } from "@/components/layout/stat-card";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
 import { DASHBOARD_RISE_STEP_MS } from "@/constants/dashboard";
 import type { DashboardTodayStripProps } from "@/types/dashboard";
+import { owedTotal } from "@/lib/report-figures";
 
 const CARD_MOTION = "animate-rise transition duration-300 hover:-translate-y-0.5 hover:shadow-card-hover";
 
@@ -47,8 +48,15 @@ export function DashboardTodayStrip({ today }: DashboardTodayStripProps) {
         icon={Truck}
         label={tFigures("owed.label")}
         tooltip={tFigures("owed.help")}
-        value={formatMoney(totals.pendingCollectionAmount)}
-        hint={t("owedOrders", { count: totals.pendingCollectionOrderCount })}
+        value={formatMoney(owedTotal(totals))}
+        hint={
+          Number(totals.customerDebtAmount) > 0
+            ? t("owedSplit", {
+                courier: formatMoney(totals.pendingCollectionAmount),
+                customers: formatMoney(totals.customerDebtAmount),
+              })
+            : t("owedOrders", { count: totals.pendingCollectionOrderCount })
+        }
         className={CARD_MOTION}
         style={delay(2)}
       />

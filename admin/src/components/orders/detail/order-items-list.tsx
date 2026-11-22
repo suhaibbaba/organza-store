@@ -1,7 +1,7 @@
 import { useLocale, useTranslations } from "next-intl";
 import type { ReactNode } from "react";
-import { Package, Undo2, Zap } from "lucide-react";
-import { Table, type Column, Typography } from "@store/ui";
+import { HandHelping, Package, Store, Undo2, Zap } from "lucide-react";
+import { Button, Table, type Column, Typography } from "@store/ui";
 import type { OrderItem } from "@store/shared/types/order";
 import { testSelectorFor } from "@store/shared/lib/testSelector";
 import { SELECTABLE } from "@store/shared/lib/nativeGestures";
@@ -11,16 +11,77 @@ import { useMoneyFormatter } from "@/hooks/use-money-formatter";
 import { ORDER_THUMB_SIZES } from "@/constants/orders";
 import { ProductImage } from "@/components/products/product-image";
 import { DetailCard } from "@/components/layout/detail-card";
+import { formatDateTime } from "@/lib/format";
+
+// Only a credit sale tracks handover: every other sale leaves with the customer or the courier.
+interface HandoverControls {
+  canHandOver: boolean;
+  pendingItemId: string | null;
+  onHandOver: (item: OrderItem) => void;
+}
 
 // Rows are named `order-item-row-<id>` by the Table; the cell keeps the old `order-item-<id>` name too.
 const TABLE_NAME = "order-item";
 
-export function OrderItemsList({ items, footer }: { items: OrderItem[]; footer?: ReactNode }) {
+export function OrderItemsList({
+  items,
+  footer,
+  handover,
+}: {
+  items: OrderItem[];
+  footer?: ReactNode;
+  handover?: HandoverControls;
+}) {
   const t = useTranslations("orders.detail.items");
   const tDiscount = useTranslations("orders.discount");
   const tCard = useTranslations("orders.card");
   const locale = useLocale();
   const formatMoney = useMoneyFormatter();
+  const tHandover = useTranslations("orders.detail.handover");
+
+  function renderHandover(item: OrderItem) {
+    if (!handover) {
+      return null;
+    }
+    if (item.handedOverAt) {
+      return (
+        <Typography
+          variant="small"
+          tone="muted"
+          as="span"
+          className="inline-flex items-center gap-1 font-normal"
+          data-test-selector={testSelectorFor("order-item-handed-over", item.id)}
+        >
+          <HandHelping className="size-3.5 shrink-0" aria-hidden="true" />
+          {tHandover("handedOver", { date: formatDateTime(item.handedOverAt, locale) })}
+        </Typography>
+      );
+    }
+    return (
+      <div className="mt-1 flex flex-wrap items-center gap-2">
+        <Typography
+          variant="small"
+          as="span"
+          className="inline-flex items-center gap-1 font-normal text-warning-700"
+          data-test-selector={testSelectorFor("order-item-kept", item.id)}
+        >
+          <Store className="size-3.5 shrink-0" aria-hidden="true" />
+          {tHandover("kept")}
+        </Typography>
+        {handover.canHandOver && (
+          <Button
+            variant="secondary"
+            data-test-selector={testSelectorFor("order-item-hand-over", item.id)}
+            isLoading={handover.pendingItemId === item.id}
+            disabled={handover.pendingItemId !== null}
+            onClick={() => handover.onHandOver(item)}
+          >
+            {tHandover("action")}
+          </Button>
+        )}
+      </div>
+    );
+  }
 
   function renderDiscount(item: OrderItem) {
     if (item.discountType === null || Number(item.discountAmount) <= 0) {
@@ -111,6 +172,7 @@ export function OrderItemsList({ items, footer }: { items: OrderItem[]; footer?:
                   {t("returned", { count: item.returnedQuantity })}
                 </Typography>
               )}
+              {renderHandover(item)}
             </div>
           </div>
         );

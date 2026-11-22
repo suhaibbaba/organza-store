@@ -88,6 +88,20 @@ export const ERROR_CODES = {
   ORDER_ITEM_SOURCE_INVALID: "error.order.item_source_invalid",
   // A cancelled or fully returned sale owes nothing, so there is no money to record as collected.
   ORDER_NOT_COLLECTABLE: "error.order.not_collectable",
+  ORDER_CREDIT_INVALID: "error.order.credit_invalid",
+  ORDER_NOT_ON_CREDIT: "error.order.not_on_credit",
+  ORDER_PAYMENT_EXCEEDS_BALANCE: "error.order.payment_exceeds_balance",
+  ORDER_ALREADY_HANDED_OVER: "error.order.already_handed_over",
+  CUSTOMER_NOT_FOUND: "error.customer.not_found",
+  CUSTOMER_PHONE_TAKEN: "error.customer.phone_taken",
+  CUSTOMER_NOTHING_OWED: "error.customer.nothing_owed",
+  SUPPLIER_NOT_FOUND: "error.supplier.not_found",
+  SUPPLIER_PHONE_TAKEN: "error.supplier.phone_taken",
+  SUPPLIER_NOTHING_OWED: "error.supplier.nothing_owed",
+  SUPPLIER_INVOICE_NOT_FOUND: "error.supplier.invoice_not_found",
+  SUPPLIER_PAYMENT_EXCEEDS_BALANCE: "error.supplier.payment_exceeds_balance",
+  SUPPLIER_INVOICE_BELOW_PAID: "error.supplier.invoice_below_paid",
+  SUPPLIER_INVOICE_HAS_PAYMENTS: "error.supplier.invoice_has_payments",
 
   // --- cash drawer ---
   CASH_SESSION_NOT_FOUND: "error.cashSession.not_found",

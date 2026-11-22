@@ -10,4 +10,6 @@ export const BREADCRUMB_ACTION_SEGMENTS: Readonly<Record<string, BreadcrumbLeafK
 export const BREADCRUMB_SECTIONS: Readonly<Record<string, readonly BreadcrumbLeafKind[]>> = {
   orders: ["detail", "new"],
   products: ["detail", "new", "edit"],
+  customers: ["detail"],
+  suppliers: ["detail"],
 };

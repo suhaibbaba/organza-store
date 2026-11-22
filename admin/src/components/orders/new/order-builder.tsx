@@ -14,7 +14,7 @@ import type { Order } from "@store/shared/types/order";
 import type { Product, ProductSummary } from "@store/shared/types/product";
 import type { Variant } from "@store/shared/types/variant";
 import type { CreateOrderInput } from "@store/shared/schemas/order";
-import { MANUAL_ORDER_PAYMENT_METHOD } from "@/constants/orders";
+import { EMPTY_ORDER_CREDIT, MANUAL_ORDER_PAYMENT_METHOD } from "@/constants/orders";
 import { PRODUCT_LIST_QUERY_KEY } from "@/constants/products";
 import { fetchProduct } from "@/lib/api/products";
 import { ApiError } from "@/lib/api/errors";
@@ -40,6 +40,8 @@ import { CustomerForm } from "@/components/orders/new/customer-form";
 import { OrderCreated } from "@/components/orders/new/order-created";
 import { OrderFormSection } from "@/components/orders/new/order-form-section";
 import { OrderKindFields } from "@/components/orders/new/order-kind-fields";
+import { OrderCreditFields } from "@/components/orders/new/order-credit-fields";
+import type { OrderCreditDraft } from "@/types/order";
 
 // WhatsApp opens NEW (stock taken at preparation); an in-shop order opens finished with its stock taken (spec.md "Stock deduction").
 export function OrderBuilder() {
@@ -59,6 +61,8 @@ export function OrderBuilder() {
   const [discountLineKey, setDiscountLineKey] = useState<string | null>(null);
   const [orderDiscountOpen, setOrderDiscountOpen] = useState(false);
   const [createdOrder, setCreatedOrder] = useState<Order | null>(null);
+  const [credit, setCredit] = useState<OrderCreditDraft>({ ...EMPTY_ORDER_CREDIT, keptKeys: [] });
+  const [creditSubmitted, setCreditSubmitted] = useState(false);
 
   const {
     register,
@@ -77,6 +81,12 @@ export function OrderBuilder() {
   const canGift = can(user, "order.createGift");
   const isGift = useWatch({ control, name: "gift" }) && canGift;
   const needsContact = (ONLINE_ORDER_CHANNELS as readonly string[]).includes(channel);
+  // Credit on any channel, never a gift; at the counter the customer is picked, online it is the contact below.
+  const canCredit = can(user, "order.sellOnCredit") && !isGift;
+  const onCredit = canCredit && credit.onCredit;
+  const creditAtCounter = channel === "STORE";
+  const creditInvalid =
+    onCredit && ((creditAtCounter && !credit.customer) || Number(credit.paidNow || 0) > Number(draft.totals.total));
 
   const addItem = useCallback(
     (product: Product, variant: Variant | null) => {
@@ -115,6 +125,10 @@ export function OrderBuilder() {
     if (draft.isEmpty) {
       return;
     }
+    setCreditSubmitted(true);
+    if (creditInvalid) {
+      return;
+    }
 
     const customer = toCustomerDraft(values);
     const note = customer.note.trim();
@@ -124,11 +138,23 @@ export function OrderBuilder() {
       ? draft.lines.map((line) => ({ ...line, discountType: null, discountValue: null }))
       : draft.lines;
 
+    const items = toOrderItems(lines);
     const input: CreateOrderInput = {
       channel: values.channel,
       type: gift ? GIFT_ORDER_TYPE : SALE_ORDER_TYPE,
       paymentMethod: MANUAL_ORDER_PAYMENT_METHOD,
-      items: toOrderItems(lines),
+      items: onCredit
+        ? items.map((item, index) =>
+            credit.keptKeys.includes(lines[index].key) ? { ...item, keptInShop: true } : item,
+          )
+        : items,
+      ...(onCredit
+        ? {
+            onCredit: true,
+            ...(creditAtCounter && credit.customer && { customerId: credit.customer.id }),
+            ...(Number(credit.paidNow) > 0 && { paidNow: credit.paidNow }),
+          }
+        : {}),
       ...(needsContact ? toCustomerFields(customer) : note ? { note } : {}),
       ...(!gift && draft.orderDiscount.type && draft.orderDiscount.value
         ? { discountType: draft.orderDiscount.type, discountValue: draft.orderDiscount.value }
@@ -140,6 +166,8 @@ export function OrderBuilder() {
 
   function startNewOrder() {
     setCreatedOrder(null);
+    setCredit({ ...EMPTY_ORDER_CREDIT, keptKeys: [] });
+    setCreditSubmitted(false);
     draft.clear();
     reset({ ...DEFAULT_ORDER_CUSTOMER_VALUES, channel });
     setQuery("");
@@ -197,6 +225,18 @@ export function OrderBuilder() {
           </div>
 
           <div className="flex min-w-0 flex-col gap-5 lg:col-start-2 lg:row-start-2">
+            {canCredit && (
+              <OrderFormSection name="credit" forceOpen={creditSubmitted && creditInvalid}>
+                <OrderCreditFields
+                  credit={credit}
+                  onChange={(patch) => setCredit((current) => ({ ...current, ...patch }))}
+                  lines={draft.lines}
+                  total={draft.totals.total}
+                  atCounter={creditAtCounter}
+                  showErrors={creditSubmitted}
+                />
+              </OrderFormSection>
+            )}
             <OrderFormSection name="summary">
               <DraftTotalsCard
                 totals={draft.totals}

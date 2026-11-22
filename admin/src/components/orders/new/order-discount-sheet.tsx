@@ -106,6 +106,7 @@ function DiscountForm({ baseAmount, current, onApply }: DiscountFormProps) {
       <FormField
         label={`orders.discount.valueLabel.${type === "AMOUNT" && currency ? "AMOUNT_currency" : type}`}
         labelValues={{ currency }}
+        required
         htmlFor="order-discount-value"
       >
         <NumericInput

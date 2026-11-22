@@ -69,11 +69,14 @@
     "groups": {
       "sales": "المبيعات",
       "catalogue": "الكتالوج",
+      "finance": "المالية",
       "manage": "الإدارة"
     },
     "collapse": "طيّ القائمة",
     "expand": "توسيع القائمة",
-    "expenses": "المصاريف"
+    "expenses": "المصاريف",
+    "customers": "الزبائن",
+    "suppliers": "الموردون"
   },
   "auth": {
     "login": {
@@ -138,7 +141,8 @@
       },
       "ordersLabel": "الطلبات",
       "pieces": "{count, plural, =0 {لا قطع} one {قطعة واحدة} two {قطعتان} few {{count, number, plain} قطع} many {{count, number, plain} قطعة} other {{count, number, plain} قطعة}}",
-      "averageHint": "المتوسط {amount}"
+      "averageHint": "المتوسط {amount}",
+      "owedSplit": "التوصيل {courier} · الزبائن {customers}"
     },
     "drawer": {
       "title": "صندوق النقد",
@@ -166,7 +170,7 @@
         "title": "افتح الصندوق",
         "description": "يبدأ الصندوق بما تبقّى فيه ليلة أمس: {amount}. غيّره فقط إذا وضعت مبلغًا مختلفًا.",
         "openingFloat": "النقد في الصندوق الآن",
-        "note": "ملاحظة (اختياري)",
+        "note": "ملاحظة",
         "notePlaceholder": "أي شيء يستحق التسجيل عن هذا الصباح",
         "submit": "افتح اليوم"
       },
@@ -176,8 +180,8 @@
         "counted": "النقد المجرود في الصندوق",
         "withdrawn": "النقد المسحوب",
         "withdrawnHint": "ما تسحبه الآن. والباقي يبقى للغد.",
-        "note": "ملاحظة (اختياري)",
-        "noteRequired": "ما الذي حصل؟ (مطلوب)",
+        "note": "ملاحظة",
+        "noteRequired": "ما الذي حصل؟",
         "noteRequiredHint": "الجرد لا يطابق المتوقع. اكتب ما تظنّه حصل — وسيُحفظ على كل حال.",
         "notePlaceholder": "مثلًا: دفعت للسائق من الصندوق",
         "expected": "المتوقع",
@@ -291,7 +295,9 @@
       "labels": "ملصقات لم تُطبع",
       "lowStock": "مخزون منخفض",
       "uncollected": "مع شركة التوصيل",
-      "followUps": "فروقات صندوق للمراجعة"
+      "followUps": "فروقات صندوق للمراجعة",
+      "customersOwing": "زبائن عليهم دين",
+      "keptPieces": "قطع محفوظة لزبائن"
     }
   },
   "figures": {
@@ -306,7 +312,7 @@
     },
     "owed": {
       "label": "مستحق لنا",
-      "help": "ما زالت شركة التوصيل تحتفظ به من ثمن الطلبات. المبيعات ناقص المقبوض — مال في الطريق، لا مال بين يديك."
+      "help": "مال بيع ولم يصل بعد: ما تحتفظ به شركة التوصيل، وما على الزبائن من دين."
     }
   },
   "orders": {
@@ -380,7 +386,8 @@
     },
     "paymentStatus": {
       "PENDING_COLLECTION": "بانتظار التحصيل",
-      "COLLECTED": "تم التحصيل"
+      "COLLECTED": "تم التحصيل",
+      "ON_CREDIT": "دين"
     },
     "discount": {
       "title": "خصم",
@@ -523,6 +530,29 @@
       "header": {
         "options": "خيارات الطلب",
         "date": "التاريخ"
+      },
+      "credit": {
+        "total": "المجموع",
+        "paid": "المدفوع",
+        "balance": "الباقي",
+        "customerAccount": "حساب {name}",
+        "payment": "دفعة",
+        "refund": "مُرجَع",
+        "noPayments": "لم يُدفع شيء بعد.",
+        "recordPayment": "استلام دفعة",
+        "paidOff": "سُدِّد بالكامل.",
+        "modalTitle": "دفعة على الطلب #{number}",
+        "modalDescription": "أي مبلغ حتى الباقي على هذا الطلب.",
+        "refundConsequence": "يُرجَع {amount} المدفوع من الصندوق."
+      },
+      "handover": {
+        "kept": "محفوظة في المحل",
+        "handedOver": "سُلِّمت {date}",
+        "action": "تسليم",
+        "confirmTitle": "تسليم {name}؟",
+        "confirmAction": "تم التسليم",
+        "confirmConsequence": "يُسجَّل أن الزبون استلم هذه القطعة، باسمك والوقت.",
+        "done": "سُجِّل التسليم."
       }
     },
     "new": {
@@ -576,7 +606,7 @@
         "whatsapp": "رقم الواتساب",
         "address": "العنوان",
         "addressPlaceholder": "المدينة، الشارع، أقرب معلم…",
-        "location": "موقع على الخريطة (اختياري)",
+        "location": "موقع على الخريطة",
         "locationHint": "الصق رابط الموقع الذي أرسله الزبون من خرائط Google.",
         "notePlaceholder": "أي تفاصيل إضافية عن الطلب…",
         "namePlaceholder": "مثال: سارة أحمد",
@@ -632,9 +662,27 @@
         "note": {
           "title": "ملاحظة",
           "description": "اختيارية، تظهر على الطلب."
+        },
+        "credit": {
+          "title": "بالدين",
+          "description": "يدفع الزبون لاحقًا، مرة واحدة أو على دفعات."
         }
       },
-      "save": "إنشاء الطلب"
+      "save": "إنشاء الطلب",
+      "credit": {
+        "toggle": "البيع بالدين",
+        "toggleHint": "ما لا يُدفع الآن يُضاف إلى حساب الزبون ويسدّده متى شاء.",
+        "customer": "الزبون",
+        "customerRequired": "اختر أو أضف الزبون الذي عليه الدين.",
+        "paidNow": "المدفوع الآن",
+        "paidNowPlaceholder": "0",
+        "paidNowHint": "اتركه فارغًا إن لم يُدفع شيء اليوم.",
+        "paidNowTooMuch": "أكثر من مجموع الطلب.",
+        "remaining": "الباقي عليه",
+        "keptTitle": "محفوظ في المحل",
+        "keptHint": "علّم القطع التي لن يأخذها الزبون اليوم.",
+        "onlineCustomerHint": "الزبون المذكور في قسم «الزبون» هو من عليه هذا الدين، وتُجمع طلباته ودفعاته في صفحته."
+      }
     },
     "collection": {
       "title": "المبالغ عند شركة التوصيل",
@@ -723,7 +771,8 @@
         "help": "المبيعات ناقص تكلفة البضاعة. لا تُخصم منه الإيجار والرواتب وباقي المصاريف."
       },
       "margin": "نسبة الربح {value, number, percent}",
-      "missingCost": "{count, plural, one {قطعة مباعة واحدة بدون} two {قطعتان مباعتان بدون} few {{count} قطع مباعة بدون} many {{count} قطعة مباعة بدون} other {{count} قطعة مباعة بدون}} سعر تكلفة، فالربح المعروض أعلى من الحقيقي."
+      "missingCost": "{count, plural, one {قطعة مباعة واحدة بدون} two {قطعتان مباعتان بدون} few {{count} قطع مباعة بدون} many {{count} قطعة مباعة بدون} other {{count} قطعة مباعة بدون}} سعر تكلفة، فالربح المعروض أعلى من الحقيقي.",
+      "owedSplit": "التوصيل {courier} · الزبائن {customers}"
     },
     "channels": {
       "title": "حسب مصدر البيع",
@@ -1703,7 +1752,21 @@
     "orderItemSourceInvalid": "تعذّر تحديد القطعة المطلوبة في هذا السطر.",
     "orderLocationLinkInvalid": "تعذّر قراءة موقع من هذا الرابط. الصق رابط مشاركة من خرائط Google.",
     "profileWrongPassword": "كلمة المرور الحالية غير صحيحة.",
-    "profileSessionNotFound": "تم تسجيل خروج هذا الجهاز من قبل."
+    "profileSessionNotFound": "تم تسجيل خروج هذا الجهاز من قبل.",
+    "orderCreditInvalid": "البيع بالدين يكون من المحل فقط، مع اختيار الزبون.",
+    "orderNotOnCredit": "هذا الطلب لم يُبَع بالدين.",
+    "orderPaymentExceedsBalance": "المبلغ أكبر من الباقي على الزبون.",
+    "orderAlreadyHandedOver": "هذه القطعة سُلّمت من قبل.",
+    "customerNotFound": "لم يُعثر على هذا الزبون.",
+    "customerPhoneTaken": "رقم الهاتف هذا مسجّل لزبون آخر.",
+    "customerNothingOwed": "لا شيء على هذا الزبون.",
+    "supplierNotFound": "هذا المورد غير موجود.",
+    "supplierPhoneTaken": "هذا الرقم مسجَّل لمورد آخر.",
+    "supplierNothingOwed": "لا يوجد مبلغ مستحق لهذا المورد.",
+    "supplierInvoiceNotFound": "هذه الفاتورة غير موجودة.",
+    "supplierPaymentExceedsBalance": "المبلغ أكبر من المستحق.",
+    "supplierInvoiceBelowPaid": "لا يمكن أن يقل مجموع الفاتورة عمّا دُفع منها.",
+    "supplierInvoiceHasPayments": "لا تُحذف فاتورة دُفع منها شيء."
   },
   "pwa": {
     "version": {
@@ -1833,7 +1896,9 @@
       "orders": "الطلبات والمبيعات",
       "money": "الأموال",
       "approvals": "الموافقات",
-      "staff": "الموظفون والإعدادات"
+      "staff": "الموظفون والإعدادات",
+      "customers": "الزبائن",
+      "suppliers": "الموردون"
     },
     "actions": {
       "dashboard": {
@@ -1877,7 +1942,10 @@
         "delete": "حذف طلب",
         "return": "إرجاع عملية بيع",
         "markCollected": "تسجيل استلام المبلغ",
-        "createGift": "إعطاء بضاعة كهدية"
+        "createGift": "إعطاء بضاعة كهدية",
+        "sellOnCredit": "البيع بالدين",
+        "recordPayment": "استلام دفعة من دين",
+        "markHandedOver": "تسليم قطعة محفوظة لزبون"
       },
       "report": {
         "view": "فتح التقارير"
@@ -1912,6 +1980,15 @@
       },
       "permission": {
         "manage": "تغيير هذه الصلاحيات"
+      },
+      "customer": {
+        "view": "رؤية الزبائن وما عليهم",
+        "manage": "إضافة الزبائن وتعديلهم"
+      },
+      "supplier": {
+        "view": "رؤية الموردين وما لهم",
+        "manage": "إضافة الموردين وفواتيرهم وتعديلها",
+        "pay": "الدفع للموردين"
       }
     },
     "adminNote": "المسؤول يملك كل الصلاحيات دائمًا، لذلك لا يظهر هنا.",
@@ -2162,6 +2239,12 @@
       "detail": "تفاصيل المنتج",
       "new": "منتج جديد",
       "edit": "تعديل المنتج"
+    },
+    "customers": {
+      "detail": "تفاصيل الزبون"
+    },
+    "suppliers": {
+      "detail": "تفاصيل المورد"
     }
   },
   "globalSearch": {
@@ -2394,6 +2477,260 @@
         "saved": "حُفظ التصنيف"
       },
       "descriptionText": "أضف تصنيفات المصاريف أو أعد تسميتها أو أطفئها."
+    }
+  },
+  "customers": {
+    "title": "الزبائن",
+    "subtitle": "من يشتري من المحل، وما عليه من دين، والقطع المحفوظة له.",
+    "add": "إضافة زبون",
+    "stats": {
+      "totalDebt": "ديون الزبائن",
+      "totalDebtHint": "كل ما بقي على الزبائن من البيع بالدين في المحل كله. مال لم يصل بعد.",
+      "owingCount": "زبائن عليهم دين"
+    },
+    "search": {
+      "label": "ابحث عن زبون",
+      "placeholder": "الاسم أو رقم الهاتف",
+      "clear": "مسح البحث"
+    },
+    "filters": {
+      "owing": "عليهم دين",
+      "kept": "قطع محفوظة في المحل"
+    },
+    "empty": {
+      "noneTitle": "لا يوجد زبائن بعد",
+      "noneHint": "يُضاف الزبون عند البيع بالدين أو عند طلب أونلاين.",
+      "noMatchesTitle": "لا زبائن مطابقين",
+      "noMatchesHint": "جرّب اسمًا أو رقمًا آخر، أو امسح الفلاتر."
+    },
+    "table": {
+      "name": "الزبون",
+      "kept": "قطع محفوظة",
+      "lastOrder": "آخر طلب",
+      "orders": "الطلبات",
+      "balance": "عليه",
+      "keptCount": "{count, plural, zero {لا قطع محفوظة} one {قطعة محفوظة} two {قطعتان محفوظتان} few {{count, number, plain} قطع محفوظة} many {{count, number, plain} قطعة محفوظة} other {{count, number, plain} قطعة محفوظة}}",
+      "nothingOwed": "لا شيء عليه"
+    },
+    "form": {
+      "createTitle": "زبون جديد",
+      "editTitle": "تعديل الزبون",
+      "description": "رقم الهاتف يميّز الزبون، ولا يكون لزبونين.",
+      "create": "إضافة الزبون",
+      "save": "حفظ",
+      "created": "أُضيف الزبون.",
+      "saved": "حُفظ الزبون.",
+      "name": "الاسم",
+      "namePlaceholder": "اسم الزبون",
+      "nameRequired": "اكتب اسم الزبون.",
+      "phone": "الهاتف",
+      "phonePlaceholder": "رقم الجوال",
+      "phoneInvalid": "اكتب رقم هاتف صحيحًا.",
+      "whatsappToggle": "له رقم واتساب مختلف",
+      "whatsapp": "واتساب",
+      "address": "العنوان",
+      "addressPlaceholder": "البلدة، الشارع، علامة مميزة",
+      "note": "ملاحظة",
+      "notePlaceholder": "أي شيء يجب أن يتذكره المحل"
+    },
+    "payment": {
+      "title": "استلام دفعة من {name}",
+      "description": "أي مبلغ حتى قيمة الدين. يُسدَّد به الأقدم فالأحدث.",
+      "owed": "الباقي عليه",
+      "amount": "المبلغ المستلم",
+      "amountPlaceholder": "0",
+      "amountHint": "جزء أو المبلغ كله، بلا مواعيد ثابتة.",
+      "amountInvalid": "اكتب مبلغًا أكبر من صفر ولا يزيد عن الدين.",
+      "payAll": "سداد كامل",
+      "note": "ملاحظة",
+      "notePlaceholder": "اختياري",
+      "save": "حفظ الدفعة",
+      "saved": "حُفظت الدفعة.",
+      "preview": {
+        "title": "كيف تُوزَّع",
+        "leftOn": "يبقى {amount}",
+        "paidOff": "سُدِّد"
+      }
+    },
+    "picker": {
+      "searchLabel": "ابحث عن الزبون",
+      "searchPlaceholder": "الاسم أو رقم الهاتف",
+      "clear": "مسح",
+      "searching": "جارٍ البحث…",
+      "noMatches": "لم يُعثر على زبون. أضفه زبونًا جديدًا.",
+      "newCustomer": "زبون جديد",
+      "change": "اختيار زبون آخر",
+      "alreadyOwes": "عليه من قبل {amount}"
+    },
+    "detail": {
+      "balance": "عليه",
+      "openOrders": "مبيعات غير مسدّدة",
+      "keptPieces": "محفوظ في المحل",
+      "orderCount": "الطلبات",
+      "owingBadge": "عليه دين",
+      "settledBadge": "لا شيء عليه",
+      "keptBadge": "{count, plural, zero {لا قطع محفوظة} one {قطعة محفوظة} two {قطعتان محفوظتان} few {{count, number, plain} قطع محفوظة} many {{count, number, plain} قطعة محفوظة} other {{count, number, plain} قطعة محفوظة}}",
+      "edit": "تعديل",
+      "recordPayment": "استلام دفعة",
+      "notFoundTitle": "الزبون غير موجود",
+      "notFoundHint": "ربما الرابط خاطئ، أو لم يُضف الزبون أصلًا.",
+      "kept": {
+        "title": "{count, plural, zero {لا شيء محفوظ له} one {محفوظ له: قطعة واحدة} two {محفوظ له: قطعتان} few {محفوظ له: {count, number, plain} قطع} many {محفوظ له: {count, number, plain} قطعة} other {محفوظ له: {count, number, plain} قطعة}}",
+        "fromOrder": "طلب #{number} · {date}",
+        "action": "تسليم",
+        "confirmConsequence": "يُسجَّل أن الزبون استلم هذه القطعة، باسمك والوقت."
+      },
+      "orders": {
+        "title": "الطلبات",
+        "number": "الطلب",
+        "status": "الحالة",
+        "total": "المجموع",
+        "balance": "الباقي",
+        "emptyTitle": "لا طلبات بعد"
+      },
+      "payments": {
+        "title": "الدفعات",
+        "none": "لا دفعات بعد.",
+        "payment": "دفعة",
+        "refund": "مُرجَع"
+      }
+    }
+  },
+  "suppliers": {
+    "title": "الموردون",
+    "subtitle": "فواتير البضاعة وما بقي للموردين عند المحل.",
+    "add": "مورد جديد",
+    "stats": {
+      "totalOwed": "المستحق للموردين",
+      "totalOwedHint": "مجموع ما لم يُدفع من كل الفواتير.",
+      "owingCount": "موردون لهم مستحقات"
+    },
+    "search": {
+      "label": "البحث عن مورد",
+      "placeholder": "ابحث بالاسم أو الرقم",
+      "clear": "مسح البحث"
+    },
+    "filters": {
+      "owing": "لهم مستحقات"
+    },
+    "empty": {
+      "noneTitle": "لا يوجد موردون بعد",
+      "noneHint": "أضف موردًا ثم سجّل فواتيره ودفعاته.",
+      "noMatchesTitle": "لا نتائج",
+      "noMatchesHint": "جرّب بحثًا آخر أو أزل الفلتر."
+    },
+    "table": {
+      "name": "المورد",
+      "lastInvoice": "آخر فاتورة",
+      "invoices": "الفواتير",
+      "balance": "المستحق له",
+      "nothingOwed": "لا شيء مستحق"
+    },
+    "form": {
+      "createTitle": "مورد جديد",
+      "editTitle": "تعديل المورد",
+      "description": "الاسم وحده يكفي؛ الرقم اختياري ولا يتكرر لموردين.",
+      "create": "إضافة المورد",
+      "save": "حفظ",
+      "created": "أُضيف المورد.",
+      "saved": "حُفظ المورد.",
+      "name": "الاسم",
+      "namePlaceholder": "اسم المورد أو الشركة",
+      "nameRequired": "اكتب اسم المورد.",
+      "phone": "الهاتف",
+      "phonePlaceholder": "رقم الجوال",
+      "phoneInvalid": "اكتب رقم هاتف صحيحًا.",
+      "whatsapp": "واتساب",
+      "address": "العنوان",
+      "addressPlaceholder": "المدينة، الشارع",
+      "note": "ملاحظة",
+      "notePlaceholder": "أي شيء يجب أن يتذكره المحل"
+    },
+    "invoiceForm": {
+      "createTitle": "فاتورة جديدة",
+      "editTitle": "تعديل الفاتورة",
+      "description": "مبلغ البضاعة كما في فاتورة المورد. المخزون يُضاف من صفحة المنتجات.",
+      "create": "إضافة الفاتورة",
+      "save": "حفظ",
+      "created": "أُضيفت الفاتورة.",
+      "saved": "حُفظت الفاتورة.",
+      "number": "رقم الفاتورة",
+      "numberPlaceholder": "كما هو مطبوع",
+      "date": "تاريخ الفاتورة",
+      "dateRequired": "اختر تاريخ الفاتورة.",
+      "total": "مجموع الفاتورة",
+      "totalInvalid": "اكتب مبلغًا أكبر من صفر.",
+      "totalBelowPaid": "لا يمكن أن يقل المجموع عمّا دُفع من الفاتورة.",
+      "paidNow": "المدفوع الآن",
+      "paidNowHint": "اتركه فارغًا إن لم يُدفع شيء بعد.",
+      "paidNowTooMuch": "أكثر من مجموع الفاتورة.",
+      "fromDrawerLabel": "من صندوق المحل",
+      "remaining": "الباقي للمورد",
+      "note": "ملاحظة",
+      "notePlaceholder": "ما في الفاتورة، أي تفاصيل"
+    },
+    "payment": {
+      "title": "دفعة إلى {name}",
+      "description": "أي مبلغ حتى المستحق. يُسدَّد به الأقدم فالأحدث.",
+      "invoiceTitle": "دفعة على فاتورة {invoice}",
+      "invoiceDescription": "أي مبلغ حتى الباقي على هذه الفاتورة.",
+      "owed": "المستحق للمورد",
+      "amount": "المبلغ المدفوع",
+      "amountPlaceholder": "0",
+      "amountHint": "جزء أو المبلغ كله، بلا مواعيد ثابتة.",
+      "amountInvalid": "اكتب مبلغًا أكبر من صفر ولا يزيد عن المستحق.",
+      "payAll": "سداد كامل",
+      "fromDrawer": "من صندوق المحل",
+      "fromDrawerHint": "شغّله إن خرج المبلغ نقدًا من الدرج؛ يُطرح من حساب الصندوق كالمصروف النقدي.",
+      "note": "ملاحظة",
+      "notePlaceholder": "تحويل، شيك، من سلّمه…",
+      "save": "حفظ الدفعة",
+      "saved": "حُفظت الدفعة.",
+      "preview": {
+        "title": "كيف تُوزَّع",
+        "leftOn": "يبقى {amount}",
+        "paidOff": "سُدِّدت"
+      }
+    },
+    "detail": {
+      "balance": "المستحق له",
+      "openInvoices": "فواتير مفتوحة",
+      "totalInvoiced": "مجموع الفواتير",
+      "totalPaid": "مجموع المدفوع",
+      "owingBadge": "له مستحقات",
+      "settledBadge": "لا شيء مستحق",
+      "edit": "تعديل",
+      "addInvoice": "فاتورة جديدة",
+      "pay": "دفعة للمورد",
+      "notFoundTitle": "المورد غير موجود",
+      "notFoundHint": "ربما الرابط خاطئ.",
+      "invoices": {
+        "title": "{count, plural, zero {الفواتير} one {فاتورة واحدة} two {فاتورتان} few {{count, number, plain} فواتير} many {{count, number, plain} فاتورة} other {{count, number, plain} فاتورة}}",
+        "invoice": "الفاتورة",
+        "total": "المجموع",
+        "paid": "المدفوع",
+        "balance": "الباقي",
+        "actions": "إجراءات",
+        "noNumber": "بلا رقم",
+        "partial": "مدفوعة جزئيًا",
+        "paidOff": "مدفوعة",
+        "menuLabel": "خيارات الفاتورة",
+        "pay": "دفعة على الفاتورة",
+        "edit": "تعديل",
+        "delete": "حذف",
+        "deleteTitle": "حذف الفاتورة {name}؟",
+        "deleteConsequence": "تختفي الفاتورة من حساب المورد. لا تُحذف فاتورة دُفع منها شيء.",
+        "deleteAction": "حذف الفاتورة",
+        "deleted": "حُذفت الفاتورة.",
+        "emptyTitle": "لا فواتير بعد",
+        "emptyHint": "أضف فاتورة المورد ليظهر ما بقي له."
+      },
+      "payments": {
+        "title": "الدفعات",
+        "none": "لم يُدفع شيء بعد.",
+        "fromDrawer": "من الصندوق",
+        "notFromDrawer": "من خارج الصندوق"
+      }
     }
   }
 }
