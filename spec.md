@@ -290,6 +290,10 @@ belongs to, and an Admin never has to invent one and read it out across a counte
   or when it was set), shown as a "password not set" badge beside the active/inactive one. They
   are different questions: one is whether the account is ALLOWED to sign in, the other whether it
   CAN yet.
+- **An Admin setting somebody's password signs that person out everywhere** and takes them off
+  every POS tablet, as a redeemed link does: a password is changed because something went wrong,
+  and the old sessions would otherwise outlive it. (An Admin setting their own keeps the session
+  they are using.)
 - **An Admin can send anyone a fresh link** from the Users screen. The link is shown to them as
   well as emailed — an Admin already holds unrestricted password authority over every account, so
   it grants nothing new, and it is what lets the shop pass a link on over WhatsApp when a mailbox
@@ -354,8 +358,8 @@ the only way to **join** a tablet; the passcode only reopens one the person has 
   cart and the first person's sale waits for them. It lives in memory only — closing the app
   abandons it, as before.
 - **Signing out takes the person off that tablet**, so their passcode stops working there. Anything
-  that signs a person out everywhere (a redeemed password link, deactivation) takes them off every
-  tablet too.
+  that signs a person out everywhere (a redeemed password link, an Admin setting their password,
+  deactivation) takes them off every tablet too.
 - Joining, leaving, setting or changing a passcode and being locked out are audit-logged; an
   unlock is not, as a sign-in is not.
 

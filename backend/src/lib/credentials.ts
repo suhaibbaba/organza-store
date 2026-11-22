@@ -101,6 +101,12 @@ export async function verifyUserPassword(userId: string, password: string): Prom
   return ctx.password.verify({ hash, password });
 }
 
+// A new password set for somebody closes every door the old one opened; the caller's own session survives a self-edit.
+export async function signOutAfterPasswordChange(userId: string, callerSessionId: string | undefined): Promise<void> {
+  await revokeOtherSessions(userId, callerSessionId);
+  await prisma.posDeviceMember.deleteMany({ where: { userId } });
+}
+
 export async function revokeOtherSessions(userId: string, keepSessionId: string | undefined): Promise<void> {
   const ctx = await auth.$context;
   const sessions = await prisma.session.findMany({

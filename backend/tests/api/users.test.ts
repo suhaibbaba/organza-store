@@ -1,7 +1,7 @@
 import { afterAll, describe, expect, it } from "vitest";
 import { Role } from "@prisma/client";
 import { apiRequest, uniqueId } from "@tests/support/client";
-import { getSession } from "@tests/support/auth";
+import { getSession, signIn } from "@tests/support/auth";
 import { randomPalestinePhone, samePhoneUnderOtherPrefix } from "@tests/support/phone";
 import { SEEDED_PASSWORD } from "@tests/constants";
 import { ERROR_CODES } from "@/constants";
@@ -163,6 +163,26 @@ describe("Users", () => {
     });
     const after = await apiRequest<StaffAccountView>(`/api/users/${invited.data!.id}`, { token: admin.token });
     expect(after.data!.hasPassword).toBe(true);
+  });
+
+  it("an Admin setting somebody's password signs them out everywhere", async () => {
+    const admin = await getSession("ADMIN");
+    const email = `vitest.reset.${uniqueId()}@store.test`;
+    const created = await apiRequest<StaffAccountView>("/api/users", {
+      method: "POST",
+      token: admin.token,
+      body: { name: "Vitest reset", email, password: SEEDED_PASSWORD, role: "EMPLOYEE", phone: randomPalestinePhone() },
+    });
+    createdUserIds.push(created.data!.id);
+    const before = (await signIn(email, SEEDED_PASSWORD)).session!.token;
+    expect((await apiRequest("/api/me", { token: before })).status).toBe(200);
+
+    await apiRequest(`/api/users/${created.data!.id}`, {
+      method: "PATCH",
+      token: admin.token,
+      body: { password: `${SEEDED_PASSWORD}-reset` },
+    });
+    expect((await apiRequest("/api/me", { token: before })).status).toBe(401);
   });
 
   it("forbids Manager and Employee from reading the staff list (idNumber never leaves the backend for non-admins)", async () => {
