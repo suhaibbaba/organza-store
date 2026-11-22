@@ -1,15 +1,23 @@
 import { useCallback } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { SupportedLanguage } from "@store/shared/types/language";
-import { PROFILE_QUERY_KEY, PROFILE_SESSIONS_QUERY_KEY, SESSION_QUERY_KEY } from "@/constants/api";
+import {
+  PROFILE_PASSKEYS_QUERY_KEY,
+  PROFILE_QUERY_KEY,
+  PROFILE_SESSIONS_QUERY_KEY,
+  SESSION_QUERY_KEY,
+} from "@/constants/api";
 import {
   changePassword,
   fetchProfile,
+  fetchProfilePasskeys,
   fetchProfileSessions,
   revokeOtherProfileSessions,
+  removeProfilePasskey,
   revokeProfileSession,
   updateProfile,
 } from "@/lib/api/profile";
+import { registerPasskey } from "@/lib/auth/passkey";
 import { useSession } from "@/components/providers/session-provider";
 
 export function useProfileQuery() {
@@ -52,6 +60,26 @@ export function useRevokeOtherSessionsMutation() {
   return useMutation({
     mutationFn: revokeOtherProfileSessions,
     onSuccess: () => void queryClient.invalidateQueries({ queryKey: PROFILE_SESSIONS_QUERY_KEY }),
+  });
+}
+
+export function useProfilePasskeysQuery() {
+  return useQuery({ queryKey: PROFILE_PASSKEYS_QUERY_KEY, queryFn: fetchProfilePasskeys });
+}
+
+export function useAddPasskeyMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: registerPasskey,
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: PROFILE_PASSKEYS_QUERY_KEY }),
+  });
+}
+
+export function useRemovePasskeyMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: removeProfilePasskey,
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: PROFILE_PASSKEYS_QUERY_KEY }),
   });
 }
 

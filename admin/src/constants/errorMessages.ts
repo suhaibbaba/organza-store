@@ -128,6 +128,7 @@ export const ERROR_MESSAGE_KEYS: Record<string, string> = {
   [ERROR_CODES.USER_HAS_HISTORY]: "errors.userHasHistory",
   [ERROR_CODES.PROFILE_WRONG_PASSWORD]: "errors.profileWrongPassword",
   [ERROR_CODES.PROFILE_SESSION_NOT_FOUND]: "errors.profileSessionNotFound",
+  [ERROR_CODES.PROFILE_PASSKEY_NOT_FOUND]: "errors.profilePasskeyNotFound",
 
   [ERROR_CODES.RATE_LIMITED]: "errors.rateLimited",
   [ERROR_CODES.PASSWORD_TOKEN_INVALID]: "errors.passwordTokenInvalid",

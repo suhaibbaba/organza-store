@@ -21,3 +21,13 @@ export interface PosDeviceCredentials {
   deviceId: string;
   deviceSecret: string;
 }
+
+// Why a passkey sign-in or registration did not finish; "cancelled" is the person closing the prompt and is never shown.
+export type PasskeyFailure =
+  | "cancelled"
+  | "alreadyAdded"
+  | "signInAgain"
+  | "notOnAccount"
+  | "deactivated"
+  | "rateLimited"
+  | "failed";

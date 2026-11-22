@@ -37,9 +37,10 @@
   },
   "_comment_runtime_deps": "`prisma` and `tsx` are runtime dependencies, not dev tooling, because the deploy runs them INSIDE the running container: `npx prisma migrate deploy` applies migrations and `npm run bootstrap` (tsx scripts/bootstrap.ts) creates the essential data, both via `docker compose exec backend` (see .github/workflows/deploy-sandbox.yml). The production image is installed with `npm ci --omit=dev`, so anything the deploy needs at runtime has to be here — and `prisma` doubly so: it is what the postinstall `prisma generate` hook itself runs.",
   "dependencies": {
-    "@store/shared": "*",
+    "@better-auth/passkey": "1.6.26",
     "@prisma/client": "^6.1.0",
     "@sentry/node": "^10.69.0",
+    "@store/shared": "*",
     "better-auth": "^1.6.25",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",

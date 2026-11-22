@@ -1,3 +1,4 @@
+import type { PasskeyFailure } from "@/types/auth";
 /**
  * "Email me a link." Reachable without a session, for the obvious reason —
  * somebody who cannot sign in cannot sign in to ask (see src/proxy.ts).
@@ -14,3 +15,13 @@ export const AUTO_LOCK_CHECK_INTERVAL_MS = 15 * 1000;
 // What counts as somebody using the till; a hardware scanner types, so keydown covers it.
 export const AUTO_LOCK_ACTIVITY_EVENTS = ["pointerdown", "keydown", "wheel", "touchstart"] as const;
 export const MS_PER_MINUTE = 60 * 1000;
+
+// What each failed passkey attempt tells the person; a closed prompt says nothing.
+export const PASSKEY_ERROR_MESSAGE_KEYS: Record<Exclude<PasskeyFailure, "cancelled">, string> = {
+  alreadyAdded: "auth.passkey.alreadyAdded",
+  signInAgain: "auth.passkey.signInAgain",
+  notOnAccount: "auth.passkey.notOnAccount",
+  deactivated: "auth.login.accountDeactivated",
+  rateLimited: "auth.login.tooManyAttempts",
+  failed: "auth.passkey.failed",
+};
