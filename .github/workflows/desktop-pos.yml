@@ -74,7 +74,8 @@ jobs:
             exit 1
           fi
           export STORE_DESKTOP_TITLE="$NAME"
-          VERSION="$(node -p "require('./src-tauri/tauri.conf.json').version.split('.').slice(0, 2).join('.')").$RUN_NUMBER"
+          # Exported for this step (latest.json below); GITHUB_ENV only reaches the later steps.
+          export VERSION="$(node -p "require('./src-tauri/tauri.conf.json').version.split('.').slice(0, 2).join('.')").$RUN_NUMBER"
           echo "VERSION=$VERSION" >> "$GITHUB_ENV"
 
           # The Windows icon is cut from the PWA's own artwork, so the two never drift apart.
