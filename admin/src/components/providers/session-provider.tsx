@@ -4,6 +4,7 @@ import { createContext, useCallback, useContext, type ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { SESSION_QUERY_KEY } from "@/constants/api";
 import { fetchSession, signInWithEmail, signOut as signOutRequest } from "@/lib/auth/client";
+import { signInWithPasskey } from "@/lib/auth/passkey";
 import type { SessionUser } from "@/types/auth";
 
 interface SessionContextValue {
@@ -14,6 +15,7 @@ interface SessionContextValue {
   refresh: () => Promise<void>;
   // Returns the account because the caller routes by role, and the context's user would still be the previous render's.
   login: (email: string, password: string) => Promise<SessionUser>;
+  loginWithPasskey: () => Promise<SessionUser>;
   logout: () => Promise<void>;
 }
 
@@ -48,13 +50,21 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     [queryClient],
   );
 
+  const loginWithPasskey = useCallback(async () => {
+    const session = await signInWithPasskey();
+    queryClient.setQueryData(SESSION_QUERY_KEY, session.user);
+    return session.user;
+  }, [queryClient]);
+
   const logout = useCallback(async () => {
     await signOutRequest();
     queryClient.setQueryData(SESSION_QUERY_KEY, null);
   }, [queryClient]);
 
   return (
-    <SessionContext.Provider value={{ user: user ?? null, isLoading, isError, refresh, login, logout }}>
+    <SessionContext.Provider
+      value={{ user: user ?? null, isLoading, isError, refresh, login, loginWithPasskey, logout }}
+    >
       {children}
     </SessionContext.Provider>
   );

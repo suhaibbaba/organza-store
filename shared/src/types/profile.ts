@@ -22,3 +22,13 @@ export interface ProfileSession {
   expiresAt: string;
   current: boolean;
 }
+
+// A sign-in passkey on the person's own account; `provider` is the password manager or platform when the device says so.
+export interface ProfilePasskey {
+  id: string;
+  name: string | null;
+  provider: string | null;
+  // Synced across the person's devices (iCloud Keychain, Google Password Manager) or kept on one.
+  synced: boolean;
+  createdAt: string | null;
+}

@@ -10,6 +10,7 @@ import { ProfileHeader } from "@/components/profile/profile-header";
 import { ProfileDetailsForm } from "@/components/profile/profile-details-form";
 import { ProfileDevicesSection } from "@/components/profile/profile-devices-section";
 import { ProfilePasswordSection } from "@/components/profile/profile-password-section";
+import { ProfilePasskeysSection } from "@/components/profile/profile-passkeys-section";
 import { ProfilePasscodeSection } from "@/components/profile/profile-passcode-section";
 import { ProfileLanguageSection } from "@/components/profile/profile-language-section";
 import { useProfileQuery } from "@/hooks/use-profile";
@@ -74,6 +75,7 @@ export default function ProfilePage() {
               </div>
               <div className="flex min-w-0 flex-col gap-5">
                 <ProfilePasswordSection />
+                <ProfilePasskeysSection />
                 <ProfilePasscodeSection />
                 <ProfileLanguageSection />
               </div>

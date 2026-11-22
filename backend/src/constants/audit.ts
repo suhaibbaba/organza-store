@@ -24,4 +24,6 @@ export const AUDIT_ENTITY = {
   ROLE_PERMISSION: "RolePermission",
   // A tablet that people unlock with a passcode; entityId is the device.
   POS_DEVICE: "PosDevice",
+  // A staff member's passkey; entityId is the passkey, the user is the one who added or removed it.
+  PASSKEY: "Passkey",
 } as const;

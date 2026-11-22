@@ -6,7 +6,7 @@ import {
   type ChangePasswordInput,
   type UpdateProfileInput,
 } from "@store/shared/schemas/profile";
-import type { Profile, ProfileSession } from "@store/shared/types/profile";
+import type { Profile, ProfilePasskey, ProfileSession } from "@store/shared/types/profile";
 import type { SupportedLanguage } from "@store/shared/types/language";
 import { prisma } from "@/lib/prisma";
 import { asyncHandler } from "@/middleware/asyncHandler";
@@ -17,7 +17,8 @@ import { assertPhonesAvailable } from "@/lib/phone";
 import { revokeOtherSessions, setUserPassword, verifyUserPassword } from "@/lib/credentials";
 import { auth } from "@/lib/auth";
 import { writeAudit } from "@/lib/audit";
-import { AUDIT_ENTITY, ERROR_CODES, PROFILE_SESSIONS_LIMIT } from "@/constants";
+import { getAuthenticatorName } from "@better-auth/passkey";
+import { AUDIT_ENTITY, ERROR_CODES, PROFILE_PASSKEYS_LIMIT, PROFILE_SESSIONS_LIMIT } from "@/constants";
 
 // The signed-in person's own account: no permission beyond being signed in, and never another account.
 const router = Router();
@@ -181,6 +182,53 @@ router.delete(
       newValue: null,
     });
     sendOk(res, { revoked: true });
+  }),
+);
+
+// GET /api/me/passkeys
+router.get(
+  "/passkeys",
+  asyncHandler(async (req, res) => {
+    const where = { userId: req.user!.id };
+    const [rows, total] = await Promise.all([
+      prisma.passkey.findMany({ where, orderBy: { createdAt: "desc" }, take: PROFILE_PASSKEYS_LIMIT }),
+      prisma.passkey.count({ where }),
+    ]);
+    const passkeys: ProfilePasskey[] = rows.map((row) => ({
+      id: row.id,
+      name: row.name,
+      provider: getAuthenticatorName(row.aaguid ?? undefined) ?? null,
+      synced: row.backedUp,
+      createdAt: row.createdAt?.toISOString() ?? null,
+    }));
+    sendOk(res, passkeys, {
+      page: 1,
+      pageSize: PROFILE_PASSKEYS_LIMIT,
+      total,
+      totalPages: Math.max(1, Math.ceil(total / PROFILE_PASSKEYS_LIMIT)),
+    });
+  }),
+);
+
+// DELETE /api/me/passkeys/:id — the device keeps its copy, but this account stops accepting it.
+router.delete(
+  "/passkeys/:id",
+  asyncHandler(async (req, res) => {
+    const userId = req.user!.id;
+    const passkey = await prisma.passkey.findFirst({ where: { id: req.params.id, userId } });
+    if (!passkey) {
+      throw new AppError(404, ERROR_CODES.PROFILE_PASSKEY_NOT_FOUND);
+    }
+    await prisma.passkey.delete({ where: { id: passkey.id } });
+    await writeAudit({
+      userId,
+      action: AuditAction.DELETE,
+      entityType: AUDIT_ENTITY.PASSKEY,
+      entityId: passkey.id,
+      oldValue: { deviceType: passkey.deviceType, createdAt: passkey.createdAt },
+      newValue: null,
+    });
+    sendOk(res, { removed: true });
   }),
 );
 

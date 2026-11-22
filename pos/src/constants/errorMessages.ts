@@ -21,6 +21,7 @@ export const ERROR_MESSAGE_KEYS: Record<string, string> = {
   [ERROR_CODES.WHATSAPP_DUPLICATE]: "errors.whatsappDuplicate",
   [ERROR_CODES.PROFILE_WRONG_PASSWORD]: "errors.profileWrongPassword",
   [ERROR_CODES.PROFILE_SESSION_NOT_FOUND]: "errors.profileSessionNotFound",
+  [ERROR_CODES.PROFILE_PASSKEY_NOT_FOUND]: "errors.profilePasskeyNotFound",
 
   [ERROR_CODES.PRODUCT_NOT_FOUND]: "errors.productNotFound",
   [ERROR_CODES.VARIANT_NOT_FOUND]: "errors.variantNotFound",
