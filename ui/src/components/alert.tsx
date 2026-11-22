@@ -36,7 +36,7 @@ export function Alert({
       role={tone === "danger" ? "alert" : "status"}
       data-tone={tone}
       className={cn(
-        "flex items-start gap-2.5 rounded-control border px-3 py-2.5 text-sm leading-5",
+        "flex w-fit max-w-full items-start gap-2.5 self-start rounded-control border px-3 py-2.5 text-sm leading-5",
         notice.tint,
         notice.text,
         className,
