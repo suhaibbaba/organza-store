@@ -37,6 +37,9 @@ const SIZES: Record<SegmentedControlSize, { track: string; option: string; thumb
   },
 };
 
+// How much of the visible track one press of a scroll arrow moves.
+const SCROLL_STEP = 0.7;
+
 interface Overflow {
   readonly left: boolean;
   readonly right: boolean;
@@ -118,10 +121,17 @@ export function SegmentedControl<TValue extends string>({
 
   const scroll = (side: "left" | "right"): void => {
     const element = track.current;
-    element?.scrollBy({
-      left: (side === "left" ? -1 : 1) * element.clientWidth * 0.7,
-      behavior: "smooth",
-    });
+
+    if (!element) {
+      return;
+    }
+
+    const max = element.scrollWidth - element.clientWidth;
+    const rtl = getComputedStyle(element).direction === "rtl";
+    const wanted = element.scrollLeft + (side === "left" ? -1 : 1) * element.clientWidth * SCROLL_STEP;
+    // Clamped to the track's own range, so the browser is never asked to scroll past either end.
+    const left = Math.min(Math.max(wanted, rtl ? -max : 0), rtl ? 0 : max);
+    element.scrollTo({ left, behavior: "smooth" });
   };
 
   const arrow = (side: "left" | "right"): JSX.Element => {
