@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { routing } from "@/i18n/routing";
 import { LOCALE_COOKIE_NAME } from "@/constants/locale";
 import {
@@ -14,15 +14,17 @@ import {
   SERVICE_WORKER_PATH,
   SERVICE_WORKER_SKIP_WAITING_MESSAGE,
   SERVICE_WORKER_VERSION_PARAM,
+  UPDATE_GIVE_UP_MS,
   UPDATE_RELOAD_FALLBACK_MS,
   brandIconPath,
 } from "@/constants/pwa";
-import { UpdatePrompt } from "@/components/pwa/update-prompt";
+import { UpdateBar } from "@/components/pwa/update-bar";
+import type { UpdatePhase } from "@/types";
 
-// A new worker waits and the app offers the update: an installed app has no reload button to escape a stale build.
+// A deploy installs itself (as in the clinic): a strip shows while it downloads, then the page reloads onto it.
 export function ServiceWorkerRegistrar() {
+  const [phase, setPhase] = useState<UpdatePhase>("idle");
   const [waitingWorker, setWaitingWorker] = useState<ServiceWorker | null>(null);
-  const [isUpdating, setIsUpdating] = useState(false);
   // One reload, ever: controllerchange can fire more than once.
   const hasReloaded = useRef(false);
 
@@ -49,20 +51,26 @@ export function ServiceWorkerRegistrar() {
     });
 
     let registration: ServiceWorkerRegistration | undefined;
-    // On a first install the worker claims the page; reloading for that would be a pointless flash.
+    // On a first install the worker claims the page quietly; only a worker replacing another is an update.
     const hadController = Boolean(navigator.serviceWorker.controller);
 
-    // Only an update when something already controls this page.
-    const offerIfWaiting = (worker: ServiceWorker | null) => {
+    const takeUp = (worker: ServiceWorker | null) => {
       if (worker && navigator.serviceWorker.controller) {
         setWaitingWorker(worker);
+        setPhase("ready");
       }
     };
 
     const watchInstalling = (worker: ServiceWorker) => {
+      if (navigator.serviceWorker.controller) {
+        setPhase("downloading");
+      }
       worker.addEventListener("statechange", () => {
         if (worker.state === "installed") {
-          offerIfWaiting(worker);
+          takeUp(worker);
+        }
+        if (worker.state === "redundant") {
+          setPhase("idle");
         }
       });
     };
@@ -73,7 +81,7 @@ export function ServiceWorkerRegistrar() {
       .then((result) => {
         registration = result;
         // Downloaded during an earlier visit and never taken up.
-        offerIfWaiting(result.waiting);
+        takeUp(result.waiting);
         if (result.installing) {
           watchInstalling(result.installing);
         }
@@ -83,7 +91,7 @@ export function ServiceWorkerRegistrar() {
           }
         });
       })
-      // Offline, private mode or unsupported: the app still works, it just isn't installable.
+      // Offline, private mode or unsupported: the app still works without a worker.
       .catch(() => undefined);
 
     const onControllerChange = () => {
@@ -109,23 +117,29 @@ export function ServiceWorkerRegistrar() {
     };
   }, []);
 
-  const applyUpdate = useCallback(() => {
-    if (!waitingWorker) {
+  // A download that never finishes must not leave the strip up for good.
+  useEffect(() => {
+    if (phase !== "downloading") {
       return;
     }
-    setIsUpdating(true);
-    // skipWaiting fires controllerchange, which reloads; the timeout covers a worker that never answers.
+    const timer = window.setTimeout(() => setPhase("idle"), UPDATE_GIVE_UP_MS);
+    return () => window.clearTimeout(timer);
+  }, [phase]);
+
+  // skipWaiting fires controllerchange, which reloads; the timeout covers a worker that never answers.
+  useEffect(() => {
+    if (!waitingWorker || hasReloaded.current) {
+      return;
+    }
     waitingWorker.postMessage({ type: SERVICE_WORKER_SKIP_WAITING_MESSAGE });
-    window.setTimeout(() => {
+    const timer = window.setTimeout(() => {
       if (!hasReloaded.current) {
         hasReloaded.current = true;
         window.location.reload();
       }
     }, UPDATE_RELOAD_FALLBACK_MS);
+    return () => window.clearTimeout(timer);
   }, [waitingWorker]);
 
-  if (!waitingWorker) {
-    return null;
-  }
-  return <UpdatePrompt onUpdate={applyUpdate} isUpdating={isUpdating} />;
+  return phase !== "idle" ? <UpdateBar /> : null;
 }

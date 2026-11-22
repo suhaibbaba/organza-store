@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { routing } from "@/i18n/routing";
 import { LOCALE_COOKIE_NAME } from "@/constants/locale";
 import {
@@ -10,19 +10,23 @@ import {
   SERVICE_WORKER_PATH,
   SERVICE_WORKER_SKIP_WAITING_MESSAGE,
   SERVICE_WORKER_VERSION_PARAM,
+  UPDATE_GIVE_UP_MS,
   UPDATE_RELOAD_FALLBACK_MS,
 } from "@/constants/pwa";
-import { UpdatePrompt } from "@/components/pwa/update-prompt";
+import { UpdateBar } from "@/components/pwa/update-bar";
+import { hasOpenSale, subscribeOpenSale } from "@/lib/cart-stash";
+import type { UpdatePhase } from "@/types";
 
-// The new worker waits; this prompts for the update, since an installed app has no reload button.
+// A deploy installs itself behind a strip and reloads, but only with no sale open: the reload would lose every cart.
 export function ServiceWorkerRegistrar() {
+  const [phase, setPhase] = useState<UpdatePhase>("idle");
   const [waitingWorker, setWaitingWorker] = useState<ServiceWorker | null>(null);
-  const [isUpdating, setIsUpdating] = useState(false);
-  // One reload ever: controllerchange can fire more than once.
+  const saleOpen = useSyncExternalStore(subscribeOpenSale, hasOpenSale, () => false);
+  // One reload, ever: controllerchange can fire more than once.
   const hasReloaded = useRef(false);
 
   useEffect(() => {
-    // Caching dev chunks only fights hot reload.
+    // Caching dev chunks would fight hot reload.
     if (process.env.NODE_ENV !== "production") {
       return;
     }
@@ -40,31 +44,37 @@ export function ServiceWorkerRegistrar() {
     });
 
     let registration: ServiceWorkerRegistration | undefined;
-    // A first install's controller change has nothing stale behind it, so it must not reload.
+    // On a first install the worker claims the page quietly; only a worker replacing another is an update.
     const hadController = Boolean(navigator.serviceWorker.controller);
 
-    // Only an update when something already controls the page; a first install takes over quietly.
-    const offerIfWaiting = (worker: ServiceWorker | null) => {
+    const takeUp = (worker: ServiceWorker | null) => {
       if (worker && navigator.serviceWorker.controller) {
         setWaitingWorker(worker);
+        setPhase("ready");
       }
     };
 
     const watchInstalling = (worker: ServiceWorker) => {
+      if (navigator.serviceWorker.controller) {
+        setPhase("downloading");
+      }
       worker.addEventListener("statechange", () => {
         if (worker.state === "installed") {
-          offerIfWaiting(worker);
+          takeUp(worker);
+        }
+        if (worker.state === "redundant") {
+          setPhase("idle");
         }
       });
     };
 
     navigator.serviceWorker
-      // updateViaCache none: the worker script itself is always revalidated.
+      // The browser must revalidate the worker script, not serve it from the HTTP cache.
       .register(`${SERVICE_WORKER_PATH}?${query.toString()}`, { scope: "/", updateViaCache: "none" })
       .then((result) => {
         registration = result;
-        // Downloaded on an earlier visit and never taken up.
-        offerIfWaiting(result.waiting);
+        // Downloaded during an earlier visit and never taken up.
+        takeUp(result.waiting);
         if (result.installing) {
           watchInstalling(result.installing);
         }
@@ -74,7 +84,7 @@ export function ServiceWorkerRegistrar() {
           }
         });
       })
-      // Offline, private mode or unsupported: the app works without a worker, so stay silent.
+      // Offline, private mode or unsupported: the app still works without a worker.
       .catch(() => undefined);
 
     const onControllerChange = () => {
@@ -100,23 +110,29 @@ export function ServiceWorkerRegistrar() {
     };
   }, []);
 
-  const applyUpdate = useCallback(() => {
-    if (!waitingWorker) {
+  // A download that never finishes must not leave the strip up for good.
+  useEffect(() => {
+    if (phase !== "downloading") {
       return;
     }
-    setIsUpdating(true);
-    // The timeout covers a worker that never answers: reloading anyway beats a dead button.
+    const timer = window.setTimeout(() => setPhase("idle"), UPDATE_GIVE_UP_MS);
+    return () => window.clearTimeout(timer);
+  }, [phase]);
+
+  // skipWaiting fires controllerchange, which reloads; the timeout covers a worker that never answers.
+  useEffect(() => {
+    if (!waitingWorker || saleOpen || hasReloaded.current) {
+      return;
+    }
     waitingWorker.postMessage({ type: SERVICE_WORKER_SKIP_WAITING_MESSAGE });
-    window.setTimeout(() => {
+    const timer = window.setTimeout(() => {
       if (!hasReloaded.current) {
         hasReloaded.current = true;
         window.location.reload();
       }
     }, UPDATE_RELOAD_FALLBACK_MS);
-  }, [waitingWorker]);
+    return () => window.clearTimeout(timer);
+  }, [waitingWorker, saleOpen]);
 
-  if (!waitingWorker) {
-    return null;
-  }
-  return <UpdatePrompt onUpdate={applyUpdate} isUpdating={isUpdating} />;
+  return phase === "downloading" || (phase === "ready" && !saleOpen) ? <UpdateBar /> : null;
 }

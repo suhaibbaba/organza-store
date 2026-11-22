@@ -34,12 +34,12 @@ self.addEventListener("install", (event) => {
           }
         }),
       );
-      // No skipWaiting(): swapping builds under a running page could lose a half-rung-up sale; the app prompts instead.
+      // No skipWaiting(): the app says when (service-worker-registrar.tsx); the POS waits until no sale is open.
     })(),
   );
 });
 
-// Sent by the update prompt; the string duplicates SERVICE_WORKER_SKIP_WAITING_MESSAGE (this file is not bundled).
+// Sent by the app when it takes the update up; the string duplicates SERVICE_WORKER_SKIP_WAITING_MESSAGE (this file is not bundled).
 self.addEventListener("message", (event) => {
   if (event.data && event.data.type === "SKIP_WAITING") {
     self.skipWaiting();

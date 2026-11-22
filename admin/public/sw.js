@@ -37,7 +37,7 @@ self.addEventListener("install", (event) => {
           }
         }),
       );
-      // No skipWaiting(): the app offers the update (update-prompt.tsx) instead of swapping a running page's build.
+      // No skipWaiting(): the app says when (service-worker-registrar.tsx); the POS waits until no sale is open.
     })(),
   );
 });

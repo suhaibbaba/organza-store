@@ -25,3 +25,6 @@ export interface AppleSplashScreen {
  *   gone    — unmounted, nothing left on the page
  */
 export type BootSplashPhase = "visible" | "leaving" | "gone";
+
+// "ready": downloaded and waiting to be taken up.
+export type UpdatePhase = "idle" | "downloading" | "ready";

@@ -398,10 +398,7 @@
       "copied": "Copied"
     },
     "update": {
-      "title": "A new version is ready",
-      "description": "Tap to get the newest version. It takes a moment, and nothing you have saved is lost.",
-      "action": "Update now",
-      "updating": "Updating…"
+      "updating": "Updating to the newest version…"
     }
   },
   "profile": {

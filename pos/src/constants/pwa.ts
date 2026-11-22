@@ -111,6 +111,9 @@ export const SERVICE_WORKER_SKIP_WAITING_MESSAGE = "SKIP_WAITING";
 // An interrupted install may never answer; reloading beats a button that does nothing.
 export const UPDATE_RELOAD_FALLBACK_MS = 3_000;
 
+// The strip gives up on a download that stalls (the clinic waits the same).
+export const UPDATE_GIVE_UP_MS = 30_000;
+
 // Public because the worker precaches it; a precached login redirect would be useless.
 export const OFFLINE_PATH = "/offline";
 
