@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" color="#174F57">
+  <defs>
+    <mask id="mark-gap">
+      <rect width="512" height="512" fill="#fff"/>
+      <line x1="222" y1="296" x2="308" y2="271" stroke="#000" stroke-width="30"/>
+    </mask>
+  </defs>
+  <g fill="none" stroke="currentColor">
+    <ellipse cx="271" cy="104" rx="13" ry="20" stroke-width="7.5"/>
+    <g mask="url(#mark-gap)">
+      <path d="M259 140 L277 144 C266 205 252 262 239 330 C232 368 229 398 234 416 L180 434 C204 402 219 362 226 322 C236 262 248 202 259 140 Z" fill="currentColor" stroke="none"/>
+      <path d="M270 150 Q286 232 327 372" stroke-width="12"/>
+    </g>
+    <line x1="229" y1="293" x2="301" y2="273" stroke-width="11"/>
+  </g>
+</svg>

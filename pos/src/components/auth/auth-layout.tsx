@@ -14,7 +14,7 @@ interface AuthLayoutProps {
   children: ReactNode;
 }
 
-// Signed-out screens: one card, brand beside the form from `desk` so a landscape tablet never scrolls.
+// Signed-out screens: one card, logo and tagline beside the form from `desk` so a landscape tablet never scrolls.
 export async function AuthLayout({ title, subtitle, children }: AuthLayoutProps) {
   const [tApp, storeName, branding] = await Promise.all([getTranslations("app"), storeDisplayName(), fetchBranding()]);
   const logo = branding?.logoUrl ? resolveImageUrl(branding.logoUrl) : pwaIconPath(LOGO_ICON_SIZE);
@@ -30,22 +30,22 @@ export async function AuthLayout({ title, subtitle, children }: AuthLayoutProps)
           data-test-selector="pos-auth-brand"
         >
           <div className="flex items-center justify-between gap-3">
-            <span className="flex size-12 shrink-0 items-center justify-center rounded-control bg-surface p-1.5 shadow-card desk:size-16">
-              {/* eslint-disable-next-line @next/next/no-img-element -- an already-optimised WebP served by the API */}
-              <img src={logo} alt="" className="size-full object-contain" data-test-selector="shop-logo" />
-            </span>
+            {/* eslint-disable-next-line @next/next/no-img-element -- an already-optimised WebP served by the API */}
+            <img
+              src={logo}
+              alt={storeName}
+              className="size-12 shrink-0 object-contain desk:size-16"
+              data-test-selector="shop-logo"
+            />
             <LanguageSwitcher variant="pill" />
           </div>
           <div className="flex flex-col gap-1">
             <div className="flex flex-wrap items-center gap-2">
-              <Typography as="p" variant="h1" weight="bold" className="text-ink-inverse desk:text-[2rem]">
-                {storeName}
+              <Typography as="p" variant="h2" weight="semibold" className="text-ink-inverse">
+                {tApp("tagline")}
               </Typography>
               <EnvironmentBadge />
             </div>
-            <Typography as="p" variant="body" className="text-primary-100">
-              {tApp("tagline")}
-            </Typography>
           </div>
         </section>
 
