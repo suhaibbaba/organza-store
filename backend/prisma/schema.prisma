@@ -56,6 +56,10 @@ model User {
   // Never blocks a delete: an account that flipped a permission has audit history and is refused deletion first (lib/userHistory.ts).
   updatedRolePermissions RolePermission[]
 
+  createdCustomers Customer[]     @relation("CustomerCreatedBy")
+  receivedPayments OrderPayment[] @relation("OrderPaymentReceivedBy")
+  handedOverItems  OrderItem[]    @relation("OrderItemHandedOverBy")
+
   openedCashSessions    CashSession[] @relation("CashSessionOpenedBy")
   closedCashSessions    CashSession[] @relation("CashSessionClosedBy")
   resolvedCashFollowUps CashSession[] @relation("CashSessionFollowUpBy")
@@ -450,6 +454,10 @@ enum AuditAction {
   RETURN
   // "Who said this money arrived" is its own question.
   PAYMENT_COLLECTED
+  // Credit sales: money taken on an account, money paid back, a kept piece handed over.
+  PAYMENT_RECEIVED
+  PAYMENT_REFUNDED
+  HANDED_OVER
   // The cash drawer: who counted the till, and what they said was in it.
   CASH_SESSION_OPENED
   CASH_SESSION_CLOSED
@@ -604,6 +612,7 @@ enum PaymentMethod {
 enum PaymentStatus {
   PENDING_COLLECTION // sold, but the money is still with the delivery company
   COLLECTED // the shop holds the money
+  ON_CREDIT // sold on credit: the customer still owes part of it (spec.md "Customers and selling on credit")
 }
 
 enum DiscountType {
@@ -636,6 +645,14 @@ model Order {
   customerLatitude  Float?
   customerLongitude Float?
   note              String?
+  // Set for credit sales and WhatsApp orders; the snapshot above stays the record of the sale.
+  customerId        String?
+  customer          Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+
+  // --- credit: stays true once paid off; paidAmount is the running sum of payments (refunds negative) ---
+  onCredit   Boolean        @default(false)
+  paidAmount Decimal        @default(0) @db.Decimal(10, 2)
+  payments   OrderPayment[]
 
   // --- money (server-computed): subtotal = sum of lineTotals, total = subtotal - discountAmount ---
   subtotal       Decimal       @db.Decimal(10, 2)
@@ -669,6 +686,8 @@ model Order {
   @@index([collectedAt])
   // The outstanding-money view.
   @@index([paymentStatus])
+  @@index([customerId])
+  @@index([onCredit])
   @@index([createdAt])
   @@index([createdById])
   @@index([deletedAt])
@@ -709,12 +728,59 @@ model OrderItem {
   // Partial returns leave the order status alone; once every line is back the order is RETURNED.
   returnedQuantity Int @default(0)
 
+  // Null on a credit sale's line = still kept in the shop for the customer.
+  handedOverAt   DateTime?
+  handedOverById String?
+  handedOverBy   User?     @relation("OrderItemHandedOverBy", fields: [handedOverById], references: [id], onDelete: SetNull)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([orderId])
   @@index([productId])
   @@index([variantId])
+}
+
+// One payment on a credit sale; a refund is a negative amount. The drawer counts these by receivedAt.
+model OrderPayment {
+  id      String @id @default(cuid())
+  orderId String
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  amount     Decimal       @db.Decimal(10, 2)
+  method     PaymentMethod @default(CASH)
+  receivedAt DateTime      @default(now())
+  note       String?
+
+  receivedById String
+  receivedBy   User   @relation("OrderPaymentReceivedBy", fields: [receivedById], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@index([orderId])
+  @@index([receivedAt])
+}
+
+// A shop customer; phone unique under both Palestine prefixes (rule 18), checked in lib/customers.ts.
+model Customer {
+  id        String  @id @default(cuid())
+  name      String
+  phone     String  @unique
+  whatsapp  String?
+  address   String?
+  latitude  Float?
+  longitude Float?
+  note      String?
+
+  orders Order[]
+
+  createdById String?
+  createdBy   User?   @relation("CustomerCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([name])
 }
 
 // --- EXPENSES: the other half of the profit sum (spec.md "Cash drawer & expenses") ---

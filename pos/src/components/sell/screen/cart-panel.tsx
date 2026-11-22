@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { Gift, MessageCircle, ScanLine } from "lucide-react";
+import { Gift, MessageCircle, ScanLine, Clock } from "lucide-react";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
 import { fromCents, toCents } from "@/lib/money";
 import { cn } from "@/lib/utils";
@@ -19,6 +19,8 @@ interface CartPanelProps {
   isSubmitting: boolean;
   // Admin/Manager only (order.createGift); absent hides the button.
   onGift?: () => void;
+  // Present only with order.sellOnCredit.
+  onCredit?: () => void;
   onDiscount: () => void;
   onCheckout: () => void;
   onWhatsappOrder: () => void;
@@ -35,6 +37,7 @@ export function CartPanel({
   scanFlash,
   isSubmitting,
   onGift,
+  onCredit,
   onDiscount,
   onCheckout,
   onWhatsappOrder,
@@ -173,6 +176,19 @@ export function CartPanel({
             {t("checkout.whatsappOrder")}
           </Button>
         </div>
+
+        {onCredit && (
+          <Button
+            variant="secondary"
+            onClick={onCredit}
+            disabled={!canFinish}
+            data-test-selector="pos-credit-order-button"
+            icon={<Clock className="size-4" aria-hidden="true" />}
+            className={CONTROL_HEIGHT}
+          >
+            {t("checkout.creditOrder")}
+          </Button>
+        )}
 
         {/* Admin/Manager only (spec.md "Gifts"); a row below the sale button so it is never hit in its place. */}
         {onGift && (

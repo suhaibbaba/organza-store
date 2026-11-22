@@ -85,7 +85,7 @@ export function CustomerForm({ register, control, setValue, errors }: CustomerFo
     <div className="flex flex-col gap-4">
       <PhoneCountryProvider country={defaultCountry}>
         <div className="grid grid-cols-1 items-start gap-4 sm:grid-cols-2">
-          <FormField label="orders.new.customer.name" htmlFor="customer-name">
+          <FormField label="orders.new.customer.name" htmlFor="customer-name" required>
             <Input
               id="customer-name"
               data-test-selector={fieldTestSelector("customer-name")}
@@ -98,7 +98,7 @@ export function CustomerForm({ register, control, setValue, errors }: CustomerFo
             )}
           </FormField>
 
-          <FormField label="orders.new.customer.phone" htmlFor="customer-phone">
+          <FormField label="orders.new.customer.phone" htmlFor="customer-phone" required>
             <Controller
               control={control}
               name="phone"
@@ -137,7 +137,7 @@ export function CustomerForm({ register, control, setValue, errors }: CustomerFo
 
           {hasWhatsapp && (
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <FormField label="orders.new.customer.whatsapp" htmlFor="customer-whatsapp">
+              <FormField label="orders.new.customer.whatsapp" htmlFor="customer-whatsapp" optional>
                 <Controller
                   control={control}
                   name="whatsapp"
@@ -161,7 +161,7 @@ export function CustomerForm({ register, control, setValue, errors }: CustomerFo
           )}
         </div>
       </PhoneCountryProvider>
-      <FormField label="orders.new.customer.address" htmlFor="customer-address">
+      <FormField label="orders.new.customer.address" htmlFor="customer-address" optional>
         <Textarea
           id="customer-address"
           data-test-selector={fieldTestSelector("customer-address")}
@@ -172,7 +172,7 @@ export function CustomerForm({ register, control, setValue, errors }: CustomerFo
       </FormField>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <FormField label="orders.new.customer.location" htmlFor="customer-location">
+        <FormField label="orders.new.customer.location" htmlFor="customer-location" optional>
           <Input
             id="customer-location"
             type="url"

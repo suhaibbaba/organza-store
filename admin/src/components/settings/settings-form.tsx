@@ -66,7 +66,7 @@ function MeasureField({
 }) {
   return (
     <div className={className}>
-      <FormField label={labelKey} htmlFor={id} error={error} errorKey={fieldErrorKey(error)}>
+      <FormField label={labelKey} htmlFor={id} error={error} errorKey={fieldErrorKey(error)} required>
         <NumericInput id={id} allowDecimal={allowDecimal} aria-invalid={!!error} placeholder="0" {...registration} />
       </FormField>
     </div>
@@ -218,7 +218,7 @@ export function SettingsForm({ setting }: { setting: Setting }) {
 
           <SettingsSection name="regional">
             <div className="grid grid-cols-1 items-start gap-4 sm:grid-cols-2">
-              <FormField label="settings.form.defaultLanguage" htmlFor="defaultLanguage">
+              <FormField label="settings.form.defaultLanguage" required htmlFor="defaultLanguage">
                 <Controller
                   control={control}
                   name="defaultLanguage"
@@ -235,6 +235,7 @@ export function SettingsForm({ setting }: { setting: Setting }) {
               </FormField>
               <FormField
                 label="settings.form.defaultCountryCode"
+                required
                 htmlFor="defaultCountryCode"
                 note="settings.form.defaultCountryCodeHint"
               >
@@ -253,7 +254,7 @@ export function SettingsForm({ setting }: { setting: Setting }) {
                   )}
                 />
               </FormField>
-              <FormField label="settings.form.currency" htmlFor="currency" note="settings.form.currencyHint">
+              <FormField label="settings.form.currency" required htmlFor="currency" note="settings.form.currencyHint">
                 <Input
                   id="currency"
                   data-test-selector={fieldTestSelector("currency")}
@@ -269,6 +270,7 @@ export function SettingsForm({ setting }: { setting: Setting }) {
             <div className="grid grid-cols-1 sm:grid-cols-2">
               <FormField
                 label="settings.form.lowStockThreshold"
+                required
                 htmlFor="lowStockThreshold"
                 note="settings.form.lowStockThresholdHint"
                 error={errors.lowStockThreshold}

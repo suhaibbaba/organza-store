@@ -21,4 +21,7 @@ export interface DashboardSummary {
   unprintedLabels: number;
   // Quick-sold pieces still waiting for their details (rule 23).
   incompleteProducts: number;
+  // Credit sales: customers who still owe, and pieces kept in the shop for a customer.
+  customersOwing: number;
+  keptPieces: number;
 }

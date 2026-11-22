@@ -39,6 +39,15 @@ import { findCustomerSuggestions } from "@/lib/orderCustomers";
 import { resolveMapLink } from "@/lib/mapLink";
 import { scheduleSaleNotification } from "@/lib/saleNotifications";
 import { writeAudit } from "@/lib/audit";
+import { orderBalance, reconcileCredit, recordOrderPayment, type CreditReconciled } from "@/lib/orderCredit";
+import { ensureCustomerForOrder } from "@/lib/customers";
+import { money, roundMoney, ZERO_MONEY } from "@/lib/money";
+import {
+  handOverItemsSchema,
+  recordPaymentSchema,
+  type HandOverItemsInput,
+  type RecordPaymentInput,
+} from "@/validation/customer";
 import {
   AUDIT_ENTITY,
   CHANGE_REQUEST_ENTITIES,
@@ -47,6 +56,7 @@ import {
   ERROR_CODES,
   GIFT_ORDER_TYPE,
   MAX_INT32,
+  MONEY_DECIMAL_PLACES,
   ONLINE_ORDER_CHANNELS,
   ONLINE_ORDER_INITIAL_PAYMENT_STATUS,
   ONLINE_ORDER_INITIAL_STATUS,
@@ -69,11 +79,30 @@ const orderInclude = {
     include: {
       product: { select: { images: MAIN_IMAGE_ONLY } },
       variant: { select: { images: MAIN_IMAGE_ONLY } },
+      handedOverBy: { select: { id: true, name: true } },
     },
+  },
+  payments: {
+    orderBy: [{ receivedAt: "asc" as const }, { id: "asc" as const }],
+    include: { receivedBy: { select: { id: true, name: true } } },
   },
   // Author's name only — no email, phone or idNumber (rule 19).
   createdBy: { select: { id: true, name: true } },
 } satisfies Prisma.OrderInclude;
+
+// A refund paid back after a cancel, return, delete or re-discount is audited on its own, like any money out of the till.
+async function auditRefund(userId: string, orderId: string, reconciled: CreditReconciled | null) {
+  if (!reconciled?.refund) {
+    return;
+  }
+  await writeAudit({
+    userId,
+    action: AuditAction.PAYMENT_REFUNDED,
+    entityType: AUDIT_ENTITY.ORDER,
+    entityId: orderId,
+    newValue: { amount: reconciled.refund.toFixed(MONEY_DECIMAL_PLACES), paymentStatus: reconciled.paymentStatus },
+  });
+}
 
 type OrderWithItems = Prisma.OrderGetPayload<{ include: typeof orderInclude }>;
 
@@ -98,6 +127,9 @@ const ORDER_SUMMARY_COLUMNS = {
   collectedAt: true,
   customerName: true,
   customerPhone: true,
+  customerId: true,
+  onCredit: true,
+  paidAmount: true,
   subtotal: true,
   discountAmount: true,
   total: true,
@@ -355,6 +387,18 @@ router.post(
       }
     }
 
+    // A credit sale needs its own permission and a real customer, whose details become the order's snapshot.
+    const onCredit = body.onCredit === true;
+    if (onCredit && !can(req.user!, "order.sellOnCredit")) {
+      throw new AppError(403, ERROR_CODES.FORBIDDEN);
+    }
+    // A counter credit sale names its Customer row; an online one is found or created from its phone below.
+    const creditCustomer =
+      onCredit && body.customerId ? await prisma.customer.findUnique({ where: { id: body.customerId } }) : null;
+    if (onCredit && body.customerId && !creditCustomer) {
+      throw new AppError(404, ERROR_CODES.CUSTOMER_NOT_FOUND);
+    }
+
     // Catalogue lines are priced here; quick-sold lines are priced in the transaction where their product is created.
     const catalogue = await priceRequestedItems(
       body.items.filter((item) => item.productId).map((item) => ({ ...item, productId: item.productId! })),
@@ -402,6 +446,31 @@ router.post(
         isGift ? {} : body,
       );
 
+      // A credit sale may be paid in part now; never more than it costs.
+      const paidNow = onCredit ? roundMoney(money(body.paidNow ?? 0)) : ZERO_MONEY();
+      if (paidNow.greaterThan(totals.total)) {
+        throw new AppError(400, ERROR_CODES.ORDER_PAYMENT_EXCEEDS_BALANCE);
+      }
+      const creditSettled = onCredit && paidNow.greaterThanOrEqualTo(totals.total);
+
+      // A WhatsApp order finds or creates its customer by phone, so their orders gather on one page.
+      const customer = creditCustomer
+        ? creditCustomer
+        : isOnlineChannel(body.channel) && body.customerName && body.customerPhone
+          ? await ensureCustomerForOrder(
+              tx,
+              {
+                name: body.customerName,
+                phone: body.customerPhone,
+                whatsapp: body.customerWhatsapp,
+                address: body.customerAddress,
+                latitude: body.customerLatitude,
+                longitude: body.customerLongitude,
+              },
+              req.user!.id,
+            )
+          : null;
+
       const order = await tx.order.create({
         data: {
           channel: body.channel,
@@ -409,28 +478,39 @@ router.post(
           status: (isCounterSale ? STORE_ORDER_INITIAL_STATUS : ONLINE_ORDER_INITIAL_STATUS) as OrderStatus,
           paymentMethod: body.paymentMethod,
           // A courier order is not paid until the delivery company settles up (spec.md "Payment collection").
-          paymentStatus: (isSettled
-            ? STORE_ORDER_INITIAL_PAYMENT_STATUS
-            : ONLINE_ORDER_INITIAL_PAYMENT_STATUS) as PaymentStatus,
-          collectedAt: isSettled ? now : null,
-          customerName: body.customerName ?? null,
-          customerPhone: body.customerPhone ?? null,
-          customerWhatsapp: body.customerWhatsapp ?? null,
-          customerAddress: body.customerAddress ?? null,
-          customerLatitude: body.customerLatitude ?? null,
-          customerLongitude: body.customerLongitude ?? null,
+          paymentStatus: (onCredit
+            ? creditSettled
+              ? "COLLECTED"
+              : "ON_CREDIT"
+            : isSettled
+              ? STORE_ORDER_INITIAL_PAYMENT_STATUS
+              : ONLINE_ORDER_INITIAL_PAYMENT_STATUS) as PaymentStatus,
+          collectedAt: onCredit ? (creditSettled ? now : null) : isSettled ? now : null,
+          customerName: creditCustomer?.name ?? body.customerName ?? null,
+          customerPhone: creditCustomer?.phone ?? body.customerPhone ?? null,
+          customerWhatsapp: creditCustomer ? creditCustomer.whatsapp : (body.customerWhatsapp ?? null),
+          customerAddress: creditCustomer ? creditCustomer.address : (body.customerAddress ?? null),
+          customerLatitude: creditCustomer ? creditCustomer.latitude : (body.customerLatitude ?? null),
+          customerLongitude: creditCustomer ? creditCustomer.longitude : (body.customerLongitude ?? null),
+          customerId: customer?.id ?? null,
+          onCredit,
+          paidAmount: paidNow,
+          ...(paidNow.greaterThan(0)
+            ? { payments: { create: { amount: paidNow, receivedById: req.user!.id, receivedAt: now } } }
+            : {}),
           note: body.note ?? null,
           subtotal: totals.subtotal,
           discountType: isGift ? null : (body.discountType ?? null),
           discountValue: isGift ? null : (body.discountValue ?? null),
           discountAmount: totals.discountAmount,
           total: totals.total,
-          stockDeductedAt: isCounterSale ? now : null,
+          // A credit sale is sold the moment it is made, on any channel, so its stock goes now too.
+          stockDeductedAt: isCounterSale || onCredit ? now : null,
           // Kept on the sale so it outlives the product's completion and the list can filter on it.
           hasQuickSale: quickSold.length > 0,
           createdById: req.user!.id,
           items: {
-            create: priced.map((line) => ({
+            create: priced.map((line, index) => ({
               productId: line.productId,
               variantId: line.variantId,
               name: line.name as Prisma.InputJsonValue,
@@ -444,6 +524,10 @@ router.post(
               discountValue: line.discountValue,
               discountAmount: line.discountAmount,
               lineTotal: line.lineTotal,
+              // A counter or credit sale's piece leaves (by hand or courier) unless kept in the shop; a plain courier parcel never asks.
+              ...((isCounterSale || onCredit) && !(onCredit && body.items[index]?.keptInShop)
+                ? { handedOverAt: now, handedOverById: req.user!.id }
+                : {}),
             })),
           },
         },
@@ -451,7 +535,7 @@ router.post(
       });
 
       // A counter sale deducts now (a quick-sold product lands at zero); online orders wait for PREPARING.
-      if (isCounterSale) {
+      if (isCounterSale || onCredit) {
         await deductStock(tx, toStockMovements(priced));
       }
 
@@ -558,7 +642,9 @@ router.patch(
       orderDiscount,
     );
 
-    const updated = await prisma.$transaction(async (tx) => {
+    const { updated, reconciled } = await prisma.$transaction(async (tx) => {
+      // Locked, so a payment taken at the same moment cannot slip past the re-priced balance.
+      await lockOrder(tx, existing.id);
       for (const line of repriced) {
         await tx.orderItem.update({
           where: { id: line.id },
@@ -571,7 +657,7 @@ router.patch(
         });
       }
 
-      return tx.order.update({
+      await tx.order.update({
         where: { id: existing.id },
         data: {
           paymentMethod: body.paymentMethod,
@@ -588,9 +674,13 @@ router.patch(
           subtotal: totals.subtotal,
           total: totals.total,
         },
-        include: orderInclude,
       });
+      // A new discount changes what a credit sale owes: anything paid beyond it goes back.
+      const reconciled = await reconcileCredit(tx, existing.id, req.user!.id);
+      const updated = await tx.order.findUniqueOrThrow({ where: { id: existing.id }, include: orderInclude });
+      return { updated, reconciled };
     });
+    await auditRefund(req.user!.id, updated.id, reconciled);
 
     await writeAudit({
       userId: req.user!.id,
@@ -623,7 +713,7 @@ router.patch(
       throw new AppError(403, ERROR_CODES.FORBIDDEN);
     }
 
-    const { existing, updated } = await prisma.$transaction(async (tx) => {
+    const { existing, updated, reconciled } = await prisma.$transaction(async (tx) => {
       const existing = await lockOrder(tx, req.params.id);
 
       const allowed = ORDER_STATUS_TRANSITIONS[existing.status as OrderStatus] ?? [];
@@ -642,17 +732,19 @@ router.patch(
         await restoreStock(tx, outstandingMovements(existing));
       }
 
-      const updated = await tx.order.update({
+      await tx.order.update({
         where: { id: existing.id },
         data: {
           status: target,
           ...(deductNow ? { stockDeductedAt: new Date() } : {}),
           ...(restoreNow ? { stockDeductedAt: null } : {}),
         },
-        include: orderInclude,
       });
-      return { existing, updated };
+      const reconciled = cancelling ? await reconcileCredit(tx, existing.id, req.user!.id) : null;
+      const updated = await tx.order.findUniqueOrThrow({ where: { id: existing.id }, include: orderInclude });
+      return { existing, updated, reconciled };
     });
+    await auditRefund(req.user!.id, updated.id, reconciled);
 
     await writeAudit({
       userId: req.user!.id,
@@ -677,7 +769,7 @@ router.post(
   asyncHandler(async (req, res) => {
     const body = req.body as ReturnOrderInput;
 
-    const { existing, updated, returnedById } = await prisma.$transaction(async (tx) => {
+    const { existing, updated, returnedById, reconciled } = await prisma.$transaction(async (tx) => {
       const existing = await lockOrder(tx, req.params.id);
 
       if (!(RETURNABLE_ORDER_STATUSES as readonly string[]).includes(existing.status)) {
@@ -746,13 +838,16 @@ router.post(
         await restoreStock(tx, movements);
       }
 
-      const updated = await tx.order.update({
+      await tx.order.update({
         where: { id: existing.id },
         data: fullyReturned ? { status: "RETURNED", stockDeductedAt: null } : {},
-        include: orderInclude,
       });
-      return { existing, updated, returnedById };
+      // What came back is no longer owed; if more was paid than what is kept, the difference is paid back.
+      const reconciled = await reconcileCredit(tx, existing.id, req.user!.id);
+      const updated = await tx.order.findUniqueOrThrow({ where: { id: existing.id }, include: orderInclude });
+      return { existing, updated, returnedById, reconciled };
     });
+    await auditRefund(req.user!.id, updated.id, reconciled);
 
     await writeAudit({
       userId: req.user!.id,
@@ -772,12 +867,91 @@ router.post(
   }),
 );
 
+// POST /api/orders/:id/payments — money taken on a credit sale; never more than it still owes.
+router.post(
+  "/:id/payments",
+  requirePermission("order.recordPayment"),
+  validateBody(recordPaymentSchema),
+  asyncHandler(async (req, res) => {
+    const body = req.body as RecordPaymentInput;
+    const { recorded, updated } = await prisma.$transaction(async (tx) => {
+      const existing = await lockOrder(tx, req.params.id);
+      const recorded = await recordOrderPayment(tx, existing, {
+        amount: money(body.amount),
+        note: body.note,
+        userId: req.user!.id,
+        at: new Date(),
+      });
+      const updated = await tx.order.findUniqueOrThrow({ where: { id: existing.id }, include: orderInclude });
+      return { recorded, updated };
+    });
+
+    await writeAudit({
+      userId: req.user!.id,
+      action: AuditAction.PAYMENT_RECEIVED,
+      entityType: AUDIT_ENTITY.ORDER,
+      entityId: updated.id,
+      oldValue: { balance: recorded.balanceBefore.toFixed(MONEY_DECIMAL_PLACES) },
+      newValue: {
+        paymentId: recorded.paymentId,
+        amount: recorded.amount.toFixed(MONEY_DECIMAL_PLACES),
+        balance: recorded.balanceAfter.toFixed(MONEY_DECIMAL_PLACES),
+        paymentStatus: recorded.paymentStatus,
+      },
+    });
+
+    sendOk(res, serializeOrder(updated, req.user!.role), null, 201);
+  }),
+);
+
+// POST /api/orders/:id/handover — pieces of a credit sale kept in the shop are collected by the customer.
+router.post(
+  "/:id/handover",
+  requirePermission("order.markHandedOver"),
+  validateBody(handOverItemsSchema),
+  asyncHandler(async (req, res) => {
+    const ids = [...new Set((req.body as HandOverItemsInput).itemIds)];
+    const at = new Date();
+    const updated = await prisma.$transaction(async (tx) => {
+      const existing = await lockOrder(tx, req.params.id);
+      if (!existing.onCredit || existing.status === "CANCELLED") {
+        throw new AppError(409, ERROR_CODES.ORDER_NOT_ON_CREDIT);
+      }
+      const byId = new Map(existing.items.map((item) => [item.id, item]));
+      for (const id of ids) {
+        const item = byId.get(id);
+        if (!item) {
+          throw new AppError(400, ERROR_CODES.ORDER_ITEM_NOT_FOUND);
+        }
+        if (item.handedOverAt) {
+          throw new AppError(409, ERROR_CODES.ORDER_ALREADY_HANDED_OVER);
+        }
+      }
+      await tx.orderItem.updateMany({
+        where: { id: { in: ids }, orderId: existing.id, handedOverAt: null },
+        data: { handedOverAt: at, handedOverById: req.user!.id },
+      });
+      return tx.order.findUniqueOrThrow({ where: { id: existing.id }, include: orderInclude });
+    });
+
+    await writeAudit({
+      userId: req.user!.id,
+      action: AuditAction.HANDED_OVER,
+      entityType: AUDIT_ENTITY.ORDER,
+      entityId: updated.id,
+      newValue: { itemIds: ids, handedOverAt: at },
+    });
+
+    sendOk(res, serializeOrder(updated, req.user!.role));
+  }),
+);
+
 // DELETE /api/orders/:id — soft delete (a financial record); committed stock goes back as on a cancellation.
 router.delete(
   "/:id",
   requirePermission("order.delete"),
   asyncHandler(async (req, res) => {
-    const { existing, deleted } = await prisma.$transaction(async (tx) => {
+    const { existing, deleted, reconciled } = await prisma.$transaction(async (tx) => {
       const existing = await lockOrder(tx, req.params.id);
       const restoreNow = existing.stockDeductedAt !== null;
       if (restoreNow) {
@@ -788,8 +962,10 @@ router.delete(
         where: { id: existing.id },
         data: { deletedAt: new Date(), ...(restoreNow ? { stockDeductedAt: null } : {}) },
       });
-      return { existing, deleted };
+      const reconciled = await reconcileCredit(tx, existing.id, req.user!.id);
+      return { existing, deleted, reconciled };
     });
+    await auditRefund(req.user!.id, existing.id, reconciled);
 
     await writeAudit({
       userId: req.user!.id,

@@ -96,7 +96,7 @@ export function SetPasswordForm() {
 
       {formError && <Alert tone="danger">{translateError(formError)}</Alert>}
 
-      <FormField label="auth.setPassword.passwordLabel" htmlFor="password">
+      <FormField label="auth.setPassword.passwordLabel" required htmlFor="password">
         <PasswordInput
           id="password"
           autoComplete="new-password"
@@ -113,7 +113,7 @@ export function SetPasswordForm() {
         )}
       </FormField>
 
-      <FormField label="auth.setPassword.confirmLabel" htmlFor="confirm">
+      <FormField label="auth.setPassword.confirmLabel" required htmlFor="confirm">
         <PasswordInput
           id="confirm"
           autoComplete="new-password"

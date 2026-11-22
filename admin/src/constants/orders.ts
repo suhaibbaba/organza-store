@@ -62,6 +62,7 @@ export const ORDER_FORM_SECTIONS = {
   kind: { icon: "receipt", tone: "violet" },
   summary: { icon: "money", tone: "green" },
   note: { icon: "file", tone: "neutral" },
+  credit: { icon: "wallet", tone: "rose" },
 } as const satisfies Record<string, { icon: IconName; tone: SectionTone }>;
 
 export type OrderFormSectionName = keyof typeof ORDER_FORM_SECTIONS;
@@ -69,6 +70,7 @@ export type OrderFormSectionName = keyof typeof ORDER_FORM_SECTIONS;
 // Every gift line is priced at zero, not discounted 100% (spec.md "Gifts").
 export const GIFT_LINE_TOTAL = "0";
 export const MANUAL_ORDER_PAYMENT_METHOD = "CASH" as const;
+export const EMPTY_ORDER_CREDIT = { onCredit: false, customer: null, paidNow: "", keptKeys: [] } as const;
 
 // The backend re-checks stock atomically (ORDER_INSUFFICIENT_STOCK); this only avoids a doomed order.
 export const MIN_ORDER_QUANTITY = 1;

@@ -1,7 +1,7 @@
 "use client";
 
 import { useLocale, useTranslations } from "next-intl";
-import { CircleCheck, HandCoins } from "lucide-react";
+import { CircleCheck, Clock, HandCoins } from "lucide-react";
 import { Button, useConfirm, useToast, Typography } from "@store/ui";
 import { can } from "@store/shared/lib/permissions";
 import { isOrderCollectable } from "@store/shared/lib/orders";
@@ -12,9 +12,26 @@ import { useMoneyFormatter } from "@/hooks/use-money-formatter";
 import { formatDateTime } from "@/lib/format";
 import { DetailCard } from "@/components/layout/detail-card";
 import { errorMessageKey } from "@/lib/error-message-key";
+import { OrderCreditPayments } from "@/components/orders/detail/order-credit-payments";
 
 // Recording a collection is order.markCollected; the backend is the real gate, this only decides whether the button exists.
 export function OrderPaymentCard({ order }: { order: Order }) {
+  const t = useTranslations("orders.detail.payment");
+  if (order.onCredit) {
+    return (
+      <DetailCard
+        icon={order.paymentStatus === "ON_CREDIT" ? Clock : CircleCheck}
+        title={t("title")}
+        data-testid="order-payment-card"
+      >
+        <OrderCreditPayments order={order} />
+      </DetailCard>
+    );
+  }
+  return <CollectionPayment order={order} />;
+}
+
+function CollectionPayment({ order }: { order: Order }) {
   const t = useTranslations("orders.detail.payment");
   const tMenu = useTranslations("orders.rowMenu");
   const locale = useLocale();

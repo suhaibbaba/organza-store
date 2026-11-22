@@ -17,3 +17,4 @@ export * from "./report";
 export * from "./user";
 export * from "./variant";
 export * from "./search";
+export * from "./customer";

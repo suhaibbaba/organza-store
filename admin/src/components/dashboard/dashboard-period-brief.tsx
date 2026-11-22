@@ -17,6 +17,7 @@ import { cn } from "@/lib/utils";
 import { DASHBOARD_BRIEF_PERIODS, DEFAULT_DASHBOARD_PERIOD } from "@/constants/dashboard";
 import type { DashboardPeriodBriefProps } from "@/types/dashboard";
 import type { ReportPeriod } from "@/types/report";
+import { owedTotal } from "@/lib/report-figures";
 
 // "This week" starts on the shop's week day (Saturday), the same as the backend's period.
 function weekStart(today: Date): Date {
@@ -52,7 +53,7 @@ export function DashboardPeriodBrief({ summary }: DashboardPeriodBriefProps) {
       [t("exportColumns.figure"), t("exportColumns.amount", { currency })],
       [t("sold.label"), totals.revenue],
       [t("received.label"), totals.collectedRevenue],
-      [tFigures("owed.label"), totals.pendingCollectionAmount],
+      [tFigures("owed.label"), owedTotal(totals)],
     ];
     // No profit in a Manager's payload, so no cost/profit rows in their file.
     if (profit) {
@@ -81,7 +82,7 @@ export function DashboardPeriodBrief({ summary }: DashboardPeriodBriefProps) {
     {
       key: "owed",
       label: tFigures("owed.label"),
-      value: totals.pendingCollectionAmount,
+      value: owedTotal(totals),
       tile: "bg-warning-50",
       ink: "text-warning-700",
     },

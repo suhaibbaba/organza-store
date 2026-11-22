@@ -28,6 +28,7 @@ interface NavLinkProps {
   onClick?: () => void;
   onRail?: boolean;
   collapsed?: boolean;
+  nested?: boolean;
 }
 
 export function NavLink({
@@ -40,6 +41,7 @@ export function NavLink({
   onClick,
   onRail = false,
   collapsed = false,
+  nested = false,
 }: NavLinkProps) {
   return (
     <li>
@@ -50,7 +52,8 @@ export function NavLink({
         aria-current={isActive ? "page" : undefined}
         title={collapsed ? label : undefined}
         className={cn(
-          "relative mb-0.5 flex min-h-11 cursor-pointer items-center gap-[11px] rounded-nav px-3",
+          "relative mb-0.5 flex cursor-pointer items-center gap-[11px] rounded-nav px-3",
+          nested ? "min-h-10" : "min-h-11",
           "text-label font-medium transition-[background-color,color,box-shadow] duration-150",
           isActive
             ? "nav-active-wash text-ink-inverse shadow-nav-active focus-darken"
@@ -59,7 +62,7 @@ export function NavLink({
               : "text-ink-muted hover:bg-primary-100 hover:text-primary-700 focus-visible:bg-primary-200 focus-visible:text-primary-800",
         )}
       >
-        <Icon className="size-[19px] shrink-0" aria-hidden="true" />
+        <Icon className={cn("shrink-0", nested ? "size-[17px]" : "size-[19px]")} aria-hidden="true" />
         <span className={cn("truncate whitespace-nowrap transition-opacity duration-200", collapsed && "opacity-0")}>
           {label}
         </span>
@@ -74,11 +77,13 @@ export function DesignSystemNavLink({
   onClick,
   onRail,
   collapsed,
+  nested,
 }: {
   pathname: string;
   onClick?: () => void;
   onRail?: boolean;
   collapsed?: boolean;
+  nested?: boolean;
 }) {
   const t = useTranslations();
   if (!useShowsDesignSystem()) {
@@ -95,6 +100,7 @@ export function DesignSystemNavLink({
       onClick={onClick}
       onRail={onRail}
       collapsed={collapsed}
+      nested={nested}
     />
   );
 }

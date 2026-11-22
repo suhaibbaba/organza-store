@@ -12,8 +12,13 @@ import {
   ShieldCheck,
   Settings,
   WalletMinimal,
+  Contact,
+  ShoppingBag,
+  Package,
+  Landmark,
+  Building2,
 } from "lucide-react";
-import type { NavGroup, NavItem } from "@/types/nav";
+import type { NavEntry, NavItem } from "@/types/nav";
 
 // CLAUDE.md rule 5 / task spec: Users + Settings are Admin-only in the nav;
 // everything else is visible to every authenticated role.
@@ -24,6 +29,8 @@ export const NAV_ITEMS: readonly NavItem[] = [
   // someone settle it, so an Employee — who may take orders but never declare
   // their money received — doesn't see a screen they can't act on.
   { key: "collection", href: "/orders/collection", icon: HandCoins, action: "order.markCollected" },
+  // Customers and what each owes on credit (spec.md "Customers and selling on credit").
+  { key: "customers", href: "/customers", icon: Contact, action: "customer.view" },
   { key: "products", href: "/products", icon: Shirt, action: "product.view" },
   { key: "inventory", href: "/inventory", icon: Boxes, action: "inventory.view" },
   // Barcode labels. Every role can print (CLAUDE.md rule 13: a new piece
@@ -55,9 +62,15 @@ export const NAV_ITEMS: readonly NavItem[] = [
   { key: "settings", href: "/settings", icon: Settings, action: "settings.manage" },
 ] as const;
 
-// The phone menu's headings; the design system link goes last in "manage".
-export const NAV_GROUPS: readonly NavGroup[] = [
-  { key: "sales", items: ["dashboard", "orders", "collection", "reports", "expenses"] },
-  { key: "catalogue", items: ["products", "inventory", "labels", "categories"] },
-  { key: "manage", items: ["changeRequests", "users", "permissions", "settings"] },
+// One tree for the sidebar and the phone menu: single pages stay on top, related pages fold into a group.
+export const NAV_TREE: readonly NavEntry[] = [
+  { kind: "item", key: "dashboard" },
+  { kind: "group", key: "sales", icon: ShoppingBag, items: ["orders", "collection", "customers"] },
+  { kind: "group", key: "catalogue", icon: Package, items: ["products", "inventory", "labels", "categories"] },
+  { kind: "group", key: "finance", icon: Landmark, items: ["reports", "expenses"] },
+  { kind: "item", key: "changeRequests" },
+  { kind: "group", key: "manage", icon: Building2, items: ["users", "permissions", "settings"] },
 ];
+
+// The group the design system link joins (Admin role only).
+export const DESIGN_SYSTEM_NAV_GROUP = "manage";

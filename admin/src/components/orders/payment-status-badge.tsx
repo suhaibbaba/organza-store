@@ -7,11 +7,13 @@ import { cn } from "@/lib/utils";
 const PAYMENT_BADGE_TONES: Record<PaymentStatus, BadgeVariant> = {
   PENDING_COLLECTION: "warning",
   COLLECTED: "success",
+  ON_CREDIT: "danger",
 };
 
 const PAYMENT_BADGE_ICONS: Record<PaymentStatus, IconName> = {
   PENDING_COLLECTION: "banknote",
   COLLECTED: "wallet",
+  ON_CREDIT: "clock",
 };
 
 export function PaymentStatusBadge({ status, className }: { status: PaymentStatus; className?: string }) {

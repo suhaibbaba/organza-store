@@ -1,6 +1,8 @@
 import type { Role } from "@prisma/client";
 import { can } from "@store/shared/lib/permissions";
-import { formatMoney } from "@/lib/money";
+import { formatMoney, zeroMoneyText } from "@/lib/money";
+import { orderBalance } from "@/lib/orderCredit";
+import { MONEY_DECIMAL_PLACES } from "@/constants";
 import type { AnyRecord } from "@/types";
 
 // unitCost is Admin only (rule 19), gated at the response boundary with the product API's own permission.
@@ -30,6 +32,8 @@ function serializeItem(item: AnyRecord, role: Role) {
     returnedQuantity: item.returnedQuantity,
     quickSold: item.quickSold ?? false,
     thumbnailUrl: lineThumbnail(item),
+    handedOverAt: item.handedOverAt ?? null,
+    handedOverBy: item.handedOverBy ? { id: item.handedOverBy.id, name: item.handedOverBy.name } : null,
   };
 
   if (canSeeCost(role)) {
@@ -57,6 +61,20 @@ export function serializeOrder(order: AnyRecord, role: Role) {
     customerLatitude: order.customerLatitude,
     customerLongitude: order.customerLongitude,
     note: order.note,
+    customerId: order.customerId ?? null,
+    onCredit: order.onCredit ?? false,
+    paidAmount: formatMoney(order.paidAmount?.toString()) ?? zeroMoneyText(),
+    // Only a credit sale owes the shop money of its own; a courier parcel's is on the collection screen.
+    balance:
+      order.onCredit && order.items ? orderBalance(order as never).toFixed(MONEY_DECIMAL_PLACES) : zeroMoneyText(),
+    payments: (order.payments ?? []).map((payment: AnyRecord) => ({
+      id: payment.id,
+      amount: formatMoney(payment.amount?.toString()),
+      method: payment.method,
+      receivedAt: payment.receivedAt,
+      note: payment.note ?? null,
+      receivedBy: payment.receivedBy ? { id: payment.receivedBy.id, name: payment.receivedBy.name } : null,
+    })),
     subtotal: formatMoney(order.subtotal?.toString()),
     discountType: order.discountType,
     discountValue: formatMoney(order.discountValue?.toString()),
@@ -95,6 +113,9 @@ export function serializeOrderSummary(order: AnyRecord, outstanding?: Map<string
     collectedAt: order.collectedAt,
     customerName: order.customerName,
     customerPhone: order.customerPhone,
+    customerId: order.customerId ?? null,
+    onCredit: order.onCredit ?? false,
+    paidAmount: formatMoney(order.paidAmount?.toString()) ?? zeroMoneyText(),
     subtotal: formatMoney(order.subtotal?.toString()),
     discountAmount: formatMoney(order.discountAmount?.toString()),
     total: formatMoney(order.total?.toString()),

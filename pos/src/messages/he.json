@@ -219,7 +219,8 @@
       "submitting": "שומר…",
       "whatsappOrder": "הזמנת וואטסאפ",
       "orderDiscountApplied": "הנחה על המכירה ({value})",
-      "giftOrder": "מסירה כמתנה"
+      "giftOrder": "מסירה כמתנה",
+      "creditOrder": "מכירה בהקפה"
     },
     "success": {
       "title": "המכירה הושלמה",
@@ -231,7 +232,8 @@
       "whatsappOrderNumber": "הזמנה {number}",
       "giftTitle": "המתנה נרשמה",
       "giftCount": "{count, plural, one {פריט אחד} two {שני פריטים} other {{count, number, plain} פריטים}}",
-      "giftNextStep": "הפריטים ירדו מהמלאי ולא נגבה שום תשלום."
+      "giftNextStep": "הפריטים ירדו מהמלאי ולא נגבה שום תשלום.",
+      "creditBalance": "נשאר לתשלום {amount}"
     },
     "whatsapp": {
       "title": "הזמנת וואטסאפ",
@@ -256,9 +258,11 @@
         "locationHint": "הדבקת הקואורדינטות מוואטסאפ בשדה קו הרוחב תמלא את שני השדות.",
         "latitude": "קו רוחב",
         "longitude": "קו אורך",
-        "note": "הערה (רשות)",
+        "note": "הערה",
         "notePlaceholder": "פרטים נוספים על ההזמנה…"
-      }
+      },
+      "creditToggle": "בהקפה",
+      "creditHint": "הלקוח משלם לחנות, בתשלומים או בבת אחת — לא לחברת המשלוחים."
     },
     "gift": {
       "title": "מסירה כמתנה",
@@ -311,6 +315,33 @@
       "add": "הוספת {name} לסל",
       "addToCart": "הוספה לסל",
       "cartCount": "{count, plural, zero {הסל ריק} one {פריט אחד בסל} two {שני פריטים בסל} other {{count, number, plain} פריטים בסל}}"
+    },
+    "credit": {
+      "title": "מכירה בהקפה",
+      "subtitle": "הפריטים נמכרים עכשיו; הלקוח משלם מאוחר יותר, בבת אחת או בחלקים.",
+      "customer": "לקוח",
+      "searchLabel": "חיפוש לקוח",
+      "searchPlaceholder": "שם או טלפון",
+      "searching": "מחפש…",
+      "noMatches": "לא נמצא לקוח. הוסיפו אותו כלקוח חדש.",
+      "newCustomer": "לקוח חדש",
+      "newName": "שם",
+      "newNamePlaceholder": "שם הלקוח",
+      "newPhone": "טלפון",
+      "addCustomer": "הוספת לקוח",
+      "back": "חזרה",
+      "changeCustomer": "בחירת לקוח אחר",
+      "alreadyOwes": "כבר חייב {amount}",
+      "customerRequired": "בחרו או הוסיפו את הלקוח שחייב.",
+      "paidNow": "שולם עכשיו",
+      "paidNowHint": "השאירו ריק אם לא שולם דבר היום.",
+      "paidNowTooMuch": "יותר מסה״כ המכירה.",
+      "remaining": "נשאר לתשלום",
+      "keptTitle": "שמור בחנות",
+      "keptHint": "סמנו את הפריטים שהלקוח לא לוקח היום.",
+      "cancel": "ביטול",
+      "confirm": "מכירה בהקפה",
+      "saving": "שומר…"
     }
   },
   "errors": {
@@ -340,7 +371,11 @@
     "profileWrongPassword": "הסיסמה הנוכחית שגויה.",
     "profileSessionNotFound": "המכשיר הזה כבר נותק.",
     "phoneDuplicate": "מספר טלפון זה כבר בשימוש.",
-    "whatsappDuplicate": "מספר וואטסאפ זה כבר בשימוש."
+    "whatsappDuplicate": "מספר וואטסאפ זה כבר בשימוש.",
+    "orderCreditInvalid": "מכירה בהקפה היא מכירה בחנות עם לקוח שנבחר.",
+    "orderPaymentExceedsBalance": "הסכום גבוה מהיתרה.",
+    "customerNotFound": "הלקוח לא נמצא.",
+    "customerPhoneTaken": "מספר הטלפון כבר רשום ללקוח אחר."
   },
   "pwa": {
     "version": {

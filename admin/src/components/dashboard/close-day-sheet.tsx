@@ -121,7 +121,7 @@ function CloseDayForm({ session, onDone }: { session: CashSession; onDone: () =>
 
       {/* After the reveal the count is fixed — changing it after seeing the answer is what counting blind prevents. */}
       {step === "counting" && (
-        <FormField label="dashboard.drawer.closeDay.counted" htmlFor="counted-amount">
+        <FormField label="dashboard.drawer.closeDay.counted" htmlFor="counted-amount" required>
           <MoneyField
             id="counted-amount"
             value={counted}
@@ -148,6 +148,8 @@ function CloseDayForm({ session, onDone }: { session: CashSession; onDone: () =>
       <FormField
         label={noteRequired ? "dashboard.drawer.closeDay.noteRequired" : "dashboard.drawer.closeDay.note"}
         htmlFor="close-note"
+        required={noteRequired}
+        optional={!noteRequired}
       >
         <Textarea
           id="close-note"

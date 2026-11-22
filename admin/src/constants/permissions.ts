@@ -54,7 +54,16 @@ export const PERMISSION_GROUPS: readonly PermissionGroup[] = [
       "order.return",
       "order.markCollected",
       "order.createGift",
+      "order.sellOnCredit",
+      "order.recordPayment",
+      "order.markHandedOver",
     ],
+  },
+  {
+    key: "customers",
+    icon: "users",
+    tone: "rose",
+    actions: ["customer.view", "customer.manage"],
   },
   {
     key: "money",

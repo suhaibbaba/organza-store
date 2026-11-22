@@ -105,11 +105,31 @@ export const createOrderItemSchema = z
     variantId: z.string().min(1).optional(),
     quickSell: quickSellItemSchema.optional(),
     quantity: z.coerce.number().int().min(1, ERROR_CODES.VALIDATION_INVALID_NUMBER),
+    // Credit sales only: the piece stays in the shop until the customer collects it.
+    keptInShop: booleanInput.optional(),
     ...discountShape,
   })
   .refine(isDiscountConsistent, DISCOUNT_REFINEMENT)
   .refine(isOrderItemSourceValid, ITEM_SOURCE_REFINEMENT);
 export type CreateOrderItemInput = z.infer<typeof createOrderItemSchema>;
+
+// Credit on any channel: a counter sale names its Customer row, an online one is found by its phone; any of them may keep pieces.
+export function isCreditConsistent(value: {
+  onCredit?: boolean;
+  channel: string;
+  type?: string;
+  customerId?: string;
+  paidNow?: string;
+  items: { keptInShop?: boolean }[];
+}): boolean {
+  if (value.onCredit) {
+    if (value.type === GIFT_ORDER_TYPE) {
+      return false;
+    }
+    return value.channel !== "STORE" || Boolean(value.customerId);
+  }
+  return value.paidNow === undefined && value.items.every((item) => !item.keptInShop);
+}
 
 export const createOrderSchema = z
   .object({
@@ -123,11 +143,17 @@ export const createOrderSchema = z
     customerWhatsapp: phoneSchema.optional(),
     customerAddress: z.string().min(1).optional(),
     note: z.string().min(1).optional(),
+    // A credit sale (spec.md "Customers and selling on credit"): any channel, never a gift.
+    onCredit: booleanInput.optional(),
+    customerId: z.string().min(1).optional(),
+    // What the customer pays on the spot; zero is allowed, more than the total is refused on the backend.
+    paidNow: decimalInput.optional(),
     ...locationShape,
     ...discountShape,
   })
   .refine(isDiscountConsistent, DISCOUNT_REFINEMENT)
   .refine(isLocationConsistent, LOCATION_REFINEMENT)
+  .refine(isCreditConsistent, { message: ERROR_CODES.ORDER_CREDIT_INVALID })
   // An online order must be deliverable back to someone; a STORE sale is handed over at the counter.
   .refine(
     (v) =>

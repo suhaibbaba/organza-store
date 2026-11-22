@@ -32,3 +32,4 @@ export * from "./validation";
 export * from "./version";
 export * from "./search";
 export * from "./searchIndex";
+export * from "./customer";

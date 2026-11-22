@@ -74,6 +74,13 @@ export const ERROR_MESSAGE_KEYS: Record<string, string> = {
   [ERROR_CODES.ORDER_VARIANT_REQUIRED]: "errors.orderVariantRequired",
   [ERROR_CODES.ORDER_NOT_COLLECTABLE]: "errors.orderNotCollectable",
   [ERROR_CODES.ORDER_ITEM_SOURCE_INVALID]: "errors.orderItemSourceInvalid",
+  [ERROR_CODES.ORDER_CREDIT_INVALID]: "errors.orderCreditInvalid",
+  [ERROR_CODES.ORDER_NOT_ON_CREDIT]: "errors.orderNotOnCredit",
+  [ERROR_CODES.ORDER_PAYMENT_EXCEEDS_BALANCE]: "errors.orderPaymentExceedsBalance",
+  [ERROR_CODES.ORDER_ALREADY_HANDED_OVER]: "errors.orderAlreadyHandedOver",
+  [ERROR_CODES.CUSTOMER_NOT_FOUND]: "errors.customerNotFound",
+  [ERROR_CODES.CUSTOMER_PHONE_TAKEN]: "errors.customerPhoneTaken",
+  [ERROR_CODES.CUSTOMER_NOTHING_OWED]: "errors.customerNothingOwed",
 
   [ERROR_CODES.CASH_SESSION_NOT_FOUND]: "errors.cashSessionNotFound",
   [ERROR_CODES.CASH_SESSION_DATE_TAKEN]: "errors.cashSessionDateTaken",

@@ -15,6 +15,7 @@ import { REPORTS_DAILY_QUERY_KEY, REPORTS_SALES_QUERY_KEY, REPORTS_SUMMARY_QUERY
 import { USERS_LIST_QUERY_KEY } from "@/constants/users";
 import { EXPENSE_CATEGORIES_QUERY_KEY, EXPENSE_LIST_QUERY_KEY, EXPENSE_SUMMARY_QUERY_KEY } from "@/constants/expenses";
 import { CASH_SESSION_CURRENT_QUERY_KEY } from "@/constants/dashboard";
+import { CUSTOMER_DETAIL_QUERY_KEY, CUSTOMER_LIST_QUERY_KEY } from "@/constants/customers";
 import { CHANGE_REQUEST_COUNT_QUERY_KEY, CHANGE_REQUEST_LIST_QUERY_KEY } from "@/constants/changeRequests";
 
 // Which screens a change makes stale, per thing changed, so a new screen can't quietly go stale.
@@ -45,6 +46,8 @@ export interface CacheInvalidation {
   usersChanged: () => void;
   /** An expense was recorded, edited or deleted. */
   expensesChanged: () => void;
+  /** A customer was added or edited, or their account moved (a sale, a payment, a handover). */
+  customersChanged: (customerId?: string) => void;
   /** An expense category was added, renamed, retired or removed. */
   expenseCategoriesChanged: () => void;
 }
@@ -58,13 +61,25 @@ export function useCacheInvalidation(): CacheInvalidation {
         invalidateProductViews(queryClient, productId);
       },
 
+      customersChanged(customerId) {
+        void queryClient.invalidateQueries({ queryKey: [CUSTOMER_LIST_QUERY_KEY] });
+        if (customerId) {
+          void queryClient.invalidateQueries({ queryKey: [CUSTOMER_DETAIL_QUERY_KEY, customerId] });
+        }
+        // Debts and kept pieces are on the dashboard's to-do list; a payment moves the drawer.
+        void queryClient.invalidateQueries({ queryKey: DASHBOARD_SUMMARY_QUERY_KEY });
+        void queryClient.invalidateQueries({ queryKey: CASH_SESSION_CURRENT_QUERY_KEY });
+      },
+
       ordersChanged(orderId) {
         void queryClient.invalidateQueries({ queryKey: [ORDER_LIST_QUERY_KEY] });
         for (const one of orderId === undefined ? [] : Array.isArray(orderId) ? orderId : [orderId]) {
           void queryClient.invalidateQueries({ queryKey: [ORDER_DETAIL_QUERY_KEY, one] });
         }
-        // What the delivery company still owes.
+        // What the delivery company still owes, and what customers owe on credit.
         void queryClient.invalidateQueries({ queryKey: ORDER_COLLECTION_SUMMARY_QUERY_KEY });
+        void queryClient.invalidateQueries({ queryKey: [CUSTOMER_LIST_QUERY_KEY] });
+        void queryClient.invalidateQueries({ queryKey: [CUSTOMER_DETAIL_QUERY_KEY] });
         // Every order mutation can move stock, so the catalogue views go with it.
         invalidateProductViews(queryClient);
         // A sale, a cancellation or a return all change the sales figures.

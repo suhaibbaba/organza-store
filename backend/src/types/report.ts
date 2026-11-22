@@ -40,6 +40,8 @@ export interface SalesAggregateRow {
   collectedRevenue: Prisma.Decimal | null;
   pendingCollectionAmount: Prisma.Decimal | null;
   pendingCollectionOrderCount: bigint;
+  customerDebtAmount: Prisma.Decimal | null;
+  customerDebtOrderCount: bigint;
   grossRevenue: Prisma.Decimal | null;
   cost: Prisma.Decimal | null;
   // COGS on the paid-for part — what makes a received-only profit answerable.

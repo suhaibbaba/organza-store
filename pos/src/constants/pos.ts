@@ -11,6 +11,8 @@ export const POS_PAYMENT_METHOD = "CASH" as const;
 
 // The digit floor and result cap match the backend's CUSTOMER_SUGGESTION_MIN_DIGITS / _LIMIT.
 export const CUSTOMER_SUGGESTION_DEBOUNCE_MS = 350;
+export const CUSTOMER_SEARCH_DEBOUNCE_MS = 300;
+export const CUSTOMER_SEARCH_PAGE_SIZE = 6;
 
 // Capped in the box so the cashier finds out while typing, not when the save is refused.
 export const GIFT_NOTE_MAX_LENGTH = 200;

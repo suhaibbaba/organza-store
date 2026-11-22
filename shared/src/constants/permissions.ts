@@ -52,6 +52,14 @@ export const PERMISSION_ACTIONS = [
   "order.markCollected",
   // A GIFT order deducts stock and takes no money, so Admin/Manager only.
   "order.createGift",
+  // Credit sales (spec.md "Customers and selling on credit"): every role as shipped, each configurable.
+  "order.sellOnCredit",
+  "order.recordPayment",
+  "order.markHandedOver",
+
+  // A customer's page shows their balance; the total of all debt is gated on dashboard.view instead (rule 19).
+  "customer.view",
+  "customer.manage",
 
   // Cash drawer: Admin/Manager for both halves, since the count is the shop's cash position (spec.md "Cash drawer & expenses").
   "cashSession.view",
@@ -143,6 +151,11 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<Role, readonly Action[]> = {
     "order.return",
     "order.markCollected",
     "order.createGift",
+    "order.sellOnCredit",
+    "order.recordPayment",
+    "order.markHandedOver",
+    "customer.view",
+    "customer.manage",
     "cashSession.view",
     "cashSession.manage",
     "expense.create",
@@ -169,6 +182,11 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<Role, readonly Action[]> = {
     "order.view",
     "order.create",
     "order.updateStatus",
+    "order.sellOnCredit",
+    "order.recordPayment",
+    "order.markHandedOver",
+    "customer.view",
+    "customer.manage",
     "expense.create",
     // ...and to record one they have to be able to read the category list.
     "expenseCategory.view",

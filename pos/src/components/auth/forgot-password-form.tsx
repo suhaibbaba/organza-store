@@ -63,7 +63,7 @@ export function ForgotPasswordForm() {
         </Alert>
       )}
 
-      <FormField label="auth.forgotPassword.emailLabel" htmlFor="email">
+      <FormField label="auth.forgotPassword.emailLabel" required htmlFor="email">
         <Input
           id="email"
           type="email"

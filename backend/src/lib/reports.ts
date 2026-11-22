@@ -24,10 +24,20 @@ import type {
 export function lineView(range: ReportRange | null): Prisma.Sql {
   const window = range ? Prisma.sql`AND o."createdAt" >= ${range.from} AND o."createdAt" < ${range.to}` : Prisma.empty;
 
+  // collected_share: 1 when paid, 0 with the courier, and for a credit sale its paid part of what it is worth now.
   return Prisma.sql`
+    SELECT base.*,
+      CASE base.payment_status
+        WHEN 'COLLECTED' THEN 1::numeric
+        WHEN 'PENDING_COLLECTION' THEN 0::numeric
+        ELSE CASE WHEN base.order_net <= 0 THEN 1::numeric ELSE LEAST(base.paid_amount / base.order_net, 1) END
+      END AS collected_share
+    FROM (
     SELECT
       o.id            AS order_id,
       o.channel::text AS channel,
+      o."onCredit"    AS on_credit,
+      o."paidAmount"  AS paid_amount,
       o."paymentStatus"::text AS payment_status,
       o."paymentMethod"::text AS payment_method,
       o."createdAt"   AS created_at,
@@ -50,7 +60,9 @@ export function lineView(range: ReportRange | null): Prisma.Sql {
       (oi."lineTotal" / oi.quantity)
         * (CASE WHEN o.subtotal = 0 THEN 1 ELSE o.total / o.subtotal END) AS unit_net_price,
       COALESCE(oi."unitCost", 0)  AS unit_cost,
-      (oi."unitCost" IS NULL)     AS cost_missing
+      (oi."unitCost" IS NULL)     AS cost_missing,
+      SUM((oi."lineTotal" / oi.quantity) * (oi.quantity - oi."returnedQuantity")
+        * (CASE WHEN o.subtotal = 0 THEN 1 ELSE o.total / o.subtotal END)) OVER (PARTITION BY o.id) AS order_net
     FROM "OrderItem" oi
     JOIN "Order" o ON o.id = oi."orderId"
     WHERE o."deletedAt" IS NULL
@@ -58,6 +70,7 @@ export function lineView(range: ReportRange | null): Prisma.Sql {
       -- Gifts earn nothing; they are a cost, counted by queryGiftCost below.
       AND o.type = 'SALE'::"OrderType"
       ${window}
+    ) base
   `;
 }
 
@@ -84,20 +97,21 @@ const TOTALS_COLUMNS = Prisma.sql`
   COUNT(DISTINCT order_id) FILTER (WHERE net_units > 0)            AS "orderCount",
   COALESCE(SUM(net_units), 0)                                      AS "itemCount",
   COALESCE(SUM(unit_net_price * net_units), 0)                     AS "revenue",
-  -- Sold vs. actually paid for. The two filters partition the same revenue,
-  -- so collected + pending always adds back up to it.
-  COALESCE(SUM(unit_net_price * net_units)
-    FILTER (WHERE payment_status = 'COLLECTED'), 0)                AS "collectedRevenue",
+  -- Sold = received + with the courier + owed by customers on credit, always.
+  COALESCE(SUM(unit_net_price * net_units * collected_share), 0)   AS "collectedRevenue",
   COALESCE(SUM(unit_net_price * net_units)
     FILTER (WHERE payment_status = 'PENDING_COLLECTION'), 0)       AS "pendingCollectionAmount",
   COUNT(DISTINCT order_id) FILTER (
     WHERE payment_status = 'PENDING_COLLECTION' AND net_units > 0) AS "pendingCollectionOrderCount",
+  COALESCE(SUM(unit_net_price * net_units * (1 - collected_share))
+    FILTER (WHERE payment_status = 'ON_CREDIT'), 0)                AS "customerDebtAmount",
+  COUNT(DISTINCT order_id) FILTER (
+    WHERE payment_status = 'ON_CREDIT' AND net_units > 0)          AS "customerDebtOrderCount",
   COALESCE(SUM(unit_gross_price * net_units), 0)                   AS "grossRevenue",
   COALESCE(SUM(unit_cost * net_units), 0)                          AS "cost",
   -- COGS on the part that has actually been paid for, so a "received only"
   -- profit is a real subtraction rather than an estimate.
-  COALESCE(SUM(unit_cost * net_units)
-    FILTER (WHERE payment_status = 'COLLECTED'), 0)                AS "collectedCost",
+  COALESCE(SUM(unit_cost * net_units * collected_share), 0)        AS "collectedCost",
   COUNT(*) FILTER (WHERE cost_missing AND net_units > 0)           AS "missingCostItems",
   COUNT(DISTINCT order_id) FILTER (WHERE returned_units > 0)       AS "returnedOrderCount",
   COALESCE(SUM(returned_units), 0)                                 AS "returnedItemCount",
@@ -211,6 +225,8 @@ export function toSalesTotals(row: SalesAggregateRow | undefined, canViewCost: b
     collectedRevenue: amount(row?.collectedRevenue ?? null),
     pendingCollectionAmount: amount(row?.pendingCollectionAmount ?? null),
     pendingCollectionOrderCount: Number(row?.pendingCollectionOrderCount ?? 0),
+    customerDebtAmount: amount(row?.customerDebtAmount ?? null),
+    customerDebtOrderCount: Number(row?.customerDebtOrderCount ?? 0),
     discountAmount: roundMoney(grossRevenue.sub(revenue)).toFixed(MONEY_DECIMAL_PLACES),
     averageOrderValue: (orderCount === 0 ? ZERO_MONEY() : roundMoney(revenue.div(orderCount))).toFixed(
       MONEY_DECIMAL_PLACES,
@@ -254,6 +270,8 @@ export function toProfitTotals(
     // Stated, not left as a subtraction: what the delivery company still holds is what the shop chases.
     owed: amount(row?.pendingCollectionAmount ?? null),
     owedOrderCount: Number(row?.pendingCollectionOrderCount ?? 0),
+    customerDebt: amount(row?.customerDebtAmount ?? null),
+    customerDebtOrderCount: Number(row?.customerDebtOrderCount ?? 0),
 
     cogs: cogs.toFixed(MONEY_DECIMAL_PLACES),
     receivedCogs: receivedCogs.toFixed(MONEY_DECIMAL_PLACES),

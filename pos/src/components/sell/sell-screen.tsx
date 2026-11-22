@@ -36,11 +36,12 @@ import { DiscountSheet } from "@/components/sell/discount-sheet";
 import { SaleSuccess } from "@/components/sell/sale-success";
 import { WhatsappOrderSheet } from "@/components/sell/whatsapp-order-sheet";
 import { GiftOrderSheet } from "@/components/sell/gift-order-sheet";
+import { CreditOrderSheet } from "@/components/sell/credit-order-sheet";
 import { QuickSellSheet } from "@/components/sell/quick-sell-sheet";
 import { ScannerSheet } from "@/components/sell/scanner/scanner-sheet";
 import { VariantPickerSheet } from "@/components/sell/variant-picker-sheet";
 import { Alert } from "@store/ui";
-import type { OrderCustomerDraft } from "@/types/customer";
+import type { CreditCheckout, OrderCustomerDraft } from "@/types/customer";
 import type { CartLine } from "@/types/cart";
 import { lineGrossCents } from "@/lib/cart";
 import { fromCents } from "@/lib/money";
@@ -76,6 +77,8 @@ export function SellScreen() {
   const [giftOpen, setGiftOpen] = useState(false);
   const [quickSellOpen, setQuickSellOpen] = useState(false);
   const [giftErrorCode, setGiftErrorCode] = useState<string | null>(null);
+  const [creditOpen, setCreditOpen] = useState(false);
+  const [creditErrorCode, setCreditErrorCode] = useState<string | null>(null);
   const [completedOrder, setCompletedOrder] = useState<Order | null>(null);
   // Only focused by a deliberate keypress, never on mount (a phone would open its keyboard over the cart).
   const searchInputRef = useRef<HTMLInputElement | null>(null);
@@ -90,6 +93,7 @@ export function SellScreen() {
   const canSell = can(user, "order.create");
   // Admin/Manager only (spec.md "Gifts"); the backend refuses it either way.
   const canGift = can(user, "order.createGift");
+  const canCredit = can(user, "order.sellOnCredit");
   // Every role as shipped, switchable per role (spec.md "Quick sell"); the backend refuses it either way.
   const canQuickSell = can(user, "product.quickSell");
 
@@ -158,7 +162,7 @@ export function SellScreen() {
   });
 
   // While one of these is up a scan would land in a cart nobody can see (or change a gift list already read).
-  const isAskingSomethingElse = whatsappOpen || giftOpen || orderDiscountOpen || discountLineKey !== null;
+  const isAskingSomethingElse = whatsappOpen || giftOpen || creditOpen || orderDiscountOpen || discountLineKey !== null;
   // Sheets that are part of finding what is sold: the counter scanner keeps working, keyboard shortcuts do not.
   const isFindingSheetOpen = pickerProduct !== null || scannerOpen;
 
@@ -226,18 +230,22 @@ export function SellScreen() {
   );
 
   // Counter sale, WhatsApp order (customer) or gift; a sheet's failure is shown inside the sheet that covers the screen.
-  function submitOrder(options: { customer?: OrderCustomerDraft; gift?: { note: string } } = {}) {
-    const { customer, gift } = options;
+  function submitOrder(
+    options: { customer?: OrderCustomerDraft; gift?: { note: string }; credit?: CreditCheckout } = {},
+  ) {
+    const { customer, gift, credit } = options;
     toasts.clear();
     setWhatsappErrorCode(null);
     setGiftErrorCode(null);
+    setCreditErrorCode(null);
     checkout.mutate(
-      { lines: cart.lines, orderDiscount: cart.orderDiscount, customer, gift },
+      { lines: cart.lines, orderDiscount: cart.orderDiscount, customer, gift, credit },
       {
         onSuccess: (order) => {
           setCompletedOrder(order);
           setWhatsappOpen(false);
           setGiftOpen(false);
+          setCreditOpen(false);
           setCartOpen(false);
           cart.clear();
           setQuery("");
@@ -250,6 +258,10 @@ export function SellScreen() {
           }
           if (gift) {
             setGiftErrorCode(code);
+            return;
+          }
+          if (credit) {
+            setCreditErrorCode(code);
             return;
           }
           toasts.show("destructive", errorMessageKey(code));
@@ -302,6 +314,7 @@ export function SellScreen() {
     scanFlash,
     isSubmitting: checkout.isPending,
     onGift: canGift ? () => setGiftOpen(true) : undefined,
+    onCredit: canCredit ? () => setCreditOpen(true) : undefined,
     onDiscount: () => setOrderDiscountOpen(true),
     onCheckout: () => submitOrder(),
     onWhatsappOrder: () => setWhatsappOpen(true),
@@ -382,8 +395,27 @@ export function SellScreen() {
         total={cart.totals.total}
         isSubmitting={checkout.isPending}
         errorCode={whatsappErrorCode}
-        onSubmit={(customer) => submitOrder({ customer })}
+        canCredit={canCredit}
+        lines={cart.lines}
+        onSubmit={(customer, credit) => submitOrder({ customer, credit })}
       />
+
+      {canCredit && (
+        <CreditOrderSheet
+          open={creditOpen}
+          onOpenChange={(open) => {
+            setCreditOpen(open);
+            if (!open) {
+              setCreditErrorCode(null);
+            }
+          }}
+          lines={cart.lines}
+          total={cart.totals.total}
+          isSubmitting={checkout.isPending}
+          errorCode={creditErrorCode}
+          onConfirm={(credit) => submitOrder({ credit })}
+        />
+      )}
 
       {canGift && (
         <GiftOrderSheet

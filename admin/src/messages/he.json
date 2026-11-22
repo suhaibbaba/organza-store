@@ -69,11 +69,13 @@
     "groups": {
       "sales": "מכירות",
       "catalogue": "קטלוג",
+      "finance": "כספים",
       "manage": "ניהול"
     },
     "collapse": "כיווץ התפריט",
     "expand": "הרחבת התפריט",
-    "expenses": "הוצאות"
+    "expenses": "הוצאות",
+    "customers": "לקוחות"
   },
   "auth": {
     "login": {
@@ -138,7 +140,8 @@
       },
       "ordersLabel": "הזמנות",
       "pieces": "{count, plural, =0 {אין פריטים} one {פריט אחד} other {{count, number, plain} פריטים}}",
-      "averageHint": "ממוצע {amount}"
+      "averageHint": "ממוצע {amount}",
+      "owedSplit": "שליחויות {courier} · לקוחות {customers}"
     },
     "drawer": {
       "title": "קופת מזומן",
@@ -166,7 +169,7 @@
         "title": "פתיחת הקופה",
         "description": "הקופה מתחילה במה שנותר בה אמש: {amount}. שנה רק אם הכנסת סכום אחר.",
         "openingFloat": "מזומן בקופה עכשיו",
-        "note": "הערה (לא חובה)",
+        "note": "הערה",
         "notePlaceholder": "משהו שכדאי לזכור מהבוקר",
         "submit": "פתח את היום"
       },
@@ -176,8 +179,8 @@
         "counted": "מזומן שנספר בקופה",
         "withdrawn": "מזומן שנמשך",
         "withdrawnHint": "מה שאתה מוציא עכשיו. השאר נשאר למחר.",
-        "note": "הערה (לא חובה)",
-        "noteRequired": "מה קרה? (חובה)",
+        "note": "הערה",
+        "noteRequired": "מה קרה?",
         "noteRequiredHint": "הספירה לא תואמת. רשום מה לדעתך קרה — זה יישמר בכל מקרה.",
         "notePlaceholder": "לדוגמה: שילמתי לשליח מהקופה",
         "expected": "צפוי",
@@ -291,7 +294,9 @@
       "labels": "מדבקות שלא הודפסו",
       "lowStock": "מלאי נמוך",
       "uncollected": "אצל חברת המשלוחים",
-      "followUps": "הפרשי קופה לבדיקה"
+      "followUps": "הפרשי קופה לבדיקה",
+      "customersOwing": "לקוחות שחייבים כסף",
+      "keptPieces": "פריטים שמורים ללקוחות"
     }
   },
   "figures": {
@@ -306,7 +311,7 @@
     },
     "owed": {
       "label": "עדיין חייבים לנו",
-      "help": "מה שחברת המשלוחים עדיין מחזיקה עבור הזמנות שלקחה. נמכר פחות התקבל — כסף בדרך, לא כסף שבידך."
+      "help": "כסף שנמכר ועוד לא בידיים: מה שחברת השליחויות מחזיקה, ועוד מה שלקוחות חייבים בהקפה."
     }
   },
   "orders": {
@@ -380,7 +385,8 @@
     },
     "paymentStatus": {
       "PENDING_COLLECTION": "ממתין לתשלום",
-      "COLLECTED": "שולם"
+      "COLLECTED": "שולם",
+      "ON_CREDIT": "בהקפה"
     },
     "discount": {
       "title": "הנחה",
@@ -523,6 +529,29 @@
       "header": {
         "options": "אפשרויות הזמנה",
         "date": "תאריך"
+      },
+      "credit": {
+        "total": "סה״כ",
+        "paid": "שולם",
+        "balance": "יתרה",
+        "customerAccount": "החשבון של {name}",
+        "payment": "תשלום",
+        "refund": "הוחזר",
+        "noPayments": "עוד לא שולם דבר.",
+        "recordPayment": "קבלת תשלום",
+        "paidOff": "שולם במלואו.",
+        "modalTitle": "תשלום על הזמנה #{number}",
+        "modalDescription": "כל סכום עד היתרה של ההזמנה.",
+        "refundConsequence": "{amount} ששולמו יוחזרו מהקופה."
+      },
+      "handover": {
+        "kept": "שמור בחנות",
+        "handedOver": "נמסר {date}",
+        "action": "מסירה",
+        "confirmTitle": "למסור את {name}?",
+        "confirmAction": "נמסר",
+        "confirmConsequence": "נרשם שהלקוח לקח את הפריט, עם שמך והשעה.",
+        "done": "סומן כנמסר."
       }
     },
     "new": {
@@ -576,7 +605,7 @@
         "whatsapp": "מספר וואטסאפ",
         "address": "כתובת",
         "addressPlaceholder": "עיר, רחוב, ציון דרך…",
-        "location": "מיקום במפה (רשות)",
+        "location": "מיקום במפה",
         "locationHint": "הדביקו את קישור המיקום שהלקוח שלח מ-Google Maps.",
         "notePlaceholder": "פרטים נוספים על ההזמנה…",
         "namePlaceholder": "לדוגמה: שרה אחמד",
@@ -632,9 +661,27 @@
         "note": {
           "title": "הערה",
           "description": "אופציונלית, מופיעה על ההזמנה."
+        },
+        "credit": {
+          "title": "בהקפה",
+          "description": "הלקוח משלם מאוחר יותר, בבת אחת או בחלקים."
         }
       },
-      "save": "יצירת הזמנה"
+      "save": "יצירת הזמנה",
+      "credit": {
+        "toggle": "מכירה בהקפה",
+        "toggleHint": "מה שלא שולם עכשיו נרשם בחשבון הלקוח, לתשלום מתי שירצה.",
+        "customer": "לקוח",
+        "customerRequired": "בחרו או הוסיפו את הלקוח שחייב.",
+        "paidNow": "שולם עכשיו",
+        "paidNowPlaceholder": "0",
+        "paidNowHint": "השאירו ריק אם לא שולם דבר היום.",
+        "paidNowTooMuch": "יותר מסה״כ ההזמנה.",
+        "remaining": "נשאר לתשלום",
+        "keptTitle": "שמור בחנות",
+        "keptHint": "סמנו את הפריטים שהלקוח לא לוקח היום.",
+        "onlineCustomerHint": "הלקוח שבחלק «לקוח» חייב על ההזמנה הזו; ההזמנות והתשלומים שלו מרוכזים בעמוד שלו."
+      }
     },
     "collection": {
       "title": "כסף אצל חברת המשלוחים",
@@ -723,7 +770,8 @@
         "help": "מכירות פחות עלות הסחורה. שכר דירה, משכורות והוצאות אחרות אינם מנוכים ממנו."
       },
       "margin": "שיעור רווח {value, number, percent}",
-      "missingCost": "{count, plural, one {לפריט אחד שנמכר אין} other {ל־{count} פריטים שנמכרו אין}} מחיר עלות, ולכן הרווח המוצג גבוה מהאמיתי."
+      "missingCost": "{count, plural, one {לפריט אחד שנמכר אין} other {ל־{count} פריטים שנמכרו אין}} מחיר עלות, ולכן הרווח המוצג גבוה מהאמיתי.",
+      "owedSplit": "שליחויות {courier} · לקוחות {customers}"
     },
     "channels": {
       "title": "לפי ערוץ מכירה",
@@ -1703,7 +1751,14 @@
     "orderItemSourceInvalid": "לא ברור מה נמכר בשורה הזו.",
     "orderLocationLinkInvalid": "לא הצלחנו לקרוא מיקום מהקישור. הדביקו קישור שיתוף מ-Google Maps.",
     "profileWrongPassword": "הסיסמה הנוכחית שגויה.",
-    "profileSessionNotFound": "המכשיר הזה כבר נותק."
+    "profileSessionNotFound": "המכשיר הזה כבר נותק.",
+    "orderCreditInvalid": "מכירה בהקפה היא מכירה בחנות עם לקוח שנבחר.",
+    "orderNotOnCredit": "הזמנה זו לא נמכרה בהקפה.",
+    "orderPaymentExceedsBalance": "הסכום גבוה מהיתרה שנותרה.",
+    "orderAlreadyHandedOver": "הפריט הזה כבר נמסר.",
+    "customerNotFound": "הלקוח לא נמצא.",
+    "customerPhoneTaken": "מספר הטלפון כבר רשום ללקוח אחר.",
+    "customerNothingOwed": "הלקוח לא חייב דבר."
   },
   "pwa": {
     "version": {
@@ -1833,7 +1888,8 @@
       "orders": "הזמנות ומכירות",
       "money": "כספים",
       "approvals": "אישורים",
-      "staff": "צוות והגדרות"
+      "staff": "צוות והגדרות",
+      "customers": "לקוחות"
     },
     "actions": {
       "dashboard": {
@@ -1877,7 +1933,10 @@
         "delete": "מחיקת הזמנה",
         "return": "החזרת מכירה",
         "markCollected": "סימון כסף כנגבה",
-        "createGift": "מסירת מלאי כמתנה"
+        "createGift": "מסירת מלאי כמתנה",
+        "sellOnCredit": "מכירה בהקפה",
+        "recordPayment": "קבלת תשלום על הקפה",
+        "markHandedOver": "מסירת פריט ששמור ללקוח"
       },
       "report": {
         "view": "פתיחת הדוחות"
@@ -1912,6 +1971,10 @@
       },
       "permission": {
         "manage": "שינוי ההרשאות האלה"
+      },
+      "customer": {
+        "view": "צפייה בלקוחות ובחובותיהם",
+        "manage": "הוספה ועריכה של לקוחות"
       }
     },
     "adminNote": "למנהל המערכת יש תמיד את כל ההרשאות, ולכן הוא לא מופיע כאן.",
@@ -2162,6 +2225,9 @@
       "detail": "פרטי מוצר",
       "new": "מוצר חדש",
       "edit": "עריכת מוצר"
+    },
+    "customers": {
+      "detail": "פרטי לקוח"
     }
   },
   "globalSearch": {
@@ -2394,6 +2460,123 @@
         "saved": "הקטגוריה נשמרה"
       },
       "descriptionText": "הוסיפו, שנו שם או כבו את הקטגוריות שההוצאות נרשמות תחתן."
+    }
+  },
+  "customers": {
+    "title": "לקוחות",
+    "subtitle": "מי קונה בחנות, כמה הוא חייב בהקפה, והפריטים ששמורים לו.",
+    "add": "הוספת לקוח",
+    "stats": {
+      "totalDebt": "חוב לקוחות",
+      "totalDebtHint": "כל מה שהלקוחות עדיין חייבים על מכירות בהקפה, בכל החנות. כסף שעוד לא הגיע.",
+      "owingCount": "לקוחות חייבים"
+    },
+    "search": {
+      "label": "חיפוש לקוחות",
+      "placeholder": "שם או טלפון",
+      "clear": "ניקוי החיפוש"
+    },
+    "filters": {
+      "owing": "חייבים כסף",
+      "kept": "פריטים שמורים בחנות"
+    },
+    "empty": {
+      "noneTitle": "אין עדיין לקוחות",
+      "noneHint": "לקוח נוסף כשמוכרים בהקפה או כשמתקבלת הזמנה אונליין.",
+      "noMatchesTitle": "אין לקוחות תואמים",
+      "noMatchesHint": "נסו שם או מספר אחר, או נקו את המסננים."
+    },
+    "table": {
+      "name": "לקוח",
+      "kept": "פריטים שמורים",
+      "lastOrder": "הזמנה אחרונה",
+      "orders": "הזמנות",
+      "balance": "חייב",
+      "keptCount": "{count, plural, one {פריט אחד שמור} other {{count, number, plain} פריטים שמורים}}",
+      "nothingOwed": "לא חייב"
+    },
+    "form": {
+      "createTitle": "לקוח חדש",
+      "editTitle": "עריכת לקוח",
+      "description": "מספר הטלפון מזהה את הלקוח; הוא לא יכול להיות של שני לקוחות.",
+      "create": "הוספת לקוח",
+      "save": "שמירה",
+      "created": "הלקוח נוסף.",
+      "saved": "הלקוח נשמר.",
+      "name": "שם",
+      "namePlaceholder": "שם הלקוח",
+      "nameRequired": "הזינו את שם הלקוח.",
+      "phone": "טלפון",
+      "phonePlaceholder": "מספר נייד",
+      "phoneInvalid": "הזינו מספר טלפון תקין.",
+      "whatsappToggle": "יש מספר וואטסאפ אחר",
+      "whatsapp": "וואטסאפ",
+      "address": "כתובת",
+      "addressPlaceholder": "יישוב, רחוב, ציון דרך",
+      "note": "הערה",
+      "notePlaceholder": "כל מה שהחנות צריכה לזכור"
+    },
+    "payment": {
+      "title": "קבלת תשלום מ{name}",
+      "description": "כל סכום עד גובה החוב. הוא מכסה קודם את המכירות הישנות.",
+      "owed": "יתרה לתשלום",
+      "amount": "הסכום שהתקבל",
+      "amountPlaceholder": "0",
+      "amountHint": "חלק או הכול; אין לוח תשלומים קבוע.",
+      "amountInvalid": "הזינו סכום גדול מאפס ולא יותר מהחוב.",
+      "payAll": "תשלום מלא",
+      "note": "הערה",
+      "notePlaceholder": "רשות",
+      "save": "שמירת התשלום",
+      "saved": "התשלום נשמר.",
+      "preview": {
+        "title": "איך הוא מתחלק",
+        "leftOn": "נשארו {amount}",
+        "paidOff": "שולם"
+      }
+    },
+    "picker": {
+      "searchLabel": "חיפוש לקוח",
+      "searchPlaceholder": "שם או טלפון",
+      "clear": "ניקוי",
+      "searching": "מחפש…",
+      "noMatches": "לא נמצא לקוח. הוסיפו אותו כלקוח חדש.",
+      "newCustomer": "לקוח חדש",
+      "change": "בחירת לקוח אחר",
+      "alreadyOwes": "כבר חייב {amount}"
+    },
+    "detail": {
+      "balance": "חייב",
+      "openOrders": "מכירות שלא שולמו",
+      "keptPieces": "שמור בחנות",
+      "orderCount": "הזמנות",
+      "owingBadge": "חייב כסף",
+      "settledBadge": "לא חייב",
+      "keptBadge": "{count, plural, one {פריט אחד שמור} other {{count, number, plain} פריטים שמורים}}",
+      "edit": "עריכה",
+      "recordPayment": "קבלת תשלום",
+      "notFoundTitle": "הלקוח לא נמצא",
+      "notFoundHint": "ייתכן שהקישור שגוי, או שהלקוח לא נוסף מעולם.",
+      "kept": {
+        "title": "{count, plural, one {שמור עבורו: פריט אחד} other {שמור עבורו: {count, number, plain} פריטים}}",
+        "fromOrder": "הזמנה #{number} · {date}",
+        "action": "מסירה",
+        "confirmConsequence": "נרשם שהלקוח לקח את הפריט, עם שמך והשעה."
+      },
+      "orders": {
+        "title": "הזמנות",
+        "number": "הזמנה",
+        "status": "סטטוס",
+        "total": "סה״כ",
+        "balance": "יתרה",
+        "emptyTitle": "אין עדיין הזמנות"
+      },
+      "payments": {
+        "title": "תשלומים",
+        "none": "אין עדיין תשלומים.",
+        "payment": "תשלום",
+        "refund": "הוחזר"
+      }
     }
   }
 }

@@ -12,6 +12,7 @@ export const AUDIT_ENTITY = {
   EXPENSE: "Expense",
   EXPENSE_CATEGORY: "ExpenseCategory",
   CASH_SESSION: "CashSession",
+  CUSTOMER: "Customer",
   // Requests themselves are audited too: "who asked for this price" and "who
   // agreed to it" are separate questions from "what did the price become".
   CHANGE_REQUEST: "ChangeRequest",

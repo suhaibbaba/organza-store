@@ -12,7 +12,7 @@ import { createOrder } from "@/lib/api/orders";
 import { toOrderItems } from "@/lib/cart";
 import { toCustomerFields } from "@/lib/customer";
 import type { CartLine, DiscountState } from "@/types/cart";
-import type { OrderCustomerDraft } from "@/types/customer";
+import type { CreditCheckout, OrderCustomerDraft } from "@/types/customer";
 
 interface CheckoutInput {
   lines: readonly CartLine[];
@@ -21,6 +21,8 @@ interface CheckoutInput {
   customer?: OrderCustomerDraft;
   // Present = the cart is GIVEN AWAY at the counter (spec.md "Gifts"); the string is the optional "who for / why" note.
   gift?: { note: string };
+  // Present = sold on credit to a named customer (spec.md "Customers and selling on credit").
+  credit?: CreditCheckout;
 }
 
 // Sends ids, quantities and discounts only — the backend prices the order (a gift at zero); the client never sends money.
@@ -28,7 +30,7 @@ export function useCheckout() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ lines, orderDiscount, customer, gift }: CheckoutInput) => {
+    mutationFn: ({ lines, orderDiscount, customer, gift, credit }: CheckoutInput) => {
       const isGift = gift !== undefined;
       const note = gift?.note.trim() ?? "";
 
@@ -37,7 +39,18 @@ export function useCheckout() {
         // Asking for GIFT is only asking: order.createGift is enforced on the backend (CLAUDE.md rule 5).
         type: isGift ? GIFT_ORDER_TYPE : SALE_ORDER_TYPE,
         paymentMethod: POS_PAYMENT_METHOD,
-        items: toOrderItems(lines),
+        items: credit
+          ? toOrderItems(lines).map((item, index) =>
+              credit.keptKeys.includes(lines[index].key) ? { ...item, keptInShop: true } : item,
+            )
+          : toOrderItems(lines),
+        ...(credit
+          ? {
+              onCredit: true,
+              ...(credit.customerId && { customerId: credit.customerId }),
+              ...(Number(credit.paidNow) > 0 && { paidNow: credit.paidNow }),
+            }
+          : {}),
         ...(customer ? toCustomerFields(customer) : {}),
         // Omitted rather than sent empty: the schema refuses "" where "not given" is fine.
         ...(isGift && note ? { note } : {}),

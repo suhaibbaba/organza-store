@@ -80,7 +80,7 @@ function OpenDayForm({ suggestedOpeningFloat, onDone }: { suggestedOpeningFloat:
         <MoneyField id="opening-float" value={openingFloat} onChange={(event) => setOpeningFloat(event.target.value)} />
       </FormField>
 
-      <FormField label="dashboard.drawer.openDay.note" htmlFor="open-note">
+      <FormField label="dashboard.drawer.openDay.note" htmlFor="open-note" optional>
         <Textarea
           id="open-note"
           data-testid={fieldTestSelector("open-note")}
