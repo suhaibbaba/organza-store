@@ -15,7 +15,7 @@ interface SessionContextValue {
   refresh: () => Promise<void>;
   // Returns the account because the caller routes by role, and the context's user would still be the previous render's.
   login: (email: string, password: string) => Promise<SessionUser>;
-  loginWithPasskey: () => Promise<SessionUser>;
+  loginWithPasskey: (autofill?: boolean) => Promise<SessionUser>;
   logout: () => Promise<void>;
 }
 
@@ -50,11 +50,14 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     [queryClient],
   );
 
-  const loginWithPasskey = useCallback(async () => {
-    const session = await signInWithPasskey();
-    queryClient.setQueryData(SESSION_QUERY_KEY, session.user);
-    return session.user;
-  }, [queryClient]);
+  const loginWithPasskey = useCallback(
+    async (autofill?: boolean) => {
+      const session = await signInWithPasskey(autofill);
+      queryClient.setQueryData(SESSION_QUERY_KEY, session.user);
+      return session.user;
+    },
+    [queryClient],
+  );
 
   const logout = useCallback(async () => {
     await signOutRequest();

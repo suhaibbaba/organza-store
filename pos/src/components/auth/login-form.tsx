@@ -10,11 +10,10 @@ import { fieldTestSelector, testSelectorFor } from "@store/shared/lib/testSelect
 import { Link, useRouter } from "@/i18n/navigation";
 import { SELL_HREF } from "@/constants/profile";
 import { useSession } from "@/components/providers/session-provider";
-import { usePasskeySupport } from "@/hooks/use-passkey-support";
-import { PasskeyError } from "@/lib/auth/passkey";
+import { usePasskeySignIn } from "@/hooks/use-passkey-sign-in";
 import { AuthError } from "@/lib/auth/client";
 import { HTTP_TOO_MANY_REQUESTS } from "@/constants/api";
-import { FORGOT_PASSWORD_PATH, PASSKEY_ERROR_MESSAGE_KEYS } from "@/constants/auth";
+import { FORGOT_PASSWORD_PATH } from "@/constants/auth";
 import { fieldErrorKey } from "@/lib/field-error-key";
 import { loginSchema, type LoginInput } from "@/lib/validation/login";
 
@@ -43,12 +42,14 @@ function loginErrorKind(error: unknown): LoginErrorKind {
 export function LoginForm() {
   const t = useTranslations("auth.login");
   const tForgot = useTranslations("auth.forgotPassword");
-  const { login, loginWithPasskey, hasDevice } = useSession();
+  const { login, hasDevice } = useSession();
   const router = useRouter();
   const [formError, setFormError] = useState<string | null>(null);
-  const [passkeyPending, setPasskeyPending] = useState(false);
-  const passkeysAvailable = usePasskeySupport();
   const tRoot = useTranslations();
+  const passkey = usePasskeySignIn({
+    onSignedIn: (user) => router.replace(SELL_HREF, user.locale ? { locale: user.locale } : undefined),
+    onMessage: setFormError,
+  });
 
   const {
     register,
@@ -67,22 +68,6 @@ export function LoginForm() {
     } catch (error) {
       // Better Auth's sign-in doesn't use our error envelope (lib/auth/client.ts), so its status and code are read here.
       setFormError(LOGIN_ERROR_MESSAGE_KEYS[loginErrorKind(error)]);
-    }
-  };
-
-  const onPasskey = async () => {
-    setFormError(null);
-    setPasskeyPending(true);
-    try {
-      const user = await loginWithPasskey();
-      router.replace(SELL_HREF, user.locale ? { locale: user.locale } : undefined);
-    } catch (error) {
-      const failure = error instanceof PasskeyError ? error.failure : "failed";
-      if (failure !== "cancelled") {
-        setFormError(PASSKEY_ERROR_MESSAGE_KEYS[failure]);
-      }
-    } finally {
-      setPasskeyPending(false);
     }
   };
 
@@ -106,7 +91,7 @@ export function LoginForm() {
           id="email"
           type="email"
           inputMode="email"
-          autoComplete="email"
+          autoComplete="email webauthn"
           placeholder={t("emailPlaceholder")}
           hasError={!!errors.email}
           data-testid={fieldTestSelector("email")}
@@ -136,14 +121,14 @@ export function LoginForm() {
         <Button type="submit" data-test-selector="pos-login-submit" isLoading={isSubmitting} className="min-w-0 flex-1">
           {isSubmitting ? t("submitting") : t("submit")}
         </Button>
-        {passkeysAvailable && (
+        {passkey.available && (
           <Button
             type="button"
             variant="secondary"
             icon={<Icon name="passkey" aria-hidden="true" />}
-            isLoading={passkeyPending}
+            isLoading={passkey.pending}
             disabled={isSubmitting}
-            onClick={() => void onPasskey()}
+            onClick={() => void passkey.signIn()}
             data-test-selector="pos-login-passkey"
             aria-label={t("passkey")}
             title={t("passkey")}

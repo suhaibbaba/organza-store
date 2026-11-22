@@ -1,4 +1,10 @@
-import { browserSupportsWebAuthn, startAuthentication, startRegistration } from "@simplewebauthn/browser";
+import {
+  browserSupportsWebAuthn,
+  browserSupportsWebAuthnAutofill,
+  startAuthentication,
+  startRegistration,
+  WebAuthnAbortService,
+} from "@simplewebauthn/browser";
 import {
   ACCOUNT_INACTIVE_AUTH_CODE,
   PASSKEY_NOT_FOUND_AUTH_CODE,
@@ -22,6 +28,15 @@ export class PasskeyError extends Error {
 
 export function passkeysSupported(): boolean {
   return browserSupportsWebAuthn();
+}
+
+export function passkeyAutofillSupported(): Promise<boolean> {
+  return browserSupportsWebAuthnAutofill();
+}
+
+// Ends a waiting autofill ceremony (leaving the screen); a new ceremony ends the old one by itself.
+export function cancelPasskeyPrompt(): void {
+  WebAuthnAbortService.cancelCeremony();
 }
 
 // The device's own prompt: closing it, or a key already on this account, are said apart from a real failure.
@@ -72,14 +87,15 @@ async function authFetch(path: string, init: RequestInit = {}): Promise<Response
   }
 }
 
-export async function signInWithPasskey(): Promise<Session> {
+// `autofill` waits for the person to pick a passkey from the email field's suggestions instead of opening a prompt.
+export async function signInWithPasskey(autofill = false): Promise<Session> {
   const optionsRes = await authFetch(AUTH_ENDPOINTS.PASSKEY_SIGN_IN_OPTIONS);
   if (!optionsRes.ok) {
     throw await serverFailure(optionsRes);
   }
   let response;
   try {
-    response = await startAuthentication({ optionsJSON: await optionsRes.json() });
+    response = await startAuthentication({ optionsJSON: await optionsRes.json(), useBrowserAutofill: autofill });
   } catch (error) {
     throw promptFailure(error);
   }

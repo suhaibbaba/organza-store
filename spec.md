@@ -256,8 +256,10 @@ stays the way back in, and nobody is ever required to add one.
   list shows each passkey's provider when the device says it (iCloud Keychain, Google Password
   Manager, Windows Hello…), whether it syncs across their devices, and when it was added; removing
   one asks first and leaves the password working.
-- **Login screens** (admin and POS) carry an icon-only passkey button beside "Sign in", shown only
-  where the browser supports passkeys. Closing the device's prompt says nothing; a passkey the
+- **Login screens** (admin and POS) offer two ways in: the passkey appears in the email field's
+  suggestions (autofill — tap it, then Face ID), and an icon-only passkey button sits beside
+  "Sign in", shown only where the browser supports passkeys. The browser always shows its own
+  confirmation first; no site can open the fingerprint or face prompt without it. Closing the device's prompt says nothing; a passkey the
   account no longer accepts, a deactivated account and too many tries each get their own message.
 - **On the POS a passkey sign-in is a sign-in**: it joins the tablet exactly as a password does, so
   the 6-digit passcode then reopens it. The passcode remains the way to switch person at the till.
