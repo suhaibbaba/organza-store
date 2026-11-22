@@ -1344,6 +1344,35 @@ dashboard's to-do list counts open debts and pieces waiting to be collected.
 `order.markHandedOver`. A customer's own balance is visible to anyone who can see the customer; the
 **total of all customer debt** is a shop-wide figure, so it shows only with `dashboard.view`
 (rule 19). Every payment, refund and handover is audited.
+
+### Suppliers and their invoices (الموردون)
+
+The shop buys stock from suppliers, sometimes paying at once and often owing part of it. A
+**`Supplier`** has a name (required), and optionally a phone — unique under both +970 and +972
+when given (rule 18) — WhatsApp, address and note.
+
+A **`SupplierInvoice`** is **an amount owed, not stock received**: the supplier's own invoice number
+(optional, not unique), the invoice date, the total and a note. Pieces still come into stock
+through the products screens; an invoice never touches stock or a product's cost. What is owed on
+an invoice is `total − paidAmount`; `paidAmount` is the running sum of its payments, kept in the
+same transaction. An invoice's total can be edited but never below what is already paid; an
+invoice is soft-deleted, and only while nothing has been paid on it.
+
+**Payments** (`SupplierPayment`) work like a customer's: any amount, any time, no instalment plan.
+A payment is made **against one invoice**, or **on the supplier's account**, where it is spread
+over open invoices **oldest invoice first** — and the screen shows that split before Save. More
+than what is owed is refused. Something paid when the invoice is entered is its first payment.
+
+**The till:** each payment says whether the cash came **out of the drawer** (`fromDrawer`). Only
+those move the cash drawer, counted with the cash expenses on the day paid; a transfer or cheque
+paid from elsewhere is recorded but leaves the drawer alone. Supplier invoices are **not**
+expenses in the profit figures: profit already subtracts each piece's cost (COGS), and counting
+the purchase again would subtract it twice.
+
+**Permissions** (rule 22, each configurable): `supplier.view`, `supplier.manage` (suppliers and
+their invoices) and `supplier.pay`. **Admin only as shipped**, since an invoice shows what the
+stock cost (rule 19). The suppliers list shows the total owed to all suppliers. Every supplier,
+invoice and payment change is audited (`PAYMENT_MADE` for a payment).
 ---
 
 ## Cash drawer & expenses

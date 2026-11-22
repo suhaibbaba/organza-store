@@ -2,6 +2,7 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { lineView } from "@/lib/reports";
 import { expenseCashTotal, queryExpenseTotals } from "@/lib/expenses";
+import { supplierDrawerTotal } from "@/lib/suppliers";
 import { formatMoney, money, roundMoney, ZERO_MONEY } from "@/lib/money";
 import { pickedRange } from "@/lib/reportRange";
 import { DEFAULT_OPENING_FLOAT, MONEY_DECIMAL_PLACES } from "@/constants";
@@ -45,10 +46,14 @@ async function queryCashSales(range: ReportRange): Promise<Prisma.Decimal> {
   return roundMoney(amount === null || amount === undefined ? ZERO_MONEY() : money(amount));
 }
 
-// Only APPROVED, paidInCash expenses count against the till.
+// Money out of the till: APPROVED paidInCash expenses, plus supplier payments taken from the drawer.
 export async function queryMovements(range: ReportRange): Promise<CashSessionMovements> {
-  const [cashSales, expenses] = await Promise.all([queryCashSales(range), queryExpenseTotals(range)]);
-  return { cashSales, cashExpenses: expenseCashTotal(expenses) };
+  const [cashSales, expenses, suppliers] = await Promise.all([
+    queryCashSales(range),
+    queryExpenseTotals(range),
+    supplierDrawerTotal(range),
+  ]);
+  return { cashSales, cashExpenses: roundMoney(expenseCashTotal(expenses).add(suppliers)) };
 }
 
 export function expectedAmount(openingFloat: Prisma.Decimal, movements: CashSessionMovements): Prisma.Decimal {

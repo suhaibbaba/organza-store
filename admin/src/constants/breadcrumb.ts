@@ -11,4 +11,5 @@ export const BREADCRUMB_SECTIONS: Readonly<Record<string, readonly BreadcrumbLea
   orders: ["detail", "new"],
   products: ["detail", "new", "edit"],
   customers: ["detail"],
+  suppliers: ["detail"],
 };

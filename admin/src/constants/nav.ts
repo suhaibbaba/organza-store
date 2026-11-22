@@ -13,6 +13,7 @@ import {
   Settings,
   WalletMinimal,
   Contact,
+  Truck,
   ShoppingBag,
   Package,
   Landmark,
@@ -46,6 +47,8 @@ export const NAV_ITEMS: readonly NavItem[] = [
   { key: "reports", href: "/reports", icon: ChartColumn, action: "report.view" },
   // What the shop spent; reading it is Admin/Manager, the same gate as the API.
   { key: "expenses", href: "/expenses", icon: WalletMinimal, action: "expense.view" },
+  // What the shop bought and still owes; Admin only as shipped, since an invoice shows what the stock cost.
+  { key: "suppliers", href: "/suppliers", icon: Truck, action: "supplier.view" },
   // Changes waiting on somebody (spec.md "Employee change approvals").
   // Gated on the permission to READ requests, which every role holds — an
   // Admin comes here to decide, an Employee to see their own edit waiting
@@ -67,7 +70,7 @@ export const NAV_TREE: readonly NavEntry[] = [
   { kind: "item", key: "dashboard" },
   { kind: "group", key: "sales", icon: ShoppingBag, items: ["orders", "collection", "customers"] },
   { kind: "group", key: "catalogue", icon: Package, items: ["products", "inventory", "labels", "categories"] },
-  { kind: "group", key: "finance", icon: Landmark, items: ["reports", "expenses"] },
+  { kind: "group", key: "finance", icon: Landmark, items: ["reports", "expenses", "suppliers"] },
   { kind: "item", key: "changeRequests" },
   { kind: "group", key: "manage", icon: Building2, items: ["users", "permissions", "settings"] },
 ];

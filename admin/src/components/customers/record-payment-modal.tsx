@@ -2,7 +2,7 @@
 
 import { useState, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
-import { Alert, Button, FormField, Modal, Textarea, Typography, useToast } from "@store/ui";
+import { Alert, Button, FormField, Modal, Switch, Textarea, Typography, useToast } from "@store/ui";
 import { ORDER_PAYMENT_NOTE_MAX_LENGTH } from "@store/shared/constants/customer";
 import { fieldTestSelector } from "@store/shared/lib/testSelector";
 import { MoneyField } from "@/components/fields/money-field";
@@ -22,9 +22,13 @@ interface RecordPaymentModalProps {
   title: string;
   titleValues?: Record<string, string | number>;
   description: string;
-  onSave: (input: { amount: string; note?: string }) => Promise<unknown>;
+  onSave: (input: { amount: string; note?: string; fromDrawer?: boolean }) => Promise<unknown>;
   // Shown under the amount (the customer page shows how it will be split).
   renderPreview?: (amount: string) => ReactNode;
+  // Message namespace holding the field labels; suppliers pay out where customers pay in.
+  namespace?: "customers.payment" | "suppliers.payment";
+  // Asks whether the cash leaves the till (paying a supplier).
+  drawerChoice?: boolean;
 }
 
 // Any amount up to what is owed: no instalment plan, the shop takes whatever the customer brings.
@@ -41,14 +45,17 @@ function RecordPaymentForm({
   description,
   onSave,
   renderPreview,
+  namespace = "customers.payment",
+  drawerChoice = false,
 }: RecordPaymentModalProps) {
-  const t = useTranslations("customers.payment");
+  const t = useTranslations(namespace);
   const tCommon = useTranslations("common");
   const toast = useToast();
   const formatMoney = useMoneyFormatter();
   const translateError = useTranslateError();
   const [amount, setAmount] = useState("");
   const [note, setNote] = useState("");
+  const [fromDrawer, setFromDrawer] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<unknown>(null);
@@ -65,8 +72,12 @@ function RecordPaymentForm({
     setSaving(true);
     setError(null);
     try {
-      await onSave({ amount, ...(note.trim() && { note: note.trim() }) });
-      toast.success("customers.payment.saved");
+      await onSave({
+        amount,
+        ...(note.trim() && { note: note.trim() }),
+        ...(drawerChoice && { fromDrawer }),
+      });
+      toast.success(`${namespace}.saved`);
       onClose();
     } catch (caught) {
       setError(caught);
@@ -116,12 +127,12 @@ function RecordPaymentForm({
         </div>
 
         <FormField
-          label="customers.payment.amount"
+          label={`${namespace}.amount`}
           htmlFor="record-payment-amount"
           required
           error={submitted && invalid ? INVALID : undefined}
-          errorKey="customers.payment.amountInvalid"
-          note="customers.payment.amountHint"
+          errorKey={`${namespace}.amountInvalid`}
+          note={`${namespace}.amountHint`}
         >
           <div className="flex items-stretch gap-2">
             <MoneyField
@@ -147,7 +158,24 @@ function RecordPaymentForm({
 
         {renderPreview && value > 0 && !invalid && renderPreview(amount)}
 
-        <FormField label="customers.payment.note" htmlFor="record-payment-note" optional>
+        {drawerChoice && (
+          <FormField
+            label={`${namespace}.fromDrawer`}
+            htmlFor="record-payment-from-drawer"
+            note={`${namespace}.fromDrawerHint`}
+          >
+            <Switch
+              id="record-payment-from-drawer"
+              data-testid={fieldTestSelector("payment-from-drawer")}
+              label={t("fromDrawer")}
+              hideLabel
+              checked={fromDrawer}
+              onCheckedChange={setFromDrawer}
+            />
+          </FormField>
+        )}
+
+        <FormField label={`${namespace}.note`} htmlFor="record-payment-note" optional>
           <Textarea
             id="record-payment-note"
             data-test-selector={fieldTestSelector("payment-note")}

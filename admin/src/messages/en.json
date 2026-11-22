@@ -75,7 +75,8 @@
     "collapse": "Collapse menu",
     "expand": "Expand menu",
     "expenses": "Expenses",
-    "customers": "Customers"
+    "customers": "Customers",
+    "suppliers": "Suppliers"
   },
   "auth": {
     "login": {
@@ -1758,7 +1759,14 @@
     "orderAlreadyHandedOver": "This piece has already been handed over.",
     "customerNotFound": "This customer was not found.",
     "customerPhoneTaken": "Another customer already has this phone number.",
-    "customerNothingOwed": "This customer owes nothing."
+    "customerNothingOwed": "This customer owes nothing.",
+    "supplierNotFound": "This supplier doesn't exist.",
+    "supplierPhoneTaken": "This number belongs to another supplier.",
+    "supplierNothingOwed": "Nothing is owed to this supplier.",
+    "supplierInvoiceNotFound": "This invoice doesn't exist.",
+    "supplierPaymentExceedsBalance": "The amount is more than what is owed.",
+    "supplierInvoiceBelowPaid": "An invoice total can't be less than what was already paid on it.",
+    "supplierInvoiceHasPayments": "An invoice with payments on it can't be deleted."
   },
   "pwa": {
     "version": {
@@ -1889,7 +1897,8 @@
       "money": "Money",
       "approvals": "Approvals",
       "staff": "Staff and settings",
-      "customers": "Customers"
+      "customers": "Customers",
+      "suppliers": "Suppliers"
     },
     "actions": {
       "dashboard": {
@@ -1975,6 +1984,11 @@
       "customer": {
         "view": "See customers and what they owe",
         "manage": "Add and edit customers"
+      },
+      "supplier": {
+        "view": "See suppliers and what they are owed",
+        "manage": "Add and edit suppliers and their invoices",
+        "pay": "Pay suppliers"
       }
     },
     "adminNote": "The Admin always holds every permission, so it is not listed.",
@@ -2228,6 +2242,9 @@
     },
     "customers": {
       "detail": "Customer details"
+    },
+    "suppliers": {
+      "detail": "Supplier details"
     }
   },
   "globalSearch": {
@@ -2576,6 +2593,143 @@
         "none": "No payments yet.",
         "payment": "Payment",
         "refund": "Paid back"
+      }
+    }
+  },
+  "suppliers": {
+    "title": "Suppliers",
+    "subtitle": "Stock invoices and what the shop still owes its suppliers.",
+    "add": "New supplier",
+    "stats": {
+      "totalOwed": "Owed to suppliers",
+      "totalOwedHint": "Everything not yet paid on every invoice.",
+      "owingCount": "Suppliers owed"
+    },
+    "search": {
+      "label": "Search suppliers",
+      "placeholder": "Search by name or number",
+      "clear": "Clear search"
+    },
+    "filters": {
+      "owing": "Owed money"
+    },
+    "empty": {
+      "noneTitle": "No suppliers yet",
+      "noneHint": "Add a supplier, then record their invoices and payments.",
+      "noMatchesTitle": "No results",
+      "noMatchesHint": "Try another search or remove the filter."
+    },
+    "table": {
+      "name": "Supplier",
+      "lastInvoice": "Last invoice",
+      "invoices": "Invoices",
+      "balance": "Owed",
+      "nothingOwed": "Nothing owed"
+    },
+    "form": {
+      "createTitle": "New supplier",
+      "editTitle": "Edit supplier",
+      "description": "A name is enough; a number is optional and never shared by two suppliers.",
+      "create": "Add supplier",
+      "save": "Save",
+      "created": "Supplier added.",
+      "saved": "Supplier saved.",
+      "name": "Name",
+      "namePlaceholder": "Supplier or company name",
+      "nameRequired": "Enter the supplier's name.",
+      "phone": "Phone",
+      "phonePlaceholder": "Mobile number",
+      "phoneInvalid": "Enter a valid phone number.",
+      "whatsapp": "WhatsApp",
+      "address": "Address",
+      "addressPlaceholder": "City, street",
+      "note": "Note",
+      "notePlaceholder": "Anything the shop should remember"
+    },
+    "invoiceForm": {
+      "createTitle": "New invoice",
+      "editTitle": "Edit invoice",
+      "description": "The amount on the supplier's invoice. Stock is added from the products screens.",
+      "create": "Add invoice",
+      "save": "Save",
+      "created": "Invoice added.",
+      "saved": "Invoice saved.",
+      "number": "Invoice number",
+      "numberPlaceholder": "As printed",
+      "date": "Invoice date",
+      "dateRequired": "Pick the invoice date.",
+      "total": "Invoice total",
+      "totalInvalid": "Enter an amount above zero.",
+      "totalBelowPaid": "The total can't be less than what was already paid.",
+      "paidNow": "Paid now",
+      "paidNowHint": "Leave empty if nothing has been paid yet.",
+      "paidNowTooMuch": "More than the invoice total.",
+      "fromDrawerLabel": "From the till",
+      "remaining": "Left to pay",
+      "note": "Note",
+      "notePlaceholder": "What the invoice covers, any details"
+    },
+    "payment": {
+      "title": "Payment to {name}",
+      "description": "Any amount up to what is owed, oldest invoice first.",
+      "invoiceTitle": "Payment on invoice {invoice}",
+      "invoiceDescription": "Any amount up to what is left on this invoice.",
+      "owed": "Owed to the supplier",
+      "amount": "Amount paid",
+      "amountPlaceholder": "0",
+      "amountHint": "Part or all of it, no fixed dates.",
+      "amountInvalid": "Enter an amount above zero and no more than what is owed.",
+      "payAll": "Pay in full",
+      "fromDrawer": "From the till",
+      "fromDrawerHint": "Turn on if the cash came out of the drawer; it is taken off the till like a cash expense.",
+      "note": "Note",
+      "notePlaceholder": "Transfer, cheque, who handed it over…",
+      "save": "Save payment",
+      "saved": "Payment saved.",
+      "preview": {
+        "title": "How it is split",
+        "leftOn": "{amount} left",
+        "paidOff": "Paid off"
+      }
+    },
+    "detail": {
+      "balance": "Owed",
+      "openInvoices": "Open invoices",
+      "totalInvoiced": "Total invoiced",
+      "totalPaid": "Total paid",
+      "owingBadge": "Owed money",
+      "settledBadge": "Nothing owed",
+      "edit": "Edit",
+      "addInvoice": "New invoice",
+      "pay": "Pay supplier",
+      "notFoundTitle": "Supplier not found",
+      "notFoundHint": "The link may be wrong.",
+      "invoices": {
+        "title": "{count, plural, =0 {Invoices} one {1 invoice} other {{count, number, plain} invoices}}",
+        "invoice": "Invoice",
+        "total": "Total",
+        "paid": "Paid",
+        "balance": "Left",
+        "actions": "Actions",
+        "noNumber": "No number",
+        "partial": "Part paid",
+        "paidOff": "Paid",
+        "menuLabel": "Invoice options",
+        "pay": "Pay this invoice",
+        "edit": "Edit",
+        "delete": "Delete",
+        "deleteTitle": "Delete invoice {name}?",
+        "deleteConsequence": "The invoice leaves the supplier's account. An invoice with payments can't be deleted.",
+        "deleteAction": "Delete invoice",
+        "deleted": "Invoice deleted.",
+        "emptyTitle": "No invoices yet",
+        "emptyHint": "Add the supplier's invoice to see what is still owed."
+      },
+      "payments": {
+        "title": "Payments",
+        "none": "Nothing paid yet.",
+        "fromDrawer": "From the till",
+        "notFromDrawer": "Not from the till"
       }
     }
   }

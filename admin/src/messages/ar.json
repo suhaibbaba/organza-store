@@ -75,7 +75,8 @@
     "collapse": "طيّ القائمة",
     "expand": "توسيع القائمة",
     "expenses": "المصاريف",
-    "customers": "الزبائن"
+    "customers": "الزبائن",
+    "suppliers": "الموردون"
   },
   "auth": {
     "login": {
@@ -1758,7 +1759,14 @@
     "orderAlreadyHandedOver": "هذه القطعة سُلّمت من قبل.",
     "customerNotFound": "لم يُعثر على هذا الزبون.",
     "customerPhoneTaken": "رقم الهاتف هذا مسجّل لزبون آخر.",
-    "customerNothingOwed": "لا شيء على هذا الزبون."
+    "customerNothingOwed": "لا شيء على هذا الزبون.",
+    "supplierNotFound": "هذا المورد غير موجود.",
+    "supplierPhoneTaken": "هذا الرقم مسجَّل لمورد آخر.",
+    "supplierNothingOwed": "لا يوجد مبلغ مستحق لهذا المورد.",
+    "supplierInvoiceNotFound": "هذه الفاتورة غير موجودة.",
+    "supplierPaymentExceedsBalance": "المبلغ أكبر من المستحق.",
+    "supplierInvoiceBelowPaid": "لا يمكن أن يقل مجموع الفاتورة عمّا دُفع منها.",
+    "supplierInvoiceHasPayments": "لا تُحذف فاتورة دُفع منها شيء."
   },
   "pwa": {
     "version": {
@@ -1889,7 +1897,8 @@
       "money": "الأموال",
       "approvals": "الموافقات",
       "staff": "الموظفون والإعدادات",
-      "customers": "الزبائن"
+      "customers": "الزبائن",
+      "suppliers": "الموردون"
     },
     "actions": {
       "dashboard": {
@@ -1975,6 +1984,11 @@
       "customer": {
         "view": "رؤية الزبائن وما عليهم",
         "manage": "إضافة الزبائن وتعديلهم"
+      },
+      "supplier": {
+        "view": "رؤية الموردين وما لهم",
+        "manage": "إضافة الموردين وفواتيرهم وتعديلها",
+        "pay": "الدفع للموردين"
       }
     },
     "adminNote": "المسؤول يملك كل الصلاحيات دائمًا، لذلك لا يظهر هنا.",
@@ -2228,6 +2242,9 @@
     },
     "customers": {
       "detail": "تفاصيل الزبون"
+    },
+    "suppliers": {
+      "detail": "تفاصيل المورد"
     }
   },
   "globalSearch": {
@@ -2576,6 +2593,143 @@
         "none": "لا دفعات بعد.",
         "payment": "دفعة",
         "refund": "مُرجَع"
+      }
+    }
+  },
+  "suppliers": {
+    "title": "الموردون",
+    "subtitle": "فواتير البضاعة وما بقي للموردين عند المحل.",
+    "add": "مورد جديد",
+    "stats": {
+      "totalOwed": "المستحق للموردين",
+      "totalOwedHint": "مجموع ما لم يُدفع من كل الفواتير.",
+      "owingCount": "موردون لهم مستحقات"
+    },
+    "search": {
+      "label": "البحث عن مورد",
+      "placeholder": "ابحث بالاسم أو الرقم",
+      "clear": "مسح البحث"
+    },
+    "filters": {
+      "owing": "لهم مستحقات"
+    },
+    "empty": {
+      "noneTitle": "لا يوجد موردون بعد",
+      "noneHint": "أضف موردًا ثم سجّل فواتيره ودفعاته.",
+      "noMatchesTitle": "لا نتائج",
+      "noMatchesHint": "جرّب بحثًا آخر أو أزل الفلتر."
+    },
+    "table": {
+      "name": "المورد",
+      "lastInvoice": "آخر فاتورة",
+      "invoices": "الفواتير",
+      "balance": "المستحق له",
+      "nothingOwed": "لا شيء مستحق"
+    },
+    "form": {
+      "createTitle": "مورد جديد",
+      "editTitle": "تعديل المورد",
+      "description": "الاسم وحده يكفي؛ الرقم اختياري ولا يتكرر لموردين.",
+      "create": "إضافة المورد",
+      "save": "حفظ",
+      "created": "أُضيف المورد.",
+      "saved": "حُفظ المورد.",
+      "name": "الاسم",
+      "namePlaceholder": "اسم المورد أو الشركة",
+      "nameRequired": "اكتب اسم المورد.",
+      "phone": "الهاتف",
+      "phonePlaceholder": "رقم الجوال",
+      "phoneInvalid": "اكتب رقم هاتف صحيحًا.",
+      "whatsapp": "واتساب",
+      "address": "العنوان",
+      "addressPlaceholder": "المدينة، الشارع",
+      "note": "ملاحظة",
+      "notePlaceholder": "أي شيء يجب أن يتذكره المحل"
+    },
+    "invoiceForm": {
+      "createTitle": "فاتورة جديدة",
+      "editTitle": "تعديل الفاتورة",
+      "description": "مبلغ البضاعة كما في فاتورة المورد. المخزون يُضاف من صفحة المنتجات.",
+      "create": "إضافة الفاتورة",
+      "save": "حفظ",
+      "created": "أُضيفت الفاتورة.",
+      "saved": "حُفظت الفاتورة.",
+      "number": "رقم الفاتورة",
+      "numberPlaceholder": "كما هو مطبوع",
+      "date": "تاريخ الفاتورة",
+      "dateRequired": "اختر تاريخ الفاتورة.",
+      "total": "مجموع الفاتورة",
+      "totalInvalid": "اكتب مبلغًا أكبر من صفر.",
+      "totalBelowPaid": "لا يمكن أن يقل المجموع عمّا دُفع من الفاتورة.",
+      "paidNow": "المدفوع الآن",
+      "paidNowHint": "اتركه فارغًا إن لم يُدفع شيء بعد.",
+      "paidNowTooMuch": "أكثر من مجموع الفاتورة.",
+      "fromDrawerLabel": "من صندوق المحل",
+      "remaining": "الباقي للمورد",
+      "note": "ملاحظة",
+      "notePlaceholder": "ما في الفاتورة، أي تفاصيل"
+    },
+    "payment": {
+      "title": "دفعة إلى {name}",
+      "description": "أي مبلغ حتى المستحق. يُسدَّد به الأقدم فالأحدث.",
+      "invoiceTitle": "دفعة على فاتورة {invoice}",
+      "invoiceDescription": "أي مبلغ حتى الباقي على هذه الفاتورة.",
+      "owed": "المستحق للمورد",
+      "amount": "المبلغ المدفوع",
+      "amountPlaceholder": "0",
+      "amountHint": "جزء أو المبلغ كله، بلا مواعيد ثابتة.",
+      "amountInvalid": "اكتب مبلغًا أكبر من صفر ولا يزيد عن المستحق.",
+      "payAll": "سداد كامل",
+      "fromDrawer": "من صندوق المحل",
+      "fromDrawerHint": "شغّله إن خرج المبلغ نقدًا من الدرج؛ يُطرح من حساب الصندوق كالمصروف النقدي.",
+      "note": "ملاحظة",
+      "notePlaceholder": "تحويل، شيك، من سلّمه…",
+      "save": "حفظ الدفعة",
+      "saved": "حُفظت الدفعة.",
+      "preview": {
+        "title": "كيف تُوزَّع",
+        "leftOn": "يبقى {amount}",
+        "paidOff": "سُدِّدت"
+      }
+    },
+    "detail": {
+      "balance": "المستحق له",
+      "openInvoices": "فواتير مفتوحة",
+      "totalInvoiced": "مجموع الفواتير",
+      "totalPaid": "مجموع المدفوع",
+      "owingBadge": "له مستحقات",
+      "settledBadge": "لا شيء مستحق",
+      "edit": "تعديل",
+      "addInvoice": "فاتورة جديدة",
+      "pay": "دفعة للمورد",
+      "notFoundTitle": "المورد غير موجود",
+      "notFoundHint": "ربما الرابط خاطئ.",
+      "invoices": {
+        "title": "{count, plural, zero {الفواتير} one {فاتورة واحدة} two {فاتورتان} few {{count, number, plain} فواتير} many {{count, number, plain} فاتورة} other {{count, number, plain} فاتورة}}",
+        "invoice": "الفاتورة",
+        "total": "المجموع",
+        "paid": "المدفوع",
+        "balance": "الباقي",
+        "actions": "إجراءات",
+        "noNumber": "بلا رقم",
+        "partial": "مدفوعة جزئيًا",
+        "paidOff": "مدفوعة",
+        "menuLabel": "خيارات الفاتورة",
+        "pay": "دفعة على الفاتورة",
+        "edit": "تعديل",
+        "delete": "حذف",
+        "deleteTitle": "حذف الفاتورة {name}؟",
+        "deleteConsequence": "تختفي الفاتورة من حساب المورد. لا تُحذف فاتورة دُفع منها شيء.",
+        "deleteAction": "حذف الفاتورة",
+        "deleted": "حُذفت الفاتورة.",
+        "emptyTitle": "لا فواتير بعد",
+        "emptyHint": "أضف فاتورة المورد ليظهر ما بقي له."
+      },
+      "payments": {
+        "title": "الدفعات",
+        "none": "لم يُدفع شيء بعد.",
+        "fromDrawer": "من الصندوق",
+        "notFromDrawer": "من خارج الصندوق"
       }
     }
   }

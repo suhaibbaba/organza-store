@@ -61,6 +61,13 @@ export const PERMISSION_ACTIONS = [
   "customer.view",
   "customer.manage",
 
+  // Suppliers (spec.md "Suppliers and their invoices"): Admin only as shipped, since an invoice shows what the stock cost.
+  "supplier.view",
+  // Adding and editing suppliers and their invoices.
+  "supplier.manage",
+  // Paying a supplier, from the till or not.
+  "supplier.pay",
+
   // Cash drawer: Admin/Manager for both halves, since the count is the shop's cash position (spec.md "Cash drawer & expenses").
   "cashSession.view",
   "cashSession.manage",

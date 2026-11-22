@@ -75,7 +75,8 @@
     "collapse": "כיווץ התפריט",
     "expand": "הרחבת התפריט",
     "expenses": "הוצאות",
-    "customers": "לקוחות"
+    "customers": "לקוחות",
+    "suppliers": "ספקים"
   },
   "auth": {
     "login": {
@@ -1758,7 +1759,14 @@
     "orderAlreadyHandedOver": "הפריט הזה כבר נמסר.",
     "customerNotFound": "הלקוח לא נמצא.",
     "customerPhoneTaken": "מספר הטלפון כבר רשום ללקוח אחר.",
-    "customerNothingOwed": "הלקוח לא חייב דבר."
+    "customerNothingOwed": "הלקוח לא חייב דבר.",
+    "supplierNotFound": "הספק הזה לא קיים.",
+    "supplierPhoneTaken": "המספר הזה שייך לספק אחר.",
+    "supplierNothingOwed": "לא מגיע כלום לספק הזה.",
+    "supplierInvoiceNotFound": "החשבונית הזו לא קיימת.",
+    "supplierPaymentExceedsBalance": "הסכום גבוה ממה שמגיע.",
+    "supplierInvoiceBelowPaid": "סכום החשבונית לא יכול להיות נמוך ממה שכבר שולם.",
+    "supplierInvoiceHasPayments": "אי אפשר למחוק חשבונית ששולם עליה משהו."
   },
   "pwa": {
     "version": {
@@ -1889,7 +1897,8 @@
       "money": "כספים",
       "approvals": "אישורים",
       "staff": "צוות והגדרות",
-      "customers": "לקוחות"
+      "customers": "לקוחות",
+      "suppliers": "ספקים"
     },
     "actions": {
       "dashboard": {
@@ -1975,6 +1984,11 @@
       "customer": {
         "view": "צפייה בלקוחות ובחובותיהם",
         "manage": "הוספה ועריכה של לקוחות"
+      },
+      "supplier": {
+        "view": "צפייה בספקים ובמה שמגיע להם",
+        "manage": "הוספה ועריכה של ספקים וחשבוניות",
+        "pay": "תשלום לספקים"
       }
     },
     "adminNote": "למנהל המערכת יש תמיד את כל ההרשאות, ולכן הוא לא מופיע כאן.",
@@ -2228,6 +2242,9 @@
     },
     "customers": {
       "detail": "פרטי לקוח"
+    },
+    "suppliers": {
+      "detail": "פרטי ספק"
     }
   },
   "globalSearch": {
@@ -2576,6 +2593,143 @@
         "none": "אין עדיין תשלומים.",
         "payment": "תשלום",
         "refund": "הוחזר"
+      }
+    }
+  },
+  "suppliers": {
+    "title": "ספקים",
+    "subtitle": "חשבוניות סחורה ומה שהחנות עוד חייבת לספקים.",
+    "add": "ספק חדש",
+    "stats": {
+      "totalOwed": "מגיע לספקים",
+      "totalOwedHint": "כל מה שלא שולם בכל החשבוניות.",
+      "owingCount": "ספקים שמגיע להם"
+    },
+    "search": {
+      "label": "חיפוש ספק",
+      "placeholder": "חיפוש לפי שם או מספר",
+      "clear": "ניקוי החיפוש"
+    },
+    "filters": {
+      "owing": "מגיע להם"
+    },
+    "empty": {
+      "noneTitle": "אין עדיין ספקים",
+      "noneHint": "הוסיפו ספק ואז רשמו את החשבוניות והתשלומים שלו.",
+      "noMatchesTitle": "אין תוצאות",
+      "noMatchesHint": "נסו חיפוש אחר או הסירו את הסינון."
+    },
+    "table": {
+      "name": "ספק",
+      "lastInvoice": "חשבונית אחרונה",
+      "invoices": "חשבוניות",
+      "balance": "מגיע לו",
+      "nothingOwed": "לא מגיע כלום"
+    },
+    "form": {
+      "createTitle": "ספק חדש",
+      "editTitle": "עריכת ספק",
+      "description": "מספיק שם; המספר רשות ולא משותף לשני ספקים.",
+      "create": "הוספת הספק",
+      "save": "שמירה",
+      "created": "הספק נוסף.",
+      "saved": "הספק נשמר.",
+      "name": "שם",
+      "namePlaceholder": "שם הספק או החברה",
+      "nameRequired": "כתבו את שם הספק.",
+      "phone": "טלפון",
+      "phonePlaceholder": "מספר נייד",
+      "phoneInvalid": "כתבו מספר טלפון תקין.",
+      "whatsapp": "וואטסאפ",
+      "address": "כתובת",
+      "addressPlaceholder": "עיר, רחוב",
+      "note": "הערה",
+      "notePlaceholder": "כל דבר שהחנות צריכה לזכור"
+    },
+    "invoiceForm": {
+      "createTitle": "חשבונית חדשה",
+      "editTitle": "עריכת חשבונית",
+      "description": "הסכום שבחשבונית הספק. המלאי נוסף ממסכי המוצרים.",
+      "create": "הוספת החשבונית",
+      "save": "שמירה",
+      "created": "החשבונית נוספה.",
+      "saved": "החשבונית נשמרה.",
+      "number": "מספר חשבונית",
+      "numberPlaceholder": "כפי שמודפס",
+      "date": "תאריך החשבונית",
+      "dateRequired": "בחרו את תאריך החשבונית.",
+      "total": "סכום החשבונית",
+      "totalInvalid": "כתבו סכום גדול מאפס.",
+      "totalBelowPaid": "הסכום לא יכול להיות נמוך ממה שכבר שולם.",
+      "paidNow": "שולם עכשיו",
+      "paidNowHint": "השאירו ריק אם עוד לא שולם כלום.",
+      "paidNowTooMuch": "יותר מסכום החשבונית.",
+      "fromDrawerLabel": "מהקופה",
+      "remaining": "נשאר לתשלום",
+      "note": "הערה",
+      "notePlaceholder": "מה בחשבונית, פרטים נוספים"
+    },
+    "payment": {
+      "title": "תשלום ל{name}",
+      "description": "כל סכום עד מה שמגיע, מהחשבונית הישנה ביותר.",
+      "invoiceTitle": "תשלום על חשבונית {invoice}",
+      "invoiceDescription": "כל סכום עד מה שנשאר בחשבונית הזו.",
+      "owed": "מגיע לספק",
+      "amount": "הסכום ששולם",
+      "amountPlaceholder": "0",
+      "amountHint": "חלק או הכול, בלי מועדים קבועים.",
+      "amountInvalid": "כתבו סכום גדול מאפס ולא יותר ממה שמגיע.",
+      "payAll": "תשלום מלא",
+      "fromDrawer": "מהקופה",
+      "fromDrawerHint": "הפעילו אם המזומן יצא מהמגירה; הוא יורד מחשבון הקופה כמו הוצאה במזומן.",
+      "note": "הערה",
+      "notePlaceholder": "העברה, צ׳ק, מי מסר…",
+      "save": "שמירת התשלום",
+      "saved": "התשלום נשמר.",
+      "preview": {
+        "title": "איך מתחלק",
+        "leftOn": "נשארו {amount}",
+        "paidOff": "שולמה"
+      }
+    },
+    "detail": {
+      "balance": "מגיע לו",
+      "openInvoices": "חשבוניות פתוחות",
+      "totalInvoiced": "סה״כ חשבוניות",
+      "totalPaid": "סה״כ שולם",
+      "owingBadge": "מגיע לו",
+      "settledBadge": "לא מגיע כלום",
+      "edit": "עריכה",
+      "addInvoice": "חשבונית חדשה",
+      "pay": "תשלום לספק",
+      "notFoundTitle": "הספק לא נמצא",
+      "notFoundHint": "ייתכן שהקישור שגוי.",
+      "invoices": {
+        "title": "{count, plural, =0 {חשבוניות} one {חשבונית אחת} two {שתי חשבוניות} other {{count, number, plain} חשבוניות}}",
+        "invoice": "חשבונית",
+        "total": "סכום",
+        "paid": "שולם",
+        "balance": "נשאר",
+        "actions": "פעולות",
+        "noNumber": "בלי מספר",
+        "partial": "שולמה חלקית",
+        "paidOff": "שולמה",
+        "menuLabel": "אפשרויות החשבונית",
+        "pay": "תשלום על החשבונית",
+        "edit": "עריכה",
+        "delete": "מחיקה",
+        "deleteTitle": "למחוק את החשבונית {name}?",
+        "deleteConsequence": "החשבונית יוצאת מחשבון הספק. אי אפשר למחוק חשבונית ששולם עליה.",
+        "deleteAction": "מחיקת החשבונית",
+        "deleted": "החשבונית נמחקה.",
+        "emptyTitle": "אין עדיין חשבוניות",
+        "emptyHint": "הוסיפו את חשבונית הספק כדי לראות מה עוד מגיע לו."
+      },
+      "payments": {
+        "title": "תשלומים",
+        "none": "עוד לא שולם כלום.",
+        "fromDrawer": "מהקופה",
+        "notFromDrawer": "לא מהקופה"
       }
     }
   }

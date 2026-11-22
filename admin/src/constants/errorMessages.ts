@@ -82,6 +82,13 @@ export const ERROR_MESSAGE_KEYS: Record<string, string> = {
   [ERROR_CODES.CUSTOMER_PHONE_TAKEN]: "errors.customerPhoneTaken",
   [ERROR_CODES.CUSTOMER_NOTHING_OWED]: "errors.customerNothingOwed",
 
+  [ERROR_CODES.SUPPLIER_NOT_FOUND]: "errors.supplierNotFound",
+  [ERROR_CODES.SUPPLIER_PHONE_TAKEN]: "errors.supplierPhoneTaken",
+  [ERROR_CODES.SUPPLIER_NOTHING_OWED]: "errors.supplierNothingOwed",
+  [ERROR_CODES.SUPPLIER_INVOICE_NOT_FOUND]: "errors.supplierInvoiceNotFound",
+  [ERROR_CODES.SUPPLIER_PAYMENT_EXCEEDS_BALANCE]: "errors.supplierPaymentExceedsBalance",
+  [ERROR_CODES.SUPPLIER_INVOICE_BELOW_PAID]: "errors.supplierInvoiceBelowPaid",
+  [ERROR_CODES.SUPPLIER_INVOICE_HAS_PAYMENTS]: "errors.supplierInvoiceHasPayments",
   [ERROR_CODES.CASH_SESSION_NOT_FOUND]: "errors.cashSessionNotFound",
   [ERROR_CODES.CASH_SESSION_DATE_TAKEN]: "errors.cashSessionDateTaken",
   [ERROR_CODES.CASH_SESSION_ALREADY_CLOSED]: "errors.cashSessionAlreadyClosed",

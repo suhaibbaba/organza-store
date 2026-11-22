@@ -71,6 +71,9 @@ category screen.
 **Customers and selling on credit** are built end to end (backend + admin + POS): a `Customer`
 table (phone unique under both +970/+972), credit sales on any channel (counter or WhatsApp) with any number of payments, per-piece
 handover for pieces kept in the shop — see "Customers and selling on credit" in `spec.md`.
+**Suppliers** are built (backend + admin): suppliers, their invoices as amounts owed (not stock),
+and payments against one invoice or oldest first, each marked as from the till or not — see
+"Suppliers and their invoices" in `spec.md`.
 **Still deferred:** the customer storefront (Phase 3), customer LOGIN accounts, and the
 numbered-shawls WhatsApp export. WhatsApp order entry is built (admin _and_ POS): a cart can be
 filed as a WHATSAPP order with a customer snapshot, and the phone box suggests repeat customers

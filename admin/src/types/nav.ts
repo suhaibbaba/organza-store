@@ -13,6 +13,7 @@ export type NavKey =
   | "orders"
   | "collection"
   | "customers"
+  | "suppliers"
   | "products"
   | "inventory"
   | "labels"
@@ -27,8 +28,7 @@ export type NavKey =
 export type NavGroupKey = "sales" | "catalogue" | "finance" | "manage";
 
 export type NavEntry =
-  | { kind: "item"; key: NavKey }
-  | { kind: "group"; key: NavGroupKey; icon: LucideIcon; items: readonly NavKey[] };
+  { kind: "item"; key: NavKey } | { kind: "group"; key: NavGroupKey; icon: LucideIcon; items: readonly NavKey[] };
 
 export interface NavItem {
   key: NavKey;

@@ -15,6 +15,7 @@ import { REPORTS_DAILY_QUERY_KEY, REPORTS_SALES_QUERY_KEY, REPORTS_SUMMARY_QUERY
 import { USERS_LIST_QUERY_KEY } from "@/constants/users";
 import { EXPENSE_CATEGORIES_QUERY_KEY, EXPENSE_LIST_QUERY_KEY, EXPENSE_SUMMARY_QUERY_KEY } from "@/constants/expenses";
 import { CASH_SESSION_CURRENT_QUERY_KEY } from "@/constants/dashboard";
+import { SUPPLIER_DETAIL_QUERY_KEY, SUPPLIER_LIST_QUERY_KEY } from "@/constants/suppliers";
 import { CUSTOMER_DETAIL_QUERY_KEY, CUSTOMER_LIST_QUERY_KEY } from "@/constants/customers";
 import { CHANGE_REQUEST_COUNT_QUERY_KEY, CHANGE_REQUEST_LIST_QUERY_KEY } from "@/constants/changeRequests";
 
@@ -48,6 +49,8 @@ export interface CacheInvalidation {
   expensesChanged: () => void;
   /** A customer was added or edited, or their account moved (a sale, a payment, a handover). */
   customersChanged: (customerId?: string) => void;
+  /** A supplier, one of their invoices or a payment to them changed. */
+  suppliersChanged: (supplierId?: string) => void;
   /** An expense category was added, renamed, retired or removed. */
   expenseCategoriesChanged: () => void;
 }
@@ -68,6 +71,15 @@ export function useCacheInvalidation(): CacheInvalidation {
         }
         // Debts and kept pieces are on the dashboard's to-do list; a payment moves the drawer.
         void queryClient.invalidateQueries({ queryKey: DASHBOARD_SUMMARY_QUERY_KEY });
+        void queryClient.invalidateQueries({ queryKey: CASH_SESSION_CURRENT_QUERY_KEY });
+      },
+
+      suppliersChanged(supplierId) {
+        void queryClient.invalidateQueries({ queryKey: [SUPPLIER_LIST_QUERY_KEY] });
+        if (supplierId) {
+          void queryClient.invalidateQueries({ queryKey: [SUPPLIER_DETAIL_QUERY_KEY, supplierId] });
+        }
+        // A payment taken from the till moves the drawer.
         void queryClient.invalidateQueries({ queryKey: CASH_SESSION_CURRENT_QUERY_KEY });
       },
 

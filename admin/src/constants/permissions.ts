@@ -66,6 +66,12 @@ export const PERMISSION_GROUPS: readonly PermissionGroup[] = [
     actions: ["customer.view", "customer.manage"],
   },
   {
+    key: "suppliers",
+    icon: "store",
+    tone: "rose",
+    actions: ["supplier.view", "supplier.manage", "supplier.pay"],
+  },
+  {
     key: "money",
     icon: "money",
     tone: "rose",
