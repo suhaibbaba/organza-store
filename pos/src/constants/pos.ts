@@ -57,3 +57,6 @@ export const SCANNER_BOX_HEIGHT_RATIO = 0.5;
 export const SCANNER_FPS = 10;
 // html5-qrcode renders its video into the element with this id.
 export const SCANNER_ELEMENT_ID = "pos-barcode-scanner";
+
+// Every sale starts as the everyday one: handed over in the shop, paid now.
+export const DEFAULT_CHECKOUT_CHOICE = { channel: "STORE", payment: "paid", gift: false } as const;

@@ -4,7 +4,7 @@ import * as React from "react";
 import { Input } from "@store/ui";
 import { DECIMAL_INPUT_PATTERN, INTEGER_INPUT_PATTERN } from "@/constants/numeric";
 
-interface NumericInputProps extends Omit<React.ComponentProps<"input">, "type" | "inputMode" | "pattern"> {
+interface NumericInputProps extends Omit<React.ComponentProps<typeof Input>, "type" | "inputMode" | "pattern"> {
   // Stock/quantities are integers (default); prices may keep a decimal point.
   allowDecimal?: boolean;
 }

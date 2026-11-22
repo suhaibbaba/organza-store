@@ -14,9 +14,7 @@ import { ProfileLanguageSection } from "@/components/profile/profile-language-se
 import { useProfileQuery } from "@/hooks/use-profile";
 import { useTranslateError } from "@/hooks/use-translate-error";
 import { ApiError } from "@/lib/api/errors";
-import { POS_CONTROL_HEIGHT } from "@/constants/controls";
 import { SELL_HREF } from "@/constants/profile";
-import { cn } from "@/lib/utils";
 
 // Every role's own account; the API only ever answers for the signed-in person, so there is no permission to guard.
 export default function ProfilePage() {
@@ -28,9 +26,7 @@ export default function ProfilePage() {
   return (
     <>
       <TopBar />
-      <main
-        className={cn("mx-auto flex w-full max-w-5xl flex-col gap-5 px-3 py-5 tab:px-4 desk:px-5", POS_CONTROL_HEIGHT)}
-      >
+      <main className={"mx-auto flex w-full max-w-5xl flex-col gap-5 px-3 py-5 tab:px-4 desk:px-5"}>
         <div className="flex flex-col items-start gap-3">
           <Link
             href={SELL_HREF}

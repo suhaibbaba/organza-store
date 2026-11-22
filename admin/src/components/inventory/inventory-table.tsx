@@ -1,7 +1,7 @@
 "use client";
 
 import { useLocale, useTranslations } from "next-intl";
-import { Table, type Column } from "@store/ui";
+import { QuantityStepper, Table, type Column } from "@store/ui";
 import { resolveStockStatus } from "@store/shared/lib/stock";
 import type { InventoryItem } from "@store/shared/types/inventory";
 import type { Pagination } from "@store/shared/types/common";
@@ -9,7 +9,6 @@ import { PAGE_SIZE_OPTIONS } from "@store/shared/constants/pagination";
 import { CHANGE_REQUEST_ENTITIES, CHANGE_REQUEST_FIELDS } from "@store/shared/constants/changeRequest";
 import { Link } from "@/i18n/navigation";
 import { localize } from "@/lib/i18n-content";
-import { QuantityStepper } from "@/components/fields/quantity-stepper";
 import { ProductImage } from "@/components/products/product-image";
 import { INVENTORY_THUMB_SIZES } from "@/constants/inventory";
 import { StockBadge, STOCK_FIGURE_TONES } from "@/components/inventory/stock-badge";

@@ -172,15 +172,14 @@
       "increase": "زيادة الكمية — {name}",
       "decrease": "إنقاص الكمية — {name}",
       "remove": "حذف {name} من السلة",
-      "removeConfirmTitle": "حذف هذه القطعة من البيع؟",
-      "removeConfirmYes": "حذف",
-      "removeConfirmKeep": "إبقاء",
       "addDiscount": "خصم",
       "discountFor": "خصم على {name}",
       "stockCap": "{count, plural, zero {لا يوجد مخزون} one {هذه آخر قطعة متوفرة} two {هذه آخر قطعتين متوفرتين} other {هذا كل المتوفر: {count, number, plain} قطعة}}",
       "discountApplied": "خصم {value} · ‎−{amount}",
       "discountValue": "خصم {value}",
-      "quickSold": "بيع سريع"
+      "quickSold": "بيع سريع",
+      "removed": "أُزيلت {name} من السلة",
+      "undo": "تراجع"
     },
     "discount": {
       "title": "إضافة خصم",
@@ -217,10 +216,19 @@
       "editOrderDiscount": "تعديل خصم الفاتورة",
       "submit": "إتمام البيع",
       "submitting": "جارٍ الحفظ…",
-      "whatsappOrder": "طلب واتساب",
       "orderDiscountApplied": "خصم الفاتورة ({value})",
-      "giftOrder": "إعطاء كهدية",
-      "creditOrder": "بيع بالدين"
+      "channelLabel": "طريقة البيع",
+      "channelStore": "في المحل",
+      "channelWhatsapp": "واتساب",
+      "paymentLabel": "الدفع",
+      "paymentPaid": "مدفوع",
+      "paymentCredit": "بالدين",
+      "giftLabel": "هدية بلا مقابل",
+      "finishSale": "إتمام البيع · {total}",
+      "finishCredit": "متابعة البيع بالدين",
+      "finishWhatsapp": "متابعة طلب واتساب",
+      "finishGift": "متابعة الهدية",
+      "giftTotal": "هدية — لا يُدفع شيء"
     },
     "success": {
       "title": "تم البيع بنجاح",
@@ -261,8 +269,7 @@
         "note": "ملاحظة",
         "notePlaceholder": "أي تفاصيل إضافية عن الطلب…"
       },
-      "creditToggle": "بالدين",
-      "creditHint": "يدفع الزبون للمحل على دفعات أو مرة واحدة، لا لشركة التوصيل."
+      "creditToggle": "بالدين"
     },
     "gift": {
       "title": "إعطاء كهدية",
@@ -298,10 +305,9 @@
     },
     "screen": {
       "cartTitle": "السلة",
-      "clear": "إفراغ",
-      "clearConfirmTitle": "إفراغ السلة كلها؟",
-      "clearConfirmYes": "إفراغ",
-      "clearConfirmKeep": "إبقاء",
+      "clear": "حذف الكل",
+      "clearConfirmTitle": "حذف كل القطع من السلة؟",
+      "clearConfirmYes": "حذف الكل",
       "categoriesTitle": "التصنيفات",
       "productsTitle": "المنتجات",
       "productCount": "{count, number, plain} منتج",
@@ -314,7 +320,8 @@
       "searchPlaceholderShort": "ابحث عن منتج",
       "add": "إضافة {name} إلى السلة",
       "addToCart": "أضف للسلة",
-      "cartCount": "{count, plural, zero {السلة فارغة} one {قطعة واحدة في السلة} two {قطعتان في السلة} few {{count, number, plain} قطع في السلة} many {{count, number, plain} قطعة في السلة} other {{count, number, plain} قطعة في السلة}}"
+      "cartCount": "{count, plural, zero {السلة فارغة} one {قطعة واحدة في السلة} two {قطعتان في السلة} few {{count, number, plain} قطع في السلة} many {{count, number, plain} قطعة في السلة} other {{count, number, plain} قطعة في السلة}}",
+      "clearConfirmConsequence": "تُحذف كل القطع والخصومات من هذا البيع."
     },
     "credit": {
       "title": "بيع بالدين",

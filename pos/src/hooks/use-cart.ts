@@ -25,6 +25,8 @@ export interface Cart {
   incrementQuantity: (key: string) => void;
   decrementQuantity: (key: string) => void;
   removeLine: (key: string) => void;
+  // Undo of a removal: back where it was, unless the same piece was scanned in again meanwhile.
+  restoreLine: (line: CartLine, index: number) => void;
   setLineDiscount: (key: string, type: DiscountType | null, value: string | null) => void;
   setOrderDiscount: (type: DiscountType | null, value: string | null) => void;
   clear: () => void;
@@ -116,6 +118,18 @@ export function useCart(): Cart {
     [commit],
   );
 
+  const restoreLine = useCallback(
+    (line: CartLine, index: number) => {
+      if (linesRef.current.some((current) => current.key === line.key)) {
+        return;
+      }
+      const next = [...linesRef.current];
+      next.splice(Math.min(index, next.length), 0, line);
+      commit(next);
+    },
+    [commit],
+  );
+
   const setLineDiscount = useCallback(
     (key: string, type: DiscountType | null, value: string | null) => {
       // Both halves move together: the create-order schema refuses a half-set pair.
@@ -148,6 +162,7 @@ export function useCart(): Cart {
     incrementQuantity,
     decrementQuantity,
     removeLine,
+    restoreLine,
     setLineDiscount,
     setOrderDiscount,
     clear,

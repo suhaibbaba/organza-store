@@ -14,10 +14,8 @@ import { useSession } from "@/components/providers/session-provider";
 import { AuthError } from "@/lib/auth/client";
 import { HTTP_TOO_MANY_REQUESTS } from "@/constants/api";
 import { FORGOT_PASSWORD_PATH } from "@/constants/auth";
-import { POS_CONTROL_HEIGHT } from "@/constants/controls";
 import { useTranslateError } from "@/hooks/use-translate-error";
 import { loginSchema, type LoginInput } from "@/lib/validation/login";
-import { cn } from "@/lib/utils";
 
 // Rate-limited and deactivated are named apart from bad credentials: each sends the person somewhere different.
 type LoginErrorKind = "invalid" | "rateLimited" | "deactivated";
@@ -71,12 +69,7 @@ export function LoginForm() {
 
   return (
     // method="post" so a native submit before hydration never puts credentials in the URL.
-    <form
-      method="post"
-      onSubmit={handleSubmit(onSubmit)}
-      noValidate
-      className={cn("flex flex-col gap-5", POS_CONTROL_HEIGHT)}
-    >
+    <form method="post" onSubmit={handleSubmit(onSubmit)} noValidate className={"flex flex-col gap-5"}>
       {formError && (
         <Alert tone="danger" icon={false} data-testid={testSelectorFor("alert", "destructive")}>
           {t(LOGIN_ERROR_MESSAGE_KEYS[formError])}

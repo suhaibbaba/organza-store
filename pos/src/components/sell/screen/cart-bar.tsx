@@ -5,9 +5,8 @@ import { ShoppingBag } from "lucide-react";
 import { CHECKOUT_BAR_HEIGHT_VAR } from "@/constants/layout";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
 import { usePublishedHeight } from "@/hooks/use-published-height";
-import { Button } from "@store/ui";
+import { Button, Typography } from "@store/ui";
 import { cn } from "@/lib/utils";
-import { CONTROL_HEIGHT, CONTROL_SIZE } from "@/components/sell/screen/control-styles";
 import type { CartTotals } from "@/types/cart";
 
 interface CartBarProps {
@@ -36,7 +35,6 @@ export function CartBar({ totals, onOpen, className }: CartBarProps) {
         <div className="flex min-w-0 items-center gap-3">
           <span
             className={cn(
-              CONTROL_SIZE,
               "relative flex shrink-0 items-center justify-center rounded-control bg-primary-50 text-primary-700",
             )}
             role="img"
@@ -53,20 +51,25 @@ export function CartBar({ totals, onOpen, className }: CartBarProps) {
             )}
           </span>
           <span className="flex min-w-0 flex-col">
-            <span className="text-micro text-ink-muted">{t("checkout.total")}</span>
-            <span
-              className="truncate text-heading font-bold text-ink tabular-nums"
+            <Typography as="span" variant="caption" tone="muted">
+              {t("checkout.total")}
+            </Typography>
+            <Typography
+              as="span"
+              variant="h2"
+              weight="bold"
+              className="truncate tabular-nums"
               data-test-selector="pos-cart-bar-total"
             >
               {formatMoney(totals.total)}
-            </span>
+            </Typography>
           </span>
         </div>
 
         <Button
           onClick={onOpen}
           data-test-selector="pos-cart-open"
-          className={cn(CONTROL_HEIGHT, "shrink-0 px-5 font-semibold shadow-card")}
+          className={"shrink-0 px-5 font-semibold shadow-card"}
         >
           {t("screen.viewCart")}
         </Button>

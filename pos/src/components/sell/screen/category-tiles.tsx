@@ -6,8 +6,7 @@ import { testSelectorFor } from "@store/shared/lib/testSelector";
 import { useCategoriesQuery } from "@/hooks/use-categories";
 import { useProductCount } from "@/hooks/use-product-count";
 import { localize } from "@/lib/i18n-content";
-import { cn } from "@/lib/utils";
-import { Spinner } from "@store/ui";
+import { CardButton, Spinner, Typography } from "@store/ui";
 import { SectionTitle } from "@/components/sell/screen/section-title";
 
 interface CategoryTilesProps {
@@ -50,7 +49,9 @@ export function CategoryTiles({ selectedId, onSelect }: CategoryTilesProps) {
       <SectionTitle id={TITLE_ID}>{t("screen.categoriesTitle")}</SectionTitle>
 
       {categories.isError ? (
-        <p className="text-label text-ink-muted">{t("browse.categoriesError")}</p>
+        <Typography variant="small" tone="muted">
+          {t("browse.categoriesError")}
+        </Typography>
       ) : (
         // The last tile is cut by the screen's edge, which is what says there is more.
         <ul className="scrollbar-none flex gap-2 overflow-x-auto" data-test-selector="pos-category-tiles">
@@ -58,24 +59,25 @@ export function CategoryTiles({ selectedId, onSelect }: CategoryTilesProps) {
             const selected = tile.id === selectedId;
             return (
               <li key={tile.id ?? "all"} className="shrink-0">
-                <button
-                  type="button"
+                <CardButton
                   onClick={() => onSelect(tile.id)}
-                  aria-pressed={selected}
-                  data-test-selector={testSelectorFor("pos-category-tile", tile.id ?? "all")}
-                  className={cn(
-                    "flex min-h-11 min-w-24 cursor-pointer flex-col items-start rounded-tile border px-3.5 py-1.5 text-start transition-[background-color,border-color,box-shadow] tab:min-w-27",
-                    "focus-darken",
-                    selected
-                      ? "border-selected-line bg-selected text-primary-700"
-                      : "border-line bg-surface text-ink shadow-pill hover:border-line-strong hover:bg-row-hover",
-                  )}
+                  selected={selected}
+                  data-testid={testSelectorFor("pos-category-tile", tile.id ?? "all")}
+                  className="min-h-11 min-w-24 flex-col items-start px-3.5 py-1.5 focus-darken tab:min-w-27"
                 >
-                  <span className="max-w-40 truncate text-label font-semibold">{tile.label}</span>
-                  <span className="min-h-5 text-micro text-ink-muted tabular-nums">
+                  <Typography
+                    as="span"
+                    variant="small"
+                    weight="semibold"
+                    tone={selected ? "brand" : "ink"}
+                    className="max-w-40 truncate"
+                  >
+                    {tile.label}
+                  </Typography>
+                  <Typography as="span" variant="caption" tone="muted" className="min-h-5 tabular-nums">
                     {tile.count !== null && t("screen.productCount", { count: tile.count })}
-                  </span>
-                </button>
+                  </Typography>
+                </CardButton>
               </li>
             );
           })}

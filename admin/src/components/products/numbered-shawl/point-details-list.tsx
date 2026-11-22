@@ -1,8 +1,8 @@
 "use client";
 
+import { QuantityStepper } from "@store/ui";
 import { MoneyField } from "@/components/fields/money-field";
 import { useTranslations } from "next-intl";
-import { QuantityStepper } from "@/components/fields/quantity-stepper";
 import { formatMoney } from "@/lib/format";
 import { parseQuantity } from "@/lib/validation/numeric";
 import { isPlacedShawlPoint } from "@/lib/validation/numbered-shawl";

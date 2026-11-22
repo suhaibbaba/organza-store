@@ -6,8 +6,6 @@ import { Button, Spinner } from "@store/ui";
 import { useRouter } from "@/i18n/navigation";
 import { useSession } from "@/components/providers/session-provider";
 import { usePermissionMatrix } from "@/components/providers/permissions-provider";
-import { POS_CONTROL_HEIGHT } from "@/constants/controls";
-import { cn } from "@/lib/utils";
 
 // Verifies the session against the backend; proxy.ts only redirects optimistically from the cookie mirror.
 export function AuthGuard({ children }: { children: ReactNode }) {
@@ -28,9 +26,7 @@ export function AuthGuard({ children }: { children: ReactNode }) {
 
   if (isError) {
     return (
-      <div
-        className={cn("flex min-h-dvh flex-col items-center justify-center gap-4 px-6 text-center", POS_CONTROL_HEIGHT)}
-      >
+      <div className={"flex min-h-dvh flex-col items-center justify-center gap-4 px-6 text-center"}>
         <p className="text-heading font-semibold text-ink">{tOffline("title")}</p>
         <p className="max-w-sm text-label leading-relaxed text-ink-muted">{tOffline("message")}</p>
         <Button onClick={() => void refresh()}>{t("retry")}</Button>

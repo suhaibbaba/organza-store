@@ -2102,7 +2102,10 @@
       "sectionDescription": "כרטיס עם כותרת שאפשר לקפל.",
       "colour": "צבע",
       "colourHint": "יותר מעשר אפשרויות, ולכן ברשימה יש חיפוש.",
-      "colourPlaceholder": "בחרו צבע"
+      "colourPlaceholder": "בחרו צבע",
+      "stepper": "כמות עם כפתורים",
+      "stepperDecrease": "הפחתה",
+      "stepperIncrease": "הוספה"
     },
     "choices": {
       "channel": "ערוץ מכירה",

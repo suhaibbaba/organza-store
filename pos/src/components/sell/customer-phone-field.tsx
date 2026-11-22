@@ -2,7 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { History } from "lucide-react";
-import { PhoneCountryProvider, PhoneInput, Spinner } from "@store/ui";
+import { CardButton, PhoneCountryProvider, PhoneInput, Spinner, Typography } from "@store/ui";
 import { DEFAULT_PHONE_COUNTRY, PHONE_COUNTRIES, type PhoneCountry } from "@store/ui/lib/support/phone";
 import type { CustomerSuggestion } from "@store/shared/types/order";
 import { fieldTestSelector } from "@store/shared/lib/testSelector";
@@ -34,7 +34,6 @@ export function ShopPhoneInput({ id, value, onChange, onBlur, invalid }: ShopPho
         onChange={(next) => onChange(next ?? "")}
         onBlur={onBlur}
         hasError={invalid}
-        className="[&_[data-part=input]]:h-12"
       />
     </PhoneCountryProvider>
   );
@@ -57,33 +56,36 @@ export function CustomerPhoneField({ onPickSuggestion, ...field }: CustomerPhone
       <ShopPhoneInput {...field} />
 
       {isLooking && (
-        <p className="flex items-center gap-2 text-label text-ink-muted">
+        <div className="flex items-center gap-2">
           <Spinner />
-          {t("searching")}
-        </p>
+          <Typography as="span" variant="small" tone="muted">
+            {t("searching")}
+          </Typography>
+        </div>
       )}
 
       {offered.length > 0 && (
         <div className="flex flex-col gap-2">
-          <p className="text-micro text-ink-muted">{t("suggestionsHint")}</p>
+          <Typography variant="caption" tone="muted">
+            {t("suggestionsHint")}
+          </Typography>
           <ul className="flex flex-col gap-2">
             {offered.map((suggestion) => (
               <li key={suggestion.phone}>
-                <button
-                  type="button"
+                <CardButton
                   onClick={() => onPickSuggestion(suggestion)}
-                  className="flex w-full cursor-pointer items-center gap-3 rounded-control border border-line-strong bg-surface px-4 py-3 text-start transition-colors hover:bg-row-hover focus-visible:bg-neutral-200 focus-visible:text-ink"
+                  className="items-center gap-3 px-4 py-3 focus-darken"
                 >
                   <History className="size-5 shrink-0 text-ink-muted" aria-hidden="true" />
-                  <span className="flex min-w-0 flex-col">
-                    <span dir="ltr" className="truncate text-value font-semibold tabular-nums text-ink">
+                  <span className="flex min-w-0 flex-col items-start">
+                    <Typography as="span" variant="body" weight="semibold" dir="ltr" className="truncate tabular-nums">
                       {suggestion.phone}
-                    </span>
-                    <span className="truncate text-label text-ink-muted">
+                    </Typography>
+                    <Typography as="span" variant="small" tone="muted" className="truncate">
                       {suggestion.name ?? t("unnamedCustomer")}
-                    </span>
+                    </Typography>
                   </span>
-                </button>
+                </CardButton>
               </li>
             ))}
           </ul>

@@ -172,15 +172,14 @@
       "increase": "Increase quantity — {name}",
       "decrease": "Decrease quantity — {name}",
       "remove": "Remove {name} from the sale",
-      "removeConfirmTitle": "Remove this item from the sale?",
-      "removeConfirmYes": "Remove",
-      "removeConfirmKeep": "Keep",
       "addDiscount": "Discount",
       "discountFor": "Discount on {name}",
       "stockCap": "{count, plural, one {That's the last one in stock} other {That's all {count, number, plain} in stock}}",
       "discountApplied": "{value} discount · −{amount}",
       "discountValue": "{value} discount",
-      "quickSold": "Quick sell"
+      "quickSold": "Quick sell",
+      "removed": "{name} removed from the cart",
+      "undo": "Undo"
     },
     "discount": {
       "title": "Add a discount",
@@ -217,10 +216,19 @@
       "editOrderDiscount": "Edit sale discount",
       "submit": "Complete sale",
       "submitting": "Saving…",
-      "whatsappOrder": "WhatsApp order",
       "orderDiscountApplied": "Sale discount ({value})",
-      "giftOrder": "Give as gift",
-      "creditOrder": "Sell on credit"
+      "channelLabel": "How it is sold",
+      "channelStore": "In the shop",
+      "channelWhatsapp": "WhatsApp",
+      "paymentLabel": "Payment",
+      "paymentPaid": "Paid",
+      "paymentCredit": "On credit",
+      "giftLabel": "Gift, nothing paid",
+      "finishSale": "Complete sale · {total}",
+      "finishCredit": "Continue on credit",
+      "finishWhatsapp": "Continue WhatsApp order",
+      "finishGift": "Continue gift",
+      "giftTotal": "Gift — nothing to pay"
     },
     "success": {
       "title": "Sale completed",
@@ -261,8 +269,7 @@
         "note": "Note",
         "notePlaceholder": "Anything else about this order…"
       },
-      "creditToggle": "On credit",
-      "creditHint": "The customer pays the shop, in parts or at once — not the delivery company."
+      "creditToggle": "On credit"
     },
     "gift": {
       "title": "Give as a gift",
@@ -298,10 +305,9 @@
     },
     "screen": {
       "cartTitle": "Cart",
-      "clear": "Clear",
-      "clearConfirmTitle": "Clear the whole cart?",
-      "clearConfirmYes": "Clear",
-      "clearConfirmKeep": "Keep",
+      "clear": "Remove all",
+      "clearConfirmTitle": "Remove every piece from the cart?",
+      "clearConfirmYes": "Remove all",
       "categoriesTitle": "Categories",
       "productsTitle": "Products",
       "productCount": "{count, plural, one {{count, number, plain} product} other {{count, number, plain} products}}",
@@ -314,7 +320,8 @@
       "searchPlaceholderShort": "Search products",
       "add": "Add {name} to the cart",
       "addToCart": "Add to cart",
-      "cartCount": "{count, plural, zero {The cart is empty} one {{count, number, plain} piece in the cart} other {{count, number, plain} pieces in the cart}}"
+      "cartCount": "{count, plural, zero {The cart is empty} one {{count, number, plain} piece in the cart} other {{count, number, plain} pieces in the cart}}",
+      "clearConfirmConsequence": "Every piece and discount on this sale is removed."
     },
     "credit": {
       "title": "Sell on credit",

@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { Alert, Button, SegmentedControl } from "@store/ui";
+import { Alert, Button, FormField, SegmentedControl, Typography } from "@store/ui";
+import { fieldTestSelector } from "@store/shared/lib/testSelector";
 import { DISCOUNT_TYPES } from "@store/shared/constants/order";
 import type { DiscountType } from "@store/shared/types/order";
 import { isDiscountValueInRange, maxDiscountValue } from "@/lib/money";
@@ -11,7 +12,6 @@ import { useCurrencySymbol } from "@/hooks/use-currency-symbol";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
 import { NumericInput } from "@/components/fields/numeric-input";
 import { BottomSheet } from "@/components/sell/bottom-sheet";
-import { SHEET_ACTION, SHEET_SEGMENTED } from "@/components/sell/sheet-styles";
 import type { DiscountState } from "@/types/cart";
 
 interface DiscountSheetProps {
@@ -75,13 +75,14 @@ function DiscountForm({ baseAmount, current, onApply }: DiscountFormProps) {
   return (
     <div className="flex flex-col gap-4 overflow-y-auto px-5 pb-5">
       <div className="flex flex-col gap-2">
-        <p className="text-label font-medium text-ink">{t("typeLabel")}</p>
+        <Typography as="span" variant="label">
+          {t("typeLabel")}
+        </Typography>
         <SegmentedControl
           data-testid="pos-segmented"
           label={t("typeLabel")}
           value={type}
           onChange={setType}
-          className={SHEET_SEGMENTED}
           options={DISCOUNT_TYPES.map((option) => ({
             value: option,
             label: option === "AMOUNT" && currency ? t("type.AMOUNT_currency", { currency }) : t(`type.${option}`),
@@ -90,20 +91,29 @@ function DiscountForm({ baseAmount, current, onApply }: DiscountFormProps) {
       </div>
 
       <div className="flex flex-col gap-2">
-        <label htmlFor="pos-discount-value" className="text-label text-ink">
-          {type === "AMOUNT" && currency ? t("valueLabel.AMOUNT_currency", { currency }) : t(`valueLabel.${type}`)}
-        </label>
-        {/* No autoFocus: the phone keyboard would cover the type buttons and Apply. */}
-        <NumericInput
-          id="pos-discount-value"
-          value={value}
-          onChange={(event) => setValue(event.target.value)}
-          maxLength={String(Math.max(max, 1)).length}
-          placeholder={t(`valuePlaceholder.${type}`)}
-          aria-invalid={showRangeError}
-          enterKeyHint="done"
-          className="h-12 text-lg sm:max-w-40"
-        />
+        <FormField
+          label={
+            type === "AMOUNT" && currency
+              ? "sell.discount.valueLabel.AMOUNT_currency"
+              : `sell.discount.valueLabel.${type}`
+          }
+          labelValues={{ currency }}
+          htmlFor="pos-discount-value"
+          required
+        >
+          {/* No autoFocus: the phone keyboard would cover the type buttons and Apply. */}
+          <NumericInput
+            id="pos-discount-value"
+            value={value}
+            onChange={(event) => setValue(event.target.value)}
+            maxLength={String(Math.max(max, 1)).length}
+            placeholder={t(`valuePlaceholder.${type}`)}
+            aria-invalid={showRangeError}
+            enterKeyHint="done"
+            data-testid={fieldTestSelector("pos-discount-value")}
+            className=" sm:max-w-40"
+          />
+        </FormField>
         {showRangeError && (
           <Alert tone="danger" data-testid="alert-destructive">
             {type === "PERCENT" ? t("invalid.PERCENT", { max }) : t("invalid.AMOUNT", { max: formatMoney(baseAmount) })}
@@ -119,7 +129,7 @@ function DiscountForm({ baseAmount, current, onApply }: DiscountFormProps) {
             variant="danger"
             onClick={() => onApply(null, null)}
             data-testid="pos-discount-remove"
-            className={`${SHEET_ACTION} w-full sm:w-auto`}
+            className={"w-full sm:w-auto"}
           >
             {t("remove")}
           </Button>
@@ -129,7 +139,7 @@ function DiscountForm({ baseAmount, current, onApply }: DiscountFormProps) {
           onClick={() => isValid && onApply(type, trimmed)}
           data-testid="pos-discount-apply"
           disabled={!isValid}
-          className={`${SHEET_ACTION} w-full sm:w-auto`}
+          className={"w-full sm:w-auto"}
         >
           {t("apply")}
         </Button>

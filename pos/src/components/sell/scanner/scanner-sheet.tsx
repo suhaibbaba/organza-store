@@ -3,9 +3,8 @@
 import type { ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { ShoppingCart, Vibrate, VibrateOff, Volume2, VolumeX } from "lucide-react";
-import { Button } from "@store/ui";
+import { Button, Typography } from "@store/ui";
 import { BottomSheet } from "@/components/sell/bottom-sheet";
-import { SHEET_ACTION } from "@/components/sell/sheet-styles";
 import { BarcodeScanner } from "@/components/sell/scanner/barcode-scanner";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
 import type { ScanSound } from "@/hooks/use-scan-sound";
@@ -72,13 +71,17 @@ export function ScannerSheet({ open, onOpenChange, onDetected, pulse, totals, so
           )}
         </div>
 
-        <span className="flex items-center justify-center gap-2 rounded-control bg-inset px-3 py-2 text-label font-semibold text-ink">
+        <div className="flex items-center justify-center gap-2 rounded-control bg-inset px-3 py-2">
           <ShoppingCart className="size-4 shrink-0" aria-hidden="true" />
-          <span>{t("cartSummary", { count: totals.itemCount })}</span>
-          <span className="tabular-nums">{formatMoney(totals.total)}</span>
-        </span>
+          <Typography as="span" variant="small" weight="semibold">
+            {t("cartSummary", { count: totals.itemCount })}
+          </Typography>
+          <Typography as="span" variant="small" weight="semibold" className="tabular-nums">
+            {formatMoney(totals.total)}
+          </Typography>
+        </div>
 
-        <Button type="button" onClick={() => onOpenChange(false)} className={`${SHEET_ACTION} w-full`}>
+        <Button type="button" onClick={() => onOpenChange(false)} className={"w-full"}>
           {t("done")}
         </Button>
       </div>
@@ -97,14 +100,8 @@ interface FeedbackToggleProps {
 // aria-pressed rather than a checkbox: the label already says what the tap will do.
 function FeedbackToggle({ isOn, onToggle, onIcon, offIcon, label }: FeedbackToggleProps) {
   return (
-    <button
-      type="button"
-      onClick={onToggle}
-      aria-pressed={isOn}
-      className="flex h-12 cursor-pointer items-center justify-center gap-2 rounded-control border border-line-strong bg-surface px-3 text-label font-medium text-ink transition-colors hover:bg-inset focus-visible:bg-neutral-200 focus-visible:text-ink"
-    >
-      {isOn ? onIcon : offIcon}
+    <Button variant="secondary" onClick={onToggle} aria-pressed={isOn} icon={isOn ? onIcon : offIcon}>
       <span className="truncate">{label}</span>
-    </button>
+    </Button>
   );
 }

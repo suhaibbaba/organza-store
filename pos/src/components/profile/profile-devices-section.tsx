@@ -126,8 +126,8 @@ export function ProfileDevicesSection() {
     <ProfileSection name="devices">
       {isLoading ? (
         <div className="flex flex-col gap-3">
-          <Skeleton className="h-12 rounded-panel" />
-          <Skeleton className="h-12 rounded-panel" />
+          <Skeleton className="rounded-panel" />
+          <Skeleton className="rounded-panel" />
         </div>
       ) : isError || !sessions ? (
         <Alert

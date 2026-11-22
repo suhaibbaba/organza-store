@@ -9,7 +9,7 @@ import { useMoneyFormatter } from "@/hooks/use-money-formatter";
 import { localize } from "@/lib/i18n-content";
 import { cn } from "@/lib/utils";
 import { ProductThumb } from "@/components/sell/product-thumb";
-import { Spinner } from "@store/ui";
+import { buttonClassName, CardButton, Spinner, Typography } from "@store/ui";
 import { StockBadge } from "@/components/sell/stock-badge";
 
 interface ProductCardProps {
@@ -32,17 +32,14 @@ export function ProductCard({ product, isPending, isBusy, onAdd }: ProductCardPr
   const soldOut = product.stock <= 0;
 
   return (
-    <button
-      type="button"
+    <CardButton
       onClick={() => onAdd(product)}
       disabled={soldOut || isBusy}
       aria-label={t("add", { name })}
-      data-test-selector={testSelectorFor("pos-product-card", product.id)}
+      data-testid={testSelectorFor("pos-product-card", product.id)}
       className={cn(
-        "group flex size-full min-w-0 flex-col gap-2.5 rounded-card border border-line bg-surface p-2.5 text-start shadow-card",
-        "cursor-pointer transition-[border-color,box-shadow] not-disabled:hover:border-line-strong not-disabled:hover:shadow-card-hover",
-        "focus-visible:border-primary-600 focus-darken",
-        "disabled:cursor-not-allowed",
+        "size-full min-w-0 flex-col gap-2.5 rounded-card p-2.5 shadow-card",
+        "not-disabled:hover:shadow-card-hover focus-darken disabled:opacity-100",
         isBusy && !soldOut && "cursor-wait",
       )}
     >
@@ -58,31 +55,35 @@ export function ProductCard({ product, isPending, isBusy, onAdd }: ProductCardPr
       <div className="flex w-full min-w-0 flex-1 flex-col items-start gap-1.5 px-1">
         <div className="flex w-full min-w-0 flex-col">
           {/* min-h keeps the rows level when a product has no shelf (a quick sale not yet completed). */}
-          <span className="min-h-5 truncate text-micro text-ink-muted">{category}</span>
-          <span className={cn("truncate text-label font-semibold text-ink", soldOut && "text-ink-muted")}>{name}</span>
+          <Typography as="span" variant="caption" tone="muted" className="min-h-5 truncate">
+            {category}
+          </Typography>
+          <Typography as="span" variant="small" weight="semibold" tone={soldOut ? "muted" : "ink"} className="truncate">
+            {name}
+          </Typography>
         </div>
         <StockBadge stock={product.stock} trackLowStock={product.trackLowStock} showCount className="max-w-full" />
       </div>
 
       <div className="flex w-full flex-wrap items-center justify-between gap-2 px-1 pb-0.5">
-        <span className={cn("text-section font-bold text-ink tabular-nums", soldOut && "text-ink-muted")}>
+        <Typography as="span" variant="h3" weight="bold" tone={soldOut ? "muted" : "ink"} className="tabular-nums">
           {formatMoney(product.basePrice)}
-        </span>
+        </Typography>
         {!soldOut && (
           <span
             aria-hidden="true"
             data-test-selector={testSelectorFor("pos-product-add", product.id)}
-            // Drawn, not a second button, so it can be smaller than the 44px floor.
-            className={cn(
-              "inline-flex h-9 shrink-0 items-center justify-center gap-1 rounded-control border border-primary-200 bg-primary-50 px-2.5 text-micro font-semibold text-primary-600 transition-colors",
-              "group-not-disabled:group-hover:border-primary-600 group-not-disabled:group-hover:bg-primary-600 group-not-disabled:group-hover:text-ink-inverse",
-            )}
+            // The ui button's look on a span: a card that is one button cannot hold a second one.
+            className={buttonClassName({
+              variant: "secondary",
+              className: "pointer-events-none h-9 shrink-0 px-2.5 group-not-disabled:group-hover:bg-primary-50",
+            })}
           >
-            {isPending ? <Spinner className="text-current" /> : <Plus className="size-4" />}
+            {isPending ? <Spinner className="text-current" /> : <Plus className="size-4" aria-hidden="true" />}
             {t("addToCart")}
           </span>
         )}
       </div>
-    </button>
+    </CardButton>
   );
 }

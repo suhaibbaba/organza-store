@@ -3,7 +3,6 @@
 import { useTranslations } from "next-intl";
 import { ArrowDownToLine } from "lucide-react";
 import { Button } from "@store/ui";
-import { POS_CONTROL_HEIGHT } from "@/constants/controls";
 import { cn } from "@/lib/utils";
 
 interface UpdatePromptProps {
@@ -22,7 +21,6 @@ export function UpdatePrompt({ onUpdate, isUpdating }: UpdatePromptProps) {
       <div
         className={cn(
           "mx-auto flex max-w-md flex-col gap-3 rounded-card border border-line bg-surface p-4 shadow-float",
-          POS_CONTROL_HEIGHT,
         )}
       >
         <div className="flex items-start gap-3">

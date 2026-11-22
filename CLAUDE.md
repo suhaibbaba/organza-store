@@ -27,6 +27,9 @@ names one — the shop's name, logo and favicon are Settings data.
 `@store/ui` is its design system (ported from the clinic system's `@clinic/ui`). Client looks are
 themes inside it — today `ui/src/themes/teal.css` + `teal.ts`, applied by `UiProvider` — never
 edits to the components. The admin's `/design-system` page (Admin role only) shows every component.
+The apps' base stylesheet is `ui/src/styles/app.css` (type scale, safe areas, app-like touch rules,
+boot splash), imported by admin and POS alike; each app's `globals.css` holds only what is its own
+(admin: page container, label printing; POS: selling-screen breakpoints, touch targets, scan animations).
 
 Each project has its own `package.json`, and the root one ties them together as **npm
 workspaces**. There is exactly one `package-lock.json`, at the root; per-project lockfiles must

@@ -2102,7 +2102,10 @@
       "sectionDescription": "بطاقة بعنوان يمكن طيّها.",
       "colour": "اللون",
       "colourHint": "أكثر من عشرة خيارات، لذا في القائمة مربع بحث.",
-      "colourPlaceholder": "اختر لونًا"
+      "colourPlaceholder": "اختر لونًا",
+      "stepper": "كمية بأزرار",
+      "stepperDecrease": "إنقاص",
+      "stepperIncrease": "زيادة"
     },
     "choices": {
       "channel": "قناة البيع",

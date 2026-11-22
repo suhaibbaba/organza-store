@@ -2102,7 +2102,10 @@
       "sectionDescription": "A titled card that folds away.",
       "colour": "Colour",
       "colourHint": "Over ten choices, so the list has a search box.",
-      "colourPlaceholder": "Choose a colour"
+      "colourPlaceholder": "Choose a colour",
+      "stepper": "Quantity stepper",
+      "stepperDecrease": "Decrease",
+      "stepperIncrease": "Increase"
     },
     "choices": {
       "channel": "Sales channel",

@@ -19,12 +19,7 @@ export function CartSheet({ open, onOpenChange, ...panel }: CartSheetProps) {
       open={open}
       onOpenChange={onOpenChange}
       name="cart"
-      title={
-        <span className="flex items-center gap-2 font-bold">
-          <span className="h-4 w-1 shrink-0 rounded-pill bg-primary-600" aria-hidden="true" />
-          {t("sell.screen.cartTitle")}
-        </span>
-      }
+      title={t("sell.screen.cartTitle")}
       className="h-[88dvh] gap-0"
       headerClassName="pb-0"
     >

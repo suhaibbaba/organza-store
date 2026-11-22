@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { Trash2, Zap } from "lucide-react";
+import { Percent, Trash2 } from "lucide-react";
 import { testSelectorFor } from "@store/shared/lib/testSelector";
-import { SCAN_FLASH_MS } from "@/constants/pos";
+import { Badge, IconButton, QuantityStepper, Typography } from "@store/ui";
+import { MIN_CART_QUANTITY, SCAN_FLASH_MS } from "@/constants/pos";
 import { SELL_CART_THUMB_SIZES } from "@/constants/images";
 import { useDiscountLabel } from "@/hooks/use-discount-label";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
@@ -12,9 +12,6 @@ import { lineTotal } from "@/lib/cart";
 import { localize } from "@/lib/i18n-content";
 import { cn } from "@/lib/utils";
 import { ProductThumb } from "@/components/sell/product-thumb";
-import { QuantityStepper } from "@/components/fields/quantity-stepper";
-import { Button } from "@store/ui";
-import { CONTROL_HEIGHT } from "@/components/sell/screen/control-styles";
 import type { CartLine as CartLineData } from "@/types/cart";
 import type { ScanFlash } from "@/types/feedback";
 
@@ -22,22 +19,23 @@ interface CartLineProps {
   line: CartLineData;
   // Set for the line a scan just landed on (hooks/use-scan-flash.ts).
   flash: ScanFlash | null;
+  // Absent on a gift: it is priced at zero, so a discount would describe money that never existed.
+  onDiscount?: () => void;
   onQuantityChange: (quantity: number) => void;
   onRemove: () => void;
 }
 
-// A variant's name is its option values joined by " / " (backend lib/variantCombo.ts); each is drawn as a chip.
+// A variant's name is its option values joined by " / " (backend lib/variantCombo.ts); each is drawn as a badge.
 const VARIANT_NAME_SEPARATOR = " / ";
 
-export function CartLine({ line, flash, onQuantityChange, onRemove }: CartLineProps) {
+const LINE_TOOL = "hit-area";
+
+// Removing asks nothing: the selling screen offers Undo in a toast instead, so a busy till never waits on a question.
+export function CartLine({ line, flash, onDiscount, onQuantityChange, onRemove }: CartLineProps) {
   const t = useTranslations("sell");
   const locale = useLocale();
   const formatMoney = useMoneyFormatter();
   const discountLabel = useDiscountLabel();
-
-  // Removal is confirmed inside the line, keyed to the quantity asked at, so a scan of the same piece withdraws the question.
-  const [confirmingAt, setConfirmingAt] = useState<number | null>(null);
-  const confirmingRemove = confirmingAt === line.quantity;
 
   const name = localize(line.name, locale);
   const variantName = line.variantName ? localize(line.variantName, locale) : null;
@@ -48,87 +46,74 @@ export function CartLine({ line, flash, onQuantityChange, onRemove }: CartLinePr
   return (
     <li
       className={cn(
-        "relative flex flex-col gap-2 border-b border-line py-3 transition-colors last:border-b-0",
+        "relative flex items-start gap-3 border-b border-line py-3 transition-colors last:border-b-0",
         flash && "-mx-2 rounded-control bg-primary-50 px-2",
       )}
       data-test-selector={testSelectorFor("pos-cart-line", line.key)}
     >
-      <div className="flex items-start gap-3">
-        <ProductThumb
-          src={line.imageUrl}
-          alt={name}
-          sizes={SELL_CART_THUMB_SIZES}
-          className="size-13 rounded-photo bg-sunken"
-        />
-        <div className="flex min-w-0 flex-1 flex-col items-start gap-1">
-          <span className="w-full truncate text-label font-semibold text-ink">{name}</span>
-          {(chips.length > 0 || line.quickSell) && (
-            <span className="flex flex-wrap gap-1">
-              {line.quickSell && (
-                <span className="inline-flex items-center gap-1 rounded-chip border border-warning-300 bg-warning-50 px-1.5 text-micro text-warning-800">
-                  <Zap className="size-3" aria-hidden="true" />
-                  {t("cart.quickSold")}
-                </span>
-              )}
-              {chips.map((chip) => (
-                <span key={chip} className="rounded-chip bg-inset px-1.5 text-micro text-ink-muted">
-                  {chip}
-                </span>
-              ))}
-            </span>
-          )}
-          {appliedDiscount && (
-            <span className="text-micro font-medium text-success-700">
-              {t("cart.discountValue", { value: appliedDiscount })}
-            </span>
-          )}
-          <div className="mt-1 flex w-full items-center gap-2">
-            <QuantityStepper
-              size="compact"
-              name={line.key}
-              value={line.quantity}
-              max={line.availableStock}
-              onChange={(quantity) => {
-                setConfirmingAt(null);
-                onQuantityChange(quantity);
-              }}
-              onBelowMin={() => setConfirmingAt(line.quantity)}
-              itemLabel={fullName}
+      <ProductThumb
+        src={line.imageUrl}
+        alt={name}
+        sizes={SELL_CART_THUMB_SIZES}
+        className="size-14 rounded-photo bg-sunken"
+      />
+      <div className="flex min-w-0 flex-1 flex-col gap-1">
+        <div className="flex items-start gap-1">
+          <Typography variant="small" weight="semibold" className="min-w-0 flex-1 break-words">
+            {name}
+          </Typography>
+          <IconButton
+            label={t("cart.remove", { name: fullName })}
+            icon={<Trash2 aria-hidden="true" />}
+            tone="danger"
+            onClick={onRemove}
+            data-testid={testSelectorFor("pos-cart-line-remove", line.key)}
+            className={cn(LINE_TOOL, "-mt-2 -me-2")}
+          />
+        </div>
+        {(chips.length > 0 || line.quickSell) && (
+          <span className="flex flex-wrap gap-1">
+            {line.quickSell && <Badge tone="warning">{t("cart.quickSold")}</Badge>}
+            {chips.map((chip) => (
+              <Badge key={chip} tone="neutral">
+                {chip}
+              </Badge>
+            ))}
+          </span>
+        )}
+        {appliedDiscount && onDiscount && (
+          <Typography variant="caption" tone="success" weight="medium">
+            {t("cart.discountValue", { value: appliedDiscount })}
+          </Typography>
+        )}
+        <div className="mt-1 flex w-full items-center gap-2">
+          <QuantityStepper
+            name={line.key}
+            testName="pos-quantity"
+            value={line.quantity}
+            min={MIN_CART_QUANTITY}
+            max={Math.max(MIN_CART_QUANTITY, line.availableStock)}
+            onChange={onQuantityChange}
+            onBelowMin={onRemove}
+            decreaseLabel={t("cart.decrease", { name: fullName })}
+            increaseLabel={t("cart.increase", { name: fullName })}
+            valueLabel={t("cart.quantity", { name: fullName })}
+            className="w-32"
+          />
+          {onDiscount && (
+            <IconButton
+              label={t("cart.discountFor", { name: fullName })}
+              icon={<Percent aria-hidden="true" />}
+              onClick={onDiscount}
+              data-testid={testSelectorFor("pos-cart-line-discount", line.key)}
+              className={cn(LINE_TOOL, appliedDiscount && "text-success-700")}
             />
-            <button
-              type="button"
-              onClick={() => setConfirmingAt(line.quantity)}
-              aria-label={t("cart.remove", { name: fullName })}
-              data-test-selector={testSelectorFor("pos-cart-line-remove", line.key)}
-              // Matches the 40px stepper beside it; hit-area keeps 44px.
-              className={cn(
-                "hit-area flex size-10 shrink-0 cursor-pointer items-center justify-center rounded-control border border-line bg-surface text-ink-muted transition-colors",
-                "hover:border-danger-500 hover:bg-danger-50 hover:text-danger-600 focus-visible:border-danger-600 focus-visible:bg-danger-100 focus-visible:text-danger-700",
-              )}
-            >
-              <Trash2 className="size-4" aria-hidden="true" />
-            </button>
-            <span className="ms-auto text-section font-bold text-ink tabular-nums">{formatMoney(lineTotal(line))}</span>
-          </div>
+          )}
+          <Typography as="span" variant="body" weight="bold" className="ms-auto tabular-nums">
+            {formatMoney(onDiscount ? lineTotal(line) : 0)}
+          </Typography>
         </div>
       </div>
-
-      {confirmingRemove && (
-        <div
-          role="group"
-          aria-label={t("cart.removeConfirmTitle")}
-          data-test-selector={testSelectorFor("pos-cart-line-remove-confirm", line.key)}
-          className="flex flex-wrap items-center gap-2 rounded-control border border-danger-200 bg-danger-50 p-2"
-        >
-          <p className="min-w-0 flex-1 text-label font-medium text-ink">{t("cart.removeConfirmTitle")}</p>
-          <Button variant="secondary" onClick={() => setConfirmingAt(null)} className={cn(CONTROL_HEIGHT, "px-3")}>
-            {t("cart.removeConfirmKeep")}
-          </Button>
-          <Button variant="danger" onClick={onRemove} className={cn(CONTROL_HEIGHT, "px-3 font-semibold")}>
-            {t("cart.removeConfirmYes")}
-          </Button>
-        </div>
-      )}
 
       {/* Drains over the window in which the same barcode is ignored (use-scan-flash). */}
       {flash && (

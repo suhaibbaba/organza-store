@@ -11,8 +11,6 @@ import { useTranslateError } from "@/hooks/use-translate-error";
 import { requestPasswordReset } from "@/lib/api/password-setup";
 import { ApiError } from "@/lib/api/errors";
 import { forgotPasswordSchema, type ForgotPasswordValues } from "@/lib/validation/login";
-import { POS_CONTROL_HEIGHT } from "@/constants/controls";
-import { cn } from "@/lib/utils";
 
 export function ForgotPasswordForm() {
   const t = useTranslations("auth.forgotPassword");
@@ -39,7 +37,7 @@ export function ForgotPasswordForm() {
 
   if (sent) {
     return (
-      <div className={cn("flex flex-col gap-5", POS_CONTROL_HEIGHT)}>
+      <div className={"flex flex-col gap-5"}>
         <Alert tone="success" icon={false} data-testid={testSelectorFor("alert", "success")}>
           {t("sentBody")}
         </Alert>
@@ -51,12 +49,7 @@ export function ForgotPasswordForm() {
   }
 
   return (
-    <form
-      method="post"
-      onSubmit={handleSubmit(onSubmit)}
-      noValidate
-      className={cn("flex flex-col gap-5", POS_CONTROL_HEIGHT)}
-    >
+    <form method="post" onSubmit={handleSubmit(onSubmit)} noValidate className={"flex flex-col gap-5"}>
       {formError && (
         <Alert tone="danger" icon={false} data-testid={testSelectorFor("alert", "destructive")}>
           {translateError(formError)}
