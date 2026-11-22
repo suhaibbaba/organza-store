@@ -5,6 +5,7 @@ export type {
   ProfitTotals,
   ReportPeriod,
   ReturnsTotals,
+  SalesPeriod,
   SalesReport,
   SalesSummary,
   SalesTotals,

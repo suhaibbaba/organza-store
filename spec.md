@@ -653,33 +653,34 @@ search box and the photo grid all end in the same cart, through the same lookup.
 
 Three fixed roles.
 
-| Capability                         | Admin | Manager |      Employee       |
-| ---------------------------------- | :---: | :-----: | :-----------------: |
-| POS — make sales                   |  ✅   |   ✅    |         ✅          |
-| Add products                       |  ✅   |   ✅    |         ✅          |
-| Edit product images                |  ✅   |   ✅    |         ✅          |
-| Edit product details (name, etc.)  |  ✅   |   ✅    |         ✅          |
-| Edit product **price**             |  ✅   |   ✅    | ✅ (needs approval) |
-| Add option type/value (inline)     |  ✅   |   ✅    |         ✅          |
-| **Rename / delete** option value   |  ✅   |   ✅    |         ❌          |
-| **Delete** product                 |  ✅   |   ✅    |         ❌          |
-| **Hide / publish** product         |  ✅   |   ✅    | ✅ (needs approval) |
-| Create order + hand to courier     |  ✅   |   ✅    |         ✅          |
-| **Delete / edit / cancel** order   |  ✅   |   ✅    |         ❌          |
-| **Mark money collected**           |  ✅   |   ✅    |         ❌          |
-| **Give stock away** (GIFT order)   |  ✅   |   ✅    |         ❌          |
-| Manage stock (full)                |  ✅   |   ✅    | ✅ (needs approval) |
-| **Delete** a product photo         |  ✅   |   ✅    | ✅ (needs approval) |
-| Change a product's **variant set** |  ✅   |   ✅    | ✅ (needs approval) |
-| Record an expense                  |  ✅   |   ✅    | ✅ (needs approval) |
-| Read / edit expenses               |  ✅   |   ✅    |         ❌          |
-| **Approve** a pending change       |  ✅   |   ❌    |         ❌          |
-| Open + close the cash drawer       |  ✅   |   ✅    |         ❌          |
-| **See cost, COGS, profit, margin** |  ✅   |   ❌    |         ❌          |
-| **Open the Reports screen**        |  ✅   |   ❌    |         ❌          |
-| Dashboard (sold / received / owed) |  ✅   |   ✅    |         ❌          |
-| Manage users                       |  ✅   |   ❌    |         ❌          |
-| Settings                           |  ✅   |   ❌    |         ❌          |
+| Capability                          | Admin | Manager |      Employee       |
+| ----------------------------------- | :---: | :-----: | :-----------------: |
+| POS — make sales                    |  ✅   |   ✅    |         ✅          |
+| Add products                        |  ✅   |   ✅    |         ✅          |
+| Edit product images                 |  ✅   |   ✅    |         ✅          |
+| Edit product details (name, etc.)   |  ✅   |   ✅    |         ✅          |
+| Edit product **price**              |  ✅   |   ✅    | ✅ (needs approval) |
+| Add option type/value (inline)      |  ✅   |   ✅    |         ✅          |
+| **Rename / delete** option value    |  ✅   |   ✅    |         ❌          |
+| **Delete** product                  |  ✅   |   ✅    |         ❌          |
+| **Hide / publish** product          |  ✅   |   ✅    | ✅ (needs approval) |
+| Create order + hand to courier      |  ✅   |   ✅    |         ✅          |
+| **Delete / edit / cancel** order    |  ✅   |   ✅    |         ❌          |
+| **Mark money collected**            |  ✅   |   ✅    |         ❌          |
+| **Give stock away** (GIFT order)    |  ✅   |   ✅    |         ❌          |
+| Manage stock (full)                 |  ✅   |   ✅    | ✅ (needs approval) |
+| **Delete** a product photo          |  ✅   |   ✅    | ✅ (needs approval) |
+| Change a product's **variant set**  |  ✅   |   ✅    | ✅ (needs approval) |
+| Record an expense                   |  ✅   |   ✅    | ✅ (needs approval) |
+| Read / edit expenses                |  ✅   |   ✅    |         ❌          |
+| **Approve** a pending change        |  ✅   |   ❌    |         ❌          |
+| Open + close the cash drawer        |  ✅   |   ✅    |         ❌          |
+| **See cost, COGS, profit, margin**  |  ✅   |   ❌    |         ❌          |
+| **Open the Reports screen**         |  ✅   |   ❌    |         ❌          |
+| Dashboard (sold / received / owed)  |  ✅   |   ✅    |         ❌          |
+| **Sales log** (what sold, by piece) |  ✅   |   ✅    |         ❌          |
+| Manage users                        |  ✅   |   ❌    |         ❌          |
+| Settings                            |  ✅   |   ❌    |         ❌          |
 
 **Security rationale:** Employee can create orders and hand them to the courier but **cannot
 delete or edit them**, so a sale can't be erased to cover theft — and **cannot mark its money
@@ -999,6 +1000,11 @@ request **superseded** an earlier one, and who **approved** or **rejected** it.
 ## Admin dashboard — what's available
 
 - **Dashboard:** today/month sales summary, top products, low-stock alerts
+- **Sales log** (`/sales`, `sales.view`, Admin/Manager): what sold in a range — today, the last two
+  days, the last 7 or 30 days, or any from–to — with the same sold / received / owed headline as
+  Reports, the pieces that came back, and **every** product/variant that left the shop with its
+  quantity and sales (paginated, by quantity or by sales; profit only with `product.viewCost`).
+  Figures are net of returns and exclude cancelled orders and gifts, exactly as Reports count them.
 - **Orders:** list/filter/search, order detail, status flow, returns
 - **Collection:** money still with the delivery company — the outstanding total and the orders it
   is spread over, ticked off one or several at a time (Admin/Manager)

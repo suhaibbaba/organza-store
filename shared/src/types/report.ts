@@ -1,8 +1,9 @@
-import type { REPORT_PERIODS } from "@/constants/report";
+import type { REPORT_PERIODS, SOLD_ITEMS_SORTS } from "@/constants/report";
 import type { I18n } from "@/types/common";
 import type { OrderChannel } from "@/types/order";
 
 export type ReportPeriod = (typeof REPORT_PERIODS)[number];
+export type SoldItemsSort = (typeof SOLD_ITEMS_SORTS)[number];
 
 // Money is a 2dp string; every figure comes from order-item snapshots, net of returns, cancelled/deleted orders out.
 export interface SalesTotals {
@@ -117,4 +118,11 @@ export interface SalesReport {
   byChannel: ChannelSales[];
   topByRevenue: TopSeller[];
   topByQuantity: TopSeller[];
+}
+
+// GET /api/reports/period — the Sales log's headline; its rows come from /api/reports/sold-items (TopSeller[], paginated).
+export interface SalesPeriod {
+  range: { from: string; to: string };
+  totals: SalesTotals;
+  returns: ReturnsTotals;
 }

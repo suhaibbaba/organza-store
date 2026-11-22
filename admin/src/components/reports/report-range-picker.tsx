@@ -9,7 +9,7 @@ import { useActiveSegmentInView } from "@/lib/segmented-scroll";
 import type { ReportPresetKey, ReportRangePickerProps } from "@/types/report";
 
 // The segments scroll inside their row on a phone instead of widening the page.
-export function ReportRangePicker({ value, onChange, name }: ReportRangePickerProps) {
+export function ReportRangePicker({ value, onChange, name, presets = REPORT_PRESETS }: ReportRangePickerProps) {
   const datesName = name ? `${name}-dates` : "report-range-dates";
   const t = useTranslations("reports.range");
   const rowRef = useActiveSegmentInView<HTMLDivElement>();
@@ -24,7 +24,7 @@ export function ReportRangePicker({ value, onChange, name }: ReportRangePickerPr
         <SegmentedControl
           data-testid={name ?? "reports-range"}
           label={t("label")}
-          options={REPORT_PRESETS.map((preset) => ({ value: preset, label: t(preset) }))}
+          options={presets.map((preset) => ({ value: preset, label: t(preset) }))}
           value={value.preset}
           onChange={selectPreset}
         />

@@ -24,6 +24,8 @@ export const PERMISSION_ACTIONS = [
 
   // The Reports screen: Admin only, separate from order.view, so following your own orders never adds up to the shop's takings.
   "report.view",
+  // The Sales log (what sold in a range, piece by piece): Admin/Manager, a shop-wide figure gated on its own screen (rule 19).
+  "sales.view",
 
   "category.view",
   "category.manage",
@@ -129,6 +131,7 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<Role, readonly Action[]> = {
   ADMIN: [...PERMISSION_ACTIONS],
   MANAGER: [
     "dashboard.view",
+    "sales.view",
     "product.view",
     "product.create",
     "product.edit",

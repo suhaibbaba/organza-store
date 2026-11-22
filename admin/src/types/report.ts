@@ -7,9 +7,11 @@ import type {
   ProfitTotals,
   ReportPeriod,
   ReturnsTotals,
+  SalesPeriod,
   SalesReport,
   SalesSummary,
   SalesTotals,
+  SoldItemsSort,
   TopSeller,
 } from "@store/shared/types/report";
 
@@ -21,13 +23,15 @@ export type {
   ProfitTotals,
   ReportPeriod,
   ReturnsTotals,
+  SalesPeriod,
   SalesReport,
   SalesSummary,
   SalesTotals,
+  SoldItemsSort,
   TopSeller,
 };
 
-export type ReportPresetKey = "today" | "last7Days" | "last30Days" | "thisMonth" | "custom";
+export type ReportPresetKey = "today" | "last2Days" | "last7Days" | "last30Days" | "thisMonth" | "custom";
 
 export type TopSellerRanking = "revenue" | "quantity";
 
@@ -41,6 +45,8 @@ export interface ReportRangeValue {
 export interface ReportRangePickerProps {
   value: ReportRangeValue;
   onChange: (value: ReportRangeValue) => void;
+  // The quick ranges offered; REPORT_PRESETS unless a screen needs its own.
+  presets?: readonly ReportPresetKey[];
   // Test-selector name, so the same picker on two screens isn't one name.
   name?: string;
 }

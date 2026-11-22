@@ -15,6 +15,7 @@ export const DEFAULT_REPORT_PRESET: ReportPresetKey = "thisMonth";
 
 export const REPORT_PRESET_DAYS: Partial<Record<ReportPresetKey, number>> = {
   today: 0,
+  last2Days: 1,
   last7Days: 6,
   last30Days: 29,
 };
