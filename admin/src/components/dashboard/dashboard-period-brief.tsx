@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { CalendarRange, Download } from "lucide-react";
 import { can } from "@store/shared/lib/permissions";
-import { REPORT_WEEK_START_DAY } from "@store/shared/constants/report";
 import { Button, SegmentedControl, Typography } from "@store/ui";
 import { Link } from "@/i18n/navigation";
 import { DetailCard } from "@/components/layout/detail-card";
@@ -12,28 +11,15 @@ import { useSession } from "@/components/providers/session-provider";
 import { useSettingsQuery } from "@/hooks/use-settings";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
 import { downloadCsv, exportFilename, toCsv } from "@/lib/export-csv";
-import { toLocalDateString } from "@/lib/report-range";
 import { cn } from "@/lib/utils";
 import { DASHBOARD_BRIEF_PERIODS, DEFAULT_DASHBOARD_PERIOD } from "@/constants/dashboard";
 import type { DashboardPeriodBriefProps } from "@/types/dashboard";
 import type { ReportPeriod } from "@/types/report";
 import { owedTotal } from "@/lib/report-figures";
 
-// "This week" starts on the shop's week day (Saturday), the same as the backend's period.
-function weekStart(today: Date): Date {
-  const back = (today.getDay() - REPORT_WEEK_START_DAY + 7) % 7;
-  return new Date(today.getFullYear(), today.getMonth(), today.getDate() - back);
-}
-
+// The Reports range that holds the same figures as the card: this week or this month.
 function reportHref(period: ReportPeriod) {
-  if (period !== "week") {
-    return "/reports";
-  }
-  const today = new Date();
-  return {
-    pathname: "/reports",
-    query: { preset: "custom", from: toLocalDateString(weekStart(today)), to: toLocalDateString(today) },
-  };
+  return { pathname: "/reports", query: { preset: period === "week" ? "thisWeek" : "thisMonth" } };
 }
 
 // Four figures for the week or the month; the breakdown lives on Reports, one link away.

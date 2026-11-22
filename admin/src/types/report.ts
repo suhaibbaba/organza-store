@@ -31,7 +31,7 @@ export type {
   TopSeller,
 };
 
-export type ReportPresetKey = "today" | "last2Days" | "last7Days" | "last30Days" | "thisMonth" | "custom";
+export type ReportPresetKey = "today" | "last2Days" | "thisWeek" | "last7Days" | "last30Days" | "thisMonth" | "custom";
 
 export type TopSellerRanking = "revenue" | "quantity";
 

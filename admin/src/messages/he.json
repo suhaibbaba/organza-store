@@ -751,6 +751,7 @@
     "range": {
       "today": "היום",
       "last2Days": "יומיים אחרונים",
+      "thisWeek": "השבוע",
       "last7Days": "7 הימים האחרונים",
       "last30Days": "30 הימים האחרונים",
       "thisMonth": "החודש",
