@@ -1,0 +1,143 @@
+name: Desktop POS (Windows)
+
+# Builds, signs and publishes the Windows POS: a window around the DEPLOYED site with no title bar.
+# Installed copies update themselves at launch from the channel release `desktop-pos-<environment>`,
+# which holds the newest installer and latest.json. Every run is a new version (major.minor from
+# tauri.conf.json, patch = run number), so nobody has to remember to bump it.
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Which deployed POS the window opens, and which update channel it joins
+        type: choice
+        options: [sandbox, production]
+        default: sandbox
+
+permissions:
+  contents: write # to publish the channel release
+
+concurrency:
+  group: desktop-pos-${{ inputs.environment }}
+  cancel-in-progress: false
+
+env:
+  TAURI_CLI: "@tauri-apps/cli@2.12.6"
+  ENVIRONMENT: ${{ inputs.environment }}
+  CHANNEL_TAG: desktop-pos-${{ inputs.environment }}
+  RELEASE_BASE_URL: https://github.com/${{ github.repository }}/releases/download/desktop-pos-${{ inputs.environment }}
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: desktop
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: desktop/src-tauri
+
+      - name: Build and sign the installer
+        env:
+          SANDBOX_URL: ${{ vars.DESKTOP_POS_URL_SANDBOX }}
+          PRODUCTION_URL: ${{ vars.DESKTOP_POS_URL_PRODUCTION }}
+          APP_NAME: ${{ vars.DESKTOP_POS_NAME || 'Store POS' }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+          RUN_NUMBER: ${{ github.run_number }}
+        run: |
+          set -euo pipefail
+          if [ "$ENVIRONMENT" = "sandbox" ]; then
+            export STORE_DESKTOP_URL="$SANDBOX_URL"
+            NAME="$APP_NAME (SBX)"
+            IDENTIFIER="app.storemanagement.pos.sandbox"
+          else
+            export STORE_DESKTOP_URL="$PRODUCTION_URL"
+            NAME="$APP_NAME"
+            IDENTIFIER="app.storemanagement.pos"
+          fi
+          if [ -z "$STORE_DESKTOP_URL" ]; then
+            echo "::error::Set the repository variable DESKTOP_POS_URL_${ENVIRONMENT^^} to the deployed POS address (https://…)."
+            exit 1
+          fi
+          if [ -z "$TAURI_SIGNING_PRIVATE_KEY" ]; then
+            echo "::error::The TAURI_SIGNING_PRIVATE_KEY secret is missing; installed apps only accept signed updates."
+            exit 1
+          fi
+          export STORE_DESKTOP_TITLE="$NAME"
+          VERSION="$(node -p "require('./src-tauri/tauri.conf.json').version.split('.').slice(0, 2).join('.')").$RUN_NUMBER"
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+
+          # The Windows icon is cut from the PWA's own artwork, so the two never drift apart.
+          npx --yes "$TAURI_CLI" icon "../pos/public/app_icon/$ENVIRONMENT/icon-512.png" -o src-tauri/icons
+          # Sandbox and live install side by side, so they differ in name, identity and update channel.
+          CONFIG=$(node -e '
+            const [name, identifier, version, endpoint] = process.argv.slice(1);
+            console.log(JSON.stringify({ productName: name, identifier, version, plugins: { updater: { endpoints: [endpoint] } } }));
+          ' "$NAME" "$IDENTIFIER" "$VERSION" "$RELEASE_BASE_URL/latest.json")
+          npx --yes "$TAURI_CLI" build --config "$CONFIG"
+
+          # GitHub rewrites spaces in asset names, so the installer gets a plain one; the signature covers content only.
+          mkdir -p out
+          INSTALLER="store-pos-$ENVIRONMENT-$VERSION-setup.exe"
+          BUNDLE=src-tauri/target/release/bundle/nsis
+          mv "$BUNDLE"/*-setup.exe "out/$INSTALLER"
+          mv "$BUNDLE"/*-setup.exe.sig "out/$INSTALLER.sig"
+          INSTALLER="$INSTALLER" node -e '
+            const fs = require("fs");
+            const { INSTALLER, VERSION, RELEASE_BASE_URL } = process.env;
+            const manifest = {
+              version: VERSION,
+              notes: `Store POS ${VERSION}`,
+              pub_date: new Date().toISOString(),
+              platforms: {
+                "windows-x86_64": {
+                  signature: fs.readFileSync(`out/${INSTALLER}.sig`, "utf8").trim(),
+                  url: `${RELEASE_BASE_URL}/${INSTALLER}`,
+                },
+              },
+            };
+            fs.writeFileSync("out/latest.json", JSON.stringify(manifest, null, 2));
+          '
+          cat out/latest.json
+          ls -l out
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: store-pos-${{ inputs.environment }}-windows
+          path: desktop/out/
+          if-no-files-found: error
+
+      # The installer goes up before latest.json, so an app never reads a manifest pointing at a missing file.
+      - name: Publish to the update channel
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          if ! gh release view "$CHANNEL_TAG" > /dev/null 2>&1; then
+            PRERELEASE=$([ "$ENVIRONMENT" = "sandbox" ] && echo "--prerelease" || true)
+            gh release create "$CHANNEL_TAG" --target "$GITHUB_SHA" --latest=false $PRERELEASE \
+              --title "Store POS for Windows ($ENVIRONMENT)" \
+              --notes "Update channel for the $ENVIRONMENT Windows POS. Installed apps read latest.json here at launch."
+          fi
+          gh release upload "$CHANNEL_TAG" out/*-setup.exe out/*-setup.exe.sig --clobber
+          gh release upload "$CHANNEL_TAG" out/latest.json --clobber
+
+      - name: Check what installed apps will be served
+        run: |
+          set -euo pipefail
+          sleep 5
+          SERVED=$(curl -fsSL "$RELEASE_BASE_URL/latest.json" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const m=JSON.parse(s);console.log(m.version+" "+m.platforms["windows-x86_64"].url)})')
+          echo "Served: $SERVED"
+          test "${SERVED%% *}" = "$VERSION" || { echo "::error::latest.json says ${SERVED%% *}, expected $VERSION"; exit 1; }
+          curl -fsSIL "${SERVED#* }" > /dev/null
+          echo "Published $VERSION to $CHANNEL_TAG"

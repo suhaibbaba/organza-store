@@ -7,6 +7,7 @@ import { fetchBranding } from "@/lib/branding";
 import { storeDisplayName } from "@/lib/store-name";
 import { resolveImageUrl } from "@/lib/image-fallback";
 import { LOGO_ICON_SIZE, pwaIconPath } from "@/constants/pwa";
+import { WindowControls } from "@/components/layout/window-controls";
 
 interface AuthLayoutProps {
   title: string;
@@ -24,6 +25,7 @@ export async function AuthLayout({ title, subtitle, children }: AuthLayoutProps)
       className="flex min-h-dvh items-center justify-center bg-canvas p-4 tab:p-6"
       data-test-selector="pos-auth-screen"
     >
+      <WindowControls floating />
       <div className="grid w-full max-w-md overflow-hidden rounded-card border border-line bg-surface shadow-card desk:max-w-4xl desk:grid-cols-[minmax(0,1fr)_minmax(0,26rem)]">
         <section
           className="flex flex-col gap-4 bg-linear-125 from-primary-900 via-primary-700 to-primary-500 p-5 text-ink-inverse desk:justify-between desk:gap-8 desk:p-8"
