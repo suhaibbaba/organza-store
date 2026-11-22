@@ -32,7 +32,7 @@ export function LabelTable({
     const name = localize(product.name, locale);
     const details = [
       product.category ? localize(product.category.name, locale) : null,
-      product.hasVariants ? t("row.variants", { count: product.variantCount }) : product.sku,
+      product.hasVariants ? t("row.variants", { count: product.variantCount }) : null,
     ].filter(Boolean);
 
     return (

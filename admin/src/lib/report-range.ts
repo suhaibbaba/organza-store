@@ -1,3 +1,4 @@
+import { REPORT_WEEK_START_DAY } from "@store/shared/constants/report";
 import { REPORT_PRESET_DAYS } from "@/constants/reports";
 import type { ReportPresetKey, ReportRangeValue } from "@/types/report";
 
@@ -13,6 +14,18 @@ export function toLocalDateString(date: Date): string {
   return `${year}-${month}-${day}`;
 }
 
+// A plain local date (YYYY-MM-DD) back to a Date at local midnight, so the weekday is the shop's day.
+export function fromLocalDateString(value: string): Date {
+  const [year, month, day] = value.split("-").map(Number);
+  return new Date(year, month - 1, day);
+}
+
+// "This week" starts on the shop's week day (Saturday), the same as the backend's dashboard period.
+export function weekStart(today: Date): Date {
+  const back = (today.getDay() - REPORT_WEEK_START_DAY + 7) % 7;
+  return new Date(today.getFullYear(), today.getMonth(), today.getDate() - back);
+}
+
 // A preset becomes concrete local dates; "custom" keeps the dates already picked, else today.
 export function rangeForPreset(preset: ReportPresetKey, current?: ReportRangeValue): ReportRangeValue {
   const today = new Date();
@@ -20,6 +33,10 @@ export function rangeForPreset(preset: ReportPresetKey, current?: ReportRangeVal
 
   if (preset === "custom") {
     return { preset, from: current?.from || to, to: current?.to || to };
+  }
+
+  if (preset === "thisWeek") {
+    return { preset, from: toLocalDateString(weekStart(today)), to };
   }
 
   if (preset === "thisMonth") {

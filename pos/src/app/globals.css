@@ -104,6 +104,13 @@
 
 /* Colour and lift changes are 150ms everywhere; under reduced motion they
    are instant instead. */
+/* Toasts rise above the selling screen's cart bar while it is on screen (below desk only). */
+@media (width < 62.5rem) {
+  :root:has([data-test-selector="pos-cart-bar"]) {
+    --toast-offset: 4.5rem;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   ::before,

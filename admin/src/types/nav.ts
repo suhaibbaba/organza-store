@@ -10,6 +10,7 @@ export type SolidIcon = (props: SolidIconProps) => React.ReactElement;
 
 export type NavKey =
   | "dashboard"
+  | "salesLog"
   | "orders"
   | "collection"
   | "customers"

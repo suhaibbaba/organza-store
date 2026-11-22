@@ -3,10 +3,13 @@
 import { useLocale, useTranslations } from "next-intl";
 import { ChartColumn } from "lucide-react";
 import { Typography } from "@store/ui";
+import { Link } from "@/i18n/navigation";
 import { DetailCard } from "@/components/layout/detail-card";
+import { useSession } from "@/components/providers/session-provider";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
 import { formatNumber } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { can } from "@store/shared/lib/permissions";
 import { DASHBOARD_BAR_STEP_MS } from "@/constants/dashboard";
 import type { DashboardSalesBarsProps } from "@/types/dashboard";
 
@@ -21,6 +24,7 @@ export function DashboardSalesBars({ daily }: DashboardSalesBarsProps) {
   const t = useTranslations("dashboard.bars");
   const locale = useLocale();
   const formatMoney = useMoneyFormatter();
+  const { user } = useSession();
   const { days } = daily;
 
   const values = days.map((day) => Number(day.revenue));
@@ -100,11 +104,22 @@ export function DashboardSalesBars({ daily }: DashboardSalesBarsProps) {
         ))}
       </div>
 
-      <Typography variant="small" tone="muted" as="p">
-        {bestDay
-          ? t("best", { day: `${weekdayOf(bestDay.date, locale, "long")} ${formatMoney(bestDay.revenue)}` })
-          : t("none")}
-      </Typography>
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+        <Typography variant="small" tone="muted" as="p">
+          {bestDay
+            ? t("best", { day: `${weekdayOf(bestDay.date, locale, "long")} ${formatMoney(bestDay.revenue)}` })
+            : t("none")}
+        </Typography>
+        {can(user, "sales.view") && (
+          <Link
+            href={{ pathname: "/sales", query: { preset: "last7Days" } }}
+            data-test-selector="dashboard-sales-bars-more"
+            className="ms-auto rounded-control text-label font-medium text-primary-700 transition-colors hover:text-primary-900 focus-link"
+          >
+            {t("more")}
+          </Link>
+        )}
+      </div>
     </DetailCard>
   );
 }

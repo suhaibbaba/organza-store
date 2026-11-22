@@ -77,6 +77,7 @@ export const PERMISSION_GROUPS: readonly PermissionGroup[] = [
     tone: "rose",
     actions: [
       "dashboard.view",
+      "sales.view",
       "report.view",
       "cashSession.view",
       "cashSession.manage",

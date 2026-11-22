@@ -44,7 +44,7 @@ export const tealTheme: ThemeOverride = {
     "neutral-300": "#c3d4dd",
     "neutral-400": "#9cb2be",
     "neutral-500": "#7d95a2",
-    "neutral-600": "#607d8b",
+    "neutral-600": "#546e7a",
     "neutral-700": "#546f7d",
     "neutral-900": "#102a3a",
     "ink-muted": "#2c4350",
@@ -53,7 +53,7 @@ export const tealTheme: ThemeOverride = {
     "row-hover": "#f8fbfc",
     "table-head": "#f4f8fa",
     "quiet-bg": "#eef4f7",
-    "quiet-ink": "#607d8b",
+    "quiet-ink": "#546e7a",
 
     rail: "#103f46",
     "rail-ink": "#b7d0d4",

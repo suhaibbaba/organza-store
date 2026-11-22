@@ -2,48 +2,49 @@ import type { BadgeTone } from "@ui/components/badge";
 import type { IconName } from "@ui/components/icon";
 
 export interface NoticeTone {
-  readonly surface: string;
+  // An alert's tinted strip: background and hairline border.
+  readonly tint: string;
   readonly icon: string;
   readonly title: string;
   readonly text: string;
   readonly glyph: IconName;
 }
 
-// Alerts and toasts share one dark palette; it does not follow the page theme on purpose.
+// Alerts and toasts share one light palette drawn from the theme's tone scales, so they follow the client's theme.
 export const NOTICE_TONES: Record<BadgeTone, NoticeTone> = {
   danger: {
-    surface: "bg-toast-error",
-    icon: "text-toast-error-icon",
-    title: "text-toast-error-title",
-    text: "text-toast-error-text",
+    tint: "bg-danger-50 border-danger-200",
+    icon: "text-danger-600",
+    title: "text-danger-800",
+    text: "text-danger-700",
     glyph: "error",
   },
   warning: {
-    surface: "bg-toast-warning",
-    icon: "text-toast-warning-icon",
-    title: "text-toast-warning-title",
-    text: "text-toast-warning-text",
+    tint: "bg-warning-50 border-warning-300/60",
+    icon: "text-warning-500",
+    title: "text-warning-800",
+    text: "text-warning-700",
     glyph: "alert",
   },
   success: {
-    surface: "bg-toast-success",
-    icon: "text-toast-success-icon",
-    title: "text-toast-success-title",
-    text: "text-toast-success-text",
+    tint: "bg-success-50 border-success-100",
+    icon: "text-success-600",
+    title: "text-success-800",
+    text: "text-success-700",
     glyph: "circle-check",
   },
   info: {
-    surface: "bg-toast-info",
-    icon: "text-toast-info-icon",
-    title: "text-toast-info-title",
-    text: "text-toast-info-text",
+    tint: "bg-primary-50 border-primary-100",
+    icon: "text-primary-600",
+    title: "text-primary-800",
+    text: "text-primary-700",
     glyph: "info",
   },
   neutral: {
-    surface: "bg-toast-neutral",
-    icon: "text-toast-neutral-icon",
-    title: "text-toast-neutral-title",
-    text: "text-toast-neutral-text",
+    tint: "bg-canvas border-line",
+    icon: "text-ink-subtle",
+    title: "text-ink",
+    text: "text-ink-muted",
     glyph: "circle-help",
   },
 };

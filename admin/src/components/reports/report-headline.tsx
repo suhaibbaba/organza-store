@@ -1,6 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { CircleCheck, ShoppingBag, Truck } from "lucide-react";
 import { StatCard } from "@/components/layout/stat-card";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
 import { owedTotal } from "@/lib/report-figures";
@@ -16,6 +17,7 @@ export function ReportHeadline({ totals }: ReportHeadlineProps) {
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-3" data-test-selector="reports-headline">
       <StatCard
         name="sold"
+        icon={ShoppingBag}
         label={tFigures("sold.label")}
         tooltip={tFigures("sold.help")}
         value={formatMoney(totals.revenue)}
@@ -23,6 +25,7 @@ export function ReportHeadline({ totals }: ReportHeadlineProps) {
       />
       <StatCard
         name="received"
+        icon={CircleCheck}
         tone="success"
         label={tFigures("received.label")}
         tooltip={tFigures("received.help")}
@@ -30,6 +33,7 @@ export function ReportHeadline({ totals }: ReportHeadlineProps) {
       />
       <StatCard
         name="owed"
+        icon={Truck}
         tone="warning"
         label={tFigures("owed.label")}
         tooltip={tFigures("owed.help")}

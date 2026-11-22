@@ -55,9 +55,6 @@ export function VariantPickerSheet({ product, onOpenChange, onPick }: VariantPic
                       <Typography variant="h3" as="span" className="block truncate">
                         {name}
                       </Typography>
-                      <Typography variant="caption" tone="muted" className="block truncate" dir="ltr">
-                        {variant.sku}
-                      </Typography>
                     </span>
                     <Typography variant="small" tone="muted" as="span" className="shrink-0">
                       {soldOut ? t("soldOut") : formatMoney(variant.resolvedPrice)}

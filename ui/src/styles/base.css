@@ -87,28 +87,7 @@
 }
 
 @theme static {
-  --color-toast-error: #401923;
-  --color-toast-error-icon: #ff4b55;
-  --color-toast-error-title: #f7e8eb;
-  --color-toast-error-text: #ffffff;
-  --color-toast-warning: #453316;
-  --color-toast-warning-icon: #ffd600;
-  --color-toast-warning-title: #ffffff;
-  --color-toast-warning-text: #ffffff;
-  --color-toast-success: #242f27;
-  --color-toast-success-icon: #40c463;
-  --color-toast-success-title: #ffffff;
-  --color-toast-success-text: #ffffff;
-  --color-toast-info: #252849;
-  --color-toast-info-icon: #609bff;
-  --color-toast-info-title: #ffffff;
-  --color-toast-info-text: #ffffff;
-  --color-toast-neutral: #252435;
-  --color-toast-neutral-icon: #9393a5;
-  --color-toast-neutral-title: #ffffff;
-  --color-toast-neutral-text: #ffffff;
-  --radius-toast: 8px;
-  --shadow-toast: 0 8px 24px rgb(0 0 0 / 0.12);
+  --shadow-toast: 0 12px 32px -12px rgb(29 40 48 / 0.28), 0 2px 6px -2px rgb(29 40 48 / 0.08);
 }
 
 @theme {
@@ -366,7 +345,7 @@
 @keyframes toast-in {
   from {
     opacity: 0;
-    transform: translateY(-8px);
+    transform: translateY(16px);
   }
   to {
     opacity: 1;
@@ -377,9 +356,11 @@
 @keyframes toast-out {
   from {
     opacity: 1;
+    transform: translateY(0);
   }
   to {
     opacity: 0;
+    transform: translateY(16px);
   }
 }
 

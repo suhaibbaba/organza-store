@@ -2,11 +2,14 @@
 
 import { useTranslations } from "next-intl";
 import { CircleCheck, ReceiptText, ShoppingBag, Truck } from "lucide-react";
+import { can } from "@store/shared/lib/permissions";
 import { StatCard } from "@/components/layout/stat-card";
+import { useSession } from "@/components/providers/session-provider";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
 import { DASHBOARD_RISE_STEP_MS } from "@/constants/dashboard";
 import type { DashboardTodayStripProps } from "@/types/dashboard";
 import { owedTotal } from "@/lib/report-figures";
+import { toLocalDateString } from "@/lib/report-range";
 
 const CARD_MOTION = "animate-rise transition duration-300 hover:-translate-y-0.5 hover:shadow-card-hover";
 
@@ -15,7 +18,10 @@ export function DashboardTodayStrip({ today }: DashboardTodayStripProps) {
   const t = useTranslations("dashboard.today");
   const tFigures = useTranslations("figures");
   const formatMoney = useMoneyFormatter();
+  const { user } = useSession();
   const { totals } = today;
+  const todayDate = toLocalDateString(new Date());
+  const todaysOrders = `/orders?${new URLSearchParams({ dateFrom: todayDate, dateTo: todayDate }).toString()}`;
 
   const delay = (index: number) => ({ animationDelay: `${(index + 1) * DASHBOARD_RISE_STEP_MS}ms` });
 
@@ -24,7 +30,9 @@ export function DashboardTodayStrip({ today }: DashboardTodayStripProps) {
       <StatCard
         name="sold"
         icon={ShoppingBag}
-        label={tFigures("sold.label")}
+        // The Sales log opens on today, so the card leads to the pieces behind its figure.
+        {...(can(user, "sales.view") && { href: "/sales", linkLabel: t("openSales") })}
+        label={t("soldLabel")}
         tooltip={tFigures("sold.help")}
         value={formatMoney(totals.revenue)}
         hint={t("pieces", { count: totals.itemCount })}
@@ -33,9 +41,10 @@ export function DashboardTodayStrip({ today }: DashboardTodayStripProps) {
       />
       <StatCard
         name="received"
+        {...(can(user, "sales.view") && { href: "/sales", linkLabel: t("openSales") })}
         tone="success"
         icon={CircleCheck}
-        label={tFigures("received.label")}
+        label={t("receivedLabel")}
         tooltip={tFigures("received.help")}
         value={formatMoney(totals.collectedRevenue)}
         hint={t("receivedHint")}
@@ -44,9 +53,10 @@ export function DashboardTodayStrip({ today }: DashboardTodayStripProps) {
       />
       <StatCard
         name="owed"
+        {...(can(user, "order.markCollected") && { href: "/orders/collection", linkLabel: t("openCollection") })}
         tone="warning"
         icon={Truck}
-        label={tFigures("owed.label")}
+        label={t("owedLabel")}
         tooltip={tFigures("owed.help")}
         value={formatMoney(owedTotal(totals))}
         hint={
@@ -63,6 +73,7 @@ export function DashboardTodayStrip({ today }: DashboardTodayStripProps) {
       <StatCard
         name="orders"
         icon={ReceiptText}
+        {...(can(user, "order.view") && { href: todaysOrders, linkLabel: t("openOrders") })}
         label={t("ordersLabel")}
         value={totals.orderCount}
         hint={t("averageHint", { amount: formatMoney(totals.averageOrderValue) })}

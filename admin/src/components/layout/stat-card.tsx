@@ -4,6 +4,7 @@ import type { CSSProperties, ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { ExplainedLabel } from "@/components/figures/explained-label";
+import { Link } from "@/i18n/navigation";
 import { testSelectorFor } from "@store/shared/lib/testSelector";
 import { cn } from "@/lib/utils";
 import type { StatCardTone } from "@/types/layout";
@@ -22,6 +23,10 @@ interface StatCardProps {
   icon?: LucideIcon;
   className?: string;
   style?: CSSProperties;
+  // Makes the whole card open this page; the (?) stays its own button above the link.
+  href?: string;
+  // What the link opens, for screen readers ("Open today's sales").
+  linkLabel?: string;
 }
 
 const TONE_CLASS: Record<StatCardTone, string> = {
@@ -36,7 +41,7 @@ const ICON_TILE_CLASS: Record<StatCardTone, string> = {
   warning: "bg-warning-100 text-warning-700",
 };
 
-// The (?) expands inline rather than hovering: ~95% of use is on a phone.
+// Compact and flat: icon, label and (?) on one line (stacked on phones), the figure under it.
 export function StatCard({
   label,
   value,
@@ -47,48 +52,65 @@ export function StatCard({
   icon: Icon,
   className,
   style,
+  href,
+  linkLabel,
 }: StatCardProps) {
   const tFigures = useTranslations("figures");
 
   return (
     <div
       className={cn(
-        "flex min-w-0 flex-col rounded-card border border-line bg-surface p-[18px_20px] shadow-card",
+        "@container flex min-w-0 flex-col gap-2 rounded-panel border border-line bg-surface p-4",
+        href &&
+          "relative cursor-pointer transition-[border-color,box-shadow] hover:border-line-strong hover:shadow-card has-[a:focus-visible]:border-primary-300",
         className,
       )}
       style={style}
       data-test-selector={testSelectorFor("stat-card", name)}
     >
-      {/* Phones stack the tile over the label: side by side, a half-width card squeezes the label into its (?). */}
-      <div className="flex flex-col-reverse items-start gap-2 sm:flex-row sm:gap-3">
+      {/* A narrow card (two to a row on a phone) puts the label under the icon; a wide one keeps one line. */}
+      <div className="flex min-w-0 flex-col items-start gap-2 @[13rem]:flex-row @[13rem]:items-center @[13rem]:gap-2.5">
+        {Icon && (
+          <span
+            className={cn("grid size-8 shrink-0 place-items-center rounded-control", ICON_TILE_CLASS[tone])}
+            aria-hidden="true"
+          >
+            <Icon className="size-4" />
+          </span>
+        )}
         <ExplainedLabel
-          className="w-full min-w-0 sm:flex-1"
+          className={cn(
+            "w-full min-w-0 @[13rem]:w-auto @[13rem]:flex-1",
+            href && "[&_button]:relative [&_button]:z-10",
+          )}
+          rowClassName="min-h-8"
+          labelClassName="text-meta font-medium"
           label={label}
           description={tooltip}
           toggleLabel={tFigures("explain", { label })}
         />
-        {Icon && (
-          <span
-            className={cn(
-              "flex size-9 shrink-0 items-center justify-center rounded-panel sm:size-10",
-              ICON_TILE_CLASS[tone],
-            )}
-            aria-hidden="true"
-          >
-            <Icon className="size-5" />
-          </span>
-        )}
       </div>
 
-      {/* break-words, not truncate: a clipped amount is worse than an ugly one. */}
-      <p
-        className={cn("mt-2 break-words text-title font-medium tabular-nums", TONE_CLASS[tone])}
-        data-test-selector={testSelectorFor("stat-card-value", name)}
-      >
-        {value}
-      </p>
-
-      {hint && <p className="mt-[7px] text-meta text-ink-subtle">{hint}</p>}
+      <div className="flex min-w-0 flex-col gap-0.5">
+        {/* break-words, not truncate: a clipped amount is worse than an ugly one. */}
+        <p
+          className={cn("break-words text-title font-semibold tracking-tight tabular-nums", TONE_CLASS[tone])}
+          data-test-selector={testSelectorFor("stat-card-value", name)}
+        >
+          {href ? (
+            <Link
+              href={href}
+              aria-label={linkLabel}
+              className="rounded-control focus-link after:absolute after:inset-0 after:rounded-panel after:content-['']"
+            >
+              {value}
+            </Link>
+          ) : (
+            value
+          )}
+        </p>
+        {hint && <p className="text-meta text-ink-subtle">{hint}</p>}
+      </div>
     </div>
   );
 }

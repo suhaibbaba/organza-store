@@ -69,6 +69,17 @@ export function formatDate(value: string | null | undefined, locale: string): st
   }
 }
 
+// Short weekday then day/month, day first in every language: "Mon 23/11", "الاثنين 23/11".
+export function formatDayDate(date: Date, locale: string): string {
+  const dayMonth = `${date.getDate()}/${date.getMonth() + 1}`;
+  try {
+    const weekday = new Intl.DateTimeFormat(locale, { ...DATE_FORMAT_BASE, weekday: "short" }).format(date);
+    return `${weekday} ${dayMonth}`;
+  } catch {
+    return dayMonth;
+  }
+}
+
 // Weekday, day, month and year in words, for a heading like the dashboard's.
 export function formatLongDate(date: Date, locale: string): string {
   try {
