@@ -115,22 +115,23 @@ what its destructive-command guards read.
 
 ### The files in each folder
 
-| File                    | Used for                                                                             |
-| ----------------------- | ------------------------------------------------------------------------------------ |
-| `favicon.ico`           | Legacy tab icon. A single 16×16.                                                     |
-| `icon-32.png`           | The tab on any current screen, which draws it at 32 real pixels. **Derived.**        |
-| `icon-180.png`          | iOS home screen (`apple-touch-icon`). iOS ignores the manifest entirely.             |
-| `icon-192.png`          | Android launcher icon, and the icon on a pushed notification.                        |
-| `icon-512.png`          | Chrome's install prompt and its generated splash.                                    |
-| `icon-maskable-512.png` | Android adaptive icon — mark inside the safe zone, so a circular mask can't clip it. |
-| `icon-mark-512.png`     | The mark on transparency, for the in-app boot splash. **Derived.**                   |
+| File                    | Used for                                                                                 |
+| ----------------------- | ---------------------------------------------------------------------------------------- |
+| `favicon.ico`           | Legacy tab icon: 16×16 and 32×32 rounded tiles.                                          |
+| `icon-32.png`           | The tab on any current screen, which draws it at 32 real pixels.                         |
+| `icon-180.png`          | iOS home screen (`apple-touch-icon`). A full square: iOS rounds the corners itself.      |
+| `icon-192.png`          | Android launcher icon, the icon on a pushed notification, and the logo until one is set. |
+| `icon-512.png`          | Chrome's install prompt and its generated splash.                                        |
+| `icon-maskable-512.png` | Android adaptive icon — mark inside the safe zone, so a circular mask can't clip it.     |
+| `icon-mark-512.png`     | The mark on transparency, for the in-app boot splash.                                    |
 
-The two marked **Derived** are generated from `icon-512.png` in the same folder. After
-replacing any artwork, regenerate them (needs `backend/`'s dependencies installed, for
-`sharp`):
+Every file is generated, for both apps and both environments, from one drawing:
+`shared/assets/app-icon/mark.svg`. The tile colours (light for the POS, dark for the admin), the
+iOS corner radius and the sandbox pill are set in the script. Never edit a PNG by hand — change
+the SVG or the script and run (needs the workspace installed, for `sharp`):
 
 ```bash
-node shared/scripts/derive-app-icons.js
+node shared/scripts/build-app-icons.js
 ```
 
 > **Testing new icons on iPhone:** iOS caches a PWA's icon at install time and never

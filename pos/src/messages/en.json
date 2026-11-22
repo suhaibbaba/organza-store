@@ -398,10 +398,7 @@
       "copied": "Copied"
     },
     "update": {
-      "title": "A new version is ready",
-      "description": "Tap to get the newest version. It takes a moment, and nothing you have saved is lost.",
-      "action": "Update now",
-      "updating": "Updating…"
+      "updating": "Updating to the newest version…"
     }
   },
   "profile": {
@@ -504,5 +501,12 @@
     "lockedOut": "Too many wrong tries. Sign in with your email and password to reopen the till.",
     "loadFailed": "Could not load the people on this device.",
     "retry": "Try again"
+  },
+  "desktop": {
+    "minimize": "Minimise window",
+    "close": "Close the app",
+    "closeConfirmTitle": "Close the app?",
+    "closeConfirmConsequence": "Any pieces in the cart now are dropped. You stay signed in on this device.",
+    "closeConfirmYes": "Close"
   }
 }

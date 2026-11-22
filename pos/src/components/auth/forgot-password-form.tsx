@@ -77,12 +77,7 @@ export function ForgotPasswordForm() {
         />
       </FormField>
 
-      <Button
-        type="submit"
-        data-test-selector="pos-forgot-password-submit"
-        isLoading={isSubmitting}
-        className="w-full"
-      >
+      <Button type="submit" data-test-selector="pos-forgot-password-submit" isLoading={isSubmitting} className="w-full">
         {isSubmitting ? t("submitting") : t("submit")}
       </Button>
 

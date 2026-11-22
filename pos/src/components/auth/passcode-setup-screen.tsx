@@ -5,6 +5,7 @@ import { Button, Typography } from "@store/ui";
 import { ShopLogo } from "@/components/brand/shop-logo";
 import { PasscodeForm } from "@/components/auth/passcode-form";
 import { useSession } from "@/components/providers/session-provider";
+import { WindowControls } from "@/components/layout/window-controls";
 
 // Right after a password sign-in on a tablet: the passcode is what reopens the till after it locks.
 export function PasscodeSetupScreen() {
@@ -16,6 +17,7 @@ export function PasscodeSetupScreen() {
       className="flex min-h-dvh flex-col items-center justify-center gap-6 bg-canvas px-4 py-8"
       data-test-selector="pos-passcode-setup"
     >
+      <WindowControls floating />
       <div className="flex w-full max-w-md flex-col gap-5 rounded-card border border-line bg-surface p-6 shadow-card">
         <ShopLogo className="h-12 w-auto self-start" />
         <div className="flex flex-col gap-1">

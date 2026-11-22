@@ -115,6 +115,9 @@ export const SERVICE_WORKER_SKIP_WAITING_MESSAGE = "SKIP_WAITING";
 // An interrupted install may never answer; a reload beats a dead button.
 export const UPDATE_RELOAD_FALLBACK_MS = 3_000;
 
+// The strip gives up on a download that stalls (the clinic waits the same).
+export const UPDATE_GIVE_UP_MS = 30_000;
+
 // The worker can't import next-intl, so this route serves it the same messages (rule 12).
 export const PUSH_MESSAGES_BASE_PATH = "/api/push-messages";
 export const pushMessagesPath = (locale: string): string => `${PUSH_MESSAGES_BASE_PATH}/${locale}`;

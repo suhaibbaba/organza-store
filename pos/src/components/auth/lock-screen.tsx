@@ -29,6 +29,7 @@ import { ApiError } from "@/lib/api/errors";
 import { errorMessageKey } from "@/hooks/use-translate-error";
 import { POS_MEMBERS_QUERY_KEY } from "@/constants/api";
 import { LOGIN_HREF } from "@/constants/auth";
+import { WindowControls } from "@/components/layout/window-controls";
 
 const FIELD_ID = "pos-unlock-passcode";
 
@@ -112,6 +113,7 @@ export function LockScreen() {
       className="flex min-h-dvh flex-col items-center justify-center gap-4 bg-canvas px-4 py-8"
       data-test-selector="pos-lock-screen"
     >
+      <WindowControls floating />
       <div className="flex w-full max-w-lg flex-col gap-5 rounded-card border border-line bg-surface p-6 shadow-card">
         <div className="flex items-center justify-between gap-3">
           <ShopLogo className="h-12 w-auto" />

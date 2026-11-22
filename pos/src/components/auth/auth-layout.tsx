@@ -7,6 +7,7 @@ import { fetchBranding } from "@/lib/branding";
 import { storeDisplayName } from "@/lib/store-name";
 import { resolveImageUrl } from "@/lib/image-fallback";
 import { LOGO_ICON_SIZE, pwaIconPath } from "@/constants/pwa";
+import { WindowControls } from "@/components/layout/window-controls";
 
 interface AuthLayoutProps {
   title: string;
@@ -14,7 +15,7 @@ interface AuthLayoutProps {
   children: ReactNode;
 }
 
-// Signed-out screens: one card, brand beside the form from `desk` so a landscape tablet never scrolls.
+// Signed-out screens: one card, logo and tagline beside the form from `desk` so a landscape tablet never scrolls.
 export async function AuthLayout({ title, subtitle, children }: AuthLayoutProps) {
   const [tApp, storeName, branding] = await Promise.all([getTranslations("app"), storeDisplayName(), fetchBranding()]);
   const logo = branding?.logoUrl ? resolveImageUrl(branding.logoUrl) : pwaIconPath(LOGO_ICON_SIZE);
@@ -24,28 +25,29 @@ export async function AuthLayout({ title, subtitle, children }: AuthLayoutProps)
       className="flex min-h-dvh items-center justify-center bg-canvas p-4 tab:p-6"
       data-test-selector="pos-auth-screen"
     >
+      <WindowControls floating />
       <div className="grid w-full max-w-md overflow-hidden rounded-card border border-line bg-surface shadow-card desk:max-w-4xl desk:grid-cols-[minmax(0,1fr)_minmax(0,26rem)]">
         <section
           className="flex flex-col gap-4 bg-linear-125 from-primary-900 via-primary-700 to-primary-500 p-5 text-ink-inverse desk:justify-between desk:gap-8 desk:p-8"
           data-test-selector="pos-auth-brand"
         >
           <div className="flex items-center justify-between gap-3">
-            <span className="flex size-12 shrink-0 items-center justify-center rounded-control bg-surface p-1.5 shadow-card desk:size-16">
-              {/* eslint-disable-next-line @next/next/no-img-element -- an already-optimised WebP served by the API */}
-              <img src={logo} alt="" className="size-full object-contain" data-test-selector="shop-logo" />
-            </span>
+            {/* eslint-disable-next-line @next/next/no-img-element -- an already-optimised WebP served by the API */}
+            <img
+              src={logo}
+              alt={storeName}
+              className="size-12 shrink-0 object-contain desk:size-16"
+              data-test-selector="shop-logo"
+            />
             <LanguageSwitcher variant="pill" />
           </div>
           <div className="flex flex-col gap-1">
             <div className="flex flex-wrap items-center gap-2">
-              <Typography as="p" variant="h1" weight="bold" className="text-ink-inverse desk:text-[2rem]">
-                {storeName}
+              <Typography as="p" variant="h2" weight="semibold" className="text-ink-inverse">
+                {tApp("tagline")}
               </Typography>
               <EnvironmentBadge />
             </div>
-            <Typography as="p" variant="body" className="text-primary-100">
-              {tApp("tagline")}
-            </Typography>
           </div>
         </section>
 
