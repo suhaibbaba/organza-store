@@ -1,7 +1,8 @@
 {
   "app": {
     "name": "Store Management",
-    "sandbox": "SANDBOX"
+    "sandbox": "SANDBOX",
+    "tagline": "Shop admin"
   },
   "common": {
     "loading": "Loading…",

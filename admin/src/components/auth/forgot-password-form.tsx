@@ -11,7 +11,7 @@ import { ApiError } from "@/lib/api/errors";
 import { forgotPasswordSchema, type ForgotPasswordValues } from "@/lib/validation/set-password";
 import { fieldTestSelector } from "@store/shared/lib/testSelector";
 import { Alert, Button, buttonClassName, FormField, Input } from "@store/ui";
-import { AuthFieldError } from "@/components/auth/auth-field-error";
+import { fieldErrorKey } from "@/lib/field-error-key";
 
 export function ForgotPasswordForm() {
   const t = useTranslations("auth.forgotPassword");
@@ -38,7 +38,7 @@ export function ForgotPasswordForm() {
 
   if (sent) {
     return (
-      <div className="flex flex-col gap-5">
+      <div className="flex flex-col gap-4">
         <Alert tone="success">{t("sentBody")}</Alert>
         <Link href="/login" className={buttonClassName({ variant: "secondary", className: "w-full" })}>
           {t("back")}
@@ -48,10 +48,10 @@ export function ForgotPasswordForm() {
   }
 
   return (
-    <form method="post" onSubmit={handleSubmit(onSubmit)} noValidate className="flex flex-col gap-5">
+    <form method="post" onSubmit={handleSubmit(onSubmit)} noValidate className="flex flex-col gap-4">
       {formError && <Alert tone="danger">{translateError(formError)}</Alert>}
 
-      <FormField label="auth.forgotPassword.emailLabel" required htmlFor="email">
+      <FormField label="auth.forgotPassword.emailLabel" required htmlFor="email" error={errors.email} errorKey={fieldErrorKey(errors.email)}>
         <Input
           id="email"
           type="email"
@@ -60,18 +60,16 @@ export function ForgotPasswordForm() {
           dir="ltr"
           placeholder={t("emailPlaceholder")}
           hasError={!!errors.email}
-          aria-describedby={errors.email ? "email-error" : undefined}
           data-testid={fieldTestSelector("email")}
           {...register("email")}
         />
-        {errors.email && <AuthFieldError field="email">{translateError(errors.email.message ?? "")}</AuthFieldError>}
       </FormField>
 
       <Button
         type="submit"
         data-test-selector="forgot-password-submit"
         isLoading={isSubmitting}
-        className="mt-2 w-full"
+        className="w-full"
       >
         {isSubmitting ? t("submitting") : t("submit")}
       </Button>

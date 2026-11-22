@@ -468,7 +468,11 @@ hover:text-primary-700` (or `group` on the link + `group-hover:text-primary-700`
   screen minus browser bar and taskbar) and 1280×560, not only at 1280 wide.
 - Anything read from localStorage that changes what renders goes through `useSyncExternalStore` with a server
   snapshot (`hasStoredDevice`): a `useState(() => localStorage…)` initialiser is a hydration error on signed-out pages.
-- To see the POS login while signed in, drop only the `store_pos_session_token` cookie (the proxy reads it), keep the
+- **Admin signed-out screens share the POS's frame (2026-11-22)**: `components/auth/auth-page.tsx` is the same two-column
+  card (brand gradient with logo + tagline + sandbox chip + language, form beside it from `lg`), used by login,
+  forgot-password and set-password. Field errors are `FormField` `error`/`errorKey` (+ `errorValues` for `{min}`),
+  never a hand-made error `<p>`; a sign-in password is only "required", the length rule is for choosing one.
+- To see the POS login while signed in, drop only the `store_pos_session_token` cookie (admin: `store_admin_session_token`) (the proxy reads it), keep the
   localStorage token, and put the cookie back afterwards.
 
 ## Done
@@ -492,3 +496,4 @@ hover:text-primary-700` (or `group` on the link + `group-hover:text-primary-700`
 - admin `permissions` (two role columns, staged + SaveBar, group Sections with counts, search, restore defaults) — 2026-11-22
 - pos `sell` (admin-style header, checkout choices + one button, undo removal, per-line discount, every sheet on ui parts, shared `QuantityStepper`) — 2026-11-22
 - pos `login` + `forgot-password` (shared two-column `AuthLayout`, no scroll at 1280×560, errors on `FormField`) — 2026-11-22
+- admin `login` + `forgot-password` + `set-password` (same two-column `AuthPage` as the POS, errors on `FormField`) — 2026-11-22
