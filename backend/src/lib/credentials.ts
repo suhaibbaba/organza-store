@@ -65,6 +65,8 @@ export async function setUserPassword(userId: string, password: string): Promise
 export async function revokeAllSessions(userId: string): Promise<void> {
   const ctx = await auth.$context;
   await ctx.internalAdapter.deleteUserSessions(userId);
+  // A passcode would reopen what was just closed, so every tablet forgets this person too.
+  await prisma.posDeviceMember.deleteMany({ where: { userId } });
 }
 
 // Whether the account has a password at all: no password is the normal state of an invited, not-yet-set-up person.

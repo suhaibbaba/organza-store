@@ -43,7 +43,7 @@ export function LoginForm() {
   const t = useTranslations("auth.login");
   const tForgot = useTranslations("auth.forgotPassword");
   const translateError = useTranslateError();
-  const { login } = useSession();
+  const { login, hasDevice } = useSession();
   const router = useRouter();
   const [formError, setFormError] = useState<LoginErrorKind | null>(null);
 
@@ -113,6 +113,17 @@ export function LoginForm() {
       <Button type="submit" data-test-selector="pos-login-submit" isLoading={isSubmitting} className="mt-2 w-full">
         {isSubmitting ? t("submitting") : t("submit")}
       </Button>
+
+      {/* Back to the people on this tablet, for whoever came here by mistake. */}
+      {hasDevice && (
+        <Link
+          href={SELL_HREF}
+          className={buttonClassName({ variant: "secondary", className: "w-full" })}
+          data-test-selector="pos-login-use-passcode"
+        >
+          {t("usePasscode")}
+        </Link>
+      )}
 
       {/* Resets are self-service by email, so a cashier locked out at the till needn't find an Admin first. */}
       <Link href={FORGOT_PASSWORD_PATH} className={buttonClassName({ variant: "quiet", className: "w-full" })}>

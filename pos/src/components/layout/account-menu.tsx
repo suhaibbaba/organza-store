@@ -7,7 +7,6 @@ import { useSession } from "@/components/providers/session-provider";
 import { useRouter } from "@/i18n/navigation";
 import { PROFILE_HREF } from "@/constants/profile";
 import { useUserDisplay } from "@/lib/user-display";
-import { AppVersion } from "@/components/pwa/app-version";
 import { cn } from "@/lib/utils";
 
 interface AccountMenuProps {
@@ -17,7 +16,7 @@ interface AccountMenuProps {
 // Who is signed in, and the way out: a pill beside the language one, with the role and address inside the menu.
 export function AccountMenu({ className }: AccountMenuProps) {
   const t = useTranslations("common");
-  const { user, logout } = useSession();
+  const { user, logout, lock, canLock } = useSession();
   const router = useRouter();
 
   // Name, address or role — never an internal id; the letter comes from the same source as the name.
@@ -51,14 +50,15 @@ export function AccountMenu({ className }: AccountMenuProps) {
         <MenuItem icon="user" data-testid="pos-account-menu-profile" onSelect={() => router.push(PROFILE_HREF)}>
           {t("profile")}
         </MenuItem>
+        {/* Locks for the next person; this person's open sale waits for their passcode. */}
+        {canLock && (
+          <MenuItem icon="users" data-testid="pos-account-menu-switch" onSelect={() => void lock()}>
+            {t("switchUser")}
+          </MenuItem>
+        )}
         <MenuItem icon="logout" tone="danger" onSelect={() => void logout()}>
           {t("logout")}
         </MenuItem>
-        {/* Not a menu item: tapping the version copies it and must not close the menu. */}
-        <MenuSeparator />
-        <div className="px-1 pb-1">
-          <AppVersion />
-        </div>
       </MenuContent>
     </Menu>
   );

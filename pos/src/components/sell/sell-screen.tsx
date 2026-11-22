@@ -57,7 +57,7 @@ export function SellScreen() {
   const queryClient = useQueryClient();
   const { user } = useSession();
 
-  const cart = useCart();
+  const cart = useCart(user?.id);
   const checkout = useCheckout();
   const toasts = useToasts();
   const toast = useToast();

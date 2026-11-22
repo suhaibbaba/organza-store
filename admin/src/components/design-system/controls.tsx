@@ -23,6 +23,7 @@ import {
   PhoneInput,
   QuantityInput,
   QuantityStepper,
+  PasscodeInput,
   RadioGroup,
   SearchField,
   SegmentedControl,
@@ -62,6 +63,7 @@ export function Controls() {
   const [translated, setTranslated] = useState<Record<string, string>>({});
   const [quantity, setQuantity] = useState("1");
   const [stepped, setStepped] = useState(2);
+  const [passcode, setPasscode] = useState("");
   const [category, setCategory] = useState("");
   const [colour, setColour] = useState("");
   const [phone, setPhone] = useState<string | null>(null);
@@ -219,6 +221,9 @@ export function Controls() {
               increaseLabel={t("fields.stepperIncrease")}
               valueLabel={t("fields.stepper")}
             />
+          </FormField>
+          <FormField label="designSystem.fields.passcode" htmlFor="ds-passcode">
+            <PasscodeInput id="ds-passcode" value={passcode} onChange={setPasscode} label={t("fields.passcode")} />
           </FormField>
           <FormField label="designSystem.fields.phone" htmlFor="ds-phone">
             <PhoneInput id="ds-phone" value={phone} onChange={setPhone} />

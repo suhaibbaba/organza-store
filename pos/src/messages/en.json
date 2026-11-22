@@ -26,7 +26,8 @@
       "EMPLOYEE": "Employee"
     },
     "profile": "My profile",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "switchUser": "Switch user"
   },
   "stock": {
     "out": "Out of stock",
@@ -62,7 +63,8 @@
       "submitting": "Logging in…",
       "error": "Wrong email or password.",
       "tooManyAttempts": "Too many attempts in a short time. Wait a minute and try again.",
-      "accountDeactivated": "This account has been switched off. Ask an admin to turn it back on."
+      "accountDeactivated": "This account has been switched off. Ask an admin to turn it back on.",
+      "usePasscode": "Use a passcode instead"
     },
     "forgotPassword": {
       "link": "Forgot your password?",
@@ -382,7 +384,11 @@
     "orderCreditInvalid": "A credit sale must be a counter sale with a customer chosen.",
     "orderPaymentExceedsBalance": "That is more than is owed.",
     "customerNotFound": "This customer was not found.",
-    "customerPhoneTaken": "Another customer already has this phone number."
+    "customerPhoneTaken": "Another customer already has this phone number.",
+    "passcodeFormat": "The passcode is six digits.",
+    "posDeviceUnknown": "This device does not know you. Sign in with your email and password.",
+    "posPasscodeWrong": "Wrong passcode.",
+    "posPasscodeLocked": "Too many wrong tries. Sign in with your email and password."
   },
   "pwa": {
     "version": {
@@ -422,6 +428,10 @@
       "language": {
         "title": "Language",
         "description": "Used on this device now, and whenever you sign in."
+      },
+      "passcode": {
+        "title": "Passcode",
+        "description": "Six digits that reopen the till after it locks."
       }
     },
     "details": {
@@ -468,5 +478,31 @@
       "onlyThisDevice": "You are signed in on this device only."
     },
     "back": "Back to selling"
+  },
+  "passcode": {
+    "enter": "Passcode",
+    "enterNote": "{length} digits that reopen the till after it locks.",
+    "confirm": "Type it again",
+    "confirmNote": "Type the same digits once more.",
+    "mismatch": "The two did not match. Start again.",
+    "saved": "Passcode saved.",
+    "saving": "Saving",
+    "setupTitle": "Choose a passcode",
+    "setupDescription": "The till locks when it is left unused. You reopen it with your passcode instead of your email and password.",
+    "signOut": "Sign out",
+    "change": "Change passcode",
+    "changeTitle": "Change passcode",
+    "changeDescription": "Type the new passcode twice."
+  },
+  "lock": {
+    "title": "Who is selling?",
+    "description": "Tap your name, then type your passcode.",
+    "passcode": "Passcode",
+    "unlocking": "Unlocking",
+    "changePerson": "Someone else",
+    "usePassword": "Sign in with email and password",
+    "lockedOut": "Too many wrong tries. Sign in with your email and password to reopen the till.",
+    "loadFailed": "Could not load the people on this device.",
+    "retry": "Try again"
   }
 }

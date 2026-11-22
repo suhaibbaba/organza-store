@@ -1454,7 +1454,9 @@
       "labelGapY": "Down",
       "labelGapsHint": "The gap between one sticker and the next. Type 0 if they touch each other.",
       "labelSheetErrorHint": "Some A4 sheet numbers aren't valid. Switch the printer type back to the A4 sheet to fix them.",
-      "saved": "Settings saved."
+      "saved": "Settings saved.",
+      "posAutoLockMinutes": "Minutes before locking",
+      "posAutoLockMinutesHint": "After this many minutes without a tap the passcode is needed. 0 turns auto-lock off."
     },
     "sections": {
       "store-info": {
@@ -1480,6 +1482,10 @@
       "sale-notifications": {
         "title": "Sale notifications",
         "description": "Every sale made by a manager or an employee sends a notification to the admins' phones. Nobody is notified of their own sale."
+      },
+      "pos-lock": {
+        "title": "POS lock",
+        "description": "When the till locks itself after it is left unused."
       }
     },
     "branding": {
@@ -2105,7 +2111,8 @@
       "colourPlaceholder": "Choose a colour",
       "stepper": "Quantity stepper",
       "stepperDecrease": "Decrease",
-      "stepperIncrease": "Increase"
+      "stepperIncrease": "Increase",
+      "passcode": "Passcode"
     },
     "choices": {
       "channel": "Sales channel",

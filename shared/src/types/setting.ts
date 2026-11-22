@@ -32,6 +32,8 @@ export interface Setting {
   saleNotificationsEnabled: boolean;
   saleNotificationMode: SaleNotificationMode;
   saleNotificationMinAmount: string;
+  // POS: minutes without a tap before the till locks behind the passcode; 0 = never.
+  posAutoLockMinutes: number;
   updatedAt: string;
 }
 

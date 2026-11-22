@@ -4,6 +4,7 @@ import { SUPPORTED_LANGUAGES } from "@/constants/languages";
 import { LABEL_LIMITS, LABEL_PRINT_MODES } from "@/constants/label";
 import { IMPLEMENTED_SALE_NOTIFICATION_MODES } from "@/constants/push";
 import { ERROR_CODES } from "@/constants/errors";
+import { POS_AUTO_LOCK_MAX_MINUTES, POS_AUTO_LOCK_OFF } from "@/constants/posLock";
 
 // A label dimension in millimetres: a real piece of paper, so it has to be
 // positive and can't be absurd.
@@ -45,5 +46,6 @@ export const updateSettingSchema = z.object({
     })
     .optional(),
   saleNotificationMinAmount: decimalInput.optional(),
+  posAutoLockMinutes: z.coerce.number().int().min(POS_AUTO_LOCK_OFF).max(POS_AUTO_LOCK_MAX_MINUTES).optional(),
 });
 export type UpdateSettingInput = z.infer<typeof updateSettingSchema>;

@@ -15,3 +15,9 @@ export interface Session {
   user: SessionUser;
   token: string;
 }
+
+// What the tablet proves itself with when the lock screen lists people or unlocks one.
+export interface PosDeviceCredentials {
+  deviceId: string;
+  deviceSecret: string;
+}

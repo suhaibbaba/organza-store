@@ -22,4 +22,6 @@ export const AUDIT_ENTITY = {
   // answerable by filtering rather than by reading a diff. entityId is the
   // role the change was made to (spec.md "Editable role permissions").
   ROLE_PERMISSION: "RolePermission",
+  // A tablet that people unlock with a passcode; entityId is the device.
+  POS_DEVICE: "PosDevice",
 } as const;

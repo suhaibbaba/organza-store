@@ -35,3 +35,16 @@ export const API_VERSION_STALE_TIME_MS = 5 * 60 * 1000;
 
 // Too many sign-in attempts, told apart on screen from a wrong password.
 export const HTTP_TOO_MANY_REQUESTS = 429;
+
+// POS quick unlock (spec.md "POS passcode and lock").
+export const POS_DEVICE_ENDPOINTS = {
+  ENROLL: "/api/pos-devices/enroll",
+  PASSCODE: "/api/pos-devices/passcode",
+  MEMBERS: "/api/pos-devices/members",
+  UNLOCK: "/api/pos-devices/unlock",
+  LEAVE: "/api/pos-devices/leave",
+} as const;
+export const POS_ENROLLMENT_QUERY_KEY = ["posDevice", "enrollment"] as const;
+export const POS_MEMBERS_QUERY_KEY = ["posDevice", "members"] as const;
+// Store-wide answers that stay valid when a different person unlocks the till.
+export const SHARED_QUERY_ROOTS: readonly string[] = ["settings", "version"];

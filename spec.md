@@ -325,6 +325,40 @@ the filters, and the link in this one has to arrive. They are sent from a no-rep
 verified domain, with a **reply-to that reaches the shop**, because somebody replying to it is a
 person trying to get hold of the shop.
 
+### POS passcode and lock
+
+A till is shared and left on the counter, so the POS locks itself and people switch on it with a
+short passcode instead of typing an email and password each time. The email and password are still
+the only way to **join** a tablet; the passcode only reopens one the person has joined.
+
+- **Joining a tablet is a password sign-in.** Every time somebody signs in on the POS with their
+  email and password, that tablet becomes a `PosDevice` (if it is new) and they become a
+  `PosDeviceMember` of it. The tablet keeps a random secret (32 bytes) in its own storage; only its
+  SHA-256 is stored, like a password link. A person appears on a tablet's lock screen only after
+  signing in there with their password — knowing a passcode is no use on any other device.
+- **One passcode per person: six digits**, chosen on the POS right after the first password sign-in
+  (the till asks before anything else) and changeable from the profile. Typed twice. Hashed with
+  Better Auth's own password hasher in `PosPasscode`, never stored on the tablet.
+- **The server checks every passcode.** A six-digit code kept on a tablet could be tried
+  exhaustively in seconds, so the tablet only ever sends it. **Five wrong tries in a row lock that
+  person on that tablet**; from then on only their password reopens them there, which also clears
+  the count. The unlock and lock-screen endpoints are rate-limited per caller as well.
+- **A right passcode opens an ordinary Better Auth session**, so every route checks it exactly as it
+  checks a password sign-in, and a deactivated account is refused the same way.
+- **The till locks after the shop's set minutes without a tap** (`Setting.posAutoLockMinutes`,
+  Admin's Settings screen, default 5, 0 turns it off). Time asleep counts: the check also runs the
+  moment the tablet wakes. Locking ends the session on the server; the tablet keeps its identity.
+- **Switch user** in the account menu locks the till at once for the next person.
+- **An open sale belongs to the person who started it.** It is kept on the tablet while it is
+  locked: the same person unlocking finds it as they left it; somebody else starts with an empty
+  cart and the first person's sale waits for them. It lives in memory only — closing the app
+  abandons it, as before.
+- **Signing out takes the person off that tablet**, so their passcode stops working there. Anything
+  that signs a person out everywhere (a redeemed password link, deactivation) takes them off every
+  tablet too.
+- Joining, leaving, setting or changing a passcode and being locked out are audit-logged; an
+  unlock is not, as a sign-in is not.
+
 ## Phone numbers
 
 - **`phone` and `whatsapp` are both required-unique / optional-unique respectively**, and both are

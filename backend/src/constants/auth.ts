@@ -18,3 +18,7 @@ export const PROFILE_SESSIONS_LIMIT = 50;
 
 // Better Auth endpoints answered 404: a person edits their own account only through the audited /api/me.
 export const AUTH_DISABLED_PATHS = ["/update-user", "/change-password"];
+
+// POS unlock and lock-screen lookups per caller: generous for one shop behind one address, useless for guessing.
+export const POS_UNLOCK_IP_LIMIT = 30;
+export const POS_UNLOCK_IP_WINDOW_MS = 60 * 1000;

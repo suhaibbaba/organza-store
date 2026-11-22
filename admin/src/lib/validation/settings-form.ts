@@ -2,6 +2,7 @@ import { z } from "zod";
 import { ERROR_CODES } from "@store/shared/constants/errors";
 import { LABEL_LIMITS, LABEL_PRINT_MODES } from "@store/shared/constants/label";
 import { IMPLEMENTED_SALE_NOTIFICATION_MODES } from "@store/shared/constants/push";
+import { POS_AUTO_LOCK_MAX_MINUTES, POS_AUTO_LOCK_OFF } from "@store/shared/constants/posLock";
 import type { Setting } from "@store/shared/types/setting";
 import type { UpdateSettingInput } from "@store/shared/schemas/setting";
 import { boundedDecimalField, boundedIntegerField, requiredIntegerField } from "@/lib/validation/numeric";
@@ -20,6 +21,7 @@ export const settingsFormSchema = z.object({
   defaultLanguage: z.string().min(1, ERROR_CODES.VALIDATION_REQUIRED),
   defaultCountryCode: z.string().min(1, ERROR_CODES.VALIDATION_REQUIRED),
   lowStockThreshold: requiredIntegerField,
+  posAutoLockMinutes: boundedIntegerField(POS_AUTO_LOCK_OFF, POS_AUTO_LOCK_MAX_MINUTES),
   labelPrintMode: z.enum(LABEL_PRINT_MODES),
   labelWidthMm: labelDimensionField,
   labelHeightMm: labelDimensionField,
@@ -44,6 +46,7 @@ export function settingsToFormValues(setting: Setting): SettingsFormValues {
     defaultLanguage: setting.defaultLanguage,
     defaultCountryCode: setting.defaultCountryCode,
     lowStockThreshold: String(setting.lowStockThreshold),
+    posAutoLockMinutes: String(setting.posAutoLockMinutes),
     labelPrintMode: setting.labelPrintMode,
     labelWidthMm: String(setting.labelWidthMm),
     labelHeightMm: String(setting.labelHeightMm),
@@ -84,6 +87,7 @@ export function toUpdatePayload(values: SettingsFormValues): UpdateSettingInput 
     defaultLanguage: values.defaultLanguage as UpdateSettingInput["defaultLanguage"],
     defaultCountryCode: values.defaultCountryCode.trim(),
     lowStockThreshold: toNumber(values.lowStockThreshold),
+    posAutoLockMinutes: toNumber(values.posAutoLockMinutes),
     labelPrintMode: values.labelPrintMode,
     labelWidthMm: toNumber(values.labelWidthMm),
     labelHeightMm: toNumber(values.labelHeightMm),

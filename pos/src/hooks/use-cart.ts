@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Product } from "@store/shared/types/product";
 import type { Variant } from "@store/shared/types/variant";
 import type { DiscountType } from "@store/shared/types/order";
@@ -8,6 +8,7 @@ import type { QuickSellItemInput } from "@store/shared/schemas/order";
 import { clampQuantity } from "@store/shared/constants/quantity";
 import { cartLineKey, computeTotals, toCartLine, toQuickSellCartLine } from "@/lib/cart";
 import { MIN_CART_QUANTITY } from "@/constants/pos";
+import { readCart, writeCart } from "@/lib/cart-stash";
 import type { CartLine, CartTotals, DiscountState } from "@/types/cart";
 
 const NO_DISCOUNT: DiscountState = { type: null, value: null };
@@ -37,11 +38,16 @@ function clampLineQuantity(quantity: number, line: CartLine): number {
   return clampQuantity(quantity, MIN_CART_QUANTITY, Math.max(MIN_CART_QUANTITY, line.availableStock));
 }
 
-// Component state on purpose (abandoning a sale costs a refresh); mutations read a ref so rapid scans don't race.
-export function useCart(): Cart {
-  const linesRef = useRef<CartLine[]>([]);
-  const [lines, setLines] = useState<CartLine[]>([]);
-  const [orderDiscount, setOrderDiscountState] = useState<DiscountState>(NO_DISCOUNT);
+// Component state, kept per person while the till is locked (lib/cart-stash); mutations read a ref so rapid scans don't race.
+export function useCart(ownerId?: string): Cart {
+  const [initial] = useState(() => readCart(ownerId));
+  const linesRef = useRef<CartLine[]>(initial?.lines ?? []);
+  const [lines, setLines] = useState<CartLine[]>(initial?.lines ?? []);
+  const [orderDiscount, setOrderDiscountState] = useState<DiscountState>(initial?.orderDiscount ?? NO_DISCOUNT);
+
+  useEffect(() => {
+    writeCart(ownerId, { lines, orderDiscount });
+  }, [ownerId, lines, orderDiscount]);
 
   const commit = useCallback((next: CartLine[]) => {
     linesRef.current = next;

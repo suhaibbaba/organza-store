@@ -20,6 +20,7 @@ import reportsRouter from "@/routes/reports";
 import usersRouter from "@/routes/users";
 import meRouter from "@/routes/me";
 import passwordSetupRouter from "@/routes/passwordSetup";
+import posDevicesRouter from "@/routes/posDevices";
 import settingsRouter from "@/routes/settings";
 import permissionsRouter from "@/routes/permissions";
 import imagesRouter from "@/routes/images";
@@ -108,6 +109,7 @@ app.use("/api/users", usersRouter);
 app.use("/api/me", meRouter);
 // Unauthenticated by design and rate-limited; never confirms that an account exists.
 app.use("/api/password-setup", passwordSetupRouter);
+app.use("/api/pos-devices", posDevicesRouter);
 app.use("/api/settings", settingsRouter);
 app.use("/api/permissions", permissionsRouter);
 app.use("/api/images", imagesRouter);
