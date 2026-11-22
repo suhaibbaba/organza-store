@@ -286,6 +286,26 @@ export function SettingsForm({ setting }: { setting: Setting }) {
             </div>
           </SettingsSection>
 
+          <SettingsSection name="pos-lock" forceOpen={!!errors.posAutoLockMinutes}>
+            <div className="grid grid-cols-1 sm:grid-cols-2">
+              <FormField
+                label="settings.form.posAutoLockMinutes"
+                required
+                htmlFor="posAutoLockMinutes"
+                note="settings.form.posAutoLockMinutesHint"
+                error={errors.posAutoLockMinutes}
+                errorKey={fieldErrorKey(errors.posAutoLockMinutes)}
+              >
+                <NumericInput
+                  id="posAutoLockMinutes"
+                  placeholder="5"
+                  aria-invalid={!!errors.posAutoLockMinutes}
+                  {...register("posAutoLockMinutes")}
+                />
+              </FormField>
+            </div>
+          </SettingsSection>
+
           <SettingsSection name="labels" forceOpen={labelsHaveError}>
             <div className="grid grid-cols-1 sm:grid-cols-2">
               <FormField

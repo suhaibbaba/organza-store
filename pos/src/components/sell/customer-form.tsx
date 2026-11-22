@@ -3,17 +3,17 @@
 import {
   Controller,
   type Control,
+  type FieldError,
   type FieldErrors,
   type UseFormRegister,
   type UseFormSetValue,
 } from "react-hook-form";
 import { useTranslations } from "next-intl";
-import { ChevronDown, MapPin } from "lucide-react";
-import { FormField, Input, Textarea } from "@store/ui";
+import { FormField, Input, Section, Textarea } from "@store/ui";
 import type { CustomerSuggestion } from "@store/shared/types/order";
-import { fieldErrorTestSelector, fieldTestSelector } from "@store/shared/lib/testSelector";
+import { fieldTestSelector } from "@store/shared/lib/testSelector";
 import { SIGNED_DECIMAL_INPUT_PATTERN } from "@/constants/numeric";
-import { useTranslateError } from "@/hooks/use-translate-error";
+import { errorMessageKey } from "@/hooks/use-translate-error";
 import { splitCoordinatePair, type OrderCustomerFormValues } from "@/lib/validation/customer";
 import { CustomerPhoneField, ShopPhoneInput } from "@/components/sell/customer-phone-field";
 
@@ -25,20 +25,14 @@ interface CustomerFormProps {
   onPickSuggestion: (suggestion: CustomerSuggestion) => void;
 }
 
-const FIELD_HEIGHT = "h-12";
-
-function FieldMessage({ field, children }: { field: string; children: string }) {
-  return (
-    <p className="text-meta text-danger-600" role="alert" data-test-selector={fieldErrorTestSelector(field)}>
-      {children}
-    </p>
-  );
+// Schema messages are backend error codes; FormField wants the message key they map to.
+function codeKey(error: FieldError | undefined): string | undefined {
+  return error?.message ? errorMessageKey(error.message) : undefined;
 }
 
 // Snapshotted onto the order (no Customer entity yet); only name, number and address are up front, the rest is folded away.
 export function CustomerForm({ register, control, setValue, errors, onPickSuggestion }: CustomerFormProps) {
   const t = useTranslations("sell.whatsapp.customer");
-  const translateError = useTranslateError();
 
   // A pasted WhatsApp location ("32.313, 35.028") fills both coordinates.
   function handleLatitudeChange(value: string) {
@@ -52,20 +46,30 @@ export function CustomerForm({ register, control, setValue, errors, onPickSugges
 
   return (
     <div className="flex flex-col gap-5">
-      <FormField label="sell.whatsapp.customer.name" htmlFor="customer-name" required>
+      <FormField
+        label="sell.whatsapp.customer.name"
+        htmlFor="customer-name"
+        required
+        error={errors.name}
+        errorKey={codeKey(errors.name)}
+      >
         <Input
           id="customer-name"
           data-testid={fieldTestSelector("customer-name")}
           autoComplete="off"
           hasError={!!errors.name}
           placeholder={t("namePlaceholder")}
-          className={FIELD_HEIGHT}
           {...register("name")}
         />
-        {errors.name && <FieldMessage field="customer-name">{translateError(errors.name.message ?? "")}</FieldMessage>}
       </FormField>
 
-      <FormField label="sell.whatsapp.customer.phone" htmlFor="customer-phone" required>
+      <FormField
+        label="sell.whatsapp.customer.phone"
+        htmlFor="customer-phone"
+        required
+        error={errors.phone}
+        errorKey={codeKey(errors.phone)}
+      >
         <Controller
           control={control}
           name="phone"
@@ -80,9 +84,6 @@ export function CustomerForm({ register, control, setValue, errors, onPickSugges
             />
           )}
         />
-        {errors.phone && (
-          <FieldMessage field="customer-phone">{translateError(errors.phone.message ?? "")}</FieldMessage>
-        )}
       </FormField>
 
       <FormField label="sell.whatsapp.customer.address" htmlFor="customer-address" optional>
@@ -94,82 +95,81 @@ export function CustomerForm({ register, control, setValue, errors, onPickSugges
         />
       </FormField>
 
-      <details className="rounded-panel border border-line">
-        <summary className="flex cursor-pointer list-none items-center justify-between gap-2 px-4 py-3.5 text-value font-medium text-ink marker:hidden [&::-webkit-details-marker]:hidden focus-visible:bg-neutral-200">
-          {t("moreDetails")}
-          <ChevronDown className="size-5 shrink-0 text-ink-muted" aria-hidden="true" />
-        </summary>
-
-        <div className="flex flex-col gap-5 border-t border-line p-4">
-          <FormField label="sell.whatsapp.customer.whatsapp" htmlFor="customer-whatsapp" optional>
-            <Controller
-              control={control}
-              name="whatsapp"
-              render={({ field }) => (
-                <ShopPhoneInput
-                  id="customer-whatsapp"
-                  value={field.value}
-                  onChange={field.onChange}
-                  onBlur={field.onBlur}
-                  invalid={!!errors.whatsapp}
-                />
-              )}
-            />
-            {errors.whatsapp ? (
-              <FieldMessage field="customer-whatsapp">{translateError(errors.whatsapp.message ?? "")}</FieldMessage>
-            ) : (
-              <p className="text-micro text-ink-muted">{t("whatsappHint")}</p>
+      <Section
+        title={t("moreDetails")}
+        collapsible
+        defaultOpen={false}
+        forceOpen={Boolean(errors.whatsapp || errors.latitude || errors.longitude)}
+        className="shadow-none"
+        bodyClassName="flex flex-col gap-5"
+      >
+        <FormField
+          label="sell.whatsapp.customer.whatsapp"
+          htmlFor="customer-whatsapp"
+          optional
+          note="sell.whatsapp.customer.whatsappHint"
+          error={errors.whatsapp}
+          errorKey={codeKey(errors.whatsapp)}
+        >
+          <Controller
+            control={control}
+            name="whatsapp"
+            render={({ field }) => (
+              <ShopPhoneInput
+                id="customer-whatsapp"
+                value={field.value}
+                onChange={field.onChange}
+                onBlur={field.onBlur}
+                invalid={!!errors.whatsapp}
+              />
             )}
-          </FormField>
+          />
+        </FormField>
 
-          <div className="flex flex-col gap-2">
-            <p className="flex items-center gap-1.5 text-label font-medium text-ink">
-              <MapPin className="size-4" aria-hidden="true" />
-              {t("location")}
-            </p>
-            <p className="text-micro text-ink-muted">{t("locationHint")}</p>
-            {/* Plain decimal keypad (coordinates may be negative), LTR so the minus stays in front. */}
-            <Input
-              type="text"
-              inputMode="decimal"
-              pattern={SIGNED_DECIMAL_INPUT_PATTERN}
-              dir="ltr"
-              data-testid="field-latitude"
-              placeholder={t("latitude")}
-              aria-label={t("latitude")}
-              hasError={!!errors.latitude}
-              className={FIELD_HEIGHT}
-              {...register("latitude", { onChange: (event) => handleLatitudeChange(event.target.value) })}
-            />
-            <Input
-              type="text"
-              inputMode="decimal"
-              pattern={SIGNED_DECIMAL_INPUT_PATTERN}
-              dir="ltr"
-              data-testid="field-longitude"
-              placeholder={t("longitude")}
-              aria-label={t("longitude")}
-              hasError={!!errors.longitude}
-              className={FIELD_HEIGHT}
-              {...register("longitude")}
-            />
-            {(errors.latitude || errors.longitude) && (
-              <FieldMessage field="coordinates">
-                {translateError(errors.latitude?.message ?? errors.longitude?.message ?? "")}
-              </FieldMessage>
-            )}
-          </div>
+        <FormField
+          label="sell.whatsapp.customer.location"
+          htmlFor="customer-latitude"
+          optional
+          note="sell.whatsapp.customer.locationHint"
+          error={errors.latitude ?? errors.longitude}
+          errorKey={codeKey(errors.latitude ?? errors.longitude)}
+          data-testid={fieldTestSelector("coordinates")}
+        >
+          {/* Plain decimal keypad (coordinates may be negative), LTR so the minus stays in front. */}
+          <Input
+            id="customer-latitude"
+            type="text"
+            inputMode="decimal"
+            pattern={SIGNED_DECIMAL_INPUT_PATTERN}
+            dir="ltr"
+            data-testid="field-latitude"
+            placeholder={t("latitude")}
+            aria-label={t("latitude")}
+            hasError={!!errors.latitude}
+            {...register("latitude", { onChange: (event) => handleLatitudeChange(event.target.value) })}
+          />
+          <Input
+            type="text"
+            inputMode="decimal"
+            pattern={SIGNED_DECIMAL_INPUT_PATTERN}
+            dir="ltr"
+            data-testid="field-longitude"
+            placeholder={t("longitude")}
+            aria-label={t("longitude")}
+            hasError={!!errors.longitude}
+            {...register("longitude")}
+          />
+        </FormField>
 
-          <FormField label="sell.whatsapp.customer.note" htmlFor="customer-note" optional>
-            <Textarea
-              id="customer-note"
-              data-testid={fieldTestSelector("customer-note")}
-              placeholder={t("notePlaceholder")}
-              {...register("note")}
-            />
-          </FormField>
-        </div>
-      </details>
+        <FormField label="sell.whatsapp.customer.note" htmlFor="customer-note" optional>
+          <Textarea
+            id="customer-note"
+            data-testid={fieldTestSelector("customer-note")}
+            placeholder={t("notePlaceholder")}
+            {...register("note")}
+          />
+        </FormField>
+      </Section>
     </div>
   );
 }

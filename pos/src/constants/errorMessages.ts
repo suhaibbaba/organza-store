@@ -38,6 +38,10 @@ export const ERROR_MESSAGE_KEYS: Record<string, string> = {
   [ERROR_CODES.ORDER_PAYMENT_EXCEEDS_BALANCE]: "errors.orderPaymentExceedsBalance",
   [ERROR_CODES.CUSTOMER_NOT_FOUND]: "errors.customerNotFound",
   [ERROR_CODES.CUSTOMER_PHONE_TAKEN]: "errors.customerPhoneTaken",
+  [ERROR_CODES.VALIDATION_PASSCODE_FORMAT]: "errors.passcodeFormat",
+  [ERROR_CODES.POS_DEVICE_UNKNOWN]: "errors.posDeviceUnknown",
+  [ERROR_CODES.POS_PASSCODE_WRONG]: "errors.posPasscodeWrong",
+  [ERROR_CODES.POS_PASSCODE_LOCKED]: "errors.posPasscodeLocked",
 };
 
 export const FALLBACK_ERROR_MESSAGE_KEY = "errors.internal";

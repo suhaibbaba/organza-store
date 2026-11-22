@@ -43,6 +43,8 @@ export { ConfirmDialog, useConfirm, type ConfirmDialogProps, type ConfirmRequest
 export { Money } from "@ui/components/money";
 export { MoneyInput } from "@ui/components/money-input";
 export { QuantityInput } from "@ui/components/quantity-input";
+export { QuantityStepper, type QuantityStepperProps } from "@ui/components/quantity-stepper";
+export { PasscodeInput, type PasscodeInputProps } from "@ui/components/passcode-input";
 export { PageAction } from "@ui/components/page-action";
 export { PageHeader } from "@ui/components/page-header";
 export { SaveBar, type SaveBarProps } from "@ui/components/save-bar";

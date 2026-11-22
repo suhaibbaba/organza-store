@@ -2,11 +2,10 @@
 
 import { useTranslations } from "next-intl";
 import { TriangleAlert } from "lucide-react";
-import { Badge, Typography } from "@store/ui";
+import { Badge, QuantityStepper, Typography } from "@store/ui";
 import { testSelectorFor } from "@store/shared/lib/testSelector";
 import { LABEL_COPIES_MAX } from "@/constants/labels";
 import { parseCopies } from "@/lib/labels";
-import { QuantityStepper } from "@/components/fields/quantity-stepper";
 import { ProductImage } from "@/components/products/product-image";
 import type { LabelCopiesListProps, LabelCopiesRowProps, LabelLine } from "@/types/label";
 

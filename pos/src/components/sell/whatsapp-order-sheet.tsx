@@ -7,6 +7,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { Send } from "lucide-react";
 import type { CustomerSuggestion } from "@store/shared/types/order";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
+import { useCurrencySymbol } from "@/hooks/use-currency-symbol";
 import { useTranslateError } from "@/hooks/use-translate-error";
 import { suggestionToFormValues } from "@/lib/customer";
 import {
@@ -15,13 +16,12 @@ import {
   toCustomerDraft,
   type OrderCustomerFormValues,
 } from "@/lib/validation/customer";
-import { Alert, Button, Checkbox, Switch } from "@store/ui";
+import { Alert, Button, Checkbox, FormField, Typography } from "@store/ui";
 import { fieldTestSelector, testSelectorFor } from "@store/shared/lib/testSelector";
 import { localize } from "@/lib/i18n-content";
 import type { CartLine } from "@/types/cart";
 import { NumericInput } from "@/components/fields/numeric-input";
 import { BottomSheet } from "@/components/sell/bottom-sheet";
-import { SHEET_ACTION_TALL } from "@/components/sell/sheet-styles";
 import { CustomerForm } from "@/components/sell/customer-form";
 import type { CreditCheckout, OrderCustomerDraft } from "@/types/customer";
 
@@ -33,8 +33,9 @@ interface WhatsappOrderSheetProps {
   isSubmitting: boolean;
   // A backend error code from the failed save, shown inside the sheet that covers the screen.
   errorCode: string | null;
-  // Offered when the cashier holds order.sellOnCredit.
-  canCredit: boolean;
+  // Chosen on the cart before this opens: owed by this customer, or given away.
+  onCredit: boolean;
+  gift: boolean;
   onSubmit: (customer: OrderCustomerDraft, credit?: CreditCheckout) => void;
 }
 
@@ -46,12 +47,12 @@ export function WhatsappOrderSheet({
   total,
   isSubmitting,
   errorCode,
-  canCredit,
+  onCredit,
+  gift,
   onSubmit,
 }: WhatsappOrderSheetProps) {
   const t = useTranslations("sell.whatsapp");
   const tCredit = useTranslations("sell.credit");
-  const [onCredit, setOnCredit] = useState(false);
   const [paidNow, setPaidNow] = useState("");
   const [keptKeys, setKeptKeys] = useState<string[]>([]);
   const locale = useLocale();
@@ -59,6 +60,7 @@ export function WhatsappOrderSheet({
   const tooMuch = onCredit && paid > Number(total);
   const translateError = useTranslateError();
   const formatMoney = useMoneyFormatter();
+  const currency = useCurrencySymbol();
 
   const {
     register,
@@ -86,9 +88,7 @@ export function WhatsappOrderSheet({
     }
     onSubmit(
       toCustomerDraft(values),
-      canCredit && onCredit
-        ? { paidNow, keptKeys: keptKeys.filter((key) => lines.some((line) => line.key === key)) }
-        : undefined,
+      onCredit ? { paidNow, keptKeys: keptKeys.filter((key) => lines.some((line) => line.key === key)) } : undefined,
     );
   }
 
@@ -111,75 +111,75 @@ export function WhatsappOrderSheet({
             errors={errors}
             onPickSuggestion={applySuggestion}
           />
-          {canCredit && (
+          {onCredit && (
             <section
               className="mt-5 flex flex-col gap-3 rounded-panel border border-line p-4"
               data-test-selector="pos-whatsapp-credit"
             >
-              <div className="flex items-start justify-between gap-3">
-                <span className="flex flex-col gap-0.5">
-                  <span className="text-value font-medium text-ink">{t("creditToggle")}</span>
-                  <span className="text-micro text-ink-muted">{t("creditHint")}</span>
-                </span>
-                <Switch
-                  data-testid={fieldTestSelector("pos-whatsapp-on-credit")}
-                  label={t("creditToggle")}
-                  hideLabel
-                  checked={onCredit}
-                  onCheckedChange={setOnCredit}
+              <Typography as="h3" variant="body" weight="medium">
+                {t("creditToggle")}
+              </Typography>
+              <FormField
+                label="sell.credit.paidNow"
+                htmlFor="pos-whatsapp-paid-now"
+                optional
+                note="sell.credit.paidNowHint"
+                error={tooMuch ? { type: "max" } : undefined}
+                errorKey="sell.credit.paidNowTooMuch"
+              >
+                <NumericInput
+                  id="pos-whatsapp-paid-now"
+                  data-testid={fieldTestSelector("pos-whatsapp-paid-now")}
+                  allowDecimal
+                  dir="ltr"
+                  suffix={currency || undefined}
+                  className=" tabular-nums"
+                  placeholder="0"
+                  value={paidNow}
+                  onChange={(event) => setPaidNow(event.target.value)}
                 />
+              </FormField>
+              <div className="flex items-center justify-between gap-3 rounded-panel bg-sunken px-4 py-3">
+                <Typography as="span" variant="body" tone="muted">
+                  {tCredit("remaining")}
+                </Typography>
+                <Typography
+                  as="span"
+                  variant="h2"
+                  weight="bold"
+                  tone="error"
+                  className="tabular-nums"
+                  data-test-selector="pos-whatsapp-credit-remaining"
+                >
+                  {formatMoney(Math.max(0, Number(total) - paid))}
+                </Typography>
               </div>
-              {onCredit && (
-                <>
-                  <label htmlFor="pos-whatsapp-paid-now" className="text-label text-ink">
-                    {tCredit("paidNow")}
-                  </label>
-                  <NumericInput
-                    id="pos-whatsapp-paid-now"
-                    data-testid={fieldTestSelector("pos-whatsapp-paid-now")}
-                    allowDecimal
-                    dir="ltr"
-                    className="h-12 text-lg tabular-nums"
-                    placeholder="0"
-                    value={paidNow}
-                    onChange={(event) => setPaidNow(event.target.value)}
-                  />
-                  <p className={tooMuch ? "text-label text-danger-700" : "text-micro text-ink-muted"}>
-                    {tooMuch ? tCredit("paidNowTooMuch") : tCredit("paidNowHint")}
-                  </p>
-                  <div className="flex items-center justify-between gap-3 rounded-panel bg-sunken px-4 py-3">
-                    <span className="text-value text-ink-muted">{tCredit("remaining")}</span>
-                    <span
-                      className="text-xl font-bold tabular-nums text-danger-700"
-                      data-test-selector="pos-whatsapp-credit-remaining"
-                    >
-                      {formatMoney(Math.max(0, Number(total) - paid))}
-                    </span>
-                  </div>
-                  <span className="mt-2 text-label font-medium text-ink">{tCredit("keptTitle")}</span>
-                  <span className="text-micro text-ink-muted">{tCredit("keptHint")}</span>
-                  <ul className="flex flex-col divide-y divide-line rounded-panel border border-line">
-                    {lines.map((line) => {
-                      const variant = line.variantName ? ` · ${localize(line.variantName, locale)}` : "";
-                      return (
-                        <li key={line.key} className="px-4 py-3">
-                          <Checkbox
-                            id={`pos-whatsapp-kept-${line.key}`}
-                            data-testid={testSelectorFor("pos-whatsapp-kept", line.key)}
-                            label={`${localize(line.name, locale)}${variant}${line.quantity > 1 ? ` ×${line.quantity}` : ""}`}
-                            checked={keptKeys.includes(line.key)}
-                            onCheckedChange={(checked) =>
-                              setKeptKeys((current) =>
-                                checked ? [...current, line.key] : current.filter((key) => key !== line.key),
-                              )
-                            }
-                          />
-                        </li>
-                      );
-                    })}
-                  </ul>
-                </>
-              )}
+              <Typography as="h4" variant="small" weight="medium" className="mt-2">
+                {tCredit("keptTitle")}
+              </Typography>
+              <Typography variant="caption" tone="muted">
+                {tCredit("keptHint")}
+              </Typography>
+              <ul className="flex flex-col divide-y divide-line rounded-panel border border-line">
+                {lines.map((line) => {
+                  const variant = line.variantName ? ` · ${localize(line.variantName, locale)}` : "";
+                  return (
+                    <li key={line.key} className="px-4 py-3">
+                      <Checkbox
+                        id={`pos-whatsapp-kept-${line.key}`}
+                        data-testid={testSelectorFor("pos-whatsapp-kept", line.key)}
+                        label={`${localize(line.name, locale)}${variant}${line.quantity > 1 ? ` ×${line.quantity}` : ""}`}
+                        checked={keptKeys.includes(line.key)}
+                        onCheckedChange={(checked) =>
+                          setKeptKeys((current) =>
+                            checked ? [...current, line.key] : current.filter((key) => key !== line.key),
+                          )
+                        }
+                      />
+                    </li>
+                  );
+                })}
+              </ul>
             </section>
           )}
         </div>
@@ -191,9 +191,13 @@ export function WhatsappOrderSheet({
             </Alert>
           )}
 
-          <div className="flex items-center justify-between text-lg font-bold text-ink">
-            <span>{t("total")}</span>
-            <span className="tabular-nums">{formatMoney(total)}</span>
+          <div className="flex items-center justify-between">
+            <Typography as="span" variant="h3" weight="bold">
+              {t("total")}
+            </Typography>
+            <Typography as="span" variant="h3" weight="bold" className="tabular-nums">
+              {formatMoney(gift ? 0 : total)}
+            </Typography>
           </div>
 
           <Button
@@ -201,7 +205,7 @@ export function WhatsappOrderSheet({
             data-testid="pos-whatsapp-order-submit"
             isLoading={isSubmitting}
             icon={<Send aria-hidden="true" />}
-            className={`${SHEET_ACTION_TALL} w-full`}
+            className={"w-full"}
           >
             {isSubmitting ? t("saving") : t("save")}
           </Button>

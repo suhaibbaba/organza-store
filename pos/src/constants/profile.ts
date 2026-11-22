@@ -9,6 +9,7 @@ export const PROFILE_SECTIONS = {
   details: { icon: "user", tone: "blue" },
   devices: { icon: "monitor", tone: "violet" },
   password: { icon: "lock", tone: "amber" },
+  passcode: { icon: "key", tone: "violet" },
   language: { icon: "language", tone: "green" },
 } as const satisfies Record<string, { icon: IconName; tone: SectionTone }>;
 

@@ -7,11 +7,10 @@ import type { QuickSellItemInput } from "@store/shared/schemas/order";
 import { QUICK_SELL_DETAIL_MAX_LENGTH, QUICK_SELL_NAME_MAX_LENGTH } from "@store/shared/constants/quickSell";
 import { isNonNegativeDecimalString } from "@/lib/validation/numeric";
 import { useCurrencySymbol } from "@/hooks/use-currency-symbol";
-import { Alert, Button, Input } from "@store/ui";
-import { fieldErrorTestSelector, fieldTestSelector } from "@store/shared/lib/testSelector";
+import { Alert, Button, FormField, Input } from "@store/ui";
+import { fieldTestSelector } from "@store/shared/lib/testSelector";
 import { NumericInput } from "@/components/fields/numeric-input";
 import { BottomSheet } from "@/components/sell/bottom-sheet";
-import { SHEET_ACTION } from "@/components/sell/sheet-styles";
 
 interface QuickSellSheetProps {
   open: boolean;
@@ -84,15 +83,12 @@ function QuickSellForm({ onAdd, onCancel }: { onAdd: (input: QuickSellItemInput)
         submit();
       }}
     >
-      <div className="flex flex-col gap-2">
-        <label htmlFor="pos-quick-sell-name" className="text-label text-ink">
-          {t("nameLabel")}
-        </label>
+      <FormField label="sell.quickSell.nameLabel" htmlFor="pos-quick-sell-name" required>
         {/* Autofocus: the sheet was opened to type this, and the keyboard coming up with it is the second this feature saves. */}
         <Input
           id="pos-quick-sell-name"
           data-testid={fieldTestSelector("pos-quick-sell-name")}
-          className="h-12"
+
           value={name}
           onChange={(event) => setName(event.target.value)}
           placeholder={t("namePlaceholder")}
@@ -100,48 +96,45 @@ function QuickSellForm({ onAdd, onCancel }: { onAdd: (input: QuickSellItemInput)
           autoFocus
           autoComplete="off"
         />
-      </div>
+      </FormField>
 
-      <div className="flex flex-col gap-2">
-        <label htmlFor="pos-quick-sell-price" className="text-label text-ink">
-          {currency ? t("priceLabelCurrency", { currency }) : t("priceLabel")}
-        </label>
+      <FormField
+        label="sell.quickSell.priceLabel"
+        htmlFor="pos-quick-sell-price"
+        required
+        error={showPriceError ? { type: "pattern" } : undefined}
+        errorKey="sell.quickSell.priceInvalid"
+      >
         <NumericInput
           id="pos-quick-sell-price"
+          data-testid={fieldTestSelector("pos-quick-sell-price")}
           allowDecimal
+          dir="ltr"
+          suffix={currency || undefined}
           value={price}
           onChange={(event) => setPrice(event.target.value)}
           placeholder={t("pricePlaceholder")}
           aria-invalid={showPriceError}
-          className="h-12"
         />
-        {showPriceError && (
-          <p
-            className="text-meta text-danger-600"
-            role="alert"
-            data-test-selector={fieldErrorTestSelector("pos-quick-sell-price")}
-          >
-            {t("priceInvalid")}
-          </p>
-        )}
-      </div>
+      </FormField>
 
-      <div className="flex flex-col gap-2">
-        <label htmlFor="pos-quick-sell-detail" className="text-label text-ink">
-          {t("detailLabel")}
-        </label>
+      <FormField
+        label="sell.quickSell.detailLabel"
+        htmlFor="pos-quick-sell-detail"
+        optional
+        note="sell.quickSell.detailHint"
+      >
         <Input
           id="pos-quick-sell-detail"
           data-testid={fieldTestSelector("pos-quick-sell-detail")}
-          className="h-12"
+
           value={detail}
           onChange={(event) => setDetail(event.target.value)}
           placeholder={t("detailPlaceholder")}
           maxLength={QUICK_SELL_DETAIL_MAX_LENGTH}
           autoComplete="off"
         />
-        <p className="text-micro text-ink-muted">{t("detailHint")}</p>
-      </div>
+      </FormField>
 
       <Alert tone="neutral" data-testid="alert-default">
         {t("afterwards")}
@@ -153,7 +146,7 @@ function QuickSellForm({ onAdd, onCancel }: { onAdd: (input: QuickSellItemInput)
           type="submit"
           disabled={!canAdd}
           data-testid="pos-quick-sell-add"
-          className={`${SHEET_ACTION} min-w-0 flex-[2]`}
+          className={"min-w-0 flex-[2]"}
           icon={<Zap aria-hidden="true" />}
         >
           {t("add")}
@@ -163,7 +156,7 @@ function QuickSellForm({ onAdd, onCancel }: { onAdd: (input: QuickSellItemInput)
           variant="secondary"
           onClick={onCancel}
           data-testid="pos-quick-sell-cancel"
-          className={`${SHEET_ACTION} min-w-24 flex-1`}
+          className={"min-w-24 flex-1"}
         >
           {t("cancel")}
         </Button>

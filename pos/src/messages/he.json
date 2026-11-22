@@ -26,7 +26,8 @@
       "EMPLOYEE": "עובד"
     },
     "profile": "הפרופיל שלי",
-    "cancel": "ביטול"
+    "cancel": "ביטול",
+    "switchUser": "החלפת משתמש"
   },
   "stock": {
     "out": "אזל מהמלאי",
@@ -62,7 +63,8 @@
       "submitting": "מתחבר…",
       "error": "דוא\"ל או סיסמה שגויים.",
       "tooManyAttempts": "יותר מדי ניסיונות בזמן קצר. המתן דקה ונסה שוב.",
-      "accountDeactivated": "החשבון הזה הושבת. בקש ממנהל להפעיל אותו מחדש."
+      "accountDeactivated": "החשבון הזה הושבת. בקש ממנהל להפעיל אותו מחדש.",
+      "usePasscode": "כניסה עם קוד גישה"
     },
     "forgotPassword": {
       "link": "שכחת סיסמה?",
@@ -172,15 +174,14 @@
       "increase": "הגדלת הכמות — {name}",
       "decrease": "הקטנת הכמות — {name}",
       "remove": "הסרת {name} מהמכירה",
-      "removeConfirmTitle": "להסיר את הפריט הזה מהמכירה?",
-      "removeConfirmYes": "הסרה",
-      "removeConfirmKeep": "השארה",
       "addDiscount": "הנחה",
       "discountFor": "הנחה על {name}",
       "stockCap": "{count, plural, one {זה הפריט האחרון במלאי} two {אלה כל {count, number, plain} הפריטים במלאי} other {אלה כל {count, number, plain} הפריטים במלאי}}",
       "discountApplied": "הנחה {value} · ‎−{amount}",
       "discountValue": "הנחה {value}",
-      "quickSold": "מכירה מהירה"
+      "quickSold": "מכירה מהירה",
+      "removed": "{name} הוסר מהעגלה",
+      "undo": "ביטול"
     },
     "discount": {
       "title": "הוספת הנחה",
@@ -217,10 +218,19 @@
       "editOrderDiscount": "עריכת ההנחה על המכירה",
       "submit": "סיום המכירה",
       "submitting": "שומר…",
-      "whatsappOrder": "הזמנת וואטסאפ",
       "orderDiscountApplied": "הנחה על המכירה ({value})",
-      "giftOrder": "מסירה כמתנה",
-      "creditOrder": "מכירה בהקפה"
+      "channelLabel": "אופן המכירה",
+      "channelStore": "בחנות",
+      "channelWhatsapp": "וואטסאפ",
+      "paymentLabel": "תשלום",
+      "paymentPaid": "שולם",
+      "paymentCredit": "בהקפה",
+      "giftLabel": "מתנה, בלי תשלום",
+      "finishSale": "השלמת המכירה · {total}",
+      "finishCredit": "המשך מכירה בהקפה",
+      "finishWhatsapp": "המשך הזמנת וואטסאפ",
+      "finishGift": "המשך מתנה",
+      "giftTotal": "מתנה — אין מה לשלם"
     },
     "success": {
       "title": "המכירה הושלמה",
@@ -261,8 +271,7 @@
         "note": "הערה",
         "notePlaceholder": "פרטים נוספים על ההזמנה…"
       },
-      "creditToggle": "בהקפה",
-      "creditHint": "הלקוח משלם לחנות, בתשלומים או בבת אחת — לא לחברת המשלוחים."
+      "creditToggle": "בהקפה"
     },
     "gift": {
       "title": "מסירה כמתנה",
@@ -298,10 +307,9 @@
     },
     "screen": {
       "cartTitle": "סל",
-      "clear": "ניקוי",
-      "clearConfirmTitle": "לנקות את כל הסל?",
-      "clearConfirmYes": "ניקוי",
-      "clearConfirmKeep": "השארה",
+      "clear": "הסרת הכול",
+      "clearConfirmTitle": "להסיר את כל הפריטים מהסל?",
+      "clearConfirmYes": "הסרת הכול",
       "categoriesTitle": "קטגוריות",
       "productsTitle": "מוצרים",
       "productCount": "{count, plural, one {מוצר אחד} other {{count, number, plain} מוצרים}}",
@@ -314,7 +322,8 @@
       "searchPlaceholderShort": "חיפוש מוצר",
       "add": "הוספת {name} לסל",
       "addToCart": "הוספה לסל",
-      "cartCount": "{count, plural, zero {הסל ריק} one {פריט אחד בסל} two {שני פריטים בסל} other {{count, number, plain} פריטים בסל}}"
+      "cartCount": "{count, plural, zero {הסל ריק} one {פריט אחד בסל} two {שני פריטים בסל} other {{count, number, plain} פריטים בסל}}",
+      "clearConfirmConsequence": "כל הפריטים וההנחות במכירה הזו יימחקו."
     },
     "credit": {
       "title": "מכירה בהקפה",
@@ -375,7 +384,11 @@
     "orderCreditInvalid": "מכירה בהקפה היא מכירה בחנות עם לקוח שנבחר.",
     "orderPaymentExceedsBalance": "הסכום גבוה מהיתרה.",
     "customerNotFound": "הלקוח לא נמצא.",
-    "customerPhoneTaken": "מספר הטלפון כבר רשום ללקוח אחר."
+    "customerPhoneTaken": "מספר הטלפון כבר רשום ללקוח אחר.",
+    "passcodeFormat": "קוד הגישה הוא שש ספרות.",
+    "posDeviceUnknown": "המכשיר הזה לא מכיר אתכם. היכנסו עם אימייל וסיסמה.",
+    "posPasscodeWrong": "קוד גישה שגוי.",
+    "posPasscodeLocked": "יותר מדי ניסיונות שגויים. היכנסו עם אימייל וסיסמה."
   },
   "pwa": {
     "version": {
@@ -415,6 +428,10 @@
       "language": {
         "title": "שפה",
         "description": "בשימוש במכשיר הזה עכשיו, ובכל פעם שתתחבר/י."
+      },
+      "passcode": {
+        "title": "קוד גישה",
+        "description": "שש ספרות שפותחות את הקופה אחרי שהיא ננעלת."
       }
     },
     "details": {
@@ -461,5 +478,31 @@
       "onlyThisDevice": "את/ה מחובר/ת רק במכשיר הזה."
     },
     "back": "חזרה למכירה"
+  },
+  "passcode": {
+    "enter": "קוד גישה",
+    "enterNote": "{length} ספרות שפותחות את הקופה אחרי שהיא ננעלת.",
+    "confirm": "הקלדה חוזרת",
+    "confirmNote": "הקלידו שוב את אותן ספרות.",
+    "mismatch": "הקודים לא תואמים. התחילו מחדש.",
+    "saved": "קוד הגישה נשמר.",
+    "saving": "שומר",
+    "setupTitle": "בחירת קוד גישה",
+    "setupDescription": "הקופה ננעלת כשלא משתמשים בה. פותחים אותה בקוד שלכם במקום אימייל וסיסמה.",
+    "signOut": "התנתקות",
+    "change": "שינוי קוד גישה",
+    "changeTitle": "שינוי קוד גישה",
+    "changeDescription": "הקלידו את הקוד החדש פעמיים."
+  },
+  "lock": {
+    "title": "מי מוכר עכשיו?",
+    "description": "בחרו את שמכם והקלידו את קוד הגישה.",
+    "passcode": "קוד גישה",
+    "unlocking": "פותח",
+    "changePerson": "מישהו אחר",
+    "usePassword": "כניסה עם אימייל וסיסמה",
+    "lockedOut": "יותר מדי ניסיונות שגויים. היכנסו עם אימייל וסיסמה כדי לפתוח את הקופה.",
+    "loadFailed": "לא ניתן לטעון את האנשים במכשיר הזה.",
+    "retry": "לנסות שוב"
   }
 }

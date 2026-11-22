@@ -11,6 +11,7 @@ import {
   hasUsablePassword,
   normalizeEmail,
   revokeAllSessions,
+  signOutAfterPasswordChange,
   setUserPassword,
   usersWithPassword,
 } from "@/lib/credentials";
@@ -292,6 +293,8 @@ router.patch(
     // Admin-set fallback (rule 17), through lib/credentials.ts like the emailed link.
     if (body.password) {
       await setUserPassword(existing.id, body.password);
+      // Signed out everywhere and off every tablet, like a redeemed reset link.
+      await signOutAfterPasswordChange(existing.id, existing.id === req.user!.id ? req.sessionId : undefined);
     }
 
     // Switching an account off is its own audit action, like PUBLISH/HIDE on a product.

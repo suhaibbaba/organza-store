@@ -1454,7 +1454,9 @@
       "labelGapY": "לאורך",
       "labelGapsHint": "הרווח בין מדבקה אחת לשנייה. הזן 0 אם הן צמודות זו לזו.",
       "labelSheetErrorHint": "חלק מהמספרים של דף A4 אינם תקינים. החזר את סוג המדפסת לדף A4 כדי לתקן אותם.",
-      "saved": "ההגדרות נשמרו."
+      "saved": "ההגדרות נשמרו.",
+      "posAutoLockMinutes": "דקות עד לנעילה",
+      "posAutoLockMinutesHint": "אחרי מספר הדקות הזה בלי מגע יידרש קוד הגישה. 0 מבטל את הנעילה האוטומטית."
     },
     "sections": {
       "store-info": {
@@ -1480,6 +1482,10 @@
       "sale-notifications": {
         "title": "התראות מכירה",
         "description": "כל מכירה שמבצע מנהל או עובד שולחת התראה לטלפונים של מנהלי המערכת. אף אחד לא מקבל התראה על המכירה שלו עצמו."
+      },
+      "pos-lock": {
+        "title": "נעילת הקופה",
+        "description": "מתי הקופה ננעלת כשלא משתמשים בה."
       }
     },
     "branding": {
@@ -2102,7 +2108,11 @@
       "sectionDescription": "כרטיס עם כותרת שאפשר לקפל.",
       "colour": "צבע",
       "colourHint": "יותר מעשר אפשרויות, ולכן ברשימה יש חיפוש.",
-      "colourPlaceholder": "בחרו צבע"
+      "colourPlaceholder": "בחרו צבע",
+      "stepper": "כמות עם כפתורים",
+      "stepperDecrease": "הפחתה",
+      "stepperIncrease": "הוספה",
+      "passcode": "קוד גישה"
     },
     "choices": {
       "channel": "ערוץ מכירה",

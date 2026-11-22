@@ -5,7 +5,18 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useLocale, useTranslations } from "next-intl";
-import { Alert, Button, Input, SaveBar, Section, Select, Switch, TranslatedField, Typography } from "@store/ui";
+import {
+  Alert,
+  Button,
+  Input,
+  QuantityStepper,
+  SaveBar,
+  Section,
+  Select,
+  Switch,
+  TranslatedField,
+  Typography,
+} from "@store/ui";
 import { PRODUCT_FORM_SECTIONS, type ProductFormSectionName } from "@/constants/products";
 import { SUPPORTED_LANGUAGES, DEFAULT_LANGUAGE } from "@store/shared/constants/languages";
 import { NUMBER_VARIANT_TYPE_SLUG } from "@store/shared/constants/variantType";
@@ -55,7 +66,6 @@ import { buildVariantPreview, toOptionSelections, comboKey } from "@/lib/variant
 import { localize } from "@/lib/i18n-content";
 import { formatMoney } from "@/lib/format";
 import { LOCALE_LABELS } from "@/constants/locale";
-import { QuantityStepper } from "@/components/fields/quantity-stepper";
 import { parseQuantity } from "@/lib/validation/numeric";
 import { OptionValueNotesSection } from "@/components/products/option-value-notes-section";
 import { VariantTypePicker } from "@/components/products/variant-type-picker";

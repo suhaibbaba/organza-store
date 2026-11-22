@@ -3,9 +3,7 @@
 import { useTranslations } from "next-intl";
 import { Zap } from "lucide-react";
 import type { ProductSummary } from "@store/shared/types/product";
-import { cn } from "@/lib/utils";
-import { Alert, Button, Spinner } from "@store/ui";
-import { CONTROL_HEIGHT } from "@/components/sell/screen/control-styles";
+import { Alert, Button, Spinner, Typography } from "@store/ui";
 import { ProductCard } from "@/components/sell/screen/product-card";
 import { SectionTitle } from "@/components/sell/screen/section-title";
 
@@ -51,19 +49,23 @@ export function ProductGrid({
       {isError ? (
         <Alert tone="danger">{t("browse.error")}</Alert>
       ) : isLoading ? (
-        <p className="flex items-center justify-center gap-2 py-16 text-label text-ink-muted">
+        <div className="flex items-center justify-center gap-2 py-16">
           <Spinner />
-          {t("browse.loading")}
-        </p>
+          <Typography variant="small" tone="muted">
+            {t("browse.loading")}
+          </Typography>
+        </div>
       ) : products && products.length === 0 ? (
         <div
           className="flex flex-col items-center gap-3 px-4 py-14 text-center"
           data-test-selector="pos-products-empty"
         >
-          <p className="text-label text-ink-muted">{isSearching ? t("browse.emptySearch") : t("browse.empty")}</p>
+          <Typography variant="small" tone="muted">
+            {isSearching ? t("browse.emptySearch") : t("browse.empty")}
+          </Typography>
           <div className="flex flex-wrap justify-center gap-2">
             {isFiltered && (
-              <Button variant="secondary" onClick={onClearFilters} className={cn(CONTROL_HEIGHT, "px-4")}>
+              <Button variant="secondary" onClick={onClearFilters} className={"px-4"}>
                 {t("browse.clearFilters")}
               </Button>
             )}
@@ -71,11 +73,8 @@ export function ProductGrid({
               <Button
                 variant="secondary"
                 onClick={onQuickSell}
-                icon={<Zap className="size-4" aria-hidden="true" />}
-                className={cn(
-                  CONTROL_HEIGHT,
-                  "border-warning-300 bg-warning-50 px-4 text-warning-800 hover:border-warning-500 hover:bg-warning-100 hover:text-warning-800",
-                )}
+                icon={<Zap className="size-4 text-warning-700" aria-hidden="true" />}
+                className={"px-4"}
               >
                 {t("quickSell.open")}
               </Button>
@@ -107,7 +106,7 @@ export function ProductGrid({
               onClick={onShowMore}
               disabled={isFetchingNextPage}
               isLoading={isFetchingNextPage}
-              className={cn(CONTROL_HEIGHT, "mx-auto px-5")}
+              className={"mx-auto px-5"}
             >
               {t("browse.showMore")}
             </Button>

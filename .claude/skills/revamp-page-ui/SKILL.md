@@ -197,7 +197,7 @@ hover:text-primary-700` (or `group` on the link + `group-hover:text-primary-700`
 - **No native `<button>`/`<label>` in a page** (user, 2026-11-21): actions are `Button` (36px), row tools (delete) are
   `IconButton` (bare 24px icon, `tone="danger"`), labels/hints are `FormField` (`label` + `note` keys). Grep the
   page for `<button|<label|<input` before calling it done.
-- Buttons are the standard 36px: no `size="sm"`, no `h-12/h-14` overrides (POS touch targets excepted).
+- Buttons and fields are the standard 36px (`--control-h`) in BOTH apps: no `size="sm"`, no `h-11/h-12/h-14` overrides, no POS-only size constants (user, 2026-11-22: "why buttons larger and fields?").
 - `cn` comes from `@/lib/utils` (re-exports `@store/ui`'s, which knows `text-micro` etc. are sizes).
 - Field labels and field text are weight **400**: `text-label text-ink`, never `font-medium` on a
   `<label>`/`<legend>` (section headings may stay medium).
@@ -451,6 +451,25 @@ hover:text-primary-700` (or `group` on the link + `group-hover:text-primary-700`
   "Manager n/m · Employee n/m"; a search opens every group; "Restore shop defaults" only stages
   `DEFAULT_ROLE_PERMISSIONS`; phones pick one role with segments. Save sends one PATCH per changed role and clears
   each role as it lands.
+- **POS sell (user, 2026-11-22): "everything from our ui, not native"** — sheets included: every `<label>` is a
+  `FormField`, every button `Button`/`IconButton`/`CardButton`, text `Typography`, choices `SegmentedControl`. Only a
+  part with no ui equivalent stays native (shawl point markers placed by percentage). Sweep the sheets a page opens too.
+- **POS checkout = choices + one button (user, 2026-11-22)**: "In the shop | WhatsApp", "Paid | On credit" (with
+  `order.sellOnCredit`), a Gift switch (with `order.createGift`); the button's label says what happens and only a
+  plain paid counter sale saves at once — the rest open their sheet. Choices reset after each sale.
+- **Removing a cart line asks nothing (user, 2026-11-22)**: it goes at once with an Undo toast (`toast.info` + action);
+  emptying the whole cart still confirms in the ui dialog.
+- `QuantityStepper` lives in `@store/ui` (field-style, `onBelowMin`, `size="lg"` for the till); admin and POS share it.
+- The POS signs in per origin (token in localStorage), so the admin's session never carries over: ask the user to sign in.
+- A 375px iframe in an RTL page sits at the RIGHT edge: zoom on `[905,0,1280,683]`, not the left.
+- **POS signed-out screens never scroll on a landscape tablet (user, 2026-11-22: Lenovo Miix 320, 1280×800)**: one
+  card, the brand panel (logo, shop name, sandbox chip, language) beside the form from `desk`, a compact band above it
+  below that (`components/auth/auth-layout.tsx`, shared by login and forgot-password). Measure at 1280×650 (a 800px
+  screen minus browser bar and taskbar) and 1280×560, not only at 1280 wide.
+- Anything read from localStorage that changes what renders goes through `useSyncExternalStore` with a server
+  snapshot (`hasStoredDevice`): a `useState(() => localStorage…)` initialiser is a hydration error on signed-out pages.
+- To see the POS login while signed in, drop only the `store_pos_session_token` cookie (the proxy reads it), keep the
+  localStorage token, and put the cookie back afterwards.
 
 ## Done
 
@@ -471,3 +490,5 @@ hover:text-primary-700` (or `group` on the link + `group-hover:text-primary-700`
 - admin `dashboard` (greeting banner, today cards with icons, 7-day bars, latest orders, week/month brief, drawer, to-do list) — 2026-11-21
 - admin `expenses` (new: period segments, totals, table, by-category, add/edit modal with category tiles, categories drawer; dashboard button opens the form via `?new=1`) — 2026-11-22
 - admin `permissions` (two role columns, staged + SaveBar, group Sections with counts, search, restore defaults) — 2026-11-22
+- pos `sell` (admin-style header, checkout choices + one button, undo removal, per-line discount, every sheet on ui parts, shared `QuantityStepper`) — 2026-11-22
+- pos `login` + `forgot-password` (shared two-column `AuthLayout`, no scroll at 1280×560, errors on `FormField`) — 2026-11-22

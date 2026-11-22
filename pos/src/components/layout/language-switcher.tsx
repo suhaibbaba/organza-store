@@ -1,7 +1,7 @@
 "use client";
 
 import { useLocale, useTranslations } from "next-intl";
-import { Icon, Menu, MenuContent, MenuItem, MenuTrigger } from "@store/ui";
+import { Icon, Menu, MenuContent, MenuItem, MenuTrigger, SegmentedControl } from "@store/ui";
 import { testSelectorFor } from "@store/shared/lib/testSelector";
 import { usePathname, useRouter } from "@/i18n/navigation";
 import { routing, type AppLocale } from "@/i18n/routing";
@@ -12,7 +12,7 @@ import { useRememberLocale } from "@/hooks/use-profile";
 
 interface LanguageSwitcherProps {
   className?: string;
-  // "pill": the top bar's menu; "list": a row of buttons for the signed-out pages.
+  // "pill": the top bar's menu; "list": segments for the signed-out pages.
   variant?: "list" | "pill";
 }
 
@@ -60,26 +60,13 @@ export function LanguageSwitcher({ className, variant = "list" }: LanguageSwitch
   }
 
   return (
-    <div className={cn("flex items-center gap-1", className)} data-test-selector="pos-language-switcher">
-      <Icon name="language" className="size-4 shrink-0 text-ink-muted" />
-      <span className="sr-only">{t("language")}</span>
-      {routing.locales.map((loc) => (
-        <button
-          data-test-selector={testSelectorFor("pos-language-option", loc)}
-          key={loc}
-          type="button"
-          onClick={() => handleChange(loc)}
-          aria-current={loc === locale}
-          className={cn(
-            "min-h-11 cursor-pointer rounded-control px-3 text-label font-medium transition-colors",
-            loc === locale
-              ? "bg-primary-100 text-primary-700 focus-visible:bg-primary-300 focus-visible:text-primary-900"
-              : "text-ink-muted hover:bg-inset focus-visible:bg-neutral-200 focus-visible:text-ink",
-          )}
-        >
-          {LOCALE_LABELS[loc]}
-        </button>
-      ))}
-    </div>
+    <SegmentedControl<AppLocale>
+      label={t("language")}
+      value={locale}
+      onChange={handleChange}
+      options={routing.locales.map((loc) => ({ value: loc, label: LOCALE_LABELS[loc] }))}
+      data-testid="pos-language-option"
+      className={className}
+    />
   );
 }

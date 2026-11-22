@@ -3,7 +3,7 @@
 import { useMemo, useState, type FormEvent } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Check } from "lucide-react";
-import { Alert, Button } from "@store/ui";
+import { Alert, Button, CardButton, FormField, Typography } from "@store/ui";
 import type { Product } from "@store/shared/types/product";
 import type { Variant } from "@store/shared/types/variant";
 import { testSelectorFor } from "@store/shared/lib/testSelector";
@@ -16,7 +16,6 @@ import { StockBadge } from "@/components/sell/stock-badge";
 import { VariantNotes } from "@/components/sell/variant-notes";
 import { ProductThumb } from "@/components/sell/product-thumb";
 import { NumberedPhoto } from "@/components/sell/numbered-photo";
-import { CONTROL_HEIGHT } from "@/components/sell/screen/control-styles";
 import { VARIANT_PICKER_PHOTO_SIZES, VARIANT_TILE_THUMB_SIZES } from "@/constants/images";
 import { primaryImage } from "@/lib/primary-image";
 import { cn } from "@/lib/utils";
@@ -171,21 +170,20 @@ function VariantPicker({ product, isNumbered, onPick, onClose }: VariantPickerPr
 
         {isNumbered && (
           <form onSubmit={handleNumberSubmit} className="flex flex-col gap-2">
-            <label htmlFor="pos-number-entry" className="text-label text-ink">
-              {t("numberLabel")}
-            </label>
-            <NumericInput
-              id="pos-number-entry"
-              data-test-selector="pos-number-entry"
-              value={numberQuery}
-              onChange={(event) => {
-                setNumberQuery(event.target.value);
-                setNotFound(false);
-              }}
-              placeholder={t("numberPlaceholder")}
-              enterKeyHint="done"
-              className="h-12 text-lg"
-            />
+            <FormField label="sell.picker.numberLabel" htmlFor="pos-number-entry">
+              <NumericInput
+                id="pos-number-entry"
+                data-testid="pos-number-entry"
+                value={numberQuery}
+                onChange={(event) => {
+                  setNumberQuery(event.target.value);
+                  setNotFound(false);
+                }}
+                placeholder={t("numberPlaceholder")}
+                enterKeyHint="done"
+                className=""
+              />
+            </FormField>
           </form>
         )}
 
@@ -212,21 +210,17 @@ function VariantPicker({ product, isNumbered, onPick, onClose }: VariantPickerPr
 
             return (
               <li key={variant.id}>
-                <button
-                  type="button"
+                <CardButton
                   disabled={soldOut}
-                  aria-pressed={isChosen}
+                  selected={isChosen}
                   onClick={() => toggle(variant)}
-                  data-test-selector={testSelectorFor("pos-variant-option", variant.id)}
+                  data-testid={testSelectorFor("pos-variant-option", variant.id)}
                   className={cn(
-                    "relative flex w-full cursor-pointer flex-col items-start justify-center gap-1 rounded-panel border p-3 text-start transition-colors",
-                    "min-h-16 focus-darken",
-                    "disabled:cursor-not-allowed disabled:border-dashed disabled:bg-inset/40 disabled:opacity-70",
+                    "relative min-h-16 flex-col items-start justify-center gap-1 p-3 focus-darken",
+                    "disabled:border-dashed disabled:bg-inset/40 disabled:opacity-70",
                     isNumbered && "items-center text-center",
-                    // A chosen tile must be unmistakable at arm's length: fill, border, weight and a tick together.
-                    isChosen
-                      ? "border-selected-line bg-selected font-semibold text-ink ring-2 ring-primary-600"
-                      : "border-line bg-surface not-disabled:hover:bg-row-hover",
+                    // A chosen tile must be unmistakable at arm's length: fill, border, ring and a tick together.
+                    isChosen && "ring-2 ring-primary-600",
                   )}
                 >
                   {isChosen && (
@@ -246,25 +240,26 @@ function VariantPicker({ product, isNumbered, onPick, onClose }: VariantPickerPr
                       className={cn("size-14 rounded-photo bg-sunken", soldOut && "opacity-60")}
                     />
                   )}
-                  <span
-                    className={cn(
-                      "font-medium",
-                      isNumbered ? "text-xl text-ink" : "text-base text-ink",
-                      soldOut && "line-through decoration-1",
-                    )}
+                  <Typography
+                    as="span"
+                    variant={isNumbered ? "h2" : "body"}
+                    weight={isChosen ? "semibold" : "medium"}
+                    className={cn(soldOut && "line-through decoration-1")}
                   >
                     {name}
-                  </span>
+                  </Typography>
                   <VariantNotes variant={variant} className={cn(isNumbered && "text-center")} />
                   {/* The price stays on a sold-out tile: the cashier is often asked the price of a piece that just sold. */}
-                  <span className="text-label text-ink-muted">{formatMoney(variant.resolvedPrice)}</span>
+                  <Typography as="span" variant="small" tone="muted">
+                    {formatMoney(variant.resolvedPrice)}
+                  </Typography>
                   <StockBadge
                     stock={variant.stock}
                     trackLowStock={product.trackLowStock}
                     showCount={!isNumbered}
                     size={isNumbered ? "sm" : "md"}
                   />
-                </button>
+                </CardButton>
               </li>
             );
           })}
@@ -272,9 +267,9 @@ function VariantPicker({ product, isNumbered, onPick, onClose }: VariantPickerPr
       </div>
 
       <div className="flex flex-col gap-2 border-t border-line bg-surface px-5 pb-5 pt-3">
-        <p aria-live="polite" className="min-h-5 text-label font-medium text-ink-muted">
+        <Typography aria-live="polite" variant="small" weight="medium" tone="muted" className="min-h-5">
           {chosen.length > 0 ? t("selectedCount", { count: chosen.length }) : ""}
-        </p>
+        </Typography>
 
         <div className="flex items-stretch gap-3 tab:justify-end">
           <Button
@@ -282,10 +277,7 @@ function VariantPicker({ product, isNumbered, onPick, onClose }: VariantPickerPr
             onClick={addChosen}
             disabled={chosen.length === 0}
             data-testid="pos-variant-picker-add"
-            className={cn(
-              CONTROL_HEIGHT,
-              "hit-area min-h-0 min-w-0 flex-1 rounded-control py-0 text-sm tab:min-w-48 tab:flex-none",
-            )}
+            className={cn("hit-area min-h-0 min-w-0 flex-1 rounded-control py-0 text-sm tab:min-w-48 tab:flex-none")}
           >
             {chosen.length === 0 && t("add")}
             {chosen.length === 1 && t("addNamed", { name: localize(chosen[0].name, locale) })}
@@ -297,7 +289,7 @@ function VariantPicker({ product, isNumbered, onPick, onClose }: VariantPickerPr
               type="button"
               variant="secondary"
               onClick={onClose}
-              className={cn(CONTROL_HEIGHT, "hit-area min-h-0 min-w-28 shrink-0 rounded-control py-0 text-sm")}
+              className={"hit-area min-h-0 min-w-28 shrink-0 rounded-control py-0 text-sm"}
             >
               {t("done")}
             </Button>

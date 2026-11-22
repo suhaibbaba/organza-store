@@ -26,7 +26,8 @@
       "EMPLOYEE": "Employee"
     },
     "profile": "My profile",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "switchUser": "Switch user"
   },
   "stock": {
     "out": "Out of stock",
@@ -62,7 +63,8 @@
       "submitting": "Logging in…",
       "error": "Wrong email or password.",
       "tooManyAttempts": "Too many attempts in a short time. Wait a minute and try again.",
-      "accountDeactivated": "This account has been switched off. Ask an admin to turn it back on."
+      "accountDeactivated": "This account has been switched off. Ask an admin to turn it back on.",
+      "usePasscode": "Use a passcode instead"
     },
     "forgotPassword": {
       "link": "Forgot your password?",
@@ -172,15 +174,14 @@
       "increase": "Increase quantity — {name}",
       "decrease": "Decrease quantity — {name}",
       "remove": "Remove {name} from the sale",
-      "removeConfirmTitle": "Remove this item from the sale?",
-      "removeConfirmYes": "Remove",
-      "removeConfirmKeep": "Keep",
       "addDiscount": "Discount",
       "discountFor": "Discount on {name}",
       "stockCap": "{count, plural, one {That's the last one in stock} other {That's all {count, number, plain} in stock}}",
       "discountApplied": "{value} discount · −{amount}",
       "discountValue": "{value} discount",
-      "quickSold": "Quick sell"
+      "quickSold": "Quick sell",
+      "removed": "{name} removed from the cart",
+      "undo": "Undo"
     },
     "discount": {
       "title": "Add a discount",
@@ -217,10 +218,19 @@
       "editOrderDiscount": "Edit sale discount",
       "submit": "Complete sale",
       "submitting": "Saving…",
-      "whatsappOrder": "WhatsApp order",
       "orderDiscountApplied": "Sale discount ({value})",
-      "giftOrder": "Give as gift",
-      "creditOrder": "Sell on credit"
+      "channelLabel": "How it is sold",
+      "channelStore": "In the shop",
+      "channelWhatsapp": "WhatsApp",
+      "paymentLabel": "Payment",
+      "paymentPaid": "Paid",
+      "paymentCredit": "On credit",
+      "giftLabel": "Gift, nothing paid",
+      "finishSale": "Complete sale · {total}",
+      "finishCredit": "Continue on credit",
+      "finishWhatsapp": "Continue WhatsApp order",
+      "finishGift": "Continue gift",
+      "giftTotal": "Gift — nothing to pay"
     },
     "success": {
       "title": "Sale completed",
@@ -261,8 +271,7 @@
         "note": "Note",
         "notePlaceholder": "Anything else about this order…"
       },
-      "creditToggle": "On credit",
-      "creditHint": "The customer pays the shop, in parts or at once — not the delivery company."
+      "creditToggle": "On credit"
     },
     "gift": {
       "title": "Give as a gift",
@@ -298,10 +307,9 @@
     },
     "screen": {
       "cartTitle": "Cart",
-      "clear": "Clear",
-      "clearConfirmTitle": "Clear the whole cart?",
-      "clearConfirmYes": "Clear",
-      "clearConfirmKeep": "Keep",
+      "clear": "Remove all",
+      "clearConfirmTitle": "Remove every piece from the cart?",
+      "clearConfirmYes": "Remove all",
       "categoriesTitle": "Categories",
       "productsTitle": "Products",
       "productCount": "{count, plural, one {{count, number, plain} product} other {{count, number, plain} products}}",
@@ -314,7 +322,8 @@
       "searchPlaceholderShort": "Search products",
       "add": "Add {name} to the cart",
       "addToCart": "Add to cart",
-      "cartCount": "{count, plural, zero {The cart is empty} one {{count, number, plain} piece in the cart} other {{count, number, plain} pieces in the cart}}"
+      "cartCount": "{count, plural, zero {The cart is empty} one {{count, number, plain} piece in the cart} other {{count, number, plain} pieces in the cart}}",
+      "clearConfirmConsequence": "Every piece and discount on this sale is removed."
     },
     "credit": {
       "title": "Sell on credit",
@@ -375,7 +384,11 @@
     "orderCreditInvalid": "A credit sale must be a counter sale with a customer chosen.",
     "orderPaymentExceedsBalance": "That is more than is owed.",
     "customerNotFound": "This customer was not found.",
-    "customerPhoneTaken": "Another customer already has this phone number."
+    "customerPhoneTaken": "Another customer already has this phone number.",
+    "passcodeFormat": "The passcode is six digits.",
+    "posDeviceUnknown": "This device does not know you. Sign in with your email and password.",
+    "posPasscodeWrong": "Wrong passcode.",
+    "posPasscodeLocked": "Too many wrong tries. Sign in with your email and password."
   },
   "pwa": {
     "version": {
@@ -415,6 +428,10 @@
       "language": {
         "title": "Language",
         "description": "Used on this device now, and whenever you sign in."
+      },
+      "passcode": {
+        "title": "Passcode",
+        "description": "Six digits that reopen the till after it locks."
       }
     },
     "details": {
@@ -461,5 +478,31 @@
       "onlyThisDevice": "You are signed in on this device only."
     },
     "back": "Back to selling"
+  },
+  "passcode": {
+    "enter": "Passcode",
+    "enterNote": "{length} digits that reopen the till after it locks.",
+    "confirm": "Type it again",
+    "confirmNote": "Type the same digits once more.",
+    "mismatch": "The two did not match. Start again.",
+    "saved": "Passcode saved.",
+    "saving": "Saving",
+    "setupTitle": "Choose a passcode",
+    "setupDescription": "The till locks when it is left unused. You reopen it with your passcode instead of your email and password.",
+    "signOut": "Sign out",
+    "change": "Change passcode",
+    "changeTitle": "Change passcode",
+    "changeDescription": "Type the new passcode twice."
+  },
+  "lock": {
+    "title": "Who is selling?",
+    "description": "Tap your name, then type your passcode.",
+    "passcode": "Passcode",
+    "unlocking": "Unlocking",
+    "changePerson": "Someone else",
+    "usePassword": "Sign in with email and password",
+    "lockedOut": "Too many wrong tries. Sign in with your email and password to reopen the till.",
+    "loadFailed": "Could not load the people on this device.",
+    "retry": "Try again"
   }
 }

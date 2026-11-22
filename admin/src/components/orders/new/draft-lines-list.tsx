@@ -2,13 +2,12 @@
 
 import { useLocale, useTranslations } from "next-intl";
 import { Tag, Trash2 } from "lucide-react";
-import { Button, IconButton, Typography } from "@store/ui";
+import { Button, IconButton, QuantityStepper, Typography } from "@store/ui";
 import { localize } from "@/lib/i18n-content";
 import { lineDiscountCents, lineTotal } from "@/lib/order-draft";
 import { fromCents, toCents } from "@/lib/money";
 import { GIFT_LINE_TOTAL, MIN_ORDER_QUANTITY } from "@/constants/orders";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
-import { QuantityStepper } from "@/components/fields/quantity-stepper";
 import { ProductImage } from "@/components/products/product-image";
 import type { OrderDraft } from "@/hooks/use-order-draft";
 import { testSelectorFor } from "@store/shared/lib/testSelector";

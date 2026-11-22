@@ -65,6 +65,8 @@ export async function setUserPassword(userId: string, password: string): Promise
 export async function revokeAllSessions(userId: string): Promise<void> {
   const ctx = await auth.$context;
   await ctx.internalAdapter.deleteUserSessions(userId);
+  // A passcode would reopen what was just closed, so every tablet forgets this person too.
+  await prisma.posDeviceMember.deleteMany({ where: { userId } });
 }
 
 // Whether the account has a password at all: no password is the normal state of an invited, not-yet-set-up person.
@@ -97,6 +99,12 @@ export async function verifyUserPassword(userId: string, password: string): Prom
     return false;
   }
   return ctx.password.verify({ hash, password });
+}
+
+// A new password set for somebody closes every door the old one opened; the caller's own session survives a self-edit.
+export async function signOutAfterPasswordChange(userId: string, callerSessionId: string | undefined): Promise<void> {
+  await revokeOtherSessions(userId, callerSessionId);
+  await prisma.posDeviceMember.deleteMany({ where: { userId } });
 }
 
 export async function revokeOtherSessions(userId: string, keepSessionId: string | undefined): Promise<void> {

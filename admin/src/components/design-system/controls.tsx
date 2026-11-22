@@ -22,6 +22,8 @@ import {
   PasswordInput,
   PhoneInput,
   QuantityInput,
+  QuantityStepper,
+  PasscodeInput,
   RadioGroup,
   SearchField,
   SegmentedControl,
@@ -60,6 +62,8 @@ export function Controls() {
   const [price, setPrice] = useState("180");
   const [translated, setTranslated] = useState<Record<string, string>>({});
   const [quantity, setQuantity] = useState("1");
+  const [stepped, setStepped] = useState(2);
+  const [passcode, setPasscode] = useState("");
   const [category, setCategory] = useState("");
   const [colour, setColour] = useState("");
   const [phone, setPhone] = useState<string | null>(null);
@@ -206,6 +210,20 @@ export function Controls() {
           </FormField>
           <FormField label="designSystem.fields.quantity" htmlFor="ds-quantity">
             <QuantityInput id="ds-quantity" value={quantity} onChange={(event) => setQuantity(event.target.value)} />
+          </FormField>
+          <FormField label="designSystem.fields.stepper" htmlFor="ds-stepper">
+            <QuantityStepper
+              name="ds"
+              value={stepped}
+              max={10}
+              onChange={setStepped}
+              decreaseLabel={t("fields.stepperDecrease")}
+              increaseLabel={t("fields.stepperIncrease")}
+              valueLabel={t("fields.stepper")}
+            />
+          </FormField>
+          <FormField label="designSystem.fields.passcode" htmlFor="ds-passcode">
+            <PasscodeInput id="ds-passcode" value={passcode} onChange={setPasscode} label={t("fields.passcode")} />
           </FormField>
           <FormField label="designSystem.fields.phone" htmlFor="ds-phone">
             <PhoneInput id="ds-phone" value={phone} onChange={setPhone} />

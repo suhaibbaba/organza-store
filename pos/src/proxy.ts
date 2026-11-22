@@ -3,7 +3,7 @@ import { hasLocale } from "next-intl";
 import createMiddleware from "next-intl/middleware";
 import { routing, type AppLocale } from "@/i18n/routing";
 import { LOCALE_COOKIE_NAME } from "@/constants/locale";
-import { SESSION_TOKEN_KEY } from "@/constants/storage";
+import { POS_DEVICE_COOKIE, SESSION_TOKEN_KEY } from "@/constants/storage";
 import { FORGOT_PASSWORD_PATH } from "@/constants/auth";
 import { OFFLINE_PATH } from "@/constants/pwa";
 
@@ -56,7 +56,10 @@ export function proxy(request: NextRequest): NextResponse {
   const hasToken = Boolean(request.cookies.get(SESSION_TOKEN_KEY)?.value);
   const isPublicPath = PUBLIC_PATHS.includes(rest);
 
-  if (!isPublicPath && !hasToken) {
+  // A tablet somebody has signed in on shows its lock screen (AuthGuard) instead of the email sign-in.
+  const hasDevice = Boolean(request.cookies.get(POS_DEVICE_COOKIE)?.value);
+
+  if (!isPublicPath && !hasToken && !hasDevice) {
     const loginUrl = new URL(`/${locale}${LOGIN_PATH}`, request.url);
     return NextResponse.redirect(loginUrl);
   }

@@ -171,6 +171,13 @@ export const ERROR_CODES = {
 
   // Password links: ONE code for unknown/expired/used/revoked, so a stale link never reveals if the account exists.
   PASSWORD_TOKEN_INVALID: "error.passwordToken.invalid",
+
+  // POS passcode (spec.md "POS passcode and lock"): one code for an unknown device, person or membership.
+  VALIDATION_PASSCODE_FORMAT: "error.validation.passcode_format",
+  POS_DEVICE_UNKNOWN: "error.posDevice.unknown",
+  POS_PASSCODE_WRONG: "error.posDevice.passcode_wrong",
+  // Too many wrong tries, or no passcode set: only the password signs this person in here.
+  POS_PASSCODE_LOCKED: "error.posDevice.passcode_locked",
 } as const;
 
 export type ErrorCode = (typeof ERROR_CODES)[keyof typeof ERROR_CODES];

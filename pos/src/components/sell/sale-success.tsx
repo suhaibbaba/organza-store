@@ -7,10 +7,9 @@ import { GIFT_ORDER_TYPE } from "@store/shared/constants/order";
 import type { Order } from "@store/shared/types/order";
 import { SELECTABLE } from "@store/shared/lib/nativeGestures";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
-import { Button } from "@store/ui";
+import { Button, Typography } from "@store/ui";
 import { POS_ORDER_CHANNEL, SALE_SUCCESS_RESET_MS } from "@/constants/pos";
 import { cn } from "@/lib/utils";
-import { SHEET_ACTION } from "@/components/sell/sheet-styles";
 
 interface SaleSuccessProps {
   order: Order;
@@ -46,44 +45,51 @@ export function SaleSuccess({ order, onNewSale }: SaleSuccessProps) {
       )}
 
       <div className="flex flex-col gap-1">
-        <p className="text-xl font-semibold text-ink">
+        <Typography variant="h2" weight="semibold">
           {isGift ? t("giftTitle") : isCounterSale ? t("title") : t("whatsappTitle")}
-        </p>
-        <p className="text-sm text-ink-muted" {...SELECTABLE}>
+        </Typography>
+        <Typography variant="small" tone="muted" {...SELECTABLE}>
           {isCounterSale
             ? t("orderNumber", { number: order.orderNumber })
             : t("whatsappOrderNumber", { number: order.orderNumber })}
-        </p>
+        </Typography>
         {/* A credit sale names who owes it, and how much is still to come. */}
-        {order.onCredit && order.customerName && (
-          <p className="text-sm text-ink-muted">{t("customer", { name: order.customerName })}</p>
-        )}
-        {!isGift && !isCounterSale && order.customerName && (
-          <p className="text-sm text-ink-muted">{t("customer", { name: order.customerName })}</p>
+        {order.customerName && (order.onCredit || (!isGift && !isCounterSale)) && (
+          <Typography variant="small" tone="muted">
+            {t("customer", { name: order.customerName })}
+          </Typography>
         )}
       </div>
 
       {isGift ? (
         // What a gift's headline figure is: pieces gone, not money in.
-        <p className="text-3xl font-bold tabular-nums text-tint-3-ink">{t("giftCount", { count: giftedCount })}</p>
+        <Typography variant="display" tone="inherit" className="tabular-nums text-tint-3-ink">
+          {t("giftCount", { count: giftedCount })}
+        </Typography>
       ) : (
-        <p className="text-3xl font-bold tabular-nums text-ink">{formatMoney(order.total)}</p>
+        <Typography variant="display" className="tabular-nums">
+          {formatMoney(order.total)}
+        </Typography>
       )}
 
       {order.onCredit && Number(order.balance) > 0 && (
-        <p className="text-lg font-semibold tabular-nums text-danger-700" data-test-selector="pos-sale-credit-balance">
+        <Typography
+          variant="h3"
+          weight="semibold"
+          tone="error"
+          className="tabular-nums"
+          data-test-selector="pos-sale-credit-balance"
+        >
           {t("creditBalance", { amount: formatMoney(order.balance) })}
-        </p>
+        </Typography>
       )}
-      {isGift && <p className="max-w-xs text-sm text-ink-muted">{t("giftNextStep")}</p>}
-      {!isGift && !isCounterSale && <p className="max-w-xs text-sm text-ink-muted">{t("whatsappNextStep")}</p>}
+      {(isGift || !isCounterSale) && (
+        <Typography variant="small" tone="muted" className="max-w-xs">
+          {isGift ? t("giftNextStep") : t("whatsappNextStep")}
+        </Typography>
+      )}
 
-      <Button
-        type="button"
-        onClick={onNewSale}
-        data-testid="pos-new-sale"
-        className={`${SHEET_ACTION} w-full max-w-xs`}
-      >
+      <Button type="button" onClick={onNewSale} data-testid="pos-new-sale" className={"w-full max-w-xs"}>
         {t("newSale")}
       </Button>
     </div>

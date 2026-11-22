@@ -40,9 +40,11 @@ import { CreditOrderSheet } from "@/components/sell/credit-order-sheet";
 import { QuickSellSheet } from "@/components/sell/quick-sell-sheet";
 import { ScannerSheet } from "@/components/sell/scanner/scanner-sheet";
 import { VariantPickerSheet } from "@/components/sell/variant-picker-sheet";
-import { Alert } from "@store/ui";
+import { Alert, useToast } from "@store/ui";
 import type { CreditCheckout, OrderCustomerDraft } from "@/types/customer";
 import type { CartLine } from "@/types/cart";
+import type { CheckoutChoice } from "@/types/sell";
+import { DEFAULT_CHECKOUT_CHOICE } from "@/constants/pos";
 import { lineGrossCents } from "@/lib/cart";
 import { fromCents } from "@/lib/money";
 import { DESK_MEDIA_QUERY } from "@/constants/layout";
@@ -55,9 +57,10 @@ export function SellScreen() {
   const queryClient = useQueryClient();
   const { user } = useSession();
 
-  const cart = useCart();
+  const cart = useCart(user?.id);
   const checkout = useCheckout();
   const toasts = useToasts();
+  const toast = useToast();
   const scanFlash = useScanFlash();
   const scanFeedback = useScanFeedback();
 
@@ -80,6 +83,7 @@ export function SellScreen() {
   const [creditOpen, setCreditOpen] = useState(false);
   const [creditErrorCode, setCreditErrorCode] = useState<string | null>(null);
   const [completedOrder, setCompletedOrder] = useState<Order | null>(null);
+  const [choice, setChoice] = useState<CheckoutChoice>(DEFAULT_CHECKOUT_CHOICE);
   // Only focused by a deliberate keypress, never on mount (a phone would open its keyboard over the cart).
   const searchInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -96,6 +100,8 @@ export function SellScreen() {
   const canCredit = can(user, "order.sellOnCredit");
   // Every role as shipped, switchable per role (spec.md "Quick sell"); the backend refuses it either way.
   const canQuickSell = can(user, "product.quickSell");
+  const isGift = canGift && choice.gift;
+  const onCredit = canCredit && !isGift && choice.payment === "credit";
 
   // Beep, buzz, toast and lit line all land at once: each covers for the others when the shop is loud or the phone face down.
   const addToCart = useCallback(
@@ -193,7 +199,7 @@ export function SellScreen() {
       if (cart.isEmpty || checkout.isPending) {
         return;
       }
-      submitOrder();
+      finish();
     },
     onClear: () => {
       setQuery("");
@@ -248,6 +254,7 @@ export function SellScreen() {
           setCreditOpen(false);
           setCartOpen(false);
           cart.clear();
+          setChoice(DEFAULT_CHECKOUT_CHOICE);
           setQuery("");
         },
         onError: (error) => {
@@ -268,6 +275,37 @@ export function SellScreen() {
         },
       },
     );
+  }
+
+  // The one cart button: a plain counter sale is saved at once, anything else first opens the sheet that asks for its details.
+  function finish() {
+    if (choice.channel === "WHATSAPP") {
+      setWhatsappOpen(true);
+      return;
+    }
+    if (isGift) {
+      setGiftOpen(true);
+      return;
+    }
+    if (onCredit) {
+      setCreditOpen(true);
+      return;
+    }
+    submitOrder();
+  }
+
+  // Gone at once, with Undo in the toast: a question on every removal slows the till more than a rare mistake does.
+  function removeLine(key: string) {
+    const index = cart.lines.findIndex((line) => line.key === key);
+    if (index < 0) {
+      return;
+    }
+    const line = cart.lines[index];
+    cart.removeLine(key);
+    toast.info("sell.cart.removed", { name: lineName(line, locale) }, undefined, {
+      labelKey: "sell.cart.undo",
+      onClick: () => cart.restoreLine(line, index),
+    });
   }
 
   function startNewSale() {
@@ -313,11 +351,14 @@ export function SellScreen() {
     cart,
     scanFlash,
     isSubmitting: checkout.isPending,
-    onGift: canGift ? () => setGiftOpen(true) : undefined,
-    onCredit: canCredit ? () => setCreditOpen(true) : undefined,
+    choice,
+    onChoiceChange: setChoice,
+    canCredit,
+    canGift,
     onDiscount: () => setOrderDiscountOpen(true),
-    onCheckout: () => submitOrder(),
-    onWhatsappOrder: () => setWhatsappOpen(true),
+    onLineDiscount: setDiscountLineKey,
+    onRemoveLine: removeLine,
+    onFinish: finish,
   };
 
   return (
@@ -395,9 +436,10 @@ export function SellScreen() {
         total={cart.totals.total}
         isSubmitting={checkout.isPending}
         errorCode={whatsappErrorCode}
-        canCredit={canCredit}
+        onCredit={onCredit}
+        gift={isGift}
         lines={cart.lines}
-        onSubmit={(customer, credit) => submitOrder({ customer, credit })}
+        onSubmit={(customer, credit) => submitOrder({ customer, credit, gift: isGift ? { note: "" } : undefined })}
       />
 
       {canCredit && (

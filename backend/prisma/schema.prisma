@@ -41,6 +41,8 @@ model User {
   accounts            Account[]
   sessions            Session[]
   passwordSetupTokens PasswordSetupToken[]
+  posPasscode         PosPasscode?
+  posDevices          PosDeviceMember[]
 
   createdProducts   Product[]          @relation("ProductCreatedBy")
   createdOrders     Order[]            @relation("OrderCreatedBy")
@@ -1032,6 +1034,9 @@ model Setting {
   saleNotificationMode      SaleNotificationMode @default(EVERY_SALE)
   saleNotificationMinAmount Decimal              @default(0) @db.Decimal(10, 2)
 
+  // POS: minutes without a tap before the till locks behind the passcode; 0 = never.
+  posAutoLockMinutes Int @default(5)
+
   updatedAt DateTime @updatedAt
 }
 
@@ -1065,4 +1070,45 @@ model BackupRun {
   // Answers "when did it last work".
   @@index([status, finishedAt])
   @@index([finishedAt])
+}
+
+// ─── POS quick unlock (spec.md "POS passcode and lock") ─────────────────────
+
+// A tablet that somebody has signed in on with email + password; its secret lives only on the tablet.
+model PosDevice {
+  id         String   @id @default(cuid())
+  // SHA-256 of the secret, like password links: a database leak cannot impersonate a till.
+  secretHash String   @unique
+  userAgent  String?
+  createdAt  DateTime @default(now())
+  lastUsedAt DateTime @default(now())
+
+  members PosDeviceMember[]
+}
+
+// A person who signed in on this device with their password, so their passcode works here.
+model PosDeviceMember {
+  id String @id @default(cuid())
+
+  deviceId String
+  device   PosDevice @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  userId   String
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  failedAttempts Int       @default(0)
+  // Too many wrong passcodes: only the password reopens this person on this device.
+  lockedAt       DateTime?
+  lastUnlockedAt DateTime?
+  createdAt      DateTime  @default(now())
+
+  @@unique([deviceId, userId])
+  @@index([userId])
+}
+
+// One passcode per person, for every device they are a member of; hashed like a password.
+model PosPasscode {
+  userId    String   @id
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  hash      String
+  updatedAt DateTime @updatedAt
 }

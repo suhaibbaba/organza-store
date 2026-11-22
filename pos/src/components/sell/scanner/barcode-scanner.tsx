@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
-import { Alert, Spinner } from "@store/ui";
+import { Alert, Spinner, Typography } from "@store/ui";
 import {
   SCANNER_BOX_HEIGHT_RATIO,
   SCANNER_BOX_WIDTH_RATIO,
@@ -152,12 +152,16 @@ export function BarcodeScanner({ onDetected, pulse, onStarted }: BarcodeScannerP
       </div>
 
       {isStarting ? (
-        <p className="flex items-center gap-2 text-label text-ink-muted">
+        <div className="flex items-center gap-2">
           <Spinner />
-          {t("starting")}
-        </p>
+          <Typography as="span" variant="small" tone="muted">
+            {t("starting")}
+          </Typography>
+        </div>
       ) : (
-        <p className="text-center text-label text-ink-muted">{t("hint")}</p>
+        <Typography variant="small" tone="muted" className="text-center">
+          {t("hint")}
+        </Typography>
       )}
     </div>
   );

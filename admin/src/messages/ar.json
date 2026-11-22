@@ -1454,7 +1454,9 @@
       "labelGapY": "بالطول",
       "labelGapsHint": "الفراغ بين ملصق والذي يليه. اكتب 0 إذا كانت الملصقات متلاصقة.",
       "labelSheetErrorHint": "بعض أرقام ورقة A4 غير صحيحة. أعِد نوع الطابعة إلى ورقة A4 لتصحيحها.",
-      "saved": "تم حفظ الإعدادات."
+      "saved": "تم حفظ الإعدادات.",
+      "posAutoLockMinutes": "دقائق قبل القفل",
+      "posAutoLockMinutesHint": "بعد هذه الدقائق دون لمس يُطلب رمز الدخول. 0 يوقف القفل التلقائي."
     },
     "sections": {
       "store-info": {
@@ -1480,6 +1482,10 @@
       "sale-notifications": {
         "title": "إشعارات المبيعات",
         "description": "عند كل عملية بيع ينفّذها مدير أو موظف، يصل إشعار إلى هواتف المسؤولين. لا يصل إشعار لصاحب العملية نفسه."
+      },
+      "pos-lock": {
+        "title": "قفل نقطة البيع",
+        "description": "متى تُقفل نقطة البيع إذا تُركت دون استخدام."
       }
     },
     "branding": {
@@ -2102,7 +2108,11 @@
       "sectionDescription": "بطاقة بعنوان يمكن طيّها.",
       "colour": "اللون",
       "colourHint": "أكثر من عشرة خيارات، لذا في القائمة مربع بحث.",
-      "colourPlaceholder": "اختر لونًا"
+      "colourPlaceholder": "اختر لونًا",
+      "stepper": "كمية بأزرار",
+      "stepperDecrease": "إنقاص",
+      "stepperIncrease": "زيادة",
+      "passcode": "رمز الدخول"
     },
     "choices": {
       "channel": "قناة البيع",

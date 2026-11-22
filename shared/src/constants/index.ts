@@ -32,3 +32,4 @@ export * from "./validation";
 export * from "./variantType";
 export * from "./customer";
 export * from "./supplier";
+export * from "./posLock";

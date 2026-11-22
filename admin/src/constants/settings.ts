@@ -5,6 +5,7 @@ export const SETTINGS_SECTIONS = {
   "store-info": { icon: "store", tone: "blue" },
   regional: { icon: "globe", tone: "violet" },
   inventory: { icon: "package", tone: "amber" },
+  "pos-lock": { icon: "lock", tone: "violet" },
   labels: { icon: "barcode", tone: "green" },
   branding: { icon: "image", tone: "rose" },
   "sale-notifications": { icon: "bell", tone: "amber" },

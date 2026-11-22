@@ -19,3 +19,4 @@ export * from "./variant";
 export * from "./search";
 export * from "./customer";
 export * from "./supplier";
+export * from "./posDevice";

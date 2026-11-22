@@ -19,7 +19,7 @@ interface CheckoutInput {
   orderDiscount: DiscountState;
   // Present = filed as a WhatsApp order for delivery; absent = a counter sale handed over there and then.
   customer?: OrderCustomerDraft;
-  // Present = the cart is GIVEN AWAY at the counter (spec.md "Gifts"); the string is the optional "who for / why" note.
+  // Present = the cart is GIVEN AWAY (spec.md "Gifts"); the string is the optional "who for / why" note.
   gift?: { note: string };
   // Present = sold on credit to a named customer (spec.md "Customers and selling on credit").
   credit?: CreditCheckout;
@@ -35,7 +35,8 @@ export function useCheckout() {
       const note = gift?.note.trim() ?? "";
 
       const input: CreateOrderInput = {
-        channel: isGift ? GIFT_ORDER_CHANNEL : customer ? WHATSAPP_ORDER_CHANNEL : POS_ORDER_CHANNEL,
+        // A gift may be sent over WhatsApp too; only its type says nothing is owed.
+        channel: customer ? WHATSAPP_ORDER_CHANNEL : isGift ? GIFT_ORDER_CHANNEL : POS_ORDER_CHANNEL,
         // Asking for GIFT is only asking: order.createGift is enforced on the backend (CLAUDE.md rule 5).
         type: isGift ? GIFT_ORDER_TYPE : SALE_ORDER_TYPE,
         paymentMethod: POS_PAYMENT_METHOD,

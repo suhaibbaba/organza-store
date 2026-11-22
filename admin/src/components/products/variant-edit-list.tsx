@@ -3,12 +3,11 @@
 import { useMemo, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Pencil, TriangleAlert } from "lucide-react";
-import { Button, Checkbox } from "@store/ui";
+import { Button, Checkbox, QuantityStepper } from "@store/ui";
 import type { Variant, VariantType } from "@store/shared/types/variant";
 import { testSelectorFor } from "@store/shared/lib/testSelector";
 import { localize } from "@/lib/i18n-content";
 import { formatMoney } from "@/lib/format";
-import { QuantityStepper } from "@/components/fields/quantity-stepper";
 import { isNonNegativeDecimalString, parseQuantity } from "@/lib/validation/numeric";
 import { variantBarcodeIncomplete } from "@/lib/validation/variant-edit";
 import { VariantEditDrawer } from "@/components/products/variant-edit-drawer";

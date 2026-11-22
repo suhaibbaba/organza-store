@@ -20,3 +20,4 @@ export * from "./version";
 export * from "./profile";
 export * from "./customer";
 export * from "./supplier";
+export * from "./posDevice";

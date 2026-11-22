@@ -26,7 +26,8 @@
       "EMPLOYEE": "موظف"
     },
     "profile": "ملفي الشخصي",
-    "cancel": "إلغاء"
+    "cancel": "إلغاء",
+    "switchUser": "تبديل المستخدم"
   },
   "stock": {
     "out": "نافد",
@@ -62,7 +63,8 @@
       "submitting": "جارٍ تسجيل الدخول…",
       "error": "البريد الإلكتروني أو كلمة المرور غير صحيحة.",
       "tooManyAttempts": "محاولات كثيرة خلال وقت قصير. انتظر دقيقة ثم حاول مرة أخرى.",
-      "accountDeactivated": "هذا الحساب مُعطَّل. اطلب من المدير إعادة تفعيله."
+      "accountDeactivated": "هذا الحساب مُعطَّل. اطلب من المدير إعادة تفعيله.",
+      "usePasscode": "الدخول برمز الدخول"
     },
     "forgotPassword": {
       "link": "نسيت كلمة المرور؟",
@@ -172,15 +174,14 @@
       "increase": "زيادة الكمية — {name}",
       "decrease": "إنقاص الكمية — {name}",
       "remove": "حذف {name} من السلة",
-      "removeConfirmTitle": "حذف هذه القطعة من البيع؟",
-      "removeConfirmYes": "حذف",
-      "removeConfirmKeep": "إبقاء",
       "addDiscount": "خصم",
       "discountFor": "خصم على {name}",
       "stockCap": "{count, plural, zero {لا يوجد مخزون} one {هذه آخر قطعة متوفرة} two {هذه آخر قطعتين متوفرتين} other {هذا كل المتوفر: {count, number, plain} قطعة}}",
       "discountApplied": "خصم {value} · ‎−{amount}",
       "discountValue": "خصم {value}",
-      "quickSold": "بيع سريع"
+      "quickSold": "بيع سريع",
+      "removed": "أُزيلت {name} من السلة",
+      "undo": "تراجع"
     },
     "discount": {
       "title": "إضافة خصم",
@@ -217,10 +218,19 @@
       "editOrderDiscount": "تعديل خصم الفاتورة",
       "submit": "إتمام البيع",
       "submitting": "جارٍ الحفظ…",
-      "whatsappOrder": "طلب واتساب",
       "orderDiscountApplied": "خصم الفاتورة ({value})",
-      "giftOrder": "إعطاء كهدية",
-      "creditOrder": "بيع بالدين"
+      "channelLabel": "طريقة البيع",
+      "channelStore": "في المحل",
+      "channelWhatsapp": "واتساب",
+      "paymentLabel": "الدفع",
+      "paymentPaid": "مدفوع",
+      "paymentCredit": "بالدين",
+      "giftLabel": "هدية بلا مقابل",
+      "finishSale": "إتمام البيع · {total}",
+      "finishCredit": "متابعة البيع بالدين",
+      "finishWhatsapp": "متابعة طلب واتساب",
+      "finishGift": "متابعة الهدية",
+      "giftTotal": "هدية — لا يُدفع شيء"
     },
     "success": {
       "title": "تم البيع بنجاح",
@@ -261,8 +271,7 @@
         "note": "ملاحظة",
         "notePlaceholder": "أي تفاصيل إضافية عن الطلب…"
       },
-      "creditToggle": "بالدين",
-      "creditHint": "يدفع الزبون للمحل على دفعات أو مرة واحدة، لا لشركة التوصيل."
+      "creditToggle": "بالدين"
     },
     "gift": {
       "title": "إعطاء كهدية",
@@ -298,10 +307,9 @@
     },
     "screen": {
       "cartTitle": "السلة",
-      "clear": "إفراغ",
-      "clearConfirmTitle": "إفراغ السلة كلها؟",
-      "clearConfirmYes": "إفراغ",
-      "clearConfirmKeep": "إبقاء",
+      "clear": "حذف الكل",
+      "clearConfirmTitle": "حذف كل القطع من السلة؟",
+      "clearConfirmYes": "حذف الكل",
       "categoriesTitle": "التصنيفات",
       "productsTitle": "المنتجات",
       "productCount": "{count, number, plain} منتج",
@@ -314,7 +322,8 @@
       "searchPlaceholderShort": "ابحث عن منتج",
       "add": "إضافة {name} إلى السلة",
       "addToCart": "أضف للسلة",
-      "cartCount": "{count, plural, zero {السلة فارغة} one {قطعة واحدة في السلة} two {قطعتان في السلة} few {{count, number, plain} قطع في السلة} many {{count, number, plain} قطعة في السلة} other {{count, number, plain} قطعة في السلة}}"
+      "cartCount": "{count, plural, zero {السلة فارغة} one {قطعة واحدة في السلة} two {قطعتان في السلة} few {{count, number, plain} قطع في السلة} many {{count, number, plain} قطعة في السلة} other {{count, number, plain} قطعة في السلة}}",
+      "clearConfirmConsequence": "تُحذف كل القطع والخصومات من هذا البيع."
     },
     "credit": {
       "title": "بيع بالدين",
@@ -375,7 +384,11 @@
     "orderCreditInvalid": "البيع بالدين يكون من المحل فقط، مع اختيار الزبون.",
     "orderPaymentExceedsBalance": "المبلغ أكبر من الباقي.",
     "customerNotFound": "لم يُعثر على هذا الزبون.",
-    "customerPhoneTaken": "رقم الهاتف هذا مسجّل لزبون آخر."
+    "customerPhoneTaken": "رقم الهاتف هذا مسجّل لزبون آخر.",
+    "passcodeFormat": "رمز الدخول ستة أرقام.",
+    "posDeviceUnknown": "هذا الجهاز لا يعرفك. ادخل بالبريد وكلمة المرور.",
+    "posPasscodeWrong": "رمز الدخول غير صحيح.",
+    "posPasscodeLocked": "محاولات خاطئة كثيرة. ادخل بالبريد وكلمة المرور."
   },
   "pwa": {
     "version": {
@@ -415,6 +428,10 @@
       "language": {
         "title": "اللغة",
         "description": "تُستخدم على هذا الجهاز الآن، وكلما سجّلت الدخول."
+      },
+      "passcode": {
+        "title": "رمز الدخول",
+        "description": "ستة أرقام تفتح بها نقطة البيع بعد قفلها."
       }
     },
     "details": {
@@ -461,5 +478,31 @@
       "onlyThisDevice": "أنت مسجّل الدخول على هذا الجهاز فقط."
     },
     "back": "العودة إلى البيع"
+  },
+  "passcode": {
+    "enter": "رمز الدخول",
+    "enterNote": "{length} أرقام تفتح بها نقطة البيع بعد قفلها.",
+    "confirm": "أعد كتابة الرمز",
+    "confirmNote": "اكتب الأرقام نفسها مرة أخرى.",
+    "mismatch": "الرمزان غير متطابقين. ابدأ من جديد.",
+    "saved": "حُفظ رمز الدخول.",
+    "saving": "جارٍ الحفظ",
+    "setupTitle": "اختر رمز دخول",
+    "setupDescription": "تُقفل نقطة البيع إذا تُركت دون استخدام. تفتحها برمزك بدل البريد وكلمة المرور.",
+    "signOut": "تسجيل الخروج",
+    "change": "تغيير رمز الدخول",
+    "changeTitle": "تغيير رمز الدخول",
+    "changeDescription": "اكتب الرمز الجديد مرتين."
+  },
+  "lock": {
+    "title": "من يبيع الآن؟",
+    "description": "اختر اسمك ثم اكتب رمز الدخول.",
+    "passcode": "رمز الدخول",
+    "unlocking": "جارٍ الفتح",
+    "changePerson": "شخص آخر",
+    "usePassword": "الدخول بالبريد وكلمة المرور",
+    "lockedOut": "محاولات خاطئة كثيرة. ادخل بالبريد وكلمة المرور لفتح نقطة البيع.",
+    "loadFailed": "تعذّر تحميل الأشخاص على هذا الجهاز.",
+    "retry": "إعادة المحاولة"
   }
 }

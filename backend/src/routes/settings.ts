@@ -54,6 +54,7 @@ function serializeSetting(setting: Setting) {
     saleNotificationsEnabled: setting.saleNotificationsEnabled,
     saleNotificationMode: setting.saleNotificationMode,
     saleNotificationMinAmount: formatMoney(setting.saleNotificationMinAmount),
+    posAutoLockMinutes: setting.posAutoLockMinutes,
 
     updatedAt: setting.updatedAt,
   };
@@ -105,6 +106,7 @@ router.patch(
         saleNotificationsEnabled: body.saleNotificationsEnabled,
         saleNotificationMode: body.saleNotificationMode,
         saleNotificationMinAmount: body.saleNotificationMinAmount,
+        posAutoLockMinutes: body.posAutoLockMinutes,
       },
     });
 

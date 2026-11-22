@@ -2,10 +2,9 @@
 
 import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { Checkbox } from "@store/ui";
+import { Checkbox, QuantityStepper } from "@store/ui";
 import { X } from "lucide-react";
 import { DEFAULT_STOCK } from "@store/shared/constants/quantity";
-import { QuantityStepper } from "@/components/fields/quantity-stepper";
 import { VariantBulkBar } from "@/components/products/variant-bulk-bar";
 import { localize } from "@/lib/i18n-content";
 import type { VariantPreviewRow } from "@/lib/variant-combo";
