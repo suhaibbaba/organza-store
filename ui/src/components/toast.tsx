@@ -2,34 +2,27 @@ import * as ToastPrimitive from "@radix-ui/react-toast";
 import { createContext, useCallback, useContext, useMemo, useState, type JSX, type ReactNode } from "react";
 import { useTranslation } from "@ui/lib/i18n";
 import { Icon } from "@ui/components/icon";
-import { NOTICE_TONES, type NoticeTone } from "@ui/components/tone";
 import { cn } from "@ui/lib/cn";
-import { documentDirection } from "@ui/lib/direction";
 
 type ToastTone = "success" | "warning" | "error" | "info" | "neutral";
 
-const TONES: Record<ToastTone, NoticeTone> = {
-  error: NOTICE_TONES.danger,
-  warning: NOTICE_TONES.warning,
-  success: NOTICE_TONES.success,
-  info: NOTICE_TONES.info,
-  neutral: NOTICE_TONES.neutral,
+// Solid and dark so white text passes WCAG AA on each in the shipped theme (title ≥ 6:1, second line ≥ 5:1).
+const SURFACES: Record<ToastTone, string> = {
+  success: "bg-success-800",
+  error: "bg-danger-700",
+  warning: "bg-warning-800",
+  info: "bg-primary-800",
+  neutral: "bg-neutral-900",
 };
 
-// Errors stay until dismissed; Infinity is Radix's "never auto-close".
-const TOAST_DURATION_MS: Record<ToastTone, number> = {
-  success: 5000,
-  info: 5000,
-  neutral: 5000,
-  warning: 7000,
-  error: Infinity,
-};
+// More than this and the oldest makes way; a stack taller than three hides the screen it reports on.
+const MAX_VISIBLE_TOASTS = 3;
 
-const TOAST_WITH_ACTION_MS = 6000;
+// Every toast, whatever its tone, shows for three seconds; hovering or focusing it pauses the clock (Radix).
+const TOAST_DURATION_MS = 3000;
 
-function toastDuration(tone: ToastTone, hasAction: boolean): number {
-  return hasAction ? Math.max(TOAST_DURATION_MS[tone], TOAST_WITH_ACTION_MS) : TOAST_DURATION_MS[tone];
-}
+// Longer than the toast-out animation (180ms), so a closed toast leaves the list only after it has finished sliding down.
+const TOAST_EXIT_MS = 250;
 
 export interface ToastAction {
   readonly labelKey: string;
@@ -43,6 +36,7 @@ interface ToastMessage {
   readonly descriptionKey?: string;
   readonly tone: ToastTone;
   readonly action?: ToastAction;
+  readonly open: boolean;
 }
 
 type Values = Record<string, string | number>;
@@ -75,11 +69,12 @@ export function ToastProvider({ children }: { children: ReactNode }): JSX.Elemen
   const push = useCallback(
     (messageKey: string, tone: ToastTone, values?: Values, descriptionKey?: string, action?: ToastAction) => {
       setMessages((current) => [
-        ...current,
+        ...current.slice(-(MAX_VISIBLE_TOASTS - 1)),
         {
           id: Date.now() + current.length,
           messageKey,
           tone,
+          open: true,
           ...(values && { values }),
           ...(descriptionKey !== undefined && { descriptionKey }),
           ...(action && { action }),
@@ -100,64 +95,45 @@ export function ToastProvider({ children }: { children: ReactNode }): JSX.Elemen
     [push],
   );
 
+  // Closed first so Radix plays the exit animation, removed once it has run.
   const dismiss = useCallback((id: number) => {
-    setMessages((current) => current.filter((message) => message.id !== id));
+    setMessages((current) => current.map((message) => (message.id === id ? { ...message, open: false } : message)));
+    setTimeout(() => setMessages((current) => current.filter((message) => message.id !== id)), TOAST_EXIT_MS);
   }, []);
 
   return (
     <ToastContext.Provider value={api}>
-      <ToastPrimitive.Provider
-        swipeDirection={documentDirection() === "rtl" ? "left" : "right"}
-        duration={TOAST_DURATION_MS.success}
-      >
+      <ToastPrimitive.Provider swipeDirection="down" duration={TOAST_DURATION_MS}>
         {children}
 
         {messages.map((message) => {
-          const tone = TONES[message.tone];
-          const compact = message.descriptionKey === undefined && !message.action;
-
           return (
             <ToastPrimitive.Root
               key={message.id}
               data-part="toast"
               data-testid="toast"
               data-tone={message.tone}
-              open
+              open={message.open}
               type={message.tone === "error" ? "foreground" : "background"}
-              duration={toastDuration(message.tone, message.action !== undefined)}
               onOpenChange={(open) => {
                 if (!open) {
                   dismiss(message.id);
                 }
               }}
               className={cn(
-                "flex rounded-toast shadow-toast",
-                compact ? "items-center gap-3 p-4" : "items-start gap-5 p-4 sm:px-6 sm:py-5",
-                tone.surface,
-                "data-[state=open]:animate-[toast-in_200ms_ease-out]",
-                "data-[state=closed]:animate-[toast-out_150ms_ease-in]",
-                "data-[swipe=move]:translate-x-(--radix-toast-swipe-move-x)",
+                "flex w-fit max-w-full items-start gap-2 rounded-full py-2.5 ps-5 pe-2.5 text-white shadow-toast",
+                SURFACES[message.tone],
+                "data-[state=open]:animate-[toast-in_220ms_ease-out]",
+                "data-[state=closed]:animate-[toast-out_180ms_ease-in]",
+                "data-[swipe=move]:translate-y-(--radix-toast-swipe-move-y)",
+                "data-[swipe=end]:animate-[toast-out_180ms_ease-in]",
               )}
             >
-              <span
-                data-part="toast-chip"
-                data-testid="toast-chip"
-                aria-hidden="true"
-                className={cn("flex shrink-0 items-center", !compact && "h-6 sm:h-[27px]", tone.icon)}
-              >
-                <Icon name={tone.glyph} className={cn("[stroke-width:2]", compact ? "size-5" : "size-6")} />
-              </span>
-
-              <div className="min-w-0 flex-1">
+              <div className="min-w-0 flex-1 py-1">
                 <ToastPrimitive.Title
                   data-part="toast-title"
                   data-testid="toast-title"
-                  className={cn(
-                    compact
-                      ? "text-sm leading-[1.5] font-medium"
-                      : "text-base leading-[1.5] font-semibold sm:text-lg sm:leading-[1.5]",
-                    tone.title,
-                  )}
+                  className="text-sm leading-5 font-medium"
                 >
                   {t(message.messageKey, message.values ?? {})}
                 </ToastPrimitive.Title>
@@ -166,52 +142,51 @@ export function ToastProvider({ children }: { children: ReactNode }): JSX.Elemen
                   <ToastPrimitive.Description
                     data-part="toast-message"
                     data-testid="toast-message"
-                    className={cn("mt-1.5 text-sm leading-[1.5] font-normal sm:text-[15px]", tone.text)}
+                    className="text-[13px] leading-5 text-white/90"
                   >
                     {t(message.descriptionKey, message.values ?? {})}
                   </ToastPrimitive.Description>
                 )}
-
-                {message.action && (
-                  <ToastPrimitive.Action
-                    data-part="toast-action"
-                    data-testid="toast-action"
-                    altText={t(message.action.labelKey)}
-                    onClick={message.action.onClick}
-                    className={cn(
-                      "mt-1.5 inline-flex min-h-(--control-h-sm) cursor-pointer items-center rounded-chip",
-                      "text-sm font-semibold underline underline-offset-4 sm:text-[15px]",
-                      "transition-colors hover:bg-white/10 focus-visible:bg-black/30",
-                      tone.title,
-                    )}
-                  >
-                    {t(message.action.labelKey)}
-                  </ToastPrimitive.Action>
-                )}
               </div>
+
+              {message.action && (
+                <ToastPrimitive.Action
+                  data-part="toast-action"
+                  data-testid="toast-action"
+                  altText={t(message.action.labelKey)}
+                  onClick={message.action.onClick}
+                  className={cn(
+                    "flex h-7 shrink-0 cursor-pointer items-center rounded-full bg-black/25 px-3 text-xs font-semibold",
+                    "whitespace-nowrap transition-colors hover:bg-black/35 focus-visible:bg-black/45",
+                  )}
+                >
+                  {t(message.action.labelKey)}
+                </ToastPrimitive.Action>
+              )}
 
               <ToastPrimitive.Close
                 data-part="toast-close"
                 data-testid="toast-close"
                 aria-label={t("ui.common.close")}
                 className={cn(
-                  "-me-1 inline-grid size-(--control-h-sm) shrink-0 cursor-pointer place-items-center",
-                  !compact && "sm:mt-px",
-                  "rounded-control transition-colors duration-[250ms] ease-in-out",
-                  "hover:bg-white/10 focus-visible:bg-black/30",
-                  tone.text,
+                  "grid size-7 shrink-0 cursor-pointer place-items-center rounded-full text-white/85",
+                  "transition-colors hover:bg-black/25 hover:text-white focus-visible:bg-black/35",
                 )}
               >
-                <Icon name="x" className="size-5 [stroke-width:2]" />
+                <Icon name="x" className="size-4 [stroke-width:2]" />
               </ToastPrimitive.Close>
             </ToastPrimitive.Root>
           );
         })}
 
+        {/* Bottom centre, above the home bar and any bottom bar an app declares through --toast-offset. */}
         <ToastPrimitive.Viewport
           data-part="toast-viewport"
           data-testid="toast-viewport"
-          className="fixed top-4 end-4 z-[60] flex w-[calc(100vw-2rem)] max-w-[480px] flex-col gap-3 outline-none"
+          className={cn(
+            "fixed inset-x-0 bottom-[calc(var(--safe-bottom,0px)+var(--toast-offset,0px)+1rem)] z-[60] mx-auto",
+            "flex w-[calc(100vw-2rem)] max-w-[30rem] flex-col items-center gap-2 outline-none",
+          )}
         />
       </ToastPrimitive.Provider>
     </ToastContext.Provider>
