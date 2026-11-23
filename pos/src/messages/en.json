@@ -401,7 +401,7 @@
       "creditLabel": "{count, plural, =0 {Nothing chosen yet} one {Value of {count, number, plain} piece} other {Value of {count, number, plain} pieces}}",
       "continue": "Continue — add the new pieces",
       "pieceTimes": "{name} ×{count, number, plain}",
-      "bannerTitle": "Exchange from order #{number} · {count, plural, one {{count, number, plain} piece back} other {{count, number, plain} pieces back}}",
+      "bannerTitle": "Exchange from {order} · {count, plural, one {{count, number, plain} piece back} other {{count, number, plain} pieces back}}",
       "editReturns": "Change the returned pieces",
       "cancel": "Cancel the exchange",
       "finish": "Complete exchange",

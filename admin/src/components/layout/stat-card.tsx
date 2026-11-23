@@ -60,7 +60,7 @@ export function StatCard({
   return (
     <div
       className={cn(
-        "@container flex min-w-0 flex-col gap-2 rounded-panel border border-line bg-surface p-4",
+        "flex min-w-0 flex-col gap-2 rounded-panel border border-line bg-surface p-4",
         href &&
           "relative cursor-pointer transition-[border-color,box-shadow] hover:border-line-strong hover:shadow-card has-[a:focus-visible]:border-primary-300",
         className,
@@ -68,8 +68,8 @@ export function StatCard({
       style={style}
       data-test-selector={testSelectorFor("stat-card", name)}
     >
-      {/* A narrow card (two to a row on a phone) puts the label under the icon; a wide one keeps one line. */}
-      <div className="flex min-w-0 flex-col items-start gap-2 @[13rem]:flex-row @[13rem]:items-center @[13rem]:gap-2.5">
+      {/* Wraps rather than a container query (iOS 15 has none): a narrow card puts the label under the icon. */}
+      <div className="flex min-w-0 flex-wrap items-center gap-x-2.5 gap-y-2">
         {Icon && (
           <span
             className={cn("grid size-8 shrink-0 place-items-center rounded-control", ICON_TILE_CLASS[tone])}
@@ -79,10 +79,7 @@ export function StatCard({
           </span>
         )}
         <ExplainedLabel
-          className={cn(
-            "w-full min-w-0 @[13rem]:w-auto @[13rem]:flex-1",
-            href && "[&_button]:relative [&_button]:z-10",
-          )}
+          className={cn("min-w-[8rem] flex-1", href && "[&_button]:relative [&_button]:z-10")}
           rowClassName="min-h-8"
           labelClassName="text-meta font-medium"
           label={label}

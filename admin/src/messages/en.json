@@ -2889,7 +2889,7 @@
     "title": "Sales log",
     "subtitle": "Everything sold in the period, and every piece that left the shop.",
     "openOrders": "This period's orders",
-    "returns": "{count, plural, one {1 piece came back} other {# pieces came back}} worth {amount}; already taken off the figures above.",
+    "returns": "{count, plural, one {1 piece came back} other {{count, number, plain} pieces came back}} worth {amount}; already taken off the figures above.",
     "empty": {
       "title": "Nothing sold in this period",
       "hint": "Pick another period to see what sold in it."
