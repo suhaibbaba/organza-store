@@ -401,7 +401,7 @@
       "creditLabel": "{count, plural, =0 {עוד לא נבחר דבר} one {שווי פריט אחד} other {שווי {count, number, plain} פריטים}}",
       "continue": "המשך — הוספת הפריטים החדשים",
       "pieceTimes": "{name} ×{count, number, plain}",
-      "bannerTitle": "החלפה מהזמנה #{number} · {count, plural, one {פריט אחד הוחזר} other {{count, number, plain} פריטים הוחזרו}}",
+      "bannerTitle": "החלפה מ{order} · {count, plural, one {פריט אחד הוחזר} other {{count, number, plain} פריטים הוחזרו}}",
       "editReturns": "שינוי הפריטים שהוחזרו",
       "cancel": "ביטול ההחלפה",
       "finish": "השלמת ההחלפה",

@@ -401,7 +401,7 @@
       "creditLabel": "{count, plural, =0 {لسا ما اخترت شي} one {قيمة قطعة واحدة} other {قيمة {count, number, plain} قطع}}",
       "continue": "متابعة — ضيف القطع الجديدة",
       "pieceTimes": "{name} ×{count, number, plain}",
-      "bannerTitle": "استبدال من طلب #{number} · {count, plural, one {قطعة مرجعة} other {{count, number, plain} قطع مرجعة}}",
+      "bannerTitle": "استبدال من {order} · {count, plural, one {قطعة مرجعة} other {{count, number, plain} قطع مرجعة}}",
       "editReturns": "غيّر القطع المرجعة",
       "cancel": "إلغاء الاستبدال",
       "finish": "إتمام الاستبدال",

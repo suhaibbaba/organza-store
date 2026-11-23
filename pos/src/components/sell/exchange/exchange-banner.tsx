@@ -31,7 +31,10 @@ export function ExchangeBanner({ exchange }: ExchangeBannerProps) {
       <Repeat className="mt-0.5 size-5 shrink-0 text-primary-700" aria-hidden="true" />
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
         <Typography variant="small" weight="semibold">
-          {t("bannerTitle", { number: exchange.orderNumber, count: returnedPieceCount(exchange.returns) })}
+          {t("bannerTitle", {
+            order: t("orderNumber", { number: exchange.orderNumber }),
+            count: returnedPieceCount(exchange.returns),
+          })}
         </Typography>
         <Typography variant="caption" tone="muted" className="break-words">
           {names}
