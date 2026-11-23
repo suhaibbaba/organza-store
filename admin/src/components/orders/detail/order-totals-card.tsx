@@ -41,6 +41,17 @@ export function OrderTotals({ order }: { order: Order }) {
         </div>
       )}
 
+      {Number(order.exchangeKept) > 0 && (
+        <div className="flex items-center justify-between gap-3 px-5" data-test-selector="order-exchange-kept">
+          <Typography variant="body" tone="muted" as="span">
+            {t("exchangeKept")}
+          </Typography>
+          <Typography variant="body" as="span" className="tabular-nums" dir="ltr">
+            +{formatMoney(order.exchangeKept)}
+          </Typography>
+        </div>
+      )}
+
       <div className="mt-2 flex items-center justify-between gap-3 bg-primary-50 px-5 py-3">
         <Typography variant="body" weight="semibold" as="span">
           {t("total")}
@@ -49,6 +60,17 @@ export function OrderTotals({ order }: { order: Order }) {
           {formatMoney(order.total)}
         </Typography>
       </div>
+
+      {order.exchangeOf && Number(order.exchangeCredit) > 0 && (
+        <div className="flex items-center justify-between gap-3 px-5 pb-3" data-test-selector="order-exchange-credit">
+          <Typography variant="body" tone="muted" as="span">
+            {t("exchangeCredit")}
+          </Typography>
+          <Typography variant="body" tone="success" as="span" className="tabular-nums" dir="ltr">
+            −{formatMoney(order.exchangeCredit)}
+          </Typography>
+        </div>
+      )}
     </div>
   );
 }

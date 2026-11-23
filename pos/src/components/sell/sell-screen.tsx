@@ -5,7 +5,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { useQueryClient } from "@tanstack/react-query";
 import { can } from "@store/shared/lib/permissions";
 import { ERROR_CODES } from "@store/shared/constants/errors";
-import type { Order } from "@store/shared/types/order";
+import type { ExchangeSettlement, Order } from "@store/shared/types/order";
 import type { Product, ProductSummary } from "@store/shared/types/product";
 import type { Variant } from "@store/shared/types/variant";
 import { PRODUCT_DETAIL_QUERY_KEY } from "@/constants/api";
@@ -16,6 +16,7 @@ import { useSession } from "@/components/providers/session-provider";
 import { useCart } from "@/hooks/use-cart";
 import { useAddByCode, type CodeOutcome } from "@/hooks/use-add-by-code";
 import { useCheckout } from "@/hooks/use-checkout";
+import { useExchangeCheckout, useExchangePreview } from "@/hooks/use-exchange-order";
 import { useHardwareScanner } from "@/hooks/use-hardware-scanner";
 import { useProductBrowse } from "@/hooks/use-product-browse";
 import { useMediaQuery } from "@/hooks/use-media-query";
@@ -40,12 +41,16 @@ import { CreditOrderSheet } from "@/components/sell/credit-order-sheet";
 import { QuickSellSheet } from "@/components/sell/quick-sell-sheet";
 import { ScannerSheet } from "@/components/sell/scanner/scanner-sheet";
 import { VariantPickerSheet } from "@/components/sell/variant-picker-sheet";
+import { ExchangeFindSheet } from "@/components/sell/exchange/exchange-find-sheet";
+import { ExchangeConfirmSheet } from "@/components/sell/exchange/exchange-confirm-sheet";
 import { Alert, useToast } from "@store/ui";
 import type { CreditCheckout, OrderCustomerDraft } from "@/types/customer";
 import type { CartLine } from "@/types/cart";
 import type { CheckoutChoice } from "@/types/sell";
+import type { ExchangeDraft, ExchangeOutcome } from "@/types/exchange";
 import { DEFAULT_CHECKOUT_CHOICE } from "@/constants/pos";
-import { lineGrossCents } from "@/lib/cart";
+import { lineGrossCents, toOrderItems } from "@/lib/cart";
+import { exchangeDifferenceCents, hasQuickSellLines, toReturnItems } from "@/lib/exchange";
 import { fromCents } from "@/lib/money";
 import { DESK_MEDIA_QUERY } from "@/constants/layout";
 import { cn } from "@/lib/utils";
@@ -59,6 +64,7 @@ export function SellScreen() {
 
   const cart = useCart(user?.id);
   const checkout = useCheckout();
+  const exchangeCheckout = useExchangeCheckout();
   const toasts = useToasts();
   const toast = useToast();
   const scanFlash = useScanFlash();
@@ -84,6 +90,12 @@ export function SellScreen() {
   const [creditErrorCode, setCreditErrorCode] = useState<string | null>(null);
   const [completedOrder, setCompletedOrder] = useState<Order | null>(null);
   const [choice, setChoice] = useState<CheckoutChoice>(DEFAULT_CHECKOUT_CHOICE);
+  // Exchange (spec.md "Exchanges"): the sale pieces come back from; while set, the cart holds the new pieces.
+  const [exchangeDraft, setExchangeDraft] = useState<ExchangeDraft | null>(null);
+  const [exchangeFindOpen, setExchangeFindOpen] = useState(false);
+  const [exchangeConfirmOpen, setExchangeConfirmOpen] = useState(false);
+  const [exchangeErrorCode, setExchangeErrorCode] = useState<string | null>(null);
+  const [exchangeOutcome, setExchangeOutcome] = useState<ExchangeOutcome | null>(null);
   // Only focused by a deliberate keypress, never on mount (a phone would open its keyboard over the cart).
   const searchInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -100,6 +112,9 @@ export function SellScreen() {
   const canCredit = can(user, "order.sellOnCredit");
   // Every role as shipped, switchable per role (spec.md "Quick sell"); the backend refuses it either way.
   const canQuickSell = can(user, "product.quickSell");
+  // Every role as shipped; Admins and Managers are told about each one instead of approving it.
+  const canExchange = can(user, "order.exchange");
+  const exchangePreview = useExchangePreview(exchangeDraft?.order.id ?? null, exchangeDraft?.returns ?? []);
   const isGift = canGift && choice.gift;
   const onCredit = canCredit && !isGift && choice.payment === "credit";
 
@@ -168,7 +183,14 @@ export function SellScreen() {
   });
 
   // While one of these is up a scan would land in a cart nobody can see (or change a gift list already read).
-  const isAskingSomethingElse = whatsappOpen || giftOpen || creditOpen || orderDiscountOpen || discountLineKey !== null;
+  const isAskingSomethingElse =
+    whatsappOpen ||
+    giftOpen ||
+    creditOpen ||
+    orderDiscountOpen ||
+    discountLineKey !== null ||
+    exchangeFindOpen ||
+    exchangeConfirmOpen;
   // Sheets that are part of finding what is sold: the counter scanner keeps working, keyboard shortcuts do not.
   const isFindingSheetOpen = pickerProduct !== null || scannerOpen;
 
@@ -277,8 +299,55 @@ export function SellScreen() {
     );
   }
 
+  // The new pieces go out against what came back; the backend prices both and settles the difference.
+  function submitExchange(settlement: ExchangeSettlement, customerId: string | undefined) {
+    if (!exchangeDraft || exchangePreview.credit === null) {
+      return;
+    }
+    const difference = fromCents(exchangeDifferenceCents(cart.totals.total, exchangePreview.credit));
+    setExchangeErrorCode(null);
+    exchangeCheckout.mutate(
+      {
+        orderId: exchangeDraft.order.id,
+        input: {
+          returnItems: toReturnItems(exchangeDraft.returns),
+          items: toOrderItems(cart.lines),
+          settlement,
+          ...(customerId ? { customerId } : {}),
+          ...(cart.orderDiscount.type && cart.orderDiscount.value
+            ? { discountType: cart.orderDiscount.type, discountValue: cart.orderDiscount.value }
+            : {}),
+        },
+      },
+      {
+        onSuccess: (order) => {
+          setExchangeOutcome({ difference, settlement: order.exchangeSettlement ?? settlement });
+          setCompletedOrder(order);
+          setExchangeConfirmOpen(false);
+          setExchangeDraft(null);
+          setCartOpen(false);
+          cart.clear();
+          setChoice(DEFAULT_CHECKOUT_CHOICE);
+          setQuery("");
+        },
+        onError: (error) => setExchangeErrorCode(error instanceof ApiError ? error.code : ERROR_CODES.INTERNAL),
+      },
+    );
+  }
+
   // The one cart button: a plain counter sale is saved at once, anything else first opens the sheet that asks for its details.
   function finish() {
+    if (exchangeDraft) {
+      if (hasQuickSellLines(cart.lines)) {
+        toasts.show("destructive", errorMessageKey(ERROR_CODES.ORDER_EXCHANGE_QUICK_SELL));
+        return;
+      }
+      if (exchangePreview.credit !== null) {
+        setExchangeErrorCode(null);
+        setExchangeConfirmOpen(true);
+      }
+      return;
+    }
     if (choice.channel === "WHATSAPP") {
       setWhatsappOpen(true);
       return;
@@ -311,7 +380,9 @@ export function SellScreen() {
   function startNewSale() {
     setCompletedOrder(null);
     setWhatsappErrorCode(null);
+    setExchangeOutcome(null);
     checkout.reset();
+    exchangeCheckout.reset();
   }
 
   function openScanner() {
@@ -341,7 +412,7 @@ export function SellScreen() {
       <>
         <TopBar />
         <main className="mx-auto w-full max-w-2xl px-4 py-6">
-          <SaleSuccess order={completedOrder} onNewSale={startNewSale} />
+          <SaleSuccess order={completedOrder} onNewSale={startNewSale} exchange={exchangeOutcome} />
         </main>
       </>
     );
@@ -350,7 +421,7 @@ export function SellScreen() {
   const cartPanelProps = {
     cart,
     scanFlash,
-    isSubmitting: checkout.isPending,
+    isSubmitting: checkout.isPending || exchangeCheckout.isPending,
     choice,
     onChoiceChange: setChoice,
     canCredit,
@@ -359,6 +430,15 @@ export function SellScreen() {
     onLineDiscount: setDiscountLineKey,
     onRemoveLine: removeLine,
     onFinish: finish,
+    exchange: exchangeDraft
+      ? {
+          orderNumber: exchangeDraft.order.orderNumber,
+          returns: exchangeDraft.returns,
+          credit: exchangePreview.credit,
+          onEdit: () => setExchangeFindOpen(true),
+          onCancel: () => setExchangeDraft(null),
+        }
+      : null,
   };
 
   return (
@@ -374,7 +454,12 @@ export function SellScreen() {
               inputRef={searchInputRef}
               className="flex-1 desk:max-w-[29rem]"
             />
-            <TopBarActions onScan={openScanner} onQuickSell={canQuickSell ? () => setQuickSellOpen(true) : undefined} />
+            <TopBarActions
+              onScan={openScanner}
+              onQuickSell={canQuickSell && !exchangeDraft ? () => setQuickSellOpen(true) : undefined}
+              onExchange={canExchange ? () => setExchangeFindOpen(true) : undefined}
+              isExchanging={exchangeDraft !== null}
+            />
           </>
         }
       />
@@ -395,7 +480,7 @@ export function SellScreen() {
             onShowMore={() => void browse.fetchNextPage()}
             pendingId={pendingProductId}
             onAdd={(summary) => void selectSearchResult(summary)}
-            onQuickSell={canQuickSell ? () => setQuickSellOpen(true) : undefined}
+            onQuickSell={canQuickSell && !exchangeDraft ? () => setQuickSellOpen(true) : undefined}
           />
         </main>
 
@@ -473,6 +558,39 @@ export function SellScreen() {
           isSubmitting={checkout.isPending}
           errorCode={giftErrorCode}
           onConfirm={(note) => submitOrder({ gift: { note } })}
+        />
+      )}
+
+      {canExchange && (
+        <ExchangeFindSheet
+          open={exchangeFindOpen}
+          onOpenChange={setExchangeFindOpen}
+          draft={exchangeDraft}
+          onConfirm={(draft) => {
+            setExchangeDraft(draft);
+            setExchangeFindOpen(false);
+            // The new pieces go in the cart next; on a narrow screen it is behind a bar, so it is opened.
+            setCartOpen(true);
+          }}
+        />
+      )}
+
+      {exchangeDraft && exchangePreview.credit !== null && (
+        <ExchangeConfirmSheet
+          open={exchangeConfirmOpen}
+          onOpenChange={(open) => {
+            setExchangeConfirmOpen(open);
+            if (!open) {
+              setExchangeErrorCode(null);
+            }
+          }}
+          draft={exchangeDraft}
+          credit={exchangePreview.credit}
+          cartTotal={cart.totals.total}
+          canCredit={canCredit}
+          isSubmitting={exchangeCheckout.isPending}
+          errorCode={exchangeErrorCode}
+          onConfirm={submitExchange}
         />
       )}
 

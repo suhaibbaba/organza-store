@@ -52,6 +52,7 @@ export const PERMISSION_GROUPS: readonly PermissionGroup[] = [
       "order.cancel",
       "order.delete",
       "order.return",
+      "order.exchange",
       "order.markCollected",
       "order.createGift",
       "order.sellOnCredit",

@@ -17,14 +17,20 @@ export const EMPTY_ORDER_FILTERS: OrderFiltersValue = {
   channel: null,
   paymentStatus: null,
   hasQuickSale: false,
+  isExchange: false,
   dateFrom: DEFAULT_ORDER_FILTERS.dateFrom,
   dateTo: DEFAULT_ORDER_FILTERS.dateTo,
 };
 
 export function countOrderFilters(value: OrderFiltersValue): number {
-  return [value.status, value.channel, value.paymentStatus, value.hasQuickSale, value.dateFrom || value.dateTo].filter(
-    Boolean,
-  ).length;
+  return [
+    value.status,
+    value.channel,
+    value.paymentStatus,
+    value.hasQuickSale,
+    value.isExchange,
+    value.dateFrom || value.dateTo,
+  ].filter(Boolean).length;
 }
 
 export function OrderFilters({ value, sort, onApply, omit = [] }: OrderFiltersProps) {
@@ -180,6 +186,17 @@ export function OrderFilters({ value, sort, onApply, omit = [] }: OrderFiltersPr
               onCheckedChange={(hasQuickSale) => setDraft((d) => ({ ...d, hasQuickSale }))}
             />
           </FormField>
+
+          <FormField label="orders.filters.exchange" hint="orders.filters.exchangeHint" htmlFor="order-filter-exchange">
+            <Switch
+              id="order-filter-exchange"
+              data-testid={fieldTestSelector("order-filter-exchange")}
+              label={t("exchange")}
+              hideLabel
+              checked={draft.isExchange}
+              onCheckedChange={(isExchange) => setDraft((d) => ({ ...d, isExchange }))}
+            />
+          </FormField>
         </div>
       </Drawer>
     </>
@@ -232,6 +249,9 @@ export function OrderFilterChips({ value, onChange }: OrderFilterChipsProps) {
   }
   if (value.hasQuickSale) {
     chips.push({ key: "quick-sale", label: t("chipQuickSale"), clear: { ...value, hasQuickSale: false } });
+  }
+  if (value.isExchange) {
+    chips.push({ key: "exchange", label: t("chipExchange"), clear: { ...value, isExchange: false } });
   }
 
   return (

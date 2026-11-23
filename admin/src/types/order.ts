@@ -19,6 +19,8 @@ export interface OrderListFilters {
   collectableOnly: boolean;
   // Quick sell's review list (spec.md "Quick sell"); false lists everything.
   hasQuickSale: boolean;
+  // Only exchanges' new orders (spec.md "Exchanges"); false lists everything.
+  isExchange: boolean;
   dateFrom: string;
   dateTo: string;
   sortBy: ListOrdersQuery["sortBy"];
@@ -104,6 +106,9 @@ export interface OrderFormSectionProps {
 // Absent or 0 = that line is not part of this return.
 export type ReturnQuantities = Record<string, number>;
 
+// Who owes the difference of an exchange, from new total minus what came back.
+export type ExchangeSide = "customer" | "shop" | "even";
+
 export interface CustomerContactRowProps {
   icon?: LucideIcon;
   // Multi-line content (an address) aligns to the top instead of the middle.
@@ -129,6 +134,7 @@ export interface OrderFiltersValue {
   channel: OrderListFilters["channel"];
   paymentStatus: OrderListFilters["paymentStatus"];
   hasQuickSale: boolean;
+  isExchange: boolean;
   dateFrom: string;
   dateTo: string;
 }

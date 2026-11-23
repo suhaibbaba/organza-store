@@ -250,7 +250,17 @@
       "giftTitle": "המתנה נרשמה",
       "giftCount": "{count, plural, one {פריט אחד} two {שני פריטים} other {{count, number, plain} פריטים}}",
       "giftNextStep": "הפריטים ירדו מהמלאי ולא נגבה שום תשלום.",
-      "creditBalance": "נשאר לתשלום {amount}"
+      "creditBalance": "נשאר לתשלום {amount}",
+      "exchangeTitle": "ההחלפה הושלמה",
+      "exchangeOrderNumbers": "מהזמנה {original} · הזמנה חדשה {number}",
+      "exchangeSettled": {
+        "EVEN": "אין מה לשלם",
+        "PAID": "הלקוח שילם את ההפרש",
+        "DEBT": "נוסף לחוב הלקוח",
+        "WAIVED": "ויתרנו על ההפרש",
+        "REFUNDED": "להחזיר ללקוח {amount}",
+        "KEPT": "החנות שמרה את ההפרש"
+      }
     },
     "whatsapp": {
       "title": "הזמנת וואטסאפ",
@@ -358,6 +368,85 @@
       "cancel": "ביטול",
       "confirm": "מכירה בהקפה",
       "saving": "שומר…"
+    },
+    "exchange": {
+      "open": "החלפה",
+      "title": "החלפת פריטים",
+      "findSubtitle": "מצאו את המכירה שממנה הגיעו הפריטים: הקלידו את מספרה, סרקו פריט, או בחרו מהמכירות האחרונות.",
+      "pickSubtitle": "בחרו את הפריטים שהלקוח החזיר.",
+      "searchLabel": "מספר הזמנה, לקוח או ברקוד פריט",
+      "searchPlaceholder": "מספר הזמנה, שם, טלפון או ברקוד",
+      "searchHint": "סורק הקופה ממלא את התיבה הזו כל עוד היא פתוחה.",
+      "cameraOn": "סריקת פריט",
+      "cameraOff": "סגירת המצלמה",
+      "withPiece": "מכירות עם הפריט {code}",
+      "matches": "מכירות מתאימות",
+      "recent": "מכירות אחרונות",
+      "searchFailed": "לא הצלחנו לטעון את המכירות. נסו שוב.",
+      "noMatches": "אין מכירה מתאימה.",
+      "noSales": "אין מכירות עדיין.",
+      "showMore": "הצג עוד",
+      "orderNumber": "הזמנה #{number}",
+      "notExchangeable": "לא ניתן להחליף",
+      "itemsMore": "{names} +{count, number, plain}",
+      "itemSeparator": ", ",
+      "whenWho": "{when} · {name}",
+      "otherSale": "בחירת מכירה אחרת",
+      "piecesTitle": "פריטים שחוזרים",
+      "paidEach": "{amount} ליחידה · {count, plural, one {נותר {count, number, plain}} other {נותרו {count, number, plain}}}",
+      "alreadyBack": "כבר הוחזר",
+      "decrease": "פריט אחד פחות של {name}",
+      "increase": "פריט אחד נוסף של {name}",
+      "quantity": "כמה פריטים של {name} חוזרים",
+      "creditLabel": "{count, plural, =0 {עוד לא נבחר דבר} one {שווי פריט אחד} other {שווי {count, number, plain} פריטים}}",
+      "continue": "המשך — הוספת הפריטים החדשים",
+      "pieceTimes": "{name} ×{count, number, plain}",
+      "bannerTitle": "החלפה מהזמנה #{number} · {count, plural, one {פריט אחד הוחזר} other {{count, number, plain} פריטים הוחזרו}}",
+      "editReturns": "שינוי הפריטים שהוחזרו",
+      "cancel": "ביטול ההחלפה",
+      "finish": "השלמת ההחלפה",
+      "emptyTitle": "הוסיפו את הפריטים החדשים",
+      "emptyHint": "סרקו או חפשו את מה שהלקוח לוקח במקום.",
+      "newTotal": "פריטים חדשים",
+      "returnedValue": "פריטים שהוחזרו",
+      "side": {
+        "customer": "הלקוח משלם",
+        "shop": "להחזיר ללקוח",
+        "even": "החלפה שווה"
+      },
+      "noQuickSell": "פריט שהוקלד ידנית לא יכול להיכלל בהחלפה. הסירו אותו או מכרו אותו בנפרד.",
+      "confirmTitle": "החלפה מהזמנה #{number}",
+      "evenHint": "לפריטים אותו שווי, כך שלא עובר כסף.",
+      "settlementLabel": "איך הוסדר ההפרש?",
+      "settlement": {
+        "EVEN": {
+          "label": "שווה",
+          "hint": "לא עובר כסף."
+        },
+        "PAID": {
+          "label": "הלקוח שילם {amount}",
+          "hint": "ההפרש נכנס לקופה עכשיו."
+        },
+        "DEBT": {
+          "label": "הלקוח חייב {amount}",
+          "hint": "נרשם כחוב בחשבון הלקוח."
+        },
+        "WAIVED": {
+          "label": "ויתור על ההפרש",
+          "hint": "ה-{amount} ניתן כהנחה על הפריטים החדשים."
+        },
+        "REFUNDED": {
+          "label": "הוחזרו {amount}",
+          "hint": "ההפרש יוצא מהקופה עכשיו."
+        },
+        "KEPT": {
+          "label": "החנות שומרת {amount}",
+          "hint": "לא מוחזר דבר; ההפרש נשאר בחנות."
+        }
+      },
+      "back": "חזרה",
+      "saving": "שומר…",
+      "confirm": "אישור ההחלפה"
     }
   },
   "errors": {
@@ -396,7 +485,12 @@
     "posDeviceUnknown": "המכשיר הזה לא מכיר אתכם. היכנסו עם אימייל וסיסמה.",
     "posPasscodeWrong": "קוד גישה שגוי.",
     "posPasscodeLocked": "יותר מדי ניסיונות שגויים. היכנסו עם אימייל וסיסמה.",
-    "profilePasskeyNotFound": "מפתח הגישה הזה כבר לא בחשבון."
+    "profilePasskeyNotFound": "מפתח הגישה הזה כבר לא בחשבון.",
+    "orderNotExchangeable": "לא ניתן להחליף את המכירה הזו: רק מכירה שהסתיימה ושולמה.",
+    "orderExchangeQuickSell": "פריט שהוקלד ידנית לא יכול להיכלל בהחלפה. הסירו אותו או מכרו אותו בנפרד.",
+    "orderExchangeSettlementInvalid": "אופן ההסדר לא מתאים להפרש. בדקו את הסכומים ונסו שוב.",
+    "orderExchangeCustomerRequired": "בחרו מי חייב את ההפרש.",
+    "orderHasExchanges": "למכירה הזו יש החלפה, ולכן אי אפשר לשנות או למחוק אותה."
   },
   "pwa": {
     "version": {

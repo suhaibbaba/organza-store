@@ -1,6 +1,8 @@
 import type {
   DISCOUNT_TYPES,
+  EXCHANGE_SETTLEMENTS,
   ORDER_CHANNELS,
+  ORDER_PAYMENT_METHODS,
   ORDER_SORT_FIELDS,
   ORDER_STATUSES,
   ORDER_TYPES,
@@ -18,6 +20,8 @@ export type OrderChannel = (typeof ORDER_CHANNELS)[number];
 export type OrderType = (typeof ORDER_TYPES)[number];
 export type OrderStatus = (typeof ORDER_STATUSES)[number];
 export type PaymentMethod = (typeof PAYMENT_METHODS)[number];
+export type OrderPaymentMethod = (typeof ORDER_PAYMENT_METHODS)[number];
+export type ExchangeSettlement = (typeof EXCHANGE_SETTLEMENTS)[number];
 export type PaymentStatus = (typeof PAYMENT_STATUSES)[number];
 export type DiscountType = (typeof DISCOUNT_TYPES)[number];
 export type OrderSortField = (typeof ORDER_SORT_FIELDS)[number];
@@ -39,6 +43,8 @@ export interface OrderItem {
   discountAmount: string;
   lineTotal: string;
   returnedQuantity: number;
+  // The part of returnedQuantity swapped for other pieces in an exchange.
+  exchangedQuantity: number;
   // Quick-sold at the counter (spec.md "Quick sell"); a snapshot, so it outlives the product's completion.
   quickSold: boolean;
   thumbnailUrl: string | null;
@@ -49,14 +55,21 @@ export interface OrderItem {
   unitCost?: string | null;
 }
 
-// One payment on a credit sale; a refund is negative.
+// One payment on a credit sale or an exchange; a refund is negative, EXCHANGE is value carried from returned pieces.
 export interface OrderPayment {
   id: string;
   amount: string;
-  method: PaymentMethod;
+  method: OrderPaymentMethod;
   receivedAt: string;
   note: string | null;
   receivedBy: OrderCreator | null;
+}
+
+// The other side of an exchange, enough to link to it.
+export interface OrderExchangeLink {
+  id: string;
+  orderNumber: number;
+  createdAt: string;
 }
 
 // Just id + name, so the admin can show it without the Admin-only staff list.
@@ -99,6 +112,15 @@ export interface Order {
   total: string;
   // Stored on the order so it survives the product's completion and the list can filter on it cheaply.
   hasQuickSale: boolean;
+  // Exchange (spec.md "Exchanges"): this order's new pieces replaced pieces returned on exchangeOf.
+  exchangeOf: OrderExchangeLink | null;
+  // Exchanges made from this order, newest last.
+  exchanges: OrderExchangeLink[];
+  // What the returned pieces were worth, carried onto this order.
+  exchangeCredit: string;
+  // A difference the shop kept; already inside total.
+  exchangeKept: string;
+  exchangeSettlement: ExchangeSettlement | null;
   // Set when stock leaves the shelf, so it can never be deducted twice.
   stockDeductedAt: string | null;
   // Soft delete: a deleted sale is hidden from every endpoint, not destroyed.
@@ -143,10 +165,18 @@ export interface OrderSummary {
   previewItems: OrderPreviewItem[];
   // Stored on the order so it survives the product's completion and the list can filter on it cheaply.
   hasQuickSale: boolean;
+  // Set on an exchange's new order.
+  exchangeOfOrderId: string | null;
+  exchangeSettlement: ExchangeSettlement | null;
   stockDeductedAt: string | null;
   createdById: string;
   createdAt: string;
   updatedAt: string;
+}
+
+// POST /api/orders/:id/exchange/preview — what the chosen pieces are worth if brought back now.
+export interface ExchangePreview {
+  credit: string;
 }
 
 // One entry per repeat customer: the newest snapshot under that number, since there is no Customer table yet.

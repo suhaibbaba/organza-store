@@ -653,34 +653,35 @@ search box and the photo grid all end in the same cart, through the same lookup.
 
 Three fixed roles.
 
-| Capability                          | Admin | Manager |      Employee       |
-| ----------------------------------- | :---: | :-----: | :-----------------: |
-| POS — make sales                    |  ✅   |   ✅    |         ✅          |
-| Add products                        |  ✅   |   ✅    |         ✅          |
-| Edit product images                 |  ✅   |   ✅    |         ✅          |
-| Edit product details (name, etc.)   |  ✅   |   ✅    |         ✅          |
-| Edit product **price**              |  ✅   |   ✅    | ✅ (needs approval) |
-| Add option type/value (inline)      |  ✅   |   ✅    |         ✅          |
-| **Rename / delete** option value    |  ✅   |   ✅    |         ❌          |
-| **Delete** product                  |  ✅   |   ✅    |         ❌          |
-| **Hide / publish** product          |  ✅   |   ✅    | ✅ (needs approval) |
-| Create order + hand to courier      |  ✅   |   ✅    |         ✅          |
-| **Delete / edit / cancel** order    |  ✅   |   ✅    |         ❌          |
-| **Mark money collected**            |  ✅   |   ✅    |         ❌          |
-| **Give stock away** (GIFT order)    |  ✅   |   ✅    |         ❌          |
-| Manage stock (full)                 |  ✅   |   ✅    | ✅ (needs approval) |
-| **Delete** a product photo          |  ✅   |   ✅    | ✅ (needs approval) |
-| Change a product's **variant set**  |  ✅   |   ✅    | ✅ (needs approval) |
-| Record an expense                   |  ✅   |   ✅    | ✅ (needs approval) |
-| Read / edit expenses                |  ✅   |   ✅    |         ❌          |
-| **Approve** a pending change        |  ✅   |   ❌    |         ❌          |
-| Open + close the cash drawer        |  ✅   |   ✅    |         ❌          |
-| **See cost, COGS, profit, margin**  |  ✅   |   ❌    |         ❌          |
-| **Open the Reports screen**         |  ✅   |   ❌    |         ❌          |
-| Dashboard (sold / received / owed)  |  ✅   |   ✅    |         ❌          |
-| **Sales log** (what sold, by piece) |  ✅   |   ✅    |         ❌          |
-| Manage users                        |  ✅   |   ❌    |         ❌          |
-| Settings                            |  ✅   |   ❌    |         ❌          |
+| Capability                          | Admin | Manager |           Employee           |
+| ----------------------------------- | :---: | :-----: | :--------------------------: |
+| POS — make sales                    |  ✅   |   ✅    |              ✅              |
+| Add products                        |  ✅   |   ✅    |              ✅              |
+| Edit product images                 |  ✅   |   ✅    |              ✅              |
+| Edit product details (name, etc.)   |  ✅   |   ✅    |              ✅              |
+| Edit product **price**              |  ✅   |   ✅    |     ✅ (needs approval)      |
+| Add option type/value (inline)      |  ✅   |   ✅    |              ✅              |
+| **Rename / delete** option value    |  ✅   |   ✅    |              ❌              |
+| **Delete** product                  |  ✅   |   ✅    |              ❌              |
+| **Hide / publish** product          |  ✅   |   ✅    |     ✅ (needs approval)      |
+| Create order + hand to courier      |  ✅   |   ✅    |              ✅              |
+| **Delete / edit / cancel** order    |  ✅   |   ✅    |              ❌              |
+| **Mark money collected**            |  ✅   |   ✅    |              ❌              |
+| **Give stock away** (GIFT order)    |  ✅   |   ✅    |              ❌              |
+| **Exchange** pieces of a sale       |  ✅   |   ✅    | ✅ (Admins/Managers alerted) |
+| Manage stock (full)                 |  ✅   |   ✅    |     ✅ (needs approval)      |
+| **Delete** a product photo          |  ✅   |   ✅    |     ✅ (needs approval)      |
+| Change a product's **variant set**  |  ✅   |   ✅    |     ✅ (needs approval)      |
+| Record an expense                   |  ✅   |   ✅    |     ✅ (needs approval)      |
+| Read / edit expenses                |  ✅   |   ✅    |              ❌              |
+| **Approve** a pending change        |  ✅   |   ❌    |              ❌              |
+| Open + close the cash drawer        |  ✅   |   ✅    |              ❌              |
+| **See cost, COGS, profit, margin**  |  ✅   |   ❌    |              ❌              |
+| **Open the Reports screen**         |  ✅   |   ❌    |              ❌              |
+| Dashboard (sold / received / owed)  |  ✅   |   ✅    |              ❌              |
+| **Sales log** (what sold, by piece) |  ✅   |   ✅    |              ❌              |
+| Manage users                        |  ✅   |   ❌    |              ❌              |
+| Settings                            |  ✅   |   ❌    |              ❌              |
 
 **Security rationale:** Employee can create orders and hand them to the courier but **cannot
 delete or edit them**, so a sale can't be erased to cover theft — and **cannot mark its money
@@ -1321,6 +1322,43 @@ Supported at **two levels**: per **line item** and on the **order total**. Each 
 
 Returns are supported: an order (or specific items with quantities) can be returned, which
 **restores stock** and is recorded in the audit log.
+
+### Exchanges
+
+A customer brings pieces back and takes others in their place, in one step, from the POS or from
+the order's page in the admin. **Every role may do it** (`order.exchange`), because it happens at
+the counter at any hour; in exchange for not gating it, **every exchange made by a Manager or an
+Employee pushes an alert to the Admins and Managers** (never to its author), naming the two orders,
+the difference and how it was settled.
+
+- **Finding the sale:** by order number, by scanning or typing a returned piece's barcode/SKU
+  (`GET /api/orders?itemCode=`), or from the list of recent sales.
+- **What is exchangeable:** a finished SALE (`COMPLETED` / `HANDED_TO_COURIER`) whose money is not
+  still with the courier. Never a gift — nothing was paid to carry over.
+- **Shape:** the pieces coming back are marked returned on the original order (`returnedQuantity`,
+  and `exchangedQuantity` for the part swapped) and go back on the shelf; the new pieces are a
+  **new STORE order** linked to it (`exchangeOfOrderId`), priced from today's catalogue exactly as a
+  sale, with the same line and order discounts. Catalogue pieces only — a quick sale is its own sale.
+- **Credit:** the returned pieces are worth what they were **sold for** — net of the line and order
+  discounts, the same per-unit figure the reports use. On a credit sale only the part actually paid
+  for them carries over; the rest simply reduces what is still owed. The credit is recorded on the
+  new order as a payment of method `EXCHANGE` (and, on an account, as the matching negative one on
+  the original), so it is never cash.
+- **Difference = new total − credit**, settled one of these ways (`exchangeSettlement`):
+  - nothing to settle → `EVEN`;
+  - the customer owes → `PAID` (cash in now), `DEBT` (a credit sale on the customer's account —
+    needs `order.sellOnCredit` and a customer, the original's by default) or `WAIVED` (the shop
+    lets it go, recorded as an order-level discount so the books show it);
+  - the shop owes → `REFUNDED` (cash out of the drawer now) or `KEPT` (the shop keeps it; stored as
+    `exchangeKept` inside the total, so it counts as revenue: `total = subtotal − discount + kept`).
+- **The drawer counts only the cash that changed hands, on the day it did.** An exchanged piece's
+  cash stays counted on its original sale's day (it never left the drawer), and an exchange order is
+  counted by its CASH payments only — so a 100 sale exchanged for a 130 piece puts 130 in the drawer.
+- **Undoing:** an exchange order is followed payment by payment like a credit sale, so returning or
+  deleting it pays the cash back. An order that has exchanges cannot be deleted, and neither side's
+  discounts can be edited afterwards (`error.order.has_exchanges`) — what was carried over depends
+  on them. Its remaining pieces can still be returned or exchanged again.
+- Both orders get an `EXCHANGE` audit entry.
 
 ### Reports: sold vs. collected
 

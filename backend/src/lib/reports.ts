@@ -52,6 +52,8 @@ export function lineView(range: ReportRange | null): Prisma.Sql {
       oi.sku          AS sku,
       (oi.quantity - oi."returnedQuantity")::numeric AS net_units,
       oi."returnedQuantity"::numeric                 AS returned_units,
+      oi."exchangedQuantity"::numeric                AS exchanged_units,
+      (o."exchangeOfOrderId" IS NOT NULL)            AS is_exchange,
       oi."unitPrice"                                 AS unit_gross_price,
       -- What this unit really earned: its line total (item discount already
       -- applied) divided by the units on the line, times this order's

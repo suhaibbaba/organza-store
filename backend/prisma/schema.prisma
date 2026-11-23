@@ -478,6 +478,8 @@ enum AuditAction {
   STATUS_CHANGE
   CANCEL
   RETURN
+  // Pieces brought back and swapped for others in one step (spec.md "Exchanges").
+  EXCHANGE
   // "Who said this money arrived" is its own question.
   PAYMENT_COLLECTED
   // Credit sales: money taken on an account, money paid back, a kept piece handed over.
@@ -634,6 +636,17 @@ enum OrderStatus {
 
 enum PaymentMethod {
   CASH // only method for now; an enum so card/transfer slot in later
+  EXCHANGE // value carried from pieces brought back in an exchange; never cash, so never in the drawer
+}
+
+// How an exchange's price difference was settled (spec.md "Exchanges").
+enum ExchangeSettlement {
+  EVEN // the new pieces cost what the returned ones did
+  PAID // the customer paid the difference
+  DEBT // the customer owes the difference, as a credit sale
+  WAIVED // the shop let the difference go, as a discount
+  REFUNDED // the shop paid the difference back
+  KEPT // the shop kept the difference
 }
 
 // Whether the money is in the shop's hands yet; kept apart from OrderStatus so profit figures stay honest.
@@ -692,6 +705,16 @@ model Order {
   // Stored, not derived: stays true after the quick-sold product is completed, ruled a one-off or removed.
   hasQuickSale Boolean @default(false)
 
+  // --- exchange: this order holds the new pieces; the returned ones are returnedQuantity on the original ---
+  exchangeOfOrderId  String?
+  exchangeOf         Order?              @relation("OrderExchange", fields: [exchangeOfOrderId], references: [id], onDelete: Restrict)
+  exchanges          Order[]             @relation("OrderExchange")
+  // What the returned pieces were worth, paid onto this order as an EXCHANGE payment.
+  exchangeCredit     Decimal             @default(0) @db.Decimal(10, 2)
+  // A difference the shop kept: total = subtotal - discountAmount + exchangeKept, so it counts as revenue.
+  exchangeKept       Decimal             @default(0) @db.Decimal(10, 2)
+  exchangeSettlement ExchangeSettlement?
+
   // Set when stock leaves the shelf; makes deduction idempotent.
   stockDeductedAt DateTime?
 
@@ -721,6 +744,7 @@ model Order {
   @@index([deletedAt])
   // "Which sales still need reviewing after the season" (spec.md "Quick sell").
   @@index([hasQuickSale])
+  @@index([exchangeOfOrderId])
 }
 
 model OrderItem {
@@ -755,6 +779,8 @@ model OrderItem {
 
   // Partial returns leave the order status alone; once every line is back the order is RETURNED.
   returnedQuantity Int @default(0)
+  // The part of returnedQuantity swapped in an exchange: its cash stayed in the drawer, carried to the new order.
+  exchangedQuantity Int @default(0)
 
   // Null on a credit sale's line = still kept in the shop for the customer.
   handedOverAt   DateTime?
