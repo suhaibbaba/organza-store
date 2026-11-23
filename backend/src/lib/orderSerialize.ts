@@ -15,6 +15,10 @@ function lineThumbnail(item: AnyRecord): string | null {
   return item.variant?.images?.[0]?.thumbnailUrl ?? item.product?.images?.[0]?.thumbnailUrl ?? null;
 }
 
+function exchangeLink(order: AnyRecord | null | undefined) {
+  return order ? { id: order.id, orderNumber: order.orderNumber, createdAt: order.createdAt } : null;
+}
+
 function serializeItem(item: AnyRecord, role: Role) {
   const dto: AnyRecord = {
     id: item.id,
@@ -30,6 +34,7 @@ function serializeItem(item: AnyRecord, role: Role) {
     discountAmount: formatMoney(item.discountAmount?.toString()),
     lineTotal: formatMoney(item.lineTotal?.toString()),
     returnedQuantity: item.returnedQuantity,
+    exchangedQuantity: item.exchangedQuantity ?? 0,
     quickSold: item.quickSold ?? false,
     thumbnailUrl: lineThumbnail(item),
     handedOverAt: item.handedOverAt ?? null,
@@ -81,6 +86,11 @@ export function serializeOrder(order: AnyRecord, role: Role) {
     discountAmount: formatMoney(order.discountAmount?.toString()),
     total: formatMoney(order.total?.toString()),
     hasQuickSale: order.hasQuickSale ?? false,
+    exchangeOf: exchangeLink(order.exchangeOf),
+    exchanges: (order.exchanges ?? []).map(exchangeLink),
+    exchangeCredit: formatMoney(order.exchangeCredit?.toString()) ?? zeroMoneyText(),
+    exchangeKept: formatMoney(order.exchangeKept?.toString()) ?? zeroMoneyText(),
+    exchangeSettlement: order.exchangeSettlement ?? null,
     stockDeductedAt: order.stockDeductedAt,
     deletedAt: order.deletedAt,
     items: (order.items ?? []).map((item: AnyRecord) => serializeItem(item, role)),
@@ -124,6 +134,8 @@ export function serializeOrderSummary(order: AnyRecord, outstanding?: Map<string
     itemCount: order._count?.items ?? order.items?.length ?? 0,
     previewItems: (order.items ?? []).map(serializePreviewItem),
     hasQuickSale: order.hasQuickSale ?? false,
+    exchangeOfOrderId: order.exchangeOfOrderId ?? null,
+    exchangeSettlement: order.exchangeSettlement ?? null,
     stockDeductedAt: order.stockDeductedAt,
     createdById: order.createdById,
     createdAt: order.createdAt,

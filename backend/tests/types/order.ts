@@ -14,6 +14,8 @@ export interface OrderItemDto {
   discountAmount: string;
   lineTotal: string;
   returnedQuantity: number;
+  // The part of returnedQuantity swapped in an exchange (spec.md "Exchanges").
+  exchangedQuantity: number;
   // Typed at the counter rather than picked from the catalogue (spec.md
   // "Quick sell").
   quickSold: boolean;
@@ -31,7 +33,7 @@ export interface OrderDto {
   paymentMethod: "CASH";
   // Whether the money is in the shop's hands yet — separate from the status
   // above, because a courier order is paid for long after it is sold.
-  paymentStatus: "PENDING_COLLECTION" | "COLLECTED";
+  paymentStatus: "PENDING_COLLECTION" | "COLLECTED" | "ON_CREDIT";
   collectedAt: string | null;
   customerName: string | null;
   customerPhone: string | null;
@@ -46,6 +48,16 @@ export interface OrderDto {
   total: string;
   // Whether anything on this sale was quick-sold (spec.md "Quick sell").
   hasQuickSale: boolean;
+  onCredit: boolean;
+  paidAmount: string;
+  balance: string;
+  payments: { amount: string; method: "CASH" | "EXCHANGE" }[];
+  // Exchange (spec.md "Exchanges").
+  exchangeOf: { id: string; orderNumber: number } | null;
+  exchanges: { id: string; orderNumber: number }[];
+  exchangeCredit: string;
+  exchangeKept: string;
+  exchangeSettlement: "EVEN" | "PAID" | "DEBT" | "WAIVED" | "REFUNDED" | "KEPT" | null;
   stockDeductedAt: string | null;
   deletedAt: string | null;
   items: OrderItemDto[];

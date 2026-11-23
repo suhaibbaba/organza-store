@@ -250,7 +250,17 @@
       "giftTitle": "Gift recorded",
       "giftCount": "{count, plural, one {{count, number, plain} piece} other {{count, number, plain} pieces}}",
       "giftNextStep": "The stock has been deducted and no money was taken.",
-      "creditBalance": "Still owes {amount}"
+      "creditBalance": "Still owes {amount}",
+      "exchangeTitle": "Exchange completed",
+      "exchangeOrderNumbers": "From order {original} · new order {number}",
+      "exchangeSettled": {
+        "EVEN": "Nothing to pay",
+        "PAID": "Customer paid the difference",
+        "DEBT": "Added to the customer's debt",
+        "WAIVED": "Difference let go",
+        "REFUNDED": "Give the customer {amount} back",
+        "KEPT": "The shop kept the difference"
+      }
     },
     "whatsapp": {
       "title": "WhatsApp order",
@@ -358,6 +368,85 @@
       "cancel": "Cancel",
       "confirm": "Sell on credit",
       "saving": "Saving…"
+    },
+    "exchange": {
+      "open": "Exchange",
+      "title": "Exchange pieces",
+      "findSubtitle": "Find the sale the pieces came from: type its number, scan a piece, or pick it from the recent sales.",
+      "pickSubtitle": "Choose the pieces the customer brought back.",
+      "searchLabel": "Order number, customer or piece barcode",
+      "searchPlaceholder": "Order number, name, phone or barcode",
+      "searchHint": "The counter scanner fills this box while it is open.",
+      "cameraOn": "Scan a piece",
+      "cameraOff": "Close camera",
+      "withPiece": "Sales with piece {code}",
+      "matches": "Matching sales",
+      "recent": "Recent sales",
+      "searchFailed": "Couldn't load the sales. Try again.",
+      "noMatches": "No sale matches that.",
+      "noSales": "No sales yet.",
+      "showMore": "Show more",
+      "orderNumber": "Order #{number}",
+      "notExchangeable": "Can't be exchanged",
+      "itemsMore": "{names} +{count, number, plain}",
+      "itemSeparator": ", ",
+      "whenWho": "{when} · {name}",
+      "otherSale": "Choose another sale",
+      "piecesTitle": "Pieces coming back",
+      "paidEach": "{amount} each · {count, plural, one {{count, number, plain} left} other {{count, number, plain} left}}",
+      "alreadyBack": "Already returned",
+      "decrease": "One fewer {name} coming back",
+      "increase": "One more {name} coming back",
+      "quantity": "How many {name} are coming back",
+      "creditLabel": "{count, plural, =0 {Nothing chosen yet} one {Value of {count, number, plain} piece} other {Value of {count, number, plain} pieces}}",
+      "continue": "Continue — add the new pieces",
+      "pieceTimes": "{name} ×{count, number, plain}",
+      "bannerTitle": "Exchange from order #{number} · {count, plural, one {{count, number, plain} piece back} other {{count, number, plain} pieces back}}",
+      "editReturns": "Change the returned pieces",
+      "cancel": "Cancel the exchange",
+      "finish": "Complete exchange",
+      "emptyTitle": "Add the new pieces",
+      "emptyHint": "Scan or search for what the customer is taking instead.",
+      "newTotal": "New pieces",
+      "returnedValue": "Returned pieces",
+      "side": {
+        "customer": "Customer pays",
+        "shop": "Give back to customer",
+        "even": "Even exchange"
+      },
+      "noQuickSell": "A typed piece can't go in an exchange. Remove it, or sell it on its own.",
+      "confirmTitle": "Exchange from order #{number}",
+      "evenHint": "The pieces are worth the same, so no money changes hands.",
+      "settlementLabel": "How was the difference settled?",
+      "settlement": {
+        "EVEN": {
+          "label": "Even",
+          "hint": "No money changes hands."
+        },
+        "PAID": {
+          "label": "Customer paid {amount}",
+          "hint": "The difference goes into the drawer now."
+        },
+        "DEBT": {
+          "label": "Customer owes {amount}",
+          "hint": "Recorded as a debt on the customer's account."
+        },
+        "WAIVED": {
+          "label": "Let it go",
+          "hint": "The {amount} is given as a discount on the new pieces."
+        },
+        "REFUNDED": {
+          "label": "Paid back {amount}",
+          "hint": "The difference comes out of the drawer now."
+        },
+        "KEPT": {
+          "label": "Shop keeps {amount}",
+          "hint": "Nothing is paid back; the shop keeps the difference."
+        }
+      },
+      "back": "Back",
+      "saving": "Saving…",
+      "confirm": "Confirm exchange"
     }
   },
   "errors": {
@@ -396,7 +485,12 @@
     "posDeviceUnknown": "This device does not know you. Sign in with your email and password.",
     "posPasscodeWrong": "Wrong passcode.",
     "posPasscodeLocked": "Too many wrong tries. Sign in with your email and password.",
-    "profilePasskeyNotFound": "This passkey is no longer on your account."
+    "profilePasskeyNotFound": "This passkey is no longer on your account.",
+    "orderNotExchangeable": "This sale can't be exchanged: only a finished, paid sale can.",
+    "orderExchangeQuickSell": "A typed piece can't go in an exchange. Remove it, or sell it on its own.",
+    "orderExchangeSettlementInvalid": "That settlement doesn't fit the difference. Check the totals and try again.",
+    "orderExchangeCustomerRequired": "Choose who owes the difference.",
+    "orderHasExchanges": "This sale has an exchange, so it can't be changed or deleted."
   },
   "pwa": {
     "version": {

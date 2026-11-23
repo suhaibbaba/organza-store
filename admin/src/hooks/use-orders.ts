@@ -1,14 +1,26 @@
 import { keepPreviousData, useMutation, useQuery } from "@tanstack/react-query";
 import type { OrderStatus } from "@store/shared/types/order";
-import type { CreateOrderInput, ReturnOrderInput } from "@store/shared/schemas/order";
-import { ORDER_COLLECTION_SUMMARY_QUERY_KEY, ORDER_DETAIL_QUERY_KEY, ORDER_LIST_QUERY_KEY } from "@/constants/orders";
+import type {
+  CreateOrderInput,
+  ExchangeOrderInput,
+  ReturnOrderInput,
+  ReturnOrderItemInput,
+} from "@store/shared/schemas/order";
+import {
+  ORDER_COLLECTION_SUMMARY_QUERY_KEY,
+  ORDER_DETAIL_QUERY_KEY,
+  ORDER_EXCHANGE_PREVIEW_QUERY_KEY,
+  ORDER_LIST_QUERY_KEY,
+} from "@/constants/orders";
 import {
   collectOrders,
   createOrder,
   deleteOrder,
+  exchangeOrder,
   fetchCollectionSummary,
   fetchOrder,
   fetchOrders,
+  previewExchange,
   resolveMapLink,
   returnOrder,
   updateOrderStatus,
@@ -71,6 +83,25 @@ export function useReturnOrderMutation(id: string) {
   return useMutation({
     mutationFn: (input: ReturnOrderInput) => returnOrder(id, input),
     onSuccess: () => invalidate(id),
+  });
+}
+
+// The server's figure for what the chosen pieces carry over; nothing chosen asks nothing.
+export function useExchangePreviewQuery(id: string, returnItems: ReturnOrderItemInput[]) {
+  return useQuery({
+    queryKey: [ORDER_EXCHANGE_PREVIEW_QUERY_KEY, id, returnItems],
+    queryFn: () => previewExchange(id, { returnItems }),
+    enabled: returnItems.length > 0,
+    placeholderData: keepPreviousData,
+  });
+}
+
+// Both orders change: the original takes its pieces back, the new one is created.
+export function useExchangeOrderMutation(id: string) {
+  const invalidate = useInvalidateOrders();
+  return useMutation({
+    mutationFn: (input: ExchangeOrderInput) => exchangeOrder(id, input),
+    onSuccess: (order) => invalidate([id, order.id]),
   });
 }
 

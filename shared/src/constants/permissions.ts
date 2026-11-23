@@ -50,6 +50,8 @@ export const PERMISSION_ACTIONS = [
   "order.delete",
   // Gated with cancel/delete: a sale must not be undoable by the person who rang it up.
   "order.return",
+  // Swapping pieces for others (spec.md "Exchanges"): every role, with an alert to Admins and Managers instead of a gate.
+  "order.exchange",
   // Admin/Manager: whoever took the order must not declare its money received.
   "order.markCollected",
   // A GIFT order deducts stock and takes no money, so Admin/Manager only.
@@ -159,6 +161,7 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<Role, readonly Action[]> = {
     "order.cancel",
     "order.delete",
     "order.return",
+    "order.exchange",
     "order.markCollected",
     "order.createGift",
     "order.sellOnCredit",
@@ -192,6 +195,7 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<Role, readonly Action[]> = {
     "order.view",
     "order.create",
     "order.updateStatus",
+    "order.exchange",
     "order.sellOnCredit",
     "order.recordPayment",
     "order.markHandedOver",

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { CalendarDays, Coins, CreditCard, ShoppingCart, Undo2, UserRound } from "lucide-react";
+import { ArrowLeftRight, CalendarDays, Coins, CreditCard, ShoppingCart, Undo2, UserRound } from "lucide-react";
 import { Button, MenuItem, RowMenu, useConfirm, useToast, Typography } from "@store/ui";
 import { can } from "@store/shared/lib/permissions";
 import { isOrderCollectable } from "@store/shared/lib/orders";
@@ -19,9 +19,11 @@ import { OrderChannelBadge } from "@/components/orders/order-channel-badge";
 import { OrderStatusBadge } from "@/components/orders/order-status-badge";
 import { OrderTypeBadge } from "@/components/orders/order-type-badge";
 import { QuickSaleBadge } from "@/components/orders/quick-sale-badge";
+import { ExchangeBadge } from "@/components/orders/exchange-badge";
 import { PaymentStatusBadge } from "@/components/orders/payment-status-badge";
 import { OrderReturnSheet } from "@/components/orders/detail/order-return-sheet";
 import { errorMessageKey } from "@/lib/error-message-key";
+import { isOrderExchangeable } from "@/lib/order-exchange";
 
 // Anti-theft (spec.md): whoever rang an order up must not undo it, so return/cancel/delete are permission-gated.
 export function OrderHeader({ order }: { order: Order }) {
@@ -41,7 +43,9 @@ export function OrderHeader({ order }: { order: Order }) {
   const canReturn =
     can(user, "order.return") && (RETURNABLE_ORDER_STATUSES as readonly string[]).includes(order.status);
   const canCancel = (ORDER_STATUS_TRANSITIONS[order.status] ?? []).includes("CANCELLED") && can(user, "order.cancel");
-  const canDelete = can(user, "order.delete");
+  // The order an exchange carries over can't be deleted; the backend refuses it either way.
+  const canDelete = can(user, "order.delete") && order.exchanges.length === 0;
+  const canExchange = can(user, "order.exchange") && isOrderExchangeable(order);
   const hasQuickSale = order.hasQuickSale || order.items.some((item) => item.quickSold);
 
   // Undoing a credit sale pays back what the customer already paid, from the till.
@@ -136,11 +140,22 @@ export function OrderHeader({ order }: { order: Order }) {
               )}
               <OrderTypeBadge type={order.type} />
               {hasQuickSale && <QuickSaleBadge />}
+              {order.exchangeOf && <ExchangeBadge />}
             </div>
           </div>
         </div>
 
         <div className="flex shrink-0 items-center gap-2">
+          {canExchange && (
+            <Button
+              variant="secondary"
+              onClick={() => router.push(`/orders/${order.id}/exchange`)}
+              data-test-selector="order-exchange"
+              icon={<ArrowLeftRight className="size-4" aria-hidden="true" />}
+            >
+              {t("exchange.action")}
+            </Button>
+          )}
           {canReturn && (
             <Button
               variant="secondary"

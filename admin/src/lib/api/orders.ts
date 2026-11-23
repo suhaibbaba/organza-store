@@ -2,12 +2,19 @@ import type {
   CollectResult,
   CollectionSummary,
   Coordinates,
+  ExchangePreview,
   Order,
   OrderStatus,
   OrderSummary,
 } from "@store/shared/types/order";
 import type { Pagination } from "@store/shared/types/common";
-import type { CreateOrderInput, ResolveMapLinkInput, ReturnOrderInput } from "@store/shared/schemas/order";
+import type {
+  CreateOrderInput,
+  ExchangeOrderInput,
+  ExchangePreviewInput,
+  ResolveMapLinkInput,
+  ReturnOrderInput,
+} from "@store/shared/schemas/order";
 import { apiFetch } from "@/lib/api/client";
 import type { OrderListFilters } from "@/types/order";
 
@@ -43,6 +50,9 @@ function buildOrderListQuery(filters: OrderListFilters): string {
   }
   if (filters.hasQuickSale) {
     params.set("hasQuickSale", "true");
+  }
+  if (filters.isExchange) {
+    params.set("isExchange", "true");
   }
   if (filters.dateFrom) {
     params.set("dateFrom", startOfDayIso(filters.dateFrom));
@@ -85,6 +95,21 @@ export async function updateOrderStatus(id: string, status: OrderStatus): Promis
 // No items = the whole order; stock is restored server-side either way.
 export async function returnOrder(id: string, input: ReturnOrderInput): Promise<Order> {
   const { data } = await apiFetch<Order>(`/api/orders/${id}/return`, { method: "POST", body: input });
+  return data;
+}
+
+// What the chosen pieces carry over if brought back now; writes nothing.
+export async function previewExchange(id: string, input: ExchangePreviewInput): Promise<ExchangePreview> {
+  const { data } = await apiFetch<ExchangePreview>(`/api/orders/${id}/exchange/preview`, {
+    method: "POST",
+    body: input,
+  });
+  return data;
+}
+
+// Answers with the NEW order holding the new pieces (spec.md "Exchanges").
+export async function exchangeOrder(id: string, input: ExchangeOrderInput): Promise<Order> {
+  const { data } = await apiFetch<Order>(`/api/orders/${id}/exchange`, { method: "POST", body: input });
   return data;
 }
 

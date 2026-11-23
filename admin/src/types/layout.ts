@@ -6,7 +6,7 @@
 // is which, the tone only reinforces it.
 export type StatCardTone = "default" | "warning" | "success";
 
-export type BreadcrumbLeafKind = "detail" | "new" | "edit";
+export type BreadcrumbLeafKind = "detail" | "new" | "edit" | "exchange";
 
 export interface BreadcrumbCrumb {
   key: string;

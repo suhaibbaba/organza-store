@@ -1,6 +1,6 @@
 import { useLocale, useTranslations } from "next-intl";
 import type { ReactNode } from "react";
-import { HandHelping, Package, Store, Undo2, Zap } from "lucide-react";
+import { ArrowLeftRight, HandHelping, Package, Store, Undo2, Zap } from "lucide-react";
 import { Button, Table, type Column, Typography } from "@store/ui";
 import type { OrderItem } from "@store/shared/types/order";
 import { testSelectorFor } from "@store/shared/lib/testSelector";
@@ -158,14 +158,26 @@ export function OrderItemsList({
                   {t("quickSold")}
                 </Typography>
               )}
-              {item.returnedQuantity > 0 && (
+              {/* returnedQuantity includes the exchanged pieces; each is told apart. */}
+              {item.returnedQuantity - item.exchangedQuantity > 0 && (
                 <Typography
                   variant="small"
                   as="span"
                   className="inline-flex items-center gap-1 font-normal text-warning-700"
                 >
                   <Undo2 className="size-3.5 rtl:-scale-x-100" aria-hidden="true" />
-                  {t("returned", { count: item.returnedQuantity })}
+                  {t("returned", { count: item.returnedQuantity - item.exchangedQuantity })}
+                </Typography>
+              )}
+              {item.exchangedQuantity > 0 && (
+                <Typography
+                  variant="small"
+                  as="span"
+                  className="inline-flex items-center gap-1 font-normal text-tint-3-ink"
+                  data-test-selector={testSelectorFor("order-item-exchanged", item.id)}
+                >
+                  <ArrowLeftRight className="size-3.5" aria-hidden="true" />
+                  {t("exchanged", { count: item.exchangedQuantity })}
                 </Typography>
               )}
               {renderHandover(item)}

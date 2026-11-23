@@ -93,7 +93,7 @@ export interface CreditReconciled {
   paymentStatus: PaymentStatus;
 }
 
-// After a cancel, return, delete or re-discount: pays back what was paid beyond the order's new worth, then re-settles.
+// After a cancel, return, delete or re-discount of a credit sale or an exchange: pays back what was paid beyond the order's new worth, then re-settles.
 export async function reconcileCredit(
   tx: Prisma.TransactionClient,
   orderId: string,
@@ -103,7 +103,8 @@ export async function reconcileCredit(
     where: { id: orderId },
     include: { items: { select: { lineTotal: true, quantity: true, returnedQuantity: true } } },
   });
-  if (!order || !order.onCredit) {
+  // An exchange's order is followed payment by payment too, so taking its pieces back pays the cash back.
+  if (!order || !(order.onCredit || order.exchangeOfOrderId)) {
     return null;
   }
 

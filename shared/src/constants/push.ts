@@ -52,10 +52,19 @@ export const PUSH_MESSAGE_KEYS = {
   // a sentence — the Admin's own phone renders it in their language.
   CHANGE_REQUEST_TITLE: "push.changeRequest.title",
   CHANGE_REQUEST_BODY: "push.changeRequest.body",
+  // Pieces swapped by someone other than an Admin; the settlement is worded by push.exchange.settlement.<SETTLEMENT>.
+  EXCHANGE_TITLE: "push.exchange.title",
+  EXCHANGE_BODY: "push.exchange.body",
 } as const;
 
 /** Discriminates the payload so future notification kinds can share the worker. */
-export const PUSH_PAYLOAD_TYPES = { SALE: "sale", CHANGE_REQUEST: "changeRequest" } as const;
+export const PUSH_PAYLOAD_TYPES = { SALE: "sale", CHANGE_REQUEST: "changeRequest", EXCHANGE: "exchange" } as const;
+
+/** Whose exchanges are announced (spec.md "Exchanges"): not an Admin's own, who was standing there. */
+export const EXCHANGE_NOTIFICATION_TRIGGER_ROLES = ["MANAGER", "EMPLOYEE"] as const;
+
+/** Who is told: whoever runs the shop, never the person who made it. */
+export const EXCHANGE_NOTIFICATION_ROLES = ["ADMIN", "MANAGER"] as const;
 
 /**
  * Whose devices are told about a new change request: the people who can

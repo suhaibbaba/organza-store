@@ -53,3 +53,8 @@ export const POS_ENROLLMENT_QUERY_KEY = ["posDevice", "enrollment"] as const;
 export const POS_MEMBERS_QUERY_KEY = ["posDevice", "members"] as const;
 // Store-wide answers that stay valid when a different person unlocks the till.
 export const SHARED_QUERY_ROOTS: readonly string[] = ["settings", "version"];
+
+// Exchanges: past sales to swap pieces from, one sale in full, and what its chosen pieces carry over.
+export const EXCHANGE_ORDERS_QUERY_KEY = ["orders", "exchangeSearch"] as const;
+export const ORDER_DETAIL_QUERY_KEY = ["orders", "detail"] as const;
+export const EXCHANGE_PREVIEW_QUERY_KEY = ["orders", "exchangePreview"] as const;

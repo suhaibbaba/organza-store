@@ -378,7 +378,10 @@
       "chipDateFrom": "From {date}",
       "chipDateTo": "Until {date}",
       "chipDates": "{from} — {to}",
-      "removeFilter": "Remove filter: {name}"
+      "removeFilter": "Remove filter: {name}",
+      "exchange": "Exchanges only",
+      "exchangeHint": "Sales whose pieces replaced pieces brought back.",
+      "chipExchange": "Exchanges"
     },
     "status": {
       "NEW": "New",
@@ -472,13 +475,16 @@
         "quantityHeader": "Qty",
         "unitPriceHeader": "Unit price",
         "discountHeader": "Discount",
-        "lineTotalHeader": "Total"
+        "lineTotalHeader": "Total",
+        "exchanged": "{count} exchanged"
       },
       "totals": {
         "subtotal": "Subtotal",
         "orderDiscount": "Order discount ({label})",
         "total": "Total",
-        "paymentMethod": "Payment method"
+        "paymentMethod": "Payment method",
+        "exchangeKept": "Difference kept by the shop",
+        "exchangeCredit": "Paid with pieces brought back"
       },
       "customer": {
         "title": "Customer",
@@ -558,7 +564,9 @@
         "paidOff": "Paid off in full.",
         "modalTitle": "Payment on order #{number}",
         "modalDescription": "Any amount up to what this order still owes.",
-        "refundConsequence": "{amount} already paid is given back from the till."
+        "refundConsequence": "{amount} already paid is given back from the till.",
+        "exchangeIn": "Pieces brought back",
+        "exchangeOut": "Carried to an exchange"
       },
       "handover": {
         "kept": "Kept in the shop",
@@ -681,6 +689,14 @@
         "credit": {
           "title": "On credit",
           "description": "The customer pays later, in one go or bit by bit."
+        },
+        "returning": {
+          "title": "Coming back",
+          "description": "The pieces the customer returned, from this order."
+        },
+        "settlement": {
+          "title": "The difference",
+          "description": "What the pieces coming back are worth against the new ones."
         }
       },
       "save": "Create order",
@@ -748,6 +764,73 @@
       "confirmConsequence": "This records that the delivery company paid {amount} for this order.",
       "confirmAction": "Money received",
       "collected": "Payment recorded."
+    },
+    "exchange": {
+      "badge": "Exchange",
+      "action": "Exchange",
+      "title": "Exchange from order {number}",
+      "subtitle": "Pick the pieces coming back, add the new ones, then say how the difference was settled.",
+      "notPossible": "This order can't be exchanged: only a finished, paid sale with pieces still with the customer can.",
+      "needReturning": "Choose at least one piece coming back.",
+      "needNew": "Add at least one new piece.",
+      "notePlaceholder": "Why the pieces were exchanged (optional)",
+      "confirm": "Complete exchange",
+      "done": "Exchange saved as order {number}.",
+      "returning": {
+        "soldAt": "Sold at {price} · {count} with the customer",
+        "decrease": "Fewer — {name}",
+        "increase": "More — {name}",
+        "quantityFor": "Quantity coming back — {name}"
+      },
+      "settlement": {
+        "returned": "Pieces coming back are worth",
+        "newTotal": "New pieces total",
+        "label": "How was the difference settled?",
+        "side": {
+          "customer": "Customer pays",
+          "shop": "Shop owes the customer",
+          "even": "Even — nothing to pay"
+        },
+        "options": {
+          "PAID": {
+            "label": "Customer paid it",
+            "description": "{amount} goes into the drawer."
+          },
+          "DEBT": {
+            "label": "Customer owes it",
+            "description": "{amount} is added to the customer's account."
+          },
+          "WAIVED": {
+            "label": "Let it go",
+            "description": "{amount} is given as a discount."
+          },
+          "REFUNDED": {
+            "label": "Paid back to the customer",
+            "description": "{amount} comes out of the drawer."
+          },
+          "KEPT": {
+            "label": "Shop keeps it",
+            "description": "{amount} stays with the shop as income."
+          }
+        },
+        "debtCustomer": "Who owes it",
+        "debtOriginalCustomer": "Added to {name}'s account, the customer of the original sale.",
+        "debtCustomerRequired": "Choose the customer who owes the difference."
+      },
+      "detail": {
+        "title": "Exchange",
+        "of": "Exchange of order {number}",
+        "to": "Exchanged in order {number}",
+        "credit": "Pieces brought back were worth {amount}",
+        "settlement": {
+          "EVEN": "Even — nothing changed hands",
+          "PAID": "The customer paid the difference",
+          "DEBT": "The customer owes the difference",
+          "WAIVED": "The difference was let go as a discount",
+          "REFUNDED": "The difference was paid back to the customer",
+          "KEPT": "The shop kept the difference"
+        }
+      }
     }
   },
   "reports": {
@@ -1532,6 +1615,18 @@
     "changeRequest": {
       "title": "Approval needed",
       "body": "{staff} asked to change {field} on {item} — {count} waiting"
+    },
+    "exchange": {
+      "title": "Exchange",
+      "body": "{staff} exchanged pieces from order #{originalOrderNumber} — {settlement} {difference}",
+      "settlement": {
+        "EVEN": "even",
+        "PAID": "customer paid",
+        "DEBT": "customer owes",
+        "WAIVED": "difference let go",
+        "REFUNDED": "paid back",
+        "KEPT": "shop kept"
+      }
     }
   },
   "users": {
@@ -1791,7 +1886,12 @@
     "supplierPaymentExceedsBalance": "The amount is more than what is owed.",
     "supplierInvoiceBelowPaid": "An invoice total can't be less than what was already paid on it.",
     "supplierInvoiceHasPayments": "An invoice with payments on it can't be deleted.",
-    "profilePasskeyNotFound": "This passkey is no longer on your account."
+    "profilePasskeyNotFound": "This passkey is no longer on your account.",
+    "orderNotExchangeable": "This order can't be exchanged.",
+    "orderExchangeQuickSell": "A quick-sale piece can't be part of an exchange; add it to the catalogue first.",
+    "orderExchangeSettlementInvalid": "That settlement doesn't fit the difference — check who owes whom.",
+    "orderExchangeCustomerRequired": "Choose the customer who owes the difference.",
+    "orderHasExchanges": "This order is part of an exchange, so it can't be deleted or re-priced. Return its pieces instead."
   },
   "pwa": {
     "version": {
@@ -1967,7 +2067,8 @@
         "createGift": "Give stock away as a gift",
         "sellOnCredit": "Sell on credit",
         "recordPayment": "Take a payment on credit",
-        "markHandedOver": "Hand over a piece kept for a customer"
+        "markHandedOver": "Hand over a piece kept for a customer",
+        "exchange": "Exchange pieces"
       },
       "report": {
         "view": "Open the reports"
@@ -2262,7 +2363,8 @@
     "edit": "Edit",
     "orders": {
       "detail": "Order details",
-      "new": "New order"
+      "new": "New order",
+      "exchange": "Exchange"
     },
     "products": {
       "detail": "Product details",
@@ -2274,7 +2376,8 @@
     },
     "suppliers": {
       "detail": "Supplier details"
-    }
+    },
+    "exchange": "Exchange"
   },
   "globalSearch": {
     "label": "Search the shop",
