@@ -77,7 +77,8 @@
     "expand": "הרחבת התפריט",
     "expenses": "הוצאות",
     "customers": "לקוחות",
-    "suppliers": "ספקים"
+    "suppliers": "ספקים",
+    "salesLog": "יומן מכירות"
   },
   "auth": {
     "login": {
@@ -147,10 +148,16 @@
         "help": "מכירות היום פחות עלות הסחורה וההוצאות. כולל כל מכירה, גם כזו שחברת המשלוחים עדיין לא שילמה עליה.",
         "hint": "אחרי עלות והוצאות"
       },
-      "ordersLabel": "הזמנות",
+      "ordersLabel": "הזמנות היום",
       "pieces": "{count, plural, =0 {אין פריטים} one {פריט אחד} other {{count, number, plain} פריטים}}",
       "averageHint": "ממוצע {amount}",
-      "owedSplit": "שליחויות {courier} · לקוחות {customers}"
+      "owedSplit": "שליחויות {courier} · לקוחות {customers}",
+      "openSales": "פתיחת מכירות היום",
+      "soldLabel": "נמכר היום",
+      "receivedLabel": "התקבל היום",
+      "owedLabel": "חוב מהיום",
+      "openOrders": "פתיחת הזמנות היום",
+      "openCollection": "פתיחת כספים שטרם נגבו"
     },
     "drawer": {
       "title": "קופת מזומן",
@@ -284,7 +291,8 @@
       "none": "אין מכירות ב-7 הימים האחרונים",
       "today": "היום",
       "chart": "מכירות לכל יום בשבעת הימים האחרונים",
-      "day": "{day}: {amount}"
+      "day": "{day}: {amount}",
+      "more": "הצגת המכירות"
     },
     "recent": {
       "title": "הזמנות אחרונות",
@@ -370,7 +378,10 @@
       "chipDateFrom": "מ־{date}",
       "chipDateTo": "עד {date}",
       "chipDates": "{from} — {to}",
-      "removeFilter": "הסרת סינון: {name}"
+      "removeFilter": "הסרת סינון: {name}",
+      "exchange": "החלפות בלבד",
+      "exchangeHint": "מכירות שהפריטים שלהן החליפו פריטים שהוחזרו.",
+      "chipExchange": "החלפות"
     },
     "status": {
       "NEW": "חדשה",
@@ -458,20 +469,22 @@
       "notFoundDescription": "ייתכן שההזמנה נמחקה.",
       "items": {
         "title": "{count, plural, one {פריט אחד} two {שני פריטים} other {{count, number, plain} פריטים}}",
-        "noSku": "ללא מק\"ט",
         "returned": "{count} הוחזרו",
         "quickSold": "מכירה מהירה — עדיין ללא עלות",
         "piece": "פריט",
         "quantityHeader": "כמות",
         "unitPriceHeader": "מחיר ליחידה",
         "discountHeader": "הנחה",
-        "lineTotalHeader": "סה״כ"
+        "lineTotalHeader": "סה״כ",
+        "exchanged": "{count} הוחלפו"
       },
       "totals": {
         "subtotal": "סכום ביניים",
         "orderDiscount": "הנחה על ההזמנה ({label})",
         "total": "סה\"כ",
-        "paymentMethod": "אמצעי תשלום"
+        "paymentMethod": "אמצעי תשלום",
+        "exchangeKept": "הפרש שהחנות שמרה",
+        "exchangeCredit": "שולם בפריטים שהוחזרו"
       },
       "customer": {
         "title": "פרטי הלקוח",
@@ -551,7 +564,9 @@
         "paidOff": "שולם במלואו.",
         "modalTitle": "תשלום על הזמנה #{number}",
         "modalDescription": "כל סכום עד היתרה של ההזמנה.",
-        "refundConsequence": "{amount} ששולמו יוחזרו מהקופה."
+        "refundConsequence": "{amount} ששולמו יוחזרו מהקופה.",
+        "exchangeIn": "פריטים שהוחזרו",
+        "exchangeOut": "הועבר להחלפה"
       },
       "handover": {
         "kept": "שמור בחנות",
@@ -674,6 +689,14 @@
         "credit": {
           "title": "בהקפה",
           "description": "הלקוח משלם מאוחר יותר, בבת אחת או בחלקים."
+        },
+        "returning": {
+          "title": "פריטים שחוזרים",
+          "description": "הפריטים שהלקוח החזיר מהזמנה זו."
+        },
+        "settlement": {
+          "title": "ההפרש",
+          "description": "שווי הפריטים שחוזרים מול החדשים."
         }
       },
       "save": "יצירת הזמנה",
@@ -741,6 +764,73 @@
       "confirmConsequence": "יירשם שחברת המשלוחים שילמה {amount} עבור ההזמנה.",
       "confirmAction": "הכסף התקבל",
       "collected": "התשלום נרשם."
+    },
+    "exchange": {
+      "badge": "החלפה",
+      "action": "החלפה",
+      "title": "החלפה מהזמנה {number}",
+      "subtitle": "בחרו את הפריטים שחוזרים, הוסיפו את החדשים, וציינו איך הוסדר ההפרש.",
+      "notPossible": "אי אפשר להחליף הזמנה זו: רק מכירה שהסתיימה ושולמה, שעדיין יש ללקוח פריטים ממנה.",
+      "needReturning": "בחרו לפחות פריט אחד שחוזר.",
+      "needNew": "הוסיפו לפחות פריט חדש אחד.",
+      "notePlaceholder": "סיבת ההחלפה (לא חובה)",
+      "confirm": "השלמת ההחלפה",
+      "done": "ההחלפה נשמרה כהזמנה {number}.",
+      "returning": {
+        "soldAt": "נמכר ב־{price} · {count} אצל הלקוח",
+        "decrease": "פחות — {name}",
+        "increase": "יותר — {name}",
+        "quantityFor": "כמות שחוזרת — {name}"
+      },
+      "settlement": {
+        "returned": "שווי הפריטים שחוזרים",
+        "newTotal": "סך הפריטים החדשים",
+        "label": "איך הוסדר ההפרש?",
+        "side": {
+          "customer": "הלקוח משלם",
+          "shop": "החנות חייבת ללקוח",
+          "even": "שווה — אין הפרש"
+        },
+        "options": {
+          "PAID": {
+            "label": "הלקוח שילם",
+            "description": "{amount} נכנס לקופה."
+          },
+          "DEBT": {
+            "label": "הלקוח חייב",
+            "description": "{amount} נוסף לחשבון הלקוח."
+          },
+          "WAIVED": {
+            "label": "ויתור על ההפרש",
+            "description": "{amount} ניתן כהנחה."
+          },
+          "REFUNDED": {
+            "label": "הוחזר ללקוח",
+            "description": "{amount} יוצא מהקופה."
+          },
+          "KEPT": {
+            "label": "החנות שמרה",
+            "description": "{amount} נשאר בחנות כהכנסה."
+          }
+        },
+        "debtCustomer": "מי חייב",
+        "debtOriginalCustomer": "נוסף לחשבון של {name}, הלקוח של המכירה המקורית.",
+        "debtCustomerRequired": "בחרו את הלקוח שחייב את ההפרש."
+      },
+      "detail": {
+        "title": "החלפה",
+        "of": "החלפה מהזמנה {number}",
+        "to": "הוחלף בהזמנה {number}",
+        "credit": "שווי הפריטים שהוחזרו {amount}",
+        "settlement": {
+          "EVEN": "שווה — לא עבר כסף",
+          "PAID": "הלקוח שילם את ההפרש",
+          "DEBT": "הלקוח חייב את ההפרש",
+          "WAIVED": "ויתרו על ההפרש כהנחה",
+          "REFUNDED": "ההפרש הוחזר ללקוח",
+          "KEPT": "החנות שמרה את ההפרש"
+        }
+      }
     }
   },
   "reports": {
@@ -749,6 +839,8 @@
     "updating": "מתעדכן…",
     "range": {
       "today": "היום",
+      "last2Days": "יומיים אחרונים",
+      "thisWeek": "השבוע",
       "last7Days": "7 הימים האחרונים",
       "last30Days": "30 הימים האחרונים",
       "thisMonth": "החודש",
@@ -756,7 +848,8 @@
       "from": "מתאריך",
       "to": "עד תאריך",
       "label": "תקופה",
-      "dates": "תאריכים"
+      "dates": "תאריכים",
+      "span": "{from} – {to}"
     },
     "totals": {
       "title": "מכירות בתקופה זו",
@@ -1522,6 +1615,18 @@
     "changeRequest": {
       "title": "נדרש אישור",
       "body": "{staff} ביקש לשנות {field} ב{item} — {count} ממתינים"
+    },
+    "exchange": {
+      "title": "החלפה",
+      "body": "{staff} החליף/ה פריטים מהזמנה #{originalOrderNumber} — {settlement} {difference}",
+      "settlement": {
+        "EVEN": "שווה",
+        "PAID": "הלקוח שילם",
+        "DEBT": "הלקוח חייב",
+        "WAIVED": "ויתור",
+        "REFUNDED": "הוחזר",
+        "KEPT": "החנות שמרה"
+      }
     }
   },
   "users": {
@@ -1781,7 +1886,12 @@
     "supplierPaymentExceedsBalance": "הסכום גבוה ממה שמגיע.",
     "supplierInvoiceBelowPaid": "סכום החשבונית לא יכול להיות נמוך ממה שכבר שולם.",
     "supplierInvoiceHasPayments": "אי אפשר למחוק חשבונית ששולם עליה משהו.",
-    "profilePasskeyNotFound": "מפתח הגישה הזה כבר לא בחשבון."
+    "profilePasskeyNotFound": "מפתח הגישה הזה כבר לא בחשבון.",
+    "orderNotExchangeable": "אי אפשר להחליף הזמנה זו.",
+    "orderExchangeQuickSell": "פריט ממכירה מהירה לא יכול להיות חלק מהחלפה; הוסיפו אותו לקטלוג קודם.",
+    "orderExchangeSettlementInvalid": "אופן ההסדר לא מתאים להפרש — בדקו מי חייב למי.",
+    "orderExchangeCustomerRequired": "בחרו את הלקוח שחייב את ההפרש.",
+    "orderHasExchanges": "הזמנה זו היא חלק מהחלפה, ולכן אי אפשר למחוק אותה או לשנות את מחירה. החזירו את הפריטים במקום."
   },
   "pwa": {
     "version": {
@@ -1957,7 +2067,8 @@
         "createGift": "מסירת מלאי כמתנה",
         "sellOnCredit": "מכירה בהקפה",
         "recordPayment": "קבלת תשלום על הקפה",
-        "markHandedOver": "מסירת פריט ששמור ללקוח"
+        "markHandedOver": "מסירת פריט ששמור ללקוח",
+        "exchange": "החלפת פריטים"
       },
       "report": {
         "view": "פתיחת הדוחות"
@@ -2001,6 +2112,9 @@
         "view": "צפייה בספקים ובמה שמגיע להם",
         "manage": "הוספה ועריכה של ספקים וחשבוניות",
         "pay": "תשלום לספקים"
+      },
+      "sales": {
+        "view": "פתיחת יומן המכירות"
       }
     },
     "adminNote": "למנהל המערכת יש תמיד את כל ההרשאות, ולכן הוא לא מופיע כאן.",
@@ -2249,7 +2363,8 @@
     "edit": "עריכה",
     "orders": {
       "detail": "פרטי הזמנה",
-      "new": "הזמנה חדשה"
+      "new": "הזמנה חדשה",
+      "exchange": "החלפה"
     },
     "products": {
       "detail": "פרטי מוצר",
@@ -2261,7 +2376,8 @@
     },
     "suppliers": {
       "detail": "פרטי ספק"
-    }
+    },
+    "exchange": "החלפה"
   },
   "globalSearch": {
     "label": "חיפוש בחנות",
@@ -2767,6 +2883,29 @@
         "fromDrawer": "מהקופה",
         "notFromDrawer": "לא מהקופה"
       }
+    }
+  },
+  "sales": {
+    "title": "יומן מכירות",
+    "subtitle": "כל מה שנמכר בתקופה, וכל פריט שיצא מהחנות.",
+    "openOrders": "הזמנות התקופה",
+    "returns": "{count, plural, one {פריט אחד הוחזר} other {{count, number, plain} פריטים הוחזרו}} בשווי {amount}; כבר נוכה מהנתונים למעלה.",
+    "empty": {
+      "title": "לא נמכר דבר בתקופה זו",
+      "hint": "בחרו תקופה אחרת כדי לראות מה נמכר בה."
+    },
+    "items": {
+      "title": "פריטים שיצאו מהחנות",
+      "titleCount": "פריטים שיצאו מהחנות ({count})",
+      "sortLabel": "מיון",
+      "sort": {
+        "quantity": "הכי הרבה פריטים",
+        "revenue": "המכירות הגבוהות"
+      },
+      "product": "מוצר",
+      "quantity": "כמות",
+      "revenue": "מכירות",
+      "profit": "רווח"
     }
   }
 }

@@ -64,6 +64,24 @@ export interface ChangeRequestNotificationPayload {
   defaultLanguage: string;
 }
 
+/** An exchange made by a Manager or an Employee (spec.md "Exchanges"); tapping opens the new order. */
+export interface ExchangeNotificationPayload {
+  type: PushPayloadType;
+  titleKey: string;
+  bodyKey: string;
+  orderId: string;
+  orderNumber: number;
+  /** The sale the pieces came back from. */
+  originalOrderNumber: number;
+  /** The price difference, unsigned; the settlement says which way it went. */
+  difference: string;
+  currency: string;
+  settlement: string;
+  staffName: string;
+  locale: string | null;
+  defaultLanguage: string;
+}
+
 export interface SaleNotificationPayload {
   type: PushPayloadType;
   titleKey: string;

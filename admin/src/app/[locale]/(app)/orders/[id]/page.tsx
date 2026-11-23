@@ -19,6 +19,7 @@ import { OrderMetaCard } from "@/components/orders/detail/order-meta-card";
 import { OrderStatusActions } from "@/components/orders/detail/order-status-actions";
 import { OrderPaymentCard } from "@/components/orders/detail/order-payment-card";
 import { OrderHeader } from "@/components/orders/detail/order-header";
+import { OrderExchangeCard } from "@/components/orders/detail/order-exchange-card";
 import { useOrderHandover } from "@/hooks/use-order-handover";
 
 export default function OrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -87,6 +88,7 @@ function OrderDetailPageContent({ params }: { params: Promise<{ id: string }> })
 
           <aside className="flex min-w-0 flex-col gap-4">
             <OrderStatusActions order={order} />
+            <OrderExchangeCard order={order} />
             <OrderPaymentCard order={order} />
             {/* A counter sale has no customer card, unless it was sold on credit to a named customer. */}
             {(isOnline || order.onCredit) && <OrderCustomerCard order={order} />}

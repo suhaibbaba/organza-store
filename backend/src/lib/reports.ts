@@ -52,6 +52,8 @@ export function lineView(range: ReportRange | null): Prisma.Sql {
       oi.sku          AS sku,
       (oi.quantity - oi."returnedQuantity")::numeric AS net_units,
       oi."returnedQuantity"::numeric                 AS returned_units,
+      oi."exchangedQuantity"::numeric                AS exchanged_units,
+      (o."exchangeOfOrderId" IS NOT NULL)            AS is_exchange,
       oi."unitPrice"                                 AS unit_gross_price,
       -- What this unit really earned: its line total (item discount already
       -- applied) divided by the units on the line, times this order's
@@ -155,6 +157,7 @@ export async function queryTopSellers(
   range: ReportRange,
   by: "revenue" | "quantity",
   limit: number,
+  offset = 0,
 ): Promise<TopSellerRow[]> {
   const orderBy = by === "revenue" ? Prisma.sql`"revenue" DESC` : Prisma.sql`"quantity" DESC`;
   return prisma.$queryRaw<TopSellerRow[]>`
@@ -171,9 +174,20 @@ export async function queryTopSellers(
     FROM line
     GROUP BY product_id, variant_id
     HAVING SUM(net_units) > 0
-    ORDER BY ${orderBy}, "quantity" DESC
-    LIMIT ${limit}
+    ORDER BY ${orderBy}, "quantity" DESC, product_id, variant_id
+    LIMIT ${limit} OFFSET ${offset}
   `;
+}
+
+// How many rows queryTopSellers can page through, for the Sales log's pagination.
+export async function countSoldItems(range: ReportRange): Promise<number> {
+  const rows = await prisma.$queryRaw<{ count: bigint }[]>`
+    WITH line AS (${lineView(range)})
+    SELECT COUNT(*) AS "count" FROM (
+      SELECT 1 FROM line GROUP BY product_id, variant_id HAVING SUM(net_units) > 0
+    ) sold
+  `;
+  return Number(rows[0]?.count ?? 0);
 }
 
 // Revenue per viewer-local day, grouped on the shifted clock so a 23:30 sale stays on its own day.

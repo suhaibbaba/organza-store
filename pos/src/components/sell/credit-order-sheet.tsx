@@ -2,32 +2,16 @@
 
 import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { Clock, Plus, UserRound, X } from "lucide-react";
-import {
-  Alert,
-  Button,
-  CardButton,
-  Checkbox,
-  FormField,
-  IconButton,
-  Input,
-  SearchField,
-  Spinner,
-  Typography,
-} from "@store/ui";
-import { createCustomerSchema } from "@store/shared/schemas/customer";
+import { Clock } from "lucide-react";
+import { Alert, Button, Checkbox, FormField, Typography } from "@store/ui";
 import { fieldTestSelector, testSelectorFor } from "@store/shared/lib/testSelector";
-import type { Customer, CustomerSummary } from "@store/shared/types/customer";
 import { BottomSheet } from "@/components/sell/bottom-sheet";
-import { ShopPhoneInput } from "@/components/sell/customer-phone-field";
+import { CustomerPicker, type PickedCustomer } from "@/components/sell/customer-picker";
 import { NumericInput } from "@/components/fields/numeric-input";
-import { useCreateCustomer, useCustomerSearch } from "@/hooks/use-customer-search";
 import { useMoneyFormatter } from "@/hooks/use-money-formatter";
 import { useCurrencySymbol } from "@/hooks/use-currency-symbol";
 import { useTranslateError } from "@/hooks/use-translate-error";
-import { ApiError } from "@/lib/api/errors";
 import { localize } from "@/lib/i18n-content";
-import { ERROR_CODES } from "@store/shared/constants/errors";
 import type { CartLine } from "@/types/cart";
 import type { CreditCheckout } from "@/types/customer";
 
@@ -57,38 +41,18 @@ function CreditOrderForm({
   onConfirm,
 }: CreditOrderSheetProps) {
   const t = useTranslations("sell.credit");
-  const tSearch = useTranslations("sell.search");
   const locale = useLocale();
   const formatMoney = useMoneyFormatter();
   const currency = useCurrencySymbol();
   const translateError = useTranslateError();
-  const [customer, setCustomer] = useState<Customer | CustomerSummary | null>(null);
-  const [query, setQuery] = useState("");
-  const [adding, setAdding] = useState(false);
-  const [newName, setNewName] = useState("");
-  const [newPhone, setNewPhone] = useState("");
+  const [customer, setCustomer] = useState<PickedCustomer | null>(null);
   const [paidNow, setPaidNow] = useState("");
   const [keptKeys, setKeptKeys] = useState<string[]>([]);
   const [submitted, setSubmitted] = useState(false);
-  const search = useCustomerSearch(query, customer === null && !adding);
-  const create = useCreateCustomer();
 
   const paid = Number(paidNow || 0);
   const tooMuch = paid > Number(total);
   const remaining = Math.max(0, Number(total) - paid);
-  const newCustomer = createCustomerSchema.safeParse({ name: newName.trim(), phone: newPhone });
-
-  async function addCustomer() {
-    if (!newCustomer.success) {
-      return;
-    }
-    try {
-      setCustomer(await create.mutateAsync(newCustomer.data));
-      setAdding(false);
-    } catch {
-      // Shown under the form from create.error.
-    }
-  }
 
   function confirm() {
     setSubmitted(true);
@@ -97,13 +61,6 @@ function CreditOrderForm({
     }
     onConfirm({ customerId: customer.id, paidNow, keptKeys });
   }
-
-  const owes = customer && "balance" in customer && Number(customer.balance) > 0 ? customer.balance : null;
-  const createErrorCode = create.error
-    ? create.error instanceof ApiError
-      ? create.error.code
-      : ERROR_CODES.INTERNAL
-    : null;
 
   return (
     <BottomSheet
@@ -121,156 +78,7 @@ function CreditOrderForm({
       description={t("subtitle")}
     >
       <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto px-5 pb-4">
-        <section className="flex flex-col gap-2" data-test-selector="pos-credit-customer">
-          <Typography as="h3" variant="small" weight="medium">
-            {t("customer")}
-          </Typography>
-          {customer ? (
-            <div className="flex items-center gap-3 rounded-panel border border-primary-200 bg-primary-50 px-4 py-3">
-              <UserRound className="size-5 shrink-0 text-primary-700" aria-hidden="true" />
-              <div className="flex min-w-0 flex-1 flex-col items-start">
-                <Typography variant="body" weight="semibold" className="break-words">
-                  {customer.name}
-                </Typography>
-                <Typography as="span" variant="small" tone="muted" dir="ltr" className="tabular-nums">
-                  {customer.phone}
-                </Typography>
-                {owes && (
-                  <Typography as="span" variant="small" tone="error">
-                    {t("alreadyOwes", { amount: formatMoney(owes) })}
-                  </Typography>
-                )}
-              </div>
-              <IconButton
-                data-testid="pos-credit-customer-clear"
-                label={t("changeCustomer")}
-                icon={<X className="size-5" aria-hidden="true" />}
-                onClick={() => setCustomer(null)}
-              />
-            </div>
-          ) : adding ? (
-            <div className="flex flex-col gap-3 rounded-panel border border-line p-3">
-              <FormField label="sell.credit.newName" htmlFor="pos-credit-new-name" required>
-                <Input
-                  id="pos-credit-new-name"
-                  data-testid={fieldTestSelector("pos-credit-new-name")}
-
-                  autoFocus
-                  value={newName}
-                  placeholder={t("newNamePlaceholder")}
-                  onChange={(event) => setNewName(event.target.value)}
-                />
-              </FormField>
-              <FormField label="sell.credit.newPhone" htmlFor="pos-credit-new-phone" required>
-                <ShopPhoneInput
-                  id="pos-credit-new-phone"
-                  value={newPhone}
-                  onChange={setNewPhone}
-                  onBlur={() => {}}
-                  invalid={newPhone !== "" && !newCustomer.success && newName.trim() !== ""}
-                />
-              </FormField>
-              {createErrorCode && (
-                <Alert tone="danger" data-testid="pos-credit-new-error">
-                  {translateError(createErrorCode)}
-                </Alert>
-              )}
-              <div className="flex gap-2">
-                <Button
-                  type="button"
-                  variant="secondary"
-                  className={"flex-1"}
-                  onClick={() => setAdding(false)}
-                  disabled={create.isPending}
-                >
-                  {t("back")}
-                </Button>
-                <Button
-                  type="button"
-                  className={"flex-1"}
-                  data-testid="pos-credit-new-save"
-                  disabled={!newCustomer.success}
-                  isLoading={create.isPending}
-                  onClick={() => void addCustomer()}
-                >
-                  {t("addCustomer")}
-                </Button>
-              </div>
-            </div>
-          ) : (
-            <>
-              <SearchField
-                id="pos-credit-search"
-                label={t("searchLabel")}
-                data-testid={fieldTestSelector("pos-credit-search")}
-
-                value={query}
-                placeholder={t("searchPlaceholder")}
-                onChange={(event) => setQuery(event.target.value)}
-                onClear={() => setQuery("")}
-                clearLabel={tSearch("clear")}
-              />
-              {search.isLooking && (
-                <div className="flex items-center gap-2">
-                  <Spinner />
-                  <Typography as="span" variant="small" tone="muted">
-                    {t("searching")}
-                  </Typography>
-                </div>
-              )}
-              {search.isActive && !search.isLooking && search.customers.length === 0 && (
-                <Typography variant="small" tone="muted">
-                  {t("noMatches")}
-                </Typography>
-              )}
-              {search.customers.length > 0 && (
-                <ul className="flex flex-col gap-2">
-                  {search.customers.map((found) => (
-                    <li key={found.id}>
-                      <CardButton
-                        onClick={() => setCustomer(found)}
-                        data-testid={testSelectorFor("pos-credit-customer-result", found.id)}
-                        className="items-center justify-between gap-3 px-4 py-3 focus-darken"
-                      >
-                        <span className="flex min-w-0 flex-col items-start">
-                          <Typography as="span" variant="body" weight="semibold" className="break-words">
-                            {found.name}
-                          </Typography>
-                          <Typography as="span" variant="small" tone="muted" dir="ltr" className="tabular-nums">
-                            {found.phone}
-                          </Typography>
-                        </span>
-                        {Number(found.balance) > 0 && (
-                          <Typography as="span" variant="small" tone="error" className="shrink-0 tabular-nums">
-                            {formatMoney(found.balance)}
-                          </Typography>
-                        )}
-                      </CardButton>
-                    </li>
-                  ))}
-                </ul>
-              )}
-              <Button
-                type="button"
-                variant="secondary"
-                className={"self-start"}
-                data-testid="pos-credit-new-customer"
-                icon={<Plus aria-hidden="true" />}
-                onClick={() => {
-                  setAdding(true);
-                  create.reset();
-                }}
-              >
-                {t("newCustomer")}
-              </Button>
-            </>
-          )}
-          {submitted && !customer && (
-            <Typography role="alert" variant="small" tone="error" data-test-selector="pos-credit-customer-error">
-              {t("customerRequired")}
-            </Typography>
-          )}
-        </section>
+        <CustomerPicker value={customer} onChange={setCustomer} showRequired={submitted} name="credit" />
 
         <section className="flex flex-col gap-2">
           <FormField

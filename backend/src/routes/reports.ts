@@ -6,6 +6,7 @@ import { validateQuery } from "@/middleware/validate";
 import { sendOk } from "@/lib/response";
 import { lastDaysRange, localDatesIn, periodRange, pickedRange } from "@/lib/reportRange";
 import {
+  countSoldItems,
   queryChannelTotals,
   queryDailySales,
   queryGiftCost,
@@ -21,13 +22,17 @@ import {
 } from "@/lib/reports";
 import { expenseTotal, queryExpenseTotals } from "@/lib/expenses";
 import {
+  salesPeriodQuerySchema,
   salesReportQuerySchema,
   salesSummaryQuerySchema,
+  soldItemsQuerySchema,
+  type SalesPeriodQuery,
   type SalesReportQuery,
   type SalesSummaryQuery,
+  type SoldItemsQuery,
 } from "@/validation/report";
 import { DASHBOARD_DAILY_SALES_DAYS, REPORT_PERIODS } from "@/constants";
-import type { DailySales, SalesReport, SalesSummary } from "@/types";
+import type { DailySales, SalesPeriod, SalesReport, SalesSummary } from "@/types";
 
 // Reports are gated on the screen they serve (report.view, dashboard.view), never on order.view (rule 19).
 const router = Router();
@@ -122,6 +127,46 @@ router.get(
     }
 
     sendOk(res, report);
+  }),
+);
+
+// GET /api/reports/period?from=&to= — the Sales log's headline: sold, received, owed and returns.
+router.get(
+  "/period",
+  requirePermission("sales.view"),
+  validateQuery(salesPeriodQuerySchema),
+  asyncHandler(async (req, res) => {
+    const query = req.validatedQuery as SalesPeriodQuery;
+    const range = pickedRange(query.from, query.to, query.tzOffset);
+    const totals = await queryTotals(range);
+    const period: SalesPeriod = {
+      range: { from: range.from.toISOString(), to: range.to.toISOString() },
+      totals: toSalesTotals(totals, can(req.user!, "product.viewCost")),
+      returns: toReturnsTotals(totals),
+    };
+    sendOk(res, period);
+  }),
+);
+
+// GET /api/reports/sold-items?from=&to= — every product/variant sold in the range, net of returns, a page at a time.
+router.get(
+  "/sold-items",
+  requirePermission("sales.view"),
+  validateQuery(soldItemsQuerySchema),
+  asyncHandler(async (req, res) => {
+    const query = req.validatedQuery as SoldItemsQuery;
+    const range = pickedRange(query.from, query.to, query.tzOffset);
+    const [total, rows] = await Promise.all([
+      countSoldItems(range),
+      queryTopSellers(range, query.sortBy, query.pageSize, (query.page - 1) * query.pageSize),
+    ]);
+    const thumbnails = await queryTopSellerThumbnails(rows);
+    sendOk(res, toTopSellers(rows, can(req.user!, "product.viewCost"), thumbnails), {
+      page: query.page,
+      pageSize: query.pageSize,
+      total,
+      totalPages: Math.max(1, Math.ceil(total / query.pageSize)),
+    });
   }),
 );
 

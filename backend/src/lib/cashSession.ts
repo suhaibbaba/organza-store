@@ -23,15 +23,17 @@ export function sessionDateString(date: Date): string {
 // Zero, in the same 2dp string shape every money field crosses the API in.
 const NO_MONEY = ZERO_MONEY().toFixed(MONEY_DECIMAL_PLACES);
 
-// Cash in the window: ordinary sales by collectedAt (per-line view, so returns agree), credit sales by each payment's day.
+// Cash in the window: ordinary sales by collectedAt (per-line view, so returns agree), credit sales and exchanges by each payment's day.
 async function queryCashSales(range: ReportRange): Promise<Prisma.Decimal> {
+  // An exchanged piece's cash never left the drawer: it was carried onto the exchange as a non-cash EXCHANGE payment.
   const rows = await prisma.$queryRaw<{ amount: Prisma.Decimal | null }[]>`
     WITH line AS (${lineView(null)})
     SELECT
-      (SELECT COALESCE(SUM(unit_net_price * net_units), 0)
+      (SELECT COALESCE(SUM(unit_net_price * (net_units + exchanged_units)), 0)
        FROM line
        WHERE payment_status = 'COLLECTED'
          AND NOT on_credit
+         AND NOT is_exchange
          AND payment_method = 'CASH'
          AND collected_at >= ${range.from}
          AND collected_at < ${range.to})

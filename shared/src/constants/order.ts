@@ -20,6 +20,22 @@ export const ORDER_STATUSES = ["NEW", "PREPARING", "HANDED_TO_COURIER", "COMPLET
 // Cash only for now, modeled as an enum so card/transfer can be added later without restructuring.
 export const PAYMENT_METHODS = ["CASH"] as const;
 
+// A payment row may also carry value from pieces swapped in an exchange; never an order's own method, never drawer cash.
+export const ORDER_PAYMENT_METHODS = [...PAYMENT_METHODS, "EXCHANGE"] as const;
+export const EXCHANGE_PAYMENT_METHOD = "EXCHANGE";
+
+// How an exchange's price difference was settled (spec.md "Exchanges"); mirrors enum ExchangeSettlement in the schema.
+export const EXCHANGE_SETTLEMENTS = ["EVEN", "PAID", "DEBT", "WAIVED", "REFUNDED", "KEPT"] as const;
+// The customer owes the difference: paid now, owed as a credit sale, or let go as a discount.
+export const EXCHANGE_SETTLEMENTS_CUSTOMER_PAYS = ["PAID", "DEBT", "WAIVED"] as const;
+// The shop owes the difference: paid back from the drawer, or kept.
+export const EXCHANGE_SETTLEMENTS_SHOP_PAYS = ["REFUNDED", "KEPT"] as const;
+// The pieces cost the same, so nothing changes hands.
+export const EXCHANGE_SETTLEMENT_EVEN = "EVEN";
+
+// Finished sales whose pieces the customer has in hand; a gift is never exchanged (nothing was paid to carry over).
+export const EXCHANGEABLE_ORDER_STATUSES = ["HANDED_TO_COURIER", "COMPLETED"] as const;
+
 // Selling and being paid are separate moments: a courier parcel is money the delivery company still owes.
 export const PAYMENT_STATUSES = ["PENDING_COLLECTION", "COLLECTED", "ON_CREDIT"] as const;
 

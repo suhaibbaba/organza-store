@@ -20,6 +20,10 @@ export const MAX_REPORT_RANGE_DAYS = 366;
 export const DEFAULT_TOP_SELLERS_LIMIT = 5;
 export const MAX_TOP_SELLERS_LIMIT = 50;
 
+// The Sales log lists every piece sold in the range, a page at a time, by quantity unless asked otherwise.
+export const SOLD_ITEMS_SORTS = ["quantity", "revenue"] as const;
+export const DEFAULT_SOLD_ITEMS_SORT = "quantity";
+
 // Margin percentage kept to money's 2 places, so the API never emits a repeating decimal.
 export const MARGIN_DECIMAL_PLACES = 2;
 

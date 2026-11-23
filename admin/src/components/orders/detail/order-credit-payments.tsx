@@ -7,6 +7,7 @@ import { Button, Typography } from "@store/ui";
 import { can } from "@store/shared/lib/permissions";
 import { testSelectorFor } from "@store/shared/lib/testSelector";
 import type { Order } from "@store/shared/types/order";
+import { EXCHANGE_PAYMENT_METHOD } from "@store/shared/constants/order";
 import { useSession } from "@/components/providers/session-provider";
 import { RecordPaymentModal } from "@/components/customers/record-payment-modal";
 import { useRecordOrderPaymentMutation } from "@/hooks/use-customers";
@@ -68,6 +69,8 @@ export function OrderCreditPayments({ order }: { order: Order }) {
         <ul className="flex flex-col divide-y divide-line rounded-panel border border-line">
           {order.payments.map((payment) => {
             const refund = Number(payment.amount) < 0;
+            const exchange = payment.method === EXCHANGE_PAYMENT_METHOD;
+            const labelKey = exchange ? (refund ? "exchangeOut" : "exchangeIn") : refund ? "refund" : "payment";
             return (
               <li
                 key={payment.id}
@@ -76,7 +79,7 @@ export function OrderCreditPayments({ order }: { order: Order }) {
               >
                 <div className="flex min-w-0 flex-col">
                   <Typography variant="body" as="span">
-                    {refund ? t("refund") : t("payment")}
+                    {t(labelKey)}
                   </Typography>
                   <Typography variant="small" tone="muted" as="span">
                     {formatDateTime(payment.receivedAt, locale)}

@@ -77,7 +77,8 @@
     "expand": "توسيع القائمة",
     "expenses": "المصاريف",
     "customers": "الزبائن",
-    "suppliers": "الموردون"
+    "suppliers": "الموردون",
+    "salesLog": "كشف المبيعات"
   },
   "auth": {
     "login": {
@@ -147,10 +148,16 @@
         "help": "مبيعات اليوم ناقص تكلفة البضاعة ومصاريف اليوم. يشمل كل عملية بيع، حتى التي لم تدفع شركة التوصيل ثمنها بعد.",
         "hint": "بعد التكلفة والمصاريف"
       },
-      "ordersLabel": "الطلبات",
+      "ordersLabel": "طلبات اليوم",
       "pieces": "{count, plural, =0 {لا قطع} one {قطعة واحدة} two {قطعتان} few {{count, number, plain} قطع} many {{count, number, plain} قطعة} other {{count, number, plain} قطعة}}",
       "averageHint": "المتوسط {amount}",
-      "owedSplit": "التوصيل {courier} · الزبائن {customers}"
+      "owedSplit": "التوصيل {courier} · الزبائن {customers}",
+      "openSales": "عرض مبيعات اليوم",
+      "soldLabel": "مبيعات اليوم",
+      "receivedLabel": "المقبوض اليوم",
+      "owedLabel": "المستحق من اليوم",
+      "openOrders": "عرض طلبات اليوم",
+      "openCollection": "عرض المبالغ غير المحصلة"
     },
     "drawer": {
       "title": "صندوق النقد",
@@ -284,7 +291,8 @@
       "none": "لا مبيعات في آخر 7 أيام",
       "today": "اليوم",
       "chart": "مبيعات كل يوم في آخر سبعة أيام",
-      "day": "{day}: {amount}"
+      "day": "{day}: {amount}",
+      "more": "عرض المبيعات"
     },
     "recent": {
       "title": "آخر الطلبات",
@@ -370,7 +378,10 @@
       "chipDateFrom": "من {date}",
       "chipDateTo": "حتى {date}",
       "chipDates": "{from} — {to}",
-      "removeFilter": "إزالة التصفية: {name}"
+      "removeFilter": "إزالة التصفية: {name}",
+      "exchange": "الاستبدالات فقط",
+      "exchangeHint": "بيعات قطعها بدل قطع رجعت.",
+      "chipExchange": "استبدالات"
     },
     "status": {
       "NEW": "جديد",
@@ -458,20 +469,22 @@
       "notFoundDescription": "قد يكون هذا الطلب محذوفًا.",
       "items": {
         "title": "{count, plural, one {منتج واحد} two {منتجان} few {{count, number, plain} منتجات} other {{count, number, plain} منتجًا}}",
-        "noSku": "بدون SKU",
         "returned": "تم إرجاع {count} من هذا المنتج",
         "quickSold": "بيع سريع — بدون تكلفة بعد",
         "piece": "القطعة",
         "quantityHeader": "الكمية",
         "unitPriceHeader": "سعر القطعة",
         "discountHeader": "الخصم",
-        "lineTotalHeader": "المجموع"
+        "lineTotalHeader": "المجموع",
+        "exchanged": "{count} مستبدلة"
       },
       "totals": {
         "subtotal": "المجموع الفرعي",
         "orderDiscount": "خصم على الطلب ({label})",
         "total": "المجموع النهائي",
-        "paymentMethod": "طريقة الدفع"
+        "paymentMethod": "طريقة الدفع",
+        "exchangeKept": "فرق احتفظ به المحل",
+        "exchangeCredit": "مدفوع بقطع راجعة"
       },
       "customer": {
         "title": "بيانات الزبون",
@@ -551,7 +564,9 @@
         "paidOff": "سُدِّد بالكامل.",
         "modalTitle": "دفعة على الطلب #{number}",
         "modalDescription": "أي مبلغ حتى الباقي على هذا الطلب.",
-        "refundConsequence": "يُرجَع {amount} المدفوع من الصندوق."
+        "refundConsequence": "يُرجَع {amount} المدفوع من الصندوق.",
+        "exchangeIn": "قطع راجعة",
+        "exchangeOut": "نُقل إلى استبدال"
       },
       "handover": {
         "kept": "محفوظة في المحل",
@@ -674,6 +689,14 @@
         "credit": {
           "title": "بالدين",
           "description": "يدفع الزبون لاحقًا، مرة واحدة أو على دفعات."
+        },
+        "returning": {
+          "title": "القطع الراجعة",
+          "description": "القطع التي أرجعها الزبون من هذا الطلب."
+        },
+        "settlement": {
+          "title": "الفرق",
+          "description": "قيمة القطع الراجعة مقابل القطع الجديدة."
         }
       },
       "save": "إنشاء الطلب",
@@ -741,6 +764,73 @@
       "confirmConsequence": "سيُسجَّل أن شركة التوصيل دفعت {amount} عن هذا الطلب.",
       "confirmAction": "استلمت المبلغ",
       "collected": "تم تسجيل استلام المبلغ."
+    },
+    "exchange": {
+      "badge": "استبدال",
+      "action": "استبدال",
+      "title": "استبدال من طلب رقم {number}",
+      "subtitle": "اختر القطع الراجعة، أضف القطع الجديدة، ثم حدّد كيف سُوّي الفرق.",
+      "notPossible": "لا يمكن استبدال هذا الطلب: الاستبدال فقط لبيعة منتهية ومدفوعة وما زال مع الزبون منها قطع.",
+      "needReturning": "اختر قطعة راجعة واحدة على الأقل.",
+      "needNew": "أضف قطعة جديدة واحدة على الأقل.",
+      "notePlaceholder": "سبب الاستبدال (اختياري)",
+      "confirm": "إتمام الاستبدال",
+      "done": "تم حفظ الاستبدال كطلب رقم {number}.",
+      "returning": {
+        "soldAt": "بيعت بـ {price} · {count} مع الزبون",
+        "decrease": "أقل — {name}",
+        "increase": "أكثر — {name}",
+        "quantityFor": "الكمية الراجعة — {name}"
+      },
+      "settlement": {
+        "returned": "قيمة القطع الراجعة",
+        "newTotal": "مجموع القطع الجديدة",
+        "label": "كيف سُوّي الفرق؟",
+        "side": {
+          "customer": "على الزبون",
+          "shop": "للزبون على المحل",
+          "even": "متساوي — لا فرق"
+        },
+        "options": {
+          "PAID": {
+            "label": "الزبون دفع الفرق",
+            "description": "{amount} يدخل الدرج."
+          },
+          "DEBT": {
+            "label": "دين على الزبون",
+            "description": "{amount} يُضاف إلى حساب الزبون."
+          },
+          "WAIVED": {
+            "label": "مسامحة بالفرق",
+            "description": "{amount} يُحسب خصمًا."
+          },
+          "REFUNDED": {
+            "label": "رجع الفرق للزبون",
+            "description": "{amount} يطلع من الدرج."
+          },
+          "KEPT": {
+            "label": "المحل احتفظ بالفرق",
+            "description": "{amount} يبقى للمحل كدخل."
+          }
+        },
+        "debtCustomer": "مين عليه الدين",
+        "debtOriginalCustomer": "يُضاف إلى حساب {name}، زبون البيعة الأصلية.",
+        "debtCustomerRequired": "اختر الزبون الذي عليه الفرق."
+      },
+      "detail": {
+        "title": "استبدال",
+        "of": "استبدال من طلب رقم {number}",
+        "to": "استُبدل في طلب رقم {number}",
+        "credit": "قيمة القطع الراجعة {amount}",
+        "settlement": {
+          "EVEN": "متساوي — لم يُدفع شيء",
+          "PAID": "الزبون دفع الفرق",
+          "DEBT": "الفرق دين على الزبون",
+          "WAIVED": "سومح بالفرق كخصم",
+          "REFUNDED": "رجع الفرق للزبون",
+          "KEPT": "المحل احتفظ بالفرق"
+        }
+      }
     }
   },
   "reports": {
@@ -749,6 +839,8 @@
     "updating": "جارٍ التحديث…",
     "range": {
       "today": "اليوم",
+      "last2Days": "آخر يومين",
+      "thisWeek": "هذا الأسبوع",
       "last7Days": "آخر 7 أيام",
       "last30Days": "آخر 30 يومًا",
       "thisMonth": "هذا الشهر",
@@ -756,7 +848,8 @@
       "from": "من تاريخ",
       "to": "إلى تاريخ",
       "label": "الفترة",
-      "dates": "التواريخ"
+      "dates": "التواريخ",
+      "span": "من {from} إلى {to}"
     },
     "totals": {
       "title": "مبيعات هذه الفترة",
@@ -1522,6 +1615,18 @@
     "changeRequest": {
       "title": "مطلوب موافقة",
       "body": "{staff} طلب تعديل {field} على {item} — {count} بالانتظار"
+    },
+    "exchange": {
+      "title": "استبدال",
+      "body": "{staff} استبدل قطعًا من طلب رقم {originalOrderNumber} — {settlement} {difference}",
+      "settlement": {
+        "EVEN": "بدون فرق",
+        "PAID": "الزبون دفع",
+        "DEBT": "دين على الزبون",
+        "WAIVED": "مسامحة بالفرق",
+        "REFUNDED": "رجع للزبون",
+        "KEPT": "المحل احتفظ"
+      }
     }
   },
   "users": {
@@ -1781,7 +1886,12 @@
     "supplierPaymentExceedsBalance": "المبلغ أكبر من المستحق.",
     "supplierInvoiceBelowPaid": "لا يمكن أن يقل مجموع الفاتورة عمّا دُفع منها.",
     "supplierInvoiceHasPayments": "لا تُحذف فاتورة دُفع منها شيء.",
-    "profilePasskeyNotFound": "لم يعد مفتاح المرور هذا على حسابك."
+    "profilePasskeyNotFound": "لم يعد مفتاح المرور هذا على حسابك.",
+    "orderNotExchangeable": "لا يمكن استبدال هذا الطلب.",
+    "orderExchangeQuickSell": "لا يمكن استبدال قطعة بيع سريع؛ أضفها إلى الكتالوج أولًا.",
+    "orderExchangeSettlementInvalid": "طريقة تسوية الفرق لا تناسبه — تأكد مين على مين.",
+    "orderExchangeCustomerRequired": "اختر الزبون الذي عليه الفرق.",
+    "orderHasExchanges": "هذا الطلب جزء من استبدال، فلا يمكن حذفه أو تعديل سعره. أرجع قطعه بدلًا من ذلك."
   },
   "pwa": {
     "version": {
@@ -1957,7 +2067,8 @@
         "createGift": "إعطاء بضاعة كهدية",
         "sellOnCredit": "البيع بالدين",
         "recordPayment": "استلام دفعة من دين",
-        "markHandedOver": "تسليم قطعة محفوظة لزبون"
+        "markHandedOver": "تسليم قطعة محفوظة لزبون",
+        "exchange": "استبدال القطع"
       },
       "report": {
         "view": "فتح التقارير"
@@ -2001,6 +2112,9 @@
         "view": "رؤية الموردين وما لهم",
         "manage": "إضافة الموردين وفواتيرهم وتعديلها",
         "pay": "الدفع للموردين"
+      },
+      "sales": {
+        "view": "فتح كشف المبيعات"
       }
     },
     "adminNote": "المسؤول يملك كل الصلاحيات دائمًا، لذلك لا يظهر هنا.",
@@ -2249,7 +2363,8 @@
     "edit": "تعديل",
     "orders": {
       "detail": "تفاصيل الطلب",
-      "new": "طلب جديد"
+      "new": "طلب جديد",
+      "exchange": "استبدال"
     },
     "products": {
       "detail": "تفاصيل المنتج",
@@ -2261,7 +2376,8 @@
     },
     "suppliers": {
       "detail": "تفاصيل المورد"
-    }
+    },
+    "exchange": "استبدال"
   },
   "globalSearch": {
     "label": "بحث في المتجر",
@@ -2767,6 +2883,29 @@
         "fromDrawer": "من الصندوق",
         "notFromDrawer": "من خارج الصندوق"
       }
+    }
+  },
+  "sales": {
+    "title": "كشف المبيعات",
+    "subtitle": "كل ما بيع في الفترة، والبضاعة التي خرجت قطعةً قطعة.",
+    "openOrders": "طلبات هذه الفترة",
+    "returns": "{count, plural, one {رجعت قطعة واحدة} two {رجعت قطعتان} few {رجعت {count} قطع} many {رجعت {count} قطعة} other {رجعت {count} قطعة}} بقيمة {amount}، وهي مخصومة من الأرقام أعلاه.",
+    "empty": {
+      "title": "لم يُبع شيء في هذه الفترة",
+      "hint": "اختر فترة أخرى لترى ما بيع فيها."
+    },
+    "items": {
+      "title": "البضاعة التي خرجت",
+      "titleCount": "البضاعة التي خرجت ({count})",
+      "sortLabel": "الترتيب",
+      "sort": {
+        "quantity": "الأكثر قطعًا",
+        "revenue": "الأعلى مبيعًا"
+      },
+      "product": "المنتج",
+      "quantity": "الكمية",
+      "revenue": "المبيعات",
+      "profit": "الربح"
     }
   }
 }

@@ -24,6 +24,8 @@ export const PERMISSION_ACTIONS = [
 
   // The Reports screen: Admin only, separate from order.view, so following your own orders never adds up to the shop's takings.
   "report.view",
+  // The Sales log (what sold in a range, piece by piece): Admin/Manager, a shop-wide figure gated on its own screen (rule 19).
+  "sales.view",
 
   "category.view",
   "category.manage",
@@ -48,6 +50,8 @@ export const PERMISSION_ACTIONS = [
   "order.delete",
   // Gated with cancel/delete: a sale must not be undoable by the person who rang it up.
   "order.return",
+  // Swapping pieces for others (spec.md "Exchanges"): every role, with an alert to Admins and Managers instead of a gate.
+  "order.exchange",
   // Admin/Manager: whoever took the order must not declare its money received.
   "order.markCollected",
   // A GIFT order deducts stock and takes no money, so Admin/Manager only.
@@ -129,6 +133,7 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<Role, readonly Action[]> = {
   ADMIN: [...PERMISSION_ACTIONS],
   MANAGER: [
     "dashboard.view",
+    "sales.view",
     "product.view",
     "product.create",
     "product.edit",
@@ -156,6 +161,7 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<Role, readonly Action[]> = {
     "order.cancel",
     "order.delete",
     "order.return",
+    "order.exchange",
     "order.markCollected",
     "order.createGift",
     "order.sellOnCredit",
@@ -189,6 +195,7 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<Role, readonly Action[]> = {
     "order.view",
     "order.create",
     "order.updateStatus",
+    "order.exchange",
     "order.sellOnCredit",
     "order.recordPayment",
     "order.markHandedOver",

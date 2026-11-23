@@ -4,11 +4,12 @@ import type { BreadcrumbLeafKind } from "@/types/layout";
 export const BREADCRUMB_ACTION_SEGMENTS: Readonly<Record<string, BreadcrumbLeafKind>> = {
   new: "new",
   edit: "edit",
+  exchange: "exchange",
 };
 
 // Sections whose leaves have their own wording ("Order details"); the rest use the generic one.
 export const BREADCRUMB_SECTIONS: Readonly<Record<string, readonly BreadcrumbLeafKind[]>> = {
-  orders: ["detail", "new"],
+  orders: ["detail", "new", "exchange"],
   products: ["detail", "new", "edit"],
   customers: ["detail"],
   suppliers: ["detail"],

@@ -92,6 +92,13 @@ export const ERROR_CODES = {
   ORDER_NOT_ON_CREDIT: "error.order.not_on_credit",
   ORDER_PAYMENT_EXCEEDS_BALANCE: "error.order.payment_exceeds_balance",
   ORDER_ALREADY_HANDED_OVER: "error.order.already_handed_over",
+  // Exchanges (spec.md "Exchanges"): only a finished sale, catalogue pieces only, and the settlement must fit the difference.
+  ORDER_NOT_EXCHANGEABLE: "error.order.not_exchangeable",
+  ORDER_EXCHANGE_QUICK_SELL: "error.order.exchange_quick_sell",
+  ORDER_EXCHANGE_SETTLEMENT_INVALID: "error.order.exchange_settlement_invalid",
+  ORDER_EXCHANGE_CUSTOMER_REQUIRED: "error.order.exchange_customer_required",
+  // An order with exchanges hangs together with them: it can be returned, never cancelled, deleted or re-priced.
+  ORDER_HAS_EXCHANGES: "error.order.has_exchanges",
   CUSTOMER_NOT_FOUND: "error.customer.not_found",
   CUSTOMER_PHONE_TAKEN: "error.customer.phone_taken",
   CUSTOMER_NOTHING_OWED: "error.customer.nothing_owed",

@@ -7,3 +7,6 @@ export const SIDEBAR_COLLAPSED_KEY = "store_admin_sidebar_collapsed";
 export const SIDEBAR_COLLAPSED_EVENT = "store:sidebar-collapsed";
 // Last query string each page had in this tab, so the breadcrumb returns to a list as it was left.
 export const RETURN_QUERIES_KEY = "store_admin_return_queries";
+// Section cards the reader folded away, by their test-selector name; per browser, never synced.
+export const COLLAPSED_SECTIONS_KEY = "store_admin_collapsed_sections";
+export const COLLAPSED_SECTIONS_EVENT = "store:collapsed-sections";

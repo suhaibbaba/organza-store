@@ -206,6 +206,7 @@ function isStorable(response) {
 const SALE_PAYLOAD_TYPE = "sale";
 // Mirrors PUSH_PAYLOAD_TYPES in shared/src/constants/push.ts (this file can't import).
 const CHANGE_REQUEST_PAYLOAD_TYPE = "changeRequest";
+const EXCHANGE_PAYLOAD_TYPE = "exchange";
 // Per-environment launcher icon; undefined rather than "", which would resolve as a relative URL and fail.
 const NOTIFICATION_ICON = params.get("notificationIcon") || undefined;
 const NOTIFICATION_BADGE = NOTIFICATION_ICON;
@@ -239,6 +240,10 @@ async function handlePush(data) {
 
   if (payload.type === CHANGE_REQUEST_PAYLOAD_TYPE) {
     await showChangeRequest(payload, messages, locale);
+    return;
+  }
+  if (payload.type === EXCHANGE_PAYLOAD_TYPE) {
+    await showExchange(payload, messages, locale);
     return;
   }
   if (payload.type !== SALE_PAYLOAD_TYPE) {
@@ -290,6 +295,31 @@ async function showChangeRequest(payload, messages, locale) {
     // One notification per request: a superseding ask replaces its predecessor.
     tag: `${CHANGE_REQUEST_PAYLOAD_TYPE}-${payload.changeRequestId}`,
     data: { url: changeRequestsUrl(locale) },
+  });
+}
+
+// Someone other than an Admin swapped pieces; tapping opens the exchange's new order.
+async function showExchange(payload, messages, locale) {
+  const values = {
+    staff: payload.staffName || "",
+    orderNumber: payload.orderNumber,
+    originalOrderNumber: payload.originalOrderNumber,
+    difference: formatCurrency(payload.difference, payload.currency, locale),
+    // Mirrors push.exchange.settlement.<SETTLEMENT> in the app's messages.
+    settlement: messages[`push.exchange.settlement.${payload.settlement}`] || "",
+  };
+
+  const title = fill(messages[payload.titleKey], values);
+  const body = fill(messages[payload.bodyKey], values);
+
+  await self.registration.showNotification(title || `#${payload.orderNumber}`, {
+    body: body || [values.staff, `#${payload.originalOrderNumber}`, values.difference].filter(Boolean).join(" — "),
+    icon: NOTIFICATION_ICON,
+    badge: NOTIFICATION_BADGE,
+    lang: locale,
+    dir: "auto",
+    tag: `${EXCHANGE_PAYLOAD_TYPE}-${payload.orderId}`,
+    data: { url: orderUrl(locale, payload.orderId) },
   });
 }
 

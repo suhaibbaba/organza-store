@@ -83,6 +83,7 @@ function OrderCollectionPageContent() {
     channel: filters.channel,
     paymentStatus: null,
     hasQuickSale: filters.hasQuickSale,
+    isExchange: filters.isExchange,
     dateFrom: filters.dateFrom,
     dateTo: filters.dateTo,
   };

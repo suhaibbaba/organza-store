@@ -8,6 +8,7 @@ import type { UrlParams } from "@/types/urlFilters";
 
 export const ORDER_LIST_QUERY_KEY = "orders" as const;
 export const ORDER_DETAIL_QUERY_KEY = "order" as const;
+export const ORDER_EXCHANGE_PREVIEW_QUERY_KEY = "orderExchangePreview" as const;
 export const ORDER_COLLECTION_SUMMARY_QUERY_KEY = ["orders", "collectionSummary"] as const;
 
 export const ORDER_SEARCH_DEBOUNCE_MS = 400;
@@ -22,6 +23,7 @@ export const DEFAULT_ORDER_FILTERS: OrderListFilters = {
   paymentStatus: null,
   collectableOnly: false,
   hasQuickSale: false,
+  isExchange: false,
   dateFrom: "",
   dateTo: "",
   sortBy: "createdAt",
@@ -63,6 +65,8 @@ export const ORDER_FORM_SECTIONS = {
   summary: { icon: "money", tone: "green" },
   note: { icon: "file", tone: "neutral" },
   credit: { icon: "wallet", tone: "rose" },
+  returning: { icon: "reset", tone: "violet" },
+  settlement: { icon: "coins", tone: "green" },
 } as const satisfies Record<string, { icon: IconName; tone: SectionTone }>;
 
 export type OrderFormSectionName = keyof typeof ORDER_FORM_SECTIONS;
@@ -71,6 +75,10 @@ export type OrderFormSectionName = keyof typeof ORDER_FORM_SECTIONS;
 export const GIFT_LINE_TOTAL = "0";
 export const MANUAL_ORDER_PAYMENT_METHOD = "CASH" as const;
 export const EMPTY_ORDER_CREDIT = { onCredit: false, customer: null, paidNow: "", keptKeys: [] } as const;
+
+// What staff are offered first on each side of an exchange: the difference changing hands in cash.
+export const DEFAULT_CUSTOMER_PAYS_SETTLEMENT = "PAID" as const;
+export const DEFAULT_SHOP_PAYS_SETTLEMENT = "REFUNDED" as const;
 
 // The backend re-checks stock atomically (ORDER_INSUFFICIENT_STOCK); this only avoids a doomed order.
 export const MIN_ORDER_QUANTITY = 1;
@@ -94,6 +102,7 @@ export const ORDER_LIST_URL_PARAMS: UrlParams<OrderListFilters> = {
   paymentStatus: urlParam.optionalOneOf(PAYMENT_STATUSES),
   collectableOnly: urlParam.fixed(),
   hasQuickSale: urlParam.flag(),
+  isExchange: urlParam.flag(),
   dateFrom: urlParam.text(),
   dateTo: urlParam.text(),
   sortBy: urlParam.oneOf(ORDER_SORT_FIELDS),

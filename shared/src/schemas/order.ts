@@ -8,6 +8,7 @@ import { QUICK_SELL_DETAIL_MAX_LENGTH, QUICK_SELL_NAME_MAX_LENGTH } from "@/cons
 import {
   CUSTOMER_SUGGESTION_MIN_DIGITS,
   DISCOUNT_TYPES,
+  EXCHANGE_SETTLEMENTS,
   LATITUDE_MAX,
   LATITUDE_MIN,
   LONGITUDE_MAX,
@@ -210,6 +211,27 @@ export const returnOrderSchema = z.object({
 });
 export type ReturnOrderInput = z.infer<typeof returnOrderSchema>;
 
+// An exchange (spec.md "Exchanges"): pieces back from the order, new catalogue pieces out, and how the difference was settled.
+export const exchangePreviewSchema = z.object({
+  returnItems: z.array(returnOrderItemSchema).min(1, ERROR_CODES.ORDER_ITEMS_REQUIRED),
+});
+export type ExchangePreviewInput = z.infer<typeof exchangePreviewSchema>;
+
+export const exchangeOrderSchema = z
+  .object({
+    returnItems: z.array(returnOrderItemSchema).min(1, ERROR_CODES.ORDER_ITEMS_REQUIRED),
+    items: z.array(createOrderItemSchema).min(1, ERROR_CODES.ORDER_ITEMS_REQUIRED),
+    settlement: z.enum(EXCHANGE_SETTLEMENTS),
+    // DEBT only: who owes it; defaults to the original sale's customer.
+    customerId: z.string().min(1).optional(),
+    note: z.string().min(1).optional(),
+    ...discountShape,
+  })
+  .refine(isDiscountConsistent, DISCOUNT_REFINEMENT)
+  .refine((v) => v.items.every((item) => !item.quickSell), { message: ERROR_CODES.ORDER_EXCHANGE_QUICK_SELL })
+  .refine((v) => v.items.every((item) => !item.keptInShop), { message: ERROR_CODES.ORDER_CREDIT_INVALID });
+export type ExchangeOrderInput = z.infer<typeof exchangeOrderSchema>;
+
 // Settling up with the delivery company: the ids of the orders it just paid for, always a bounded list.
 export const collectOrdersSchema = z.object({
   orderIds: z
@@ -238,6 +260,10 @@ export const listOrdersQuerySchema = paginationSchema.extend({
   collectableOnly: booleanInput.optional(),
   // The quick-sale review list (spec.md "Quick sell"); unset lists everything.
   hasQuickSale: booleanInput.optional(),
+  // Only exchanges (their new orders); unset lists everything.
+  isExchange: booleanInput.optional(),
+  // Orders holding a piece with this barcode or SKU — how the till finds the sale a piece came from.
+  itemCode: z.string().trim().min(1).optional(),
   // Inclusive date range over createdAt.
   dateFrom: z.coerce.date().optional(),
   dateTo: z.coerce.date().optional(),

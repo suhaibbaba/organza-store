@@ -12,6 +12,8 @@ import {
   resolveMapLinkSchema,
   createOrderSchema,
   customerSuggestionsQuerySchema,
+  exchangeOrderSchema,
+  exchangePreviewSchema,
   listOrdersQuerySchema,
   returnOrderSchema,
   updateOrderSchema,
@@ -19,6 +21,8 @@ import {
   type CollectOrdersInput,
   type CreateOrderInput,
   type CustomerSuggestionsQuery,
+  type ExchangeOrderInput,
+  type ExchangePreviewInput,
   type ResolveMapLinkInput,
   type ListOrdersQuery,
   type ReturnOrderInput,
@@ -38,6 +42,15 @@ import { queryCollectionSummary, toCollectionSummary, queryOutstandingByOrder } 
 import { findCustomerSuggestions } from "@/lib/orderCustomers";
 import { resolveMapLink } from "@/lib/mapLink";
 import { scheduleSaleNotification } from "@/lib/saleNotifications";
+import { scheduleExchangeNotification } from "@/lib/exchangeNotifications";
+import {
+  assertExchangeable,
+  exchangeCashMovement,
+  exchangeCredit,
+  isPaymentTracked,
+  resolveReturnLines,
+  resolveSettlement,
+} from "@/lib/orderExchange";
 import { writeAudit } from "@/lib/audit";
 import { orderBalance, reconcileCredit, recordOrderPayment, type CreditReconciled } from "@/lib/orderCredit";
 import { ensureCustomerForOrder } from "@/lib/customers";
@@ -51,6 +64,7 @@ import {
 import {
   AUDIT_ENTITY,
   CHANGE_REQUEST_ENTITIES,
+  EXCHANGE_PAYMENT_METHOD,
   CHANGE_REQUEST_FIELDS,
   COLLECTABLE_ORDER_STATUSES,
   ERROR_CODES,
@@ -88,6 +102,12 @@ const orderInclude = {
   },
   // Author's name only — no email, phone or idNumber (rule 19).
   createdBy: { select: { id: true, name: true } },
+  exchangeOf: { select: { id: true, orderNumber: true, createdAt: true } },
+  exchanges: {
+    where: { deletedAt: null },
+    orderBy: { createdAt: "asc" as const },
+    select: { id: true, orderNumber: true, createdAt: true },
+  },
 } satisfies Prisma.OrderInclude;
 
 // A refund paid back after a cancel, return, delete or re-discount is audited on its own, like any money out of the till.
@@ -134,6 +154,8 @@ const ORDER_SUMMARY_COLUMNS = {
   discountAmount: true,
   total: true,
   hasQuickSale: true,
+  exchangeOfOrderId: true,
+  exchangeSettlement: true,
   stockDeductedAt: true,
   createdById: true,
   createdAt: true,
@@ -190,6 +212,16 @@ router.get(
     // Quick sell's review list (spec.md "Quick sell"); unset lists everything.
     if (query.hasQuickSale) {
       where.hasQuickSale = true;
+    }
+    if (query.isExchange) {
+      where.exchangeOfOrderId = { not: null };
+    }
+    // The till finds the sale a piece came from by the code on its label.
+    if (query.itemCode) {
+      const code = query.itemCode;
+      where.items = {
+        some: { OR: [{ sku: code }, { product: { barcode: code } }, { variant: { barcode: code } }] },
+      };
     }
 
     // A cancelled or fully returned sale owes nothing and must not pad the outstanding-money list.
@@ -605,6 +637,11 @@ router.patch(
     if ((UNEDITABLE_ORDER_STATUSES as readonly string[]).includes(existing.status)) {
       throw new AppError(409, ERROR_CODES.ORDER_NOT_EDITABLE);
     }
+    // An exchange's money is fixed by what came back; re-pricing either side would break what was carried over.
+    const repricing = body.items !== undefined || body.discountType !== undefined || body.discountValue !== undefined;
+    if (repricing && (existing.exchangeOfOrderId || existing.exchanges.length > 0)) {
+      throw new AppError(409, ERROR_CODES.ORDER_HAS_EXCHANGES);
+    }
 
     // An online order must still be deliverable to someone, as the create schema enforces.
     if (isOnlineChannel(existing.channel)) {
@@ -867,6 +904,232 @@ router.post(
   }),
 );
 
+// POST /api/orders/:id/exchange/preview — what the chosen pieces would carry over; writes nothing.
+router.post(
+  "/:id/exchange/preview",
+  requirePermission("order.exchange"),
+  validateBody(exchangePreviewSchema),
+  asyncHandler(async (req, res) => {
+    const { returnItems } = req.body as ExchangePreviewInput;
+    const order = await loadOrder(req.params.id);
+    assertExchangeable(order);
+    const credit = exchangeCredit(order, resolveReturnLines(order.items, returnItems));
+    sendOk(res, { credit: credit.toFixed(MONEY_DECIMAL_PLACES) });
+  }),
+);
+
+// POST /api/orders/:id/exchange — pieces back onto the shelf, new pieces out as their own sale, the difference settled; every role.
+router.post(
+  "/:id/exchange",
+  requirePermission("order.exchange"),
+  validateBody(exchangeOrderSchema),
+  asyncHandler(async (req, res) => {
+    const body = req.body as ExchangeOrderInput;
+    const user = req.user!;
+
+    // Priced before the transaction, from today's catalogue, exactly as a sale is.
+    const lines = await priceRequestedItems(body.items.map((item) => ({ ...item, productId: item.productId! })));
+    const requested = computeOrderTotals(
+      lines.map((line) => line.lineTotal),
+      body,
+    );
+
+    const { original, created, difference, settlement } = await prisma.$transaction(async (tx) => {
+      const original = await lockOrder(tx, req.params.id);
+      assertExchangeable(original);
+
+      const returned = resolveReturnLines(original.items, body.returnItems);
+      const credit = exchangeCredit(original, returned);
+      const difference = roundMoney(money(requested.total).sub(credit));
+      const settlement = resolveSettlement(difference, body.settlement);
+
+      // Owing the difference is a credit sale, so it needs that permission and somebody to owe it.
+      const onCredit = settlement === "DEBT";
+      if (onCredit && !can(user, "order.sellOnCredit")) {
+        throw new AppError(403, ERROR_CODES.FORBIDDEN);
+      }
+      // The exchange stays with the original sale's customer unless another is named.
+      const customerId = body.customerId ?? original.customerId;
+      const customer = customerId ? await tx.customer.findUnique({ where: { id: customerId } }) : null;
+      if (customerId && !customer) {
+        throw new AppError(404, ERROR_CODES.CUSTOMER_NOT_FOUND);
+      }
+      if (onCredit && !customer) {
+        throw new AppError(400, ERROR_CODES.ORDER_EXCHANGE_CUSTOMER_REQUIRED);
+      }
+
+      // --- the pieces coming back: on the shelf again, recorded as returned and as exchanged ---
+      for (const [itemId, quantity] of returned) {
+        await tx.orderItem.update({
+          where: { id: itemId },
+          data: { returnedQuantity: { increment: quantity }, exchangedQuantity: { increment: quantity } },
+        });
+      }
+      const itemsById = new Map(original.items.map((item) => [item.id, item]));
+      if (original.stockDeductedAt) {
+        await restoreStock(
+          tx,
+          toStockMovements(
+            [...returned].map(([itemId, quantity]) => ({
+              productId: itemsById.get(itemId)!.productId,
+              variantId: itemsById.get(itemId)!.variantId,
+              quantity,
+            })),
+          ),
+        );
+      }
+      const fullyReturned = original.items.every(
+        (item) => item.returnedQuantity + (returned.get(item.id) ?? 0) >= item.quantity,
+      );
+      // An account's credit leaves it as an EXCHANGE payment, never as cash out of the drawer.
+      if (isPaymentTracked(original) && credit.greaterThan(0)) {
+        await tx.orderPayment.create({
+          data: {
+            orderId: original.id,
+            amount: credit.negated(),
+            method: EXCHANGE_PAYMENT_METHOD,
+            receivedById: user.id,
+            receivedAt: new Date(),
+          },
+        });
+      }
+      await tx.order.update({
+        where: { id: original.id },
+        data: {
+          ...(fullyReturned ? { status: "RETURNED", stockDeductedAt: null } : {}),
+          ...(isPaymentTracked(original) && credit.greaterThan(0)
+            ? { paidAmount: roundMoney(original.paidAmount.sub(credit)) }
+            : {}),
+        },
+      });
+      // Re-settles the account (what is still owed on it); the credit already left, so nothing is paid back here.
+      await reconcileCredit(tx, original.id, user.id);
+
+      // --- the new pieces: their own sale, paid first with what came back ---
+      const waived = settlement === "WAIVED";
+      const totals = waived
+        ? computeOrderTotals(
+            lines.map((line) => line.lineTotal),
+            { discountType: "AMOUNT", discountValue: roundMoney(money(requested.subtotal).sub(credit)).toFixed(2) },
+          )
+        : requested;
+      const kept = settlement === "KEPT" ? difference.negated() : ZERO_MONEY();
+      const total = roundMoney(money(totals.total).add(kept));
+      const cash = exchangeCashMovement(difference, settlement);
+      const paid = roundMoney(credit.add(cash));
+      const now = new Date();
+
+      const payments = [
+        ...(credit.greaterThan(0) ? [{ amount: credit, method: EXCHANGE_PAYMENT_METHOD }] : []),
+        ...(!cash.isZero() ? [{ amount: cash, method: "CASH" }] : []),
+      ];
+
+      const created = await tx.order.create({
+        data: {
+          channel: "STORE",
+          type: "SALE",
+          status: STORE_ORDER_INITIAL_STATUS as OrderStatus,
+          paymentMethod: "CASH",
+          paymentStatus: (onCredit ? "ON_CREDIT" : "COLLECTED") as PaymentStatus,
+          collectedAt: onCredit ? null : now,
+          customerName: customer?.name ?? original.customerName,
+          customerPhone: customer?.phone ?? original.customerPhone,
+          customerWhatsapp: customer ? customer.whatsapp : original.customerWhatsapp,
+          customerAddress: customer ? customer.address : original.customerAddress,
+          customerLatitude: customer ? customer.latitude : original.customerLatitude,
+          customerLongitude: customer ? customer.longitude : original.customerLongitude,
+          customerId: customer?.id ?? null,
+          onCredit,
+          paidAmount: paid,
+          ...(payments.length
+            ? {
+                payments: {
+                  create: payments.map((payment) => ({
+                    amount: payment.amount,
+                    method: payment.method as "CASH" | "EXCHANGE",
+                    receivedById: user.id,
+                    receivedAt: now,
+                  })),
+                },
+              }
+            : {}),
+          note: body.note ?? null,
+          subtotal: totals.subtotal,
+          discountType: waived ? "AMOUNT" : (body.discountType ?? null),
+          discountValue: waived ? totals.discountAmount : (body.discountValue ?? null),
+          discountAmount: totals.discountAmount,
+          total,
+          stockDeductedAt: now,
+          exchangeOfOrderId: original.id,
+          exchangeCredit: credit,
+          exchangeKept: kept,
+          exchangeSettlement: settlement,
+          createdById: user.id,
+          items: {
+            create: lines.map((line) => ({
+              productId: line.productId,
+              variantId: line.variantId,
+              name: line.name as Prisma.InputJsonValue,
+              variantName: (line.variantName ?? Prisma.JsonNull) as Prisma.InputJsonValue,
+              sku: line.sku,
+              unitPrice: line.unitPrice,
+              unitCost: line.unitCost,
+              quantity: line.quantity,
+              discountType: line.discountType,
+              discountValue: line.discountValue,
+              discountAmount: line.discountAmount,
+              lineTotal: line.lineTotal,
+              handedOverAt: now,
+              handedOverById: user.id,
+            })),
+          },
+        },
+        include: orderInclude,
+      });
+      await deductStock(tx, toStockMovements(lines));
+
+      return { original, created, difference, settlement };
+    });
+
+    await writeAudit({
+      userId: user.id,
+      action: AuditAction.EXCHANGE,
+      entityType: AUDIT_ENTITY.ORDER,
+      entityId: original.id,
+      oldValue: serializeOrder(original, Role.ADMIN),
+      newValue: {
+        exchangeOrderId: created.id,
+        returned: body.returnItems,
+      },
+    });
+    await writeAudit({
+      userId: user.id,
+      action: AuditAction.EXCHANGE,
+      entityType: AUDIT_ENTITY.ORDER,
+      entityId: created.id,
+      newValue: { ...serializeOrder(created, Role.ADMIN), difference: difference.toFixed(MONEY_DECIMAL_PLACES) },
+    });
+    const productIds = [...original.items, ...created.items].map((item) => item.productId);
+    queueProductSync(productIds);
+    queueMarkedImages(productIds);
+
+    // Never awaited: the alert can't hold up the till, and a failed push never undoes an exchange.
+    scheduleExchangeNotification(
+      {
+        orderId: created.id,
+        orderNumber: created.orderNumber,
+        originalOrderNumber: original.orderNumber,
+        difference: difference.toFixed(MONEY_DECIMAL_PLACES),
+        settlement,
+        staffName: created.createdBy?.name ?? "",
+      },
+      user,
+    );
+
+    sendOk(res, serializeOrder(created, user.role), null, 201);
+  }),
+);
+
 // POST /api/orders/:id/payments — money taken on a credit sale; never more than it still owes.
 router.post(
   "/:id/payments",
@@ -953,6 +1216,10 @@ router.delete(
   asyncHandler(async (req, res) => {
     const { existing, deleted, reconciled } = await prisma.$transaction(async (tx) => {
       const existing = await lockOrder(tx, req.params.id);
+      // The exchange carries this sale's money; take its pieces back with a return instead.
+      if (existing.exchanges.length > 0) {
+        throw new AppError(409, ERROR_CODES.ORDER_HAS_EXCHANGES);
+      }
       const restoreNow = existing.stockDeductedAt !== null;
       if (restoreNow) {
         await restoreStock(tx, outstandingMovements(existing));

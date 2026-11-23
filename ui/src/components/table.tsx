@@ -347,7 +347,7 @@ export function Table<TRow>({
                   className={cn(
                     "whitespace-nowrap border-b border-line bg-table-head",
                     compact ? "sticky top-0 h-(--control-h-sm) px-3" : "px-[18px] py-[13px]",
-                    "text-micro font-medium text-ink-muted",
+                    "text-meta font-medium text-ink-muted",
                     alignClass(column.align),
                     column.className,
                   )}

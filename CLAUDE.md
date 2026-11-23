@@ -74,6 +74,9 @@ category screen.
 **Customers and selling on credit** are built end to end (backend + admin + POS): a `Customer`
 table (phone unique under both +970/+972), credit sales on any channel (counter or WhatsApp) with any number of payments, per-piece
 handover for pieces kept in the shop — see "Customers and selling on credit" in `spec.md`.
+**Exchanges** are built end to end (backend + admin + POS): pieces back from a finished sale and new
+pieces out as a linked STORE order, the difference paid, owed, waived, refunded or kept; every role
+may exchange and Admins/Managers get a push for anyone else's — see "Exchanges" in `spec.md`.
 **Suppliers** are built (backend + admin): suppliers, their invoices as amounts owed (not stock),
 and payments against one invoice or oldest first, each marked as from the till or not — see
 "Suppliers and their invoices" in `spec.md`.

@@ -10,11 +10,19 @@ export const REPORTS_SALES_QUERY_KEY = "reports.sales";
 export const REPORTS_STALE_TIME_MS = 60 * 1000;
 
 // "This month" is the default: it's the figure the rent is paid out of.
-export const REPORT_PRESETS: readonly ReportPresetKey[] = ["today", "last7Days", "last30Days", "thisMonth", "custom"];
+export const REPORT_PRESETS: readonly ReportPresetKey[] = [
+  "today",
+  "thisWeek",
+  "last7Days",
+  "last30Days",
+  "thisMonth",
+  "custom",
+];
 export const DEFAULT_REPORT_PRESET: ReportPresetKey = "thisMonth";
 
 export const REPORT_PRESET_DAYS: Partial<Record<ReportPresetKey, number>> = {
   today: 0,
+  last2Days: 1,
   last7Days: 6,
   last30Days: 29,
 };

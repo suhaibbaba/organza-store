@@ -5,3 +5,4 @@ export * from "./feedback";
 export * from "./pwa";
 export * from "./sell";
 export * from "./profile";
+export * from "./exchange";

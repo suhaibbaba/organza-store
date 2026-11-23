@@ -9,6 +9,7 @@ import { ORDER_THUMB_SIZES } from "@/constants/orders";
 import { ProductImage } from "@/components/products/product-image";
 import { OrderTypeBadge } from "@/components/orders/order-type-badge";
 import { QuickSaleBadge } from "@/components/orders/quick-sale-badge";
+import { ExchangeBadge } from "@/components/orders/exchange-badge";
 
 function usePieceName() {
   const locale = useLocale();
@@ -81,6 +82,7 @@ export function OrderTitle({ order, subtitle }: { order: OrderSummary; subtitle?
           </Link>
           <OrderTypeBadge type={order.type} />
           {order.hasQuickSale && <QuickSaleBadge />}
+          {order.exchangeOfOrderId && <ExchangeBadge />}
         </div>
         {subtitle && (
           <Typography

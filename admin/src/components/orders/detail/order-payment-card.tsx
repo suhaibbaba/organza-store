@@ -17,7 +17,8 @@ import { OrderCreditPayments } from "@/components/orders/detail/order-credit-pay
 // Recording a collection is order.markCollected; the backend is the real gate, this only decides whether the button exists.
 export function OrderPaymentCard({ order }: { order: Order }) {
   const t = useTranslations("orders.detail.payment");
-  if (order.onCredit) {
+  // An exchange is paid partly with what came back, so its payments are listed like a credit sale's.
+  if (order.onCredit || order.exchangeOf) {
     return (
       <DetailCard
         icon={order.paymentStatus === "ON_CREDIT" ? Clock : CircleCheck}

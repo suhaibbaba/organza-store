@@ -52,6 +52,7 @@ export const PERMISSION_GROUPS: readonly PermissionGroup[] = [
       "order.cancel",
       "order.delete",
       "order.return",
+      "order.exchange",
       "order.markCollected",
       "order.createGift",
       "order.sellOnCredit",
@@ -77,6 +78,7 @@ export const PERMISSION_GROUPS: readonly PermissionGroup[] = [
     tone: "rose",
     actions: [
       "dashboard.view",
+      "sales.view",
       "report.view",
       "cashSession.view",
       "cashSession.manage",

@@ -45,6 +45,7 @@ export default function OrdersPage() {
     channel: filters.channel,
     paymentStatus: filters.paymentStatus,
     hasQuickSale: filters.hasQuickSale,
+    isExchange: filters.isExchange,
     dateFrom: filters.dateFrom,
     dateTo: filters.dateTo,
   };

@@ -7,6 +7,7 @@ import {
   ReceiptText,
   HandCoins,
   ChartColumn,
+  ChartNoAxesCombined,
   ClipboardCheck,
   Users,
   ShieldCheck,
@@ -26,6 +27,8 @@ import type { NavEntry, NavItem } from "@/types/nav";
 export const NAV_ITEMS: readonly NavItem[] = [
   { key: "dashboard", href: "/dashboard", icon: LayoutDashboard, action: "dashboard.view" },
   { key: "orders", href: "/orders", icon: ReceiptText, action: "order.view" },
+  // What sold in a range and which pieces left the shop; a shop-wide figure, so its own action (rule 19).
+  { key: "salesLog", href: "/sales", icon: ChartNoAxesCombined, action: "sales.view" },
   // Money still with the delivery company. Gated on the permission that lets
   // someone settle it, so an Employee — who may take orders but never declare
   // their money received — doesn't see a screen they can't act on.
@@ -68,7 +71,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
 // One tree for the sidebar and the phone menu: single pages stay on top, related pages fold into a group.
 export const NAV_TREE: readonly NavEntry[] = [
   { kind: "item", key: "dashboard" },
-  { kind: "group", key: "sales", icon: ShoppingBag, items: ["orders", "collection", "customers"] },
+  { kind: "group", key: "sales", icon: ShoppingBag, items: ["salesLog", "orders", "collection", "customers"] },
   { kind: "group", key: "catalogue", icon: Package, items: ["products", "inventory", "labels", "categories"] },
   { kind: "group", key: "finance", icon: Landmark, items: ["reports", "expenses", "suppliers"] },
   { kind: "item", key: "changeRequests" },

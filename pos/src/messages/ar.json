@@ -250,7 +250,17 @@
       "giftTitle": "تم تسجيل الهدية",
       "giftCount": "{count, plural, one {قطعة واحدة} two {قطعتان} few {{count, number, plain} قطع} many {{count, number, plain} قطعة} other {{count, number, plain} قطعة}}",
       "giftNextStep": "خرجت القطع من المخزون ولم يتم تحصيل أي مبلغ.",
-      "creditBalance": "الباقي عليه {amount}"
+      "creditBalance": "الباقي عليه {amount}",
+      "exchangeTitle": "تم الاستبدال",
+      "exchangeOrderNumbers": "من طلب {original} · طلب جديد {number}",
+      "exchangeSettled": {
+        "EVEN": "ما في شي للدفع",
+        "PAID": "الزبون دفع الفرق",
+        "DEBT": "انضاف على دين الزبون",
+        "WAIVED": "تمت المسامحة بالفرق",
+        "REFUNDED": "رجّع للزبون {amount}",
+        "KEPT": "المحل احتفظ بالفرق"
+      }
     },
     "whatsapp": {
       "title": "طلب واتساب",
@@ -358,6 +368,85 @@
       "cancel": "إلغاء",
       "confirm": "بيع بالدين",
       "saving": "جارٍ الحفظ…"
+    },
+    "exchange": {
+      "open": "استبدال",
+      "title": "استبدال قطع",
+      "findSubtitle": "لاقي البيعة اللي إجت منها القطع: اكتب رقمها، امسح قطعة، أو اختارها من آخر البيعات.",
+      "pickSubtitle": "اختار القطع اللي رجّعها الزبون.",
+      "searchLabel": "رقم الطلب أو الزبون أو باركود القطعة",
+      "searchPlaceholder": "رقم الطلب، الاسم، الهاتف أو الباركود",
+      "searchHint": "ماسح الباركود بيكتب بهالمربع طول ما هو مفتوح.",
+      "cameraOn": "امسح قطعة",
+      "cameraOff": "سكّر الكاميرا",
+      "withPiece": "بيعات فيها القطعة {code}",
+      "matches": "بيعات مطابقة",
+      "recent": "آخر البيعات",
+      "searchFailed": "ما قدرنا نجيب البيعات. جرّب كمان مرة.",
+      "noMatches": "ما في بيعة مطابقة.",
+      "noSales": "ما في بيعات لسا.",
+      "showMore": "عرض المزيد",
+      "orderNumber": "طلب #{number}",
+      "notExchangeable": "ما بنفع تستبدل",
+      "itemsMore": "{names} +{count, number, plain}",
+      "itemSeparator": "، ",
+      "whenWho": "{when} · {name}",
+      "otherSale": "اختار بيعة ثانية",
+      "piecesTitle": "القطع المرجعة",
+      "paidEach": "{amount} للقطعة · {count, plural, one {باقي {count, number, plain}} other {باقي {count, number, plain}}}",
+      "alreadyBack": "مرجعة من قبل",
+      "decrease": "قطعة أقل من {name}",
+      "increase": "قطعة زيادة من {name}",
+      "quantity": "كم قطعة من {name} راجعة",
+      "creditLabel": "{count, plural, =0 {لسا ما اخترت شي} one {قيمة قطعة واحدة} other {قيمة {count, number, plain} قطع}}",
+      "continue": "متابعة — ضيف القطع الجديدة",
+      "pieceTimes": "{name} ×{count, number, plain}",
+      "bannerTitle": "استبدال من {order} · {count, plural, one {قطعة مرجعة} other {{count, number, plain} قطع مرجعة}}",
+      "editReturns": "غيّر القطع المرجعة",
+      "cancel": "إلغاء الاستبدال",
+      "finish": "إتمام الاستبدال",
+      "emptyTitle": "ضيف القطع الجديدة",
+      "emptyHint": "امسح أو ابحث عن القطع اللي بدو ياخدها الزبون بدالها.",
+      "newTotal": "القطع الجديدة",
+      "returnedValue": "القطع المرجعة",
+      "side": {
+        "customer": "على الزبون",
+        "shop": "للزبون",
+        "even": "استبدال متساوي"
+      },
+      "noQuickSell": "القطعة المكتوبة يدويًا ما بتدخل بالاستبدال. شيلها أو بيعها لحالها.",
+      "confirmTitle": "استبدال من طلب #{number}",
+      "evenHint": "القطع بنفس القيمة، فما في مصاري بتتحرك.",
+      "settlementLabel": "كيف انحسب الفرق؟",
+      "settlement": {
+        "EVEN": {
+          "label": "متساوي",
+          "hint": "ما في مصاري بتتحرك."
+        },
+        "PAID": {
+          "label": "الزبون دفع {amount}",
+          "hint": "الفرق بيدخل الدرج هلأ."
+        },
+        "DEBT": {
+          "label": "دين على الزبون {amount}",
+          "hint": "بيتسجل دين على حساب الزبون."
+        },
+        "WAIVED": {
+          "label": "مسامحة بالفرق",
+          "hint": "الـ {amount} بتنحسب خصم على القطع الجديدة."
+        },
+        "REFUNDED": {
+          "label": "رجّعنا {amount}",
+          "hint": "الفرق بيطلع من الدرج هلأ."
+        },
+        "KEPT": {
+          "label": "المحل احتفظ بـ {amount}",
+          "hint": "ما في إرجاع، والفرق بيضل للمحل."
+        }
+      },
+      "back": "رجوع",
+      "saving": "عم نحفظ…",
+      "confirm": "تأكيد الاستبدال"
     }
   },
   "errors": {
@@ -396,7 +485,12 @@
     "posDeviceUnknown": "هذا الجهاز لا يعرفك. ادخل بالبريد وكلمة المرور.",
     "posPasscodeWrong": "رمز الدخول غير صحيح.",
     "posPasscodeLocked": "محاولات خاطئة كثيرة. ادخل بالبريد وكلمة المرور.",
-    "profilePasskeyNotFound": "لم يعد مفتاح المرور هذا على حسابك."
+    "profilePasskeyNotFound": "لم يعد مفتاح المرور هذا على حسابك.",
+    "orderNotExchangeable": "هالبيعة ما بنفع تستبدل: بس البيعة المنتهية والمدفوعة.",
+    "orderExchangeQuickSell": "القطعة المكتوبة يدويًا ما بتدخل بالاستبدال. شيلها أو بيعها لحالها.",
+    "orderExchangeSettlementInvalid": "طريقة حساب الفرق ما بتناسب الفرق. راجع المجاميع وجرّب كمان مرة.",
+    "orderExchangeCustomerRequired": "اختار مين عليه الفرق.",
+    "orderHasExchanges": "على هالبيعة استبدال، فما بنفع تتعدل أو تنحذف."
   },
   "pwa": {
     "version": {
